@@ -3504,13 +3504,19 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (VM.BuildFor32Addr || methodToBeCalled.getType() == VM_TypeReference.CodeArray) {
 	emit_iaload();
       } else {
-	emit_laload();
+	genBoundsCheck();
+	asm.emitSLDI (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
+	asm.emitLAddrX(T2, T0, T1);  // load desired array element
+	pushAddr(T2);
       }
     } else if (methodName == VM_MagicNames.addressArraySet) {
       if (VM.BuildFor32Addr || methodToBeCalled.getType() == VM_TypeReference.CodeArray) {
         emit_iastore();  
       } else {
-	emit_lastore();
+	popAddr(T2);                                   // T2 is value to store
+	genBoundsCheck();
+	asm.emitSLDI (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
+	asm.emitSTAddrX (T2, T0, T1);                  // store value in array
       }
     } else if (methodName == VM_MagicNames.getIntAtOffset) { 
       popInt(T1); // pop offset
