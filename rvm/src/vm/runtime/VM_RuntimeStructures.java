@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2002
  */
+//$Id$
 
 /**
  * Abstraction for runtime structures that are simple arrays.  Funneling all 
