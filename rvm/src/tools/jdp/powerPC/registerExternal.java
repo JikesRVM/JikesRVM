@@ -136,7 +136,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
       }
 
       // for other time, check if the value within the JVM space
-      if (!owner.bmap.isInJVMspace(currentJTOC)) {
+      if (owner.bmap.isInJVMspace(currentJTOC)) {
 	// System.out.println("cacheJTOC: cached " + VM.intAsHexString(currentJTOC));
 	cachedJTOC = currentJTOC;
       } 
