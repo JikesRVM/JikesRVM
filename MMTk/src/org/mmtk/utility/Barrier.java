@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -52,18 +53,23 @@ public final class Barrier implements VM_Uninterruptible {
   // Set target to appropriate value
   //
   public void setTarget (int t) {
+    VM_Magic.isync();
     if (VM.VerifyAssertions) VM._assert(t >= 0);
     target = t + 1;
+    VM_Magic.sync();
   }
 
   public void clearTarget () {
+    VM_Magic.isync();
     target = -1;
+    VM_Magic.sync();
   }
 
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
   public int arrive (int where) {
+    VM_Magic.isync();
     int cur = currentCounter.peek();
     SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
@@ -82,14 +88,17 @@ public final class Barrier implements VM_Uninterruptible {
 	currentCounter.increment();   
       c.increment();                // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
+      VM_Magic.sync();
       return myValue;
     } else {
       // everyone else
       long startCheck = 0;
       long lastElapsed = 0;
       for (int i=0; ; i++) {
-	if (target != -1 && c.peek() == target) 
+	if (target != -1 && c.peek() == target) {
+	  VM_Magic.sync();
 	  return myValue;
+	}
 	if (((i - 1) % TIME_CHECK) == 0) {
 	  if (startCheck == 0) {
 	    startCheck = VM_Interface.cycles();
