@@ -32,7 +32,7 @@ class VM_ApplicationClassLoader extends AppClassLoader {
     
 
     private static byte[] getBytes(InputStream is) throws IOException {
-	byte[] buf = new byte[4096];
+	byte[] buf = new byte[1024];
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
 	int count;
 	while ((count = is.read(buf)) > 0)
