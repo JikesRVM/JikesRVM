@@ -34,6 +34,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    */
   public static final void boot (VM_BootRecord theBootRecord) {
     VM_Allocator.boot(theBootRecord);
+    VM_GCStatistics.boot();
   }
 
   /**
