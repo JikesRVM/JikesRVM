@@ -773,11 +773,11 @@ configuration such that all the Jikes RVM classes are included in the
 boot image.  (By default 
 only a small subset of these classes are included in the boot image.)
 
-\Mlitch{FulAdaptive} images 
+\Mlitch{FullAdaptive} images 
 have all of the included classes already compiled by the optimizing
-compiler.  \Mlitch{FullBaseAdaptive} images have the classes compiled
-by the baseline compiler; the adaptive system will later recompile any
-hot methods.
+compiler.  \Mlitch{FullBaseAdaptive} images have the included classes
+already compiled by the baseline compiler; the adaptive system will
+later recompile any hot methods.
 
 \item The word \Mlitch{Fast} at the beginning of 
 the configuration name identifies a \Mlitch{Full} configuration where
