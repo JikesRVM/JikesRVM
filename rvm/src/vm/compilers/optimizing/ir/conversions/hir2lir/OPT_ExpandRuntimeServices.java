@@ -98,6 +98,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	VM_Array array = (VM_Array)Array.getVMType();
 	OPT_Operand numberElements = NewArray.getClearSize(inst);
 	OPT_Operand size = null;
+	boolean inline = false;
 	if (numberElements instanceof OPT_RegisterOperand) {
 	  int width = array.getLogElementSize();
 	  OPT_RegisterOperand temp = numberElements.asRegister();
@@ -111,6 +112,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 						      VM_TypeReference.Int, temp,
 						      new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array)));
 	} else { 
+	  inline = true;
 	  size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
 	}
 	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(array));
@@ -122,7 +124,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		     size, 
 		     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
 		     allocator);
-	if (ir.options.INLINE_NEW) {
+	if (inline && ir.options.INLINE_NEW) {
 	  if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	  container.counter2++;
 	  if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
