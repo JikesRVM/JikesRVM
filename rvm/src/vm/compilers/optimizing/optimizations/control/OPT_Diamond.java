@@ -86,29 +86,23 @@ final class OPT_Diamond {
         OPT_BasicBlock b1 = (OPT_BasicBlock)out1.getNormalOut().nextElement();
         OPT_BasicBlock b2 = (OPT_BasicBlock)out2.getNormalOut().nextElement();
         if (b1 == b2) {
-          if (b1.getNumberOfIn() == 2) {
-            return fourElementDiamond(bb,out1,out2,b1);
-          }
+          return fourElementDiamond(bb,out1,out2,b1);
         }
       }
-    } else if (out1In == 1 && out2In == 2) {
+    } else if (out1In == 1) {
       // check for a 3-element diamond
       if (out1.getNumberOfNormalOut() == 1) {
         OPT_BasicBlock b1 = (OPT_BasicBlock)out1.getNormalOut().nextElement();
         if (b1 == out2) {
-          if (b1.getNumberOfIn() == 2) {
-            return threeElementDiamond(bb,out1,out2);
-          }
+          return threeElementDiamond(bb,out1,out2);
         }
       }
-    } else if (out1In == 2 && out2In == 1) {
+    } else if (out2In == 1) {
       // check for a 3-element diamond
       if (out2.getNumberOfNormalOut() == 1) {
         OPT_BasicBlock b2 = (OPT_BasicBlock)out2.getNormalOut().nextElement();
         if (b2 == out1) {
-          if (b2.getNumberOfIn() == 2) {
-            return threeElementDiamond(bb,out2,out1);
-          }
+          return threeElementDiamond(bb,out2,out1);
         }
       }
     } 
