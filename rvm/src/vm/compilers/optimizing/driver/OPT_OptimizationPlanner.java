@@ -182,6 +182,8 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_EscapeTransformations());
     // Perform peephole branch optimizations to clean-up before SSA stuff
     addComponent(p, new OPT_BranchOptimizations(1));
+    // CFG spliting
+    addComponent(p, new OPT_StaticSplitting());
     // restructure loops
     addComponent(p, new OPT_CFGTransformations());
     // Simple flow-insensitive optimizations
