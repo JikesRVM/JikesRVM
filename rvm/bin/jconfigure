@@ -553,7 +553,7 @@ declare -i RVM_WITH_COPY_MS=0
 declare -i RVM_WITH_REF_COUNT=0
 declare -i RVM_WITH_NO_GC=0
 declare -i RVM_WITH_GCSPY=0
-
+declare -i RVM_WITH_GCTRACE=0
 
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
@@ -1022,6 +1022,8 @@ EOF
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
     elif (( $RVM_WITH_REF_COUNT )); then
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
+    elif (( $RVM_WITH_GCTRACE )); then
+        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/gcTrace
     elif (( $RVM_WITH_NO_GC )); then
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
     fi
@@ -2789,6 +2791,12 @@ EOF
 	# Build the blocking system call wrapper library, if requested
 	DEST="$BUILD_DIRECTORY_STR/libsyswrap"${shlib_suffix}
 	echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
+    fi
+
+    if (( RVM_WITH_GCTRACE )); then
+        CC_DEFINES="$CC_DEFINES -DRVM_FOR_GCTRACE"
+    else
+        CC_DEFINES="$CC_DEFINES -URVM_FOR_GCTRACE"
     fi
 
     # Include GCspy libraries, if requested
