@@ -94,11 +94,10 @@ items from the
 \xlink{RVM Download Page}{\RVMDownloadURL}.
 \begin{itemize}
 \item the RVM source distribution.  This is available as a compressed tar
-file.  You can also acquire this via CVS from the
+file {\tt \RVMTarFile}.  You can also work with the contents of this repository with CVS from the
 \xlink{public repository}{\RVMCVSURL}.
-\item the RVM standard libraries.  This is a file {\tt rvmrt.jar}
-available from the download page..  Due to license constraints,
-this file is not available via CVS.
+\item the RVM standard libraries.  This is a file {\tt \LibTarFile}
+available from the download page. 
 \end{itemize}
 
 After downloading these files, you will set up 
@@ -144,14 +143,14 @@ First extract the RVM source distribution into a directory such as
 % cd $HOME
 % mkdir rvmRoot
 % cd rvmRoot
-% zcat jikesrvm.tar.gz | tar xvf - 
+% zcat jikesrvm-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
 Next extract the RVM standard libraries.  The following installs the
 standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 \begin{verbatim}
 % cd $HOME/rvmRoot
-% zcat rvmSupport.tar.gz | tar xvf - 
+% zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
 \index{environment variables}
