@@ -53,13 +53,6 @@ done
 if [ $JVM = jdk ]; then
   $HOST_JAVA_RT $CLASSES COM.volano.Mark $*
 
-elif [ $JVM = j9 ]; then
-  DIR=`pwd`
-  cd /homes/fury5/jalapeno/contrib/j9
-  j9 -cpa:classes.zip $CLASSES COM.volano.Mark $*
-  cd $DIR
-  exit 0
-
 elif [ $JVM = jpn ]; then
   jalapeno $ARGS -X:h=200 -X:lh=100 $PROCS $CLASSES COM.volano.Mark $*
 
