@@ -422,6 +422,9 @@ final class MarkSweepCollector implements Constants, VM_Uninterruptible {
 	owner.setTreadmillFromHead(next);
       if (!next.EQ(VM_Address.zero()))
 	setPrevTreadmill(next, prev);
+    } else {
+      if (VM.VerifyAssertions)
+	VM._assert(!isOnTreadmill(cell, owner.getTreadmillFromHead()));
     }
 
     // add to treadmill
@@ -434,6 +437,13 @@ final class MarkSweepCollector implements Constants, VM_Uninterruptible {
       owner.setTreadmillToHead(cell);
     else
       owner.setTreadmillFromHead(cell);
+
+    if (VM.VerifyAssertions) {
+      if (to)
+	VM._assert(isOnTreadmill(cell, owner.getTreadmillToHead()));
+      else
+	VM._assert(isOnTreadmill(cell, owner.getTreadmillFromHead()));
+    }
 
     owner.unlockTreadmill();
   }
