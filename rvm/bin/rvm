@@ -33,7 +33,10 @@ for arg in $*; do
    fi
 done
 
-typeset -x LIBPATH=$LIBPATH:$RVM_BUILD
-typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RVM_BUILD
+. $RVM_BUILD/environment
+
+LOADPATH=$RVM_BUILD:$HOST_JAVA_HOME/jre/bin:$HOST_JAVA_HOME/jre/bin/classic
+typeset -x LIBPATH=$LIBPATH:$LOADPATH
+typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LOADPATH
 exec $RVM_BUILD/JikesRVM $ARGS "$@"
 
