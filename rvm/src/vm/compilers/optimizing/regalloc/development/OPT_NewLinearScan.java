@@ -42,10 +42,10 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    * debug flags
    */
-  static private final boolean debug = false;
-  static private final boolean verboseDebug = false;
-  static private final boolean gcdebug = false;
-  static private final boolean debugCoalesce = false;
+  final static private boolean debug = false;
+  final static private boolean verboseDebug = false;
+  final static private boolean gcdebug = false;
+  final static private boolean debugCoalesce = false;
 
   /**
    * Register allocation is required
@@ -68,6 +68,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
    *  @param ir the IR
    */
   void perform(OPT_IR ir) {
+
     this.ir = ir;
 
     // TODO: consider making a composite phase.  Can we share state
@@ -153,6 +154,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
    *  Side effect: update the fpStackHeight in MIRInfo
    */
   private void rewriteFPStack(OPT_IR ir) {
+    //-#if RVM_FOR_IA32
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
@@ -199,6 +201,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
       }
     }
+    //-#endif
   }
 
   /**
@@ -508,11 +511,19 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     }
 
     /**
-     * Does this interval start before another ?
+     * Does this interval start before another?
      * @param i the interval to compare with
      */
     boolean startsBefore(BasicInterval i) {
       return begin < i.begin;
+    }
+
+    /**
+     * Does this interval end after another?
+     * @param i the interval to compare with
+     */
+    boolean endsAfter(BasicInterval i) {
+      return end > i.end;
     }
 
     /**
@@ -746,9 +757,14 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
           }
         }
       } else {
-        // live.getBegin == null.  Conservatively merge with the previous
-        // interval.
-        return true;
+        // live.getBegin == null.  
+        // Merge if it is contiguous with the last interval.
+        int dBegin = getDFN(bb.firstInstruction());
+        if (last.getEnd() + 1 < dBegin) {
+          return false;
+        } else {
+          return true;
+        }
       }
     }
 
@@ -759,7 +775,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       spillInterval = spillManager.findOrCreateSpillLocation(this);
       OPT_RegisterAllocatorState.setSpill(reg,spillInterval.getOffset());
       OPT_RegisterAllocatorState.clearOneToOne(reg);
-      if (debug) {
+      if (verboseDebug) {
         System.out.println("Assigned " + reg + " to location " +
                            spillInterval.getOffset());
       }
@@ -875,6 +891,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         } else if (currentI.startsBefore(current)) {
           currentI = (BasicInterval)currentI.getNext();
         } else {
+          if (currentI.endsAfter(current)) {
+            // In this case, we've found all basic intervals that must be
+            // removed.  So we're done.
+            return;
+          }
           if (VM.VerifyAssertions) VM.assert(current.sameRange(currentI));
 
           currentI = (BasicInterval)currentI.getNext();
@@ -1164,7 +1185,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         int newStart = newInterval.getBegin();
         if (bi.endsAfter(newStart)) break;
 
-        if (debug) System.out.println("Expire " + bi);
+        if (verboseDebug) System.out.println("Expire " + bi);
 
         // note that the bi interval no longer is live 
         freeInterval(bi);	
@@ -1200,7 +1221,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      */
     void allocate(BasicInterval newInterval) {
 
-      if (debug) System.out.println("Allocate " + newInterval + " " +
+      if (verboseDebug) System.out.println("Allocate " + newInterval + " " +
                                     newInterval.getRegister());
 
       CompoundInterval container = newInterval.getContainer();
@@ -1209,7 +1230,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       if (container.isSpilled()) {
         // We previously decided to spill the compound interval.  No further
         // action is needed.
-        if (debug) System.out.println("Previously spilled " + container);
+        if (verboseDebug) System.out.println("Previously spilled " + container);
         return;
       } else {
         if (container.isAssigned()) {
@@ -1220,12 +1241,12 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             // The assignment of newInterval to phys is still OK.
             // Update the live ranges of phys to include the new basic
             // interval
-            if (debug) System.out.println("Previously assigned to " + phys +
+            if (verboseDebug) System.out.println("Previously assigned to " + phys +
                                           " " + container + 
                                           " phys interval " +
                                           getInterval(phys));
             updatePhysicalInterval(phys,newInterval);
-            if (debug) System.out.println(" now phys interval " + 
+            if (verboseDebug) System.out.println(" now phys interval " + 
                                           getInterval(phys));
             return;
           } else {
@@ -1235,9 +1256,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
                          "Previously assigned, " + phys + " " + container);
             // first look and see if there's another free register for
             // container. 
-            if (debug) System.out.println( "Looking for free register");
+            if (verboseDebug) System.out.println( "Looking for free register");
             OPT_Register freeR = findAvailableRegister(container);
-            if (debug) System.out.println( "Free register? " + freeR);
+            if (verboseDebug) System.out.println( "Free register? " + freeR);
 
             if (freeR == null) {
               // Did not find a free register to assign.  So, spill one of
@@ -1247,10 +1268,10 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
               // choose which of the two intervals to spill
               double costA = spillCost.getCost(container.getRegister());
               double costB = spillCost.getCost(currentAssignment.getRegister());
-              if (debug) System.out.println( "Current assignment " +
+              if (verboseDebug) System.out.println( "Current assignment " +
                                              currentAssignment + " cost "
                                              + costB);
-              if (debug) System.out.println( "Cost of spilling" +
+              if (verboseDebug) System.out.println( "Cost of spilling" +
                                              container + " cost "
                                              + costA);
               CompoundInterval toSpill = (costA < costB) ? container : 
@@ -1259,19 +1280,21 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
               OPT_Register p = toSpill.getAssignment();
               toSpill.spill();
               spilled=true;
-              if (debug) System.out.println("Spilled " + toSpill+
+              if (verboseDebug) System.out.println("Spilled " + toSpill+
                                             " from " + p);
               CompoundInterval physInterval = getInterval(p);
               physInterval.removeIntervals(toSpill);
-              if (debug) System.out.println("  after spill phys" + getInterval(p));
+              if (verboseDebug) System.out.println("  after spill phys" + getInterval(p));
               if (toSpill != container) updatePhysicalInterval(p,newInterval);       
-              if (debug) System.out.println(" now phys interval " + 
+              if (verboseDebug) System.out.println(" now phys interval " + 
                                             getInterval(p));
             } else {
               // found a free register for container! use it!
               if (debug) System.out.println("Switch container " 
-                                          + container + " to " + freeR); 
+                                          + container + "from " + phys + " to " + freeR); 
               CompoundInterval physInterval = getInterval(phys);
+              if (debug) System.out.println("Before switch phys interval"
+                                            + physInterval);
               physInterval.removeIntervals(container);
               if (debug) System.out.println("Intervals of " 
                                           + phys + " now " +
@@ -1279,7 +1302,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
               container.assign(freeR);
               updatePhysicalInterval(freeR,container,newInterval);
-              if (debug) System.out.println("Intervals of " 
+              if (verboseDebug) System.out.println("Intervals of " 
                                           + freeR + " now " +
                                           getInterval(freeR)); 
             }
@@ -1294,7 +1317,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             if (debug) System.out.println("First allocation " 
                                           + phys + " " + container); 
             updatePhysicalInterval(phys,newInterval);       
-            if (debug) System.out.println("  now phys" + getInterval(phys));
+            if (verboseDebug) System.out.println("  now phys" + getInterval(phys));
           } else {
             // Could not find a free physical register.  Some member of the
             // active set must be spilled.  Choose a spill candidate.
@@ -1315,20 +1338,20 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
               phys = spillCandidate.getAssignment();
               spillCandidate.spill();
               spilled=true;
-              if (debug) System.out.println("Spilled " + spillCandidate +
+              if (verboseDebug) System.out.println("Spilled " + spillCandidate +
                                             " from " + phys);
               CompoundInterval physInterval = getInterval(phys);
-              if (debug) System.out.println(" assigned " 
+              if (verboseDebug) System.out.println(" assigned " 
                                             + phys + " to " + container);
               physInterval.removeIntervals(spillCandidate);
-              if (debug) System.out.println("  after spill phys" + getInterval(phys));
+              if (verboseDebug) System.out.println("  after spill phys" + getInterval(phys));
               updatePhysicalInterval(phys,newInterval);       
-              if (debug) System.out.println(" now phys interval " + 
+              if (verboseDebug) System.out.println(" now phys interval " + 
                                             getInterval(phys));
               container.assign(phys);
             } else {
               // spill the new interval.
-              if (debug) System.out.println("spilled " + container);
+              if (verboseDebug) System.out.println("spilled " + container);
               container.spill();
               spilled=true;
             }
@@ -1785,7 +1808,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       }
 
       // debug support
-      if (debug) {
+      if (verboseDebug) {
         VM.sysWrite("**** start of interval dump "+ir.method+" ****\n");
         VM.sysWrite(intervals.toString());
         VM.sysWrite("**** end   of interval dump ****\n");
@@ -1921,7 +1944,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         // create a new live interval
         CompoundInterval newInterval = new CompoundInterval(dfnbegin,
                                                             dfnend,reg);
-        if (debug) System.out.println("created a new interval " + newInterval);
+        if (verboseDebug) System.out.println("created a new interval " + newInterval);
 
         // associate the interval with the register 
         OPT_NewLinearScan.setInterval(reg, newInterval);
@@ -1934,7 +1957,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       } else {
         // add the new live range to the existing interval
         existingInterval.addRange(live,bb);
-        if (debug) System.out.println("Extended old interval " + existingInterval);
+        if (verboseDebug) System.out.println("Extended old interval " + reg); 
+        if (verboseDebug) System.out.println(existingInterval);
 
         return existingInterval;
       } 

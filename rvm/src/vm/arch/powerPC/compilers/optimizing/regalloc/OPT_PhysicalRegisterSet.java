@@ -65,6 +65,19 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     return getSize();
   }
 
+  /**
+   * Return the total number of nonvolatile GPRs.
+   */
+  static final int getNumberOfNonvolatileGPRs() {
+    return NUM_NONVOLATILE_GPRS;
+  }
+
+  /**
+   * Return the total number of nonvolatile FPRs.
+   */
+  static final int getNumberOfNonvolatileFPRs() {
+    return NUM_NONVOLATILE_FPRS;
+  }
 
   /**
    * Constructor: set up a pool of physical registers.

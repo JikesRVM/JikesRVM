@@ -285,6 +285,7 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     restoreNonvolatilesAfterSysCall(call, ir);
     call.operator = IA32_CALL;
   }
+
   /**
    * Save all nonvolatile registers before a syscall.  
    * We do this in case the sys call does not respect our

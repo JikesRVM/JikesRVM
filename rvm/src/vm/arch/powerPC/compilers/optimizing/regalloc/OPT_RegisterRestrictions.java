@@ -16,4 +16,13 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions {
   OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {
     super(phys);
   }
+  /**
+   * Is it forbidden to assign symbolic register symb to physical register r
+   * in instruction s?
+   */
+  boolean isForbidden(OPT_Register symb, OPT_Register r,
+                             OPT_Instruction s) {
+    return false;
+  }
+
 }

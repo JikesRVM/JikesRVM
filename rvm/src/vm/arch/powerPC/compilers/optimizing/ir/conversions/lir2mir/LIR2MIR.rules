@@ -1214,6 +1214,11 @@ r:	CALL(r,r)
 EMIT_INSTRUCTION
 CALL(burs, P(p));
 
+r:	SYSCALL(r,r)
+10
+EMIT_INSTRUCTION
+SYSCALL(burs, P(p));
+
 r:	NULL
 0
 NOFLAGS

@@ -79,7 +79,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
       // MANDATORY: Perform Live analysis and create GC maps
       new OPT_LiveAnalysis(true, false),
       // MANDATORY: Perform register allocation
-      new OPT_RegisterAllocator(),
+      new OPT_NewRegisterAllocator(),
       // MANDATORY: Add prologue and epilogue
       new OPT_PrologueEpilogueCreator(),
     });

@@ -39,11 +39,6 @@ final class OPT_MIRInfo {
   int fpStackHeight;
 
   /**
-   * The live interval information needed for linear scan reg alloc
-   */
-  OPT_LinearScanLiveAnalysis liveInfo;
-  
-  /**
    * A basic block holding the call to VM_Thread.threadSwitch for a
    * prologue.
    */

@@ -5,6 +5,8 @@
 
 import instructionFormats.*;
 import java.util.Enumeration;
+import java.util.Iterator;
+
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 
  * the stackframe.  This class holds only the architecture-specific
@@ -18,6 +20,87 @@ import java.util.Enumeration;
 final class OPT_StackManager extends OPT_GenericStackManager
   implements OPT_Operators {
   
+  /**
+   * stack locaiton to save the CR register
+   */
+  private int saveCRLocation;
+  /**
+   * stack locaiton to save the XER register
+   */
+  private int saveXERLocation;
+  /**
+   * stack locaiton to save the CTR register
+   */
+  private int saveCTRLocation;
+  /**
+   * Return the size of the fixed portion of the stack.
+   * @return size in bytes of the fixed portion of the stackframe
+   */
+  final int getFrameFixedSize() {
+    return frameSize;
+  }
+
+  /**
+   * Allocate a new spill location and grow the
+   * frame size to reflect the new layout.
+   *
+   * @param type the type to spill
+   * @return the spill location
+   */
+  final int allocateNewSpillLocation(int type) {
+
+    // increment by the spill size
+    spillPointer += OPT_PhysicalRegisterSet.getSpillSize(type);
+
+    if (spillPointer > frameSize) {
+      frameSize = spillPointer;
+    }
+    return spillPointer - OPT_PhysicalRegisterSet.getSpillSize(type);
+  }
+
+  /**
+   * Clean up some junk that's left in the IR after register allocation,
+   * and add epilogue code.
+   */ 
+  void cleanUpAndInsertEpilogue() {
+
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+
+    OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
+    for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
+      switch (inst.getOpcode()) {
+	case PPC_MOVE_opcode:
+	case PPC_FMR_opcode:
+	  // remove frivolous moves
+	  if (MIR_Move.getResult(inst).register.number ==
+	      MIR_Move.getValue(inst).register.number)
+	    inst = inst.remove();
+	  break;
+	case PPC_BLR_opcode:
+	  if (frameIsRequired()) 
+	    insertEpilogue(inst);
+	  break;
+      	case PPC_LFD_opcode:
+	case PPC_LFS_opcode:
+	case PPC_LWZ_opcode:
+	  // the following to handle spilled parameters
+          // SJF: this is ugly.  clean it up someday.
+	  if (MIR_Load.getAddress(inst).register ==
+              ir.regpool.getPhysicalRegisterSet().getFP()) {
+	    OPT_Operand one = MIR_Load.getOffset(inst);
+	    if (one instanceof OPT_IntConstantOperand) {
+	      int offset = ((OPT_IntConstantOperand) one).value;
+	      if (offset <= -256) {
+		MIR_Load.setOffset(inst, I(frameSize - offset - 256));
+	      }
+	    }
+	  }
+        default:
+          break;
+      }
+    }
+  }
+
   /**
    * Insert a spill of a physical register before instruction s.
    *
@@ -106,243 +189,249 @@ final class OPT_StackManager extends OPT_GenericStackManager
     }
   }
   
-  
   /**
+   * Insert the epilogue before a particular return instruction.
    *
-   * PROLOGUE/EPILOGUE. must be done after register allocation
-   *
+   * @param ret the return instruction.
    */
-  final void insertPrologueAndEpilogue() {
-    correctInputArguments();
+  final private void insertEpilogue(OPT_Instruction ret) {
 
-    // This call may set the allocFrame boolean
-    frameSize = insertPrologueAndComputeFrameSize();
-    
-    ir.MIRInfo.FrameSize = frameSize;
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
-    for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
-      switch (inst.getOpcode()) {
-	case PPC_BLR_opcode:
-	  if (allocFrame) // restore non-volatile registers
-	    restoreNonVolatileRegisters(inst);
-	  break;
-	case PPC_MOVE_opcode:
-	case PPC_FMR_opcode:
-	  // remove frivolous moves
-	  if (MIR_Move.getResult(inst).register.number ==
-	      MIR_Move.getValue(inst).register.number)
-	    inst = inst.remove();
-	  break;
-	case PPC_LFD_opcode:
-	case PPC_LFS_opcode:
-	case PPC_LWZ_opcode:
-	  // the following to handle spilled parameters
-	  if (MIR_Load.getAddress(inst).register ==
-              ir.regpool.getPhysicalRegisterSet().getFP()) {
-	    OPT_Operand one = MIR_Load.getOffset(inst);
-	    if (one instanceof OPT_IntConstantOperand) {
-	      int offset = ((OPT_IntConstantOperand) one).value;
-	      if (offset <= -256) {
-		MIR_Load.setOffset(inst, I(frameSize - offset - 256));
-	      }
-	    }
-	  }
-	  break;
-      } // switch
-    } // for
-    OPT_RegisterAllocatorState.resetPhysicalRegisters(ir);
-  }
-  
-  
-  /**
-   * create space for non-volatile register needed to save / restore
-   * NOTE: non-volatile registers are allocated backwards.
-   *
-   * @param s the instruction to insert new instructions before
-   */
-  final private void createNonVolatileArea(OPT_Instruction s) {
-    // cache compiler info for conveniences
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int NonVolatileFrameOffset = info.getUnsignedNonVolatileOffset();
-    int firstInteger = info.getFirstNonVolatileGPR();
-    int firstFloat = info.getFirstNonVolatileFPR();
-    
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register FP = phys.getFP();
-    if (firstInteger != -1) {
-      OPT_Register first = phys.get(firstInteger);
-      if (FIRST_INT + LAST_NONVOLATILE_GPR -first.number <= MULTIPLE_CUTOFF) {
-	// use a sequence of store instructions (more efficient than stm for
-	// small number of stores)
-	for (OPT_Register r = first; r != null; r = r.getNext()) {
-	  s.insertBack(nonPEIGC(MIR_Store.create
-                                (PPC_STW, R(r), R(FP), 
-                                 I(OPT_RegisterAllocatorState.getSpill(r)))));
-	}
-      } else {
-	// use a stm
-	OPT_RegisterOperand range = R(first);
-	range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR -first.number);
-	s.insertBack(nonPEIGC(MIR_Store.create
-                              (PPC_STMW, range, R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill(first)))));
-      }
+    // 1. Restore any saved registers
+    if (ir.MIRInfo.info.isSaveVolatile()) {
+      restoreVolatileRegisters(ret);
     }
-    if (info.isSaveVolatile()) {
-      for (Enumeration e = phys.enumerateVolatileGPRs();
-           e.hasMoreElements();) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-	s.insertBack(nonPEIGC(MIR_Store.create
-                              (PPC_STW, R(realReg), R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill(realReg)))));
-      }
-    }
-    if (firstFloat != -1) {
-      for (OPT_Register realReg = phys.get(firstFloat + FIRST_DOUBLE);
-	   realReg != null; realReg = realReg.getNext()) {
-	s.insertBack(nonPEIGC(MIR_Store.create
-                              (PPC_STFD, D(realReg), R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill(realReg)))));
-      }
-    }
+    restoreNonVolatiles(ret);
 
-    if (info.isSaveVolatile()) {
-      for (Enumeration e = phys.enumerateVolatileFPRs();
-           e.hasMoreElements(); ) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-	s.insertBack(nonPEIGC(MIR_Store.create
-                              (PPC_STFD, D(realReg), R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill
-                                 (realReg)))));
-      }
-      OPT_Register auxReg  = phys.getFirstVolatileGPR();
-      s.insertBack(MIR_Move.create(PPC_MFCR, R(auxReg),
-                                   R(phys.getCR())));
-      s.insertBack(nonPEIGC(MIR_Store.create
-                            (PPC_STW, R(auxReg), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill
-                               (phys.getFirstVolatileConditionRegister())))));
-      s.insertBack(MIR_Move.create(PPC_MFSPR,R(auxReg),
-                                   R(phys.getXER())));
-      s.insertBack(nonPEIGC(MIR_Store.create
-                            (PPC_STW, R(auxReg), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill
-                               (phys.getXER())))));
-      s.insertBack(MIR_Move.create(PPC_MFSPR,R(auxReg),
-                                   R(phys.getCTR())));
-      s.insertBack(nonPEIGC(MIR_Store.create
-                            (PPC_STW, R(auxReg), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill
-                               (phys.getCTR())))));
-      s.insertBack(nonPEIGC(MIR_Load.create
-                            (PPC_LWZ, R(auxReg), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill(auxReg)))));
-    }
-  }
-  
-  /**
-   *
-   *
-   */
-  final private void restoreNonVolatileRegisters(OPT_Instruction s) {
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int firstInteger = info.getFirstNonVolatileGPR();
-    int firstFloat   = info.getFirstNonVolatileFPR();
-    short volatileArray[];
-    boolean SaveVolatile = ir.MIRInfo.info.isSaveVolatile();
-    
+    // 2. Restore return address
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    OPT_Register temp = phys.getTemp();
     OPT_Register FP = phys.getFP();
-    
-    if (SaveVolatile) {
-      OPT_Register temp = phys.getTemp();
-      s.insertBack(nonPEIGC(MIR_Load.create
-                            (PPC_LWZ, R(temp), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill
-                               (phys.getFirstVolatileConditionRegister())))));
-      // cr2 is used by the thread scheduler
-      s.insertBack(MIR_Move.create(PPC_MTCR,
-                                   R(phys.getCR()), R(temp)));
-      s.insertBack(nonPEIGC(MIR_Load.create
-                            (PPC_LWZ, R(temp), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill
-                               (phys.getXER())))));
-      s.insertBack(MIR_Move.create(PPC_MTSPR,
-                                   R(phys.getXER()), R(temp)));
-      s.insertBack(nonPEIGC(MIR_Load.create
-                            (PPC_LWZ, R(temp), R(FP), 
-                             I(OPT_RegisterAllocatorState.getSpill
-                               (phys.getCTR())))));
-      s.insertBack(MIR_Move.create(PPC_MTSPR,
-                                   R(phys.getCTR()), R(temp)));
-    }
-    
-    // restore return address
-    if (ir.stackManager.frameIsRequired()) { 
-      OPT_Register temp = phys.getTemp();
-      s.insertBack(nonPEIGC(MIR_Load.create(PPC_LWZ, R(temp), R(FP),
-		    I(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize))));
-    }
-    
-    // restore non-volatile registers
-    if (firstInteger != -1) {
-      OPT_Register first = phys.get(firstInteger);
-      if (FIRST_INT + LAST_NONVOLATILE_GPR -first.number <= MULTIPLE_CUTOFF) {
-	// use a sequence of load instructions 
-	// (more efficient than lm for small number of loads)
-	for (OPT_Register r = first; r != null; r = r.getNext()) {
-	  s.insertBack(nonPEIGC(MIR_Load.create
-                                (PPC_LWZ, R(r), R(FP), 
-                                 I(OPT_RegisterAllocatorState.getSpill(r)))));
-	}
-      } else {
-	// use a lm
-	OPT_RegisterOperand range = R(first);
-	range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR -first.number);
-	s.insertBack(nonPEIGC(MIR_Load.create
-                              (PPC_LMW, range, R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill(first)))));
-      }
-    }
-    if (SaveVolatile) {
-      for (Enumeration e = phys.enumerateVolatileGPRs();
-           e.hasMoreElements(); ) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-	s.insertBack(nonPEIGC(MIR_Load.create
-                              (PPC_LWZ, R(realReg), R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill
-                                 (realReg)))));
-      }
-    }
-    if (firstFloat != -1)
-      for (OPT_Register realReg = phys.get(firstFloat + FIRST_DOUBLE);
-	   realReg != null; realReg = realReg.getNext()) {
-	s.insertBack(nonPEIGC(MIR_Load.create
-                              (PPC_LFD, D(realReg), R(FP), 
-                               I(OPT_RegisterAllocatorState.getSpill
-                                 (realReg)))));
-      }
-    if (SaveVolatile) {
-      for (Enumeration e = phys.enumerateVolatileFPRs();
-           e.hasMoreElements(); ) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-	s.insertBack(nonPEIGC(MIR_Load.create(PPC_LFD, D(realReg), R(FP),
-					      I(OPT_RegisterAllocatorState.
-                                                getSpill(realReg)))));
-      }
-    }
-    
-    // LOAD RETURN ADDRESS INTO LR
-    if (ir.stackManager.frameIsRequired()) { 
-      s.insertBack(MIR_Move.create(PPC_MTSPR,
-                                   R(phys.getLR()),
+    ret.insertBack(nonPEIGC(MIR_Load.create(PPC_LWZ, R(temp), R(FP),
+                 I(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize))));
+
+    // 3. Load return address into LR
+    ret.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getLR()),
                                    R(phys.getTemp())));
-    }
-    
-    // restore OLD FP
-    s.insertBack(MIR_Binary.create(PPC_ADDI, R(FP), R(FP), I(frameSize)));
+
+    // 4. Restore old FP
+    ret.insertBack(MIR_Binary.create(PPC_ADDI, R(FP), R(FP), I(frameSize)));
+
   }
   
+  /**
+   * Insert code in the prologue to save the 
+   * volatile registers.
+   *
+   * @param inst 
+   */
+  private void saveVolatiles(OPT_Instruction inst) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    VM_OptCompilerInfo info = ir.MIRInfo.info;
+    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+
+    // 1. save the volatile GPRs
+    OPT_Register FP = phys.getFP();
+    int i = 0;
+    for (Enumeration e = phys.enumerateVolatileGPRs();
+         e.hasMoreElements(); i++) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      int location = saveVolatileGPRLocation[i];
+      inst.insertBefore(nonPEIGC(MIR_Store.create(PPC_STW, R(r), R(FP),
+					      I(location))));
+    }
+    // 2. save the volatile FPRs
+    i = 0;
+    for (Enumeration e = phys.enumerateVolatileFPRs();
+         e.hasMoreElements(); i++) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      int location = saveVolatileFPRLocation[i];
+      inst.insertBefore(nonPEIGC(MIR_Store.create(PPC_STFD, D(r), R(FP),
+					      I(location))));
+    }
+    
+    // 3. Save some special registers
+    OPT_Register temp = phys.getTemp();
+    
+    // cr2 is used by the thread scheduler
+    inst.insertBack(MIR_Move.create(PPC_MFCR, R(temp), R(phys.getCR())));
+    inst.insertBack(nonPEIGC(MIR_Store.create(PPC_STW, R(temp), R(FP),
+                                              I(saveCRLocation))));
+
+    inst.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getXER()) ));
+    inst.insertBack(nonPEIGC(MIR_Store.create(PPC_STW, R(temp), R(FP),
+                                              I(saveXERLocation))));
+
+    inst.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getCTR())));
+    inst.insertBack(nonPEIGC(MIR_Store.create(PPC_STW, R(temp), R(FP), 
+                                             I(saveCTRLocation))));
+  }
+  
+  /**
+   * Insert code into the prologue to save any used non-volatile
+   * registers.  
+   *
+   * @param inst the first instruction after the prologue.  
+   */
+  private void saveNonVolatiles(OPT_Instruction inst) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    VM_OptCompilerInfo info = ir.MIRInfo.info;
+    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    if (ir.MIRInfo.info.isSaveVolatile()) {
+      // pretend we use all non-volatiles
+      nNonvolatileGPRS = phys.getNumberOfNonvolatileGPRs();
+    }
+
+    // 1. save the nonvolatile GPRs
+    int n = nNonvolatileGPRS - 1;
+    OPT_Register FP = phys.getFP();
+    if (n <= MULTIPLE_CUTOFF) {
+      // use a sequence of load instructions
+      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+           e.hasMoreElements() && n >= 0 ; n--) {
+        OPT_Register nv = (OPT_Register)e.nextElement();
+        int offset = getNonvolatileGPROffset(n);
+	inst.insertBack(nonPEIGC(MIR_Store.create (PPC_STW, R(nv), R(FP),
+                                               I(offset))));
+      }
+    } else {
+      // use a stm
+      OPT_Register nv = null;
+      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+           e.hasMoreElements() && n >= 0 ; n--) {
+        nv = (OPT_Register)e.nextElement();
+      }
+      n++;
+      OPT_RegisterOperand range = R(nv);
+      // YUCK!!! Why is this crap in register operand??
+      range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR - nv.number);
+      int offset = getNonvolatileGPROffset(n);
+      inst.insertBack(nonPEIGC(MIR_Store.create
+                           (PPC_STMW, range, R(FP), 
+                            I(offset))));
+    }
+    // 1. save the nonvolatile FPRs
+    if (ir.MIRInfo.info.isSaveVolatile()) {
+      // pretend we use all non-volatiles
+      // DANGER: as an optimization, we assert that a SaveVolatile method
+      // will never use non-volatile FPRs.
+    } else {
+      int nNonvolatileFPRS = info.getNumberOfNonvolatileFPRs();
+      n = nNonvolatileFPRS - 1;
+      // use a sequence of load instructions
+      for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards(); 
+         e.hasMoreElements() && n >= 0 ; n--) {
+        OPT_Register nv = (OPT_Register)e.nextElement();
+        int offset = getNonvolatileFPROffset(n);
+        inst.insertBack(nonPEIGC(MIR_Store.create(PPC_STFD, D(nv), R(FP),
+                                                I(offset))));
+      }
+    }
+  }
+
+  /**
+   * Insert code before a return instruction to restore the nonvolatile 
+   * registers.
+   *
+   * @param inst the return instruction
+   */
+  private void restoreNonVolatiles(OPT_Instruction inst) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    VM_OptCompilerInfo info = ir.MIRInfo.info;
+    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+
+    // 1. restore the nonvolatile GPRs
+    int n = nNonvolatileGPRS - 1;
+    OPT_Register FP = phys.getFP();
+    if (n <= MULTIPLE_CUTOFF) {
+      // use a sequence of load instructions
+      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+           e.hasMoreElements() && n >= 0 ; n--) {
+        OPT_Register nv = (OPT_Register)e.nextElement();
+        int offset = getNonvolatileGPROffset(n);
+	inst.insertBack(nonPEIGC(MIR_Load.create (PPC_LWZ, R(nv), R(FP),
+                                               I(offset))));
+      }
+    } else {
+      // use an lm
+      OPT_Register nv = null;
+      for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+           e.hasMoreElements() && n >= 0 ; n--) {
+        nv = (OPT_Register)e.nextElement();
+      }
+      n++;
+      OPT_RegisterOperand range = R(nv);
+      // YUCK!!! Why is this crap in register operand??
+      range.setRange(FIRST_INT + LAST_NONVOLATILE_GPR - nv.number);
+      int offset = getNonvolatileGPROffset(n);
+      inst.insertBack(nonPEIGC(MIR_Load.create
+                           (PPC_LMW, range, R(FP), 
+                            I(offset))));
+    }
+    // Note that save-volatiles are forbidden from using nonvolatile FPRs.
+    if (!ir.MIRInfo.info.isSaveVolatile()) {
+      // 1. restore the nonvolatile FPRs
+      int nNonvolatileFPRS = info.getNumberOfNonvolatileFPRs();
+      n = nNonvolatileFPRS - 1;
+      // use a sequence of load instructions
+      for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards(); 
+           e.hasMoreElements() && n >= 0 ; n--) {
+        OPT_Register nv = (OPT_Register)e.nextElement();
+        int offset = getNonvolatileFPROffset(n);
+        inst.insertBack(nonPEIGC(MIR_Load.create (PPC_LFD, D(nv), R(FP),
+                                                  I(offset))));
+      }
+    }
+  }
+
+  /**
+   * Insert code before a return instruction to restore the 
+   * volatile registers.
+   *
+   * @param inst the return instruction
+   */
+  private void restoreVolatileRegisters(OPT_Instruction inst) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    VM_OptCompilerInfo info = ir.MIRInfo.info;
+    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+
+    // 1. restore the volatile GPRs
+    OPT_Register FP = phys.getFP();
+    int i = 0;
+    for (Enumeration e = phys.enumerateVolatileGPRs();
+         e.hasMoreElements(); i++) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      int location = saveVolatileGPRLocation[i];
+      inst.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(r), R(FP),
+					      I(location))));
+    }
+    // 2. restore the volatile FPRs
+    i = 0;
+    for (Enumeration e = phys.enumerateVolatileFPRs();
+         e.hasMoreElements(); i++) {
+      OPT_Register r = (OPT_Register)e.nextElement();
+      int location = saveVolatileFPRLocation[i];
+      inst.insertBefore(nonPEIGC(MIR_Load.create(PPC_LFD, D(r), R(FP),
+					      I(location))));
+    }
+    // 3. Restore some special registers
+    OPT_Register temp = phys.getTemp();
+    // cr2 is used by the thread scheduler
+    inst.insertBack(nonPEIGC(MIR_Load.create
+                          (PPC_LWZ, R(temp), R(FP), I(saveCRLocation))));
+    inst.insertBack(MIR_Move.create(PPC_MTCR,
+                                 R(phys.getCR()), R(temp)));
+
+    inst.insertBack(nonPEIGC(MIR_Load.create
+                          (PPC_LWZ, R(temp), R(FP), I(saveXERLocation))));
+    inst.insertBack(MIR_Move.create(PPC_MTSPR,
+                                 R(phys.getXER()), R(temp)));
+
+    inst.insertBack(nonPEIGC(MIR_Load.create
+                          (PPC_LWZ, R(temp), R(FP), 
+                           I(saveCTRLocation))));
+    inst.insertBack(MIR_Move.create(PPC_MTSPR,
+                                 R(phys.getCTR()), R(temp)));
+  }
   
   /**
    * Insert the prologue.
@@ -377,7 +466,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
   /**
    * Schedule prologue for 'normal' case (see above)
    */
-  final void createNormalPrologue() {
+  final void insertNormalPrologue() {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     OPT_Register PR = phys.getPR();
@@ -389,7 +478,15 @@ final class OPT_StackManager extends OPT_GenericStackManager
     boolean stackOverflow = interruptible;
     boolean yp = !VM.BuildForThreadSwitchUsingControlRegisterBit && 
       ir.stackManager.hasPrologueYieldpoint();
+
+    int frameFixedSize = getFrameFixedSize();
+    ir.MIRInfo.info.setFrameFixedSize(frameFixedSize);
     
+    if (frameFixedSize >= STACK_SIZE_GUARD || ir.MIRInfo.info.isSaveVolatile()) {
+      insertExceptionalPrologue();
+      return;
+    }
+
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().getNext();
     if (VM.VerifyAssertions) VM.assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
@@ -409,8 +506,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
 			I(VM_Entrypoints.activeThreadStackLimitField.getOffset())))); // 4
     }
 
-    // Now add any instructions to save the nonvolatiles (5)
-    createNonVolatileArea(ptr);
+    // Now add any instructions to save the volatiles and nonvolatiles (5)
+    saveNonVolatiles(ptr);
     
     if (yp) {
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(S1), I(0))); // 6
@@ -446,7 +543,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * (1) R0 is the only available scratch register.
    * (2) stack overflow check has to come first.
    */
-  final void createExceptionalPrologue(){
+  final void insertExceptionalPrologue () {
     if (frameSize >= 0x7ff0) {
       throw new OPT_OptimizingCompilerException("Stackframe size exceeded!");
     }
@@ -515,7 +612,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
 		       I(STACKFRAME_METHOD_ID_OFFSET))));
 
     // Now add the non volatile save instructions
-    createNonVolatileArea(ptr);
+    if (ir.MIRInfo.info.isSaveVolatile()) {
+      saveVolatiles(ptr);
+    }
+    saveNonVolatiles(ptr);
     
     // Threadswitch
     if (yp) {
@@ -527,494 +627,231 @@ final class OPT_StackManager extends OPT_GenericStackManager
   }
 
   /**
-   * Return the number of GPRs that will hold parameters on entry to a
-   * method.
-   * @param ir the governing IR
-   */
-  final private int getNumberOfGPRParameters(OPT_IR ir) {
-    int result = 0;
-    
-    // all non-static methods have arg[0] implicit this.
-    if (!ir.method.isStatic()) result++;
-
-    // enumerate all parameters, and count the number that will be
-    // passed in GPRs
-    VM_Type types[] = ir.method.getParameterTypes();
-    for (int i = 0; i < types.length; i++) {
-      VM_Type t = types[i];
-      if (t.isLongType()) {
-        result += 2;
-      } else if (!t.isFloatType() && !t.isDoubleType()) {
-        // t is object, int, short, char, byte, or boolean 
-        result++;
-      }
-    }
-
-    // the maximum number of GPR parameters is constrained by the calling
-    // convention
-    return Math.min(result,NUMBER_INT_PARAM);
-  }
-  /**
-   * Return the number of FPRs that will hold parameters on entry to a
-   * method.
-   * @param ir the governing IR
-   */
-  final private int getNumberOfFPRParameters(OPT_IR ir) {
-    int result = 0;
-    
-    // enumerate all parameters, and count the number that will be
-    // passed in FPRs
-    VM_Type types[] = ir.method.getParameterTypes();
-    for (int i = 0; i < types.length; i++) {
-      VM_Type t = types[i];
-      if (t.isDoubleType() || t.isFloatType()) {
-        result++;
-      }
-    }
-
-    // the maximum number of FPR parameters is constrained by the calling
-    // convention
-    return Math.min(result,NUMBER_DOUBLE_PARAM);
-  }
-    
-  /**
+   * Compute the number of stack words needed to hold nonvolatile
+   * registers.
    *
-   *
+   * Side effects: 
+   * <ul>
+   * <li> updates the VM_OptCompiler structure 
+   * <li> updates the <code>frameSize</code> field of this object
+   * <li> updates the <code>frameRequired</code> field of this object
+   * </ul>
    */
-  final private void correctInputArguments() {
-    
-    int intArgumentRegisters    = getNumberOfGPRParameters(ir);
-    int doubleArgumentRegisters = getNumberOfFPRParameters(ir);
-    int intIndex    = 0;
-    int doubleIndex = 0;
-    
-    if ((intIndex    >= (intArgumentRegisters-1)) &&
-	(doubleIndex >= (doubleArgumentRegisters-1))) {
-      return;
-    }
-
-    OPT_RegisterAllocatorState.resetPhysicalRegisters(ir);
+  void computeNonVolatileArea() {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
-	 inst != null; 
-	 inst = inst.nextInstructionInCodeOrder()) {
-      if ((intIndex    >= intArgumentRegisters) &&
-	  (doubleIndex >= doubleArgumentRegisters))
-	break;
+    VM_OptCompilerInfo info = ir.MIRInfo.info;
 
-      OPT_Operator operator = inst.operator();
-      if (operator.isMove()) {
-	OPT_RegisterOperand dst = MIR_Move.getResult(inst);
-	OPT_Register DST = phys.get(dst.register.number);
-	DST.allocateRegister();
-	if (operator == PPC_MOVE) {
-	  intIndex++;
-	} else {
-	  doubleIndex++;
-	}
+    if (ir.MIRInfo.info.isSaveVolatile()) {
+      // Record that we use every nonvolatile GPR
+      int numGprNv = phys.getNumberOfNonvolatileGPRs();
+      info.setNumberOfNonvolatileGPRs((short)numGprNv);
+
+      // set the frame size
+      frameSize += numGprNv * WORDSIZE;
+
+      int numFprNv = phys.getNumberOfNonvolatileFPRs();
+      info.setNumberOfNonvolatileFPRs((short)numFprNv);
+      frameSize += numFprNv * WORDSIZE * 2;
+
+      frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
+
+      // Record that we need a stack frame.
+      setFrameRequired();
+
+      // Map each volatile GPR to a spill location.
+      int i = 0;
+      for (Enumeration e = phys.enumerateVolatileGPRs(); 
+           e.hasMoreElements(); i++)  {
+        OPT_Register r = (OPT_Register)e.nextElement();
+        // Note that as a side effect, the following call bumps up the
+        // frame size.
+        saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
       }
-    }
-    
-    intIndex    = 0;
-    doubleIndex = 0;
-    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
-	 inst != null; inst = inst.nextInstructionInCodeOrder()) {
-      if ((intIndex    >= intArgumentRegisters) &&
-	  (doubleIndex >= doubleArgumentRegisters))
-	break;
+
+      // Allocate two dummy slots in the stack frame between the volatile
+      // GPRs and the non-volatile GPRs.  This is expected by the Save
+      // Volatile GC map iterator.  Also, these two slots will allow us to
+      // save all GPRs with a stm if we choose
+      allocateNewSpillLocation(INT_REG);     // empty slot for R15 
+      allocateNewSpillLocation(INT_REG);     // emptly slot for R16
       
-      OPT_Operator operator = inst.operator();
-      if (operator.isMove()) {
-	OPT_RegisterOperand dst = MIR_Move.getResult(inst);
-	OPT_RegisterOperand src = MIR_Move.getValue(inst);
-	if (src.register.number >= phys.getSize()) {
-	  VM.sysWrite("DST: " + dst + " SRC: " + src + "\n");
-	  ir.printInstructions();
-	}
-	OPT_Register SRC = phys.get(src.register.number);
-	OPT_Register DST = phys.get(dst.register.number);
-	OPT_Register alloc;
-	if ((alloc = OPT_RegisterAllocatorState.getMapping(SRC)) != null) {
-	  src.register = alloc;
-	  SRC.deallocateRegister();
-	}
-	if (operator == PPC_MOVE) {
-	  int LAST_INT_PARAM = FIRST_INT_PARAM + intArgumentRegisters;
-	  if ((DST.number > SRC.number) &&
-	      (DST.number < LAST_INT_PARAM)) {
-	    allocateStartingFromRegister(phys.get(LAST_INT_PARAM+1), DST);
-	    inst.insertBack(MIR_Move.create(PPC_MOVE,
-					    R(DST.getRegisterAllocated()), R(DST)));
-	  }
-	  intIndex++;
-	} else {
-	  int LAST_DOUBLE_PARAM = FIRST_DOUBLE_PARAM + doubleArgumentRegisters;
-	  if ((DST.number > SRC.number) &&
-	      (DST.number < LAST_DOUBLE_PARAM)) {
-	    allocateStartingFromRegister(phys.get(LAST_DOUBLE_PARAM+1), DST);
-	    inst.insertBack(MIR_Move.create(PPC_FMR, D(DST.getRegisterAllocated()), D(DST)));
-	  }
-	  doubleIndex++;
-	}
+      
+      // Map each non-volatile GPR register to a spill location.
+      i=0;
+      for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+           e.hasMoreElements(); i++)  {
+        OPT_Register r = (OPT_Register)e.nextElement();
+        // Note that as a side effect, the following call bumps up the
+        // frame size.
+        nonVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
       }
-    }
-  }
+      
+      
+      // Map some special registers to spill locations.
+      saveCRLocation = allocateNewSpillLocation(INT_REG);
+      saveXERLocation = allocateNewSpillLocation(INT_REG);
+      saveCTRLocation = allocateNewSpillLocation(INT_REG);
+      i=0;
 
-  /**
-   *
-   */
-  void insertSpillStore(OPT_Instruction inst, OPT_RegisterOperand Reg){
-    if (debug)
-      VM.sysWrite("OPT_RegisterManager:insertSpillStore\n");
-    OPT_Register v = null;
-
-    OPT_Register symbReg = Reg.register;
-
-    OPT_RegisterAllocatorState.clearOneToOne(symbReg);
-  
-    if (inst.isMove()) {
-      OPT_Register n = MIR_Move.getValue(inst).register;
-      if (n.isPhysical()) {
-        Reg.register = storeSpillAndRecord(inst, n, symbReg);
-        return;
-      } else if (!n.isSpilled()) {
-        Reg.register = storeSpillAndRecord(inst, n.getRegisterAllocated(), symbReg);
-        return;
+      for (Enumeration e = phys.enumerateVolatileFPRs(); 
+           e.hasMoreElements(); i++)  {
+        OPT_Register r = (OPT_Register)e.nextElement();
+        // Note that as a side effect, the following call bumps up the
+        // frame size.
+        saveVolatileFPRLocation[i] = allocateNewSpillLocation(DOUBLE_REG);      
       }
-    }
 
-    VM_Type type = Reg.type;
-    if ((type == VM_Type.FloatType) || (type == VM_Type.DoubleType))
-      v = tmpFP[tmpFPCnt++];
-    else
-      v = tmpInt[tmpIntCnt++];
-    v.touchRegister();
-    Reg.register = storeSpillAndRecord(inst, v, symbReg);
-  }
-
-  /**
-   *
-   */
-  private void insertSpillLoad(OPT_Instruction inst, OPT_RegisterOperand Reg, 
-                               int position){
-    if (debug)
-      VM.sysWrite("OPT_RegisterManager:insertSpillLoad\n");
-
-    OPT_Register v = null;
-    OPT_Register symbReg = Reg.register;
-    OPT_Register real = OPT_RegisterAllocatorState.getMapping(symbReg);
-
-    if ((real != null) && ((real.number != 0))) {  // reuse spilled location
-      Reg.register = real;
-      reuse[reuseCnt++] = real;
-      real.useCount = 1;
-      if (verbose)
-        System.out.println("SAVE "+real+" "+symbReg.scratch+" "+symbReg);
-      return;
-    }
-    if (inst.isMove()) {
-      OPT_Register n = MIR_Move.getResult(inst).register;
-      if (n.isPhysical()) {
-        Reg.register = loadSpillAndRecord(inst, n,  symbReg);
-        return;
-      } else if (!n.isSpilled()) {
-        Reg.register = loadSpillAndRecord(inst, n.getRegisterAllocated(), symbReg);
-        return;
+      // Map each non-volatile FPR register to a spill location.
+      // DANGER: We forbid save volatile frames from using non-volatile
+      // FPRs.  Hence, the following is unnecessary.
+      /*
+      i=0;
+      for (Enumeration e = phys.enumerateNonvolatileFPRs(); 
+           e.hasMoreElements(); i++)  {
+        OPT_Register r = (OPT_Register)e.nextElement();
+        // Note that as a side effect, the following call bumps up the
+        // frame size.
+        nonVolatileFPRLocation[i] = allocateNewSpillLocation(DOUBLE_REG);      
       }
-    }
+      */
 
-    VM_Type type = Reg.type;
-    if ((type == VM_Type.FloatType) || (type == VM_Type.DoubleType)) {
-      do {
-        v = tmpFP[tmpFPCnt++];
-      } while (v.useCount != 0);
+      // Set the offset to find non-volatiles.
+      int gprOffset = getNonvolatileGPROffset(0);
+      info.setUnsignedNonVolatileOffset(gprOffset);
+
     } else {
-      do {
-        if (tmpIntCnt >= tmpInt.length) {
-
-          OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-          for (Enumeration e = phys.enumerateVolatileGPRs();
-               e.hasMoreElements(); ) {
-            v = (OPT_Register)e.nextElement();
-            if (!isAllocatedToInstruction(inst,v)) {
-              insertSpillAfter(inst.getPrev(), v, 
-                               getValueType(symbReg), -(tmpIntCnt<<2));
-              insertUnspillBefore(inst.getNext(), v, 
-                                  getValueType(symbReg), -(tmpIntCnt<<2));
-              break;
-            }
-          }
-
-          tmpIntCnt++;
-          v.touchRegister();
-          insertUnspillBefore(inst, v, getValueType(symbReg), 
-                              OPT_RegisterAllocatorState.getSpill(symbReg));
-          Reg.register = v; 
-          if (verbose)
-            System.out.println("AJA "+v+" "+symbReg);
-          return;
-        }
-        v = tmpInt[tmpIntCnt++];
-      } while (v.useCount != 0);
-    }
-    v.touchRegister();
-    Reg.register = loadSpillAndRecord(inst, v, symbReg);
-    //VM.sysWrite(inst+'\n');
-  }
-
-  /**
-   *
-   */
-  void insertSpillCode() {
-    if (debug) VM.sysWrite("SPILL\n");
-
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards();
-         e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
-      if (!realReg.isTouched()) {
-        if (tmpFP[0] != realReg) {
-          int real = realReg.number;
-          //VM.sysWrite(realReg+" "+ir.method+" "+tmpFP[0]+'\n');
-          tmpFP[0] = realReg;
-          tmpFP[1] = ir.regpool.getPhysicalRegisterSet().get(real-1);
-          tmpFP[2] = ir.regpool.getPhysicalRegisterSet().get(real-2);
-        }
-        break;
-      }
-    }
-
-    clearMappings();
-    if (verbose)
-      System.out.println("***** "+ir.method);
-
-    for (OPT_Instruction inst= ir.firstInstructionInCodeOrder();
-         inst != null; inst = inst.nextInstructionInCodeOrder()) {
-
-      if (verbose)
-        System.out.println(inst);
-      int numberDefs    = inst.getNumberOfDefs();
-      int numberOperand = inst.getNumberOfOperands();
-      int numberUses    = numberOperand - numberDefs;
-      if ((inst.operator == LABEL) || (inst.isCall())) {
-        if (cachedSpill)
-          clearMappings();
-        continue;
-      }
-      if (inst.isMove() && MIR_Move.getResult(inst).register.number ==
-          MIR_Move.getValue(inst).asRegister().register.number) {
-        inst = inst.remove();
-        continue;
-      }
-
-
-      // USES
-      int firstUse = numberDefs;
-      // shift by 1 to start from forbidden position for r0
-      if (firstUse == 0) firstUse = 1;
-
-      tmpIntCnt = tmpFPCnt = reuseCnt = 0;
-      for (int i = 0; i < numberUses; i++) {
-        int n = (firstUse + i)%numberOperand;
-        OPT_Operand op = inst.getOperand(n);
-        if (op instanceof OPT_RegisterOperand) {
-          OPT_RegisterOperand Reg = (OPT_RegisterOperand) op;
-          OPT_Register        reg = Reg.register;
-          if (reg.isPhysical()) {
-            continue;
-          }
-          insertSpillLoad(inst, Reg, n);
-        }
-      }
-
-      while (reuseCnt > 0) {
-        reuse[--reuseCnt].useCount = 0;
-      }
-
-      // DEFS
-      tmpIntCnt = tmpFPCnt = 0;
-      for (OPT_OperandEnumeration defs = inst.getDefs();
-           defs.hasMoreElements(); ) {
-        OPT_Operand op = defs.next();
-        if (op instanceof OPT_RegisterOperand) {
-          OPT_RegisterOperand Reg = (OPT_RegisterOperand)op;
-          OPT_Register reg = Reg.register;
-          if (reg.isPhysical()) { // destroy any association of real 
-                                  // with spilled symbolic
-            // SJF: The following looks odd.  What's going on?
-            reg = ir.regpool.getPhysicalRegisterSet().get(reg.number);
-            OPT_RegisterAllocatorState.clearOneToOne(reg);
-            continue;
-          }
-          insertSpillStore(inst, Reg);
-        }
-      }
-      if (verbose)
-        System.out.println("   "+inst);
-    }
-  }
-
-  /**
-   *
-   * compute space for non-volatile register needed to save / restore
-   *
-   */
-  final private boolean computeNonVolatileArea() {
-    boolean shouldAllocFrame = false;
-
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (int i = 0; i < NUMBER_TYPE; i++)
-      spillList[i] = null;
-    int NonVolatileFrameOffset = 0;
-    int firstInteger = -1;
-    boolean SaveVolatile = ir.MIRInfo.info.isSaveVolatile();
-    if (SaveVolatile) {
-      OPT_Register realReg;
-      for (Enumeration e = ir.regpool.getPhysicalRegisterSet().enumerateGPRs();
-         e.hasMoreElements(); ) {
-        OPT_Register reg = (OPT_Register)e.nextElement();
-        OPT_RegisterAllocatorState.setSpill(reg, 
-                                            getSpillLocationNumber(INT_REG));
-      }
-      shouldAllocFrame = true;
-      realReg = phys.getFirstNonvolatileGPR();
-      firstInteger = realReg.number;
-      NonVolatileFrameOffset = OPT_RegisterAllocatorState.getSpill(realReg);
-    } else {
-      // find the first non-volatile used
+      // Count the number of nonvolatiles used. 
+      int numGprNv = 0;
+      int i = 0;
       for (Enumeration e = phys.enumerateNonvolatileGPRs();
            e.hasMoreElements(); ) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-        if (realReg.isTouched()) {
-          int spill = getSpillLocationNumber(INT_REG);
-          OPT_RegisterAllocatorState.setSpill(realReg, spill);
-          if (firstInteger < 0) {
-            firstInteger = realReg.number;
-            NonVolatileFrameOffset = spill;
-            shouldAllocFrame = true;
-          }
+        OPT_Register r = (OPT_Register)e.nextElement();
+        if (r.isTouched() ) {
+          // Note that as a side effect, the following call bumps up the
+          // frame size.
+          nonVolatileGPRLocation[i++] = allocateNewSpillLocation(INT_REG);
+          numGprNv++;
         }
       }
-    }
-    int firstFloat = -1;
-    for (Enumeration e = phys.enumerateNonvolatileFPRs(); 
-         e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
-      if (realReg.isTouched()) {
-        OPT_RegisterAllocatorState.setSpill(realReg, 
-                                            getSpillLocationNumber(DOUBLE_REG));
-        if (firstFloat < 0) {
-          firstFloat = realReg.number - FIRST_DOUBLE;
-          shouldAllocFrame = true;
-        }
-      }
-    }
-    if (SaveVolatile) {
-      for (Enumeration e = phys.enumerateVolatileFPRs();
+      i = 0;
+      int numFprNv = 0;
+      for (Enumeration e = phys.enumerateNonvolatileFPRs();
            e.hasMoreElements(); ) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-        OPT_RegisterAllocatorState.setSpill(realReg, 
-                                            getSpillLocationNumber(DOUBLE_REG));
+        OPT_Register r = (OPT_Register)e.nextElement();
+        if (r.isTouched() ) {
+          // Note that as a side effect, the following call bumps up the
+          // frame size.
+          nonVolatileFPRLocation[i++] = allocateNewSpillLocation(DOUBLE_REG);
+          numFprNv++;
+        }
       }
-      OPT_RegisterAllocatorState.setSpill
-        (phys.getFirstVolatileConditionRegister(), 
-         getSpillLocationNumber(CONDITION_REG));
-      OPT_RegisterAllocatorState.setSpill(phys.getXER(), 
-                                          getSpillLocationNumber(INT_REG));
-      OPT_RegisterAllocatorState.setSpill(phys.getCTR(), 
-                                          getSpillLocationNumber(INT_REG));
-    }
-
-    // update the Compiler info info
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    info.setUnsignedNonVolatileOffset(NonVolatileFrameOffset);
-    info.setFirstNonVolatileGPR(firstInteger);
-    info.setFirstNonVolatileFPR(firstFloat);
-
-    // align the activation frame
-    frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
-
-    return shouldAllocFrame;
-  }
-
-  protected static final int MULTIPLE_CUTOFF = 4;
-
-  final protected int insertPrologueAndComputeFrameSize() {
-    allocFrame = ir.stackManager.frameIsRequired();
-
-    // compute the non-volatile save area 
-    if  (computeNonVolatileArea()) {
-      allocFrame = true;
-    }
-
-    if (allocFrame) {
-      if (frameSize < STACK_SIZE_GUARD && !ir.MIRInfo.info.isSaveVolatile()) {
-        createNormalPrologue();
+      // Update the VM_OptCompilerInfo object.
+      info.setNumberOfNonvolatileGPRs((short)numGprNv);
+      info.setNumberOfNonvolatileFPRs((short)numFprNv);
+      if (numGprNv > 0 || numFprNv > 0) {
+        int gprOffset = getNonvolatileGPROffset(0);
+        info.setUnsignedNonVolatileOffset(gprOffset);
+        // record that we need a stack frame
+        setFrameRequired();
       } else {
-        createExceptionalPrologue();
+        info.setUnsignedNonVolatileOffset(0);
       }
-      return frameSize;
-    } else {
-      // We aren't allocating a stack frame, so there's nothing to do
-      // except remove the prologue instruction and return 0.
-      OPT_Instruction s = ir.firstInstructionInCodeOrder().getNext();
-      if (VM.VerifyAssertions) VM.assert(s.getOpcode() == IR_PROLOGUE_opcode);
-      s.insertAfter(Empty.create(IR_ENDPROLOGUE));
-      s.remove();
-      return 0; 
+      frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
     }
   }
 
-  final void saveKilledVolatileRegisters(OPT_Instruction s) {
+  /**
+   * Walk over the currently available scratch registers. 
+   *
+   * <p>For any scratch register r which is def'ed by instruction s, 
+   * spill r before s and remove r from the pool of available scratch 
+   * registers.  
+   *
+   * <p>For any scratch register r which is used by instruction s, 
+   * restore r before s and remove r from the pool of available scratch 
+   * registers.  
+   *
+   * <p>For any scratch register r which has current contents symb, and 
+   * symb is spilled to location M, and s defs M: the old value of symb is
+   * dead.  Mark this.
+   *
+   * <p>Invalidate any scratch register assignments that are illegal in s.
+   */
+  void restoreScratchRegistersBefore(OPT_Instruction s) {
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
+      ScratchRegister scratch = (ScratchRegister)i.next();
 
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (int type = INT_REG; type <= CONDITION_REG; type++) {
-      for (Enumeration e = phys.enumerateVolatiles(type);
-           e.hasMoreElements(); ) {
-        OPT_Register realReg = (OPT_Register)e.nextElement();
-        if (realReg.isAllocated()) {
-          if (debug)
-            VM.sysWrite("Kill "+realReg+'\n');
-          OPT_Register symbReg = realReg.mapsToRegister;
-          OPT_Register newReg = allocateNonVolatileRegister(symbReg);
-          if (newReg != null) {
-            realReg.deallocateRegister();
-            OPT_Instruction mv = makeMoveInstruction(newReg, realReg);
-            s.insertBefore(mv);
+      if (scratch.currentContents == null) continue;
+      if (verboseDebug) {
+        System.out.println("RESTORE: consider " + scratch);
+      }
+      boolean removed = false;
+      boolean unloaded = false;
+      if (definedIn(scratch.scratch,s) 
+          || (s.isCall() && s.operator != CALL_SAVE_VOLATILE 
+              && scratch.scratch.isVolatile())) {
+        // s defines the scratch register, so save its contents before they
+        // are killed.
+        if (verboseDebug) {
+          System.out.println("RESTORE : unload because defined " + scratch);
+        }
+        unloadScratchRegisterBefore(s,scratch);
+
+        // update mapping information
+        if (verboseDebug) System.out.println("RSRB: End scratch interval " + 
+                                             scratch.scratch + " " + s);
+        scratchMap.endScratchInterval(scratch.scratch,s);
+        OPT_Register scratchContents = scratch.currentContents;
+        if (scratchContents != null) {
+          if (verboseDebug) System.out.println("RSRB: End symbolic interval " + 
+                                               scratch.currentContents + " " 
+                                               + s);
+          scratchMap.endSymbolicInterval(scratch.currentContents,s);
+        } 
+
+        i.remove();
+        removed = true;
+        unloaded = true;
+      }
+
+      if (usedIn(scratch.scratch,s) ||
+          !isLegal(scratch.currentContents,scratch.scratch,s)) {
+        // first spill the currents contents of the scratch register to 
+        // memory 
+        if (!unloaded) {
+          if (verboseDebug) {
+            System.out.println("RESTORE : unload because used " + scratch);
           }
-          else { // if everythig else fails, save to spill
-            byte valueType = getValueType(symbReg);
-            int location = OPT_RegisterAllocatorState.getSpill(symbReg); 
-            OPT_RegisterAllocatorState.setSpill(realReg, location);
-            realReg.deallocateRegister();
-            insertSpillBefore(s, realReg, valueType, location);
-          }
+          unloadScratchRegisterBefore(s,scratch);
+
+          // update mapping information
+          if (verboseDebug) System.out.println("RSRB2: End scratch interval " + 
+                                               scratch.scratch + " " + s);
+          scratchMap.endScratchInterval(scratch.scratch,s);
+          OPT_Register scratchContents = scratch.currentContents;
+          if (scratchContents != null) {
+            if (verboseDebug) System.out.println("RSRB2: End symbolic interval " + 
+                                                 scratch.currentContents + " " 
+                                                 + s);
+            scratchMap.endSymbolicInterval(scratch.currentContents,s);
+          } 
+
+        }
+        // s or some future instruction uses the scratch register, 
+	// so restore the correct contents.
+        if (verboseDebug) {
+          System.out.println("RESTORE : reload because used " + scratch);
+        }
+        reloadScratchRegisterBefore(s,scratch);
+
+        if (!removed) {
+          i.remove();
+          removed=true;
         }
       }
     }
   }
-
-  /**
-   * temporary integer registers
-   */
-  protected OPT_Register[] tmpInt;
-
-  /**
-   * temporary floating-point registers
-   */
-  protected OPT_Register[] tmpFP;
-
-  /**
-   * collection of registers that can be reused ??
-   */
-  protected OPT_Register[] reuse;
-
-  // Counters for above arrays
-  protected short tmpIntCnt;
-  protected short tmpFPCnt;
-  protected short reuseCnt;
-
-  protected boolean cachedSpill;
+  protected static final int MULTIPLE_CUTOFF = 4;
 
   /**
    * Initializes the "tmp" regs for this object
@@ -1022,263 +859,35 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   final void initForArch(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    tmpInt = new OPT_Register[2];
-    tmpFP  = new OPT_Register[3];
-    reuse  = new OPT_Register[3];
-    tmpInt[1] = phys.getGPR(0);
-    tmpInt[0] = phys.getLastScratchGPR();
-    tmpFP[2]  = phys.getFirstScratchFPR();
-    tmpFP[1]  = phys.getFirstNonvolatileFPR();
-    tmpFP[0]  = phys.get(tmpFP[1].number+1);
-    tmpInt[0].reserveRegister();
-    tmpInt[1].reserveRegister();
-    tmpFP[0].reserveRegister();
-    tmpFP[1].reserveRegister();
-    tmpFP[2].reserveRegister();
     phys.getJTOC().reserveRegister();
     phys.getFirstConditionRegister().reserveRegister();
   }
 
   /**
-   *
+   * Is a particular instruction a system call?
    */
-  final OPT_Register loadSpillAndRecord(OPT_Instruction s, OPT_Register realReg,
-                                        OPT_Register symbReg) {
-    // SJF: the following looks odd.  What's going on here?
-    realReg = ir.regpool.getPhysicalRegisterSet().get(realReg.number);
-    
-    OPT_RegisterAllocatorState.mapOneToOne(realReg,symbReg); 
-
-    cachedSpill = true;
-    insertUnspillBefore(s, realReg, getValueType(symbReg),
-                        OPT_RegisterAllocatorState.getSpill(symbReg));
-    return realReg;
-  }
-
+  boolean isSysCall(OPT_Instruction s) {
+    return s.operator == PPC_BCTRL_SYS || s.operator == PPC_BL_SYS;
+  } 
   /**
-   *
+   * Given symbolic register r in instruction s, do we need to ensure that
+   * r is in a scratch register is s (as opposed to a memory operand)
    */
-  final OPT_Register storeSpillAndRecord(OPT_Instruction s, 
-                                         OPT_Register realReg,
-                                         OPT_Register symbReg) {
-    // SJF: the following looks odd.  What's going on here?
-    realReg = ir.regpool.getPhysicalRegisterSet().get(realReg.number);
-
-    OPT_RegisterAllocatorState.mapOneToOne(realReg,symbReg);
-
-    cachedSpill = true;
-    insertSpillAfter(s, realReg, getValueType(symbReg),
-                     OPT_RegisterAllocatorState.getSpill(symbReg));
-    return realReg;
-  }
-
-  /**
-   *
-   */
-  boolean isAllocatedToInstruction(OPT_Instruction inst, OPT_Register register) {
-    for (OPT_OperandEnumeration ops = inst.getOperands();
-         ops.hasMoreElements(); ) {
-      OPT_Operand op = ops.next();
-      if (op instanceof OPT_RegisterOperand &&
-          ((OPT_RegisterOperand) op).register.number == register.number)
-        return true;
-    }
-    return false;
+  boolean needScratch(OPT_Register r, OPT_Instruction s) {
+    // PowerPC does not support memory operands.
+    return true;
   }
   /**
+   * In instruction s, replace all appearances of a symbolic register 
+   * operand with uses of the appropriate spill location, as cached by the
+   * register allocator.
    *
+   * @param s the instruction to mutate.
+   * @param symb the symbolic register operand to replace
    */
-  void clearMappings() {
-    cachedSpill = false;
-    if (verbose)
-      System.out.println("CLEAR");
-    for (Enumeration e = ir.regpool.getPhysicalRegisterSet().enumerateAll();
-         e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
-      realReg.useCount     = 0;
-      OPT_RegisterAllocatorState.clearOneToOne(realReg);
-    }
+  void replaceOperandWithSpillLocation(OPT_Instruction s, 
+                                               OPT_RegisterOperand symb) {
+    // PowerPC does not support memory operands.
+    VM.assert(NOT_REACHED);
   }
-  /**
-   *  Find a nonvolatile register to allocate starting at the reg corresponding
-   *  to the symbolic register passed
-   *  @param symbReg the place to start the search
-   *  @return the allocated register or null
-   */
-  final OPT_Register allocateNonVolatileRegister(OPT_Register symbReg) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int physType = phys.getPhysicalRegisterType(symbReg);
-    for (Enumeration e = phys.enumerateNonvolatilesBackwards(physType);
-         e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
-      if (realReg.isAvailable()) {
-        realReg.allocateToRegister(symbReg);
-        if (debug) VM.sysWrite("  nonvol."+realReg+"to symb "+symbReg+'\n');
-        return realReg;
-      }
-    }
-    return null;
-  }
-  /**
-   *  This version is used to support LinearScan, and is only called
-   *  from OPT_LinearScanLiveInterval.java
-   *
-   *  TODO: refactor this some more.
-   *
-   *  @param symbReg the symbolic register to allocate
-   *  @param li the linear scan live interval
-   *  @return the allocated register or null
-   */
-  final OPT_Register allocateRegister(OPT_Register symbReg,
-                                      OPT_LinearScanLiveInterval live) {
-
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int type = phys.getPhysicalRegisterType(symbReg);
-
-    // first attempt to allocate to the preferred register
-    OPT_Register preferred = getAvailablePreference(pref,symbReg);
-    if ((preferred != null) && preferred.isAvailable() &&
-        !restrict.isForbidden(symbReg,preferred)) {
-      OPT_LinearScanLiveInterval resurrect =
-        OPT_RegisterAllocatorState.getPhysicalRegResurrectList(preferred);
-      if ((resurrect == null) || !live.intersects(resurrect)) {
-        if (resurrect != null)
-          live.mergeWithNonIntersectingInterval(resurrect);
-        preferred.allocateToRegister(symbReg);
-        return preferred;
-      }
-    }
-
-    // next attempt to allocate to a volatile
-    for (Enumeration e = phys.enumerateVolatiles(type);
-         e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
-      if (realReg.isAvailable() && !restrict.isForbidden(symbReg,realReg)) {
-        OPT_LinearScanLiveInterval resurrect =
-          OPT_RegisterAllocatorState.getPhysicalRegResurrectList(realReg);
-        if ((resurrect == null) || !live.intersects(resurrect)) {
-          if (resurrect != null)
-            live.mergeWithNonIntersectingInterval(resurrect);
-          realReg.allocateToRegister(symbReg);
-          if (debug)
-            System.out.println(" volat."+realReg+" to symb "+symbReg);
-          return realReg;
-        }
-      }
-    }
-
-    // next attempt to allocate to a nonvolatile.  We allocate the
-    // novolatiles backwards.
-    for (Enumeration e = phys.enumerateNonvolatilesBackwards(type);
-         e.hasMoreElements(); ) {
-      OPT_Register realReg = (OPT_Register)e.nextElement();
-      if (realReg.isAvailable() && !restrict.isForbidden(symbReg,realReg)) {
-        OPT_LinearScanLiveInterval resurrect =
-          OPT_RegisterAllocatorState.getPhysicalRegResurrectList(realReg);
-        if ((resurrect == null) || !live.intersects(resurrect)) {
-          if (resurrect != null)
-            live.mergeWithNonIntersectingInterval(resurrect);
-          realReg.allocateToRegister(symbReg);
-          if (debug)
-            System.out.println(" volat."+realReg+" to symb "+symbReg);
-          return realReg;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the available physical register to which a given symbolic 
-   * register has
-   * the highest affinity.
-   */
-  OPT_Register getAvailablePreference(OPT_GenericRegisterPreferences pref,
-                                      OPT_Register r) {
-    // a mapping from OPT_Register to Integer
-    // (physical register to weight);
-    java.util.HashMap map = new java.util.HashMap();
-
-    OPT_CoalesceGraph graph = ir.stackManager.getPreferences().getGraph();
-    OPT_SpaceEffGraphNode node = graph.findNode(r);
-
-    // Return null if no affinities.
-    if (node == null) return null;
-
-    // walk through all in edges of the node, searching for affinity
-    for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
-      OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
-      OPT_CoalesceGraph.Node src = (OPT_CoalesceGraph.Node)edge.from();
-      OPT_Register neighbor = src.getRegister();
-      if (neighbor.isSymbolic()) {
-        // if r is assigned to a physical register r2, treat the
-        // affinity as an affinity for r2
-        OPT_Register r2 = OPT_RegisterAllocatorState.getMapping(r);
-        if (r2 != null && r2.isPhysical()) {
-          neighbor = r2;
-        }
-      }
-      if (neighbor.isPhysical()) {
-        int w = edge.getWeight();
-        Integer oldW = (Integer)map.get(neighbor);
-        if (oldW == null) {
-          map.put(neighbor,new Integer(w));
-        } else {
-          map.put(neighbor,new Integer(oldW.intValue() + w));
-        }
-        break;
-      }
-    }
-    // walk through all out edges of the node, searching for affinity
-    for (Enumeration in = node.outEdges(); in.hasMoreElements(); ) {
-      OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
-      OPT_CoalesceGraph.Node dest = (OPT_CoalesceGraph.Node)edge.to();
-      OPT_Register neighbor = dest.getRegister();
-      if (neighbor.isSymbolic()) {
-        // if r is assigned to a physical register r2, treat the
-        // affinity as an affinity for r2
-        OPT_Register r2 = OPT_RegisterAllocatorState.getMapping(r);
-        if (r2 != null && r2.isPhysical()) {
-          neighbor = r2;
-        }
-      }
-      if (neighbor.isPhysical()) {
-        // if this is a candidate interval, update its weight
-        int w = edge.getWeight();
-        Integer oldW = (Integer)map.get(neighbor);
-        if (oldW == null) {
-          map.put(neighbor,new Integer(w));
-        } else {
-          map.put(neighbor,new Integer(oldW.intValue() + w));
-        }
-        break;
-      }
-    }
-    // OK, now find the highest preference. 
-    OPT_Register result = null;
-    int weight = -1;
-    for (java.util.Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
-      java.util.Map.Entry entry = (java.util.Map.Entry)i.next();
-      int w = ((Integer)entry.getValue()).intValue();
-      if (w > weight) {
-        weight = w;
-        result = (OPT_Register)entry.getKey();
-      }
-    }
-    return result;
-  }
-
-
-  /**
-   * Allocate a new spill location and grow the
-   * frame size to reflect the new layout.
-   *
-   * @param type the type to spill
-   * @return the spill location
-   */
-  int allocateNewSpillLocation(int type) {
-    OPT_OptimizingCompilerException.TODO("allocateNewSpillLocation");
-    return -1;
-  }
-
 }

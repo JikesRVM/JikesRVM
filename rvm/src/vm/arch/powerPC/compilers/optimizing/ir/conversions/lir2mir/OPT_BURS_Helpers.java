@@ -459,6 +459,72 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
   /**
+   * Expand a syscall instruction.
+   */
+  void SYSCALL(OPT_BURS burs, OPT_Instruction s) {
+    burs.ir.setHasSysCall(true);
+    OPT_Operand target = CallSpecial.getClearAddress(s);
+    OPT_MethodOperand meth = (OPT_MethodOperand)CallSpecial.getClearMethod(s);
+
+    // Step 1: Find out how many parameters we're going to have.
+    int numParams = CallSpecial.getNumberOfParams(s);
+    int longParams = 0;
+    for (int pNum = 0; pNum < numParams; pNum++) {
+      if (CallSpecial.getParam(s, pNum).getType() == VM_Type.LongType) {
+        longParams++;
+      }
+    }
+
+    // Step 2: Figure out what the result and result2 values will be
+    OPT_RegisterOperand result = CallSpecial.getClearResult(s);
+    OPT_RegisterOperand result2 = null;
+    if (result != null && result.type == VM_Type.LongType) {
+      result2 = R(burs.ir.regpool.getSecondReg(result.register));
+    }
+
+    // Step 3: Figure out what the operator is going to be
+    OPT_Operator callOp;
+    if (target instanceof OPT_RegisterOperand) {
+      // indirect call through target (contains code addr)
+      OPT_Register ctr = burs.ir.regpool.getPhysicalRegisterSet().getCTR();
+      burs.append(MIR_Move.create(PPC_MTSPR, R(ctr), 
+				  (OPT_RegisterOperand)target));
+      target = null;
+      callOp = PPC_BCTRL_SYS;
+    } else if (target instanceof OPT_BranchOperand) {
+      // Earlier analysis has tagged this call as recursive, 
+      // set up for a direct call.
+      callOp = PPC_BL_SYS;
+    } else {
+      throw  new OPT_OptimizingCompilerException("Unexpected target operand "
+						 + target + " to call " + s);
+    }
+
+    // Step 4: Mutate the SysCall to an MIR_Call.
+    // Note MIR_Call and Call have a different number of fixed 
+    // arguments, so some amount of copying is required. We'll hope the 
+    // opt compiler can manage to make this more efficient than it looks.
+    OPT_Operand[] params = new OPT_Operand[numParams];
+    for (int i = 0; i < numParams; i++) {
+      params[i] = Call.getClearParam(s, i);
+    }
+    burs.append(MIR_Call.mutate(s, callOp, result, result2, 
+				(OPT_BranchOperand)target, meth, 
+				numParams + longParams));
+    for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
+      OPT_Operand param = params[paramIdx++];
+      MIR_Call.setParam(s, mirCallIdx++, param);
+      if (param instanceof OPT_RegisterOperand) {
+        OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
+        if (rparam.type == VM_Type.LongType) {
+          MIR_Call.setParam(s, mirCallIdx++, 
+			    L(burs.ir.regpool.getSecondReg(rparam.register)));
+        }
+      }
+    }
+  }
+
+  /**
    * Emit code for RETURN.
    * @param burs
    * @param s

@@ -15,7 +15,7 @@ import java.util.Enumeration;
  * 
  * @author Stephen Fink
  */
-class OPT_GenericRegisterRestrictions implements OPT_Operators {
+abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
   private java.util.HashMap hash = new java.util.HashMap();
@@ -238,4 +238,11 @@ class OPT_GenericRegisterRestrictions implements OPT_Operators {
     return s.contains(phys);
   }
   
+  /**
+   * Is it forbidden to assign symbolic register symb to physical register r
+   * in instruction s?
+   */
+  abstract boolean isForbidden(OPT_Register symb, OPT_Register r,
+                               OPT_Instruction s);
+
 }

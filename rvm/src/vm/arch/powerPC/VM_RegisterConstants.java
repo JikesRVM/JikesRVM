@@ -55,6 +55,8 @@ interface VM_RegisterConstants {
   static final int LAST_NONVOLATILE_FPR       = 31; // AIX is 31
   static final int NUM_FPRS                   = 32;
 
+  static final int NUM_NONVOLATILE_GPRS = LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1;
+  static final int NUM_NONVOLATILE_FPRS = LAST_NONVOLATILE_FPR - FIRST_NONVOLATILE_FPR + 1;
 
   // condition registers
   // TODO: fill table
