@@ -1,0 +1,183 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorList_Alu64.dat
+#//$Id$
+#
+# @author: Kris Venstermans
+###################
+PPC64_EXTSW
+MIR_Unary
+none
+
+
+(31<<26 | 986<<1)
+
+####################
+PPC64_EXTSWr
+MIR_Unary
+none
+
+
+(31<<26 | 986<<1 | 1)
+
+####################
+PPC64_SLD
+MIR_Binary
+none
+
+
+(31<<26 | 27<<1)
+
+####################
+PPC64_SLDr
+MIR_Binary
+compare
+C0
+
+(31<<26 | 27<<1 | 1)
+
+####################
+PPC64_SLDI
+MIR_Binary
+none
+
+
+(30<<26 | 1<<2)
+
+####################
+PPC64_SRD
+MIR_Binary
+none
+XER
+
+(31<<26 | 539<<1)
+
+####################
+PPC64_SRDr
+MIR_Binary
+compare
+C0_XER
+
+(31<<26 | 539<<1 | 1)
+
+####################
+PPC64_SRAD
+MIR_Binary
+none
+XER
+
+(31<<26 | 794<<1)
+
+####################
+PPC64_SRADr
+MIR_Binary
+compare
+C0_XER
+
+(31<<26 | 794<<1 | 1)
+
+####################
+PPC64_SRADI
+MIR_Binary
+none
+XER
+
+(31<<26 | 413<<2)
+
+####################
+PPC64_SRADIr
+MIR_Binary
+compare
+C0_XER
+
+(31<<26 | 413<<2 | 1)
+
+####################
+PPC64_SRDI
+MIR_Binary
+none
+
+
+(30<<26 | 0<<2)
+
+####################
+PPC64_RLDIMI
+MIR_RotateAndMask
+none
+
+
+(30<<26 | 3<<2)
+
+####################
+PPC64_RLDIMIr
+MIR_RotateAndMask
+compare
+C0
+
+(30<<26 | 3<<2 | 1)
+
+####################
+PPC64_CMP
+MIR_Binary
+compare
+
+
+(31<<26 | 0<<1 | 1<<21)
+
+####################
+PPC64_CMPI
+MIR_Binary
+compare
+
+
+(11<<26 | 1<<21)
+
+####################
+PPC64_CMPL
+MIR_Binary
+compare
+
+
+(31<<26 | 32<<1 | 1<<21)
+
+####################
+PPC64_CMPLI
+MIR_Binary
+compare
+
+
+(10<<26 | 1<<21)
+
+####################
+PPC64_FCFID
+MIR_Unary
+none
+
+
+0
+
+####################
+PPC64_FCTIDZ
+MIR_Unary
+none
+
+
+(63<<26 | 815<<1)
+
+####################
+PPC64_DIVD
+MIR_Binary
+none
+
+
+(31<<26 | 489<<1)
+
+####################
+PPC64_MULLD
+MIR_Binary
+none
+
+
+(31<<26 | 233<<1)
+

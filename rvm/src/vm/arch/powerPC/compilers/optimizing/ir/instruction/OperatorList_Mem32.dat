@@ -1,0 +1,143 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorList.dat
+#//$Id$
+#
+# @author: Kris Venstermans
+###################
+PPC_LInt
+MIR_Load
+load 
+
+
+(32<<26)
+
+####################
+PPC_LIntUX
+MIR_LoadUpdate
+load 
+
+
+(31<<26 | 55<<1)
+
+####################
+PPC_LIntX
+MIR_Load
+load 
+
+
+(31<<26 | 23<<1)
+
+###################
+PPC_LAddr
+MIR_Load
+load 
+
+
+(32<<26)
+
+####################
+PPC_LAddrU
+MIR_LoadUpdate
+load 
+
+
+(33<<26)
+
+####################
+PPC_LAddrUX
+MIR_LoadUpdate
+load 
+
+
+(31<<26 | 55<<1)
+
+####################
+PPC_LAddrX
+MIR_Load
+load 
+
+
+(31<<26 | 23<<1)
+
+####################
+PPC_LAddrARX
+MIR_Load
+memAsLoad | memAsStore | load | acquire
+
+
+(31<<26 | 20<<1)
+
+####################
+PPC_STAddr
+MIR_Store
+store 
+
+
+(36<<26)
+
+####################
+PPC_STAddrX
+MIR_Store
+store 
+
+
+(31<<26 | 151<<1)
+
+####################
+PPC_STAddrCXr
+MIR_Store
+memAsLoad | memAsStore | store | compare 
+C0
+
+(31<<26 | 150<<1 | 1)
+
+####################
+PPC_STAddrU
+MIR_StoreUpdate
+store 
+
+
+(37<<26)
+
+####################
+PPC_STAddrUX
+MIR_Store
+store
+
+
+(31<<26 | 183<<1)
+
+####################
+PPC_TAddr
+MIR_Trap
+immedPEI | dynLink
+
+
+(31<<26 | 4<<1)
+
+####################
+#PPC64_TD
+#MIR_Trap
+#immedPEI | dynLink
+#
+#
+#(31<<26 | 68<<1)
+#
+####################
+#PPC64_TDI
+#MIR_Trap
+#immedPEI | dynLink
+#
+#
+#(2<<26)
+#
+####################
+MIR_END
+Unassigned
+none
+
+
+-1
+

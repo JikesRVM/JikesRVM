@@ -1,0 +1,193 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//OperatorList.dat
+#//$Id$
+#
+# @author: Kris Venstermans
+###################
+PPC64_LWA
+MIR_Load
+load 
+
+
+(58<<26 | 2)
+
+###################
+#synonym for PPC64_LWA on 64-bit and for PPC_LWZ on 32-bit; difference with PPC_LWZ is Sign Extension on 64-bit
+PPC_LInt
+MIR_Load
+load 
+
+
+(58<<26 | 2)
+
+####################
+PPC64_LWAX
+MIR_Load
+load
+
+
+(31<<26 | 341<<1)
+
+####################
+PPC_LIntX
+MIR_Load
+load
+
+
+(31<<26 | 341<<1)
+
+####################
+PPC_LIntUX
+MIR_Load
+load
+
+
+(31<<26 | 373<<1)
+
+###################
+PPC64_LD
+MIR_Load
+load 
+
+
+(58<<26)
+
+###################
+#synonym for PPC64_LD on 64-bit and for PPC_LWZ on 32-bit
+PPC_LAddr
+MIR_Load
+load 
+
+
+(58<<26)
+####################
+PPC64_LDX
+MIR_Load
+load
+
+
+(31<<26 | 21<<1)
+
+####################
+PPC_LAddrX
+MIR_Load
+load
+
+
+(31<<26 | 21<<1)
+
+####################
+PPC_LAddrU
+MIR_Load
+load
+
+
+(58<<26 | 1)
+
+####################
+PPC_LAddrUX
+MIR_Load
+load
+
+
+(31<<26 | 53<<1)
+
+####################
+PPC_LAddrARX
+MIR_Load
+memAsLoad | memAsStore | load | acquire
+
+
+(31<<26 | 84<<1)
+
+####################
+PPC64_STD
+MIR_Store
+store 
+
+
+(62<<26)
+
+####################
+#synonym for PPC64_STD on 64-bit and for PPC_STW on 32-bit
+PPC_STAddr
+MIR_Store
+store 
+
+
+(62<<26)
+
+####################
+PPC64_STDX
+MIR_Store
+store
+
+
+(31<<26 | 149<<1)
+
+####################
+PPC_STAddrX
+MIR_Store
+store
+
+
+(31<<26 | 149<<1)
+
+####################
+PPC_STAddrU
+MIR_Store
+store
+
+
+(62<<26 | 1)
+
+####################
+PPC_STAddrUX
+MIR_Store
+store
+
+
+(31<<26 | 181<<1)
+
+####################
+PPC_STAddrCXr
+MIR_Store
+memAsLoad | memAsStore | store | compare
+
+
+(31<<26 | 214<<1 | 1)
+
+####################
+PPC64_TD
+MIR_Trap
+immedPEI | dynLink
+
+
+(31<<26 | 68<<1)
+
+####################
+PPC_TAddr
+MIR_Trap
+immedPEI | dynLink
+
+
+(31<<26 | 68<<1)
+
+####################
+PPC64_TDI
+MIR_Trap
+immedPEI | dynLink
+
+
+(2<<26)
+
+####################
+MIR_END
+Unassigned
+none
+
+
+-1
+
