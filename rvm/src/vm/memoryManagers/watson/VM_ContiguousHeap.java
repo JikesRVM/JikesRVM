@@ -25,15 +25,24 @@
 final class VM_ContiguousHeap extends VM_Heap
   implements VM_Uninterruptible, VM_GCConstants {
 
+
+  final static int FORWARD = 0;
+  final static int BACKWARD = 1;
+
   /**
    * The current allocation pointer.
    * Always updated with atomic operations!
    */
   private VM_Address current;
+  private VM_Address saved;
+  private int sense;
 
   VM_ContiguousHeap(String s) {
     super(s);
+    sense = FORWARD;
   }
+
+  int sense() { return sense; }
 
   /** 
    * Allocate raw memory of size bytes.
@@ -46,30 +55,126 @@ final class VM_ContiguousHeap extends VM_Heap
    */
   public VM_Address allocate(int size) {
     int offset = VM_Entrypoints.contiguousHeapCurrentField.getOffset();
-    VM_Address addr =  VM_Synchronization.fetchAndAddAddressWithBound(this, offset, size, end);
-    if (addr.isMax()) return VM_Address.zero();
-    return addr;
+    if (sense == FORWARD) {
+	VM_Address addr = VM_Synchronization.fetchAndAddAddressWithBound(this, offset, size, end);
+	if (VM.VerifyAssertions) VM.assert(start.LE(current) && current.LE(end));
+	if (!addr.isMax()) return addr;
+    }
+    else {
+	VM_Address addr = VM_Synchronization.fetchAndSubAddressWithBound(this, offset, size, start);
+	if (VM.VerifyAssertions) VM.assert(start.LE(current) && current.LE(end));
+	if (!addr.isMax()) return addr.sub(size);
+    }
+    return VM_Address.zero();
   }    
+
+  VM_Address current() { return current; }
+
+  public void show(boolean newline) {
+      super.show(false);
+      VM.sysWrite("   cur = ");
+      VM.sysWrite(current);
+      VM.sysWrite((sense == FORWARD) ? " -->" : " <--");
+      if (newline) VM.sysWriteln();
+  }
 
   /**
    * All space in the heap is available for allocation again.
    */
   public void reset() {
-    current = start;
+    if (sense == FORWARD)
+      saved = current = start;
+    else
+      saved = current = end;
+  }
+
+  /**
+   * All space in the heap is available for allocation again.
+   */
+  public void setRegion(VM_Address s, VM_Address e) {
+      super.setRegion(s, e);
+      reset();
+  }
+
+  public void setRegion(VM_Address s, VM_Address e, int se) {
+      if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
+      sense = se;
+      setRegion(s, e);
+  }
+
+  public void setRegion(VM_Address s, VM_Address c, VM_Address e, int se) {
+      if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
+      sense = se;
+      setRegion(s, e);
+      current = c;
+  }
+
+  public void contractRegion() {
+      if (sense == FORWARD) {
+	  end = current;
+	  setAuxiliary();
+      }
+      else {
+	  start = current;
+	  setAuxiliary();
+      }
+  }
+
+  public void extendRegion(VM_Address newBoundary) {
+      if (sense == FORWARD) {
+	  if (VM.VerifyAssertions) VM.assert(newBoundary.GE(end));
+	  end = newBoundary;
+	  setAuxiliary();
+      }
+      else {
+	  if (VM.VerifyAssertions) VM.assert(newBoundary.LE(start));
+	  start = newBoundary;
+	  setAuxiliary();
+      }
+  }
+
+  /**
+   * Heap is reset at attachment and detachment.
+   */
+  public void attach(int size) {
+    super.attach(size);
+    reset();
+  }
+
+  public void detach(int size) {
+    super.detach();
+    reset();
+  }
+
+  public int allocatedFromSaved() {
+      if (sense == FORWARD)
+	  return current.diff(saved);
+      else
+	  return saved.diff(current);
+  }
+
+  public void recordSaved() {
+    saved = current;
   }
 
   /**
    * Zero the remaining free space in the heap.
    */
   public void zeroFreeSpace() {
-    VM_Memory.zeroPages(current, end.diff(current));
+      if (sense == FORWARD)
+	  VM_Memory.zeroPages(current, end.diff(current));
+      else
+	  VM_Memory.zeroPages(start, current.diff(start));
   }
 
   /**
    * Zero the remaining free space in the heap.
    */
   public void zeroFreeSpaceParallel() {
-    zeroParallel(current, end);
+    if (sense == FORWARD)
+	zeroParallel(current, end);
+    else
+	zeroParallel(start, current);
   }
 
 
@@ -84,6 +189,9 @@ final class VM_ContiguousHeap extends VM_Heap
    * How much free memory is left in the heap?
    */
   public int freeMemory() {
-    return end.diff(current);
+    if (sense == FORWARD)
+	return end.diff(current);
+    else
+	return current.diff(start);
   }
 }
