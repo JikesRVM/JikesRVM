@@ -1,0 +1,60 @@
+
+\index{callbacks}
+
+The RVM provides callbacks for many runtime events of interest to the RVM
+programmer, such as classloading, VM bootimage creation, and VM exit.  The
+callbacks allow arbitrary code to be executed on any of the supported events.
+
+The callbacks are accessed through the nested interfaces defined in the 
+\xlink{{\tt VM\_Callbacks}}{\VMCallbacksURL} 
+class.  There is one interface per event type.  To be notified
+of an event, register an instance of a class that implements the corresponding
+interface with {\tt VM\_Callbacks} by calling the corresponding {\tt add...()}
+method.  For example, to be notified when a class is instantiated (see section
+\ref{sssec:classLoading}), first implement the {\tt
+VM\_Callbacks.ClassInstantiatedMonitor} interface, and then call {\tt
+VM\_Callbacks.addClassInstantiatedMonitor()} with an instance of your class.
+When any class is instantiated, the {\tt notifyClassInstantiated} method in
+your instance will be invoked.
+
+The RVM currently supports callbacks for the following events.
+\begin{itemize}
+\item {\tt ClassLoaded}, which happens when a class is {\em loaded}.
+\item {\tt ClassResolved}, which happens when a class is {\em resolved}.
+\item {\tt ClassInstantiated}, which happens when a class is {\em
+instantiated}.
+\item {\tt ClassInitialized}, which happens when a class is {\em initialized}.
+\item {\tt MethodOverride}, which happens when a method in a newly loaded class
+overrides a method in an existing class.
+\item {\tt ForName}, which happens when java.lang.Class.forName() is invoked.
+\item {\tt BootImageWriting}, which happens when boot image writing is started.
+\item {\tt Exit}, which happens when the RVM is about to exit.
+\end{itemize}
+The appropriate interface names can be obtained by appending ``Monitor'' to the
+event names (e.g. the interface to implement for the {\tt MethodOverride} event
+is {\tt VM\_Callbacks.MethodOverrideMonitor}).  Likewise, the method to
+register the callback is ``add'', followed by the name of the interface (e.g.
+the register method for the above interface is {\tt
+VM\_Callbacks.addMethodOverrideMonitor()}).
+
+NOTE: there is currently no {\tt Startup} event.  It is in the process of being
+implemented.
+
+Since the events for which callbacks are available are internal to the RVM,
+there are naturally some limitations on the behavior of the callback code.  For
+example, as soon as the exit callback is invoked, all threads are considered
+daemon threads (i.e. the VM will not wait for any new threads created in the
+callbacks to complete before exiting).  Thus, if the exit callback creates any
+threads, it has to {\tt join()} with them before returning.  These limitations
+may also produce some unexpected behavior.  For example, while there is an
+elementary safeguard on any classloading callback that prevents recursive
+invocation (i.e. if the callback code itself causes classloading), there is no
+such safeguard across events, so, if there are callbacks registered for both
+{\tt ClassLoaded} and {\tt ClassInstantiated} events, and the {\tt
+ClassInstantiated} callback code causes dynamic class loading, the {\tt
+ClassLoaded} callback will be invoked for the new class, but not the {\tt
+ClassInstantiated} callback.
+
+Examples of callback use can be seen in the {\tt VM\_Controller} class in the
+adaptive system and most {\tt VM\_Allocator} classes.
+
