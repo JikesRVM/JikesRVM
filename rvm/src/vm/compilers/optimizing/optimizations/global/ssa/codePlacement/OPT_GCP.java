@@ -180,13 +180,13 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     }
   }
   
-  static boolean usesOrDefsPhysicalRegister (OPT_Instruction inst) {
-    int i;
+  static boolean usesOrDefsPhysicalRegisterOrAddressType (OPT_Instruction inst) {
 
-    for (i = inst.getNumberOfOperands() - 1; i >= 0;  --i) {
+    for (int i = inst.getNumberOfOperands() - 1; i >= 0;  --i) {
       OPT_Operand op = inst.getOperand(i);
-      if (op instanceof OPT_RegisterOperand
-	  && op.asRegister().register.isPhysical()) return true;
+      if (op instanceof OPT_RegisterOperand)
+	  if (op.asRegister().type.isWordType() ||
+	      op.asRegister().register.isPhysical()) return true;
     }
     return false;
   }  
