@@ -47,7 +47,7 @@ Option                                 Description
   $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
   $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
-     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
 CMD_NAME OPTION.DESCRIP
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
@@ -75,8 +75,23 @@ $$$$ END IF
 
 Value Options (OPTPREFIX<option>=<value>)
 Option                         Type    Description
-$$$$ LOOP VDATFILE VALUE_DAT_FILES
-$$$$ FOREACH OPTION VDATFILE
+$$$$ IF OPTION_TYPE == "JMTK"
+  $$$$ LOOP VDATFILE VALUE_DAT_FILES
+  $$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET TNAME @PAD("TYPE", 7, " ")
+CMD_NAME TNAME OPTION.DESCRIP
+          $$$$ END LET TYPE_NAME
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ ELSE
+  $$$$ LOOP VDATFILE VALUE_DAT_FILES
+  $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
@@ -86,8 +101,9 @@ CMD_NAME TNAME OPTION.DESCRIP
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
      $$$$ END SPLIT OPTION.DECL
-$$$$ END FOREACH
-$$$$ END LOOP
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ END IF
 
 Selection Options (set option to one of an enumeration of possible values)
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
