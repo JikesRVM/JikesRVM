@@ -6,8 +6,6 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Util;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 //-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
 //-#endif
@@ -180,10 +178,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   public static VM_Address objectStartRef(VM_Address obj) throws VM_PragmaInline {
-    if (!(Util.validRef(obj))) {
-      Util.dumpRef(obj);
-      Memory.dumpMemory(obj, -32, 32);
-    }
     Object[] tib = VM_ObjectModel.getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     VM_Address rtn;
