@@ -278,7 +278,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // pop the glue stack frame, restore the Java caller frame
     asm.emitADDI (FP,  +frameSize, FP);              // remove linkage area
 
-    // C return value is already where caller expected it (T3/T4 or F0)
+    // C return value is already where caller expected it (T0/T1 or F0)
     // So, just restore the return address to the link register.
 
     asm.emitLAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
