@@ -174,23 +174,19 @@ public final class VM_MethodCountData implements VM_Reportable {
   }
 
   /**
-   * Set the raw data for a given cmid to the specified value
+   * Augment the data associated with a given cmid by the specified number of samples
    *
    * @param cmid compiled method id
-   * @param newVal new value for compiled method id count
+   * @param addVal samples to add
    */
-  public final synchronized void setData(int cmid, double newVal) {
-    if (newVal == 0.0) {
-      reset(cmid); // Prefer reset, since it frees up a slot in the heap.
+  public final synchronized void augmentData(int cmid, double addVal) {
+    if (addVal == 0) return; // nothing to do
+    int index = findOrCreateHeapIdx(cmid);
+    counts[index] += addVal;
+    if (addVal > 0) {
+      heapifyUp(index);
     } else {
-      int index = findOrCreateHeapIdx(cmid);
-      double oldVal = counts[index];
-      counts[index] = newVal;
-      if (newVal > oldVal) {
-	heapifyUp(index);
-      } else {
-	heapifyDown(index);
-      }
+      heapifyDown(index);
     }
     if (DEBUG) validityCheck();
   }

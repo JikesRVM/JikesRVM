@@ -138,8 +138,7 @@ abstract class VM_RecompilationStrategy {
 	// AOS has already taken action to address the situation, and thus
 	// we need to handle this as an old compiled version of a 
         // method still being live on some thread's stack.
-	if (VM.LogAOSEvents) VM_AOSLogging.oldVersionStillHot(hme); 
-	VM_Controller.methodSamples.reset(hme.getCMID());
+	transferSamplesToNewPlan(hme);
 	return false;
       }
     } else {
@@ -153,8 +152,7 @@ abstract class VM_RecompilationStrategy {
         // (b) AOS has already initiated a plan that hasn't
 	// completed yet to address the situation. 
         // Therefore don't initiate a new recompilation action.
-	if (VM.LogAOSEvents) VM_AOSLogging.oldVersionStillHot(hme); 
-	VM_Controller.methodSamples.reset(hme.getCMID());
+	transferSamplesToNewPlan(hme);
 	return false;
       }
       if (VM_ControllerMemory.planWithStatus(method, 
@@ -167,7 +165,23 @@ abstract class VM_RecompilationStrategy {
     }
   }
 
-
+  private void transferSamplesToNewPlan(VM_HotMethodEvent hme) {
+    if (VM.LogAOSEvents) VM_AOSLogging.oldVersionStillHot(hme); 
+    double oldNumSamples = VM_Controller.methodSamples.getData(hme.getCMID());
+    VM_ControllerPlan activePlan = VM_ControllerMemory.findLatestPlan(hme.getMethod());
+    if (activePlan == null) return; // shouldn't happen.
+    int newCMID = activePlan.getCMID();
+    if (newCMID > 0) {
+      // If we have a valid CMID then transfer the samples.
+      // If the CMID isn't valid, it means the compilation hasn't completed yet and
+      // the samples will be transfered by the compilation thread when it does (so we do nothing).
+      VM_Controller.methodSamples.reset(hme.getCMID());
+      double expectedSpeedup = activePlan.getExpectedSpeedup();
+      double newNumSamples = oldNumSamples / expectedSpeedup;
+      VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+    }
+  }
+  
   /**
    *  This method returns true if we've already tried to recompile the
    *  passed method.  It does not guarantee that the compilation was

@@ -79,7 +79,7 @@ class VM_CompilationThread extends VM_Thread {
     double newNumSamples = oldNumSamples / expectedSpeedup;
     VM_Controller.methodSamples.reset(prevCMID);
     if (newCMID > -1) {
-      VM_Controller.methodSamples.setData(newCMID, newNumSamples);
+      VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
     }
 
     // set the status of the plan accordingly
