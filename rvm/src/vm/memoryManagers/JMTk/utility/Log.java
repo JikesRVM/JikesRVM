@@ -84,6 +84,14 @@ class Log implements Constants, VM_Uninterruptible {
   /** new line character.  Emitted by writeln methods. */
   private static final char NEW_LINE_CHAR = '\n';
 
+  /** log instance used at build time. */
+  private static Log log = new Log();
+
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+
   /** buffer to store written message until flushing */
   private char [] buffer =
     new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
@@ -558,7 +566,7 @@ class Log implements Constants, VM_Uninterruptible {
    */
   static void prependThreadId()
   {
-    VM_Interface.getPlan().getLog().setThreadIdFlag();
+    getLog().setThreadIdFlag();
   }
 
   /**
@@ -567,7 +575,7 @@ class Log implements Constants, VM_Uninterruptible {
    * thread's logging interleaving.
    */
   static void flush() {
-    VM_Interface.getPlan().getLog().flushBuffer();
+    getLog().flushBuffer();
   }
 
   /**
@@ -610,7 +618,7 @@ class Log implements Constants, VM_Uninterruptible {
    * @param c the character to add
    */
   private static void add(char c) {
-    VM_Interface.getPlan().getLog().addToBuffer(c);
+    getLog().addToBuffer(c);
   }
 
   /**
@@ -619,7 +627,14 @@ class Log implements Constants, VM_Uninterruptible {
    * @param s the string to add
    */
   private static void add(String s) {
-    VM_Interface.getPlan().getLog().addToBuffer(s);
+    getLog().addToBuffer(s);
+  }
+
+  private static Log getLog() {
+    if (VM_Interface.runningVM())
+      return VM_Interface.getPlan().getLog();
+    else
+      return log;
   }
 
   /**
@@ -681,7 +696,7 @@ class Log implements Constants, VM_Uninterruptible {
    * There is one of these buffers for each Log instance.
    */
   private static char [] getIntBuffer() {
-    return VM_Interface.getPlan().getLog().getTempBuffer();
+    return getLog().getTempBuffer();
   }
 
   /**

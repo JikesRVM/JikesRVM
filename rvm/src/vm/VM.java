@@ -581,8 +581,12 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param len number of characters printed
    */
   public static void write(char [] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    for (int i = 0, n = len; i < n; ++i) 
-      write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+    for (int i = 0, n = len; i < n; ++i) {
+      if (runningVM)
+	write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+      else
+	write(value[i]);
+    }
   }
 
   /**
