@@ -341,7 +341,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
 
 	// to get type ID from classloader from class signatures
 	// reconsider the solution
-	VM_Type klsss = VM_Magic.getObjectType(this.objs[i]);
+	VM_Type klass = VM_Magic.getObjectType(this.objs[i]);
 	int tid = klass.getDictionaryId();
 	
 	tail.next = new BC_CheckCast(tid);
