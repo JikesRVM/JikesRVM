@@ -1,0 +1,6 @@
+<tomcat-users>
+  <user name="tomcat" password="tomcat" roles="tomcat" />
+  <user name="role1"  password="tomcat" roles="role1"  />
+  <user name="both"   password="tomcat" roles="tomcat,role1" />
+  <user name="root"   password="tomcat" roles="tomcat,role1,admin" />
+</tomcat-users>
