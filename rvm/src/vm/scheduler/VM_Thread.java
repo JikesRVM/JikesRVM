@@ -627,6 +627,12 @@ VM_Uninterruptible {
     if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
     //-#endif
 
+    //
+    // if the thread terminated because of an exception, remove
+    // the mark from the exception register object, or else the
+    // garbage collector will attempt to relocate its ip field.
+    myThread.hardwareExceptionRegisters.inuse = false;
+    
     // begin critical section
     //
     VM_Scheduler.threadCreationMutex.lock();
