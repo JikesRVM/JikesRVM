@@ -333,41 +333,40 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 				       VM_Method meth) {
     if (VM.VerifyAssertions) VM.assert(ir.options.FIXED_JTOC);
 
-    // split the basic block after the yieldpoint
+    // split the basic block after the yieldpoint, create a new
+    // block at the end of the IR to hold the yieldpoint,
+    // remove the yieldpoint (to prepare to out it in the new block at the end)
     OPT_BasicBlock thisBlock = s.getBasicBlock();
     OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s,ir);
-    
-    // create a basic block at the end of the IR to hold the yieldpoint   
     OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
     thisBlock.insertOut(yieldpoint);
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
+    s.remove();
     
+    // change thread switch instruction into call to thread switch routine
+    // NOTE: must make s the call instruction: it is the GC point!
+    //       must also inform the GCMap that s has been moved!!!
     int offset = meth.getOffset();
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(offset + VM_Magic.objectAsAddress(VM_Magic.getJTOC()),
-			  (byte)4, loc, guard);
+      OPT_MemoryOperand.D(offset + VM_Magic.getTocPointer(), (byte)4, loc, guard);
+    MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
+		     OPT_MethodOperand.STATIC(meth));
+    yieldpoint.appendInstruction(s);
+    ir.MIRInfo.gcIRMap.moveToEnd(s);
 
-    // call thread switch
-    OPT_Instruction call = 
-      MIR_Call.create0(CALL_SAVE_VOLATILE, null, null, target, 
-		       OPT_MethodOperand.STATIC(meth));
-    call.markAsNonPEI();
-    call.copyPosition(s);
-    yieldpoint.appendInstruction(call);
     yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
-						 nextBlock.makeJumpTarget())); 
+						   nextBlock.makeJumpTarget())); 
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
     int tsr = VM_Entrypoints.threadSwitchRequestedOffset;
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
-    OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, I(0));
-    s.insertBefore(compare);
-    MIR_CondBranch.mutate(s, IA32_JCC, OPT_IA32ConditionOperand.NE(),
-			  yieldpoint.makeJumpTarget(),
-			  OPT_BranchProfileOperand.unlikely());
+    thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, I(0)));
+    thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),
+						      yieldpoint.makeJumpTarget(),
+						      OPT_BranchProfileOperand.unlikely()));
   }
 }
