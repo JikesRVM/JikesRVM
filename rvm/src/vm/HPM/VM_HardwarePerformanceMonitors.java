@@ -829,7 +829,6 @@ public class VM_HardwarePerformanceMonitors
       final int numberOfMethodReferenceEntries = VM_MemberReference.getNextId();
       if (verbose>2) VM.sysWriteln("Number of member reference entries: ", numberOfMethodReferenceEntries);
       int n_mids = 0;
-      verbose = 10;
       for (int mid=0; mid<numberOfMethodReferenceEntries; mid++) {
 	//	if (verbose>6) VM.sysWrite("mid: ", mid);
         VM_MemberReference mr = VM_MemberReference.getMemberRef(mid);
