@@ -96,7 +96,7 @@ if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     cd $DEST_DIR
     
     $WGET --passive-ftp $CLASSPATH_URL -Oclasspath.tar.gz
-    tar xzf classpath.tar.gz
+    $GNU_TAR xzf classpath.tar.gz
     rm classpath.tar.gz
     mv classpath-* classpath
     cp $RVM_ROOT/rvm/bin/classpath.stamp stamp
