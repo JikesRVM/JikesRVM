@@ -276,6 +276,8 @@ public abstract class VM_Method extends VM_Member {
       if (InterruptiblePragma.declaredBy(this)) return false;
       if (PreemptiblePragma.declaredBy(this)) return false;
       if (UnpreemptiblePragma.declaredBy(this)) return true;
+      if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
+      if (UninterruptiblePragma.declaredBy(this)) return false;
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
     for (int i = 0; i < interfaces.length; i++) {
@@ -293,6 +295,7 @@ public abstract class VM_Method extends VM_Member {
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return false;
       if (PreemptiblePragma.declaredBy(this)) return false;
+      if (UnpreemptiblePragma.declaredBy(this)) return false;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
       if (UninterruptiblePragma.declaredBy(this)) return true;
     }
