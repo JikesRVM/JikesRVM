@@ -49,6 +49,11 @@ fi
 while [[ $# > 0 ]] ; do
   case $1 in
 
+    --head) 
+	export CLASSPATH_SRC=""
+	export USE_LOCAL_CLASSPATH="no"
+	CLASSPATH_CVS_DATESPEC_ARG=;;
+
     --current) 
 	CLASSPATH_CVS_DATESPEC_ARG=;;
 
