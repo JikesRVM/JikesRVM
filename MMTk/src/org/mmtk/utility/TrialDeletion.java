@@ -147,39 +147,41 @@ final class TrialDeletion extends CycleDetector
 
   public final boolean collectCycles(boolean time) {
     collectedCycles = false;
-    filterPurpleBufs();
-    processFreeBufs();
-    if (shouldCollectCycles(false)) {
-    double filterStart = VM_Interface.now();
-      double cycleStart = VM_Interface.now();
-      double filterTime = cycleStart - filterStart;
-      double filterLimit = ((double)Options.gcTimeCap)/FILTER_TIME_FACTOR;
-      if ((cycleStart < Plan.getTimeCap()) || (filterTime > filterLimit)) {
-	collectedCycles = true;
-	double remaining = Plan.getTimeCap() - cycleStart;
-	double start = 0;
-	if (Options.verbose > 0) { 
-	  start = cycleStart; VM_Interface.sysWrite("(CD "); 
-	}
-	if (time) Statistics.cdGreyTime.start();
-	doMarkGreyPhase(cycleStart + (remaining/2), (purpleBufferAisOpen) ? purpleBufferA : purpleBufferB); // grey phase => 1/2 of remaining
-	if (shouldCollectCycles(true)) {
-	  remaining = Plan.getTimeCap() - cycleStart;
-	  doMarkGreyPhase(cycleStart + (remaining/2), (maturePurpleBufferAisOpen) ? maturePurpleBufferA : maturePurpleBufferB); // grey phase => 1/2 of remaining
-	}
-	if (time) Statistics.cdGreyTime.stop();
-	if (time) Statistics.cdScanTime.start();
-	doScanPhase();
-	if (time) Statistics.cdScanTime.stop();
-	if (time) Statistics.cdCollectTime.start();
-	doCollectPhase();
-	if (time) Statistics.cdCollectTime.stop();
-	if (time) Statistics.cdFreeTime.start();
-	processFreeBufs();
-	if (time) Statistics.cdFreeTime.stop();
-	if (Options.verbose > 0) {
-	  VM_Interface.sysWrite((VM_Interface.now() - cycleStart)*1000);
-	  VM_Interface.sysWrite(" ms)");
+    if (shouldFilterPurple()) {
+      filterPurpleBufs();
+      processFreeBufs();
+      if (shouldCollectCycles(false)) {
+	double filterStart = VM_Interface.now();
+	double cycleStart = VM_Interface.now();
+	double filterTime = cycleStart - filterStart;
+	double filterLimit = ((double)Options.gcTimeCap)/FILTER_TIME_FACTOR;
+	if ((cycleStart < Plan.getTimeCap()) || (filterTime > filterLimit)) {
+	  collectedCycles = true;
+	  double remaining = Plan.getTimeCap() - cycleStart;
+	  double start = 0;
+	  if (Options.verbose > 0) { 
+	    start = cycleStart; VM_Interface.sysWrite("(CD "); 
+	  }
+	  if (time) Statistics.cdGreyTime.start();
+	  doMarkGreyPhase(cycleStart + (remaining/2), (purpleBufferAisOpen) ? purpleBufferA : purpleBufferB); // grey phase => 1/2 of remaining
+	  if (shouldCollectCycles(true)) {
+	    remaining = Plan.getTimeCap() - cycleStart;
+	    doMarkGreyPhase(cycleStart + (remaining/2), (maturePurpleBufferAisOpen) ? maturePurpleBufferA : maturePurpleBufferB); // grey phase => 1/2 of remaining
+	  }
+	  if (time) Statistics.cdGreyTime.stop();
+	  if (time) Statistics.cdScanTime.start();
+	  doScanPhase();
+	  if (time) Statistics.cdScanTime.stop();
+	  if (time) Statistics.cdCollectTime.start();
+	  doCollectPhase();
+	  if (time) Statistics.cdCollectTime.stop();
+	  if (time) Statistics.cdFreeTime.start();
+	  processFreeBufs();
+	  if (time) Statistics.cdFreeTime.stop();
+	  if (Options.verbose > 0) {
+	    VM_Interface.sysWrite((VM_Interface.now() - cycleStart)*1000);
+	    VM_Interface.sysWrite(" ms)");
+	  }
 	}
       }
     }
@@ -189,12 +191,12 @@ final class TrialDeletion extends CycleDetector
   private final boolean shouldCollectCycles(boolean fullHeap) {
     boolean major, minor;
     major = ((Plan.getPagesAvail() < Options.cycleDetectionPages) ||
-	     (Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages) ||
+	     (Plan.getMetaDataPagesUsed() > 2 * Options.cycleMetaDataPages) ||
 	     (Plan.getMetaDataPagesUsed() > (0.8 * Options.metaDataPages)));
     
 
     if (Options.genCycleDetection) {
-      minor = ((Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages/2) ||
+      minor = ((Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages) ||
 	       (Plan.getMetaDataPagesUsed() > (0.4 * Options.metaDataPages)));
       if (fullHeap)
 	return major;
@@ -206,6 +208,11 @@ final class TrialDeletion extends CycleDetector
       else
 	return major;
     }
+  }
+
+  private final boolean shouldFilterPurple() {
+    return shouldCollectCycles(false) || 
+      Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages;
   }
 
   private final double timePhase(double start, String phase) {
