@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-import com.ibm.JikesRVM.*;
+package com.ibm.JikesRVM;
 
 /**
  * Structure for opcode 31 and 63, PowerPC instruction set: 
