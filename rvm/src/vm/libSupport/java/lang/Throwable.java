@@ -183,10 +183,6 @@ public class Throwable implements java.io.Serializable {
 	 operations. */ 
       printlnJustThisThrowableNoStackTrace(err);
       ++step;
-      /* Old call.  This won't elide stack frames as nicely, but otherwise will
-	 work fine. */
-      // stackTrace.print(err);
-      /* new call: */
       if (stackTrace == null) {
 	err.println("{ Throwable.printStackTrace(): No stack trace available to display; sorry! }");
       } else {
