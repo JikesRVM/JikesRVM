@@ -21,6 +21,11 @@ and production configurations has been changed from CopyMS to GenMS.
 GenMS is a generational collector with an Appel-style nursery and a 
 mark-sweep mature space.
 
+** Jikes RVM now runs on newer versions of Linux/PowerPC that store the 
+pthread id in R2.  Building Jikes RVM with RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+is reported to work on top of these newer Linux releases, which resolves a
+long-standing limitation of Jikes RVM on Linux/PowerPC.
+
 **Source Code editing support
 There are now VIM and Emacs style files supporting the Jikes RVM coding
 style for C, Java, and C++.  See rvm/etc/README.  (This should have
