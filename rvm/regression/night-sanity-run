@@ -139,16 +139,15 @@ fi
 echo "  Sanity tests are specified in $CONFIG_DIR/$1" >> $MSG
 echo "  Performance tests are specified in $CONFIG_DIR/$2" >> $MSG
 
-# echo "     run details: $RUN_LOG\n " >> $MSG
-# echo "     build details: $BUILD_LOG\n " >> $MSG
-# echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
-# echo "     performance details: $PERF_LOG" >> $MSG
-
 # Grab the bottom line performance and place it in a more visible place
 echo >> $MSG
 echo >> $MSG
 echo Performance Summary >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
+
+# Report on javadoc errors
+numjavadocErrors=`grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq | wc`
+echo "There were $numjavadocErrors javadoc warnings" >> $MSG
 
 # Print verbose performance data for SPECjvm98
 echo >> $MSG
@@ -165,7 +164,6 @@ $AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMP
 #
 echo "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O2.?proc.raw >> $MSG
-
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
@@ -205,6 +203,4 @@ if [[ $ARCH = 'AIX' ]] then
 #    echo " " | mail -s "no files without a Copyright notice" pfs 
   fi
 fi
-
-
 
