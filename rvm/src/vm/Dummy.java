@@ -4,7 +4,7 @@
 //$Id$
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -23,7 +23,7 @@ class Dummy {
   static VM_Reflection              e;
   static VM_Process                 f;
   static VM_SaveVolatile            i;
-  static VM_Interface               l;
+  static MM_Interface               l;
   static VM_JNIFunctions            m;
   static VM_JNIStartUp              n;
   static VM_RecompilationManager    o;

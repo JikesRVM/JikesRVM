@@ -16,7 +16,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
@@ -370,7 +370,7 @@ implements BootImageWriterConstants {
       fail("please specify boot-image address with \"-ia <addr>\"");
     if (bootImageAddress % 0xff000000 != 0)
       fail("please specify a boot-image address that is a multiple of 0x01000000");
-    // VM_Interface.checkBootImageAddress(bootImageAddress);
+    // MM_Interface.checkBootImageAddress(bootImageAddress);
 
     //
     // Initialize the bootimage.
