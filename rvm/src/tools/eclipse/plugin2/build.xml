@@ -19,12 +19,14 @@ $Id$
 -->
 <project name="jikesrvm2launching" basedir="." default="build">
 
-  <property file="ant.properties"/>
+  <property environment="env"/>
+  <property name="rvm.build" value="${env.RVM_BUILD}" />
+  <property file="${rvm.build}/plugin.eclipse/ant.properties" />
 
   <property name="src.dir" value="src"/>
   <property name="etc.dir" value="etc"/>
-  <property name="dist.dir" value="dist"/>
-  <property name="build.dir" value="build"/>
+  <property name="dist.dir"  value="${rvm.build}/plugin.eclipse.dist" />
+  <!-- property name="dist.dir" value="${output}/dist"/ -->
   <property name="build.lib" value="${build.dir}/lib"/>
   <property name="build.src" value="${build.dir}/src"/>
   <property name="build.dist" value="${build.dir}/dist"/>
@@ -32,13 +34,20 @@ $Id$
   <property name="plugin.dir" value="${eclipse.dir}/plugins"/>
   <property name="name" value="${ant.project.name}"/>
 
-  <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
+  <property name="plugins.dir" value="${eclipse.dir}/plugins"  />
   <property name="package"
 	    value="com.ibm.jikesrvm.launching_${plugin.version}"/>
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
   <property name="build.config.debug" value="yes"/>
-  <property name="quiet.clean" value="yes" />
+  <property name="quiet.clean" value="no" />
+  <!-- build.trace is set in the properties file. -->
+  <!-- condition property="quiet.clean" value="true" -->
+     <!-- isfalse value="${build.trace}" / -->
+  <!-- /condition-->
+  <!-- condition property="quiet.clean" value="false" -->
+     <!-- istrue value="${build.trace}" / -->
+  <!-- /condition -->
   
   <path id="project.classpath">
    <pathelement path="${build.classes}"/>
@@ -55,7 +64,7 @@ $Id$
 
   <target name="dist" 
           depends="build.dist"
-	  description="builds a distributionx">
+	  description="builds a distribution">
     <mkdir dir="${dist.dir}"/>
     <tar tarfile="${dist.dir}/${name}.tar" basedir="${build.dist}"/>
     <gzip src="${dist.dir}/${name}.tar" zipfile="${dist.dir}/${name}.tar.gz"/>
