@@ -1555,7 +1555,7 @@ class VM_Assembler implements VM_BaselineConstants {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
     INSTRUCTION mi = STFDtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
-      asm(mIP, mi, "stfdu", FRS, signedHex(D), RA);
+      asm(mIP, mi, "stfd", FRS, signedHex(D), RA);
     mIP++;
     mc.addInstruction(mi);
   }
