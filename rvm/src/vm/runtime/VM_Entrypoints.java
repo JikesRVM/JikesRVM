@@ -483,7 +483,16 @@ class VM_Entrypoints implements VM_Constants
       deterministicThreadSwitchCountOffset            = VM.getMember("LVM_Processor;", "deterministicThreadSwitchCount", "I").getOffset();
 
 //-#if RVM_WITH_GCTk
-      GCTk_WriteBufferBase = VM.getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
+      ADDRESS top = VM.getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
+      ADDRESS bot = VM.getMember("LVM_Processor;", "writeBuffer1", "I").getOffset();
+      GCTk_WriteBufferBase = (top > bot) ? bot : top;
+      if (VM.VerifyAssertions) {
+	boolean discontigious = (((top > bot) && ((top - bot) != 4))
+				 || ((top < bot) && ((bot - top) != 4)));
+	  if (discontigious)
+	    VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_WriteBufferBase+"<----\n");
+	  VM.assert(!discontigious);
+      }
       GCTk_TraceBufferBase        = VM.getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
 //-#endif
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
@@ -562,7 +571,6 @@ class VM_Entrypoints implements VM_Constants
         //-#endif RVM_FOR_IA32
         
         //-#if RVM_WITH_GCTk
-	ADDRESS top, bot;
 	top = VM.getMember("LVM_Processor;", "allocBump0", "I").getOffset();
 	bot = VM.getMember("LVM_Processor;", "allocBump7", "I").getOffset();
 	GCTk_BumpPointerBase = (top > bot) ? bot : top;
