@@ -261,7 +261,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
 
     //   while (*argv && **argv == '-')    {
-    if (!strcmp(token, "-help") || !strcmp(token, "-?")) {
+    if (!strcmp(token, "-help") || !strcmp(token, "--help") || !strcmp(token, "-?") ) {
       usage();
       *fastExit = 1;
       break;
@@ -316,14 +316,18 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     }
     if (!strncmp(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
-      fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated, please use -Xms and/or -Xmx\n", me);
-      fprintf(SysTraceFile, "\tI am interpreting -X:h=H as if it was -XmsH.\n");
-      fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
       subtoken = token + 5;
+      fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", me);
+      fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s.\n", subtoken, subtoken);
+      fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
       initialHeapSize = atoi(subtoken) * 1024 * 1024;
       if (initialHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
-	*fastExit = 1; break;
+	  if (initialHeapSize < 0) {
+	      fprintf(SysTraceFile, "%s: You may not specify a negative initial heap size;", me);
+	      fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+	  }
+	  fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n", me);
+	  *fastExit = 1; break;
       }
       continue;
     }
@@ -331,8 +335,12 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       subtoken = token + 4;
       initialHeapSize = atoi(subtoken) * 1024 * 1024;
       if (initialHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-Xms<number>\"\n", me);
-	*fastExit = 1; break;
+	  if (initialHeapSize < 0) {
+	      fprintf(SysTraceFile, "%s: You may not specify a negative initial heap size;", me);
+	      fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+	  }
+	  fprintf(SysTraceFile, "\tplease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n");
+	  *fastExit = 1; break;
       }
       continue;
     }
@@ -340,8 +348,12 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       subtoken = token + 4;
       maximumHeapSize = atoi(subtoken) * 1024 * 1024;
       if (maximumHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify maximum heap size (in megabytes) using \"-Xmx<number>\"\n", me);
-	*fastExit = 1; break;
+	  if (maximumHeapSize < 0) {
+	      fprintf(SysTraceFile, "%s: You may not specify a negative maximum heap size;", me);
+	      fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+	  }
+	  fprintf(SysTraceFile, "%s: please specify maximum heap size (in megabytes) using \"-Xmx<positive number>\"\n", me);
+	  *fastExit = 1; break;
       }
       continue;
     }
@@ -354,11 +366,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       } else {
 	fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",me, subtoken);
 	SysTraceFile = ftmp;
-#ifdef __linux__
-	SysTraceFd   = ftmp->_fileno;
-#else
-	SysTraceFd   = ftmp->_file;
-#endif
+	SysTraceFd = fileno(ftmp);
       }	
       continue;
     }
