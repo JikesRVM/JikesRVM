@@ -714,6 +714,14 @@ public class VM extends VM_Properties
     write(": ");
   }
 
+  private static void showThread() { 
+    write("Thread "); 
+    write(VM_Thread.getCurrentThread().getIndex());
+    write(": ");
+  }
+
+  public static void ptsysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
+
   public static void psysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); writeln(); swUnlock(); }
   public static void psysWriteln (String s, int i)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
   public static void psysWriteln (String s, VM_Address a)      throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); }
