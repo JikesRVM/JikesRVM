@@ -1548,7 +1548,7 @@ tib));
     if (size <= alloc_block.alloc_size) {
       VM_Magic.setMemoryWord(VM_Magic.objectAsAddress(alloc_block.mark) +
          ARRAY_LENGTH_OFFSET, size);
-      return 0;
+      return theblock;
     }
     else {    // free the existing array space
       VM.sysCall1(bootrecord.sysFreeIP,
@@ -1743,7 +1743,7 @@ tib));
 
       int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
       if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT)) {
-	if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) { 
+	if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
 	  // processor & its running thread are block in C for this GC.  Its stack
 	  // needs to be scanned, starting from the "top" java frame, which has
 	  // been saved in the running threads JNIEnv.  Put the saved frame pointer
@@ -2536,8 +2536,8 @@ tib));
     //  The header has one pointer in it - 
     //  namely the pointer to the TIB (type info block).
     //
-    // following call not needed for noncopying: all tibs found through JTOC
-    // gc_processPtrFieldValue(VM_Magic.getMemoryWord(objRef  + OBJECT_TIB_OFFSET));
+    /// following call not needed for noncopying: all tibs found through JTOC
+//  gc_processPtrFieldValue(VM_Magic.getMemoryWord(objRef  + OBJECT_TIB_OFFSET));
 
     type  = VM_Magic.getObjectType(VM_Magic.addressAsObject(objRef));
 
@@ -2809,6 +2809,27 @@ tib));
 
   }  //  gc1
 
+
+  static void
+  dumpblocks (VM_Processor st)  {
+    VM.sysWrite("\n-- Processor ");
+		VM.sysWrite(st.id, false);
+		VM.sysWrite(" --\n");
+    for (int i = 0; i < GC_SIZES; i++) {
+			VM.sysWrite(" Size ");
+		  VM.sysWrite(GC_SIZEVALUES[i], false);
+			VM.sysWrite("  ");
+			VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block]);
+			VM.sysWrite(st.sizes[i].first_block, false);
+			while (true) {
+				VM.sysWrite("  ");
+				VM.sysWrite(the_block.nextblock, false);
+				if (the_block.nextblock == OUT_OF_BLOCKS) break;
+				the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
+			}		
+			VM.sysWrite("\n");
+		}
+	}
 
   static  void
   dumpblocks () {
@@ -3240,7 +3261,7 @@ tib));
   // for the PRIMORDIAL processor allocation of sizes, etc occurs
   // during init(), nothing more needs to be done
   //
-  if (st.id == VM_Scheduler.PRIMORDIAL_PROCESSOR_ID)
+  if (st.id <= VM_Scheduler.PRIMORDIAL_PROCESSOR_ID) 
     return;
 
   //  Get VM_SizeControl array 
