@@ -129,7 +129,7 @@ public class VM_Allocator
   
   /** When true, print heap configuration when starting */
   static final boolean DISPLAY_OPTIONS_AT_BOOT = VM_CollectorThread.DISPLAY_OPTIONS_AT_BOOT;
-  
+
   /**
    * When true, causes time spent in each phase of collection to be measured.
    * Forces summary statistics to be generated. See VM_CollectorThread.TIME_GC_PHASES.
@@ -521,6 +521,8 @@ public class VM_Allocator
   	// set mark bit in status word, if initial (unmarked) value is not 0      
   	if (MARK_VALUE==0) VM_Magic.setIntAtOffset(new_ref, OBJECT_STATUS_OFFSET, 1 );
   	if( hasFinalizer )  VM_Finalizer.addElement(new_ref);
+	if (VM_Configuration.BuildWithRedirectSlot) 
+	    VM_Magic.setObjectAtOffset(new_ref, OBJECT_REDIRECT_OFFSET, new_ref);
   	return new_ref;
       }
       else
@@ -532,6 +534,8 @@ public class VM_Allocator
       VM_Magic.setObjectAtOffset(new_ref, OBJECT_TIB_OFFSET, tib); // set .tib field
       if (MARK_VALUE==0) VM_Magic.setIntAtOffset(new_ref, OBJECT_STATUS_OFFSET, 1 );
       if( hasFinalizer )  VM_Finalizer.addElement(new_ref);
+      if (VM_Configuration.BuildWithRedirectSlot) 
+	  VM_Magic.setObjectAtOffset(new_ref, OBJECT_REDIRECT_OFFSET, new_ref);
       return new_ref;
     }
   }   // end of allocateScalar() with finalizer flag
@@ -570,6 +574,9 @@ public class VM_Allocator
     // set mark bit in status word, if initial (unmarked) value is not 0      
     if (MARK_VALUE==0) VM_Magic.setIntAtOffset(objRef, OBJECT_STATUS_OFFSET, 1);
     
+    if (VM_Configuration.BuildWithRedirectSlot) 
+	VM_Magic.setObjectAtOffset(objRef, OBJECT_REDIRECT_OFFSET, objRef);
+
     // initialize object fields with data from passed in object to clone
     if (cloneSrc != null) {
       int cnt = size - SCALAR_HEADER_SIZE;
@@ -599,7 +606,7 @@ public class VM_Allocator
     throws OutOfMemoryError {
   
      VM_Magic.pragmaInline();	// make sure this method is inlined
-  
+
      Object objAddress;
   
      if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
@@ -636,6 +643,8 @@ public class VM_Allocator
   	   if (MARK_VALUE==0) VM_Magic.setIntAtOffset(objAddress, OBJECT_STATUS_OFFSET, 1 );
   	   // set .length field
   	   VM_Magic.setIntAtOffset(objAddress, ARRAY_LENGTH_OFFSET, numElements);
+	   if (VM_Configuration.BuildWithRedirectSlot) 
+	       VM_Magic.setObjectAtOffset(objAddress, OBJECT_REDIRECT_OFFSET, objAddress);
   	   return objAddress;
 	 }
        }
@@ -651,7 +660,8 @@ public class VM_Allocator
        if (MARK_VALUE==0) VM_Magic.setIntAtOffset(objAddress, OBJECT_STATUS_OFFSET, 1);
        // set .length field
        VM_Magic.setIntAtOffset(objAddress, ARRAY_LENGTH_OFFSET, numElements);
-       
+       if (VM_Configuration.BuildWithRedirectSlot) 
+	   VM_Magic.setObjectAtOffset(objAddress, OBJECT_REDIRECT_OFFSET, objAddress);
        return objAddress;	 // return object reference
      }
   }  // allocateArray
@@ -692,6 +702,9 @@ public class VM_Allocator
   
      VM_Magic.setIntAtOffset(objRef, ARRAY_LENGTH_OFFSET, numElements);
   
+     if (VM_Configuration.BuildWithRedirectSlot) 
+	 VM_Magic.setObjectAtOffset(objRef, OBJECT_REDIRECT_OFFSET, objRef);
+
      // initialize array elements
      if (cloneSrc != null) {
        int cnt = size - ARRAY_HEADER_SIZE;
@@ -699,7 +712,7 @@ public class VM_Allocator
        int dst = VM_Magic.objectAsAddress(objRef);
        VM_Memory.aligned32Copy(dst, src, cnt);
      }
-        
+
      return objRef;  // return reference for allocated array
   }  // cloneArray
 
@@ -714,7 +727,7 @@ public class VM_Allocator
 
   /** Declares that this collector requires that compilers generate the write barrier */
   static final boolean writeBarrier = false;
-  
+
   // VM_Type of int[], to detect arrays that (may) contain code
   // and will thus require a d-cache flush before the code is executed.
   static VM_Type arrayOfIntType;  // VM_Type of int[], to detect code objects for sync'ing
@@ -1588,6 +1601,9 @@ public class VM_Allocator
       
       // now copy object (including the overwritten status word)
       VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
+
+      if (VM_Configuration.BuildWithRedirectSlot) 
+	VM_Magic.setObjectAtOffset(toObj, OBJECT_REDIRECT_OFFSET, toObj);
     }
     else {
       if (VM.VerifyAssertions) VM.assert(type.isArrayType());
@@ -1602,6 +1618,9 @@ public class VM_Allocator
       // now copy object(array) (including the overwritten status word)
       VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
       
+      if (VM_Configuration.BuildWithRedirectSlot) 
+	VM_Magic.setObjectAtOffset(toObj, OBJECT_REDIRECT_OFFSET, toObj);
+
       // sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
       // changed 11/03/00 to fix ExecuteOptCode failure (GC executing just moved code)
       if (type == arrayOfIntType)
@@ -1738,6 +1757,9 @@ public class VM_Allocator
 
     // copy object...before status word modified
     VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
+
+    if (VM_Configuration.BuildWithRedirectSlot) 
+	VM_Magic.setObjectAtOffset(toRef, OBJECT_REDIRECT_OFFSET, toRef);
     
     // replace status word in copied object, which now contains the "busy pattern",
     // with original status word, which should be "unmarked" (markbit = 0)
