@@ -16,7 +16,9 @@
  * @date 06 Apr 2000
  */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE		// so that string.h will include strsignal()
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
