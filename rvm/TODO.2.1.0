@@ -1,10 +1,10 @@
-A TODO list for the 2.0.4 release.  Please add more items that you are
+A TODO list for the 2.1.0 release.  Please add more items that you are
 aware of and delete items as they are completed.
 
 (1) Stabilize system
 
 (2) Userguide: large sections of the userguide need to be updated for
-    the 2.0.4 release.  See the TODO list in doc/userguide.
+    the 2.1.0 release.  See the TODO list in doc/userguide.
 
 (3) Memory Manager restructuring:
   -- create two new subdirectories: heap and util and relocate files
@@ -32,10 +32,10 @@ aware of and delete items as they are completed.
   Julian
 
 (8) We could think about having a zero-tolerance for javadoc
-    compilation errors starting in 2.0.4.  There are currently about 400
+    compilation errors starting in 2.1.0.  There are currently about 400
     of them, a few hours of work might be sufficient to fix this.
    Mike, Peter, + willing helpers
 
-(9) 2.0.4  vs  2.1
+
 
 
