@@ -2517,6 +2517,7 @@ java/lang/StringIndexOutOfBoundsException
 java/lang/UnsatisfiedLinkError
 java/lang/InternalError
 java/lang/IllegalMonitorStateException
+java/lang/ExceptionInInitializerError
 
     # primitive wrapper types
     #
