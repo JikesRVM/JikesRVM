@@ -313,14 +313,6 @@ public class VM_HardwarePerformanceMonitors
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
 
-      // Needed to allocate the HPM counters for the primodial thread!
-      VM_Thread thread = VM_Thread.getCurrentThread();
-      if (thread.hpm_counters == null) {
-	if(verbose>=2)VM.sysWriteln("VM_HPMs.boot() call new HPM_counters for primordial thread");
-	thread.hpm_counters = new HPM_counters();
-      }
-
-
       // When only the main thread Java thread is created, allocate HPM_counters.
       int events[] = hpm_info.ids;
       if (verbose>=3) {
@@ -353,10 +345,13 @@ public class VM_HardwarePerformanceMonitors
       // get number of counters
       hpm_info.numberOfCounters = VM_SysCall.sysHPMgetNumberOfCounters();
 
-      if (thread_group) {
-	VM_SysCall.sysHPMsetProgramMyGroup();
-	VM_SysCall.sysHPMstartMyGroup();
+      // Needed to allocate the HPM counters for the primodial thread!
+      VM_Thread thread = VM_Thread.getCurrentThread();
+      if (thread.hpm_counters == null) {
+	if(verbose>=2)VM.sysWriteln("VM_HPMs.boot() call new HPM_counters for primordial thread");
+	thread.hpm_counters = new HPM_counters();
       }
+
       //-#endif
 
       // set up callbacks
@@ -841,13 +836,11 @@ public class VM_HardwarePerformanceMonitors
    * a trace and then use the TraceFileReader with the -run and -aggregate or -aggregate_by_thread
    * command line options.
    */
-  static private HPM_counters aos;
-  static private HPM_counters sum;
+  static private HPM_counters aos = new HPM_counters();
+  static private HPM_counters sum = new HPM_counters();
 
   static private void setUpCallbacks()
   {
-    sum = new HPM_counters();
-    aos = new HPM_counters();
     VM_Callbacks.addAppStartMonitor(new VM_Callbacks.AppStartMonitor() {
         public void notifyAppStart(String app) { 
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppStart(",app,")");
