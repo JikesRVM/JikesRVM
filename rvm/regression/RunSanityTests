@@ -98,10 +98,6 @@ function showHelp {
   echo '-measureCompilation         run benchmarks in measure-compilation mode'
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
-  echo '-minimal                    run minimal test suite on OptOptSemiSpace image'
-  echo '-inadequate                 run minimal test suite on BaseBaseSemiSpace image
-					(Get it, if it is worse than minimal, it
-					must not be adequate, right?)'
   echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
 }
@@ -249,13 +245,6 @@ while [ $# != 0 ]; do
    -config-args)
 	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS $2"
 	shift
-   ;;
-
-   ## set up to run a minimal test suite on OptOptSemiSpace
-   #
-   -minimal)
-	export CONFIG_LIST=OptOptSemiSpace
-        export TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/small-sanity-tests`
    ;;
 
    ## print usage help
