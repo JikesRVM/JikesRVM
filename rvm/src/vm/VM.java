@@ -184,6 +184,10 @@ public class VM extends VM_Properties
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
     runClassInitializer("java.util.WeakHashMap");
+    runClassInitializer("java.net.URL"); // needed for URLClassLoader
+    /* Needed for ApplicationClassLoader, which in turn is needed by
+       VMClassLoader.getSystemClassLoader()  */
+    runClassInitializer("java.net.URLClassLoader"); 
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.util.TimeZone");
@@ -223,6 +227,7 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
+    VM.dynamicClassLoadingEnabled = true;
     // Create JNI Environment for boot thread.  
     // After this point the boot thread can invoke native methods.
     com.ibm.JikesRVM.jni.VM_JNIEnvironment.boot();
@@ -942,7 +947,10 @@ public class VM extends VM_Properties
 
     // print a traceback and die
     VM_Scheduler.traceback(message);
-    VM.shutdown(exitStatusSysFail);
+    if (VM.runningVM)
+      VM.shutdown(exitStatusSysFail);
+    else
+      VM.sysExit(exitStatusSysFail);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
