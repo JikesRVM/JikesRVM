@@ -34,14 +34,6 @@
 
 
 trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || :
-
-## We can first do some simple version tests to keep from getting slipped Bash
-## version 2.03 or earlier.  (Taken from jconfigure)
-if ! echo D | read -n 1 > /dev/null 2>&1 ; then
-    echo >&2 "$0: We are somehow running under a version of the shell that does not recognize the '-n' argument to the 'read' builtin.  This program absolutely requires Bash version 2.05 or better to run, and we recommend 2.05a or better.  Aborting execution."
-    exit 1
-fi
-
 set -e
 ME="${0##*/}"
 if [[ ! ${JAL_BUILD-} ]]; then
@@ -205,14 +197,11 @@ if [[ ! -e $SRC/TODO ]]; then
     mkdir -p $DEST_DIR
     cd $DEST_DIR
     
-    $WGET --passive-ftp $CLASSPATH_URL -O$DEST_DIR/classpath.tar.gz
-    mkdir -p $SRC
-    $GNU_TAR -C $SRC -xzf $DEST_DIR/classpath.tar.gz
-    mv $SRC/classpath-*/* $SRC
-    rmdir $SRC/classpath-*
-    
-    rm $DEST_DIR/classpath.tar.gz
-    cp $RVM_ROOT/rvm/bin/classpath.stamp $SRC/stamp
+    $WGET --passive-ftp $CLASSPATH_URL -Oclasspath.tar.gz
+    $GNU_TAR xzf classpath.tar.gz
+    rm classpath.tar.gz
+    mv classpath-* classpath
+    cp $RVM_ROOT/rvm/bin/classpath.stamp stamp
     # stuff untarred into the dir "classpath", which should be the same as
     # $SRC.
     if [[ ! -e $SRC/TODO ]]; then
