@@ -6,13 +6,22 @@ DECL
 DESCRIP
 
 VerifyBytecode false verify
-Should bytecodes be verified?
+Should bytecodes be verified?  XXX Does not work reliably; user contributions welcome.
 
 MeasureCompilation false measureCompilation
 Time all compilations and report on exit
 
 stackTraceVMSysWrite false 
-Exclusively use VM.sysWrite to generate stack dumps
+Exclusively use VM.sysWrite to print stack dumps
+
+stackTraceAlsoToVMSysWrite false
+When printing a stack dump, print a copy via VM.sysWrite (if not doing so already)
+
+stackTraceAnnounceWhenPrinting false
+Announce via VM.syswrite() when we print a stack trace
+
+stackTraceShowPrintingContext false
+Print the context of every attempt to print out a stack trace, to debug problems with the stack trace printing code itself.
 
 TraceClassLoading false verboseTraceClassLoading
 More detailed tracing then -verbose:class

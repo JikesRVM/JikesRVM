@@ -7,6 +7,7 @@ package java.lang;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Options;
 import com.ibm.JikesRVM.VM_StackTrace;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.PrintLN;
@@ -86,7 +87,7 @@ public class Throwable implements java.io.Serializable {
   public void tallyOutOfMemoryError() {
     if (++numOutOfMemoryErrors >= maxOutOfMemoryErrors) {
       /* We exit before printing, in case we're in some weird hell where
-         everything is broken, even VM.sysWriteln().. */
+          everything is broken, even VM.sysWriteln().. */
       VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
     }
     if (numOutOfMemoryErrors > 1 ) {
@@ -158,11 +159,7 @@ public class Throwable implements java.io.Serializable {
   }
 
   public void printStackTrace (int depth) {
-    // boolean useSysWrite = false;
-    // My intent here in overriding this WAS to avoid stack trace hell, but
-    // it only seems to have gotten worse.
-    // boolean useSysWrite = true || VM.stackTraceVMSysWrite;
-    boolean useSysWrite = VM.stackTraceVMSysWrite;
+    boolean useSysWrite = VM_Options.stackTraceVMSysWrite;
 
     if (!useSysWrite) {
       if (this instanceof OutOfMemoryError) {

@@ -29,6 +29,7 @@ public class VM_StackTrace implements VM_Constants {
   public final int traceIndex;
   static int lastTraceIndex = 0; 
 
+  /** How deep in printing stack traces is too deep?  Bail at this point. */
   public int printingMaxDepth = 10;
 
   private static synchronized int getNextTraceIndex() {
@@ -188,24 +189,18 @@ public class VM_StackTrace implements VM_Constants {
       use internally!  So we need a copy.
       
       Disabled by default.
-
-      This needs to be run-time configurable, but isn't.   Set it in the code
-      and recompile.  
   */
-  static public boolean alsoStackTraceToSysWrite = false;
+  static public boolean alsoPrintToSysWrite = VM_Options.stackTraceAlsoToVMSysWrite;
 
-  /** Show the context of an attempt to print a stack frame.  This is
-      specifically to help figure out why Eclipse is dumping the stack in
-      certain cases.  Also useful for other problems.  Enabled by default. 
-      
-      Needs to be made run-time configurable, but isn't. 
-  */
-  static public boolean showPrintingContext = false;
+  /** Announce via VM.syswrite() when we're printing a stack trace.   
+      Disabled by default; otherwise, the Eclipse regression test output would
+      get loaded with these. */
+  static public boolean announceWhenPrintingStackTrace = VM_Options.stackTraceAnnounceWhenPrinting;
 
-
-  /** Announce via VM.syswrite() when we're printing a stack trace.  Needs to
-   * be made run-time configurable; isn't.  */
-  static public boolean announceWhenPrintingStackTrace = false;
+  /** Print (via VM.sysWrite()) the context of every attempt to print a stack
+      frame.  This is specifically to help figure out errors that happen when
+      printing the stack.  Disabled by default. */
+  static public boolean showPrintingContext = VM_Options.stackTraceShowPrintingContext;
 
 
   /**
@@ -236,7 +231,7 @@ public class VM_StackTrace implements VM_Constants {
       if (announceWhenPrintingStackTrace)
         VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
                       traceIndex);
-      if (alsoStackTraceToSysWrite) {
+      if (alsoPrintToSysWrite) {
         if (! out.isSysWrite()) {
           VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex,
                         "): Here's the copy to sysWrite:");
