@@ -39,29 +39,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     invokeNativeFunctionInstructions          = generateInvokeNativeFunctionInstructions();
   }
 
-  static INSTRUCTION[] getReflectiveMethodInvokerInstructions() {
-    return reflectiveMethodInvokerInstructions;
-  }
-   
-  static INSTRUCTION[] getSaveThreadStateInstructions()  {
-    return saveThreadStateInstructions;
-  }
-   
-  static INSTRUCTION[] getThreadSwitchInstructions() {
-    return threadSwitchInstructions;
-  }
-   
-  static INSTRUCTION[] getRestoreHardwareExceptionStateInstructions() {
-    return restoreHardwareExceptionStateInstructions;
-  }
-   
-  static INSTRUCTION[] getGetTimeInstructions()  {
-    return getTimeInstructions;
-  }
-
-  // there is no getInvokeNativeFunctionInstrucions since
-  // we do not wish that this code be ever inlined.
-   
   //----------------//
   // implementation //
   //----------------//
