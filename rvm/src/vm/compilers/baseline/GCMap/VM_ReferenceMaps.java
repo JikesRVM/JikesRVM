@@ -425,6 +425,21 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
     return bytesPerMap;
   }
 
+  int getIntDataSize() {
+      VM_Array intArray = VM_Array.arrayOfIntType;
+      int size = 0;
+      if (MCSites != null) size += intArray.getInstanceSize(MCSites.length);
+      if (byte2machine != null) size += intArray.getInstanceSize(byte2machine.length);
+      return size;
+  }
+
+  int getByteDataSize() {
+      VM_Array intArray = VM_Array.arrayOfIntType;
+      int size = 0;
+      if (referenceMaps != null) size += intArray.getInstanceSize(referenceMaps.length);
+      if (unusualReferenceMaps != null) size += intArray.getInstanceSize(unusualReferenceMaps.length);
+      return size;
+  }
 
   private byte[]        referenceMaps;
   private int           MCSites[];
