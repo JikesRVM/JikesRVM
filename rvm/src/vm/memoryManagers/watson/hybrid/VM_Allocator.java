@@ -232,12 +232,12 @@ public class VM_Allocator extends VM_GCStatistics
   }
   private static VM_Address globalAllocateRawMemory(int size) throws VM_PragmaNoInline {
     for (int count = 0; true; count++) {
-      VM_Address addr = fromHeap.allocateZeroedMemory(size);
+      VM_Address addr = nurseryHeap.allocateZeroedMemory(size);
       if (!addr.isZero()) {
 	if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
 	return addr;
       } 
-      heapExhausted(fromHeap, size, count);
+      heapExhausted(nurseryHeap, size, count);
     }
   }
 
