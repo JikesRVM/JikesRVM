@@ -10,16 +10,19 @@ etc.})  derive from
 \xlink{{\tt VM\_Thread}}{\VMThreadURL}.  
 These threads are multiplexed onto
 one or more virtual processors (see 
-\xlink{{\tt VM\_Processor}}{\VMProcessorURL}).  Normally, the
-number of Jikes RVM virtual processors to use is a command line argument
-({\it e.g.}\ {\tt -X:processors=4}) Generally, there should be one Jikes RVM
-virtual processor for each CPU on an SMP.\@  Additional virtual
-processors may be created to handle threads executing non-Java code
-through the Java JNI.\@  Multiple virtual processors require a working
-pThread library, each virtual processor being bound to a pThread.  It
-is possible to build a system that only uses one virtual processor by
-setting the preprocessor directive 
-\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} to 1.  This may give a minor
+\xlink{{\tt VM\_Processor}}{\VMProcessorURL}).  The 
+number of Jikes RVM virtual processors to use is a command line
+argument ({\it e.g.}\ {\tt -X:processors=4}).  If no command line
+argument is given, Jikes RVM will default to creating only one virtual
+processor. If you want Jikes RVM to utilize more than 1 CPU, then you
+need to tell it to use the appropriate number of virtual processors.
+For maximal performance, you should tell Jikes RVM to create one
+virtual processor for each CPU on an SMP.  Multiple virtual processors
+require a working pThread library, each virtual processor being bound
+to a pThread.  It is possible to build a system that only uses one
+virtual processor by setting the preprocessor directive
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} to 1.  
+This may give a minor
 performance benefit on uniprocessors. See the configuration file
 {\tt BaseBaseCopyMSUP} for examples of
 using this preprocessor directive.
@@ -73,14 +76,6 @@ execution.
 
 Currently, Jikes RVM has no priority mechanism, that is, all threads run at
 the same priority.
-
-If Jikes RVM detects that a thread is stuck executing native code (JNI)
-for a long time, it temporarily prevents it from returning to Java code and
-creates a new pThread (or recycles one previously created for this 
-purpose) and transfers the stuck thread's virtual processor to the
-new pThread.  When the stuck thread returns to Java code, the pThread
-executing it is deactivated and added to a pool of available pThreads.
-Currently, this mechanism does not work on Linux and is disabled there.
 
 Jikes RVM uses a light-weight locking scheme to implement Java monitors (see
 \xlink{{\tt VM\_Lock}}{\VMLockURL} and 
