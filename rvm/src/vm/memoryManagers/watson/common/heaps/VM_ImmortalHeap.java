@@ -14,6 +14,7 @@ final class VM_ImmortalHeap extends VM_Heap
 
   private VM_Address allocationCursor;
   private int markValue;
+  private VM_ProcessorLock spaceLock = new VM_ProcessorLock();
 
   /**
    * Initialize for boot image - called from init of various collectors or spaces
@@ -105,8 +106,11 @@ final class VM_ImmortalHeap extends VM_Heap
     return region;
   }
 
-  private synchronized VM_Address allocateInternal (int size, int alignment, int offset) {
-    VM_Magic.pragmaInline();
+  private VM_Address allocateInternal (int size, int alignment, int offset) {
+    // NOTE: must use processorLock instead of synchronized virtual method
+    //       because we can't give up the virtual processor.
+    //       This method is sometimes called when the GC system is in a delicate state.
+    spaceLock.lock();
 
     // reserve space for offset bytes
     allocationCursor = allocationCursor.add(offset);
@@ -118,6 +122,9 @@ final class VM_ImmortalHeap extends VM_Heap
     if (allocationCursor.GT(end))
       VM.sysFail("Immortal heap space exhausted");
     // subtract back offset bytes
+
+    spaceLock.unlock();
+
     return result.sub(offset);
   }
 

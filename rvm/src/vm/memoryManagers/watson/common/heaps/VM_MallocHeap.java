@@ -16,6 +16,7 @@ public class VM_MallocHeap extends VM_Heap
   // Internal management
   private VM_BootRecord bootrecord;
   private int markValue;
+  private VM_ProcessorLock spaceLock = new VM_ProcessorLock();
 
   /**
    * Initialize for boot image - called from init of various collectors
@@ -73,7 +74,12 @@ public class VM_MallocHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected synchronized VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) {
+    // NOTE: must use processorLock instead of synchronized virtual method
+    //       because we can't give up the virtual processor.
+    //       This method is sometimes called when the GC system is in a delicate state.
+    spaceLock.lock();
+
     VM_Address region = VM_Address.fromInt(VM.sysCall1(bootrecord.sysMallocIP, size));
     VM_Address regionEnd = region.add(size);
     if (region.isZero()) {
@@ -92,6 +98,8 @@ public class VM_MallocHeap extends VM_Heap
       VM.sysWrite("    "); show();
       VM_Scheduler.dumpStack();
     */
+    spaceLock.unlock();
+
     return region;
   }
 
