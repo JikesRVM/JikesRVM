@@ -1644,38 +1644,44 @@ function emitImageLinker () {
 	    MFLAGS=-w
 	fi
 
+	function clean_primordials() {
+	    rm -f $PRIMORDIAL_CLASSES_STR $EXCLUDED_CLASSES_STR \
+			$BOOTIMAGE_STR $BOOTIMAGE_MAP_STR
+	    echo -n "(primordials cleaned) "
+	    
+	}
+	function clean_bootimage() {
+	    rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*
+	    rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h
+	    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java
+	    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class
+	    echo >&2 -n "(bootimage cleaned) " 
+	}
+
 EOF
     
     BOOTIMAGE_WRITER_MAKEFILE=Makefile
 
-    echo "if [[ \$CLEAN_FLAG ]]; then"
-    echo "    rm -f $PRIMORDIAL_CLASSES_STR $EXCLUDED_CLASSES_STR $BOOTIMAGE_STR $BOOTIMAGE_MAP_STR"
-    echo '    echo -n "(primordials cleaned) "'
-    echo "    rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*"
-    echo "    rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h"
-    echo "    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java"
-    echo "    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class"
-    echo '    echo -n "(bootimage cleaned) "'
-    echo '    trap "" EXIT'
-    echo '    exit 0'
-    echo 'fi'
-    echo ''
-    echo "rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*"
-    echo "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h"
-    echo "rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java"
-    echo "rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class"
-    echo 'echo -n "(bootimage cleaned) "'
-
-    # Generate list of classes to include in the bootimage.
-    #
-    echo "if [[ ! -e ${PRIMORDIAL_CLASSES_STR} ]]; then"
-
-    # 
-    # (1) Generate a list of Excluded classes that we don't want in the bootimage
-    #
-
     cat <<- EOF
-        cleanFileList > ${EXCLUDED_CLASSES_STR} <<- EOF_EXCLUDED_CLASSES
+	if [[ \$CLEAN_FLAG ]]; then
+	    clean_primordials;
+	    clean_bootimage;
+	    trap "" EXIT
+	    exit 0
+	fi
+
+	clean_bootimage;
+
+	# Generate list of classes to include in the bootimage.
+	#
+	if [[ ! -e ${PRIMORDIAL_CLASSES_STR} ]]
+	then
+
+	# 
+	# (1) Generate a list of Excluded classes that we don't want in the bootimage
+	#
+
+            cleanFileList > ${EXCLUDED_CLASSES_STR} <<- EOF_EXCLUDED_CLASSES
 	# skip: needed to build bootimage, but not to run it
 	    BootImageInterface.class
 	    Dummy.class
@@ -1688,7 +1694,8 @@ EOF
 	# skip: don't put application class loader in, due to static data issues
 	    ApplicationClassLoader.class
 
-	# We can't carry these from bootimage writing to runtime without special treatment
+	# We can't carry these from bootimage writing to runtime 
+	# without special treatment
 	    java/lang/ref/PhantomReference.class
 	    java/lang/ref/SoftReference.class
 	    java/lang/ref/WeakReference.class
@@ -1706,7 +1713,7 @@ EOF
     
     echo "    cd ${CLASSES_DIRECTORY_STR}"
     
-    declare -i save_temps=0	# want this for debugging?
+    declare -i save_temps=0	# You might set save_temps=1 when debugging.
     CLEANUP='if (( ! save_temps )); then
 		rm $PRIMORDIAL_CLASSES_STR.1
 		rm $PRIMORDIAL_CLASSES_STR.2
@@ -2146,14 +2153,13 @@ EOF
     done
 
 cat <<-EOF
-EOF_PRIMORDIAL_CLASSES_STR
-EOF
-    echo '    echo -n "(primordial class names written) "'
-    echo 'fi'
+	EOF_PRIMORDIAL_CLASSES_STR
+	echo >&2 -n "(primordial class names written) "
+	fi
 
-    echo "\
-# Create bootimage.
-#"
+	# Create bootimage.
+	#
+EOF
     BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$BOOTIMAGE_WRITER_TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS"
@@ -2200,8 +2206,8 @@ EOF
     echo "fi"
     echo "if tracing preprocessor; then"
     echo '    PREPROC_FLAGS="${PREPROC_FLAGS}${PREPROC_FLAGS+ }-trace"'
-    echo '    cleanline'
-    echo '    echo -n "$ME: '$BOOTIMAGE_WRITER_DIR_STR'/"'
+    echo '    cleanline >&2'
+    echo '    echo >&2 -n "$ME: '$BOOTIMAGE_WRITER_DIR_STR'/"'
     echo 'fi'
 
     # See above comment in jconfigure on xargs.
@@ -2221,8 +2227,8 @@ EOF
     #
     echo ''
     echo "if tracing preprocessor; then"
-    echo "    cleanline"
-    echo "    echo -n \"\$ME: $BOOTIMAGE_RUNNER_DIR_STR\"/"
+    echo "    cleanline >&2"
+    echo "    echo >&2 -n \"\$ME: $BOOTIMAGE_RUNNER_DIR_STR\"/"
     echo "fi"
     echo "FILE=$BOOTIMAGE_RUNNER_DIR_STR/GenerateInterfaceDeclarations.java"
     echo "if ! [[ -f \$FILE ]]; then"
@@ -2549,7 +2555,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	    \$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1\
 	    -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
 	
-	    echo 'echo -n "(build libhpm.a library) "'
+	    echo 'echo >&2 -n "(build libhpm.a library) "'
 	    echo "chdir $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
 	    \$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c"
 	    echo "chdir $SCRATCH_DIRECTORY_STR"
@@ -2559,7 +2565,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	    echo "\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS\
 	    -L\"$RVM_HPM_DIR\" -lpmapi -L\"$BUILD_DIRECTORY_STR\" -lhpm"
 
-	    echo 'echo -n "(build libJava2HPM.a JNI library) "'
+	    echo 'echo >&2 -n "(build libJava2HPM.a JNI library) "'
 	    echo "chdir $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
   		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
  		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C"
@@ -3115,8 +3121,6 @@ chmod +x$PERM		$f
 #
 
 # read the host environment file
-# We've actually already done this, but we're doing it again for good measure
-# and just to make this explicit.
 . ${RVM_HOST_CONFIG}
 # echo >&2 "Just read RVM_HOST_CONFIG=${RVM_HOST_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
 export CURRENT_CONFIG_FILE=${RVM_HOST_CONFIG}
