@@ -111,7 +111,7 @@ class VM_CommandLineArgs {
     new Prefix("-X:aos:irc:",           AOS_IRC_ARG),
     new Prefix("-X:aos:opt:help$",      AOS_OPT_HELP_ARG),
     new Prefix("-X:aos:opt$",           AOS_OPT_HELP_ARG),
-    new Prefix("-X:aos:opt:",           AOS_OPT_ARG),
+    new Prefix("-X:aos:opt",            AOS_OPT_ARG),
     new Prefix("-X:aos:share",          AOS_SHARE_ARG),
     new Prefix("-X:aos:base:",          AOS_BASE_ARG),
     new Prefix("-X:aos:base:help$",     AOS_BASE_HELP_ARG),
@@ -443,7 +443,7 @@ class VM_CommandLineArgs {
 	break;
       case AOS_OPT_ARG:
 	// "-X:aos:opt[?]:arg" defer processing of 'opt[?]:arg' to
-	// the optimizing compiler.
+	// the optimizing compiler.  Note arg actually includes the optional opt level and :
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.addOptCompilerOption("opt"+arg);
 	//-#else
