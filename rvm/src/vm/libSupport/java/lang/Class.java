@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2003
  */
 //$Id$
 package java.lang;
@@ -37,6 +37,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  * @author Stephen Fink
  * @author Eugene Gluzberg
  * @author Dave Grove
+ * @modified Steven Augart
  */
 public final class Class implements java.io.Serializable {
   static final long serialVersionUID = 3206093459760846163L;
@@ -76,15 +77,21 @@ public final class Class implements java.io.Serializable {
 			      ClassLoader classLoader) 
     throws ClassNotFoundException,
 	   LinkageError,
-	   ExceptionInInitializerError,
-	   SecurityException 
+	   ExceptionInInitializerError
   {
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
       if (security != null) {
 	ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
 	if (parentCL != null) {
-	  security.checkPermission(new RuntimePermission("getClassLoader"));
+	  try {
+	    security.checkPermission(new RuntimePermission("getClassLoader"));
+	  } catch (SecurityException e) {
+	    throw new ClassNotFoundException(
+		    "Security exception when"
+		    + " trying to get a classloader so we can load the"
+		    + " class named \"" + className +"\"", e);
+	  }
 	}
       }
       classLoader = VM_SystemClassLoader.getVMClassLoader();
@@ -674,7 +681,8 @@ public final class Class implements java.io.Serializable {
   {
     if (className.startsWith("[")) {
       if (!validArrayDescriptor(className)) 
-	throw new ClassNotFoundException();
+	throw new ClassNotFoundException("Could not look up a class named \"" 
+					 + className + "\" since that's not a valid array descriptor");
     }
     VM_Atom descriptor = VM_Atom
       .findOrCreateAsciiAtom(className.replace('.','/'))
@@ -686,11 +694,23 @@ public final class Class implements java.io.Serializable {
     if (initialize && !ans.isInitialized()) {
       ans.resolve();
       ans.instantiate();
-      try {
+//       try {
 	ans.initialize();
-      } catch (Exception e) {
-	throw new ExceptionInInitializerError(e);
-      }
+	//      } catch (ClassNotFoundException cnf) {
+// 	// This is a dubious interpretation of the documentation, but it is
+// 	// the one that we suspect Eclipse depends upon.  
+// 	// --Steve Augart and David Grove
+// 	throw cnf;
+// 	// // Subclass of LinkageError; reduce code bloat.
+// 	//      } catch (ExceptionInInitializerError eiie) {
+// 	// // ditto
+// 	// throw eiie;		// io
+//       } catch (LinkageError le) {
+// 	// ditto
+// 	throw le;
+//       } catch (Exception e) {
+//  	throw new ExceptionInInitializerError(e);
+//       }
     }
     return ans.getClassForType();
   }
