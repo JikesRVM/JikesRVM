@@ -214,19 +214,6 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
   }
 
   /**
-   * Return the initial header value for a newly allocated LOS
-   * instance.
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public static final Word getInitialHeaderValue(int bytes)
-    throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
-    return Word.zero();
-  }
-
-  /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
    * collector with an opportunity to collect.<p>
@@ -255,7 +242,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, Space space) 
     throws LogicallyUninterruptiblePragma {
-    if (getPagesReserved() > getTotalPages()) Assert.error("Out of memory");
+    if (getPagesAvail() <= 0) Assert.error("Out of memory");
     return false;
   }
 
