@@ -42,6 +42,15 @@ final class OPT_LiveSetElement {
   }
 
   /**
+   * Change the register operand.  New operand must represent the same register
+   * This is done to promote something of WordType to ReferenceType for the purposes of GC mapping.
+   */
+  public final void setRegisterOperand(OPT_RegisterOperand newRegOp) {
+    if (VM.VerifyAssertions) VM._assert(regOp.register.number == newRegOp.register.number);
+    regOp = newRegOp;
+  }
+
+  /**
    * Returns the register associated with this element
    * @return the register associated with this element
    */

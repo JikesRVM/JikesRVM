@@ -94,12 +94,17 @@ public class OPT_LiveSet {
       }
       // check if there is a next item
       if (current != null) {
-        // check for duplicate
-        if (current.getRegister().number != itemNumber) {
+        if (current.getRegister().number == itemNumber) {
+          // already in there.  Check to see if we have an Address/Reference confusion.
+          // If we do, then prefer to have the Reference in the LiveSet as that will
+          // include item in the GC maps from this program point "up"
+          if (current.getRegisterType().isWordType() && item.type.isReferenceType()) {
+            current.setRegisterOperand(item);
+          }
+        } else {
           createAndAddToCurrentList(item, prev);
         }
-      } 
-      else {                    // current == null
+      } else {                    // current == null
         // we ran off the end of the list, but prev still has the last element
         createAndAddToCurrentList(item, prev);
       }
