@@ -1649,7 +1649,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitSLDI (int RA, int RS, int N) {
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
-    int mi = SLDItemplate | RS<<21 | RA<<16 | (N&0x1F)<<11 | ((31-N)&0x1F)<<6 | ((31-N)&0x20) | (N&0x20)>>4 ;
+    int mi = SLDItemplate | RS<<21 | RA<<16 | (N&0x1F)<<11 | ((63-N)&0x1F)<<6 | ((63-N)&0x20) | (N&0x20)>>4 ;
     mIP++;
     mc.addInstruction(mi);
   }

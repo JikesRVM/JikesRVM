@@ -3432,7 +3432,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitSTAddr(T1,  STACKFRAME_FRAME_POINTER_OFFSET, T0); // *(address+SFPO) := value
     } else if (methodName == VM_MagicNames.getCompiledMethodID) {
       popAddr(T0);                           // pop  frame pointer of callee frame
-      asm.emitLWZ (T1, STACKFRAME_METHOD_ID_OFFSET, T0); // load compiled method id
+      asm.emitLInt (T1, STACKFRAME_METHOD_ID_OFFSET, T0); // load compiled method id
       pushInt(T1);                           // push method ID 
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
       popInt(T1); // value
