@@ -79,9 +79,9 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
       VM_Interface._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
       VM_Interface._assert(alignment <= MAXIMUM_ALIGNMENT);
       VM_Interface._assert(offset >= 0);
-      VM_Interface._assert((region.toInt() % BYTES_IN_PARTICLE) == 0);
-      VM_Interface._assert((alignment % BYTES_IN_PARTICLE) == 0);
-      VM_Interface._assert((offset % BYTES_IN_PARTICLE) == 0);
+      VM_Interface._assert((region.toInt() & (BYTES_IN_PARTICLE-1)) == 0);
+      VM_Interface._assert((alignment & (BYTES_IN_PARTICLE-1)) == 0);
+      VM_Interface._assert((offset & (BYTES_IN_PARTICLE-1)) == 0);
     }
 
     // No alignment ever required.
