@@ -1668,6 +1668,23 @@ sysWaitForMultithreadingStart()
 // CRA, Maria
 // 09/14/00
 //
+/*
+  I have filed defect report # 3925 about this function, with the following
+  description of the defect: --Steve Augart:
+
+  sysPthreadSelf(), in sys.C, logically, should just return the thread ID of
+  the current thread. It does not. It also does some initialization related to
+  per-thread signal handling for that thread. (Block SIGCONT, set up a special
+  signal handling stack for the thread.)
+
+  We have been getting away with this because we in fact only call
+  sysPthreadSelf() once, at thread startup time. However, we probably should
+  either break out the initialization code separately or rename sysPthreadSelf
+  to something more accurate, like
+  sysPthreadSetupSignalHandlingAndReturnPthreadSelf(). (I like the idea of
+  breaking out the logically-unrelated initialization code.)
+
+*/
 extern "C" int
 sysPthreadSelf()
 {
