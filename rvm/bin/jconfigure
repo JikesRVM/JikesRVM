@@ -693,6 +693,8 @@ function emitSourceList
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/hybrid
       elif (( $RVM_WITH_GENHYBRID )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genHybrid
+      elif (( $RVM_WITH_SIMPLE_RC )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
       fi
    fi
 

@@ -47,13 +47,15 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   protected AddressQueue values;          // gray objects
   protected AddressQueue locations;       // locations containing white objects
-  protected AddressPairQueue interiorLocations; // interior locations
+  protected AddressQueue rootLocations;   // root locations containing white objects
+  protected AddressPairQueue interiorRootLocations; // interior root locations
   protected static SharedQueue valuePool;
   protected static SharedQueue locationPool;
-  protected static SharedQueue interiorPool;
+  protected static SharedQueue rootLocationPool;
+  protected static SharedQueue interiorRootPool;
   private static MonotoneVMResource metaDataVM;
   protected static MemoryResource metaDataMR;
-  private static RawPageAllocator metaDataRPA;
+  protected static RawPageAllocator metaDataRPA;
 
   protected static final EXTENT       SEGMENT_SIZE = 0x10000000;
   protected static final int          SEGMENT_MASK = SEGMENT_SIZE - 1;
@@ -69,13 +71,17 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected static final VM_Address   PLAN_START  = META_DATA_END;
 
   private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
+
+  protected static final int NON_PARTICIPANT = 0;
+
   static {
     metaDataMR = new MemoryResource(META_DATA_POLL_FREQUENCY);
     metaDataVM = new MonotoneVMResource("Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
     metaDataRPA = new RawPageAllocator(metaDataVM, metaDataMR);
     valuePool = new SharedQueue(metaDataRPA, 1);
     locationPool = new SharedQueue(metaDataRPA, 1);
-    interiorPool = new SharedQueue(metaDataRPA, 2);
+    rootLocationPool = new SharedQueue(metaDataRPA, 1);
+    interiorRootPool = new SharedQueue(metaDataRPA, 2);
   }
 
   BasePlan() {
@@ -84,8 +90,10 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
     valuePool.newClient();
     locations = new AddressQueue(locationPool);
     locationPool.newClient();
-    interiorLocations = new AddressPairQueue(interiorPool);
-    interiorPool.newClient();
+    rootLocations = new AddressQueue(rootLocationPool);
+    rootLocationPool.newClient();
+    interiorRootLocations = new AddressPairQueue(interiorRootPool);
+    interiorRootPool.newClient();
   }
 
   /**
@@ -135,18 +143,18 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
       VM_Interface.prepareNonParticipating(); // The will fix collector threads that are not participating in thie GC.
     }
     VM_Interface.prepareParticipating();      // Every participating thread needs to adjust its context registers.
-    barrier.rendezvous();
+    order = barrier.rendezvous();
     if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for start");
-    allPrepare();
+    allPrepare(order);
     barrier.rendezvous();
   }
 
   protected final void release() {
     SynchronizationBarrier barrier = VM_CollectorThread.gcBarrier;
-    barrier.rendezvous();
-    if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for termination");
-    allRelease();
     int order = barrier.rendezvous();
+    if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for termination");
+    allRelease(order);
+    order = barrier.rendezvous();
     if (order == 1) {
       singleRelease();
       gcInProgress = false;    // GC is in progress until after release!
@@ -159,15 +167,16 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
     }
     values.reset();
     locations.reset();
-    interiorLocations.reset();
+    rootLocations.reset();
+    interiorRootLocations.reset();
     barrier.rendezvous();
   }
 
   // These abstract methods are called in the order singlePrepare, allPrepare, allRelease, 
   // and singleRelease.  They are all separated by a barrier.
   abstract protected void singlePrepare();
-  abstract protected void allPrepare();
-  abstract protected void allRelease();
+  abstract protected void allPrepare(int order);
+  abstract protected void allRelease(int order);
   abstract protected void singleRelease();
 
   static SynchronizedCounter threadCounter = new SynchronizedCounter();
@@ -180,10 +189,10 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   private void computeRoots() {
 
-    AddressPairQueue codeLocations = VM_Interface.MOVES_OBJECTS ? interiorLocations : null;
+    AddressPairQueue codeLocations = VM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
 
     //    fetchRemsets(locations);
-    ScanStatics.scanStatics(locations);
+    ScanStatics.scanStatics(rootLocations);
 
     while (true) {
       int threadIndex = threadCounter.increment();
@@ -194,21 +203,21 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
       // See comment of ScanThread.scanThread
       //
       VM_Address thAddr = VM_Magic.objectAsAddress(th);
-      VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(thAddr));
+      VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(thAddr, true));
       if (VM_Magic.objectAsAddress(th2).EQ(thAddr))
-	ScanObject.scan(thAddr);
-      ScanObject.scan(VM_Magic.objectAsAddress(th.stack));
+	ScanObject.rootScan(thAddr);
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.stack));
       if (th.jniEnv != null) {
-	ScanObject.scan(VM_Magic.objectAsAddress(th.jniEnv));
-	ScanObject.scan(VM_Magic.objectAsAddress(th.jniEnv.JNIRefs));
+	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv));
+	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv.JNIRefs));
       }
-      ScanObject.scan(VM_Magic.objectAsAddress(th.contextRegisters));
-      ScanObject.scan(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
-      ScanObject.scan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters));
-      ScanObject.scan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters.gprs));
-      ScanThread.scanThread(th2, locations, codeLocations);
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters));
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters));
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters.gprs));
+      ScanThread.scanThread(th2, rootLocations, codeLocations);
     }
-    ScanObject.scan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
+    ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
   }
 
   // Add a gray object
@@ -221,23 +230,27 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
     if (verbose > 1) VM.sysWriteln("  Working on GC in parallel");
     while (true) {
+      while (!rootLocations.isEmpty()) {
+	VM_Address loc = rootLocations.pop();
+	traceObjectLocation(loc, true);
+      }
+      while (!interiorRootLocations.isEmpty()) {
+	VM_Address obj = interiorRootLocations.pop1();
+	VM_Address interiorLoc = interiorRootLocations.pop2();
+	VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
+	VM_Address newInterior = traceInteriorReference(obj, interior, true);
+	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
+      }
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
 	ScanObject.scan(v);  // NOT traceObject
       }
       while (!locations.isEmpty()) {
 	VM_Address loc = locations.pop();
-	traceObjectLocation(loc);
-      }
-      while (!interiorLocations.isEmpty()) {
-	VM_Address obj = interiorLocations.pop1();
-	VM_Address interiorLoc = interiorLocations.pop2();
-	VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
-	VM_Address newInterior = traceInteriorReference(obj, interior);
-	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
+	traceObjectLocation(loc, false);
       }
 
-      if (values.isEmpty() && locations.isEmpty() && interiorLocations.isEmpty())
+      if (rootLocations.isEmpty() && interiorRootLocations.isEmpty() && values.isEmpty() && locations.isEmpty())
 	break;
     }
 
@@ -291,6 +304,9 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   }
   public void arrayCopyWriteBarrier(VM_Address ref, int startIndex, int endIndex) {
   }
+  public void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) 
+  {
+  }
 
   /**
    * Perform a read barrier operation of the getField bytecode.<p> <b>By default do nothing,
@@ -342,12 +358,16 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
    *    The object reference is <i>NOT</i> an interior pointer.
    * @return void
    */
-  final static public void traceObjectLocation(VM_Address objLoc) throws VM_PragmaInline {
+  final static public void traceObjectLocation(VM_Address objLoc, boolean root)
+    throws VM_PragmaInline {
     VM_Address obj = VM_Magic.getMemoryAddress(objLoc);
-    VM_Address newObj = Plan.traceObject(obj);
+    VM_Address newObj = Plan.traceObject(obj, root);
     VM_Magic.setMemoryAddress(objLoc, newObj);
   }
-
+  final static public void traceObjectLocation(VM_Address objLoc)
+    throws VM_PragmaInline {
+    traceObjectLocation(objLoc, false);
+  }
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -359,9 +379,11 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
    * @param interiorRef The interior reference inside obj that must be traced.
    * @return The possibly moved interior reference.
    */
-  final static public VM_Address traceInteriorReference(VM_Address obj, VM_Address interiorRef) {
+  final static public VM_Address traceInteriorReference(VM_Address obj,
+							VM_Address interiorRef,
+							boolean root) {
     VM_Offset offset = interiorRef.diff(obj);
-    VM_Address newObj = Plan.traceObject(obj);
+    VM_Address newObj = Plan.traceObject(obj, root);
     if (VM.VerifyAssertions) {
       if (offset.toInt() > (1<<24)) {  // There is probably no object this large
 	VM.sysWriteln("ERROR: Suspciously large delta of interior pointer from object base");

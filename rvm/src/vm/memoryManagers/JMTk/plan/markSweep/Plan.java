@@ -34,6 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final static String Id = "$Id$"; 
 
   public static final boolean needsWriteBarrier = false;
+  public static final boolean needsRefCountWriteBarrier = false;
   public static final boolean movesObjects = false;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -61,6 +62,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * interior pointer.
    * @return The possibly moved reference.
    */
+  public static VM_Address traceObject(VM_Address obj, boolean root) {
+    return traceObject(obj);
+  }
   public static VM_Address traceObject(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
@@ -168,6 +172,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
+  }
+  public final void postCopy(Object ref, Object[] tib, int size,
+			     boolean isScalar) {
   }
 
   public final void show() {
@@ -277,7 +284,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   /* We reset the state for a GC thread that is not participating in this GC
    */
   public void prepareNonParticipating() {
-    allPrepare();
+    allPrepare(NON_PARTICIPANT);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -304,15 +311,15 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return pages;
   }
 
-  // Assuming all future allocation comes from semispace
+  // Assuming all future allocation comes from mark-sweep
   //
   private static int getPagesAvail() {
-    return getTotalPages() - Conversions.pagesToBlocks(msMR.reservedPages()) - immortalMR.reservedPages();
+    return getTotalPages() - msMR.reservedPages() - immortalMR.reservedPages();
   }
 
   private static final String allocatorToString(int type) {
     switch (type) {
-      case MS_ALLOCATOR: return "Semispace";
+      case MS_ALLOCATOR: return "Mark-sweep";
       case IMMORTAL_ALLOCATOR: return "Immortal";
       default: return "Unknown";
    }
@@ -343,11 +350,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     Immortal.prepare(immortalVM, null);
   }
 
-  protected void allPrepare() {
+  protected void allPrepare(int count) {
     ms.prepare();
   }
 
-  protected void allRelease() {
+  protected void allRelease(int count) {
     ms.release();
   }
 
@@ -393,9 +400,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address       HEAP_END = MS_END;
 
-  public static final int DEFAULT_ALLOCATOR = 0;
+  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+
   public static final int MS_ALLOCATOR = 0;
   public static final int IMMORTAL_ALLOCATOR = 1;
+  public static final int DEFAULT_ALLOCATOR = MS_ALLOCATOR;
 
 
   /**
@@ -405,8 +414,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   static {
 
     // memory resources
-    msMR = new MemoryResource();
-    immortalMR = new MemoryResource();
+    msMR = new MemoryResource(POLL_FREQUENCY);
+    immortalMR = new MemoryResource(POLL_FREQUENCY);
 
     // virtual memory resources
     msVM       = new FreeListVMResource("MS",       MS_START,   MS_SIZE, VMResource.MOVABLE);

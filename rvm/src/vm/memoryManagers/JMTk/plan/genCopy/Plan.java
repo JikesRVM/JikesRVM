@@ -44,6 +44,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   public static final boolean needsWriteBarrier = true;
+  public static final boolean needsRefCountWriteBarrier = false;
   public static final boolean movesObjects = true;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -57,6 +58,101 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   // remsets.
   //
 
+  public static void boot()
+    throws VM_PragmaInterruptible {
+    BasePlan.boot();
+  }
+
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * interior pointer.
+   * @return The possibly moved reference.
+   */
+  public static VM_Address traceObject(VM_Address obj, boolean root) {
+    return traceObject(obj);
+  }
+  public static VM_Address traceObject(VM_Address obj) {
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    if (addr.LE(HEAP_END)) {
+      if (addr.GE(NURSERY_START))
+	return Copy.traceObject(obj);
+      else if (fullHeapGC) {
+	if (addr.GE(MATURE_START)) {
+	  if ((hi && addr.LT(MATURE_HI_START)) ||
+	      (!hi && addr.GE(MATURE_HI_START)))
+	    return Copy.traceObject(obj);
+	  else
+	    return obj;
+	} else if (addr.GE(LOS_START))
+	  return losCollector.traceObject(obj);
+	else if (addr.GE(IMMORTAL_START))
+	  return Immortal.traceObject(obj);
+      }
+    } // else this is not a heap pointer
+    return obj;
+  }
+
+  public static boolean isCopyObject(Object base) {
+    VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
+    return (addr.GE(MATURE_START) && addr.LE(HEAP_END));
+  }
+
+  public static boolean isLive(VM_Address obj) {
+    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
+    if (addr.LE(HEAP_END)) {
+      if (addr.GE(MATURE_START))
+	return Copy.isLive(obj);
+      else if (addr.GE(LOS_START))
+	return losCollector.isLive(obj);
+      else if (addr.GE(IMMORTAL_START))
+	return true;
+    } 
+    return false;
+  }
+
+  public static void showPlans() {
+    for (int i=0; i<VM_Scheduler.processors.length; i++) {
+      VM_Processor p = VM_Scheduler.processors[i];
+      if (p == null) continue;
+      VM.sysWrite(i, ": ");
+      p.mmPlan.show();
+    }
+  }
+
+  public static void showUsage() {
+      VM.sysWrite("used pages = ", getPagesUsed());
+      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
+      VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
+      VM.sysWrite(" + (mature) ", matureMR.reservedPages());  
+      VM.sysWrite(" + (los) ", losMR.reservedPages());
+      VM.sysWrite(" + (imm) ", immortalMR.reservedPages());
+      VM.sysWriteln(" + (md)",  metaDataMR.reservedPages());
+  }
+
+  public static int getInitialHeaderValue(int size) {
+    return losCollector.getInitialHeaderValue(size);
+  }
+
+  public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
+				       int bytes) {
+    return forwardingPtr; // a no-op for this collector
+  }
+
+  public static final long freeMemory() throws VM_PragmaUninterruptible {
+    return totalMemory() - usedMemory();
+  }
+
+  public static final long usedMemory() throws VM_PragmaUninterruptible {
+    return Conversions.pagesToBytes(getPagesUsed());
+  }
+
+  public static final long totalMemory() throws VM_PragmaUninterruptible {
+    return Conversions.pagesToBytes(getPagesAvail());
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -81,10 +177,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     remset = new WriteBuffer(locationPool);
   }
 
-  static public void boot() throws VM_PragmaInterruptible {
-    BasePlan.boot();
-  }
-
   /**
    * Allocate space (for an object)
    *
@@ -94,7 +186,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, AllocAdvice advice) throws VM_PragmaInline {
+  public final VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, AllocAdvice advice) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     if (allocator == NURSERY_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) allocator = LOS_ALLOCATOR;
     VM_Address region;
@@ -109,8 +201,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     return region;
   }
 
-  //  public void postAlloc(EXTENT bytes, Object obj, int allocator) throws VM_PragmaInline {
-  public void postAlloc(Object ref, Object[] tib, int size,
+  public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == NURSERY_ALLOCATOR && size > LOS_SIZE_THRESHOLD) allocator = LOS_ALLOCATOR;
@@ -122,29 +213,13 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
       default:                 VM.sysFail("No such allocator");
     }
   }
+  public final void postCopy(Object ref, Object[] tib, int size,
+			     boolean isScalar) {}
 
-  public void show() {
+  public final void show() {
     nursery.show();
     mature.show();
     los.show();
-  }
-
-  static public void showPlans() {
-    for (int i=0; i<VM_Scheduler.processors.length; i++) {
-      VM_Processor p = VM_Scheduler.processors[i];
-      if (p == null) continue;
-      VM.sysWrite(i, ": ");
-      p.mmPlan.show();
-    }
-  }
-
-  static public void showUsage() {
-      VM.sysWrite("used pages = ", getPagesUsed());
-      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
-      VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
-      VM.sysWrite(" + (mature) ", matureMR.reservedPages());  
-      VM.sysWrite(" + (los) ", losMR.reservedPages());
-      VM.sysWriteln(" + (imm) ", immortalMR.reservedPages());
   }
 
   /**
@@ -220,8 +295,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   public boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
-    if (mustCollect || (getPagesReserved() > getTotalPages())) {
-      if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
+    if (mustCollect || getPagesReserved() > getTotalPages()) {
+      if (VM.VerifyAssertions)	VM._assert(mr != metaDataMR);
       fullHeapGC = mustCollect || fullHeapGC;
       VM_Interface.triggerCollection();
       return true;
@@ -230,55 +305,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   }
   
    
-  public static boolean isCopyObject(Object base) {
-    VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
-    return (addr.GE(MATURE_START) && addr.LE(HEAP_END));
-  }
 
-  public static boolean isLive(VM_Address obj) {
-    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(MATURE_START))
-	return Copy.isLive(obj);
-      else if (addr.GE(LOS_START))
-	return losCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return false;
-  }
-
-  /**
-   * Trace a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>trace</code> method.
-   *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
-   * interior pointer.
-   * @return The possibly moved reference.
-   */
-  static public VM_Address traceObject(VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-	return Copy.traceObject(obj);
-      else if (fullHeapGC) {
-	if (addr.GE(MATURE_START)) {
-	  if ((hi && addr.LT(MATURE_HI_START)) ||
-	      (!hi && addr.GE(MATURE_HI_START)))
-	    return Copy.traceObject(obj);
-	  else
-	    return obj;
-	} else if (addr.GE(LOS_START))
-	  return losCollector.traceObject(obj);
-	else if (addr.GE(IMMORTAL_START))
-	  return Immortal.traceObject(obj);
-      }
-    } // else this is not a heap pointer
-    return obj;
-  }
-
-  public boolean hasMoved(VM_Address obj) {
+  public final boolean hasMoved(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -302,25 +330,36 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     release();
   }
 
-  public static int getInitialHeaderValue(int size) {
-    return losCollector.getInitialHeaderValue(size);
+  /* We reset the state for a GC thread that is not participating in this GC
+   */
+  public void prepareNonParticipating() {
+    allPrepare(NON_PARTICIPANT);
   }
 
-  public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
-				       int bytes) {
-    return forwardingPtr; // a no-op for this collector
+  public void putFieldWriteBarrier(VM_Address src, int offset, VM_Address tgt)
+    throws VM_PragmaInline {
+    writeBarrier(src.add(offset), tgt);
   }
 
-  public static final long freeMemory() throws VM_PragmaUninterruptible {
-    return totalMemory() - usedMemory();
+  public void arrayStoreWriteBarrier(VM_Address src, int index, VM_Address tgt)
+    throws VM_PragmaInline {
+    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
+  }
+  public void arrayCopyWriteBarrier(VM_Address src, int startIndex, 
+				    int endIndex)
+    throws VM_PragmaInline {
+    src = src.add(startIndex<<LOG_WORD_SIZE);
+    for (int idx = startIndex; idx <= endIndex; idx++) {
+      VM_Address tgt = VM_Magic.getMemoryAddress(src);
+      writeBarrier(src, tgt);
+      src = src.add(WORD_SIZE);
+    }
   }
 
-  public static final long usedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(getPagesUsed());
-  }
-
-  public static final long totalMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(getPagesAvail());
+  private void writeBarrier(VM_Address src, VM_Address tgt) 
+    throws VM_PragmaInline {
+    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
+      remset.insert(src);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -343,6 +382,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     
     pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
+    pages += metaDataMR.reservedPages();
     return pages;
   }
 
@@ -352,14 +392,15 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     pages += matureMR.reservedPages();
     pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
+    pages += metaDataMR.reservedPages();
     return pages;
   }
 
   // Assuming all future allocation comes from coping space
   //
   private static int getPagesAvail() {
-    int copyingTotal = getTotalPages()  - losMR.reservedPages() - immortalMR.reservedPages();
-    return (copyingTotal / 2) - matureMR.reservedPages() - nurseryMR.reservedPages();
+    int copyingTotal = getTotalPages()  - losMR.reservedPages() - immortalMR.reservedPages() - metaDataMR.reservedPages();
+    return (copyingTotal>>1) - matureMR.reservedPages() - nurseryMR.reservedPages();
   }
 
   /**
@@ -379,9 +420,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
       VM.sysWrite("  Before Collection: ");
       showUsage();
     }
-    losCollector.prepare(losVM, losMR);
     nurseryMR.reset(); // reset the nursery
     if (fullHeapGC) {
+      losCollector.prepare(losVM, losMR);
       matureMR.reset(); // reset the nursery semispace memory resource
       hi = !hi;          // flip the semi-spaces
       // prepare each of the collected regions
@@ -389,7 +430,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     }
   }
 
-  protected void allPrepare() {
+  protected void allPrepare(int count) {
     // rebind the semispace bump pointer to the appropriate semispace.
     remset.flushLocal();
     nursery.rebind(nurseryVM);
@@ -399,13 +440,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     }
   }
 
-  /* We reset the state for a GC thread that is not participating in this GC
-   */
-  public void prepareNonParticipating() {
-    allPrepare();
-  }
-
-  protected void allRelease() {
+  protected void allRelease(int count) {
     if (fullHeapGC) 
       los.release();
   }
@@ -433,32 +468,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
       VM.sysWrite("      trigger = ", getTotalPages());
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
     }
-  }
-
-  public void putFieldWriteBarrier(VM_Address src, int offset, VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src.add(offset), tgt);
-  }
-
-  public void arrayStoreWriteBarrier(VM_Address src, int index, VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
-  }
-  public void arrayCopyWriteBarrier(VM_Address src, int startIndex, 
-				    int endIndex)
-    throws VM_PragmaInline {
-    src = src.add(startIndex<<LOG_WORD_SIZE);
-    for (int idx = startIndex; idx <= endIndex; idx++) {
-      VM_Address tgt = VM_Magic.getMemoryAddress(src);
-      writeBarrier(src, tgt);
-      src = src.add(WORD_SIZE);
-    }
-  }
-
-  private void writeBarrier(VM_Address src, VM_Address tgt) 
-    throws VM_PragmaInline {
-    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
-      remset.insert(src);
   }
 
   ////////////////////////////////////////////////////////////////////////////

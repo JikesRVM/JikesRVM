@@ -34,6 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final static String Id = "$Id$"; 
 
   public static final boolean needsWriteBarrier = false;
+  public static final boolean needsRefCountWriteBarrier = false;
   public static final boolean movesObjects = true;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -61,6 +62,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * interior pointer.
    * @return The possibly moved reference.
    */
+  public static VM_Address traceObject(VM_Address obj, boolean root) {
+    return traceObject(obj);
+  }
   public static VM_Address traceObject(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
@@ -115,7 +119,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
 				       int bytes) {
-    return (forwardingPtr & ~0x3) | msCollector.getInitialHeaderValue(bytes);
+    return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | msCollector.getInitialHeaderValue(bytes);
   }
 
   public static final long freeMemory() throws VM_PragmaUninterruptible {
@@ -185,7 +189,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       Header.initializeMarkSweepHeader(ref, tib, size, isScalar);
   }
 
+  public final void postCopy(Object ref, Object[] tib, int size,
+			     boolean isScalar) {}
+
   public final void show() {
+    nursery.show();
     ms.show();
   }
 
@@ -201,8 +209,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    VM_Address rtn = ms.allocCopy(isScalar, bytes);
-    return rtn;
+    return ms.allocCopy(isScalar, bytes);
   }
 
   /**
@@ -267,6 +274,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || getPagesReserved() > getTotalPages()) {
+      if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       VM_Interface.triggerCollection();
       return true;
     }
@@ -298,7 +306,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   /* We reset the state for a GC thread that is not participating in this GC
    */
   public void prepareNonParticipating() {
-    allPrepare();
+    allPrepare(NON_PARTICIPANT);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -365,17 +373,16 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       showUsage();
     }
     nurseryMR.reset();
-    Copy.prepare(nurseryVM, nurseryMR);
     msCollector.prepare(msVM, msMR);
     Immortal.prepare(immortalVM, null);
   }
 
-  protected void allPrepare() {
+  protected void allPrepare(int count) {
     ms.prepare();
     nursery.rebind(nurseryVM);
   }
 
-  protected void allRelease() {
+  protected void allRelease(int count) {
     ms.release();
   }
 
@@ -385,7 +392,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   protected void singleRelease() {
     // release each of the collected regions
     nurseryVM.release();
-    Copy.release(nurseryVM, nurseryMR);
     msCollector.release();
     Immortal.release(immortalVM, null);
     if (verbose > 0) {
@@ -431,6 +437,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
 
+  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+
   public static final int NURSERY_ALLOCATOR = 0;
   public static final int MS_ALLOCATOR = 1;
   public static final int IMMORTAL_ALLOCATOR = 2;
@@ -447,9 +455,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   static {
 
     // memory resources
-    nurseryMR = new MemoryResource();
-    msMR = new MemoryResource();
-    immortalMR = new MemoryResource();
+    nurseryMR = new MemoryResource(POLL_FREQUENCY);
+    msMR = new MemoryResource(POLL_FREQUENCY);
+    immortalMR = new MemoryResource(POLL_FREQUENCY);
 
     // virtual memory resources
     nurseryVM  = new MonotoneVMResource("Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);

@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -35,6 +36,8 @@ public class HybridHeader {
    * How many bits does this GC system require?
    */
   public static final int REQUESTED_BITS     = 2;
+  public static final int GC_BITS_MASK       = 0x3;
+
   public static final int MARK_BIT_MASK      = 0x1; 
   public static final int SMALL_OBJECT_MASK  = 0x2;
   public static final int GC_FORWARDED       = 0x2;  // ...10
@@ -66,8 +69,10 @@ public class HybridHeader {
   public static void initializeMarkSweepHeader(Object ref, Object[] tib,
 					       int size, boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM.VerifyAssertions && VM_Interface.gcInProgress())
+      VM._assert(false);
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
-    int newValue = (oldValue & ~MARK_BIT_MASK) | Plan.getInitialHeaderValue(size);
+    int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
     VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
   }
 

@@ -144,6 +144,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static void gcProcessTIB(VM_Address ref) {
     VM_Interface.processPtrField(ref.add(TIB_OFFSET));
   }
+  public static void gcProcessTIB(VM_Address ref, boolean root) {
+    VM_Interface.processPtrField(ref.add(TIB_OFFSET), root);
+  }
 
   /**
    * how many bytes are needed when the scalar object is copied by GC?

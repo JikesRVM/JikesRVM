@@ -43,7 +43,8 @@ public class ScanObject implements VM_Constants, Constants {
    *
    * @param objRef  reference for object to be scanned (as int)
    */
-  public static void scan (VM_Address objRef) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  private static void scan (VM_Address objRef, boolean root)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
 
     if (VM.VerifyAssertions) VM._assert(!objRef.isZero());
 
@@ -52,7 +53,7 @@ public class ScanObject implements VM_Constants, Constants {
     // and the object model is actually storing the TIB as a pointer.
     // 
     if (VM_Interface.MOVES_OBJECTS) 
-      VM_ObjectModel.gcProcessTIB(objRef);
+      VM_ObjectModel.gcProcessTIB(objRef, root);
 
     Object obj = VM_Magic.addressAsObject(objRef);
     Object[] tib = VM_ObjectModel.getTIB(obj);
@@ -75,7 +76,7 @@ public class ScanObject implements VM_Constants, Constants {
     if ( type.isClassType() ) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
-	VM_Interface.processPtrField( objRef.add(referenceOffsets[i]) );
+	VM_Interface.processPtrField( objRef.add(referenceOffsets[i]), root );
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
@@ -88,7 +89,7 @@ public class ScanObject implements VM_Constants, Constants {
         VM_Address location = objRef;    // for arrays = address of [0] entry
         VM_Address end      = objRef.add(numBytes);
         while ( location.LT(end) ) {
-          VM_Interface.processPtrField( location );
+          VM_Interface.processPtrField( location, root );
           location = location.add(WORD_SIZE);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);
@@ -97,7 +98,16 @@ public class ScanObject implements VM_Constants, Constants {
   } 
 
   static void scan (Object objRef) throws VM_PragmaUninterruptible {
-    scan(VM_Magic.objectAsAddress(objRef));
+    scan(VM_Magic.objectAsAddress(objRef), false);
+  }
+  public static void scan (VM_Address object) throws VM_PragmaUninterruptible {
+    scan(object, false);
+  }
+  public static void rootScan (Object objRef) throws VM_PragmaUninterruptible {
+    scan(VM_Magic.objectAsAddress(objRef), true);
+  }
+  public static void rootScan (VM_Address object) throws VM_PragmaUninterruptible {
+    scan(object, true);
   }
 
   public static boolean validateRefs( VM_Address ref, int depth ) throws VM_PragmaUninterruptible {

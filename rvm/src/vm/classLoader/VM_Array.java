@@ -427,6 +427,12 @@ public final class VM_Array extends VM_Type
 
 	  // handle as two cases, for efficiency and in case subarrays overlap
 	  if ((!VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
+	    if (VM_Interface.NEEDS_RC_WRITE_BARRIER) {
+	      VM_Address dstS = VM_Magic.objectAsAddress(dst).add(dstPos<<2);
+	      VM_Address srcS = VM_Magic.objectAsAddress(src).add(srcPos<<2);
+	      for (int i = 0; i < len<<2; i += 4)
+		VM_Interface.arrayCopyRefCountWriteBarrier(dstS.add(i), VM_Magic.getMemoryAddress(srcS.add(i)));
+	    }
 	    VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
 				    VM_Magic.objectAsAddress(src).add(srcPos<<2),
 				    len<<2);
@@ -436,6 +442,9 @@ public final class VM_Array extends VM_Type
 	    while (len-- != 0) {
 	      srcPos -= 4;
 	      dstPos -= 4;
+	      if (VM_Interface.NEEDS_RC_WRITE_BARRIER) {
+		VM_Interface.arrayCopyRefCountWriteBarrier(VM_Magic.objectAsAddress(dst).add(dstPos), VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(src).add(srcPos)));
+	      }
 	      if (!VM.BuildForRealtimeGC)
 		  VM_Magic.setObjectAtOffset(dst, dstPos, VM_Magic.getObjectAtOffset(src, srcPos));
 	      else
@@ -447,7 +456,8 @@ public final class VM_Array extends VM_Type
 	  }
 	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	    // generate write buffer entries for modified target array entries
-	    VM_Interface.arrayCopyWriteBarrier(dst, dstStart, dstEnd);
+	    if (!VM_Interface.NEEDS_RC_WRITE_BARRIER) 
+	      VM_Interface.arrayCopyWriteBarrier(dst, dstStart, dstEnd);
 	    VM.enableGC();
 	  }
 	} else { 

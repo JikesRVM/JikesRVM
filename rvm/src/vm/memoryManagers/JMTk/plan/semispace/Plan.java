@@ -34,6 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   public final static String Id = "$Id$"; 
   public static final boolean needsWriteBarrier = false;
+  public static final boolean needsRefCountWriteBarrier = false;
   public static final boolean movesObjects = true;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -108,6 +109,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       default:                 VM.sysFail("No such allocator");
     }
   }
+
+  public final void postCopy(Object ref, Object[] tib, int size,
+			     boolean isScalar) { } // do nothing
 
   public void show() {
     ss.show();
@@ -254,6 +258,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     } // else this is not a heap pointer
     return obj;
   }
+  static public VM_Address traceObject(VM_Address obj, boolean root) {
+    return traceObject(obj);  // root or non-root is of no consequence here
+  }
 
   public boolean hasMoved(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
@@ -361,7 +368,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     losCollector.prepare(losVM, losMR);
   }
 
-  protected void allPrepare() {
+  protected void allPrepare(int count) {
     // rebind the semispace bump pointer to the appropriate semispace.
     ss.rebind(((hi) ? ss1VM : ss0VM)); 
     los.prepare();
@@ -370,10 +377,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   /* We reset the state for a GC thread that is not participating in this GC
    */
   public void prepareNonParticipating() {
-    allPrepare();
+    allPrepare(NON_PARTICIPANT);
   }
 
-  protected void allRelease() {
+  protected void allRelease(int count) {
     los.release();
   }
 
@@ -437,10 +444,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 
-  public static final int DEFAULT_ALLOCATOR = 0;
+  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+
   public static final int SS_ALLOCATOR = 0;
   public static final int LOS_ALLOCATOR = 1;
   public static final int IMMORTAL_ALLOCATOR = 2;
+  public static final int DEFAULT_ALLOCATOR = SS_ALLOCATOR;
   private static final String[] allocatorNames = { "Semispace", "LOS", "Immortal" };
 
   /**
@@ -450,9 +459,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   static {
 
     // memory resources
-    ssMR = new MemoryResource();
-    losMR = new MemoryResource();
-    immortalMR = new MemoryResource();
+    ssMR = new MemoryResource(POLL_FREQUENCY);
+    losMR = new MemoryResource(POLL_FREQUENCY);
+    immortalMR = new MemoryResource(POLL_FREQUENCY);
 
     // virtual memory resources
     ss0VM      = new MonotoneVMResource("Lower SS", ssMR,       LOW_SS_START,   SS_SIZE, VMResource.MOVABLE);

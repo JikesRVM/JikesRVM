@@ -90,10 +90,10 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	// stack object, whether it has already been copied or will be copied by the scan.
 	// queued for later scanning.
 	int[] oldstack = t.stack;    
-	ScanObject.scan(t);
+	ScanObject.rootScan(t);
 	if (t.jniEnv != null) ScanObject.scan(t.jniEnv);
-	ScanObject.scan(t.contextRegisters);
-	ScanObject.scan(t.hardwareExceptionRegisters);
+	ScanObject.rootScan(t.contextRegisters);
+	ScanObject.rootScan(t.hardwareExceptionRegisters);
 	if (oldstack != t.stack) 
 	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
 	

@@ -1,96 +1,195 @@
 /*
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
- * All rights reserved.
  */
+
+package com.ibm.JikesRVM.memoryManagers.JMTk;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Processor;
+
 /**
- * This class implements a <i>simple</i> reference counting collector
- * using a variation on the Deutsch-Bobrow defered reference counting
- * algorithm that uses "mutation buffers" a la Bacon et al.<p>
- *
- * <i>Note: this implementation is not concurrent, and is does not
- * collect cycles.</i> It is "stop-the-world", scavanging each time
- * the size of the mutation buffers reach some threshold.<p>
- *
- * See the Jones & Lins GC book, chapter 3 for a detailed discussion
- * of reference couting, and section 3.2 for a description of the
- * Deutsch-Bobrow algorithm.  For details on the use of "mutation
- * buffers", see the PLDI paper by Bacon et al: "Java without coffee
- * breaks: A Nonintrusive Multiprocessor Garbage Collector",
- * Proceedings of teh SIGPLAN Conference on Programming Language
- * Design and Implementation (PLDI 01) (Snowbird, Utah, June 2001),
- * ACM SIGPLAN Notices 36(5).
+ * This class implements a simple semi-space collector. See the Jones
+ * & Lins GC book, section 2.2 for an overview of the basic algorithm.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-final class Plan implements Constants, Uninterruptible extends BasePlan {
+public final class Plan extends BasePlan implements VM_Uninterruptible { // implements Constants 
   public final static String Id = "$Id$"; 
+
+  public static final boolean needsWriteBarrier = true;
+  public static final boolean needsRefCountWriteBarrier = true;
+  public static final boolean movesObjects = false;
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Public static methods (aka "class methods")
   //
-  // Static methods and fields of MM are those with global scope, such
-  // as virtual memory and memory resources.  This stands in contrast
-  // to instance methods which are for fast, unsychronized access to
-  // thread-local structures such as bump pointers and remsets.
+  // Static methods and fields of Plan are those with global scope,
+  // such as virtual memory and memory resources.  This stands in
+  // contrast to instance methods which are for fast, unsychronized
+  // access to thread-local structures such as bump pointers and
+  // remsets.
   //
 
-  /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).
-   */
-  static {
-    // virtual memory resources
-    rcVM = new VMResource(REF_COUNT_START, REF_COUNT_VM_SIZE);
-    immortalVM = new VMResource(IMMORTAL_START, IMMORTAL_VM_SIZE);
-    mutationBufVM = new VMResouce(MUTATION_BUF_START, MUTATION_BUF_VM_SIZE);
-
-    // memory resources
-    rcMR = new MemoryResource();
-    immortalMR = new MemoryResource();
-    mutationBufMR = new MemoryResource();
+  public static void boot()
+    throws VM_PragmaInterruptible {
+    BasePlan.boot();
   }
 
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * interior pointer.
+   * @return The possibly moved reference.
+   */
+  public static VM_Address traceObject(VM_Address obj) {
+    return traceObject(obj, false);
+  }
+  public static VM_Address traceObject(VM_Address obj, boolean root) {
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    if (addr.LE(HEAP_END) && addr.GE(RC_START))
+      return rcCollector.traceObject(obj, root, decrementPhase);
+    
+    // else this is not a rc heap pointer
+    return obj;
+  }
+
+  public static boolean isLive(VM_Address obj) {
+    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
+    if (addr.LE(HEAP_END)) {
+      if (addr.GE(RC_START))
+ 	return rcCollector.isLive(obj);
+      else if (addr.GE(IMMORTAL_START))
+ 	return true;
+    } 
+    return false;
+  }
+  
+  public static void showPlans() {
+    for (int i=0; i<VM_Scheduler.processors.length; i++) {
+      VM_Processor p = VM_Scheduler.processors[i];
+      if (p == null) continue;
+      VM.sysWrite(i, ": ");
+      p.mmPlan.show();
+    }
+  }
+
+  public static void showUsage() {
+      VM.sysWrite("used pages = ", getPagesUsed());
+      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
+      VM.sysWrite("= (rc) ", rcMR.reservedPages());
+      VM.sysWrite(" + (imm) ", immortalMR.reservedPages());
+      VM.sysWriteln(" + (md) ", metaDataMR.reservedPages());
+ }
+
+//   public static int getInitialHeaderValue(int size) {
+//     return rcCollector.getInitialHeaderValue(size);
+//   }
+
+  public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
+				       int bytes) {
+    if (VM.VerifyAssertions)
+      VM._assert(false);  // this is not a copying collector!
+    return forwardingPtr;
+  }
+
+  public static final long freeMemory() throws VM_PragmaUninterruptible {
+    return totalMemory() - usedMemory();
+  }
+
+  public static final long usedMemory() throws VM_PragmaUninterruptible {
+    return Conversions.pagesToBytes(getPagesUsed());
+  }
+
+  public static final long totalMemory() throws VM_PragmaUninterruptible {
+    return Conversions.pagesToBytes(getPagesAvail());
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Public instance methods
   //
-  // Instances of MM map 1:1 to "kernel threads" (aka CPUs or in Jikes
-  // RVM, VM_Processor).  Thus instance methods allow fast,
-  // unsychronized access to MM utilities such as allocation and
+  // Instances of Plan map 1:1 to "kernel threads" (aka CPUs or in
+  // Jikes RVM, VM_Processors).  Thus instance methods allow fast,
+  // unsychronized access to Plan utilities such as allocation and
   // collection.  Each instance rests on static resources (such as
   // memory and virtual memory resources) which are "global" and
-  // therefore "static" members of MM.
+  // therefore "static" members of Plan.
   //
 
   /**
    * Constructor
    */
-  Plan() {
-    rc = new AllocatorLea(rcVM, rcMR);
-    immortal = new AllocatorBumpPointer(immortalVM, immortalMR);
-    mutationBuf = new MutationBuffer(mutationBufVM, mutationBufMR);
+  public Plan() {
+    id = count++;
+    rc = new SimpleRCAllocator(rcCollector);
+    immortal = new BumpPointer(immortalVM);
+    incBuffer = new AddressQueue(incPool);
+    decBuffer = new AddressQueue(decPool);
+    rootSet = new AddressQueue(rootPool);
   }
 
   /**
    * Allocate space (for an object)
    *
    * @param allocator The allocator number to be used for this allocation
-   * @param size The size of the space to be allocated (in bytes)
+   * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int allocator, EXTENT size, boolean isScalar,
-		       AllocAdvice advice) {
-    if (allocator == IMMORTAL_ALLOCATOR)
-      return immortal.alloc(isScalar, size);
-    else
-      return rc.alloc(isScalar, size);
+  public final VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, 
+				AllocAdvice advice)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    VM_Address region;
+    if (bytes > 1<<21)
+      VM_Scheduler.dumpStack();
+    switch (allocator) {
+      case       RC_ALLOCATOR: region = rc.alloc(isScalar, bytes); break;
+      case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
+      default:                 region = VM_Address.zero(); VM.sysFail("No such allocator");
+    }
+    if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
+    return region;
+  }
+  
+  public final void postAlloc(Object ref, Object[] tib, int size,
+			      boolean isScalar, int allocator)
+    throws VM_PragmaInline {
+    if (allocator == RC_ALLOCATOR) {
+      decBuffer.push(VM_Magic.objectAsAddress(ref));
+    }
+  }
+
+  public final void postCopy(Object ref, Object[] tib, int size,
+			     boolean isScalar) {
+    if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  public final void show() {
+    rc.show();
   }
 
   /**
@@ -98,12 +197,14 @@ final class Plan implements Constants, Uninterruptible extends BasePlan {
    * copy the object, it only allocates space)
    *
    * @param original A reference to the original object
-   * @param size The size of the space to be allocated (in bytes)
+   * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    * @return The address of the first byte of the allocated region
    */
-  public Address allocCopy(Address original, EXTENT size, boolean isScalar) {
-    return null;  // no copying in this collector
+  public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
+				    boolean isScalar) throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(false);
+    return null;
   }
 
   /**
@@ -112,13 +213,16 @@ final class Plan implements Constants, Uninterruptible extends BasePlan {
    * the returned value then used for the given site at runtime.
    *
    * @param type The type id of the type being allocated
-   * @param size The size (in bytes) required for this object
+   * @param bytes The size (in bytes) required for this object
    * @param callsite Information identifying the point in the code
    * where this allocation is taking place.
+   * @param hint A hint from the compiler as to which allocator this
+   * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public int getAllocator(TypeID type, EXTENT size, CallSite callsite) {
-    return DEFAULT_ALLOCATOR;
+  public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
+				AllocAdvice hint) {
+    return RC_ALLOCATOR;
   }
 
   /**
@@ -126,146 +230,316 @@ final class Plan implements Constants, Uninterruptible extends BasePlan {
    * which will be passed to the allocation routine at runtime.
    *
    * @param type The type id of the type being allocated
-   * @param size The size (in bytes) required for this object
+   * @param bytes The size (in bytes) required for this object
    * @param callsite Information identifying the point in the code
    * where this allocation is taking place.
+   * @param hint A hint from the compiler as to which allocator this
+   * site should use.
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public AllocAdvice getAllocAdvice(TypeID type, EXTENT size, 
-				    CallSite callsite) { return null; }
+  public final AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
+					  CallSite callsite,
+					  AllocAdvice hint) { 
+    return null;
+  }
 
   /**
    * This method is called periodically by the allocation subsystem
-   * (by default, each time a block is consumed), and provides the
+   * (by default, each time a page is consumed), and provides the
    * collector with an opportunity to collect.<p>
    *
    * We trigger a collection whenever an allocation request is made
-   * that would take the number of blocks in use (committed for use)
-   * beyond the number of blocks available.  Collections are triggered
+   * that would take the number of pages in use (committed for use)
+   * beyond the number of pages available.  Collections are triggered
    * through the runtime, and ultimately call the
    * <code>collect()</code> method of this class or its superclass.
+   *
+   * This method is clearly interruptible since it can lead to a GC.
+   * However, the caller is typically uninterruptible and this fiat allows 
+   * the interruptibility check to work.  The caveat is that the caller 
+   * of this method must code as though the method is interruptible. 
+   * In practice, this means that, after this call, processor-specific
+   * values must be reloaded.
+   *
+   * @return Whether a collection is triggered
    */
-  public void poll() {
-    if ((mutationBufMR.reservedBlocks() > MUTATION_BUFFER_SIZE_THRESHOLD)
-	(getReservedBlocks() > getHeapBlocks()))
-      MM.triggerCollection();
+
+  public boolean poll(boolean mustCollect, MemoryResource mr)
+    throws VM_PragmaLogicallyUninterruptible {
+    if (gcInProgress) return false;
+    if (mustCollect || getPagesReserved() > getTotalPages()) {
+      if (VM.VerifyAssertions)
+	VM._assert(mr != metaDataMR);
+      VM_Interface.triggerCollection();
+      return true;
+    }
+    return false;
   }
   
-  /**
-   * Decrement a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>decrementReference</code> method.
-   *
-   * @param reference The reference to be decrement.
-   */
-  public void decrementReference(Address reference) {
-    if (reference.LE(HEAP_END)) {
-      if (reference.GE(REF_COUNT_START))
-	CollectorLea.decrementReference(reference);
-      else if (reference.GE(IMMORTAL_START))
-	CollectorImmortal.decrementReference(reference);
-    } // else this is not a heap pointer
+  public final SimpleRCCollector getRC() {
+    return rcCollector;
   }
 
-  /**
-   * Increment a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>incrementReference</code> method.
-   *
-   * @param reference The reference to be decrement.
-   */
-  public void incrementReference(Address reference) {
-    if (reference.LE(HEAP_END)) {
-      if (reference.GE(REF_COUNT_START))
-	CollectorLea.incrementReference(reference);
-      else if (reference.GE(IMMORTAL_START))
-	CollectorImmortal.incrementReference(reference);
-    } // else this is not a heap pointer
+  public static int getInitialHeaderValue(int size) {
+    return rcCollector.getInitialHeaderValue(size);
   }
 
+  public final boolean hasMoved(VM_Address obj) {
+    return true;
+  }
+
+  public final SimpleRCAllocator getAllocator() {
+    return rc;
+  }
   /**
-   * Perform a collection (scavange any zero-count objects).
+   * Perform a collection.
    */
-  public void collect() {
+  public void collect () {
     prepare();
-    collect(mutationBuffer);
+    super.collect();
     release();
+  }
+
+  /* We reset the state for a GC thread that is not participating in this GC
+   */
+  public void prepareNonParticipating() {
+    allPrepare(NON_PARTICIPANT);
+  }
+
+  public void putFieldWriteBarrier(VM_Address src, int offset, VM_Address tgt)
+    throws VM_PragmaInline {
+    writeBarrier(src.add(offset), tgt);
+  }
+
+  public void arrayStoreWriteBarrier(VM_Address src, int index, VM_Address tgt)
+    throws VM_PragmaInline {
+    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
+  }
+  public void arrayCopyWriteBarrier(VM_Address src, int startIndex, 
+				    int endIndex)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  public final void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) 
+    throws VM_PragmaInline {
+    writeBarrier(src, tgt);
+  }
+  private void writeBarrier(VM_Address src, VM_Address tgt) 
+    throws VM_PragmaInline {
+    VM_Address old = VM_Magic.getMemoryAddress(src);
+    if (old.GE(RC_START))
+      decBuffer.push(old);
+    if (tgt.GE(RC_START))
+      incBuffer.push(tgt);
+  }
+
+  public final void addToDecBuf(VM_Address obj)
+    throws VM_PragmaInline {
+    decBuffer.push(obj);
+  }
+  public final void addToIncBuf(VM_Address obj)
+    throws VM_PragmaInline {
+    VM._assert(false);
+  }
+  public void addToRootSet(VM_Address root) 
+    throws VM_PragmaInline {
+    rootSet.push(VM_Magic.objectAsAddress(root));
   }
 
   ////////////////////////////////////////////////////////////////////////////
   //
-  // Private methods
+  // Private class methods
   //
 
-   /**
-   * Return the number of blocks reserved for use.
+  /**
+   * Return the number of pages reserved for use.
    *
-   * @return The number of blocks reserved given the pending allocation
+   * @return The number of pages reserved given the pending allocation
    */
-  private int getBlocksReserved() {
-    int blocks;
+  private static int getPagesReserved() {
 
-    blocks = rcMR.reservedBlocks();
-    blocks += immortalMR.reservedBlocks();
-    return blocks;
+    int pages = rcMR.reservedPages();
+    pages += immortalMR.reservedPages();
+    pages += metaDataMR.reservedPages();
+    return pages;
+  }
+
+
+  private static int getPagesUsed() {
+    int pages = rcMR.reservedPages();
+    pages += immortalMR.reservedPages();
+    pages += metaDataMR.reservedPages();
+    return pages;
+  }
+
+  // Assuming all future allocation comes from semispace
+  //
+  private static int getPagesAvail() {
+    return getTotalPages() - rcMR.reservedPages() - immortalMR.reservedPages() - metaDataMR.reservedPages();
+  }
+
+  private static final String allocatorToString(int type) {
+    switch (type) {
+      case RC_ALLOCATOR: return "Ref count";
+      case IMMORTAL_ALLOCATOR: return "Immortal";
+      default: return "Unknown";
+   }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Private and protected instance methods
+  //
+
+  /**
+   * Prepare for a collection.  Called by BasePlan which will make
+   * sure only one thread executes this.
+   */
+  protected void singlePrepare() {
+    if (verbose > 0) {
+      VM.sysWrite("Collection ", gcCount);
+      VM.sysWrite(":      reserved = ", getPagesReserved());
+      VM.sysWrite(" (", Conversions.pagesToBytes(getPagesReserved()) / ( 1 << 20)); 
+      VM.sysWrite(" Mb) ");
+      VM.sysWrite("      trigger = ", getTotalPages());
+      VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
+      VM.sysWriteln(" Mb) ");
+      VM.sysWrite("  Before Collection: ");
+      showUsage();
+    }
+    decrementPhase = false;
+    Immortal.prepare(immortalVM, null);
+    rcCollector.prepare(rcVM, rcMR);
+  }
+
+  protected void allPrepare(int id) {
+    rc.prepare();
+    processRootBufs();  // decrements from previous collection
+  }
+
+  protected void allRelease(int id) {
+    processIncBufs();
+//     VM.sysWrite("processed incs\n");
+    if (id == 1)
+      decrementPhase = true;
+    VM_CollectorThread.gcBarrier.rendezvous();
+    processDecBufs();
+//     VM.sysWrite("processed decs\n");
   }
 
   /**
-   * Prepare for a collection.
+   * Clean up after a collection.
    */
-  private void prepare() {
-    if (Synchronize.getBarrier()) {
-      // prepare each of the collected regions
-      CollectorLea.prepare(rcVM, rcMR);
-      CollectorImmortal.prepare(immortalVM, null);
-      Synchronize.releaseBarrier();
+  protected void singleRelease() {
+    // release each of the collected regions
+    rcCollector.release(rc);
+    Immortal.release(immortalVM, null);
+    if (verbose > 0) {
+      VM.sysWrite("   After Collection: ");
+      showUsage();
     }
   }
 
-  /**
-   * Clean up after a collection. 
-   */
-  private void release() {
-    remset.release();
-    if (Synchronize.acquireBarrier()) {
-      CollectorLea.release(rcVM, rcMR);
-      CollectorImmortal.release(immortalVM, null);
-      Synchronize.releaseBarrier();
+  private final void processIncBufs() {
+    VM_Address tgt;
+    while (!(tgt = incBuffer.pop()).isZero()) {
+//       VM.sysWrite(tgt); VM.sysWrite(" i\n");
+      rcCollector.incRC(tgt);
+    } 
+//     VM.sysWrite("done!\n");
+ }
+
+  private final void processDecBufs() {
+    VM_Address tgt;
+    while (!(tgt = decBuffer.pop()).isZero()) {
+//       VM.sysWrite(tgt); VM.sysWrite(" d\n");
+      rcCollector.decRC(tgt, rc);
     }
   }
 
+  private final void processRootBufs() {
+    VM_Address tgt;
+    while (!(tgt = rootSet.pop()).isZero()) {
+//       VM.sysWrite(tgt); VM.sysWrite(" r\n");
+      decBuffer.push(tgt);
+    }
+  }
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
   //
-  private AllocatorLea rc;
-  private AllocatorBumpPointer immortal;
-  private MutationBuffer mutationBuf;
+  private SimpleRCAllocator rc;
+  private BumpPointer immortal;
+  private int id;  
+
+  private AddressQueue incBuffer;
+  private AddressQueue decBuffer;
+  private AddressQueue rootSet;
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Class variables
   //
   // virtual memory regions
-  private static VMResource rcVM;
-  private static VMResource immortalVM;
-  private static VMResource mutationBufVM;
+  private static SimpleRCCollector rcCollector;
+  private static FreeListVMResource rcVM;
+  private static ImmortalVMResource immortalVM;
 
   // memory resources
   private static MemoryResource rcMR;
   private static MemoryResource immortalMR;
-  private static MemoryResource mutationBufMR;
 
-  ////////////////////////////////////////////////////////////////////////////
+  private static boolean decrementPhase;
+
+  private static SharedQueue incPool;
+  private static SharedQueue decPool;
+  private static SharedQueue rootPool;
+
+  // GC state
+  private int count = 0; // Number of plan instances in existence
+
   //
   // Final class variables (aka constants)
   //
-  private static final Address REF_COUNT_START;
-  private static final EXTENT REF_COUNT_VM_SIZE;
-  private static final Address IMMORTAL_START;
-  private static final EXTENT IMMORTAL_VM_SIZE;
-  private static final int DEFAULT_ALLOCATOR = 0;
-  private static final int IMMORTAL_ALLOCATOR = 1;
+  private static final VM_Address       RC_START = PLAN_START;
+  private static final EXTENT            RC_SIZE = 1024 * 1024 * 1024;              // size of each space
+  private static final VM_Address         RC_END = RC_START.add(RC_SIZE);
+  private static final VM_Address       HEAP_END = RC_END;
+
+  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+
+  public static final int RC_ALLOCATOR = 0;
+  public static final int IMMORTAL_ALLOCATOR = 1;
+  public static final int DEFAULT_ALLOCATOR = RC_ALLOCATOR;
+
+
+  /**
+   * Class initializer.  This is executed <i>prior</i> to bootstrap
+   * (i.e. at "build" time).
+   */
+  static {
+
+    // memory resources
+    rcMR = new MemoryResource(POLL_FREQUENCY);
+    immortalMR = new MemoryResource(POLL_FREQUENCY);
+
+    // virtual memory resources
+    rcVM       = new FreeListVMResource("RC",       RC_START,   RC_SIZE, VMResource.MOVABLE);
+    immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
+
+    // collectors
+    rcCollector = new SimpleRCCollector(rcVM, rcMR);
+
+    incPool = new SharedQueue(metaDataRPA, 1);
+    incPool.newClient();
+    decPool = new SharedQueue(metaDataRPA, 1);
+    decPool.newClient();
+    rootPool = new SharedQueue(metaDataRPA, 1);
+    rootPool.newClient();
+  }
+
 }
-   
+
