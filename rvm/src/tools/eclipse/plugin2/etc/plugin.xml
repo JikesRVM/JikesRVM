@@ -18,7 +18,6 @@
    provider-name="%providerName"
    class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
 
-
   <!-- Required plugins -->
   <requires>
      <import plugin="org.eclipse.core.runtime"/>
