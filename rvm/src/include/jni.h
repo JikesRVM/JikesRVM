@@ -55,7 +55,7 @@ extern "C" {
 
 typedef uint8_t jboolean;
 typedef int8_t jbyte;
-typedef uint16_t short jchar;
+typedef uint16_t jchar;
 typedef int16_t jshort;
 typedef int32_t jint;
 typedef int64_t jlong;

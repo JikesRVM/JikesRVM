@@ -926,9 +926,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         }
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
-          argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
+        argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
       } else if (argTypes[i].isIntType()) {
+        if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapInt(hiword.toInt());
+        } else {
+          argObjectArray[i] = VM_Reflection.wrapInt((int) ((hiword.toLong() & 0xFFFFFFFF00000000L) >>> 32));
+        }
       } else {
         return null;
       }
