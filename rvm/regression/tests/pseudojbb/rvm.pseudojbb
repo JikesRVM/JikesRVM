@@ -44,7 +44,7 @@ fi
 benchmark=pseudojbb
 #####################################
 # Determine events
-config=SPECjbb_1.1.1.props
+config=pseudojbb_1.props
 if [[ $# = 1 || $# > 1 ]]; then
   if [[ $1 != '+' ]]; then
     config=$1
@@ -77,8 +77,7 @@ if [[ ! -d $out_dir ]] then
 fi
  
 # set the benchmark directories
-MY_SPEC_HOME=/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/pseudojbb
-#MY_SPEC_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/pseudojbb
+MY_SPEC_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/pseudojbb
 
 # want to pick up class files not jars!
 # classpath="   -classpath $MY_SPEC_HOME"
