@@ -630,7 +630,7 @@ class VM_CommandLineArgs {
 	VM.sysExit(1);
 	//-#else
 	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT)
-	  VM_RuntimeCompiler.processCommandLineArg("help");
+	  OPT_Options.printHelp("-X:opt");
 	else {
 	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
 	  VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
