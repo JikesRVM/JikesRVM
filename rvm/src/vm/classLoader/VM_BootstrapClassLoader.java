@@ -52,7 +52,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
   /**
    * Initialize for execution.
-   * @param bootstrapClasses names of directories containing the bootstrap
+   * @param bootstrapClasspath names of directories containing the bootstrap
    * .class files, and the names of any .zip/.jar files.  
    * These are the ones that implement the VM and its
    * standard runtime libraries.  This may contain several names separated
