@@ -83,13 +83,17 @@ creates a new pThread (or recycles one previously created for this
 purpose) and transfers the stuck thread's virtual processor to the
 new pThread.  When the stuck thread returns to Java, the pThread
 executing it is deactivated and added to a pool of available pThreads.
-Currently, this mechanism does not work on Linux (possibly due to a
-bug in the Linux 2.4 pThread library) and is disabled there.
+Currently, this mechanism does not work on Linux and is disabled there.
 
 RVM uses a light-weight locking scheme to implement Java monitors (see
-\xlink{{\tt VM\_Lock}}{\VMLockURL}).  Twenty bits of the status word of 
-the object header are used for locking.  If the top bit is set, the
-bottom nineteen are an index into an array of heavy-weight locks.
+\xlink{{\tt VM\_Lock}}{\VMLockURL} and 
+\xlink{{\tt VM\_ThinLock}}{\VMThinLockURL}). The exact details of the
+locking scheme are dependent on the which variant of 
+\xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL} is selected at
+system build time.  If an object instance has a light weight lock,
+then some bits in the object header are used for locking.  
+If the top bit is set, the remainder of the bits 
+are an index into an array of heavy-weight locks.
 Otherwise, if the object is locked, these bits contain the id of the
 thread that holds the lock and a count of how many times it is held.
 If a thread tries to lock an object locked with a light-weight lock by
