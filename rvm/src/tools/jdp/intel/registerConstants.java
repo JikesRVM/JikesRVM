@@ -8,10 +8,6 @@
 
 interface registerConstants extends VM_RegisterConstants{
 
-  // temp fix until VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET is fixed
-  // need to fix up in memory.java, breakpointList.java and register.java
-  static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET = 4;
-
   // general purpose registers, all 32-bit
   static final int GPR0	 =  0;
   // static final int GPR1	 =  1;
