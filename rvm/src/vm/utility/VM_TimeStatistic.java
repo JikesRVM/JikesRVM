@@ -11,22 +11,40 @@ package com.ibm.JikesRVM;
  */
 public class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible {
 
-  private long curStart = -1;
-  private long lastStart = -1;
-  private long lastStop = -1;
+  // Invariant: Time spent in timer equals accumulated + ((begin == -1) ? 0 : cycles() - begin)
+  //
+  private long begin;
+  private long accumulated;   
+  private boolean paused;
 
-  public void start(long x) {
-    if (VM.VerifyAssertions) VM._assert(curStart == -1);
-    lastStart = curStart = x;
+  public VM_TimeStatistic () { 
+    reset(); 
   }
 
-  public void stop(long x) {
-    if (VM.VerifyAssertions) VM._assert(curStart != -1);
-    lastStop = x;
-    addSample(VM_Time.cyclesToMillis(x - curStart)/1000);
-    curStart = -1;
+  private void reset () {
+    begin = -1;
+    accumulated = 0;
+    paused = false;
   }
-  
+
+  public void start (long x) {
+    if (VM.VerifyAssertions) VM._assert(begin == -1);
+    begin = x;
+  }
+
+  public void stop (long x) {
+    if (begin != -1) accumulated += (x - begin);
+    addSample(VM_Time.cyclesToMillis(accumulated)/1000);
+    reset();
+  }
+
+  public void pause () {
+    if (VM.VerifyAssertions) VM._assert(begin != -1);
+    accumulated += (VM_Time.cycles() - begin);
+    begin = -1;
+    paused = true;
+  }
+
   public void start() {
     start(VM_Time.cycles());
   }
