@@ -99,6 +99,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static boolean fullHeapGC = false;  // Whether next GC will be full - set at end of last GC
   protected static boolean lastGCFull = false;  // Whether previous GC was full - set during full GC
 
+  private static Timer fullHeapTime = new Timer("majorGCTime", false, true);
+
   protected static EventCounter wbFast;
   protected static EventCounter wbSlow;
   protected static BooleanCounter fullHeap;
@@ -395,6 +397,7 @@ public abstract class Generational extends StopTheWorldGC
     nurseryMR.reset(); // reset the nursery
     lastGCFull = fullHeapGC;
     if (fullHeapGC || IGNORE_REMSET) {
+      if (fullHeapGC) fullHeapTime.start();
       if (Stats.gatheringStats()) fullHeap.set();
       // prepare each of the collected regions
       losSpace.prepare(losVM, losMR);
@@ -480,6 +483,7 @@ public abstract class Generational extends StopTheWorldGC
       losSpace.release();
       globalMatureRelease();
       ImmortalSpace.release(immortalVM, null);
+      if (fullHeapGC) fullHeapTime.stop();
     }
     fullHeapGC = (getPagesAvail() < Options.minNurseryPages);
     if (getPagesReserved() + required >= getTotalPages()) {
