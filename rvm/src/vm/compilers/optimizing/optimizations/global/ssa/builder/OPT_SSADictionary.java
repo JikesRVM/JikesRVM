@@ -586,27 +586,6 @@ class OPT_SSADictionary
   }
 
   /**
-   * Record the original register name for a renamed register.
-   *
-   * @param r1 the renamed register name
-   * @param r2 the original register name
-   */
-  public void setOriginalRegister (OPT_Register r1, OPT_Register r2) {
-    originals.put(r1, r2);
-  }
-
-  /**
-   * Return the original register name for a renamed register.
-   *
-   * @param r the renamed register name
-   * @return the original register name
-   */
-  public OPT_Register getOriginalRegister (OPT_Register r) {
-    OPT_Register result = (OPT_Register)originals.get(r);
-    return  result;
-  }
-
-  /**
    * A mapping from <code> OPT_Instruction </code> to the set of heap
    * operands (an <code> OPT_HeapOperand[]</code>) that this instruction
    * uses
@@ -632,14 +611,6 @@ class OPT_SSADictionary
    * a new heap variable name for a given type
    */
   private java.util.HashMap nextNumber = new java.util.HashMap();         
-
-  /**
-   * A mapping from <code> OPT_Register </code> to <code> OPT_Register
-   * </code>.  This map holds the original register for each renamed
-   * register.
-   */
-  private java.util.HashMap originals = new java.util.HashMap();          
-
 
   /**
    * A mapping from <code> OPT_BasicBlock </code> to <code> Vector

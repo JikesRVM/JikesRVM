@@ -761,7 +761,6 @@ implements OPT_Operators, OPT_Constants {
             if (r2 != null) {
               rop.register = r2.register;
               OPT_DefUse.recordUse(rop);
-              dictionary.setOriginalRegister(r2.register, r1);
             }
           }
         }
@@ -789,7 +788,6 @@ implements OPT_Operators, OPT_Constants {
             ambiguous.add(A);
           rop.setRegister(r2);
           r2.scratchObject = r1;
-          dictionary.setOriginalRegister(r2, r1);
         }
       }
     } // end of first loop
@@ -841,7 +839,6 @@ implements OPT_Operators, OPT_Constants {
                   }
                   // resolve the type for this phi instruction
                   setPhiType(s, t, phiDefTypes, j);
-                  dictionary.setOriginalRegister(r2.register, r1);
                 }
               }
             }
