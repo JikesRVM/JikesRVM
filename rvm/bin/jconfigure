@@ -687,7 +687,7 @@ function emitSourceList
       elif (( $RVM_WITH_GCTk_SEMISPACE )); then
 	GCTk_COL=SemiSpace
       else
-	GCTk_COL=null
+	GCTk_COL=Null
       fi
       if (( $RVM_WITH_GCTk_BLOCK_INDIRECT )); then
         suff=BlockIndirect
