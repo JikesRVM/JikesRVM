@@ -142,16 +142,19 @@ if [[ x$local_jar != x ]] ; then
   # stamped version
   # OK, if the local jar is the stamped one
   if [[ x$stamp_jar = x$local_jar ]] ; then
-    cp -f ${id_file}.stamp ${id_file}.installed
+    rm -f ${id_file}.installed
     exit 0
   fi
 
   # local version
   # OK, if the local jar is the installed one
   if [[ $installed_jar = $local_jar ]] ; then
-    echo "Note: You are using a local version of \$RVM_ROOT/support/lib/${jar_file}."
-    echo "      If you want to switch back to the $stamp_jar version,"
-    echo "      delete ${lib_dir}/${jar_file}."
+  cat <<EOF
+Note: You are using a local version of \$RVM_ROOT/support/lib/${jar_file}.
+      Your local revision is $local_jar. If you want to switch to revision
+      $stamp_jar, which matches your Jikes RVM version, you have to
+      remove ${lib_dir}/${jar_file}."
+EOF
     exit 0
   fi
 
