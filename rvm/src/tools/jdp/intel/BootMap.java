@@ -1220,7 +1220,7 @@ abstract class BootMap implements jdpConstants  {
    *  @param instructionAddress a random instruction address
    *  @return true if the address is in the JVM space, false otherwise 
    */
-  public boolean isInJVMspace(int instructionAddress) {
+  public boolean isInRVMspace(int instructionAddress) {
     int vmEnd = owner.mem.read(vmEndAddress); 
     if (instructionAddress>=bootStart & instructionAddress<=vmEnd)
       return true;
