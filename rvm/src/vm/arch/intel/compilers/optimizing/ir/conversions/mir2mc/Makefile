@@ -33,7 +33,7 @@ SRCS=   $(TABLES_JAVA) \
 	$(FAKE_SRC) \
 	$(VM_ASM_JAVA) \
 	$(JAL_ROOT)/rvm/src/vm/arch/intel/VM_RegisterConstants.java \
-	$(JAL_ROOT)/rvm/src/vm/arch/intel/assembler/VM_ForwardReference.java \
+	$(JAL_ROOT)/rvm/src/vm/compilers/baseline/VM_ForwardReference.java \
 	$(JAL_ROOT)/rvm/src/vm/arch/intel/assembler/VM_AssemblerConstants.java
 
 default:		assembler clean
