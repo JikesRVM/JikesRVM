@@ -163,8 +163,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
-    if (bytes > 1<<21)
-      VM_Scheduler.dumpStack();
     switch (allocator) {
       case       RC_ALLOCATOR: region = rc.alloc(isScalar, bytes); break;
       case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
@@ -328,13 +326,13 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     writeBarrier(src, tgt);
   }
   private void writeBarrier(VM_Address src, VM_Address tgt) 
-    throws VM_PragmaInline {
+    throws VM_PragmaNoInline {
     VM_Address old = VM_Magic.getMemoryAddress(src);
-    //    if (old.GE(RC_START))
-    if (old.toInt() >= RC)
+    if (old.GE(RC_START))
+      //    if (old.toInt() >= RC)
       decBuffer.push(old);
-    //    if (tgt.GE(RC_START))
-    if (tgt.toInt() >= RC)
+    if (tgt.GE(RC_START))
+    //    if (tgt.toInt() >= RC)
       incBuffer.push(tgt);
   }
 
@@ -507,7 +505,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   // Final class variables (aka constants)
   //
   private static final VM_Address       RC_START = PLAN_START;
-  private static final int RC = RC_START.toInt();
   private static final EXTENT            RC_SIZE = 1024 * 1024 * 1024;              // size of each space
   private static final VM_Address         RC_END = RC_START.add(RC_SIZE);
   private static final VM_Address       HEAP_END = RC_END;
@@ -524,7 +521,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * (i.e. at "build" time).
    */
   static {
-
     // memory resources
     rcMR = new MemoryResource(POLL_FREQUENCY);
     immortalMR = new MemoryResource(POLL_FREQUENCY);
