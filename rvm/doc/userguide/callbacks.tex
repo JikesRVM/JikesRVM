@@ -22,7 +22,7 @@ your instance will be invoked.
 {\tt VM\_Callbacks} for the list of currently
 supported callbacks]{\VMCallbacksURL}.
 
-The appropriate interface names can be obtained by appending ``\texttt{Monitor''} to the
+The appropriate interface names can be obtained by appending ``\texttt{Monitor}'' to the
 event names ({\it e.g.}\ the interface to implement for the {\tt MethodOverride} event
 is {\tt VM\_\-Call\-backs.Me\-thod\-Ov\-er\-ride\-Mo\-ni\-tor}).  Likewise, the method to
 register the callback is ``\texttt{add}'', followed by the name of the
@@ -30,7 +30,7 @@ interface ({\it e.g.}\ the register method for the above interface is {\tt
 VM\_\-Call\-backs.add\-Me\-thod\-O\-ver\-ride\-Mon\-i\-tor()}).
 
 Since the events for which callbacks are available are internal to the VM,
-there are naturally some limitations on the behavior of the callback code.  For
+there are limitations on the behavior of the callback code.  For
 example, as soon as the exit callback is invoked, all threads are considered
 daemon threads ({\it i.e.}\ the VM will not wait for any new threads created in the
 callbacks to complete before exiting).  Thus, if the exit callback creates any
@@ -62,7 +62,7 @@ has completed an iteration of the benchmark.   This can be performed
 by using the {\tt VM\_Callbacks} interface.  The specifics are
 specified below:
 \begin{enumerate}
-\item Modify {\tt spec/harness/ProgramRunner.java} as follows:
+\item Modify {\tt spec/harness/ProgramRunner.java}:
 	\begin{enumerate}
 
 	\item add an import statement for the {\tt VM\_Callbacks} class:
@@ -97,6 +97,7 @@ jbuild.tool spec/\-har\-ness/\-Pro\-gram\-Run\-ner.java
 \end{enumerate}
 
 In the current system the {\tt VM\_Controller} class will gain control
-when these callbacks are made and print a message into the AOS log
-file (called AOSLog.txt, by default).
+when these callbacks are made and print a message into the 
+AOS log\index{AOS log file}
+file (by default, placed in \jrvm{}'s current working directory and called \texttt{AOSLog.txt})\Indextt{AOSLog.txt}.
 
