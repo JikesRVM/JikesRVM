@@ -186,14 +186,27 @@ class VM_AOSLogging {
   /**
    * Call this method when one run of the application is completed
    */
-  public static void appRunComplete() {
+  public static void appRunStart(String prog, int run) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
-		    +" Application completed a run");
+		    +" Application "+prog+" starting run "+run);
       }
     }
   }
+
+  /**
+   * Call this method when one run of the application is completed
+   */
+  public static void appRunComplete(String prog, int run) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+	log.println(VM_Controller.controllerClock 
+		    +" Application "+prog+" completed run "+run);
+      }
+    }
+  }
+
 
   /**
    * Call this method when the controller thread is exiting
