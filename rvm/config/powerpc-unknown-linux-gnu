@@ -64,10 +64,10 @@ export GNU_MAKE="/usr/bin/make"
 export JIKES=/usr/bin/jikes
 
 # what C compilers should be used?
-export CC="/usr/bin/gcc -w -g -O -Wa,-mppc"
+export CC="/usr/bin/gcc -w -g -O -Wa,-mppc -fPIC"
 
 # what C++ compilers should be used?
-export CPLUS='/usr/bin/g++ -w -g -O'
+export CPLUS='/usr/bin/g++ -w -g -O -fPIC'
 
 # how to link a shared C++ library
 export LDSHARED="${CPLUS} -shared"
