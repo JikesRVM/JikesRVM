@@ -5,5 +5,7 @@
 #
 # @author David Grove
 
-#
-RULE_FILES = $(MIR_LIR2MIR_DIR)/LIR2MIR.rules 
+COMMON_DIR = $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir
+
+RULE_FILES = 	$(COMMON_DIR)/NonTerminals.rules \
+		$(MIR_LIR2MIR_DIR)/PPC32.rules 
