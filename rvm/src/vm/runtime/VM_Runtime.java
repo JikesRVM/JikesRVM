@@ -59,6 +59,7 @@ public class VM_Runtime implements VM_Constants {
   public static final int TRAP_JNI_STACK      =  6; // jni
   public static final int TRAP_MUST_IMPLEMENT =  7; 
   public static final int TRAP_STORE_CHECK    =  8; // opt-compiler
+  public static final int TRAP_STACK_OVERFLOW_FATAL = 9; // assertion checking
    
   //---------------------------------------------------------------//
   //                     Type Checking.                            //

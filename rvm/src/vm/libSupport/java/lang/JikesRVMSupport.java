@@ -7,6 +7,7 @@ package java.lang;
 import java.security.ProtectionDomain;
 
 import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Library support interface of Jikes RVM
@@ -25,5 +26,9 @@ public class JikesRVMSupport {
 
   public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
     c.pd = pd;
+  }
+
+  public static char[] getBackingCharArray(String str) throws VM_PragmaUninterruptible {
+    return str.value;
   }
 }

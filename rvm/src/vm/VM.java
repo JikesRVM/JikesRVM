@@ -572,15 +572,14 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void write(String value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(String value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (value == null) {
       write("null");
     } else {
       if (runningVM) {
-	VM_Processor.getCurrentProcessor().disableThreadSwitching();
-	for (int i = 0, n = value.length(); i < n; ++i) 
-	  write(value.charAt(i));
-	VM_Processor.getCurrentProcessor().enableThreadSwitching();
+	char[] chars = java.lang.JikesRVMSupport.getBackingCharArray(value);
+	for (int i = 0; i < chars.length; i++) 
+	  write(chars[i]);
       } else {
 	System.err.print(value);
       }
