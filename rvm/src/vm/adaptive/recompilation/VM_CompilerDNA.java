@@ -30,35 +30,27 @@ public class VM_CompilerDNA implements VM_Constants {
   private static int numCompilers;
 
   /**
-   *  Average bytecodes compiled per millisec
+   * Average bytecodes compiled per millisec
+   * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
+   *  and turangalila (Linux/IA32) using unweighted compilation rate,
+   *  which is different than previous collections
    */
   //-#if RVM_FOR_AIX
-  /*
-   * These numbers were from a shadow on September 6, 2003 on AIX/PPC (munchkin)
-   *  using unweighted compilation rate, different than previous collections
-   */
   private static final double[] compilationRates = {377.76, 9.29, 5.69, 1.81};
   //-#else
-  /*
-   *  These numbers were from a shadow on August 20, 2003 on Linux/IA32 (turangalila)
-   */
-  private static final double[] compilationRates = {707.71, 6.76, 3.46, 1.55};
+  private static final double[] compilationRates = {351.50, 10.51, 5.21, 1.89};
   //-#endif
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
+   * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
+   *  and turangalila (Linux/IA32) using unweighted compilation rate, 
+   *  which is different than previous collections
    */
   //-#if RVM_FOR_AIX
-  /*
-   *  These numbers were from a shadow on September 6, 2003 on AIX/PPC (munchkin)
-   *  using unweighted compilation rate, different than previous collections
-   */
   private static final double[] speedupRates = {1.00, 4.26, 6.07, 6.61};
   //-#else
-  /*
-   *  These numbers were from a shadow on August 20, 2003 on Linux/IA32 (turangalila)
-   */
-  private static final double[] speedupRates = {1.00, 4.17, 5.82, 5.45};
+  private static final double[] speedupRates = {1.00, 4.03, 5.55, 5.34};
   //-#endif
 
   /**
