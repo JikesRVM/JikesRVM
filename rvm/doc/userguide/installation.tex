@@ -75,7 +75,7 @@ CD in the package {\tt jikes}.
 
 We have had mixed experiences with different releases of the Jikes
 compiler. Versions 1.13 and 1.18 are known to work for building Jikes
-RVM. Versions 1.14 through 1.17, 1.20, and 1.21 are known {\em not}\/ to
+RVM. Versions 1.14 through 1.17, 1.20, 1.21, and 1.22 are known {\em not}\/ to
 work.  Version 1.19 has worked for many people, but we have had
 problems reported on OSX. 
 
@@ -84,12 +84,12 @@ problems reported on OSX.
 {\tt jikes-1.15} in
 particular --- installed by default with SuSE Linux 8.1 --- has a
 byte-code generation bug that will cause Jikes RVM to crash with an
-{\tt ArrayIndexOutOfBounds} exception.  Jikes 1.21 dumps core with an assertion failure when it
-builds Jikes RVM.
+{\tt ArrayIndexOutOfBounds} exception.  Jikes 1.21 and 1.22 dump core
+with an assertion failure when they builds Jikes RVM.
 
 {\tt jikes-1.13}, as of the last
 time we tried it (September 28, 2004) works fine, and sometimes generates
-better error messages than {\tt jikes-1.18}.
+better error messages than {\tt jikes-1.18} and {\tt jikes-1.19}.
 \end{small}
 
 \item Download Jikes RVM from the \xlink{Jikes RVM
@@ -104,7 +104,7 @@ hereinafter call the location of the unpacked RVM distribution {\tt
 \item You will need version \classpathversion{} of the GNU
 Classpath libraries.  
 Jikes RVM (both CVS head and release) does not work with GNU Classpath
-0.11, nor with Classpath CVS head, as of this writing, 28 September
+0.11, nor with Classpath CVS head, as of this writing, 04 October
 2004.  Steven Augart is working to remedy that deficiency and expects
 to have it fixed soon. 
 %% The cvs head of Jikes RVM normally also works with the
