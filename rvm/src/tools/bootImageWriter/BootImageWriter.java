@@ -1062,23 +1062,14 @@ public class BootImageWriter extends BootImageWriterMessages
               // note: Endian issues handled in setSlotContents.
               VM_Statics.setSlotContents(rvmFieldSlot,
                                          Double.doubleToLongBits(d));
-            } else if (rvmFieldType.equals(VM_TypeReference.Address)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Address) ||
+                       rvmFieldType.equals(VM_TypeReference.Word) ||
+                       rvmFieldType.equals(VM_TypeReference.Extent) ||
+                       rvmFieldType.equals(VM_TypeReference.Offset)){
               Object o = jdkFieldAcc.get(null);
-              VM_Address addr = (VM_Address) o;
               String msg = " static field " + rvmField.toString();
-              VM_Statics.setSlotContents(rvmFieldSlot, getAddressValue(addr, msg, true));  // int or long
-            } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
-              VM_Word w = (VM_Word) jdkFieldAcc.get(null);
-              int val = w == null ? 0 : w.toInt();
-              VM_Statics.setSlotContents(rvmFieldSlot, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
-              VM_Offset o = (VM_Offset) jdkFieldAcc.get(null);
-              int val = o == null ? 0 : o.toInt();
-              VM_Statics.setSlotContents(rvmFieldSlot, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
-              VM_Extent ex = (VM_Extent) jdkFieldAcc.get(null);
-              int val = ex == null ? 0 : ex.toInt();
-              VM_Statics.setSlotContents(rvmFieldSlot, val);
+              boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
+              VM_Statics.setSlotContents(rvmFieldSlot, getAddressValue(o, msg, warn));
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
@@ -1116,26 +1107,47 @@ public class BootImageWriter extends BootImageWriterMessages
     }
   }
 
-
-
-
-//-#if RVM_FOR_32_ADDR
-  private static int getAddressValue(VM_Address addr, String msg, boolean warn) {
+  //-#if RVM_FOR_32_ADDR
+  private static int getAddressValue(Object addr, String msg, boolean warn) {
     if (addr == null) return 0;
-    int value = addr.toInt();
+    int value = 0;
+    if (addr instanceof VM_Address) {
+      value = ((VM_Address)addr).toInt();
+    } else if (addr instanceof VM_Word) {
+      value = ((VM_Word)addr).toInt();
+    } else if (addr instanceof VM_Extent) {
+      value = ((VM_Extent)addr).toInt();
+    } else if (addr instanceof VM_Offset) {
+      value = ((VM_Offset)addr).toInt();
+    } else {
+      VM.sysWriteln("Unhandled supposed address value: " + addr);
+      VM.sysFail("incomplete boot image support");
+    }
     if (warn) check(value, msg);
     return value;
   }
-//-#endif
+  //-#endif
 
-//-#if RVM_FOR_64_ADDR
-  private static long getAddressValue(VM_Address addr, String msg, boolean warn) {
+  //-#if RVM_FOR_64_ADDR
+  private static long getAddressValue(Object addr, String msg, boolean warn) {
     if (addr == null) return 0L;
-    long value = addr.toLong();
+    long value = 0L;
+    if (addr instanceof VM_Address) {
+      value = ((VM_Address)addr).toLong();
+    } else if (addr instanceof VM_Word) {
+      value = ((VM_Word)addr).toLong();
+    } else if (addr instanceof VM_Extent) {
+      value = ((VM_Extent)addr).toLong();
+    } else if (addr instanceof VM_Offset) {
+      value = ((VM_Offset)addr).toLong();
+    } else {
+      VM.sysWriteln("Unhandled supposed address value: " +addr);
+      VM.sysFail("incomplete boot image support");
+    }
     if (warn) check((int) value, msg);
     return value;
   }
-//-#endif
+  //-#endif
 
   /**
    * Copy an object (and, recursively, any of its fields or elements that
@@ -1411,23 +1423,14 @@ public class BootImageWriter extends BootImageWriterMessages
               double d = jdkFieldAcc.getDouble(jdkObject);
               bootImage.setDoubleWord(rvmFieldOffset,
                                       Double.doubleToLongBits(d));
-            } else if (rvmFieldType.equals(VM_TypeReference.Address)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Address) ||
+                       rvmFieldType.equals(VM_TypeReference.Word) ||
+                       rvmFieldType.equals(VM_TypeReference.Extent) ||
+                       rvmFieldType.equals(VM_TypeReference.Offset)) {
               Object o = jdkFieldAcc.get(jdkObject);
-              VM_Address addr = (VM_Address) o;
               String msg = " instance field " + rvmField.toString();
-              bootImage.setAddressWord(rvmFieldOffset, getAddressValue(addr, msg, true));
-            } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
-              VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
-              int val = w == null ? 0 : w.toInt();
-              VM_Statics.setSlotContents(rvmFieldOffset, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
-              VM_Offset o = (VM_Offset) jdkFieldAcc.get(jdkObject);
-              int val = o == null ? 0 : o.toInt();
-              VM_Statics.setSlotContents(rvmFieldOffset, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
-              VM_Extent e = (VM_Extent) jdkFieldAcc.get(jdkObject);
-              int val = e == null ? 0 : e.toInt();
-              VM_Statics.setSlotContents(rvmFieldOffset, val);
+              boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
+              bootImage.setAddressWord(rvmFieldOffset, getAddressValue(o, msg, warn));
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
@@ -1532,25 +1535,25 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_Word values[] = (VM_Word[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "VM_Word array element ";
-        VM_Address addr = values[i].toAddress();
+        VM_Word addr = values[i];
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                 getAddressValue(addr, msg, true));
+                                 getAddressValue(addr, msg, false));
       }
     } else if (rvmElementType.equals(VM_Type.OffsetType)) {
       VM_Offset values[] = (VM_Offset[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "VM_Offset array element " + i;
-        VM_Address addr = values[i].toWord().toAddress();
+        VM_Offset addr = values[i];
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                 getAddressValue(addr, msg, true));
+                                 getAddressValue(addr, msg, false));
       }
     } else if (rvmElementType.equals(VM_Type.ExtentType)) {
       VM_Extent values[] = (VM_Extent[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "VM_Extent array element ";
-        VM_Address addr = values[i].toWord().toAddress();
+        VM_Extent addr = values[i];
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                 getAddressValue(addr, msg, true));
+                                 getAddressValue(addr, msg, false));
       }
     } else {
       fail("unexpected magic array type: " + rvmArrayType);
