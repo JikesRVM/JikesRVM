@@ -208,10 +208,12 @@ BOOTER=$BUILD_DIRECTORY/JikesRVM
 BOOTER_STR=$BUILD_DIRECTORY_STR/JikesRVM
 
 # Variables to allow configuration files to alter the list of
-# directories and primordials.
+# directories, primordials, exclusions and top level sources.
 #
 CONF_SPECIFIC_SOURCES_LIST=""
 CONF_SPECIFIC_PRIMORDIALS_LIST=""
+CONF_SPECIFIC_EXCLUSIONS_LIST=""
+CONF_SPECIFIC_TOP_LEVEL_SOURCES=""
 
 # Strings to use in the scripts for various command
 #
@@ -783,7 +785,7 @@ function emitSourceList
 
    # Add the configuration specific directories
    #
-   for dir in `echo $CONF_SPECIFIC_SOURCES_LIST`; do
+   for dir in `echo "$CONF_SPECIFIC_SOURCES_LIST"`; do
      print $RVM_ROOT/$dir
    done
 
@@ -1258,20 +1260,18 @@ function emitCompiler
    
    # Generate classes
    #
+   TOP_LEVEL_SOURCES="Dummy.java"
+   if (( RVM_WITH_OPT_COMPILER )); then
+      TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES OptDummy.java"
+   fi
    if (( RVM_WITH_OPT_TEST_HARNESS )); then
-      DUMMY_SOURCES="Dummy.java OptDummy.java OptTestHarness.java"
-      DUMMY_CLASSES="Dummy.class OptDummy.class OptTestHarness.class"
-   elif (( RVM_WITH_OPT_COMPILER )); then
-      DUMMY_SOURCES="Dummy.java OptDummy.java"
-      DUMMY_CLASSES="Dummy.class OptDummy.class"
-   else
-      DUMMY_SOURCES="Dummy.java"
-      DUMMY_CLASSES="Dummy.class"
+      TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES OptDummy.java OptTestHarness.java"
    fi
-   
    if (( RVM_WITH_JAZZLIB )); then
-      DUMMY_SOURCES="$DUMMY_SOURCES java/util/zip/*.java"
+      TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES java/util/zip/*.java"
    fi
+   TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES $CONF_SPECIFIC_TOP_LEVEL_SOURCES"
+   TOP_LEVEL_CLASSES=`echo $TOP_LEVEL_SOURCES|sed 's@\.java@.class@g'`
 
    if (( RVM_FOR_POWERPC )); then
       INSTRUCTION_TYPE="int"
@@ -1285,11 +1285,11 @@ function emitCompiler
 
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
-   print "   rm -f $DUMMY_CLASSES"
+   print "   rm -f $TOP_LEVEL_CLASSES"
    if (( BUILD_RVMRT_JAR )); then
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $DUMMY_SOURCES"
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $TOP_LEVEL_SOURCES"
    else 
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $DUMMY_SOURCES"
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
    fi
    print '   print -n "(classes compiled) "'
    print ""
@@ -1362,20 +1362,26 @@ function emitImageLinker
    #
    print "if [[ ! -e $PRIMORDIAL_CLASSES_STR ]]; then"
    
+   # skip: needed to build bootimage, but not to run it
+   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
+   print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
+   print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
+
+   # skip: java.lang.Thread jdk<->RVM interoperability problems
+   print "   print MainThread.class                 >> $EXCLUDED_CLASSES_STR"
+   print "   print JNIServiceThread.class           >> $EXCLUDED_CLASSES_STR"
+
+   # skip: InetAddress loads native library; so don't load unless needed
+   print "   print VM_InetAddress.class             >> $EXCLUDED_CLASSES_STR"
+
+   # Add the configuration specific exclusions
+   #
+   for exclusion in `echo "$CONF_SPECIFIC_EXCLUSIONS_LIST"`; do
+      print "   print '$exclusion'                  >> $EXCLUDED_CLASSES_STR"
+   done
+
    if (( RVM_WITH_ALL_CLASSES )); then
       # Put (almost) all vm classes into bootimage.
-
-      # skip: needed to build bootimage, but not to run it
-      print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
-      print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
-      print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
-      
-      # skip: java.lang.Thread jdk<->RVM interoperability problems
-      print "   print MainThread.class                 >> $EXCLUDED_CLASSES_STR"
-      print "   print JNIServiceThread.class    >> $EXCLUDED_CLASSES_STR"
-      
-      # skip: InetAddress loads native library; so dont load unless needed
-      print "   print VM_InetAddress.class      >> $EXCLUDED_CLASSES_STR"
 
       # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
       print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
@@ -1383,31 +1389,17 @@ function emitImageLinker
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
       print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-      if (( RVM_WITH_GCTk )); then
-          print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
-      fi
 
    else
       # Put minimum number of vm classes into boot image (just sufficient to
       # dynamically load remaining portions of the system).
       
-      # skip: needed to build bootimage, but not to run it
-      print "   print VM_BootImageCompiler.class > $EXCLUDED_CLASSES_STR"
-      print "   print Dummy.class               >> $EXCLUDED_CLASSES_STR"
-      print "   print OptDummy.class            >> $EXCLUDED_CLASSES_STR"
-
-      # skip: java.lang.Thread jdk<->RVM interoperability problems
-      print "   print MainThread.class          >> $EXCLUDED_CLASSES_STR"
-      print "   print JNIServiceThread.class    >> $EXCLUDED_CLASSES_STR"
-            
-      # skip: InetAddress loads native library; so dont load unless needed
-      print "   print VM_InetAddress.class      >> $EXCLUDED_CLASSES_STR"
-
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-      if (( RVM_WITH_GCTk )); then
-          print "   print $CLASSES_DIRECTORY/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES"
-      fi
+   fi
+
+   if (( RVM_WITH_GCTk )); then
+      print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    # Now add classes sufficient to start up the vm and to dynamically load anything that's not
@@ -1679,8 +1671,8 @@ function emitImageLinker
 
    # Add the configuration specific primordials
    #
-   for primordial in `echo $CONF_SPECIFIC_PRIMORDIALS_LIST`; do
-     print "   print $RVM_ROOT/$primordial		>> $PRIMORDIAL_CLASSES_STR"
+   for primordial in `echo "$CONF_SPECIFIC_PRIMORDIALS_LIST"`; do
+     print "   print '$primordial'			>> $PRIMORDIAL_CLASSES_STR"
    done
 
    print '   print -n "(primordials updated) "'
