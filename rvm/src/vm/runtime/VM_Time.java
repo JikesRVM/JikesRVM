@@ -19,10 +19,10 @@ public class VM_Time implements VM_Uninterruptible {
   private static double milliPerCycle = 0.0;
 
   /**
-   * Set milliPerCycle, the conversion factor between a tick of the realTimeClock
-   * and time in milliseconds. 
+   * Sets milliPerCycle, the conversion factor between a tick of the 
+   * realTimeClock and time in milliseconds. 
    */
-  static public void boot() {
+  static void boot() {
     double start = now();
     long clockTickStart = realTimeClock();
     double dur = 0.0; // in milliseconds
