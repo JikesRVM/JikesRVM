@@ -171,7 +171,12 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       gcLoad = 1;
     }
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(gcLoad >= 0);
+    if (VM_Interface.VerifyAssertions && gcLoad < 0) {
+      VM_Interface.sysWriteln("gcLoad computed to be ",gcLoad);
+      VM_Interface.sysWriteln("\taccumulateGCTime was ",accumulatedGCTime);
+      VM_Interface.sysWriteln("\ttotalTime was ", totalTime);
+      VM_Interface._assert(false);
+    }
     
     if (Options.verbose > 2) {
       VM_Interface.sysWriteln("Live ratio ",liveRatio);
