@@ -16,6 +16,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_WordArray;
 
 /**
  * This class implements "block" data structures of various sizes.<p>
@@ -59,8 +60,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   private static final VM_Address BASE_FL_MARKER = VM_Address.max(); // -1
   private static final VM_Address MIN_FL_MARKER = BASE_FL_MARKER.sub(FREE_LIST_ENTRIES);
   private static final VM_Address USED_MARKER = VM_Address.zero();
-  private static int[] blockMask;
-  private static int[] buddyMask;
+  private static VM_WordArray blockMask;
+  private static VM_WordArray buddyMask;
   
   // granularity of memory resource requests
   private static final int MR_POLL_PAGES = 1<<4; // 16 pages
@@ -91,11 +92,11 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   static {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(BLOCK_SIZE_CLASSES <= (1<<FREE_LIST_BITS));
-    blockMask = new int[BLOCK_SIZE_CLASSES];
-    buddyMask = new int[BLOCK_SIZE_CLASSES];
+    blockMask = VM_WordArray.create(BLOCK_SIZE_CLASSES);
+    buddyMask = VM_WordArray.create(BLOCK_SIZE_CLASSES);
     for (byte sc = 0; sc <= MAX_BLOCK_SIZE_CLASS; sc++) {
-      blockMask[sc] = ~((1<<(MIN_BLOCK_LOG + sc))-1);
-      buddyMask[sc] = 1<<(MIN_BLOCK_LOG + sc);
+      blockMask.set(sc, VM_Word.one().lsh(MIN_BLOCK_LOG + sc).sub(VM_Word.one()).not());
+      buddyMask.set(sc, VM_Word.one().lsh(MIN_BLOCK_LOG + sc));
     }
   }
 
@@ -130,8 +131,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     }
     
     if (VM_Interface.VerifyAssertions) {
-      VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
-      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(VM_Word.fromInt(BLOCK_HEADER_SIZE)).toAddress()));
+      VM_Word mask = blockMask.get(blockSizeClass);
+      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress()));
     }
 
     if (PARANOID)
@@ -238,7 +239,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   private final void release(VM_Address block, byte blockSizeClass) {
     block = block.sub(BLOCK_HEADER_SIZE);
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(block.toInt() == (block.toInt() & ~((1<<MAX_BLOCK_LOG)-1)));
+      VM_Interface._assert(block.toWord().and(VM_Word.one().lsh(MAX_BLOCK_LOG).sub(VM_Word.one())).isZero());
     vmResource.release(block, memoryResource, blockSizeClass, false);
   }
 
@@ -299,7 +300,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (childSC == MAX_BLOCK_SIZE_CLASS)
       release(child, originalSC);
     else {
-      VM_Address buddy = child.toWord().xor(VM_Word.fromInt(buddyMask[childSC])).toAddress();
+      VM_Address buddy = child.toWord().xor(buddyMask.get(childSC)).toAddress();
       byte flid = getFreeListID(childSC, originalSC);
       if (isFree(buddy) && (getFreeListID(buddy) == flid)) {
         removeFromFreeList(buddy, flid);
@@ -432,8 +433,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
    */
   public static final VM_Address getBlockStart(VM_Address cell,
                                                byte blockSizeClass) {
-    VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
-    return cell.toWord().and(mask).or(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress();
+    VM_Word mask = blockMask.get(blockSizeClass);
+    return cell.toWord().and(mask).add(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress();
   }
 
   public static final int blockSize(int blockSizeClass) {
