@@ -131,8 +131,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     declaringClass = method.getDeclaringClass();
 
     // Set up the array of maps per block; block 0 is not used
-
-    bbMaps   = new byte[VM_BasicBlock.getNumberofBlocks()+1][];
+    int numBB = buildBB.bbf.getNumberofBlocks();
+    bbMaps   = new byte[numBB + 1][];
     blockStkTop = new int[bbMaps.length];
     blockSeen   = new boolean[bbMaps.length];
 
@@ -171,9 +171,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     // Start a new set of maps with the reference Map class.
     // 3rd argument is parameter count included with the maps
     referenceMaps.startNewMaps(gcPointCount, jsrCount, paramCount);    
-
-    if (VM.ReferenceMapsStatistics)
-      referenceMaps.bytecount = referenceMaps.bytecount + bcodes.length();
 
     // Set up the Work stack
     workStk = new short[10+tryHandlerLength];
