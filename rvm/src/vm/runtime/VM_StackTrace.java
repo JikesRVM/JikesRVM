@@ -23,12 +23,12 @@ public class VM_StackTrace implements VM_Constants {
   /**
    * The compiled methods that comprise the trace
    */
-  private VM_CompiledMethod[] compiledMethods;
+  private final VM_CompiledMethod[] compiledMethods;
 
   /**
    * The instruction offsets within those methods.
    */
-  private VM_OffsetArray offsets;
+  private final VM_OffsetArray offsets;
   
   /**
    * Create a trace of the current call stack
@@ -94,11 +94,11 @@ public class VM_StackTrace implements VM_Constants {
    * @param out        stream to print on
    */
   public void print(PrintStream out) {
-    for (int i = 0, n = compiledMethods.length; i < n; i++) {
+    for (int i = 0; i<compiledMethods.length; i++) {
       if (i == 50) { 
 	// large stack - suppress excessive output
 	int oldIndex = i;
-	int newIndex = n - 10;
+	int newIndex = compiledMethods.length - 10;
 	if (newIndex > oldIndex) {
 	  i = newIndex;
 	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
@@ -122,10 +122,10 @@ public class VM_StackTrace implements VM_Constants {
    * @param out        printwriter to print on
    */
   public void print(PrintWriter out) {
-    for (int i = 0, n = compiledMethods.length; i < n; ++i) {
+    for (int i = 0; i < compiledMethods.length; ++i) {
       if (i == 50) { // large stack - suppress excessive output
 	int oldIndex = i;
-	int newIndex = n - 10;
+	int newIndex = compiledMethods.length - 10;
 	if (newIndex > oldIndex) {
 	  i = newIndex;
 	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
