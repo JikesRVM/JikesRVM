@@ -18,10 +18,10 @@ import java.util.*;
  *
  * @see OPT_DominatorsPhase
  *
- * @author: Mauricio J. Serrano
- * @modified: Stephen Fink
- * @modified: Dave Grove
- * @modified: Michael Hind
+ * @author Mauricio J. Serrano
+ * @modified Stephen Fink
+ * @modified Dave Grove
+ * @modified Michael Hind
  */
 public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private static final boolean DEBUG = false;

@@ -755,13 +755,13 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   }
 
   /**
-  * @depricated use alignUp(..) instead
+  * @deprecated use alignUp(..) instead
   */
   public static VM_Address align (VM_Address address, int alignment) throws VM_PragmaInline {
 	return alignUp(address, alignment); }
      
   /**
-  * @depricated use alignUp(..) instead
+  * @deprecated use alignUp(..) instead
   */
   public static int align (int address, int alignment) throws VM_PragmaInline {
 	return alignUp(address, alignment); }

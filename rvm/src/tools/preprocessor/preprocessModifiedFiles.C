@@ -12,7 +12,10 @@ char *Me; // name to appear in error messages
 void
 shorthelp(FILE *out)
 {
-    fprintf(out, "%s: specify [ --disable-modification-exit-status ] [-trace] [ -D<name>[ =1 | =0 | =<string-value> ] ]... [ -- ] <output directory> [ <input file> ]...\n", Me);
+    fprintf(out, "\
+Usage: %s [ --disable-modification-exit-status ] [--trace]\n\
+            [ -D<name>[ =1 | =0 | =<string-value> ] ]... \n\
+	    [ -- ] <output directory> [ <input file> ]...\n", Me);
     fprintf(out, "%s:   Use --help for more information.\n", Me);
 }
 
@@ -82,9 +85,7 @@ const char long_help_msg[] = "\
 \n\
 	(This is an odd restriction, but is the way the code was written\n\
          when I found it.  You're free to rewrite it if you want it to act\n\
-         just like the C preprocessor does.)
-\n\
-   Any 
+         just like the C preprocessor does.)\n\
 \n\
    @author Derek Lieber\n\
    @date 13 Oct 1999\n\
@@ -167,7 +168,10 @@ enum scan_token scan(const char *srcFile, char *line, int *value);
 // #ifdef __GNUC__
 // #define UNUSED __attribute__((unused)) 
 //#endif // __GNUC__
-#define UNUSED
+#define UNUSED_DEF_ARG
+#define UNUSED_DECL_ARG __attribute__((unused))
+//static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG);
+
 
 // Values of tokens returned by scan() for IF and ELIF.
 // For some cases, an index into DirectiveValue is returned.
@@ -197,7 +201,7 @@ void xsystem(const char *command);
 
 const char *DeleteOnTrouble = NULL; // delete this file on trouble.
 static void 
-delete_on_trouble(int dummy_status UNUSED, void *dummy_arg UNUSED)
+delete_on_trouble(int dummy_status UNUSED_DEF_ARG, void *dummy_arg UNUSED_DEF_ARG)
 {
     if (DeleteOnTrouble) {
 	// We're already in trouble, so might as well delete, no?
@@ -266,7 +270,7 @@ main(int argc, char **argv)
 	 char *dst = name;
 
          const char *src;
-	 for (src = arg + 2; *src && *src != '=';)
+	 for (src = arg + 2; *src && *src != '='; )
 	   *dst++ = *src++;
          *dst = '\0';
              
@@ -291,7 +295,9 @@ main(int argc, char **argv)
 	     DirectiveName[Directives] = name;
 	     DirectiveValue[Directives] = NULL;
 	     if (++Directives >= MAXDIRECTIVES) {
-		 fprintf(stderr, "%s: Too many (%d) -D directives; recompile with a larger value of MAXDIRECTIVES.\n", Me, Directives);
+		 fprintf(stderr, "\
+%s: Too many (%d) -D directives; recompile with a larger value of MAXDIRECTIVES.\n",
+			 Me, Directives);
 		 exit(3);
 	     }
 	     continue;

@@ -402,16 +402,16 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * initiate a garbage collection
-   * called from java/lang/Runtime
+   * Initiate a garbage collection.
+   * Called from java/lang/Runtime.
    */ 
   public static void gc () {
     MM_Interface.gc();
   }
 
   /**
-   * return amout of free memory available for allocation (approx.)
-   * called from /java/lang/Runtime
+   * Return the approximate amount of free memory available for allocation.
+   * Called from /java/lang/Runtime
    */
   public static long freeMemory() {
     return MM_Interface.freeMemory();
@@ -419,8 +419,8 @@ public class VM_Runtime implements VM_Constants {
 
 
   /**
-   * return amout of total memory in the system
-   * called from /java/lang/Runtime
+   * Return amount of total memory in the system.
+   * Called from /java/lang/Runtime.
    */
   public static long totalMemory() {
     return MM_Interface.totalMemory();
@@ -438,10 +438,13 @@ public class VM_Runtime implements VM_Constants {
 
   /**
    * Get an object's "hashcode" value.
-   * @return object's hashcode
+   *
+   * @return object's hashcode.
+   *
    * Side effect: hash value is generated and stored into object's 
-   * status word
-   * @see java.lang.Object#hashCode
+   * status word.
+   *
+   * @see java.lang.Object#hashCode.
    */ 
   public static int getObjectHashCode(Object object) {
       return VM_ObjectModel.getObjectHashCode(object);

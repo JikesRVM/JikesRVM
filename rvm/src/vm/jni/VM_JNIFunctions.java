@@ -2625,8 +2625,8 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticMethodID:  return the method ID for invocation later
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
-   * @methodNameAddress a raw address to a null-terminated string in C for the method name
-   * @methodSigAddress a raw address to a null-terminated string in C for the method name
+   * @param methodNameAddress a raw address to a null-terminated string in C for the method name
+   * @param methodSigAddress a raw address to a null-terminated string in C for <DOCUMENTME TODO>
    * @return a method ID or null if it fails
    * @exception NoSuchMethodError if the method is not found
    * @exception ExceptionInInitializerError if the initializer fails

@@ -547,7 +547,7 @@ public class VM_FileSystem {
    * Rename a file
    * @param fromName from file name
    * @param toName to file name
-   * @returntrue -- renamed; false -- not renamed
+   * @return true -- renamed; false -- not renamed
    */ 
   public static boolean rename(String fromName, String toName) {
     // convert file name from unicode to filesystem character set

@@ -23,7 +23,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * Should we inline a particular call site?
    *
    * @param state information needed to make the inlining decision
-   * @eturns an OPT_InlineDecision with the result
+   * @return an OPT_InlineDecision with the result
    *
    */
   public OPT_InlineDecision shouldInline (OPT_CompilationState state) {

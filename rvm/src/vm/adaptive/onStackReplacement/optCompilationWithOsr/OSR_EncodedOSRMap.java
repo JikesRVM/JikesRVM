@@ -17,7 +17,7 @@ import java.util.*;
  * In VM_OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  *
- * @author: Feng Qian
+ * @author  Feng Qian
  */
 
 public class OSR_EncodedOSRMap 

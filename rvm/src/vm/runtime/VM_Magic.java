@@ -443,7 +443,7 @@ public class VM_Magic {
    * Cast bits.
    * @param object reference as bits
    * @return object reference as type (no checking on cast)
-   * @depracated  Use objectAsType( addressAsObject (...))
+   * @deprecated  Use objectAsType( addressAsObject (...))
    */
   public static VM_Type addressAsType(VM_Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -464,7 +464,7 @@ public class VM_Magic {
    * Cast bits.
    * @param address object reference as bits
    * @return object reference as thread (no checking on cast)
-   * @depracated  Use objectAsThread.
+   * @deprecated  Use objectAsThread.
    */
   public static VM_Thread addressAsThread(VM_Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler

@@ -39,7 +39,7 @@ interface OPT_Graph {
    *  After this method is called, all nodes in the graph should
    * have a compact numbering from 0 to (number of nodes in
    * graph - 1).  This number is what should be returned by
-   * @{link OPT_GraphNode#getIndex OPT_GraphNode.getIndex}.  This
+   * {@link OPT_GraphNode#getIndex OPT_GraphNode.getIndex}.  This
    * method is used by clients that want to e.g. allocate look-aside
    * storage for graph nodes in an 
    * array. 
