@@ -275,7 +275,8 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA)) {
+      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA) ||
+	  isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/", clsBA)) {
 	return Plan.IMMORTAL_SPACE;
       }
     }
