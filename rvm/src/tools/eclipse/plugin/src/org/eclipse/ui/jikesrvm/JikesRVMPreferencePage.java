@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Author$
+ * $Id$
  */
 package org.eclipse.ui.jikesrvm;
 
