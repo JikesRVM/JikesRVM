@@ -448,7 +448,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     HeapGrowthManager.recordGCTime(gcTime);
     if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", VM_Time.toMilliSecs(gcTime));
 
-    if (sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
+    if (Plan.isLastGCFull() && 
+	sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
       checkForExhaustion(why, false);
     
     Plan.checkForAsyncCollection();
