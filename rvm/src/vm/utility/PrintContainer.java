@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.PrintLN;
+import com.ibm.JikesRVM.PrintLN;  /* This import statement isn't necessary,
+				     but is here for documentation purposes.
+				     --S. Augart */ 
 import java.io.PrintWriter;
 import java.io.PrintStream;
 
