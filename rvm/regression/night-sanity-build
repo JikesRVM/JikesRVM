@@ -76,7 +76,7 @@ if [[ ! -d $fass_dir ]]; then
 else
     je="$fass_dir/jbuild.environment"
     . $je || croak "Unable to load $je"
-    "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" both || croak "Trouble running jdoc.sh; sorry!"
+    "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
 fi
 
 echo -e "\n\nBuild complete, builder script exiting.\n"
