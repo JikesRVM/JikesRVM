@@ -10,7 +10,7 @@ import com.ibm.JikesRVM.classloader.*;
  * A pragma that can be used to declare that a 
  * particular method is interruptible.  
  * Used to override the class-wide pragma
- * implied by implementing {@link Unpreemptable}.
+ * implied by implementing {@link Unpreemptible}.
  * 
  * @author Dave Grove
  */
