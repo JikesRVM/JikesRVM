@@ -1,9 +1,10 @@
-Major work items in the userguide for 2.0.4 release.  
+Major work items in the userguide for 2.1.0 release.  
 
 Please add items as you discover them and delete them as they are
 completed. 
 
-(1) In introduction, think about adding pointers to tutorial slides.
+DEFERRED (1) In introduction, think about adding pointers to tutorial slides.
+    (SJF: we'll make the slides available after PLDI.)
 
 (2) Figure out what the jazzlib story is (can we do automatically
     download it in jconfigure or does user have to download it by hand) 
@@ -15,7 +16,7 @@ completed.
     are still correct, dependent on jazzlib story.
 
 (4) Check all command line options (section 3) and be sure that
-    descritpions are up-to-date.
+    descriptions are up-to-date.
 
 (5) Section 4 (runtime implementation details) needs to be almost
     completely rewriten, adding object model info
@@ -34,7 +35,7 @@ completed.
     table of commands and examples.  Status of ppc & ia32 versions.
     STEVE
 
-(9) Check FAQ for accurarcy.  Some of these issues have been resolved
+DONE (9) Check FAQ for accurarcy.  Some of these issues have been resolved
     and maybe should be deleted.  Others need to be updated.
     STEVE
 
@@ -53,10 +54,8 @@ completed.
      things to say here that won't be redundant with the paper.
      MIKE 	
 
-(13) Add blurb about support for SOOT-style annotations. 
-     MIKE, DONE
+DONE (13) Add blurb about support for SOOT-style annotations. 
+     MIKE
 
 (99) General proof reading -- defer until most of the other items are
      done to avoid having to proof a section twice.
-
-
