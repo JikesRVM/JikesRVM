@@ -205,7 +205,7 @@ final class VM_OptExceptionTable implements VM_Constants {
 	 bblock = bblock.nextBasicBlockInCodeOrder()) {
       if (bblock.hasExceptionHandlers()) {
         for (OPT_BasicBlockEnumeration e = 
-	       bblock.getReachableExceptionHandlers(); e.hasMoreElements();) {
+	       bblock.getExceptionHandlers(); e.hasMoreElements();) {
 	  OPT_ExceptionHandlerBasicBlock ebb = 
 	    (OPT_ExceptionHandlerBasicBlock)e.next();
           tSize += ebb.getNumberOfExceptionTableEntries();
