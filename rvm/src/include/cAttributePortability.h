@@ -25,13 +25,13 @@
 #    define UNUSED_SVP UNUSED
 #  endif
 #  define NONNULL(idx) __attribute__((nonnull(idx)))
-#endif
 
 // The __signal__ attribute is only relevant on GCC on the AVR processor.
 // We don't (yet) work on the AVR, so this code will probably never be
 // executed.  
 #ifdef __avr__
 #  define SIGNAL_ATTRIBUTE    __attribute__((__signal__))
+#endif
 #endif
 
 #ifndef UNUSED_SVP
