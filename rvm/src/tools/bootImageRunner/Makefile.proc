@@ -8,7 +8,7 @@
 include			$(JAL_BUILD)/Make.rules
 
 $(JAL_BUILD)/RVM.scratch/VM_0005fProcess.h:
-	$(HOST_JAVA_HOME)/bin/javah -d $(JAL_BUILD)/RVM.scratch -classpath $(JAL_BUILD)/RVM.classes:$(JAL_ROOT)/support/lib/rvmrt.jar VM_Process
+	$(HOST_JAVA_HOME)/bin/javah -d $(JAL_BUILD)/RVM.scratch -classpath $(JAL_BUILD)/RVM.classes:$(JAL_ROOT)/support/lib/rvmrt.jar com.ibm.JikesRVM.VM_Process
 
 $(JAL_BUILD)/RVM.scratch/VM_0005fProcess.C:
 	cp $(JAL_ROOT)/rvm/src/tools/bootImageRunner/VM_0005fProcess.C $(JAL_BUILD)/RVM.scratch

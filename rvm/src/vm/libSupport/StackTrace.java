@@ -3,9 +3,10 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM_StackTrace;
-import VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_StackTrace;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
 import java.io.*;
 
 /**

@@ -5,10 +5,10 @@
 
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM;
-import VM_Constants;
-import VM_Address;
-import VM_JavaHeader;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
  * @author Dick Attanasio

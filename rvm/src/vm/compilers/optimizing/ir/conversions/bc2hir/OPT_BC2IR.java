@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM;
+
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 import instructionFormats.*;

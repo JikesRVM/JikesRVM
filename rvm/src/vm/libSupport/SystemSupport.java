@@ -3,16 +3,17 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM;
-import VM_Array;
-import VM_Lock;
-import VM_Magic;
-import VM_ObjectModel;
-import VM_Process;
-import VM_Runtime;
-import VM_Time;
-import FinalizerThread;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Lock;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_Process;
+import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.FinalizerThread;
 
 /**
  * This class provides a set of static method entrypoints used in the

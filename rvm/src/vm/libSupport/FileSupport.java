@@ -3,9 +3,10 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
 import java.io.*;
-import VM_FileSystem;
+import com.ibm.JikesRVM.VM_FileSystem;
 
 /**
  * This class provides a set of static method entrypoints used in the

@@ -3,8 +3,9 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM_Thread;
+import com.ibm.JikesRVM.VM_Thread;
 
 /**
  * This class provides a set of static method entrypoints used in the

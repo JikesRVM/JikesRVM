@@ -3,6 +3,7 @@
  */
 
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  *  Various service utilities.  This is a common place for some shared utility routines

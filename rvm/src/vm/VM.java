@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
@@ -24,7 +25,7 @@ public class VM extends VM_Properties
    * @param classPath class path to be used by VM_ClassLoader
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
-  static void initForBootImageWriter(String classPath, 
+  public static void initForBootImageWriter(String classPath, 
                                      String[] bootCompilerArgs) 
     throws VM_ResolutionException, VM_PragmaInterruptible {
     writingBootImage = true;
@@ -35,7 +36,7 @@ public class VM extends VM_Properties
    * Prepare vm classes for use by tools.
    * @exception VM_ResolutionException
    */
-  static void initForTool() throws VM_ResolutionException, VM_PragmaInterruptible  {
+  public static void initForTool() throws VM_ResolutionException, VM_PragmaInterruptible  {
     runningTool = true;
     LoadLocalVariableTables = true;  // make sure to load the local table
     init(System.getProperty("java.class.path"), null);
@@ -46,7 +47,7 @@ public class VM extends VM_Properties
    * @param classpath class path to be used by VM_ClassLoader
    * @exception VM_ResolutionException
    */
-  static void initForTool(String classpath) throws VM_ResolutionException, VM_PragmaInterruptible {
+  public static void initForTool(String classpath) throws VM_ResolutionException, VM_PragmaInterruptible {
     runningTool = true;
     LoadLocalVariableTables = true;  // make sure to load the local table
     init(classpath, null);
@@ -351,7 +352,7 @@ public class VM extends VM_Properties
    * @param number
    * @return a String with the hex representation of the integer
    */
-  static String intAsHexString(int number) throws VM_PragmaInterruptible {
+  public static String intAsHexString(int number) throws VM_PragmaInterruptible {
     char[] buf   = new char[10];
     int    index = 10;
     while (--index > 1) {
@@ -861,8 +862,8 @@ public class VM extends VM_Properties
       VM_Class object       = VM_Type.JavaLangObjectType.asClass();
       VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
       VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-      VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-      VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+      VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+      VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 
       // initialize JNI environment
       VM_JNIEnvironment.init();

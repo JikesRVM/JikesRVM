@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
@@ -13,6 +14,8 @@ import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
  * @author Dave Grove
  */
 class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructure {
+  
+//-#if RVM_WITH_OPT_COMPILER
   
   // is the opt compiler usable?
   protected static boolean compilerEnabled;  
@@ -237,7 +240,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     // If/when the baseline compiler gets these, invoke them here.
     
     // Get the opt's report
-    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LOPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
+    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/OPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
     if (theType.asClass().isInitialized()) {
       OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
     } else {
@@ -245,4 +248,5 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
       VM.sysWrite("\tthe opt compiler was never invoked.\n\n");
     }
   }
+//-#endif
 }

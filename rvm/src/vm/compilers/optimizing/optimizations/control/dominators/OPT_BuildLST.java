@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM;
+
 /**
  * A compiler phase to construct the loop structure tree (LST).
  * The steps are (1) construct approximate dominators (ie blocks are 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * External implementation for BootMap.
  * Load the method map for the JVM boot image from disk
@@ -193,7 +194,7 @@ class BootMapExternal extends BootMap {
   // scan the compiled method table to get all codes for this method
   public int temp_instructionAddressForMethod(int methodAddress) {
     try {
-      VM_Field field = findVMField("VM_Method", "mostRecentlyGeneratedInstructions");
+      VM_Field field = findVMField("com.ibm.JikesRVM.VM_Method", "mostRecentlyGeneratedInstructions");
       return owner.mem.read(methodAddress + field.getOffset());    
     } catch (BmapNotFoundException e) {
       System.out.println("JDP ERROR:  could not find fields VM_Method.mostRecentlyGeneratedInstructions, has it been changed?");
@@ -260,9 +261,9 @@ class BootMapExternal extends BootMap {
 
       // get the address of the static method array
       if (staticMethod)
-        field = findVMField("VM_Class", "staticMethods");
+        field = findVMField("com.ibm.JikesRVM.VM_Class", "staticMethods");
       else
-        field = findVMField("VM_Class", "virtualMethods");
+        field = findVMField("com.ibm.JikesRVM.VM_Class", "virtualMethods");
 
       int methodArrayAddress = owner.mem.read(classAddress + field.getOffset());
       int methodAddress = owner.mem.read(methodArrayAddress + methodIndex*4);
@@ -794,29 +795,29 @@ class BootMapExternal extends BootMap {
     try {
       // while we are at this, cache a few offset values that will be used often
       // (OK to cache since they are static and will stay in the TOC)
-      VM_Field field = findVMField("VM_TypeDictionary", "values");
+      VM_Field field = findVMField("com.ibm.JikesRVM.VM_TypeDictionary", "values");
       VM_TypeDictionary_values_offset = field.getOffset();
 
-      field = findVMField("VM_MethodDictionary", "values");
+      field = findVMField("com.ibm.JikesRVM.VM_MethodDictionary", "values");
       VM_MethodDictionary_values_offset = field.getOffset();
 
-      field = findVMField("VM_Class", "declaredMethods");      
+      field = findVMField("com.ibm.JikesRVM.VM_Class", "declaredMethods");      
       VM_Class_declaredMethods_offset = field.getOffset();
 
-      field = findVMField("VM_CompiledMethods", "compiledMethods");
+      field = findVMField("com.ibm.JikesRVM.VM_CompiledMethods", "compiledMethods");
       compiledMethodTable_offset = field.getOffset();
 
-      field = findVMField("VM_CompiledMethod", "instructions");
+      field = findVMField("com.ibm.JikesRVM.VM_CompiledMethod", "instructions");
       compiledMethod_instructions_offset = field.getOffset();
 
-      field = findVMField("VM_CompiledMethod", "method");
+      field = findVMField("com.ibm.JikesRVM.VM_CompiledMethod", "method");
       compiledMethod_method_offset = field.getOffset();
 
       // first get the address for the method array
       int methodArrayAddress = owner.mem.readTOC(compiledMethodTable_offset);
 
       // get the number of compiled methods when booting is done
-      field = findVMField("VM_CompiledMethods", "currentCompiledMethodId");
+      field = findVMField("com.ibm.JikesRVM.VM_CompiledMethods", "currentCompiledMethodId");
       int methodArraySize = owner.mem.readTOC(field.getOffset()) + 1;
       System.out.println("There are " + methodArraySize + 
 			 " compiled methods in the boot image.");
@@ -850,11 +851,11 @@ class BootMapExternal extends BootMap {
       System.out.println("Done filling address table"); 
 
       // now get the address range of the boot image
-      field = findVMField("VM_BootRecord", "the_boot_record");
+      field = findVMField("com.ibm.JikesRVM.VM_BootRecord", "the_boot_record");
       int bootRecordAddress = owner.mem.readTOC(field.getOffset());
-      field = findVMField("VM_BootRecord", "bootImageStart");
+      field = findVMField("com.ibm.JikesRVM.VM_BootRecord", "bootImageStart");
       bootStart = owner.mem.read(bootRecordAddress + field.getOffset()); 
-      field = findVMField("VM_BootRecord", "bootImageEnd");
+      field = findVMField("com.ibm.JikesRVM.VM_BootRecord", "bootImageEnd");
       bootEnd = owner.mem.read(bootRecordAddress + field.getOffset());
 
       System.out.println("Method table: " + methodArraySize + " entries, boot address " +
@@ -942,7 +943,7 @@ class BootMapExternal extends BootMap {
 
     // get the number of methods
     try {
-      VM_Field field = findVMField("VM_CompiledMethods", "currentCompiledMethodId");
+      VM_Field field = findVMField("com.ibm.JikesRVM.VM_CompiledMethods", "currentCompiledMethodId");
       numMethods = owner.mem.readTOC(field.getOffset()) + 1;
     } catch (BmapNotFoundException e) {
       System.out.println("JDP ERROR: Field VM_CompiledMethods.currentCompiledMethodId not found, has it been changed?");

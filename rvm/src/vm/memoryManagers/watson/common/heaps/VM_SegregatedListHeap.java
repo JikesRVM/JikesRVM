@@ -3,24 +3,25 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM;
-import VM_Array;
-import VM_Atom;
-import VM_Processor;
-import VM_ProcessorLock;
-import VM_PragmaInline;
-import VM_PragmaNoInline;
-import VM_PragmaInterruptible;
-import VM_PragmaUninterruptible;
-import VM_Address;
-import VM_Memory;
-import VM_Magic;
-import VM_Scheduler;
-import VM_SystemClassLoader;
-import VM_ObjectModel;
-import VM_ClassLoader;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_ProcessorLock;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
 
 /**
  * The heap is divided into chunks of size GC_BLOCKSIZE bytes 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 /**
  * Wrapper around a pair of parallel arrays:
  *  (1) an array of compiled method id's

@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM;
+
 /**
  * A BURS_TreeNode is a node in a binary tree that is fed as input to BURS.
  * Machine-generated, do not edit.

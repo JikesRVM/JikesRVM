@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Facility for remapping object addresses across virtual machine address 
@@ -14,7 +15,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_ObjectAddressRemapper
+public interface VM_ObjectAddressRemapper
    {
    // Map an object to an address.
    // Taken:    an object in "local" virtual machine

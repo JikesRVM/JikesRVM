@@ -14,7 +14,7 @@
  * @date 2/12/2001 
  */
 
-class IntelDisassembler {
+public class IntelDisassembler {
 
   public static byte[] intToByteArray(int[] intArray) {
     byte byteArray[] = new byte[intArray.length*4];

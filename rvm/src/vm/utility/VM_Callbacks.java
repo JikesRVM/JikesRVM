@@ -3,6 +3,7 @@
  */
 //VM_Callbacks.java
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
 

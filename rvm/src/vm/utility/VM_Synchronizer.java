@@ -3,6 +3,7 @@
  */
 
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * This class defines an object which should always be allocated a

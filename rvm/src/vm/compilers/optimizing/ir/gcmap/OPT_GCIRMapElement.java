@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  *  This class holds each element in the OPT_GCIRMap

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+package com.ibm.JikesRVM;
+
 /**
  * Class to handle command-line arguments and options for the 
  * baseline compiler.

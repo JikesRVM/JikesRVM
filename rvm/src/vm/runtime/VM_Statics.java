@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * The static fields and methods comprising a running virtual machine image.
@@ -248,7 +249,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return description of slot contents (see "kinds", above)
      */ 
-    static String getSlotDescriptionAsString(int slot) {
+    public static String getSlotDescriptionAsString(int slot) {
       String kind = null;
       switch (getSlotDescription(slot))
       {

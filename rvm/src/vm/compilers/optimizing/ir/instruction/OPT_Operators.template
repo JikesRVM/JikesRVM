@@ -11,6 +11,8 @@
  *  ARCH_IR_DIROperatorList.dat
  */
 
+package com.ibm.JikesRVM;
+
 /**
  * Interface with all operator names and opcodes.
  * 

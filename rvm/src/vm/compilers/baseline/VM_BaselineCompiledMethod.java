@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Compiler-specific information associated with a method's machine 
@@ -324,7 +325,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   public int size() {
     VM_Array intArray = VM_Array.arrayOfIntType;
     int size = TYPE.getInstanceSize();

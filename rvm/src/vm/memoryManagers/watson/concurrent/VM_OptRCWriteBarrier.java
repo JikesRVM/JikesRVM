@@ -3,6 +3,7 @@
  */
 //$Id$
 
+
 /**
  * This class contains the Java code that the opt compiler will
  * inline at every (1) ref_astore, (2) putfield of reference type 

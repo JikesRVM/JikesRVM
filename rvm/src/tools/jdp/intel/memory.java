@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * This is the abstract class for the internal and external implementation of memory
  * This object represents the memory, intended to be associated with an OsProcess

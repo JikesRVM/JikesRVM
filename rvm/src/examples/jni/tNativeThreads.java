@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+import com.ibm.JikesRVM.*;
+
 /**
  * Test native method with threads
  *

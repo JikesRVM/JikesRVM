@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_LineNumberMap implements VM_Uninterruptible {
+public class VM_LineNumberMap implements VM_Uninterruptible {
    
   // Note that line mappings for a method appear in order of increasing bytecode offset.
   // The same line number can appear more than once (each with a different bytecode offset).

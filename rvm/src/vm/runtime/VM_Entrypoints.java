@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Fields and methods of the virtual machine that are needed by 
@@ -12,141 +13,141 @@
  * @author Derek Lieber
  */
 public class VM_Entrypoints implements VM_Constants {
-  static final VM_Method debugBreakpointMethod = getMethod("LVM;", "debugBreakpoint", "()V");
-  static final VM_Method bootMethod            = getMethod("LVM;", "boot", "()V");
+  public static final VM_Method debugBreakpointMethod = getMethod("Lcom/ibm/JikesRVM/VM;", "debugBreakpoint", "()V");
+  public static final VM_Method bootMethod            = getMethod("Lcom/ibm/JikesRVM/VM;", "boot", "()V");
 
-  static final VM_Field magicObjectRemapperField = getField("LVM_Magic;", "objectAddressRemapper","LVM_ObjectAddressRemapper;");
+  public static final VM_Field magicObjectRemapperField = getField("Lcom/ibm/JikesRVM/VM_Magic;", "objectAddressRemapper","Lcom/ibm/JikesRVM/VM_ObjectAddressRemapper;");
  
-  static final VM_Method instanceOfMethod         = getMethod("LVM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
-  static final VM_Method instanceOfFinalMethod    = getMethod("LVM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;I)Z");
-  static final VM_Method checkcastMethod          = getMethod("LVM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
-  static final VM_Method checkcastFinalMethod     = getMethod("LVM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;I)V");
-  static final VM_Method checkstoreMethod         = getMethod("LVM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-  static final VM_Method athrowMethod             = getMethod("LVM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
-  static final VM_Method newScalarMethod          = getMethod("LVM_Runtime;", "newScalar", "(I)Ljava/lang/Object;");
-  static final VM_Method quickNewArrayMethod      = getMethod("LVM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;)Ljava/lang/Object;");
-  static final VM_Method quickNewScalarMethod     = getMethod("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
-  static final VM_Method unimplementedBytecodeMethod = getMethod("LVM_Runtime;", "unimplementedBytecode", "(I)V");
-  static final VM_Method unexpectedAbstractMethodCallMethod = getMethod("LVM_Runtime;", "unexpectedAbstractMethodCall", "()V");
-  static final VM_Method raiseNullPointerException= getMethod("LVM_Runtime;", "raiseNullPointerException", "()V");
-  static final VM_Method raiseArrayBoundsException= getMethod("LVM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
-  static final VM_Method raiseArithmeticException = getMethod("LVM_Runtime;", "raiseArithmeticException", "()V");
-  static final VM_Method raiseAbstractMethodError = getMethod("LVM_Runtime;", "raiseAbstractMethodError", "()V");
-  static final VM_Method raiseIllegalAccessError  = getMethod("LVM_Runtime;", "raiseIllegalAccessError", "()V");
-  static final VM_Method deliverHardwareExceptionMethod = getMethod("LVM_Runtime;", "deliverHardwareException", "(II)V");
-  static final VM_Method unlockAndThrowMethod      = getMethod("LVM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+  static final VM_Method instanceOfMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
+  static final VM_Method instanceOfFinalMethod    = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;I)Z");
+  static final VM_Method checkcastMethod          = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
+  static final VM_Method checkcastFinalMethod     = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;I)V");
+  static final VM_Method checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  static final VM_Method athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
+  static final VM_Method newScalarMethod          = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "newScalar", "(I)Ljava/lang/Object;");
+  static final VM_Method quickNewArrayMethod      = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;)Ljava/lang/Object;");
+  static final VM_Method quickNewScalarMethod     = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
+  static final VM_Method unimplementedBytecodeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unimplementedBytecode", "(I)V");
+  static final VM_Method unexpectedAbstractMethodCallMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
+  static final VM_Method raiseNullPointerException= getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "raiseNullPointerException", "()V");
+  static final VM_Method raiseArrayBoundsException= getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
+  static final VM_Method raiseArithmeticException = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "raiseArithmeticException", "()V");
+  static final VM_Method raiseAbstractMethodError = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "raiseAbstractMethodError", "()V");
+  static final VM_Method raiseIllegalAccessError  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "raiseIllegalAccessError", "()V");
+  static final VM_Method deliverHardwareExceptionMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "deliverHardwareException", "(II)V");
+  static final VM_Method unlockAndThrowMethod      = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 
-  static final VM_Method invokeInterfaceMethod                          = getMethod("LVM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
-  static final VM_Method findItableMethod                               = getMethod("LVM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
-  static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("LVM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(LVM_Class;[Ljava/lang/Object;)V");
-  static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("LVM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
+  static final VM_Method invokeInterfaceMethod                          = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Method findItableMethod                               = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
+  static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/VM_Class;[Ljava/lang/Object;)V");
+  static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
 
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  static final VM_Method allocAdviceNewScalarMethod = getMethod("LVM_Runtime;", "newScalar", "(II)Ljava/lang/Object;");
-  static final VM_Method allocAdviceQuickNewArrayMethod = getMethod("LVM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;I)Ljava/lang/Object;");
-  static final VM_Method allocAdviceQuickNewScalarMethod = getMethod("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;I)Ljava/lang/Object;");
-  static final VM_Method allocAdviceQuickNewScalarMethodNEW = getMethod("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;ZI)Ljava/lang/Object;");
+  static final VM_Method allocAdviceNewScalarMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "newScalar", "(II)Ljava/lang/Object;");
+  static final VM_Method allocAdviceQuickNewArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;I)Ljava/lang/Object;");
+  static final VM_Method allocAdviceQuickNewScalarMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;I)Ljava/lang/Object;");
+  static final VM_Method allocAdviceQuickNewScalarMethodNEW = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;ZI)Ljava/lang/Object;");
   //-#endif
 
-  static final VM_Method instanceOfUnresolvedMethod         = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolved", "(LVM_Class;[Ljava/lang/Object;)Z");
-  static final VM_Method instanceOfArrayMethod              = getMethod("LVM_DynamicTypeCheck;", "instanceOfArray", "(LVM_Class;ILVM_Type;)Z");
-  static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(LVM_Class;ILVM_Type;)Z");
+  static final VM_Method instanceOfUnresolvedMethod         = getMethod("Lcom/ibm/JikesRVM/VM_DynamicTypeCheck;", "instanceOfUnresolved", "(Lcom/ibm/JikesRVM/VM_Class;[Ljava/lang/Object;)Z");
+  static final VM_Method instanceOfArrayMethod              = getMethod("Lcom/ibm/JikesRVM/VM_DynamicTypeCheck;", "instanceOfArray", "(Lcom/ibm/JikesRVM/VM_Class;ILcom/ibm/JikesRVM/VM_Type;)Z");
+  static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("Lcom/ibm/JikesRVM/VM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(Lcom/ibm/JikesRVM/VM_Class;ILcom/ibm/JikesRVM/VM_Type;)Z");
 
-  static final VM_Method lockMethod          = getMethod("LVM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
-  static final VM_Method unlockMethod        = getMethod("LVM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
+  static final VM_Method lockMethod          = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
+  static final VM_Method unlockMethod        = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
 
-  static final VM_Method inlineLockMethod    = getMethod("LVM_ThinLock;", "inlineLock", "(Ljava/lang/Object;I)V");
-  static final VM_Method inlineUnlockMethod  = getMethod("LVM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;I)V");
+  static final VM_Method inlineLockMethod    = getMethod("Lcom/ibm/JikesRVM/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;I)V");
+  static final VM_Method inlineUnlockMethod  = getMethod("Lcom/ibm/JikesRVM/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;I)V");
 
-  static final VM_Method newArrayArrayMethod   = getMethod("LVM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;");
+  static final VM_Method newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;");
 
-  static final VM_Method lazyMethodInvokerMethod         = getMethod("LVM_DynamicLinker;", "lazyMethodInvoker", "()V");
-  static final VM_Method unimplementedNativeMethodMethod = getMethod("LVM_DynamicLinker;", "unimplementedNativeMethod", "()V");
+  static final VM_Method lazyMethodInvokerMethod         = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
+  static final VM_Method unimplementedNativeMethodMethod = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
 
-  static final VM_Method resolveMethodMethod     = getMethod("LVM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
-  static final VM_Field  methodOffsetsField      = getField("LVM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
-  static final VM_Method resolveFieldMethod      = getMethod("LVM_TableBasedDynamicLinker;", "resolveField", "(I)V");
-  static final VM_Field  fieldOffsetsField       = getField("LVM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
+  static final VM_Method resolveMethodMethod     = getMethod("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
+  static final VM_Field  methodOffsetsField      = getField("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
+  static final VM_Method resolveFieldMethod      = getMethod("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "resolveField", "(I)V");
+  static final VM_Field  fieldOffsetsField       = getField("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
 
-  static final VM_Field longOneField        = getField("LVM_Math;", "longOne", "J");  // 1L
-  static final VM_Field minusOneField       = getField("LVM_Math;", "minusOne", "F"); // -1.0F
-  static final VM_Field zeroFloatField      = getField("LVM_Math;", "zero", "F");     // 0.0F
-  static final VM_Field halfFloatField      = getField("LVM_Math;", "half", "F");     // 0.5F
-  static final VM_Field oneFloatField       = getField("LVM_Math;", "one", "F");      // 1.0F
-  static final VM_Field twoFloatField       = getField("LVM_Math;", "two", "F");      // 2.0F
-  static final VM_Field two32Field          = getField("LVM_Math;", "two32", "F");    // 2.0F^32
-  static final VM_Field half32Field         = getField("LVM_Math;", "half32", "F");   // 0.5F^32
-  static final VM_Field billionthField      = getField("LVM_Math;", "billionth", "D");// 1e-9
-  static final VM_Field zeroDoubleField     = getField("LVM_Math;", "zeroD", "D");    // 0.0
-  static final VM_Field oneDoubleField      = getField("LVM_Math;", "oneD", "D");     // 1.0
-  static final VM_Field maxintField         = getField("LVM_Math;", "maxint", "D");   //  largest double that can be rounded to an int
-  static final VM_Field minintField         = getField("LVM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
-  static final VM_Field IEEEmagicField      = getField("LVM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
-  static final VM_Field I2DconstantField    = getField("LVM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
+  static final VM_Field longOneField        = getField("Lcom/ibm/JikesRVM/VM_Math;", "longOne", "J");  // 1L
+  static final VM_Field minusOneField       = getField("Lcom/ibm/JikesRVM/VM_Math;", "minusOne", "F"); // -1.0F
+  static final VM_Field zeroFloatField      = getField("Lcom/ibm/JikesRVM/VM_Math;", "zero", "F");     // 0.0F
+  static final VM_Field halfFloatField      = getField("Lcom/ibm/JikesRVM/VM_Math;", "half", "F");     // 0.5F
+  static final VM_Field oneFloatField       = getField("Lcom/ibm/JikesRVM/VM_Math;", "one", "F");      // 1.0F
+  static final VM_Field twoFloatField       = getField("Lcom/ibm/JikesRVM/VM_Math;", "two", "F");      // 2.0F
+  static final VM_Field two32Field          = getField("Lcom/ibm/JikesRVM/VM_Math;", "two32", "F");    // 2.0F^32
+  static final VM_Field half32Field         = getField("Lcom/ibm/JikesRVM/VM_Math;", "half32", "F");   // 0.5F^32
+  static final VM_Field billionthField      = getField("Lcom/ibm/JikesRVM/VM_Math;", "billionth", "D");// 1e-9
+  static final VM_Field zeroDoubleField     = getField("Lcom/ibm/JikesRVM/VM_Math;", "zeroD", "D");    // 0.0
+  static final VM_Field oneDoubleField      = getField("Lcom/ibm/JikesRVM/VM_Math;", "oneD", "D");     // 1.0
+  static final VM_Field maxintField         = getField("Lcom/ibm/JikesRVM/VM_Math;", "maxint", "D");   //  largest double that can be rounded to an int
+  static final VM_Field minintField         = getField("Lcom/ibm/JikesRVM/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
+  static final VM_Field IEEEmagicField      = getField("Lcom/ibm/JikesRVM/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
+  static final VM_Field I2DconstantField    = getField("Lcom/ibm/JikesRVM/VM_Math;", "I2Dconstant", "D");//  special double value for use in int <--> double conversions
   //-#if RVM_FOR_IA32  
-  static final VM_Field FPUControlWordField = getField("LVM_Math;", "FPUControlWord", "I");
+  static final VM_Field FPUControlWordField = getField("Lcom/ibm/JikesRVM/VM_Math;", "FPUControlWord", "I");
   //-#endif
    
-  static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("LVM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", INSTRUCTION_ARRAY_SIGNATURE);
-  static final VM_Field saveThreadStateInstructionsField               = getField("LVM_OutOfLineMachineCode;", "saveThreadStateInstructions", INSTRUCTION_ARRAY_SIGNATURE);
-  static final VM_Field threadSwitchInstructionsField                  = getField("LVM_OutOfLineMachineCode;", "threadSwitchInstructions", INSTRUCTION_ARRAY_SIGNATURE);
-  static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("LVM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field threadSwitchInstructionsField                  = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "threadSwitchInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", INSTRUCTION_ARRAY_SIGNATURE);
   //-#if RVM_FOR_POWERPC
-  static final VM_Field getTimeInstructionsField                       = getField("LVM_OutOfLineMachineCode;", "getTimeInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field getTimeInstructionsField                       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "getTimeInstructions", INSTRUCTION_ARRAY_SIGNATURE);
   //-#endif
-  static final VM_Field invokeNativeFunctionInstructionsField          = getField("LVM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", INSTRUCTION_ARRAY_SIGNATURE);
 
-  static final VM_Field deterministicThreadSwitchCountField = getField("LVM_Processor;", "deterministicThreadSwitchCount", "I");
+  static final VM_Field deterministicThreadSwitchCountField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "deterministicThreadSwitchCount", "I");
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field modifiedOldObjectsTopField = getField("LVM_Processor;", "modifiedOldObjectsTop", "LVM_Address;");
-  static final VM_Field modifiedOldObjectsMaxField = getField("LVM_Processor;", "modifiedOldObjectsMax", "LVM_Address;");
+  static final VM_Field modifiedOldObjectsTopField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "modifiedOldObjectsTop", "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Field modifiedOldObjectsMaxField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "modifiedOldObjectsMax", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
-  static final VM_Field scratchSecondsField        = getField("LVM_Processor;", "scratchSeconds", "D");
-  static final VM_Field scratchNanosecondsField    = getField("LVM_Processor;", "scratchNanoseconds", "D");
-  static final VM_Field threadSwitchRequestedField = getField("LVM_Processor;", "threadSwitchRequested", "I");
-  static final VM_Field activeThreadField          = getField("LVM_Processor;", "activeThread", "LVM_Thread;");
-  static final VM_Field activeThreadStackLimitField= getField("LVM_Processor;", "activeThreadStackLimit", "LVM_Address;");
-  static final VM_Field pthreadIDField             = getField("LVM_Processor;", "pthread_id", "I");
-  static final VM_Field epochField                 = getField("LVM_Processor;", "epoch", "I");
-  static final VM_Field processorModeField         = getField("LVM_Processor;", "processorMode", "I");
-  static final VM_Field vpStatusAddressField       = getField("LVM_Processor;", "vpStatusAddress", "LVM_Address;");
+  public static final VM_Field scratchSecondsField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "scratchSeconds", "D");
+  public static final VM_Field scratchNanosecondsField    = getField("Lcom/ibm/JikesRVM/VM_Processor;", "scratchNanoseconds", "D");
+  public static final VM_Field threadSwitchRequestedField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadSwitchRequested", "I");
+  public static final VM_Field activeThreadField          = getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThread", "Lcom/ibm/JikesRVM/VM_Thread;");
+  public static final VM_Field activeThreadStackLimitField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThreadStackLimit", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field pthreadIDField             = getField("Lcom/ibm/JikesRVM/VM_Processor;", "pthread_id", "I");
+  public static final VM_Field epochField                 = getField("Lcom/ibm/JikesRVM/VM_Processor;", "epoch", "I");
+  public static final VM_Field processorModeField         = getField("Lcom/ibm/JikesRVM/VM_Processor;", "processorMode", "I");
+  public static final VM_Field vpStatusAddressField       = getField("Lcom/ibm/JikesRVM/VM_Processor;", "vpStatusAddress", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#if RVM_FOR_IA32
-  static final VM_Field processorThreadIdField     = getField("LVM_Processor;", "threadId", "I");
-  static final VM_Field processorFPField           = getField("LVM_Processor;", "framePointer", "LVM_Address;");
-  static final VM_Field processorJTOCField         = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
-  static final VM_Field processorTrapParamField    = getField("LVM_Processor;", "arrayIndexTrapParam", "I");
-  static final VM_Field jtocField               = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
-  static final VM_Field threadIdField           = getField("LVM_Processor;", "threadId", "I");
-  static final VM_Field framePointerField       = getField("LVM_Processor;", "framePointer", "LVM_Address;");
-  static final VM_Field hiddenSignatureIdField  = getField("LVM_Processor;", "hiddenSignatureId", "I");
-  static final VM_Field arrayIndexTrapParamField= getField("LVM_Processor;", "arrayIndexTrapParam", "I");
+  public static final VM_Field processorThreadIdField     = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
+  public static final VM_Field processorFPField           = getField("Lcom/ibm/JikesRVM/VM_Processor;", "framePointer", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field processorJTOCField         = getField("Lcom/ibm/JikesRVM/VM_Processor;", "jtoc", "Ljava/lang/Object;");
+  public static final VM_Field processorTrapParamField    = getField("Lcom/ibm/JikesRVM/VM_Processor;", "arrayIndexTrapParam", "I");
+  public static final VM_Field jtocField               = getField("Lcom/ibm/JikesRVM/VM_Processor;", "jtoc", "Ljava/lang/Object;");
+  public static final VM_Field threadIdField           = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
+  public static final VM_Field framePointerField       = getField("Lcom/ibm/JikesRVM/VM_Processor;", "framePointer", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field hiddenSignatureIdField  = getField("Lcom/ibm/JikesRVM/VM_Processor;", "hiddenSignatureId", "I");
+  public static final VM_Field arrayIndexTrapParamField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "arrayIndexTrapParam", "I");
   //-#endif
    
-  static final VM_Method threadSwitchFromPrologueMethod = getMethod("LVM_Thread;", "threadSwitchFromPrologue", "()V");
-  static final VM_Method threadSwitchFromBackedgeMethod = getMethod("LVM_Thread;", "threadSwitchFromBackedge", "()V");
-  static final VM_Method threadSwitchFromEpilogueMethod = getMethod("LVM_Thread;", "threadSwitchFromEpilogue", "()V");
-  static final VM_Method threadYieldMethod              = getMethod("LVM_Thread;", "yield", "()V");
-  static final VM_Method becomeNativeThreadMethod       = getMethod("LVM_Thread;", "becomeNativeThread", "()V");
-  static final VM_Method becomeRVMThreadMethod          = getMethod("LVM_Thread;", "becomeRVMThread", "()V");
+  public static final VM_Method threadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromPrologue", "()V");
+  public static final VM_Method threadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromBackedge", "()V");
+  public static final VM_Method threadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromEpilogue", "()V");
+  public static final VM_Method threadYieldMethod              = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yield", "()V");
+  public static final VM_Method becomeNativeThreadMethod       = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "becomeNativeThread", "()V");
+  public static final VM_Method becomeRVMThreadMethod          = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "becomeRVMThread", "()V");
 
-  static final VM_Method threadStartoffMethod           = getMethod("LVM_Thread;", "startoff", "()V");
-  static final VM_Field threadStackField                = getField("LVM_Thread;", "stack", "[I");
-  static final VM_Field stackLimitField                 = getField("LVM_Thread;", "stackLimit", "LVM_Address;");
+  public static final VM_Method threadStartoffMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "startoff", "()V");
+  public static final VM_Field threadStackField                = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stack", "[I");
+  public static final VM_Field stackLimitField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stackLimit", "Lcom/ibm/JikesRVM/VM_Address;");
 
-  static final VM_Field beingDispatchedField            = getField("LVM_Thread;", "beingDispatched", "Z");
-  static final VM_Field threadSlotField                 = getField("LVM_Thread;", "threadSlot", "I");
-  static final VM_Field jniEnvField                     = getField("LVM_Thread;", "jniEnv", "LVM_JNIEnvironment;");
-  static final VM_Field processorAffinityField          = getField("LVM_Thread;", "processorAffinity", "LVM_Processor;");
-  static final VM_Field nativeAffinityField             = getField("LVM_Thread;", "nativeAffinity", "LVM_Processor;");
-  static final VM_Field threadContextRegistersField     = getField("LVM_Thread;", "contextRegisters", "LVM_Registers;");
-  static final VM_Field threadHardwareExceptionRegistersField = getField("LVM_Thread;", "hardwareExceptionRegisters", "LVM_Registers;");
+  public static final VM_Field beingDispatchedField            = getField("Lcom/ibm/JikesRVM/VM_Thread;", "beingDispatched", "Z");
+  public static final VM_Field threadSlotField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "threadSlot", "I");
+  public static final VM_Field jniEnvField                     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "jniEnv", "Lcom/ibm/JikesRVM/VM_JNIEnvironment;");
+  public static final VM_Field processorAffinityField          = getField("Lcom/ibm/JikesRVM/VM_Thread;", "processorAffinity", "Lcom/ibm/JikesRVM/VM_Processor;");
+  public static final VM_Field nativeAffinityField             = getField("Lcom/ibm/JikesRVM/VM_Thread;", "nativeAffinity", "Lcom/ibm/JikesRVM/VM_Processor;");
+  public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
+  public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field contiguousHeapCurrentField      = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_ContiguousHeap;", "current", "LVM_Address;");
+  public static final VM_Field contiguousHeapCurrentField      = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_ContiguousHeap;", "current", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field finalizerListElementValueField   = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "value", "LVM_Address;");
+  public static final VM_Field finalizerListElementValueField   = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "value", "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field finalizerListElementPointerField = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
   //-#endif
 
@@ -154,94 +155,94 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field allocCountField                = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;", "allocCount", "I");
   //-#endif
 
-  static final VM_Field registersIPField   = getField("LVM_Registers;",   "ip",  "LVM_Address;");
-  static final VM_Field registersFPRsField = getField("LVM_Registers;", "fprs", "[D");
-  static final VM_Field registersGPRsField = getField("LVM_Registers;", "gprs", "[I");
-  static final VM_Field registersInUseField= getField("LVM_Registers;", "inuse", "Z");
+  public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");
+  public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "[I");
+  public static final VM_Field registersInUseField= getField("Lcom/ibm/JikesRVM/VM_Registers;", "inuse", "Z");
   //-#if RVM_FOR_POWERPC
-  static final VM_Field registersLRField   = getField("LVM_Registers;", "lr", "LVM_Address;");
+  public static final VM_Field registersLRField   = getField("Lcom/ibm/JikesRVM/VM_Registers;", "lr", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
   //-#if RVM_FOR_IA32
-  static final VM_Field registersFPField   = getField("LVM_Registers;",   "fp",  "LVM_Address;");
+  public static final VM_Field registersFPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "fp",  "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
 
   //-#if RVM_WITH_CONCURRENT_GC
-  static final VM_Field incDecBufferTopField            = getField("LVM_Processor;", "incDecBufferTop", "LVM_Address;");
-  static final VM_Field incDecBufferMaxField            = getField("LVM_Processor;", "incDecBufferMax", "LVM_Address;");
-  static final VM_Method processIncDecBufferMethod      = getMethod("LVM_RCBuffers;", "processIncDecBuffer", "()V");
-  static final VM_Method RCGC_aastoreMethod             = getMethod("LVM_OptRCWriteBarrier;", "aastore", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method RCGC_resolvedPutfieldMethod    = getMethod("LVM_OptRCWriteBarrier;", "resolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method RCGC_unresolvedPutfieldMethod  = getMethod("LVM_OptRCWriteBarrier;", "unresolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method RCGC_resolvedPutstaticMethod   = getMethod("LVM_OptRCWriteBarrier;", "resolvedPutstatic", "(ILjava/lang/Object;)V");
-  static final VM_Method RCGC_unresolvedPutstaticMethod = getMethod("LVM_OptRCWriteBarrier;", "unresolvedPutstatic", "(ILjava/lang/Object;)V");
+  static final VM_Field incDecBufferTopField            = getField("Lcom/ibm/JikesRVM/VM_Processor;", "incDecBufferTop", "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Field incDecBufferMaxField            = getField("Lcom/ibm/JikesRVM/VM_Processor;", "incDecBufferMax", "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Method processIncDecBufferMethod      = getMethod("Lcom/ibm/JikesRVM/VM_RCBuffers;", "processIncDecBuffer", "()V");
+  static final VM_Method RCGC_aastoreMethod             = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "aastore", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method RCGC_resolvedPutfieldMethod    = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "resolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method RCGC_unresolvedPutfieldMethod  = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "unresolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method RCGC_resolvedPutstaticMethod   = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "resolvedPutstatic", "(ILjava/lang/Object;)V");
+  static final VM_Method RCGC_unresolvedPutstaticMethod = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "unresolvedPutstatic", "(ILjava/lang/Object;)V");
   //-#endif
 
-  static final VM_Field outputLockField                = getField("LVM_Scheduler;", "outputLock", "I");
+  static final VM_Field outputLockField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "outputLock", "I");
   //-#if RVM_WITH_STRONG_VOLATILE_SEMANTICS
-  static final VM_Field doublewordVolatileMutexField   = getField("LVM_Scheduler;", "doublewordVolatileMutex", "LVM_ProcessorLock;");
+  static final VM_Field doublewordVolatileMutexField   = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "doublewordVolatileMutex", "Lcom/ibm/JikesRVM/VM_ProcessorLock;");
   //-#else
   static final VM_Field doublewordVolatileMutexField   = null; // GACK!
   //-#endif
-  static final VM_Field processorsField                = getField("LVM_Scheduler;", "processors", "[LVM_Processor;");
-  static final VM_Field threadsField                   = getField("LVM_Scheduler;", "threads", "[LVM_Thread;");
-  static final VM_Field debugRequestedField            = getField("LVM_Scheduler;", "debugRequested", "Z");
-  static final VM_Field attachThreadRequestedField     = getField("LVM_Scheduler;", "attachThreadRequested", "LVM_Address;");
-  static final VM_Method dumpStackAndDieMethod         = getMethod("LVM_Scheduler;", "dumpStackAndDie", "(LVM_Address;)V");
+  public static final VM_Field processorsField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "processors", "[Lcom/ibm/JikesRVM/VM_Processor;");
+  public static final VM_Field threadsField                   = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "threads", "[Lcom/ibm/JikesRVM/VM_Thread;");
+  static final VM_Field debugRequestedField            = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "debugRequested", "Z");
+  static final VM_Field attachThreadRequestedField     = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "attachThreadRequested", "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Method dumpStackAndDieMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Scheduler;", "dumpStackAndDie", "(Lcom/ibm/JikesRVM/VM_Address;)V");
 
-  static final VM_Field latestContenderField            = getField("LVM_ProcessorLock;", "latestContender", "LVM_Processor;");
-  static final VM_Method processorLockMethod            = getMethod("LVM_ProcessorLock;", "lock", "()V");
-  static final VM_Method processorUnlockMethod          = getMethod("LVM_ProcessorLock;", "unlock", "()V");
+  static final VM_Field latestContenderField            = getField("Lcom/ibm/JikesRVM/VM_ProcessorLock;", "latestContender", "Lcom/ibm/JikesRVM/VM_Processor;");
+  static final VM_Method processorLockMethod            = getMethod("Lcom/ibm/JikesRVM/VM_ProcessorLock;", "lock", "()V");
+  static final VM_Method processorUnlockMethod          = getMethod("Lcom/ibm/JikesRVM/VM_ProcessorLock;", "unlock", "()V");
 
-  static final VM_Field classForTypeField              = getField("LVM_Type;", "classForType", "Ljava/lang/Class;");
-  static final VM_Field depthField                     = getField("LVM_Type;", "depth", "I");
-  static final VM_Field idField                        = getField("LVM_Type;", "dictionaryId", "I");
-  static final VM_Field dimensionField                 = getField("LVM_Type;", "dimension", "I");
+  static final VM_Field classForTypeField              = getField("Lcom/ibm/JikesRVM/VM_Type;", "classForType", "Ljava/lang/Class;");
+  static final VM_Field depthField                     = getField("Lcom/ibm/JikesRVM/VM_Type;", "depth", "I");
+  static final VM_Field idField                        = getField("Lcom/ibm/JikesRVM/VM_Type;", "dictionaryId", "I");
+  static final VM_Field dimensionField                 = getField("Lcom/ibm/JikesRVM/VM_Type;", "dimension", "I");
 
-  static final VM_Field innermostElementTypeField      = getField("LVM_Array;", "innermostElementType", "LVM_Type;");
+  static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/VM_Type;");
 
 
   //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
-  static final VM_Method initializeClassIfNecessaryMethod = getMethod("LVM_Class;", "initializeClassIfNecessary", "(I)V");
+  static final VM_Method initializeClassIfNecessaryMethod = getMethod("Lcom/ibm/JikesRVM/VM_Class;", "initializeClassIfNecessary", "(I)V");
   //-#else
   static final VM_Method initializeClassIfNecessaryMethod = null; // GACK
   //-#endif
 
-  static final VM_Field JNIEnvAddressField         = getField("LVM_JNIEnvironment;", "JNIEnvAddress", "LVM_Address;");
-  static final VM_Field JNIEnvSavedTIField         = getField("LVM_JNIEnvironment;", "savedTIreg", "I");
-  static final VM_Field JNIEnvSavedPRField         = getField("LVM_JNIEnvironment;", "savedPRreg", "LVM_Processor;");
-  static final VM_Field JNIRefsField               = getField("LVM_JNIEnvironment;", "JNIRefs", "[I");
-  static final VM_Field JNIRefsTopField            = getField("LVM_JNIEnvironment;", "JNIRefsTop", "I");
-  static final VM_Field JNIRefsMaxField            = getField("LVM_JNIEnvironment;", "JNIRefsMax", "I");
-  static final VM_Field JNIRefsSavedFPField        = getField("LVM_JNIEnvironment;", "JNIRefsSavedFP", "I");
-  static final VM_Field JNITopJavaFPField          = getField("LVM_JNIEnvironment;", "JNITopJavaFP", "LVM_Address;");
-  static final VM_Field JNIPendingExceptionField   = getField("LVM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
-  static final VM_Field JNIFunctionPointersField   = getField("LVM_JNIEnvironment;", "JNIFunctionPointers", "[I");
+  static final VM_Field JNIEnvAddressField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIEnvAddress", "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "savedTIreg", "I");
+  static final VM_Field JNIEnvSavedPRField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "savedPRreg", "Lcom/ibm/JikesRVM/VM_Processor;");
+  static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIRefs", "[I");
+  static final VM_Field JNIRefsTopField            = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIRefsTop", "I");
+  static final VM_Field JNIRefsMaxField            = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIRefsMax", "I");
+  static final VM_Field JNIRefsSavedFPField        = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIRefsSavedFP", "I");
+  static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNITopJavaFP", "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
+  static final VM_Field JNIFunctionPointersField   = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIFunctionPointers", "[I");
 
-  static final VM_Field the_boot_recordField            = getField("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
-  static final VM_Field tiRegisterField                 = getField("LVM_BootRecord;", "tiRegister", "I");
-  static final VM_Field spRegisterField                 = getField("LVM_BootRecord;", "spRegister", "I");
-  static final VM_Field ipRegisterField                 = getField("LVM_BootRecord;", "ipRegister", "I");
-  static final VM_Field tocRegisterField                = getField("LVM_BootRecord;", "tocRegister", "I");
-  static final VM_Field processorsOffsetField           = getField("LVM_BootRecord;", "processorsOffset", "I");
-  static final VM_Field threadsOffsetField              = getField("LVM_BootRecord;", "threadsOffset", "I");
-  static final VM_Field globalGCInProgressFlagField     = getField("LVM_BootRecord;", "globalGCInProgressFlag", "I");
-  public static final VM_Field lockoutProcessorField           = getField("LVM_BootRecord;", "lockoutProcessor", "I");
-  static final VM_Field sysVirtualProcessorYieldIPField = getField("LVM_BootRecord;", "sysVirtualProcessorYieldIP", "I");
-  static final VM_Field externalSignalFlagField         = getField("LVM_BootRecord;", "externalSignalFlag", "I");
-  static final VM_Field sysLongDivideIPField            = getField("LVM_BootRecord;", "sysLongDivideIP", "I");
-  static final VM_Field sysLongRemainderIPField         = getField("LVM_BootRecord;", "sysLongRemainderIP", "I");
-  static final VM_Field sysLongToFloatIPField           = getField("LVM_BootRecord;", "sysLongToFloatIP", "I");
-  static final VM_Field sysLongToDoubleIPField          = getField("LVM_BootRecord;", "sysLongToDoubleIP", "I");
-  static final VM_Field sysFloatToIntIPField            = getField("LVM_BootRecord;", "sysFloatToIntIP", "I");
-  static final VM_Field sysDoubleToIntIPField           = getField("LVM_BootRecord;", "sysDoubleToIntIP", "I");
-  static final VM_Field sysFloatToLongIPField           = getField("LVM_BootRecord;", "sysFloatToLongIP", "I");
-  static final VM_Field sysDoubleToLongIPField          = getField("LVM_BootRecord;", "sysDoubleToLongIP", "I");
+  static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");
+  static final VM_Field tiRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tiRegister", "I");
+  static final VM_Field spRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "spRegister", "I");
+  static final VM_Field ipRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "ipRegister", "I");
+  static final VM_Field tocRegisterField                = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tocRegister", "I");
+  public static final VM_Field processorsOffsetField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "processorsOffset", "I");
+  public static final VM_Field threadsOffsetField              = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "threadsOffset", "I");
+  static final VM_Field globalGCInProgressFlagField     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "globalGCInProgressFlag", "I");
+  public static final VM_Field lockoutProcessorField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "lockoutProcessor", "I");
+  static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysVirtualProcessorYieldIP", "I");
+  static final VM_Field externalSignalFlagField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "externalSignalFlag", "I");
+  static final VM_Field sysLongDivideIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongDivideIP", "I");
+  static final VM_Field sysLongRemainderIPField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongRemainderIP", "I");
+  static final VM_Field sysLongToFloatIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToFloatIP", "I");
+  static final VM_Field sysLongToDoubleIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToDoubleIP", "I");
+  static final VM_Field sysFloatToIntIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToIntIP", "I");
+  static final VM_Field sysDoubleToIntIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToIntIP", "I");
+  static final VM_Field sysFloatToLongIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToLongIP", "I");
+  static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP", "I");
   //-#if RVM_FOR_POWERPC
-  static final VM_Field sysDoubleRemainderIPField       = getField("LVM_BootRecord;", "sysDoubleRemainderIP", "I");
-  static final VM_Field sysTOCField                     = getField("LVM_BootRecord;", "sysTOC", "I");
+  static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP", "I");
+  static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC", "I");
   //-#endif
 
-  static final VM_Field edgeCountersField               = getField("LVM_EdgeCounterDictionary;", "values", "[[I");
+  static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounterDictionary;", "values", "[[I");
 
   static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
@@ -250,18 +251,18 @@ public class VM_Entrypoints implements VM_Constants {
   static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
 
 
-  static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");
-  static final VM_Field inetAddressFamilyField  = getField("Ljava/net/InetAddress;", "family", "I");
+  public static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");
+  public static final VM_Field inetAddressFamilyField  = getField("Ljava/net/InetAddress;", "family", "I");
   
-  static final VM_Field socketImplAddressField  = getField("Ljava/net/SocketImpl;", "address", "Ljava/net/InetAddress;");
-  static final VM_Field socketImplPortField     = getField("Ljava/net/SocketImpl;", "port", "I");
+  public static final VM_Field socketImplAddressField  = getField("Ljava/net/SocketImpl;", "address", "Ljava/net/InetAddress;");
+  public static final VM_Field socketImplPortField     = getField("Ljava/net/SocketImpl;", "port", "I");
 
   //-#if RVM_WITH_READ_BARRIER2
-  static final VM_Method arrayLoadReadBarrierMethod = getMethod("LVM_ReadBarrier;", "arrayLoadReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedGetfieldReadBarrierMethod = getMethod("LVM_ReadBarrier;", "resolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method unresolvedGetfieldReadBarrierMethod = getMethod("LVM_ReadBarrier;", "unresolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedGetStaticReadBarrierMethod = getMethod("LVM_ReadBarrier;", "resolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
-  static final VM_Method unresolvedGetStaticReadBarrierMethod = getMethod("LVM_ReadBarrier;", "unresolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method arrayLoadReadBarrierMethod = getMethod("Lcom/ibm/JikesRVM/VM_ReadBarrier;", "arrayLoadReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method resolvedGetfieldReadBarrierMethod = getMethod("Lcom/ibm/JikesRVM/VM_ReadBarrier;", "resolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method unresolvedGetfieldReadBarrierMethod = getMethod("Lcom/ibm/JikesRVM/VM_ReadBarrier;", "unresolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method resolvedGetStaticReadBarrierMethod = getMethod("Lcom/ibm/JikesRVM/VM_ReadBarrier;", "resolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method unresolvedGetStaticReadBarrierMethod = getMethod("Lcom/ibm/JikesRVM/VM_ReadBarrier;", "unresolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
   //-#endif RVM_WITH_READ_BARRIER2
 
   //-#if RVM_WITH_GCTk
@@ -277,16 +278,16 @@ public class VM_Entrypoints implements VM_Constants {
   ////////////////// 
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
-  static final VM_Field specializedMethodsField = getField("LOPT_SpecializedMethodPool;", "specializedMethods", "["+INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Field specializedMethodsField = getField("Lcom/ibm/JikesRVM/OPT_SpecializedMethodPool;", "specializedMethods", "["+INSTRUCTION_ARRAY_SIGNATURE);
 
-  static final VM_Method optThreadSwitchFromPrologueMethod = getMethod("LVM_OptSaveVolatile;", "OPT_threadSwitchFromPrologue", "()V");
-  static final VM_Method optThreadSwitchFromBackedgeMethod = getMethod("LVM_OptSaveVolatile;", "OPT_threadSwitchFromBackedge", "()V");
-  static final VM_Method optThreadSwitchFromEpilogueMethod = getMethod("LVM_OptSaveVolatile;", "OPT_threadSwitchFromEpilogue", "()V");
-  static final VM_Method optResolveMethod                  = getMethod("LVM_OptSaveVolatile;", "OPT_resolve", "()V");
+  static final VM_Method optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/VM_OptSaveVolatile;", "OPT_threadSwitchFromPrologue", "()V");
+  static final VM_Method optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_OptSaveVolatile;", "OPT_threadSwitchFromBackedge", "()V");
+  static final VM_Method optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_OptSaveVolatile;", "OPT_threadSwitchFromEpilogue", "()V");
+  static final VM_Method optResolveMethod                  = getMethod("Lcom/ibm/JikesRVM/VM_OptSaveVolatile;", "OPT_resolve", "()V");
 
-  static final VM_Method optNewArrayArrayMethod            = getMethod("LVM_OptLinker;", "newArrayArray", "([II)Ljava/lang/Object;");
+  static final VM_Method optNewArrayArrayMethod            = getMethod("Lcom/ibm/JikesRVM/VM_OptLinker;", "newArrayArray", "([II)Ljava/lang/Object;");
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  static final VM_Method optAllocAdviceNewArrayArrayMethod = getMethod("LVM_OptLinker;", "allocAdviceNewArrayArray", "([III)Ljava/lang/Object;");
+  static final VM_Method optAllocAdviceNewArrayArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_OptLinker;", "allocAdviceNewArrayArray", "([III)Ljava/lang/Object;");
   //-#endif
 
   static final VM_Method sysArrayCopy = getMethod("Lcom/ibm/JikesRVM/librarySupport/SystemSupport;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
@@ -298,19 +299,19 @@ public class VM_Entrypoints implements VM_Constants {
   ////////////////// 
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
-  static final VM_Field methodListenerNextIndexField      = getField("LVM_MethodListener;", "nextIndex", "I");
-  static final VM_Field methodListenerNumSamplesField     = getField("LVM_MethodListener;", "numSamples", "I");
+  static final VM_Field methodListenerNextIndexField      = getField("Lcom/ibm/JikesRVM/VM_MethodListener;", "nextIndex", "I");
+  static final VM_Field methodListenerNumSamplesField     = getField("Lcom/ibm/JikesRVM/VM_MethodListener;", "numSamples", "I");
 
-  static final VM_Field edgeListenerNextIndexField        = getField("LVM_EdgeListener;", "nextIndex", "I");
-  static final VM_Field edgeListenerSamplesTakenField     = getField("LVM_EdgeListener;", "samplesTaken", "I");
-  static final VM_Field counterArrayManagerCounterArraysField = getField("LVM_CounterArrayManager;","counterArrays","[[D");
+  static final VM_Field edgeListenerNextIndexField        = getField("Lcom/ibm/JikesRVM/VM_EdgeListener;", "nextIndex", "I");
+  static final VM_Field edgeListenerSamplesTakenField     = getField("Lcom/ibm/JikesRVM/VM_EdgeListener;", "samplesTaken", "I");
+  static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/JikesRVM/VM_CounterArrayManager;","counterArrays","[[D");
   //-#endif
 
 
   static void init() {
     //-#if RVM_WITH_GCTk
-    ADDRESS top = getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
-    ADDRESS bot = getMember("LVM_Processor;", "writeBuffer1", "I").getOffset();
+    ADDRESS top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "writeBuffer0", "I").getOffset();
+    ADDRESS bot = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "writeBuffer1", "I").getOffset();
     GCTk_WriteBufferBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean discontigious = (((top > bot) && ((top - bot) != 4))
@@ -321,8 +322,8 @@ public class VM_Entrypoints implements VM_Constants {
     }
     GCTk_TraceBufferBase        = getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
 
-    top = getMember("LVM_Processor;", "allocBump0", "I").getOffset();
-    bot = getMember("LVM_Processor;", "allocBump7", "I").getOffset();
+    top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocBump0", "I").getOffset();
+    bot = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocBump7", "I").getOffset();
     GCTk_BumpPointerBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
@@ -332,8 +333,8 @@ public class VM_Entrypoints implements VM_Constants {
       VM.assert(!unaligned);
     }
   
-    top = getMember("LVM_Processor;", "allocSync0", "I").getOffset();
-    bot = getMember("LVM_Processor;", "allocSync7", "I").getOffset();
+    top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocSync0", "I").getOffset();
+    bot = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocSync7", "I").getOffset();
     GCTk_SyncPointerBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
@@ -362,7 +363,7 @@ public class VM_Entrypoints implements VM_Constants {
    * Note: This is method is intended for use only by VM classes that need 
    * to address their own fields and methods in the runtime virtual machine 
    * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
+   * @param classDescriptor  class  descriptor - something like "Lcom/ibm/JikesRVM/VM_Runtime;"
    * @param memberName       member name       - something like "invokestatic"
    * @param memberDescriptor member descriptor - something like "()V"
    * @return corresponding VM_Member object

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /*
  * This class represents the machine registers
  * We can inspect them, set new values

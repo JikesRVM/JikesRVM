@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM;
+
 /**
  * This class contains code for quick and dirty instruction selection
  * by forcing each instruction to be a tree and generating the trees in

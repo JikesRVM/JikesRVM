@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Implement lazy compilation.
@@ -11,7 +12,7 @@
  * @author Derek Lieber
  * @date 17 Sep 1999  
  */
-class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
+public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 
   /**
    * Resolve, compile if necessary, and invoke a method.

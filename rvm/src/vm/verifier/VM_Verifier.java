@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * This class is used to verify the bytecode of a method or a class.

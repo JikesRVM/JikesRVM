@@ -5,11 +5,11 @@
 
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Address;
-import VM_Thread;
-import VM_CompiledMethod;
-import VM_CompiledMethods;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses

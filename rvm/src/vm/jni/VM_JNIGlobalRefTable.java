@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * An <code>OPT_EnumerationIterator</code> converts an <code>Enumeration</code>

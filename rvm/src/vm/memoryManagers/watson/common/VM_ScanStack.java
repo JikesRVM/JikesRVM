@@ -5,18 +5,18 @@
 
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM;
-import VM_Constants;
-import VM_Address;
-import VM_Processor;
-import VM_Method;
-import VM_CompiledMethod;
-import VM_CompiledMethods;
-import VM_Scheduler;
-import VM_Runtime;
-import VM_Magic;
-import VM_Thread;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Class that supports scanning thread stacks for references during

@@ -3,6 +3,7 @@
  */
 //OPT_DotEdge.java
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * OPT_DotEdge provides the minimum set of routines for printing a graph

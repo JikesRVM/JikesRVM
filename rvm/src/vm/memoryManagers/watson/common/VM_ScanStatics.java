@@ -5,13 +5,13 @@
 
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Magic;
-import VM_Statics;
-import VM_Address;
-import VM;
-import VM_Constants;
-import VM_Thread;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Statics;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Class that supports scanning statics (the JTOC) for references

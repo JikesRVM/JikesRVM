@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * Constants for AIX registers, copied from /usr/include/sys/reg.h
  * @author Ton Ngo

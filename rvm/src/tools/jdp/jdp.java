@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * jdp main program:
  *   parse the command line to pick up jdp arguments and collect the user program arguments,

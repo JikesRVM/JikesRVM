@@ -3,6 +3,7 @@
  */
 //OPT_VisEdge.java
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
 

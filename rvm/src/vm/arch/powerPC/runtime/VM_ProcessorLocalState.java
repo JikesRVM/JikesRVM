@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 /**
  * This class provides a layer of abstraction that the rest of the VM must
  * use in order to access the current <code>VM_Processor</code> object.

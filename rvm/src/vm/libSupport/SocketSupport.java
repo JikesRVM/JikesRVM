@@ -3,11 +3,12 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
 import java.net.*;
 import java.io.*;
-import VM_SocketImpl;
-import VM_InetAddress;
+import com.ibm.JikesRVM.VM_SocketImpl;
+import com.ibm.JikesRVM.VM_InetAddress;
 
 /**
  * This class provides a set of static method entrypoints used in the

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Constants used to implement thin locks.
@@ -26,7 +27,7 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-interface VM_ThinLockConstants {
+public interface VM_ThinLockConstants {
 
   static final int NUM_BITS_TID        = VM_Scheduler.LOG_MAX_THREADS;
   static final int NUM_BITS_RC         = VM_JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;

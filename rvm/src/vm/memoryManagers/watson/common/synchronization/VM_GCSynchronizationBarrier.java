@@ -3,17 +3,18 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Scheduler;
-import VM_Time;
-import VM_Magic;
-import VM;
-import VM_PragmaNoInline;
-import VM_Processor;
-import VM_BootRecord;
-import VM_Thread;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * A synchronization barrier used to synchronize collector threads,

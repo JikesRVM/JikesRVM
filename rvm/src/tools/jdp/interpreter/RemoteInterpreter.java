@@ -10,6 +10,7 @@
  *
  */
 
+import com.ibm.JikesRVM.*;
 import java.lang.reflect.*;
 
 class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
@@ -295,7 +296,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    * then push the result back on the stack
    */
   protected void invokeMagic(VM_Method called_method)    {
-      if (sysCall1 == null) super.init();  /// TODO: convince VM to do this
+      if (sysCall1 == null) super.initInterpreterBase();  /// TODO: convince VM to do this
 
       if (traceInterpreter >= 1) System.out.println("RemoteInterpreter: invokeMagic on "+called_method);
       

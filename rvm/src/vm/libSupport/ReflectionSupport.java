@@ -3,23 +3,24 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
 import java.util.HashMap;
-import VM;
-import VM_Atom;
-import VM_Array;
-import VM_Callbacks;
-import VM_Class;
-import VM_Field;
-import VM_Magic;
-import VM_Method;
-import VM_Reflection;
-import VM_ResolutionException;
-import VM_Runtime;
-import VM_Scheduler;
-import VM_SystemClassLoader;
-import VM_Type;
-import VM_UnimplementedError;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Field;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_ResolutionException;
+import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 import java.lang.reflect.*;
 import java.io.*;
 

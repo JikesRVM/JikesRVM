@@ -3,6 +3,7 @@
  */
 //VM_ModifiableBytecodeStream.java
 //$Id$
+package com.ibm.JikesRVM;
 /**
  * VM_ModifiableBytecodeStream.java
  *

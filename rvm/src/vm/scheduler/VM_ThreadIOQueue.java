@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * A list of threads waiting for i/o data to become available.
@@ -33,7 +34,7 @@ public final class VM_ThreadIOQueue extends VM_AbstractThreadQueue
 
   private int[] readFds  = new int[2048]; // parameter area for passing fds to sysNetSocketSelect (2048 == FD_SETSIZE in "/usr/include/sys/select.h")
   private int[] writeFds  = new int[2048]; // parameter area for passing fds to sysNetSocketSelect (2048 == FD_SETSIZE in "/usr/include/sys/select.h")
-  static final int FD_READY = -99;        // flag used to represent fd on which operation can proceed without blocking
+  public static final int FD_READY = -99;        // flag used to represent fd on which operation can proceed without blocking
    
   private double                   selectTime;       // time at which next "select" call can be made, in seconds
 

@@ -4,6 +4,8 @@
 
 //$Id$
 
+package com.ibm.JikesRVM;
+
 /**
  *  <P> This class is the low-level assembler for Intel; it contains
  * functionality for encoding specific instructions into an array of

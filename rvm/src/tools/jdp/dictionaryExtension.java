@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  *  Extension to the VM_TypeDictionary and VM_AtomDictionary to look up 
  * an entry without having to create an Atom.  This is mostly taken from 

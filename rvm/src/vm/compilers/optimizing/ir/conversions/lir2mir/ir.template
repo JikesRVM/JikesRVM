@@ -4,6 +4,7 @@
  */
 //ir.brg
 //$Id$
+
 /**
  * Type "make" or "make ir.brg" to automatically generate ir.brg from
  * ir.template.

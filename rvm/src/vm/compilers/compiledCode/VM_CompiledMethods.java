@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Manage pool of compiled methods. <p>
@@ -54,13 +55,13 @@ public class VM_CompiledMethods {
 
   // Get number of methods compiled so far.
   //
-  static int numCompiledMethods() throws VM_PragmaUninterruptible {
+  public static int numCompiledMethods() throws VM_PragmaUninterruptible {
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
     return compiledMethods;
   }
 
@@ -172,7 +173,7 @@ public class VM_CompiledMethods {
   /**
    * Report on the space used by compiled code and associated mapping information
    */
-  static void spaceReport() {
+  public static void spaceReport() {
     int[] codeCount = new int[5];
     int[] codeBytes = new int[5];
     int[] mapBytes = new int[5];

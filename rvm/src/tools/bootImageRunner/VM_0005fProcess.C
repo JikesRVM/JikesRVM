@@ -23,7 +23,7 @@
 #include <jni.h>
 
 // generated class header
-#include "VM_0005fProcess.h"
+#include "com_ibm_JikesRVM_VM_0005fProcess.h"
 
 // local stuff
 bool DEBUG = false;
@@ -33,7 +33,7 @@ bool DEBUG = false;
  * Method:    isDead
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_VM_1Process_isDead
+JNIEXPORT jboolean JNICALL Java_com_ibm_JikesRVM_VM_1Process_isDead
   (JNIEnv *env, jobject self)
 {
   // extract pid field from VM_Process object
@@ -57,7 +57,7 @@ JNIEXPORT jboolean JNICALL Java_VM_1Process_isDead
  * Method:    exitValueInternal
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_VM_1Process_exitValueInternal
+JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exitValueInternal
   (JNIEnv *env, jobject self)
 {
   // extract pid field from VM_Process object
@@ -78,7 +78,7 @@ JNIEXPORT jint JNICALL Java_VM_1Process_exitValueInternal
  * Method:    waitForInternal
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_VM_1Process_waitForInternal
+JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_waitForInternal
   (JNIEnv *env, jobject self)
 {
   // extract pid field from VM_Process object
@@ -99,13 +99,13 @@ JNIEXPORT jint JNICALL Java_VM_1Process_waitForInternal
  * Method:    exec2
  * Signature: (Ljava/lang/String;[Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_VM_1Process_exec2
+JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec2
   (JNIEnv *env, 
    jobject self, 
    jstring programName,
    jobjectArray argvArguments)
 {
-    return Java_VM_1Process_exec3(env,
+    return Java_com_ibm_JikesRVM_VM_1Process_exec3(env,
 				  self, 
 				  programName, 
 				  argvArguments,
@@ -117,7 +117,7 @@ JNIEXPORT jint JNICALL Java_VM_1Process_exec2
  * Method:    exec3
  * Signature: (Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_VM_1Process_exec3
+JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec3
   (JNIEnv *env, 
    jobject self, 
    jstring programName,
@@ -173,7 +173,7 @@ JNIEXPORT jint JNICALL Java_VM_1Process_exec3
     }
 
     // pipe for stdin
-    jclass ProcessClassID = env->FindClass( "VM_Process" );
+    jclass ProcessClassID = env->FindClass( "com.ibm.JikesRVM.VM_Process" );
     int inputDes[2]; 
     pipe(inputDes);
     jfieldID inID = env->GetFieldID(ProcessClassID, "inputDescriptor", "I");
@@ -227,7 +227,7 @@ JNIEXPORT jint JNICALL Java_VM_1Process_exec3
  * Method:    destroy
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_VM_1Process_destroy
+JNIEXPORT void JNICALL Java_com_ibm_JikesRVM_VM_1Process_destroy
   (JNIEnv *env, jobject self)
 {
   // extract pid field from VM_Process object

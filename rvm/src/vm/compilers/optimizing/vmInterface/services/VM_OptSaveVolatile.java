@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
@@ -17,7 +18,7 @@
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-class VM_OptSaveVolatile implements VM_SaveVolatile {
+public class VM_OptSaveVolatile implements VM_SaveVolatile {
  
   /**
    * Suspend execution of current thread and place it on tail of system

@@ -12,6 +12,7 @@
 
 
 import  java.io.*;
+import com.ibm.JikesRVM.*;
 
 
 /**
@@ -68,7 +69,7 @@ class GenerateInterfaceDeclarations {
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordDeclarations () throws VM_ResolutionException {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("VM_BootRecord");
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
 

@@ -3,6 +3,7 @@
  */
 
 //$Id$
+package com.ibm.JikesRVM;
 
 /**----------------------------------------------------------------------
  *                   Stackframe layout conventions - Intel version.  

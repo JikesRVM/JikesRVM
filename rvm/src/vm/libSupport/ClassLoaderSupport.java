@@ -3,15 +3,16 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM;
-import VM_Atom;
-import VM_Array;
-import VM_Class;
-import VM_ClassLoader;
-import VM_ResolutionException;
-import VM_SystemClassLoader;
-import VM_UnimplementedError;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_ResolutionException;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 import java.security.ProtectionDomain;
 
 /**

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 /**
  * Constants exported by the assembler
  * @author Bowen Alpern

@@ -3,6 +3,7 @@
  */
 //VM_BuildReferenceMaps.java
 //$Id$
+package com.ibm.JikesRVM;
 /** 
  * This class builds the reference and non-reference maps for a given method.
  * The maps are recorded with VM_ReferenceMaps. This class works with the baseline

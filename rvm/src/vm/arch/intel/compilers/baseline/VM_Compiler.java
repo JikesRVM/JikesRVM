@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
@@ -28,7 +29,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * The last true local
    */
-  static int getEmptyStackOffset (VM_Method m) {
+  public static int getEmptyStackOffset (VM_Method m) {
     return getFirstLocalOffset(m) - (m.getLocalWords()<<LG_WORDSIZE) + WORDSIZE;
   }
 
@@ -37,7 +38,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * It will not work as a base to access true locals.
    * TODO!! make sure it is not being used incorrectly
    */
-  static int getFirstLocalOffset (VM_Method method) {
+  public static int getFirstLocalOffset (VM_Method method) {
     if (method.getDeclaringClass().isBridgeFromNative())
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     else

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_LocalVariable {
+public class VM_LocalVariable {
   VM_Atom name;               // name of this variable
   VM_Atom descriptor;         // its type descriptor
   ClassLoader classloader;
@@ -31,7 +32,7 @@ class VM_LocalVariable {
     classloader = cls.getClassLoader();
   }
 
-  final VM_Type getType() {
+  public final VM_Type getType() {
     return VM_ClassLoader.findOrCreateType(descriptor, classloader);
   }
 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import instructionFormats.*;
 
@@ -650,5 +651,5 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 }

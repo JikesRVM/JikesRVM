@@ -6,7 +6,7 @@
 # @date April 17, 2002
 where
 step
-break VM.sysExit
+break com.ibm.JikesRVM.VM.sysExit
 c
 listi
 help thread

@@ -1005,7 +1005,7 @@ function emitExpander
    
    print 'if [[ $1 = -clean ]]; then'
    print "   rm -rf $SCRATCH_DIRECTORY_STR"
-   print "   mkdir -p $SCRATCH_DIRECTORY_STR"
+   print "   mkdir -p $SCRATCH_DIRECTORY_STR/com/ibm/JikesRVM"
    print "   cd $GENERATED_FILES_DIRECTORY_STR"
    print '   echo *.* | xargs rm -f'
    if (( RVM_WITH_OPT_COMPILER )); then
@@ -1106,9 +1106,6 @@ fi
    print '   if [ X"`/bin/ls $d/*.java 2>/dev/null`" != X ]; then'
    print '     FILES=`/bin/ls $d/*.java`'
    print '   fi'
-   print '   if [ X"`/bin/ls $d/*.pizza 2>/dev/null`" != X ]; then'
-   print '     FILES2=`/bin/ls $d/*.pizza`'
-   print '   fi'
    print '   set +e'
    print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR '$FILES $FILES2'
    print '   RC=$?'
@@ -1133,7 +1130,8 @@ fi
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR/'"'
    print 'fi'
-   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
+   print 'FILES=`$FIND '$GENERATED_FILES_DIRECTORY_STR' -name "*.java"`'
+#   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
    print 'set +e'
    print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
    print 'RC=$?'
@@ -1146,25 +1144,25 @@ fi
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '  print ""'
    print 'fi'
-if (( RVM_WITH_OPT_COMPILER )); then
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
-   print 'RC=$?'
-   print 'if [[ $RC = 1 ]]; then'
-   print '   FILES_HAVE_CHANGED=1'
-   print 'elif [[ $RC != 0 ]]; then'
-   print '   exit 1'
-   print 'fi'
-   print 'set -e'
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '  print ""'
-   print 'fi'
-   print ''
-fi
+#if (( RVM_WITH_OPT_COMPILER )); then
+#   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+#   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
+#   print 'fi'
+#   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
+#   print 'set +e'
+#   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
+#   print 'RC=$?'
+#   print 'if [[ $RC = 1 ]]; then'
+#   print '   FILES_HAVE_CHANGED=1'
+#   print 'elif [[ $RC != 0 ]]; then'
+#   print '   exit 1'
+#   print 'fi'
+#   print 'set -e'
+#   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+#   print '  print ""'
+#   print 'fi'
+#   print ''
+#fi
 
 
    # script to preprocess GenerateInterfaceDeclarations.java
@@ -1624,18 +1622,18 @@ function emitImageLinker
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
    #
-   print "   print '[LVM_Address;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[[LVM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Address;'                    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[[Lcom/ibm/JikesRVM/VM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
@@ -1658,21 +1656,21 @@ function emitImageLinker
    print "   print '[[I'                              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[[I'                             >> $PRIMORDIAL_CLASSES_STR"
 
-   print "   print '[LVM_Class;'                      >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Processor;'                  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Thread;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Class;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Processor;'                  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Thread;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[D'                               >> $PRIMORDIAL_CLASSES_STR"
 
-   print "   print '[LVM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker
+   print "   print '[Lcom/ibm/JikesRVM/VM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker
 
-   print "   print '[LVM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
+   print "   print '[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
 
    if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC || RVM_WITH_REALTIME_GC )); then
-      print "   print '[LVM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[Lcom/ibm/JikesRVM/VM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
@@ -1713,40 +1711,40 @@ function emitImageLinker
          print "   print 'Ljava/lang/Error;'               >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/LinkageError;'        >> $PRIMORDIAL_CLASSES_STR"
 
-         print "   print 'LOPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldDatabase;'  	        >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldDatabase\$FieldDatabaseEntry;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_FieldDatabase\$FieldWriterInfo;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializedMethod;'         >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_InvokeeThreadLocalContext;' >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldDatabase;'  	        >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldDatabase\$FieldDatabaseEntry;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_FieldDatabase\$FieldWriterInfo;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializedMethod;'         >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_InvokeeThreadLocalContext;' >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
 
-         print "   print 'LOPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Lcom/ibm/JikesRVM/OPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ALL_CLASSES )); then
-          print "   print '[LOPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LOPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[[B'                               >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
           print "   print '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
-          print "   print '[LVM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
-          print "   print 'LOPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/VM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/VM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/VM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[Lcom/ibm/JikesRVM/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
+          print "   print 'Lcom/ibm/JikesRVM/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
    fi
   if (( RVM_WITH_GCTk )); then
@@ -1754,7 +1752,7 @@ function emitImageLinker
   fi
 
    # For performance testing, a full opt base boot image should have all classes
-   # that would be in FullOpt, except for the OPT compiler-related ones.
+   # that would be in FulLcom/ibm/JikesRVM/OPT, except for the OPT compiler-related ones.
    # Here we include such classes that do not have the VM prefix.
    if [[ $CONFIGURATION_NAME = FastOptBaseSemispace ]]; then
        print "   print 'LFinalizerThread;'              >> $PRIMORDIAL_CLASSES_STR"
@@ -2253,7 +2251,7 @@ fi
 # Create output directory structure.
 #
 mkdir -p $BUILD_DIRECTORY
-mkdir -p $GENERATED_FILES_DIRECTORY
+mkdir -p $GENERATED_FILES_DIRECTORY/com/ibm/JikesRVM
 mkdir -p $GENERATED_FILES_DIRECTORY/instructionFormats
 mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY

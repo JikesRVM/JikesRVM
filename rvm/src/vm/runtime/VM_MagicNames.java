@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Method names that are treated specially by compiler.
@@ -10,151 +11,151 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_MagicNames {
+public class VM_MagicNames {
   //-----------//
   // interface //
   //-----------//
    
-  static VM_Atom sysCall0;                 
-  static VM_Atom sysCall1;                 
-  static VM_Atom sysCall2;
-  static VM_Atom sysCall3;
-  static VM_Atom sysCall4;
-  static VM_Atom sysCall_L_0;                 
-  static VM_Atom sysCall_L_I;                 
-  static VM_Atom sysCallAD;
-  static VM_Atom sysCallSigWait;
+  public static VM_Atom sysCall0;                 
+  public static VM_Atom sysCall1;                 
+  public static VM_Atom sysCall2;
+  public static VM_Atom sysCall3;
+  public static VM_Atom sysCall4;
+  public static VM_Atom sysCall_L_0;                 
+  public static VM_Atom sysCall_L_I;                 
+  public static VM_Atom sysCallAD;
+  public static VM_Atom sysCallSigWait;
                  
-  static VM_Atom invokeMain;
-  static VM_Atom invokeClassInitializer;
-  static VM_Atom invokeMethodReturningVoid;
-  static VM_Atom invokeMethodReturningInt;
-  static VM_Atom invokeMethodReturningLong;
-  static VM_Atom invokeMethodReturningFloat;
-  static VM_Atom invokeMethodReturningDouble;
-  static VM_Atom invokeMethodReturningObject;
+  public static VM_Atom invokeMain;
+  public static VM_Atom invokeClassInitializer;
+  public static VM_Atom invokeMethodReturningVoid;
+  public static VM_Atom invokeMethodReturningInt;
+  public static VM_Atom invokeMethodReturningLong;
+  public static VM_Atom invokeMethodReturningFloat;
+  public static VM_Atom invokeMethodReturningDouble;
+  public static VM_Atom invokeMethodReturningObject;
 
-  static VM_Atom getFramePointer;          
-  static VM_Atom getTocPointer;            
-  static VM_Atom getJTOC;
-  static VM_Atom getThreadId;
-  static VM_Atom setThreadId;
+  public static VM_Atom getFramePointer;          
+  public static VM_Atom getTocPointer;            
+  public static VM_Atom getJTOC;
+  public static VM_Atom getThreadId;
+  public static VM_Atom setThreadId;
 
-  static VM_Atom getProcessorRegister;
-  static VM_Atom setProcessorRegister;
+  public static VM_Atom getProcessorRegister;
+  public static VM_Atom setProcessorRegister;
  
   //-#if RVM_FOR_IA32
-  static VM_Atom getESIAsProcessor;
-  static VM_Atom setESIAsProcessor;
+  public static VM_Atom getESIAsProcessor;
+  public static VM_Atom setESIAsProcessor;
   //-#endif
     
-  static VM_Atom getTime;
-  static VM_Atom getTimeBase;
+  public static VM_Atom getTime;
+  public static VM_Atom getTimeBase;
 
-  static VM_Atom getCallerFramePointer;
-  static VM_Atom setCallerFramePointer;
-  static VM_Atom getCompiledMethodID;
-  static VM_Atom setCompiledMethodID;
-  static VM_Atom getNextInstructionAddress;
-  static VM_Atom setNextInstructionAddress;
-  static VM_Atom getReturnAddress;
-  static VM_Atom setReturnAddress;
+  public static VM_Atom getCallerFramePointer;
+  public static VM_Atom setCallerFramePointer;
+  public static VM_Atom getCompiledMethodID;
+  public static VM_Atom setCompiledMethodID;
+  public static VM_Atom getNextInstructionAddress;
+  public static VM_Atom setNextInstructionAddress;
+  public static VM_Atom getReturnAddress;
+  public static VM_Atom setReturnAddress;
 
-  static VM_Atom getByteAtOffset;
-  static VM_Atom getIntAtOffset;
-  static VM_Atom getObjectAtOffset;
-  static VM_Atom getObjectArrayAtOffset;
-  static VM_Atom getLongAtOffset;
-  static VM_Atom setByteAtOffset;
-  static VM_Atom setIntAtOffset;
-  static VM_Atom setObjectAtOffset;
-  static VM_Atom setLongAtOffset;
+  public static VM_Atom getByteAtOffset;
+  public static VM_Atom getIntAtOffset;
+  public static VM_Atom getObjectAtOffset;
+  public static VM_Atom getObjectArrayAtOffset;
+  public static VM_Atom getLongAtOffset;
+  public static VM_Atom setByteAtOffset;
+  public static VM_Atom setIntAtOffset;
+  public static VM_Atom setObjectAtOffset;
+  public static VM_Atom setLongAtOffset;
 
-  static VM_Atom getMemoryWord;            
-  static VM_Atom setMemoryWord;            
-  static VM_Atom getMemoryAddress;
-  static VM_Atom setMemoryAddress;
+  public static VM_Atom getMemoryWord;            
+  public static VM_Atom setMemoryWord;            
+  public static VM_Atom getMemoryAddress;
+  public static VM_Atom setMemoryAddress;
 
-  static VM_Atom prepare;
-  static VM_Atom attempt;
+  public static VM_Atom prepare;
+  public static VM_Atom attempt;
     
-  static VM_Atom setThreadSwitchBit;
-  static VM_Atom clearThreadSwitchBit;
+  public static VM_Atom setThreadSwitchBit;
+  public static VM_Atom clearThreadSwitchBit;
     
-  static VM_Atom saveThreadState;
-  static VM_Atom threadSwitch;
-  static VM_Atom restoreHardwareExceptionState;
-  static VM_Atom returnToNewStack;
-  static VM_Atom dynamicBridgeTo;
+  public static VM_Atom saveThreadState;
+  public static VM_Atom threadSwitch;
+  public static VM_Atom restoreHardwareExceptionState;
+  public static VM_Atom returnToNewStack;
+  public static VM_Atom dynamicBridgeTo;
     
-  static VM_Atom objectAsAddress;          
-  static VM_Atom addressAsObject;          
-  static VM_Atom addressAsObjectArray;          
-  static VM_Atom addressAsType;
-  static VM_Atom objectAsType;
-  static VM_Atom addressAsByteArray;
-  static VM_Atom addressAsIntArray;
-  static VM_Atom objectAsByteArray;
-  static VM_Atom objectAsShortArray;
-  static VM_Atom objectAsIntArray;
-  static VM_Atom addressAsThread;
-  static VM_Atom objectAsThread;
-  static VM_Atom objectAsProcessor;
+  public static VM_Atom objectAsAddress;          
+  public static VM_Atom addressAsObject;          
+  public static VM_Atom addressAsObjectArray;          
+  public static VM_Atom addressAsType;
+  public static VM_Atom objectAsType;
+  public static VM_Atom addressAsByteArray;
+  public static VM_Atom addressAsIntArray;
+  public static VM_Atom objectAsByteArray;
+  public static VM_Atom objectAsShortArray;
+  public static VM_Atom objectAsIntArray;
+  public static VM_Atom addressAsThread;
+  public static VM_Atom objectAsThread;
+  public static VM_Atom objectAsProcessor;
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static VM_Atom addressAsBlockControl;
-  static VM_Atom addressAsSizeControl;
-  static VM_Atom addressAsSizeControlArray;
+  public static VM_Atom addressAsBlockControl;
+  public static VM_Atom addressAsSizeControl;
+  public static VM_Atom addressAsSizeControlArray;
 //-#if RVM_WITH_CONCURRENT_GC
-  static VM_Atom threadAsRCCollectorThread;
+  public static VM_Atom threadAsRCCollectorThread;
 //-#endif
 //-#endif
-  static VM_Atom threadAsCollectorThread;
-  static VM_Atom addressAsRegisters;
-  static VM_Atom addressAsStack;
-  static VM_Atom floatAsIntBits;           
-  static VM_Atom intBitsAsFloat;           
-  static VM_Atom doubleAsLongBits;         
-  static VM_Atom longBitsAsDouble;
+  public static VM_Atom threadAsCollectorThread;
+  public static VM_Atom addressAsRegisters;
+  public static VM_Atom addressAsStack;
+  public static VM_Atom floatAsIntBits;           
+  public static VM_Atom intBitsAsFloat;           
+  public static VM_Atom doubleAsLongBits;         
+  public static VM_Atom longBitsAsDouble;
              
-  static VM_Atom getObjectType;            
-  static VM_Atom getArrayLength;           
+  public static VM_Atom getObjectType;            
+  public static VM_Atom getArrayLength;           
    
-  static VM_Atom sync;
-  static VM_Atom isync;
+  public static VM_Atom sync;
+  public static VM_Atom isync;
   //-#if RVM_FOR_POWERPC
-  static VM_Atom dcbst;
-  static VM_Atom icbi;
+  public static VM_Atom dcbst;
+  public static VM_Atom icbi;
   //-#endif
   //-#if RVM_FOR_IA32
-  static VM_Atom roundToZero;
-  static VM_Atom clearFloatingPointState;
+  public static VM_Atom roundToZero;
+  public static VM_Atom clearFloatingPointState;
   //-#endif
 
-  static VM_Atom pragmaNoOptCompile;
+  public static VM_Atom pragmaNoOptCompile;
 
   // Names associated with class VM_Address
   //
-  static VM_Atom addressFromInt;
-  static VM_Atom addressToInt;
-  static VM_Atom addressAdd;
-  static VM_Atom addressSub;
-  static VM_Atom addressDiff;
-  static VM_Atom addressLT;
-  static VM_Atom addressLE;
-  static VM_Atom addressEQ;
-  static VM_Atom addressNE;
-  static VM_Atom addressGT;
-  static VM_Atom addressGE;
-  static VM_Atom addressZero;
-  static VM_Atom addressMax;
-  static VM_Atom addressIsZero;
-  static VM_Atom addressIsMax;
+  public static VM_Atom addressFromInt;
+  public static VM_Atom addressToInt;
+  public static VM_Atom addressAdd;
+  public static VM_Atom addressSub;
+  public static VM_Atom addressDiff;
+  public static VM_Atom addressLT;
+  public static VM_Atom addressLE;
+  public static VM_Atom addressEQ;
+  public static VM_Atom addressNE;
+  public static VM_Atom addressGT;
+  public static VM_Atom addressGE;
+  public static VM_Atom addressZero;
+  public static VM_Atom addressMax;
+  public static VM_Atom addressIsZero;
+  public static VM_Atom addressIsMax;
 
    //----------------//
    // implementation //
    //----------------//
    
-  static void init() {
+  public static void init() {
     sysCall0                      = VM_Atom.findOrCreateAsciiAtom("sysCall0");
     sysCall1                      = VM_Atom.findOrCreateAsciiAtom("sysCall1");
     sysCall2                      = VM_Atom.findOrCreateAsciiAtom("sysCall2");

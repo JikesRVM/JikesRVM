@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 /**
    VM_Lock provides RVM support for monitors and Java level 
    synchronization.

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -103,7 +104,7 @@ public final class VM_Class extends VM_Type
    * something like "c:\java\src\java\lang\Object.java".
    * (null --> "unknown - wasn't recorded by compiler").
    */
-  final VM_Atom getSourceName() { 
+  public final VM_Atom getSourceName() { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return sourceName;
   }
@@ -199,7 +200,7 @@ public final class VM_Class extends VM_Type
    * method of this class.
    * @return description (null --> not found)
    */ 
-  final VM_Method findMainMethod() {
+  public final VM_Method findMainMethod() {
     VM_Atom   mainName       = VM_Atom.findOrCreateAsciiAtom(("main"));
     VM_Atom   mainDescriptor = VM_Atom.findOrCreateAsciiAtom
       (("([Ljava/lang/String;)V"));
@@ -227,7 +228,7 @@ public final class VM_Class extends VM_Type
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
-  final int getLiteralOffset(int constantPoolIndex) {
+  public final int getLiteralOffset(int constantPoolIndex) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     // jtoc slot number --> jtoc offset
     return constantPool[constantPoolIndex] << 2; 
@@ -236,7 +237,7 @@ public final class VM_Class extends VM_Type
   /**
    * Get description of a literal constant.
    */ 
-  final byte getLiteralDescription(int constantPoolIndex) {
+  public final byte getLiteralDescription(int constantPoolIndex) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     // jtoc slot number --> description
     return VM_Statics.getSlotDescription(constantPool[constantPoolIndex]); 
@@ -247,7 +248,7 @@ public final class VM_Class extends VM_Type
    * @return id of type that was referenced, for use 
    * by "VM_TypeDictionary.getValue()"
    */
-  final int getTypeRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final int getTypeRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -255,7 +256,7 @@ public final class VM_Class extends VM_Type
    * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  final VM_Type getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final VM_Type getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_TypeDictionary.getValue(getTypeRefId(constantPoolIndex));
   }
 
@@ -281,7 +282,7 @@ public final class VM_Class extends VM_Type
    * @return id of method that was referenced, for use by 
    * "VM_MethodDictionary.getValue()"
    */ 
-  final int getMethodRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final int getMethodRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -289,7 +290,7 @@ public final class VM_Class extends VM_Type
    * Get contents of a "methodRef" constant pool entry.
    * @return method that was referenced
    */
-  final VM_Method getMethodRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
+  public final VM_Method getMethodRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_MethodDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
@@ -453,7 +454,7 @@ public final class VM_Class extends VM_Type
    * @param memberDescriptor method descriptor - something like "I" or "()I"
    * @return method description (null --> not found)
    */
-  final VM_Method findVirtualMethod(VM_Atom memberName, 
+  public final VM_Method findVirtualMethod(VM_Atom memberName, 
                                     VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     VM_Method methods[] = getVirtualMethods();
@@ -472,7 +473,7 @@ public final class VM_Class extends VM_Type
    * @param memberDescriptor method descriptor - something like "I" or "()I"
    * @return method description (null --> not found)
    */
-  final VM_Method findStaticMethod(VM_Atom memberName, 
+  public final VM_Method findStaticMethod(VM_Atom memberName, 
                                    VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     VM_Method methods[] = getStaticMethods();
@@ -578,7 +579,7 @@ public final class VM_Class extends VM_Type
    * @param sought method sought
    * @return method found (null --> not found)
    */ 
-  static VM_Method findSpecialMethod(VM_Method sought) {
+  public static VM_Method findSpecialMethod(VM_Method sought) {
     if (sought.isObjectInitializer())
       return sought;   // <init>
 
@@ -732,7 +733,7 @@ public final class VM_Class extends VM_Type
     VM_Thread myThread;
     
     try {
-      classloader.loadClass( getName().toString() );
+      classloader.loadClass(getName().toString());
     } catch (ClassNotFoundException e) { 
       // no .class file
       throw new VM_ResolutionException(descriptor, 

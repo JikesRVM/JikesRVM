@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * This is the implemetation for the abstract portion of OsProcess
  * This process can execute any compiled program

@@ -501,6 +501,7 @@ static void emitcost(Tree t, char *v) {
 static void emitdefs(Nonterm nts, int ntnumber) {
 	Nonterm p;
 
+        print("package com.ibm.JikesRVM; \n");
         print("interface OPT_BURS_Definitions  {\n");
 	for (p = nts; p; p = p->link)
 		print("%1static final byte %S_NT  \t= %d;\n", p, p->number);
@@ -802,6 +803,7 @@ static void emitstring(Rule rules) {
         int k;
         Term p;
  
+        print("package com.ibm.JikesRVM; \n");
         print("final class OPT_BURS_Debug {\n");
  
         #if 0

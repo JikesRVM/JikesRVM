@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /** 
  * A utf8-encoded byte string.
@@ -101,7 +102,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class name       - something like "java.lang.String"
    */ 
-  final String classNameFromDescriptor() {
+  public final String classNameFromDescriptor() {
     if (VM.VerifyAssertions) VM.assert(val[0] == 'L'); // !!TODO: should we also handle "array" type descriptors?
     // return new String(val,    1, val.length - 2).replace('/','.');  // preferred (unicode)
     return new String(val, 0, 1, val.length - 2).replace('/','.');  // deprecated (ascii)
@@ -112,7 +113,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: class descriptor - something like "Ljava/lang/String;"
    * @return class file name  - something like "java/lang/String.class"
    */ 
-  final String classFileNameFromDescriptor() {
+  public final String classFileNameFromDescriptor() {
     if (VM.VerifyAssertions && val[0] != 'L') VM.assert(false, toString());
     // return new String(val,    1, val.length - 2) + ".class"; // preferred (unicode)
     return new String(val, 0, 1, val.length - 2) + ".class"; // deprecated (ascii)
@@ -307,7 +308,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * Access internal representation.
    * (Note: this is intended for the debugger only)
    */ 
-  final byte[] getBytes() {
+  public final byte[] getBytes() {
     return val;
   }
 

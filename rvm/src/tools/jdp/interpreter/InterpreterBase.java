@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 
 /**
  * This interpreter uses a type-safe expression stack and local-variable 
@@ -128,14 +129,14 @@ implements VM_Constants
    */
   public InterpreterBase()
   {
-    if (vm_stacktrace == null) init();
+    if (vm_stacktrace == null) initInterpreterBase();
     debug_after_return = null;
   }
   
   /**
    * Initialize constants for InterpreterBase
    */
-  static void init()
+  static void initInterpreterBase()
   {
     VM_Magic.setObjectAddressRemapper(new addressRemapper());
     try {
@@ -146,11 +147,11 @@ implements VM_Constants
       // they get loaded and resolved if not found
       // Disable code generation in the compiler
       VM.runningAsJDPRemoteInterpreter = true;
-      VM_Class at = forName("VM_Atom");
-      at = forName("VM_Field");    
-      at = forName("VM_Class");
-      at = forName("VM_Type");
-      at = forName("VM_Method");
+      VM_Class at = forName("com.ibm.JikesRVM.VM_Atom");
+      at = forName("com.ibm.JikesRVM.VM_Field");    
+      at = forName("com.ibm.JikesRVM.VM_Class");
+      at = forName("com.ibm.JikesRVM.VM_Type");
+      at = forName("com.ibm.JikesRVM.VM_Method");
 
       Platform.init();
 
@@ -160,7 +161,7 @@ implements VM_Constants
       e.printStackTrace();
       VM.sysExit(1);
     } 
-    vm_stacktrace = VM_Atom.findOrCreateAsciiAtom("LVM_StackTrace;");
+    vm_stacktrace = VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_StackTrace;");
     vm_stacktrace_create = VM_Atom.findOrCreateAsciiAtom("create");
   }
   

@@ -4,6 +4,8 @@
 //BootImageWriterConstants.java
 //$Id$
 
+import com.ibm.JikesRVM.*;
+
 /**
  * Manifest constants for bootimage writer.
  *

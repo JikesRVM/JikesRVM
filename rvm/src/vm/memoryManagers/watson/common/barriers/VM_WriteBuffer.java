@@ -3,21 +3,22 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM;
-import VM_Magic;
-import VM_Constants;
-import VM_BootRecord;
-import VM_Processor;
-import VM_Scheduler;
-import VM_Time;
-import VM_Processor;
-import VM_PragmaInterruptible;
-import VM_PragmaUninterruptible;
-import VM_ObjectModel;
-import VM_Address;
-import VM_Thread;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Thread;
 
 /**
  * Write buffers used by the initial set of RVM generational collectors.

@@ -3,12 +3,13 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Address;
-import VM;
-import VM_Memory;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * A container heap with 3 contiguous heaps next to each other

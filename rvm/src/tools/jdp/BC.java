@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /*
  * Simple bytecode mneumonic look up table
  * (extracted from Bowen Alpern's VM_Compiler.java)

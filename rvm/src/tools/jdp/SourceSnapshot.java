@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /*
  * A string buffer that finds and holds a Java source file
  *   understand the Java file convention

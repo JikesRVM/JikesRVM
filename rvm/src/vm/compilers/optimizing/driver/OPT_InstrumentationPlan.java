@@ -3,7 +3,8 @@
  */
 /* $Id$
  */
- /*
+package com.ibm.JikesRVM;
+/*
  * OPT_InstrumentationPlan.java
  *
  * @author Dave Grove

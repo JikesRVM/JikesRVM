@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id:
+package com.ibm.JikesRVM;
 
 /**
  * A description of a java object.
@@ -412,7 +413,7 @@
   /**
    * Only intended to be used by the BootImageWriter
    */
-  void markAsBootImageClass() {
+  public void markAsBootImageClass() {
     inBootImage = true;
   }
 
@@ -620,18 +621,18 @@
     JavaIoSerializableType = (VM_Class) VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"), VM_SystemClassLoader.getVMClassLoader());
     MagicType             = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"), VM_SystemClassLoader.getVMClassLoader());
+      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Magic;"), VM_SystemClassLoader.getVMClassLoader());
     UninterruptibleType   = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"), VM_SystemClassLoader.getVMClassLoader());
+      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Uninterruptible;"), VM_SystemClassLoader.getVMClassLoader());
     SynchronizedObjectType = VM_ClassLoader.findOrCreateType 
-      (VM_Atom.findOrCreateAsciiAtom("LVM_SynchronizedObject;"), VM_SystemClassLoader.getVMClassLoader());
+      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;"), VM_SystemClassLoader.getVMClassLoader());
     DynamicBridgeType     = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"), VM_SystemClassLoader.getVMClassLoader());
+      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;"), VM_SystemClassLoader.getVMClassLoader());
     SaveVolatileType      = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"), VM_SystemClassLoader.getVMClassLoader());
+      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;"), VM_SystemClassLoader.getVMClassLoader());
     NativeBridgeType      = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
-    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Address;"), VM_SystemClassLoader.getVMClassLoader());
+      (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
+    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Address;"), VM_SystemClassLoader.getVMClassLoader());
 
     VM_Array.init();
 

@@ -3,6 +3,7 @@
  */
 //$Id$
 
+
 /**
  * This class handles buffering of live object references on running thread stacks.
  *

@@ -3,6 +3,7 @@
  */
 
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * Information required to start the virtual machine and communicate 
@@ -123,10 +124,10 @@ public class VM_BootRecord {
 
   // RVM startoff
   //
-  int tiRegister;          // value to place into TI register
-  int spRegister;          // value to place into SP register
-  int ipRegister;          // value to place into IP register
-  int tocRegister;         // value to place into TOC register
+  public int tiRegister;          // value to place into TI register
+  public int spRegister;          // value to place into SP register
+  public int ipRegister;          // value to place into IP register
+  public int tocRegister;         // value to place into TOC register
 
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
@@ -151,11 +152,11 @@ public class VM_BootRecord {
   /**
    * jtoc offset of VM_Scheduler.processors[]
    */
-  int processorsOffset;               
+  public int processorsOffset;               
   /**
    * jtoc offset of VM_Scheduler.threads[]
    */
-  int threadsOffset;                  
+  public int threadsOffset;                  
   /**
    * jtoc offset of VM_Scheduler.debugRequested
    */

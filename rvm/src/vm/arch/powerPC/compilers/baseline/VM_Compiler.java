@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
@@ -58,13 +59,13 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
   
   // position of operand stack within method's stackframe.
-  static int getEmptyStackOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getEmptyStackOffset (VM_Method m) throws VM_PragmaUninterruptible {
     int stack = m.getOperandWords()<<2; // maximum stack size
     return getMaxSpillOffset(m) + stack + 4; // last local
   }
   
   // position of locals within method's stackframe.
-  static int getFirstLocalOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getFirstLocalOffset (VM_Method m) throws VM_PragmaUninterruptible {
     int locals = m.getLocalWords()<<2;       // input param words + pure locals
     return getEmptyStackOffset(m) - 4 + locals; // bottom-most local
   }

@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
+
+import  java.io.*;
+import instructionFormats.*;
 
 /**
  * A few common utilites used for invoking BURS tree-pattern matching

@@ -3,6 +3,9 @@
  */
 //OPT_OperatorClass.java
 //$Id$
+
+package com.ibm.JikesRVM;
+
 /**
  * Generated from a template.
  * Consists of an operator class and information about resource usage

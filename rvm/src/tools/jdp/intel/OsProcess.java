@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * Abstract class for the internal and external 
  * implementation of OsProcess
@@ -786,7 +787,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       return null;
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NYieldCount");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NYieldCount");
       temp = Integer.toString( mem.read(threadPointer + field.getOffset()));    // it's a nonstatic field
       result += blanks.substring(1, blanks.length() - temp.length() ) + temp; 
       } catch (BmapNotFoundException e) {
@@ -794,7 +795,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     } 
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NLockFailureCount");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NLockFailureCount");
       temp = Integer.toString( mem.read(threadPointer + field.getOffset()));    // it's a nonstatic field
       result += blanks.substring(1, blanks.length() - temp.length() ) + temp; 
       } catch (BmapNotFoundException e) {
@@ -802,7 +803,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     } 
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NTotalYieldDuration");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.RVM_Thread", "J2NTotalYieldDuration");
       temp = Integer.toString( mem.read(threadPointer + field.getOffset()));    // it's a nonstatic field
       result += blanks.substring(1, blanks.length() - temp.length() ) + temp; 
       } catch (BmapNotFoundException e) {
@@ -810,7 +811,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     } 
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NTotalLockDuration");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NTotalLockDuration");
       temp = Integer.toString( mem.read(threadPointer + field.getOffset()));    // it's a nonstatic field
       result += blanks.substring(1, blanks.length() - temp.length() ) + temp; 
       } catch (BmapNotFoundException e) {
@@ -826,28 +827,28 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       return;
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NYieldCount");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NYieldCount");
       mem.write(threadPointer + field.getOffset(), 0);    // it's a nonstatic field
       } catch (BmapNotFoundException e) {
       throw new Exception("cannot find VM_Thread.threadSlot, has VM_Thread.java been changed?");
     } 
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NLockFailureCount");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NLockFailureCount");
       mem.write(threadPointer + field.getOffset(), 0);    // it's a nonstatic field
       } catch (BmapNotFoundException e) {
       throw new Exception("cannot find VM_Thread.threadSlot, has VM_Thread.java been changed?");
     } 
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NTotalYieldDuration");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NTotalYieldDuration");
       mem.write(threadPointer + field.getOffset(), 0);    // it's a nonstatic field
       } catch (BmapNotFoundException e) {
       throw new Exception("cannot find VM_Thread.threadSlot, has VM_Thread.java been changed?");
     } 
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "J2NTotalLockDuration");
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "J2NTotalLockDuration");
       mem.write(threadPointer + field.getOffset(), 0);    // it's a nonstatic field
       } catch (BmapNotFoundException e) {
       throw new Exception("cannot find VM_Thread.threadSlot, has VM_Thread.java been changed?");
@@ -867,12 +868,12 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     int count = 0;
     int threadPointer;
     try {
-      VM_Field field = bmap.findVMField("VM_Scheduler", "threads");   // get the thread array
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Scheduler", "threads");   // get the thread array
       int address = mem.readTOC(field.getOffset());           // we know it's a static field
       int arraySize = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
 
       // first find the size
-      VM_Field numThreadsField = bmap.findVMField("VM_Scheduler", "numActiveThreads");
+      VM_Field numThreadsField = bmap.findVMField("com.ibm.JikesRVM.VM_Scheduler", "numActiveThreads");
       int numThreadsAddress = mem.addressTOC(numThreadsField.getOffset());
       //System.out.println("numThreadsAddress = " + numThreadsAddress);
       int numThreads = mem.readsafe(numThreadsAddress) + 1;
@@ -900,7 +901,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       return 0;
 
     try {
-      VM_Field field = bmap.findVMField("VM_Scheduler", "threads");   // get the thread array
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Scheduler", "threads");   // get the thread array
       int address = mem.readTOC(field.getOffset());           // we know it's a static field
       int arraySize = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
       return mem.read(address+index*4);
@@ -915,7 +916,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       return 0;
 
     try {
-      VM_Field field = bmap.findVMField("VM_Thread", "threadSlot");   // get the id offset for VM_Thread
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "threadSlot");   // get the id offset for VM_Thread
       int address = mem.read(threadPointer + field.getOffset());    // it's a nonstatic field
       return address;
       } catch (BmapNotFoundException e) {
@@ -985,7 +986,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
 	// get a short thread status
 	if (byClassName) {
-	  VM_Field field = bmap.findVMField("VM_Thread", "threadSlot");
+	  VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "threadSlot");
 	  int fieldOffset = field.getOffset();
 	  int id = mem.read(allThreads[i] + fieldOffset);
 	  result += id + " @" + VM.intAsHexString(allThreads[i]) + "  ";
@@ -1054,12 +1055,12 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
     try {
       // get the list of virtual processors
-      VM_Field field = bmap.findVMField("VM_Scheduler", "processors");   
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Scheduler", "processors");   
       int address = mem.readTOC(field.getOffset());           // we know it's a static field
       int processorCount = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
 
       // get the offset into the readyQueue field
-      field = bmap.findVMField("VM_Processor", "readyQueue");   // get the ready queue
+      field = bmap.findVMField("com.ibm.JikesRVM.VM_Processor", "readyQueue");   // get the ready queue
       int fieldOffset = field.getOffset();
 
       // processor 0 is null, the first real processor is at 1
@@ -1090,7 +1091,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
   public String listWakeupThreads(){
     String queueName = "wakeupQueue";
     try {
-      VM_Field field = bmap.findVMField("VM_Scheduler", queueName);   // get the ready queue
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Scheduler", queueName);   // get the ready queue
       int queuePointer = mem.readTOC(field.getOffset());       // we know it's a static field
 
       return wakeupQueueToString(queuePointer);
@@ -1114,9 +1115,9 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     int thisThreadPointer, headThreadPointer, tailThreadPointer;
     VM_Field field;
     try {
-      field = bmap.findVMField("VM_ThreadQueue", "head");
+      field = bmap.findVMField("com.ibm.JikesRVM.VM_ThreadQueue", "head");
       headThreadPointer = mem.read(queuePointer + field.getOffset());
-      field = bmap.findVMField("VM_ThreadQueue", "tail");
+      field = bmap.findVMField("com.ibm.JikesRVM.VM_ThreadQueue", "tail");
       tailThreadPointer = mem.read(queuePointer + field.getOffset());
       // System.out.println("thread queue " + VM.intAsHexString(queuePointer) +
       //		 ", head " + VM.intAsHexString(headThreadPointer) +
@@ -1127,7 +1128,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 	  count++;
       }      
       while (thisThreadPointer != tailThreadPointer) {
-	field = bmap.findVMField("VM_Thread", "next");
+	field = bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "next");
 	thisThreadPointer = mem.read(thisThreadPointer + field.getOffset());
 	if (thisThreadPointer!=0) {
 	  result += "   " + threadToString(thisThreadPointer) + "\n"; 
@@ -1164,19 +1165,19 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     int thisProxyPointer, thisThreadPointer;
     VM_Field field;
     try {
-      field = bmap.findVMField("VM_ProxyWakeupQueue", "head");
+      field = bmap.findVMField("com.ibm.JikesRVM.VM_ProxyWakeupQueue", "head");
       thisProxyPointer = mem.read(queuePointer + field.getOffset());
       // 	 System.out.println("ready queue " + VM.intAsHexString(queuePointer) +
       // 			    ", head " + VM.intAsHexString(headThreadPointer) +
       // 			    ", tail " + VM.intAsHexString(tailThreadPointer));
       while (thisProxyPointer != 0) {
-	field = bmap.findVMField("VM_Proxy", "thread");
+	field = bmap.findVMField("com.ibm.JikesRVM.VM_Proxy", "thread");
 	thisThreadPointer = mem.read(thisProxyPointer + field.getOffset());
 	if (thisThreadPointer!=0) {
 	  result += "   " + threadToString(thisThreadPointer) + "\n"; 
 	  count++;
 	}
-        field = bmap.findVMField("VM_Proxy", "wakeupNext");
+        field = bmap.findVMField("com.ibm.JikesRVM.VM_Proxy", "wakeupNext");
         thisProxyPointer = mem.read(thisProxyPointer + field.getOffset());
       }
       
@@ -1202,7 +1203,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
   public String listGCThreads() {
     String queueName = "collectorQueue";
     try {
-      VM_Field field = bmap.findVMField("VM_Scheduler", queueName);   // get the ready queue
+      VM_Field field = bmap.findVMField("com.ibm.JikesRVM.VM_Scheduler", queueName);   // get the ready queue
       int queuePointer = mem.readTOC(field.getOffset());       // we know it's a static field
 
       return "GC threads: \n" + threadQueueToString(queuePointer);

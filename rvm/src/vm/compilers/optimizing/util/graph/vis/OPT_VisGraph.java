@@ -3,6 +3,7 @@
  */
 //OPT_VisGraph.java
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
 

@@ -3,6 +3,7 @@
  */
 //OPT_VCG.java
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
 import java.util.Hashtable;

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -51,14 +52,14 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Space required by this method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  final int getParameterWords() throws VM_PragmaUninterruptible {
+  public final int getParameterWords() throws VM_PragmaUninterruptible {
     return parameterWords;
   }
 
   /**
    * Has machine code been generated for this method's bytecodes?
    */
-  final boolean isCompiled() {
+  public final boolean isCompiled() {
     if (VM.VerifyAssertions) 
       VM.assert(!declaringClass.isLoaded() || isLoaded());
     return currentCompiledMethod != null;
@@ -176,7 +177,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   /**
    * Not implemented in java?
    */
-  final boolean isNative() throws VM_PragmaUninterruptible {
+  public final boolean isNative() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_NATIVE) != 0;
@@ -195,7 +196,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
-  final int getLocalWords() throws VM_PragmaUninterruptible {
+  public final int getLocalWords() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return localWords;
@@ -228,7 +229,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Bytecodes to be executed by this method.
    * @return bytecodes (null --> native or abstract: no code)
    */
-  final byte[] getBytecodes() throws VM_PragmaUninterruptible {
+  public final byte[] getBytecodes() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return bytecodes;
@@ -246,7 +247,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Local variables defined by this method.
    * @return info (null --> no locals or method wasn't compiled with "-g")
    */
-  final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
+  public final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return localVariables;
@@ -525,7 +526,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Note: this method is for use by VM_Interpreter. 
    * It is not needed for the core vm.
    */ 
-  final int findCatchBlockForBytecode(int pc, VM_Type exceptionType) {
+  public final int findCatchBlockForBytecode(int pc, VM_Type exceptionType) {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     if (VM.VerifyAssertions) VM.assert(declaringClass.isInstantiated());
     if (VM.VerifyAssertions) VM.assert(exceptionType.isInstantiated());

@@ -3,6 +3,7 @@
  */
 //VM_BytecodeStream.java
 //$Id$
+package com.ibm.JikesRVM;
 /**
  * VM_BytecodeStream.java
  *

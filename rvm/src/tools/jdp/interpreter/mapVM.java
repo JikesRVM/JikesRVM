@@ -49,6 +49,7 @@
 import Platform;
 import java.util.*;
 import java.io.*;
+import com.ibm.JikesRVM.*;
 
 class mapVM implements JDPServiceInterface {
   // init flag
@@ -90,20 +91,20 @@ class mapVM implements JDPServiceInterface {
   // Cached pointers to dictionaries
   // These are the values in the TOC entries at the index above
   // they may change due to GC, so they should be reloaded at the proper interval
-  static int AtomDictionary_keys     ;  //  [LVM_Atom;
-  static int AtomDictionary_values   ;  //  [LVM_Atom;
+  static int AtomDictionary_keys     ;  //  [Lcom/ibm/JikesRVM/VM_Atom;
+  static int AtomDictionary_values   ;  //  [Lcom/ibm/JikesRVM/VM_Atom;
   static int AtomDictionary_nextId   ;  //  I
   static int AtomDictionary_chains   ;  //  [[I
-  static int MethodDictionary_keys   ;  //  [LVM_Triplet;
-  static int MethodDictionary_values ;  //  [LVM_Method;
+  static int MethodDictionary_keys   ;  //  [Lcom/ibm/JikesRVM/VM_Triplet;
+  static int MethodDictionary_values ;  //  [Lcom/ibm/JikesRVM/VM_Method;
   static int MethodDictionary_nextId ;  //  I
   static int MethodDictionary_chains ;  //  [[I
-  static int TypeDictionary_keys     ;  //  [LVM_Atom;
-  static int TypeDictionary_values   ;  //  [LVM_Type;
+  static int TypeDictionary_keys     ;  //  [Lcom/ibm/JikesRVM/VM_Atom;
+  static int TypeDictionary_values   ;  //  [Lcom/ibm/JikesRVM/VM_Type;
   static int TypeDictionary_nextId   ;  //  I
   static int TypeDictionary_chains   ;  //  [[I
-  static int FieldDictionary_keys    ;  //  [LVM_Triplet;
-  static int FieldDictionary_values  ;  //  [LVM_Field;
+  static int FieldDictionary_keys    ;  //  [Lcom/ibm/JikesRVM/VM_Triplet;
+  static int FieldDictionary_values  ;  //  [Lcom/ibm/JikesRVM/VM_Field;
   static int FieldDictionary_nextId  ;  //  I
   static int FieldDictionary_chains  ;  //  [[I
 
@@ -146,25 +147,25 @@ class mapVM implements JDPServiceInterface {
       // mapVMClass = InterpreterBase.forName("mapVM");
 
       // save the offset values for VM_Field object to be used later
-      VM_Field field = BootMap.findVMField("LVM_Field;", "offset");
+      VM_Field field = BootMap.findVMField("com.ibm.JikesRVM.VM_Field;", "offset");
       VMFieldOffset_offset = field.getOffset();
-      field = BootMap.findVMField("LVM_Field;", "type");
+      field = BootMap.findVMField("com.ibm.JikesRVM.VM_Field", "type");
       VMFieldType_offset = field.getOffset();
 
       // save the offset values for VM_Class object to be used later
-      field = BootMap.findVMField("LVM_Class;", "constantPool");
+      field = BootMap.findVMField("com.ibm.JikesRVM.VM_Class", "constantPool");
       VMClassConstantPool_offset = field.getOffset();
-      field = BootMap.findVMField("LVM_Class;", "superClass");
+      field = BootMap.findVMField("Lcom/ibm/JikesRVM/VM_Class;", "superClass");
       VMClassSuper_offset = field.getOffset();
-      field = BootMap.findVMField("VM_Class", "descriptor");
+      field = BootMap.findVMField("Lcom/ibm/JikesRVM/VM_Class;", "descriptor");
       VMClassName_offset = field.getOffset();
 
       // save the offset values for VM_Atom object to be used later
-      field = BootMap.findVMField("LVM_Atom;", "val");
+      field = BootMap.findVMField("Lcom/ibm/JikesRVM/VM_Atom;", "val");
       VMAtomVal_offset = field.getOffset();
 
       // save the offset values for VM_Type object to be used later
-      field = BootMap.findVMField("LVM_Type;", "descriptor");
+      field = BootMap.findVMField("Lcom/ibm/JikesRVM/VM_Type;", "descriptor");
       VMTypeDescriptor_offset = field.getOffset();
 
     // } catch (VM_ResolutionException e) {
@@ -301,14 +302,14 @@ class mapVM implements JDPServiceInterface {
       // bootstrap for the first time getJTOC is called,
       // assume we stop in a Java stack frame
       if (heapRanges==0) {
-	VM_Field field = BootMap.findVMField("LVM_BootRecord;", "the_boot_record");
+	VM_Field field = BootMap.findVMField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record");
         int bootRecordAddress;
         if (cachedJTOC==0)
           bootRecordAddress = currentJTOC + field.getOffset();
         else
           bootRecordAddress = cachedJTOC + field.getOffset();
 
-        field = BootMap.findVMField("LVM_BootRecord;", "heapRanges");
+        field = BootMap.findVMField("Lcom/ibm/JikesRVM/VM_BootRecord;", "heapRanges");
 	int heapRangesAddress = bootRecordAddress + field.getOffset();
 	heapRanges = Platform.readmem(heapRangesAddress);
 
@@ -543,20 +544,20 @@ class mapVM implements JDPServiceInterface {
     /* If a primitive value is to be returned, read it directly and return */
     /* If an object is to be returned, wrap it with the address and return */
 
-    if (clsName.equals("VM_AtomDictionary")) {
+    if (clsName.equals("com.ibm.JikesRVM.VM_AtomDictionary")) {
       if (mthName.equals("getKeysPointer")) {
-	/* expect [LVM_Atom; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Atom; */
 	return (Object) (new mapVM(returnType, AtomDictionary_keys, PointerSize));
       } else if (mthName.equals("getChainsPointer")) {
 	/* expect [[I */
 	return (Object) (new mapVM(returnType, AtomDictionary_chains, PointerSize));
       } else if (mthName.equals("getValuesPointer")) {
-	/* expect [LVM_Atom; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Atom; */
 	return (Object) (new mapVM(returnType, AtomDictionary_values, PointerSize));
       }
     } 
 
-    if (clsName.equals("VM_MethodDictionary")) {
+    if (clsName.equals("com.ibm.JikesRVM.VM_MethodDictionary")) {
       if (mthName.equals("getKeysPointer")) {
 	/* expect [VM_Triplet; */
 	return (Object) (new mapVM(returnType, MethodDictionary_keys, PointerSize));
@@ -564,34 +565,34 @@ class mapVM implements JDPServiceInterface {
 	/* expect [[I */
 	return (Object) (new mapVM(returnType, MethodDictionary_chains, PointerSize));
       } else if (mthName.equals("getValuesPointer")) {
-	/* expect [LVM_Method; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Method; */
 	return (Object) (new mapVM(returnType, MethodDictionary_values, PointerSize));
       }
     }
 
 
-    if (clsName.equals("VM_TypeDictionary")) {
+    if (clsName.equals("com.ibm.JikesRVM.VM_TypeDictionary")) {
       if (mthName.equals("getKeysPointer")) {
-	/* expect [LVM_Atom; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Atom; */
 	return (Object) (new mapVM(returnType, TypeDictionary_keys, PointerSize));
       } else if (mthName.equals("getChainsPointer")) {
 	/* expect [[I */
 	return (Object) (new mapVM(returnType, TypeDictionary_chains, PointerSize));
       } else if (mthName.equals("getValuesPointer")) {
-	/* expect [LVM_Type; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Type; */
 	return (Object) (new mapVM(returnType, TypeDictionary_values, PointerSize));
       }
     }
 
-    if (clsName.equals("VM_FieldDictionary")) {
+    if (clsName.equals("com.ibm.JikesRVM.VM_FieldDictionary")) {
       if (mthName.equals("getKeysPointer")) {
-	/* expect [LVM_Triplet; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Triplet; */
 	return (Object) (new mapVM(returnType, FieldDictionary_keys, PointerSize));
       } else if (mthName.equals("getChainsPointer")) {
 	/* expect [[I */
 	return (Object) (new mapVM(returnType, FieldDictionary_chains, PointerSize));
       } else if (mthName.equals("getValuesPointer")) {
-	/* expect [LVM_Field; */
+	/* expect [Lcom/ibm/JikesRVM/VM_Field; */
 	return (Object) (new mapVM(returnType, FieldDictionary_values, PointerSize));
       }
     }
@@ -632,7 +633,7 @@ class mapVM implements JDPServiceInterface {
   static int getMappedPrimitive(VM_Class cls, VM_Method mth) {
     String clsName = cls.getName().toString();
     String mthName = mth.getName().toString();
-    if (clsName.equals("VM_AtomDictionary")) {
+    if (clsName.equals("com.ibm.JikesRVM.VM_AtomDictionary")) {
       if (mthName.equals("getValue")) {
 	/* expect I */
 	System.out.println("getMappedObject: accessing primitive value");

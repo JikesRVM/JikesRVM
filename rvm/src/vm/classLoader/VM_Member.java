@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.io.IOException;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
+public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
   //-----------//
   // Interface //
   //-----------//
@@ -183,7 +184,7 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * @see VM_Class#getLiteralOffset
    * to obtain offset of constant from start of jtoc
    */ 
-  abstract int getOffset() throws VM_PragmaUninterruptible ;
+  public abstract int getOffset() throws VM_PragmaUninterruptible ;
    
   //----------------//
   // Implementation //

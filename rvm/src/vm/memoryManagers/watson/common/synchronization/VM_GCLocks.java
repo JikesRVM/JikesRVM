@@ -3,14 +3,15 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Magic;
-import VM_Scheduler;
-import VM_Constants;
-import VM_Synchronization;
-import VM_Memory;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Manages a set of lockwords used by the collection threads during 

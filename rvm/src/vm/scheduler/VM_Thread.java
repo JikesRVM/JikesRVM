@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
@@ -702,7 +703,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Get this thread's id for use in lock ownership tests.
    */ 
-  final int getLockingId() { return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; }
+  public final int getLockingId() { return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; }
   
   //------------------------------------------//
   // Interface to memory management subsystem //

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+package com.ibm.JikesRVM;
 
 /**
  * Registers used by baseline compiler implementation of virtual machine.
@@ -10,7 +11,7 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-interface VM_BaselineConstants extends VM_Constants {
+public interface VM_BaselineConstants extends VM_Constants {
   
   static final int    WORDSIZE = 4; // bytes
   static final int LG_WORDSIZE = 2; 

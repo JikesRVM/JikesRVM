@@ -3,6 +3,7 @@
  */
 //$Id$
 
+
 /**
  * See also: allocator/copyingGC/VM_Allocator.java
  * Note: both copying and noncopying versions of VM_Allocator

@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 
+package com.ibm.JikesRVM;
+
 /**
  * Template for a dictionary of key/value pairs.
  *

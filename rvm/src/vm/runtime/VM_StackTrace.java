@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -147,5 +148,5 @@ public class VM_StackTrace implements VM_Constants {
   //----------------//
 
   VM_CompiledMethod compiledMethod;
-  int               instructionOffset;
+  public int               instructionOffset;
 }

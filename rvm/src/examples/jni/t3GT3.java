@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.*;
+
 /**
  * Driver for thread management test in
  * the face of long-running native calls;

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * @author Anthony Cocchi
@@ -425,7 +426,7 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
     return bytesPerMap;
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ReferenceMaps;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   int size() {
     int size = TYPE.getInstanceSize();
     if (MCSites != null) size += VM_Array.arrayOfIntType.getInstanceSize(MCSites.length);

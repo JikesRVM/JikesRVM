@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
@@ -56,7 +57,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 					    //-#endif
 {
 
-  private static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
   // TIB + STATUS + OTHER_HEADER_BYTES
   private static final int SCALAR_HEADER_SIZE = 8 + OTHER_HEADER_BYTES;
   // SCALAR_HEADER + ARRAY LENGTH;
@@ -78,18 +78,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   private static final int HASH_CODE_SHIFT = 2;
   private static int hashCodeGenerator; // seed for generating hash codes with copying collectors.
 
-  /*
-   * Stuff for address based hashing
-   */
-  private static final int HASH_STATE_UNHASHED         = 0x00000000;
-  private static final int HASH_STATE_HASHED           = 0x00000100;
-  private static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
-  private static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
-  private static final int HASHCODE_SCALAR_OFFSET      = -4; // in "phantom word"
-  private static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
-  private static final int HASHCODE_BYTES              = 4;
-
-  
   /** How many bits are allocated to a thin lock? */
   public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 22 : 20;
   /** How many bits to shift to get the thin lock? */

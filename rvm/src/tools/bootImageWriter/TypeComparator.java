@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.*;
+
 /**
  * @author Perry Cheng
  */

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * @author Julian Dolby
@@ -164,7 +165,7 @@ implements VM_BaselineConstants, VM_DynamicBridge
   static public INSTRUCTION[] getLazySpecializerInstructions() {
     if (lazySpecializerInstructions == null) {
       VM_Member member = 
-        VM.getMember("LVM_LazySpecializationTrampoline;",
+        VM.getMember("Lcom/ibm/JikesRVM/VM_LazySpecializationTrampoline;",
                      "lazySpecializationTrampoline", 
                      "()V");
 

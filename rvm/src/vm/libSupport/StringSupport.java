@@ -3,9 +3,10 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.librarySupport;
-import VM_Atom;
-import VM_Statics;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Statics;
 
 /**
  * This class provides a set of static method entrypoints used in the

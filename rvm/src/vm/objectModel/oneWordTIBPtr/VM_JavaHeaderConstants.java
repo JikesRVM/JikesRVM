@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$ 
+package com.ibm.JikesRVM;
 
 /**
  * Defines other header words not used for 

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /**
  * Maintain a list of breakpoints:
  * If used for thread stepping breakpoint, the index is the thread index

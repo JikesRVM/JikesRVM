@@ -11,6 +11,7 @@
  * DO NOT MANUALLY EDIT THE JAVA FILE.
  */
 
+package com.ibm.JikesRVM;
 import instructionFormats.*;
 
 /**

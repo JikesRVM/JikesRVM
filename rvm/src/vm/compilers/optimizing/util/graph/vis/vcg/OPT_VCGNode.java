@@ -3,6 +3,7 @@
  */
 //OPT_VCGNode.java
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * OPT_VCGNode provides the minimum set of routines for printing a graph

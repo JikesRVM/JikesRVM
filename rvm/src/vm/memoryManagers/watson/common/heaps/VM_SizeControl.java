@@ -3,18 +3,19 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM;
-import VM_Constants;
-import VM_Address;
-import VM_ObjectModel;
-import VM_ClassLoader;
-import VM_SystemClassLoader;
-import VM_Atom;
-import VM_Type;
-import VM_Class;
-import VM_Array;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_Atom;
+import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.VM_Class;
+import com.ibm.JikesRVM.VM_Array;
 
 /**
  * An array of VM_SizeControls - one for each slotsize (see VM_GCConstants.java)

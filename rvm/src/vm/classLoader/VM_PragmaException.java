@@ -3,6 +3,7 @@
  */
 
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Base class for dummy unchecked exceptions that will be used in method

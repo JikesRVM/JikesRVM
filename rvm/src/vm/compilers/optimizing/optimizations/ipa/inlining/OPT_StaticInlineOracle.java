@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 /**
  * Inlining oracle using static size heuristics during on-the-fly compilation.
@@ -9,7 +10,7 @@
  * @author Stephen Fink
  * @author Dave Grove
  */
-final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
+public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
   OPT_StaticInlineOracle () {}
 

@@ -3,13 +3,14 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import BootImageInterface;
-import VM_PragmaInline;
-import VM_PragmaNoInline;
-import VM_PragmaLogicallyUninterruptible;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.BootImageInterface;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Defines header words used by memory manager.not used for 

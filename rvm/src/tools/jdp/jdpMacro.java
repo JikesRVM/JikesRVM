@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /*
  *   A string buffer that holds jdp command for macro processing
  *   This can be nested for nested macro

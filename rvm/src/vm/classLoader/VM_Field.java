@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
   /**
    * Get size of this field's value, in bytes.
    */ 
-  final int getSize() throws VM_PragmaUninterruptible {
+  public final int getSize() throws VM_PragmaUninterruptible {
     return type.getStackWords() << 2;
   }
 

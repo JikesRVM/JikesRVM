@@ -2,12 +2,15 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+import com.ibm.JikesRVM.*;
 /**
  * Test GC with Native frames on stack
  *
  * @author Ton Ngo, Steve Smith 
  * @date   3/29/00
  */
+
 
 class TestGC {
   static boolean verbose = true;         // set to true to get messages for each test

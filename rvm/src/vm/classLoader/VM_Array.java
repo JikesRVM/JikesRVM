@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
@@ -52,7 +53,7 @@ public final class VM_Array extends VM_Type
   }
 
   // Convenience method.
-  final VM_Type getInnermostElementType() throws VM_PragmaUninterruptible {
+  public final VM_Type getInnermostElementType() throws VM_PragmaUninterruptible {
     return innermostElementType;
   }
       
@@ -60,7 +61,7 @@ public final class VM_Array extends VM_Type
    * Size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
    */
-  final int getLogElementSize() throws VM_PragmaUninterruptible {
+  public final int getLogElementSize() throws VM_PragmaUninterruptible {
     switch (getDescriptor().parseForArrayElementTypeCode()) 
       {
       case VM_Atom.ClassTypeCode:   return 2;

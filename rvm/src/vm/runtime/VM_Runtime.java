@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
@@ -50,16 +51,16 @@ public class VM_Runtime implements VM_Constants {
    
   // Trap codes for communication with C trap handler.
   //
-  static final int TRAP_UNKNOWN        = -1;
-  static final int TRAP_NULL_POINTER   =  0;
-  static final int TRAP_ARRAY_BOUNDS   =  1;
-  static final int TRAP_DIVIDE_BY_ZERO =  2;
-  static final int TRAP_STACK_OVERFLOW =  3;
-  static final int TRAP_CHECKCAST      =  4; // opt-compiler
-  static final int TRAP_REGENERATE     =  5; // opt-compiler
-  static final int TRAP_JNI_STACK      =  6; // jni
-  static final int TRAP_MUST_IMPLEMENT =  7; 
-  static final int TRAP_STORE_CHECK    =  8; 
+  public static final int TRAP_UNKNOWN        = -1;
+  public static final int TRAP_NULL_POINTER   =  0;
+  public static final int TRAP_ARRAY_BOUNDS   =  1;
+  public static final int TRAP_DIVIDE_BY_ZERO =  2;
+  public static final int TRAP_STACK_OVERFLOW =  3;
+  public static final int TRAP_CHECKCAST      =  4; // opt-compiler
+  public static final int TRAP_REGENERATE     =  5; // opt-compiler
+  public static final int TRAP_JNI_STACK      =  6; // jni
+  public static final int TRAP_MUST_IMPLEMENT =  7; 
+  public static final int TRAP_STORE_CHECK    =  8; 
    
   //---------------------------------------------------------------//
   //                     Type Checking.                            //

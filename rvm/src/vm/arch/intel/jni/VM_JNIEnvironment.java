@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import java.lang.reflect.*;
 import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
@@ -99,7 +100,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
     // fill in the IP entries for each AIX linkage triplet
     try {
-      VM_Class cls = VM_Class.forName("VM_JNIFunctions");
+      VM_Class cls = VM_Class.forName("com.ibm.JikesRVM.VM_JNIFunctions");
       VM_Method[] mths = cls.getDeclaredMethods();
       for (int i=0; i<mths.length; i++) {
 	String methodName = mths[i].getName().toString();

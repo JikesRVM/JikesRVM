@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+import com.ibm.JikesRVM.*;
 /*
  * This is the abstract class for the internal and external 
  * implementation of register
@@ -171,10 +172,10 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     try {
       // the register field (nonstatic)
       int threadPointer = owner.getVMThreadForIndex(threadID);
-      VM_Field field = owner.bmap.findVMField("VM_Thread", "contextRegisters");   
+      VM_Field field = owner.bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "contextRegisters");   
       int address = owner.mem.read(threadPointer + field.getOffset());    
       // the GPR's field
-      field = owner.bmap.findVMField("VM_Registers", "gprs");          
+      field = owner.bmap.findVMField("com.ibm.JikesRVM.VM_Registers", "gprs");          
       address = owner.mem.read(address + field.getOffset());        
       // now read the array of saved registers
       int regs[] = new int[32];
@@ -216,10 +217,10 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     try {
       // the register field (nonstatic)
       int threadPointer = owner.getVMThreadForIndex(threadID);
-      VM_Field field = owner.bmap.findVMField("VM_Thread", "contextRegisters");   
+      VM_Field field = owner.bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "contextRegisters");   
       int address = owner.mem.read(threadPointer + field.getOffset());    
       // the GPR's field
-      field = owner.bmap.findVMField("VM_Registers", "fprs");          
+      field = owner.bmap.findVMField("com.ibm.JikesRVM.VM_Registers", "fprs");          
       address = owner.mem.read(address + field.getOffset());        
       // now read the array of saved registers
       double regs[] = new double[32];
@@ -283,10 +284,10 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     try {
       // the register field (nonstatic)
       int threadPointer = owner.getVMThreadForIndex(threadID);
-      VM_Field field = owner.bmap.findVMField("VM_Thread", "contextRegisters");   
+      VM_Field field = owner.bmap.findVMField("com.ibm.JikesRVM.VM_Thread", "contextRegisters");   
       int address = owner.mem.read(threadPointer + field.getOffset());    
       // the GPR's field
-      field = owner.bmap.findVMField("VM_Registers", "lr");          
+      field = owner.bmap.findVMField("com.ibm.JikesRVM.VM_Registers", "lr");          
       address = owner.mem.read(address + field.getOffset());        
       // now read the saved link register	
       return owner.mem.read(address);

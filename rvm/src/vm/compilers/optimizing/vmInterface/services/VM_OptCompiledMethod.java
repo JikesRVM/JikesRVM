@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+package com.ibm.JikesRVM;
 
 import instructionFormats.*;
 
@@ -221,7 +222,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   public final int size() throws VM_PragmaInterruptible {
     int size = TYPE.getInstanceSize();
     size += _mcMap.size();

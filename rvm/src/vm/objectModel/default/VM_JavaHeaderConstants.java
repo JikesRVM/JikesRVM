@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$ 
+package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.*;
 
 /**
  * Constants for the JavaHeader. 
@@ -36,4 +39,17 @@ public interface VM_JavaHeaderConstants {
    */
   static final boolean FORWARDING_PTR_OVERLAYS_TIB = false;
 
+  static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
+
+  /*
+   * Stuff for address based hashing
+   */
+  static final int HASH_STATE_UNHASHED         = 0x00000000;
+  static final int HASH_STATE_HASHED           = 0x00000100;
+  static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
+  static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
+  static final int HASHCODE_SCALAR_OFFSET      = -4; // in "phantom word"
+  static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
+  static final int HASHCODE_BYTES              = 4;
+  
 }

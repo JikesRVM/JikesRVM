@@ -3,15 +3,16 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Constants;
-import VM_PragmaUninterruptible;
-import VM_PragmaInline;
-import VM_PragmaNoInline;
-import VM_Processor;
-import VM_Magic;
-import VM_Address;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Address;
 
 /**
  * This class contains the Java code that the opt compiler will

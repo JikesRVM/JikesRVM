@@ -6,6 +6,7 @@
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
+import com.ibm.JikesRVM.*;
 
 /**
  *  <P> Generates the assembler that is used by the optimizing compiler,
@@ -1121,12 +1122,13 @@ public class GenerateAssembler {
 	}
 
 	try {
-	    lowLevelAsm = Class.forName("VM_Assembler");
+	    lowLevelAsm = Class.forName("com.ibm.JikesRVM.VM_Assembler");
 	} catch (ClassNotFoundException e) {
 	    e.printStackTrace();
 	    System.exit( -1 );
 	}
 
+	emit("package com.ibm.JikesRVM;\n\n");
 	emit("import instructionFormats.*;\n\n");
 	emit("\n\n");
 

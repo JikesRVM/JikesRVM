@@ -20,12 +20,12 @@ TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class
 OPCODE_JAVA=$(SCRATCH_DIR)/OPT_OperatorFormatTables.java
 OPCODE_CLASS=$(SCRATCH_DIR)/OPT_OperatorFormatTables.class
 
-VM_ASM_JAVA=$(SCRATCH_DIR)/VM_Assembler.java
-VM_ASM_CLASS=$(SCRATCH_DIR)/VM_Assembler.class
+VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.java
+VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/JikesRVMVM_Assembler.class
 
 FAKES =	VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_PragmaNoInline.fake
 FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES))
-FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/%.java,$(FAKES))
+FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/JikesRVM/%.java,$(FAKES))
 FAKE_CLS = $(patsubst %.java,%.class,$(FAKE_SRC))
 
 SRCS=   $(TABLES_JAVA) \
@@ -47,7 +47,7 @@ $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 $(OPCODE_JAVA):		OPT_OperatorFormatTables.template $(ARCH_OPS)
 	$(GENERATE) OPT_OperatorFormatTables.template `$(HOST_JAVA_PATH_ADJUST) $(OPCODE_JAVA)` OPERATOR_FILE=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_OPS)`
 
-$(SCRATCH_DIR)/%.java:	%.fake
+$(SCRATCH_DIR)/com/ibm/JikesRVM/%.java:	%.fake
 	cp $< $@
 
 assembler:		$(GEN_FILES_DIR)/OPT_Assembler.java

@@ -5,21 +5,21 @@
 
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_Constants;
-import VM_CompiledMethod;
-import VM_BaselineGCMapIterator;
+import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
 //-#if RVM_WITH_OPT_COMPILER
-import VM_OptGCMapIterator;
+import com.ibm.JikesRVM.VM_OptGCMapIterator;
 //-#endif
-import VM_JNIGCMapIterator;
-import VM_HardwareTrapGCMapIterator;
-import VM_Thread;
-import VM;
-import VM_Address;
-import VM_RuntimeCompiler;
-import VM_BootImageCompiler;
-import VM_Magic;
-import VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_JNIGCMapIterator;
+import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
+import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
+import com.ibm.JikesRVM.VM_BootImageCompiler;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Maintains a collection of compiler specific VM_GCMapIterators that are used 

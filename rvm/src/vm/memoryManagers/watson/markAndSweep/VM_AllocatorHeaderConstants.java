@@ -3,9 +3,10 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.memoryManagers;
 
-import VM_JavaHeaderConstants;
+import com.ibm.JikesRVM.VM_JavaHeaderConstants;
 
 /**
  * Define the constants manipulated by VM_CommonAllocatorHeader
