@@ -26,3 +26,6 @@ Print the context of every attempt to print out a stack trace, to debug problems
 TraceClassLoading false verboseTraceClassLoading
 More detailed tracing then -verbose:class
 
+ErrorsFatal false errorsFatal
+Exit when non-fatal errors are detected; used for regression testing
+

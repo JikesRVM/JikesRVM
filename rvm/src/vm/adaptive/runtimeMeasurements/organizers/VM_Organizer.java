@@ -44,7 +44,7 @@ abstract class VM_Organizer extends VM_Thread {
         if (listener != null) listener.reset();
       } catch (Exception e) {
         e.printStackTrace();
-        VM.sysFail("Exception in organizer "+this);
+        if (VM.ErrorsFatal) VM.sysFail("Exception in organizer "+this);
       }
     } 
   }

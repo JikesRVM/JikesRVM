@@ -407,7 +407,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       return optCompile(method, plan);
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_RuntimeCompiler: can't optimize \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
-      if (e.isFatal && options.ERRORS_FATAL) {
+      if (e.isFatal && VM.ErrorsFatal) {
         e.printStackTrace();
         VM.sysFail(msg);
       } else {
@@ -445,7 +445,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         +"(via recompileWithOptOnStackSpecialization): "
         +"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
 
-      if (e.isFatal && plan.options.ERRORS_FATAL) {
+      if (e.isFatal && VM.ErrorsFatal) {
         VM.sysFail(msg);
       } else {
         VM.sysWrite(msg);
@@ -480,7 +480,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
           plan.method.replaceCompiledMethod(cm);
         } catch (Throwable e) {
           String msg = "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" + plan.method + "\" (error was: " + e + ")\n"; 
-          if (plan.options.ERRORS_FATAL) {
+          if (VM.ErrorsFatal) {
             e.printStackTrace();
             VM.sysFail(msg);
           } else {
@@ -491,7 +491,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         return cm.getId();
       } catch (OPT_OptimizingCompilerException e) {
         String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
-        if (e.isFatal && plan.options.ERRORS_FATAL) {
+        if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
           VM.sysFail(msg);
         } else {

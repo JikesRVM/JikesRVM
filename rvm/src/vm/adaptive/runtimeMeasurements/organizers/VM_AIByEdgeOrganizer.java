@@ -174,12 +174,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
               VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
               VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-              e.printStackTrace(); caller = stackFrameCaller;
+              e.printStackTrace();
+              if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
+              caller = stackFrameCaller;
               continue;  // skip sample
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
                         stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
-                 VM.sysWrite("!\n");
+            VM.sysWrite("!\n");
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
           
@@ -188,12 +191,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
             VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
                  VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-            e.printStackTrace(); caller = stackFrameCaller;
+            e.printStackTrace();
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
+            caller = stackFrameCaller;
             continue;
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
                         stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
-                 VM.sysWrite("!\n");
+            VM.sysWrite("!\n");
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
 
@@ -304,8 +310,9 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
              VM.sysWrite("ERROR in adaptive system! Exception caught!\n");
              VM.sysWrite(" AI Organizer considering edge "+triple+
                          " to be inlined into "
-                           +hotMethod.getMethod()+"\n");
+                         +hotMethod.getMethod()+"\n");
              e.printStackTrace();
+             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
            }
          }
        }
