@@ -269,12 +269,6 @@ while [ $# != 0 ]; do
    shift
 done
 
-#
-# Some common command line arguments
-#
-DEFAULT_ADAPTIVE_RC_ARGS="-X:recomp:errors_fatal=true -X:aos:logging_level=1"
-OPT_JIT_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt"
-
 # Name of current configuration being tested.
 #
 NAME="NoName"
@@ -452,7 +446,8 @@ function doRun {
     # Determine which set of runtime arguments to pass
     case $NAME in
 
-	*Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS 
+	*Adaptive*|prototype-opt|production|development )
+            export RC_ARGS="-X:recomp:errors_fatal=true -X:aos:logging_level=1 -X:aos:lf=AOSLog.$NAME.txt"
 	    ;;
 
 	* ) # baseline must be the runtime compiler - no default options yet
@@ -576,7 +571,7 @@ function doTests {
    
 function doOptLevelTests {
     for OPT_LEVEL in $OPT_LEVELS; do
-	export OPT_LEVEL_ARGS="$OPT_JIT_ARGS -X:irc:$OPT_LEVEL"
+	export OPT_LEVEL_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:$OPT_LEVEL"
 	doTests
     done
 }
