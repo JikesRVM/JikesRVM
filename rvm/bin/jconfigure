@@ -2006,7 +2006,7 @@ function emitBooterLinker () {
    echo ""
 
    if [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]]; then
-     echo '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --check'
+       echo '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --check'
    fi
 
    # copy native libraries
@@ -2020,14 +2020,17 @@ function emitBooterLinker () {
    ## so that dlopen() will find them.  Also, the classpath builder, on AIX,
    ## generates the files with the suffix ".so.0".  We transform one to the othr.
    if (( RVM_FOR_AIX )); then
-     echo 'for _library in' $CPS/'$SYSTEM_TYPE/native/jni/*/.libs/*.so.0; do'
-     echo '    cp $_library' $BUILD_DIRECTORY_STR'/$(basename ${_library} .so.0)a'
-     echo 'done'
+       echo 'for _library in' $CPS/'$SYSTEM_TYPE/native/jni/*/.libs/*.so.0; do'
+       echo '    oldbase=$(basename ${_library} .so.0)'
+       echo '    dest_lib='${BUILD_DIRECTORY_STR}'/${oldbase}.a'
+       echo '    cp $_library $dest_lib'
+       echo 'done'
+       echo 'unset oldbase dest_lib _library'
    else
        ## On Linux, on the other hand, dynamically loaded libraries end in 
        ## .so.  The classpath builder conveniently generates them 
        ## with this suffix.
-     echo 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
+       echo 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
    fi
    echo -e "\necho -n '(classpath native libraries copied) '"
 
