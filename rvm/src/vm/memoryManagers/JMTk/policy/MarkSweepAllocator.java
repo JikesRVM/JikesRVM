@@ -189,7 +189,7 @@ final class MarkSweepAllocator extends BaseFreeList
     while (!cell.isZero()) {
       VM_Address next = MarkSweepCollector.getNextTreadmill(cell);
       VM_Address sp =  getSuperPage(cell, false);
-      freeSuperPage(sp, LARGE_SIZE_CLASS, true);
+      free(cell, sp, LARGE_SIZE_CLASS);
       cell = next;
     }
     treadmillFromHead = treadmillToHead;
