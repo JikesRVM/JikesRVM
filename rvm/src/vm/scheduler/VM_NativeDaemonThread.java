@@ -235,7 +235,7 @@ class VM_NativeDaemonThread extends VM_Thread {
      while (VM_Processor.vpStatus[nativeProcessor.vpStatusIndex] ==
 	    VM_Processor.BLOCKED_IN_NATIVE) {
        // just spin - we are running on a separate pthread
-       if (VM.VerifyAssertions && (loopCount++%100000==0))
+       if (VM.VerifyAssertions && (loopCount++ % 100000 == 0))
 	 if (trace) VM_Scheduler.trace("NDT","waiting for native VP to unblock, count =",loopCount);
      }
 	
