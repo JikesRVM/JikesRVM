@@ -193,7 +193,6 @@ abstract class VM_BaselineCompiler {
     if (shouldPrint) printStartHeader(method);
     VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, stackHeights);
     VM_MachineCode  machineCode  = genCode();
-    if (shouldPrint) printEndHeader(method);
 
     INSTRUCTION[]   instructions = machineCode.getInstructions();
     int[]           bytecodeMap  = machineCode.getBytecodeMap();
@@ -202,6 +201,10 @@ abstract class VM_BaselineCompiler {
     }
     compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
     compiledMethod.compileComplete(instructions);
+    if (shouldPrint) {
+      compiledMethod.printExceptionTable();
+      printEndHeader(method);
+    }
   }
 
 
