@@ -29,6 +29,10 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return JNI; 
   }
 
+  public final String getCompilerName() {
+    return "JNI compiler";
+  }
+
   public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);

@@ -70,6 +70,10 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     return BASELINE;
   }
 
+  public final String getCompilerName() {
+    return "baseline compiler";
+  }
+
   public final VM_ExceptionDeliverer getExceptionDeliverer () throws VM_PragmaUninterruptible {
     return exceptionDeliverer;
   }

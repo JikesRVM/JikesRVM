@@ -38,6 +38,13 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   }
 
   /**
+   * @return Name of the compiler that produced this compiled method.
+   */ 
+  public final String getCompilerName() {
+    return "optimizing compiler";
+  }
+
+  /**
    * Get handler to deal with stack unwinding and exception delivery 
    * for this method's stackframes.
    */

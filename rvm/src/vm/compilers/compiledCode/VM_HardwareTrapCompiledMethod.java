@@ -24,6 +24,10 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return TRAP; 
   }
 
+  public final String getCompilerName() {
+    return "<hardware trap>";
+  }
+
   public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame

@@ -201,6 +201,11 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   public abstract int getCompilerType() throws VM_PragmaUninterruptible;
 
   /**
+   * @return Name of the compiler that produced this compiled method.
+   */ 
+  public abstract String getCompilerName();
+
+  /**
    * Get handler to deal with stack unwinding and exception delivery for this 
    * compiled method's stackframes.
    */ 
