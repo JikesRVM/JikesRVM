@@ -169,11 +169,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM_Processor [] origProcs = processors;
     processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
 
-    //-#if RVM_WITH_HPM
-    // boot primordial virtual processor's HPM producer
-    primordialProcessor.hpm.boot();    
-    //-#endif
-
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
 	VM_Processor p = (i < origProcs.length) ? origProcs[i] : null;
 	if (p == null) 
