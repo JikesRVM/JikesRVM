@@ -79,7 +79,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
               int index = dc.index;
               if (index == 0) {
-                index = VM_Statics.findOrCreateDoubleLiteral(VM_Magic.doubleAsLongBits(dc.value));
+                index = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
               }
 	      int offset = index << 2;
 	      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
@@ -91,7 +91,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
               int index = fc.index;
               if (index == 0) {
-                index = VM_Statics.findOrCreateFloatLiteral(VM_Magic.floatAsIntBits(fc.value));
+                index = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
               }
 	      int offset = index << 2;
 	      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
