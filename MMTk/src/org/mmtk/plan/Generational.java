@@ -401,7 +401,7 @@ public abstract class Generational extends StopTheWorldGC
 	return Copy.traceObject(obj);
       else if (fullHeapGC) {
 	if (addr.GE(MATURE_START))
-	  return Plan.traceMatureObject(obj);
+	  return Plan.traceMatureObject(obj, addr);
 	else if (Plan.usesLOS && addr.GE(LOS_START))
 	  return losCollector.traceObject(obj);
 	else if (addr.GE(IMMORTAL_START))

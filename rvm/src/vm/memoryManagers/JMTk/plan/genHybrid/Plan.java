@@ -145,7 +145,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
   // Object processing and tracing
   //
 
-  protected static final VM_Address traceMatureObject(VM_Address obj) {
+  protected static final VM_Address traceMatureObject(VM_Address obj,
+						      VM_Address addr) {
     return matureCollector.traceObject(obj);
   }
 
