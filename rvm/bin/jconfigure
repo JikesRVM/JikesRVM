@@ -784,8 +784,10 @@ function emitBoilerplate () {
 	EOF
     emit_enable_exit_on_error
 	# tracing() takes 0 or 1 arguments.
+
 	# The trace argument can be:
-	# -trace		 (gets most things but for some of the bootimagewriter)
+	# -trace		 (gets most things but skips the thousands of
+        #			  lines of bootimagewriter output)
 	# -trace=ant		# Just ant is of interest
 	# -trace=jbuild		# high-level
 	# 
@@ -793,10 +795,10 @@ function emitBoilerplate () {
 	# TRACE_FLAG: (empty)  # only if nothing was said
 	# TRACE_FLAG: ,no-all,
 	# TRACE_FLAG: ,-trace,
-	# We can be tracing:
-	# preprocessor,make,BootImageWriter,ant,jbuild
+	# We can be tracing any of the following
+	#	preprocessor,make,BootImageWriter,ant,jbuild
 	# As well as the groups:
-	# most,all
+	#	most,all
 	# See the help message in "jbuild -help" for more info.
 
 	# Returns true (exit 0) if we are tracing
@@ -805,34 +807,39 @@ function emitBoilerplate () {
 	function tracing() {
 	    [[ $TRACE_FLAG ]] || return 1
 
-	    local -i dflt=0	# default answer, true.
+	    local -i dflt=1      # default answer, false  (using exit codes)
 	    # Canonicalize.
 	    if [[ $TRACE_FLAG != ,*, ]]; then
-	        if [[ $TRACE_FLAG = -trace ]]; then
-	            TRACE_FLAG=,most,
-	        elif [[ $TRACE_FLAG != -trace=* ]]; then
-	            echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\".   Aborting execution."
-	            trap '' EXIT
-	            kill $$
-	        else
-		    # It's -trace=
-	            TRACE_FLAG=",${TRACE_FLAG#-trace=},";
-	        fi
-	        TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
-	        TRACE_FLAG=${TRACE_FLAG/,most,/,preprocessor,make,no-BootImageWriter,ant,jbuild,}
+		if [[ $TRACE_FLAG = -trace ]]; then
+		    TRACE_FLAG=,most,
+		elif [[ $TRACE_FLAG != -trace=* ]]; then
+		    echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\".   Aborting execution."
+		    trap '' EXIT
+		    kill $$
+		else
+	    # It's -trace=<something>
+		    TRACE_FLAG=",${TRACE_FLAG#-trace=},";
+		fi
+		# Actually, though, no-all is really a no-op, since we only trace if
+		# it's explicitly requested.
+		TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
+		TRACE_FLAG=${TRACE_FLAG/,most,/,preprocessor,make,no-BootImageWriter,ant,jbuild,}
 	    fi
-	    if [[ $TRACE_FLAG == *,no-all,* ]]; then
-	            dflt=1	# false
+	    # TRACE_FLAG is now in canonical form.
+	    if [[ $TRACE_FLAG == *,all,* ]]; then
+		dflt=0  # true
 	    fi
 	    if (( $# > 0 )); then
-	        local arg="$1"
-	        # If someone explicitly requested it, then, trace it.
-	        if [[ $TRACE_FLAG == *,${arg},* ]]; then
-	            return 0;
-	        elif [[ $TRACE_FLAG == *,no-${arg},* ]]; then
-	            return 1;
-	        fi
+		local arg="$1"
+		# If an exact match, return YES.
+		if [[ $TRACE_FLAG == *,${arg},* ]]; then
+		    return 0;
+		# If an exact anti-match, return NO
+		elif [[ $TRACE_FLAG == *,no-${arg},* ]]; then
+		    return 1;
+		fi
 	    fi 
+	    # Give in to the default, whatever that is.
 	    return $dflt;
 	}
 	## END inline Bash boilerplate.
@@ -1113,7 +1120,7 @@ function emitController () {
 		    -trace=make:  Make is no longer run with --silent.
 		    -trace=ant:  Ant is no longer run with -quiet.
 		    -trace=preprocessor: Follow the process of running the preprocessor on Java
-		          source code.
+		          source code (and nothing else)
 		    -trace=BootImageWriter: the BootImageWriter sends out lots of information 
 		         (about 9420 lines in a BaseBaseCopyMS build.)  That's why -trace
 		         no longer includes the BootImageWriter output by default.
@@ -2365,7 +2372,7 @@ function emitBooterLinker () {
     echo ""
     echo "rm -f libjni.a"
     echo "cd $SCRATCH_DIRECTORY_STR"
-    echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles"
+    echo "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles disasm.o innpdsm.o"
     echo 'echo -n "(booter cleaned) "'
     echo "if [[ \$CLEAN_FLAG ]]; then"
 
@@ -2411,14 +2418,17 @@ function emitBooterLinker () {
     echo "cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep.target"
 
     # Create RunBootImage.h file.
-    echo "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
-    echo "echo \"const int heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
-    echo "echo \"const int heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
-    echo "echo \"const char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> RunBootImage.h"
-    echo "echo \"const char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
-    echo "echo \"const char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"
-    echo "echo \"const char *rvm_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> RunBootImage.h"
-    echo ""
+    local tgt=RunBootImage.h
+    local tmp=${tgt},tmp
+    echo "echo \"// RunBootImage.C boot-time constants\" >> ${tmp}"
+    echo "echo \"const unsigned heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;\" >> ${tmp}"
+    echo "echo \"const unsigned heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;\" >> ${tmp}"
+    echo "echo \"const char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> ${tmp}"
+    echo "echo \"const char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> ${tmp}"
+    echo "echo \"const char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> ${tmp}"
+    echo "echo \"const char *rvm_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> ${tmp}"
+    echo "{ [[ -f $tgt ]] && cmp -s $tgt $tmp ; } || mv -f $tmp $tgt"
+    echo "rm -f $tmp"
 
     # build the JNI library for creating processes
     echo "cd \${JAL_ROOT}/rvm/src/tools/bootImageRunner/"
@@ -2446,44 +2456,51 @@ function emitBooterLinker () {
 	CC_DEFINES="$CC_DEFINES -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
     else
 	# Build the blocking system call wrapper library, if requested
-	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap'${shlib_suffix}' CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap'${shlib_suffix}
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap'${shlib_suffix}' CXXFLAGS+="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap'${shlib_suffix}
     fi
 
+    echo "BOOTER_CXX=run_booter_cxx"
+    # Generate information useful for GNU Emacs.
+    echo "\
+function run () {
+    ! tracing make || echo \"\$ME[0]: Entering directory \\\`${PWD}'\"
+    ! tracing make || echo \"\$@\"
+    \"\$@\"
+}"
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES\""
- 	 echo "LDSHARED=\"$HOST_SHLD_STR\""
-	echo 'BOOTER_CCM="$BOOTER_CC -M"'
+	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES \"\$@\"; }"
+        echo "LDSHARED=\"$HOST_SHLD_STR\""
+	echo 'BOOTER_CXXM="$BOOTER_CXX -M"'
 	echo "CPP=\"$HOST_CC_STR -E $CC_DEFINES\""
 
 	echo 'CCLIBS="-lpthread -lm"'
 	echo 'IMAGE='
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES \"\$@\"; }"
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
-	echo "BOOTER_CCM=\$BOOTER_CC"
+	echo "BOOTER_CXXM=\$BOOTER_CXX"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
 
 	echo 'CCLIBS="${EXTRA_CCLIBS} -ldl -lm"'
 	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES \"\$@\"; }"
+
 	echo "LDSHARED=\"$HOST_SHLD_STR\""
-	echo "BOOTER_CCM=\$BOOTER_CC"
+	echo "BOOTER_CXXM=\$BOOTER_CXX"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES -D__linuxsmp__\""
 	
 	echo 'CCLIBS="-lpthread -ldl -lm"'
 	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES\""
-
+	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES \"\$@\"; }"
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES\""
-
+	echo "function run_booter_cxx () { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 \$CC_DEFINES \"\$@\"; }"
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
     fi
@@ -2491,43 +2508,43 @@ function emitBooterLinker () {
 
     if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX ) )); then
 	echo "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
+		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR\
 		-I$BOOTIMAGE_RUNNER_SUBDIR_STR\
 		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BOOTIMAGE_STR\\\"\
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C"
 
 	echo "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
-	    \$BOOTER_CC -c -O -I. -I$SCRATCH_DIRECTORY_STR \
+	    \$BOOTER_CXX -c -O -I. -I$SCRATCH_DIRECTORY_STR \
 	    -o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C"
 	
 	echo "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$CPP -I$SCRATCH_DIRECTORY_STR -P\
 		bootThread.c > $SCRATCH_DIRECTORY_STR/bootThread.s"
-	echo "\$BOOTER_CC -c -o $SCRATCH_DIRECTORY_STR/bootThread.o\
+	echo "\$BOOTER_CXX -c -o $SCRATCH_DIRECTORY_STR/bootThread.o\
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
 	echo "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
-		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
+		\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR\
 		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
 	if (( $RVM_WITH_HPM )); then
 	echo "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-	    \$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1\
+	    \$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1\
 	    -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
 	
 	echo 'echo -n "(build libhpm.a library) "'
 	echo "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
-	    \$BOOTER_CC -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c"
+	    \$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c"
 	echo "cd $SCRATCH_DIRECTORY_STR &&\
 	        \$LDSHARED -o \$JAL_BUILD/libhpm.a  hpm.o -L\"$RVM_HPM_DIR\" -lpmapi"
 
 	echo "cd $SCRATCH_DIRECTORY_STR &&\
-	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS\
+	    \$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS\
 	    -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm"
 
 	echo 'echo -n "(build libJava2HPM.a JNI library) "'
 	echo "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
-  		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
+  		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
  		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C"
 
 	echo "cd $SCRATCH_DIRECTORY_STR &&\
@@ -2535,39 +2552,39 @@ function emitBooterLinker () {
 	        -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm > /dev/null 2>&1"
 	else
 	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-	    \${BOOTER_CC} -c -O -I${SCRATCH_DIRECTORY_STR}\
+	    \${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR}\
 	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C"
 	echo "cd ${SCRATCH_DIRECTORY_STR} &&\
-	    \${BOOTER_CC} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \${CCLIBS}"
+	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \${CCLIBS}"
 	fi
 	echo 'echo -n "(booter linked)"'
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
 	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
 		\${IMAGE} -DRVM_BOOTIMAGE=\\\"${BOOTIMAGE_STR}\\\"\
 		-o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C"
 	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
-		\${BOOTER_CC} -c -I. -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR}\
 		-o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C"
 	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
 		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C"
 	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
-		\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
 		-o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S"
 	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
-		\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
 	        -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler\
 		-o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C"
 	echo "cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler &&\
-		\${BOOTER_CC} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
 		-o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C"
 	echo "cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler &&\
-		\${BOOTER_CC} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
+		\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
 		-o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C"
 	echo "cd ${SCRATCH_DIRECTORY_STR} &&\
-	    \${BOOTER_CC} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o\
+	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o\
 	                           disasm.o ihnpdsm.o \${CCLIBS}"
 	echo 'echo "(booter linked)"'
 	echo ""
