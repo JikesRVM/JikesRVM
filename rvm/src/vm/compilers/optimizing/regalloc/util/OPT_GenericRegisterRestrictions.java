@@ -3,10 +3,11 @@
  */
 //$Id$
 
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Enumeration;
 
 /**
  * An instance of this class provides a mapping from symbolic register to
@@ -73,29 +74,45 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * instruction is stored in its <code>scratch</code> field.
    */
   final private void processBlock(OPT_BasicBlock bb) {
-    Vector symbolic = new Vector(10);
-
+    ArrayList symbolic = new ArrayList(20);
+    ArrayList physical = new ArrayList(20);
+    
     // 1. walk through the live intervals and identify which correspond to
-    // symbolic registers
-    for (Enumeration e = bb.enumerateLiveIntervals();
-         e.hasMoreElements();) {
+    // physical and symbolic registers
+    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
       OPT_LiveIntervalElement li = (OPT_LiveIntervalElement)e.nextElement();
       OPT_Register r = li.getRegister();
-      if (r.isSymbolic()) {
-        symbolic.addElement(li);
+      if (r.isPhysical()) {
+        if (r.isVolatile() || r.isNonVolatile()) {
+          physical.add(li);
+        }
+      } else {
+        symbolic.add(li);
       }
     }
 
-    // 2. Volatile registers used by CALL instructions do not appear in
+    // 2. walk through the live intervals for physical registers.  For
+    // each such interval, record the conflicts where the live range
+    // overlaps a live range for a symbolic register.
+    for (Iterator p = physical.iterator(); p.hasNext(); ) {
+      OPT_LiveIntervalElement phys = (OPT_LiveIntervalElement)p.next();
+      for (Iterator s = symbolic.iterator(); s.hasNext(); ) {
+        OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)s.next();
+        if (overlaps(phys,symb)) {
+          addRestriction(symb.getRegister(),phys.getRegister());
+        }
+      }
+    }
+
+    // 3. Volatile registers used by CALL instructions do not appear in
     // the liveness information.  Handle CALL instructions as a special
     // case.
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
          ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
-        for (Enumeration sym = symbolic.elements(); sym.hasMoreElements(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)
-            sym.nextElement();
+        for (Iterator sym = symbolic.iterator(); sym.hasNext(); ) {
+          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)sym.next();
           if (contains(symb,s.scratch)) {
             forbidAllVolatiles(symb.getRegister());
           }
@@ -115,7 +132,7 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
-  void addArchRestrictions(OPT_BasicBlock bb, Vector symbolics) {}
+  void addArchRestrictions(OPT_BasicBlock bb, ArrayList symbolics) {}
 
   /**
    * Does a live range R contain an instruction with number n?
@@ -146,6 +163,11 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    */
   private boolean overlaps(OPT_LiveIntervalElement li1,
                            OPT_LiveIntervalElement li2) {
+    // Under the following conditions: the live ranges do NOT overlap:
+    // 1. begin2 >= end1 > -1
+    // 2. begin1 >= end2 > -1
+    // Under all other cases, the ranges overlap
+
     int begin1  = -1;
     int end1    = -1;
     int begin2  = -1;
@@ -154,21 +176,17 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
     if (li1.getBegin() != null) {
       begin1 = li1.getBegin().scratch;
     }
+    if (li2.getEnd() != null) {
+      end2 = li2.getEnd().scratch;
+    }
+    if (end2 <= begin1 && end2 > -1) return false;
+
     if (li1.getEnd() != null) {
       end1 = li1.getEnd().scratch;
     }
     if (li2.getBegin() != null) {
       begin2 = li2.getBegin().scratch;
     }
-    if (li2.getEnd() != null) {
-      end2 = li2.getEnd().scratch;
-    }
-
-    // Under the following conditions: the live ranges do NOT overlap:
-    // 1. begin2 >= end1 > -1
-    // 2. begin1 >= end2 > -1
-    // Under all other cases, the ranges overlap
-    if (end2 <= begin1 && end2 > -1) return false;
     if (end1 <= begin2 && end1 > -1) return false;
 
     return true;

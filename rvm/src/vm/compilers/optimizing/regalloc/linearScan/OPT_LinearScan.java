@@ -264,7 +264,10 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           if (!ci.getRegister().isPhysical()) {
             // Update register allocation based on the new interval.
             active.allocate(bi,ci);
-          } 
+          } else {
+            // Mark the physical register as currently allocated.
+            ci.getRegister().allocateRegister();
+          }
           active.add(bi);
         }
 
@@ -956,7 +959,10 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       CompoundInterval container = bi.container;
       OPT_Register r = container.getRegister(); 
 
-      if (r.isPhysical()) return;
+      if (r.isPhysical()) {
+        r.deallocateRegister();
+        return;
+      }
 
       if (container.isSpilled()) {
         // free the spill location iff this is the last interval in the
@@ -967,6 +973,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         }
       } else {
         // free the assigned register
+        if (VM.VerifyAssertions) VM.assert(container.getAssignment().isAllocated());
         container.getAssignment().deallocateRegister();
       }
 
@@ -1003,6 +1010,8 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             updatePhysicalInterval(phys,newInterval);
             if (verboseDebug) System.out.println(" now phys interval " + 
                                                  getInterval(phys));
+            // Mark the physical register as currently allocated
+            phys.allocateRegister();
             return;
           } else {
             // The previous assignment is not OK, since the physical
@@ -1060,12 +1069,14 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               if (verboseDebug) System.out.println("Intervals of " 
                                                    + freeR + " now " +
                                                    getInterval(freeR)); 
+              // mark the free register found as currently allocated.
+              freeR.allocateRegister();
             }
           }
         } else {
           // This is the first attempt to allocate the compound interval.
           // Attempt to find a free physical register for this interval.
-          OPT_Register phys = findAvailableRegister(container);
+          OPT_Register phys = findAvailableRegister(r);
           if (phys != null) {
             // Found a free register.  Perfom the register assignment.
             container.assign(phys);
@@ -1073,6 +1084,8 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                                           + phys + " " + container); 
             updatePhysicalInterval(phys,newInterval);       
             if (verboseDebug) System.out.println("  now phys" + getInterval(phys));
+            // Mark the physical register as currently allocated.
+            phys.allocateRegister();
           } else {
             // Could not find a free physical register.  Some member of the
             // active set must be spilled.  Choose a spill candidate.
@@ -1189,20 +1202,20 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * try to find a free physical register to allocate to the new
+     * try to find a free physical register to allocate to the compound
      * interval.  if no free physical register is found, return null;
      */
-    final OPT_Register findAvailableRegister(CompoundInterval newInterval) {
+    final OPT_Register findAvailableRegister(CompoundInterval ci) {
 
-      OPT_Register r = newInterval.getRegister();
+      OPT_Register r = ci.getRegister();
       OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
       // first attempt to allocate to the preferred register
       if (COALESCE_MOVES) {
-        OPT_Register p = getPhysicalPreference(newInterval);
+        OPT_Register p = getPhysicalPreference(ci);
         if (p != null) {
           if (debugCoalesce) {
-            System.out.println("REGISTER PREFERENCE " + newInterval + " "
+            System.out.println("REGISTER PREFERENCE " + ci + " "
                                + p);
           }
           return p;
@@ -1217,7 +1230,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         for (Enumeration e = phys.enumerateVolatiles(type); 
              e.hasMoreElements(); ) {
           OPT_Register p = (OPT_Register)e.nextElement();
-          if (allocateToPhysical(newInterval,p)) {
+          if (allocateToPhysical(ci,p)) {
             return p;
           }
         }
@@ -1228,13 +1241,147 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       for (Enumeration e = phys.enumerateNonvolatilesBackwards(type);
            e.hasMoreElements(); ) {
         OPT_Register p = (OPT_Register)e.nextElement();
-        if (allocateToPhysical(newInterval,p)) {
+        if (allocateToPhysical(ci,p)) {
           return p;
         }
       }
 
       // no allocation succeeded.
       return null;
+    }
+    /**
+     * Try to find a free physical register to allocate to a symbolic
+     * register.
+     */
+    final OPT_Register findAvailableRegister(OPT_Register symb) {
+
+      OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+
+      // first attempt to allocate to the preferred register
+      if (COALESCE_MOVES) {
+        OPT_Register p = getPhysicalPreference(symb);
+        if (p != null) {
+          if (debugCoalesce) {
+            System.out.println("REGISTER PREFERENCE " + symb + " "
+                               + p);
+          }
+          return p;
+        }
+      }
+
+      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      int type = phys.getPhysicalRegisterType(symb);
+
+      // next attempt to allocate to a volatile
+      if (!restrict.allVolatilesForbidden(symb)) {
+        for (Enumeration e = phys.enumerateVolatiles(type); 
+             e.hasMoreElements(); ) {
+          OPT_Register p = (OPT_Register)e.nextElement();
+          if (allocateNewSymbolicToPhysical(symb,p)) {
+            return p;
+          }
+        }
+      }
+
+      // next attempt to allocate to a Nonvolatile.  we allocate the
+      // novolatiles backwards.
+      for (Enumeration e = phys.enumerateNonvolatilesBackwards(type);
+           e.hasMoreElements(); ) {
+        OPT_Register p = (OPT_Register)e.nextElement();
+        if (allocateNewSymbolicToPhysical(symb,p)) {
+          return p;
+        }
+      }
+
+      // no allocation succeeded.
+      return null;
+    }
+
+    /**
+     * Given the current state of the register allocator, compute the
+     * available physical register to which a symbolic register has the
+     * highest preference.
+     *
+     * @param r the symbolic register in question.
+     * @return the preferred register.  null if no preference found.
+     */
+    private OPT_Register getPhysicalPreference(OPT_Register r) {
+      // a mapping from OPT_Register to Integer
+      // (physical register to weight);
+      HashMap map = new HashMap();
+
+      OPT_CoalesceGraph graph = ir.stackManager.getPreferences().getGraph();
+      OPT_SpaceEffGraphNode node = graph.findNode(r);
+
+      // Return null if no affinities.
+      if (node == null) return null;
+
+      // walk through all in edges of the node, searching for affinity
+      for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
+        OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
+        OPT_CoalesceGraph.Node src = (OPT_CoalesceGraph.Node)edge.from();
+        OPT_Register neighbor = src.getRegister();
+        if (neighbor.isSymbolic()) {
+          // if r is assigned to a physical register r2, treat the
+          // affinity as an affinity for r2
+          OPT_Register r2 = OPT_RegisterAllocatorState.getMapping(r);
+          if (r2 != null && r2.isPhysical()) {
+            neighbor = r2;
+          }
+        }
+        if (neighbor.isPhysical()) {
+          // if this is a candidate interval, update its weight
+          if (allocateNewSymbolicToPhysical(r,neighbor)) {
+            int w = edge.getWeight();
+            Integer oldW = (Integer)map.get(neighbor);
+            if (oldW == null) {
+              map.put(neighbor,new Integer(w));
+            } else {
+              map.put(neighbor,new Integer(oldW.intValue() + w));
+            }
+            break;
+          }
+        }
+      }
+      // walk through all out edges of the node, searching for affinity
+      for (Enumeration in = node.outEdges(); in.hasMoreElements(); ) {
+        OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
+        OPT_CoalesceGraph.Node dest = (OPT_CoalesceGraph.Node)edge.to();
+        OPT_Register neighbor = dest.getRegister();
+        if (neighbor.isSymbolic()) {
+          // if r is assigned to a physical register r2, treat the
+          // affinity as an affinity for r2
+          OPT_Register r2 = OPT_RegisterAllocatorState.getMapping(r);
+          if (r2 != null && r2.isPhysical()) {
+            neighbor = r2;
+          }
+        }
+        if (neighbor.isPhysical()) {
+          // if this is a candidate interval, update its weight
+          if (allocateNewSymbolicToPhysical(r,neighbor)) {
+            int w = edge.getWeight();
+            Integer oldW = (Integer)map.get(neighbor);
+            if (oldW == null) {
+              map.put(neighbor,new Integer(w));
+            } else {
+              map.put(neighbor,new Integer(oldW.intValue() + w));
+            }
+            break;
+          }
+        }
+      }
+      // OK, now find the highest preference. 
+      OPT_Register result = null;
+      int weight = -1;
+      for (Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
+        Map.Entry entry = (Map.Entry)i.next();
+        int w = ((Integer)entry.getValue()).intValue();
+        if (w > weight) {
+          weight = w;
+          result = (OPT_Register)entry.getKey();
+        }
+      }
+      return result;
     }
     /**
      * Given the current state of the register allocator, compute the
@@ -1347,6 +1494,29 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             return true;
           }
         }
+      }
+      return false;
+    }
+
+    /**
+     * Check whether it's ok to allocate symbolic register to a physical 
+     * register p.  If so, return true; If not, return false.
+     *
+     * NOTE: This routine assumes we're processing the first interval of
+     * register symb; so p.isAvailable() is the key information needed.
+     */
+    private boolean allocateNewSymbolicToPhysical(OPT_Register symb, OPT_Register p) {
+      OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      if (p!=null && !phys.isAllocatable(p)) return false;
+
+      if (verboseDebug && p!= null) {
+        if (!p.isAvailable()) System.out.println("unavailable " + symb + p);
+        if (restrict.isForbidden(symb,p)) System.out.println("forbidden" + symb + p);
+      }
+
+      if ((p != null) && p.isAvailable() && !restrict.isForbidden(symb,p)) {
+        return true;
       }
       return false;
     }
