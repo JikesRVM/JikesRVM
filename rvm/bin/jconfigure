@@ -1850,7 +1850,7 @@ EOF
 	    show_mesg "To execute the $CONFIGURATION_NAME RVM (from any directory) type:"
 	    echo "\${ME}:    rvm <vm-args> classname <application-args>"
 	    if ! type -p rvm > /dev/null; then
-	        show_mesg "You will also need to add ${RVM_ROOT}/bin to your path"
+	        show_mesg "You will also need to add ${RVM_ROOT}/rvm/bin to your path"
 	    fi
 	fi
 	trap '' EXIT
