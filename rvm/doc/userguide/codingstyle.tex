@@ -93,7 +93,8 @@ of this subsection (\ref{options:vi}).
 
 \paragraph{vim}\label{options:vim}
 
-Add the following to your {\tt .vimrc} for formatting:
+If you are using vim version 6.0 or higher, then you can add the
+following to your {\tt .vimrc} for formatting:
 \begin{verbatim}
 set shiftwidth=2           " for indenting and shifting
 set expandtab              " to replace tab characters by spaces
@@ -114,7 +115,7 @@ augroup END
 If you want {\tt vim} to truncate long lines instead of wrapping them, add
 the following to your {\tt .vimrc}:
 \begin{verbatim}
-set formatoption+=t " to allow autowrap text
+set formatoptions+=t " to allow autowrap text
 set textwidth=74    " to allow autowrap text at 74th column
 \end{verbatim}
 
