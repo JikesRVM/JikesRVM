@@ -1184,13 +1184,27 @@ class VM_Assembler implements VM_BaselineConstants {
   static final int MFLRtemplate = 31<<26 | 0x08<<16 | 339<<1;
 
   static final INSTRUCTION MFLR (int RT) {
-    return 31<<26 | RT<<21 | 0x08<<16 | 339<<1;
+    return MFLRtemplate | RT<<21;
   }
 
   final void emitMFLR (int RT) {
-    INSTRUCTION mi = MFLRtemplate | RT<<21;
+    INSTRUCTION mi = MFLR(RT);
     if (VM.TraceAssembler)
       asm(mIP, mi, "mflr", RT);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int MFCRtemplate = 31<<26 | 19<<1;
+
+  static final INSTRUCTION MFCR (int RT) {
+    return MFCRtemplate | RT<<21;
+  }
+
+  final void emitMFCR (int RT) {
+    INSTRUCTION mi = MFCR(RT);
+    if (VM.TraceAssembler)
+      asm(mIP, mi, "mfcr", RT);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1212,16 +1226,31 @@ class VM_Assembler implements VM_BaselineConstants {
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
   static final INSTRUCTION MTLR (int RS) {
-    return 31<<26 | RS<<21 | 0x08<<16 | 467<<1;
+    return MTLRtemplate | RS<<21;
   }
 
   final void emitMTLR (int RS) {
-    INSTRUCTION mi = MTLRtemplate | RS<<21;
+    INSTRUCTION mi = MTLR(RS);
     if (VM.TraceAssembler)
       asm(mIP, mi, "mtlr", RS);
     mIP++;
     mc.addInstruction(mi);
   }
+
+  static final int MTCRFtemplate = 31<<26 | 144<<1;
+
+  static final INSTRUCTION MTCRF (int mask, int RS) {
+    return MTCRFtemplate | mask<<12 | RS<<21;
+  }
+
+  final void emitMTCRF (int mask, int RS) {
+    INSTRUCTION mi = MTCRF(mask, RS);
+    if (VM.TraceAssembler)
+      asm(mIP, mi, "mtcrf", mask, RS);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
 
   static final int MTCTRtemplate = 31<<26 | 0x09<<16 | 467<<1;
 
