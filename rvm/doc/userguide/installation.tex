@@ -17,7 +17,7 @@ running Eclipse on Jikes RVM}%
  (Section~\ref{section:eclipse}, page~\pageref{section:eclipse})%
 ]{section:eclipse}.\@
 
-\subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.0, or SuSE Linux 8.x and 9.0 for~Intel~x86}
+\subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.0, or SuSE Linux 8.x and 9.x for~Intel~x86}
 
 Red~Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA-32 and AMD\Rboth{} x86-32 has emerged as the 
 primary platform for Jikes\TMweb{} RVM.\@ 
@@ -70,8 +70,9 @@ done so (it is included in the standard SuSE Linux install, but not in
 the standard Red Hat Linux install).  You can 
 obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL};
 use the pre-build RPM file.
-If you're using SuSE Linux~8.2 or newer, Jikes~1.18 is on the install
-CD in the package {\tt jikes}.
+If you're using SuSE Linux versions 8.2 through 9.1, Jikes~1.18 or 1.19 is on the install
+CD in the package {\tt jikes}.  SuSE Linux 9.2 comes with Jikes 1.21,
+which will not work; you'll have to manually download it.  
 
 We have had mixed experiences with different releases of the Jikes
 compiler. Versions 1.13 and 1.18 are known to work for building Jikes
@@ -287,7 +288,9 @@ insist, look in \texttt{jconfigure} for details.
   \texttt{jconfigure}, because of what appears to be a bug in its handling of
   the here-document redirection operator (\texttt{$<<$- EOF}).  Unfortunately, the
   version of Bash distributed with AIX 5.1 in /usr/contrib/bin is
-  2.05.   Bash 2.05a, 2.05b, 2.02 and 2.03 seem to work adequately.
+  2.05.   Bash 2.05a, and 2.05b seem to work adequately.  
+  \texttt{jconfigure} will test for a working version of Bash and warn
+  you of problems.
 
 \end{itemize}
 
