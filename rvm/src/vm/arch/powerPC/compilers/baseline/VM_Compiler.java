@@ -2702,10 +2702,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     asm.emitLAddrToc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitLVAL(T0, dimensions);
-    asm.emitLVAL(T1, typeRef.getId());
-    asm.emitSLWI (T2, T0,  LOG_BYTES_IN_ADDRESS); // number of bytes of array dimension args
-    asm.emitADDI  (T2, spTopOffset, T2);             // offset from FP to expression stack top
+    asm.emitLVAL(T0, method.getId());
+    asm.emitLVAL(T1, dimensions);
+    asm.emitLVAL(T2, typeRef.getId());
+    asm.emitSLWI (T3, T1,  LOG_BYTES_IN_ADDRESS); // number of bytes of array dimension args
+    asm.emitADDI  (T3, spTopOffset, T3);             // offset from FP to expression stack top
     asm.emitBCCTRL();
     discardSlots(dimensions);
     pushAddr(T0);

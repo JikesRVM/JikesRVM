@@ -20,10 +20,12 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 
-import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.JikesRVM.classloader.VM_Method;
+
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -220,25 +222,47 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     return VMResource.getMaxVMResource();
   }
 
+  //  This form is deprecated.  Without the VM_Method argument, it is possible
+  //    that the wrong allocator is chosen which may affect correctness. The 
+  //    prototypical example is that JMTk meta-data must generally be 
+  //    in immortal or at least non-moving space.
+  //
   public static int pickAllocator(VM_Type type) throws VM_PragmaInterruptible {
       return pickAllocator(type, null);
   }
 
-  public static int pickAllocator(VM_Type type, VM_Method method) throws VM_PragmaInterruptible {
+  // Is string A a prefix of string B (encoded as an ASCII byte array)?
+  //
+  private static boolean isPrefix (String a, byte [] b) {
+    if (a.length() > b.length)
+      return false;
+    for (int i = 0; i<a.length(); i++) {
+      if (a.charAt(i) != ((char) b[i]))
+	return false;
+    }
+    return true;
+  }
+
+  // First we chcek the calling method so GC-data can go into special places.
+  //   Then we cache the result of the allocator assuming that it is type-based only.
+  // A better implementation would be call-site specific which is strictly more refined.
+  //
+   public static int pickAllocator(VM_Type type, VM_Method method) throws VM_PragmaInterruptible {
     if (method != null) {
-	String site = method.toString();
-	if (site.startsWith("com.ibm.JikesRVM.memoryManagers.JMTk.SegregatedFreeList")) {
-	    // VM.sysWriteln("pickAllocator: making immortal callsite ", site);
-	    return Plan.IMMORTAL_SPACE;
-	}
+     // We should strive to be allocation-free here.
+      VM_Class cls = method.getDeclaringClass();
+      byte[] clsBA = cls.getDescriptor().toByteArray();
+      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA)) {
+	return Plan.IMMORTAL_SPACE;
+      }
     }
     Type t = type.JMTKtype;
     if (t.initialized)
       return t.allocator;
     int allocator = Plan.DEFAULT_SPACE;
-    String s = type.toString();
-    if (s.startsWith("com.ibm.JikesRVM.memoryManagers.") ||
-	s.equals("com.ibm.JikesRVM.VM_Processor"))
+    byte[] typeBA = type.getDescriptor().toByteArray();
+    if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
+	isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA))
       allocator = Plan.IMMORTAL_SPACE;
     t.initialized = true;
     t.allocator = allocator;

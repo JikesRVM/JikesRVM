@@ -35,7 +35,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method unresolvedNewScalarMethod= getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewScalar", "(I)Ljava/lang/Object;");
   public static final VM_Method unresolvedNewArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewArray", "(II)Ljava/lang/Object;");
   public static final VM_Method resolvedNewArrayMethod      = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewArray", "(II[Ljava/lang/Object;I)Ljava/lang/Object;");
-  public static final VM_Method newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;");
+  public static final VM_Method newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
 
 
   public static final VM_Field sysWriteLockField        = getField("Lcom/ibm/JikesRVM/VM;", "sysWriteLock", "I");  
@@ -251,7 +251,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromEpilogue", "()V");
   public static final VM_Method optResolveMethod                  = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
 
-  public static final VM_Method optNewArrayArrayMethod            = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptLinker;", "newArrayArray", "([II)Ljava/lang/Object;");
+  public static final VM_Method optNewArrayArrayMethod            = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
 
   public static final VM_Method sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
   //-#endif

@@ -718,9 +718,19 @@ public class VM_Runtime implements VM_Constants {
    * @param arrayType type of array that will result
    * @return array object
    */ 
-  public static Object buildMultiDimensionalArray(int[] numElements, 
-						  int dimIndex, 
+  public static Object buildMultiDimensionalArray(int methodId,
+						  int[] numElements, 
 						  VM_Array arrayType) {
+    VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    if (VM.VerifyAssertions) VM._assert(method != null);
+    return buildMDAHelper(method, numElements, 0, arrayType);
+  }
+
+  public static Object buildMDAHelper (VM_Method method,
+				       int[] numElements, 
+				       int dimIndex, 
+				       VM_Array arrayType) {
+
     if (!arrayType.isInstantiated()) {
       arrayType.resolve();
       arrayType.instantiate();
@@ -728,7 +738,7 @@ public class VM_Runtime implements VM_Constants {
 
     int    nelts     = numElements[dimIndex];
     int    size      = arrayType.getInstanceSize(nelts);
-    int allocator    = MM_Interface.pickAllocator(arrayType);
+    int allocator    = MM_Interface.pickAllocator(arrayType, method);
     Object newObject = resolvedNewArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
 
     if (++dimIndex == numElements.length)
@@ -738,7 +748,7 @@ public class VM_Runtime implements VM_Constants {
     VM_Array newArrayType = arrayType.getElementType().asArray();
    
     for (int i = 0; i < nelts; ++i) {
-      newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, newArrayType);
+      newArray[i] = buildMDAHelper(method, numElements, dimIndex, newArrayType);
     }
 
     return newArray;

@@ -54,7 +54,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
   }
 
-  public static Object newArrayArray (int[] dimensions, int id) 
+  public static Object newArrayArray (int methodId, int[] dimensions, int typeId)
     throws ClassNotFoundException,
 	   NegativeArraySizeException, 
 	   OutOfMemoryError {
@@ -64,7 +64,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
     // create array
     //
-    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(id).resolve();
-    return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
+    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(typeId).resolve();
+    return VM_Runtime.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
 }

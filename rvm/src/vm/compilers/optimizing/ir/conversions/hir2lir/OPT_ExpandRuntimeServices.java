@@ -64,7 +64,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	OPT_TypeOperand Type = New.getClearType(inst);
 	VM_Class cls = (VM_Class)Type.getVMType();
 	OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
-	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(cls));
+	VM_Method callSite = inst.position.getMethod();
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(cls, callSite));
 	VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
 	Call.mutate4(inst, CALL, New.getClearResult(inst), 
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -115,7 +116,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  inline = true;
 	  size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
 	}
-	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(array));
+	VM_Method callSite = inst.position.getMethod();
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(array, callSite));
 	VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
 	Call.mutate4(inst, CALL, NewArray.getClearResult(inst),  
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -149,9 +151,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       case NEWOBJMULTIARRAY_opcode: {
 	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
 	VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
-	Call.mutate2(inst, CALL, NewArray.getClearResult(inst),
+	VM_Method callSite = inst.position.getMethod();
+	Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
 		     new OPT_IntConstantOperand(target.getOffset()),
 		     OPT_MethodOperand.STATIC(target),
+		     new OPT_IntConstantOperand(callSite.getId()),
 		     NewArray.getClearSize(inst),
 		     new OPT_IntConstantOperand(typeRefId));
       }

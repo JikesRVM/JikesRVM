@@ -2302,6 +2302,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     // setup parameters for newarrayarray routine
+    asm.emitPUSH_Imm (method.getId());                     // caller
     asm.emitPUSH_Imm (dimensions);                     // dimension of arays
     asm.emitPUSH_Imm (typeRef.getId());                   // type of array elements               
     asm.emitPUSH_Imm ((dimensions + 5)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
