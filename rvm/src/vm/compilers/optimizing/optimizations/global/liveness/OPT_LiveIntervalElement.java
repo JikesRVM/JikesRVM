@@ -74,6 +74,10 @@ final class OPT_LiveIntervalElement {
     return "Reg: "+ register +"\n     Begin: "+ begin +"\n     End:   "+ end;
   }
 
+  public int hashCode() {
+    return register.hashCode();
+  }
+
   /*
    * Getters and setters for instance fields
    */

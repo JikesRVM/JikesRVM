@@ -6,8 +6,7 @@
 import  java.util.Stack;
 import  java.util.Enumeration;
 import instructionFormats.*;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -65,7 +64,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * For each register, the set of live interval elements describing the
    * register.
    */
-  private HashMap registerMap = new HashMap(); 
+  private ArrayList[] registerMap;
   
   // Debugging information
   // Live Intervals, GC Maps, and fixed-point results
@@ -231,7 +230,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       bbLiveInfo = null;
    
       // compute the mapping from registers to live interval elements
-      // computeRegisterMap(ir);
+      computeRegisterMap(ir);
     }
 
     // No longer need currentSet, which is simply a cache of a LiveSet).
@@ -254,7 +253,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * register.
    */
   public Iterator iterateLiveIntervals(OPT_Register r) {
-    HashSet set = (HashSet)registerMap.get(r);
+    ArrayList set = registerMap[r.getNumber()];
     if (set == null) {
       return new OPT_EmptyIterator();
     } else {
@@ -267,7 +266,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * are now intervals for r1.
    */
   public void merge(OPT_Register r1, OPT_Register r2) {
-    HashSet toRemove = new HashSet(5);
+    ArrayList toRemove = new ArrayList(5);
 
     for (Iterator i = iterateLiveIntervals(r2); i.hasNext(); ) {
       OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
@@ -291,12 +290,15 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * Side effect: map each live interval element to its basic block.
    */
   private void computeRegisterMap(OPT_IR ir) {
+    registerMap = new ArrayList[ir.regpool.getNumberOfSymbolicRegisters()];
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
       for (Enumeration i = bb.enumerateLiveIntervals(); i.hasMoreElements(); ) {
         OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)i.nextElement();
         lie.setBasicBlock(bb);
-        addToRegisterMap(lie.getRegister(),lie);
+        if (lie.getRegister().isSymbolic()) {
+          addToRegisterMap(lie.getRegister(),lie);
+        }
       }
     }
   }
@@ -305,10 +307,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * Add the live interval element i to the map for register r.
    */
   private void addToRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
-    HashSet set = (HashSet)registerMap.get(r);
+    ArrayList set = registerMap[r.getNumber()];
     if (set == null) {
-      set = new HashSet(5);
-      registerMap.put(r,set);
+      set = new ArrayList(3);
+      registerMap[r.getNumber()] = set;
     }
     set.add(i);
   }
@@ -316,8 +318,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
   /**
    * Remove the live interval element i from the map for register r.
    */
-  private void removeFromRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
-    HashSet set = (HashSet)registerMap.get(r);
+  private void removeFromRegisterMap(OPT_Register r, 
+                                     OPT_LiveIntervalElement i) {
+    ArrayList set = registerMap[r.getNumber()];
     if (set == null) {
       return;
     } else {
@@ -1052,14 +1055,14 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
 
     /**
-     * DEPRICIATED: Don't Use
+     * DEPRECIATED: Don't Use
      */
     public final OPT_LiveSet gen() {
       return  gen;
     }
 
     /**
-     * DEPRICIATED: Don't Use
+     * DEPRECIATED: Don't Use
      */
     public final OPT_LiveSet in() {
       return  in;

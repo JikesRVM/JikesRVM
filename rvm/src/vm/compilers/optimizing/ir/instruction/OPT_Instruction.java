@@ -701,10 +701,19 @@ public final class OPT_Instruction
   /**
    * Enumerate all the pure defs (ie not including def/uses) of an instruction.
    * 
-   * @return an enumeration of the instruction's defs.
+   * @return an enumeration of the instruction's pure defs.
    */
   public final OPT_OperandEnumeration getPureDefs() {
     return new OEDefsOnly(this, 0, getNumberOfPureDefs()-1);
+  }
+
+  /**
+   * Enumerate all the pure uses (ie not including def/uses) of an instruction.
+   * 
+   * @return an enumeration of the instruction's pure defs.
+   */
+  public final OPT_OperandEnumeration getPureUses() {
+    return new OEDefsOnly(this, getNumberOfDefs(), getNumberOfOperands()-1);
   }
 
   /**

@@ -30,13 +30,14 @@ class OPT_Coalesce {
    * @param live liveness information for the IR
    * @param r1
    * @param r2
+   * @param true if the transformation succeeded, false otherwise.
    */
-  public static void attempt(OPT_IR ir, OPT_LiveAnalysis live, 
-                             OPT_Register r1, OPT_Register r2) {
+  public static boolean attempt(OPT_IR ir, OPT_LiveAnalysis live, 
+                                OPT_Register r1, OPT_Register r2) {
 
     // make sure r1 and r2 are not simultaneously live
-    if (isLiveAtDef(r2,r1,live)) return;
-    if (isLiveAtDef(r1,r2,live)) return;
+    if (isLiveAtDef(r2,r1,live)) return false;
+    if (isLiveAtDef(r1,r2,live)) return false;
 
     // Liveness is OK.  
 
@@ -59,6 +60,7 @@ class OPT_Coalesce {
       use.register = r1;
       OPT_DefUse.recordUse(use);
     }
+    return true;
   }
 
   /**

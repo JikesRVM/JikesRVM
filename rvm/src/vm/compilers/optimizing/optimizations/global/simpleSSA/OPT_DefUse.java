@@ -7,6 +7,9 @@ import instructionFormats.*;
 
 /**
  * This class computes du-lists and associated information.
+ *  
+ * <P> Note: DU operands are stored on the USE lists, but not the DEF 
+ * lists.
  *
  * @author Vivek Sarkar
  * @author Stephen Fink
@@ -47,7 +50,7 @@ final class OPT_DefUse implements OPT_Operators {
     // Create register defList and useList
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
         != null; instr = instr.nextInstructionInCodeOrder()) {
-      for (OPT_OperandEnumeration defs = instr.getDefs(); 
+      for (OPT_OperandEnumeration defs = instr.getPureDefs(); 
           defs.hasMoreElements();) {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {

@@ -245,14 +245,14 @@ class OPT_OptimizationPlanner {
         new OPT_SSATuneUp(), 
         // Global Code Placement,
         new OPT_GCP(), 
-        // Coalesce phis
-        new OPT_CoalescePhis(), 
         // Leave SSA 
         new OPT_LeaveSSA() })     {
           boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
         },
+        // Coalesce moves
+        new OPT_CoalesceMoves(), 
 
         // SSA reveals new opportunites for the following
         new OPT_OptimizationPlanCompositeElement
@@ -288,8 +288,6 @@ class OPT_OptimizationPlanner {
 	    new OPT_DominanceFrontier(), 
 	    // Global Code Placement,
 	    new OPT_GCP(), 
-            // Coalesce phis
-            new OPT_CoalescePhis(), 
 	    // Leave SSA 
 	    new OPT_LeaveSSA()  
 	      }
@@ -298,6 +296,8 @@ class OPT_OptimizationPlanner {
 	     return options.getOptLevel() >= 2;
 	   }
 	 },
+            // Coalesce moves
+            new OPT_CoalesceMoves(), 
 
       // SSA reveals new opportunites for the following
       new OPT_OptimizationPlanCompositeElement
