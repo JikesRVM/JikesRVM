@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.jni.VM_JNIEnvironment;
 
+import org.mmtk.utility.Log;
 import org.mmtk.vm.Barriers;
 
 import org.vmmagic.pragma.*;
@@ -1359,6 +1360,18 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     char[] buf = dumpBuffer;
     int offset = dump(buf, 0);
     VM.sysWrite(buf, offset);
+  }
+
+  /** Dump this thread's info via the MMTk Log class.
+   * Does not use any newlines, nor does it flush.
+   *
+   *  This function may be called during GC; it avoids write barriers and
+   *  allocation. 
+   */
+  public void dumpToLog() {
+    char[] buf = dumpBuffer;
+    int offset = dump(buf, 0);
+    Log.write(buf, offset);
   }
 
   /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
