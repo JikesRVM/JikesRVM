@@ -6,8 +6,6 @@
  * @author Perry Cheng
  */
 
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-
 class LargeAlloc {
 
   static long allocSize = 0;  // in megabytes
@@ -67,6 +65,4 @@ class LargeAlloc {
     System.out.print("\nOverall: after allocation, usedMemory has increased by ");
     System.out.println(((endUsed - startUsed) / (1024.0 * 1024.0)) + " Mb");
   }
-
-
 }
