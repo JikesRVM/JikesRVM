@@ -3343,7 +3343,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     
     if (methodName == VM_MagicNames.getFramePointer) {
-      asm.emitPUSH_Reg(FP);
+      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));
+      asm.emitPUSH_Reg       (S0);
       return;
     }
     
