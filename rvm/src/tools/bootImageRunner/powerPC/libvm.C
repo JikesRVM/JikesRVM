@@ -656,7 +656,7 @@ static void *bootThreadCaller(void *);
 
 // startup configuration option with default values
 // Declared in bootImageRunner.h
-char *bootFilename     = 0;
+const char *bootFilename     = 0;
 
 // name of program that will load and run RVM
 // Declared in bootImageRunner.h
