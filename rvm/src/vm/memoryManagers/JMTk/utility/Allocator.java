@@ -26,8 +26,8 @@ import org.vmmagic.pragma.*;
  * the allocator object it is using is not actually the one for the processor
  * it is running on.
  *
- * This class also includes functionality to assist allocators with ensuring that
- * requests are aligned according to requests.
+ * This class also includes functionality to assist allocators with
+ * ensuring that requests are aligned according to requests.
  *
  * Failing to handle this properly will lead to very hard to trace bugs
  * where the allocation that caused a GC or allocations immediately following
@@ -56,11 +56,13 @@ public abstract class Allocator implements Constants, Uninterruptible {
   }
 
   /**
-   * Aligns up an allocation request. The allocation request accepts a region, that must be 
-   * at least particle aligned, an alignment request (some power of two number of particles)
-   * and an offset (a number of particles). There is also a knownAlignment parameter to
-   * allow a more optimised check when the particular allocator in use always aligns at a 
-   * coarser grain than individual particles, such as some free lists. 
+   * Aligns up an allocation request. The allocation request accepts a
+   * region, that must be at least particle aligned, an alignment
+   * request (some power of two number of particles) and an offset (a
+   * number of particles). There is also a knownAlignment parameter to
+   * allow a more optimised check when the particular allocator in use
+   * always aligns at a coarser grain than individual particles, such
+   * as some free lists.
    *
    * @param region The region to align up.
    * @param alignment The requested alignment
@@ -93,9 +95,10 @@ public abstract class Allocator implements Constants, Uninterruptible {
   }
 
   /**
-   * Aligns up an allocation request. The allocation request accepts a region, that must be 
-   * at least particle aligned, an alignment request (some power of two number of particles)
-   * and an offset (a number of particles). 
+   * Aligns up an allocation request. The allocation request accepts a
+   * region, that must be at least particle aligned, an alignment
+   * request (some power of two number of particles) and an offset (a
+   * number of particles).
    *
    * @param region The region to align up.
    * @param alignment The requested alignment
