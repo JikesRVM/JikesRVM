@@ -34,9 +34,10 @@ public final class VM_MethodReference extends VM_MemberReference {
   private final VM_TypeReference[] parameterTypes;      
 
   /**
-   * @param tr a type reference
-   * @param mn the field or method name
-   * @param d the field or method descriptor
+   * @param tr a type reference to the defining class in which this method
+   * appears. (e.g., "Ljava/lang/String;")
+   * @param mn the name of this method (e.g., "equals")
+   * @param d the method descriptor (e.g., "(Ljava/lang/Object;)Z")
    */
   VM_MethodReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
     super(tr, mn, d);
