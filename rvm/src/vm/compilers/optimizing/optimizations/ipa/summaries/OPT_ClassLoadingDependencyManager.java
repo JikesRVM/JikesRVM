@@ -32,7 +32,6 @@ public final class OPT_ClassLoadingDependencyManager {
     handleOverriddenMethods(c);
     handleSubclassing(c);
     OPT_InterfaceHierarchy.notifyClassInitialized(c);
-    VM_OptStaticProgramStats.newClass();
   }
 
   /////////////////////////

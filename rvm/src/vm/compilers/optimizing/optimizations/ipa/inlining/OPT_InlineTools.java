@@ -108,7 +108,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static int inlinedSizeEstimate(VM_NormalMethod callee, 
 					OPT_CompilationState state) {
-    int sizeEstimate = VM_OptMethodSummary.inlinedSizeEstimate(callee);
+    int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations enabled 
     // by constant parameters.
     OPT_Instruction callInstr = state.getCallInstruction();

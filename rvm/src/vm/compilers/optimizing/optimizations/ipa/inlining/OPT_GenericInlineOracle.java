@@ -161,13 +161,13 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 				   OPT_Options opts) {
     int guardCost = 0;
     if (needsGuard & !preEx) {
-      guardCost += VM_OptMethodSummary.CALL_COST;
+      guardCost += VM_NormalMethod.CALL_COST;
       if (opts.guardWithMethodTest()) {
-	guardCost += 3*VM_OptMethodSummary.SIMPLE_OPERATION_COST;
+	guardCost += 3*VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else if (opts.guardWithCodePatch()) {
-	guardCost += 1*VM_OptMethodSummary.SIMPLE_OPERATION_COST;
+	guardCost += VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else { // opts.guardWithClassTest()
-	guardCost += 2*VM_OptMethodSummary.SIMPLE_OPERATION_COST;
+	guardCost += 2*VM_NormalMethod.SIMPLE_OPERATION_COST;
       }
     }
     return guardCost + inlinedBodyEstimate;

@@ -9,7 +9,7 @@ DESCRIP
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
 
-V IC_MAX_TARGET_SIZE int (4*VM_OptMethodSummary.CALL_COST-VM_OptMethodSummary.SIMPLE_OPERATION_COST)
+V IC_MAX_TARGET_SIZE int (4*com.ibm.JikesRVM.classloader.VM_NormalMethod.CALL_COST-com.ibm.JikesRVM.classloader.VM_NormalMethod.SIMPLE_OPERATION_COST)
 Static inlining heuristic: Upper bound on callee size
 
 
@@ -17,7 +17,7 @@ V IC_MAX_INLINE_DEPTH int 5
 Static inlining heuristic: Upper bound on depth of inlining
 
 
-V IC_MAX_ALWAYS_INLINE_TARGET_SIZE int (2*VM_OptMethodSummary.CALL_COST-VM_OptMethodSummary.SIMPLE_OPERATION_COST)
+V IC_MAX_ALWAYS_INLINE_TARGET_SIZE int (2*com.ibm.JikesRVM.classloader.VM_NormalMethod.CALL_COST-com.ibm.JikesRVM.classloader.VM_NormalMethod.SIMPLE_OPERATION_COST)
 Static inlining heuristic: Always inline callees of this size or smaller
 
 
@@ -29,7 +29,7 @@ V IC_MAX_METHOD_SIZE int 4096
 Static inlining heuristic: Upper bound on absolute size of caller due to inlining
 
 
-V AI_MAX_TARGET_SIZE int (22*VM_OptMethodSummary.CALL_COST+3*VM_OptMethodSummary.SIMPLE_OPERATION_COST)
+V AI_MAX_TARGET_SIZE int (22*com.ibm.JikesRVM.classloader.VM_NormalMethod.CALL_COST+3*com.ibm.JikesRVM.classloader.VM_NormalMethod.SIMPLE_OPERATION_COST)
 Adaptive inlining heuristic: Upper bound on callee size
 
 

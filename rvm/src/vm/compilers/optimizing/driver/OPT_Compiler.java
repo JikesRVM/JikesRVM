@@ -133,7 +133,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
 
     // Static inlining controls. 
     // Be more aggressive when building the boot image then we are normally.
-    options.IC_MAX_TARGET_SIZE = 5*VM_OptMethodSummary.CALL_COST;
+    options.IC_MAX_TARGET_SIZE = 5*VM_NormalMethod.CALL_COST;
     options.IC_MAX_INLINE_DEPTH = 6;
     options.IC_MAX_INLINE_EXPANSION_FACTOR = 7;
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
@@ -193,7 +193,6 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_InvokeeThreadLocalContext.init();
     VM_Class.OptCLDepManager = new OPT_ClassLoadingDependencyManager();
-    VM_OptStaticProgramStats.reset();
   }
 
   /**

@@ -243,7 +243,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     // (2) Check space limits.
     int totalMCGenerated = state.getMCSizeEstimate();
     int maxRootSize = getMaxRootSize(state);
-    if ((totalMCGenerated + cost - VM_OptMethodSummary.CALL_COST) > maxRootSize)
+    if ((totalMCGenerated + cost - VM_NormalMethod.CALL_COST) > maxRootSize)
       return OPT_InlineDecision.NO("Inlining size limit exceeded");
 
     return null; // size check passes
@@ -258,7 +258,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
    */
   private int getMaxRootSize (OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
-    int rootSize = VM_OptMethodSummary.inlinedSizeEstimate(state.getRootMethod());
+    int rootSize = state.getRootMethod().inlinedSizeEstimate();
     return Math.min(opts.IC_MAX_INLINE_EXPANSION_FACTOR*rootSize, 
 		    opts.IC_MAX_METHOD_SIZE + rootSize);
   }

@@ -262,7 +262,7 @@ public final class OPT_GenerationContext
     }
     
     enclosingHandlers = null;
-    localMCSizeEstimate = VM_OptMethodSummary.inlinedSizeEstimate(method);
+    localMCSizeEstimate = method.inlinedSizeEstimate();
 
     completePrologue(true);
     completeEpilogue(true);
@@ -299,8 +299,7 @@ public final class OPT_GenerationContext
     child._ncGuards = parent._ncGuards;
     child.exit = parent.exit;
     child.inlinePlan = parent.inlinePlan;
-    child.localMCSizeEstimate = 
-      VM_OptMethodSummary.inlinedSizeEstimate(child.method);
+    child.localMCSizeEstimate = child.method.inlinedSizeEstimate();
     child.parentMCSizeEstimate = parent.localMCSizeEstimate + 
       parent.parentMCSizeEstimate;
     child.semanticExpansionComplete = parent.semanticExpansionComplete;
@@ -471,7 +470,7 @@ public final class OPT_GenerationContext
     // committed (we subtract out the size of a call because
     // ee've replaced a call in the parent with the inlined body).
     parent.localMCSizeEstimate += 
-      child.localMCSizeEstimate - VM_OptMethodSummary.CALL_COST;
+      child.localMCSizeEstimate - VM_NormalMethod.CALL_COST;
 
     parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
     if (child.generatedExceptionHandlers)

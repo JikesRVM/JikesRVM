@@ -232,10 +232,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM_AdaptiveInlining.report();
     }
 
-    if (options.REPORT_STATIC_PROGRAM_STATS) {
-      VM_OptStaticProgramStats.report();
-    }
-
     if (options.FINAL_REPORT_LEVEL >= 2) {
       VM_EdgeCounts.dumpCounts();
     }

@@ -216,13 +216,6 @@ public abstract class VM_Method extends VM_Member {
   }
 
   /**
-   * Size of bytecodes for this method
-  public int getBytecodeLength() {
-    return 0;
-  }
-   */
-
-  /**
    * Exceptions thrown by this method - 
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
@@ -286,6 +279,13 @@ public abstract class VM_Method extends VM_Member {
     return VM_PragmaNoOptCompile.declaredBy(this);
   }
     
+  /**
+   * @return true if the method may write to a given field
+   */
+  public boolean mayWrite(VM_Field field) {
+    return true; // be conservative.  native methods can write to anything
+  }
+
   //------------------------------------------------------------------//
   //                        Section 2.                                //
   // The following are available after the declaring class has been   //
