@@ -1,0 +1,55 @@
+Release 2.3.4 marks the first public appearance of the ``Quick''
+compiler for the PowerPC architecture targets.  
+
+\xname{quick_compiler_goals}
+\subsection{Goals}
+
+The Quick compiler is supposed to be rather smarter than the Base
+compiler about register use without being nearly as complex as the Opt
+compiler. 
+
+Rather smarter means that stack and local variables are kept in
+registers if possible, not in memory. 
+
+Not nearly as complex means, for instance, that the Quick compiler
+code generator works in a single pass, with no intermediate
+representations. Right now the only additional optimizations are to
+remember if stack or local variable values are already in a temporary
+or work register and hence don't need to be loaded, and to postpone
+local variable stores until it becomes obvious that the value really
+needs to be written. 
+
+One purpose of the Quick compiler is to explore how close to the
+performance of the Opt compiler we can come by using just the most
+beneficial optimizations. Also, we hope to use it as a starting point
+for experimenting with other optimizations without having to deal with
+the implementation details of the Opt compiler and the complex
+interactions among the many optimizations performed by the Opt
+compiler. 
+
+\xname{quick_compiler_why_use_it}
+\subsection{Why use it?}
+
+Baseline compiled code has horrible performance on modern (Power4,
+Power5) PowerPC implementations.  The very frequent store/load to the
+same memory location (a.k.a.\ the expression stack) causes a large number
+of mis-speculations and replays. 
+
+As of this writing (December 22, 2004), we are discussing moving to
+using the quick compiler (in its simplest, fastest form) as a more or
+less complete replacement for the base compiler on PowerPC.  Our guess
+is that this is a more attractive option than injecting the quick
+compiler as another level available to AOS.  It would be ok to rely on
+the baseline compiler for some fringe stuff (DynamicBridge,
+JNIFunctions, complex magics), but we'd like to see all normal Java
+going to the quick compiler for initial compilation.
+
+\xname{quick_compiler_status}
+\subsection{Status}
+
+As of this writing, the quick compiler is not part of the default
+configurations (\textbf{prototype}, \textbf{prototype-opt},
+\textbf{development}, and \textbf{production}).  It's been fairly
+stable, but part of the gctest regression continues to fail, for
+instance. 
+
