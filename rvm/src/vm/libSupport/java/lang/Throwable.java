@@ -213,7 +213,7 @@ public class Throwable implements java.io.Serializable {
 	if (depth >= maxDepth)
 	  VM.sysExit(VM.exitStatusTooManyThrowableErrors);
 	doPrintStackTrace(err, effect);
-	VM._assert(depth >= 1);
+	if (VM.VerifyAssertions) VM._assert(depth >= 1);
       } finally {
 	--depth;			// clean up
       }
