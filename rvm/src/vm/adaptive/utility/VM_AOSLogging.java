@@ -458,6 +458,11 @@ public class VM_AOSLogging {
           VM_AOSLogging.threadExiting(t);
         }
       }
+
+      // add a terminating line to help scripts find the end of the thread list
+      synchronized (log) {
+        log.println(getTime() + " completed stats dump");
+      }
     }
   }
 
