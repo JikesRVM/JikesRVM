@@ -35,7 +35,9 @@ abstract class BootMap implements jdpConstants  {
    * NOTE:  this only works if VM_BootRecord is not moved by GC
    * for now this is a valid assumption
    */
-  int vmEndAddress = -1;      
+  int vmEndAddress = -1;
+  int largeStartAddress = -1;
+  int largeSizeAddress = -1; 
 
   //**********************************************************************
   // The abstracts methods:  
@@ -103,6 +105,15 @@ abstract class BootMap implements jdpConstants  {
   public abstract VM_Method findVMMethod(int methodID, boolean usingCompiledMethodID);
 
   /**
+   * Find the VM_CompilerInfo for a compiled methodID
+   * @param methodID the compiled methodID
+   * @return the VM_CompilerInfo associated with this id
+   * @exception BmapNotFoundException if the name is not found
+   * @see BootMapExternal.findVMMethod, BootMapInternal.findVMMethod
+   */
+  public abstract VM_CompilerInfo findVMCompilerInfo(int methodID, boolean usingCompiledMethodID);
+
+  /**
    * Check to see if the address falls in the method prolog:
    * @param an address pointing to a machine instruction
    * @return  if in prolog, return the first address after the prolog
@@ -137,6 +148,7 @@ abstract class BootMap implements jdpConstants  {
   public abstract int instructionAddress(int compiledMethodID);
   public abstract boolean isInstructionAddress(int startAddress, int address);
   public abstract int scanPrologSize(int instructionStartAddress);
+  public abstract int getPrologSize(VM_CompilerInfo compInfo, int instructionStartAddress);
   public abstract int getCompiledMethodIDForInstruction(int instructionStartAddress);
 
   /**
@@ -1213,16 +1225,22 @@ abstract class BootMap implements jdpConstants  {
 
   /**
    *  Check if an instruction address is in the address space for the JVM
+   *  The large heap space needs to be checked too.
    *  If not, then it must be in the space for native code (system or user)
    *  @param instructionAddress a random instruction address
    *  @return true if the address is in the JVM space, false otherwise 
    */
   public boolean isInJVMspace(int instructionAddress) {
     int vmEnd = owner.mem.read(vmEndAddress); 
-    if (instructionAddress>=bootStart & instructionAddress<=vmEnd)
-      return false;
-    else
+    int largeStart = owner.mem.read(largeStartAddress);
+    int largeEnd = largeStart + owner.mem.read(largeSizeAddress);
+    if (instructionAddress>=bootStart && instructionAddress<=vmEnd) {
       return true;
+    } else if (instructionAddress>=largeStart && instructionAddress<=largeEnd) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 
@@ -1316,20 +1334,21 @@ abstract class BootMap implements jdpConstants  {
     try {
       VM_Method mth = findVMMethod(compiledMethodID, true);
       offset = instructionOffset(compiledMethodID, address);
-      prologOffset = scanPrologSize(instructionAddress(compiledMethodID));
+      VM_CompilerInfo compInfo = findVMCompilerInfo(compiledMethodID, true);
+      if (compInfo == null)
+	prologOffset = 0;
+      else 
+	prologOffset = getPrologSize(compInfo, instructionAddress(compiledMethodID));
       if (offset<prologOffset)
 	throw new BcPrologException();
       if (!previous_line)
 	offset+=1;
 
-      // TODO:  should use compiled method ID to get the correct compilerInfo
-      VM_CompilerInfo compInfo = mth.getMostRecentlyGeneratedCompilerInfo();
-
       // check because there may be no compiler info:  native method
       if (compInfo==null) {
 	line = 0;
       } else {
-	line = mth.getMostRecentlyGeneratedCompilerInfo().findLineNumberForInstruction(offset);
+	line = compInfo.findLineNumberForInstruction(offset);
       }
       // System.out.println("offset=" + offset + ", line=" + line + 
 			 // " for " + mth.getName().toString());
