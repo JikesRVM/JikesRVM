@@ -739,7 +739,7 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from its .class file.
    */ 
-  public final synchronized void load() throws VM_ResolutionException {
+  public final void load() throws VM_ResolutionException {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
     }
@@ -773,7 +773,7 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from specified data stream.
    */ 
-  final synchronized void load(VM_BinaryData input) throws ClassFormatError {
+  final void load(VM_BinaryData input) throws ClassFormatError {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
     }
@@ -1024,7 +1024,7 @@ public class VM_Class extends VM_Type
    * method table. 
    * Side effects: superclasses and superinterfaces are resolved.
    */ 
-  public final synchronized void resolve() throws VM_ResolutionException {
+  public final void resolve() throws VM_ResolutionException {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.resolve called without holding VM_ClassLoader.lock");
     }
@@ -1318,7 +1318,7 @@ public class VM_Class extends VM_Type
    * Compile this class's methods, build type information block, populate jtoc.
    * Side effects: superclasses are instantiated.
    */
-  public final synchronized void instantiate() {
+  public final void instantiate() {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.instantiate called without holding VM_ClassLoader.lock");
     }
