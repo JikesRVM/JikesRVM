@@ -85,6 +85,9 @@ public abstract class BasePlan
   // Spaces
   protected static final int IMMORTAL_MB = 32;
   protected static final int META_DATA_MB = 32;
+  protected static final int META_DATA_PAGES = (META_DATA_MB<<20)>>LOG_BYTES_IN_PAGE;
+  /* heuristic: don't let mutator consume more than half all metadata space */
+  protected static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
   protected static final float LOS_FRAC = (float) 0.1;
   protected static Space vmSpace = Memory.getVMSpace();
   protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);

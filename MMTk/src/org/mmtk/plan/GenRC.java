@@ -266,8 +266,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() > nurserySize.getMaxNursery();
+    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
     int newMetaDataPages = metaDataSpace.committedPages() - previousMetaDataPages;
-    if (mustCollect || heapFull || nurseryFull ||
+    if (mustCollect || heapFull || nurseryFull || metaDataFull
         (progress && (newMetaDataPages > metaDataLimit.getPages()))) {
       if (space == metaDataSpace) {
         awaitingCollection = true;

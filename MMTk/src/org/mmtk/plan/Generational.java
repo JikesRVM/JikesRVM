@@ -314,7 +314,8 @@ public abstract class Generational extends StopTheWorldGC
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() > nurserySize.getMaxNursery();
-    if (mustCollect || heapFull || nurseryFull) {
+    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
+    if (mustCollect || heapFull || nurseryFull || metaDataFull) {
       required = space.reservedPages() - space.committedPages();
       if (space == nurserySpace || (Plan.COPY_MATURE() && (space == activeMatureSpace)))
         required = required<<1;  // must account for copy reserve
