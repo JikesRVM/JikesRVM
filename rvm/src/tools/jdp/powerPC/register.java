@@ -55,6 +55,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   public abstract int getJTOC();
 
   public abstract String getValue(String regname, int count) throws Exception;
+  public abstract String getNames() throws Exception;
 
 
 

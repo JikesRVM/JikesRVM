@@ -55,7 +55,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   public abstract int getFPFromPR(int pr);
 
   public abstract String getValue(String regname, int count) throws Exception;
-
+  public abstract String getNames() throws Exception;
 
 
   /**
