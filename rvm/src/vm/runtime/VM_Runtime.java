@@ -869,15 +869,18 @@ public class VM_Runtime implements VM_Constants {
 
     VM_Thread.getCurrentThread().dyingWithUncaughtException = true;
     
-    /* This should be (but isn't) undoable; ugh.  The heap is shared but the
-     * thread isn't.  No way to just give the memory to this particular
-     * thread, I think. */
+    /* Grow the heap.
+     * This could be (but isn't) undoable.  That doesn't matter here, since
+     * we're dying in any case.  
+     *
+     * There's no way to give the additional memory exclusively to this
+     * particular thread; too bad. */
     if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError)
       MM_Interface.emergencyGrowHeap(5 * (1<<20)); // ask for 5 megs and pray
     handlePossibleRecursiveException();
     VM.enableGC();    
     VM_Thread vmThr = VM_Thread.getCurrentThread();
-    Thread thr = vmThr.getJavaLangThread();
+    Thread thr = vmThr.peekJavaLangThread();
     if (thr == null) {
       VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(), 
                   "\" while booting: ");
