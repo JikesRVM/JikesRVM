@@ -785,17 +785,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Put this Reference object on its ReferenceQueque (if it has one)
+   * Put this Reference object on its ReferenceQueue (if it has one)
    * when its referent is no longer sufficiently reachable. The
    * definition of "reachable" is defined by the semantics of the
    * particular subclass of Reference. The implementation of this
    * routine is determined by the the implementation of
-   * java.lang.ref.ReferenceQueque in GNU classpath. It is in this
+   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
    * class rather than the public Reference class to ensure that Jikes
    * has a safe way of enqueueing the object, one that cannot be
    * overridden by the application program.
    * 
-   * @see java.lang.ref.ReferenceQueque
+   * @see java.lang.ref.ReferenceQueue
    * @param r the Reference object
    * @return <code>true</code> if the reference was enqueued
    */
