@@ -33,8 +33,9 @@ import instructionFormats.*;
  * 
  * @author Dave Grove
  * @author John Whaley
- * @modified by Stephen Fink
- * @modified by Mauricio J. Serrano
+ * @author Stephen Fink
+ * @author Mauricio J. Serrano
+ * @author Martin Trapp
  */
 final class OPT_IR implements OPT_Operators {
 
@@ -948,10 +949,7 @@ final class OPT_IR implements OPT_Operators {
     for (OPT_Register r = regpool.getFirstRegister(); 
 	 r != null; 
 	 r = r.getNext()) {
-      // TODO NULLCHECKS: once later stages in the compiler 
-      // understand validation operands we should also 
-      // verify that all validation ops are defined if they are used.
-      if (r.isPhysical() || r.isValidation()) continue;
+      if (r.isPhysical()) continue;
       if (r.useList != null) {
 	if (r.defList == null) {
 	  printInstructions();
