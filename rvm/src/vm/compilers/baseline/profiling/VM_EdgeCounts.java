@@ -126,8 +126,9 @@ final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor,
       case JBC_ifnull:case JBC_ifnonnull: {
 	int yea = cs[countIdx + TAKEN];
 	int nea = cs[countIdx + NOT_TAKEN];
+	boolean backwards = ((bytecodes[bcIndex+1] & 0x80) != 0);
 	countIdx += 2;
-	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea);
+	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea, backwards);
 	bcIndex += 3;
 	break;
       }

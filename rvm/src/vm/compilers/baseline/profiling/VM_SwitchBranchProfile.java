@@ -45,11 +45,11 @@ final class VM_SwitchBranchProfile extends VM_BranchProfile {
   }
 
   final public String toString() {
-    String res = bci + ": <" + (long)freq;
+    String res = bci + ":\t<" + (long)freq;
     for (int i=0; i<probs.length; i++) {
       res += ", "+probs[i];
     }
-    return res + ">";
+    return res + "> switch";
   }
 
   private static float sumCounts(int[] counts, int start, int numEntries) {
