@@ -300,6 +300,37 @@ public class VM_BootRecord {
   int sysDoubleRemainderIP;
   //-#endif
 
+   //-#if RVM_WITH_HPM
+   // performance measurement (opt compiler)
+   int sysHPMinitIP;
+   int sysHPMsetSettingsIP;
+   int sysHPMgetSettingsIP;
+   int sysHPMdeleteSettingsIP;
+   int sysHPMsetEventIP;
+   int sysHPMsetEventXIP;
+   int sysHPMsetModeIP;
+   int sysHPMstartCountingIP;
+   int sysHPMstopCountingIP;
+   int sysHPMresetCountersIP;
+   int sysHPMgetCounterIP;
+   int sysHPMprintIP;
+   int sysHPMtestIP;
+   int sysHPMinitTOC;
+   int sysHPMsetSettingsTOC;
+   int sysHPMgetSettingsTOC;
+   int sysHPMdeleteSettingsTOC;
+   int sysHPMsetEventTOC;
+   int sysHPMsetEventXTOC;
+   int sysHPMsetModeTOC;
+   int sysHPMstartCountingTOC;
+   int sysHPMstopCountingTOC;
+   int sysHPMresetCountersTOC;
+   int sysHPMgetCounterTOC;
+   int sysHPMprintTOC;
+   int sysHPMtestTOC;
+   //
+   //-#endif                                
+
   // time
   int sysGetTimeOfDayIP;
 
