@@ -43,23 +43,9 @@ class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
    *
    * @param addr the value to be inserted into the write buffer
    */
-  public final void insert(VM_Address addr) throws VM_PragmaNoInline {
-//      if (inWB) {
-//        VM.sysWrite("oops!\n");
-//        VM_Scheduler.dumpStack();
-//    if (addr.EQ(VM_Address.fromInt(0x4193fb30)))
-//     if (addr.EQ(VM_Address.fromInt(0x4193fc20)))
-//       VM_Scheduler.dumpStack(8, true);
-//      }
-//      inWB = true;
-//     VM.sysWrite("(");
-//     VM.sysWrite(addr);
+  public final void insert(VM_Address addr)  {
     checkInsert(1);
-//     VM.sysWrite(".");
-     uncheckedInsert(addr.toInt());
-//     VM.sysWrite(addr); VM.sysWrite(" "); VM.sysWrite(VM_Magic.getThreadId()); VM.sysWrite(" i\n");
-//     VM.sysWrite(")");
-//      inWB = false;
+    uncheckedInsert(addr.toInt());
   }
   private static boolean inWB = false;
 }
