@@ -34,7 +34,7 @@ export BOOTIMAGE_LOAD_ADDRESS="0x41000000"
 
 export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.3.1"
 #export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
-#export HOST_JAVA_HOME="/opt/IBMJava-14"
+#export HOST_JAVA_HOME="/opt/IBMJava2-14"
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
