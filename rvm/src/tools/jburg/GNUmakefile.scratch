@@ -2,8 +2,12 @@
 ## This is a simple GNU makefile to run in the scratch dir to build jburg.
 ## It is necessary because there is an ugly little bug in GNU Make 3.80
 ## where the rule to run YACC is broken.
+##
 ## $Id$
+##
 ## Copyright © IBM Corporation, 2003
+## Or, for compatibility with rvm/bin/findDeviantFiles: 
+# (C) Copyright IBM Corp. 2003
 
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
