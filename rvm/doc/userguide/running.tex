@@ -28,8 +28,8 @@ You may choose from myriad options for the {\tt rvm} command-line.
 Options fall into two categories: {\em standard} and {\em
 non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Command-Line Options}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Standard Command-Line Options}
 
 We currently support a subset of the JDK 1.3 standard options.  Below
 is a list of all options and their descriptions.  Unless otherwise noted each
@@ -40,12 +40,14 @@ set search path for application classes and resources
 
 \item[{\tt -D<name>=<value>}] set a system property
 
-\item[{\tt -verbose[:gc|:jni|:class]}]
+\item[{\tt -verbose[:class|:gc|:jni]}]
 enable verbose output; currently ``jni'' is not supported
 
 \item[{\tt -version}] print current VM version and terminate
 
 \item[{\tt -showversion}] print current VM version and continue
+
+\item[{\tt -fullversion}] like version but with more information
 
 \item[{\tt -?} or {\tt -help}] print help message
 
@@ -54,6 +56,9 @@ enable verbose output; currently ``jni'' is not supported
 \item[{\tt -jar}] not supported
 
 \end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Non-standard Command-Line Options}
 
 The non-standard options are
 
@@ -91,13 +96,6 @@ number of processors to use on a multiprocessor
 \item[{\tt -X:verbose}]
 print out additional information for GC
 
-\item[{\tt -X:irc[:help]}]
-print options supported by the initial runtime compiler when in a non-adaptive
-configuration 
-
-\item[{\tt -X:irc:<option>}]
-pass {\tt <option>} to the initial runtime compiler when in a non-adaptive configuration 
-
 \item[{\tt -X:aos[:help]}]
 print options supported by adaptive optimization system when in an
 adaptive configuration
@@ -105,12 +103,12 @@ adaptive configuration
 \item[{\tt -X:aos:<option>}]
 pass {\tt <option>} to the adaptive optimization system when in an adaptive configuration
 
-\item[{\tt -X:opt[:help]}]
-print options supported by the optimizing compiler when in a 
-non-adaptive configuration
+\item[{\tt -X:irc[:help]}]
+print options supported by the initial runtime compiler when in a non-adaptive
+configuration 
 
-\item[{\tt -X:opt:<option>}]
-pass {\tt <option>} to the optimizing compiler when in a non-adaptive configuration
+\item[{\tt -X:irc:<option>}]
+pass {\tt <option>} to the initial runtime compiler when in a non-adaptive configuration 
 
 \item[{\tt -X:base[:help]}]
 print options supported by the baseline compiler when in a 
@@ -118,6 +116,13 @@ non-adaptive configuration
 
 \item[{\tt -X:base:<option>}]
 pass {\tt <option>} to the baseline compiler when in a non-adaptive configuration
+
+\item[{\tt -X:opt[:help]}]
+print options supported by the optimizing compiler when in a 
+non-adaptive configuration
+
+\item[{\tt -X:opt:<option>}]
+pass {\tt <option>} to the optimizing compiler when in a non-adaptive configuration
 
 \end{description}
 

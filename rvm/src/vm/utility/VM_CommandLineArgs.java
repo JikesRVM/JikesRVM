@@ -417,7 +417,7 @@ class VM_CommandLineArgs {
       case AOS_IRC_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	OPT_Options.printHelp("-X:aos:irc");
+	VM_BASEOptions.printHelp("-X:aos:base");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
