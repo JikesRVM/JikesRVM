@@ -519,7 +519,6 @@ extern "C" void processTimerTick() {
    */
   int     i;
 
-#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
   // line added here - ndp is now the last processor - and cnt includes it
   cnt = cnt - 1;
   // check for gc in progress: if so, return
@@ -529,33 +528,30 @@ extern "C" void processTimerTick() {
   int       val;
   int       sendit = 0;
   int       MISSES = -2;     // tuning parameter
-  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
-    {
-      val = *(int *)((char *)processors[i] + 
-		     VM_Processor_threadSwitchRequested_offset);
-      if (val <= MISSES) sendit++;
-      *(int *)((char *)processors[i] + 
-	       VM_Processor_threadSwitchRequested_offset) = val - 1;
-    }
-  if (sendit != 0) // some processor "stuck in native"
-    {
-      if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon 
-	// Processor (the last one)
-	int pthread_id = *(int *)((char *)processors[i] 
-				  + VM_Processor_pthread_id_offset) ;
+  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i) {
+    val = *(int *)((char *)processors[i] + 
+		   VM_Processor_threadSwitchRequested_offset);
+    if (val <= MISSES) sendit++;
+    *(int *)((char *)processors[i] + 
+	     VM_Processor_threadSwitchRequested_offset) = val - 1;
+  }
+  if (sendit != 0) {
+    // some processor "stuck in native"
+    if (processors[i] != 0 /*null*/ ) {  
+      // have a NativeDaemon Processor (the last one) and can use it to recover
+      int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
 #ifdef __linuxsmp__
-	pthread_t thread = (pthread_t)pthread_id;
-	int i_thread = (int)thread;
-	pthread_kill(thread, SIGCONT);
+      pthread_t thread = (pthread_t)pthread_id;
+      int i_thread = (int)thread;
+      pthread_kill(thread, SIGCONT);
 #endif
+    } else {
+      if (val <= -25) {
+	fprintf(stderr, "WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 10 * (-val));
+	fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
       }
     }
-#else
-  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
-    if (processors[i] != 0 /*null*/)
-      *(int *) ((char *) processors[i] + VM_Processor_threadSwitchRequested_offset) = -1;
-  /* -1: all bits on */
-#endif
+  }
 }
 
 
