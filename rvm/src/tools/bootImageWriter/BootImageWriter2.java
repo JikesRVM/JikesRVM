@@ -7,6 +7,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Stack;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.HashMap;
 
 import java.io.*;
 
@@ -63,6 +65,79 @@ public class BootImageWriter2 extends BootImageWriterMessages
    * and value is the corresponding VM_Type.
    */
   private static Hashtable bootImageTypes = new Hashtable(5000);
+
+  /**
+   * For all the scalar types to be placed into bootimage, keep
+   * key/value pairs where key is a Key(jdkType) and value is
+   * a FieldInfo. 
+   */
+  private static HashMap bootImageTypeFields;
+
+  /**
+   * Class to collecting together field information
+   */
+  private static class FieldInfo {
+    /**
+     *  Field table from JDK verion of class
+     */
+    Field  jdkFields[];
+
+    /**
+     *  Fields that are the one-to-one match of rvm instanceFields
+     *  includes superclasses
+     */
+    Field  jdkInstanceFields[];
+
+    /**
+     *  Fields that are the one-to-one match of rvm staticFields
+     */
+    Field  jdkStaticFields[];
+
+    /**
+     *  Rvm type associated with this Field info
+     */
+    VM_Type rvmType;
+
+    /**
+     *  Jdk type associated with this Field info
+     */
+    Class jdkType;
+  }
+
+  /**
+   * Key for looking up fieldInfo
+   */
+  private static class Key {
+    /**
+     * Jdk type
+     */
+    Object jdkType;
+
+    /**
+     * Constructor.
+     * @param jdkType the type to associate with the key
+     */
+    public Key(Object jdkType) { this.jdkType = jdkType; }
+
+    /**
+     * Returns a hash code value for the key.
+     * @return a hash code value for this key
+     */
+    public int hashCode() { return System.identityHashCode(jdkType); }
+
+    /**
+     * Indicates whether some other key is "equal to" this one.
+     * @param that the object with which to compare
+     * @return true if this key is the same as the that argument;
+     *         false otherwise
+     */
+    public boolean equals(Object that) {
+      return (that instanceof Key) && jdkType == ((Key)that).jdkType;
+    }
+  }
+
+  private static final boolean STATIC_FIELD = true;
+  private static final boolean INSTANCE_FIELD = false;
 
   /**
    * The absolute address at which the bootImage is going to be loaded.
@@ -659,6 +734,204 @@ public class BootImageWriter2 extends BootImageWriterMessages
     }
 
     //
+    // Collect the VM class Field to JDK class Field correspondence
+    // This will be needed when building the images of each object instance
+    // and for processing the static fields of the boot image classes
+    //
+    if (trace) say("field info gathering");
+    bootImageTypeFields = new HashMap(bootImageTypes.size());
+
+    // First retrieve the jdk Field table for each class of interest
+    for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
+      VM_Type rvmType = (VM_Type) e.nextElement();
+      FieldInfo fieldInfo;
+      if (!rvmType.isClassType())
+	continue; // arrays and primitives have no static or instance fields
+
+      Class jdkType = getJdkType(rvmType);
+      if (jdkType == null)
+	continue;  // won't need the field info
+
+      Key key   = new Key(jdkType);
+      fieldInfo = (FieldInfo)bootImageTypeFields.get(key);
+      if (fieldInfo != null) {
+	fieldInfo.rvmType = rvmType;
+      } else {
+	if (trace) say("making fieldinfo for " + rvmType);
+	fieldInfo = new FieldInfo();
+	fieldInfo.jdkFields = jdkType.getDeclaredFields();
+	fieldInfo.jdkType = jdkType;
+	fieldInfo.rvmType = rvmType;
+	bootImageTypeFields.put(key, fieldInfo);
+	// Now do all the superclasses if they don't already exist
+	// Can't add them in next loop as Iterator's don't allow updates to collection
+	for (Class cls = jdkType.getSuperclass(); cls != null; cls = cls.getSuperclass()) {
+	  key = new Key(cls);
+	  fieldInfo = (FieldInfo)bootImageTypeFields.get(key);
+	  if (fieldInfo != null) {
+	    break;  
+	  } else {
+	    if (trace) say("making fieldinfo for " + jdkType);
+	    fieldInfo = new FieldInfo();
+	    fieldInfo.jdkFields = cls.getDeclaredFields();
+	    fieldInfo.jdkType = cls;
+	    fieldInfo.rvmType = null;    
+	    bootImageTypeFields.put(key, fieldInfo);
+	  }
+	}
+      }
+    }
+    // Now build the one-to-one instance and static field maps
+    for (Iterator iter = bootImageTypeFields.values().iterator(); iter.hasNext();) {
+      FieldInfo fieldInfo = (FieldInfo)iter.next();
+      VM_Type rvmType = fieldInfo.rvmType;
+      if (rvmType == null) {
+	if (trace) say("bootImageTypeField entry has no rvmType:"+fieldInfo.jdkType);
+	continue; 
+      }
+      Class jdkType   = fieldInfo.jdkType;
+      if (trace) say("building static and instance fieldinfo for " + rvmType);
+
+      // First the statics
+      VM_Field rvmFields[] = rvmType.getStaticFields();
+      fieldInfo.jdkStaticFields = new Field[rvmFields.length];
+
+      //
+      // Search order:
+      // nextField helps us try to speedup locating the
+      // right field in the jdk's Field list. Turns out most of
+      // the time the jdk list is in the exact opposite order.
+      // So start at the end of the list and search forward.
+      // The next search should start from where we left off. 
+      // If the first loop doesn't find the item, we'll need to 
+      // search the fields we skipped in the second loop
+      //
+      int nextField = fieldInfo.jdkFields.length-1;
+      for (int j = 0; j < rvmFields.length; j++) {
+	boolean found = false;
+	String  rvmName = rvmFields[j].getName().toString();
+	for (int k = nextField; k >= 0; k--) {
+	  Field f = fieldInfo.jdkFields[k];
+	  if (f.getName().equals(rvmName)) {
+	    fieldInfo.jdkStaticFields[j] = f;
+	    f.setAccessible(true);
+	    found = true;
+	    nextField = k-1;
+	    break;
+	  }
+	}
+	if (!found) {
+	  for (int k = nextField+1; k < fieldInfo.jdkFields.length; k++) {
+	    Field f = fieldInfo.jdkFields[k];
+	    if (f.getName().equals(rvmName)) {
+	      fieldInfo.jdkStaticFields[j] = f;
+	      f.setAccessible(true);
+	      found = true;
+	      nextField = fieldInfo.jdkFields.length-1;
+	      break;
+	    }
+	  }	    
+	  if (!found) {
+	    // Some fields just don't exist in JDK version
+	    fieldInfo.jdkStaticFields[j] = null;
+	  }
+	}
+      }
+
+      //
+      // Now the instance fields
+      // The search order is again organized in what seems to be
+      // the best for speed. With instance fields we need to search
+      // the superclasses too. Once a field is found in a fieldtable
+      // we try to start the search for the next field in the same
+      // field table starting from where we left off. If it is not
+      // in the current field table we try the superclasses's fieldtables
+      // If that doesn't work, we must try again but starting from
+      // the original jdktype.
+      //
+
+      rvmFields = rvmType.getInstanceFields();
+      fieldInfo.jdkInstanceFields = new Field[rvmFields.length];
+
+      Field[] jdkFields = fieldInfo.jdkFields;
+      nextField = jdkFields.length-1;
+      for (int j = 0; j < rvmFields.length; j++) {
+	boolean found = false;
+	String  rvmName = rvmFields[j].getName().toString();
+	while (!found && jdkType != null) {
+	    for (int k = nextField; k >= 0; k--) {
+	    Field f = jdkFields[k];
+	    if (f.getName().equals(rvmName)) {
+	      fieldInfo.jdkInstanceFields[j] = f;
+	      f.setAccessible(true);
+	      found = true;
+	      nextField = k-1;
+	      break;
+	    }
+	  }
+	  if (!found) {
+	    // Try the part of the field table we missed
+	    for (int k = nextField+1; k < jdkFields.length; k++) {
+	      Field f = jdkFields[k];
+	      if (f.getName().equals(rvmName)) {
+		fieldInfo.jdkInstanceFields[j] = f;
+		f.setAccessible(true);
+		found = true;
+		// Order seems unpredicable, so do a full search for
+		// next field
+		nextField = jdkFields.length-1;
+		break;
+	      }
+	    }
+	  }
+	  // If not found try field array from next superclass
+	  if (!found) {
+	    jdkType = jdkType.getSuperclass();
+	    if (jdkType != null) {
+	      Key key = new Key(jdkType);
+	      FieldInfo superFieldInfo = (FieldInfo)bootImageTypeFields.get(key);
+	      jdkFields = superFieldInfo.jdkFields;
+	      nextField = jdkFields.length-1;
+	    }
+	  }
+	}
+	if (!found) {
+	  // go back to basics and start search from beginning.
+	  jdkType = fieldInfo.jdkType;
+	  FieldInfo jdkFieldInfo = fieldInfo;
+	  for (jdkType = fieldInfo.jdkType; jdkType != null && !found; 
+	         jdkType = jdkType.getSuperclass(), 
+		 jdkFieldInfo = (jdkType!=null) ? (FieldInfo)bootImageTypeFields.get(new Key(jdkType)) : null) {
+	    jdkFields = jdkFieldInfo.jdkFields;
+	    for (int k = 0; k < jdkFields.length; k++) {
+	      Field f = jdkFields[k];
+	      if (f.getName().equals(rvmName)) {
+		fieldInfo.jdkInstanceFields[j] = f;
+		f.setAccessible(true);
+		found = true;
+		// Turns out the next field is often in this table too
+		// so remember where we left off.
+		nextField = k-1;
+		break;
+	      }
+	    }
+	  }
+	  if (!found) {
+	    fieldInfo.jdkInstanceFields[j] = null;
+	    // Best to start search for next field from beginning
+	    jdkType = fieldInfo.jdkType;
+	    jdkFields = fieldInfo.jdkFields;
+	    nextField = jdkFields.length-1;
+	    found = true;
+	  }
+	}
+      }
+      
+    }
+      
+
+
+    //
     // Create stack, thread, and processor context in which rvm will begin
     // execution.
     //
@@ -703,7 +976,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
         Field    jdkFieldAcc  = null;
 
 	if (jdkType != null) 
-	    jdkFieldAcc = getJdkFieldAccessor(jdkType, rvmFieldName);
+	    jdkFieldAcc = getJdkFieldAccessor(jdkType, j, STATIC_FIELD);
 
         if (jdkFieldAcc == null) {
 	    if (jdkType != null) {
@@ -922,7 +1195,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
         VM_Type  rvmFieldType   = rvmField.getType();
         int      rvmFieldOffset = scalarImageOffset + rvmField.getOffset();
         String   rvmFieldName   = rvmField.getName().toString();
-        Field    jdkFieldAcc    = getJdkFieldAccessor(jdkType, rvmFieldName);
+        Field    jdkFieldAcc    = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
 
         if (jdkFieldAcc == null) {
           if (trace) traceContext.push(rvmFieldType.toString(),
@@ -1225,22 +1498,21 @@ public class BootImageWriter2 extends BootImageWriterMessages
    * Obtain accessor via which a field value may be fetched from host jdk
    * address space.
    *
-   * @param jdkClass class whose field is sought
-   * @param fieldName name of field sought
+   * @param jdkType class whose field is sought
+   * @param index index in FieldInfo of field sought
+   * @param isStatic is field from Static field table, indicates which table to consult
    * @return field accessor (null --> host class does not have specified field)
    */
-  private static Field getJdkFieldAccessor(Class jdkClass, String fieldName) {
-    for (Class cls = jdkClass; cls != null; cls = cls.getSuperclass()) {
-      Field[] fields = cls.getDeclaredFields();
-      for (int i = 0; i < fields.length; ++i) {
-        Field f = fields[i];
-        if (f.getName().equals(fieldName)) {
-          f.setAccessible(true);
-          return f;
-        }
-      }
+  private static Field getJdkFieldAccessor(Class jdkType, int index, boolean isStatic) {
+    FieldInfo fInfo = (FieldInfo)bootImageTypeFields.get(new Key(jdkType));
+    Field     f;
+    if (isStatic == STATIC_FIELD) {
+      f = fInfo.jdkStaticFields[index];
+      return f;
+    } else {
+      f = fInfo.jdkInstanceFields[index];
+      return f;
     }
-    return null;
   }
 
   /**
