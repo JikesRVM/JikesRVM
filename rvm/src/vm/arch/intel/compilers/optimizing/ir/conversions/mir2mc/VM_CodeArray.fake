@@ -1,0 +1,28 @@
+/*
+ * (C) Copyright IBM Corp. 2003
+ */
+//$Id$
+package com.ibm.JikesRVM;
+
+/**
+ * @author Dave Grove
+ */
+final public class VM_CodeArray {
+  private byte [] data;
+
+  static public VM_CodeArray create (int size) {
+    return null;
+  }
+
+  public byte get (int index) {
+    return data[index];
+  }
+
+  public void set (int index, byte v) {
+    data[index] = v;
+  }
+
+  public int length() {
+    return data.length;
+  }
+}
