@@ -181,15 +181,33 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
     runClassInitializer("java.lang.Character");
-    runClassInitializer("gnu.java.io.EncodingManager");
+    runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
+    // Turn off security checks; about to hit EncodingManager.
+    // Commented out because we haven't incorporated this into the CVS head
+    // yet. 
+    // java.security.JikesRVMSupport.turnOffChecks();
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
 
-    // We can safely allocate a java.lang.Thread now, I think.  The boot
-    // thread (running right now) is going to need this, since at least one of
-    // the initializers we're going to be running below, as of Classpath 0.11,
-    // invokes Thread.getCurrentThread(). 
+    /* We can safely allocate a java.lang.Thread now.  The boot
+       thread (running right now, as a VM_Thread) has to become a full-fledged
+       Thread, since we're about to encounter a security check:
+
+       EncodingManager checks a system property, 
+        which means that the permissions checks have to be working,
+        which means that VMAccessController will be invoked,
+        which means that ThreadLocal.get() will be called,
+        which calls Thread.getCurrentThread().
+
+        So the boot VM_Thread needs to be associated with a real Thread for
+        Thread.getCurrentThread() to return. */
     VM_Scheduler.giveBootVM_ThreadAJavaLangThread();
+
+    runClassInitializer("java.lang.ThreadLocal");
+    // Possibly fix VMAccessController's contexts and inGetContext fields
+    runClassInitializer("java.security.VMAccessController");
+    
+    runClassInitializer("gnu.java.io.EncodingManager");
 
     runClassInitializer("java.io.PrintWriter");
     runClassInitializer("gnu.java.lang.SystemClassLoader");
@@ -197,7 +215,6 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
-    runClassInitializer("java.util.WeakHashMap");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
@@ -298,6 +315,11 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
     com.ibm.JikesRVM.adaptive.VM_Controller.boot();
     //-#endif
+
+    // Turn on security checks again.
+    // Commented out because we haven't incorporated this into the main CVS
+    // tree yet. 
+    // java.security.JikesRVMSupport.fullyBootedVM();
 
     // The first argument must be a class name.
     if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
@@ -984,14 +1006,11 @@ public class VM extends VM_Properties
   public static void sysExit(int value) throws LogicallyUninterruptiblePragma, NoInlinePragma {
     handlePossibleRecursiveCallToSysExit();
     if (debugOOM) {
-      sysWrite("entered VM.sysExit(");
-      sysWrite(value);
-      sysWriteln(")");
+      sysWriteln("entered VM.sysExit(", value, ")");
     }
     if (VM_Options.stackTraceAtExit) {
-      VM.sysWrite("[Here is the context of the call to VM.sysExit(");
-      VM.sysWrite(value);
-      VM.sysWriteln(")...:");
+      VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value,
+                    ")...:");
       VM.disableGC();
       VM_Scheduler.dumpStack();
       VM.enableGC();
@@ -1031,11 +1050,9 @@ public class VM extends VM_Properties
   private static void handlePossibleRecursiveCallToSysFail(String message) {
     ++inSysFail;
     if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWrite("VM.sysFail(): We're in a recursive call to VM.sysFail(), ");
-      sysWrite(inSysFail);
-      sysWriteln(" deep.");
-      sysWrite("sysFail was called with the message: ");
-      sysWriteln(message);
+      sysWriteln("VM.sysFail(): We're in a recursive call to VM.sysFail(), ",
+                 inSysFail, " deep.");
+      sysWrite("sysFail was called with the message: ", message);
      }
     if (inSysFail > maxSystemTroubleRecursionDepth) {
       dieAbruptlyRecursiveSystemTrouble();
@@ -1049,9 +1066,7 @@ public class VM extends VM_Properties
     ++inSysExit;
     /* Message if we've been here before. */
     if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWrite("In a recursive call to VM.sysExit(), ");
-      sysWrite(inSysExit);
-      sysWriteln(" deep.");
+      sysWrite("In a recursive call to VM.sysExit(), ", inSysExit, " deep.");
     }
     
     if (inSysExit > maxSystemTroubleRecursionDepth ) {
@@ -1067,9 +1082,8 @@ public class VM extends VM_Properties
     /* If we've been here only a few times, print message. */
     if (   inShutdown > 1 
         && inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
-      sysWriteln("We're in a recursive call to VM.shutdown()");
-      sysWrite(inShutdown);
-      sysWriteln(" deep!");
+      sysWriteln("We're in a recursive call to VM.shutdown()", inShutdown, 
+                 "deep!");
     }
     if (inShutdown > maxSystemTroubleRecursionDepth ) {
       dieAbruptlyRecursiveSystemTrouble();
@@ -1086,8 +1100,8 @@ public class VM extends VM_Properties
   public static void dieAbruptlyRecursiveSystemTrouble() {
     if (! inDieAbruptlyRecursiveSystemTrouble) {
       inDieAbruptlyRecursiveSystemTrouble = true;
-      VM.sysWrite("VM.dieAbruptlyRecursiveSystemTrouble(): Dying abruptly");
-      VM.sysWriteln("; we're stuck in a recursive shutdown/exit.");
+      sysWriteln("VM.dieAbruptlyRecursiveSystemTrouble(): Dying abruptly",
+                    "; we're stuck in a recursive shutdown/exit.");
     }
     /* Emergency death. */
     VM_SysCall.sysExit(exitStatusRecursivelyShuttingDown);
