@@ -19,7 +19,7 @@ IR (intermediate representation) from bytecodes through
 HIR (high-level intermediate representation), 
 LIR (low-level intermediate representation), and 
 MIR (machine intermediate representation) and finally into machine code. 
-Various optimizing transformations are performed at each level of IR.
+Various optimizing transformations are performed at each level of IR.\@
 
 \IndexttClass{OPT\_CompilationPlan}%
 \IndexttClass{VM\_Method}%
@@ -81,7 +81,7 @@ included when any of its component elements must be included.
 
 Each element must have a {\tt perform} method defined which takes the IR as
 a parameter. It is expected, but not required, that the {\tt perform}
-method will modify the IR. 
+method will modify the IR.\@ 
 The perform method of an aggregate element will invoke the 
 perform methods of its elements.
 
@@ -128,10 +128,10 @@ more operands.
 \Indextt{OperatorList.dat}%
 The IR operators are defined by the class {\tt OPT\_Operators}, which in
 turn is automatically generated from a template by a driver.  The input to the
-driver are two files, both called {\tt OperatorList.dat}.  One input
+driver are two files, both called {\tt Op\-er\-a\-tor\-List\-.dat}.  One input
 file resides in {\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struc\-tion} and defines machine-independent
 operators.  The other resides in {\tt \$RVM\-\_\-ROOT\-/\-rvm\-/\-src/\-vm\-/\-arch\-/\-\$\{arch\}\-/\-com\-pi\-lers\-/\-op\-ti\-mi\-zing\-/\-ir/\-in\-struc\-tion}
-and defines machine-dependent operators, where \{arch\} is the
+and defines machine-dependent operators, where \texttt{\$\{arch\}} is the
 specific architecture of interest, such as PowerPC\TMweb.
 
 Each operator in {\tt OperatorList.dat} is defined by a five-line record,
@@ -170,12 +170,12 @@ another line of information for use by the assembler.  See the file
 for details. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Instruction Formats}\label{iformats}
-\index{instructions}
+\subsection{Instruction Formats}\label{iformats}%
+\index{instructions}%
 \Indextt{instructionFormats.java}
 
 Every IR instruction fits one of the pre-defined {\em Instruction Formats}.
-The Java package {\tt instructionFormats} defines roughly 75 architecture-independent
+The Java package {\tt in\-struc\-tion\-For\-mats} defines roughly 75 architecture-independent
 instruction formats.  For each instruction format, the package includes a class
 that defines a set of static methods by which optimizing compiler
 code can access an instruction of that format.
@@ -204,7 +204,7 @@ Move format.  Other static access functions can set each operand
 nullness, clear operands, create Move instructions, mutate other
 instructions into Move instructions, and check the index of a particular
 operand field in the instruction.  See the Javadoc\TMweb{} reference for a complete
-description of the API.
+description of the API.\@
 
 \Indextt{InstructionFormatList.dat}
 Each fixed-length instruction format is defined in the text file 
@@ -302,7 +302,7 @@ architecture-specific file called {\tt LIR2MIR.rules}, which resides in
 {\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-\$\{arch\}/\-compilers/\-op\-ti\-mi\-zing/\-ir/\-con\-ver\-sions/\-lir\-2\-mir}, where \$\{arch\} is the
 specific architecture of interest, such as PowerPC\TMweb.
 The rules are 
-used in generating a parser, which transforms the IR.
+used in generating a parser, which transforms the IR.\@
 
 Each rule in {\tt LIR2MIR.rules} is defined by a four-line record,
 consisting of:
@@ -392,7 +392,7 @@ optimizing compiler on each method run.
 
 The {\tt OptTestHarness} program provides even more control over the
 optimizing compiler.  This driver program allows you to invoke the
-optimizing compiler as an ``application'' running on top of the VM.
+optimizing compiler as an ``application'' running on top of the VM.\@
 The most useful configuration for this is probably {\tt
 BaseAdaptiveOTHCopyMS}. Use the command line argument {\tt
 -X:aos:enable\_recompilation=false} to only opt compile those methods
@@ -423,7 +423,7 @@ the command line.  Any arguments passed to {\tt OptTestHarness} via {\tt
 % rvm OptTestHarness -oc:O1 -oc:print_final_hir=true -method Foo bar -
 \end{verbatim} 
 will compile {\tt Foo.bar} at optimization level {\tt O1} and print
-the final HIR.
+the final HIR.\@
 
 Another useful option to {\tt OptTestHarness} is {\tt -longcommandline
 <filename>}. With this option, {\tt OptTestHarness} reads the command line

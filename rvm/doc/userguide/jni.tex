@@ -25,7 +25,7 @@ sections.
 
 \subsection{JNI Functions}
 All but three of the functions defined by the 1.1 JNI specification are
-implemented by Jikes RVM. The missing functions are {\tt DefineClass},
+implemented by Jikes RVM.\@ The missing functions are {\tt DefineClass},
 {\tt RegisterNatives}, and {\tt UnregisterNatives}.  Almost all of the
 additional functions added by the 1.2 JNI specification are not
 implemented.  Contributions of the missing functionality (and
@@ -57,7 +57,7 @@ Java heap (eg. {\tt memcpy()}). For more details on the mechanics of adding a
 new \texttt{syscall} to the system, see the header comments of 
 \xlink{{\tt VM\_SysCall.java}}{\VMSysCallURL}.
 
-The second mechanism is JNI.  Naturally, the user writes JNI code
+The second mechanism is JNI.\@  Naturally, the user writes JNI code
 using the JNI interface.  RVM implements a call to a native method by
 using the platform-specific {\tt VM\_JNICompiler} to generate a stub
 routine that manages the transition between Java bytecode and native code.  The
@@ -68,9 +68,9 @@ is a GC-safe point, since JNI code cannot freely modify the Java heap.
 \subsection{Interactions with $m$-to-$n$ Threading}
 \link{See the \SectionName{Thread System} subsection}[ (subsection~\Ref,
 page~\Pageref)]{sec:threads} for more details on the thread system
-and $m$-to-$n$ threading in Jikes RVM. 
+and $m$-to-$n$ threading in Jikes RVM.\@ 
 
-There are two ways to execute native code: {\tt syscall}s and JNI.
+There are two ways to execute native code: {\tt syscall}s and JNI.\@
 A Java thread that calls native code by either mechanism will never
 be preempted by \jrvm{}.  As far as \jrvm{} is concerned, a Java thread that
 enters native code has exclusive access to the underlying {\tt
@@ -92,13 +92,13 @@ lunch", and continue execution with the remaining pthreads.  Note that
 JNI code is a GC safe point; non-malicious correct native code cannot
 perturb the Java heap without notifying the RVM through a JNI method
 invocation.  Note that this preemption mechanism is currently only
-implemented on AIX.
+implemented on AIX.\@
 
 On Linux/x86, Jikes RVM ``hijacks'' certain blocking system calls and
-reflects them back into the VM. The VM then uses nonblocking
+reflects them back into the VM.\@ The VM then uses nonblocking
 equivalents. This handles many of the common cases of blocking native
 code without requiring the full complexity of the timer-based
-preemption mechanism used on AIX. A complete solution would consist of
+preemption mechanism used on AIX.\@ A complete solution would consist of
 implementing both mechanisms on both platforms.  We hope to do this in
 the future.
 

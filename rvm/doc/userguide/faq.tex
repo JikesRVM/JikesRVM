@@ -186,7 +186,7 @@ can use \texttt{objdump} to disassemble.
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
 to compile the RVM source on Linux\Rweb{} and AIX\TMweb. Previously we
 were using version 1.13. Version 1.14 through 1.17 do not entirely
-work with Jikes RVM.  For versions of Jikes RVM before 2.2.0, you must
+work with Jikes RVM.\@  For versions of Jikes RVM before 2.2.0, you must
 use jikes 1.13.
 
 \subsubsection{Has anybody thought about incremental boot image writing?}%
@@ -383,7 +383,7 @@ used for various purposes by the RVM GC system.
 
 \subsubsection{Does \jrvm{} conform to Sun's JDK Host Porting Interface?}
 
-No. There is nothing in RVM that remotely resembles HPI.
+No. There is nothing in RVM that remotely resembles HPI.\@
 
 \subsection{Libraries}
 
@@ -489,7 +489,7 @@ add phases to class
 \subsubsection{What if I want my pass to do inter-procedural analysis?}
 
 \index{IPA: inter-procedural analysis}
-The normal RVM does not have a convenient entrypoint for IPA.  Because the
+The normal RVM does not have a convenient entrypoint for IPA.\@  Because the
 Java programming language is
 dynamic, the RVM continually compiles methods as they are
 invoked.  Each method is compiled individually.

@@ -13,7 +13,7 @@ is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
 
 \paragraph{Overview}
 Values in the Java\TMweb{} programming language are either {\em
-primitive} (e.g. {\tt int}, {\tt double}, etc.)  or they are {\em
+primitive} ({\it e.g.}\ {\tt int}, {\tt double}, etc.)  or they are {\em
 references} (that is, pointers) to objects.  Objects are either {\em
 arrays} having elements or {\em scalar objects} having fields.
 Objects are logically composed of two primary sections: an object
@@ -59,7 +59,7 @@ pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
 least theoretically possible for another process to cause a shared
 system library to get loaded into very high memory.  This remote
 possibility is not a concern in a research project, but would need to
-be addressed by a commercial JVM.  It would be sufficient to forbid
+be addressed by a commercial JVM.\@  It would be sufficient to forbid
 read and write access to the last page of addressable memory.
 (Accesses to some of the fields of objects bigger than a page could be
 checked explicitly without having a major impact on performance.)}
@@ -211,9 +211,9 @@ is to search all the virtual method entries in the \link{TIB}{TIB} finding a mat
 Instead, Jikes RVM uses an {\em Interface Method Table} (IMT) which resembles
 a virtual method table for interface methods. Any method that could be an interface method has 
 a fixed offset into the IMT just as with the \link{TIB}{TIB}. However, unlike in the \link{TIB}{TIB}, two different methods may
-share the same offset into the IMT. In this case, a
+share the same offset into the IMT.\@ In this case, a
 \index{conflict resolution stub}{\em conflict resolution
-stub} is inserted in the IMT. Conflict resolution stubs are
+stub} is inserted in the IMT.\@ Conflict resolution stubs are
 custom-generated machine code sequences that test the value of a
 hidden parameter to dispatch to the desired interface method.
 For more details, see
@@ -341,7 +341,7 @@ The layout of the stackframe appears in a block comment in
 
 \item Save any nonvolatile general-purpose registers used by callee.
 
-\item Store and update the frame pointer FP.
+\item Store and update the frame pointer FP.\@
 
 \item Store callee's compiled method ID 
 
@@ -431,8 +431,8 @@ The first two areas of the callee's stackframe (see above) have been
      of the VM\_Processor object pointed to by ESI points to A's
      frame.  If B returns a floating-point result, this is at
      the top of the fp register stack.  If B returns a long, the
-     low-order word is in EAX and the high-order word is in EDX.
-     Otherwise, if B has a result, it is in EAX.
+     low-order word is in EAX and the high-order word is in EDX.\@
+     Otherwise, if B has a result, it is in EAX.\@
 
 \end{description}
 

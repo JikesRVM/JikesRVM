@@ -1,5 +1,5 @@
 This section provides some tips on collecting performance numbers with
-Jikes RVM.
+Jikes RVM.\@
 
 \index{boot image}
 \index{configurations}
@@ -8,7 +8,7 @@ Jikes RVM.
 To make a long story short the best performing configuration of Jikes
 RVM will almost always be {\tt production}.  Unless you really know
 what you are doing, don't use any other configuration to do a
-performance evaluation of Jikes RVM. 
+performance evaluation of Jikes RVM.\@ 
 
 Any boot image you use for performance evaluation must have the
 following characteristics for the results to be meaningful:
@@ -67,10 +67,10 @@ deliver competitive performance on some codes.  In particular, x86
 floating-point performance is mediocre.
 
 \T \pagebreak[4]
-Some kinds of code will not run fast on Jikes RVM.  Known issues include:
+Some kinds of code will not run fast on Jikes RVM.\@  Known issues include:
 \T \nopagebreak
 \begin{itemize}
-\item Jikes RVM start-up is slow compared to the IBM product JVM.
+\item Jikes RVM start-up is slow compared to the IBM product JVM.\@
 \item Remember that the non-adaptive configurations (eg. Fast) opt-compile
 {\em every} method the first time it executes.  With aggressive optimization
 levels, opt-compiling will severely slow down the first execution of

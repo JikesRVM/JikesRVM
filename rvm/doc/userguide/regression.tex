@@ -40,7 +40,7 @@ to find resources not distributed as part of the Jikes RVM
 distribution.  You will need to set an environment variable 
 \$BENCHMARK\_\-ROOT that is used by {\tt Local.rules} to point it to
 other resources; {\tt Local.rules} contains URLs for finding many of
-the regression tests that are not distributed with Jikes RVM.
+the regression tests that are not distributed with Jikes RVM.\@
 You can also customize your regression testing by making control files
 for \texttt{RunSanityTests} to ease running your preferred selection of boot
 images, test programs, and options. 
@@ -116,15 +116,15 @@ boot images that have been built with the optimizing compiler as the
 runtime compiler but without the adaptive system (optimization control
 under the adaptive system is more complex, and must be done by
 supplying options using the {\tt -rc-args} flag).  This option expects
-the next command line word to be a list of opt levels (e.g. O0, O1,
-O2, O3), and the specified tests and boot images will be run once with
+the next command line word to be a space-separated list of opt levels
+({\it e.g.}\ ``\texttt{O0 O1 O2 O3}'', and the specified tests and boot images will be run once with
 each specified opt level provided as a boot argument to the runtime
 compiler.  This option also forces results to be placed in separate
 directories for each optimization level specified.
 
 \item{\tt{-numprocs}} {\em n}
 
- This command line option specifies how many processors (i.e.\ Jikes\TMweb{}
+ This command line option specifies how many processors ({\it i.e.}\ Jikes\TMweb{}
 RVM virtual processors) are to be used for each test run.  For every
 test that is run, the desired number of processors will be given to
 Jikes RVM as a boot time command line option.  This option is ignored
@@ -221,7 +221,7 @@ text, and has one test name per line.  Both types of file should be
 placed in the {\tt \$RVM\_\-ROOT/rvm/regression/config} directory; when placed
 there, you can refer to them with an unqualified file name on the
 \texttt{RunSanityTests} command line.  You can use files from other places as
-control files, but those require an absolute path (i.e. one beginning
+control files, but those require an absolute path ({\it i.e.}\ one beginning
 with a ``{\tt /}'') on the command line.
 
 
@@ -298,7 +298,7 @@ sanity checking and benchmark invocation.
 
  The general setup options control source and class paths, the heap
 sizes needed by the benchmark and any extra boot time arguments to
-Jikes RVM.  These variables are as follows:
+Jikes RVM.\@  These variables are as follows:
 \begin{description}
 \item[\varName{BENCH\_SOURCE\_PATH}] is a list of directories in which to find
 Java\TMweb{} source files that are used by this benchmark.  This is not a
@@ -311,7 +311,7 @@ makefile list.
 \item[\varName{INITIAL\_HEAPSIZE}] is the maximum heap size in megabytes.
 \item[\varName{HEAPSIZE}] is the maximum heap size in megabytes.
 \item[\varName{BENCH\_RVM\_ARGS}] is extra boot time arguments to provide to
-RVM. 
+RVM.\@ 
 \end{description}
 
  Sanity checking variables provide a way to specify how to compare the
@@ -323,11 +323,11 @@ before comparison.  These variables are as follows:
 against which to diff to check whether the program generated the
 correct result.
 \item[\varName{AWK\_FILTER}] is a filter to apply to the output of the program
-before diffing with EXPECTED.  This filter will be applied by GNU
+before diffing with EXPECTED.\@  This filter will be applied by GNU
 awk. Defining both AWK\_FILTER and SED\_FILTER is not
 allowed. 
 \item[\varName{SED\_FILTER}] is a filter to apply to the output of the program
-before diffing with EXPECTED.  This filter will be applied by GNU sed.
+before diffing with EXPECTED.\@  This filter will be applied by GNU sed.
 Defining both AWK\_FILTER and SED\_FILTER is not allowed. 
 \end{description}
 
@@ -345,7 +345,7 @@ it expects dots rather than slashes for package names.
 Jikes RVM
 for this benchmark.  These arguments are passed after the class name,
 so they are arguments to the Java program itself, not boot time
-arguments to Jikes RVM.
+arguments to Jikes RVM.\@
 \end{description}
 
  The client-server programs require more variables since they must
@@ -401,7 +401,7 @@ differ in how they check for correctness:
 \item[sanity-diff] uses the EXPECTED file to check correctness.  This
 is only supported for stand-alone programs.
 \item[sanity-compare] runs the same program with the JDK and compares
-the results with those obtained from Jikes RVM.  This is only supported for
+the results with those obtained from Jikes RVM.\@  This is only supported for
 stand-alone programs. 
 \item[sanity-check-rule] invokes the ``check'' make rule, which must be
 defined by the test program makefile.  The ``check'' rule can assume
@@ -514,7 +514,7 @@ javalex
 selection of boot images using these two sets of regression tests.
 Note that we use the nightly-tests-short list of tests for
 configurations that exist mainly for debugging purposes
-(e.g., \texttt{ExtremeAssertions}\textit{*}) or that one can
+({\it e.g.}, \texttt{ExtremeAssertions}\textit{*}) or that one can
 create but would not want to use in practice.
 To ensure relatively complete coverage testing of the optimizing
 compiler, we chose one optimizing configuration (FullOptMarkSweep) on
@@ -548,5 +548,5 @@ to test, but they will hopefully make a good model.
 Mauve is an open source test suite for class libraries.  The directory 
 {\tt{\$RVM\_\-ROOT/\-rvm/\-re\-gres\-sion/\-tests/\-mauve}} contains a file
 {\tt mauve-jikesrvm} that contains the current KEYS used to run Mauve tests
-on Jikes RVM. 
+on Jikes RVM.\@ 
 

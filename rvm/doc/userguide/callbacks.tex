@@ -22,22 +22,22 @@ your instance will be invoked.
 {\tt VM\_Callbacks} for the list of currently
 supported callbacks]{\VMCallbacksURL}.
 
-The appropriate interface names can be obtained by appending ``Monitor'' to the
-event names (e.g. the interface to implement for the {\tt MethodOverride} event
+The appropriate interface names can be obtained by appending ``\texttt{Monitor''} to the
+event names ({\it e.g.}\ the interface to implement for the {\tt MethodOverride} event
 is {\tt VM\_\-Call\-backs.Me\-thod\-Ov\-er\-ride\-Mo\-ni\-tor}).  Likewise, the method to
-register the callback is ``add'', followed by the name of the interface (e.g.
-the register method for the above interface is {\tt
+register the callback is ``\texttt{add}'', followed by the name of the
+interface ({\it e.g.}\ the register method for the above interface is {\tt
 VM\_\-Call\-backs.add\-Me\-thod\-O\-ver\-ride\-Mon\-i\-tor()}).
 
 Since the events for which callbacks are available are internal to the VM,
 there are naturally some limitations on the behavior of the callback code.  For
 example, as soon as the exit callback is invoked, all threads are considered
-daemon threads (i.e. the VM will not wait for any new threads created in the
+daemon threads ({\it i.e.}\ the VM will not wait for any new threads created in the
 callbacks to complete before exiting).  Thus, if the exit callback creates any
 threads, it has to {\tt join()} with them before returning.  These limitations
 may also produce some unexpected behavior.  For example, while there is an
 elementary safeguard on any classloading callback that prevents recursive
-invocation (i.e. if the callback code itself causes classloading), there is no
+invocation ({\it i.e.}\ if the callback code itself causes classloading), there is no
 such safeguard across events, so, if there are callbacks registered for both
 {\tt ClassLoaded} and {\tt Class\-In\-stan\-ti\-a\-ted} events, and the {\tt
 Class\-In\-stan\-ti\-a\-ted} callback code causes dynamic class loading, the {\tt

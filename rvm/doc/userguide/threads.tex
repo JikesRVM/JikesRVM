@@ -1,5 +1,5 @@
 This section provides some explanation of how Java\TMweb{} threads are
-scheduled and synchronized by Jikes\TMweb{} RVM.
+scheduled and synchronized by Jikes\TMweb{} RVM.\@
 
 \index{threads}
 \index{scheduling}
@@ -12,10 +12,10 @@ These threads are multiplexed onto
 one or more virtual processors (see 
 \xlink{{\tt VM\_Processor}}{\VMProcessorURL}).  Normally, the
 number of Jikes RVM virtual processors to use is a command line argument
-(e.g. {\tt -X:processors=4}) Generally, there should be one Jikes RVM
-virtual processor for each CPU on an SMP.  Additional virtual
+({\it e.g.}\ {\tt -X:processors=4}) Generally, there should be one Jikes RVM
+virtual processor for each CPU on an SMP.\@  Additional virtual
 processors may be created to handle threads executing non-Java code
-through the Java JNI.  Multiple virtual processors require a working
+through the Java JNI.\@  Multiple virtual processors require a working
 pThread library, each virtual processor being bound to a pThread.  It
 is possible to build a system that only uses one virtual processor by
 setting the preprocessor directive 
@@ -44,7 +44,7 @@ queue, if it is global).  {\tt morph} does some additional
 housekeeping and transfers control to {\tt dispatch} which selects the
 next thread to execute. Dispatch then invokes {\tt
 VM\_Ma\-gic.thread\-Switch} to save the hardware context of A and restore
-the hardware context of B.  It now appears as if B's previous call to
+the hardware context of B.\@  It now appears as if B's previous call to
 {\tt dispatch} has just returned and it continues executing. While
 dispatching is proceeding (from the time A is enqueued until B's
 hardware context is restored), the {\tt be\-ing\-Dis\-patched} field of A is

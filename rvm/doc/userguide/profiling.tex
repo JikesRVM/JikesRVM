@@ -85,9 +85,9 @@ The AppStart, AppComplete, AppRunStart, and AppRunComplete monitors
 are supported for application use.  
 Support for other callbacks can be easily added following the current design.
 
-A trace file reader is available in the {\tt \$RVM\_\-ROOT/rvm/src/tools/HPM\_traceFileReader}
-subdirectory.  Type {\tt make} on the command line to generate the class files and then 
-type {\tt java TraceFileReader} to determine what command line options are available.
+A trace file reader is available in the {\tt \$RVM\_\-ROOT/rvm/src/tools/HPM\_\-trace\-Fi\-le\-Rea\-der}
+subdirectory.  Type ``{\tt make}'' on the command line to generate the class files and then 
+type ``{\tt java Trace\-Fi\-le\-Rea\-der}'' to determine what command line options are available.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -260,7 +260,7 @@ FooBar.  }
 
 Depending on what you are counting, there may be one data object for
 the whole program (such as 
-\xlink{{\tt VM\_YieldpointCounterData}}{\VMYieldpointCounterDataURL} and
+\xlink{{\tt VM\-\_\-Yield\-point\-Coun\-ter\-Da\-ta}}{\VMYieldpointCounterDataURL} and
 \xlink{{\tt
 VM\_MethodInvocationCounterData}}{\VMMethodInvocationCounterDataURL}), 
 or one per method.  There is also a
@@ -288,7 +288,7 @@ events.
 converts the high level ``count event'' instruction into the actual
 counter code by using the counter manager.  It currently occurs at the
 end of LIR, so instrumentation can not be inserted using this
-mechanism after LIR.  This phase does not need to be modified if you
+mechanism after LIR.\@  This phase does not need to be modified if you
 add a new phase, except that the {\tt shouldPerform()} method needs to
 have your instrumentation listed, so this phase is run when your
 instrumentation is turned on.
