@@ -32,7 +32,6 @@ the the first self-bootstrapped virtual machine written entirely in
 Java i.e., its Java code runs on itself, without requiring a second
 virtual machine.
 
-
 \subsubsection{Is the RVM appropriate for all programmers?}
 
 No, the RVM is primarily for researchers.  The RVM is inadequate
@@ -85,7 +84,7 @@ scheduling, and synchronization.
 \subsubsection{Who is using RVM?}
 \remark{TODO. add url}
 
-\subsection{Getting RVM}
+\subsection{Getting RVM and Documentation}
 
 \subsubsection{How do I get RVM?}
 
@@ -98,9 +97,23 @@ The RVM source is also available through a public CVS server
 You can also download the source to the libraries \remark{TODO URL} under
 a separate license. \remark{TODO URL}
 
+\subsubsection{Is there a list of known bugs?}
+
+See the bug tracking system available on DeveloperWorks at 
+\remark{TODO URL}.
+
+The bug tracking lists {\em defects}, representing bugs in the system, and
+{\em features}, which are TODO items to improve the system.
+
+\subsubsection{Is there documentation on-line?}
+
+Yes.  See
+\remark{TODO URL}
+
+
 \subsubsection{Can I get the Quicksilver Quasi-Static System?}
 
-No.  This project is no longer active or supported.
+No. This project is no longer active or supported.
 
 \subsection{Licenses}
 
@@ -146,6 +159,34 @@ but not Linux.
 
 No. Some class loader functionality is hacked around, delegating all
 function to the system class loader.  
+
+\subsubsection{Does RVM support the Java 2 security model?}
+
+No. 
+
+\subsubsection{Does RVM support serialization?}
+
+Sort of.  RVM provides enough serialization support to run some codes.  
+However, serialization of classes in our class library may not match
+serialization as implemented in the Sun class library.
+
+\subsubsection{Does RVM enforce the Java Memory Model?}
+
+No. Depending on the architecture, various features of the memory model
+are not implemented according to the current spec, to the best of our
+understanding.
+
+Known issues include:
+\begin{itemize}
+\item on PowerPC, the system does not enforce sequential consistency for
+volatile variables
+\item the system does not enforce atomicity of memory accesses for
+doubleword values
+\item by default, the optimizing compiler does not respect the "reads
+kill" property.  However, there is a command-line option to enforce the
+property, which constrains the optimizations.
+\end{itemize}
+
 
 \subsubsection{Does RVM support zip files?}
 
@@ -365,6 +406,18 @@ The def-use chains are not normally kept up-to-date incrementally.  To
 recompute the def-use chains, call OPT\_DefUse.computeDU(ir). 
 Most optimization passes over SSA form call this method at 
 the beginning of the compiler phase.
+
+\subsubsection{What is Heap Array SSA form?}
+
+See the SAS 2000 paper. \remark{ADD URL}
+
+\subsubsection{Is ABCD included?}
+
+The open-source distribution includes a derivative of the prototype ABCD 
+implementation used for the PLDI 2000 paper.
+However, ABCD is {\em not} enabled by default.  The current implementation
+is incorrect, as it checks only upper bounds and not lower bounds.
+There is a command-line option to turn on the current implementation.
 
 \subsubsection{What is the OptTestHarness?}
 
