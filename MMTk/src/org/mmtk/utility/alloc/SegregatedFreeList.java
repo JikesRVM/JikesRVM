@@ -594,41 +594,15 @@ public abstract class SegregatedFreeList extends Allocator
    */
 
   /**
-   * Return true if this object is marked as live
-   *
-   * @param object The object whose liveness is to be tested.
-   * @return True if the object in question is marked as live.
-   */
-  public static final boolean isLiveObject(VM_Address object)
-    throws VM_PragmaInline {
-    VM_Address address = VM_Interface.refToAddress(object);
-    VM_Address liveWord = getLiveWordAddress(address);
-    VM_Word mask = getMask(address, true);
-    return !VM_Magic.getMemoryWord(liveWord).and(mask).isZero();
-  }
-
-  /**
    * Set the live bit for a given object
    *
    * @param object The object whose live bit is to be set.
    */
   public static final void liveObject(VM_Address object)
     throws VM_PragmaInline {
-    liveAddress(VM_Interface.refToAddress(object), true, false);
+    liveAddress(VM_Interface.refToAddress(object), true);
   }
 
-  /**
-   * Set the live bit for a given object, returning true if it was
-   * already set.
-   *
-   * @param object The object whose live bit is to be set.
-   * @return True if the object was already marked as live
-   */
-  public static final boolean testAndMarkLiveObject(VM_Address object)
-    throws VM_PragmaInline {
-    return liveAddress(VM_Interface.refToAddress(object), true, true);
-  }
-  
   /**
    * Set the live bit for a given object, without using
    * synchronization primitives---must only be used when contention
@@ -638,7 +612,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final void unsyncLiveObject(VM_Address object)
     throws VM_PragmaInline {
-    liveAddress(VM_Interface.refToAddress(object), false, false);
+    liveAddress(VM_Interface.refToAddress(object), false);
   }
 
   /**
@@ -646,13 +620,8 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * @param address The address whose live bit is to be set.
    * @param atomic True if we want to perform this operation atomically
-   * @param getOldValue True if we want the old value to be returned
-   * @return True if <code>getOldValue</code> was true, and the object
-   * was <i>not</i> already marked as live.
    */
-  protected static final boolean liveAddress(VM_Address address, 
-					     boolean atomic,
-					     boolean getOldValue)
+  protected static final void liveAddress(VM_Address address, boolean atomic)
     throws VM_PragmaInline {
     VM_Word oldValue, newValue;
     VM_Address liveWord = getLiveWordAddress(address);
@@ -662,11 +631,8 @@ public abstract class SegregatedFreeList extends Allocator
 	oldValue = VM_Magic.prepareWord(liveWord, 0);
 	newValue = oldValue.or(mask);
       } while(!VM_Magic.attemptWord(liveWord, 0, oldValue, newValue));
-    } else {
-      oldValue = VM_Magic.getMemoryWord(liveWord);
-      VM_Magic.setMemoryWord(liveWord, oldValue.or(mask));
-    }
-    return (getOldValue && oldValue.and(mask).isZero());
+    } else 
+      VM_Magic.setMemoryWord(liveWord, VM_Magic.getMemoryWord(liveWord).or(mask));
   }
 
   /**
