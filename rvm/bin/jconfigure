@@ -867,6 +867,9 @@ declare -i RVM_WITH_CLASSPATH_0_11_OR_LATER=0
 ## away Real Soon Now.  
 declare -i RVM_WITH_CLASSPATH_0_10_OR_LATER=1
 
+## There are a few syscalls that seem to have fallen into disuse -- 
+## I've surrounded them with this. --Steve Augart
+declare -i RVM_WITH_UNUSED_SYSCALLS=0
 
 #
 # intercept blocking system calls (currently Linux-only)
