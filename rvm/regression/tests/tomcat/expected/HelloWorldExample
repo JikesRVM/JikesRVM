@@ -1,0 +1,13 @@
+<html>
+<head>
+<title>Hello World!</title>
+</head>
+<body bgcolor="white">
+<body>
+<a href="/examples/servlets/helloworld.html">
+<img src="/examples/images/code.gif" height=24 width=24 align=right border=0 alt="view code"></a>
+<a href="/examples/servlets/index.html">
+<img src="/examples/images/return.gif" height=24 width=24 align=right border=0 alt="return"></a>
+<h1>Hello World!</h1>
+</body>
+</html>
