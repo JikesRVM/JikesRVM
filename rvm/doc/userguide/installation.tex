@@ -189,7 +189,7 @@ insist, look in {\tt jconfigure} for details.
 \item We have had a problem with Bash 2.05 (not
   2.05a or 2.05b): it occasionally hangs on AIX while running
   jconfigure, because of what appears to be a bug in its handling of
-  the here-document redirection operator (<< EOF).  Unfortunately, the
+  the here-document redirection operator ({\tt $<<$- EOF}).  Unfortunately, the
   version of Bash distributed with AIX 5.1 in /usr/contrib/bin is
   2.05.   Bash 2.05a, 2.05b, 2.02 and 2.03 seem to work adequately.
 
@@ -386,16 +386,16 @@ name that directory anything; we'll name it
 {\it {\tt \$RVM\_ROOT/}classpath-0.06-build}.  
 A command like 
 {\tt /usr/gnu/tar -C
-  {\rm \it {\tt \$\{RVM\_ROOT\}/}classpath-0.06-build} xzf classpath-0.06.tgz} 
+  {\rm \it {\tt \$\{RVM\_ROOT\}/}\-classpath-0.06-build} xzf classpath-0.06.tgz} 
 will create the directory
- {\rm \it {\tt \$\{RVM\_ROOT\}}/classpath-0.06-build}{\tt /classpath-0.06}.  
+ {\rm \it {\tt \$\{RVM\_ROOT\}}/\-classpath-0.06-build}{\tt /\-classpath-0.06}.  
 
 You {\bf must rename} {\tt \$\{RVM\_ROOT\}/{\it
-    classpath-0.06-build}/classpath-0.06} to {\tt \$\{RVM\_ROOT\}/{\it
-    classpath-0.06-build}/classpath}.  Now set your {\tt
-  CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/{\it classpath-0.06-build}}
+    classpath-0.06-build}/\-classpath-0.06} to {\tt \$\{RVM\_ROOT\}/{\it
+    classpath-0.06-build}/\-classpath}.  Now set your {\tt
+  CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/\-{\it classpath-0.06-build}}
 ({\bf not} to {\tt \$\{RVM\_ROOT\}/{\it
-    classpath-0.06-build}/classpath}).
+    classpath-0.06-build}/\-classpath}).
 
 
 The first time you run Jikes RVM's build process, it will
@@ -547,36 +547,40 @@ evolves.
 \subsubsection{Configurations in Depth}
 
 Most standard Jikes RVM configuration files loosely follow the
-following naming scheme 
-\begin{verbatim}
-       <boot image compiler> [Base|Adaptive] <garbage collector>
-\end{verbatim}
+following naming scheme:
+\begin{verse}
+       \Mmeta{boot image compiler} 
+       \Mlbr{} \Mlitch{Base} \Mor \Mlitch{Adaptive} \Mrbr 
+       \Mmeta{garbage collector}
+\end{verse}
 
 \index{boot image compiler}
 \index{runtime compiler}
 where
 \begin{itemize}
-\item the {\em boot image compiler} is the compiler used to compile
+\item the \Mmeta{boot image compiler} is the compiler used to compile
 Jikes RVM's boot image. 
-\item[Base|Adaptive] denotes whether or not the adaptive system and
-optimizing compiler are included in the build. 
+\item
+ \Mlbr{}~\Mlitch{Base}~\Mor~\Mlitch{Adaptive}~\Mrbr denotes whether or
+ not the adaptive system and optimizing compiler are included in the
+ build.  
 \item the {\em garbage collector} is the garbage collection scheme used.
 \end{itemize}
 
 The following garbage collection suffixes are available:
 
 \begin{description}
-\item[NoGC] no garbage collection is performed
-\item[SemiSpace] a copying semi-space collector
-\item[MarkSweep] a mark-and-sweep (non copying) collector
-\item[GenCopy] a classic copying generational collector with a copying
+\item[\Mlitch{NoGC}] no garbage collection is performed
+\item[\Mlitch{SemiSpace}] a copying semi-space collector
+\item[\Mlitch{MarkSweep}] a mark-and-sweep (non copying) collector
+\item[\Mlitch{GenCopy}] a classic copying generational collector with a copying
   higher generation
-\item[GenMS] a copying generational collector with a non-copying
+\item[\Mlitch{GenMS}] a copying generational collector with a non-copying
   mark-and-sweep mature space
-\item[CopyMS] a hybrid non-generational collector with a copying space
+\item[\Mlitch{CopyMS}] a hybrid non-generational collector with a copying space
   (into which all allocation goes), and a non-copying space into which
   survivors go
-\item[RefCount] a reference counting collector with synchronous
+\item[\Mlitch{RefCount}] a reference counting collector with synchronous
   (non-concurrent) cycle collection
 \end{description}
 
@@ -588,11 +592,11 @@ collector, use the name {\em BaseBaseSemiSpace}.
 Some files augment the standard configurations as follows:
 \begin{itemize}
 \item The word 
-{\em Full} at the beginning of the configuration name identifies a
+\Mlitch{Full} at the beginning of the configuration name identifies a
 configuration such that all the Jikes RVM classes are included in the
 boot image and are compiled by the optimizing compiler.  (By default
 only a small subset of these classes are included in the boot image.)
-\item The word {\em Fast} at the beginning of the configuration name identifies a
+\item The word \Mlitch{Fast} at the beginning of the configuration name identifies a
 Full configuration where all assertion checking has been turned off.
 \end{itemize}
 A boot image with either of these modifications will likely to run
@@ -619,7 +623,11 @@ To view a list of configurations see
 {\tt \$RVM\_ROOT/rvm/config/build}.  Follow the examples in this
 directory to define your own configurations with different options.  See
 the {\tt jconfigure} file for a list of all options the builder
-understands.
+understands, or type:
+
+\begin{verbatim}
+% jconfigure --help
+\end{verbatim}
 
 \JikesTMFooter
 
