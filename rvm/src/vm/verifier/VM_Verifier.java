@@ -115,24 +115,26 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
 
   /**
    * Verify the bytecode of a given method.
-   * <p>
-   * This verifier does abstract interpretation on the type stack. It uses the
-   * basic dataflow analysis algorithm (worklist to reach fix points) to check
-   * the validity of the bytecodes. Each basic block has one IN type map and one
-   * OUT type map. The IN map is got by merging the maps from all its predecessors.
-   * The OUT map is calculated by simulating the execution of bytecodes on types.
-   * <p>
-   * At any program point, if the conditions described in The Java Virtual Machine
-   * Specification are broken, bytecode verification fails.
+   *
+   * <p> This verifier does abstract interpretation on the type stack. It uses
+   * the basic dataflow analysis algorithm (worklist to reach fix points) to
+   * check the validity of the bytecodes. Each basic block has one IN type map
+   * and one OUT type map. The IN map is gotten by merging the maps from all
+   * its predecessors.  The OUT map is calculated by simulating the execution
+   * of bytecodes on types.
+   *
+   * <p> At any program point, if the conditions described in The Java Virtual
+   * Machine Specification are broken, bytecode verification fails.
    *
    * @param method the method to be verified
    * @return true if the method passes the verification
    *         false if the method fails the verification
    * @exception Exception
-   *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            If the verifier catches any error during verification or it
+   *		finds any loading/resolving problem, it will throw out some
+   *		Exception.
    */
-  public boolean verifyMethod(VM_NormalMethod method) throws Exception{
+  public boolean verifyMethod(VM_NormalMethod method) throws Exception {
     currMethodName = method.toString();
 
     //VM.sysWrite("Start to verify method " + currMethodName + "\n");
@@ -1609,7 +1611,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
   }
 
   /**
-   * process bytecodes like "load", "const" and bipush, sipush, etc.. 
+   * Process bytecodes like "load", "const" and bipush, sipush, and so on. 
    *
    * @param expectType the type this bytecode expects. 
    *                   Could be: V_INT, V_FLOAT, V_DOUBLE, V_LONG, V_REF
@@ -1620,8 +1622,9 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    * @return nothing
    *
    * @exception Exception
-   *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            If the verifier catch any error during verification or it
+   *		meets any loading/resolving problem, it will throw an
+   *		instance of the exception <code>Exception</code>.
    */
   private void load_like(int expectType, int index, int stackWords, boolean checkIndex)
     throws Exception { 
@@ -1669,7 +1672,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
     }
 
   /**
-   * process bytecodes like "ldc", etc.. 
+   * Process bytecodes like "ldc", etc.. 
    *
    * @param numOfWord  1 for int/float/reference, 2 for double/long
    * @param cpindex  the constant pool index
@@ -1678,8 +1681,9 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    * @return nothing
    *
    * @exception Exception
-   *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            If the verifier catches any error during verification or it
+   *		meets any loading/resolving problem, it will throw out an
+   *		instance of Exception 
    */
   private void ldc_like(int numOfWord, int cpindex, VM_Class declaringClass)
     throws Exception {
@@ -1736,7 +1740,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void cast_like(int fromType, int toType, int fromWord, int toWord)
     throws Exception {
@@ -1788,12 +1792,13 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void store_like(int expectType, int storeWord, int index, 
-                          int[] reachableHandlerBBNums, int	reachableHandlersCount) throws Exception {
-
-
+                          int[] reachableHandlerBBNums, 
+			  int reachableHandlersCount) 
+    throws Exception 
+  {
     //check storeType
     int i;
     boolean correct = true;
@@ -1843,13 +1848,15 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    * process bytecodes like "dup", etc.. 
    *
    * @param numTodup the number of stack cells to be duplicated
-   * @param numTodown the distance from the stack cells duplicated to stack top  
+   * @param numTodown the distance from the stack cells duplicated to stack
+   *			top   
    *
    * @return nothing
    *
    * @exception Exception
-   *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            If the verifier catches any error during verification or it
+   *		meets any loading/resolving problem, it will throw out an
+   *		instance of Exception.
    */
   private void dup_like(int numTodup, int numTodown) throws Exception {
     //check stack overflow
@@ -1887,7 +1894,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void arith_like(int expectType, int numOfOpd, int numOfWord) throws Exception{
     //check stack underflow
@@ -1924,7 +1931,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void return_like(int expectType, int numOfWord, VM_Method method)
     throws Exception {
@@ -1999,7 +2006,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void aaload_like(int expectType, int numOfWord) throws Exception{
     //check stack underflow
@@ -2056,7 +2063,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void aastore_like(int expectType, int numOfWord)
     throws Exception {
@@ -2126,7 +2133,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void cmp_like(int expectType, int numOfWord, int numOfOpd, int pushWord)
     throws Exception {
@@ -2164,7 +2171,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void get_like(VM_FieldReference field, boolean isStatic)
     throws Exception {
@@ -2227,7 +2234,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void put_like(VM_FieldReference field, boolean isStatic)
     throws Exception {
@@ -2300,7 +2307,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void MergeMaps(short brBBNum, int[] newBBMap, int newBBStkTop)  throws Exception {
 
@@ -2382,7 +2389,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private int MergeOneCell(int newType, int originalType) throws Exception{
 
@@ -2418,7 +2425,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void processBranchBB(short brBBNum) throws Exception {
 
@@ -2439,7 +2446,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void computeJSRNextMaps() throws Exception {
 
@@ -2604,16 +2611,18 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
     }
 
   /**
-   * process bytecodes invokespecial, invokevirtual, invokestatic and invokeinterface 
+   * process bytecodes invokespecial, invokevirtual, invokestatic and
+   *		       invokeinterface  
    *
    * @param calledMethod the called method's reference
-   * @param isStatic whether this method is static(true) or not(false)
+   * @param isStatic   true if this method is static; false otherwise
    *
    * @return nothing
    *
    * @exception Exception
-   *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            If the verifier catch any error during verification or it
+   *		meets any loading/resolving problem, it will throw out an
+   *		instance of Exception.
    */
   private void processInvoke(VM_MethodReference calledMethod, boolean isStatic)
     throws Exception {
@@ -2726,7 +2735,7 @@ public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
    *
    * @exception Exception
    *            If the verifier catch any error during verification or it meets any
-   *            loading/resolving problem, it will throw out an intance of Exception
+   *            loading/resolving problem, it will throw out an instance of Exception
    */
   private void setHandlersMaps(int newType, int localVariable, int wordCount, int[] reachableHandlerBBNums, 
                                int reachableHandlersCount)  throws Exception{
