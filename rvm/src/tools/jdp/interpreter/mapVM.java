@@ -359,10 +359,10 @@ class mapVM implements JDPServiceInterface {
   }
 
   static boolean addressInVM(int addr) {
-      VM.assert(heapRanges != 0);
+      if (VM.VerifyAssertions) VM.assert(heapRanges != 0);
       for (int which = 0; ; which += 2) {
  	  int MaxHeaps = 20; // Surely there are not more than 20 heaps!  Array is probably malformed.
-	  VM.assert(which <= 2 * (MaxHeaps + 1));
+	  if (VM.VerifyAssertions) VM.assert(which <= 2 * (MaxHeaps + 1));
 	  int start = Platform.readmem(heapRanges + 4 * (2 * which));
 	  int end = Platform.readmem(heapRanges + 4 * (2 * which + 1));
 	  if (start == -1 && end == -1) return false;
