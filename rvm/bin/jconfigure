@@ -1553,6 +1553,7 @@ function emitImageLinker
    print "   print '[LVM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[[LVM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"

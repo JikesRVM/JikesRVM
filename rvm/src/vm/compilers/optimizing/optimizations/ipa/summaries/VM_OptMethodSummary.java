@@ -147,11 +147,11 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
     // conservative.
     if (method.getBytecodes() == null)
       return true;
-    java.util.HashSet set = getWriteSummary(method);
-    if (set == null)
-      return false;
-    if (set.contains(field))
-      return true;
+    VM_Field[] summary = getWriteSummary(method);
+    if (summary == null) return false;
+    for (int i=0; i<summary.length; i++) {
+      if (summary[i] == field) return true;
+    } 
     return false;
   }
 
@@ -168,20 +168,18 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
    */
   public static void summarizeMethod(VM_Method method, byte[] bytecodes, 
 				      boolean isSynchronized) {
-    int summary = computeSummary(method, bytecodes, isSynchronized);
-    java.util.HashSet set = computeFieldsWritten(method, bytecodes);
-    storeWriteSummary(method, set);
-    storeSummary(method, summary);
+    computeSummary(method, bytecodes, isSynchronized);
   }
 
   /**
    * Backing store for simple bytecode summaries.
    */
-  private static int[] summaries = new int[1000];
+  private static int[] summaries = new int[8000];
+
   /**
    * Backing store for summaries of fields written.
    */
-  private static java.util.HashSet[] writeSets = new java.util.HashSet[1000];
+  private static VM_Field[][] writeSets = new VM_Field[8000][];
 
   /**
    * Store the simple summary for a given method
@@ -203,13 +201,13 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
   /**
    * Store the summary of fields written for a given method
    */
-  private static void storeWriteSummary(VM_Method method, java.util.HashSet set) {
+  private static void storeWriteSummary(VM_Method method, VM_Field [] set) {
     int idx = method.getDictionaryId();
     if (idx >= writeSets.length) {
       int newLength = writeSets.length*2;
       if (idx >= newLength)
         newLength = idx;
-      java.util.HashSet[] newarray = new java.util.HashSet[newLength];
+      VM_Field[][] newarray = new VM_Field[newLength][];
       for (int i = 0, n = writeSets.length; i < n; ++i)
         newarray[i] = writeSets[i];
       writeSets = newarray;
@@ -233,7 +231,7 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
    * Return the summary of fields written for a given method
    * @return the set of VM_Fields the method writes to
    */
-  private static java.util.HashSet getWriteSummary(VM_Method method) {
+  private static VM_Field[] getWriteSummary(VM_Method method) {
     int idx = method.getDictionaryId();
     if (VM.VerifyAssertions) {
       VM.assert(method.getBytecodes() != null);
@@ -360,20 +358,22 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
 
   /**
    * This method computes a summary of interesting method characteristics 
-   * and returns an encoding of the summary as an int.
+   * and stores itreturns an encoding of the summary as an int.
    * 
    * @param method the VM_Method to be summarized
    * @param bytecodes the bytecode array to be summarized
    * @param isSynchronized does the VM_Method represent a synchronized method?
    * @return an int encoding the summary
    */
-  private static int computeSummary(VM_Method method, byte[] bytecodes, 
-                                     boolean isSynchronized) {
+  private static void computeSummary(VM_Method method, byte[] bytecodes, 
+				     boolean isSynchronized) {
     int calleeSize = 0;
     int bcIndex = 0;
     int bcLength = bytecodes.length;
     int nBytecodes = 0;
     int summary = VALID_MASK;
+    VM_FieldVector written = new VM_FieldVector();
+    VM_Class klass = method.getDeclaringClass();
     if (VERBOSE) {
       VM.sysWrite("Summarizing method ");
       VM.sysWrite(method);
@@ -381,8 +381,7 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
     }
     if (isSynchronized) {
       summary = setSynch(summary);
-      calleeSize += 2*SYNCH_COST;    // NOTE: ignoring catch/unlock/rethrow 
-                                     // block.  Probably the right thing to do.
+      calleeSize += 2*SYNCH_COST;    // NOTE: ignoring catch/unlock/rethrow block.  Probably the right thing to do.
     }
     while (bcIndex < bytecodes.length) {
       int code = (int)(bytecodes[bcIndex++] & 0xFF);
@@ -548,16 +547,28 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
           break;
           // Load/store off of jtoc. expected cost is 1 instr
         case JBC_getstatic:case JBC_putstatic:
-          bcIndex += 2;
+	  {
+          int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
+          constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
+          int fieldId = klass.getFieldRefId(constantPoolIndex);
+          VM_Field f = VM_FieldDictionary.getValue(fieldId);
+          written.addUniqueElement(f);
           summary = setFieldOp(summary);
           calleeSize += SIMPLE_OPERATION_COST;
           break;
+	  }
           // Load/store off of an object. expected cost is 1 instr
-        case JBC_getfield:case JBC_putfield:
-          bcIndex += 2;
+        case JBC_getfield:case JBC_putfield: 
+	  {
+          int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
+          constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
+          int fieldId = klass.getFieldRefId(constantPoolIndex);
+          VM_Field f = VM_FieldDictionary.getValue(fieldId);
+          written.addUniqueElement(f);
           summary = setFieldOp(summary);
           calleeSize += SIMPLE_OPERATION_COST;
           break;
+	  }
           // Various flavors of calls. Assign them call cost (differentiate?)
         case JBC_invokevirtual:case JBC_invokespecial:
         case JBC_invokestatic:   // Special case VM_Magic's as being cheaper.
@@ -644,6 +655,7 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
       }
     }
     summary = setSize(summary, calleeSize);
+
     if (DEBUG) {
       VM.sysWrite("Method summary for ");
       VM.sysWrite(method.toString());
@@ -681,155 +693,45 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
       }
       VM.sysWrite("\n");
     }
+
     // Having processed the method, inform VM_OptStaticProgramStats of the
     // new method and the number of bytecodes.
     VM_OptStaticProgramStats.newMethod(nBytecodes);
 
-    return summary;
-  }
+    // Store the summaries for the method
+    storeSummary(method, summary);
 
-  /**
-   * This method computes the set of VM_Fields that a method may
-   * write to.
-   * <p> TODO: if performance becomes an issue, merge this code with
-   *	   computeSummary().
-   * 
-   * @param method the VM_Method to be summarized
-   * @param bytecodes the bytecode array to be summarized
-   * @return the set of VM_Fields potentially written.  null if none.
-   */
-  private static java.util.HashSet computeFieldsWritten(VM_Method method, 
-      byte[] bytecodes) {
-    int bcIndex = 0;
-    VM_Class klass = method.getDeclaringClass();
-    java.util.HashSet result = new java.util.HashSet();
-    while (bcIndex < bytecodes.length) {
-      int code = (int)(bytecodes[bcIndex++] & 0xFF);
-      switch (code) {
-        case JBC_nop:case JBC_aconst_null:case JBC_iconst_m1:
-        case JBC_iconst_0:case JBC_iconst_1:case JBC_iconst_2:
-        case JBC_iconst_3:case JBC_iconst_4:case JBC_iconst_5:
-        case JBC_lconst_0:case JBC_lconst_1:case JBC_fconst_0:
-        case JBC_fconst_1:case JBC_fconst_2:case JBC_dconst_0:
-        case JBC_dconst_1:case JBC_iload_0:case JBC_iload_1:
-        case JBC_iload_2:case JBC_iload_3:case JBC_lload_0:
-        case JBC_lload_1:case JBC_lload_2:case JBC_lload_3:
-        case JBC_fload_0:case JBC_fload_1:case JBC_fload_2:
-        case JBC_fload_3:case JBC_dload_0:case JBC_dload_1:
-        case JBC_dload_2:case JBC_dload_3:case JBC_aload_0:
-        case JBC_aload_1:case JBC_aload_2:case JBC_aload_3:
-        case JBC_iaload:case JBC_laload:case JBC_faload:
-        case JBC_daload:case JBC_aaload:case JBC_baload:
-        case JBC_caload:case JBC_saload:case JBC_istore_0:
-        case JBC_istore_1:case JBC_istore_2:case JBC_istore_3:
-        case JBC_lstore_0:case JBC_lstore_1:case JBC_lstore_2:
-        case JBC_lstore_3:case JBC_fstore_0:case JBC_fstore_1:
-        case JBC_fstore_2:case JBC_fstore_3:case JBC_dstore_0:
-        case JBC_dstore_1:case JBC_dstore_2:case JBC_dstore_3:
-        case JBC_astore_0:case JBC_astore_1:case JBC_astore_2:
-        case JBC_astore_3:case JBC_iastore:case JBC_lastore:
-        case JBC_fastore:case JBC_dastore:case JBC_bastore:
-        case JBC_castore:case JBC_sastore:case JBC_aastore:
-        case JBC_pop:case JBC_pop2:case JBC_dup:
-        case JBC_dup_x1:case JBC_dup_x2:case JBC_dup2:case JBC_dup2_x1:
-        case JBC_dup2_x2:case JBC_swap:case JBC_iadd:case JBC_fadd:
-        case JBC_dadd:case JBC_isub:case JBC_fsub:case JBC_dsub:
-        case JBC_imul:case JBC_fmul:case JBC_dmul:case JBC_idiv:
-        case JBC_fdiv:case JBC_ddiv:case JBC_irem:case JBC_frem:
-        case JBC_drem:case JBC_ineg:case JBC_fneg:case JBC_dneg:
-        case JBC_ishl:case JBC_ishr:case JBC_lshr:case JBC_iushr:
-        case JBC_iand:case JBC_ior:case JBC_ixor:case JBC_ladd:
-        case JBC_lsub:case JBC_lmul:case JBC_ldiv:case JBC_lrem:
-        case JBC_lneg:case JBC_lshl:case JBC_lushr:case JBC_land:
-        case JBC_lor:case JBC_lxor:case JBC_int2byte:case JBC_int2char:
-        case JBC_int2short:case JBC_i2l:case JBC_l2i:case JBC_i2f:
-        case JBC_i2d:case JBC_l2f:case JBC_l2d:case JBC_f2i:
-        case JBC_f2l:case JBC_f2d:case JBC_d2i:case JBC_d2l:
-        case JBC_d2f:case JBC_lcmp:case JBC_fcmpl:case JBC_fcmpg:
-        case JBC_dcmpl:case JBC_dcmpg:case JBC_ireturn:case JBC_lreturn:
-        case JBC_freturn:case JBC_dreturn:case JBC_areturn:case JBC_return:
-        case JBC_arraylength:case JBC_athrow:case JBC_monitorenter:
-        case JBC_monitorexit:
-          break;
-        case JBC_bipush:case JBC_ldc:case JBC_iload:case JBC_lload:
-        case JBC_fload:case JBC_dload:case JBC_aload:case JBC_istore:
-        case JBC_lstore:case JBC_fstore:case JBC_dstore:case JBC_astore:
-        case JBC_ret:case JBC_newarray:
-          bcIndex += 1;
-          break;
-        case JBC_sipush:case JBC_ldc_w:case JBC_ldc2_w:case JBC_iinc:
-        case JBC_ifeq:case JBC_ifne:case JBC_iflt:case JBC_ifge:
-        case JBC_ifgt:case JBC_ifle:case JBC_if_icmpeq:case JBC_if_icmpne:
-        case JBC_if_icmplt:case JBC_if_icmpge:case JBC_if_icmpgt:
-        case JBC_if_icmple:case JBC_if_acmpeq:case JBC_if_acmpne:
-        case JBC_ifnull:case JBC_ifnonnull:case JBC_goto:case JBC_jsr:
-        case JBC_getstatic:case JBC_getfield:case JBC_invokevirtual:
-        case JBC_invokespecial:case JBC_invokestatic:case JBC_new:
-        case JBC_anewarray:case JBC_checkcast:case JBC_instanceof:
-          bcIndex += 2;
-          break;
-        case JBC_multianewarray:
-          bcIndex += 3;
-          break;
-        case JBC_goto_w:case JBC_jsr_w:case JBC_invokeinterface:
-          bcIndex += 4;
-          break;
-        case JBC_tableswitch:
-          bcIndex = alignSwitch(bcIndex);
-          bcIndex += 4;         // skip over default
-          int low = getIntOffset(bcIndex, bytecodes);
-          bcIndex += 4;
-          int high = getIntOffset(bcIndex, bytecodes);
-          bcIndex += 4;
-          bcIndex += (high - low + 1)*4;        // skip over rest of tableswitch
-          break;
-        case JBC_lookupswitch:
-          bcIndex = alignSwitch(bcIndex);
-          bcIndex += 4;         // skip over default 
-          int numPairs = getIntOffset(bcIndex, bytecodes);
-          bcIndex += 4 + (numPairs*8);          // skip rest of lookupswitch
-          break;
-        case JBC_wide:
-          int w_code = (int)(bytecodes[bcIndex++] & 0xFF);
-          if (w_code == JBC_iinc) {
-            bcIndex += 4;
-          } else {
-            bcIndex += 2;
-          }
-          break;
-          // Actually do something for the following bytecodes
-        case JBC_putstatic:case JBC_putfield:
-          int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
-          constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
-          int fieldId = klass.getFieldRefId(constantPoolIndex);
-          VM_Field f = VM_FieldDictionary.getValue(fieldId);
-          result.add(f);
-          break;
-        default:
-          if (VM.VerifyAssertions)
-            VM.assert(VM.NOT_REACHED);
-          break;
+    // Compress written before storing it.
+    int numWritten = written.size();
+    if (numWritten > 0) {
+      VM_Field[] tmp = written.finish();
+      storeWriteSummary(method, tmp);
+      if (DEBUG) {
+	VM.sysWrite("\tWrites the following fields:\n");
+	for (int i=0; i<tmp.length; i++) {
+	  VM.sysWrite("\t\t");
+	  VM.sysWrite(tmp[i]);
+	  VM.sysWrite("\n");
+	}
       }
+    } else {
+      if (DEBUG) VM.sysWrite("\tWrites no fields.");
+      storeWriteSummary(method, null);
     }
-    if (result.size() == 0)
-      result = null;
-    if (DEBUG)
-      VM.sysWrite("\tFields Written " + result + "\n");
-    return result;
+
   }
 
   private static int alignSwitch(int bcIndex) {
     int align = bcIndex & 3;
-    if (align != 0)
-      bcIndex += 4 - align;                     // eat padding
+    if (align != 0) bcIndex += 4 - align;                     // eat padding
     return bcIndex;
   }
 
   private static int getIntOffset(int index, byte[] bytecodes) {
     return (int)((((int)bytecodes[index]) << 24) 
-                  | ((((int)bytecodes[ index + 1]) & 0xFF) << 16) 
-                  | ((((int)bytecodes[index + 2]) & 0xFF) << 8) 
-                  | (((int)bytecodes[ index + 3]) & 0xFF));
+		 | ((((int)bytecodes[ index + 1]) & 0xFF) << 16) 
+		 | ((((int)bytecodes[index + 2]) & 0xFF) << 8) 
+		 | (((int)bytecodes[ index + 3]) & 0xFF));
   }
 }
 
