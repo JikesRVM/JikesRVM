@@ -991,8 +991,8 @@ public class VM_HardwarePerformanceMonitors
       aos.reset_counters();
       int n_aosThreads = 0;
       int n_nonZeroThreads = 0; 
-      for (int i = 1, n = VM_Scheduler.threads.length; i < n; i++) {
-	VM_Thread t = VM_Scheduler.threads[i];
+      for (int i = 1, n = VM_Scheduler.hpm_threads.length; i < n; i++) {
+	VM_Thread t = VM_Scheduler.hpm_threads[i];
 	if (t != null) {
 	  String thread_name = t.getClass().getName();
 	  // dump HPM counter values

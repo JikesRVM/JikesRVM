@@ -66,6 +66,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // Thread creation and deletion.
   //
   public static VM_Thread[]          threads;             // list of threads that have been created (slot 0 always empty)
+
+  //-#if RVM_WITH_HPM
+  // Hack, don't to any GC of thread slots!
+  // never forget about a thread for reporting.
+  public static VM_Thread[]      hpm_threads; 
+  //-#endif
+
   static int                  threadAllocationIndex; // place to start searching threads[] for next free slot
   static int                  numActiveThreads;    // number of threads running or waiting to run
   static int                  numDaemons;          // number of "daemon" threads, in the java sense
@@ -153,6 +160,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     threadCreationMutex     = new VM_ProcessorLock();
     outputMutex             = new VM_ProcessorLock();
     threads                 = new VM_Thread[MAX_THREADS];
+    //-#if RVM_WITH_HPM
+    hpm_threads             = new VM_Thread[MAX_THREADS];
+    //-#endif
     threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
@@ -287,6 +297,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 					     VM_Magic.objectAsAddress(processors[i]),
 					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
 					     target.contextRegisters.getInnermostFramePointer());
+	if (cpuAffinity != NO_CPU_AFFINITY)
+	  VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
         //-#endif
       } else if (VM.BuildForIA32) {
         VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),

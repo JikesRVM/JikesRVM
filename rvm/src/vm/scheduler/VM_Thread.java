@@ -51,6 +51,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   
   /* Set by exception handler. */
   public boolean dyingWithUncaughtException = false;
+
   //-#if RVM_WITH_HPM
   // Keep counter values for each Java thread.
   public HPM_counters hpm_counters = null;
@@ -71,11 +72,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       global_tid = global_hpm_tid;
       global_hpm_tid++;
     }
+    if (global_tid < VM_Scheduler.MAX_THREADS) {
+      VM_Scheduler.hpm_threads[global_tid] = this;
+      //      VM_Magic.setObjectAtOffset(VM_Scheduler.hpm_threads,global_tid << LOG_BYTES_IN_ADDRESS, this);
+    } else {
+      // loose information!
+    }
     if(VM_HardwarePerformanceMonitors.verbose>=2) {
       VM.sysWrite(" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
       VM.sysWriteln(global_tid);
     }
   }
+
   //-#endif
 
   /**
