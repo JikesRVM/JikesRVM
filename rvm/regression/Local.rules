@@ -38,12 +38,12 @@ VolanoMark_HOME=/homes/fury5/jalapeno/contrib/benchmarks/VolanoMark-2.1.2
 # Jakarta Tomcat
 #
 Tomcat_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/jakarta-tomcat-3.2.3
-Tomcat_JARS=$(wildcard $(Tomcat_HOME)/lib/*.jar)
+Tomcat_JARS=$(wildcard $(Tomcat_HOME)/lib/*.jar):$(HOST_TOOLS):$(HOST_REPOSITORIES)
 
 #
 # Jakarta Servlet API
 #
-Servlet_HOME=/homes/furys5/jalapeno/contrib/benchmarks/WebServer/jakarta-servletapi-3.2.3
+Servlet_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/jakarta-servletapi-3.2.3
 Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
 
 #
@@ -51,6 +51,11 @@ Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
 #
 InterClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/interclient
 InterClient_JARS=$(wildcard $(InterClient_HOME)/*.jar)
+
+#
+# HTTPClient 
+#
+HTTPClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 
 #
 # rules

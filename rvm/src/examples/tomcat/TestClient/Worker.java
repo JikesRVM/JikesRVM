@@ -22,6 +22,13 @@ class Worker extends Thread {
 	this.reuseConnection = reuseConnection;
     }
 
+    private void dump(byte[] data) {
+	System.err.println("Differing output:");
+	System.err.println("------------------------------");
+	for(int i = 0; i < data.length; i++) System.err.print(data[i]);
+	System.err.println("------------------------------");
+    }
+	
     public void run() {
 	HTTPConnection con = null;
 	try {
@@ -34,8 +41,7 @@ class Worker extends Thread {
 		    if (con == null || !reuseConnection)
 			con = new HTTPConnection( req.getUrl() );
 		} catch (Throwable e) {
-		    System.err.println("Bad request: " + req);
-		    System.exit( -1 );
+		    throw new BadResult( req, "connection failed" );
 		}
 		
 		try {
@@ -48,14 +54,18 @@ class Worker extends Thread {
 		    byte[] desired = req.getDesired();
 
 		    if (desired != null) {
-			if (result.length != desired.length)
+			if (result.length != desired.length) {
+			    dump(result);
 			    throw new BadResult( req, "output differs" );
+			}
 
 			for(int i = 0; i < result.length; i++) 
-			    if (result[i] != desired[i])
+			    if (result[i] != desired[i]) {
+				dump(result);
 				throw new BadResult( req, "output differs" );
+			    }
 		    }
-
+		    
 		    // 3. record statistics
 		    totalBytes += result.length;
 		    totalLatency += end - start;

@@ -114,6 +114,7 @@ class Start {
 	    System.exit( -1 );
 	}
 
+	// report statistics
 	long totalBytes = 0;
 	long totalLatency = 0;
 	int numRequests = 0;
@@ -123,7 +124,8 @@ class Start {
 	    numRequests += workers[i].numRequests;
 	}
 
-
+	System.out.println("Downloaded " + totalBytes + " bytes in " + numRequests + " requests");
+	System.out.println("Average latency of " + (double)totalLatency/(double)numRequests + " ms");
     }
 
 }

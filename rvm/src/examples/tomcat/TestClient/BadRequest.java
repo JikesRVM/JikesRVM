@@ -14,4 +14,7 @@ class BadRequest extends Exception {
 	errorText = detail;
     }
 
+    public String getMessage() {
+	return super.getMessage() + errorText;
+    }
 }

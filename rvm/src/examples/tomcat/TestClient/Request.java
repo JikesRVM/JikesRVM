@@ -33,7 +33,7 @@ abstract class Request {
 	    desired = new byte[ (int) length];
 	    new FileInputStream(f).read(desired);
 	} catch (Exception e) {
-	    System.err.println("Error reading requests: " + e.getMessage());
+	    System.err.println("Error reading requests: " + e.toString());
 	    System.exit( -1 );
 	}
     }
@@ -49,8 +49,12 @@ abstract class Request {
 		throw new BadRequest( rsp.getReasonLine(), rsp.getText() );
 	    else
 		return rsp.getData();
-	} catch (Throwable e) {
-	    throw new BadRequest( e.getMessage(), null );
+	} catch (IOException e) {
+	    throw new BadRequest( url.toString(), e.toString() );
+	} catch (ModuleException e) {
+	    throw new BadRequest( url.toString(), e.toString() );
+	} catch (ParseException e) {
+	    throw new BadRequest( url.toString(), e.toString() );
 	}
     }
 
