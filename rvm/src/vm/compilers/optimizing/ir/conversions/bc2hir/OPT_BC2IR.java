@@ -1369,9 +1369,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?GETSTATIC_UNRESOLVED:GETSTATIC;
-	  if (unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) {
-	    currentBBLE.block.setInfrequent();
-	  }
 	  if (!unresolved) field = field.resolve();
 	  s = GetStatic.create(operator, t, makeStaticFieldRef(field));
 
@@ -1436,9 +1433,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand r = pop(fieldType);
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?PUTSTATIC_UNRESOLVED:PUTSTATIC;
-	  if (unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) {
-	    currentBBLE.block.setInfrequent();
-	  }
 	  if (!unresolved) field = field.resolve();
 	  s = PutStatic.create(operator, r, makeStaticFieldRef(field));
 	  if (unresolved)
@@ -1471,9 +1465,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?GETFIELD_UNRESOLVED:GETFIELD;
-	  if (unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) {
-	    currentBBLE.block.setInfrequent();
-	  }
 	  if (!unresolved) field = field.resolve();
 	  s = GetField.create(operator, t, op1, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
@@ -1494,9 +1485,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
-	  if (unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) {
-	    currentBBLE.block.setInfrequent();
-	  }
 	  if (!unresolved) field = field.resolve();
 	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
@@ -1594,13 +1582,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             }
           }
 
-	  // An unresolved call in AOS or a call to a target with a noInlinePragma
-	  // causes a block to be marked as infrequent.
-	  if ((unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) ||
-	      (!unresolved && Call.getMethod(s).method.hasNoInlinePragma())) {
-	    currentBBLE.block.setInfrequent();
-	  }
-
 	  // CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
@@ -1634,13 +1615,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    if (maybeInlineMethod(shouldInline(s, null, false), s)) {
 	      return;
 	    }
-	  }
-
-	  // An unresolved call in AOS or a call to a target with a noInlinePragma
-	  // causes a block to be marked as infrequent.
-	  if ((unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) ||
-	      (!unresolved && Call.getMethod(s).method.hasNoInlinePragma())) {
-	    currentBBLE.block.setInfrequent();
 	  }
 
 	  // CALL must be treated as potential throw of anything
@@ -1688,13 +1662,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    if (maybeInlineMethod(shouldInline(s, null, false), s)) {
 	      return;
 	    }
-	  }
-
-	  // An unresolved call in AOS or a call to a target with a noInlinePragma
-	  // causes a block to be marked as infrequent.
-	  if ((unresolved && VM.BuildForAdaptiveSystem && VM.runningVM) ||
-	      (!unresolved && Call.getMethod(s).method.hasNoInlinePragma())) {
-	    currentBBLE.block.setInfrequent();
 	  }
 
 	  // CALL must be treated as potential throw of anything
@@ -1939,8 +1906,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    appendInstruction(CacheOp.create(SET_CAUGHT_EXCEPTION, op0));
 	    s = Goto.create(GOTO, definiteTarget.makeJumpTarget());
 	  } else {
-	    // Blocks with throws are assumed to be infrequent.
-	    currentBBLE.block.setInfrequent();
 	    s = Athrow.create(ATHROW, (OPT_RegisterOperand)op0);
 	  }
 	}

@@ -289,7 +289,7 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 			       new OPT_IntConstantOperand(0),
 			       OPT_ConditionOperand.EQUAL(),
 			       testFailed.makeJumpTarget(),
-			       new OPT_BranchProfileOperand());
+			       OPT_BranchProfileOperand.unlikely());
 	    tmp.copyPosition(callSite);
 	    firstIfBlock.appendInstruction(tmp);
 

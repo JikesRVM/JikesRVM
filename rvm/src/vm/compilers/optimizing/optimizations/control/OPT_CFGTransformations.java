@@ -272,7 +272,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         OPT_Instruction firstInB = b.firstInstruction();
         int bcIndex = firstInB != null ? firstInB.bcIndex : -1;
         landingPad = b.createSubBlock(bcIndex, ir);
-        //landingPad.setInfrequent();
         // make the landing pad jump to `b'
         OPT_Instruction g;
         g = Goto.create(GOTO, b.makeJumpTarget());

@@ -49,8 +49,11 @@ Eagerly compute method summaries for flow-insensitive field analysis
 SCALAR_REPLACE_AGGREGATES 1 true
 Perform scalar replacement of aggregates
 
-REORDER_CODE 1 true
+REORDER_CODE 0 true
 Reorder basic blocks for improved locality and branch prediction
+
+REORDER_CODE_PH 1 true
+Reorder basic blocks using Pettis and Hansen Algo2
 
 INLINE_NEW 1 true 
 Inline allocation of scalars and arrays

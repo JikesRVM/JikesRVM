@@ -85,13 +85,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 					    new OPT_NullConstantOperand(),
 					    OPT_ConditionOperand.EQUAL(), 
 					    nullCaseBB.makeJumpTarget(),
-					    new OPT_BranchProfileOperand()));
+					    OPT_BranchProfileOperand.unlikely()));
       nullCaseBB.appendInstruction(Move.create(INT_MOVE, result.copyD2D(), I(0)));
       nullCaseBB.appendInstruction(Goto.create(GOTO, nextBB.makeJumpTarget()));
       // Stitch together the CFG; add nullCaseBB to the end of code array.
       prevBB.insertOut(nullCaseBB);
       nullCaseBB.insertOut(nextBB);
-      nullCaseBB.setInfrequent(true);
       ir.cfg.addLastInCodeOrder(nullCaseBB);
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
       return generateValueProducingTypeCheck(s, ir, ref, LHStype, RHStib, 
@@ -181,7 +180,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     instanceOfBlock.insertOut(succBlock);
     ir.cfg.linkInCodeOrder(myBlock, instanceOfBlock);
     ir.cfg.linkInCodeOrder(instanceOfBlock, succBlock);
-    failBlock.setInfrequent(true);
     ir.cfg.addLastInCodeOrder(failBlock);
     OPT_Instruction raiseError = 
       Trap.create(TRAP, null, OPT_TrapCodeOperand.CheckCast());
@@ -212,7 +210,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     myBlock.insertOut(failBlock);
     myBlock.insertOut(succBlock);
     ir.cfg.linkInCodeOrder(myBlock, succBlock);
-    failBlock.setInfrequent(true);
     ir.cfg.addLastInCodeOrder(failBlock);
     OPT_Instruction raiseError = 
       Trap.create(TRAP, null, OPT_TrapCodeOperand.CheckCast());
@@ -246,7 +243,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     myBlock.insertOut(failBlock);
     myBlock.insertOut(succBlock);
     ir.cfg.linkInCodeOrder(myBlock, succBlock);
-    failBlock.setInfrequent(true);
     ir.cfg.addLastInCodeOrder(failBlock);
     OPT_Instruction raiseError = 
       Trap.create(TRAP, null, OPT_TrapCodeOperand.MustImplement());
@@ -266,7 +262,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	IfCmp.create(INT_IFCMP, null, doesImplLength, I(interfaceIndex),
 		     OPT_ConditionOperand.LESS_EQUAL(), 
 		     failBlock.makeJumpTarget(),
-		     new OPT_BranchProfileOperand());
+		     OPT_BranchProfileOperand.never());
       s.insertBefore(lengthCheck);
       myBlock.splitNodeWithLinksAt(lengthCheck, ir);
       myBlock.insertOut(failBlock); // required due to splitNode!
@@ -280,7 +276,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     IfCmp.mutate(s, INT_IFCMP, null, bit, I(0),
 		 OPT_ConditionOperand.EQUAL(), 
 		 failBlock.makeJumpTarget(),
-		 new OPT_BranchProfileOperand());
+		 OPT_BranchProfileOperand.never());
     return s;
   }
 
@@ -316,8 +312,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_Instruction trap = Trap.create(TRAP, null, OPT_TrapCodeOperand.StoreCheck());
       trap.copyPosition(s);
       trapBlock.appendInstruction(trap);
-      trapBlock.setInfrequent();
-      trapBlock.setInfrequent(true);
       ir.cfg.addLastInCodeOrder(trapBlock);
 
       OPT_Operand rhsGuard = guard;
@@ -369,7 +363,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 						    rhsTIB, etTIB,
 						    OPT_ConditionOperand.NOT_EQUAL(), 
 						    trapBlock.makeJumpTarget(),
-						    OPT_BranchProfileOperand.unlikely()));
+						    OPT_BranchProfileOperand.never()));
 	    curBlock.insertOut(trapBlock);
 	    curBlock.insertOut(contBlock);
 	    ir.cfg.linkInCodeOrder(curBlock, contBlock);
@@ -427,7 +421,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 						    rhsSuperclassIdsLength,
 						    OPT_ConditionOperand.GREATER_EQUAL(), 
 						    trapBlock.makeJumpTarget(),
-						    OPT_BranchProfileOperand.unlikely()));
+						    OPT_BranchProfileOperand.never()));
 	    curBlock.insertOut(trapBlock);
 	    curBlock = advanceBlock(s.bcIndex, curBlock, ir);
 
@@ -452,7 +446,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 						    lhsElemId,
 						    OPT_ConditionOperand.NOT_EQUAL(), 
 						    trapBlock.makeJumpTarget(),
-						    OPT_BranchProfileOperand.unlikely()));
+						    OPT_BranchProfileOperand.never()));
 	    curBlock.insertOut(trapBlock);
 	    curBlock.insertOut(contBlock);
 	    ir.cfg.linkInCodeOrder(curBlock, contBlock);

@@ -151,6 +151,9 @@ class OPT_OptimizationPlanner {
       // Always do initial wave of peephole branch optimizations
       new OPT_BranchOptimizations(0, true, false),  
 
+      // Adjust static branch probabilites to account for infrequent blocks
+      new OPT_AdjustBranchProbabilities(),
+
       // Optional printing of initial HIR 
       // Do this after branch optmization, since without merging
       // FallThroughOuts, the IR is quite ugly. 
@@ -385,6 +388,9 @@ class OPT_OptimizationPlanner {
       new OPT_ConvertHIRtoLIR(), 
       // Peephole branch optimizations 
       new OPT_BranchOptimizations(0, true, true), 
+      // Adjust static branch probabilites to account for infrequent blocks
+      // introduced by the inlining of runtime services.
+      new OPT_AdjustBranchProbabilities(),
       // Optional printing of initial LIR
       new OPT_IRPrinter("Initial LIR") {
 	  boolean shouldPerform(OPT_Options options) {

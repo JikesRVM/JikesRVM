@@ -8,9 +8,13 @@ import java.util.Enumeration;
 
 /**
  * Reorder code layout of basic blocks for improved I-cache locality and
- * branch prediction.
+ * branch prediction. This code assumes that basic block frequencies have
+ * been computed and blocks have been marked infrequent. 
+ * This pass actually implements two code placement algorithms:
+ * (1) A simple 'fluff' removal pass that moves all infrequent basic blocks
+ *     to the end of the code order.
+ * (2) Pettis and Hansen Algo2.
  *
- * @see OPT_BasicBlock
  * @author Vivek Sarkar
  * @author Dave Grove
  * @modified Matthew Arnold
@@ -34,33 +38,27 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   }
 
   /**
-   * Reorder basic blocks to move infrequently executed blocks 
-   * to the end.
+   * Reorder basic blocks either by trivially moving infrequent blocks 
+   * to the end of the code order or by applying Pettis and Hansen Algo2.
    *
-   * This compiler phase rearranges basic blocks and inserts/removes
+   * We will rearrange basic blocks and insert/remove
    * unconditional GOTO's if needed.  It does not clean up branches,
    * by reversing the branch condition, however.  That is saved for
    * OPT_BranchOptimizations.
    */
   void perform (OPT_IR ir) {
-    if (VM.VerifyAssertions) VM.assert (ir.IRStage != OPT_IR.MIR);
-
-    // Construct dominator and LST information 
-    if (ir.options.getOptLevel() >= 1) {
-      OPT_LTDominators.approximate(ir, true);
-      OPT_DominatorTree.perform(ir, true);
-      OPT_LSTGraph.perform(ir);
-    }      
-    
-    // Find sources of infrequency (direct and implied)
-    if (!markInfrequentBlocks(ir)) return;
+    OPT_BasicBlock[] newOrder;
     ir.cfg.entry().clearInfrequent();
-    if (ir.options.getOptLevel() >= 1) {
-      propagateInfrequency(ir);
+    if (false && ir.options.REORDER_CODE_PH) {
+      // Do Pettis and Hansen Algo2
+      newOrder = null;
+    } else {
+      // Simple algorithm: just move infrequent code to the end
+      if (!findInfrequentBlocks(ir)) return;
+      newOrder = exileInfrequentBlocks(ir);
     }
 
-    // Exile infrequent blocks to end of code ordering
-    implementNewOrdering(ir, selectNewOrdering(ir));
+    implementNewOrdering(ir, newOrder);
   }
 
   
@@ -69,65 +67,24 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
    * Also count the number of blocks in the IR.
    * @return true if any infrequent blocks are found
    */
-  private boolean markInfrequentBlocks(OPT_IR ir) {
+  private boolean findInfrequentBlocks(OPT_IR ir) {
     boolean foundSome = false;
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
 	 e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
-      bb.clearScratchFlag();
       numBlocks++;
-      if (bb.getInfrequent()) foundSome = true;
+      foundSome |= bb.getInfrequent();
     }
     return foundSome;
   }
 
   /**
-   * Use dominator and post-dominator information to propagate
-   * infrequency from the seed blocks to other blocks.
-   */
-  void propagateInfrequency(OPT_IR ir) {
-    markChildren(ir.cfg.entry(), ir.HIRInfo.dominatorTree);
-
-    // compute post dominators, and mark all nodes postdominated by
-    // an infrequent block as infrequent
-    // TODO: This craps out when IR has a block such as a checkcast trap
-    //       or athrow that ends a CFG path without being linked to the exit node.
-    // OPT_LTDominators.perform(ir, false, false);
-    // OPT_DominatorTree.perform(ir, false);
-    // markChildren(ir.cfg.exit(), ir.HIRInfo.dominatorTree);
-
-    // restore invariant that the first block is not marked as infrequent
-    ir.cfg.entry().clearInfrequent();
-  }
-    
-
-  /**
-   * Recursive walk of the (post)dominator tree marking all blocks 
-   * (post)dominated by an infrequent node as infrequent.
-   */
-  private void markChildren(OPT_BasicBlock bb, OPT_DominatorTree dt) {
-    boolean infrequent = bb.getInfrequent();
-    for (Enumeration e = dt.getChildren(bb); e.hasMoreElements(); ) {
-      OPT_BasicBlock c = ((OPT_DominatorTreeNode)e.nextElement()).getBlock();
-      if (infrequent) {
-	if (DEBUG && !c.getInfrequent()) {
-	  VM.sysWrite("propagating infrequent to "+c+"\n");
-	}
-	c.setInfrequent();
-      }
-      markChildren(c, dt);
-    }
-  }
-
-
-  /**
-   * Select a new basic block ordering.  Use a simple heuristic
-   * that moves all infrequent basic blocks to the end (similar to the
-   * heuristic proposed by Pettis & Hansen in PLDI '90).
+   * Select a new basic block ordering via a simple heuristic
+   * that moves all infrequent basic blocks to the end .
    * @param ir the OPT_IR object to reorder
    * @return the new ordering
    */
-  private OPT_BasicBlock[] selectNewOrdering(OPT_IR ir) {
+  private OPT_BasicBlock[] exileInfrequentBlocks(OPT_IR ir) {
     OPT_BasicBlock[] newOrdering = new OPT_BasicBlock[numBlocks];
     int i = 0;
     // First append frequent blocks to newOrdering

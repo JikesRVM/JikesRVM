@@ -1018,7 +1018,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       testBB.insertOut(resolveBB);
       ir.cfg.linkInCodeOrder(testBB, succBB);
       resolveBB.insertOut(testBB);              // backedge
-      resolveBB.setInfrequent(true);
       ir.cfg.addLastInCodeOrder(resolveBB);  // stick resolution code in outer space.
       return  offset;
     }

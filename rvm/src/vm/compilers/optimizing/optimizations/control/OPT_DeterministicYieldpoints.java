@@ -86,9 +86,6 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  afterYP.recomputeNormalOut(ir);
 	  ypBB.recomputeNormalOut(ir);
 
-	  // call to threadswitch is cold and can go to bottom
-	  ypBB.setInfrequent(); 
-
 	  // Replace the yieldpoint instruction with a call to threadswitch 
 	  VM_Method m = null;
 	  if (inPrologue)
@@ -146,7 +143,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 						  new OPT_IntConstantOperand(0),
 						  cond,
 						  target,
-						  new OPT_BranchProfileOperand(1.0f)));
+						  OPT_BranchProfileOperand.always()));
 	  beforeYP.recomputeNormalOut(ir);
 
 	  // Insert the increment and store in block afterYP
