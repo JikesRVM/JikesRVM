@@ -23,18 +23,15 @@ public final class OPT_CompilationState {
 
   /**
    * @param call the call instruction being considered for inlining.
-   * @param mcSizeEstimate, current guess on total size of final machinecode
    * @param isExtant is the receiver of a virtual call an extant object?
    * @param options controlling compiler options
    * @param cm compiled method of the IR object being compiled
    */
   public OPT_CompilationState(OPT_Instruction call,
-			      int mcSizeEstimate, 
 			      boolean isExtant,
-			      OPT_Options options,
+                              OPT_Options options,
 			      VM_CompiledMethod cm) {
     this.call = call;
-    this.mcSizeEstimate = mcSizeEstimate;
     this.isExtant = isExtant;
     this.options = options;
     this.cm = cm;
@@ -94,13 +91,6 @@ public final class OPT_CompilationState {
   }
 
   /** 
-   * Return the number of bytecodes compiled so far.
-   */
-  public int getMCSizeEstimate() {
-    return mcSizeEstimate;
-  }
-
-  /** 
    * Return the root method of the compilation 
    */
   public VM_NormalMethod getRootMethod() {
@@ -139,7 +129,6 @@ public final class OPT_CompilationState {
    * Implementation 
    */
   private OPT_Instruction call;
-  private int mcSizeEstimate;
   private boolean isExtant;
   private OPT_Options options;
   private VM_CompiledMethod cm;

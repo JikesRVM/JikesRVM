@@ -4265,9 +4265,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return OPT_InlineDecision.NO("Target method is null");
     }
     OPT_CompilationState state = 
-      new OPT_CompilationState(call, 
-			       gc.localMCSizeEstimate+gc.parentMCSizeEstimate,
-			       isExtant, gc.options, gc.original_cm);
+      new OPT_CompilationState(call, isExtant, gc.options, gc.original_cm);
     OPT_InlineDecision d = gc.inlinePlan.shouldInline(state);
     return d;
   }
@@ -4831,7 +4829,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	// (These arise from thrown/caught exceptions.)
 	InliningBlockLE imbb = (InliningBlockLE)p.fallThrough;
 	imbb.deleteAllOutEdges();
-	gc.localMCSizeEstimate -= imbb.gc.localMCSizeEstimate;
       }
       // discard any "real" instructions in the block
       if (!p.block.isEmpty()) {

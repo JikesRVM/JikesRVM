@@ -145,13 +145,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     // even if the call arc is hot.
     if (inlinedSizeEstimate > state.getOptions().AI_MAX_TARGET_SIZE)  
       return false;
-
-    // Make sure that inlining the callee won't push the caller 
-    // over its upper space bounds.
-    int totalMCGenerated = state.getMCSizeEstimate();
-    if (totalMCGenerated + inlinedSizeEstimate - 
-        VM_NormalMethod.CALL_COST > getMaxRootSize(state)) return false;
-
+    
     return true;
   }
 
@@ -222,18 +216,5 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
    */
   public OPT_ProfileDirectedInlineOracle(OPT_InlinePlan plan) {
     this.plan = plan;
-  }
-
-  /**
-   * Return the upper limit on the machine code instructions for the 
-   * root method.
-   * @param state compilation state
-   */
-  protected int getMaxRootSize(OPT_CompilationState state) {
-    OPT_Options opts = state.getOptions();
-    int rootSize = 
-      state.getRootMethod().inlinedSizeEstimate();
-    return Math.min(opts.AI_MAX_INLINE_EXPANSION_FACTOR * rootSize, 
-		    opts.AI_MAX_METHOD_SIZE+rootSize);
   }
 }

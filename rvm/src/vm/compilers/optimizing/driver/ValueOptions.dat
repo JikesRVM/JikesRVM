@@ -21,24 +21,12 @@ V IC_MAX_ALWAYS_INLINE_TARGET_SIZE int (2*com.ibm.JikesRVM.classloader.VM_Normal
 Static inlining heuristic: Always inline callees of this size or smaller
 
 
-V IC_MAX_INLINE_EXPANSION_FACTOR int 4
-Static inlining heuristic: Upper bound on relative expansion of caller due to inlining
-
-
-V IC_MAX_METHOD_SIZE int 4096
-Static inlining heuristic: Upper bound on absolute size of caller due to inlining
+V IC_MASSIVE_METHOD_SIZE int 2048
+Static inlining heuristic: If root method is already this big, then only inline trivial methods
 
 
 V AI_MAX_TARGET_SIZE int (22*com.ibm.JikesRVM.classloader.VM_NormalMethod.CALL_COST+3*com.ibm.JikesRVM.classloader.VM_NormalMethod.SIMPLE_OPERATION_COST)
 Adaptive inlining heuristic: Upper bound on callee size
-
-
-V AI_MAX_INLINE_EXPANSION_FACTOR int 15
-Adaptive inlining heuristic: Upper bound on relative expansion of caller due to inlining
-
-
-V AI_MAX_METHOD_SIZE int 4096
-Adaptive inlining heuristic: Upper bound on absolute size of caller due to inlining
 
 
 E INLINING_GUARD byte IG_CODE_PATCH

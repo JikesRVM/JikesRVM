@@ -130,29 +130,6 @@ public final class OPT_GenerationContext
    */
   OPT_InlineOracle inlinePlan;
 
-  /**
-   * Current estimate of the number of machine code instructions we're going 
-   * to end up generating for this method.  
-   * Only useful as part of inlining size heuristics, since it tends 
-   * to be somewhat inaccurate.
-   */
-  int localMCSizeEstimate;
-
-  /**
-   * Current estimate of the number of machine code instructions we've 
-   * generated in the parent context so far.
-   * Only useful as part of inlining size heuristics, since it tends 
-   * to be somewhat inaccurate.
-   */
-  int parentMCSizeEstimate;
-
-  /**
-   * Has semantic expansion been performed on the caller IR?
-   * Used to defer inlining of semantic expansion targets until after se.
-   */
-  boolean semanticExpansionComplete;
-
-
   //////////
   // These fields are used to communicate information from BC2IR to its caller
   //////////
@@ -262,7 +239,6 @@ public final class OPT_GenerationContext
     }
     
     enclosingHandlers = null;
-    localMCSizeEstimate = method.inlinedSizeEstimate();
 
     completePrologue(true);
     completeEpilogue(true);
@@ -299,10 +275,6 @@ public final class OPT_GenerationContext
     child._ncGuards = parent._ncGuards;
     child.exit = parent.exit;
     child.inlinePlan = parent.inlinePlan;
-    child.localMCSizeEstimate = child.method.inlinedSizeEstimate();
-    child.parentMCSizeEstimate = parent.localMCSizeEstimate + 
-      parent.parentMCSizeEstimate;
-    child.semanticExpansionComplete = parent.semanticExpansionComplete;
 
     // Now inherit state based on callSite
     //-#if RVM_WITH_OSR
@@ -465,12 +437,6 @@ public final class OPT_GenerationContext
    */
   public static void transferState(OPT_GenerationContext parent, 
 				   OPT_GenerationContext child) {
-    // Update parent's size estimate to reflect the inlining that we just 
-    // committed (we subtract out the size of a call because
-    // ee've replaced a call in the parent with the inlined body).
-    parent.localMCSizeEstimate += 
-      child.localMCSizeEstimate - VM_NormalMethod.CALL_COST;
-
     parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
     if (child.generatedExceptionHandlers)
       parent.generatedExceptionHandlers = true;

@@ -41,7 +41,6 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       return OPT_InlineDecision.NO("recursive call");
     }
 
-
     // Critical section: must prevent class hierarchy from changing while
     // we are inspecting it to determine how/whether to do the inline guard.
     synchronized(VM_Class.OptCLDepManager) {
@@ -246,26 +245,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (state.getInlineDepth() > opts.IC_MAX_INLINE_DEPTH)
       return OPT_InlineDecision.NO("Inline depth limit exceeded");
 
-    // (2) Check space limits.
-    int totalMCGenerated = state.getMCSizeEstimate();
-    int maxRootSize = getMaxRootSize(state);
-    if ((totalMCGenerated + cost - VM_NormalMethod.CALL_COST) > maxRootSize)
-      return OPT_InlineDecision.NO("Inlining size limit exceeded");
-
+    // (2) We only do trivial inlining in massive methods to avoid
+    //     completely blowing out compile time by making the method even worse
+    VM_NormalMethod rootMethod = state.getRootMethod();
+    if (rootMethod.inlinedSizeEstimate() > opts.IC_MASSIVE_METHOD_SIZE) {
+      return OPT_InlineDecision.NO("Root method is massive; no non-trivial inlines");
+    }
+    
     return null; // size check passes
-  }
-
-  /**
-   * Return the upper limit on the machine code instructions for the 
-   * root method.
-   * @param state compilation state
-   * @return the upper limit on the machine code instructions for the 
-   * root method.
-   */
-  private int getMaxRootSize (OPT_CompilationState state) {
-    OPT_Options opts = state.getOptions();
-    int rootSize = state.getRootMethod().inlinedSizeEstimate();
-    return Math.min(opts.IC_MAX_INLINE_EXPANSION_FACTOR*rootSize, 
-		    opts.IC_MAX_METHOD_SIZE + rootSize);
   }
 }
