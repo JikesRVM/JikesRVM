@@ -17,8 +17,8 @@ version 1.14.  We have not yet tried version 1.15.
 \item GNU tar is needed to extract the distribution tar file.  
 You can download this from
 \xlink{{\tt \gnuTarURL}} {\gnuTarURL}.
-We have
-experienced problems with the AIX\AIXTMFootnote tar program truncating file names.
+We have experienced problems with the AIX\AIXTMFootnote tar program
+truncating file names. 
 
 \end{itemize}
 
@@ -33,8 +33,8 @@ you will need
 \item a PowerPC processor
 \item AIX 4.3 or later, and
 \item (recommended) 512MB of memory.
-\item the IBM AIX Developer Kit for Java version 1.3.0.  You can download this from
-\xlink{{\tt \AIXJdkURL}} {\AIXJdkURL}.
+\item the IBM AIX Developer Kit for Java version 1.3.0.  You can
+download this from \xlink{{\tt \AIXJdkURL}} {\AIXJdkURL}. 
 \end{itemize}
 
 \subsubsection{Linux/IA32}
@@ -44,7 +44,8 @@ run RVM on a Linux Intel environment, you will need
 \item an Intel Architecture 32 bit processor
 \item Linux  (we have run on RedHat 6.0 and 7.0)
 \item The system has run in 386MB; we have not established a lower bound.
-\item the IBM Developer Kit (at least version 2.1.3).  You can download this from
+\item the IBM Developer Kit (at least version 2.1.3).  You can
+download this from 
 \xlink{{\tt \LinuxJdkURL}} {\LinuxJdkURL}.  We did have problems on
 bleeding edge 2.4 kernels running on SMP machines with versions of the IBM
 Developer Kit built prior to May 2001.  We are currently using IBM
@@ -187,23 +188,6 @@ the ``booter'' and ``C runtime'' will be generated.
 order to pick up various scripts and utilities
 \end{description}
 
-The following environment variables specify the machine architecture and
-the operating system on which the system is to run.
-\begin{description}
-
-\item [{\tt RVM\_TARGET\_ARCH}].specifies on what architecture
-the RVM will run e.g.  powerpc, IA32 (for Intel 32 bit)
-
-\item [{\tt RVM\_TARGET\_OS}] specifies on what Operating System
-the RVM will run e.g., aix, linux
-
-\end{description}
-
-Because the ARCH and OS  variables default to the system on which 
-the ``build'' is currently executing, they usually do not need to be 
-explicitly set.
-
-
 We recommend you set up these variables in your shell configuration
 file.  For example, for {\tt csh}, you might insert the
 following into your {\tt .cshrc} file:
@@ -254,7 +238,25 @@ You must edit the file(s) that define the host and target configuration
 environments in the {\tt \$RVM\_ROOT/rvm/config} directory.  
 You do not need to {\em source} these variables in your working shell; 
 variables in this file will be picked up by the installation scripts.  
-You must set the following variables in this file:
+
+The host and target configuration files have two sections.  In the
+first section, you specify the operating system, architecture, and
+whether or not the platform will support SMP-builds of JikesRVM. 
+For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_AIX, or
+RVM\_FOR\_CYGWIN to be 1.  For architecture define either
+RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR to 0 (SMP supported) or 1 (SMP not
+supported).  The following are the typical settings for
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR 
+\begin{description}
+\item {\tt AIX/PowerPC} 0 
+\item {\tt Linux/PowerPC} 1 
+\item {\tt Linux/IA32} 0 with a 2.2 kernel; 
+1 with a 2.4 kernel and glibc compiled to use the GS
+segment register to access pthread-specific state.
+\end{description}                
+The second section in the configuration file is used to define how to
+find tools that RVM needs. You must set the following variables:
 \begin{description}
 \item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM
 \item {\tt HOST\_JAVA} the executable command for the JDK JVM
@@ -269,7 +271,6 @@ You must set the following variables in this file:
 \item {\tt LDSHARED} how to link a shared C++ library.
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
-
 The remaining variables in the config file are not required for basic RVM
 builds.
 
@@ -483,22 +484,9 @@ is written in C, and must be compiled on the target platform.
 
 Because the building of the boot image can be a relatively lengthy
 process, it can be advantageous to perform that task somewhere other
-than the target platform.  By default, the build process will target
-the operating system and architecture on which the {\tt jconfigure}
-script is run.  
-    Two environment variables can be used to
-override this behavior and explicitly specify a different target: {\tt
-  RVM\_TARGET\_ARCH } and {\tt RVM\_TARGET\_OS }. The current valid target
-architectures are ``powerpc'' and ``IA32'' (intel). The current valid
-Operating systems are ``aix'' and ``linux''.
-
-    Two additional environment variables are used to describe the 
-environment on which the boot image is to be built RVM\_HOST\_CONFIG  and where
-the boot image loader  RVM\_TARGET\_CONFIG is to be built. These variables
-each point to a file where additional environment variables the location
-of software components like javac, Jikes\trademark, and the C compiler. 
-This distribution
-contains examples of such files in the {\tt \$RVM\_ROOT/rvm/config} directory.   
+than the target platform.  To cross build, simply set your
+RVM\_HOST\_CONFIG and RVM\_TARGET\_CONFIG environment variables to
+be different files.
 
 For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote
 {\em on a Linux host}:
@@ -506,8 +494,6 @@ For example, to build a BaseBaseSemispace system for AIX\AIXTMFootnote
 % setenv RVM_ROOT $HOME/rvmRoot
 % setenv RVM_BUILD $HOME/rvmBuild
 % setenv PATH $RVM_ROOT/rvm/bin:$PATH
-% setenv RVM_TARGET_ARCH powerpc
-% setenv  RVM_TARGET_OS aix
 % setenv RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 % setenv RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux-gnu
 % jconfigure BaseBaseSemispace
