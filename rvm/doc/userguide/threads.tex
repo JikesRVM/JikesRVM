@@ -62,40 +62,46 @@ at the same priority.
 
 Similarly, it has only the most rudimentary load balancing mechanism.
 Each virtual processor has a (local) idle queue.  Normally, the
-processor's 
-\xlink{{\tt VM\_IdleThread}}{\VMIdleThreadURL} 
-inhabits this queue.  When no other
-thread is executable, this thread is executed.  This thread requests
-work by setting the static {\tt idleProcessor} field to its virtual
-processor.  (When {\tt dispatch} is looking for a runnable thread it
-checks that this field is null.  If not, and it has an spare runnable
-thread, it places the spare thread on the idle processor's transfer
-queue.)  The idle thread then spins for a short period of time waiting
-for work to materialize.  If it does, the idle thread yields back to
-the idle queue.  Otherwise, it give the remainder of its virtual
+processor's \xlink{{\tt VM\_IdleThread}}{\VMIdleThreadURL} inhabits
+this queue.  When no other thread is executable, this thread is
+executed.  This thread requests work by setting the static {\tt
+idleProcessor} field to its virtual processor.  (When {\tt dispatch}
+is looking for a runnable thread it checks that this field is null.
+If not, and it has an spare runnable thread, it places the spare
+thread on the idle processor's transfer queue.)  The idle thread then
+spins for a short period of time waiting for work to materialize.  If
+it does, the idle thread returns to its processor's idle queue and
+the processor resumes execution of the newly transferred thread.
+Otherwise, the idle thread surrenders the remainder of its virtual
 processor's time slice back to the operating system.
 
 More sophisticated priority and load-balancing mechanisms are in
 order.
 
 RVM uses a light-weight locking scheme to implement Java monitors (see
-\xlink{{\tt VM\_Lock}}{\VMLockURL}
-).  Twenty bits of the status word of the object header are
-used for locking.  If the top bit is set, the bottom nineteen are an
-index into an array of heavy-weight locks.  Otherwise, if the object
-is locked, these bits contain the id of the thread that holds the lock
-and a count of how many times it is held.  If a thread tries to lock
-an object locked with a light-weight lock by another thread, it can
-spin, yield, or inflate the lock.  Spinning is probably a bad idea.
-The number of times to yield before inflating is a matter open for
-investigation (along with a number of locking issues, see {\tt VM\_Lock}).
-Heavy-weight locks contain an {\tt enteringQueue} for threads trying
-to acquire the lock.
+\xlink{{\tt VM\_Lock}}{\VMLockURL}).  Twenty bits of the status word of 
+the object header are used for locking.  If the top bit is set, the
+bottom nineteen are an index into an array of heavy-weight locks.
+Otherwise, if the object is locked, these bits contain the id of the
+thread that holds the lock and a count of how many times it is held.
+If a thread tries to lock an object locked with a light-weight lock by
+another thread, it can spin, yield, or inflate the lock.  Spinning is
+probably a bad idea.  The number of times to yield before inflating is
+a matter open for investigation (as are a number of locking
+issues, see {\tt VM\_Lock}).  Heavy-weight locks contain an {\tt
+enteringQueue} for threads trying to acquire the lock.
 
-A similar mechanism is used to implement Java's wait/notification
-mechanism.  Heavy-weight locks contain a {\tt waitingQueue} for
+A similar mechanism is used to implement Java wait/notification
+semantics.  Heavy-weight locks contain a {\tt waitingQueue} for
 threads blocked at a Java {\tt wait}.  When a {\tt notify} is
 received, a thread is taken from this queue and transferred to a ready
-queue.
+queue.  Priority {\tt wakeupQueue}s are used to implement Java sleep
+semantics.  Logically, Java timed-wait semantics entail placing a
+thread on both a {\tt waitingQueue} and a {\tt wakeupQueue}.  However, our
+implementation only allows a thread to be on one thread queue at
+a time.  To accommodate timed-waits, both {\tt waitingQueue}s and
+{\tt wakeupQueue}s are queues of {\em proxies} rather than threads.
+A \xlink{{\tt VM\_Proxy}}{\VMProxyURL} can represent the same thread
+on more than one proxy queue.
 
 \JavaTMFooter
