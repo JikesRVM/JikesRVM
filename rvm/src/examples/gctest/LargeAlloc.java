@@ -29,6 +29,7 @@ class LargeAlloc {
     System.exit(0);
   }
 
+  static double timeLimit = 300.0;
 
   public static void runTest() throws Throwable {
 
@@ -53,6 +54,12 @@ class LargeAlloc {
 	long cur = System.currentTimeMillis();
 	System.out.println("Allocated " + (used >> 20) + " Mb at time " + ((cur - start) / 1000.0) + " sec");
 	lastUsed = used;
+      }
+      long cur = System.currentTimeMillis();
+      double elapsed = (cur - start) / 1000.0;
+      if (elapsed > timeLimit) {
+	System.out.println("Exitting because exceeded time limit of " + timeLimit + " seconds");
+	break;
       }
     }
     System.gc();
