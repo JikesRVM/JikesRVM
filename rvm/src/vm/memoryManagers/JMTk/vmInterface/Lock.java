@@ -20,8 +20,6 @@ import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Time;
 
-import org.mmtk.utility.Log;
-
 
 /**
  * Simple, fair locks with deadlock detection.
@@ -104,45 +102,35 @@ public class Lock implements Uninterruptible {
         if (lastReportDuration > 
             SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Thread.getCurrentThread().getIndex() % 5))) {
             lastSlowReport = now;
-            Log.write("GC Warning: slow/deadlock - thread ");
-            VM_Thread.getCurrentThread().dumpToLog();
-            Log.write(" with ticket "); Log.write(ticket);
-            Log.write(" failed to acquire lock "); Log.write(id);
-            Log.write(" ("); Log.write(name);
-            Log.write(") serving "); Log.write(serving);
-            Log.write(" after "); 
-            Log.write(VM_Time.cyclesToMillis(waitTime)); Log.write(" ms");
-            Log.writelnNoFlush();
-
+            VM.sysWrite("GC Warning: slow/deadlock - thread ");
+            VM_Thread.getCurrentThread().dump(1);
+            VM.sysWrite(" with ticket ", ticket);
+            VM.sysWrite(" failed to acquire lock ",id);
+            VM.sysWrite(" (",name);
+            VM.sysWrite(") serving ", serving);
+            VM.sysWriteln(" after ",VM_Time.cyclesToMillis(waitTime)," ms");
             VM_Thread t = thread;
             if (t == null) 
-              Log.writeln("GC Warning: Locking thread unknown", false);
+              VM.sysWriteln("GC Warning: Locking thread unknown");
             else {
-              Log.write("GC Warning: Locking thread: "); t.dumpToLog(); 
-              Log.write(" at position ");
-              Log.writeln(where, false);
+              VM.sysWrite("GC Warning: Locking thread: "); t.dump(1); 
+              VM.sysWriteln(" at position ",where);
             }
-            Log.write("GC Warning: my start = ");
-            Log.writeln(localStart, false);
+            VM.sysWriteln("GC Warning: my start = ", localStart);
 	    // Print the last 10 entries preceding serving
             for (int i=(serving + 90) % 100; i != serving; i = (i+1)%100) {
 	      if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
-	      Log.write("GC Warning: ");
-	      Log.write(i); 
-              Log.write(": index "); Log.write(servingHistory[i]);
-	      Log.write("   tid "); Log.write(tidHistory[i]);
-	      Log.write("    start = "); Log.write(startHistory[i]);
-	      Log.write("    end = "); Log.write(endHistory[i]);
-	      Log.write("    start-myStart = ");
-              Log.write(VM_Time.cyclesToMillis(startHistory[i] - localStart));
-              Log.writelnNoFlush();
+	      VM.sysWrite("GC Warning: ");
+	      VM.sysWrite(i, ": index ", servingHistory[i]);
+	      VM.sysWrite("   tid ", tidHistory[i]);
+	      VM.sysWrite("    start = ", startHistory[i]);
+	      VM.sysWrite("    end = ", endHistory[i]);
+	      VM.sysWriteln("    start-myStart = ", VM_Time.cyclesToMillis(startHistory[i] - localStart));
             }
-            Log.flush();
         }
         if (waitTime > TIME_OUT) {
-            Log.write("GC Warning: Locked out thread: "); 
-            VM_Thread.getCurrentThread().dumpToLog();
-            Log.writeln();
+            VM.sysWrite("GC Warning: Locked out thread: "); 
+            VM_Thread.getCurrentThread().dump(1); 
             VM_Scheduler.dumpStack();
             Assert.fail("Deadlock or someone holding on to lock for too long");
         }
@@ -157,11 +145,10 @@ public class Lock implements Uninterruptible {
     }
 
     if (verbose > 1) {
-      Log.write("Thread ");
-      thread.dumpToLog();
-      Log.write(" acquired lock "); Log.write(id);
-      Log.write(" "); Log.write(name);
-      Log.writeln();
+      VM.sysWrite("Thread ");
+      thread.dump();
+      VM.sysWrite(" acquired lock ",id);
+      VM.sysWriteln(" ",name);
     }
     VM_Magic.isync();
   }
@@ -172,13 +159,13 @@ public class Lock implements Uninterruptible {
     long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
-      Log.write("GC Warning: Thread ");
-      thread.dumpToLog();
-      Log.write(" reached point "); Log.write(w);
-      Log.write(" while holding lock "); Log.write(id);
-      Log.write(" "); Log.write(name);
-      Log.write(" at "); Log.write(VM_Time.cyclesToMillis(diff));
-      Log.writeln(" ms");
+      VM.sysWrite("GC Warning: Thread ");
+      thread.dump();
+      VM.sysWrite(" reached point ",w);
+      VM.sysWrite(" while holding lock ",id);
+      VM.sysWrite(" ",name);
+      VM.sysWrite(" at ", VM_Time.cyclesToMillis(diff));
+      VM.sysWriteln(" ms");
     }
     where = w;
   }
@@ -192,13 +179,13 @@ public class Lock implements Uninterruptible {
     long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
-      Log.write("GC Warning: Thread ");
-      thread.dumpToLog();
-      Log.write(" released lock "); Log.write(id);
-      Log.write(" "); Log.write(name);
-      Log.write(" after ");
-      Log.write(VM_Time.cyclesToMillis(diff));
-      Log.writeln(" ms");
+      VM.sysWrite("GC Warning: Thread ");
+      thread.dump();
+      VM.sysWrite(" released lock ",id);
+      VM.sysWrite(" ",name);
+      VM.sysWrite(" after ");
+      VM.sysWrite(VM_Time.cyclesToMillis(diff));
+      VM.sysWriteln(" ms");
     }
 
     if (REPORT_SLOW) {
