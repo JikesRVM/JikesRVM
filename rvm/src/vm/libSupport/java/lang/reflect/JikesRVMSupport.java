@@ -108,6 +108,8 @@ public class JikesRVMSupport {
    * be approved by the caller without needing to call this method.
    */
   static void checkAccess(VM_Member member, VM_Class accessingClass) throws IllegalAccessException {
+    if (true) return; // TODO: very short term kludge until I can figure out why checking this breaks Eclipse.
+      
     VM_Class declaringClass = member.getDeclaringClass();
     if (member.isPrivate()) {
       // access from the declaringClass is allowed
