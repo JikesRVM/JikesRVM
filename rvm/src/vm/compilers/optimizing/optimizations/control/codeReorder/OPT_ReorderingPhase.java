@@ -350,6 +350,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   // Calls to the following methods indicate that a block is icy cold.
   private static String[] coldMethods =  {
     "VM_Runtime.athrow", 
+    "VM_Allocator.allocateSlot", 
     "VM_Allocator.cloneScalar", 
     "VM_Allocator.cloneArray", 
     "VM_Allocator.getHeapSpace", 
