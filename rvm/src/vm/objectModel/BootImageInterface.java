@@ -51,12 +51,6 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-//-#if RVM_FOR_32_ADDR
-  public void setAddressWord(int offset, int value);
-//-#endif
-//-#if RVM_FOR_64_ADDR
-  public void setAddressWord(int offset, long value);
-//-#endif
   public void setAddressWord(int offset, VM_Word value);
 
   /**

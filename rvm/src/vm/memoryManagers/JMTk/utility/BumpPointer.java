@@ -85,7 +85,7 @@ final class BumpPointer extends Allocator
       if (newCursor.GT(limit))
         return allocSlow(isScalar, bytes);
     } else {
-      VM_Address tmp = oldCursor.toWord().xor(newCursor.toWord()).toAddress();
+      VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
       if (tmp.GT(TRIGGER))
         return allocSlow(isScalar, bytes);
     }
@@ -95,11 +95,11 @@ final class BumpPointer extends Allocator
 
   final protected VM_Address allocSlowOnce(boolean isScalar, int bytes, 
                                            boolean inGC) {
-    int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
+    VM_Extent chunkSize = VM_Word.fromIntZeroExtend(bytes).add(CHUNK_MASK).and(CHUNK_MASK.not()).toExtent();
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
-    Memory.zero(start, VM_Extent.fromIntZeroExtend(chunkSize));
+    Memory.zero(start, chunkSize);
 
     // check for (dis)contiguity with previous chunk
     if (limit.NE(start)) cursor = start;
@@ -139,9 +139,9 @@ final class BumpPointer extends Allocator
    * alloc of initial value
    */
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
-  private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
-  private static final VM_Address TRIGGER = VM_Word.one().lsh(LOG_CHUNK_SIZE).sub(VM_Word.one()).toAddress();
-  private static final VM_Address INITIAL_CURSOR_VALUE = TRIGGER;
+  private static final VM_Word CHUNK_MASK = VM_Word.one().lsh(LOG_CHUNK_SIZE).sub(VM_Word.one());
+  private static final VM_Word TRIGGER = CHUNK_MASK;  //should this be kept beside CHUNK_MASK ?
+  private static final VM_Address INITIAL_CURSOR_VALUE = TRIGGER.toAddress();
   private static final VM_Address INITIAL_LIMIT_VALUE = INITIAL_CURSOR_VALUE;
   private static final boolean useLimit = true;
 }

@@ -71,10 +71,16 @@ public class Conversions implements Constants, VM_Uninterruptible {
     return VM_Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
   }
 
+  /**
+    @deprecated : use int bytesToPagesUp(VM_Extent bytes) if possible
+  */
   public static int bytesToPagesUp(int bytes) {
     return bytesToPagesUp(VM_Extent.fromIntZeroExtend(bytes));
   }
   
+  /**
+    @deprecated : use int bytesToPagesUp(VM_Extent bytes) if possible
+  */
   public static int bytesToPages(int bytes) {
     return bytesToPages(VM_Extent.fromIntZeroExtend(bytes));
   }

@@ -161,11 +161,11 @@ public class BootImageMap extends BootImageWriterMessages
    * @return address of corresponding rvm object within bootimage, in bytes
    *         or 0 if not present
    */
-  public static int getImageAddress(int bootImageAddress, Object jdkObject) {
+  public static VM_Address getImageAddress(VM_Address bootImageAddress, Object jdkObject) {
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
     if (mapEntry.imageOffset == OBJECT_NOT_ALLOCATED)
-      return 0;
-    return bootImageAddress + mapEntry.imageOffset;
+      return VM_Address.zero();
+    return bootImageAddress.add(mapEntry.imageOffset);
   }
 }
 

@@ -207,24 +207,13 @@ public class BootImage extends BootImageWriterMessages
   public void setAddressWord(int offset, VM_Word value) {
 //-#if RVM_FOR_32_ADDR
     setFullWord(offset, value.toInt());
+    numAddresses++;
 //-#endif
 //-#if RVM_FOR_64_ADDR
     setDoubleWord(offset, value.toLong());
-//-#endif
-  }
-
-//-#if RVM_FOR_32_ADDR
-  public void setAddressWord(int offset, int value) {
-    setFullWord(offset, value);
     numAddresses++;
-  }
 //-#endif
-//-#if RVM_FOR_64_ADDR
-  public void setAddressWord(int offset, long value) {
-    setDoubleWord(offset, value);
-    numAddresses++;
   }
-//-#endif
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.
@@ -232,7 +221,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    */
   public void setNullAddressWord(int offset) {
-    setAddressWord(offset, 0);
+    setAddressWord(offset, VM_Word.zero());
     numNulledReferences += 1;
   }
 

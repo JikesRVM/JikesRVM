@@ -65,7 +65,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
                             VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
-    bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toInt());
+    bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toWord());
   }
 
   /**

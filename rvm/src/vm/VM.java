@@ -72,7 +72,6 @@ public class VM extends VM_Properties implements VM_Constants,
     runningVM        = true;
     runningAsSubsystem = false;
     verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
-                  
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
@@ -102,7 +101,7 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     if (verboseBoot >= 1) VM.sysWriteln("Setting up write barrier");
     MM_Interface.setupProcessor(VM_Processor.getCurrentProcessor());
-
+    
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
@@ -498,32 +497,24 @@ public class VM extends VM_Properties implements VM_Constants,
 
 
   /**
-   * Format a 64 bit number as "0x" followed by 16 hex digits.
+   * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
    * TODO: move this method to VM_Services.
    * @param number
-   * @return a String with the hex representation of the long
+   * @return a String with the hex representation of an Address
    */
-  public static String longAsHexString(long number) throws VM_PragmaInterruptible {
-    char[] buf   = new char[18];
-    int    index = 18;
-    while (--index > 1) {
-      int digit = (int) (number & 0x000000000000000f);
-      buf[index] = digit <= 9 ? (char)('0' + digit) : (char)('a' + digit - 10);
-      number >>= 4;
-    }
-    buf[index--] = 'x';
-    buf[index]   = '0';
-    return new String(buf);
-  }
-
   public static String addressAsHexString(VM_Address addr) throws VM_PragmaInterruptible {
-    //-#if RVM_FOR_32_ADDR
-    return intAsHexString(addr.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return longAsHexString(addr.toLong());
-    //-#endif
+    int len = 2 + (BITS_IN_ADDRESS>>2);
+    char[] buf   = new char[len];
+    while (--len > 1) {
+      int digit = addr.toInt() & 0x0F;
+      buf[len] = digit <= 9 ? (char)('0' + digit) : (char)('a' + digit - 10);
+      addr = addr.toWord().rshl(4).toAddress();
+    }
+    buf[len--] = 'x';
+    buf[len]   = '0';
+    return new String(buf);
   }
 
   private static int sysWriteLock = 0;

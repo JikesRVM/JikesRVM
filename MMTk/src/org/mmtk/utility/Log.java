@@ -268,7 +268,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param w the word to be logged
    */
   public static void write(VM_Word w) {
-    writeHex(w.toLong(), BYTES_IN_ADDRESS);
+    writeHex(w, BYTES_IN_ADDRESS);
   }
 
   /**
@@ -277,7 +277,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param a the address to be logged
    */
   public static void write(VM_Address a) {
-    writeHex(a.toLong(), BYTES_IN_ADDRESS);
+    writeHex(a.toWord(), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -286,7 +286,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param o the offset to be logged
    */
   public static void write(VM_Offset o) {
-    writeHex(VM_Interface.offsetToLong(o), BYTES_IN_ADDRESS);
+    writeHex(o.toWord(), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -628,12 +628,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes a <code>long</code> in hexadecimal
    *
-   * @param l the long to be logged
+   * @param l the VM_Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
    * of the most significant bytes are ignored.
    */
-  private static void writeHex(long l, int bytes) {
+  private static void writeHex(VM_Word w, int bytes) {
     int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
     char [] intBuffer = getIntBuffer();
@@ -641,7 +641,7 @@ public class Log implements Constants, VM_Uninterruptible {
     write(HEX_PREFIX);
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
-      nextDigit = (int)(l >>> (digitNumber << LOG_BITS_IN_HEX_DIGIT)) & 0xf;
+      nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
       char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
                                                      nextDigit);
       add(nextChar);

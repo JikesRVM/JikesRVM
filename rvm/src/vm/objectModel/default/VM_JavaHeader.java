@@ -127,7 +127,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
                             VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
-    bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toInt());
+    bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toWord());
   }
 
   /**
@@ -373,11 +373,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
                                             int ref, VM_Word val) throws VM_PragmaInterruptible {
-    //-#if RVM_FOR_32_ADDR
-    bootImage.setAddressWord(ref + STATUS_OFFSET, val.toInt());
-    //-#else
-    bootImage.setAddressWord(ref + STATUS_OFFSET, val.toLong());
-    //-#endif
+    bootImage.setAddressWord(ref + STATUS_OFFSET, val);
   }
 
   /**

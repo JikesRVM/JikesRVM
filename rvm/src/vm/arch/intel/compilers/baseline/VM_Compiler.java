@@ -3487,7 +3487,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         asm.emitPUSH_Imm(0); // upper 32 bits
         asm.emitPUSH_Reg(T0); // lower 32 bits
         return true;
-      } // else no-op
+      } // else fill unused stackslot 
       if (VM.VerifyAssertions) VM._assert(false);
     }
 
