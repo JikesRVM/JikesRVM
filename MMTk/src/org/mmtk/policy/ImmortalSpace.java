@@ -17,17 +17,19 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Magic;
 
 /**
- * This class implements collector behavior for a simple immortal
- * collection policy.  Under this policy all that is required is for
- * the "collector" to propogate marks in a liveness trace.  It does
- * not actually collect.
+ * This class implements tracing for a simple immortal collection
+ * policy.  Under this policy all that is required is for the
+ * "collector" to propogate marks in a liveness trace.  It does not
+ * actually collect.  This class does not hold any state, all methods
+ * are static.
  *
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible {
+final class ImmortalSpace extends BasePolicy 
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
 
@@ -67,7 +69,8 @@ final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(Object ref, int value) throws VM_PragmaInline {
+  private static boolean testAndMark(Object ref, int value) 
+    throws VM_PragmaInline {
     int oldValue;
     do {
       oldValue = VM_ObjectModel.prepareAvailableBits(ref);

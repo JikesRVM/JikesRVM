@@ -196,7 +196,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) allocator = LOS_SPACE;
     switch (allocator) {
       case  DEFAULT_SPACE: return;
-      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
@@ -328,6 +328,21 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return false;
   }
 
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Collection
+  //
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.:
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
+  //
+
   /**
    * Perform operations with <i>global</i> scope in preparation for a
    * collection.  This is called by <code>StopTheWorld</code>, which will
@@ -340,8 +355,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     hi = !hi;        // flip the semi-spaces
     ssMR.reset();    // reset the semispace memory resource, and
     // prepare each of the collected regions
-    Copy.prepare(((hi) ? ss0VM : ss1VM), ssMR);
-    Immortal.prepare(immortalVM, null);
+    CopySpace.prepare(((hi) ? ss0VM : ss1VM), ssMR);
+    ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
   }
 
@@ -393,8 +408,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // release each of the collected regions
     losSpace.release();
     ((hi) ? ss0VM : ss1VM).release();
-    Copy.release(((hi) ? ss0VM : ss1VM), ssMR);
-    Immortal.release(immortalVM, null);
+    CopySpace.release(((hi) ? ss0VM : ss1VM), ssMR);
+    ImmortalSpace.release(immortalVM, null);
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
 	VM.sysFail("Out of memory");
@@ -423,11 +438,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case LOW_SS_SPACE:    return   hi  ? Copy.traceObject(obj) : obj;
-      case HIGH_SS_SPACE:   return (!hi) ? Copy.traceObject(obj) : obj;
+      case LOW_SS_SPACE:    return   hi  ? CopySpace.traceObject(obj) : obj;
+      case HIGH_SS_SPACE:   return (!hi) ? CopySpace.traceObject(obj) : obj;
       case LOS_SPACE:       return losSpace.traceObject(obj);
-      case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
-      case BOOT_SPACE:	    return Immortal.traceObject(obj);
+      case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
+      case BOOT_SPACE:	    return ImmortalSpace.traceObject(obj);
       case META_SPACE:	    return obj;
       default:              if (VM.VerifyAssertions) {
 	                      VM.sysWrite("Plan.traceObject: obj ", obj);
@@ -483,8 +498,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case LOW_SS_SPACE:    return Copy.isLive(obj);
-      case HIGH_SS_SPACE:   return Copy.isLive(obj);
+      case LOW_SS_SPACE:    return CopySpace.isLive(obj);
+      case HIGH_SS_SPACE:   return CopySpace.isLive(obj);
       case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;

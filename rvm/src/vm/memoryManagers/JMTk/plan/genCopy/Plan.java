@@ -228,7 +228,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
 						      VM_Address addr) {
     if ((hi && addr.LT(MATURE_HI_START)) ||
 	(!hi && addr.GE(MATURE_HI_START)))
-      return Copy.traceObject(obj);
+      return CopySpace.traceObject(obj);
     else
       return obj;
   }
@@ -256,9 +256,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case NURSERY_SPACE:       return Copy.isLive(obj);
-      case LOW_MATURE_SPACE:    return (!fullHeapGC) || Copy.isLive(obj);
-      case HIGH_MATURE_SPACE:   return (!fullHeapGC) || Copy.isLive(obj);
+      case NURSERY_SPACE:       return CopySpace.isLive(obj);
+      case LOW_MATURE_SPACE:    return (!fullHeapGC) || CopySpace.isLive(obj);
+      case HIGH_MATURE_SPACE:   return (!fullHeapGC) || CopySpace.isLive(obj);
       case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;

@@ -247,7 +247,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case NURSERY_SPACE:   return Copy.isLive(obj);
+      case NURSERY_SPACE:   return CopySpace.isLive(obj);
       case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
       case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;

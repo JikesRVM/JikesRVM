@@ -204,7 +204,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     case  NURSERY_SPACE: return;
     case      LOS_SPACE: return;
     case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-    case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
       if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
@@ -339,7 +339,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return false;
   }
 
-
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Collection
+  //
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.:
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
+  //
 
   /**
    * Perform operations with <i>global</i> scope in preparation for a
@@ -352,7 +365,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   protected final void globalPrepare() {
     nurseryMR.reset();
     msSpace.prepare(msVM, msMR);
-    Immortal.prepare(immortalVM, null);
+    ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
   }
 
@@ -405,7 +418,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     nurseryVM.release();
     losSpace.release();
     msSpace.release();
-    Immortal.release(immortalVM, null);
+    ImmortalSpace.release(immortalVM, null);
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
 	VM.sysFail("Out of memory");
@@ -434,11 +447,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-    case NURSERY_SPACE:   return Copy.traceObject(obj);
+    case NURSERY_SPACE:   return CopySpace.traceObject(obj);
     case MS_SPACE:        return msSpace.traceObject(obj, VMResource.getTag(addr));
     case LOS_SPACE:       return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
-    case BOOT_SPACE:	  return Immortal.traceObject(obj);
+    case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
+    case BOOT_SPACE:	  return ImmortalSpace.traceObject(obj);
     case META_SPACE:	  return obj;
     default:
       if (VM.VerifyAssertions) {
@@ -490,7 +503,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case NURSERY_SPACE:   return Copy.isLive(obj);
+      case NURSERY_SPACE:   return CopySpace.isLive(obj);
       case MS_SPACE:        return msSpace.isLive(obj);
       case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;

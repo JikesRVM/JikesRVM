@@ -233,7 +233,7 @@ public abstract class Generational extends StopTheWorldGC
     switch (allocator) {
       case  NURSERY_SPACE: return;
       case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
@@ -358,6 +358,21 @@ public abstract class Generational extends StopTheWorldGC
     return false;
   }
 
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Collection
+  //
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.:
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
+  //
+
   /**
    * Perform a collection.
    */
@@ -382,7 +397,7 @@ public abstract class Generational extends StopTheWorldGC
       // prepare each of the collected regions
       if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
-      Immortal.prepare(immortalVM, null);
+      ImmortalSpace.prepare(immortalVM, null);
     }
   }
 
@@ -459,7 +474,7 @@ public abstract class Generational extends StopTheWorldGC
     if (fullHeapGC) {
       if (Plan.usesLOS) losSpace.release();
       globalMatureRelease();
-      Immortal.release(immortalVM, null);
+      ImmortalSpace.release(immortalVM, null);
     }
     int minNursery = (Options.nurseryPages < MAX_INT) ? Options.nurseryPages : DEFAULT_MIN_NURSERY;
     fullHeapGC = (getPagesAvail() < minNursery);
@@ -494,13 +509,13 @@ public abstract class Generational extends StopTheWorldGC
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     if (space == NURSERY_SPACE)
-      return Copy.traceObject(obj);
+      return CopySpace.traceObject(obj);
     if (!fullHeapGC)
 	return obj;
     switch (space) {
         case LOS_SPACE:         return losSpace.traceObject(obj);
-        case IMMORTAL_SPACE:    return Immortal.traceObject(obj);
-        case BOOT_SPACE:	return Immortal.traceObject(obj);
+        case IMMORTAL_SPACE:    return ImmortalSpace.traceObject(obj);
+        case BOOT_SPACE:	return ImmortalSpace.traceObject(obj);
         case META_SPACE:	return obj;
         default:                return Plan.traceMatureObject(space, obj, addr);
     }
