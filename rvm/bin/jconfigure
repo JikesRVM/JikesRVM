@@ -136,8 +136,8 @@ ROOT_DIRECTORY=$RVM_ROOT
 ROOT_DIRECTORY_STR1="JAL_ROOT"
 ROOT_DIRECTORY_STR="\$$ROOT_DIRECTORY_STR1"
 
-# source for configuration files not explicitely mentioned below
-# eg, BaseBasecopyingGCWithEagerCompilation
+# source path for configuration files 
+# eg, BaseBaseSemispace
 #
 CONFIGURATION_FILE_SOURCE=$ROOT_DIRECTORY/rvm/config/build
 
@@ -1587,7 +1587,7 @@ function emitImageLinker
    # For performance testing, a full opt base boot image should have all classes
    # that would be in FullOpt, except for the OPT compiler-related ones.
    # Here we include such classes that do not have the VM prefix.
-   if [[ $CONFIGURATION_NAME = FastOptBasecopyingGC ]]; then
+   if [[ $CONFIGURATION_NAME = FastOptBaseSemispace ]]; then
        print "   print 'LFinalizerThread;'              >> $PRIMORDIAL_CLASSES_STR"
    fi
 
