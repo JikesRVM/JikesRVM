@@ -486,8 +486,11 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (verbose == 1) {
-      // VM.sysWrite("[End ", (VM_Interface.now() - bootTime));
-      // VM.sysWrite(" s]\n");
+      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime));
+      VM_Interface.sysWrite(" s]\n");
+    } else if (verbose == 2) {
+      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime)*1000);
+      VM_Interface.sysWrite(" ms]\n");
     }
   }
 
