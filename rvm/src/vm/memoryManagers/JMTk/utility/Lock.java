@@ -95,7 +95,6 @@ public class Lock implements VM_Uninterruptible {
 	    VM.sysWriteln("\nWill now spin for one second and die");
 	    VM_Scheduler.dumpStack();
 	    VM_Interface.busyWait(1.0);
-	    LazyMmapper.showHistory();
 	    VM.sysFail("Deadlock or someone holding on to lock for too long");
 	}
       }
