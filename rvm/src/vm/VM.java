@@ -333,11 +333,17 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value   what is printed
    */
   public static void sysWrite(String value) {
-    if (runningVM)
-      for (int i = 0, n = value.length(); i < n; ++i)
+    if (runningVM) {
+      // might be calling this from delicate place; so disable thread
+      // switching
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      for (int i = 0, n = value.length(); i < n; ++i) {
         sysWrite(value.charAt(i));
-    else
+      }
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    } else {
       System.err.print(value);
+    }
   }
 
   /**
