@@ -1328,6 +1328,7 @@ function emitImageLinker
    print "   print 'java/lang/Thread'          >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/lang/ThreadGroup'     >> $PRIMORDIAL_CLASSES_STR.1"
 
+   print "   print 'java/lang/OutOfMemoryError'  >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/lang/Cloneable'         >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/lang/VMObject'          >> $PRIMORDIAL_CLASSES_STR.1"
    print "   print 'java/lang/VMSystem'          >> $PRIMORDIAL_CLASSES_STR.1"
