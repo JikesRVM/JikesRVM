@@ -649,7 +649,7 @@ public class VM_AOSLogging {
   //-#if RVM_WITH_OSR
   public static void recordOSRRecompilationDecision(VM_ControllerPlan plan) {
     OPT_CompilationPlan cplan = plan.getCompPlan();
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" recompile with OSR " +
                     "( at level " + cplan.options.getOptLevel() +" ) " + cplan.method);
@@ -657,7 +657,7 @@ public class VM_AOSLogging {
     }
   }
   public static void onStackReplacementStarted(OPT_CompilationPlan plan) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" OSR starts " +
                     "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
@@ -666,7 +666,7 @@ public class VM_AOSLogging {
   }
 
   public static void onStackReplacementCompleted(OPT_CompilationPlan plan) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" OSR ends " +
                     "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
@@ -675,7 +675,7 @@ public class VM_AOSLogging {
   }
 
   public static void onStackReplacementAborted(OPT_CompilationPlan plan) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" OSR failed "+
                     "( at level " + plan.options.getOptLevel() +" ) " + plan.method);
@@ -684,7 +684,7 @@ public class VM_AOSLogging {
   }
 
   public static void logOsrEvent(String s) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock + " " + s);
       }
@@ -692,7 +692,7 @@ public class VM_AOSLogging {
   }
 
   public static void deOptimizationStarted() {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" Deoptimization starts ");
       }
@@ -700,7 +700,7 @@ public class VM_AOSLogging {
   }
 
   public static void deOptimizationCompleted() {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" Deoptimization ends.");
       }
@@ -708,7 +708,7 @@ public class VM_AOSLogging {
   }
 
   public static void deOptimizationAborted() {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized(log) {
         log.println(VM_Controller.controllerClock +" Deoptimization aborted.");
       }
