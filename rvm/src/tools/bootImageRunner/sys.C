@@ -1,4 +1,4 @@
-/*
+/* -*-c++-*-
  * (C) Copyright IBM Corp 2001,2002,2004, 2005
  */
 //$Id$
@@ -48,9 +48,7 @@ extern "C" int sched_yield(void);
 #include <sys/ioctl.h>
 #include <asm/ioctls.h>
 
-# ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 # include <sched.h>
-# endif
 
 /* OSX/Darwin */
 #elif (defined __MACH__)
@@ -74,9 +72,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 # include <dlfcn.h>
 # endif
 #define MAP_ANONYMOUS MAP_ANON 
-# if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-# include <sched.h>
-# endif
+#include <sched.h>
 
 
 /* AIX/PowerPC */
@@ -105,27 +101,19 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In rvm/src/tools/bootImageRunner.
 #include "../../include/jni.h"                // For the jlong type.
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-#include <pthread.h>
-#endif
+#include "pthread-wrappers.h"
 
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
 # include "syswrap.h"
-
 #endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 
-/* #define DEBUG_SYS               */
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-// #define VERBOSE_PTHREAD false
+// #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
-#endif
 
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 static void *sysVirtualProcessorStartup(void *args);
-#endif
 
 /* This routine is not yet used by all of the functions that return strings in
  * buffers, but I hope that it will be one day. */
@@ -218,9 +206,7 @@ sysWriteDouble(double value,  int postDecimalDigits)
 
 // Exit with a return code.
 //
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
-#endif
 
 static bool systemExiting = false;
     
@@ -236,9 +222,9 @@ sysExit(int value)
 
     systemExiting = true;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    pthread_mutex_lock( &DeathLock );
-#endif
+    if (! rvm_singleVirtualProcessor)
+        pthread_mutex_lock( &DeathLock );
+
     exit(value);
 }
 
@@ -280,22 +266,11 @@ sysArg(int argno, char *buf, int buflen)
 /** Get the value of an enviroment variable.  (This refers to the C
     per-process environment.)   Used, indirectly, by VMSystem.getenv()
 
-    Taken:    Name of the envar we want.
-	      buffer in which to place results
-              buffer size
+    Taken:    VARNAME, name of the envar we want.
+	      BUF, a buffer in which to place the value of that envar
+              LIMIT, the size of BUF
 
-    Returned: Number of bytes writen to buffer, if the envar is set.
-	      If there is not enough space, we write what we can and return
-	      the # of characters that WOULD have been written to the final
-	      string BUF if enough space had been available, excluding any
-	      trailing '\0'.  This error handling is consistent with the C '99
-	      standard's behavior for the snprintf() system library function.
-	      
-	      Note that this is NOT consistent with the behavior of other
-	      functions in this file -- that should change with time. 
-
-	      This function will append a trailing '\0', if there is enough
-	      space, even though our caller does not need it nor use it.  
+    Returned: See the convention documented in loadResultBuf().
 	      
 	      0: A return value of 0 indicates that the envar was set with a
 	      zero-length value.   (Distinguised from unset, see below)
@@ -311,14 +286,30 @@ sysGetenv(const char *varName, char *buf, int limit)
 
 	      
 	      
-/* Copy SRC, a string or NULL pointer, into DEST, a buffer with LIMIT
- * characters capacity. 
+/* Copy SRC, a null-terminated string or a NULL pointer, into DEST, a buffer
+ * with LIMIT characters capacity.   This is a helper function used by
+ * sysGetEnv() and, later on, to be used by other functions returning strings
+ * to Java.
  *
  * Handle the error handling for running out of space in BUF, in accordance
  * with the C '99 specification for snprintf() -- see sysGetEnv().   
  *
- *
- * Return -2 if the value was unset. 
+ * Returned:  -2 if SRC is a NULL pointer.  
+ * Returned:  If enough space, the number of bytes copied to DEST.
+ * 
+ *            If there is not enough space, we write what we can and return
+ *            the # of characters that WOULD have been written to the final
+ *            string BUF if enough space had been available, excluding any
+ *            trailing '\0'.  This error handling is consistent with the C '99
+ *            standard's behavior for the snprintf() system library function.
+ *            
+ *            Note that this is NOT consistent with the behavior of most of
+ *            the functions in this file that return strings to Java.
+ * 
+ *            That should change with time.
+ * 
+ *            This function will append a trailing '\0', if there is enough
+ *            space, even though our caller does not need it nor use it.  
  */
 static int
 loadResultBuf(char * dest, int limit, const char *src)
@@ -797,13 +788,16 @@ sysSetFdCloseOnExec(int fd)
 #include <mon.h>
 #endif
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-
 static void *timeSlicerThreadMain(void *) __attribute__((noreturn));
 
 static void *
 timeSlicerThreadMain(void *arg)
 {
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: timeSlicerThreadMain: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
+
     int ns = (int)arg;
 #ifdef DEBUG_SYS
     fprintf(SysErrorFile, "time slice interval %dns\n", ns);
@@ -840,7 +834,6 @@ timeSlicerThreadMain(void *arg)
     }
     // NOTREACHED
 }
-#endif
 
 /*
  * Actions to take on a timer tick
@@ -926,69 +919,66 @@ extern "C" void processTimerTick(void) {
 static void
 setTimeSlicer(int msTimerDelay)
 {
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
-                                // variable.
-    int nsTimerDelay = msTimerDelay * 1000 * 1000;
-    int errorCode = pthread_create(&timeSlicerThread, NULL,
-                                   timeSlicerThreadMain, (void*)nsTimerDelay);
-    if (errorCode) {
-        fprintf(SysErrorFile,
-                "%s: Unable to create the Time Slicer thread: %s\n",
-                Me, strerror(errorCode));
-        sysExit(EXIT_STATUS_TIMER_TROUBLE);
-    }
-#elif (defined RVM_FOR_LINUX)  || (defined __MACH__)
-    /* && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR */
+    if (! rvm_singleVirtualProcessor) {
 
-    /* NOTE: This code is ONLY called if we have defined
-     * RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  */
+        pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
+                                    // variable.
+        int nsTimerDelay = msTimerDelay * 1000 * 1000;
+        int errorCode = pthread_create(&timeSlicerThread, NULL,
+                                       timeSlicerThreadMain, (void*)nsTimerDelay);
+        if (errorCode) {
+            fprintf(SysErrorFile,
+                    "%s: Unable to create the Time Slicer thread: %s\n",
+                    Me, strerror(errorCode));
+            sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        }
+    } else {
+        /* NOTE: This code is ONLY called if we are running in single virtual
+         * processor mode. */
+#if (defined RVM_FOR_LINUX)  || (defined __MACH__)
 
-    // set it to issue a periodic SIGALRM (or 0 to disable timer)
-    //
+        // set it to issue a periodic SIGALRM (or 0 to disable timer)
+        //
 
-    struct itimerval timerInfo, oldtimer;
+        struct itimerval timerInfo, oldtimer;
 
-    timerInfo.it_value.tv_sec     = 0;
-    timerInfo.it_value.tv_usec    = msTimerDelay * 1000;
-    timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
-    timerInfo.it_interval.tv_usec = timerInfo.it_value.tv_usec;
+        timerInfo.it_value.tv_sec     = 0;
+        timerInfo.it_value.tv_usec    = msTimerDelay * 1000;
+        timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
+        timerInfo.it_interval.tv_usec = timerInfo.it_value.tv_usec;
 
-    if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer))
-    {
-        fprintf(SysErrorFile, "%s: setitimer failed (errno=%d, %s): ", 
-                Me, errno, strerror(errno));
-        perror(NULL);
-        sysExit(EXIT_STATUS_TIMER_TROUBLE);
-    }
-#else  /* RVM_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
-          defined __MACH__ */
-    // fetch system timer
-    //
-    timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
-    if (timerId == -1)
-    {
-        fprintf(SysErrorFile, "%s: gettimerid failed (errno=%d, %s): ", 
-                Me, errno, strerror(errno));
-        perror(NULL);
-        sysExit(EXIT_STATUS_TIMER_TROUBLE);
-    }
+        if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer)) {
+            fprintf(SysErrorFile, "%s: setitimer failed (errno=%d, %s): ", 
+                    Me, errno, strerror(errno));
+            perror(NULL);
+            sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        }
+#else  /* ! defined RVM_FOR_LINUX && ! defined __MACH__ */
+        // fetch system timer
+        //
+        timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
+        if (timerId == -1) {
+            fprintf(SysErrorFile, "%s: gettimerid failed (errno=%d, %s): ", 
+                    Me, errno, strerror(errno));
+            perror(NULL);
+            sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        }
 
-    // set it to issue a periodic SIGALRM (or 0 to disable timer)
-    //
-    struct itimerstruc_t timerInfo, oldtimer;
-    timerInfo.it_value.tv_sec     = 0;
-    timerInfo.it_value.tv_nsec    = msTimerDelay * 1000 * 1000;
-    timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
-    timerInfo.it_interval.tv_nsec = timerInfo.it_value.tv_nsec;
-    if (incinterval(timerId, &timerInfo, &oldtimer))
-    {
-        fprintf(SysErrorFile, "%s: incinterval failed (errno=%d, %s): ", 
-                Me, errno, strerror(errno));
-        perror(NULL);
-        sysExit(EXIT_STATUS_TIMER_TROUBLE);
-    }
+        // set it to issue a periodic SIGALRM (or 0 to disable timer)
+        //
+        struct itimerstruc_t timerInfo, oldtimer;
+        timerInfo.it_value.tv_sec     = 0;
+        timerInfo.it_value.tv_nsec    = msTimerDelay * 1000 * 1000;
+        timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
+        timerInfo.it_interval.tv_nsec = timerInfo.it_value.tv_nsec;
+        if (incinterval(timerId, &timerInfo, &oldtimer)) {
+            fprintf(SysErrorFile, "%s: incinterval failed (errno=%d, %s): ", 
+                    Me, errno, strerror(errno));
+            perror(NULL);
+            sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        }
 #endif
+    }
     // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
 }
 
@@ -1110,32 +1100,93 @@ sysNanosleep(long long howLongNanos)
 #include <sys/systemcfg.h>
 #endif
 
-// How many physical cpu's are present?
+// How many physical cpu's are present and actually online?
+// Assume 1 if no other good ansewr.
 // Taken:    nothing
 // Returned: number of cpu's
 //
+// Note: this function is only called once.  If it were called more often
+// than that, we would want to use a static variable to indicate that we'd
+// already printed the WARNING messages and were not about to print any more.
+
 extern "C" int
 sysNumProcessors()
 {
-    int numpc = 1;  /* default */
+    int numCpus = -1;  /* -1 means failure. */
 
-#ifdef RVM_FOR_LINUX
-    numpc = get_nprocs_conf();
-#elif RVM_FOR_OSX
-    int mib[2];
-    size_t len;
-    mib[0] = CTL_HW;
-    mib[1] = HW_NCPU;
-    len = sizeof(numpc);
-    sysctl(mib, 2, &numpc, &len, NULL, 0);
-#else
-    numpc = _system_configuration.ncpus;
+//#ifdef RVM_FOR_LINUX
+#ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
+    if (numCpus <= 0) {
+        /* get_nprocs_conf will give us a how many processors the operating
+           system configured.  The number of processors actually online is what
+           we want.  */
+        // numCpus = get_nprocs_conf();
+        errno = 0;
+        numCpus = get_nprocs();
+        // It is not clear if get_nprocs can ever return failure; assume it might.
+        if (numCpus < 1) {
+            fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d"
+                    " (errno=%d)\n", Me, numCpus, errno);
+            /* Continue on.  Try to get a better answer by some other method, not
+               that it's likely, but this should not be a fatal error. */
+            // perror(NULL);
+            // sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        }
+    }
 #endif
+
+//#elif RVM_FOR_OSX
+#if defined(CTL_HW) && defined(HW_NCPU)
+    if (numCpus < 1) {
+        int mib[2];
+        size_t len;
+        mib[0] = CTL_HW;
+        mib[1] = HW_NCPU;
+        len = sizeof(numCpus);
+        errno = 0;
+        if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
+            fprintf(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
+                    " errno = %d\n", Me, errno);
+            numCpus = -1;       // failed so far...
+        };
+    }
+#endif
+    
+#if defined(_SC_NPROCESSORS_ONLN)
+    if (numCpus < 0) {
+        /* This alternative is probably the same as 
+         *  _system_configuration.ncpus.  This one says how many CPUs are
+         *  actually on line.  It seems to be supported on AIX, at least; I
+         *  yanked this out of sysVirtualProcessorBind. 
+         */
+        numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
+        if (numCpus < 0) {
+            fprintf(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
+                    " failed\n", Me);
+        }
+    }
+#endif
+
+#ifdef _AIX
+    if (numCpus < 0) {
+        numCpus = _system_configuration.ncpus;
+        if (numCpus < 0) {
+            fprintf(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
+                    " has the insane value %d\n" , Me, numCpus);
+        }
+    }
+#endif
+
+    if (numCpus < 0) {
+        fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
+                " are online; assuming 1\n");
+        numCpus = 1;            // Default
+    }
 
 #ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: sysNumProcessors: returning %d\n", Me, numpc );
+    fprintf(SysTraceFile, "%s: sysNumProcessors: returning %d\n", Me, numCpus );
 #endif
-    return numpc;
+    return numCpus;
 }
 
 
@@ -1297,17 +1348,19 @@ extern "C" int
 sysHPMsetProgramMyThread()
 {
 #ifdef RVM_WITH_HPM
-  int rc;
-# if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  fprintf(SysTraceFile, "%s: sysHPMsetProgramMyThread() called from pthread id %d\n", Me,pthread_self());
+    int rc;
+# if defined DEBUG_SYS
+    if (! rvm_singleVirtualProcessor) {
+        fprintf(SysTraceFile, "%s: sysHPMsetProgramMyThread() called from pthread id %d\n", Me,pthread_self());
+    }
 # endif
-  rc = hpm_set_program_mythread();
-  return rc;
+    rc = hpm_set_program_mythread();
+    return rc;
 #else
-  fprintf(SysTraceFile, 
-          "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
-          Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    fprintf(SysTraceFile, 
+            "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
+            Me);
+    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1344,15 +1397,18 @@ extern "C" int
 sysHPMstartMyThread()
 {
 #ifdef RVM_WITH_HPM
-# if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  fprintf(SysTraceFile, "%s: sysHPMstartMyThread() called from pthread id %d\n", Me,pthread_self());
+# if defined DEBUG_SYS
+    if (! rvm_singleVirtualProcessor) {
+        fprintf(SysTraceFile, "%s: sysHPMstartMyThread() called from pthread id %d\n", Me,pthread_self());
+    }
+    
 # endif
-  int rc = hpm_start_mythread();
-  return rc;
+    int rc = hpm_start_mythread();
+    return rc;
 #else
-  fprintf(SysTraceFile, 
-          "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    fprintf(SysTraceFile, 
+            "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
+    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1366,9 +1422,11 @@ extern "C" int
 sysHPMstartMyGroup()
 {
 #ifdef RVM_WITH_HPM
-  int rc;
-# if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  fprintf(SysTraceFile, "%s: sysHPMstartMyGroup() called from pthread id %d\n", Me,pthread_self());
+    int rc;
+# if defined DEBUG_SYS
+    if (! rvm_singleVirtualProcessor) {
+        fprintf(SysTraceFile, "%s: sysHPMstartMyGroup() called from pthread id %d\n", Me,pthread_self());
+    }
 # endif
   rc = hpm_start_mygroup();
   return rc;
@@ -1593,12 +1651,13 @@ sysHPMprintMyGroup()
 // Returned: virtual processor's o/s handle
 //
 extern "C" VM_Address
-sysVirtualProcessorCreate(VM_Address UNUSED_SVP jtoc, VM_Address UNUSED_SVP pr, VM_Address UNUSED_SVP ip, VM_Address UNUSED_SVP fp)
+sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, VM_Address ip, VM_Address fp)
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    }
+
     VM_Address    *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
     pthread_t      sysVirtualProcessorHandle;
@@ -1614,8 +1673,7 @@ sysVirtualProcessorCreate(VM_Address UNUSED_SVP jtoc, VM_Address UNUSED_SVP pr, 
 
     // create attributes
     //
-    if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes)))
-    {
+    if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes))) {
         fprintf(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -1639,13 +1697,16 @@ sysVirtualProcessorCreate(VM_Address UNUSED_SVP jtoc, VM_Address UNUSED_SVP pr, 
         fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (VM_Address) sysVirtualProcessorHandle);
 
     return (VM_Address)sysVirtualProcessorHandle;
-#endif
 }
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 static void *
 sysVirtualProcessorStartup(void *args)
 {
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysVirtualProcessorStartup: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    }
+    
     VM_Address jtoc     = ((VM_Address *)args)[0];
     VM_Address pr       = ((VM_Address *)args)[1];
     VM_Address ip       = ((VM_Address *)args)[2];
@@ -1674,7 +1735,7 @@ sysVirtualProcessorStartup(void *args)
     fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: failed\n", Me);
     return 0;
 }
-#endif
+
 
 // Bind execution of current virtual processor to specified physical cpu.
 // Taken:    physical cpu id (0, 1, 2, ...)
@@ -1683,15 +1744,16 @@ sysVirtualProcessorStartup(void *args)
 extern "C" void
 sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
-    int numCpus = sysconf(_SC_NPROCESSORS_ONLN);
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    }
+    
+    int numCpus = sysNumProcessors();
     if (VERBOSE_PTHREAD)
       fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
 
-    // bindprocessor() seems to only be on AIX
+    // bindprocessor() seems to be only on AIX
 #if defined RVM_FOR_AIX
     if (numCpus == -1) {
         fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
@@ -1710,10 +1772,9 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif // ! defined RVM_FOR_LINUX or defined RVM_FOR_OSX
-#endif // !defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 }
 
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+/* These are unused in single virtual procesor mode: */
 pthread_cond_t VirtualProcessorStartup = PTHREAD_COND_INITIALIZER;
 pthread_cond_t MultithreadingStartup = PTHREAD_COND_INITIALIZER;
 
@@ -1734,6 +1795,10 @@ pthread_key_t IsVmProcessorKey;
 extern "C" void
 sysCreateThreadSpecificDataKeys(void)
 {
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysCreateThreadSpecificDataKeys: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     int rc1, rc2;
 
     // Create a key for thread-specific data so we can associate
@@ -1764,6 +1829,10 @@ sysCreateThreadSpecificDataKeys(void)
 extern "C" void
 sysInitializeStartupLocks(int howMany)
 {
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysInitializeStartupLocks: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     VirtualProcessorsLeftToStart = howMany;
     VirtualProcessorsLeftToWait = howMany;
 }
@@ -1771,6 +1840,10 @@ sysInitializeStartupLocks(int howMany)
 extern "C" void
 sysWaitForVirtualProcessorInitialization()
 {
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysWaitForVirtualProcessorInitialization: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     pthread_mutex_lock( &VirtualProcessorStartupLock );
     if (--VirtualProcessorsLeftToStart == 0)
         pthread_cond_broadcast( &VirtualProcessorStartup );
@@ -1782,6 +1855,10 @@ sysWaitForVirtualProcessorInitialization()
 extern "C" void
 sysWaitForMultithreadingStart()
 {
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysWaitForMultithreadingStart: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     pthread_mutex_lock( &MultithreadingStartupLock );
     if (--VirtualProcessorsLeftToWait == 0)
         pthread_cond_broadcast( &MultithreadingStartup );
@@ -1789,7 +1866,6 @@ sysWaitForMultithreadingStart()
         pthread_cond_wait(&MultithreadingStartup, &MultithreadingStartupLock);
     pthread_mutex_unlock( &MultithreadingStartupLock );
 }
-#endif
 
 // Routines to support sleep/wakeup of idle threads:
 // CRA, Maria
@@ -1797,29 +1873,20 @@ sysWaitForMultithreadingStart()
 //
 
 /*
-  I have filed defect report # 3925 about this function, with the following
-  description of the defect: --Steve Augart:
+  sysPthreadSelf() just returns the thread ID of
+  the current thread.
 
-  sysPthreadSelf(), in sys.C, logically, should just return the thread ID of
-  the current thread. It does not. It also does some initialization related to
-  per-thread signal handling for that thread. (Block SIGCONT, set up a special
-  signal handling stack for the thread.)
-
-  We have been getting away with this because we in fact only call
-  sysPthreadSelf() once, at thread startup time. However, we probably should
-  either break out the initialization code separately or rename sysPthreadSelf
-  to something more accurate, like
-  sysPthreadSetupSignalHandlingAndReturnPthreadSelf(). (I like the idea of
-  breaking out the logically-unrelated initialization code.)
-
+  This happens to be only called once, at thread startup time, but please
+  don't rely on that fact.
 */
 extern "C" int
 sysPthreadSelf()
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    }
+    
     int thread;
 
     thread = (int)pthread_self();
@@ -1828,16 +1895,20 @@ sysPthreadSelf()
         fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
 
     return thread;
-#endif
 }
 
+/* Perform some initialization related to
+  per-thread signal handling for that thread. (Block SIGCONT, set up a special 
+  signal handling stack for the thread.)
+
+  This is only called once, at thread startup time. */
 extern "C" void
 sysPthreadSetupSignalHandling()
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    }
 
     int rc;                     // retval from subfunction.
 
@@ -1876,53 +1947,50 @@ sysPthreadSetupSignalHandling()
     /* pthread_sigmask can only return the following errors.  Either of them
      * indicates serious trouble and is grounds for aborting the process:
      * EINVAL EFAULT.  */
+#elif defined RVM_FOR_AIX
+    rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
+    /* like pthread_sigmask, sigthreadmask can only return EINVAL, EFAULT, and
+     * EPERM.  Again, these are all good reasons to complain and croak. */
+#else
+    #error "Unsupported Operating System"
+#endif
     if (rc) {
-        fprintf (SysErrorFile, "pthread_sigmask failed (errno=%d): ", errno);
+        fprintf (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
         perror(NULL);
         sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
     
-#elif defined RVM_FOR_AIX
-    rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
-#else
-    #error "Unsupported Operating System"
-#endif
-
-    
-#endif
 }
 
 
 
 //
 extern "C" int
-sysPthreadSignal(int UNUSED_SVP pthread)
+sysPthreadSignal(int pthread)
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadSignal: FATAL Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysPthreadSignal: FATAL Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     pthread_t thread;
     thread = (pthread_t)pthread;
-
+    
     pthread_kill(thread, SIGCONT);
-#endif
     return 0;
 }
 
 //
 extern "C" int
-sysPthreadJoin(int UNUSED_SVP pthread)
+sysPthreadJoin(int pthread)
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadJoin: FATAL Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysPthreadJoin: FATAL Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     pthread_t thread;
     thread = (pthread_t)pthread;
     // fprintf(SysTraceFile, "%s: pthread %d joins %d\n", Me, pthread_self(), thread);
     pthread_join(thread, NULL);
-#endif
     return 0;
 }
 
@@ -1930,13 +1998,12 @@ sysPthreadJoin(int UNUSED_SVP pthread)
 extern "C" void
 sysPthreadExit()
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadExit: Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysPthreadExit: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     // fprintf(SysTraceFile, "%s: pthread %d exits\n", Me, pthread_self());
     pthread_exit(NULL);
-#endif
 }
 
 //
@@ -1947,40 +2014,55 @@ sysPthreadExit()
 extern "C" void
 sysVirtualProcessorYield()
 {
-#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    /** According to the Linux manpage, sched_yield()'s presence can be 
+     *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
+     *  that is not present to use the sysconf feature, searching against
+     *  _SC_PRIORITY_SCHEDULING.  However, I don't really trust it, since
+     *  the AIX 5.1 include files include this definition:
+     *      ./unistd.h:#undef _POSIX_PRIORITY_SCHEDULING
+     *  so my trust that it is implemented properly is scanty.  --augart
+     */
     sched_yield();
-#else
-    fprintf(stderr, "%s: sysVirtualProcessorYield: Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
 }
 
 //
 // Taken -- address of an integer lockword
 //       -- value to store in the lockword to 'release' the lock
-// release the lockout word by storing the in it
+// Release the lockout word by storing the value in it
 // and wait for a signal.
 extern "C" int
-sysPthreadSigWait( int UNUSED_SVP * lockwordAddress, 
-                   int UNUSED_SVP  lockReleaseValue )
+sysPthreadSigWait( int * lockwordAddress, 
+                   int  lockReleaseValue )
 {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
+    if (rvm_singleVirtualProcessor) {
+        fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
+        sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    } 
     sigset_t input_set, output_set;
     int      sig;
+    int rc;                     // retval from subfunction
 
     *lockwordAddress = lockReleaseValue;
 
     sigemptyset(&input_set);
     sigaddset(&input_set, SIGCONT);
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
-    pthread_sigmask(SIG_BLOCK, NULL, &output_set);
-#else
-    sigthreadmask(SIG_BLOCK, NULL, &output_set);
+    rc = pthread_sigmask(SIG_BLOCK, NULL, &output_set);
+#else // RVM_FOR_AIX
+    rc = sigthreadmask(SIG_BLOCK, NULL, &output_set);
 #endif
-    sigwait(&input_set, &sig);
+    if (rc) {
+        fprintf (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    }
+    
+    rc = sigwait(&input_set, &sig);
+    if (rc) {
+        fprintf (SysErrorFile, "sigwait failed (errno=%d): ", errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    }
 
     // if status has been changed to BLOCKED_IN_SIGWAIT (because of GC)
     // sysYield until unblocked
@@ -1989,7 +2071,6 @@ sysPthreadSigWait( int UNUSED_SVP * lockwordAddress,
         sysVirtualProcessorYield();
 
     return 0;
-#endif
 }
 
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
@@ -2001,21 +2082,22 @@ sysPthreadSigWait( int UNUSED_SVP * lockwordAddress,
 extern "C" int
 sysStashVmProcessorInPthread(VM_Address vmProcessor)
 {
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    // We have only a single VM_Processor, so just pass its id
-    // directly to the system call wrapper library, along with the
-    // JTOC address and the offset of VM_Scheduler.processors.
-    // fprintf(SysErrorFile, "%s: stashing vm_processor id = %d\n", Me, vmProcessor);
-    //  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), vmProcessor);
-#else
-    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
-    int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
-    int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
-    if (rc != 0 || rc2 != 0) {
-        fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    if (rvm_singleVirtualProcessor) {
+        // We have only a single VM_Processor, so just pass its id
+        // directly to the system call wrapper library, along with the
+        // JTOC address and the offset of VM_Scheduler.processors.
+        // fprintf(SysErrorFile, "%s: stashing vm_processor id = %d\n", Me, vmProcessor);
+        //  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), vmProcessor);
+    } else {
+        //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
+        int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
+        int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
+        if (rc != 0 || rc2 != 0) {
+            fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
+            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        }
     }
-#endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    
     return 0;
 }
 #endif // !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
@@ -3254,16 +3336,29 @@ sysNetSelect(
 
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
-#if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-        SelectFunc_t realSelect = getLibcSelect();
-        if (realSelect == 0) {
-            fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
-            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-        }
-#else
+      /* This code has not been active for years, because we haven't had an
+         #ifdef named RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS; it was 
+         RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS.  I am commenting it out
+         so that it is obvious that it is never used.
+         
+         I expect that Jikes RVM has
+         continued to work unscathed because, when we load this file, we link
+         against the existing select().  All new calls must be
+         getting resolved against the fake select.  Otherwise, we could just
+         statically link with our fake select.  However, it also might be the
+         case that select is broken in subtle ways -- we shall see.
+         --Steve Augart, 1 Feb 2005
+      */
+// //#if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
+//         SelectFunc_t realSelect = getLibcSelect();
+//         if (realSelect == 0) {
+//             fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
+//             sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+//         }
+// #else
 # define realSelect(n, read, write, except, timeout) \
     select(n, read, write, except, timeout)
-#endif
+//#endif
 
         // interrogate
         //
