@@ -764,11 +764,13 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   /**
    * Processes an object during the tracing phase of a collection.
    *
-   * @param obj the address of the object to be processed
+   * @param object the address of the object to be processed
+   * @return The address of the object after processing (it may have
+   * been moved in the course of processing).
    */
-  public static VM_Address processPtrValue(VM_Address obj)
+  public static VM_Address processPtrValue(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline { 
-    return Plan.traceObject(obj);
+    return Plan.traceObject(object);
   }
 
   /**

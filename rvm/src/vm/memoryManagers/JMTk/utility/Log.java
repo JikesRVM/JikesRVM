@@ -187,12 +187,12 @@ public class Log implements Constants, VM_Uninterruptible {
    * writes a <code>double</code>.  The number of digits after the
    * decimal point is determined by <code>postDecimalDigits</code>.
    * The value is not padded and not thousands seperator is used. If
-   * the value is negative a leading hyphen-minus (-) is lgoged.  The
+   * the value is negative a leading hyphen-minus (-) is logged.  The
    * decimal point is a full stop (.) and is logged even if
    * <postDecimcalDigits</code> is zero. If <code>d</code> is greater
    * than the largest representable value of type <code>int</code>, it
    * is logged as that largest value.  Similarly, if it is less than
-   * the smallest resentable value, it is logged as that value.
+   * the smallest representable value, it is logged as that value.
    *
    * @param d the double to be logged
    * @param postDecimaldigits the number of digits to be logged after
