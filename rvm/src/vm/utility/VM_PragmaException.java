@@ -64,7 +64,7 @@ public abstract class VM_PragmaException extends java.lang.RuntimeException {
    * Is this class declared in the throws clause of <CODE>method</CODE>?
    * <P>
    * Every extending class must override this, simply as a stub that calls
-   * {@link #declaredBy(VM_Class,VM_Method)} passing its own VM_Class
+   * {@link #declaredBy(VM_TypeReference,VM_Method)} passing its own VM_Class
    * static. If this method is called directly, or on a subclass that has
    * neglected to override it, {@link UnsupportedOperationException}
    * is thrown (all because the JLS prohibited abstract static methods).
