@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+#
+# (C) Copyright IBM Corp. 2004
+#
+#$Id$
+#
+# @David Grove
+#
+# Calls cvs -q update -d -P on all Jikes RVM repositories
+#
+
+if [[ $RVM_HOST_CONFIG = "" ]]; then
+   echo "$0: please set your RVM_HOST_CONFIG environment variable (eg. $HOME/rvm/config/i686-pc-linux.watson)"
+   exit 1
+fi
+
+. $RVM_HOST_CONFIG
+
+cd $RVM_ROOT
+WORKING_DIRS="rvm MMTk"
+
+for dir in $WORKING_DIRS; do
+    if [[ -d $RVM_ROOT/$dir ]]; then 
+	cd $RVM_ROOT/$dir
+	$CVS -q update -d -P 
+    fi
+done
