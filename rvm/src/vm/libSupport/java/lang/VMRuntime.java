@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2003
+ * (C) Copyright IBM Corp 2003, 2004
  */
 //$Id$
 package java.lang;
@@ -15,11 +15,6 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
  * See reference implementation for javadoc.
  *
- * NOTE: Only some of these methods are actually used with classpath 0.07
- *       because we have out own copy of java.lang.Runtime.
- *       Once classpath 0.08 comes out, we can delete our implementation of
- *       java.lang.Runtime and use the classpath version + this class.
- *       
  * @author Julian Dolby
  * @author Dave Grove
  */
