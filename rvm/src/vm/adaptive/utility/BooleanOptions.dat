@@ -11,7 +11,7 @@ DESCRIP
 GATHER_PROFILE_DATA -1 false
 Should profile data be gathered and reported at the end of the run?
 
-ADAPTIVE_INLINING -1 true
+ADAPTIVE_INLINING -1 !VM.BuildForIA32
 Should we use adaptive feedback-directed inlining?
 
 ADAPTIVE_RECOMPILATION -1 true
