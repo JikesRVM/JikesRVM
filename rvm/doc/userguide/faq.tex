@@ -116,6 +116,41 @@ release some code shortly.
 
 \subsection{Building RVM}
 
+
+\subsubsection{What's the right value to use for
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR?} 
+
+JikesRVM can be built to support either $m$-to-$n$ or $m$-to-$1$
+threading.  In $m$-to-$n$ threading
+(RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 0), $m$ Java threads are
+multiplexed on to $n$ virtual processors (operating system pthreads).
+In $m$-$1$ threading (RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 1),
+all $m$ Java threads are run on a single virtual processor.  JikesRVM
+can only exploit multiple CPUs on a hardware SMP machine if it is
+built with RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0.
+
+Unfortunately, this is not supported on all platforms due to
+mismatches between JikesRVM and the host pthread implementation.  
+The key issue is that because JikesRVM is multiplexing Java threads
+(each with their own stack) onto operating system threads, the
+C libraries it is linked with must not use the value of a thread's
+stackpointer/framepointer to access pthread-local storage.  The
+preferred values for RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR are as
+follows: 
+\begin{itemize}
+\item {\tt AIX/PowerPC}: 0 (SMP is supported)
+\item {\tt Linux/PowerPC}:  1 (SMP is not supported)
+\item {\tt Linux 2.2/IA32}: 0 (SMP is not supported)
+\item {\tt Linux 2.4/IA32}: 1 (SMP is supported), but with the
+additional restriction that you must link with a version of glibc that
+was compiled to use the GS segment register to access pthread-specific
+state.  Depending on your Linux distribution, this may not be the
+default for glibc. See a discussion in the archives for
+jikesrvm-researchers from November of 2001. If your version of glibc
+is not compiled this way, JikesRVM will usually fail by 'hanging' when
+it is run.
+\end{itemize}                
+
 \subsubsection{Which jikes should I use?}
 At Watson, we're currently using 
 \xlink{{\tt jikes}}{\jikesURL} v1.13 to compile the RVM source on
