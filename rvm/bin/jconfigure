@@ -458,6 +458,10 @@ function rationalize_config_file_settings () {
 	fi
     fi
     
+    if ! [[ ${TemplateExpander_HOST_VM_RT-} ]]; then
+	TemplateExpander_HOST_VM_RT="${HOST_VM_RT}"
+    fi
+
     if ! [[ ${HOST_JAVADOC-} ]] && [[ ${HOST_JAVA_HOME-} ]]; then
 	# The JDK Javadoc executable
 	# Might be replaceable with Doxygen, but I'm not holding my breath.
@@ -1547,6 +1551,11 @@ EOF
     [[ ! ${DO_NOT_RUN_JAVAH-} ]] || echo "DO_NOT_RUN_JAVAH = $DO_NOT_RUN_JAVAH"
     [[ ! ${HOST_TOOLS-} ]] || echo "HOST_TOOLS = $HOST_TOOLS"
     [[ ! ${HOST_JAVADOC-} ]] || echo "HOST_JAVADOC := $HOST_JAVADOC"
+
+    if [[ ${TemplateExpander_HOST_VM_RT-} ]]; then
+	echo "# Experimental!"
+	echo "TemplateExpander_HOST_VM_RT := ${TemplateExpander_HOST_VM_RT-}"
+    fi
 
     cat <<- EOF
 	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
