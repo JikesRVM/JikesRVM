@@ -73,7 +73,7 @@ V UNROLL_LOG int 2
 Unroll loops. Duplicates the loop body n times.
 
 
-V COND_MOVE_CUTOFF int 0
+V COND_MOVE_CUTOFF int 5
 How many extra instructions will we insert in order to remove a conditional branch?
 
 
