@@ -69,13 +69,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   public static final int ALLOCATORS = ALLOC_MS + 1;
 
   // spaces
-  //-#if RVM_FOR_POWERPC
-  private static final float MS_FRACTION= (float)0.37;
-  private static final float NURSERY_FRACTION= (float)0.09;
-  //-#else
-  private static final float MS_FRACTION= (float)0.6;
+  private static final float MS_FRACTION= (float)0.50;
   private static final float NURSERY_FRACTION= (float)0.15;
-  //-#endif
 
   private static MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MS_FRACTION);
   private static final int MS = msSpace.getDescriptor();
