@@ -561,9 +561,12 @@ class OPT_SSADictionary
         //-#endif
         // do nothing: these cases handled by registerUnknown
         break;
-      case INT_LOAD_opcode: case LONG_LOAD_opcode:
+    case UBYTE_LOAD_opcode: case BYTE_LOAD_opcode: 
+    case USHORT_LOAD_opcode: case SHORT_LOAD_opcode: 
+    case INT_LOAD_opcode: case LONG_LOAD_opcode:
         // !!TODO: how to handle this special case?
         break;
+      case BYTE_STORE_opcode: case SHORT_STORE_opcode:
       case INT_STORE_opcode: case LONG_STORE_opcode:
         // !!TODO: how to handle this special case?
         break;

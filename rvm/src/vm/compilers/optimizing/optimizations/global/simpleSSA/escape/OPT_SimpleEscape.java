@@ -209,6 +209,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
       case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
       case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
+      case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case SHORT_ALOAD_opcode:case USHORT_ALOAD_opcode:
       case REF_ALOAD_opcode:
       case INT_LOAD_opcode: case LONG_LOAD_opcode:
@@ -240,6 +241,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
+      case BYTE_STORE_opcode: case SHORT_STORE_opcode: 
       case INT_STORE_opcode:  case LONG_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -369,6 +371,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
+      case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:case REF_ALOAD_opcode:
       case INT_LOAD_opcode:case LONG_LOAD_opcode:
         // all is OK, unless we load this register from memory
@@ -399,6 +402,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
+      case BYTE_STORE_opcode:case SHORT_STORE_opcode:
       case INT_STORE_opcode:case LONG_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
