@@ -346,9 +346,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       //  (2) If the compile time type is known to be the declared type,
       //      then inject a short-circuit test to see if the 
       //      runtime lhs type is the same as the compile-time lhs type.
-      //  (3) If the compile time type is a proper class, then a 
-      //      subclass test of the runtime LHS elem type and 
-      //      then runtime elemRef type is definitive.
+      //  (3) If the compile time element type is a proper class other than 
+      //      java.lang.Object, then a subclass test of the runtime LHS elem type 
+      //      and the runtime elemRef type is definitive.  Note: we must exclude
+      //      java.lang.Object because if the compile time element type is 
+      //      java.lang.Object, then the runtime-element type might actually be 
+      //      an interface (ie not a proper class), and we won't be testing the right thing!
       // If we think the compile time type is JavaLangObjectType then
       // we lost type information due to unloaded classes causing
       // imprecise meets.  This should only happen once in a blue moon,
@@ -405,7 +408,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	// Optionally (3) from above 
 	if (compType.getDimensionality() == 1) {
 	  VM_Class et = compType.asArray().getElementType().asClass();
-	  if (et.isResolved() && !et.isInterface()) {
+	  if (et.isResolved() && !et.isInterface() && !et.isJavaLangObjectType()) {
 	    OPT_RegisterOperand lhsElemType = 
 	      InsertUnary(curBlock.lastInstruction(), ir, 
 			  GET_TYPE_FROM_TIB, OPT_ClassLoaderProxy.VM_Type_type, 
