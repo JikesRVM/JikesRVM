@@ -312,7 +312,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Operand spills = bc2ir.popRef();
       OPT_Operand fprs = bc2ir.popRef();
       OPT_Operand gprs = bc2ir.popRef();
-      OPT_Operand Code = bc2ir.popRef();
+      OPT_Operand code = bc2ir.popRef();
       OPT_RegisterOperand res = null;
       if (methodName == VM_MagicNames.invokeMethodReturningObject) {
         res = gc.temps.makeTemp(VM_Type.JavaLangObjectType);
@@ -330,35 +330,26 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
         res = gc.temps.makeTempInt();
         bc2ir.push(res.copyD2U());
       }
-      OPT_MethodOperand met = 
-	new OPT_MethodOperand(VM_Entrypoints.reflectiveMethodInvokerInstructionsField,
-			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
-      OPT_Instruction s = Call.create4(CALL, res, null, met, Code, gprs, 
+      VM_Field target = VM_Entrypoints.reflectiveMethodInvokerInstructionsField;
+      OPT_MethodOperand met = new OPT_MethodOperand(target);
+      OPT_Instruction s = Call.create4(CALL, res, new OPT_IntConstantOperand(target.getOffset()), met, code, gprs, 
 				       fprs, spills);
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();
-      OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM_Entrypoints.saveThreadStateInstructionsField,
-			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
-      bc2ir.appendInstruction(Call.create1(CALL, null, null, mo, p1));
+      VM_Field target = VM_Entrypoints.saveThreadStateInstructionsField;
+      OPT_MethodOperand mo = new OPT_MethodOperand(target);
+      bc2ir.appendInstruction(Call.create1(CALL, null, new OPT_IntConstantOperand(target.getOffset()), mo, p1));
     } else if (methodName == VM_MagicNames.threadSwitch) {
       OPT_Operand p2 = bc2ir.popRef();
       OPT_Operand p1 = bc2ir.popRef();
-      OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM_Entrypoints.threadSwitchInstructionsField,
-			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.threadSwitchInstructionsField.getOffset());
-      bc2ir.appendInstruction(Call.create2(CALL, null, null, mo, p1, p2));
+      VM_Field target = VM_Entrypoints.threadSwitchInstructionsField;
+      OPT_MethodOperand mo = new OPT_MethodOperand(target);
+      bc2ir.appendInstruction(Call.create2(CALL, null, new OPT_IntConstantOperand(target.getOffset()), mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM_Entrypoints.restoreHardwareExceptionStateInstructionsField,
-			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
-      bc2ir.appendInstruction(Call.create1
-			      (CALL, null, null, mo, bc2ir.popRef()));
+      VM_Field target = VM_Entrypoints.restoreHardwareExceptionStateInstructionsField;
+      OPT_MethodOperand mo = new OPT_MethodOperand(target);
+      bc2ir.appendInstruction(Call.create1(CALL, null, new OPT_IntConstantOperand(target.getOffset()), mo, bc2ir.popRef()));
     } else if (methodName == VM_MagicNames.prepare) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand base = bc2ir.popRef();

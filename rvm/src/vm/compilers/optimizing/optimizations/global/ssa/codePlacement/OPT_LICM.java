@@ -128,11 +128,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case DOUBLE_COND_MOVE_opcode:
     case REF_COND_MOVE_opcode:
     case PUTSTATIC_opcode:
-    case PUTSTATIC_UNRESOLVED_opcode:
     case PUTFIELD_opcode:
-    case PUTFIELD_UNRESOLVED_opcode:
-    case GETSTATIC_UNRESOLVED_opcode:
-    case GETFIELD_UNRESOLVED_opcode:
     case GETSTATIC_opcode:
     case GETFIELD_opcode:
     case INT_ALOAD_opcode:
@@ -950,8 +946,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	
 	// check for access to volatile field
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
-	if (loc == null
-	    || loc.isFieldAccess() && loc.getField().isVolatile()){
+	if (loc == null || 
+	    loc.isFieldAccess() && (!loc.getField().isLoaded() || loc.getField().isVolatile())) {
 	  //VM.sysWrite (" no loc or volatile field\n");	  
 	  return CL_COMPLEX;
 	}
@@ -1012,8 +1008,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       } else {
 	// check for access to volatile field
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
-	if (loc == null
-	    || loc.isFieldAccess() && loc.getField().isVolatile()){
+	if (loc == null || 
+	    loc.isFieldAccess() && (!loc.getField().isLoaded() || loc.getField().isVolatile())) {
 	  //VM.sysWrite (" no loc or volatile field\n");	  
 	  return CL_COMPLEX;
 	}

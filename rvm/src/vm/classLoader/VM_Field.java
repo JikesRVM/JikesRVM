@@ -296,7 +296,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
 
     if (isStatic()) {
       if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	VM_Interface.resolvedPutStaticWriteBarrier(offset, ref);
+	VM_Interface.putstaticWriteBarrier(offset, ref);
       }
       VM_Statics.setSlotContents(offset>>>2, ref);
     } else {
@@ -305,7 +305,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
       if (!getDeclaringClass().getClassForType().isInstance(obj))
 	throw new IllegalArgumentException();
       if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	VM_Interface.resolvedPutfieldWriteBarrier(obj, offset, ref);
+	VM_Interface.putfieldWriteBarrier(obj, offset, ref);
       }
       VM_Magic.setObjectAtOffset(obj, offset, ref);
     }

@@ -111,11 +111,9 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getTime) {
       OPT_RegisterOperand val = gc.temps.makeTempDouble();
-      OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM_Entrypoints.getTimeInstructionsField,
-			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.getTimeInstructionsField.getOffset());
-      bc2ir.appendInstruction(Call.create1(CALL, val, null, mo, bc2ir.popRef()));
+      VM_Field target = VM_Entrypoints.getTimeInstructionsField;
+      OPT_MethodOperand mo = new OPT_MethodOperand(target);
+      bc2ir.appendInstruction(Call.create1(CALL, val, new OPT_IntConstantOperand(target.getOffset()), mo, bc2ir.popRef()));
       bc2ir.push(val.copyD2U(), VM_Type.DoubleType);
     } else if (methodName == VM_MagicNames.sysCall0) {
       OPT_Operand toc = bc2ir.popInt();

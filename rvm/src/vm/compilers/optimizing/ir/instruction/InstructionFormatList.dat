@@ -68,7 +68,7 @@ Athrow
 # how do we verify that the operand is a ref?
 MonitorOp
 0 0 2
-"U Ref OPT_Operand" "U Guard OPT_Operand opt"
+"U Ref OPT_Operand" "U Guard OPT_Operand"
 
 
 # how do we verify that the operand is a ref?
@@ -199,18 +199,20 @@ ALoad
 1 0 4
 "D Result OPT_RegisterOperand" \
 "U Array OPT_Operand" "U Index OPT_Operand" "U Location OPT_LocationOperand" \
-"U Guard OPT_Operand opt"
+"U Guard OPT_Operand"
 
 
 GetField
-1 0 3
-"D Result OPT_RegisterOperand" "U Ref OPT_Operand opt" \
-"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+1 0 4
+"D Result OPT_RegisterOperand" "U Ref OPT_Operand" \
+"U Offset OPT_Operand" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand"
 
 
 GetStatic
-1 0 1
-"D Result OPT_RegisterOperand" "U Location OPT_LocationOperand"
+1 0 2
+"D Result OPT_RegisterOperand" "U Offset OPT_Operand" \
+"U Location OPT_LocationOperand"
 
 
 Load
@@ -223,18 +225,19 @@ Load
 AStore
 0 0 5
 "U Value OPT_Operand" "U Array OPT_Operand" "U Index OPT_Operand" \
-"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+"U Location OPT_LocationOperand" "U Guard OPT_Operand"
 
 
 PutField
-0 0 4
-"U Value OPT_Operand" "U Ref OPT_Operand opt" \
-"U Location OPT_LocationOperand" "U Guard OPT_Operand opt"
+0 0 5
+"U Value OPT_Operand" "U Ref OPT_Operand" \
+"U Offset OPT_Operand" \
+"U Location OPT_LocationOperand" "U Guard OPT_Operand"
 
 
 PutStatic
-0 0 2
-"U Value OPT_Operand" "U Location OPT_LocationOperand"
+0 0 3
+"U Value OPT_Operand" "U Offset OPT_Operand " "U Location OPT_LocationOperand"
 
 
 Store

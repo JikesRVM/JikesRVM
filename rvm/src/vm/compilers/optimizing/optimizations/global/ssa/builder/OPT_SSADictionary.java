@@ -578,16 +578,16 @@ public final class OPT_SSADictionary implements OPT_Operators {
 	registerUse (s, exceptionState);
 	registerDef (s, b, exceptionState);
 	break;
-      case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
+      case GETFIELD_opcode:
         getFieldHelper(s, b);
         break;
-      case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+      case PUTFIELD_opcode:
         putFieldHelper(s, b);
         break;
-      case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+      case GETSTATIC_opcode:
         getStaticHelper(s, b);
         break;
-      case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+      case PUTSTATIC_opcode:
         putStaticHelper(s, b);
         break;
       case NEW_opcode:case NEW_UNRESOLVED_opcode:

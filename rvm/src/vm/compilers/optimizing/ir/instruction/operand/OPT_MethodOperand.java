@@ -42,14 +42,8 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * For use when invoking internal methods (defined as INSTRUCTION[]
    * reachable from the JTOC but that don't have VM_Method objecrs/
    */
-  public VM_Member internal;
+  public VM_Field internal;
   
-  /**
-   * offset into jtoc/tib (for internal methods only).
-   * (internal != null, method = null).
-   */
-  public int offset; 
-
   /**
    * Does the invoke only have a single target?
    */
@@ -63,12 +57,12 @@ public final class OPT_MethodOperand extends OPT_Operand {
   /**
    * Is this the operand of a call that never returns?
    */
-  private boolean isNonReturningCall=false;
+  private boolean isNonReturningCall;
   
   /**
    * Is this the operand of a call that is the off-branch of a guarded inline?
    */
-  private boolean isGuardedInlineOffBranch = false;
+  private boolean isGuardedInlineOffBranch;
 
   /**
    * The type of the invoke (STATIC, SPECIAL, VIRTUAL, INTERFACE)
@@ -181,10 +175,9 @@ public final class OPT_MethodOperand extends OPT_Operand {
   /**
    * Create a method operand for an internal method
    */
-  OPT_MethodOperand(VM_Member member, byte t, int o) {
+  OPT_MethodOperand(VM_Field member) {
     internal = member;
-    type     = t;
-    offset   = o;
+    type     = STATIC;
   } 
 
   public boolean isStatic() {
@@ -251,7 +244,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    */
   public OPT_Operand copy() {
     if (method == null) {
-      return new OPT_MethodOperand(internal, type, offset);
+      return new OPT_MethodOperand(internal);
     } else {
       OPT_MethodOperand mo = new OPT_MethodOperand(method, type, unresolved);
       mo.setIsGuardedInlineOffBranch(isGuardedInlineOffBranch());

@@ -433,7 +433,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         for (OPT_InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
           OPT_Instruction s = e.next();
           switch (s.operator().opcode) {
-            case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
+            case GETFIELD_opcode:
               {
                 OPT_Operand ref = GetField.getRef(s);
                 VM_Field f = GetField.getLocation(s).field;
@@ -448,7 +448,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
                 seenLoad.add(f);
               }
               break;
-            case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+            case PUTFIELD_opcode:
               {
                 OPT_Operand ref = PutField.getRef(s);
                 VM_Field f = PutField.getLocation(s).field;
@@ -464,7 +464,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
                 }
               }
               break;
-            case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+            case GETSTATIC_opcode:
               {
                 VM_Field f = GetStatic.getLocation(s).field;
                 if (seenLoad.contains(f) || seenStore.contains(f)) {
@@ -473,7 +473,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
                 seenLoad.add(f);
               }
               break;
-            case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+            case PUTSTATIC_opcode:
               {
                 VM_Field f = PutStatic.getLocation(s).field;
                 if (seenLoad.contains(f)) {

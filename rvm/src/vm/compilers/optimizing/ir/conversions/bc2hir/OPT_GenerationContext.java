@@ -645,7 +645,8 @@ public final class OPT_GenerationContext
     if (method.isSynchronized() && !options.MONITOR_NOP
     				&& !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject(PROLOGUE_BCI, prologue);
-      OPT_Instruction s = MonitorOp.create(MONITORENTER, lockObject);
+      OPT_Instruction s = 
+	MonitorOp.create(MONITORENTER, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(prologue, s, SYNCHRONIZED_MONITORENTER_BCI);
     }
   }
@@ -660,7 +661,7 @@ public final class OPT_GenerationContext
     if (method.isSynchronized() && !options.MONITOR_NOP 
     				&& !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject(EPILOGUE_BCI, epilogue);
-      OPT_Instruction s = MonitorOp.create(MONITOREXIT, lockObject);
+      OPT_Instruction s = MonitorOp.create(MONITOREXIT, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(epilogue, s, SYNCHRONIZED_MONITOREXIT_BCI);
     }
 
@@ -699,7 +700,8 @@ public final class OPT_GenerationContext
 
       OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(VM_Entrypoints.unlockAndThrowMethod);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
-      s = Call.create2(CALL, null, null, methodOp, lockObject, ceo);
+      s = Call.create2(CALL, null, new OPT_IntConstantOperand(methodOp.method.getOffset()),
+		       methodOp, lockObject, ceo);
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);
 
       cfg.insertBeforeInCodeOrder(epilogue, rethrow);

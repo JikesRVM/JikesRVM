@@ -97,7 +97,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	    m = VM_Entrypoints.threadSwitchFromBackedgeMethod;
 	  
 	  OPT_Instruction c = 
-	    Call.create0(CALL, null, null, OPT_MethodOperand.STATIC(m));
+	    Call.create0(CALL, null, new OPT_IntConstantOperand(m.getOffset()), OPT_MethodOperand.STATIC(m));
 	  c.position = ir.gc.inlineSequence;
 	  c.bcIndex = INSTRUMENTATION_BCI;
 
@@ -116,7 +116,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  i.remove();
 
 	  // We're in LIR so lower the new call
-	  OPT_ConvertToLowLevelIR.call(c,ir);
+	  OPT_ConvertToLowLevelIR.callHelper(c,ir);
 
 	  // pfs: need insert before instruction for Intel.
 	  OPT_Instruction dummy = new OPT_Instruction(OPT_Operator.OperatorArray[1], 4);

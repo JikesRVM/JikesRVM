@@ -220,8 +220,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
-      case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+      case GETFIELD_opcode:case GETSTATIC_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
       case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
       case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
@@ -237,7 +236,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+      case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutField.getValue(inst);
@@ -247,7 +246,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+      case PUTSTATIC_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
@@ -387,8 +386,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
-      case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+      case GETFIELD_opcode:case GETSTATIC_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
@@ -402,7 +400,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+      case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutField.getValue(inst);
@@ -412,7 +410,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+      case PUTSTATIC_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);

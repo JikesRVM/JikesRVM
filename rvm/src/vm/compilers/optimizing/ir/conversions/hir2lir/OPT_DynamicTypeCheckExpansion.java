@@ -458,14 +458,15 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     }
 
     // Call VM_Runtime.checkstore.
-    OPT_Instruction call = Call.create2(CALL, null, null,
-					OPT_MethodOperand.STATIC(VM_Entrypoints.checkstoreMethod), 
+    VM_Method target = VM_Entrypoints.checkstoreMethod;
+    OPT_Instruction call = Call.create2(CALL, null, I(target.getOffset()),
+					OPT_MethodOperand.STATIC(target),
 					rhsGuard.copy(), arrayRef.copy(), elemRef.copy());
     call.copyPosition(s);
     curBlock.appendInstruction(call);
     curBlock.insertOut(contBlock);
     ir.cfg.linkInCodeOrder(curBlock, contBlock);
-    return _callHelper(call, ir);
+    return callHelper(call, ir);
   }
 
 
@@ -582,11 +583,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	// A non-resolved class or interface. Case 3 of VM_DynamicTypeCheck
 	// Mutate s into a call to VM_DynamicTypeCheck.instanceOfUnresolved
 	OPT_RegisterOperand LHSRuntimeClass = getVMType(s, ir, LHSclass);
-	Call.mutate2(s, CALL, result, null, 
-		     OPT_MethodOperand.STATIC(VM_Entrypoints.instanceOfUnresolvedMethod), 
+	VM_Method target = VM_Entrypoints.instanceOfUnresolvedMethod;
+	Call.mutate2(s, CALL, result, I(target.getOffset()), 
+		     OPT_MethodOperand.STATIC(target),
 		     LHSRuntimeClass, RHStib);
-	s = _callHelper(s, ir);
-	return s;
+	return callHelper(s, ir);
       }
     }
     if (LHStype.isArrayType()) {
@@ -778,12 +779,13 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	OPT_RegisterOperand LHSRuntimeClass = 
 	  getVMType(continueAt, ir, LHSclass);
 	OPT_RegisterOperand result = ir.regpool.makeTempInt();
-	OPT_Instruction call = Call.create2(CALL, result, null, 
-					    OPT_MethodOperand.STATIC(VM_Entrypoints.instanceOfUnresolvedMethod), 
+	VM_Method target = VM_Entrypoints.instanceOfUnresolvedMethod;
+	OPT_Instruction call = Call.create2(CALL, result, I(target.getOffset()),
+					    OPT_MethodOperand.STATIC(target),
 					    LHSRuntimeClass, RHStib);
 	call.copyPosition(continueAt);
 	continueAt.insertBefore(call);
-	call = _callHelper(call, ir);
+	call = callHelper(call, ir);
 	continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
 					     result.copyD2U(), I(0),
 					     OPT_ConditionOperand.EQUAL(), 
@@ -858,14 +860,14 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	VM_Method target = 
 	  innermostElementType.isResolved() ? VM_Entrypoints.instanceOfArrayMethod : 
 	  VM_Entrypoints.instanceOfUnresolvedArrayMethod;
-	call = Call.create3(CALL, callResult, null, 
+	call = Call.create3(CALL, callResult, I(target.getOffset()), 
 			    OPT_MethodOperand.STATIC(target), 
 			    lhsInnermostElementType, 
 			    I(LHSArray.getDimensionality()), 
 			    rhsType);
 	call.copyPosition(continueAt);
 	continueAt.insertBefore(call);
-	call = _callHelper(call, ir);
+	call = callHelper(call, ir);
 	continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
 					     callResult.copyD2U(), I(0),
 					     OPT_ConditionOperand.EQUAL(), 
