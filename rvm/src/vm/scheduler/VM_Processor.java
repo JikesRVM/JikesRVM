@@ -82,12 +82,12 @@ implements VM_Uninterruptible, VM_Constants {
 
     this.id = id;
     this.transferMutex     = new VM_ProcessorLock();
-    this.transferQueue     = new VM_GlobalThreadQueue(VM_EventLogger.TRANSFER_QUEUE, this.transferMutex);
-    this.readyQueue        = new VM_ThreadQueue(VM_EventLogger.READY_QUEUE);
-    this.ioQueue           = new VM_ThreadIOQueue(VM_EventLogger.IO_QUEUE);
-    this.processWaitQueue  = new VM_ThreadProcessWaitQueue(VM_EventLogger.PROCESS_WAIT_QUEUE);
+    this.transferQueue     = new VM_GlobalThreadQueue(this.transferMutex);
+    this.readyQueue        = new VM_ThreadQueue();
+    this.ioQueue           = new VM_ThreadIOQueue();
+    this.processWaitQueue  = new VM_ThreadProcessWaitQueue();
     this.processWaitQueueLock = new VM_ProcessorLock();
-    this.idleQueue         = new VM_ThreadQueue(VM_EventLogger.IDLE_QUEUE);
+    this.idleQueue         = new VM_ThreadQueue();
     this.lastLockIndex     = -1;
     this.isInSelect        = false;
     this.processorMode     = processorType;
@@ -158,9 +158,7 @@ implements VM_Uninterruptible, VM_Constants {
    * @param timerTick   timer interrupted if true
    */ 
   void dispatch (boolean timerTick) {
-
     if (VM.VerifyAssertions) VM._assert(lockCount == 0);// no processor locks should be held across a thread switch
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDispatchEvent();
 
     VM_Thread newThread = getRunnableThread();
     while (newThread.suspendPending) {

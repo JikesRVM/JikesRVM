@@ -12,25 +12,18 @@ package com.ibm.JikesRVM;
  */
 public class VM_ThreadQueue 
   extends VM_AbstractThreadQueue 
-  implements VM_Uninterruptible 
-{
-  /**
-   * ID of this queue, for event logging.
-   */
-  protected int       id;     
+  implements VM_Uninterruptible {
+
   /**
    * First thread on list.
    */
   protected VM_Thread head;   
+
   /**
    * Last thread on the list.
    */
   protected VM_Thread tail;   
   
-  public VM_ThreadQueue(int id) {
-    this.id = id;
-  }
-
   /**
    * Are any threads on the queue?
    */  
@@ -54,7 +47,6 @@ public class VM_ThreadQueue
 
   /** Add a thread to head of queue. */
   public void enqueueHighPriority (VM_Thread t) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
     if (VM.VerifyAssertions) VM._assert(t.next == null); // not currently on any other queue
     t.next = head;
     head = t;
@@ -64,7 +56,6 @@ public class VM_ThreadQueue
 
   /** Add a thread to tail of queue. */
   public void enqueue (VM_Thread t) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
     if (VM.VerifyAssertions) VM._assert(t.next == null); // not currently on any other queue
     if (head == null)
       head = t;
@@ -84,7 +75,6 @@ public class VM_ThreadQueue
     if (head == null)
       tail = null;
 
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDequeue(t, id);
     return t;
   }
 

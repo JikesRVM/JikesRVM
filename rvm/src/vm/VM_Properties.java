@@ -105,12 +105,6 @@ public class VM_Properties extends VM_Options {
   public static final boolean ReferenceMapsStatistics       = false;
   public static final boolean ReferenceMapsBitStatistics    = false;
 
-  // Event logging.
-  //
-  public static final boolean BuildForEventLogging      = false;
-  public static       boolean EventLoggingEnabled       = false;  // TODO!! make this final, see profiler/VM_EventLogger.java
-  public static final boolean BuildForNetworkMonitoring = false;
-
   //-#if RVM_WITH_OSR
   public static final boolean TraceOnStackReplacement   = false; 
   //-#endif

@@ -568,7 +568,6 @@ function emitSourceList () {
     echo $RVM_ROOT/rvm/src/vm/jni
     echo $RVM_ROOT/rvm/src/vm/runtime
     echo $RVM_ROOT/rvm/src/vm/scheduler
-    echo $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_EventLogger references
     echo $RVM_ROOT/rvm/src/vm/utility
     echo $RVM_ROOT/rvm/src/vm/verifier
     echo $RVM_ROOT/rvm/src/vm/compilers/compiledCode

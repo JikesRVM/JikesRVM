@@ -56,7 +56,7 @@ class VM_TraceWriter extends VM_Thread
   /**
    * A queue to hold the consumer thread when it isn't executing
    */
-  private   VM_ThreadQueue tq = new VM_ThreadQueue(0);
+  private   VM_ThreadQueue tq = new VM_ThreadQueue();
 
   // Flag for when to close the trace file.
   // At notifyExit time, producer sets flag to true.

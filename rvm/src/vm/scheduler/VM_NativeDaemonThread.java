@@ -84,8 +84,6 @@ class VM_NativeDaemonThread extends VM_Thread {
     int processorStatusIndex = VM_Processor.getCurrentProcessor().vpStatusIndex;
 
     while (true) {
-      if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
-
       if (trace) VM_Scheduler.trace("NDT:","calling SigWait - transferred",transferCount);
 
       // Save current frame pointer in threads JNIEnv, and set flag recognized by GC

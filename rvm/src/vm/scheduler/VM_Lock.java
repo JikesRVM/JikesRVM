@@ -103,7 +103,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @see java.lang.Object#wait()
    */
   public static void wait (Object o) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     if (STATS) waitOperations++;
     VM_Thread t = VM_Thread.getCurrentThread();
     t.proxy = new VM_Proxy(t); // cache the proxy before obtaining lock
@@ -136,7 +135,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (rethrow != null) {
       VM_Runtime.athrow(rethrow); // doesn't return
     }
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 
   /**
@@ -149,7 +147,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   public static void wait (Object o, long millis) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
     double time;
     VM_Thread t = VM_Thread.getCurrentThread();
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     if (STATS) timedWaitOperations++;
     // Get proxy and set wakeup time
     t.wakeupTime = VM_Time.now() + millis * .001;
@@ -184,7 +181,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     }
     if (rethrow != null)
 	VM_Runtime.athrow(rethrow);
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 
   /**
@@ -194,7 +190,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @see java.lang.Object#notify
    */
   public static void notify (Object o) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyBegin(); }
     if (STATS) notifyOperations++;
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
@@ -211,7 +206,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       if (t != null) l.entering.enqueue(t);
     }
     l.mutex.unlock(); // thread-switching benign
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyEnd(); }
   }
 
   /**
@@ -221,7 +215,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @see java.lang.Object#notifyAll
    */
   public static void notifyAll (Object o) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyAllBegin(); }
     if (STATS) notifyAllOperations++;
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
@@ -234,7 +227,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       t = l.waiting.dequeue();
     }
     l.mutex.unlock(); // thread-switching benign
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyAllEnd(); }
   }
 
   ///////////////////////////////////////////////////
@@ -259,8 +251,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * synchronization.
    */
   VM_Lock () {
-    entering = new VM_ThreadQueue(VM_EventLogger.ENTERING_QUEUE);
-    waiting  = new VM_ProxyWaitingQueue(VM_EventLogger.WAITING_QUEUE);
+    entering = new VM_ThreadQueue();
+    waiting  = new VM_ProxyWaitingQueue();
     mutex    = new VM_ProcessorLock();
   }
 

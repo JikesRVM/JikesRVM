@@ -17,8 +17,8 @@ public final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uni
   private VM_ProcessorLock mutex; // TODO check that mutex is heald when manipulating this queue.
   private int length;
   
-  public VM_GlobalThreadQueue(int id, VM_ProcessorLock mutex) {
-    super(id);
+  public VM_GlobalThreadQueue(VM_ProcessorLock mutex) {
+    super();
     this.mutex = mutex;
   }
   

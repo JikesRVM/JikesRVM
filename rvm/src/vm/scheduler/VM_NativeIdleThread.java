@@ -209,8 +209,6 @@ class VM_NativeIdleThread extends VM_IdleThread {
     //VM_Magic.getFramePointer();
 
     while (true) {
-      if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
-
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
       VM_Address TOC = VM_Address.zero();

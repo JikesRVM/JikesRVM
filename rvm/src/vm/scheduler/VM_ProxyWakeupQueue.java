@@ -13,11 +13,6 @@ package com.ibm.JikesRVM;
 final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
   
   private VM_Proxy head; // first thread on list
-  private int       id;   // id of this queue, for event logging
-
-  VM_ProxyWakeupQueue(int id) {
-    this.id = id;
-  }
 
   boolean isEmpty () {
     return head == null;
@@ -33,7 +28,6 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uni
   }
 
   void enqueue (VM_Proxy p) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(p.patron, id);
     VM_Proxy previous = null;
     VM_Proxy current  = head;
     while (current != null && current.wakeupTime <= p.wakeupTime) { // skip proxies with earlier wakeupTimes
@@ -60,7 +54,6 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uni
       head = head.wakeupNext;
       p.wakeupNext = null;
       VM_Thread t = p.unproxy();
-      if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDequeue(t, id);
       if (t != null) return t;
     }
     return null;

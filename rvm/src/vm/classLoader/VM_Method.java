@@ -318,7 +318,6 @@ public abstract class VM_Method extends VM_Member {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) return;
 
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
     VM_CompiledMethod cm = genCode();

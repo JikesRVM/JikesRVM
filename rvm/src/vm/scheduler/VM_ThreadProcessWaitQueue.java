@@ -99,13 +99,10 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    */
   private static VM_ProcessorLock waitPidLock = new VM_ProcessorLock();
 
-  private int id;
-
   /**
    * Constructor.
    */
-  public VM_ThreadProcessWaitQueue(int id) {
-    this.id = id;
+  public VM_ThreadProcessWaitQueue() {
     pidArray = new int[MAX_NUM_PIDS];
     exitStatusArray = new int[MAX_NUM_PIDS];
   }

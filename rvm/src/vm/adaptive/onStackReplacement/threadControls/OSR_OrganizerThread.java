@@ -68,7 +68,7 @@ public class OSR_OrganizerThread extends VM_Thread {
 
   // lock = 0, free , 1 owned by someone
   private int queueLock = 0;
-  private VM_ThreadQueue tq = new VM_ThreadQueue(0);
+  private VM_ThreadQueue tq = new VM_ThreadQueue();
   private void passivate() {
     boolean gainedLock = VM_Synchronization.testAndSet(this, 
        		    VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);

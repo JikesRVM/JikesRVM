@@ -272,9 +272,6 @@ public class VM_Runtime implements VM_Constants {
       }
     }
     
-    // Event logging and stat gathering
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logObjectAllocationEvent();
     // Allocate the object and initialize its header
     Object newObj = MM_Interface.allocateScalar(size, tib, allocator);
 
@@ -348,10 +345,6 @@ public class VM_Runtime implements VM_Constants {
 	MM_Interface.gc();
       }
     }
-
-    // Event logging and stat gathering
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logObjectAllocationEvent();
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, 

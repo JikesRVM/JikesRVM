@@ -207,26 +207,26 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // Create work queues.
     //
-    wakeupQueue     = new VM_ProxyWakeupQueue(VM_EventLogger.WAKEUP_QUEUE);
+    wakeupQueue     = new VM_ProxyWakeupQueue();
     wakeupMutex     = new VM_ProcessorLock();
 
-    debuggerQueue   = new VM_ThreadQueue(VM_EventLogger.DEBUGGER_QUEUE);
+    debuggerQueue   = new VM_ThreadQueue();
     debuggerMutex   = new VM_ProcessorLock();
 
-    attachThreadQueue = new VM_ThreadQueue(VM_EventLogger.ATTACHTHREAD_QUEUE);
+    attachThreadQueue = new VM_ThreadQueue();
     attachThreadMutex = new VM_ProcessorLock();
 
-    collectorQueue  = new VM_ThreadQueue(VM_EventLogger.COLLECTOR_QUEUE);
+    collectorQueue  = new VM_ThreadQueue();
     collectorMutex  = new VM_ProcessorLock();
 
-    finalizerQueue  = new VM_ThreadQueue(VM_EventLogger.FINALIZER_QUEUE);
+    finalizerQueue  = new VM_ThreadQueue();
     finalizerMutex  = new VM_ProcessorLock();
 
-    nativeProcessorQueue  = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
+    nativeProcessorQueue  = new VM_ProcessorQueue();
     nativeProcessorMutex  = new VM_ProcessorLock();
 
-    deadVPQueue     = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
-    availableProcessorQueue     = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
+    deadVPQueue     = new VM_ProcessorQueue();
+    availableProcessorQueue     = new VM_ProcessorQueue();
 
     VM_CollectorThread.boot(numProcessors);
 
@@ -367,10 +367,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       }
       VM_SysCall.sysVirtualProcessorEnableTimeSlicing(schedulingQuantum);
     }
-    // Start event logger.
-    //
-    if (VM.BuildForEventLogging)
-      VM_EventLogger.boot();
 
     // Allow virtual cpus to commence feeding off the work queues.
     //

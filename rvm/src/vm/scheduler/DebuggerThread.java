@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
-
 /**
  * An interactive debugger that runs inside the virtual machine.
  * This thread is normally dormant and only scheduled for execution
@@ -124,31 +123,6 @@ class DebuggerThread extends VM_Thread {
       VM_Scheduler.dumpVirtualMachine();
       return;
 
-    case 'e': // enable/disable event logging
-      if (VM.BuildForEventLogging) {
-	VM.EventLoggingEnabled = !VM.EventLoggingEnabled;
-	VM.sysWrite("event logging " + (VM.EventLoggingEnabled ? "enabled\n" : "disabled\n"));
-      } else {
-	VM.sysWrite("sorry, not built for event logging\n");
-      }
-      return;
-
-    case 'l': // dump and reset event log
-      if (VM.BuildForEventLogging) {
-	String fileName = "temp.eventLog";
-	try {
-	  FileOutputStream out = new FileOutputStream(fileName);
-	  VM_EventLogger.dump(out);
-	  out.close();
-	  VM.sysWrite("event log written to \"" + fileName + "\"\n");
-	} catch (IOException e) {
-	  VM.sysWrite("couldn't write \"" + fileName + "\": " + e + "\n");
-	}
-      } else {
-	VM.sysWrite("sorry, not built for event logging\n");
-      }
-      return;
-
     case 'c': // continue execution of virtual machine (make debugger dormant until next debug request)
       VM_Scheduler.debugRequested = false;
       VM_Scheduler.debuggerMutex.lock();
@@ -167,8 +141,6 @@ class DebuggerThread extends VM_Thread {
 	VM.sysWrite("   t <threadIndex>  - display specified thread\n");
 	VM.sysWrite("   p <hex addr>     - print (describe) object at given address\n");
 	VM.sysWrite("   d                - dump virtual machine state\n");
-	VM.sysWrite("   e                - enable/disable event logging\n");
-	VM.sysWrite("   l                - write event log to a file\n");
 	VM.sysWrite("   c                - continue execution\n");
 	VM.sysWrite("   q                - terminate execution\n");
 	VM.sysWrite("   <class>.<method> - call a method\n");

@@ -57,11 +57,6 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    */
   private WaitDataDowncaster myDowncaster = new WaitDataDowncaster();
  
-  /**
-   * ID of this queue, for event tracing.
-   */
-  private int       id;
-
   private static final int FD_SETSIZE = 2048;
 
   /**
@@ -162,10 +157,6 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    //-----------//
    // Interface //
    //-----------//
-
-  VM_ThreadIOQueue(int id) {
-    this.id = id;
-  }
 
   /**
    * Poll file descriptors to see which ones have become ready.
