@@ -1,3 +1,4 @@
+. $1/compilers/QuickOptions
    export RVM_WITH_OPT_COMPILER=1
    export RVM_WITH_QUICK_COMPILER=1
    export RVM_WITH_OPT_BOOTIMAGE_COMPILER=1

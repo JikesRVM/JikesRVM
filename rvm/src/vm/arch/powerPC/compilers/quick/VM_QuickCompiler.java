@@ -276,7 +276,9 @@ public class VM_QuickCompiler extends VM_CompilerFramework
 
 
 
+    //-#if RVM_WITH_QUICK_COMPILER_MOVE_ELIMINATION
     allowRetargeting = options.INSTRUCTION_RETARGET;
+    //-#endif
 
     shouldPrint  = (!VM.runningTool &&
 		    (options.PRINT_MACHINECODE) &&
