@@ -154,10 +154,24 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.lang.Float");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.lang.Character");
-    runClassInitializer("java.util.Hashtable");
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
+    runClassInitializer("java.util.Hashtable");
     runClassInitializer("java.lang.Class");
- 
+    //-#if RVM_WITH_JAZZLIB
+    runClassInitializer("java.lang.Math");
+    runClassInitializer("java.lang.RuntimePermission");
+    runClassInitializer("java.util.TimeZone");
+    runClassInitializer("java.util.Locale");
+    runClassInitializer("java.util.Calendar");
+    runClassInitializer("java.util.GregorianCalendar");
+    runClassInitializer("java.util.ResourceBundle");
+    runClassInitializer("java.util.zip.ZipEntry");
+    runClassInitializer("java.util.zip.Inflater");
+    runClassInitializer("java.util.zip.DeflaterHuffman");
+    runClassInitializer("java.util.zip.InflaterDynHeader");
+    runClassInitializer("java.util.zip.InflaterHuffmanTree");
+    //-#endif
+
     // Initialize compiler.
     //
     VM_RuntimeCompiler.boot();
