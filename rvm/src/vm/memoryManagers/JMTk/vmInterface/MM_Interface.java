@@ -234,9 +234,10 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   // Is string A a prefix of string B (encoded as an ASCII byte array)?
   //
   private static boolean isPrefix (String a, byte [] b) {
-    if (a.length() > b.length)
+    int aLen = a.length();
+    if (aLen > b.length)
       return false;
-    for (int i = 0; i<a.length(); i++) {
+    for (int i = 0; i<aLen; i++) {
       if (a.charAt(i) != ((char) b[i]))
 	return false;
     }
