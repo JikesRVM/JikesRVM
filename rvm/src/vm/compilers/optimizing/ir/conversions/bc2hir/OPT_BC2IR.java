@@ -2738,7 +2738,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Make a type operand that refers to the given type.
    *
-   * @param typ desired type
+   * @param type desired type
    */
   private OPT_TypeOperand makeTypeOperand(VM_TypeReference type) {
     return new OPT_TypeOperand(type);
@@ -2747,7 +2747,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Make a type operand that refers to the given type.
    *
-   * @param typ desired type
+   * @param type desired type
    */
   private OPT_TypeOperand makeTypeOperand(VM_Type type) {
     return new OPT_TypeOperand(type);
@@ -4287,8 +4287,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Should we inline a call site?
    *
    * @param call the call instruction being considered for inlining
-   * @param target target of the resolved method reference
-   * @param preciseTarget non-NULL => we're CERTAIN that the call will resolve to this target
    * @param isExtant is the receiver of a virtual method an extant object?
    */
   private OPT_InlineDecision shouldInline(OPT_Instruction call, 
@@ -5662,9 +5660,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Insert newBBLE as a child of parent in our Red/Black tree.
+     * Insert <code>newBBLE</code> as a child of parent in our Red/Black tree.
      * @param parent the parent node
-     * @param child  the new child node
+     * @param newBBLE  the new child node
      * @param left   is the child the left or right child of parent?
      */
     private void treeInsert(BasicBlockLE parent, 
@@ -6142,7 +6140,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      *
      * @param loc bytecode index
      * @param position inline sequence
-     * @param ex exception type
+     * @param eType   exception type
      * @param temps the register pool to allocate exceptionObject from
      * @param exprStackSize max size of expression stack
      * @param cfg OPT_ControlFlowGraph into which the block 

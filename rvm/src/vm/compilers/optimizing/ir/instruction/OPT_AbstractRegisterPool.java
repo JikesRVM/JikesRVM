@@ -91,7 +91,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new address register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getAddress() {
@@ -103,7 +102,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new integer register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getInteger() {
@@ -115,7 +113,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new float register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getFloat() {
@@ -127,7 +124,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new double register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getDouble() {
@@ -140,7 +136,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new condition register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getCondition() {
@@ -152,7 +147,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new long register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getLong() {
@@ -165,7 +159,6 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Gets a new validation register.
    *
-   * @param spanBasicBlock whether the register spans a basic block
    * @return the newly created register object
    */
   public OPT_Register getValidation() {
@@ -217,8 +210,6 @@ public abstract class OPT_AbstractRegisterPool {
    * Get a new register of the appropriate type to hold values of 'type'
    * 
    * @param type the type of values that the register will hold
-   * @param spanBasicBlock does the registers live range span (cross)
-   *                       a basic block boundary?
    * @return the newly created register object 
    */
   public OPT_Register getReg(VM_TypeReference type) {
