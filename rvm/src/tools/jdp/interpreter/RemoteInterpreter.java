@@ -499,18 +499,24 @@ class RemoteInterpreter extends InterpreterBase
     // (4) Get the address of the VM_Statics.slots that holds this constant
     addr = mapVM.getJTOC() + (addr<<2);
     // System.out.println("X_ldc2_w:  JTOC entry @ " + Integer.toHexString(addr));
-    int mappedFieldValue  = Platform.readmem(addr);
-    int mappedFieldValue1 = Platform.readmem(addr+4);
+
+    
+    //int mappedFieldValue  = Platform.readmem(addr);
+    //int mappedFieldValue1 = Platform.readmem(addr+4);
 
     int desc = cls.getLiteralDescription(poolIndex);
     if (desc == VM_Statics.DOUBLE_LITERAL) {
+      double mappedFieldValue = Platform.readDouble(addr);
       if (InterpreterBase.traceExtension)
 	System.out.println("X_ldc2_w: double ");
-      stack.pushDoubleBits(mappedFieldValue, mappedFieldValue1);
+      stack.push(mappedFieldValue);
+      // stack.pushDoubleBits(mappedFieldValue, mappedFieldValue1);
     } else if (desc == VM_Statics.LONG_LITERAL) {
+      long mappedFieldValue = Platform.readLong(addr);
       if (InterpreterBase.traceExtension)
 	System.out.println("X_ldc2_w: long ");
-      stack.pushLongBits(mappedFieldValue, mappedFieldValue1);
+      stack.push(mappedFieldValue);
+      // stack.pushLongBits(mappedFieldValue, mappedFieldValue1);
     } else {
       System.out.println("X_ldc2_w: unexpected type for constant, should be long or double");
       debug();
