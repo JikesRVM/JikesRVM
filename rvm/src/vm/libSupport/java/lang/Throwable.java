@@ -39,12 +39,12 @@ public class Throwable implements java.io.Serializable {
   private Throwable cause;
     
   public Throwable () {
-    super ();
+    super();
     fillInStackTrace();
   }
     
   public Throwable (String detailMessage) {
-    this ();
+    this();
     this.detailMessage = detailMessage;
   }
     
@@ -58,6 +58,8 @@ public class Throwable implements java.io.Serializable {
   }
     
   public Throwable fillInStackTrace() {
+    /* We collect the whole stack trace, and we strip out the cause of the
+       exception later on at printing time, in printStackTrace(). */
     stackTrace = new VM_StackTrace(0);
     return this;
   }
@@ -97,7 +99,11 @@ public class Throwable implements java.io.Serializable {
       return;
     }
     err.println(this);
-    stackTrace.print(err);
+    stackTrace.print(err, this);
+    if (cause != null) {
+      err.print("Caused by: ");
+      cause.printStackTrace(err);
+    }
   }
 
   public void printStackTrace(PrintWriter err) {
@@ -109,7 +115,7 @@ public class Throwable implements java.io.Serializable {
     throw new VM_UnimplementedError();
   }
 
-  public String toString () {
+  public String toString() {
     String msg = getMessage();
     if (msg == null)
       return getClass().getName();
