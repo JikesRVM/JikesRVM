@@ -613,7 +613,7 @@ public class VM_ClassLoader
   private static int[] growArray(int[] array, int newLength) {
     // assertion: no special array initialization needed (default 0 is ok)
     if (VM.VerifyAssertions) VM.assert(NEEDS_DYNAMIC_LINK == 0); 
-    int[] newarray = new int[newLength];
+    int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i)
       newarray[i] = array[i];
 
@@ -651,7 +651,7 @@ public class VM_ClassLoader
    */ 
   private static VM_DynamicLibrary[] growArray(VM_DynamicLibrary[] array, 
 					       int newLength) {
-    VM_DynamicLibrary[] newarray = new VM_DynamicLibrary[newLength];
+    VM_DynamicLibrary[] newarray = VM_RuntimeStructures.newContiguousDynamicLibraryArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i)
       newarray[i] = array[i];
 
