@@ -593,7 +593,10 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
       }
       bcodes.skipInstruction();
     }
-    if (calleeSize > SIZE_MASK) calleeSize = SIZE_MASK;
-    summary |= calleeSize;
+    if (calleeSize > SIZE_MASK) {
+      summary |= SIZE_MASK;
+    } else {
+      summary |= calleeSize;
+    }
   }
 }
