@@ -296,4 +296,79 @@ add a new phase, except that the {\tt shouldPerform()} method needs to
 have your instrumentation listed, so this phase is run when your
 instrumentation is turned on.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Instrumentation Sampling Framework}
+\label{instrumentation_sampling}
+
+Jikes RVM contains an implementation of the {\bf \tt Full-Duplication
+Sampling Framework} as described in the PLDI'01 paper ``A Framework
+for Reducing the Cost of Instrumented Code'' by Arnold and Ryder.
+Arnold's Ph.D. thesis contains an expanded description and contains
+some implementation details not in the PLDI version.
+
+
+\subsubsection{What it does}
+
+The sampling framework allows instrumentation that was inserted into
+the code to be sampled.  When the instrumentation is not being
+executed, the code runs at close to full speed.  This is achieved by
+creating a second version of the code within the method and placing
+checks that transfer control into the instrumented version.  Currently
+the checks use a counter to determine when control should transfer
+into the instrumented code.
+\nobreak
+For full details see the papers mentioned above. 
+
+\subsubsection{How to use it}
+
+Example usage: {\tt rvm \\
+\indent -X:aos:primary\_strategy=optonly \\
+\indent -X:aos:share:insert\_instruction\_counters\_opt=true \\
+\indent -X:aos:irc:instrumentation\_sampling=true \\
+\indent -X:aos:counter\_based\_sample\_interval=10 MyProgram } \\
+
+
+This will insert instruction counters instrumentation (as described in
+Section~\ref{counting_events}) and enable the instrumentation sampling
+framework with a sample interval of at 10, thus the instrumented code
+will be executed roughtly one tenth of the time.   
+
+Relevant optimizing compiler options:
+
+
+\begin{itemize}
+
+\item INSTRUMENTATION\_SAMPLING -1 false\\
+Turn on the instrumentation sampling transformation when compiling the
+method.
+
+\item PROCESSOR\_SPECIFIC\_COUNTER -1 true\\
+Should there be one CBS counter per processor for SMP performance?  
+
+\item REMOVE\_YP\_FROM\_CHECKING -1 false\\
+Should yieldpoints be removed from the checking code?  This helps
+lower the overhead of the sampling framework.   As long as the
+sample interval sample interval is finite a yieldpoint is guaranteed
+to be executed eventually thus the JVM will execute correctly.  
+
+\item NO\_DUPLICATION -1 false \\
+Perform the ``no-duplication'' version of the framework where the code
+is not actually duplicated.   Essentially this simply conditionalizes
+all instrumentation operations.
+
+\item DEBUG\_INSTRU\_SAMPLING -1 false \\
+Enable debugging statements for instrumentation sampling
+
+\item DEBUG\_INSTRU\_SAMPLING\_DETAIL -1 false\\
+Enable detailed debugging statements for instrumentation sampling
+\end{itemize}
+
+Adaptive system options:
+
+\begin{itemize}
+\item COUNTER\_BASED\_SAMPLE\_INTERVAL int 1000\\
+What is the sample interval for counter-based sampling
+\end{itemize}
+
+
 
