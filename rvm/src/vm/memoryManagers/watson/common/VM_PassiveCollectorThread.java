@@ -11,7 +11,7 @@
  * @author Tony Cocchi
  * @author Stephen Smith
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 class VM_PassiveCollectorThread extends VM_Thread {
   

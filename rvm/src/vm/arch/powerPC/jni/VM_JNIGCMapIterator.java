@@ -19,7 +19,7 @@
  *
  * @author Steve Smith
  */
-import MM.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
 public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,

@@ -24,7 +24,7 @@
  * @modified by Stephen Smith
  * @modified by anyone adding a new iterator
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
 import VM_CompiledMethod;

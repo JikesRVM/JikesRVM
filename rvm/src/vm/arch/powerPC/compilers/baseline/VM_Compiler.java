@@ -12,7 +12,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import MM.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,

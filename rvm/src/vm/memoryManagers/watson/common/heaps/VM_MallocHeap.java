@@ -20,7 +20,7 @@
  *  @author Perry Cheng
  *  @author David Grove
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Class;
 import VM_Array;

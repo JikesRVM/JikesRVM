@@ -9,11 +9,11 @@
  * @author Bowen Alpern 
  * @author Derek Lieber
  */
-import MM.VM_GCConstants;
-import MM.VM_Collector;
-import MM.VM_ContiguousHeap;
-import MM.VM_SizeControl;
-import MM.VM_SegregatedListHeap;
+import com.ibm.JikesRVM.memoryManagers.VM_GCConstants;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_ContiguousHeap;
+import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
+import com.ibm.JikesRVM.memoryManagers.VM_SegregatedListHeap;
 
 public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCConstants {
 

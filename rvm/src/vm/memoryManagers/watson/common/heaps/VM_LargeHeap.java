@@ -10,7 +10,7 @@
  *
  *  @author Perry Cheng
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
 import VM_ProcessorLock;

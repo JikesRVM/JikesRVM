@@ -9,7 +9,7 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-import MM.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
 public class VM_BootImageCompiler {
   /** Identity. */

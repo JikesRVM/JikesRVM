@@ -9,7 +9,7 @@
  *
  * @author David Bacon
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
 import VM_Address;

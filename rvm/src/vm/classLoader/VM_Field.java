@@ -5,8 +5,8 @@
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import MM.VM_Collector;
-import MM.VM_WriteBarrier;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
 
 /**
  * A field of a java class.

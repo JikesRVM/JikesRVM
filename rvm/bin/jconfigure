@@ -1625,15 +1625,15 @@ function emitImageLinker
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[LVM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LMM/VM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LMM/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-   print "   print '[LMM/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
@@ -1668,7 +1668,7 @@ function emitImageLinker
 
    if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC || RVM_WITH_REALTIME_GC )); then
       print "   print '[LVM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[LMM/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 

@@ -13,8 +13,8 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import MM.VM_CollectorThread;
-import MM.VM_GCUtil;
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
 
 public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 

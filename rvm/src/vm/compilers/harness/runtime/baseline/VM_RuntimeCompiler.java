@@ -9,7 +9,7 @@
  * @author Stephen Fink
  * @author David Grove
  */
-import MM.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
 public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;

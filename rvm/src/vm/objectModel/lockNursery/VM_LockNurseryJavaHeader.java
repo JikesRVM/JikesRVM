@@ -20,8 +20,8 @@
  * @author Steve Fink
  * @author Dave Grove 
  */
-import MM.VM_AllocatorHeader;
-import MM.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 public class VM_LockNurseryJavaHeader implements VM_Uninterruptible, 
 						 VM_JavaHeaderConstants,

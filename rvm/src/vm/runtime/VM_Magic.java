@@ -15,9 +15,9 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import MM.VM_BlockControl;
-import MM.VM_SizeControl;
-import MM.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.VM_BlockControl;
+import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
 
 public class VM_Magic {
 

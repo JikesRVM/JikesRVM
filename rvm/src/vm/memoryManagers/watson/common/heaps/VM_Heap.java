@@ -9,7 +9,7 @@
  * @author Perry Cheng
  * @modified Dave Grove
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_BootRecord;

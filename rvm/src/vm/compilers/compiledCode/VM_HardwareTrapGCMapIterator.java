@@ -11,7 +11,7 @@
  * @author Derek Lieber
  * @date 02 Jun 1999 
  */
-import MM.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
 public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_Uninterruptible {
 

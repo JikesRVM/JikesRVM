@@ -7,7 +7,7 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_Constants;

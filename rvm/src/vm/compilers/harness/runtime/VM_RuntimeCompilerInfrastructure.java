@@ -33,7 +33,7 @@
  * @author Dave Grove
  * @author Mike Hind
  */
-import MM.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
 
 class VM_RuntimeCompilerInfrastructure
   implements VM_Constants, VM_Callbacks.ExitMonitor

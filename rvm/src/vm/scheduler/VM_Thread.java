@@ -8,7 +8,7 @@
  *  
  * @author Derek Lieber
  */
-import MM.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 

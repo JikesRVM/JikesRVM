@@ -19,7 +19,7 @@
  * @author Dick Attanasio
  *
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_Constants;
@@ -33,7 +33,7 @@ import VM_Class;
 import VM_Array;
 
 public final class VM_SizeControl implements VM_Constants {
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LMM/VM_SizeControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/VM_SizeControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 
   int first_block;
   int current_block;

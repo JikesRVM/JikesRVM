@@ -10,7 +10,7 @@
  * @author Michael Hind
  * @author Dave Grove
  */
-import MM.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
 class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructure {
   

@@ -3,9 +3,9 @@
  */
 //$Id$
 
-import MM.VM_Allocator;
-import MM.VM_Collector;
-import MM.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import instructionFormats.*;
 //-#endif

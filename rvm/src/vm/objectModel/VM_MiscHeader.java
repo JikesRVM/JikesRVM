@@ -15,7 +15,7 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-import MM.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
 
 public final class VM_MiscHeader implements VM_Uninterruptible {
 

@@ -12,7 +12,7 @@
  *
  * @author Dave Grove
  */
-import MM.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
 
 class VM_Stopwatch {
   int count;

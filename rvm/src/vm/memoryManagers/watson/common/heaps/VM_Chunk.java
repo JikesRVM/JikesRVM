@@ -16,7 +16,7 @@
  * @author Dave Grove
  * @author Stephen Smith
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_Magic;

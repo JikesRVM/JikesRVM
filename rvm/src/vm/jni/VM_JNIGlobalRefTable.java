@@ -7,7 +7,7 @@
  * @author Julian Dolby
  * @date May 20, 2002
  */
-import MM.VM_GCUtil;
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
 
 class VM_JNIGlobalRefTable {
 

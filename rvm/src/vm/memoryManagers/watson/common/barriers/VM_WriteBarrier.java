@@ -16,7 +16,7 @@
  * 
  * @see OPT_ExpandRuntimeServices (logic to inline this code)
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
 import VM_PragmaUninterruptible;

@@ -22,7 +22,7 @@ import instructionFormats.*;
  * @author Steve Fink
  * @author Dave Grove
  */
-import MM.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
 
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible

@@ -14,7 +14,7 @@
  *
  * @author Janice Shepherd
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Address;
 import VM_Thread;

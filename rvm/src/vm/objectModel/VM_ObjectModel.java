@@ -100,7 +100,7 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-import MM.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
 
 public final class VM_ObjectModel implements VM_Uninterruptible, 
 					     VM_JavaHeaderConstants {

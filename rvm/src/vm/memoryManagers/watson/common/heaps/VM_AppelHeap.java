@@ -13,7 +13,7 @@
  * @see VM_Chunk
  * @see VM_Processor
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Address;
 import VM;

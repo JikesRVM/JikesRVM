@@ -10,7 +10,7 @@
  *
  * @author David F. Bacon
  */
-import MM.VM_Allocator;
+import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
 
 public class VM_RuntimeStructures implements VM_Constants {
 

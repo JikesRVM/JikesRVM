@@ -15,7 +15,7 @@
  *  @author Stephen Fink
  *  @author Dave Grove
  */
-import MM.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
 

@@ -12,7 +12,7 @@
  * @author Steve Smith
  */
 import java.lang.reflect.*;
-import MM.VM_GCUtil;
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
 
 public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants
 {

@@ -12,7 +12,7 @@
  *
  * @author Derek Lieber
  */
-import MM.VM_WriteBarrier;
+import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
 class Dummy {
   static VM                         a;
   static VM_TableBasedDynamicLinker b;

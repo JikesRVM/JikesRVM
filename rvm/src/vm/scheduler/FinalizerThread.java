@@ -17,7 +17,7 @@
  * @author Dick Attanasio
  * @date 10 Nov 1999 
  */
-import MM.VM_Finalizer;
+import com.ibm.JikesRVM.memoryManagers.VM_Finalizer;
 
 public class FinalizerThread extends VM_Thread 
    {

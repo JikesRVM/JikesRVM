@@ -10,7 +10,7 @@
  * @author   Derek Lieber
  * @modified Steve Smith
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Scheduler;
 import VM_Time;

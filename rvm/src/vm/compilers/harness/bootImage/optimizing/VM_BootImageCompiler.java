@@ -9,7 +9,9 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_BootImageCompiler {
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
+public class VM_BootImageCompiler {
 
   // Identity.
   //
@@ -109,7 +111,7 @@ class VM_BootImageCompiler {
   /**
    * Create stackframe mapper appropriate for this compiler.
    */
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
 

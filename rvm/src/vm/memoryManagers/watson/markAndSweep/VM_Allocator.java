@@ -27,7 +27,7 @@
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  * @modified by Dave Grove Created VM_SegregatedListHeap to factor out common code
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_BootRecord;

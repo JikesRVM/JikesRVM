@@ -15,7 +15,7 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_Constants;

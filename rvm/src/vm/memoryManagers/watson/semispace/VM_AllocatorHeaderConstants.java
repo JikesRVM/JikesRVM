@@ -24,7 +24,7 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 public interface VM_AllocatorHeaderConstants {
   

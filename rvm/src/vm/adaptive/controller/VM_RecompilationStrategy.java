@@ -19,7 +19,7 @@
  *
  * @author Matthew Arnold
  */
-import MM.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 
 abstract class VM_RecompilationStrategy {
 

@@ -14,7 +14,7 @@
  * @see VM_JNICompiler
  * @author Steve Smith
  */
-import MM.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
 public final class VM_JNIGCMapIterator extends MM.VM_GCMapIterator 
     implements VM_BaselineConstants, VM_Uninterruptible {

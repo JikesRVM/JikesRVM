@@ -142,16 +142,16 @@ public class VM_Entrypoints implements VM_Constants {
   static final VM_Field threadHardwareExceptionRegistersField = getField("LVM_Thread;", "hardwareExceptionRegisters", "LVM_Registers;");
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field contiguousHeapCurrentField      = getField("LMM/VM_ContiguousHeap;", "current", "LVM_Address;");
+  public static final VM_Field contiguousHeapCurrentField      = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_ContiguousHeap;", "current", "LVM_Address;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field finalizerListElementValueField   = getField("LMM/VM_FinalizerListElement;", "value", "LVM_Address;");
-  public static final VM_Field finalizerListElementPointerField = getField("LMM/VM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
+  public static final VM_Field finalizerListElementValueField   = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "value", "LVM_Address;");
+  public static final VM_Field finalizerListElementPointerField = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field allocCountField                = getField("LMM/VM_BlockControl;", "allocCount", "I");
+  public static final VM_Field allocCountField                = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;", "allocCount", "I");
   //-#endif
 
   static final VM_Field registersIPField   = getField("LVM_Registers;",   "ip",  "LVM_Address;");
@@ -243,11 +243,11 @@ public class VM_Entrypoints implements VM_Constants {
 
   static final VM_Field edgeCountersField               = getField("LVM_EdgeCounterDictionary;", "values", "[[I");
 
-  static final VM_Method arrayStoreWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
-  static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/VM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
 
 
   static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");

@@ -15,8 +15,8 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import MM.VM_Collector;
-import MM.VM_WriteBarrier;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
 
 public final class VM_Array extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants  {

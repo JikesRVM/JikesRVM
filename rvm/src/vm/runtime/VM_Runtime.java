@@ -41,10 +41,10 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import MM.VM_Collector;
-import MM.VM_Allocator;
-import MM.VM_Finalizer;
-import MM.VM_Heap;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
+import com.ibm.JikesRVM.memoryManagers.VM_Finalizer;
+import com.ibm.JikesRVM.memoryManagers.VM_Heap;
 
 public class VM_Runtime implements VM_Constants {
    

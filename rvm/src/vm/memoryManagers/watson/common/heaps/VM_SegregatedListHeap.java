@@ -22,7 +22,7 @@
  * @see VM_SizeControl
  * @see VM_Processor
  */
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
 import VM_Array;

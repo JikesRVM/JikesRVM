@@ -26,7 +26,7 @@
 
 ///TODO: remove Alloc1, Alloc2, and byte[] alloc.
 //
-package MM;
+package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Address;
 import VM_ObjectModel;
@@ -53,6 +53,6 @@ public final class VM_BlockControl {
   int alloc_size; // allocated length of mark and alloc arrays
   int allocCount; // RCGC number of allocated slots in the block
   
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LMM/VM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   static final VM_Array ARRAY_TYPE = TYPE.getArrayTypeForElementType();
 }
