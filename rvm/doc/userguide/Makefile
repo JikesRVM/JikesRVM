@@ -51,6 +51,7 @@ INPUT_FILES = 	userguide.tex \
 		ack.tex \
 		aosdetails.tex \
 		basedetails.tex \
+		callbacks.tex \
 		cmdline.tex \
 		codingstyle.tex \
 		codingstyle-nonjava.tex \
