@@ -16,7 +16,10 @@ import java.io.IOException;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConstants {
+public final class VM_NormalMethod 
+  extends VM_Method 
+  implements VM_BytecodeConstants 
+{
 
   /* As we read the bytecodes for the method, we compute
    * a simple summary of some interesting properties of the method.
@@ -143,7 +146,8 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
    */
   VM_NormalMethod(VM_Class dc, VM_MemberReference mr,
 		  int mo, VM_TypeReference[] et, int lw, int ow, byte[] bc,
-		  VM_ExceptionHandlerMap eMap, int[] lm) {
+		  VM_ExceptionHandlerMap eMap, int[] lm) 
+  {
     super(dc, mr, mo, et);
     localWords = lw;
     operandWords = ow;
@@ -156,17 +160,19 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   /**
    * Generate the code for this method
    */
-  protected VM_CompiledMethod genCode() {
+  protected VM_CompiledMethod genCode() 
+    throws VerifyError
+  {
     if (VM.VerifyBytecode) {
       VM_Verifier verifier = new VM_Verifier();
-      try {
-        boolean success = verifier.verifyMethod(this);
-        if (!success) {
-          VM.sysWrite("Method " + this + " fails bytecode verification!\n");
-        }
-      } catch(Exception e) {
-        VM.sysWrite("Method " + this + " fails bytecode verification!\n");
-      }
+//       try {
+	verifier.verifyMethod(this);
+//       } catch (VerifyError v) {
+//       	VerifyError ve = new VerifyError("Method " + this.toString() +
+//       	" fails bytecode verification.\n");
+// 	ve.initCause(v);
+// 	throw ve;
+//       }
     }
 
     if (VM.writingBootImage) {
