@@ -2348,7 +2348,9 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lorg/mmtk/utility/MemoryResource;
 	[Lorg/mmtk/utility/statistics/Stats;
 	[Lorg/mmtk/utility/statistics/Counter;
+	[Lorg/mmtk/utility/statistics/EventCounter;
 	[Lorg/mmtk/utility/statistics/LongCounter;
+	[Lorg/mmtk/utility/statistics/SizeCounter;
 	[Lorg/mmtk/utility/statistics/Timer;
 	[Lorg/mmtk/utility/MMType;
 	[Lorg/mmtk/utility/Scan;

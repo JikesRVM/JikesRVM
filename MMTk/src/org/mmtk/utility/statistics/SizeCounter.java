@@ -106,4 +106,18 @@ public class SizeCounter implements VM_Uninterruptible {
     units.stop();
     volume.stop();
   }
+ 
+  /**
+   * Print units
+   */
+  public void printUnits(){
+    units.printTotal();
+  }
+  
+  /**
+   * Print volume
+   */
+  public void printVolume(){
+    volume.printTotal();
+  }
 }
