@@ -327,15 +327,15 @@ function waitFor () {
     if fgrep FAILED $sem; then
 	# fgrep has printed the FAILED message for us.
 	return 2
-    elif fgrep SUCCESS $WAIT; then
+    elif fgrep SUCCESS $sem; then
 	# fgrep has printed the status message for us.
-	if fgrep NEED-LINKING $WAIT > /dev/null ; then
+	if fgrep NEED-LINKING $sem > /dev/null ; then
 	    need_linking=1
 	else
 	    need_linking=0
 	fi
-    elif [[ ! -s $WAIT ]]; then
-	say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
+    elif [[ ! -s $sem ]]; then
+	say "Build succeeded; someone must have manually created the file \"$sem\".  I'll go on."
     else
 	echo "ERROR"
 	say "$sem is not in a recognized format!"
@@ -400,7 +400,7 @@ function doBuild {
 	## The magic strings here in $WAIT are:
 	## FAILED, SUCCESS, and NEED-LINKING
 	if [[ $WAIT ]]; then
-	    say "Leaving a wait marker in \"$WAIT\""
+	    say "Leaving a wait marker in RVM_BUILD/\"$WAIT\""
 	    # Leave a marker to signify the building is done.
 	    if (( failed == 1 )); then
 		echo "SUCCESS Built boot image for $NAME in what must be a cross-platform build. Must still run jbuild -booter to create executable."
@@ -433,6 +433,7 @@ function doBuild {
 	    say "Serious trouble; can not go to RVM_BUILD ($RVM_BUILD)"
 	    return 2
 	fi
+
 	# UMass regression tests do cross-builds
 	# If RVM.image not present, relink.
         #
