@@ -59,7 +59,9 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
       VM_Method staticCallee = state.obtainTarget();
       if (candidateNeedsGuard(caller, staticCallee, state)) {
 	if (opts.GUARDED_INLINE) {
-	  byte guard = chooseGuard(caller, staticCallee, state, !state.isInvokeInterface());
+	  boolean codePatch = opts.guardWithCodePatch() && !state.isInvokeInterface() &&
+	    OPT_InlineTools.isCurrentlyFinal(staticCallee, true);
+	  byte guard = chooseGuard(caller, staticCallee, state, codePatch);
 	  if (guard == OPT_Options.IG_METHOD_TEST) {
 	    // see if we can get away with the cheaper class test on the actual target 
 	    guard = chooseGuard(caller, callee, state, false);
