@@ -217,7 +217,7 @@ public class VM_HardwarePerformanceMonitors
 	  int verbose_level = Integer.parseInt(value);
 	  if (verbose_level < -1) {
 	    VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:verbose=verbose_level where verbose_level >= -1 is the correct syntax");
-	    VM.shutdown(exitStatusBogusCommandLineArg);
+	    VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	  }
 	  verbose = verbose_level;
 	} catch (Exception e) {
