@@ -77,10 +77,10 @@ export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/
 #export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
 
 # the JDK Javadoc executable
-export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
+export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
 
 # the JDK javac executable
-export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
+export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"
 
 # the JDK jar executable
 export JAR="$HOST_JAVA_HOME/bin/jar"
@@ -89,12 +89,13 @@ export JAR="$HOST_JAVA_HOME/bin/jar"
 export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 
 # the JDK tools jar
-export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
+export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 ## CLASSPATH_INSTALLATION
 ## If you built GNU Classpath 0.12 with the default install directory (if
 ## unspecified, "--prefix=/usr/local/classpath" is implied) and
 ## installed it with "make install", then uncomment this line:
+#
 # export CLASSPATH_INSTALLATION=/usr/local/classpath
 
 ## If you have classpath 0.10 or Classpath 0.11 already unpacked and built,
@@ -220,8 +221,7 @@ export UNZIP_CMD="/usr/bin/unzip"
 ## so, though.)
 # export XALAN_J_DIR="/usr/local/xalan-j_2_6_0"
 
-# ANT is only used by the jbuild.plugin build script.
-## We use Ant 1.6.2 for our testing; later versions should work as well.
+## ANT is only used by the jbuild.plugin build script.
 ## Uncomment this if you have Ant installed, and edit it appropriately.
 # export ANT_CMD=$ANT_HOME/bin/ant
 

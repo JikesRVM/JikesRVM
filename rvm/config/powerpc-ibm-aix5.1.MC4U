@@ -34,6 +34,12 @@ export RVM_WITH_HPM=1
 
 ##########
 # PART II: Where to find tools and resources on this target
+#
+# The configuration process can make use of auto-guessing features in
+# the RVM_ROOT/rvm/bin/jconfigure program.  You can see the results of
+# its guesses in "RVM_BUILD/environment.host".  (This particular file
+# doesn't use those features, though, since they won't work if
+# you're doing a cross-build.)
 ########## 
 
 # Root of JDK installation.
@@ -59,35 +65,72 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 ## CLASSPATH_INSTALLATION
-## If you built GNU Classpath with the default install directory (if
+## If you built GNU Classpath 0.12 with the default install directory (if
 ## unspecified, "--prefix=/usr/local/classpath" is implied) and
 ## installed it with "make install", then uncomment this line:
 #
 # export CLASSPATH_INSTALLATION=/usr/local/classpath
 
-## If you don't have such an installation (most people don't), 
-## you can *instead* set CLASSPATH_ROOT: 
+## If you have classpath 0.10 or Classpath 0.11 already unpacked and built,
+## then you can use them instead:
 
-# CLASSPATH_ROOT: Directory containing the unpacked and built sources 
-# for GNU Classpath 0.12
-# (current stable version of Classpath)
-# Uncomment this line only if you manually downloaded the Classpath sources.
+# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.10
+# export RVM_WITH_CLASSPATH_0_10=1
+
+# export CLASSPATH_INSTALLATION=/usr/local/classpath-0.11
+# export RVM_WITH_CLASSPATH_0_11=1
+
+## OR, if you built GNU Classpath but haven't 
+## installed it (most people haven't), you can set
+## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
+## *and* set CLASSPATH_BUILD_DIR to the directory
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran $GNU_MAKE
+
+# export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
+# export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
+
+## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
+
+## CLASSPATH_ROOT: Directory containing the unpacked and (optionally built) 
+## sources for GNU Classpath 0.12 (current stable version of Classpath)
+
+## If you manually downloaded the Classpath sources, then unpack them
+## into $CLASSPATH_ROOT and rename the newly extracted source
+## directory "classpath-0.12" to "classpath".  (If you haven't
+## manually downloaded the Classpath sources, then the Jikes RVM build
+## process will automatically do so for you, and will use
+## CLASSPATH_ROOT if you've set it.)
+
+## The Jikes RVM build process will expect to automatically take 
+## care of building Classpath from those sources, if you want.
+# export CLASSPATH_ROOT=/opt/classpath-0.12
 export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.12
 
-## OR you can leave all of the CLASSPATH_ variables unset and let the build 
-## process download and build GNU Classpath for you.
+## OR you can leave all of the CLASSPATH_ variables unset and let the
+## build process download and build GNU Classpath for you.  This
+## behaves as if you had set CLASSPATH_ROOT to "$RVM_ROOT/classpath".
+## This will work.  I don't recommend doing it more than once, though
+## -- if you and others are all working on Jikes RVM, then please just
+## put Classpath in one place you can share.
+## You will also have to make sure that variable WGET has a rational value,
+## so tha the downloading will work.  (It's only used to retrieve GNU
+## classpath, so you can ignore it otherwise.)
+export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 
 # Path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
 # Try Jikes 1.13 if you have trouble figuring out the error messages
-# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20.  
-# We haven't tested Jikes 1.21 yet. 
+# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20 or 1.21.
 export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.19
 
-# What C/C++ compiler should be used?
+## What C compiler should be used?  We only use the GNU C compiler
+## on the project, although it is possible that other compilers might work.
+##
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
+
+## What C++ compiler should be used?
 export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc"
 
 # how to link a shared C++ library (possibly also recompile one 
@@ -113,7 +156,6 @@ export GREP="/usr/gnu/bin/grep"
 export MD5SUM="/usr/gnu/bin/md5sum"
 export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
-export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
 
 export ZIP_CMD="/usr/bin/zip"
@@ -122,11 +164,30 @@ export UNZIP_CMD="/usr/bin/unzip"
 ##########
 # PART III: Additional variables for running Eclipse on Jikes RVM
 ########## 
-# These are used only by the jbuild.plugin build script.
 
+## Uncomment this and set it to the directory created when you extracted
+## eclipse-SDK-3.0.1-aix-motif.zip
+
+## (Eclipse extracts itself into a directory named "eclipse",
+##  without a version number.)
+# export ECLIPSE_INSTALL_DIR="$HOME/Eclipse-3.0/eclipse"
+
+## To run Eclipse on Jikes RVM, you will need to use the Xalan XML parser.
+## Setting up to use Xalan may also help you run other programs
+## under Jikes RVM.
+##
+## We tested using XALAN 2.6.0; visit http://xml.apache.org/xalan-j/
+## and download the "Xalan Java binary distribution", since that
+## distribution has Xerces packaged with it.  The file is
+## xalan-j_2_6_0-bin.tar.gz.
+
+## Unlike how we treat the Classpath .jar file and .so files, we don't
+## copy Xalan into $RVM_BUILD.  (We could easily modify the build system to do
+## so, though.)
+# export XALAN_J_DIR="/usr/local/xalan-j_2_6_0"
+
+## ANT is only used by the jbuild.plugin build script.
 export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
-
-export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
 
 ##########
 # PART IV: Miscellaneous variables.
