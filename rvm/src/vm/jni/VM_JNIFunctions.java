@@ -5591,8 +5591,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetByteArrayElements (int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetByteArrayElements  \n");
-
+    if (verboseJNI) {
+	VM.sysWrite("JNI called: GetByteArrayElements for ");
+	VM.sysWrite(arrayJREF);
+	VM.sysWrite(":");
+    }
 
     VM_JNIEnvironment env;
     try {
@@ -5624,11 +5627,22 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 	}
       }
 
+      if (verboseJNI) {
+	  VM.sysWrite("returing ");
+	  VM.sysWrite(copyBuffer);
+	  VM.sysWrite("\n");
+      }
+
       return copyBuffer;
     
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
+
+      if (verboseJNI) {
+	  VM.sysWrite("returing 0\n");
+      }
+
       return VM_Address.zero();
     }
     
