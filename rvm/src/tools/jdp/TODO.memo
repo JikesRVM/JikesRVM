@@ -82,7 +82,8 @@ of priority.
   - bug: On Lintel sometimes see a message about a scanCompiledMethodIdTable
     error
   - bug: With a BaseOpt or OptOpt build, step often seems to execute a lot
-    more than one instruction
+    more than one instruction. This keeps us from including a jdp test in
+    the overnight build with a FullOpt build.
   - expansion: Currently setting a break point for a method defaults to 
     after the prologue of the method (if no line number is given). But 
     single stepping into a call means stepping through the instructions of
@@ -122,6 +123,14 @@ of priority.
    -expansion: It would be nice if the clearbreak command could take a number
     to indicate clear the nth breakpoint. This would need to be coordinated
     with the break command which is used to display the existing break points.
+
+17) Regression testing:
+   - bug: The regression test jdp fails with different behaviour on each run
+     with FullOptCopyGenVariable. It is step that is not behaving consistently
+     and sometimes results in a NegativeArraySize Exception in 
+     mapVM.getVMAtomString at the new byte[size] statement.
+
+
 
 
   
