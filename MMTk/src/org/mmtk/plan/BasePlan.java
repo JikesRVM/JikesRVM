@@ -628,7 +628,9 @@ public abstract class BasePlan
   public static void collectionComplete() throws VM_PragmaUninterruptible {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(collectionsInitiated > 0);
-    collectionsInitiated--;
+    // FIXME The following will probably break async GC.  A better fix
+    // is needed
+    collectionsInitiated = 0;
   }
 
   /**
