@@ -142,14 +142,14 @@ abstract class VM_Heap
   /**
    * How big is the heap (in bytes)
    */
-  public int getSize() {
+  public final int getSize() {
     return size;
   }
 
   /**
    * Zero the entire heap
    */
-  public void zero() {
+  public final void zero() {
     if (VM.VerifyAssertions) VM.assert(VM_Memory.roundDownPage(size) == size);
     VM_Memory.zeroPages(start, size);
   }
@@ -157,7 +157,7 @@ abstract class VM_Heap
   /**
    * Zero the portion of the s ..e range of this heap that is assigned to the given processor
    */
-  public void zeroParallel(VM_Address s, VM_Address e) {
+  public final void zeroParallel(VM_Address s, VM_Address e) {
     if (VM.VerifyAssertions) VM.assert(s.GE(start));
     if (VM.VerifyAssertions) VM.assert(e.LE(end));
     int np = VM_CollectorThread.numCollectors();
@@ -244,19 +244,19 @@ abstract class VM_Heap
     setAuxiliary();
   }
 
-  public void protect() {
+  public final void protect() {
     VM_Memory.mprotect(start, size, VM_Memory.PROT_NONE);
   }
     
-  public void unprotect() {
+  public final void unprotect() {
     VM_Memory.mprotect(start, size, VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
     
-  public boolean refInHeap(VM_Address ref) {
+  public final boolean refInHeap(VM_Address ref) {
     return ref.GE(minRef) && ref.LE(maxRef);
   }
 
-  public boolean addrInHeap(VM_Address addr) {
+  public final boolean addrInHeap(VM_Address addr) {
     return addr.GE(start) && addr.LT(end);
   }
 
@@ -284,13 +284,13 @@ abstract class VM_Heap
       VM_Magic.setMemoryWord(start.add(i), 0);
   }
 
-  public void clobber() { clobber(start, end); }
+  public final void clobber() { clobber(start, end); }
 
   /**
    * Scan this heap for references to the target heap and report them
    * This is approximate since the scan is done without type information.
    */
-  public int paranoidScan(VM_Heap target, boolean show) {
+  public final int paranoidScan(VM_Heap target, boolean show) {
     int count = 0;
     VM.sysWrite("Checking heap "); showRange(); 
     VM.sysWrite(" for references to "); target.showRange(); VM.sysWriteln();
@@ -324,7 +324,7 @@ abstract class VM_Heap
    *
    * @return the reference for the allocated object
    */
-  public Object allocateScalar(VM_Class type) {
+  public final Object allocateScalar(VM_Class type) {
     if (VM.VerifyAssertions) VM.assert(type.isInitialized());
     int size = type.getInstanceSize();
     Object[] tib = type.getTypeInformationBlock();
@@ -341,7 +341,7 @@ abstract class VM_Heap
    *
    * @return the reference for the allocated array object 
    */
-  public Object allocateArray(VM_Array type, int numElements) {
+  public final Object allocateArray(VM_Array type, int numElements) {
     if (VM.VerifyAssertions) VM.assert(type.isInitialized());
     int size = type.getInstanceSize(numElements);
     Object[] tib = type.getTypeInformationBlock();
@@ -357,8 +357,8 @@ abstract class VM_Heap
    *
    * @return the reference for the allocated object
    */
-  public Object allocateScalar(int size, Object[] tib)
-    throws OutOfMemoryError {
+  public final Object allocateScalar(int size, Object[] tib)
+    throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */ {
     VM_Address region = allocateZeroedMemory(size);
     VM_GCStatistics.profileAlloc(region, size, tib); // profile/debug; usually inlined away to nothing
     Object newObj = VM_ObjectModel.initializeScalar(region, tib, size);
@@ -377,8 +377,8 @@ abstract class VM_Heap
    *
    * @return the reference for the allocated array object 
    */
-  public Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError {
+  public final Object allocateArray (int numElements, int size, Object[] tib)
+    throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */ {
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
     size = VM_Memory.align(size, WORDSIZE);

@@ -637,7 +637,7 @@
 
   }
 
-  public String toString() {
+  public final String toString() {
     return getName().toString();
   }
 

@@ -556,7 +556,7 @@ EOF
     else
 	cat >> $FILENAME <<EOF
     // $opStr ${code} reg
-    void emit${acronym}_Reg${ext}(byte reg) {
+    final void emit${acronym}_Reg${ext}(byte reg) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	emitRegRegOperands(reg, (byte) $rmOpExt);
@@ -566,7 +566,7 @@ EOF
     fi
     cat >> $FILENAME <<EOF
     // $opStr ${code} [reg + disp]
-    void emit${acronym}_RegDisp${ext}(byte reg, int disp) {
+    final void emit${acronym}_RegDisp${ext}(byte reg, int disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -575,7 +575,7 @@ EOF
     }
 
     // $opStr ${code} [reg]
-    void emit${acronym}_RegInd${ext}(byte reg) {
+    final void emit${acronym}_RegInd${ext}(byte reg) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -584,7 +584,7 @@ EOF
     }
 
     // $opStr ${code} [index<<scale + disp]
-    void emit${acronym}_RegOff${ext}(byte index, short scale, int disp) {
+    final void emit${acronym}_RegOff${ext}(byte index, short scale, int disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -593,7 +593,7 @@ EOF
     }
 
     // $opStr ${code} [disp]
-    void emit${acronym}_Abs${ext}(int disp) {
+    final void emit${acronym}_Abs${ext}(int disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -602,7 +602,7 @@ EOF
     }
 
     // $opStr ${code} [base + index<<scale + disp]
-    void emit${acronym}_RegIdx${ext}(byte base, byte index, short scale, int disp) {
+    final void emit${acronym}_RegIdx${ext}(byte base, byte index, short scale, int disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -1590,7 +1590,7 @@ opExt=$3
 
 cat >> $FILENAME <<EOF
   // load ${value} into FP0
-  void emit${opcode}_Reg(byte dstReg) {
+  final void emit${opcode}_Reg(byte dstReg) {
     if (VM.VerifyAssertions) VM.assert(dstReg == FP0);
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0xD9);
