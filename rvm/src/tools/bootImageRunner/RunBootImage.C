@@ -376,8 +376,8 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }
       continue;
     }       
-    if (!strncmp(token, "-X:sysLogFile=",14)) {
-      subtoken = token + 13;
+    if (!strncmp(token, "-X:sysLogfile=",14)) {
+      subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");
       if (!ftmp) {
 	fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\"\n", me, subtoken);
