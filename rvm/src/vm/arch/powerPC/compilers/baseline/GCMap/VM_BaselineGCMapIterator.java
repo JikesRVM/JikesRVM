@@ -131,8 +131,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       bridgeParameterIndex   = bridgeParameterInitialIndex;
       bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
       bridgeRegisterLocation = VM_Magic.getMemoryAddress(framePtr);
-      bridgeRegisterLocation = bridgeRegisterLocation.sub(8 * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
-                                                          4 * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
+      bridgeRegisterLocation = bridgeRegisterLocation.sub(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
+                                                          BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
     }
   }
 
@@ -180,8 +180,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       if (bridgeParameterIndex == -1) {
         bridgeParameterIndex   += 1;
         bridgeRegisterIndex    += 1;
-        bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-        return bridgeRegisterLocation.sub(4);
+        bridgeRegisterLocation = bridgeRegisterLocation.add(BYTES_IN_ADDRESS);
+        return bridgeRegisterLocation.sub(BYTES_IN_ADDRESS);
       }
          
       // now the remaining parameters
@@ -194,17 +194,17 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
         VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
         if (bridgeParameterType.isReferenceType()) {
           bridgeRegisterIndex    += 1;
-          bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-          return bridgeRegisterLocation.sub(4);
+          bridgeRegisterLocation = bridgeRegisterLocation.add(BYTES_IN_ADDRESS);
+          return bridgeRegisterLocation.sub(BYTES_IN_ADDRESS);
         } else if (bridgeParameterType.isLongType()) {
-          bridgeRegisterIndex    += 2;
-          bridgeRegisterLocation = bridgeRegisterLocation.add(8);
+          bridgeRegisterIndex += VM.BuildFor64Addr ? 1 : 2;
+          bridgeRegisterLocation = bridgeRegisterLocation.add(BYTES_IN_LONG);
         } else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
           // no gpr's used
         } else {
           // boolean, byte, char, short, int
           bridgeRegisterIndex    += 1;
-          bridgeRegisterLocation = bridgeRegisterLocation.add(4);
+          bridgeRegisterLocation = bridgeRegisterLocation.add(BYTES_IN_ADDRESS);
         }
       }
     }
