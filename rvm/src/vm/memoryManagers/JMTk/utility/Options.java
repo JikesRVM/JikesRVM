@@ -20,11 +20,9 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Options implements VM_Uninterruptible, Constants {
 
-  static int initialHeapSize = 100 * (1 << 20);
-  static int maxHeapSize     = 500 * (1 << 20);
+  public static int initialHeapSize; // set by MM_Interface.boot
+  public static int maxHeapSize;     // set by MM_Interface.boot
 
-  static int heapSize         = 0; // deprecated
-  static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = MAX_INT;  // default to variable nursery
   static int metaDataPages    = 128;  // perform GC if metadata >= 512K
   static int cycleMetaDataPages = MAX_INT;  // default to no cycle m/data limit
@@ -47,13 +45,7 @@ public class Options implements VM_Uninterruptible, Constants {
       String tmp = arg.substring(8);
       int size = Integer.parseInt(tmp);
       if (size <= 0) VM_Interface.sysFail("Unreasonable heap size " + tmp);
-      heapSize = size * (1 << 20);
-    }
-    else if (arg.startsWith("los=")) {  // deprecated
-      String tmp = arg.substring(4);
-      int size = Integer.parseInt(tmp);
-      if (size <= 0) VM_Interface.sysFail("Unreasonable large heap size " + tmp);
-      largeHeapSize = size * (1 << 20);  
+      initialHeapSize = size * (1 << 20);
     }
     else if (arg.startsWith("max=")) {
       String tmp = arg.substring(4);
@@ -98,8 +90,7 @@ public class Options implements VM_Uninterruptible, Constants {
     }
     else 
       VM_Interface.sysWriteln("Ignoring unknown GC option: ",arg);
-    if (heapSize != 0) // if deprecated interface is used
-      initialHeapSize = heapSize + largeHeapSize;
+
     if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
     if (VM_Extent.fromInt(maxHeapSize).GT(Plan.MAX_SIZE)) {
 	VM_Interface.sysWriteln("Specified heap size ",maxHeapSize >>> 20);

@@ -14,11 +14,9 @@ BENCH_CLASS_PATH=$(BENCH_HOME)
 START_NAME=SpecApplication
 
 ifeq ($(MODE),PERFORMANCE)
-  HEAPSIZE=400
-  LHEAPSIZE=100
+  HEAPSIZE=500
 else
   HEAPSIZE=300
-  LHEAPSIZE=50
 endif
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules

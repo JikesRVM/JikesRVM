@@ -81,22 +81,6 @@ public class VM_Properties extends VM_Configuration {
   public static boolean MeasureCompilation = false;  
 
   /**
-   * The following is set on by -X:measureClassLoading=<integer> command line arg.
-   * The following are valid values for integer:
-   *   
-   *  1 : Dump at the end of a run
-   *  2 : Dump after each class load
-   */
-  public static int MeasureClassLoading     = 0;  
-
-  /**
-   * Returns whether we should measure class loading or not.
-   */
-  public final static boolean MeasureClassLoading() {
-    return MeasureClassLoading == 1 || MeasureClassLoading == 2;
-  }
-
-  /**
    * Accumulate per java thread CPU time.
    * Used by AOS and MeasureCompilation to get accurate compilation times.
    */

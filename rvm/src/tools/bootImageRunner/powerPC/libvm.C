@@ -600,14 +600,8 @@ void *bootThreadCaller(void *);
 // startup configuration option with default values
 char *bootFilename     = 0;
 int verboseGC = 0;
-unsigned smallHeapSize = 20 * 1024 * 1024; // megs
-// make large heap size a percent of small heap, or what was specified
-// unsigned largeHeapSize = 10 * 1024 * 1024; // megs
-//
-unsigned largeHeapSize = 0;                // megs
-
-unsigned nurserySize   = 10 * 1024 * 1024; // megs
-unsigned permanentHeapSize = 0;
+unsigned initialHeapSize = 20 * 1024 * 1024; // megs
+unsigned maximumHeapSize = 0;                // megs
 
 unsigned traceClassLoading = 0;
  
@@ -747,9 +741,8 @@ int createJVM(int vmInSeparateThread) {
    // set freespace information into boot record
    //
    bootRecord.verboseGC        = verboseGC;
-   bootRecord.nurserySize      = nurserySize;
-   bootRecord.smallSpaceSize   = smallHeapSize;
-   bootRecord.largeSpaceSize   = largeHeapSize;
+   bootRecord.initialHeapSize  = initialHeapSize;
+   bootRecord.maximumHeapSize  = maximumHeapSize;
    bootRecord.bootImageStart   = (int) bootRegion;
    bootRecord.bootImageEnd     = (int) bootRegion + roundedImageSize;
   
@@ -778,9 +771,8 @@ int createJVM(int vmInSeparateThread) {
       fprintf(SysTraceFile, "%s: boot record contents:\n", me);
       fprintf(SysTraceFile, "   bootImageStart:       0x%08lx\n",   bootRecord.bootImageStart);
       fprintf(SysTraceFile, "   bootImageEnd:         0x%08lx\n",   bootRecord.bootImageEnd);
-      fprintf(SysTraceFile, "   smallSpaceSize:       0x%08lx\n",   bootRecord.smallSpaceSize);
-      fprintf(SysTraceFile, "   largeSpaceSize:       0x%08lx\n",   bootRecord.largeSpaceSize);
-      fprintf(SysTraceFile, "   nurserySize:          0x%08lx\n",   bootRecord.nurserySize);
+      fprintf(SysTraceFile, "   initialHeapSize:      0x%08lx\n",   bootRecord.initialHeapSize);
+      fprintf(SysTraceFile, "   maximumHeapSize:      0x%08lx\n",   bootRecord.maximumHeapSize);
       fprintf(SysTraceFile, "   tiRegister:           0x%08lx\n",   bootRecord.tiRegister);
       fprintf(SysTraceFile, "   spRegister:           0x%08lx\n",   bootRecord.spRegister);
       fprintf(SysTraceFile, "   ipRegister:           0x%08lx\n",   bootRecord.ipRegister);

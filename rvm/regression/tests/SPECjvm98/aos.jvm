@@ -122,7 +122,7 @@ sampleSize=10
 ###############################
 # set up command line arguments
 # notify_vm_complete and measureCompilation results in compilation statistics
-jvm_options="-X:lh=50 -X:h=250 -X:processors=$numProcessors -X:aos:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -X:aos:initial_sample_size=$sampleSize -verbose:gc"
+jvm_options="-X:h=250 -X:processors=$numProcessors -X:aos:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -X:aos:initial_sample_size=$sampleSize -verbose:gc"
 
 # don't append ":." because it doesn't work, and don't need ./cp
 cp="-classpath $RVM_SPECJVM98"

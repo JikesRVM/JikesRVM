@@ -15,7 +15,6 @@ include		$(RVM_BUILD)/Make.rules
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/jni
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=64
-LHEAPSIZE=32
 START_NAME=
 EXPECTED=
 BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"

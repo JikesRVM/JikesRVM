@@ -83,9 +83,6 @@ ifneq (x$(HEAPSIZE),x)
   RVM_ARGS += -X:h=$(HEAPSIZE)
   JDK_ARGS += -Xmx$(HEAPSIZE)M
 endif
-ifneq (x$(LHEAPSIZE),x)
-  RVM_ARGS += -X:lh=$(LHEAPSIZE)
-endif
 RVM_ARGS += $(RC_ARGS)
 
 ifneq (x$(BOOTNAME),x)

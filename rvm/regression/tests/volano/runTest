@@ -54,7 +54,7 @@ if [ $JVM = jdk ]; then
   $HOST_JAVA_RT $CLASSES COM.volano.Test $*
 
 elif [ $JVM = jpn ]; then
-  jalapeno $ARGS -X:h=80 -X:lh=80 $CLASSES COM.volano.Test $*
+  jalapeno $ARGS -X:h=80 $CLASSES COM.volano.Test $*
 
 else
   echo "Usage: $0 [-jvm {jdk | jpn | j9} -procs n -classes <cp>] <args>"

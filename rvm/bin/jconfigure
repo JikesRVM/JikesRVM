@@ -255,7 +255,7 @@ JIKESRVM_VERSION="Jikes Research VM for Java post 2.2.1 (CVS)"
 # To change the defaults for a paricular configuration, 
 # redefine appropriate environment variables in the configuration's stanza.
 #
-SMALL_HEAP_DEFAULT_SIZE=20	# in millions
+DEFAULT_HEAP_SIZE=20	# in megabytes
 
 # Here are the choices for target architecture.
 #
@@ -1844,7 +1844,7 @@ function emitBooterLinker
 
    # Create RunBootImage.h file.
    print "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
-   print "echo \"int small_heap_default_size = $SMALL_HEAP_DEFAULT_SIZE;\" >> RunBootImage.h"
+   print "echo \"int heap_default_size = $DEFAULT_HEAP_SIZE;\" >> RunBootImage.h"
    print "echo \"char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> RunBootImage.h"
    print "echo \"char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
    print "echo \"char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"

@@ -125,11 +125,13 @@ public class VM_BootRecord {
   public VM_Address bootImageEnd;
 
   /**
-   * size of various spaces in bytes
+   * initial size of heap
    */
-  public int smallSpaceSize; 	    // Always present
-  public int largeSpaceSize; 	    // Almost always present
-  public int nurserySize;          // Present in generational collectors
+  public int initialHeapSize;
+  /**
+   * maximum size of heap
+   */
+  public int maximumHeapSize;
 
   // int[] should be VM_Address[] but compiler erroneously emits barriers
   public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]

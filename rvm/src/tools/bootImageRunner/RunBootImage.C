@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+
 /*
  * C runtime support for virtual machine.
  *
@@ -78,10 +79,8 @@ extern int lib_verbose;
 extern char *bootFilename;
 extern char *me;
 
-extern unsigned smallHeapSize;  // megs
-extern unsigned largeHeapSize;  // megs
-extern unsigned nurserySize;    // megs
-extern unsigned permanentHeapSize;
+extern unsigned initialHeapSize;
+extern unsigned maximumHeapSize;
 
 extern unsigned traceClassLoading;
 
@@ -94,7 +93,7 @@ int DEBUG = 0;
 char * emptyString = "";
 
 /*
- * What command line arguments are supported?
+ * What standard command line arguments are supported?
  */
 void usage() 
 {
@@ -108,7 +107,7 @@ void usage()
   fprintf(SysTraceFile,"    -D<name>=<value>\n");
   fprintf(SysTraceFile,"              set a system property\n");
   fprintf(SysTraceFile,"    -verbose[:class|:gc|:jni]\n");
-  fprintf(SysTraceFile,"              enable verbose output (:jni not supported)\n");
+  fprintf(SysTraceFile,"              enable verbose output\n");
   fprintf(SysTraceFile,"    -version  print version\n");
   fprintf(SysTraceFile,"    -showversion\n");
   fprintf(SysTraceFile,"              print version and continue\n");
@@ -290,8 +289,8 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       fprintf(SysTraceFile, "configurations: host %s\n\t target %s\n",
 	      rvm_host_configuration, rvm_target_configuration);
-      fprintf(SysTraceFile, "small heap default size: %d MBytes\n",
-	      small_heap_default_size);
+      fprintf(SysTraceFile, "heap default size: %d MBytes\n",
+	      heap_default_size);
       *fastExit = 1; break;
     }
     if (!strcmp(token, "-showversion")) {
@@ -321,11 +320,21 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       }
       continue;
     }
-    if (!strncmp(token, nonStandardArgs[SMALL_HEAP_INDEX], 5)) {
+    if (!strncmp(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
       subtoken = token + 5;
-      smallHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (smallHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
+      initialHeapSize = atoi(subtoken) * 1024 * 1024;
+      if (initialHeapSize <= 0) {
+	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
+	*fastExit = 1; break;
+      }
+      JCLAs[n_JCLAs++]=token;
+      continue;
+    }
+    if (!strncmp(token, nonStandardArgs[MS_INDEX], 4)) {
+      subtoken = token + 4;
+      initialHeapSize = atoi(subtoken) * 1024 * 1024;
+      if (initialHeapSize <= 0) {
+	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-Xms<number>\"\n", me);
 	*fastExit = 1; break;
       }
       JCLAs[n_JCLAs++]=token;
@@ -333,43 +342,15 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     if (!strncmp(token, nonStandardArgs[MX_INDEX], 4)) {
       subtoken = token + 4;
-      smallHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (smallHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
+      maximumHeapSize = atoi(subtoken) * 1024 * 1024;
+      if (maximumHeapSize <= 0) {
+	fprintf(SysTraceFile, "%s: please specify maximum heap size (in megabytes) using \"-Xmx<number>\"\n", me);
 	*fastExit = 1; break;
       }
       JCLAs[n_JCLAs++]=token;
       continue;
     }
-    if (!strncmp(token, nonStandardArgs[LARGE_HEAP_INDEX], 6)) {
-      subtoken = token + 6;
-      largeHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (largeHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify large object heap size (in megabytes) using \"-X:lh=<number>\"\n", me);
-	*fastExit = 1; break;
-      }
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
-    if (!strncmp(token, nonStandardArgs[NURSERY_HEAP_INDEX], 6)) {
-      subtoken = token + 6;
-      nurserySize = atoi(subtoken) * 1024 * 1024;
-      if (nurserySize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify nursery size (in megabytes) using \"-X:nh=<number>\"\n", me);
-	*fastExit = 1; break;
-      }
-      continue;
-    }
-    if (!strncmp(token, nonStandardArgs[PERM_HEAP_INDEX], 6)) {
-      subtoken = token + 6;
-      permanentHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (permanentHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify permanent heap size (in megabytes) using \"-X:ph=<number>\"\n", me);
-	*fastExit = 1; break;
-      }
-      continue;
-    } 
-      
+
     if (!strncmp(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
       subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");
@@ -422,11 +403,9 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	!strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
 	!strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
 	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)  ||
-	!strncmp(token, nonStandardArgs[WBSIZE_INDEX], 10)      ||
 	!strncmp(token, nonStandardArgs[MEASURE_COMPILATION_INDEX], 22) ||  
-	!strncmp(token, nonStandardArgs[MEASURE_CLASS_LOADING_INDEX], 23) ||     
 	!strncmp(token, nonStandardArgs[VERIFY_INDEX], 10)  
-       ) {
+	) {
       JCLAs[n_JCLAs++]=token;
       continue;
     }
@@ -469,7 +448,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
  * TO DO:
  * Standardize all VM directives
  *   specified as one token with a name value pair specified as name=value.
- *   for example, -h, -lh, and -i. (Look in VM.java for others!)
+ *   for example, -h, and -i. (Look in VM.java for others!)
  * Add support for all standard JDK 1.3 options; 
  *   for example, -jar.
  */
@@ -481,21 +460,13 @@ main(int argc, char **argv)
   SysTraceFd   = 2;
   
   me            = basename(*argv++);
-  bootFilename  = 0;
-  smallHeapSize = small_heap_default_size*1024*1024; // 20 * 1024 * 1024; // megs
-  // if large heap default size is 0 then 
-  //  make large heap size at least 10 Meg or a percent of small heap
-  // unsigned largeHeapSize = 10 * 1024 * 1024; // megs
-  //
-  largeHeapSize = 0;
-  nurserySize   = 10 * 1024 * 1024; // megs
-  permanentHeapSize = 0;
+  initialHeapSize = heap_default_size*1024*1024; // megs
   
   /*
    * Debugging: print out command line arguments.
    */
   if (DEBUG) {
-     printf("RunBootImage.main(): process %d command line arguments\n",argc);
+    printf("RunBootImage.main(): process %d command line arguments\n",argc);
     for (int j=0; j<argc; j++) {
       printf("\targv[%d] is \"%s\"\n",j,*(argv+j));
     }
@@ -508,18 +479,20 @@ main(int argc, char **argv)
     return 1;
   }
 
+  if (maximumHeapSize == 0) {
+    maximumHeapSize = initialHeapSize;
+  }
+
+  if (maximumHeapSize < initialHeapSize) {
+    fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
+	    me, initialHeapSize/(1024*1024), maximumHeapSize/(1024*1024));
+    return 1;
+  }
+
   if(DEBUG){
     printf("\nRunBootImage.main(): VM variable settings\n");
-    printf("smallHeapSize %d\nlargeHeapSize %d\nnurserySize %d\npermanentHeapSize %d\nbootFileName |%s|\nlib_verbose %d\n",
-	   smallHeapSize,largeHeapSize,nurserySize, permanentHeapSize, bootFilename,
-	   lib_verbose);
-  }
-  // Now find a reasonable value for large object heap
-  // 
-  if (largeHeapSize == 0) {
-    largeHeapSize = smallHeapSize >> 2;
-    if (largeHeapSize < (10 * 1024 * 1024))
-      largeHeapSize = 10 * 1024 * 1024;
+    printf("initialHeapSize %d\nmaxHeapSize %d\nbootFileName |%s|\nlib_verbose %d\n",
+	   initialHeapSize, maximumHeapSize, bootFilename, lib_verbose);
   }
 
   if (!bootFilename) {
@@ -533,16 +506,12 @@ main(int argc, char **argv)
     return 1;
   }
 
-  // remember remaining command line arguments for later use by boot image
-  //
-  //   JavaArgs = argv;
-
   JavaArgs = Arguments;
 
   createJVM(0);
-   
-   // not reached
-   //
+  
+  // not reached
+  //
   fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", me);
   exit(1);
 }

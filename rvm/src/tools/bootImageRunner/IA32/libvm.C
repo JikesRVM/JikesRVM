@@ -629,11 +629,8 @@ void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
 /* startup configuration option with default values */
 char *bootFilename = 0;
 int verboseGC = 0;
-unsigned smallHeapSize = 20 * 1024 * 1024;	/* megs */
-unsigned largeHeapSize = 10 * 1024 * 1024;	/* megs */
-
-unsigned nurserySize = 10 * 1024 * 1024;	/* megs */
-unsigned permanentHeapSize = 0;
+unsigned initialHeapSize = 20*1024*1024; // megs
+unsigned maximumHeapSize = 0;
 
 /* timer tick interval, in milliseconds     (10 <= delay <= 999) */
 static int TimerDelay = 10;
@@ -652,12 +649,12 @@ createJVM (int vmInSeparateThread)
 
   if (lib_verbose)
   {
-  fprintf(SysTraceFile, "IA32 linux build");
-  #if (defined __linuxsmp__)
-    fprintf(SysTraceFile, " for SMP\n");
-  #else
-    fprintf(SysTraceFile, "\n");
-  #endif
+    fprintf(SysTraceFile, "IA32 linux build");
+    #if (defined __linuxsmp__)
+      fprintf(SysTraceFile, " for SMP\n");
+    #else
+      fprintf(SysTraceFile, "\n");
+    #endif
   }
 
   /* open and mmap the image file. 
@@ -748,9 +745,8 @@ createJVM (int vmInSeparateThread)
 
   /* write freespace information into boot record */
    bootRecord->verboseGC        = verboseGC;
-   bootRecord->nurserySize      = nurserySize;
-   bootRecord->smallSpaceSize   = smallHeapSize;
-   bootRecord->largeSpaceSize   = largeHeapSize;
+   bootRecord->initialHeapSize  = initialHeapSize;
+   bootRecord->maximumHeapSize  = maximumHeapSize;
    bootRecord->bootImageStart   = (int) bootRegion;
    bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
   
@@ -762,9 +758,8 @@ createJVM (int vmInSeparateThread)
     fprintf (SysTraceFile, "%s: boot record contents:\n", me);
     fprintf (SysTraceFile, "   bootImageStart:       0x%08x\n", bootRecord->bootImageStart);
     fprintf (SysTraceFile, "   bootImageEnd:         0x%08x\n", bootRecord->bootImageEnd);
-    fprintf (SysTraceFile, "   smallSpaceSize:       0x%08x\n", bootRecord->smallSpaceSize);
-    fprintf (SysTraceFile, "   largeSpaceSize:       0x%08x\n", bootRecord->largeSpaceSize);
-    fprintf (SysTraceFile, "   nurserySize:          0x%08x\n", bootRecord->nurserySize);
+    fprintf (SysTraceFile, "   initialHeapSize:      0x%08x\n", bootRecord->initialHeapSize);
+    fprintf (SysTraceFile, "   maximumHeapSize:      0x%08x\n", bootRecord->maximumHeapSize);
     fprintf (SysTraceFile, "   tiRegister:           0x%08x\n", bootRecord->tiRegister);
     fprintf (SysTraceFile, "   spRegister:           0x%08x\n", bootRecord->spRegister);
     fprintf (SysTraceFile, "   ipRegister:           0x%08x\n", bootRecord->ipRegister);

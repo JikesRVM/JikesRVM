@@ -87,7 +87,6 @@ public class VM_CommandLineArgs {
   public static final int GC_ARG               = 32;
   public static final int INITIAL_HEAP_ARG     = 33;
   public static final int MAX_HEAP_ARG         = 34;
-  public static final int LARGE_HEAP_ARG       = 35;
   public static final int VERBOSE_STACK_ARG    = 36;
   public static final int HPM_ARG              = 37;
   public static final int HPM_HELP_ARG         = 38;
@@ -144,9 +143,8 @@ public class VM_CommandLineArgs {
     new Prefix("-X:gc$",                GC_HELP_ARG),
     new Prefix("-X:gc:",                GC_ARG),
     new Prefix("-X:h=",                 INITIAL_HEAP_ARG),
-    new Prefix("-X:lh=",                LARGE_HEAP_ARG),
-    new Prefix("-X:ms=",                INITIAL_HEAP_ARG),
-    new Prefix("-X:mx=",                MAX_HEAP_ARG),
+    new Prefix("-Xms",                  INITIAL_HEAP_ARG), // JDK compatibility
+    new Prefix("-Xmx",                  MAX_HEAP_ARG),     // JDK compatability
     new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     new Prefix("-X:base:help$",         BASE_HELP_ARG),
     new Prefix("-X:base$",              BASE_HELP_ARG),
@@ -425,9 +423,6 @@ public class VM_CommandLineArgs {
 	break;
       case MAX_HEAP_ARG: 
 	MM_Interface.processCommandLineArg("max=" + arg);
-	break;
-      case LARGE_HEAP_ARG: 
-	MM_Interface.processCommandLineArg("los=" + arg);
 	break;
 	
 	// -------------------------------------------------------------------
