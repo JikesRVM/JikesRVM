@@ -18,6 +18,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  *    remove(set2) - removes the contents of set2 from the set
  *    enumerator() - returns an enumeration of the set
  *    toString() - returns a string version of the set
+ *    isEmpty() - returns true, iff the set is empty
  *
  * @author Michael Hind 
  */
@@ -295,6 +296,14 @@ public class OPT_LiveSet {
     }
   }
 
+  /**
+   * Is the current set empty?
+   * @return true iff the set is empty
+   */
+  public boolean isEmpty() {
+    return first == null;
+  }
+  
   /**
    * String-i-fy the current list
    * @return the string-i-fied version
