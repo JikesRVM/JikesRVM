@@ -1137,13 +1137,6 @@ branch
 
 
 
-# Unconditional indirect jump to the address contained in the target register
-COMPUTED_GOTO
-ComputedGoto
-branch | indirect
-
-
-
 # Boolean complement of int register/constant operand put in register operand
 BOOLEAN_NOT
 Unary
