@@ -156,11 +156,9 @@ abstract class BootMap implements jdpConstants  {
    * for this method
    * @param address an address pointing to arbitrary machine instructions
    * @return the byte offset 
-   * @exception BmapNotFoundException if the address does not have an entry in the 
-   *            method map
-   * @see BootMapExternal.instructionOffset, BootMapInternal.instructionOffset
+   * @see BootMapExternal.instructionOffset
    */
-  public abstract int instructionOffset(int compiledMethodID, int address) throws BmapNotFoundException;
+  public abstract int instructionOffset(int compiledMethodID, int address);
 
   public abstract void fillBootMethodTable();
   public abstract int getCompiledMethodID(int fp, int address);
@@ -1334,31 +1332,26 @@ abstract class BootMap implements jdpConstants  {
   {
     int line, offset, prologOffset;
 
-    try {
-      VM_Method mth = findVMMethod(compiledMethodID, true);
-      offset = instructionOffset(compiledMethodID, address);
-      VM_CompilerInfo compInfo = findVMCompilerInfo(compiledMethodID, true);
-      if (compInfo == null)
-	prologOffset = 0;
-      else
-	prologOffset = getPrologSize(compInfo, instructionAddress(compiledMethodID));
-      if (offset<prologOffset)
-	throw new BcPrologException();
-      if (!previous_line)
-	offset+=1;
-
-      // check because there may be no compiler info:  native method
-      if (compInfo==null) {
-	line = 0;
-      } else {
-	line = compInfo.findLineNumberForInstruction(offset);
-      }
-      // System.out.println("offset=" + offset + ", line=" + line + 
-      //			 " for " + mth.getName().toString());
-    } catch (BmapNotFoundException e) {
-      throw new LnNotAvailException();
-    } 
-
+    VM_Method mth = findVMMethod(compiledMethodID, true);
+    offset = instructionOffset(compiledMethodID, address);
+    VM_CompilerInfo compInfo = findVMCompilerInfo(compiledMethodID, true);
+    if (compInfo == null)
+      prologOffset = 0;
+    else
+      prologOffset = getPrologSize(compInfo, instructionAddress(compiledMethodID));
+    if (offset<prologOffset)
+      throw new BcPrologException();
+    if (!previous_line)
+      offset+=1;
+    
+    // check because there may be no compiler info:  native method
+    if (compInfo==null) {
+      line = 0;
+    } else {
+      line = compInfo.findLineNumberForInstruction(offset);
+    }
+    // System.out.println("offset=" + offset + ", line=" + line + 
+    //			 " for " + mth.getName().toString());
     if (line==0) {
       throw new LnNotAvailException();
     } else {

@@ -284,8 +284,6 @@ class BootMapExternal extends BootMap {
    * @param compiledMethodID index into the compiled methods table
    * @param address an address pointing to arbitrary machine instructions
    * @return the byte offset 
-   * @exception BmapNotFoundException if the address does not have an entry in the 
-   *            method map
    * @see
    */
   public int instructionOffset(int compiledMethodID, int address) {
