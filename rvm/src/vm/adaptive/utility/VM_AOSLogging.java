@@ -688,7 +688,7 @@ public class VM_AOSLogging {
 					      double prevCompileTime,
 					      double estCompileTime,
 					      double fixedOverhead) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
 		    +"  Estimated recompilation details ");
@@ -730,7 +730,7 @@ public class VM_AOSLogging {
 						   int totalLogValueMethods,
 						   int totalMethods) {
 
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
 		    +"  Updated compilation rates for "+ VM_RuntimeCompiler.getCompilerName(compiler) +"compiler");
