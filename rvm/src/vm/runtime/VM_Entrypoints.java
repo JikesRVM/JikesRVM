@@ -206,6 +206,7 @@ class VM_Entrypoints implements VM_Constants {
 
   static final VM_Field innermostElementTypeField      = getField("LVM_Array;", "innermostElementType", "LVM_Type;");
 
+
   //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
   static final VM_Method initializeClassIfNecessaryMethod = getMethod("LVM_Class;", "initializeClassIfNecessary", "(I)V");
   //-#else

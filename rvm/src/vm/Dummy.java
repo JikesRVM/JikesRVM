@@ -29,6 +29,7 @@ class Dummy {
   static VM_RecompilationManager    o;
   //-#if RVM_WITH_CONCURRENT_GC
   static VM_RCBuffers               p; // not used by opt yet, but referenced in VM_Entrypoints
+  static VM_OptRCWriteBarrier       q; // not used by opt yet, but referenced in VM_Entrypoints
   //-#endif
-  static VM_MultianewarrayHelper    q;
+  static VM_MultianewarrayHelper    r;
 }
