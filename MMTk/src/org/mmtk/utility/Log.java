@@ -4,6 +4,7 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
+//$Id$
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM_Address;
@@ -20,7 +21,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 /**
  * Error and trace logging.
  *
- * @author Derek Lieber (project start).
+ * @author Derek Lieber
  * @author Andrew Gray
  * @version $Revision$
  * @date $Date$
