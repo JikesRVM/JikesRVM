@@ -1759,7 +1759,7 @@ public class VM_Compiler implements VM_BaselineConstants {
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T0);
-	genEpilogue(); 
+	genEpilogue(4); 
 	break;
       }
       case 0xad: /* lreturn */ {
@@ -1768,7 +1768,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T1); // low half
 	asm.emitPOP_Reg(T0); // high half
-	genEpilogue();
+	genEpilogue(8);
 	break;
       }
       case 0xae: /* freturn */ {
@@ -1777,7 +1777,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitFLD_Reg_RegInd(FP0, SP);
 	asm.emitADD_Reg_Imm(SP, WORDSIZE); // pop the stack
-	genEpilogue();
+	genEpilogue(4);
 	break;
       }
       case 0xaf: /* dreturn */ {
@@ -1786,7 +1786,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
 	asm.emitADD_Reg_Imm(SP, WORDSIZE<<1); // pop the stack
-	genEpilogue();
+	genEpilogue(8);
 	break;
       }
       case 0xb0: /* areturn */ {
@@ -1794,14 +1794,14 @@ public class VM_Compiler implements VM_BaselineConstants {
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T0);
-	genEpilogue(); 
+	genEpilogue(4); 
 	break;
       }
       case 0xb1: /* return */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "return");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
-	genEpilogue(); 
+	genEpilogue(0); 
 	break;
       }
       case 0xb2: /* getstatic */ {
@@ -2669,17 +2669,17 @@ public class VM_Compiler implements VM_BaselineConstants {
     /*
      * NOTE: until the end of the prologue SP holds the framepointer.
      */
-    asm.emitMOV_RegDisp_Imm(FP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
+    asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
   
     // squirrel away FP in the procesoor object so a hardware trap handler can 
     // always find it (opt compiler will reuse FP register)
     VM_ProcessorLocalState.emitMoveRegToField(asm,
                                                VM_Entrypoints.framePointerOffset,
-                                               FP);
+                                               SP);
     /*
      * save registers
      */
-    asm.emitMOV_RegDisp_Reg (FP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
+    asm.emitMOV_RegDisp_Reg (SP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
     
     // establish the JTOC register
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
@@ -2693,10 +2693,10 @@ public class VM_Compiler implements VM_BaselineConstants {
     // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
     if (klass.isDynamicBridge()) {
       savedRegistersSize += 3 << LG_WORDSIZE;
-      asm.emitMOV_RegDisp_Reg (FP, T0_SAVE_OFFSET,  T0); 
-      asm.emitMOV_RegDisp_Reg (FP, T1_SAVE_OFFSET,  T1); 
-      asm.emitMOV_RegDisp_Reg (FP, EBX_SAVE_OFFSET, EBX); 
-      asm.emitFNSAVE_RegDisp(FP, FPU_SAVE_OFFSET);
+      asm.emitMOV_RegDisp_Reg (SP, T0_SAVE_OFFSET,  T0); 
+      asm.emitMOV_RegDisp_Reg (SP, T1_SAVE_OFFSET,  T1); 
+      asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX); 
+      asm.emitFNSAVE_RegDisp  (SP, FPU_SAVE_OFFSET);
       savedRegistersSize += FPU_STATE_SIZE;
     } else if (klass.isBridgeFromNative()) {
 	savedRegistersSize = VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE;
@@ -2733,7 +2733,7 @@ public class VM_Compiler implements VM_BaselineConstants {
     asm.emitNOP();                                      // mark end of prologue for JDP
   }
   
-  private final void genEpilogue () {
+  private final void genEpilogue (int bytesPopped) {
     if (klass.isBridgeFromNative()) {
       // pop locals and parameters, get to saved GPR's
       asm.emitADD_Reg_Imm(SP, (this.method.getLocalWords() << LG_WORDSIZE));
@@ -2741,19 +2741,23 @@ public class VM_Compiler implements VM_BaselineConstants {
       return;
     }
 
+    // TODO: the add below should work; why doesn't it?? (tField).
+    // asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - bytesPopped); // SP becomes frame pointer
+    asm.emitMOV_Reg_Reg(SP, FP); // SP becomes frame pointer
+
     if (klass.isDynamicBridge()) {
       // Restore non-volatile registers. 
-      asm.emitMOV_Reg_RegDisp (EBX, FP, EBX_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET); 
 
       // don't restore the return paramater :)
       // and don't restore the volatiles
 
       // restore FPU state
-      asm.emitFRSTOR_RegDisp(FP, FPU_SAVE_OFFSET);
+      asm.emitFRSTOR_RegDisp(SP, FPU_SAVE_OFFSET);
     }
+    asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);// restore nonvolatile JTOC register
 
-    asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);// restore nonvolatile JTOC register
-    asm.emitLEAVE();				// discard current stack frame
+    asm.emitPOP_Reg(FP);
     
     // Save the frame pointer in the processor object so a hardware trap 
     // handler can always find it (opt compiler will reuse FP register)
@@ -3631,37 +3635,40 @@ public class VM_Compiler implements VM_BaselineConstants {
       // save the branch address for later
       asm.emitPOP_Reg (S0);		// S0<-code address
 
+      asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - 4); // just popped 4 bytes above.
+
       // restore FPU state
-      asm.emitFRSTOR_RegDisp(FP, FPU_SAVE_OFFSET);
+      asm.emitFRSTOR_RegDisp(SP, FPU_SAVE_OFFSET);
 
       // restore GPRs
-      asm.emitMOV_Reg_RegDisp (T0,  FP, T0_SAVE_OFFSET); 
-      asm.emitMOV_Reg_RegDisp (T1,  FP, T1_SAVE_OFFSET); 
-      asm.emitMOV_Reg_RegDisp (EBX, FP, EBX_SAVE_OFFSET); 
-      asm.emitMOV_Reg_RegDisp (JTOC,  FP, JTOC_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (T0,  SP, T0_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (T1,  SP, T1_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (JTOC,  SP, JTOC_SAVE_OFFSET); 
 
       // pop frame
-      asm.emitMOV_Reg_Reg(SP, FP);	// SP<-FP
       asm.emitPOP_Reg (FP);		// FP<-previous FP 
 
       // branch
       asm.emitJMP_Reg (S0);
-
       return;
     }
                                                   
     if (methodName == VM_MagicNames.returnToNewStack) {
-      // load frame pointer with new stack address
-      asm.emitPOP_Reg (FP);	
+      // SP gets frame pointer for new stack
+      asm.emitPOP_Reg (SP);	
+
       // restore nonvolatile JTOC register
-      asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);
+      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);
+
       // discard current stack frame
-      asm.emitLEAVE();				
+      asm.emitPOP_Reg(FP);
+
       // so hardware trap handler can always find it 
       // (opt compiler will reuse FP register)
-       VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                                 VM_Entrypoints.framePointerOffset,
-                                                  FP);
+      VM_ProcessorLocalState.emitMoveRegToField(asm,
+						VM_Entrypoints.framePointerOffset,
+						FP);
       
       // return to caller- pop parameters from stack
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 
@@ -3709,9 +3716,18 @@ public class VM_Compiler implements VM_BaselineConstants {
   }
 
   // Offset of Java local variable (off stack pointer)
-  //
+  // assuming ESP is still positioned as it was at the 
+  // start of the current bytecode (biStart)
   private final int localOffset  (int local) {
     return (stackHeights[biStart] - local)<<LG_WORDSIZE;
+  }
+
+  // Translate a FP offset into an SP offset 
+  // assuming ESP is still positioned as it was at the 
+  // start of the current bytecode (biStart)
+  private final int fp2spOffset(int offset) {
+    int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
+    return offsetToFrameHead + offset;
   }
   
   /* reading bytecodes */
