@@ -11,16 +11,15 @@ The callbacks are accessed through the nested interfaces defined in the
 class.  There is one interface per event type.  To be notified
 of an event, register an instance of a class that implements the corresponding
 interface with {\tt VM\_Callbacks} by calling the corresponding {\tt add...()}
-method.  For example, to be notified when a class is instantiated (see section
-\ref{sssec:classLoading}), first implement the {\tt
+method.  For example, to be notified \link{when a class is instantiated}[ (see section~\Ref)]{sssec:classLoading}, first implement the {\tt
 VM\_Callbacks.ClassInstantiatedMonitor} interface, and then call {\tt
 VM\_Callbacks.addClassInstantiatedMonitor()} with an instance of your class.
 When any class is instantiated, the {\tt notifyClassInstantiated} method in
 your instance will be invoked.
 
-Jikes RVM supports callbacks for a number of events; see 
-\xlink{{\tt VM\_Callbacks}}{\VMCallbacksURL} for the list of currently
-supported callbacks.
+\xlink{Jikes RVM supports callbacks for a number of events}[; see 
+{\tt VM\_Callbacks} for the list of currently
+supported callbacks]{\VMCallbacksURL}.
 
 The appropriate interface names can be obtained by appending ``Monitor'' to the
 event names (e.g. the interface to implement for the {\tt MethodOverride} event
