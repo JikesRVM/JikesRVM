@@ -294,14 +294,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (arrayType != null) {
       if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
 	VM_Type elementType = elementTypeRef.peekResolvedType();
-	if (elementType != null) {
+ 	if (elementType != null) {
 	  if (elementType.isInitialized() || elementType.isInBootImage()) {
 	    arrayType.resolve();
 	    arrayType.instantiate();
 	  }
 	}
       }
-      if (arrayType.isInitialized()) {
+      if (arrayType.isInitialized() || arrayType.isInBootImage()) {
 	op = NEWARRAY;
 	arrayOp = makeTypeOperand(arrayType);
       }
