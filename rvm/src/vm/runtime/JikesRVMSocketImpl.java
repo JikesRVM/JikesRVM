@@ -422,6 +422,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       return new Integer(receiveTimeout);
     } else if (optID == SocketOptions.SO_BINDADDR) {
       return localAddress;
+    } else if (optID == SocketOptions.SO_SNDBUF) {
+      return new Integer(VM_SysCall.sysNetSocketSndBuf(native_fd));
     } else {
       throw new VM_UnimplementedError("JikesRVMSocketImpl.getOption: " + optID);
     }

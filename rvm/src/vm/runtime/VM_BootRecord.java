@@ -297,6 +297,7 @@ public class VM_BootRecord {
   public Address sysNetLocalHostNameIP;
   public Address sysNetRemoteHostNameIP;
   public Address sysNetHostAddressesIP;
+  public Address sysNetSocketSndBufIP;
   public Address sysNetSocketCreateIP;
   public Address sysNetSocketPortIP;
   public Address sysNetSocketFamilyIP;

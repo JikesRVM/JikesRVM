@@ -211,6 +211,7 @@ public class VM_SysCall implements Uninterruptible {
   }
   public static int sysNetSocketCreate(int isStream) { return 0; }
   public static int sysNetSocketPort(int fd) { return 0; }
+  public static int sysNetSocketSndBuf(int fd) { return 0; }
   public static int sysNetSocketFamily(int fd) { return 0; }
   public static int sysNetSocketLocalAddress(int fd) { return 0; }
   public static int sysNetSocketBind(int fd, int family, int localAddress,

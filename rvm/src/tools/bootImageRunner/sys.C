@@ -2672,6 +2672,36 @@ sysNetSocketPort(int fd)
     return MANGLE16(info.sin_port);
 }
 
+// Obtain send buffer size associated with a socket.
+// Taken: socket descriptor
+// Returned: size (-1: error)
+//
+extern "C" int
+sysNetSocketSndBuf(int fd)
+{
+    int val = 0;
+#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
+    int len;
+#endif
+#ifdef RVM_FOR_LINUX
+    socklen_t len;
+#endif
+
+    len = sizeof(int);
+    if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) == -1)
+    {
+        fprintf(SysErrorFile, "%s: getsockopt on %d failed: %s (errno=%d)\n", 
+                Me, fd, strerror(errno), errno);
+        return -1;
+    }
+
+#ifdef DEBUG_NET
+    fprintf(SysTraceFile, "%s: socket %d sndbuf size %d\n", Me, fd, val);
+#endif
+
+    return val;
+}
+
 // Obtain local address associated with a socket.
 // Taken: socket descriptor
 // Returned: local address (-1: error)
