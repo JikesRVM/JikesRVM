@@ -35,8 +35,10 @@ public class MarkSweepHeader {
    * How many bits does this GC system require?
    */
   public static final int REQUESTED_BITS    = 2;
-  public static final int MARK_BIT_MASK     = 0x1;
-  public static final int SMALL_OBJECT_MASK = 0x2;
+  public static final int GC_BITS_MASK      = 0x3;
+
+  public static final int MARK_BIT_MASK     = 0x1;  // ...01
+  public static final int SMALL_OBJECT_MASK = 0x2;  // ...10
 
   /**
    * Perform any required initialization of the GC portion of the header.
@@ -50,7 +52,7 @@ public class MarkSweepHeader {
 				      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
-    int newValue = (oldValue & ~MARK_BIT_MASK) | Plan.getInitialHeaderValue(size);
+    int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
     VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
   }
 
