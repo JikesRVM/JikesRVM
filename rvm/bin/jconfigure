@@ -719,7 +719,7 @@ function emitSourceList
    # common allocator and collector classes for RVM memory managers
    #
    if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson
    fi
 
    # architecture specific writebarrier support for baseline compilers
@@ -731,21 +731,21 @@ function emitSourceList
    if (( $RVM_WITH_COPYING_GC )); then
       if (( $RVM_WITH_GENERATIONAL_GC )); then
          if (( $RVM_WITH_FIXED_NURSERY_GC )); then
-            print $RVM_ROOT/rvm/src/vm/memoryManagers/copyGenFixed
+            print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGenFixed
 	 else
-            print $RVM_ROOT/rvm/src/vm/memoryManagers/copyGenVariable
+            print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGenVariable
 	 fi   
       else
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/semispace
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
       fi
    elif (( $RVM_WITH_HYBRID_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/hybrid
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/hybrid
    elif (( $RVM_WITH_NONCOPYING_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/markAndSweep
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
    elif (( $RVM_WITH_CONCURRENT_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/concurrent
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/concurrent
    elif (( $RVM_WITH_NO_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/noGC
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/noGC
    fi
    fi
 
