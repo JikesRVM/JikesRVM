@@ -25,22 +25,8 @@ export CHECK=0
 export DEST_DIR=$RVM_ROOT/classpath
 export OS_VER=$(uname -v)
 
-## By default use HOST tools. If they do not exist, then assume we are
-## being run on the TARGET
-if [[ -x $HOST_JIKES ]]; then
-    JIKES_TOOL=$HOST_JIKES
-elif [[ -x $TARGET_JIKES ]]; then
-    JIKES_TOOL=$TARGET_JIKES
-else
-    echo "$ME: Cannot find either host or target jikes executable."
-fi
-if [[ -x $HOST_JAR ]]; then
-    JAR_TOOL=$HOST_JAR
-elif [[ -x $TARGET_JAR ]]; then
-    JAR_TOOL=$TARGET_JAR
-else
-    echo "$ME: Cannot find either host or target jar executable."
-fi
+JIKES_TOOL=$JIKES
+JAR_TOOL=$JAR
 
 CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
