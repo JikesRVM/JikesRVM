@@ -655,6 +655,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    */
   final void emitLockNextInstruction() {
       setMachineCodes(mi++, (byte) 0xF0);
+      if (lister != null) lister.lockPrefix();
   }
 
   /**
