@@ -72,9 +72,9 @@ abstract class VM_GCMapIterator {
   abstract void reset();
   
   /**
-   * Iteration is complete, release any internal data structures.
-   * <p>
-   * NO LONGER USED, delete when removed from all GCMapIterator classes
+   * Iteration is complete, release any internal data structures including 
+   * locks acquired during setupIterator for jsr maps.
+   * 
    */
   abstract void cleanupPointers();
   
