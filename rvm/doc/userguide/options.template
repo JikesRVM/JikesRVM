@@ -85,7 +85,7 @@ CMD_NAME PRETTY_LEVEL OPTION.DESCRIP
 $$$$ END IF
 $$$$ END IF
 
-Value Options (OPTPREFIX<option>=<value>)
+Value Options (OPTPREFIX:<option>=<value>)
 Option                         Type    Description
 $$$$ IF OPTION_TYPE == "JMTK"
   $$$$ LOOP VDATFILE VALUE_DAT_FILES
