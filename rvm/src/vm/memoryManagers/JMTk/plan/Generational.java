@@ -92,6 +92,7 @@ public abstract class Generational extends StopTheWorldGC
   // Miscellaneous constants
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int NURSERY_THRESHOLD = (512*1024)>>LOG_PAGE_SIZE;
+  protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
   protected static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   // Memory layout constants
@@ -324,7 +325,8 @@ public abstract class Generational extends StopTheWorldGC
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
 	required = required<<1;  // must account for copy reserve
-      fullHeapGC = mustCollect || heapFull || fullHeapGC;
+      int nurseryYield = ((int)((float) nurseryMR.committedPages() * SURVIVAL_ESTIMATE))<<1;
+      fullHeapGC = mustCollect || (nurseryYield < required) || fullHeapGC;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
@@ -673,7 +675,7 @@ public abstract class Generational extends StopTheWorldGC
     else
       nonCopyReserved += matureMR.reservedPages();
 
-    return (getTotalPages() - nonCopyReserved)>>1 - copyReserved;
+    return ((getTotalPages() - nonCopyReserved)>>1) - copyReserved;
   }
 
 
