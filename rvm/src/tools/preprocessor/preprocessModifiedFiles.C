@@ -1,15 +1,17 @@
-/* (C) Copyright IBM Corp. 2001, 2003
+/* -*-coding: iso-8859-1 -*-
+ *
+ * (C) Copyright © IBM Corp 2001, 2003, 2004
 
-   $Id$
+ * $Id$
 
-   Documentation for this program is in the variables short_help_msg and
-   long_help_msg, immediately below.
+ * Documentation for this program is in the variables short_help_msg and
+ * long_help_msg, immediately below.
 
-   Jikes RVM is distribed under the Common Public License (CPL),
-   which has been approved by the Open Source Initiative
-   as a fully certified open source license.
+ * Jikes RVM is distribed under the Common Public License (CPL),
+ * which has been approved by the Open Source Initiative
+ * as a fully certified open source license.
 
-   Jikes is a trademark of IBM Corp.
+ * Jikes is a trademark of IBM Corp.
 */
 
 static const char short_help_msg[] = ""
@@ -242,6 +244,7 @@ bool eval(char *p, int &trouble);
 const char *evalReplace(char *cursor, int &trouble);
 char *getToken(char **c, int &trouble);
 bool getBoolean(char **c);
+static char *safe_fgets(char *buf, size_t buflen, FILE *fin);
 
 // Types of tokens returned by scan().
 //
@@ -624,7 +627,8 @@ preprocess(const char *srcFile, const char *dstFile)
         }
         
 
-        if (!fgets(line, sizeof line, fin)) { 
+        if (!safe_fgets(line, sizeof line, fin)) { 
+	    // fprintf(stderr, "line = %s", line);
             if (feof(fin)) {
                 if (fclose(fin)) {
                     fprintf(stderr, 
@@ -1311,3 +1315,49 @@ set_up_trouble_handlers(void)
     xsignal(SIGSYS, cleanup_and_die);
 }
 
+/** fgets, but handle certain errors internally by griping and dying:
+ -- reading a null byte
+ -- reading a line that is too long.
+
+ If we read a final line that is not newline-terminated, then add a newline.
+ This seems kludgy, but does simplify the error printing.
+ 
+*/
+static char *
+safe_fgets(char *buf, size_t buflen, FILE *fin)
+{
+    unsigned i;
+    int c;
+    for (i = 0; i < buflen - 2; ) {
+	c = getc(fin);
+	// fprintf(stderr, "c == %c (%x)\n", c, c);
+	
+	if (c == EOF) {
+	    if (i == 0)		// If no new chars were read
+		return NULL;
+	    else
+		break;		// Otherwise, break and return what we have.
+	}
+	
+	if (c == '\0') {
+	    inputErr("The file contains a null (zero) byte -- this is not a valid Java program.");
+	    exit(13);
+	}
+	buf[i++] = c;
+	if (c == '\n')
+	    break;
+    }
+    if (i >= buflen - 2) {
+	inputErr("Line too long (over %lu characters).\n", 
+		 (unsigned long) buflen - 2);
+	exit(13);
+    }
+    assert(feof(fin) || (c == '\n')); // We DID read a complete line, no?
+    if (c != '\n')
+	buf[i++] = '\n';
+    // null-terminate the line
+    buf[i++] = '\0';
+    assert(i <= buflen);
+    // fprintf(stderr, "I JUST READ: %s", buf);
+    return buf;
+}
