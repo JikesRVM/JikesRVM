@@ -652,31 +652,31 @@ public class VM_CollectorThread extends VM_Thread
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
-      VM.sysWrite(i,false);
+      VM.sysWrite(i);
       VM.sysWrite(" stop ");
-      VM.sysWrite( (int)((ct.stoppingTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.stoppingTime)*1000000.0));
       VM.sysWrite(" start ");
-      VM.sysWrite( (int)((ct.startingTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.startingTime)*1000000.0));
       VM.sysWrite(" SBW ");
       if (ct.bufferWaitCount1 > 0)
-	VM.sysWrite(ct.bufferWaitCount1-1,false);  // subtract finish wait
+	VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
       else
-	VM.sysWrite(0,false);
+	VM.sysWrite(0);
       VM.sysWrite(" SBWT ");
-      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0), false);
+      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0));
       VM.sysWrite(" SFWT ");
-      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0), false);
+      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0));
       VM.sysWrite(" FBW ");
       if (ct.bufferWaitCount > 0)
-	VM.sysWrite(ct.bufferWaitCount-1,false);  // subtract finish wait
+	VM.sysWrite(ct.bufferWaitCount-1);  // subtract finish wait
       else
-	VM.sysWrite(0,false);
+	VM.sysWrite(0);
       VM.sysWrite(" FBWT ");
-      VM.sysWrite( (int)((ct.bufferWaitTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.bufferWaitTime)*1000000.0));
       VM.sysWrite(" FFWT ");
-      VM.sysWrite( (int)((ct.finishWaitTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.finishWaitTime)*1000000.0));
       VM.sysWrite(" RWT ");
-      VM.sysWrite( (int)((ct.rendezvousWaitTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.rendezvousWaitTime)*1000000.0));
       VM.sysWrite("\n");
 
       ct.stoppingTime = 0.0;

@@ -407,9 +407,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
     while (getPartialBlock(the_size.ndx) == 0) {
       if (GSC_TRACE) {
 	VM_Processor.getCurrentProcessor().disableThreadSwitching();
-	VM.sysWrite("allocatex: adding partial block: ndx "); VM.sysWrite(the_size.ndx,false);
-	VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block,false);
-	VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock,false);
+	VM.sysWrite("allocatex: adding partial block: ndx "); VM.sysWrite(the_size.ndx);
+	VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block);
+	VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock);
 	VM.sysWrite("\n");
 	VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
@@ -649,7 +649,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
     if (GSC_TRACE) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      VM.sysWrite("getPartialBlock: ndx = "); VM.sysWrite(ndx,false);
+      VM.sysWrite("getPartialBlock: ndx = "); VM.sysWrite(ndx);
       VM.sysWrite(" allocating "); VM.sysWrite(currentBlock.nextblock);
       VM.sysWrite(" baseAddr "); VM.sysWrite(allocBlock.baseAddr);
       VM.sysWrite("\n");
@@ -739,7 +739,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     for (int i = 0; i < GC_SIZES; i++) {
       VM.sysWrite(" Size ", GC_SIZEVALUES[i], "  ");
       VM_BlockControl the_block = blocks[st.sizes[i].first_block];
-      VM.sysWrite(st.sizes[i].first_block, false);
+      VM.sysWrite(st.sizes[i].first_block);
       while (true) {
 	VM.sysWrite("  ", the_block.nextblock);
 	if (the_block.nextblock == OUT_OF_BLOCKS) break;
@@ -1068,9 +1068,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	index = this_block.nextblock;
       }
       if (GSC_TRACE) {
-	VM.sysWrite(" size = "); VM.sysWrite(i,false);
-	VM.sysWrite(" first = "); VM.sysWrite(partialBlockList[i],false);
-	VM.sysWrite(" count = "); VM.sysWrite(counter,false); VM.sysWrite("\n");
+	VM.sysWrite(" size = "); VM.sysWrite(i);
+	VM.sysWrite(" first = "); VM.sysWrite(partialBlockList[i]);
+	VM.sysWrite(" count = "); VM.sysWrite(counter); VM.sysWrite("\n");
       }
     }
   }
@@ -1262,8 +1262,8 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	}
       }
       if (GSC_TRACE) {
-	VM.sysWrite(" size = "); VM.sysWrite(i,false);
-	VM.sysWrite(" new first = "); VM.sysWrite(partialBlockList[i],false);
+	VM.sysWrite(" size = "); VM.sysWrite(i);
+	VM.sysWrite(" new first = "); VM.sysWrite(partialBlockList[i]);
 	VM.sysWrite("\n");
       }
     }

@@ -776,8 +776,7 @@ public final class VM_Callbacks {
         //VM.sysWrite(VM_Callbacks.getThread(), false);
         //VM.sysWrite(": ");
         VM.sysWrite("invoking exit monitors: ");
-        VM.sysWrite(value, false);
-        VM.sysWrite("\n");
+        VM.sysWriteln(value);
         //printStack("From: ");
       }
       for (CallbackList l = exitCallbacks; l != null; l = l.next) {
@@ -999,7 +998,8 @@ public final class VM_Callbacks {
       if (TRACE_APP_RUN_COMPLETE) {
         //VM.sysWrite(getThread(), false);
         //VM.sysWrite(": ");
-        VM.sysWrite("invoking the complete monitor for application ");VM.sysWrite(app);VM.sysWrite(" at run ");VM.sysWrite(run,false);VM.sysWrite("\n");
+        VM.sysWrite("invoking the complete monitor for application ", app);
+	VM.sysWriteln(" at run ", run);
       }
       for (CallbackList l = appRunCompleteCallbacks; l != null; l = l.next) {
 	if (TRACE_APP_RUN_COMPLETE) {

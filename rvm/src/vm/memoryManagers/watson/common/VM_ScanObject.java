@@ -123,9 +123,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
         if ( ! validateRefs( iref, depth-1 ) ) {
           VM.sysWrite("Referenced from Object: Ref = ");
           VM_GCUtil.dumpRef( ref );
-          VM.sysWrite("                  At Offset = ");
-          VM.sysWrite(referenceOffsets[i],false);
-          VM.sysWrite("\n");
+          VM.sysWriteln("                  At Offset = ", referenceOffsets[i]);
           return false;
         }
       }
@@ -142,10 +140,8 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
             VM.sysWrite("Referenced from Array: Ref = ");
             VM_GCUtil.dumpRef( ref );
             VM.sysWrite("                  At Index = ");
-            VM.sysWrite((location>>2),false);
-            VM.sysWrite("              Array Length = ");
-            VM.sysWrite(num_elements,false);
-            VM.sysWrite("\n");
+            VM.sysWrite((location>>2));
+            VM.sysWriteln("              Array Length = ", num_elements);
             return false;
           }
         }

@@ -47,8 +47,7 @@ import com.ibm.JikesRVM.VM_Thread;
 
 public class VM_Handshake {
   
-  private static final boolean trace = false;
-  private static final boolean debug_native = false;   // temporary debugging of new threads
+  private static final int verbose = 0;
   
   static final int LOCKOUT_GC_WORD = 0x0CCCCCCC;
   
@@ -92,15 +91,17 @@ public class VM_Handshake {
     // check that scheduler initialization is complete
     //	
     if (!VM_Scheduler.allProcessorsInitialized) {
-      VM.sysWrite(" Garbage collection required before system fully initialized\n");
-      VM.sysWrite(" Specify larger than default heapsize on command line\n");
+      VM.sysWriteln("Garbage collection required before system fully initialized");
+      VM.sysWriteln("Specify larger than default heapsize on command line");
       VM_Scheduler.dumpStack();
       VM.shutdown(-1);
     }
 
-    if (debug_native) {
-      //      VM_Scheduler.trace("VM_Handshake:initiateCollection","dumping machine...");
-      //      VM_Scheduler.dumpVirtualMachine();
+    if (verbose >= 3) {
+	VM_Scheduler.trace("VM_Handshake:initiateCollection","dumping machine...");
+	VM_Scheduler.dumpVirtualMachine();
+    }
+    if (verbose >= 2) {
       VM_Scheduler.trace("VM_Handshake:initiateCollection","collectorQueue:");
       VM_Scheduler.writeString("before waiting:"); VM_Scheduler.collectorQueue.dump();
     }
@@ -114,17 +115,22 @@ public class VM_Handshake {
     else
       maxCollectorThreads = VM_Scheduler.numProcessors;
 
-    VM_Scheduler.collectorMutex.lock();
-    while (VM_Scheduler.collectorQueue.length() < maxCollectorThreads) {
-      VM_Scheduler.collectorMutex.unlock();
-      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: waiting for previous collection to finish");
-      VM_Thread.getCurrentThread().yield();
+    if (verbose >= 1) VM.sysWriteln("VM_Handshake.initiateCollection checking if previous collection to finish");
+    while (true) {
       VM_Scheduler.collectorMutex.lock();
+      int len = VM_Scheduler.collectorQueue.length();
+      VM_Scheduler.collectorMutex.unlock();
+      if (len < maxCollectorThreads) {
+	  if (verbose >= 1) VM.sysWriteln("VM_Handshake.initiateCollection waiting for previous collection to finish");
+	  VM_Thread.getCurrentThread().yield();
+      }
+      else 
+	  break;
     }
-    VM_Scheduler.collectorMutex.unlock();
 
     // Acquire global lockout field (at fixed address in the boot record).
     // This field will be released when gc completes
+    if (verbose >= 1) VM.sysWriteln("VM_Handshake.initiateCollection acquiring lockout field");
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.getOffset());
@@ -135,11 +141,12 @@ public class VM_Handshake {
 	  break;
       }
       else {
-	if (debug_native) VM_Scheduler.traceHex("VM_Handshake:initiateCollection",
-					     "lockoutLock contains",lockoutVal);
+	if (verbose >= 2) 
+	    VM.sysWrite("VM_Handshake.initiateCollection: lockoutLock contains ",lockoutVal);
       }
     }
-    
+    if (verbose >= 1) VM.sysWriteln("VM_Handshake.initiateCollection acquired lockout field");
+
     // reset counter for collector threads arriving to participate in the collection
     VM_CollectorThread.participantCount[0] = 0;
 
@@ -156,7 +163,7 @@ public class VM_Handshake {
     for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
       if (VM.VerifyAssertions) VM._assert(VM_Processor.nativeProcessors[i] != null);
       VM_Processor.nativeProcessors[i].lockInCIfInC();
-      if (trace) {
+      if (verbose >= 1) {
         int newStatus =  VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex];
         VM_Scheduler.trace("VM_Handshake.initiateCollection:", "Native Processor", i);
         VM_Scheduler.trace("                                ", "new vpStatus    ", newStatus);
@@ -166,6 +173,7 @@ public class VM_Handshake {
     // Dequeue and schedule collector threads on ALL RVM Processors,
     // including those running system daemon threads (ex. NativeDaemonProcessor)
     //
+    if (verbose >= 1) VM.sysWriteln("VM_Handshake.initiateCollection: scheduling collector threads");
     VM_Scheduler.collectorMutex.lock();
     while (VM_Scheduler.collectorQueue.length() > 0) {
       VM_Thread t = VM_Scheduler.collectorQueue.dequeue();
@@ -197,27 +205,27 @@ public class VM_Handshake {
 
     lock.acquire();
     if (completionFlag) {
-      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
+      if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
       lock.release();
       return;
     }
     if (requestFlag) {
-      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
+      if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
     } else {
       // first mutator initiates collection by making all gc threads runnable at high priority
-      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
+      if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
       VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
       requestFlag = true;
       initiateCollection();
     }
     lock.release();  
     
-    if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
+    if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
 
     // allow a gc thread to run
     VM_Thread.getCurrentThread().yield();
     
-    if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: running");
+    if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: running");
   }
   
   /**
@@ -231,8 +239,8 @@ public class VM_Handshake {
    */
   void notifyCompletion() throws VM_PragmaInterruptible {
     lock.acquire();
-    if (trace) VM_Scheduler.trace("VM_Handshake", "collector: completed");
-    //    if (debug_native) VM_Scheduler.dumpVirtualMachine();
+    if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "collector: completed");
+    //    if (verbose >= 2) VM_Scheduler.dumpVirtualMachine();
     completionFlag = true;
     lock.release();
   }
@@ -268,7 +276,7 @@ public class VM_Handshake {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.getOffset());
       if (lockoutVal != 0) {
-	if (debug_native) VM_Scheduler.trace("Handshake:acquireLockOutLock",
+	if (verbose >= 2) VM_Scheduler.trace("Handshake:acquireLockOutLock",
 					  "yielding: lockoutVal =",lockoutVal);
 	VM_Thread.yield();
 	continue;

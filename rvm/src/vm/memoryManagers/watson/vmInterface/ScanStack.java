@@ -197,7 +197,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 	  VM.sysWrite("--- FRAME DUMP of METHOD ");
 	  VM.sysWrite(method);
 	  VM.sysWrite(" at offset ");
-	  VM.sysWrite(offset,false);
+	  VM.sysWrite(offset);
 	  VM.sysWrite(".--- \n");
 	  VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	  VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
@@ -215,7 +215,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
 	      VM.sysWrite(" at offset ");
-	      VM.sysWrite(offset,false);
+	      VM.sysWrite(offset);
 	      VM.sysWrite(".\n");
 	      VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	      VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
@@ -338,7 +338,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 //-#endif
 
     for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORDSIZE)) {
-      VM.sysWrite(loc.diff(start).toInt(),false);
+      VM.sysWrite(loc.diff(start).toInt());
       VM.sysWrite(" ");
       VM.sysWrite(loc);
       VM.sysWrite(" ");

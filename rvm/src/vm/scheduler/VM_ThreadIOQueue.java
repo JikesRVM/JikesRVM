@@ -293,7 +293,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     if (fds == null)
       return;
     for (int i = 0; i < fds.length; ++i) {
-      VM.sysWrite(fds[i] & FD_MASK, false);
+      VM.sysWrite(fds[i] & FD_MASK);
       if ((fds[i] & FD_READY_BIT) != 0)
 	VM.sysWrite('+');
       if ((fds[i] & FD_INVALID_BIT) != 0)

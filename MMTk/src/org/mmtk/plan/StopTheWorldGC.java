@@ -329,15 +329,14 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void processAllWork()
     throws VM_PragmaNoInline {
 
-    if (verbose >= 4) VM.sysWriteln("  Working on GC in parallel");
+    if (verbose >= 4) VM.psysWriteln("  Working on GC in parallel");
     do {
-      if (verbose >= 5) VM.sysWriteln("    processing root locations");
+      if (verbose >= 5) VM.psysWriteln("    processing root locations");
       while (!rootLocations.isEmpty()) {
 	VM_Address loc = rootLocations.pop();
-	if (verbose >= 6) VM.sysWriteln("      root location = ", loc);
 	traceObjectLocation(loc, true);
       }
-      if (verbose >= 5) VM.sysWriteln("    processing interior root locations");
+      if (verbose >= 5) VM.psysWriteln("    processing interior root locations");
       while (!interiorRootLocations.isEmpty()) {
 	VM_Address obj = interiorRootLocations.pop1();
 	VM_Address interiorLoc = interiorRootLocations.pop2();
@@ -345,12 +344,12 @@ public abstract class StopTheWorldGC extends BasePlan
 	VM_Address newInterior = traceInteriorReference(obj, interior, true);
 	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
-      if (verbose >= 5) VM.sysWriteln("    processing gray objects");
+      if (verbose >= 5) VM.psysWriteln("    processing gray objects");
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
 	ScanObject.scan(v);  // NOT traceObject
       }
-      if (verbose >= 5) VM.sysWriteln("    processing locations");
+      if (verbose >= 5) VM.psysWriteln("    processing locations");
       while (!locations.isEmpty()) {
 	VM_Address loc = locations.pop();
 	traceObjectLocation(loc, false);
@@ -359,6 +358,7 @@ public abstract class StopTheWorldGC extends BasePlan
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
 	       && values.isEmpty() && locations.isEmpty()));
 
+    if (verbose >= 4) VM.psysWriteln("    waiting at barrier");
     VM_CollectorThread.gcBarrier.rendezvous();
   }
 

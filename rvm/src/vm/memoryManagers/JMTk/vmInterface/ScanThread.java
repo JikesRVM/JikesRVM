@@ -246,7 +246,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	  VM.sysWrite("--- FRAME DUMP of METHOD ");
 	  VM.sysWrite(method);
 	  VM.sysWrite(" at offset ");
-	  VM.sysWrite(offset,false);
+	  VM.sysWrite(offset);
 	  VM.sysWrite(".--- \n");
 	  VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	  VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
@@ -264,9 +264,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
-	      VM.sysWrite(" at offset ");
-	      VM.sysWrite(offset,false);
-	      VM.sysWrite(".\n");
+	      VM.sysWriteln(" at offset ", offset);
 	      VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	      VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
 	      // dump out bad ref

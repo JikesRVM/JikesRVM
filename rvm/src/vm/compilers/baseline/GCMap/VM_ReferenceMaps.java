@@ -1494,8 +1494,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
     for (int i=0; i<numberUnusualMaps; i++) {
       VM.sysWrite("-----------------\n");
-      VM.sysWrite("Unusual map #");
-      VM.sysWrite(i,false);
+      VM.sysWrite("Unusual map #", i);
       VM.sysWrite(":\n");
       unusualMaps[i].showInfo();
       VM.sysWrite("    -- reference Map:   ");
@@ -1521,8 +1520,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *    this is for testing use
    */
   public void showAnUnusualMap(int mapIndex) {
-    VM.sysWrite("unusualMap with index = ");
-    VM.sysWrite(mapIndex, false);
+    VM.sysWrite("unusualMap with index = ", mapIndex);
     VM.sysWrite("   Map bytes =  ");
     for (int i = 0; i < bytesPerMap; i++) {
       VM.sysWrite(unusualReferenceMaps[mapIndex + i]);

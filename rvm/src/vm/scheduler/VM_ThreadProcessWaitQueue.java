@@ -236,8 +236,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     VM_ThreadProcessWaitData waitData = downcaster.waitData;
     if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
-    VM.sysWrite("pid=");
-    VM.sysWrite(waitData.pid, false);
+    VM.sysWrite("pid=", waitData.pid);
   }
 
   /**

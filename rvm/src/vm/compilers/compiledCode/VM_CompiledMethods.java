@@ -65,8 +65,7 @@ public class VM_CompiledMethods {
 
     if (VM.VerifyAssertions) {
 	if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
-	    VM.sysWrite(compiledMethodId, true);
-	    VM.sysWrite("\n");
+	    VM.sysWriteln(compiledMethodId);
 	    VM._assert(false);
 	}
     }

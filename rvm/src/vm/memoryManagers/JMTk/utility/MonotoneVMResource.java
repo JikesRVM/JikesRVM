@@ -74,8 +74,8 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       unlock();
       acquireHelp(oldCursor, pageRequest);
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
-      // Memory.zero(oldCursor, bytes);
-      Memory.zeroPages(oldCursor, bytes);
+      Memory.zero(oldCursor, bytes);
+      // Memory.zeroPages(oldCursor, bytes);
       return oldCursor;
     }
   }
@@ -111,6 +111,10 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       mutatorLock.release();
   }
 
+  public int getUsedPages () {
+    return Conversions.bytesToPages(cursor.diff(start).toInt());
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Private fields and methods
@@ -118,7 +122,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
 
   protected VM_Address cursor;
   protected VM_Address sentinel;
-  protected MemoryResource memoryResource;
+  public final MemoryResource memoryResource;
   private Lock gcLock;       // used during GC
   private Lock mutatorLock;  // used by mutators
 

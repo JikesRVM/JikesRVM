@@ -1402,12 +1402,12 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     VM.sysWrite("* JNIRefs = ");
     VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs));
     VM.sysWrite(" * JNIRefsTop = ");
-    VM.sysWrite(JNIRefsTop,false);
+    VM.sysWrite(JNIRefsTop);
     VM.sysWrite(" * JNIRefsSavedFP = ");
     VM.sysWrite(JNIRefsSavedFP);
     VM.sysWrite(".\n*\n");
     while ( jniRefOffset >= 0 ) {
-      VM.sysWrite(jniRefOffset,false);
+      VM.sysWrite(jniRefOffset);
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");

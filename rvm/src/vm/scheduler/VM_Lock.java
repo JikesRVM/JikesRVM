@@ -673,14 +673,14 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 
       int totalLocks = lockOperations + VM_ThinLock.fastLocks + VM_ThinLock.slowLocks;
 
-      VM.sysWrite("FatLocks: "); VM.sysWrite(waitOperations, false);      VM.sysWrite(" wait operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(timedWaitOperations, false); VM.sysWrite(" timed wait operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyOperations, false);    VM.sysWrite(" notify operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyAllOperations, false); VM.sysWrite(" notifyAll operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(lockOperations, false);      VM.sysWrite(" locks");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(waitOperations);      VM.sysWrite(" wait operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(timedWaitOperations); VM.sysWrite(" timed wait operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyOperations);    VM.sysWrite(" notify operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyAllOperations); VM.sysWrite(" notifyAll operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(lockOperations);      VM.sysWrite(" locks");
       VM_Stats.percentage(lockOperations, totalLocks, "all lock operations");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(unlockOperations, false);    VM.sysWrite(" unlock operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(deflations, false);          VM.sysWrite(" deflations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(unlockOperations);    VM.sysWrite(" unlock operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(deflations);          VM.sysWrite(" deflations\n");
 
       VM_ThinLock.notifyExit(totalLocks);
       VM_LockNursery.notifyExit(totalLocks);

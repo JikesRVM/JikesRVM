@@ -255,11 +255,11 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
 	int s = getSize(i);
 	if (!f)
 	  VM.sysWrite("->");
-	VM.sysWrite(i,false);
+	VM.sysWrite(i);
 	if (!f)
 	  VM.sysWrite("<-");
 	VM.sysWrite("[");
-	VM.sysWrite(s,false);
+	VM.sysWrite(s);
 	VM.sysWrite("]");
 	VM.sysWrite(" ");
       }

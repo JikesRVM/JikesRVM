@@ -107,10 +107,10 @@ public class VM_RuntimeCompilerInfrastructure
       if (total_methods[i]>0) {
 	VM.sysWrite(name[i]);
 	// Number of methods
-	VM.sysWrite(total_methods[i], false);
+	VM.sysWrite(total_methods[i]);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite(VM_Time.toSecs(total_time[i]), false);
+	VM.sysWrite(VM_Time.toSecs(total_time[i]));
 	VM.sysWrite("\t");
 	// Bytecode bytes per millisecond
 	VM.sysWrite((double)total_bcodeLen[i]/total_time[i], 2);

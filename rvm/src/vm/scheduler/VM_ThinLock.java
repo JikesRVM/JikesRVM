@@ -385,9 +385,9 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
 
   static void notifyExit (int value) {
     if (!STATS) return;
-    VM.sysWrite("ThinLocks: "); VM.sysWrite(fastLocks, false);      VM.sysWrite(" fast locks");
+    VM.sysWrite("ThinLocks: "); VM.sysWrite(fastLocks);      VM.sysWrite(" fast locks");
     VM_Stats.percentage(fastLocks, value, "all lock operations");
-    VM.sysWrite("ThinLocks: "); VM.sysWrite(slowLocks, false);      VM.sysWrite(" slow locks");
+    VM.sysWrite("ThinLocks: "); VM.sysWrite(slowLocks);      VM.sysWrite(" slow locks");
     VM_Stats.percentage(slowLocks, value, "all lock operations");
   }
 

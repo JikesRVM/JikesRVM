@@ -198,12 +198,10 @@ public class VM_WriteBuffer implements VM_Constants,
     
     if (trace) {
       VM_Scheduler.outputMutex.lock();
-      VM.sysWrite(VM_Processor.getCurrentProcessorId(),false);
+      VM.sysWrite(VM_Processor.getCurrentProcessorId());
       VM.sysWrite(" VM_WriteBuffer processing time = ");
-      VM.sysWrite((int)((VM_Time.now() - startTime)*1000),false);
-      VM.sysWrite(" ms, number of entries processed = ");
-      VM.sysWrite(count,false);
-      VM.sysWrite("\n");
+      VM.sysWrite((int)((VM_Time.now() - startTime)*1000));
+      VM.sysWriteln(" ms, number of entries processed = ", count);
       VM_Scheduler.outputMutex.unlock();
     }
   }

@@ -78,7 +78,7 @@ public class Lock implements VM_Uninterruptible {
 	VM.sysWrite("\nPossible deadlock: failed to acquire lock ", id);
 	VM.sysWrite(" ", name);
 	VM.sysWrite(" after trying ");
-	VM.sysWrite(retryCount, false);
+	VM.sysWrite(retryCount);
 	VM.sysWrite(" times or ");
 	VM.sysWrite(1000000.0 * (end - localStart));
 	VM.sysWriteln(" micro-seconds");
