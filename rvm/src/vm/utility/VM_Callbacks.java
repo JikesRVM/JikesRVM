@@ -713,13 +713,13 @@ public final class VM_Callbacks {
     // NOTE: will need synchronization if allowing unregistering
     if (!startupEnabled) return;
     startupEnabled = false;
-    if (TRACE_CLASSLOADED) {
+    if (TRACE_STARTUP) {
       //VM.sysWrite(getThread(), false);
       //VM.sysWrite(": ");
       VM.sysWrite("invoking startup monitors\n");
     }
     for (CallbackList l = startupCallbacks; l != null; l = l.next) {
-      if (TRACE_CLASSLOADED) {
+      if (TRACE_STARTUP) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
         VM.sysWrite("\n");
