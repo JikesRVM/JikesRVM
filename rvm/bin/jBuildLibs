@@ -37,19 +37,19 @@ fi
 #
 if [[ $RVM_HOST_CONFIG = "" ]]; then
    print "$ME: please set your RVM_HOST_CONFIG environment variable"
-   print " eg. $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0"
+   print " eg. $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0"
    exit 1
 fi
 . $RVM_HOST_CONFIG
 
 # Create a temporary build directory
-$RVM_ROOT/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBasecopyingGC
+$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBasecopyingGC
 cd $RVM_BUILD
 ./jbuild.expand
 ./jbuild.copy
 
 # Copy the library sources 
-cp -r $RVM_ROOT/../rvmSupport/lib/src/* $RVM_BUILD/Jalapeno.classes
+cp -r $RVM_ROOT/rvmSupport/lib/src/* $RVM_BUILD/Jalapeno.classes
 
 # Compile the RVM sources
 ./jbuild.compile

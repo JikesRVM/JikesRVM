@@ -16,13 +16,16 @@ $SRCS=	BootImage.java \
 	BootImageWriterConstants.java \
 	BootImageWriterMessages.java
 
-UTIL_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map*
+ZIP_KLUDGE_CLASSES = java/util/zip/ZipConstants.class
+MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map*
+UTIL_KLUDGE_CLASSES = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES)
 UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
 UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
 $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/rvmrt.jar
-	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT) 2> /dev/null
-	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) 2> /dev/null
+	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
+	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
+	@echo "(built workaround zip) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force

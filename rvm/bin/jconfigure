@@ -1598,51 +1598,36 @@ function emitCompiler
 # These are required to read a zip file
    if (( !BUILD_RVMRT_JAR )); then 
      print "cd $CLASSES_DIRECTORY_STR"
-     print 'unzip -U -n -x rvmrt.jar java/util/HashMap.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/util/AbstractMap.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/io/OutputStream.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/io/BufferedInputStream.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/io/FilterOutputStream.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/io/BufferedOutputStream.class 2> /dev/null'
-     print "unzip -U -n -x rvmrt.jar 'java/util/zip/ZipFileJpn*.class' 2> /dev/null"
-     print 'unzip -U -n -x rvmrt.jar java/util/zip/ZipConstants.class 2> /dev/null'
-     print "unzip -U -n -x rvmrt.jar 'java/util/zip/InflateJala*.class' 2> /dev/null"
-     print 'unzip -U -n -x rvmrt.jar java/io/PrintStream.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/io/FileOutputStream.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/lang/Runtime.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/util/Properties.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/util/Dictionary.class 2> /dev/null'
-     print "unzip -U -n -x rvmrt.jar 'java/util/Hashtable*.class' 2> /dev/null"
 
-       if (( RVM_WITH_JAZZLIB )); then
-         print 'unzip -U -n -x rvmrt.jar java/util/Calendar.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/GregorianCalendar.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/Locale.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/Locale\$1.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/Date.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone\$1.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/SimpleTimeZone.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/StringTokenizer.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/lang/Cloneable.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/security/AccessController.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/security/PrivilegedAction.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/io/Serializable.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/PropertyPermission.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/security/BasicPermission.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/security/Permission.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en_US.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/ListResourceBundle.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermission.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/AbstractSet.class 2> /dev/null'
-           print 'unzip -U -n -x rvmrt.jar java/util/HashSet.class 2> /dev/null'
-       fi
-     fi 
+     if (( RVM_WITH_JAZZLIB )); then
+       print 'unzip -U -n -x rvmrt.jar java/util/Calendar.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/GregorianCalendar.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/Locale.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/Locale\$1.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/Date.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/TimeZone.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/TimeZone\$1.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/SimpleTimeZone.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/StringTokenizer.class'
+       print 'unzip -U -n -x rvmrt.jar java/lang/Cloneable.class'
+       print 'unzip -U -n -x rvmrt.jar java/security/AccessController.class'
+       print 'unzip -U -n -x rvmrt.jar java/security/PrivilegedAction.class'
+       print 'unzip -U -n -x rvmrt.jar java/io/Serializable.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/PropertyPermission.class'
+       print 'unzip -U -n -x rvmrt.jar java/security/BasicPermission.class'
+       print 'unzip -U -n -x rvmrt.jar java/security/Permission.class'
+       print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en_US.class'
+       print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en.class'
+       print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/ListResourceBundle.class'
+       print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermission.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/AbstractSet.class'
+       print 'unzip -U -n -x rvmrt.jar java/util/HashSet.class'
+     fi
+   fi 
 
-     print 'print ""'
-   }
+   print 'print ""'
+}
 
 # Emit script to generate vm bootimage.
 # Taken:    .class files in build directory
@@ -1784,10 +1769,31 @@ function emitImageLinker
    if (( ! RVM_WITH_JAZZLIB )); then 
      print "   print 'Ljava/util/zip/ZipEntry;'     >> $PRIMORDIAL_CLASSES_STR"
      print "   print 'Ljava/util/zip/ZipException;' >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'Ljava/util/zip/ZipException;' >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'LVM_ZipFile;'                 >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'LVM_ZipFile$ZipHash;'         >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'LVM_ZipFile$ZipMapEntry;'     >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'LVM_InflateZip;'              >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'LVM_InflateZip$BitBucket;'    >> $PRIMORDIAL_CLASSES_STR"
+     print "   print 'LVM_InflateZip$Huft;'         >> $PRIMORDIAL_CLASSES_STR"
    fi
-   print "   print 'Ljava/io/ByteArrayInputStream;'  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/RandomAccessFile;'      >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Hashtable;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Boolean;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Byte;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Integer;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Character;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Short;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Long;'             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Runtime;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/AbstractMap;'   	  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/HashMap;'    	  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/ByteArrayInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/FileOutputStream;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/BufferedOutputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/BufferedInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/RandomAccessFile;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/PrintStream;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Properties;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/Hashtable;'        >> $PRIMORDIAL_CLASSES_STR"
 #  print "   print 'Ljava/util/HashMapEntry;'     >> $PRIMORDIAL_CLASSES_STR"
 #  print "   print 'Ljava/util/MapEntry;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Map;'              >> $PRIMORDIAL_CLASSES_STR"
@@ -1873,7 +1879,6 @@ function emitImageLinker
 
    if (( RVM_WITH_OPT_COMPILER )); then
       print "   print '[[C'                       >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/util/HashMap;'    	  >> $PRIMORDIAL_CLASSES_STR"
       print "   print 'Ljava/util/HashMapEntry;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print 'Ljava/util/MapEntry;'      >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[Ljava/util/HashMapEntry;' >> $PRIMORDIAL_CLASSES_STR"
