@@ -92,12 +92,12 @@ INPUT_FILES = 	userguide.tex \
 		gcspy.tex \
 		installation.tex \
 		intro.tex \
-		JMTk.tex \
 		jni.tex \
 		libraries.tex \
 		licenses.tex \
 		cpl-text.tex \
 		magic.tex \
+		MMTk.tex \
 		optdetails.tex \
 		performance.tex \
 		preprocessor.tex \
