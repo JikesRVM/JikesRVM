@@ -12,7 +12,9 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
+public class VM_Compiler extends VM_BaselineCompiler 
+  implements VM_BaselineConstants,
+	     VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
   /*private*/ int frameSize;            //!!TODO: make private once VM_MagicCompiler is merged in
@@ -1380,17 +1382,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifeq(int bTarget) {
-    int mTarget;
     asm.emitL  (T0,  0, SP);
     asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     asm.emitCAL(SP,  4, SP); // completes pop
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBEQ(mTarget);
+    genCondBranch(EQ, bTarget);
   }
 
   /**
@@ -1398,17 +1393,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifne(int bTarget) {
-    int mTarget;
     asm.emitL  (T0,  0, SP);
     asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     asm.emitCAL(SP,  4, SP); // completes pop
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBNE(mTarget);
+    genCondBranch(NE, bTarget);
   }
 
   /**
@@ -1416,17 +1404,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_iflt(int bTarget) {
-    int mTarget;
     asm.emitL  (T0,  0, SP);
     asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     asm.emitCAL(SP,  4, SP); // completes pop
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBLT(mTarget);
+    genCondBranch(LT, bTarget);
   }
 
   /**
@@ -1434,17 +1415,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifge(int bTarget) {
-    int mTarget;
     asm.emitL  (T0,  0, SP);
     asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     asm.emitCAL(SP,  4, SP); // completes pop
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBGE(mTarget);
+    genCondBranch(GE, bTarget);
   }
 
   /**
@@ -1452,17 +1426,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifgt(int bTarget) {
-    int mTarget;
     asm.emitL  (T0,  0, SP);
     asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     asm.emitCAL(SP,  4, SP); // completes pop
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBGT(mTarget);
+    genCondBranch(GT, bTarget);
   }
 
   /**
@@ -1470,17 +1437,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifle(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 0, SP);
     asm.emitAIr(0,  T0,  0); // T0 to 0 and sets CR0 
     asm.emitCAL(SP, 4, SP);  // completes pop
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBLE(mTarget);
+    genCondBranch(LE, bTarget);
   }
 
   /**
@@ -1488,18 +1448,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpeq(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 4, SP);
     asm.emitL  (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBEQ(mTarget);
+    genCondBranch(EQ, bTarget);
   }
 
   /**
@@ -1507,18 +1460,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpne(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 4, SP);
     asm.emitL  (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBNE(mTarget);
+    genCondBranch(NE, bTarget);
   }
 
   /**
@@ -1526,18 +1472,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmplt(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 4, SP);
     asm.emitL  (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBLT(mTarget);
+    genCondBranch(LT, bTarget);
   }
 
   /**
@@ -1545,18 +1484,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpge(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 4, SP);
     asm.emitL  (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBGE(mTarget);
+    genCondBranch(GE, bTarget);
   }
 
   /**
@@ -1564,18 +1496,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpgt(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 4, SP);
     asm.emitL  (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBGT(mTarget);
+    genCondBranch(GT, bTarget);
   }
 
   /**
@@ -1583,18 +1508,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmple(int bTarget) {
-    int mTarget;
     asm.emitL  (T0, 4, SP);
     asm.emitL  (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBLE(mTarget);
+    genCondBranch(LE, bTarget);
   }
 
   /**
@@ -1602,18 +1520,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_acmpeq(int bTarget) {
-    int mTarget;
     asm.emitL (T0, 4, SP);
     asm.emitL (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBEQ(mTarget);
+    genCondBranch(EQ, bTarget);
   }
 
   /**
@@ -1621,18 +1532,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_acmpne(int bTarget) {
-    int mTarget;
     asm.emitL (T0, 4, SP);
     asm.emitL (T1, 0, SP);
     asm.emitCMP(T0, T1);    // sets CR0
     asm.emitCAL(SP, 8, SP); // completes 2 pops
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBNE(mTarget);
+    genCondBranch(NE, bTarget);
   }
 
   /**
@@ -1644,14 +1548,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitLIL (T1,  0);
     asm.emitCMP (T0, T1);  
     asm.emitCAL (SP,  4, SP);
-    int mTarget;
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBEQ(mTarget);
+    genCondBranch(EQ, bTarget);
   }
 
   /**
@@ -1663,14 +1560,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitLIL (T1,  0);
     asm.emitCMP (T0, T1);  
     asm.emitCAL (SP,  4, SP);
-    int mTarget;
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBNE(mTarget);
+    genCondBranch(NE, bTarget);
   }
 
   /**
@@ -2780,6 +2670,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMTLR(S0);
       asm.emitBLR (); // branch always, through link register
     }
+  }
+
+
+  /**
+   * Emit the code for a bytecode level conditional branch
+   * @param cc the condition code to branch on
+   * @param bTarget the target bytecode index
+   */
+  private void genCondBranch(int cc, int bTarget) {
+    int mTarget;
+    if (bTarget <= biStart) {
+      mTarget = asm.relativeMachineAddress(bTarget);
+    } else {
+      mTarget = 0;
+      asm.reserveForwardConditionalBranch(bTarget);
+    }
+    asm.emitBC(cc, mTarget);
   }
 
 

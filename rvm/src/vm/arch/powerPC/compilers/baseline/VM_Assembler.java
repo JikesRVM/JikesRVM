@@ -4,32 +4,30 @@
 //$Id$
 
 /**
+ * Machine code generators:
+ *
+ * Corresponding to a PowerPC assembler instruction of the form
+ *    xx A,B,C
+ * there will be the following methods
+ *    int XX (int A, int B, int C), and
+ *    void emitXX (int A, int B, int C).
+ * 
+ * The XX method returns the machine code instruction as an integer; the
+ * emitXX method appends this instruction to an VM_MachineCode object.
+ * The name of a method for generating assembler instruction with the record
+ * bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
+ * 
+ * mIP will be incremented to point to the next machine instruction.
+ * 
  * @author Bowen Alpern
  * @author Maria Butrico
  * @author Anthony Cocchi
  * @author Derek Lieber
+ * @modified Dave Grove
  */
-final class VM_Assembler implements VM_BaselineConstants {
+final class VM_Assembler implements VM_BaselineConstants,
+				    VM_AssemblerConstants {
 
-  /* Machine code generators:
-
-     Corresponding to a PowerPC assembler instruction of the form
-
-       xx A,B,C
-
-     there will be the following methods
-       
-       int XX (int A, int B, int C), and
-
-       private void emitXX (int A, int B, int C).
-
-     The XX method returns the machine code instruction as an integer; the
-     emitXX method appends this instruction to an VM_MachineCode object.
-     The name of a method for generating assembler instruction with the record
-     bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
-
-     mIP will be incremented to point to the next machine instruction.
-  */
   VM_Assembler (int length) {
     this(length, false);
   }
@@ -97,6 +95,7 @@ final class VM_Assembler implements VM_BaselineConstants {
   }
 
   void noteBytecode (int i, String bcode) {
+    if (!VM.TraceAssembler) return;
     VM.sysWrite("[" + i + "] " + bcode + "\n");
   }
 
@@ -105,20 +104,6 @@ final class VM_Assembler implements VM_BaselineConstants {
     if (!VM.TraceAssembler) return;
     if (comment == null) comment = "";
     comment += "# " + c;
-  }
-
-  private final void label (int inum, int ifrom, int bfrom) {
-    String instr = right(hex(inum<<2),6) + "| " + right("",8);
-    instr += " " + left("from",6) + left(hex(ifrom<<2),8);
-    instr += "# <<< bi " + bfrom + " ";
-    System.out.println(instr);
-  }
-
-  private final void label (int inum, int ifrom, int bfrom, int c) {
-    String instr = right(hex(inum<<2),6) + "| " + right("",8);
-    instr += " " + left("from",6) + left(hex(ifrom<<2),8);
-    instr += "# <-- bi " + bfrom + " case " + c + " ";
-    System.out.println(instr);
   }
 
   private void asm (int inum, INSTRUCTION mi, String opcode, String args) {
@@ -362,147 +347,90 @@ final class VM_Assembler implements VM_BaselineConstants {
 
   static final int BCtemplate = 16<<26;
 
-  static final INSTRUCTION BC (int B0, int B1, int rel) {
-    return 16<<26 | B0<<21 | B1<<16 | (rel&0x3FFF)<<2;
+  public static final int flipCode(int cc) {
+    switch(cc) {
+    case LT: return GE;
+    case GT: return LE;
+    case EQ: return NE;
+    case LE: return GT;
+    case GE: return LT;
+    case NE: return EQ;
+    }
+    if (VM.VerifyAssertions) VM.assert(false);
+    return -1;
   }
 
-  private static final int lt = 0;
-  private static final int gt = 1;
-  private static final int eq = 2;
-  private static final int yea = 0xC; // branch if condition is true
-  private static final int nea = 0x4; // branch if condition is false
+  static final INSTRUCTION BC (int cc, int rel) {
+    return BCtemplate | cc | (rel&0x3FFF)<<2;
+  }
 
-  static final int BLTtemplate = 16<<26 | yea<<21 | lt<<16;
-  static final int BGTtemplate = 16<<26 | yea<<21 | gt<<16;
-  static final int BEQtemplate = 16<<26 | yea<<21 | eq<<16;
-  static final int BLEtemplate = 16<<26 | nea<<21 | gt<<16;
-  static final int BGEtemplate = 16<<26 | nea<<21 | lt<<16;
-  static final int BNEtemplate = 16<<26 | nea<<21 | eq<<16;
+  final void emitBC (int cc, int relative_address) {
+    if (fits(relative_address, 14)) {
+      INSTRUCTION mi = BCtemplate | cc | (relative_address&0x3FFF)<<2;
+      if (VM.TraceAssembler) {
+	switch(cc) {
+	case LT: asm(mIP, mi, "blt", signedHex(relative_address<<2)); break;
+	case GT: asm(mIP, mi, "bgt", signedHex(relative_address<<2)); break;
+	case EQ: asm(mIP, mi, "beq", signedHex(relative_address<<2)); break;
+	case LE: asm(mIP, mi, "ble", signedHex(relative_address<<2)); break;
+	case GE: asm(mIP, mi, "bge", signedHex(relative_address<<2)); break;
+	case NE: asm(mIP, mi, "bne", signedHex(relative_address<<2)); break;
+	}
+      }
+      mIP++;
+      mc.addInstruction(mi);
+    } else {
+      emitBC(flipCode(cc), 2);
+      emitB(relative_address-1);
+    }
+  }
 
   static final INSTRUCTION BLT (int relative_address) {
-    return 16<<26 | 0xC<<21 | 0<<16 | (relative_address&0x3FFF)<<2;
+    return BC(LT, relative_address);
   }
 
   final void emitBLT (int relative_address) {
-    if (fits(relative_address, 14)) {
-      INSTRUCTION mi = BLTtemplate | (relative_address&0x3FFF)<<2;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "blt", signedHex(relative_address<<2));
-      mIP++;
-      mc.addInstruction(mi);
-    } else {
-      INSTRUCTION mi = BGEtemplate | 8;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "bge", signedHex(8));
-      mIP++;
-      mc.addInstruction(mi);
-      emitB(relative_address-1);
-    }
+    emitBC(LT, relative_address);
   }
 
   static final INSTRUCTION BGT (int relative_address) {
-    return 16<<26 | 0xC<<21 | 1<<16 | (relative_address&0x3FFF)<<2;
+    return BC(GT, relative_address);
   }
 
   final void emitBGT (int relative_address) {
-    if (fits(relative_address, 14)) {
-      INSTRUCTION mi = BGTtemplate | (relative_address&0x3FFF)<<2;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "bgt", signedHex(relative_address<<2));
-      mIP++;
-      mc.addInstruction(mi);
-    } else {
-      INSTRUCTION mi = BLEtemplate | 8;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "ble", signedHex(8));
-      mIP++;
-      mc.addInstruction(mi);
-      emitB(relative_address-1);
-    }
+    emitBC(GT, relative_address);
   }
 
   static final INSTRUCTION BEQ (int relative_address) {
-    return 16<<26 | 0xC<<21 | 2<<16 | (relative_address&0x3FFF)<<2;
+    return BC(EQ, relative_address);
   }
 
   final void emitBEQ (int relative_address) {
-    if (fits(relative_address, 14)) {
-      INSTRUCTION mi = BEQtemplate | (relative_address&0x3FFF)<<2;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "beq", signedHex(relative_address<<2));
-      mIP++;
-      mc.addInstruction(mi);
-    } else {
-      INSTRUCTION mi = BNEtemplate | 8;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "bne", signedHex(8));
-      mIP++;
-      mc.addInstruction(mi);
-      emitB(relative_address-1);
-    }
+    emitBC(EQ, relative_address);
   }
 
   static final INSTRUCTION BLE (int relative_address) {
-    return 16<<26 | 0x4<<21 | 1<<16 | (relative_address&0x3FFF)<<2;
+    return BC(LE, relative_address);
   }
 
   final void emitBLE (int relative_address) {
-    if (fits(relative_address, 14)) {
-      INSTRUCTION mi = BLEtemplate | (relative_address&0x3FFF)<<2;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "ble", signedHex(relative_address<<2));
-      mIP++;
-      mc.addInstruction(mi);
-    } else {
-      INSTRUCTION mi = BGTtemplate | 8;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "bgt", signedHex(8));
-      mIP++;
-      mc.addInstruction(mi);
-      emitB(relative_address-1);
-    }
+    emitBC(LE, relative_address);
   }
 
   static final INSTRUCTION BGE (int relative_address) {
-    return 16<<26 | 0x4<<21 | 0<<16 | (relative_address&0x3FFF)<<2;
+    return BC(GE, relative_address);
   }
 
   final void emitBGE (int relative_address) {
-    if (fits(relative_address, 14)) {
-      INSTRUCTION mi = BGEtemplate | (relative_address&0x3FFF)<<2;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "bge", signedHex(relative_address<<2));
-      mIP++;
-      mc.addInstruction(mi);
-    } else {
-      INSTRUCTION mi = BLTtemplate | 8;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "blt", signedHex(8));
-      mIP++;
-      mc.addInstruction(mi);
-      emitB(relative_address-1);
-    }
+    emitBC(GE, relative_address);
   }
 
   static final INSTRUCTION BNE (int relative_address) {
-    return 16<<26 | 0x4<<21 | 2<<16 | (relative_address&0x3FFF)<<2;
+    return BC(NE, relative_address);
   }
 
   final void emitBNE (int relative_address) {
-    if (fits(relative_address, 14)) {
-      INSTRUCTION mi = BNEtemplate | (relative_address&0x3FFF)<<2;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "bne", signedHex(relative_address<<2));
-      mIP++;
-      mc.addInstruction(mi);
-    } else {
-      INSTRUCTION mi = BEQtemplate | 8;
-      if (VM.TraceAssembler)
-	asm(mIP, mi, "beq", signedHex(8));
-      mIP++;
-      mc.addInstruction(mi);
-      emitB(relative_address-1);
-    }
+    emitBC(NE, relative_address);
   }
 
   static final int BLRtemplate = 19<<26 | 0x14<<21 | 16<<1;
@@ -931,7 +859,7 @@ final class VM_Assembler implements VM_BaselineConstants {
   // LOAD/ STORE MULTIPLE
 
   // TODO!! verify that D is sign extended 
-  // (the Assembler Language Reference seems ambituous) 
+  // (the Assembler Language Reference seems ambiguous) 
   //
   final void emitLM(int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -943,7 +871,7 @@ final class VM_Assembler implements VM_BaselineConstants {
   }
 
   // TODO!! verify that D is sign extended 
-  // (the Assembler Language Reference seems ambituous) 
+  // (the Assembler Language Reference seems ambiguous) 
   //
   final void emitSTM(int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM.assert(fits(D, 16));
@@ -1722,37 +1650,6 @@ final class VM_Assembler implements VM_BaselineConstants {
     return 31<<26 | TO<<21 | RA<<16 | RB<<11 | 4<<1;
   }
 
-/**********UNUSED*****
-* 
-* final void emitT (int TO, int RA, int RB) {
-*   INSTRUCTION mi = Ttemplate | TO<<21 | RA<<16 | RB<<11;
-*   if (VM.TraceAssembler)
-*     asm(mIP, mi, "t", TO, RA, RB);
-*   mIP++;
-*   mc.addInstruction(mi);
-* }
-*
-* static final int TGEtemplate = 31<<26 | 0xC<<21 | 4<<1;
-*
-* final void emitTGE (int RA, int RB) {
-*   INSTRUCTION mi = TGEtemplate | RA<<16 | RB<<11;
-*   if (VM.TraceAssembler)
-*     asm(mIP, mi, "tge", RA, RB);
-*   mIP++;
-*   mc.addInstruction(mi);
-* }
-*
-* static final int TLGEtemplate = 31<<26 | 0x5<<21 | 4<<1;
-*
-* final void emitTLGE (int RA, int RB) {
-*   INSTRUCTION mi = TLGEtemplate | RA<<16 | RB<<11;
-*   if (VM.TraceAssembler)
-*     asm(mIP, mi, "tlge", RA, RB);
-*   mIP++;
-*   mc.addInstruction(mi);
-* }
-***/
-
   static final int TItemplate = 3<<26;
 
   static final INSTRUCTION TI (int TO, int RA, int SI) {
@@ -1767,18 +1664,6 @@ final class VM_Assembler implements VM_BaselineConstants {
     mc.addInstruction(mi);
   }
   
-/***
-* static final int TLTItemplate = 3<<26 | 0x10<<21;
-*
-* final void emitTLT0 (int RA) {
-*   INSTRUCTION mi = TLTItemplate | RA<<16;
-*   if (VM.TraceAssembler)
-*     asm(mIP, mi, "tlti", RA, "0");
-*   mIP++;
-*   mc.addInstruction(mi);
-* }
-*************/
-
   static final int TLEtemplate = 31<<26 | 0x14<<21 | 4<<1;
 
   final void emitTLE (int RA, int RB) {
@@ -1885,12 +1770,12 @@ final class VM_Assembler implements VM_BaselineConstants {
   }
 
   // branch conditional -- don't thread switch
-  static final int BNTStemplate = 16<<26 | nea<<21 | THREAD_SWITCH_BIT<<16;
+  static final int BNTStemplate = BCtemplate | GE | THREAD_SWITCH_BIT<<16;
   final void emitBNTS (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address, 14));
     INSTRUCTION mi = BNTStemplate | (relative_address&0x3FFF)<<2;
     if (VM.TraceAssembler)
-      asm(mIP, mi, "BC", nea, THREAD_SWITCH_BIT, signedHex(relative_address<<2));
+      asm(mIP, mi, "bge", THREAD_SWITCH_BIT, signedHex(relative_address<<2));
     mIP++;
     mc.addInstruction(mi);
   }
@@ -2295,18 +2180,4 @@ final class VM_Assembler implements VM_BaselineConstants {
   }
 
   //-#endif
-
-  // Emit baseline dynamically linked call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  //           method /or/ field id associated with dynamic link site
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  void emitDynamicCall (int spSaveAreaOffset, int memberId) {
-    emitST(SP, spSaveAreaOffset, FP); // save SP
-    emitBLRL();
-    emitDATA(memberId);
-    emitL (SP, spSaveAreaOffset, FP); // restore SP
-    }
 }
