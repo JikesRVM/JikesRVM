@@ -14,6 +14,12 @@ At the moment they reflect Jikes RVM 2.3.3 + CVS head.
 
 **TODO: Update status of opt compiler PowerPC64 port.
 
+**Major revision of the object model. All objects (arrays and scalars) 
+are now layed out in a "forwards" direction. This simplifies and enables
+many common GC techniques (scannable heap; card-marking) at the cost of a 
+slight performance hit on AIX/PowerPC due to the need to make some null checks
+explicit. See VM_ObjectModel.java for more details. 
+
 *Other notes:
 **The MMAP_COPY_ON_WRITE feature now works on PowerPC/Linux and PowerPC/OSX.  
 (This feature was discussed in the 2.3.3 release notes.)
