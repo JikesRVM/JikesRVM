@@ -74,24 +74,6 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
   }
 
   /**
-   * Return true if the method contains a VM_Magic.pragmaInline()
-   * or throws VM_PragmaInline.
-   * Note: VM_Magic.pragmaInline will be deprecated shortly!
-   */
-  public static final boolean hasInlinePragma(VM_Method method) {
-    return method.hasInlinePragma() || hasInlinePragma(getSummary(method));
-  }
-
-  /**
-   * Returns true if the method contains a VM_Magic.pragmaNoInline()
-   * or throws VM_PragmaNoInline.
-   * Note: VM_Magic.pragmaNoInline will be deprecated shortly!
-   */
-  public static final boolean hasNoInlinePragma(VM_Method method) {
-    return method.hasNoInlinePragma() || hasNoInlinePragma(getSummary(method));
-  }
-
-  /**
    * returns true if the method contains a VM_Magic.xxx
    */
   public static final boolean hasMagic(VM_Method method) {
@@ -250,15 +232,13 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
   private static final int FLAG_MASK = 0x7fff0000;
   private static final int SIZE_MASK = 0x0000ffff;
   // Definition of flag bits
-  private static final int HAS_INLINE_PRAGMA = 0x40000000;
-  private static final int HAS_NOINLINE_PRAGMA = 0x20000000;
-  private static final int HAS_MAGIC = 0x10000000;
-  private static final int HAS_SYNCH = 0x08000000;
-  private static final int HAS_ARRAY_OP = 0x04000000;
-  private static final int HAS_ALLOCATION = 0x02000000;
-  private static final int HAS_THROW = 0x01000000;
-  private static final int HAS_INVOKE = 0x00800000;
-  private static final int HAS_FIELD_OP = 0x00400000;
+  private static final int HAS_MAGIC      = 0x10000000;
+  private static final int HAS_SYNCH      = 0x20000000;
+  private static final int HAS_ARRAY_OP   = 0x40000000;
+  private static final int HAS_ALLOCATION = 0x80000000;
+  private static final int HAS_THROW      = 0x01000000;
+  private static final int HAS_INVOKE     = 0x02000000;
+  private static final int HAS_FIELD_OP   = 0x04000000;
 
   /**
    * Is the summary valid?
@@ -269,14 +249,6 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
 
   private static int getSize(int s) {
     return (s & SIZE_MASK);
-  }
-
-  private static boolean hasInlinePragma(int s) {
-    return (s & HAS_INLINE_PRAGMA) != 0;
-  }
-
-  private static boolean hasNoInlinePragma(int s) {
-    return (s & HAS_NOINLINE_PRAGMA) != 0;
   }
 
   private static boolean hasMagic(int s) {
@@ -318,14 +290,6 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
       return s |= SIZE_MASK; 
     else 
       return s |= (size);
-  }
-
-  private static int setInlinePragma(int s) {
-    return s | HAS_INLINE_PRAGMA;
-  }
-
-  private static int setNoInlinePragma(int s) {
-    return s | HAS_NOINLINE_PRAGMA;
   }
 
   private static int setMagic(int s) {
@@ -581,13 +545,6 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
             summary = setMagic(summary);
             summary = setInvoke(summary);
             calleeSize += MAGIC_COST;
-            VM_Atom methodName = meth.getName();
-            if (methodName == VM_MagicNames.pragmaNoInline) {
-              summary = setNoInlinePragma(summary);
-            }
-            if (methodName == VM_MagicNames.pragmaInline) {
-              summary = setInlinePragma(summary);
-            }
           } else {
             summary = setInvoke(summary);
             calleeSize += CALL_COST;
@@ -663,12 +620,6 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
       VM.sysWrite(bcLength, false);
       VM.sysWrite("\n\tInlined Size Estimate = ");
       VM.sysWrite(getSize(summary), false);
-      if (hasInlinePragma(summary)) {
-        VM.sysWrite("\n\tHas an Inline Pragma");
-      }
-      if (hasNoInlinePragma(summary)) {
-        VM.sysWrite("\n\tHas a No Inline Pragma");
-      }
       if (hasMagic(summary)) {
         VM.sysWrite("\n\tContains magic");
       }

@@ -3275,8 +3275,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.floatAsIntBits          ||
 	methodName == VM_MagicNames.intBitsAsFloat          ||
 	methodName == VM_MagicNames.doubleAsLongBits        ||
-	methodName == VM_MagicNames.pragmaInline            ||
-	methodName == VM_MagicNames.pragmaNoInline          ||
 	methodName == VM_MagicNames.longBitsAsDouble)
       {
 	// no-op (a type change, not a representation change)

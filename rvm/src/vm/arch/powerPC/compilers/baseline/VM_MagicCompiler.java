@@ -645,16 +645,6 @@ class VM_MagicCompiler implements VM_BaselineConstants {
          return;
          }
 
-      if (methodName == VM_MagicNames.pragmaNoInline)
-		  {
-		  return; // meaningless for the baseline compiler
-         }
-
-      if (methodName == VM_MagicNames.pragmaInline)
-		  {
-		  return; // meaningless for the baseline compiler
-         }
-
       if (methodName == VM_MagicNames.pragmaNoOptCompile)
 		  {
 		  return; // meaningless for the optimizing compiler

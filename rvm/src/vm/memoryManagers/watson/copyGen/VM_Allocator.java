@@ -302,22 +302,23 @@ public class VM_Allocator
    * @param size number of bytes to allocate
    * @return the address of the first byte of the allocated zero-filled region
    */
-  private static VM_Address allocateRawMemory(int size) throws OutOfMemoryError {
+  private static VM_Address allocateRawMemory(int size) throws OutOfMemoryError, VM_PragmaInline {
     if (PROCESSOR_LOCAL_ALLOCATE) {
-      VM_Magic.pragmaInline();
       VM_Address addr = VM_Chunk.allocateChunk1(size);
       if (VM.VerifyAssertions && variableNursery) VM.assert(appelHeap.addrInHeap(addr));
       return addr;
     } else {
-      for (int count = 0; true; count++) {
-	VM_Address addr = nurseryHeap.allocateZeroedMemory(size);
-	if (!addr.isZero()) {
-	  if (VM.VerifyAssertions && variableNursery) VM.assert(appelHeap.addrInHeap(addr));
-	  if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
-	  return addr;
-	} 
-	heapExhausted(nurseryHeap, size, count);
-      }
+      return globalAllocateRawMemory(size);
+    }
+  }
+  private static VM_Address globalAllocateRawMemory(int size) throws VM_PragmaNoInline {
+    for (int count = 0; true; count++) {
+      VM_Address addr = fromHeap.allocateZeroedMemory(size);
+      if (!addr.isZero()) {
+	if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
+	return addr;
+      } 
+      heapExhausted(fromHeap, size, count);
     }
   }
 

@@ -873,21 +873,6 @@ public class VM_Magic {
   //----------------------//
 
   /**
-   * The method containing this pragma is either unsafe, or undesirable to inline.
-   */
-  public static void pragmaNoInline() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
-  /**
-   * User directive that the method containing this pragma should be 
-   * inlined regardless of code space heuristics.
-   */
-  public static void pragmaInline() {
-    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
-  /**
    * User directive that the method containing this pragma should be not be
    * compiled by the optimizing compiler.  Only used by VM_NativeIdleThread.
    */

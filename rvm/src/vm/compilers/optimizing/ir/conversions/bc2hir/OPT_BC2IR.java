@@ -3957,7 +3957,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // We could write code to deal with this, but since in practice the
     // opt compiler implements all but a few fringe magics, it is just fine
     // to completely give up rather than take heroic measures here.
-    // In a few cases we do care about, we use VM_Magic.pragmaNoInline to
+    // In a few cases we do care about, we use VM_PragmaNoInline to
     // prevent the opt compiler from inlining a method that contains an
     // unimplemented magic.
     OPT_GenerationContext inlinedContext = 

@@ -130,8 +130,6 @@ class VM_MagicNames {
   static VM_Atom clearFloatingPointState;
   //-#endif
 
-  static VM_Atom pragmaNoInline;
-  static VM_Atom pragmaInline;
   static VM_Atom pragmaNoOptCompile;
 
   // Names associated with class VM_Address
@@ -272,8 +270,6 @@ class VM_MagicNames {
     clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
     //-#endif
 
-    pragmaNoInline                = VM_Atom.findOrCreateAsciiAtom("pragmaNoInline");
-    pragmaInline                  = VM_Atom.findOrCreateAsciiAtom("pragmaInline");
     pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
 
     addressFromInt                = VM_Atom.findOrCreateAsciiAtom("fromInt");

@@ -41,7 +41,7 @@ abstract class OPT_InlineTools implements OPT_Constants {
     }
 
     if (OPT_ClassLoaderProxy.needsDynamicLink(callee, caller.getDeclaringClass())) {
-      return  false;  // Can't inline due to class loading state of callee
+      return false;  // Can't inline due to class loading state of callee
     }
     if (callee.isAbstract() || callee.isNative()) {
       return false;            // No body to inline
@@ -145,7 +145,7 @@ abstract class OPT_InlineTools implements OPT_Constants {
 
   /**
    * Should the callee method always be inlined?
-   * Usually this is becuase of a programmer directive (VM_Magic.pragmaInline),
+   * Usually this is becuase of a programmer directive (VM_PragmaInline),
    * but we also use this mechanism to hardwire a couple special cases.
    *
    * @param callee the method being considered for inlining
@@ -154,15 +154,14 @@ abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean hasInlinePragma(VM_Method callee, 
 					OPT_CompilationState state) {
-    if (VM_OptMethodSummary.hasInlinePragma(callee))
-      return  true;
+    if (callee.hasInlinePragma()) return true;
     // If we know what kind of array "src" (argument 0) is
     // then we always want to inline java.lang.System.arraycopy.
     // TODO: Would be nice to discover this automatically!!!
     //       There have to be other methods with similar properties.
     if (callee == VM_Entrypoints.sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return  src.getType() != OPT_ClassLoaderProxy.JavaLangObjectType;
+      return src.getType() != OPT_ClassLoaderProxy.JavaLangObjectType;
     }
     // More arraycopy hacks.  If we the two starting indices are constant and
     // it's not the object array version 
@@ -170,10 +169,10 @@ abstract class OPT_InlineTools implements OPT_Constants {
     if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type
         && callee.getName() == arraycopyName && callee.getDescriptor()
         != objectArrayCopyDescriptor) {
-      return  Call.getParam(state.getCallInstruction(), 1).isConstant()
+      return Call.getParam(state.getCallInstruction(), 1).isConstant()
           && Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
-    return  false;
+    return false;
   }
 
   private static VM_Atom arraycopyName = 
@@ -192,7 +191,7 @@ abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean hasNoInlinePragma (VM_Method callee, 
 					   OPT_CompilationState state) {
-    return VM_OptMethodSummary.hasNoInlinePragma(callee);
+    return callee.hasNoInlinePragma();
   }
 }
 

@@ -371,12 +371,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       bc2ir.appendInstruction(Attempt.create(ATTEMPT, test, base, offset, oldVal, 
 					     newVal, null));
       bc2ir.push(test.copyD2U());
-    } else if (methodName == VM_MagicNames.pragmaNoInline) {
-      // This also may imply that the method relies on a stack frame 
-      // being constructed, so don't take any chances.
-      gc.allocFrame = true;
-    } else if (methodName == VM_MagicNames.pragmaInline) {
-      // Do nothing (this pragma is meaningless to IR generation....)
     } else if (methodName == VM_MagicNames.addressFromInt) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Type.AddressType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
@@ -469,12 +463,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_RegisterOperand res = gc.temps.makeTempInt();
       bc2ir.appendInstruction(BooleanCmp.create(BOOLEAN_CMP, res.copyRO(), o1, o2, cond, new OPT_BranchProfileOperand()));
       bc2ir.push(res.copyD2U());
-      /*
-      bc2ir.appendInstruction(Move.create(INT_MOVE, res.copyRO(), new OPT_IntConstantOperand(1)));
-      bc2ir.appendInstruction(IfCmp.create(INT_IFCMP, guard, o1, o2, cond,
-					   generateTarget(0), new OPT_BranchProfileOperand()));
-      bc2ir.appendInstruction(Move.create(INT_MOVE, res.copyRO(), new OPT_IntConstantOperand(0)));
-      */
   }
 
 }
