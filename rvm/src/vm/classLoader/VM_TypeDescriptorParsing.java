@@ -1,11 +1,8 @@
-/*
+/* -*-coding: iso-8859-1-*-
  * (C) Copyright IBM Corp. 2003
  */
 //$Id$
 
-/** A Class for parsing type descriptors.
- * @author Steven Augart
- * @date July 31, 2003 */
 
 
 package com.ibm.JikesRVM.classloader;
@@ -13,19 +10,102 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
-public class VM_TypeDescriptorParsing 
-  implements VM_ClassLoaderConstants // gets us constants.
+/** <p>A Java class for parsing type descriptors and class names.  The class
+     is <code>abstract</code> to eliminate the temptation to instantiate it,
+     since it contains only static methods.
+
+    <p>There are five similar kinds of descriptors and names that we have to
+     deal with.  We don't have methods for parsing all of them.
+
+    <p> In this documentation, I will refer to <i>The Java Native Interface
+     Programmer's Guide and Specification</i> as the <i>JNI Guide</i>.
+
+    <p> Some of the types I discuss below are described in §12.3 of the JNI
+     Guide.
+
+   <dl>
+    <dt>Fully-qualified class names and fully-qualified interface names</dt>
+    <dd>These are the dot-separated names, such as "java.lang.String" or
+     "java.util.Map".
+     <p>We can validate these with the static method #isJavaClassName(String)
+      in this class. 
+    </dd>
+    
+    <dt>JNI Class Descriptor (including array classes),<br> These include the
+     internal Form of fully-qualified class names 
+     and internal form of fully-qualified interface names</dt>
+    <dd>These 
+    <dd>&ldquo;It can be derived from a fully qualified class or interface
+     name as defined in The Java Language Specification by substituting the "."
+     character with the "/" character.  For example, the JNI class descriptor
+     for <code>java.lang.String</code> is "<code>java/lang/String</code>&rdquo;
+     Array classes are formed using the "[" character followed by the field
+     descriptor of the element type.  The class descrpitor for "int[]" is "[I".
+     <P>We do not have an interface for parsing these right now. 
+    </dd>
+    
+    <dt>Field Descriptors</dt>
+    <dd>Described in §12.3.3 of the JNI Guide.
+     Examples: 
+       <ul> 
+	<li>"Z" for boolean<br>
+	<li> "B" for byte
+	<li>"D" for double
+	<li>"Ljava/lang/String;" for java.lang.String
+	<li> "[I" for int[].
+       </ul>
+    </dd>
+    
+    <dt>Method Descriptors</dt>
+    <dd>Described in §12.3.4 of the JNI guide.  To quote:
+
+     <blockquote>
+
+       Method Descriptors are formed by placing the field descriptors of all
+       argument types in a pair of parentheses, and following that by the
+       field descriptor of the return type.  There are no spaces or other
+       separator characters between the argument types.  "<code>V</code>" is
+       used to denote the <code>void</code> method return type.  Constructors
+       use "<code>V</code>" as their return type and use "<code>&lt;init&gt;"
+       as their name.
+     </blockquote>
+    
+     Example: The method with signature "<code>byte f(int i, String s)</code>"
+     has the Method Descriptor "<code>(ILjava/lang/String;)B</code>"
+
+    <dt>VM_TypeReference names</dt>
+    <dd>Inside Jikes RVM, we use the VM_TypeReference class to represent the
+    reference in some class file to some type (class, interface, primitive, or
+    array).  We also use them to represent Void (VM_TypeReference.Void).</dd>
+    VM_TypeReference names are just field descriptors plus "V".
+   </dl>
+
+    @author Steven Augart
+    @date July 31, 2003 
+*/
+
+public abstract class VM_TypeDescriptorParsing 
+  implements VM_ClassLoaderConstants // gets us constants that we use in
+				     // isJavaPrimitive 
 {
-  // Vacuous.  Keeps us from creating a default constructor.  We don't need to
-  // instantiate this class, since it has only static methods.
-  private VM_TypeDescriptorParsing() {};
-  
-  /** Is the string @param s a valid name for a Java class? 
+  /** Is the string <code>s</code> a legal name for a Java class or interface?
+   * This will take either fully-qualified names or names that are not fully
+   * qualified. 
+   * <p>
+   * @param s The string to check for whether it's a valid name for a Java
+   *	      class.  This is a string of the form, for example:
+   * "<code>java.lang.String</code>" 
+   * @return <code>true</code> if <code>s</code> is valid, <code>false</code>
+   * otherwise.
    *
-   * Would it be more efficient for me to convert this to a char array?
-   * That's the way the example in The Java Class Libraries for
-   * Character.isJavaIdentifier*()  is worded.  Or is the String.charAt()
-   * method not too expensive? */
+   * <p>
+
+   * <small><b>Implementation Question for wiser heads than mine:</b>
+   * Would it be more efficient for me to convert this to a <code>char</code>
+   * array? 
+   * That's the way the example in <i>The Java Class Libraries</i> for
+   * <code>Character.isJavaIdentifier<i>*</i>()</code> is written.  Or is the
+   * <code>String.charAt()</code> method inexpensive?</small> */
   public static boolean isJavaClassName(String s) 
     throws VM_PragmaInterruptible 
   {
@@ -197,7 +277,8 @@ public class VM_TypeDescriptorParsing
 		+ ((msg == null ) ? "" : ": " + msg) + ": \"" + typeName + "\"");
   }
 
-  // These are test routines you can use to do unit testing on these:
+  // These are test routines you can use to do unit testing on the methods in
+  // this class::
   //  // Test isJavaClassName()
 //   public static void main(String[] args) {
 //     for (int i = 0; i < args.length; ++i) {
