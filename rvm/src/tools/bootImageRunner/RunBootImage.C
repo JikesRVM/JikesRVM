@@ -269,13 +269,19 @@ char *stringAppendWithSpace(char *first, char *second)
 char ** 
 processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit) 
 {
-  char *JCLAs[maxTokens];
+  char *autoJCLAs[maxTokens];
+  char **JCLAs;
   int n_JCLAs=0;
   int startApplicationOptions = 0;
   char *subtoken;
   int i;
 
   dejaVuMode = NO_DEJAVU;
+
+  if ( n_CLAs > maxTokens )
+    JCLAs = new char*[n_CLAs];
+  else
+    JCLAs = autoJCLAs;
 
   for (i=0; i<n_CLAs; i++) {
 
@@ -475,6 +481,9 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 
   /* and set the count */
   JavaArgc = n_JCLAs == 0 ? 0 : n_JCLAs - 1;
+
+  if ( n_CLAs > maxTokens )
+    free (JCLAs);
 
   return Arguments;
 }
