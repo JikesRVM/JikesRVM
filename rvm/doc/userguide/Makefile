@@ -1,6 +1,6 @@
 config_file := $(shell . $(RVM_HOST_CONFIG) && echo $$USER_GUIDE_CONFIG)
 
-HOST_JAVA := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_JAVA)
+HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_VM_RT)
 HOST_JAVAC := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_JAVAC)
 HOST_REPOSITORIES := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_REPOSITORIES)
 
@@ -172,7 +172,7 @@ ${GENERATOR_FILES}:	${GENERATOR}.java
 			$(HOST_JAVAC) -g -d . $<
 
 vm_options.tex:		${GENERATOR_FILES} options.template $(VM_DAT_FILES)
-			$(HOST_JAVA) ${GENERATOR} options.template \
+			$(HOST_VM_RT) ${GENERATOR} options.template \
 			  vm_options.tex \
 			  BOOLEAN_DAT_FILES="$(VM_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(VM_VALUE_DAT_FILES)" \
@@ -181,7 +181,7 @@ vm_options.tex:		${GENERATOR_FILES} options.template $(VM_DAT_FILES)
 			  OPTION_TYPE="VM"
 
 jmtk_options.tex:	${GENERATOR_FILES} options.template $(JMTK_DAT_FILES)
-			$(HOST_JAVA) ${GENERATOR} options.template \
+			$(HOST_VM_RT) ${GENERATOR} options.template \
 			  jmtk_options.tex \
 			  BOOLEAN_DAT_FILES="$(JMTK_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(JMTK_VALUE_DAT_FILES)" \
@@ -190,7 +190,7 @@ jmtk_options.tex:	${GENERATOR_FILES} options.template $(JMTK_DAT_FILES)
 			  OPTION_TYPE="JMTK"
 
 adaptive_options.tex:	${GENERATOR_FILES} options.template $(ADAPT_DAT_FILES)
-			$(HOST_JAVA) ${GENERATOR} options.template \
+			$(HOST_VM_RT) ${GENERATOR} options.template \
 			  adaptive_options.tex \
 			  BOOLEAN_DAT_FILES="$(ADAPT_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(ADAPT_VALUE_DAT_FILES)" \
@@ -199,7 +199,7 @@ adaptive_options.tex:	${GENERATOR_FILES} options.template $(ADAPT_DAT_FILES)
 			  OPTION_TYPE="ADAPTIVE"
 
 opt_options.tex:	${GENERATOR_FILES} options.template ${OPT_DAT_FILES}
-			$(HOST_JAVA) ${GENERATOR} options.template \
+			$(HOST_VM_RT) ${GENERATOR} options.template \
 			  opt_options.tex \
 			  BOOLEAN_DAT_FILES="$(OPT_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(OPT_VALUE_DAT_FILES)" \
@@ -208,7 +208,7 @@ opt_options.tex:	${GENERATOR_FILES} options.template ${OPT_DAT_FILES}
 			  OPTION_TYPE="OPTIMIZE"
 
 base_options.tex:	${GENERATOR_FILES} options.template $(BASE_DAT_FILES)
-			$(HOST_JAVA) ${GENERATOR} options.template \
+			$(HOST_VM_RT) ${GENERATOR} options.template \
 			  base_options.tex \
 			  BOOLEAN_DAT_FILES="$(BASE_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(BASE_VALUE_DAT_FILES)" \
