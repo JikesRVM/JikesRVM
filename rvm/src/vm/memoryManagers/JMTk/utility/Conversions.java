@@ -63,20 +63,29 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static int addressToMmapChunksUp (VM_Address addr) {
-    return ((addr.toInt()) + (LazyMmapper.MMAP_CHUNK_SIZE - 1)) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
+    VM_Word chunk = addr.add(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+    return chunk.toInt();
   }
 
   public static int pagesToBytes(int pages) {
     return pages << LOG_BYTES_IN_PAGE;
   }
 
-  public static int bytesToPagesUp (int bytes) {
-    return (bytes + BYTES_IN_PAGE - 1) >>> LOG_BYTES_IN_PAGE;
+  public static int bytesToPagesUp(int bytes) {
+    return bytesToPagesUp(VM_Extent.fromInt(bytes));
   }
-
-  public static int bytesToPages (int bytes) {
+  
+  public static int bytesToPages(int bytes) {
+    return bytesToPages(VM_Extent.fromInt(bytes));
+  }
+  
+  public static int bytesToPagesUp(VM_Extent bytes) {
+    return bytes.add(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+  }
+  
+  public static int bytesToPages(VM_Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToBytes(pages) == bytes);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
     return pages;
   }
 

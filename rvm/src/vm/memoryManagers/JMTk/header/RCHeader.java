@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -51,8 +52,9 @@ public class RCHeader extends RCBaseHeader {
    * @param isScalar are we initializing a scalar (true) or array
    * (false) object?
    */
-  public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-                                             boolean isScalar, int status)
+  public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
+                                                 int size, boolean isScalar,
+                                                 VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status;  // do nothing
   }

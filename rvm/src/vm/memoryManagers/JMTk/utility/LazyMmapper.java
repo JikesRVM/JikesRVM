@@ -132,7 +132,6 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
   final public static int LOG_MMAP_CHUNK_SIZE = 20;            
   final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
   final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
-  final public  static int MMAP_CHUNK_MASK = ~((1 << LOG_MMAP_CHUNK_SIZE) - 1);
 
   private static String chunkStateToString(byte state) {
     switch (state) {

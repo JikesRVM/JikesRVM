@@ -86,9 +86,11 @@ final class DoublyLinkedList
   }
 
   public final boolean isNode (VM_Address node) {
-    VM_Word n = node.toWord();
-    return (n.toInt() / granularity * granularity) == n.toInt();
-  } 
+    if (BITS_IN_ADDRESS == 64)
+      return (node.toLong() / granularity * granularity) == node.toLong();
+    else
+      return (node.toInt() / granularity * granularity) == node.toInt();
+  }
 
   static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {
     return node.add(HEADER_SIZE);

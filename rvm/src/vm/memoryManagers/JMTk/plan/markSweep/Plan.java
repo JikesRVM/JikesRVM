@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -272,7 +273,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int size) 
+  public static final VM_Word getInitialHeaderValue(int size) 
     throws VM_PragmaInline {
     if (size > LOS_SIZE_THRESHOLD)
       return losSpace.getInitialHeaderValue(size);
@@ -496,8 +497,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
-  public static final int resetGCBitsForCopy(VM_Address fromObj, 
-                                             int forwardingWord, int bytes) {
+  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj, 
+					     VM_Word forwardingWord, int bytes) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);  // not a copying collector!
     return forwardingWord;
   }

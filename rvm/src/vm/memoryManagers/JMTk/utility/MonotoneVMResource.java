@@ -82,7 +82,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       unlock();
       acquireHelp(oldCursor, pageRequest);
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
-      Memory.zero(oldCursor, VM_Extent.fromInt(bytes));
+      Memory.zero(oldCursor, VM_Extent.fromIntZeroExtend(bytes));
       // Memory.zeroPages(oldCursor, bytes);
       //-if RVM_WITH_GCSPY
       if (VM_Interface.GCSPY)
@@ -94,17 +94,17 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
 
   public void release() {
     // Unmapping is useful for being a "good citizen" and for debugging
-    int bytes = cursor.diff(start).toInt();
+    VM_Extent bytes = cursor.diff(start).toWord().toExtent();
     int pages = Conversions.bytesToPages(bytes);
     if (ZERO_ON_RELEASE) 
-        Memory.zero(start, VM_Extent.fromInt(bytes));
+        Memory.zero(start, bytes);
     if (Options.protectOnRelease)
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
     //-if RVM_WITH_GCSPY
     if (VM_Interface.GCSPY)
-      Plan.releaseVMResource(start, bytes);
+      Plan.releaseVMResource(start, bytes.toInt());
     //-endif
   }
 
@@ -137,7 +137,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   }
 
   public int getUsedPages () {
-    return Conversions.bytesToPages(cursor.diff(start).toInt());
+    return Conversions.bytesToPages(cursor.diff(start).toWord().toExtent());
   }
 
   //-if RVM_WITH_GCSPY

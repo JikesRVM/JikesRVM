@@ -34,9 +34,8 @@ public final class VM_AllocatorHeader extends Header {
                                       Object[] tib, int size, boolean isScalar)
     throws VM_PragmaInterruptible {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    int status = getBootTimeAvailableBits(ref, tib, size, isScalar, 0);
-    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref,
-                                         VM_Word.fromInt(status));
+    VM_Word status = getBootTimeAvailableBits(ref, tib, size, isScalar, VM_Word.zero());
+    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
   /**

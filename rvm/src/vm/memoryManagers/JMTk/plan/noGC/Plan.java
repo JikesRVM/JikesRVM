@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -230,10 +231,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int bytes)
+  public static final VM_Word getInitialHeaderValue(int bytes)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return 0;
+    return VM_Word.zero();
   }
 
   /**
@@ -381,8 +382,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  public static final int resetGCBitsForCopy(VM_Address fromObj,
-                                             int forwardingWord, int bytes) {
+  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
+					     VM_Word forwardingWord, int bytes) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     return forwardingWord;
   }

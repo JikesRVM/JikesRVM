@@ -57,6 +57,7 @@ public interface BootImageInterface {
 //-#if RVM_FOR_64_ADDR
   public void setAddressWord(int offset, long value);
 //-#endif
+  public void setAddressWord(int offset, VM_Word value);
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.

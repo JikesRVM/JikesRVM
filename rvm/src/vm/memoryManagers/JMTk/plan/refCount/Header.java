@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -28,16 +29,14 @@ public class Header extends RCHeader {
   public final static String Id = "$Id$"; 
 
   // Merges all the headers together.  In this case, we have only one.
-
-  public final static int GC_BARRIER_BIT_MASK = -1;  // must be defined even though unused
+  public final static VM_Word GC_BARRIER_BIT_MASK = VM_Word.fromIntSignExtend(-1); // must be defined even though unused
 
   /* Mask bits to signify the start/finish of logging an object */
-  public static final int LOGGING_MASK = 0x3;
+  public static final VM_Word LOGGING_MASK = VM_Word.one().lsh(2).sub(VM_Word.one()); //...00011
   public static final int      LOG_BIT = 0;
-  public static final int       LOGGED = 0x0;
-  public static final int     UNLOGGED = 0x1;
-  public static final int BEING_LOGGED = 0x3;
-  public static final int     LOG_MASK = ~0x3;
+  public static final VM_Word       LOGGED = VM_Word.zero();
+  public static final VM_Word     UNLOGGED = VM_Word.one();
+  public static final VM_Word BEING_LOGGED = VM_Word.one().lsh(2).sub(VM_Word.one()); //...00011
 
   /****************************************************************************
    *
@@ -77,8 +76,8 @@ public class Header extends RCHeader {
    */
   static boolean logRequired(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int value = VM_Interface.readAvailableBitsWord(object);
-    return (value & LOGGING_MASK) == UNLOGGED;
+    VM_Word value = VM_Interface.readAvailableBitsWord(object);
+    return value.and(LOGGING_MASK).EQ(UNLOGGED);
   }
 
   /**
@@ -99,16 +98,16 @@ public class Header extends RCHeader {
    */
   static boolean attemptToLog(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue;
+    VM_Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(object);
-      if ((oldValue & LOGGING_MASK) == LOGGED) return false;
-    } while (((oldValue & LOGGING_MASK) == BEING_LOGGED) ||
+      if (oldValue.and(LOGGING_MASK).EQ(LOGGED)) return false;
+    } while ((oldValue.and(LOGGING_MASK).EQ(BEING_LOGGED)) ||
              !VM_Interface.attemptAvailableBits(object, oldValue, 
-                                                oldValue | BEING_LOGGED));
+                                                oldValue.or(BEING_LOGGED)));
     if (VM_Interface.VerifyAssertions) {
-      int value = VM_Interface.readAvailableBitsWord(object);
-      VM_Interface._assert((value & LOGGING_MASK) == BEING_LOGGED);
+      VM_Word value = VM_Interface.readAvailableBitsWord(object);
+      VM_Interface._assert(value.and(LOGGING_MASK).EQ(BEING_LOGGED));
     }
     return true;
   }
@@ -123,10 +122,10 @@ public class Header extends RCHeader {
    */
   static void makeLogged(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int value = VM_Interface.readAvailableBitsWord(object);
+    VM_Word value = VM_Interface.readAvailableBitsWord(object);
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert((value & LOGGING_MASK) != LOGGED);
-    VM_Interface.writeAvailableBitsWord(object, value & LOG_MASK);
+      VM_Interface._assert(value.and(LOGGING_MASK).NE(LOGGED));
+    VM_Interface.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
   }
 
   /**
@@ -136,10 +135,10 @@ public class Header extends RCHeader {
    */
   static void makeUnlogged(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int value = VM_Interface.readAvailableBitsWord(object);
+    VM_Word value = VM_Interface.readAvailableBitsWord(object);
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert((value & LOGGING_MASK) == LOGGED);
-    VM_Interface.writeAvailableBitsWord(object, value | UNLOGGED);
+      VM_Interface._assert(value.and(LOGGING_MASK).EQ(LOGGED));
+    VM_Interface.writeAvailableBitsWord(object, value.or(UNLOGGED));
   }
 
   /**
@@ -153,10 +152,11 @@ public class Header extends RCHeader {
    * @param isScalar are we initializing a scalar (true) or array
    * (false) object?
    */
-  public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-                                             boolean isScalar, int status)
+  public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
+                                                 int size, boolean isScalar,
+                                                 VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (Plan.WITH_COALESCING_RC) status |= UNLOGGED;
+    if (Plan.WITH_COALESCING_RC) status = status.or(UNLOGGED);
     return status;
   }  
 

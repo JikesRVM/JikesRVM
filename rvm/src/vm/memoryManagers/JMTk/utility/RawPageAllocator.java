@@ -69,7 +69,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
     VM_Address resultEnd = result.add(Conversions.pagesToBytes(pages));
     if (resultEnd.GT(top)) {
-      int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toInt()); // rounded up
+      int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toWord().toExtent()); // rounded up
       VM_Address tmp = vmResource.acquire(pagesNeeded, null);
       top = tmp.add(Conversions.pagesToBytes(pagesNeeded));
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(resultEnd.LE(top));
@@ -87,7 +87,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
    */
   public int free(VM_Address start) {
     lock.acquire();
-    int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toInt()));
+    int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toWord().toExtent()));
     lock.release();
     memoryResource.release(freed);
     return freed;
@@ -101,7 +101,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
    * @return The number of pages in the allocated region.
    */
   public int pages (VM_Address start) {
-    return freeList.size(Conversions.bytesToPages(start.diff(base).toInt()));
+    return freeList.size(Conversions.bytesToPages(start.diff(base).toWord().toExtent()));
   }
 
   /****************************************************************************

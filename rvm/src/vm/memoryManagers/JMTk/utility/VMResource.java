@@ -125,15 +125,15 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
         resourceTable[p] = vm;
       }
     }
-    int bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toInt();
+    VM_Extent bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toWord().toExtent();
     Plan.bootVM.acquireHelp(BasePlan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
-    LazyMmapper.boot(BasePlan.BOOT_START, bootSize);
+    LazyMmapper.boot(BasePlan.BOOT_START, bootSize.toInt());
   }
 
   public static VMResource resourceForPage(VM_Address addr) {
     if (resourceTable == null)
       VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
-    return resourceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
+    return resourceTable[Conversions.addressToPagesDown(addr)];
   }
 
   public static byte getPageStatus(VM_Address addr) {
@@ -146,25 +146,24 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions) {
         if (spaceTable == null)
           VM_Interface.sysFail("getSpace called when spaceTable is null");
-        return spaceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
+	return spaceTable[Conversions.addressToPagesDown(addr)];
     }
     return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
-                                    addr.toInt() >>> LOG_BYTES_IN_PAGE);
+				    Conversions.addressToPagesDown(addr));
   }
 
   public static byte getTag (VM_Address addr) {
-    int page =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
-    return tagTable[page];
+    return tagTable[Conversions.addressToPagesDown(addr)];
   }
 
   public static void setTag (VM_Address addr, int pages, byte v) {
-    int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
+    int start =  Conversions.addressToPagesDown(addr);
     for (int i=0; i<pages; i++)
         tagTable[start+i] = v;
   }
 
   public static void clearTag (VM_Address addr, int pages, byte v) {
-    int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
+    int start =  Conversions.addressToPagesDown(addr);
     for (int i=0; i<pages; i++) {
         if (tagTable[start+i] != v)
             VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
@@ -182,7 +181,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   VMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status_) {
     space = space_;
     start = vmStart;
-    pages = Conversions.bytesToPages(bytes.toInt());
+    pages = Conversions.bytesToPages(bytes);
     end = start.add(bytes);
     name = vmName;
     index = count++;

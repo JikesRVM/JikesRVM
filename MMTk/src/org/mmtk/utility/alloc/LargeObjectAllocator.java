@@ -40,7 +40,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    *
    * Class variables
    */
-  protected static final VM_Word PAGE_MASK = VM_Word.fromInt(~(BYTES_IN_PAGE - 1));
+  protected static final VM_Word PAGE_MASK = VM_Word.fromIntSignExtend(~(BYTES_IN_PAGE - 1));
 
   /****************************************************************************
    *
@@ -108,7 +108,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;
     VM_Address cell = sp.add(header);
-    Memory.zero(cell, VM_Extent.fromInt(bytes));
+    Memory.zero(cell, VM_Extent.fromIntZeroExtend(bytes));
     return cell;
   }
 

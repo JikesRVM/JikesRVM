@@ -181,9 +181,9 @@ final class MarkSweepLocal extends SegregatedFreeList
    * @param block The new block whose header is to be zeroed
    * @param sizeClass The sizeClass of the new block
    */
-  protected final void postExpandSizeClass(VM_Address block, int sizeClass){
+  protected final void postExpandSizeClass(VM_Address block, int sizeClass) {
     Memory.zeroSmall(block.add(MARK_BITMAP_BASE), 
-                     VM_Extent.fromInt(bitmaps[sizeClass]<<LOG_BYTES_IN_BITMAP));
+                     VM_Word.fromInt(bitmaps[sizeClass]).lsh(LOG_BYTES_IN_BITMAP).toExtent());
   };
 
   /**

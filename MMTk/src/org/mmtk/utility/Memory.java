@@ -6,7 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -22,7 +22,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @author Perry Cheng  
  */  
 
-public class Memory implements VM_Uninterruptible {
+public class Memory implements VM_Uninterruptible, Constants {
 
   /* Inlining this loop into the uninterruptible code can cause/encourage the
    GCP into moving a get_obj_tib into the interruptible region where the tib
@@ -30,17 +30,17 @@ public class Memory implements VM_Uninterruptible {
   */
   private static boolean isSetHelper(VM_Address start, int size, boolean verbose, int v) throws VM_PragmaNoInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(size == (size & (~3)));
-    for (int i=0; i<size; i+=4) 
+      VM_Interface._assert((size & (BYTES_IN_INT-1)) == 0);
+    for (int i=0; i < size; i += BYTES_IN_INT) 
       if (VM_Magic.getMemoryInt(start.add(i)) != v) {
         if (verbose) {
-            Log.prependThreadId();
-            Log.write("Memory range does not contain only value ");
-            Log.writeln(v);
-            Log.write("Non-zero range: "); Log.write(start);
-            Log.write(" .. "); Log.writeln(start.add(size));
-            Log.write("First bad value at "); Log.writeln(start.add(i));
-            dumpMemory(start, 0, size);
+          Log.prependThreadId();
+          Log.write("Memory range does not contain only value ");
+          Log.writeln(v);
+          Log.write("Non-zero range: "); Log.write(start);
+          Log.write(" .. "); Log.writeln(start.add(size));
+          Log.write("First bad value at "); Log.writeln(start.add(i));
+          dumpMemory(start, 0, size);
         }
         return false;
       }
@@ -63,12 +63,13 @@ public class Memory implements VM_Uninterruptible {
   }
 
   public static void zeroSmall(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    for (int i=0; VM_Extent.fromIntZeroExtend(i).LT(len); i+=4) 
-      VM_Magic.setMemoryInt(start.add(i), 0);
+    VM_Address end = start.add(len);
+    for (VM_Address i = start; i.LT(end); i = i.add(BYTES_IN_INT)) 
+      VM_Magic.setMemoryInt(i, 0);
   }
 
   public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
-    for (int i=0; i<len; i+=4) 
+    for (int i=0; i < len; i += BYTES_IN_INT) 
       VM_Magic.setMemoryInt(start.add(i), v);
   }
 

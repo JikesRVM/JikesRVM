@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -40,7 +41,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    *
    * Instance variables
    */
-  private int markState;
+  private VM_Word markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   public boolean inMSCollection = false;
@@ -72,7 +73,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit.
    */
-  public final int getInitialHeaderValue() 
+  public final VM_Word getInitialHeaderValue() 
     throws VM_PragmaInline {
     return markState;
   }
@@ -91,7 +92,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param mr (unused)
    */
   public void prepare(VMResource vm, MemoryResource mr) { 
-    markState = MarkSweepHeader.MARK_BIT_MASK - markState;
+    markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
     inMSCollection = true;
   }
 

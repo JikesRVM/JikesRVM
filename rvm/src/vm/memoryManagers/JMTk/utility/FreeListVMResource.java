@@ -40,7 +40,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
    */
   FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
-    freeList = new GenericFreeList(Conversions.bytesToPages(bytes.toInt()));
+    freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
     gcLock = new Lock("NewFreeListVMResrouce.gcLock");
     mutatorLock = new Lock("NewFreeListVMResrouce.gcLock");
   }
@@ -106,8 +106,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   public final void release(VM_Address addr, MemoryResource mr, 
                             boolean chargeMR) {
     lock();
-    int offset = addr.diff(start).toInt();
-    int startPage = Conversions.bytesToPages(offset);
+    int startPage = Conversions.bytesToPages(addr.diff(start).toWord().toExtent());
     int freedPages = freeList.free(startPage);
     pagetotal -= freedPages;
     if (chargeMR)
@@ -122,8 +121,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
   
   public final int getSize(VM_Address addr) {
-    int offset = addr.diff(start).toInt();
-    int page = Conversions.bytesToPages(offset);
+    int page = Conversions.bytesToPages(addr.diff(start).toWord().toExtent());
     return freeList.size(page);
   }
 

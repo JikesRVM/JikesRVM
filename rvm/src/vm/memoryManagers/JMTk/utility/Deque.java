@@ -31,12 +31,10 @@ class Deque implements Constants, VM_Uninterruptible {
    */
 
   protected final VM_Offset bufferOffset(VM_Address buf) throws VM_PragmaInline {
-    VM_Word mask = VM_Word.fromIntZeroExtend(BUFFER_SIZE - 1);
-    return buf.toWord().and(mask).toOffset();
+    return buf.toWord().and(BUFFER_MASK).toOffset();
   }
   protected final VM_Address bufferStart(VM_Address buf) throws VM_PragmaInline {
-    VM_Word mask = VM_Word.fromIntZeroExtend(BUFFER_SIZE - 1).not();
-    return buf.toWord().and(mask).toAddress();
+    return buf.toWord().and(BUFFER_MASK.not()).toAddress();
   }
 
   protected final VM_Address bufferFirst(VM_Address buf) throws VM_PragmaInline {
@@ -49,8 +47,8 @@ class Deque implements Constants, VM_Uninterruptible {
     return bufferLast(buf, 1);
   }
   protected final VM_Offset bufferLastOffset(int arity) throws VM_PragmaInline {
-    return VM_Offset.fromInt(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
-                             - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS)));
+    return VM_Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
+                                       - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS)));
   }
 
   /****************************************************************************
@@ -61,6 +59,7 @@ class Deque implements Constants, VM_Uninterruptible {
   protected static final int PAGES_PER_BUFFER = 1<<LOG_PAGES_PER_BUFFER;
   private static final int LOG_BUFFER_SIZE = (LOG_BYTES_IN_PAGE + LOG_PAGES_PER_BUFFER);
   protected static final int BUFFER_SIZE = 1<<LOG_BUFFER_SIZE;
+  protected static final VM_Word BUFFER_MASK = VM_Word.one().lsh(LOG_BUFFER_SIZE).sub(VM_Word.one());
   protected static final int NEXT_FIELD_OFFSET = BYTES_IN_ADDRESS;
   protected static final int META_DATA_SIZE = BYTES_IN_ADDRESS;
   private static final int USABLE_BUFFER_BYTES = BUFFER_SIZE-META_DATA_SIZE;

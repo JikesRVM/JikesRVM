@@ -204,6 +204,15 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
+  public void setAddressWord(int offset, VM_Word value) {
+//-#if RVM_FOR_32_ADDR
+    setFullWord(offset, value.toInt());
+//-#endif
+//-#if RVM_FOR_64_ADDR
+    setDoubleWord(offset, value.toLong());
+//-#endif
+  }
+
 //-#if RVM_FOR_32_ADDR
   public void setAddressWord(int offset, int value) {
     setFullWord(offset, value);

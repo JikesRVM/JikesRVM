@@ -396,11 +396,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   }
 
   public static boolean isPageMultiple(VM_Extent val) {
-    //-#if RVM_FOR_32_ADDR
-    return isPageMultiple(val.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return isPageMultiple(val.toLong());
-    //-#endif
+    VM_Word pagesizeMask = VM_Word.fromIntZeroExtend(getPagesize() - 1);
+    return val.toWord().and(pagesizeMask).isZero();
   }
 
   public static boolean isPageAligned(VM_Address addr) {

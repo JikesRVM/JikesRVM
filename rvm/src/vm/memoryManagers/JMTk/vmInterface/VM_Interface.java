@@ -232,7 +232,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return 0 if successful, otherwise the system errno
    */
   public static int mmap(VM_Address start, int size) {
-    VM_Address result = VM_Memory.mmap(start, VM_Extent.fromInt(size),
+    VM_Address result = VM_Memory.mmap(start, VM_Extent.fromIntZeroExtend(size),
                                        VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
                                        VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
     if (result.EQ(start)) return 0;
@@ -253,7 +253,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * <code>false</code>
    */
   public static boolean mprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
+    return VM_Memory.mprotect(start, VM_Extent.fromIntZeroExtend(size),
                               VM_Memory.PROT_NONE);
   }
 
@@ -266,7 +266,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * <code>false</code>
    */
   public static boolean munprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
+    return VM_Memory.mprotect(start, VM_Extent.fromIntZeroExtend(size),
                               VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
 
@@ -350,11 +350,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * <code>false</code> otherwise
    */
   public static boolean attemptAvailableBits(VM_Address o,
-                                             int oldVal, int newVal) {
-    return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),
-                                               // TODO: 64 bit broken
-                                               VM_Word.fromInt(oldVal),
-                                               VM_Word.fromInt(newVal));
+					     VM_Word oldVal, VM_Word newVal) {
+    return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o), oldVal, newVal);
   }
 
   /**
@@ -364,8 +361,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param o the address of the object
    * @return the value of the bits
    */
-  public static int prepareAvailableBits(VM_Address o) {
-    return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o)).toInt();
+  public static VM_Word prepareAvailableBits(VM_Address o) {
+    return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o));
   }
 
   /**
@@ -374,9 +371,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param o the address of the object
    * @param val the new value of the bits
    */
-  public static void writeAvailableBitsWord(VM_Address o, int val) {
-    VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o),
-                                          VM_Word.fromInt(val));
+  public static void writeAvailableBitsWord(VM_Address o, VM_Word val) {
+    VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o),val);
   }
 
   /**
@@ -385,8 +381,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param o the address of the object
    * @return the value of the bits
    */
-  public static int readAvailableBitsWord(VM_Address o) {
-    return VM_ObjectModel.readAvailableBitsWord(o).toInt();
+  public static VM_Word readAvailableBitsWord(VM_Address o) {
+    return VM_ObjectModel.readAvailableBitsWord(o);
   }
 
   /**
@@ -748,7 +744,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * old object.
    * @return the address of the new object
    */
-  public static VM_Address copy(VM_Address fromObj, int forwardingPtr)
+  public static VM_Address copy(VM_Address fromObj, VM_Word forwardingPtr)
     throws VM_PragmaInline {
     Object[] tib = VM_ObjectModel.getTIB(fromObj);
 

@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -36,7 +37,7 @@ public abstract class RCBaseHeader implements Constants {
    * How many bits does this GC system require?
    */
   public static final int REQUESTED_BITS    = 2;
-  static final int GC_BITS_MASK      = 0x3;
+  static final VM_Word GC_BITS_MASK      = VM_Word.one().lsh(REQUESTED_BITS).sub(VM_Word.one()); //...00011
 
   static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
   static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd

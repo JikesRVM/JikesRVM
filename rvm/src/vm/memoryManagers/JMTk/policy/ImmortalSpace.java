@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 
 
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -40,26 +41,26 @@ final class ImmortalSpace extends BasePolicy
   /**
    * test to see if the mark bit has the given value
    */
-  private static boolean testMarkBit(VM_Address ref, int value) {
-    return (VM_Interface.readAvailableBitsWord(ref) & value) != 0;
+  private static boolean testMarkBit(VM_Address ref, VM_Word value) {
+    return !(VM_Interface.readAvailableBitsWord(ref).and(value).isZero());
   }
 
   /**
    * write the given value in the mark bit.
    */
-  private static void writeMarkBit(VM_Address ref, int value) {
-    int oldValue = VM_Interface.readAvailableBitsWord(ref);
-    int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
+  private static void writeMarkBit(VM_Address ref, VM_Word value) {
+    VM_Word oldValue = VM_Interface.readAvailableBitsWord(ref);
+    VM_Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
     VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
    * atomically write the given value in the mark bit.
    */
-  private static void atomicWriteMarkBit(VM_Address ref, int value) {
+  private static void atomicWriteMarkBit(VM_Address ref, VM_Word value) {
     while (true) {
-      int oldValue = VM_Interface.prepareAvailableBits(ref);
-      int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
+      VM_Word oldValue = VM_Interface.prepareAvailableBits(ref);
+      VM_Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
       if (VM_Interface.attemptAvailableBits(ref,oldValue,newValue)) break;
     }
   }
@@ -68,19 +69,19 @@ final class ImmortalSpace extends BasePolicy
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(VM_Address ref, int value) 
+  private static boolean testAndMark(VM_Address ref, VM_Word value) 
     throws VM_PragmaInline {
-    int oldValue;
+    VM_Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(ref);
-      int markBit = oldValue & GC_MARK_BIT_MASK;
-      if (markBit == value) return false;
-    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue ^ GC_MARK_BIT_MASK));
+      VM_Word markBit = oldValue.and(GC_MARK_BIT_MASK);
+      if (markBit.EQ(value)) return false;
+    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
 
-  static final int GC_MARK_BIT_MASK    = 0x1;
-  private static int immortalMarkState = 0x0; // when GC off, the initialization value
+  static final VM_Word GC_MARK_BIT_MASK    = VM_Word.one();
+  private static VM_Word immortalMarkState = VM_Word.zero(); // when GC off, the initialization value
 
 
   /**
@@ -108,7 +109,7 @@ final class ImmortalSpace extends BasePolicy
    * collections.
    */
   public static void prepare(VMResource vm, MemoryResource mr) { 
-    immortalMarkState = GC_MARK_BIT_MASK - immortalMarkState;
+    immortalMarkState = GC_MARK_BIT_MASK.sub(immortalMarkState);
   }
 
   public static void release(VMResource vm, MemoryResource mr) { 

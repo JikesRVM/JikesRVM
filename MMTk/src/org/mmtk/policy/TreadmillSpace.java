@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -42,7 +43,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    *
    * Instance variables
    */
-  private int markState;
+  private VM_Word markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private boolean inTreadmillCollection = false;
@@ -92,7 +93,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    *
    * @param size The size of the newly allocated object
    */
-  public final int getInitialHeaderValue(int size) 
+  public final VM_Word getInitialHeaderValue(int size) 
     throws VM_PragmaInline {
       return markState;
   }
@@ -112,7 +113,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param mr (unused)
    */
   public void prepare(VMResource vm, MemoryResource mr) { 
-    markState = MarkSweepHeader.MARK_BIT_MASK - markState;
+    markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
     inTreadmillCollection = true;
   }
 

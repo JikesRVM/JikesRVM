@@ -258,7 +258,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
                                   int numBytes, VM_Class type, 
-                                  int availBitsWord) {
+                                  VM_Word availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type,
                                     availBitsWord);
   }
@@ -268,7 +268,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
                                   int numBytes, VM_Array type,
-                                  int availBitsWord) {
+                                  VM_Word availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
   }
 

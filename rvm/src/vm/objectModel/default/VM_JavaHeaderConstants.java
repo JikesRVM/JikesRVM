@@ -55,10 +55,10 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   /*
    * Stuff for address based hashing
    */
-  static final int HASH_STATE_UNHASHED         = 0x00000000;
-  static final int HASH_STATE_HASHED           = 0x00000100;
-  static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
-  static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
+  static final VM_Word HASH_STATE_UNHASHED         = VM_Word.zero();
+  static final VM_Word HASH_STATE_HASHED           = VM_Word.one().lsh(8); //0x00000100
+  static final VM_Word HASH_STATE_HASHED_AND_MOVED = VM_Word.fromIntZeroExtend(3).lsh(8); //0x0000300
+  static final VM_Word HASH_STATE_MASK             = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
   static final int HASHCODE_SCALAR_OFFSET      = 0; // to right of objref
   static final int HASHCODE_BYTES              = BYTES_IN_INT;
   static final int HASHCODE_ARRAY_OFFSET       = ARRAY_LENGTH_OFFSET - HASHCODE_BYTES; // to left of header

@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -34,8 +35,8 @@ public class CopyingHeader {
    * How many bits does this GC system require?
    */
   public static final int REQUESTED_BITS = 2;
-  public static final int GC_FORWARDED        = 0x2;  // ...10
-  public static final int GC_BEING_FORWARDED  = 0x3;  // ...11
+  public static final VM_Word GC_FORWARDED        = VM_Word.one().lsh(1);  // ...10
+  public static final VM_Word GC_BEING_FORWARDED  = VM_Word.one().lsh(2).sub(VM_Word.one());  // ...11
 
   /**
    * We don't require a side mark array for bootimage objects.
@@ -65,8 +66,9 @@ public class CopyingHeader {
    * @param isScalar are we initializing a scalar (true) or array
    * (false) object?
    */
-  public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-                                             boolean isScalar, int status)
+  public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
+                                                 int size, boolean isScalar,
+                                                 VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)
   }
@@ -85,26 +87,26 @@ public class CopyingHeader {
    * Forwarding pointers
    * Only used if VM_Collector.MOVES_OBJECTS.
    */
-  static final int GC_FORWARDING_MASK  = GC_FORWARDED | GC_BEING_FORWARDED;
+  static final VM_Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
 
   /**
    * Either return the forwarding pointer 
    * if the object is already forwarded (or being forwarded)
    * or write the bit pattern that indicates that the object is being forwarded
    */
-  static int attemptToForward(VM_Address base) throws VM_PragmaInline, VM_PragmaUninterruptible {
-    int oldValue;
+  static VM_Word attemptToForward(VM_Address base) throws VM_PragmaInline, VM_PragmaUninterruptible {
+    VM_Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(base);
-      if ((oldValue & GC_FORWARDING_MASK) == GC_FORWARDED) return oldValue;
-    } while (!VM_Interface.attemptAvailableBits(base,oldValue,oldValue | GC_BEING_FORWARDED));
+      if (oldValue.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED)) return oldValue;
+    } while (!VM_Interface.attemptAvailableBits(base,oldValue,oldValue.or(GC_BEING_FORWARDED)));
     return oldValue;
   }
 
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static int getForwardingWord(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  static VM_Word getForwardingWord(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
     return VM_Interface.readAvailableBitsWord(base);
   }
 
@@ -112,7 +114,7 @@ public class CopyingHeader {
    * Non-atomic read of forwarding pointer
    */
   static VM_Address getForwardingPtr(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_Address.fromInt(VM_Interface.readAvailableBitsWord(base) & ~GC_FORWARDING_MASK);
+    return VM_Interface.readAvailableBitsWord(base).and(GC_FORWARDING_MASK.not()).toAddress();
   }
 
   /**
@@ -132,30 +134,30 @@ public class CopyingHeader {
   /**
    * is the state of the forwarding word forwarded?
    */
-  static boolean stateIsForwarded(int fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (fw & GC_FORWARDING_MASK) == GC_FORWARDED;
+  static boolean stateIsForwarded(VM_Word fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return fw.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED);
   }
 
   /**
    * is the state of the forwarding word being forwarded?
    */
-  static boolean stateIsBeingForwarded(int fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (fw & GC_FORWARDING_MASK) == GC_BEING_FORWARDED;
+  static boolean stateIsBeingForwarded(VM_Word fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return fw.and(GC_FORWARDING_MASK).EQ(GC_BEING_FORWARDED);
   }
 
   /**
    * is the state of the forwarding word being forwarded?
    */
-  static boolean stateIsForwardedOrBeingForwarded(int fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (fw & GC_FORWARDED) != 0;
+  static boolean stateIsForwardedOrBeingForwarded(VM_Word fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return !(fw.and(GC_FORWARDED).isZero());
   }
 
   /**
    * Non-atomic read of forwarding pointer word
    */
   static VM_Address getForwardingPointer(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int forwarded = getForwardingWord(base);
-    return VM_Address.fromInt(forwarded & ~GC_FORWARDING_MASK);
+    VM_Word forwarded = getForwardingWord(base);
+    return forwarded.and(GC_FORWARDING_MASK.not()).toAddress();
   }
 
   /**
@@ -164,7 +166,7 @@ public class CopyingHeader {
    *  and owns the right to copy the object)
    */
   static void setForwardingPointer(VM_Address base, VM_Address ptr) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Interface.writeAvailableBitsWord(base,ptr.toInt() | GC_FORWARDED);
+    VM_Interface.writeAvailableBitsWord(base,ptr.toWord().or(GC_FORWARDED));
   }
 
   static void setBarrierBit(VM_Address ref) throws VM_PragmaUninterruptible, VM_PragmaInline {

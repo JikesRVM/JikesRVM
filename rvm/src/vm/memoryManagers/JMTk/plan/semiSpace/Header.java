@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -24,7 +25,7 @@ public class Header extends HybridHeader {
 
   // Merges all the headers together.  In this case, we have only one.
 
-  public final static int GC_BARRIER_BIT_MASK = -1;  // must be defined even though unused
+  public final static VM_Word GC_BARRIER_BIT_MASK = VM_Word.fromIntSignExtend(-1); // must be defined even though unused
   public static boolean isBeingForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.isSemiSpaceObject(base))
