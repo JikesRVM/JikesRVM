@@ -120,8 +120,10 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	break;
       case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
 	{
-	  OPT_RegisterOperand op = MIR_Compare.getVal2(s).asRegister();
-	  noteMustNotSpill(op.register);
+	  OPT_Operand op = MIR_Compare.getVal2(s);
+	  if (!(op instanceof OPT_BURSManagedFPROperand)) {
+	    noteMustNotSpill(op.asRegister().register);
+	  }
 	}
 	break;
       case IA32_IMUL2_opcode:
