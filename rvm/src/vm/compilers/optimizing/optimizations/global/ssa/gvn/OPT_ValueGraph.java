@@ -157,6 +157,8 @@ class OPT_ValueGraph implements OPT_Operators {
       processGuardedUnary(s); 
     else if (NullCheck.conforms(s))
       processNullCheck(s); 
+    else if (ZeroCheck.conforms(s))
+      processZeroCheck(s); 
     else if (Binary.conforms(s))
       processBinary(s); 
     else if (GuardedBinary.conforms(s))
@@ -380,6 +382,25 @@ class OPT_ValueGraph implements OPT_Operators {
     v.setLabel(s.operator(), 1);
     // link node v to the operand it uses
     OPT_Operand val = NullCheck.getRef(s);
+    // bypass Move instructions
+    val = bypassMoves(val);
+    link(v, findOrCreateVertex(val), 0);
+  }
+
+  /** 
+   * Update the value graph to account for a given NullCheck instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> ZeroCheck.conforms(s); </code>
+   *
+   * @param s the instruction in question
+   */
+  private void processZeroCheck(OPT_Instruction s) {
+    // label the vertex corresponding to the result with the operator
+    OPT_RegisterOperand result = ZeroCheck.getGuardResult(s);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    v.setLabel(s.operator(), 1);
+    // link node v to the operand it uses
+    OPT_Operand val = ZeroCheck.getValue(s);
     // bypass Move instructions
     val = bypassMoves(val);
     link(v, findOrCreateVertex(val), 0);
