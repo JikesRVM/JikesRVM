@@ -4,8 +4,12 @@
 
 \subsection{General}
 
+For most general Jikes RVM questions and answers, see
+\xlink{{\tt \QandAURL}}{\QandAURL}.
+
 \subsubsection{What is RVM?}
 
+The short answer:
 The Jikes Research Virtual Machine (RVM) is a software project designed to 
 execute a subset of the Java Virtual Machine specification.  It provides a
 flexible testbed that makes it possible to quickly prototype new
@@ -15,71 +19,6 @@ and exhibits industry-strength performance for many benchmark programs
 on the first two of these platforms.  The RVM includes the latest VM
 technologies for dynamic compilation, adaptive optimization, garbage
 collection, thread scheduling, and synchronization.
-
-\subsubsection{How is RVM different from other virtual machines?}
-
-A unique characteristic of the RVM is that it is implemented in the
-Java programming language, unlike other virtual machines that are
-implemented in "native code" (typically, C or C++).  A Java
-implementation provides ease of portability, and a uniform memory
-space for virtual machine objects and application objects.  Though
-there have been a few prior examples of virtual machines implemented
-in Java, all those cases dependend on the presence of a second
-underlying Java virtual machine and incurred large (100x-1000x)
-performance slowdowns as a result.  
-The RVM is unique in that it is
-the first self-bootstrapped virtual machine written entirely in
-Java i.e., its Java code runs on itself, without requiring a second
-virtual machine.
-
-\subsubsection{Is the RVM appropriate for all programmers?}
-
-No, the RVM is primarily for researchers.  The RVM is inadequate
-for programmers who need a complete Java platform, since it has
-incomplete functionality.  The RVM does not support many libraries
-(e.g., AWT, Swing, J2EE), user-defined class loaders, security
-manager, bytecode verification, and many other features that need to
-be present in a production virtual machine.
-
-\subsubsection{Was RVM once called \jp? What's the difference?}
-
-Yes. There is no difference.  The RVM is the open-source release of
-code developed in the \jp\ project.
-
-Call a pepper by any other name, and does it
-not still burn your mouth?
-
-
-\subsubsection{Isn't this a Java Virtual Machine?}
-No, the RVM is not a JVM. The RVM supports only a subset of the
-Java Virtual Machine specification. This functionality is sufficient
-to run benchmarks programs such as SPECjvm98, but is insufficient to
-allow the RVM to run enterprise Java applications or typical client
-applets. That's why it's called the RVM and not a JVM.
-
-\subsubsection{So this is a "stripped down" JVM?}
-No, it's not that either. The RVM code was independently developed
-from the ground-up by a team in IBM Research.  It was written as a
-test-bed for evaluating new virtual machine technologies. It was not
-written to be a complete JVM.
-
-
-\subsubsection{Why open-source?}
-IBM is committed to open source and open standards.  We would like
-to work with and contribute to open source communities.  By
-open-sourcing RVM, we hope to accelerate progress in developing
-next-generation virtual machine technologies at universities.
-
-\subsubsection{Is IBM going to turn this into a JVM?}
-No, there are already several JVMs in wide circulation that pass
-all Sun conformance tests - including several available from IBM as
-part of larger technology bundles. IBM will not be devoting resources
-to evolving the RVM code into a full JVM. It would take a significant
-effort and simply duplicate what is already available. As said
-earlier, the RVM allows the academic and research communities to
-investigate fundamental virtual machine technologies like dynamic
-compilation, adaptive optimization, garbage collection, thread
-scheduling, and synchronization.
 
 \subsubsection{Who is using RVM?}
 A list of current RVM researchers is available at
