@@ -21,9 +21,10 @@ import java.util.Enumeration;
  * @author Stephen Fink
  */
 public class VM_Controller implements VM_Callbacks.ExitMonitor,
-                                      VM_Callbacks.AppRunCompleteMonitor,
                                       VM_Callbacks.AppStartMonitor,
-                                      VM_Callbacks.AppCompleteMonitor {
+                                      VM_Callbacks.AppCompleteMonitor,
+                                      VM_Callbacks.AppRunStartMonitor,
+                                      VM_Callbacks.AppRunCompleteMonitor {
 
   /**
    * Signals when the options and (optional) logging mechanism are enabled
@@ -149,9 +150,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     VM_Controller controller = new VM_Controller();
     VM_Callbacks.addExitMonitor(controller);
-    VM_Callbacks.addAppRunCompleteMonitor(controller);
     VM_Callbacks.addAppStartMonitor(controller);
     VM_Callbacks.addAppCompleteMonitor(controller);
+    VM_Callbacks.addAppRunStartMonitor(controller);
+    VM_Callbacks.addAppRunCompleteMonitor(controller);
 
     booted=true;
   }
@@ -166,7 +168,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
   /**
    * To be called when the application starts
-   * @app the application name
+   * @param app the application name
    */
   public void notifyAppStart(String app) {
     if (VM.LogAOSEvents) {
@@ -177,7 +179,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
   /**
    * To be called when the application completes
-   * @app the application name
+   * @param app the application name
    */
   public void notifyAppComplete(String app) {
     if (VM.LogAOSEvents) {
@@ -188,8 +190,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
   /**
    * To be called when the application completes one of its run
-   * @app the application name
-   * @run the run number, i.e. what iteration of the app we have started
+   * @param app the application name
+   * @param run the run number, i.e. what iteration of the app we have started
    */
   public void notifyAppRunStart(String app, int run) {
     if (VM.LogAOSEvents) {
@@ -200,8 +202,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
   /**
    * To be called when the application completes one of its run
-   * @app the application name
-   * @run the run number, i.e. what iteration of the app we have completed
+   * @param app the application name
+   * @param run the run number, i.e. what iteration of the app we have completed
    */
   public void notifyAppRunComplete(String app, int run) {
     if (VM.LogAOSEvents) {
