@@ -37,6 +37,7 @@ import com.ibm.JikesRVM.classloader.*;
  *    -ia <addr>               address where boot image starts
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
+ *    -profile                 time major phases of bootimage writing
  *    -xclasspath <path>       OBSOLETE compatibility aid
  * </pre>
  * @author Derek Lieber
@@ -174,6 +175,18 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   private static boolean demographics = false;
 
+  /**
+   * Report time costs of each stage in bootimage writing and
+   * report any methods that take 'too long' to compile.
+   */
+  private static boolean profile = false;
+
+  /**
+   * What is the threshold (in ms) for compilation of a single class
+   * to be reported as excessively long (when profiling is true)
+   */
+  private static final int classCompileThreshold = 5000;
+  
   /**
    * A wrapper around the calling context to aid in tracing.
    */
@@ -359,6 +372,11 @@ public class BootImageWriter extends BootImageWriterMessages
         PARALLELIZE = Integer.parseInt(args[i].substring(13));
         continue;
       }
+      // profile
+      if (args[i].equals("-profile")) {
+        profile = true;
+        continue;
+      }
       // generate detailed information about traversed objects (for debugging)
       if (args[i].equals("-detailed")) {
         verbose = 2;
@@ -433,18 +451,30 @@ public class BootImageWriter extends BootImageWriterMessages
     // needed at run time to execute enough of the virtual machine
     // to dynamically load and compile the remainder of itself.
     //
+    long startTime = 0;
+    long stopTime = 0;
+    if (profile) startTime = System.currentTimeMillis();
     try {
       bootImageTypeNames = readTypeNames(bootImageTypeNamesFile);
     } catch (IOException e) {
       fail("unable to read the type names from "+ bootImageTypeNamesFile 
            +": "+e);
     }
-
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: readingTypeNames "+(stopTime-startTime)+" ms");
+    }
+      
+    if (profile) startTime = System.currentTimeMillis();
     try {
       createBootImageObjects(bootImageTypeNames, bootImageTypeNamesFile);
     } catch (Exception e) {
       e.printStackTrace();
       fail("unable to create objects: "+e);
+    }
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: createBootImageObjects "+(stopTime-startTime)+" ms");
     }
 
     //
@@ -466,6 +496,8 @@ public class BootImageWriter extends BootImageWriterMessages
                           " bytes out of ",
                           String.valueOf(Runtime.getRuntime().totalMemory()),
                           " bytes");
+
+    if (profile) startTime = System.currentTimeMillis();
 
     //
     // First object in image must be boot record (so boot loader will know
@@ -544,6 +576,10 @@ public class BootImageWriter extends BootImageWriterMessages
     }
     jtocCount = -1;
 
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: filling bootimage byte[] "+(stopTime-startTime)+" ms");
+    }
     //
     // Record startup context in boot record.
     //
@@ -591,10 +627,16 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     // Write image to disk.
     //
+    if (profile) startTime = System.currentTimeMillis();
     try {
       bootImage.write(bootImageName);
     } catch (IOException e) {
       fail("unable to write bootImage: "+e);
+    }
+
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: writing RVM.map "+(stopTime-startTime)+" ms");
     }
 
     //
@@ -737,13 +779,16 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static void createBootImageObjects(Vector typeNames,
                                             String bootImageTypeNamesFile) 
-    throws IllegalAccessException, ClassNotFoundException {
+    throws IllegalAccessException, ClassNotFoundException {    
       VM_Callbacks.notifyBootImage(typeNames.elements());
-
+      long startTime = 0;
+      long stopTime = 0;
+      
       //
       // Create types.
       //
       if (verbose >= 1) say("loading");
+      if (profile) startTime = System.currentTimeMillis();
       
       for (Enumeration e = typeNames.elements(); e.hasMoreElements(); ) {
         //
@@ -757,8 +802,7 @@ public class BootImageWriter extends BootImageWriterMessages
         //
         // create corresponding rvm type
         //
-        VM_Type type;
-        
+        VM_Type type;        
         try {
           VM_TypeReference tRef = VM_TypeReference.findOrCreate(typeName);
           type = tRef.resolve();
@@ -799,17 +843,27 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImageTypes.put(typeName, type);
       }
 
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tloading types "+(stopTime-startTime)+" ms");
+      }
+        
       if (verbose >= 1) say(String.valueOf(bootImageTypes.size()), " types");
 
       //
       // Lay out fields and method tables.
       //
+      if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("resolving");
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type type = (VM_Type) e.nextElement();
         if (verbose >= 2) say("resolving " + type);
         // The resolution is supposed to be cached already.
         type.resolve();
+      }
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tresolving types "+(stopTime-startTime)+" ms");
       }
 
       // Set tocRegister early so opt compiler can access it to
@@ -829,6 +883,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
       //
+      if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("instantiating");
       if (PARALLELIZE < 1) {
         int count = 0;
@@ -836,7 +891,11 @@ public class BootImageWriter extends BootImageWriterMessages
             VM_Type type = (VM_Type) e.nextElement();
             count++;
             if (verbose >= 1) say(count + " instantiating " + type);
+            long start2 = System.currentTimeMillis();
             type.instantiate();
+            long stop2 = System.currentTimeMillis();
+            if (profile && stop2 - start2 > classCompileThreshold)
+              System.out.println("PROF:\t\t"+type+" took "+((stop2 - start2+500)/1000)+" seconds to instantiate");
         }
       } else {
         if (verbose >= 1) say("parallelizing with " + PARALLELIZE + " threads");
@@ -853,6 +912,10 @@ public class BootImageWriter extends BootImageWriterMessages
           say("InterruptedException while instantiating");
         }
       }
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tinstantiating types "+(stopTime-startTime)+" ms");
+      }
 
       // Do the portion of JNIEnvironment initialization that can be done
       // at bootimage writing time.
@@ -865,6 +928,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // and for processing the static fields of the boot image classes
       //
       if (verbose >= 1) say("field info gathering");
+      if (profile) startTime = System.currentTimeMillis();
       bootImageTypeFields = new HashMap(bootImageTypes.size());
 
       // First retrieve the jdk Field table for each class of interest
@@ -961,6 +1025,11 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       }
 
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tcreating type mapping "+(stopTime-startTime)+" ms");
+      }
+      
       //
       // Create stack, thread, and processor context in which rvm will begin
       // execution.
@@ -988,7 +1057,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // moved to another machine with different directory structure.
       //
       VM_ClassLoader.setVmRepositories(bootImageRepositoriesAtExecutionTime);
-
+      
       //
       // Finally, populate jtoc with static field values.
       // This is equivalent to the VM_Class.initialize() phase that would have
@@ -997,6 +1066,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // slots of the jtoc.
       //
       if (verbose >= 1) say("populating jtoc with static fields");
+      if (profile) startTime = System.currentTimeMillis();
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type rvmType = (VM_Type) e.nextElement();
         if (verbose >= 1) say("  jtoc for ", rvmType.toString());
@@ -1092,7 +1162,11 @@ public class BootImageWriter extends BootImageWriterMessages
           }
         }
       }
-    }
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tinitializing jtoc "+(stopTime-startTime)+" ms");
+      }
+  }
 
   private static final int LARGE_ARRAY_SIZE = 16*1024;
   private static final int LARGE_SCALAR_SIZE = 1024;
