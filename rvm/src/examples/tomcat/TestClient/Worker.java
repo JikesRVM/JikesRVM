@@ -39,8 +39,10 @@ class Worker extends Thread {
 		long start = System.currentTimeMillis();
 
 		try {
-		    if (con == null || !reuseConnection)
+		    if (con == null || !reuseConnection) {
 			con = new HTTPConnection( req.getUrl() );
+			con.setContext( this );
+		    }
 		} catch (Throwable e) {
 		    throw new BadResult( req, "connection failed" );
 		}
