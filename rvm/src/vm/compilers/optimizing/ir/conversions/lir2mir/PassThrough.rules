@@ -1,0 +1,108 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+#//$Id$
+#
+# @author Dave Grove
+#
+##################################
+# A few operators are passed through unchanged
+##################################
+stm:	RESOLVE
+10
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+stm:	IG_PATCH_POINT
+10
+EMIT_INSTRUCTION
+EMIT(InlineGuard.mutate(P(p), IG_PATCH_POINT, null, null, null, InlineGuard.getTarget(P(p)), InlineGuard.getBranchProfile(P(p))));
+
+stm:	UNINT_BEGIN
+10
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+stm:	UNINT_END
+10
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+stm:	YIELDPOINT_PROLOGUE
+10
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+stm:	YIELDPOINT_EPILOGUE
+10
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+stm:	YIELDPOINT_BACKEDGE
+10
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+##################################
+# One operator is passed through nearly unchanged
+##################################
+stm:	LOWTABLESWITCH(r)
+10
+EMIT_INSTRUCTION
+LOWTABLESWITCH(P(p));
+
+##################################
+# NOPs can simply be dropped
+##################################
+stm:	NOP
+10
+NOFLAGS
+// drop on floor
+
+#####
+# GUARD_MOVE
+#####
+# note: ignoring guard registers, thus no uses
+r:	GUARD_MOVE
+11
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+#####
+# GUARD_COMBINE
+#####
+# note: ignoring guard registers, thus no uses
+r:	GUARD_COMBINE
+11
+EMIT_INSTRUCTION
+EMIT(P(p));
+
+#####
+# NULL_CHECK
+#####
+stm:	NULL_CHECK(r)
+11
+EMIT_INSTRUCTION
+EMIT(P(p)); 
+
+#####
+# IR_PROLOGUE:
+#####
+stm:	IR_PROLOGUE
+11
+EMIT_INSTRUCTION
+PROLOGUE(P(p));
+
+###########
+# Rules for exceptions
+###########
+r:	GET_CAUGHT_EXCEPTION
+11
+EMIT_INSTRUCTION
+GET_EXCEPTION_OBJECT(P(p));
+
+stm:	SET_CAUGHT_EXCEPTION(r)
+11
+EMIT_INSTRUCTION
+SET_EXCEPTION_OBJECT(P(p));
+
