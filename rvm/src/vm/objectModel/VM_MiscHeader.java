@@ -13,7 +13,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
  * kinds of instrumentation or profiling.
  *
  * @see VM_ObjectModel
- * @see VM_TraceProcess
  * 
  * @author David Bacon
  * @author Steve Fink
