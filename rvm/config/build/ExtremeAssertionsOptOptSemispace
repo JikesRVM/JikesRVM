@@ -1,2 +1,2 @@
-   . $1/OptOptcopyingGC 
+   . $1/OptOptSemispace
    export RVM_WITH_EXTREME_ASSERTIONS=1 

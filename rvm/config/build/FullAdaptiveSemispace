@@ -1,2 +1,2 @@
-   . $1/OptAdaptivecopyingGC 
+   . $1/OptAdaptiveSemispace
    export RVM_WITH_ALL_CLASSES=1 
