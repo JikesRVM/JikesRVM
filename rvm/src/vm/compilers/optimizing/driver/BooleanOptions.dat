@@ -117,6 +117,9 @@ Perform global code placement
 VERBOSE_GCP -1 false verbose_gcp
 Perform noisy global code placement
 
+LICM_IGNORE_PEI -1 false licm_ignore_pei
+Asume PEIs do not throw or state is not observable
+
 VALUE_PROP_VERBOSE -1 false value_prop_verbose
 Perform noisy value propagation
 
