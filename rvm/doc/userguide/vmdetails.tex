@@ -103,7 +103,7 @@ as well as has pointers to the class' virtual methods.
 A compiled method body is an array of machine instructions (stored as
 {\tt int}s). 
 While the pointers for static fields and methods are stored in the 
-{\em RVM/J Table of Contents} (JTOC),
+{\em Jalapeno Table of Contents} (JTOC),
 pointers for instance fields and virtual methods are stored in the class's TIB.
 Consequently the dispatch mechanism is different for static and virtual 
 methods.
@@ -266,93 +266,12 @@ temporaries,
 
 \noindent{\bf Stack conventions}
 
-\begin{figure}
-\begin{verbatim}
-                           high memory
-
-                                                       A's stack frame
-
-               |*********************************|
-               |                                 |
-               | 1) Saved Nonvolatile FPRs       |
-               |                                 |
-               |---------------------------------|
-               |                                 |
-               | 2) Saved Nonvolatile GPRs       |
-               |                                 |
-               |---------------------------------|
-               | 3) Alignment padding            |
-               |---------------------------------|
-               |                                 |
-               | 4) Local Memory                 |
-               |                                 |
-               |    (compiler specific)          |
-               |                                 |
-               |---------------------------------|     B's stack frame
-               |                                 |
-               | 5) Spill Parameter Area         |
-               |                                 |
-               |    (to method C called by B)    |
-               |                                 |
-               |---------------------------------|
-               | 6) B's Compiled Method ID       |
-               |---------------------------------|
-               | 7) B's Next Instruction Pointer |
-               |---------------------------------|
-     FP -----> | 8) Back Pointer to A's frame    |
-               |---------------------------------|
-
-                                                       C's stack frame
-
-                            low memory
-
-\end{verbatim}
-\label{fig:stackframe}
-\caption{RVM stack convention.}
-\end{figure}
-
 Stacks grow from high memory to low memory.  The stack frame for a method
-B called by A is shown in figure~\ref{fig:stackframe}. The regions of
-a stack frame are as follows:
-\begin{enumerate}
-\item Any saved nonvolatile fp registers.  (The number of these can be
-obtained from B's VM\_CompiledMethod object)
-\item Any saved nonvolatile gp registers.  (The number of these, and
-their offset from FP, can be obtained from B's VM\_CompiledMethod
-object).
-\item Alignment padding (currently, 0 or 4 bytes).  Stackframe is a
-multiple of STACKFRAME\_ALIGNMENT (currenty, 8) bytes.
-\item B's local values (Java\trademark stack, local variables, and/or anything
-else). At each of B's call (and any other thread switch) sites a
-reference map of this area (and B's registers) can be obtained from
-the B's VM\_CompiledMethod object.
-\item Spilled parameters (any that don't fit in volatile registers) to
-methods B calls, in any (see calling convention below). 
-\item The compiled method id of B.  (This may disappear in the
-future). Code that needs to inspect stackframes should be written to
-avoid directly accessing the compiled method id.  There is a class
-VM\_StackframeViewer that provides a higher level interface
-to a stack frame that should be used instead.  An important point to
-be aware of is that although each stackframe belongs to a single
-compiled method, there is actually a 1-many mapping between real
-(physical) stackframes and source (logical) stackframes.  This happens
-for opt compiled methods due to inlining. Care must be taken when
-writing stack inspection code that wants to present a ``source-level''
-view of the stackframe to deal with this 1-many problem. 
-An example of the ``right'' way to deal with this issue is
-can be found in VM\_StackTrace.java: it delegates the printing of stack
-frames to a method on VM\_CompilerInfo that internally manages the
-1-many mapping of physical to logical stackframes.  A better solution
-probably is to define a method on VM\_CompilerInfo that either (1)
-takes a callback object that it invokes on each logical frame or (2)
-returns an enumeration of the logical frames. Redesigning this code is
-a low-priority todo item.
-\item B's next instruction pointer.  This space for the return address
-from a method (C) that B calls (from the link register).
-\item The back pointer to the A's frame.  (The caller's frame pointer
-is stored here.) 
-\end{enumerate}
-
+B called by A is shown in figure~\ref{fig:stackframe}. 
+The layout of the stackframe appears in a block comment in
+\xlink{{\tt
+\$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
+{\PPCStackframeLayoutURL}.
 
 \noindent{\bf Calling Conventions}
 
@@ -362,8 +281,8 @@ is stored here.)
     All parameters (that fit) are passed in VOLATILE registers.  Object
     reference and int parameters (or results) consume one GP register; long
     parameters, two gp registers (low-order half in the first);  float and
-    double parameters, one fp registers.  Parameters are assigned to 
-registers
+    double parameters, one fp registers.  Parameters are 
+    assigned to registers
     starting with the lowest volatile register through the highest volatile
     register to the highest nonvolatile of the required kind (gp or fp).
 
@@ -411,57 +330,6 @@ registers
 \end{enumerate}
 \end{description}
 
-
-\noindent{\bf Stackframe constants (from VM\_Constants)}
-
-\begin{verbatim} 
-   static final int STACKFRAME_HEADER_SIZE               = 12;
-   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET   =  8;
-   static final int STACKFRAME_COMPILED_METHOD_ID_OFFSET =  4;
-   static final int STACKFRAME_FRAME_POINTER_OFFSET      =  0;
-   static final int STACKFRAME_ALIGNMENT                 =  8;
-\end{verbatim}
-
-
-\noindent{\bf Register constants (from VM\_Constants)}
-
-\begin{verbatim}
-     // Baseline requirements:
-     //   4 volatile    GPRs
-     //   1 scratch     GPR
-     //   1 nonvolatile GPR
-     //   4 volatile    FPRs
-
-   static final int REGISTER_ZERO              =  0; // cannot be base register
-   static final int FRAME_POINTER              =  1; // AIX is 1
-   static final int JTOC_POINTER               =  2; // AIX is 2
-   static final int FIRST_VOLATILE_GPR         =  3; // AIX is 3
-   //                                            ...
-   static final int LAST_VOLATILE_GPR          = 12; // AIX is 10
-   static final int FIRST_SCRATCH_GPR          = 13; // AIX is 11
-   static final int LAST_SCRATCH_GPR           = 14; // AIX is 12
-   static final int THREAD_ID_REGISTER         = 15;
-   static final int PROCESSOR_REGISTER         = 16;
-   static final int FIRST_NONVOLATILE_GPR      = 17; // AIX is 14
-   //                                            ...
-   static final int LAST_NONVOLATILE_GPR       = 31; // AIX is 31
-   static final int NUM_GPRS                   = 32;
-
-   // Floating point register usage. (FPR's are 64 bits wide).
-   //
-   static final int FIRST_SCRATCH_FPR          =  0; // AIX is 0
-   static final int LAST_SCRATCH_FPR           =  0; // AIX is 0
-   static final int FIRST_VOLATILE_FPR         =  1; // AIX is 1
-   //                                            ...
-   static final int LAST_VOLATILE_FPR          = 15; // AIX is 13
-   static final int FIRST_NONVOLATILE_FPR      = 16; // AIX is 14
-   //                                            ...
-   static final int LAST_NONVOLATILE_FPR       = 31; // AIX is 31
-   static final int NUM_FPRS                   = 32;
-\end{verbatim}
-
-
-
 \subsubsection{Lintel VM Conventions} \label{lintel-conventions}
 \index{stack conventions}
 \index{register conventions}
@@ -500,78 +368,18 @@ RVM on Linux/IA32.
     virtual processor.
 
 \item[EDI]
-    Nonvolatile.  (JTOC in basline compiler)
+    Nonvolatile.  (JTOC in baseline compiler)
 
 \end{description}
 
 \noindent{\bf Stack conventions}
 
-\begin{figure}
-\begin{verbatim}
-                           high memory
-
-                                                       A's stack frame
-
-               |---------------------------------|
-               |                                 |
-               | 1) Parameter Area               |
-               |                                 |
-               |    (to method B called by A)    |
-               |                                 |
-               |---------------------------------|
-               | 2) A's Next Instruction Pointer |
-               |*********************************|
-     EBP ----> | 3) Back Pointer to A's frame    |
-               |---------------------------------|
-               | 4) B's Compiled Method ID       |
-               |---------------------------------|
-               |                                 |
-               | 5) Saved Nonvolatile FPRs       |
-               |                                 |
-               |---------------------------------|
-               |                                 |
-               | 6) Saved Nonvolatile GPRs       |
-               |                                 |
-               |---------------------------------|
-               |                                 |
-               | 7) Local Memory                 |
-               |                                 |
-               |    (compiler specific)          |
-               |                                 |
-               |---------------------------------|     B's stack frame
-
-                                                       C's stack frame
-
-                            low memory
-
-
-\end{verbatim}
-\label{fig:lintel-stackframe}
-\caption{RVM Lintel stack convention.}
-\end{figure}
-
 Stacks grow from high memory to low memory.  The stack frame for a method
-B called by A is shown in figure~\ref{fig:stackframe}. The regions of
-a stack frame are as follows:
-\begin{enumerate}
-\item Parameters to B in order as if they were on the stack of the RVM spec.
-     Space must be left for any parameter passes in a register, although
-     the value in that space may be garbage.  Established by A.
-\item A's next instruction pointer.  The return address from B.
-     Established by A.
-\item The back pointer to the A's frame.  (The caller's frame pointer is
-     stored here.)  EBP points here when B calls C (see below).
-\item The compiled method id for B. 
-\item Any saved nonvolatile fp registers.  (The number of these can be obtained
-     from B's VM\_CompiledMethod object.)
-\item Any saved nonvolatile gp registers.  (The number of these can be obtained
-     from B's VM\_CompiledMethod object.)
-\item B's local values (Java\trademark stack, local variables, and/or anything else).
-     At each of B's call (and any other thread switch) sites a reference
-     map of this area (and B's registers) can be obtained from the B's
-     VM\_CompiledMethod object.
-\end{enumerate}
-
+B called by A is shown in figure~\ref{fig:stackframe}. 
+The layout of the stackframe appears in a block comment in
+\xlink{{\tt
+\$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_StackframeLayoutConstants.java}}
+{\LintelStackframeLayoutURL}.
 
 \noindent{\bf Calling Conventions}
 
@@ -595,13 +403,7 @@ B's stackframe has been removed.  ESP points to the word above where
      low-order word is in EAX and the high-order word is in EDX.
      Otherwise, if B has a result, it is in EAX.
 
-B's prologue must establish the final five regions of B's stackframe
-(see above.  (The framePointer field of the VM\_Processor object
-pointed to by ESI must be set to point to region 3 of this frame.)
-
 \end{description}
-
-
 
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}

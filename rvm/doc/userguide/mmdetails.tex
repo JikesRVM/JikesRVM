@@ -3,9 +3,10 @@ of the memory management component of RVM runtime system.
  
 \subsection{Directory Structure} \label{sssec:directories}
 The classes related to memory management are contained in the 
-src/vm/allocator directory.  Sub-directories of allocator 
+{\tt \$RVM\_ROOT/rvm/src/vm/memoryManagers} directory.  Sub-directories
+there
 contain classes for a specific memory management strategy.
-For example, the allocator/copyingGC directory implements a
+For example, the {\tt semispace} directory implements a
 simple semi-space copying allocator and collector.
 
 A RVM configuration specifies a memory management strategy, 
@@ -13,13 +14,14 @@ and the jconfigure command will include in the build all the
 classes in the allocator directory and all the classes in the
 sub-directory for the specified memory management strategy.
 The allocator directory contains classes common to multiple
-configurations, such as the load balancing work queue (see
-VM\_GCWorkQueue.java) which is used by all of the RVM
-garbage collectors.
+configurations, such as the load balancing work queue 
+(see 
+\xlink{{\tt VM\_GCWorkQueue.java}}{\VMGCWorkQueueURL}
+) which is used by all of the RVM garbage collectors.
 
-\subsection{Choosing an Allocator/Collector} \label{sssec:choosinggc}
+\subsection{Choosing an Allocator/Collector} \label{ssec:choosinggc}
 Depending on your purposes, you may choose to build RVM
-with a copying, noncopying (mark-sweep), or hybrid collector.
+with a semispace copying, noncopying (mark-sweep), or hybrid collector.
 For programs which do not perform many collections, the
 copying collector will most likely perform best, since object
 allocation path lengths are shortest for this collector.  To
@@ -45,19 +47,21 @@ are:
 \index{VM\_Allocator class}
 \begin{enumerate}
 \item Create a new directory for the Allocator/Collector, such as ``newGC''.
-\item Modify bin/jconfigure to add a stanza(s) for your new Allocator/Collector,
+\item Add a new configuration in {\tt \$RVM\_ROOT/rvm/config/build}
 which includes your new directory in the build.  Name it appropriately, such as
 ``BaseBasenewGC''.
-\item Copy some existing VM\_Allocator.java file into your new directory,
+\item Copy some existing {\tt VM\_Allocator.java} file into your new directory,
 and modify it, choosing one that has similar properties, such as copying or
-non-copying.  If you want to start from scratch, start with VM\_Allocator in noGC.
+non-copying.  If you want to start from scratch, start with 
+{\tt VM\_Allocator} in noGC.
 This file provides simple implementations of the required object allocation
 methods, and stubs for the other fields and methods expected by the rest
 of the RVM runtime (not all will be needed in any one implementation).
 \end{enumerate}
 
 The provided collectors contain a number of common methods which you
-will want to use (``use'' presently means copy into your VM\_Allocator file).
+will want to use (``use'' presently means copy into your {\tt
+VM\_Allocator} file).
 Some of them are:
 \begin{description}
 \item[scanStatics] which scans all class static variables (in the JTOC) and
@@ -74,7 +78,7 @@ All threads, except the executing collector threads, will be stopped a safe poin
 \index{VM\_GCWorkQueue class}
 \index{finalizable objects}
 \index{finalizer method}
-The class VM\_GCWorkQueue, implements a load balancing workqueue
+The class {\tt VM\_GCWorkQueue}, implements a load balancing workqueue
 which is used by all the RVM collectors to find all references reachable from
 some initial set of references.  It is used to find all objects reachable
 from roots, and also to find all objects reachable from finalizable objects
@@ -93,8 +97,9 @@ example with 256 entries per buffer.
 \index{write buffer}
 \index{write barrier}
 \index{object header}
-RVM provides a class VM\_WriteBarrier to support generational garbage 
-collection. When the static final field VM\_Allocator.writeBarrier is true,
+RVM provides a class {\tt VM\_WriteBarrier} to support generational garbage 
+collection. When the static 
+final field {\tt VM\_Allocator.writeBarrier} is true,
 all RVM compilers generate write barrier code, which tests a specified
 bit in the object header of an object into which a ref is being stored,
 and, if the bit is set to one, makes an entry into a write buffer of the 
@@ -111,7 +116,7 @@ survive one garbage collection as old.  The noncopying (mark-sweep)
 generational contains an as yet very experimental capability to require
 objects to survive more than one collection before being treated as old.
 (The constants GC\_OLD, GC\_STEPS, and GC\_THRESHHOLD) used in this 
-collector is part of the implementation.)
+collector are part of the implementation.)
 
 
 \subsection{Starting Garbage Collection} \label{sssec:startgc}
@@ -120,23 +125,24 @@ collector is part of the implementation.)
 \index{stop-the-world garbage collection}
 \index{concurrent garbage collection}
 The stopping of mutator threads and the scheduling of the collector
-threads is handled by the classes VM\_Handshake and VM\_CollectorThread.
+threads is handled by the classes 
+{\tt VM\_Handshake} and {\tt VM\_CollectorThread}.
 Mutator threads initiate collection by calling the collect method
-of VM\_CollectorThread.  It causes collector threads to be scheduled
-on all the VM\_Processors, and then yields, to allow the collector thread
+of {\tt VM\_CollectorThread}.  It causes collector threads to be scheduled
+on all the {\tt VM\_Processor}s, and then yields, to allow the collector thread
 on the executing processor to be scheduled. When all collector threads
-arrive at the first Rendezvous, in the run method of VM\_CollectorThread,
-the collection begins.
+arrive at the first Rendezvous, in the run method of {\tt
+VM\_CollectorThread}, the collection begins.
 All collector threads 
-call the gc\_collect method of VM\_Allocator.  They execute
+call the {\tt gc\_collect} method of {\tt VM\_Allocator}.  They execute
 in parallel in this method until collection is complete.  By default,
-there is one collector thread for each VM\_Processor (system thread).
+there is one collector thread for each {\tt VM\_Processor} (system thread).
 While collection is in progress, all non-collector threads are suspended
-in queues of the VM\_Processors waiting to be re-dispatched.
+in queues of the {\tt VM\_Processors} waiting to be re-dispatched.
 
 If you want something other than stop-the-world parallel collection 
 (such as a concurrent collector) then it will be necessary to modify
-or extend the VM\_Handshake and VM\_CollectorThread classes.
+or extend the {\tt VM\_Handshake} and {\tt VM\_CollectorThread} classes.
 
 \subsection{Measuring Collector Performance} \label{sssec:verbosegc}
 \index{command-line arguments}
@@ -151,7 +157,7 @@ with minimal cost, such a number of bytes copied for the copying collectors.
 
 Compile time flags can be set to cause additional information, at additional
 cost, to be measured and reported.  Some of the more useful ones are
-described here, others are described in the various VM\_Allocator
+described here, others are described in the various {\tt VM\_Allocator}
 source files.
 
 \paragraph{TIME\_GC\_PHASES}
@@ -159,9 +165,11 @@ This flag will cause the collector to measure the time spent in each
 of the phases of garbage collection, such as stopping mutators, finding roots,
 marking reachable objects, and finalization.  Turning on this flag will cause
 the summary statistics, with average times in each phase, to be generated 
-when RVM exits.  If -verbose:gc is specified the output is generated after
-each collection. Turning on TIME\_GC\_PHASES in the common VM\_CollectorThread
-class will cause it to be set in what ever VM\_Allocator is being used.
+when RVM exits.  If {\tt -verbose:gc} is specified the output is generated after
+each collection. Turning on {\tt TIME\_GC\_PHASES} in the common 
+{\tt VM\_CollectorThread}
+class will cause it to be set in what ever 
+{\tt VM\_Allocator} is being used.
 
 \paragraph{MEASURE\_WAIT\_TIMES}
 This flag will cause the collector to measure the time each collector thread
@@ -171,8 +179,10 @@ collection process. Turning on this flag will cause
 the summary statistics, with average wait times, to be generated 
 when RVM exits.  If -verbose:gc is specified the output is generated after
 each collection, for each collector thread.
-Turning on MEASURE\_WAIT\_TIMES in the common VM\_CollectorThread
-class will cause necessary flags in VM\_Allocator and VM\_GCWorkQueue to be set.
+Turning on {\tt MEASURE\_WAIT\_TIMES} in the common {\tt
+VM\_CollectorThread}
+class will cause necessary flags in {\tt VM\_Allocator} and 
+{\tt VM\_GCWorkQueue} to be set.
 
 \begin{description}
 \item[RENDEZVOUS\_TIMES] prints per thread entrance and exit times for the
@@ -185,77 +195,3 @@ thread (in VM\_GCWorkQueue).
 thread (in VM\_GCWorkQueue). 
 \end{description}
 Not all flags are available in all VM\_Allocator files.
-
-\subsection{Expected Revisions} \label{sssec:revisions}
-At the time of this release, some revisions to the
-memory management component of RVM
-are being planned.  It is likely that they will appear in
-the next release.
-
-\paragraph{Revised Directory Structure}
-With the current directory structure, all files in the allocator
-directory get compiled and included in all builds, even though
-only some subset will get used in any particular build.  The 
-files in the allocator directory will probably be moved into strategy
-specific subdirectories, such as for copying and non-copying 
-collectors, so that builds of RVM need only include the files
-needed in a specific build.
-
-\paragraph{Factoring Out Common Code}
-The strategy specific VM\_Allocator files have much code in common,
-particularly for the different copying collectors.  This common code
-will be factored out into separate classes, and moved into a
-separate directory, where it can be shared by the different collectors.
-
-\paragraph{Splitting Allocation and Collection}
-Presently the VM\_Allocator files contain both the support for
-object allocation and garbage collection.  It is likely that
-the methods implementing collection will be split out into
-a separate VM\_Collector class.  All the VM\_Allocator classes use
-the same implementation for Large Object Space, and it is likely
-that this will also be split out into a separate class.
-
-\subsection{Optional Builds} \label{ssses:optionalbuilds}
-Some of the memory management classes have internal compile
-time flags that can be modified to alter the way allocation 
-and collection is performed.
-(Note that the optional builds have not been recently tested)
-
-\paragraph{Thread Private Work Queues}
-RVM originally used private work queues for each collector thread
-participating in collection.  This has been replaced by the current
-load balancing work queue strategy.  It is possible to build RVM
-with the old thread private queues by setting the flag
-USE\_OLD\_PRIVATE\_WORKQUEUE in VM\_GCWorkQueue.java to true.
-(This is not recommended, but can be used to observe the relative
-performance of the two approaches)
-
-\paragraph{Turn Off Local Allocation} 
-By default, VM\_Processors allocate objects from local ``chunks'', without
-needing to synchronize with other VM\_Processors, except when acquiring
-an additional chunk from the shared global heap.  Flags in the
-copying allocators allow one to turn this off, causing all allocations
-to be synchronized. 
-The PROCESSOR\_LOCAL\_ALLOCATES flag controls processor local object
-allocations, and the PROCESSOR\_LOCAL\_MATURE\_ALLOCATES flag controls
-collector thread local allocation of space for marked objects being
-copied. (These should only be turned off if one is trying to observe
-the impact of cache contention on a multi-processor computer)
-
-\paragraph{Alternatives For Zeroing Memory}
-By default, VM\_Processors zero chunks of memory, when the chunks are
-acquired from the shared global heap, rather than zeroing freed
-space at the end of collection.  In some of the copying Collectors,
-compile time flags can be set to alter when and how the zeroing is
-done.  The options are:
-\begin{description}
-\item[Zero Chunks When Allocated] (the default)
-\item[Zero Nursery In Parallel] The collector threads divide up the
-Nursery (free space) and zero their assigned portion in parallel.
-This occurs at the end of collection.
-\item[One Thread Zeros] One collector thread zeros the entire Nursery
-at the end of collection. (A bad idea, but shows how long zeroing can take)
-\end{description}
-
-
-

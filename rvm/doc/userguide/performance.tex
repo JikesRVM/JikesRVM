@@ -45,6 +45,7 @@ For best performance we recommend the following:
 
 \subsection{RVM is really slow! What am I doing wrong?}
 
+
 Perhaps you are not seeing stellar RVM performance.  If RVM as described
 above is not competitive with the IBM AIX product JDK, we recommend
 you test your installation with the SPECjvm98 benchmarks.
@@ -54,6 +55,11 @@ IBM AIX product JDK 1.3.0 on the SPECjvm98 benchmarks.
 Of course, SPECjvm98 does not guarantee that RVM runs all codes
 well.  We have also tested various flavors of pBOB and the Volano
 benchmarks, and usually see superior or competitive performance.
+
+The IA32 port is less mature than the PPC port, and does not deliver
+competitive performance on many codes.  In particular, IA32 floating-point
+performance is currently abysmal.  We hope to improve this somewhat in an
+upcoming release.
 
 Some classes of codes will not run fast on RVM.  Known issues include:
 \begin{itemize}

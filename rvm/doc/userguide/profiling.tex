@@ -12,13 +12,13 @@ time-based sampling mechanism.  This information can be used to drive
 recompilation decisions\T~\cite{jalapeno-adaptive-00}.
 It can also be used to produce an aggregrate
 profile of the execution of an application.  
-Here's how 
+Here's how .
 
 \begin{enumerate}
 \item Create an adaptive configuration.  For the most accurate profile use
-{\tt FastAdaptivecopyingGC}.  See Section~\ref{section:installation}
+{\tt FastAdaptiveSemispace}.  See Section~\ref{section:installation}
 \begin{verbatim}
-% jconfigure FastAdaptivecopyingGC
+% jconfigure FastAdaptiveSemispace
 % cd $RVM_BUILD
 % jbuild
 \end{verbatim}
@@ -41,7 +41,7 @@ hides many of the implementation details of the counters, so that
 the instrumentation phases described below require an adaptive boot
 image (any one should work).  Most of the code regarding
 instrumentation lives in {\tt
-adaptive/runtimeMeasurements/instrumentation} and {\tt
+\$RVM\_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation} and {\tt
 adaptive/recompilation/instrumentation}.
 
 Section~\ref{existing_phases} describes existing instrumentation
@@ -95,7 +95,7 @@ Printing Instruction Counters:
 Total: 302933
 \end{verbatim}
 
-This is very useful for debugging or assessing the effectiveness
+This is useful for debugging or assessing the effectiveness
 of an optimization because you can see a dynamic execution count, rather
 than relying on timing.  
 
@@ -162,7 +162,7 @@ the branch instruction at bytecode offset \#5 at inline context
 FooBar.  }
 
 Depending on what you are counting, there may be one data object for
-the whole program (such as VM\_YieldpointCounterData and
+the whole program (such as {\tt VM\_YieldpointCounterData} and
 {\tt VM\_MethodInvocationCounterData}), or one per method (such as
 {\tt VM\_InstrumentedControlFlowEdgeCounterData}).  There is also a
 very generic data object called {\tt VM\_StringCounterData} that

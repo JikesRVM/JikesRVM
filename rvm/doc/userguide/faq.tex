@@ -92,7 +92,7 @@ be added to the web page, let us know.
 
 You need to download two bundles: the RVM source, and the RVM standard library
 jar file.  Each of these is available for download from DeveloperWorks at
-\xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  If you would like to 
+\xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  
 The RVM source is also available through a 
 public 
 \xlink{CVS server}{\RVMCVSURL}.
@@ -158,6 +158,16 @@ priorities.
 
 \subsubsection{How can I include my own classes in the boot image?}
 
+The {\tt jconfigure} script defines which classes go in the boot image, by
+spitting out the file {\$RVM\_BUILD/RVM.primordials}.  By default, any
+class with the {\tt VM\_} prefix in a defined directory set, goes in the
+boot image.
+
+You may choose to add more classes to the primordial list.  One way to do
+this is to edit {\tt jconfigure}; look at the function {\tt
+emitImageLinker}.  You will see that the script already puts certain other
+non-VM classes in the primordial list (eg. {\tt java.lang.Object}.
+
 \subsection{Runtime implementation}
 
 \subsubsection{Does RVM have an interpreter?}
@@ -166,7 +176,8 @@ No.  RVM relies on two compilers, and compiles all methods to native code.
 
 \subsubsection{Does RVM support JNI?}
 
-Most JNI functionality is supported.  Some functions are supported on AIX
+Most JNI functionality is supported. A few functions are not. 
+Some functions are supported on AIX
 but not Linux.
 
 \subsubsection{Does RVM support user-defined class loaders?}
@@ -395,6 +406,8 @@ You can try.  Set your classpath to pick up the library you desire.
 PEI is our acronym for potentially excepting instruction.  This applies to
 any instruction in the IR that may throw an exception.
 
+\subsubsection{What is AOS?}
+AOS stands for adaptive optimization system.
 
 \subsubsection{Is there a difference between a GC safe point and a thread
 switch point?}
@@ -440,8 +453,22 @@ There is a command-line option to turn on the current implementation.
 \subsubsection{How do I insert my new compiler pass in the optimizing
 compiler driver?}
 
+See section~\ref{sec:optdriver} of the userguide, which describes how to
+add phases to class {\tt OPT\_OptimizationPlanner}.
+
 \subsubsection{What if I want my pass to do inter-procedural analysis?}
 
+The normal RVM does not have a convenient entrypoint for IPA.  As Java is
+a dynamic language, the RVM continually compiles classes as they are
+loaded.  Each method is compiled individually.
+
+You can use the {\tt OptTestHarness} driver to define a set of classes. 
+This driver program loads a set of classes or methods defined on the
+command line.  You can then add an entrypoint in {\tt OptTestHarness.java}
+that calls your IPA after loading all the relevant classes.
+
+If you come up with a general mechanism for this, please consider
+contributing it back.
 
 \subsubsection{What is the OptTestHarness?}
 

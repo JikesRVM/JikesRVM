@@ -136,6 +136,7 @@ query if fma is allowed by testing {\tt options.allowFMA()}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Method Compilation}
+\label{sec:optdriver}
 \index{compilation}
 \index{optimizations}
 \index{IR}
@@ -322,7 +323,7 @@ description of the API.
 
 \index{InstructionFormatList.dat}
 Each fixed-length instruction format is defined in the text file 
-{\tt \$RVM\_ROOT/optimizingCompiler/IR/InstructionFormatList.dat}.
+{\tt \$RVM\_ROOT/rvm/src/vm/optimizingCompiler/IR/InstructionFormatList.dat}.
 Each record in this file has four lines:
 \begin{itemize}
 \item {\tt NAME}: the name of the instruction format
@@ -487,9 +488,9 @@ The rules file is used to generate a file called {\tt ir.brg}, which, in
 turn, is used to produce a file called {\tt OPT\_BURS\_STATE.java}.
 
 For more information on helper functions look at
-{\tt vm/arch/\{arch\}/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS\_Helpers.java}.
+{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS\_Helpers.java}.
 For more information on the BURS algorithm see
-{\tt vm/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS.java}.
+{\tt \$RVM\_ROOT/rvm/src/vm/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS.java}.
 
 %%%%%%%%%%%%%%%%%%%%%%%
 \subsection{"Magic" Methods}\label{magic}
@@ -526,4 +527,4 @@ adaptive optimization system, see our
 \xlink{2000 OOPSLA paper}{\OOPSLAPaperURL}. 
 
 For details on individual classes, see the source files under 
-{\tt rvm/src/vm/adaptive}.
+{\tt \$RVM\_ROOT/rvm/src/vm/adaptive}.
