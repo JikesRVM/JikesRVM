@@ -947,6 +947,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load file " + 
                                                           getDescriptor() + "\n");
+    if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + this + "]\n");
   }
 
   /**
