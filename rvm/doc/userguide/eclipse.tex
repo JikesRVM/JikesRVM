@@ -76,12 +76,22 @@ that, there are just a few steps:
 support for Eclipse to use Jikes RVM
 \end{enumerate}
 
+\section{{\tt rvmeclipse}}
+
 \index{rvmeclipse}
 Once you have done this, you will be able to run Eclipse on Jikes RVM
 using the {\tt \$RVM\_ROOT/rvm/bin/rvmeclipse} command.  This wrapper
 calls the normal Eclipse command, instructing it to use Jikes RVM to
 run Eclipse.  Set RVM\_ROOT and RVM\_BUILD before you invoke {\tt
 rvmeclipse}.
+
+When you run {\tt rvmeclipse}, if you don't already
+have an Eclipse workspace created, you'll see a message like ``{\tt
+vm: exit 23}''.  This message is normal; just ignore it.  Jikes RVM
+always prints out the exit status when it exits with a non-zero
+exit value; other Java Virtual Machines don't.
+
+\section{What the Plugin Does}
 
 To understand the plugin, you need to understand that when you're
 using Eclipse as a Java IDE, Eclipse uses two Java Virtual Machines
@@ -94,8 +104,9 @@ Jikes RVM.  The Jikes RVM Eclipse plugin lets you use Jikes RVM as
 your {\em inferior JVM} for running your user programs {\em under} Eclipse.
 
 The plugin will only work in an Eclipse session that itself is already
-using Jikes RVM as the {\em primary JVM}.  The easiest way to do this is to start Eclipse with the
-command {\tt rvmeclipse}, as discussed above.
+using Jikes RVM as the {\em primary JVM}.  The easiest way to do this
+is to start Eclipse with the command {\tt rvmeclipse}, as discussed
+above.
 
 In short, the plugin is irrelevant to running Eclipse itself under
 Jikes RVM.  It only affects how Eclipse runs inferior Java processes;
@@ -106,3 +117,4 @@ If you want to continue developing your application Java programs
 under another JVM, such as the Blackdown or IBM JDK, then you also
 won't have a use for the plugin, since the Eclipse Java IDE already
 knows how to use those JVMs to run your programs.
+
