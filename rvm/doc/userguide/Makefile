@@ -86,7 +86,6 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 	chmod -Rf u+rwX ${HTML_DIR}
 	chmod -Rf g+rwX ${HTML_DIR}
 
-
 %.gif:	%.ps
 	${PS2GIF} -res 50 $< $@
 
