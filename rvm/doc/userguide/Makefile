@@ -80,6 +80,7 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 	$(HYPERLATEX) userguide
 	chmod u+w ${HTML_DIR}
 	cp ${NAV_GIFS} ${HTML_DIR}
+	cp ${HTML_GRAPHICS} ${HTML_DIR}
 	cd ${HTML_DIR} \
 	&& chmod u+w ${NAV_GIFS} \
 	&& ln -sf userguide.html index.html
