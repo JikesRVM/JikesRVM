@@ -4,16 +4,20 @@
 # $Id$
 #
 # @author Julian Dolby
-#
+# @modified Steven Augart
 
 # 
 # rules, etc in this file should be site independent
 #
 
-## /bin/sh is the default for SHELL.  If you need or want a Bash
-## feature, it would be OK set it to /bin/bash, since we're already
-## committed to Bash. But we don't need it yet, so no point 
-## in overconstraining ourselves.
+# On AIX, where /bin/sh is a link to /bin/ksh, it is useful to have SHELL 
+# set to /bin/bash. This is because, on AIX under ksh, "echo -n <message>" 
+# emits the text "-n <message><NEWLINE>".   The Bash behavior, even when
+# invoked as "sh", is to emit "<message>", without a trailing <NEWLINE>.
+# 
+# This used to be handled by using SHELL=/bin/ksh and using "print" instead 
+# of "echo".  
+SHELL=/bin/bash
 
 # Java compiler.
 HOST_JAVAC = $(HOST_JIKES) +E -g
