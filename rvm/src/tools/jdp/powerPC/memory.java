@@ -966,6 +966,11 @@ JDPServiceInterface
     String branch_target, line;
     StringBuffer ret = new StringBuffer();
     thread = 0;                           // TODO: place holder for multithread later
+    if (count < 0) {
+      count = -count;
+      address = address-(count*4);
+      count += 1; // +1 so original address gets listed too
+    }
 
     for (IP=address; IP<address+count*4; IP+=4) {
       instr = readNoBP(thread, IP);

@@ -1408,17 +1408,32 @@ class Debugger implements jdpConstants {
 	// }
 	break;
       case 1:
-	addr = parseHex32(args[0]);
-	jdp_console.writeOutput(user.mem.listInstruction(addr, 10));
+	if (args[0].startsWith("0x") || args[0].startsWith("0X")) {
+	  addr = parseHex32(args[0]);
+	  count = 10;
+	}
+	else {
+	  addr = user.reg.currentIP();
+	  count = Integer.parseInt(args[0]);
+	  if (count < 0 && Platform.listiNegCountImplemented == 0) {
+	    jdp_console.writeOutput("Sorry, use of a negative count is not available on this platform");
+	    break;
+	  }
+	}
+	jdp_console.writeOutput(user.mem.listInstruction(addr, count));
 	break;
       default:
 	addr = parseHex32(args[0]);
 	count = Integer.parseInt(args[1]);
+	if (count < 0 && Platform.listiNegCountImplemented == 0) {
+	  jdp_console.writeOutput("Sorry, use of a negative count is not available on this platform");
+	  break;
+	}
 	jdp_console.writeOutput(user.mem.listInstruction(addr, count));
 	break;
       }
     } catch (NumberFormatException e) {
-      jdp_console.writeOutput("bad address: " + args[0]);
+      jdp_console.writeOutput("If an address is specified it must be as a hex number, any count specified must be an integer");
     }
   }
 
@@ -2205,8 +2220,9 @@ class Debugger implements jdpConstants {
     } else if (command.equals("listi") || command.equals("li")) {
       ret.append("Format:  < li | listi > <hexaddr><count>\n");
       ret.append("Dissassemble the machine instruction in this range of addresses\n");
-      ret.append("If address is not specified, use the current PC\n");
-      ret.append("Default count is 10\n");
+      ret.append("If address is not specified, the current PC will be used.\n");
+      ret.append("If count is specified it must be an integer. It can be negative on PPC\n");
+      ret.append("Default count is 10. Count can be specified alone.\n");
  
     } else if (command.equals("listt") || command.equals("lt")) {
       ret.append("Format:  < lt | listt > <all|byname|run|ready|wakeup|system|gc>\n");

@@ -356,5 +356,6 @@ public class Platform implements jdpConstants {
   public static final int cthreadImplemented = 0; // not implemented yet
   public static final int listtRunImplemented = 0; // not implemented yet
   public static final int listtSystemImplemented = 0; // not implemented yet
+  public static final int listiNegCountImplemented = 0; // not implemented
   public static final String extraRegNames = "IP PR (same as esi) JT (same as edi) \n";
 }
