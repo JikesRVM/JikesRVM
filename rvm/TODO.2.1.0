@@ -8,11 +8,10 @@ aware of and delete items as they are completed.
 (2) Userguide: large sections of the userguide need to be updated for
     the 2.1.0 release.  See the TODO list in doc/userguide.
 
-(3) Memory Manager restructuring:
+DONE (ie close enough for now) (3) Memory Manager restructuring:
   -- stabilize VM_Heap interface
   -- at a minimum javadoc header comments on all classes; javadoc on
      all methods of VM_Heap.
-  Dave G almost done
 
 (4) One word object model: ensure that all configurations measured in
     the ecoop'02 paper still work.
