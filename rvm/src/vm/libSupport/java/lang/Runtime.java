@@ -196,8 +196,8 @@ public class Runtime {
     throw new VM_UnimplementedError();
   }
 
-  public void removeShutdownHook(Thread hook) throws IllegalStateException,
-						     SecurityException {
+  public boolean removeShutdownHook(Thread hook) throws IllegalStateException,
+							SecurityException {
     throw new VM_UnimplementedError();
   }
 
