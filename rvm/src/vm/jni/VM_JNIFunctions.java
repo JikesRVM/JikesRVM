@@ -58,13 +58,9 @@ import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 */
 public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   // one message for each JNI function called from native
-  final static boolean verboseJNI = false;
+  final static boolean traceJNI = false;
 
   private static final boolean LittleEndian = VM.BuildForIA32;
-
-  //
-  // Implementation of the JNI functions
-  //
 
   /**
    * GetVersion: the version of the JNI
@@ -72,14 +68,14 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return 0x00010002 for Java 1.2, otherwise return 0x00010001
    */     
   private static int GetVersion(int envJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetVersion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetVersion  \n");
 
     return 0x00010001;
   }
 
 
   private static int DefineClass(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: DefineClass  \n");
+    if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
 
     VM_Scheduler.traceback("JNI ERROR: DefineClass not implemented yet.");
     VM.sysExit(200);
@@ -99,23 +95,23 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception ExceptionInInitializerError (not implemented)
    */
   private static int FindClass(int envJREF, VM_Address classNameAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: FindClass  \n");
+    if (traceJNI) VM.sysWrite("JNI called: FindClass  \n");
 
     VM_JNIEnvironment env;
     String classString = null;
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       classString = VM_JNIEnvironment.createStringFromC(classNameAddress);
-      if (verboseJNI) VM.sysWriteln( classString );
+      if (traceJNI) VM.sysWriteln( classString );
       Class matchedClass = Class.forName(classString);
       return env.pushJNIRef(matchedClass);  
     } catch (ClassNotFoundException e) {
-      if (verboseJNI) e.printStackTrace( System.err );
+      if (traceJNI) e.printStackTrace( System.err );
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(new NoClassDefFoundError(classString));
       return 0;
     } catch (Throwable unexpected) {
-      if (verboseJNI) unexpected.printStackTrace( System.err );
+      if (traceJNI) unexpected.printStackTrace( System.err );
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
       return 0;
@@ -130,7 +126,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         java.lang.Object or an interface
    */
   private static int GetSuperclass(int envJREF, int classJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetSuperclass  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetSuperclass  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -158,7 +154,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean IsAssignableFrom(int envJREF, int firstClassJREF, 
                                           int secondClassJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
+    if (traceJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -185,7 +181,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return 0 if successful, -1 if not
    */
   private static int Throw(int envJREF, int exceptionJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: Throw  \n");
+    if (traceJNI) VM.sysWrite("JNI called: Throw  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -209,7 +205,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return 0 if successful, -1 otherwise
    */
   private static int ThrowNew(int envJREF, int throwableClassJREF, VM_Address exceptionNameAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: ThrowNew  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ThrowNew  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -242,7 +238,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *
    */
   private static int ExceptionOccurred(int envJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: ExceptionOccurred  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ExceptionOccurred  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -251,7 +247,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       if (e==null)
         return 0;
       else {
-        if (verboseJNI) {
+        if (traceJNI) {
           VM.sysWrite( e.toString() );
           VM.sysWrite("\n");
         }
@@ -260,7 +256,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
-      if (verboseJNI) {
+      if (traceJNI) {
         VM.sysWrite( unexpected.toString() );
         VM.sysWrite("\n");
       }
@@ -276,7 +272,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    */
   private static void ExceptionDescribe(int envJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: ExceptionDescribe  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ExceptionDescribe  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -299,7 +295,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    */
   private static void ExceptionClear(int envJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: ExceptionClear  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ExceptionClear  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -319,7 +315,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return This function does not return
    */
   private static void FatalError(int envJREF, VM_Address messageAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: FatalError  \n");
+    if (traceJNI) VM.sysWrite("JNI called: FatalError  \n");
 
     try {
       VM.sysWrite(VM_JNIEnvironment.createStringFromC(messageAddress));
@@ -331,7 +327,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 
   private static int NewGlobalRef(int envJREF, int objectJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
+    if (traceJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
     try {
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
       Object obj1 = (Object) env.getJNIRef(objectJREF);
@@ -344,7 +340,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   }
 
   private static void DeleteGlobalRef(int envJREF, int refJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: DeleteGlobalRef\n");
+    if (traceJNI) VM.sysWrite("JNI called: DeleteGlobalRef\n");
     try {
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
       VM_JNIGlobalRefTable.deleteGlobalRef( refJREF );
@@ -355,7 +351,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   }
 
   private static void DeleteLocalRef(int envJREF, int objJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: DeleteLocalRef\n");
+    if (traceJNI) VM.sysWrite("JNI called: DeleteLocalRef\n");
     try {
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
       env.deleteJNIRef(objJREF);
@@ -374,7 +370,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return true if it's the same object, false otherwise
    */
   private static boolean IsSameObject(int envJREF, int obj1JREF, int obj2JREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: IsSameObject  \n");
+    if (traceJNI) VM.sysWrite("JNI called: IsSameObject  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -403,7 +399,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int AllocObject(int envJREF, int classJREF) 
     throws InstantiationException, OutOfMemoryError {
-      if (verboseJNI) VM.sysWrite("JNI called: AllocObject  \n");
+      if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -450,7 +446,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int NewObject(int envJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: NewObject  \n");
+      if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -488,7 +484,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int NewObjectV(int envJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: NewObjectV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: NewObjectV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -526,7 +522,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int NewObjectA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: NewObjectA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: NewObjectA  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -559,7 +555,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *
    */
   private static int GetObjectClass(int envJREF, int objJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -584,7 +580,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return true if the object is an instance of the class
    */
   private static int IsInstanceOf(int envJREF, int objJREF, int classJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: IsInstanceOf  \n");
+    if (traceJNI) VM.sysWrite("JNI called: IsInstanceOf  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -616,7 +612,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int GetMethodID(int envJREF, int classJREF, 
                                  VM_Address methodNameAddress, VM_Address methodSigAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetMethodID  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetMethodID  \n");
 
     VM_JNIEnvironment env;
 
@@ -649,7 +645,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       if (mth!=null) {
-	  if (verboseJNI) VM.sysWrite("got method " + mth + "\n");
+	  if (traceJNI) VM.sysWrite("got method " + mth + "\n");
         return mth.getDictionaryId();     // use actual method ID:  index into the VM_MethodDictionary
       } else {
         env.recordException(new NoSuchMethodError());
@@ -678,7 +674,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallObjectMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -709,7 +705,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallObjectMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallObjectMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -740,7 +736,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallObjectMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -772,7 +768,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallBooleanMethod(int envJREF, int objJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -804,7 +800,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallBooleanMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallBooleanMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -836,7 +832,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallBooleanMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -869,7 +865,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallByteMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -902,7 +898,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallByteMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallByteMethodV  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallByteMethodV  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -934,7 +930,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallByteMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -967,7 +963,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallCharMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallCharMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -999,7 +995,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallCharMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallCharMethodV  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallCharMethodV  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1031,7 +1027,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallCharMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1064,7 +1060,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallShortMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -1097,7 +1093,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallShortMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallShortMethodV  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallShortMethodV  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1129,7 +1125,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallShortMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1162,7 +1158,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallIntMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallIntMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1194,7 +1190,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallIntMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallIntMethodV  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallIntMethodV  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1227,7 +1223,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallIntMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1260,7 +1256,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallLongMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallLongMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1292,7 +1288,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallLongMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallLongMethodV  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallLongMethodV  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1324,7 +1320,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallLongMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1357,7 +1353,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallFloatMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1389,7 +1385,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallFloatMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallFloatMethodV  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodV  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1421,7 +1417,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallFloatMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1454,7 +1450,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallDoubleMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1486,7 +1482,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallDoubleMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallDoubleMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1518,7 +1514,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallDoubleMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1551,7 +1547,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallVoidMethod(int envJREF, int objJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1579,7 +1575,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallVoidMethodV(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallVoidMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1607,7 +1603,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallVoidMethodA(int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1638,7 +1634,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallNonvirtualObjectMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1670,7 +1666,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallNonvirtualObjectMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1702,7 +1698,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallNonvirtualObjectMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1735,7 +1731,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallNonvirtualBooleanMethod(int envJREF, int objJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1767,7 +1763,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallNonvirtualBooleanMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodV  \n");
 
       VM_JNIEnvironment env;
       try {
@@ -1800,7 +1796,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallNonvirtualBooleanMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");  
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");  
 
       VM_JNIEnvironment env;
       try {
@@ -1834,7 +1830,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallNonvirtualByteMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -1869,7 +1865,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallNonvirtualByteMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -1903,7 +1899,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallNonvirtualByteMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -1938,7 +1934,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallNonvirtualCharMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -1972,7 +1968,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallNonvirtualCharMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2006,7 +2002,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallNonvirtualCharMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2041,7 +2037,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallNonvirtualShortMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -2075,7 +2071,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallNonvirtualShortMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2109,7 +2105,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallNonvirtualShortMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2144,7 +2140,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallNonvirtualIntMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -2178,7 +2174,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallNonvirtualIntMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2213,7 +2209,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallNonvirtualIntMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2248,7 +2244,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallNonvirtualLongMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -2282,7 +2278,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallNonvirtualLongMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2316,7 +2312,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallNonvirtualLongMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2351,7 +2347,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallNonvirtualFloatMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -2384,7 +2380,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallNonvirtualFloatMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2418,7 +2414,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallNonvirtualFloatMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2453,7 +2449,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallNonvirtualDoubleMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -2486,7 +2482,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallNonvirtualDoubleMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2520,7 +2516,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallNonvirtualDoubleMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2555,7 +2551,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallNonvirtualVoidMethod(int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -2585,7 +2581,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallNonvirtualVoidMethodV(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -2615,7 +2611,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallNonvirtualVoidMethodA(int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -2650,7 +2646,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   private static int GetFieldID(int envJREF, int classJREF, 
                                 VM_Address fieldNameAddress, VM_Address descriptorAddress) {
 
-    if (verboseJNI) VM.sysWrite("JNI called: GetFieldID  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");  
 
     VM_JNIEnvironment  env;
     try {
@@ -2698,7 +2694,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldIndex is incorrect
    */
   private static int GetObjectField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetObjectField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetObjectField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetObjectField: field at index " + fieldIndex + "\n");
@@ -2736,7 +2732,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the boolean field, or 0 if the fieldIndex is incorrect
    */
   private static int GetBooleanField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetBooleanField: field at index " + fieldIndex + "\n");
@@ -2775,7 +2771,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the byte field, or 0 if the fieldIndex is incorrect
    */
   private static int GetByteField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetByteField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetByteField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetByteField: field at index " + fieldIndex + "\n");
@@ -2810,7 +2806,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the character field, or 0 if the fieldIndex is incorrect
    */
   private static int GetCharField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetCharField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetCharField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetCharField: field at index " + fieldIndex + "\n");
@@ -2845,7 +2841,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the short field, or 0 if the fieldIndex is incorrect
    */
   private static int GetShortField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetShortField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetShortField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetShortField: field at index " + fieldIndex + "\n");
@@ -2880,7 +2876,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the integer field, or 0 if the fieldIndex is incorrect
    */
   private static int GetIntField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetIntField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetIntField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetIntField: field at index " + fieldIndex + "\n");
@@ -2916,7 +2912,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldIndex is incorrect
    */
   private static long GetLongField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetLongField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetLongField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetLongField: field at index " + fieldIndex + "\n");
@@ -2951,7 +2947,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldIndex is incorrect
    */
   private static float GetFloatField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetFloatField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetFloatField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetFloatField: field at index " + fieldIndex + "\n");
@@ -2986,7 +2982,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldIndex is incorrect
    */
   private static double GetDoubleField(int envJREF, int objJREF, int fieldIndex1) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetDoubleField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetDoubleField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("GetDoubleField: field at index " + fieldIndex + "\n");
@@ -3022,7 +3018,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param valueJREF a JREF index for the value to assign
    */
   private static void SetObjectField(int envJREF, int objJREF, int fieldIndex1, int valueJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetObjectField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetObjectField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetObjectField: field at index " + fieldIndex + "\n");
@@ -3057,7 +3053,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   boolean value to assign
    */
   private static void SetBooleanField(int envJREF, int objJREF, int fieldIndex1, boolean value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetBooleanField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetBooleanField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetBooleanField: field at index " + fieldIndex + "\n");
@@ -3089,7 +3085,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   byte value to assign
    */
   private static void SetByteField(int envJREF, int objJREF, int fieldIndex1, byte value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetByteField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetByteField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetByteField: field at index " + fieldIndex + "\n");
@@ -3121,7 +3117,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   char value to assign
    */
   private static void SetCharField(int envJREF, int objJREF, int fieldIndex1, char value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetCharField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetCharField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetCharField: field at index " + fieldIndex + "\n");
@@ -3153,7 +3149,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   short value to assign
    */
   private static void SetShortField(int envJREF, int objJREF, int fieldIndex1, short value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetShortField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetShortField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetShortField: field at index " + fieldIndex + "\n");
@@ -3185,7 +3181,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   integer value to assign
    */
   private static void SetIntField(int envJREF, int objJREF, int fieldIndex1, int value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetIntField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetIntField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetIntField: field at index " + fieldIndex + "\n");
@@ -3217,7 +3213,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   long value to assign
    */
   private static void SetLongField(int envJREF, int objJREF, int fieldIndex1, long value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetLongField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetLongField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetLongField: field at index " + fieldIndex + "\n");
@@ -3249,7 +3245,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   float value to assign
    */
   private static void SetFloatField(int envJREF, int objJREF, int fieldIndex1, float value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetFloatField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetFloatField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetFloatField: field at index " + fieldIndex + "\n");
@@ -3281,7 +3277,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value   double value to assign
    */
   private static void SetDoubleField(int envJREF, int objJREF, int fieldIndex1, double value) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetDoubleField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetDoubleField  \n");
 
     int fieldIndex = fieldIndex1-1;
     // VM.sysWrite("SetDoubleField: field at index " + fieldIndex + "\n");
@@ -3316,7 +3312,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int GetStaticMethodID(int envJREF, int classJREF, VM_Address methodNameAddress, VM_Address methodSigAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticMethodID  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticMethodID  \n");
 
 
     VM_JNIEnvironment env;
@@ -3344,7 +3340,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       if (mth!=null) {
-	if (verboseJNI) VM.sysWrite("got static method " + mth + "\n");
+	if (traceJNI) VM.sysWrite("got static method " + mth + "\n");
         return mth.getDictionaryId();     // use actual method ID:  index into the VM_MethodDictionary
       } else {
         Throwable e = new NoSuchMethodError();
@@ -3353,7 +3349,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
     } catch (Throwable unexpected) {
-      if (verboseJNI) {
+      if (traceJNI) {
 	  VM.sysWrite(" GetStaticMethodID: unexpected exception " + unexpected.toString() + "\n");
 	  unexpected.printStackTrace( System.err );
       }
@@ -3378,7 +3374,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallStaticObjectMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3409,7 +3405,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallStaticObjectMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticObjectMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3440,7 +3436,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallStaticObjectMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3472,7 +3468,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallStaticBooleanMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3500,7 +3496,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallStaticBooleanMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3527,7 +3523,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static boolean CallStaticBooleanMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3555,7 +3551,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallStaticByteMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3582,7 +3578,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallStaticByteMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticByteMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3609,7 +3605,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static byte CallStaticByteMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3637,7 +3633,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallStaticCharMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3664,7 +3660,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static char CallStaticCharMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticCharMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3691,7 +3687,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static char CallStaticCharMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3718,7 +3714,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallStaticShortMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3745,7 +3741,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallStaticShortMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticShortMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3772,7 +3768,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static short CallStaticShortMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3800,7 +3796,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallStaticIntMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3828,7 +3824,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallStaticIntMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticIntMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3855,7 +3851,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int CallStaticIntMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3883,7 +3879,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallStaticLongMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3910,7 +3906,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallStaticLongMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticLongMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -3937,7 +3933,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static long CallStaticLongMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -3965,7 +3961,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallStaticFloatMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -3993,7 +3989,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallStaticFloatMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticFloatMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -4020,7 +4016,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static float CallStaticFloatMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -4048,7 +4044,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallStaticDoubleMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -4075,7 +4071,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallStaticDoubleMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -4101,7 +4097,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static double CallStaticDoubleMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -4128,7 +4124,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallStaticVoidMethod(int envJREF, int classJREF, int methodID) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
 
 
       VM_JNIEnvironment env;
@@ -4153,7 +4149,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallStaticVoidMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticVoidMethodV  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodV  \n");
 
 
       VM_JNIEnvironment env;
@@ -4178,7 +4174,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void CallStaticVoidMethodA(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
-      if (verboseJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
+      if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
 
 
       VM_JNIEnvironment env;
@@ -4208,7 +4204,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static int GetStaticFieldID(int envJREF, int classJREF, 
                                       VM_Address fieldNameAddress, VM_Address descriptorAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
 
 
     VM_JNIEnvironment env;
@@ -4260,7 +4256,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldOffset is incorrect
    */
   private static int GetStaticObjectField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticObjectField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticObjectField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4294,7 +4290,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the boolean field, or 0 if the fieldOffset is incorrect
    */
   private static int GetStaticBooleanField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticBooleanField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticBooleanField  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -4323,7 +4319,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the byte field, or 0 if the fieldOffset is incorrect
    */
   private static int GetStaticByteField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticByteField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticByteField  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -4353,7 +4349,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the character field, or 0 if the fieldOffset is incorrect
    */
   private static int GetStaticCharField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticCharField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticCharField  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -4383,7 +4379,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the short field, or 0 if the fieldOffset is incorrect
    */
   private static int GetStaticShortField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticShortField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticShortField  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -4413,7 +4409,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the value of the integer field, or 0 if the fieldOffset is incorrect
    */
   private static int GetStaticIntField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticIntField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticIntField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4445,7 +4441,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldOffset is incorrect
    */
   private static long GetStaticLongField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticLongField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticLongField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4477,7 +4473,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldOffset is incorrect
    */
   private static float GetStaticFloatField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticFloatField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticFloatField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4508,7 +4504,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *         or 0 if the fieldOffset is incorrect
    */
   private static double GetStaticDoubleField(int envJREF, int classJREF, int fieldOffset) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStaticDoubleField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStaticDoubleField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4540,7 +4536,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticObjectField(int envJREF, int classJREF, int fieldOffset, int objectJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticObjectField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticObjectField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4571,7 +4567,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticBooleanField(int envJREF, int classJREF, int fieldOffset, boolean fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticBooleanField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticBooleanField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4603,7 +4599,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticByteField(int envJREF, int classJREF, int fieldOffset, byte fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticByteField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticByteField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4633,7 +4629,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticCharField(int envJREF, int classJREF, int fieldOffset, char fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticCharField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticCharField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4662,7 +4658,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticShortField(int envJREF, int classJREF, int fieldOffset, short fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticShortField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticShortField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4691,7 +4687,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticIntField(int envJREF, int classJREF, int fieldOffset, int fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticIntField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticIntField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4720,7 +4716,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticLongField(int envJREF, int classJREF, int fieldOffset, long fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticLongField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticLongField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4749,7 +4745,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticFloatField(int envJREF, int classJREF, int fieldOffset, float fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticFloatField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticFloatField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4778,7 +4774,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param value to assign
    */
   private static void SetStaticDoubleField(int envJREF, int classJREF, int fieldOffset, double fieldValue) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetStaticDoubleField  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetStaticDoubleField  \n");
 
 
     VM_JNIEnvironment env;
@@ -4808,7 +4804,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError
    */
   private static int NewString(int envJREF, int uchars, int len) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewString  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -4841,7 +4837,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the length of the String
    */
   private static int GetStringLength(int envJREF, int objJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringLength  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStringLength  \n");
 
 
     VM_JNIEnvironment env;
@@ -4868,7 +4864,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory
    */
   private static VM_Address GetStringChars(int envJREF, int objJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringChars  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
 
     //    VM.sysWrite("GetStringChars\n");
 
@@ -4918,7 +4914,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return void
    */
   private static void ReleaseStringChars(int envJREF, int objJREF, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
 
 
     VM_JNIEnvironment env;
@@ -4948,7 +4944,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewStringUTF(int envJREF, VM_Address utf8bytes) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
 
 
     VM_JNIEnvironment env;
@@ -4990,7 +4986,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return number of bytes to represent in UTF8 format
    */
   private static int GetStringUTFLength(int envJREF, int objJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringUTFLength  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFLength  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -5021,7 +5017,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory
    */
   private static VM_Address GetStringUTFChars(int envJREF, int objJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -5079,7 +5075,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return void
    */
   private static void ReleaseStringUTFChars(int envJREF, int objJREF, int bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
 
 
     VM_JNIEnvironment env;
@@ -5107,7 +5103,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return the array length, or -1 if it's not an array
    */
   private static int GetArrayLength(int envJREF, int arrayJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetArrayLength  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetArrayLength  \n");
 
 
     VM_JNIEnvironment env;
@@ -5139,7 +5135,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewObjectArray(int envJREF, int length, int classJREF, int initElementJREF ) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5173,7 +5169,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static int GetObjectArrayElement(int envJREF, int arrayJREF, int index) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
 
 
     VM_JNIEnvironment env;
@@ -5215,7 +5211,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetObjectArrayElement(int envJREF, int arrayJREF, int index,
                                             int objectJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
 
 
     VM_JNIEnvironment env;
@@ -5258,7 +5254,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewBooleanArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5284,7 +5280,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewByteArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewByteArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5309,7 +5305,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewCharArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewCharArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5334,7 +5330,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewShortArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewShortArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5359,7 +5355,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewIntArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewIntArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5384,7 +5380,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewLongArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewLongArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5409,7 +5405,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewFloatArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5434,7 +5430,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */
   private static int NewDoubleArray(int envJREF, int length) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
+    if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
 
 
     VM_JNIEnvironment env;
@@ -5463,7 +5459,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetBooleanArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5513,7 +5509,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetByteArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) {
+    if (traceJNI) {
       VM.sysWrite("JNI called: GetByteArrayElements for ");
       VM.sysWrite(arrayJREF);
       VM.sysWrite(":");
@@ -5545,7 +5541,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
         }
       }
 
-      if (verboseJNI) {
+      if (traceJNI) {
         VM.sysWrite("returing ");
         VM.sysWrite(copyBuffer);
         VM.sysWrite("\n");
@@ -5557,7 +5553,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
 
-      if (verboseJNI) {
+      if (traceJNI) {
         VM.sysWrite("returing 0\n");
       }
 
@@ -5577,7 +5573,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetCharArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5628,7 +5624,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetShortArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5679,7 +5675,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetIntArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5729,7 +5725,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetLongArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5779,7 +5775,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetFloatArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5829,7 +5825,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetDoubleArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -5881,7 +5877,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseBooleanArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                   int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseBooleanArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseBooleanArrayElements  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -5948,7 +5944,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseByteArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -5992,7 +5988,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseCharArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseCharArrayElements \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseCharArrayElements \n");
 
 
     VM_JNIEnvironment env;
@@ -6037,7 +6033,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseShortArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                 int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseShortArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseShortArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -6082,7 +6078,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseIntArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                               int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseIntArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseIntArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -6126,7 +6122,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseLongArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseLongArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseLongArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -6171,7 +6167,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseFloatArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                 int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseFloatArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseFloatArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -6216,7 +6212,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */  
   private static void ReleaseDoubleArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
                                                  int releaseMode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseDoubleArrayElements  \n");
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseDoubleArrayElements  \n");
 
 
     VM_JNIEnvironment env;
@@ -6260,7 +6256,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetBooleanArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                             int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetBooleanArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6295,7 +6291,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetByteArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                          int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetByteArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetByteArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6329,7 +6325,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetCharArrayRegion(int envJREF, int arrayJREF, int startIndex,  
                                          int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetCharArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetCharArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6364,7 +6360,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetShortArrayRegion(int envJREF, int arrayJREF, int startIndex,  
                                           int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetShortArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetShortArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6399,7 +6395,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetIntArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                         int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetIntArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetIntArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6434,7 +6430,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetLongArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                          int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetLongArrayRegion   \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetLongArrayRegion   \n");
 
 
     VM_JNIEnvironment env;
@@ -6469,7 +6465,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetFloatArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                           int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetFloatArrayRegion    \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayRegion    \n");
 
 
     VM_JNIEnvironment env;
@@ -6504,7 +6500,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void GetDoubleArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                            int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetDoubleArrayRegion   \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayRegion   \n");
 
 
     VM_JNIEnvironment env;
@@ -6539,7 +6535,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetBooleanArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                             int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetBooleanArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetBooleanArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6574,7 +6570,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetByteArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                          int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetByteArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetByteArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6609,7 +6605,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetCharArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                          int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetCharArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetCharArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6644,7 +6640,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetShortArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                           int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetShortArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetShortArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6679,7 +6675,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetIntArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                         int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetIntArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetIntArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6714,7 +6710,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetLongArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                          int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetLongArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetLongArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6749,7 +6745,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetFloatArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                           int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetFloatArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetFloatArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6784,7 +6780,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static void SetDoubleArrayRegion(int envJREF, int arrayJREF, int startIndex, 
                                            int length, VM_Address bufAddress) {
-    if (verboseJNI) VM.sysWrite("JNI called: SetDoubleArrayRegion  \n");
+    if (traceJNI) VM.sysWrite("JNI called: SetDoubleArrayRegion  \n");
 
 
     VM_JNIEnvironment env;
@@ -6809,7 +6805,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 
   private static int RegisterNatives(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
+    if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
 
     VM_Scheduler.traceback("JNI ERROR: RegisterNatives not implemented yet.");
     VM.sysExit(200);
@@ -6818,7 +6814,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
 
   private static int UnregisterNatives(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: UnregisterNatives  \n");
+    if (traceJNI) VM.sysWrite("JNI called: UnregisterNatives  \n");
 
     VM_Scheduler.traceback("JNI ERROR: UnregisterNatives not implemented yet.");
     VM.sysExit(200);
@@ -6833,7 +6829,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return 0 if the object is locked successfully, -1 if not
    */
   private static int MonitorEnter(int envJREF, int objJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: MonitorEnter  \n");
+    if (traceJNI) VM.sysWrite("JNI called: MonitorEnter  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -6854,7 +6850,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return 0 if the object is unlocked successfully, -1 if not
    */
   private static int MonitorExit(int envJREF, int objJREF) {
-    if (verboseJNI) VM.sysWrite("JNI called: MonitorExit  \n");
+    if (traceJNI) VM.sysWrite("JNI called: MonitorExit  \n");
 
     VM_JNIEnvironment env;
     try {
@@ -6890,70 +6886,70 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
 
   private static int FromReflectedMethod(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");   
+    if (traceJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");   
     VM.sysWrite("JNI ERROR: FromReflectedMethod not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return FROMREFLECTEDMETHOD ; 
   }
 
   private static int FromReflectedField(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: FromReflectedField \n");   
+    if (traceJNI) VM.sysWrite("JNI called: FromReflectedField \n");   
     VM.sysWrite("JNI ERROR: FromReflectedField not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return FROMREFLECTEDFIELD ; 
   }
 
   private static int ToReflectedMethod(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");   
+    if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");   
     VM.sysWrite("JNI ERROR: ToReflectedMethod not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return TOREFLECTEDMETHOD ; 
   }
 
   private static int ToReflectedField(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: ToReflectedField \n");   
+    if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");   
     VM.sysWrite("JNI ERROR: ToReflectedField not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return TOREFLECTEDFIELD ; 
   }
 
   private static int PushLocalFrame(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: PushLocalFrame \n");   
+    if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");   
     VM.sysWrite("JNI ERROR: PushLocalFrame not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return PUSHLOCALFRAME ; 
   }
 
   private static int PopLocalFrame(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: PopLocalFrame \n");   
+    if (traceJNI) VM.sysWrite("JNI called: PopLocalFrame \n");   
     VM.sysWrite("JNI ERROR: PopLocalFrame not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return POPLOCALFRAME ; 
   }
 
   private static int NewLocalRef(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewLocalRef \n");   
+    if (traceJNI) VM.sysWrite("JNI called: NewLocalRef \n");   
     VM.sysWrite("JNI ERROR: NewLocalRef not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return NEWLOCALREF ; 
   }
 
   private static int EnsureLocalCapacity(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");   
+    if (traceJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");   
     VM.sysWrite("JNI ERROR: EnsureLocalCapacity not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return ENSURELOCALCAPACITY ; 
   }
 
   private static int GetStringRegion(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringRegion \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetStringRegion \n");   
     VM.sysWrite("JNI ERROR: GetStringRegion not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return GETSTRINGREGION ; 
   }
 
   private static int GetStringUTFRegion(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");   
     VM.sysWrite("JNI ERROR: GetStringUTFRegion not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return GETSTRINGUTFREGION ; 
@@ -6973,7 +6969,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    */
   private static VM_Address GetPrimitiveArrayCritical(int envHandler, int arrayJREF, VM_Address isCopyAddress) {
 
-    if (verboseJNI) VM.sysWrite("JNI called: GetPrimitiveArrayCritical \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetPrimitiveArrayCritical \n");   
 
     VM_JNIEnvironment env;
     try {
@@ -7020,7 +7016,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
   private static void ReleasePrimitiveArrayCritical(int envHandler, int arrayJREF, 
                                                     int arrayCopyAddress, int mode) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleasePrimitiveArrayCritical \n");   
+    if (traceJNI) VM.sysWrite("JNI called: ReleasePrimitiveArrayCritical \n");   
 
     VM_JNIEnvironment env;
     try {
@@ -7032,35 +7028,35 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   }
 
   private static int GetStringCritical(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetStringCritical \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetStringCritical \n");   
     VM.sysWrite("JNI ERROR: GetStringCritical not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return GETSTRINGCRITICAL ; 
   }
 
   private static int ReleaseStringCritical(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");   
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");   
     VM.sysWrite("JNI ERROR: ReleaseStringCritical not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return RELEASESTRINGCRITICAL ; 
   }
 
   private static int NewWeakGlobalRef(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");   
+    if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");   
     VM.sysWrite("JNI ERROR: NewWeakGlobalRef not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return NEWWEAKGLOBALREF ; 
   }
 
   private static int DeleteWeakGlobalRef(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");   
+    if (traceJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");   
     VM.sysWrite("JNI ERROR: DeleteWeakGlobalRef not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return DELETEWEAKGLOBALREF ; 
   }
 
   private static int ExceptionCheck(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: ExceptionCheck \n");   
+    if (traceJNI) VM.sysWrite("JNI called: ExceptionCheck \n");   
     VM.sysWrite("JNI ERROR: ExceptionCheck not implemented yet, exiting ...\n");
     VM.sysExit(200);
     return EXCEPTIONCHECK ; 

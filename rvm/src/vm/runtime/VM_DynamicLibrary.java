@@ -11,7 +11,6 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  */
 public class VM_DynamicLibrary {
-
   private String libName;
   private int libHandler;
 
@@ -28,25 +27,22 @@ public class VM_DynamicLibrary {
     libraryName.getBytes(0, libraryName.length(), asciiName, 0);
 
     // make sure we have enough stack to load the library.  
-    // This operation has been
-    // known to require more than 20K of stack.
+    // This operation has been known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
     int stackNeededInBytes =  VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN -
       (VM_Magic.getFramePointer().diff(myThread.stackLimit)).toInt();
     if (stackNeededInBytes > 0 ) {
-      if (myThread.hasNativeStackFrame())
+      if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
-      else
-        VM_Thread.resizeCurrentStack(myThread.stack.length + 
-                                     (stackNeededInBytes >> 2),
+      } else {
+        VM_Thread.resizeCurrentStack(myThread.stack.length + (stackNeededInBytes >> 2),
                                      null); 
+      }
     }
 
-    // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     libHandler = VM.sysCall1(bootRecord.sysDlopenIP, 
                              VM_Magic.objectAsAddress(asciiName).toInt());
-    // UNPIN(asciiName);
 
     if (libHandler==0) {
       VM.sysWrite("error loading library: " + libraryName);
@@ -56,9 +52,11 @@ public class VM_DynamicLibrary {
 
     libName = new String(libraryName);
 
+    if (VM.verboseJNI) {
+      VM.sysWriteln("[Loaded native library: "+libName+"]");
+    }
+
     // initialize the JNI environment if not already done
-    // if building with RVM_WITH_JNI flag, an  error would have been
-    // thrown in the sysDlopen call before we get here
     VM_JNIEnvironment.boot();
   }
 
@@ -77,13 +75,9 @@ public class VM_DynamicLibrary {
     //
     byte[] asciiName = new byte[symbolName.length() + 1]; // +1 for null terminator
     symbolName.getBytes(0, symbolName.length(), asciiName, 0);
-
-    // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM_Address address = VM_Address.fromInt(VM.sysCall2(bootRecord.sysDlsymIP, libHandler, 
 							VM_Magic.objectAsAddress(asciiName).toInt()));
-    // UNPIN(asciiName);
-
     return address;
   }
 

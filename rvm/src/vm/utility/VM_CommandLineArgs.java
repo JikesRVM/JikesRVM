@@ -55,43 +55,44 @@ public class VM_CommandLineArgs {
   public static final int CLASSPATH_ARG	       =  2;
   public static final int ENVIRONMENT_ARG      =  3;
   public static final int VERBOSE_GC_ARG       =  4;
-  public static final int VERBOSE_CLS_ARG      =  5;
+  public static final int VERBOSE_JNI_ARG      =  5;
+  public static final int VERBOSE_CLS_ARG      =  6;
 
   // -----------------------------------------------//
   // The following arguments are RVM-specific. //
   // -----------------------------------------------//
-  public static final int VM_CLASSES_ARG       =  6;
-  public static final int CPUAFFINITY_ARG      =  7;
-  public static final int PROCESSORS_ARG       =  8;
-  public static final int WRITEBUFFER_ARG      =  9;
-  public static final int IRC_HELP_ARG         = 10;
-  public static final int IRC_ARG              = 11;
-  public static final int AOS_IRC_HELP_ARG     = 12;
-  public static final int AOS_IRC_ARG          = 13;
-  public static final int AOS_OPT_HELP_ARG     = 14;
-  public static final int AOS_OPT_ARG          = 15;
-  public static final int AOS_SHARE_ARG        = 16;
-  public static final int AOS_HELP_ARG         = 17;
-  public static final int AOS_ARG              = 18;
-  public static final int MEASURE_COMP_ARG     = 19;
-  public static final int MEASURE_CLOD_ARG     = 20;
-  public static final int AOS_BASE_ARG         = 21;
-  public static final int AOS_BASE_HELP_ARG    = 22;
-  public static final int BASE_HELP_ARG        = 23;
-  public static final int BASE_ARG             = 24;
-  public static final int OPT_ARG              = 25;
-  public static final int OPT_HELP_ARG         = 26;
-  public static final int PROF_ARG             = 27;
-  public static final int VERIFY_ARG           = 28;
-  public static final int SCHEDULER_ARG        = 29;
-  public static final int GC_HELP_ARG          = 30;
-  public static final int GC_ARG               = 31;
-  public static final int INITIAL_HEAP_ARG     = 32;
-  public static final int MAX_HEAP_ARG         = 33;
-  public static final int LARGE_HEAP_ARG       = 34;
-  public static final int VERBOSE_STACK_ARG    = 35;
-  public static final int HPM_ARG              = 36;
-  public static final int HPM_HELP_ARG         = 37;
+  public static final int VM_CLASSES_ARG       =  7;
+  public static final int CPUAFFINITY_ARG      =  8;
+  public static final int PROCESSORS_ARG       =  9;
+  public static final int WRITEBUFFER_ARG      = 10;
+  public static final int IRC_HELP_ARG         = 11;
+  public static final int IRC_ARG              = 12;
+  public static final int AOS_IRC_HELP_ARG     = 13;
+  public static final int AOS_IRC_ARG          = 14;
+  public static final int AOS_OPT_HELP_ARG     = 15;
+  public static final int AOS_OPT_ARG          = 16;
+  public static final int AOS_SHARE_ARG        = 17;
+  public static final int AOS_HELP_ARG         = 18;
+  public static final int AOS_ARG              = 19;
+  public static final int MEASURE_COMP_ARG     = 20;
+  public static final int MEASURE_CLOD_ARG     = 21;
+  public static final int AOS_BASE_ARG         = 22;
+  public static final int AOS_BASE_HELP_ARG    = 23;
+  public static final int BASE_HELP_ARG        = 24;
+  public static final int BASE_ARG             = 25;
+  public static final int OPT_ARG              = 26;
+  public static final int OPT_HELP_ARG         = 27;
+  public static final int PROF_ARG             = 28;
+  public static final int VERIFY_ARG           = 29;
+  public static final int SCHEDULER_ARG        = 30;
+  public static final int GC_HELP_ARG          = 31;
+  public static final int GC_ARG               = 32;
+  public static final int INITIAL_HEAP_ARG     = 33;
+  public static final int MAX_HEAP_ARG         = 34;
+  public static final int LARGE_HEAP_ARG       = 35;
+  public static final int VERBOSE_STACK_ARG    = 36;
+  public static final int HPM_ARG              = 37;
+  public static final int HPM_HELP_ARG         = 38;
 
   /**
    * A catch-all prefix to find application name.
@@ -120,6 +121,7 @@ public class VM_CommandLineArgs {
     new Prefix("-D",                    ENVIRONMENT_ARG),
     new Prefix("-verbose:gc$",          VERBOSE_GC_ARG),
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
+    new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
     new Prefix("-verbose$",             VERBOSE_CLS_ARG),
     new Prefix("-X:vmClasses=",         VM_CLASSES_ARG),
     new Prefix("-X:cpuAffinity=",       CPUAFFINITY_ARG),
@@ -355,6 +357,10 @@ public class VM_CommandLineArgs {
       case VERBOSE_CLS_ARG:
 	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM.verboseClassLoading = true;
+	break;
+      case VERBOSE_JNI_ARG:
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
+	VM.verboseJNI = true;
 	break;
 
 	// -----------------------------------------------//

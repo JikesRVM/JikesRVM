@@ -208,6 +208,11 @@ public class VM_RuntimeCompilerInfrastructure
     }
 
     VM_CompiledMethod cm = VM_JNICompiler.compile(method);
+    if (VM.verboseJNI) {
+      VM.sysWriteln("[Dynamic-linking native method " + 
+		    method.getDeclaringClass().getName() + "." + method.getName() + 
+		    " ... JNI]");
+    }
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();

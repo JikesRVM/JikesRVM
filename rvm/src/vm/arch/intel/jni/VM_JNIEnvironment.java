@@ -762,7 +762,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     targetMethod = VM_MethodDictionary.getValue(methodID);
     VM_Type returnType = targetMethod.getReturnType();
 
-    if (VM_JNIFunctions.verboseJNI) 
+    if (VM_JNIFunctions.traceJNI) 
 	VM.sysWrite("JNI CallXXXMethod:  (mid " + 
 		    methodID + 
 		    ") " +

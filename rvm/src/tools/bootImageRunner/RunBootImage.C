@@ -389,10 +389,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
      * JDK 1.3 standard command line arguments that are not supported.
      * TO DO: provide support
      */
-    if (!strcmp(token, "-verbose:jni")) {
-      fprintf(SysTraceFile, "%s: -verbose:jni is not supported\n", me);
-      continue;
-    }
     if (!strcmp(token, "-jar")) {
       fprintf(SysTraceFile, "%s: -jar is not supported\n", me);
       continue;
@@ -411,7 +407,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
         !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
 	!strncmp(token, nonStandardArgs[PROF_INDEX], 7)  ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
-	!strcmp(token, "-verbose:gc") ||
+	!strcmp(token, "-verbose:gc") || !strcmp(token, "-verbose:jni") || 
 	!strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
 	!strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
 	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)  ||

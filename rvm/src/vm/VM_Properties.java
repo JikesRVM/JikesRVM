@@ -66,6 +66,13 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean verboseClassLoading = false;
 
+  /**
+   * The following is set on by -verbose:jni command line arg.
+   * When true, it generates messages to the sysWrite stream summarizing
+   * jni activities
+   */
+  public static boolean verboseJNI = false;
+
   // Symbolic info to support debugger.
   //
   public static boolean LoadLocalVariableTables = false;
