@@ -56,7 +56,7 @@ interface VM_RegisterConstants {
   static final byte[]  VOLATILE_GPRS = { EAX, EDX, ECX };
   static final int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
     
-  static final byte[]  NONVOLATILE_GPRS = { EBX, EDI/*, EBP */};
+  static final byte[]  NONVOLATILE_GPRS = { EDI, EBX, /*, EBP */};
   static final int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
     
   static final byte[]  SCRATCH_GPRS = { ECX };
