@@ -1352,13 +1352,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   final void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s,
 			 OPT_Operand res, 
 			 OPT_ConditionOperand cond) {
-    if (res instanceof OPT_RegisterOperand) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
-      burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
-    } else {
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, res, COND(cond))));
-    }
+    OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
+    burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
+    burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
   }
 
 
