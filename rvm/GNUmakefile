@@ -36,10 +36,11 @@ ifdef RVM_BUILD
 else
    GENSRC:=
 endif
+XFLAGS:=--no-run-if-empty
 
 find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
 find_match_junk_names:=-name Old -prune -o -name '*.[ao]' -prune -o -name \*.so -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
-append_java_templates=find src -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs -0 etags $(EFLAGS) --language=java --append --output=$@ 
+append_java_templates=find src -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs ${XFLAGS} -0 etags $(EFLAGS) --language=java --append --output=$@ 
 
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
 # in a clean checkout, but might possibly do so if there were old 
@@ -48,7 +49,7 @@ FIND:=find  $(GENSRC) src -follow  ${find_match_junk_names} -o -name examples -p
 FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
 # etags in emacs 21.3.CVS-2003-09-23 does not support "--defines, nor  --globals".
-EFLAGS:=--members --declarations 
+EFLAGS:=--members --declarations
 
 # A forced target.
 .PHONY: FORCE
@@ -56,28 +57,28 @@ FORCE:
 
 TAGS: FORCE
 	$(RM) $@
-	$(FIND) -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	$(FIND) -print0 | xargs ${XFLAGS} -0 etags $(EFLAGS) --append --output=$@
 ifdef RVM_BUILD
-	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs ${XFLAGS} -0 etags $(EFLAGS) --append --output=$@
 endif
 	${append_java_templates}
 
 TAGS.ALL: FORCE
 	$(RM) $@
-	$(FINDALL) ! -name \*.template -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	$(FINDALL) ! -name \*.template -print0 | xargs ${XFLAGS} -0 etags $(EFLAGS) --append --output=$@
 ifdef RVM_BUILD
-	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs ${XFLAGS} -0 etags $(EFLAGS) --append --output=$@
 endif
 	${append_java_templates}
 
 TAGS.Makefiles: FORCE
 	$(RM) $@
-	find . -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	find . -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs ${XFLAGS} -0 etags $(EFLAGS) --append --output=$@
 
 .PHONY: conditionals
 # Note: explicit tab characters below.
 conditionals:
-	find . -follow -name \*.java -print0 | xargs -0 fgrep --no-filename '//-#' | sed -e 's/.*#[a-z]\+[ 	]*//' | sed  -e '/\/\/.*/d' | tr '[!&|]' '\n' |sed  -e 's/[ 	]*$$//' -e 's/^[ 	]//'  -e '/^$$/d'  | sort | uniq
+	find . -follow -name \*.java -print0 | xargs ${XFLAGS} -0 fgrep --no-filename '//-#' | sed -e 's/.*#[a-z]\+[ 	]*//' | sed  -e '/\/\/.*/d' | tr '[!&|]' '\n' |sed  -e 's/[ 	]*$$//' -e 's/^[ 	]//'  -e '/^$$/d'  | sort | uniq
 # | cat -v -e -t
 
 
