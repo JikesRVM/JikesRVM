@@ -511,7 +511,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction/operand
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/util
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/codeReorder
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
