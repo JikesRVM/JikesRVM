@@ -1435,48 +1435,4 @@ public final class VM_Assembler implements VM_BaselineConstants,
     emitL   (SP, spSaveAreaOffset, FP); // restore SP
   }
 
-  //-#if RVM_WITH_SPECIALIZATION
-
-  // Emit baseline call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  //           call site number for specialization
-  //
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  void emitSpecializationCall (int spSaveAreaOffset, VM_Method m, int bIP) {
-    int callSiteNumber = 0;
-    if (VM_SpecializationSentry.isValid()) {
-      callSiteNumber = VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
-    }
-    emitST  (SP, spSaveAreaOffset, FP); // save SP
-    emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
-    emitBCTRL();
-    emitL   (SP, spSaveAreaOffset, FP); // restore SP
-  }
-
-  // Emit baseline call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  //           call site number for specialization
-  //
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  void emitSpecializationCallWithHiddenParameter(int spSaveAreaOffset, 
-						 int hiddenParameter,
-						 VM_Method m,
-						 int bIP) {
-    int callSiteNumber = 0;
-    if (VM_SpecializationSentry.isValid()) {
-      callSiteNumber = VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
-    }
-    emitST  (SP, spSaveAreaOffset, FP); // save SP
-    emitLVAL(SP, hiddenParameter);    // pass "hidden" parameter in reg. SP 
-    emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
-    emitBCTRL();
-    emitL   (SP, spSaveAreaOffset, FP); // restore SP
-  }
-  //-#endif
 }

@@ -136,17 +136,6 @@ public final class OPT_IR implements OPT_Operators {
    */
   public OPT_InlineOracle inlinePlan;
 
-  //-#if RVM_WITH_SPECIALIZATION
-  /**
-   * If the current compilation is a specialization, then context
-   * points to the context description that is driving the
-   * specialization.
-   * TODO: It's plausible that this field also really belongs on
-   * the generation context instead of the IR.
-   */
-  public OPT_SpecializationHandler special;
-  //-#endif
-    
   /**
    * Information specifying what instrumentation should be performed
    * during compilation of this method.  
@@ -231,9 +220,6 @@ public final class OPT_IR implements OPT_Operators {
     method = m;
     options = cp.options;
     inlinePlan = cp.inlinePlan;
-    //-#if RVM_WITH_SPECIALIZATION
-    special = cp.special;
-    //-#endif
     instrumentationPlan = cp.instrumentationPlan;
   }
 

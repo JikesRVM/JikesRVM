@@ -111,27 +111,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	    }
 	  }
 	  instructionCount++;
-
-	  //-#if RVM_WITH_SPECIALIZATION
-	  if (MIR_Call.hasMethod(p)) {
-	    GNO_InstructionLocation loc = new GNO_InstructionLocation(p);
-	    if (loc.isCallInstruction()) {
-	      int callSiteNumber = 0;
-
-	      if (VM_SpecializationSentry.isValid()) {
-		OPT_SpecializationGraphNode c = ir.context;
-		callSiteNumber =
-		  VM_SpecializationCallSites.getCallSiteNumber(c, loc);
-	      }
-		
-	      OPT_Instruction ss = MIR_Unary.create(PPC_LDI, 
-						    R(phys.getGPR(0)), 
-						    I(callSiteNumber<<2));
-	      p.insertBack(ss);
-	      instructionCount++;
-	    }
-	  }
-	  //-#endif
 	}
 	break;
       case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:

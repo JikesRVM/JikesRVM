@@ -45,13 +45,6 @@ public final class OPT_CompilationPlan {
    */
   public OPT_Options options;
 
-  //-#if RVM_WITH_SPECIALIZATION
-  /**
-   * pointer to context when compilation caused by specialization
-   */
-  public OPT_SpecializationHandler special;
-  //-#endif
-
   /** 
    * Whether this compilation is for analysis only?
    */
@@ -76,27 +69,6 @@ public final class OPT_CompilationPlan {
     options = opts;
   }
 
-  //-#if RVM_WITH_SPECIALIZATION
-  /**
-   * Construct a compilation plan
-   * @param m    The VM_Method representing the source method to be compiled
-   * @param op   The optimization plan to be executed on m
-   * @param mp   The instrumentation plan to be executed on m
-   * @param opts The OPT_Options to be used for compiling m
-   * @param c    The specialization context in which to compile m
-   */
-  public OPT_CompilationPlan (VM_Method m, OPT_OptimizationPlanElement[] op, 
-      OPT_InstrumentationPlan mp, OPT_Options opts, 
-      OPT_SpecializationHandler special) {
-    method = m;
-    optimizationPlan = op;
-    instrumentationPlan = mp;
-    inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
-    options = opts;
-    this.special = special;
-  }
-  //-#endif
-    
   /**
    * Construct a compilation plan
    * @param m    The VM_Method representing the source method to be compiled
@@ -114,28 +86,6 @@ public final class OPT_CompilationPlan {
     inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
     options = opts;
   }
-
-  //-#if RVM_WITH_SPECIALIZATION
-  /**
-   * Construct a compilation plan
-   * @param m    The VM_Method representing the source method to be compiled
-   * @param op   A single optimization pass to execute on m
-   * @param mp   The instrumentation plan to be executed on m
-   * @param opts The OPT_Options to be used for compiling m
-   * @param c    The specialization context in which to compile m
-   */
-  public OPT_CompilationPlan (VM_Method m, OPT_OptimizationPlanElement op, 
-			      OPT_InstrumentationPlan mp, OPT_Options opts,
-			      OPT_SpecializationHandler special)
-  {
-    method = m;
-    optimizationPlan = new OPT_OptimizationPlanElement[] { op };
-    instrumentationPlan = mp;
-    inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
-    options = opts;
-    this.special = special;
-  }
-  //-#endif
 
   /**
    * Set the inline oracle

@@ -1969,11 +1969,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLX  (T2, T2, T1);  
     asm.emitMTCTR(T2);
     genMoveParametersToRegisters(true, methodRef);
-    //-#if RVM_WITH_SPECIALIZATION
-    asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-    //-#else
     asm.emitCall(spSaveAreaOffset);
-    //-#endif
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -1990,11 +1986,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T2, methodOffset,   T1);
     asm.emitMTCTR(T2);
     genMoveParametersToRegisters(true, methodRef);
-    //-#if RVM_WITH_SPECIALIZATION
-    asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-    //-#else
     asm.emitCall(spSaveAreaOffset);
-    //-#endif
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -2014,11 +2006,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     }
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(true, methodRef);
-    //-#if RVM_WITH_SPECIALIZATION
-    asm.emitSpecializationCall(spSaveAreaOffset, methodRef, biStart);
-    //-#else
     asm.emitCall(spSaveAreaOffset);
-    //-#endif
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -2032,11 +2020,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLX    (T0, T2, JTOC); 
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(true, methodRef);
-    //-#if RVM_WITH_SPECIALIZATION
-    asm.emitSpecializationCall(spSaveAreaOffset, methodRef, biStart);
-    //-#else
     asm.emitCall(spSaveAreaOffset);
-    //-#endif
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -2050,11 +2034,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLX  (T0, T2, JTOC); // method offset left in T2 by emitDynamicLinkingSequence
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(false, methodRef);
-    //-#if RVM_WITH_SPECIALIZATION
-    asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-    //-#else
     asm.emitCall(spSaveAreaOffset);
-    //-#endif
     genPopParametersAndPushReturnValue(false, methodRef);
   }
 
@@ -2067,11 +2047,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLtoc(T0, methodOffset);
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(false, methodRef);
-    //-#if RVM_WITH_SPECIALIZATION
-    asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-    //-#else
     asm.emitCall(spSaveAreaOffset);
-    //-#endif
     genPopParametersAndPushReturnValue(false, methodRef);
   }
 
@@ -2125,13 +2101,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       }
       asm.emitL   (S0, offset, S0);                  // the method address
       asm.emitMTCTR(S0);
-      //-#if RVM_WITH_SPECIALIZATION
-      asm.emitSpecializationCallWithHiddenParameter(spSaveAreaOffset, 
-						    signatureId, method, 
-						    biStart);
-      //-#else
       asm.emitCallWithHiddenParameter(spSaveAreaOffset, signatureId);
-      //-#endif
     } else if (VM.BuildForITableInterfaceInvocation && 
 	       VM.DirectlyIndexedITables && 
 	       methodRef.getDeclaringClass().isResolved()) {
@@ -2144,11 +2114,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
       asm.emitL   (S0, idx << 2, S0); // the method to call
       asm.emitMTCTR(S0);
-      //-#if RVM_WITH_SPECIALIZATION
-      asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-      //-#else
       asm.emitCall(spSaveAreaOffset);
-      //-#endif
     } else {
       VM_Class I = methodRef.getDeclaringClass();
       int itableIndex = -1;
@@ -2169,11 +2135,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitCall(spSaveAreaOffset);       // T0 := resolved method address
 	asm.emitMTCTR(T0);
 	genMoveParametersToRegisters(true, methodRef);
-	//-#if RVM_WITH_SPECIALIZATION
-	asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-	//-#else
 	asm.emitCall(spSaveAreaOffset);
-	//-#endif
       } else {
 	// itable index is known at compile-time.
 	// call "findITable" to resolve object + interface id into 
@@ -2187,11 +2149,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitL   (T0, itableIndex << 2, T0); // T0 := the method to call
 	asm.emitMTCTR(T0);
 	genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
-	//-#if RVM_WITH_SPECIALIZATION
-	asm.emitSpecializationCall(spSaveAreaOffset, method, biStart);
-	//-#else
 	asm.emitCall(spSaveAreaOffset);
-	//-#endif
       }
     }
     genPopParametersAndPushReturnValue(true, methodRef);

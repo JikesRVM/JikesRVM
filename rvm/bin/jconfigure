@@ -328,7 +328,6 @@ integer RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 integer RVM_WITHOUT_LAZY_COMPILATION=0 # force method compilation on class loading
 integer RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 integer RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
-integer RVM_WITH_SPECIALIZATION=0 # support for method cloning
 integer RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 
 #
@@ -637,13 +636,6 @@ function emitSourceList
    elif (( $RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM )); then
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
    fi
-
-   if (( $RVM_WITH_SPECIALIZATION )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/gnosys
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/specialization
-      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/specialization
-   fi
-
 
    # Memory manager components.
    #

@@ -148,32 +148,6 @@ public class VM_RuntimeOptCompilerInfrastructure
     }
   }
 
-  //-#if RVM_WITH_SPECIALIZATION
-  /**
-   * This method tries to compile the passed method with the OPT_Compiler
-   * using the specialization context passed.  If
-   * this fails we will use the quicker compiler (baseline for now)
-   * The following is carefully crafted to avoid (infinte) recursive opt
-   * compilation for all combinations of bootimages & lazy/eager compilation.
-   * Be absolutely sure you know what you're doing before changing it !!!
-   * @param method the method to compile
-   * @param context the specialization context to use for the compilation
-   */
-  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_SpecializationGraphNode context) {
-    if (compilationInProgress) {
-      return fallback(method);
-    } else {
-      try {
-	compilationInProgress = true;
-	OPT_CompilationPlan plan = new OPT_CompilationPlan(method, optimizationPlan, null, options, context);
-	return optCompileWithFallBackInternal(method, plan);
-      } finally {
-	compilationInProgress = false;
-      }
-    }
-  }
-  //-#endif
-
   /**
    * This real method that performs the opt compilation.  
    * @param method the method to compile
