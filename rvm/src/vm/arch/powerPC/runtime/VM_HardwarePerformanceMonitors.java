@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+
 /**
  * This class provides access to hardware performance monitors
  * on PowerPC and Power architectures.
@@ -14,6 +15,8 @@ package com.ibm.JikesRVM;
  */
 public class VM_HardwarePerformanceMonitors {
 
+  /*  debugging   */
+  public static final int debug = 0;
   /**
    * Is the HPM system enabled?
    */
@@ -32,7 +35,8 @@ public class VM_HardwarePerformanceMonitors {
    */
   public static void printHelp() {
     if (VM.BuildForHPM) {
-      VM.sysWriteln("vm: -X:hpm:eventN=<int>, where 1<=N<=8");
+      VM.sysWriteln("vm: -X:hpm:eventN=<int>, where 1<=N<=8\n");
+      VM.sysWriteln("    -X:hpm:mode=<int>");
     } else {
       VM.sysWriteln("vm: Hardware performance monitors not supported");
     }
@@ -49,9 +53,10 @@ public class VM_HardwarePerformanceMonitors {
 		   "\" must be specified as a name-value pair in the form of option=value\n");
       }
       String name = arg.substring(0,split-1);
-      String num = arg.substring(split-1,split);
-      String value = arg.substring(split+1);
+      String name2 = arg.substring(0,split);
       if (name.equals("event")) {
+	String num = arg.substring(split-1,split);
+	String value = arg.substring(split+1);
 	try {
 	  int eventNum = Integer.parseInt(num);
 	  int eventVal = Integer.parseInt(value);
@@ -77,6 +82,9 @@ public class VM_HardwarePerformanceMonitors {
 	      public void notifyAppComplete(String app) { reportResetAndStart(); }
 	    });
 	}
+      } else if (name2.equals("mode")) {
+	String value = arg.substring(split+1);
+	mode = Integer.parseInt(value);
       } else {
 	VM.sysFail("Unrecognized argument \"-X:hpm:"+arg+"\"");
       }
@@ -89,15 +97,23 @@ public class VM_HardwarePerformanceMonitors {
    * Initialize the hardware performance monitors via VM_Controller options.
    */
   public static void boot() {
+    if(debug>=1) {
+	VM.sysWrite("VM_HPM.boot() enabled ");VM.sysWrite(enabled==true?"true":"false");
+	VM.sysWrite(", VM.BuildForHPM ");VM.sysWrite(VM.BuildForHPM==true?"true":"false");
+	VM.sysWrite("\n");
+    }
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       // TODO: get rid of this preprcessor glop and the duplicatation of code in sys.C 
       // by switching to a JNI interface instead of a syscall interface.
-      VM.sysWrite("VM_HardwarePerformanceMonitor.init(): Events 1: "+
-		  events[1]+", 2: "+events[2]+", 3: "+
-		  events[3]+", 4: "+events[4]+", 5: "+
-		  events[5]+", 6: "+events[6]+", 7: "+
-		  events[7]+", 8: "+events[8]+", mode: "+mode+"\n");
+      if(debug>=1) {
+        VM.sysWrite("VM_HardwarePerformanceMonitor.init(): Events 1: "); VM.sysWrite(events[1]);
+        VM.sysWrite(", 2: ");VM.sysWrite(events[2]);VM.sysWrite(", 3: ");VM.sysWrite(events[3]);
+        VM.sysWrite(", 4: ");VM.sysWrite(events[4]);VM.sysWrite(", 5: ");VM.sysWrite(events[5]);
+        VM.sysWrite(", 6: ");VM.sysWrite(events[6]);VM.sysWrite(", 7: ");VM.sysWrite(events[7]);
+        VM.sysWrite(", 8: ");VM.sysWrite(events[8]);VM.sysWrite(", mode: ");VM.sysWrite(mode);
+        VM.sysWrite("\n");
+      }
       VM.sysCall1(VM_BootRecord.the_boot_record.sysHPMinitIP,
 		  FILTER_UNVERIFIED|FILTER_VERIFIED|FILTER_CAVEAT);
       VM.sysCall4(VM_BootRecord.the_boot_record.sysHPMsetEventIP, 
@@ -105,7 +121,9 @@ public class VM_HardwarePerformanceMonitors {
       VM.sysCall4(VM_BootRecord.the_boot_record.sysHPMsetEventXIP, 
 		  events[5],events[6],events[7],events[8]);
       VM.sysCall1(VM_BootRecord.the_boot_record.sysHPMsetModeIP,mode);
+      if(debug>=1) VM.sysWrite("VM_HPM.init() call set settings\n");
       VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMsetSettingsIP);
+      if(debug>=1) VM.sysWrite("VM_HPM.init() call set counting\n");
       VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
       //-#endif
     }
@@ -119,15 +137,8 @@ public class VM_HardwarePerformanceMonitors {
       //-#if RVM_WITH_HPM
       // TODO: get rid of this preprcessor glop and the duplicatation of code in sys.C 
       // by switching to a JNI interface instead of a syscall interface.
-      VM.sysWrite("VM_HardwarePerformanceMonitors.report()\n");
-      if (VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstopCountingIP) != 0) {
-	VM.sysWrite("VM_HardwarePerformanceMonitors.report(): sysHPMstop failed!\n");
-	VM.sysExit(-1);
-      }
-      if (VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMprintIP) != 0) {
-	VM.sysWrite("VM_HardwarePerformanceMonitors.report(): sysHPMprint failed!\n");
-	VM.sysExit(-1);
-      }
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstopCountingIP);
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMprintIP);
       //-#endif
     }
   }
@@ -179,4 +190,26 @@ public class VM_HardwarePerformanceMonitors {
       //-#endif
     }
   }
+
+  /**
+   * Assumes that events and mode are set.
+   * May only call once without an intervening call to deleteSettings.
+   */
+  static void setSettings()     
+  {
+    VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMsetSettingsIP);
+  }
+  /**
+   * Assumes that setSettings was called.
+   */
+  static void deleteSettings()     
+  {
+    VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMdeleteSettingsIP);
+  }
+  static void startCounting()     
+  {
+    VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
+  }
+
 }
+
