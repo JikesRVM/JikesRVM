@@ -27,30 +27,35 @@ class VM_CompilerDNA implements VM_Constants {
 
   /**
    *  Average bytecodes compiled per millisec
-   *  These numbers were from a shadow on August 4, 2001
+   */
+  //-#if RVM_FOR_AIX
+  /*
+   *  These numbers were from a shadow on August 4, 2001 on AIX/PPC
    */
   private static double[] compilationRates = {255.35, 6.75, 3.16, 1.14};
+  //-#else
+  /*
+   *  These numbers were from a shadow on October 20, 2001 on Linux/IA32
+   */
+  private static double[] compilationRates = {347.97, 9.36, 5.21, 2.14};
+  //-#endif
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
-   *  These numbers were from a shadow on June 7, 2001
-   *
-   *    They differ from the Apr 2001 and June 3, 2001 in that we now measure
-   *    with images where boot image is compiled with the appropriate compiler
-   *
-   *  Here's a summary of how we previously collected speedup numbers
-   *    2000: 
-   *      4 images where boot image is compiled with the appropriate compiler
-   *
-   *    Apr 2001 and June 3, 2001 
-   *      1 image compiled by O2 
-   * 
-   *    June 7, 2001 
-   *      4 images where boot image is compiled with the appropriate compiler
+   */
+  //-#if RVM_FOR_AIX
+  /*
+   *  These numbers were from a shadow on August 4, 2001 on AIX/PPC
    */
   private static double[] speedupRates = {1.00, 4.21, 5.84, 6.01};
+  //-#else
+  /*
+   *  These numbers were from a shadow on October 20, 2001 on Linux/IA32
+   */
+  private static double[] speedupRates = {1.00, 1.98, 3.13, 3.00};
+  //-#endif
 
-  // Here are the numbers in use from June 8, 2001 - Aug 4, 2001
+  // Here are the (AIX) numbers in use from June 8, 2001 - Aug 4, 2001
   //  private static double[] compilationRates = {228.63, 6.52, 3.15, 1.33};
   //  private static double[] speedupRates = {1.00, 4.27, 5.84, 6.18};
 
