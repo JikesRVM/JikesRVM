@@ -35,7 +35,7 @@ final class VMFileDescriptor {
     * @param path Name of the file to open
     * @param mode Mode to open
     *
-    * @returns The resulting file descriptor for the opened file, or -1
+    * @return The resulting file descriptor for the opened file, or -1
     * on failure (exception also signaled).
     *
     * @exception IOException If an error occurs.
@@ -66,7 +66,7 @@ final class VMFileDescriptor {
     * 
     * @param fd The native file descriptor to close
     *
-    * @returns The return code of the native close command.
+    * @return The return code of the native close command.
     *
     * @exception IOException If an error occurs 
     */    

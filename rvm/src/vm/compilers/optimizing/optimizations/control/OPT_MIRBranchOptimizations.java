@@ -140,7 +140,7 @@ public final class OPT_MIRBranchOptimizations
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @returns true iff made a transformation
+   * @return true iff made a transformation
    */
   private boolean processCondBranch(OPT_IR ir, 
 				    OPT_Instruction cb, 
@@ -223,7 +223,7 @@ public final class OPT_MIRBranchOptimizations
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @returns true iff made a transformation
+   * @return true iff made a transformation
    */
   private boolean processTwoTargetConditionalBranch(OPT_IR ir, 
 						    OPT_Instruction cb, 
@@ -315,7 +315,7 @@ public final class OPT_MIRBranchOptimizations
    * @param cb the conditional branch instruction
    * @param target the target instruction (real instruction) of the conditional
    *		   branch
-   * @returns boolean result
+   * @return boolean result
    */
   private boolean isFlipCandidate(OPT_Instruction cb, 
 				  OPT_Instruction target) {

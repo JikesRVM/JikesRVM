@@ -40,7 +40,7 @@ public class OPT_HeapVariable {
 
   /** 
    * Return the type representing this heap object.
-   * @returns either a VM_Type or VM_Field object
+   * @return either a VM_Type or VM_Field object
    */
   public Object getHeapType () {
     return  type;

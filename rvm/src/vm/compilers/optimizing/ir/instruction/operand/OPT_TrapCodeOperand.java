@@ -214,7 +214,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    *  Return the numeric value representing the trap code; this is
    * used by the assembler (on Intel) when generating code.
    *
-   * @returns Numeric value representing this trap code
+   * @return Numeric value representing this trap code
    */
   public int getTrapCode() {
     return trapCode;

@@ -69,7 +69,7 @@ public class TraceCounterRecord extends TraceRecord
    * print trace record on one line.
    * Interface method
    *
-   * @returns true if at least one counter is non zero
+   * @return true if at least one counter is non zero
    */
   public boolean print() 
   {
@@ -122,7 +122,7 @@ public class TraceCounterRecord extends TraceRecord
    * Each counter is identified by its name.
    *
    * @param trace_header
-   * @returns true if at least one counter is non zero
+   * @return true if at least one counter is non zero
    */
   private boolean printLong(TraceHeader trace_header) {
     // System.out.println("TraceRecord.print() # of counters "+info.numberOfCounters);

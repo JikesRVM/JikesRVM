@@ -472,7 +472,7 @@ implements OPT_Operators, OPT_Constants {
    * 	registers marked  already having a single static
    * 	definition, physical registers, and guard registeres.
    *
-   * @returns an array of BitVectors, where element <em>i</em> represents the
+   * @return an array of BitVectors, where element <em>i</em> represents the
    *	basic blocks that contain defs for symbolic register <em>i</em>
    */
   private OPT_BitVector[] getDefSets() {
@@ -586,7 +586,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param r the symbolic register
    * @param bb the basic block holding the new phi function
-   * @returns the instruction r = PHI null,null,..,null
+   * @return the instruction r = PHI null,null,..,null
    */
   private OPT_Instruction makePhiInstruction(OPT_Register r, OPT_BasicBlock bb) {
     int n = bb.getNumberOfIn();
@@ -608,7 +608,7 @@ implements OPT_Operators, OPT_Constants {
    * Set up a mapping from symbolic register number to the register.
    * <p> TODO: put this functionality elsewhere.
    *
-   * @returns a mapping
+   * @return a mapping
    */
   private OPT_Register[] getSymbolicRegisters() {
     OPT_Register[] map = new OPT_Register[ir.getNumberOfSymbolicRegisters()];
