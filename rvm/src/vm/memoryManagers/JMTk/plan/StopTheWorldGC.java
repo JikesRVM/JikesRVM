@@ -156,7 +156,7 @@ public abstract class StopTheWorldGC extends BasePlan
    *      3. threadLocalRelease()
    *      4. globalRelease()
    */
-  public void collect() {
+  public void collect () {
 //     if (VM_Interface.VerifyAssertions) 
 //       VM_Interface._assert(collectionInitiated);
 
@@ -171,7 +171,7 @@ public abstract class StopTheWorldGC extends BasePlan
 
     if (designated) Statistics.scanTime.start();
     processAllWork(); 
-    if (designated) Statistics.scanTime.stop();
+    if (designated) Statistics.scanTime.pause();
 
     if (!Options.noReferenceTypes) {
       if (designated) Statistics.refTypeTime.start();
@@ -198,6 +198,9 @@ public abstract class StopTheWorldGC extends BasePlan
     if (!Options.noReferenceTypes || !Options.noFinalizer) {
       if (designated) Statistics.scanTime.start();
       processAllWork();
+      if (designated) Statistics.scanTime.stop();
+    }
+    else {
       if (designated) Statistics.scanTime.stop();
     }
 
@@ -318,7 +321,6 @@ public abstract class StopTheWorldGC extends BasePlan
     order = VM_Interface.rendezvous(4280);
     if (order == 1)
       baseGlobalRelease();
-    // VM.sysWriteln("GC Message: BasePlan.relase  collectorQueueLen = ", VM_Scheduler.collectorQueue.length());
     VM_Interface.rendezvous(4290);
   }
 
