@@ -1,6 +1,7 @@
 BaseBaseSemispace -test-list nightly-tests
 BaseBaseMarkSweep -test-list nightly-tests
 BaseBaseUPMarkSweep -test-list nightly-tests-just-jdp
+OptOptUPSemispace -test-list nightly-tests-just-jdp
 BaseBaseHybrid -test-list nightly-tests
 BaseBaseCopyGen -test-list nightly-tests 
 BaseBaseCopyGenVariable -test-list nightly-tests 
