@@ -48,9 +48,9 @@ JikesRVM Java style guidelines on your own"))
   
   ;; c-cleanup-list should already be buffer-local.  But in case
   ;; it is not, make it local for this buffer.
-  (make-local-variable 'c-cleanup-list)
-  (unless (boundp 'c-cleanup-list)
-    (setq c-cleanup-list nil))
+;  (make-local-variable 'c-cleanup-list)
+;  (unless (boundp 'c-cleanup-list)
+;    (setq c-cleanup-list nil))
   ;; Now reset c-cleanup-list
   ;; remove a couple of items from c-cleanup-list
   (setq c-cleanup-list
@@ -75,32 +75,34 @@ JikesRVM Java style guidelines on your own"))
 	  ;; 'space-before-funcall
 	  'compact-empty-funcall
 	  ;; These don't exist; they're fantasy names.  Won't hurt.
-	  'no-space-before-funcall
-	  'compact-funcall
-	  'compact-every-funcall))
+;	  'no-space-before-funcall
+;	  'compact-funcall
+;	  'compact-every-funcall
+	  ))
 	
   (make-local-variable 'c-hanging-braces-alist)
-  (add-to-list 'c-hanging-braces-alist
+  (mapc #'(lambda (new-elem) (add-to-list 'c-hanging-braces-alist new-elem))
 					; '(brace-entry-open . (after))
 					; '(brace-entry-close . (before))
 					; '(brace-list-open . (after))
 					; '(brace-list-close . (before))
-		'((extern-lang-open . (after))
-		  (extern-lang-close . (before))
-		  (defun-open . (after))
-		  (defun-close . (before))
-		  (class-open . (after))
-		  (class-close . (before))
-		  (inline-open . (after))
-		  (inline-close . (before))
-		  (block-open . (after))
-		  (block-close . (before))
-		  ;; no substatement-close?
-		  (substatement-open . (after)))))
+	'((extern-lang-open after)
+	  (extern-lang-close before)
+	  (defun-open after)
+	  (defun-close before)
+	  (class-open after)
+	  (class-close before)
+	  (inline-open after)
+	  (inline-close before)
+	  (block-open after)
+	  (block-close before)
+	  ;; no substatement-close?
+	  (substatement-open after))))
 
 (defun add-jikes-rvm-cc-styles ()
   (interactive)
-  ;; Most of the things we set aren't buffer-local :(
+  ;; Most of the things we set aren't buffer-local, so we have to use the hook
+  ;; to do it.  Pity. :(
   (c-add-style "jikes-rvm-java" '("java"
 				  (c-basic-offset . 2)))
   (c-add-style "jikes-rvm-c++"  '("jikes-rvm-c"
