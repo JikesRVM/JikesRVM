@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2003
  */
 //$Id$
 
@@ -18,6 +18,7 @@ import java.io.*;
  * OSR_ExecutionState.
  *
  * @author Feng Qian
+ * @modified Steven Augart
  */
 
 public abstract class OSR_ExecStateExtractor implements VM_Constants{
@@ -53,7 +54,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
 	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	VM_Offset instrOff = ip.diff(VM_Magic.objectAsAddress(cm.getInstructions()));
 	//	VM.sysWriteln(cm.getMethod().toString());
-	cm.printStackTrace(instrOff, System.out);
+	cm.printStackTrace(instrOff, new PrintContainer(System.out));
 
 	if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {
 	  fp = VM_Runtime.unwindNativeStackFrame(fp);
