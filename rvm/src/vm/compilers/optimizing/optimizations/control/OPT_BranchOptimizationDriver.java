@@ -26,18 +26,6 @@ public abstract class OPT_BranchOptimizationDriver
   private int _level;
 
   /**
-   * Slightly restrict the branch optimizations to ensure that
-   * conditional branches are not duplicated.  This is necessary only
-   * for the very first branch optimizations performed after BC2IR.
-   * If conditional branches are duplicated, it creates multiple
-   * branches with the same bytecode offset which interferes with the 
-   * mapping used for edge count profiling.
-   * And it creates irreducible control flow.....so let's not do this at all.
-   * But if we don't do it, an OptOptSemispace build crashes on booting...TODO!
-   */
-  protected boolean _restrictCondBranchOpts = false;
-
-  /**
    * Restrict branch optimizations to avoid messing up decisions made
    * earlier by code reordering
    */ 
@@ -56,15 +44,11 @@ public abstract class OPT_BranchOptimizationDriver
   /** 
    * @param level the minimum optimization level at which the branch 
    *              optimizations should be performed.
-   * @param restrictCondBranchOpts Should optimization on conditional
-   *              branches be restricted 
    * @param afterCodeReorder Should optimization be restricted to respect
    *              decisions made by code reordering
    */
-  OPT_BranchOptimizationDriver(int level,boolean restrictCondBranchOpts,
-                               boolean afterCodeReorder) {
+  OPT_BranchOptimizationDriver(int level, boolean afterCodeReorder) {
     this(level);
-    _restrictCondBranchOpts = restrictCondBranchOpts;
     _afterCodeReorder = afterCodeReorder;
   }
 

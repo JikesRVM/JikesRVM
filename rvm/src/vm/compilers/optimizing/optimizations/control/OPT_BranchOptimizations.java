@@ -34,9 +34,8 @@ public final class OPT_BranchOptimizations
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
    */
-  OPT_BranchOptimizations (int level, boolean restrictCondBranchOpts,
-                           boolean afterCodeReorder) {
-    super(level,restrictCondBranchOpts,afterCodeReorder);
+  OPT_BranchOptimizations (int level, boolean afterCodeReorder) {
+    super(level, afterCodeReorder);
   }
   
   /**
@@ -72,18 +71,24 @@ public final class OPT_BranchOptimizations
    *	1)	GOTO A	     replaced by  GOTO B
    *	     A: GOTO B
    *
-   *    2) 	GOTO A	     replaced by  IF .. GOTO B
-   *	     A: IF .. GOTO B 		  GOTO C
-   *	     C: ...			
-   *    3)   GOTO next instruction eliminated
-   *    4)      GOTO A	     replaced by  GOTO B
+   *    2)   GOTO next instruction eliminated
+   *    3)      GOTO A	     replaced by  GOTO B
    *	     A: LABEL	     
    *		BBEND
    *	     B: 
-   *    5)   GOTO BBn where BBn has exactly one in ede
+   *    4)   GOTO BBn where BBn has exactly one in ede
    *         - move BBn immediately after the GOTO in the code order,
    *           so that pattern 3) will create a fallthrough
+   * </pre>
+   * We intentionally do not perform the following optimization because
+   * it can introduce irreducible control flow (when A is a loop head).
+   * This blocks some HIR and LIR optimizations, so the very minor benefit
+   * of eliminating an unconditional branch isn't worth the cost.
    * <pre>
+   *    GOTO A	     replaced by  IF .. GOTO B
+   *    A: IF .. GOTO B 		  GOTO C
+   *	C: ...			
+   * </pre>
    *
    * <p> Precondition: Goto.conforms(g)
    *
@@ -132,35 +137,6 @@ public final class OPT_BranchOptimizations
       Goto.setTarget(g, nextBlock.makeJumpTarget());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
-    }
-    if (!_restrictCondBranchOpts && IfCmp.conforms(targetInst)) {
-      // unconditional branch to a conditional branch.
-      // If the Goto is the only branch instruction in its basic block
-      // and the IfCmp is the only non-GOTO branch instruction
-      // in its basic block then replace the goto with a copy of 
-      // targetInst and append another GOTO to the not-taken
-      // target of targetInst's block.
-      // We impose these additional restrictions to avoid getting 
-      // multiple conditional branches in a single basic block.
-      // The LIR does allow this, but some MIR instruction sets don't deal
-      // with it very well (without multiple condition registers, one is
-      // forced to either violate the definition of a basic block or break
-      // the instructions into multiple basic blocks anyways, which requires
-      // care to avoid separating the actual conditional branch from the
-      // computation of its input values). 
-      // Also, HIR to LIR translation doesn't handle multiple conditional
-      // branches in a single basic block correctly either.
-      if (!g.prevInstructionInCodeOrder().isBranch() && 
-	  (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
-	   targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
-	OPT_Instruction copy = targetInst.copyWithoutLinks();
-	g.replace(copy);
-	OPT_Instruction newGoto = 
-	  targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
-	copy.insertAfter(newGoto);
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
-      }
     }
 
     // try to create a fallthrough
