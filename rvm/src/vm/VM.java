@@ -185,20 +185,8 @@ public class VM extends VM_Properties
 
     // Process virtual machine directives.
     //
-    if (verbose >= 1) VM.sysWriteln("Processing VM directives");
-    String[] applicationArguments = VM_CommandLineArgs.processCommandLineArguments();
-    if (applicationArguments.length == 0) {  
-      VM.sysWrite("vm: please specify a class to execute\n");
-      VM.sysExit(1);
-    }
-
-    // Allow Baseline compiler to respond to command line arguments
-    // The baseline compiler ignores command line arguments until all are processed
-    // otherwise printing may occur because of compilations ahead of processing the
-    // method_to_print restriction
-    //
-    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
-    VM_BaselineCompiler.postBootOptions();
+    if (verbose >= 1) VM.sysWriteln("Early stage processing of VM directives");
+    VM_CommandLineArgs.earlyProcessCommandLineArguments();
 
     // Allow Collector to respond to command line arguments
     //
@@ -239,7 +227,6 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
-
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
@@ -254,6 +241,23 @@ public class VM extends VM_Properties
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
+
+    // Process most of the VM's command line arguments.
+    // The VM is fully booted at this point. 
+    if (verbose >= 1) VM.sysWriteln("Late stage processing of VM directives");
+    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
+    if (applicationArguments.length == 0) {  
+      VM.sysWrite("vm: please specify a class to execute\n");
+      VM.sysExit(1);
+    }
+
+    // Allow Baseline compiler to respond to command line arguments.
+    // The baseline compiler ignores command line arguments until all are processed
+    // otherwise printing may occur because of compilations ahead of processing the
+    // method_to_print restriction
+    //
+    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
+    VM_BaselineCompiler.postBootOptions();
 
     // Allow profile information to be read in from a file
     VM_EdgeCounts.boot();
@@ -270,6 +274,7 @@ public class VM extends VM_Properties
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
+    // Rework this when we do feature 3601.
     if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
     Thread      xx         = new MainThread(applicationArguments);
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
@@ -291,7 +296,7 @@ public class VM extends VM_Properties
     //-#if RVM_WITH_HPM
     if (VM_HardwarePerformanceMonitors.enabled()) {
       // IS THIS NEEDED?
-      if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      if (!VM_HardwarePerformanceMonitors.hpm_thread_group) {
 	if(VM_HardwarePerformanceMonitors.verbose>=1)
 	  VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
 	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
