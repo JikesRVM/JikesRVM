@@ -324,6 +324,12 @@ public abstract class Generational extends StopTheWorldGC
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
 	required = required<<1;  // must account for copy reserve
       fullHeapGC = mustCollect || fullHeapGC;
+      if (Plan.usesLOS && !fullHeapGC) {
+	int nonLOSReserved = nurseryMR.reservedPages() + matureMR.reservedPages() + 
+	                     immortalMR.reservedPages() + metaDataMR.reservedPages();
+	if (losMR.reservedPages() > 0.95 * (getTotalPages() - nonLOSReserved))
+	  fullHeapGC = true;
+      }
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
@@ -451,13 +457,16 @@ public abstract class Generational extends StopTheWorldGC
     }
     fullHeapGC = (getPagesAvail() < NURSERY_THRESHOLD);
     if (getPagesReserved() + required >= getTotalPages()) {
-      if (!progress)
+      if (!progress) {
+	VM.sysWrite("getPagesReserved() = ", getPagesReserved());
+	VM.sysWrite("required = ", required);
+	VM.sysWrite("getTotalPages() = ", getTotalPages());
  	VM.sysFail("Out of memory");
+      }
       progress = false;
     } else
       progress = true;
   }
-
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -692,14 +701,15 @@ public abstract class Generational extends StopTheWorldGC
 
   /**
    * Print out total memory usage and a breakdown by allocator.
+   *
    */
-  public static void showUsage() {
-    writePages("used = ", Plan.getPagesUsed());
-    writePages("= (nursery) ", nurseryMR.reservedPages());  
-    writePages(" + (mature) ", matureMR.reservedPages());  
-    if (Plan.usesLOS) writePages(" + (los) ", losMR.reservedPages());
-    writePages(" + (imm) ", immortalMR.reservedPages());
-    writePages(" + (md)",  metaDataMR.reservedPages());
+  public static void showUsage(int mode) {
+    writePages("used = ", Plan.getPagesUsed(), mode);
+    writePages(" = (nursery) ", nurseryMR.reservedPages(), mode);  
+    writePages(" + (mature) ", matureMR.reservedPages(), mode);  
+    if (Plan.usesLOS) writePages(" + (los) ", losMR.reservedPages(), mode);
+    writePages(" + (imm) ", immortalMR.reservedPages(), mode);
+    writePages(" + (md) ",  metaDataMR.reservedPages(), mode);
     VM.sysWriteln();
   }
 }
