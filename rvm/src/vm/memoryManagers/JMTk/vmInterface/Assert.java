@@ -47,17 +47,6 @@ public class Assert implements Uninterruptible {
     VM.sysFail(message); 
   }
 
-  /**
-   * Logs a message and traceback, then exits.   This two-argument form is
-   * needed for us to call before the VM's Integer class is initialized.  
-   *
-   * @param message the string to log
-   * @param number  an integer to append to <code>message</code>.  
-   */
-  public static void fail(String message, int number) { 
-    VM.sysFail(message, number); 
-  }
-
   public static void exit(int rc) throws UninterruptiblePragma {
     VM.sysExit(rc);
   }

@@ -299,4 +299,14 @@ $$$$ END FOREACH
 $$$$ END LOOP
     //End generated option value printing 
   }
+
+/**
+ *
+ */
+private static final void fail(String msg, int value) {
+  Log.write(msg);
+  Log.writeln(value);
+  Assert.fail("");
+}
+
 }
