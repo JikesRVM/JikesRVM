@@ -59,10 +59,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   public static final VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic finishTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic remsetTime = new VM_TimeStatistic();
-  public static final VM_TimeStatistic rcPrepareTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic rcIncTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic rcDecTime = new VM_TimeStatistic();
-  public static final VM_TimeStatistic rcReleaseTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic cdTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic cdGreyTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic cdScanTime = new VM_TimeStatistic();

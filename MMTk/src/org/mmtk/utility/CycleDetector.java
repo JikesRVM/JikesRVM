@@ -19,5 +19,5 @@ interface CycleDetector {
   public boolean collectCycles(boolean time);
   public void possibleCycleRoot(VM_Address object);
   public void enumeratePointer(VM_Address object);
-  public void printTimes();
+  public void printTimes(boolean totals);
 }

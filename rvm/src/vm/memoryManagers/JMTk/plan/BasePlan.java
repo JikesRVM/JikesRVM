@@ -509,8 +509,11 @@ public abstract class BasePlan
       VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime)*1000);
       VM_Interface.sysWrite(" ms]\n");
     }
+    if (Options.verboseTiming) printDetailedTiming(true);
     planExit(value);
   }
+
+  protected void printDetailedTiming(boolean totals) {}
 
   /**
    * The VM is about to exit.  Perform any plan-specific clean up

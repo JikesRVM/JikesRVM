@@ -445,19 +445,16 @@ final class RefCountLocal extends SegregatedFreeList
   /**
    * Print out timing info for last GC
    */
-  public final void printTimes() {
-    VM_Interface.sysWrite(" rcpre: ");
-    VM_Interface.sysWrite(Statistics.rcPrepareTime.last()*1000);
-    VM_Interface.sysWrite(" inc: ");
-    VM_Interface.sysWrite(Statistics.rcIncTime.last()*1000);
-    VM_Interface.sysWrite(" dec: ");
-    VM_Interface.sysWrite(Statistics.rcDecTime.last()*1000);
+  public final void printTimes(boolean totals) {
+    double time;
+    time = (totals) ? Statistics.rcIncTime.sum() : Statistics.rcIncTime.lastMs();
+    VM_Interface.sysWrite(" inc: "); VM_Interface.sysWrite(time);
+    time = (totals) ? Statistics.rcDecTime.sum() : Statistics.rcDecTime.lastMs();
+    VM_Interface.sysWrite(" dec: "); VM_Interface.sysWrite(time);
     if (Plan.refCountCycleDetection) {
-      VM_Interface.sysWrite(" cd: ");
-      VM_Interface.sysWrite(Statistics.cdTime.last()*1000);
+      time = (totals) ? Statistics.cdTime.sum() : Statistics.cdTime.lastMs();
+      VM_Interface.sysWrite(" cd: "); VM_Interface.sysWrite(time);
     }
-    VM_Interface.sysWrite(" rcpost: ");
-    VM_Interface.sysWrite(Statistics.rcReleaseTime.last()*1000);
-    cycleDetector.printTimes();
+    cycleDetector.printTimes(totals);
   }
 }

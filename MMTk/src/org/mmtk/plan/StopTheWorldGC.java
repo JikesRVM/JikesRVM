@@ -388,7 +388,7 @@ public abstract class StopTheWorldGC extends BasePlan
   /**
    * Print out plan-specific timing info
    */
-  protected void printPlanTimes() {}
+  protected void printPlanTimes(boolean totals) {}
 
   /**
    * Print out statistics for last GC
@@ -417,26 +417,29 @@ public abstract class StopTheWorldGC extends BasePlan
       VM_Interface.sysWrite(gcStopTime - gcStartTime,3);
       VM_Interface.sysWriteln(" seconds");
     }
-    if (Options.verboseTiming) {
-      VM_Interface.sysWrite("<");
-      VM_Interface.sysWrite("pre: ");
-      VM_Interface.sysWrite(Statistics.initTime.last()*1000);
-      VM_Interface.sysWrite(" root: ");
-      VM_Interface.sysWrite(Statistics.rootTime.last()*1000);
-      VM_Interface.sysWrite(" scan: ");
-      VM_Interface.sysWrite(Statistics.scanTime.last()*1000);
-      if (!Options.noReferenceTypes) {
-	VM_Interface.sysWrite(" refs: ");
-	VM_Interface.sysWrite(Statistics.refTypeTime.last()*1000);
-      }
-      if (!Options.noFinalizer) {
-	VM_Interface.sysWrite(" final: ");
-	VM_Interface.sysWrite(Statistics.finalizeTime.last()*1000);
-      }
-      printPlanTimes();
-      VM_Interface.sysWrite(" post: ");
-      VM_Interface.sysWrite(Statistics.finishTime.last()*1000);
-      VM_Interface.sysWrite(" ms>\n");
+    if (Options.verboseTiming) printDetailedTiming(false);
+  }
+
+  protected final void printDetailedTiming(boolean totals) {
+    double time;
+    VM_Interface.sysWrite((totals) ? "<=" : "<");
+    time = (totals) ? Statistics.initTime.sum() : Statistics.initTime.lastMs();
+    VM_Interface.sysWrite("pre: "); VM_Interface.sysWrite(time);
+    time = (totals) ? Statistics.rootTime.sum() : Statistics.rootTime.lastMs();
+    VM_Interface.sysWrite(" root: "); VM_Interface.sysWrite(time);
+    time = (totals) ? Statistics.scanTime.sum() : Statistics.scanTime.lastMs();
+    VM_Interface.sysWrite(" scan: "); VM_Interface.sysWrite(time);
+    if (!Options.noReferenceTypes) {
+      time = (totals) ? Statistics.refTypeTime.sum() : Statistics.refTypeTime.lastMs();
+      VM_Interface.sysWrite(" refs: "); VM_Interface.sysWrite(time);
     }
+    if (!Options.noFinalizer) {
+      time = (totals) ? Statistics.finalizeTime.sum() : Statistics.finalizeTime.lastMs();
+      VM_Interface.sysWrite(" final: "); VM_Interface.sysWrite(time);
+    }
+    printPlanTimes(totals);
+    time = (totals) ? Statistics.finishTime.sum() : Statistics.finishTime.lastMs();
+    VM_Interface.sysWrite(" post: "); VM_Interface.sysWrite(time);
+    VM_Interface.sysWrite((totals) ? " sec=>\n" : " ms>\n");
   }
 }

@@ -147,10 +147,10 @@ final class TrialDeletion
 
   public final boolean collectCycles(boolean time) {
     collectedCycles = false;
-    double filterStart = VM_Interface.now();
     filterPurpleBufs();
     processFreeBufs();
     if (shouldCollectCycles(false)) {
+    double filterStart = VM_Interface.now();
       double cycleStart = VM_Interface.now();
       double filterTime = cycleStart - filterStart;
       double filterLimit = ((double)Options.gcTimeCap)/FILTER_TIME_FACTOR;
@@ -428,16 +428,17 @@ final class TrialDeletion
   public int getVisitCount() throws VM_PragmaInline {
     return visitCount;
   }
-  public final void printTimes() {
+  public final void printTimes(boolean totals) {
+    double time;
     if (collectedCycles) {
-      VM_Interface.sysWrite(" grey: ");
-      VM_Interface.sysWrite(Statistics.cdGreyTime.last()*1000);
-      VM_Interface.sysWrite(" scan: ");
-      VM_Interface.sysWrite(Statistics.cdScanTime.last()*1000);
-      VM_Interface.sysWrite(" coll: ");
-      VM_Interface.sysWrite(Statistics.cdCollectTime.last()*1000);
-      VM_Interface.sysWrite(" free: ");
-      VM_Interface.sysWrite(Statistics.cdFreeTime.last()*1000);
+      time = (totals) ? Statistics.cdGreyTime.sum() : Statistics.cdGreyTime.lastMs();
+      VM_Interface.sysWrite(" grey: "); VM_Interface.sysWrite(time);
+      time = (totals) ? Statistics.cdScanTime.sum() : Statistics.cdScanTime.lastMs();
+      VM_Interface.sysWrite(" scan: "); VM_Interface.sysWrite(time);
+      time = (totals) ? Statistics.cdCollectTime.sum() : Statistics.cdCollectTime.lastMs();
+      VM_Interface.sysWrite(" coll: "); VM_Interface.sysWrite(time);
+      time = (totals) ? Statistics.cdFreeTime.sum() : Statistics.cdFreeTime.lastMs();
+      VM_Interface.sysWrite(" free: "); VM_Interface.sysWrite(time);
     }
   }
 }

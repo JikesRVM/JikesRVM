@@ -735,8 +735,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   /**
    * Print out timing info
    */
-  protected final void printPlanTimes() {
-    rc.printTimes();
+  protected final void printPlanTimes(boolean totals) {
+    rc.printTimes(totals);
   }
 }
 
