@@ -52,7 +52,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SemiSpaceGCspy extends SemiSpaceBase implements Uninterruptible {
+public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
 
   /****************************************************************************
    *
