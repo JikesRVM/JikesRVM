@@ -3299,23 +3299,31 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.addressArrayGet) {
-      if (VM.BuildFor32Addr) {
-	emit_iaload();   
-      } else if (VM.BuildFor64Addr) {
-	emit_laload();
+      if (m.getType() == VM_TypeReference.CodeArray) {
+	emit_baload();
       } else {
-	VM._assert(NOT_REACHED);
+	if (VM.BuildFor32Addr) {
+	  emit_iaload();   
+	} else if (VM.BuildFor64Addr) {
+	  emit_laload();
+	} else {
+	  VM._assert(NOT_REACHED);
+	}
       }
       return true;
     }
 
     if (methodName == VM_MagicNames.addressArraySet) {
-      if (VM.BuildFor32Addr) {
-	emit_iastore();  
-      } else if (VM.BuildFor64Addr) {
-	VM._assert(false);  // not implemented
+      if (m.getType() == VM_TypeReference.CodeArray) {
+	emit_bastore();
       } else {
-	VM._assert(NOT_REACHED);
+	if (VM.BuildFor32Addr) {
+	  emit_iastore();  
+	} else if (VM.BuildFor64Addr) {
+	  VM._assert(false);  // not implemented
+	} else {
+	  VM._assert(NOT_REACHED);
+	}
       }
       return true;
     }

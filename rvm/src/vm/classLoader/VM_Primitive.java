@@ -142,7 +142,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
       if (tr == VM_TypeReference.Address ||
 	  tr == VM_TypeReference.Word ||
 	  tr == VM_TypeReference.Offset ||
-	  tr == VM_TypeReference.Extent) {
+	  tr == VM_TypeReference.Extent ||
+	  tr == VM_TypeReference.Code) {
 	stackWords = 1; //Kris Venstermans: dependant of Magic or not ?
 	name = tr.getName();
       } else {

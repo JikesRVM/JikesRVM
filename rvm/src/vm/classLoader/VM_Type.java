@@ -81,6 +81,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public static VM_Type ExtentType;             
   public static VM_Type ExtentArrayType;             
   public static VM_Type InstructionArrayType;             
+  public static VM_Type CodeType;
+  public static VM_Type CodeArrayType;
   public static VM_Type UninterruptibleType;   
   public static VM_Type SynchronizedObjectType;   
   public static VM_Type DynamicBridgeType;     
@@ -476,8 +478,10 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
                                                                                           (this == AddressArrayType) ||
 										          (this == ExtentArrayType) || 
 										          (this == OffsetArrayType); }
+  final boolean isCodeType() throws VM_PragmaUninterruptible { return this == CodeType; }
+  final boolean isCodeArrayType() throws VM_PragmaUninterruptible { return this == CodeArrayType; }
   public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() || isWordArrayType() ||
-										     (this == MagicType); }
+										     this == MagicType || this == CodeArrayType; }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -529,6 +533,9 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     CharType    = VM_TypeReference.Char.resolve();
 
     InstructionArrayType = VM_TypeReference.InstructionArray.resolve();
+
+    CodeType = VM_TypeReference.Code.resolve();
+    CodeArrayType = VM_TypeReference.CodeArray.resolve();
 
     JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve();
     JavaLangObjectArrayType = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve();

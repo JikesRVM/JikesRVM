@@ -65,10 +65,12 @@ public class VM_TypeReference implements VM_SizeConstants{
   public static final VM_TypeReference Address = findOrCreate("Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_TypeReference Offset  = findOrCreate("Lcom/ibm/JikesRVM/VM_Offset;");
   public static final VM_TypeReference Extent  = findOrCreate("Lcom/ibm/JikesRVM/VM_Extent;");
+  public static final VM_TypeReference Code    = findOrCreate("Lcom/ibm/JikesRVM/VM_Code;");
   public static final VM_TypeReference WordArray = findOrCreate("Lcom/ibm/JikesRVM/VM_WordArray;");
   public static final VM_TypeReference AddressArray = findOrCreate("Lcom/ibm/JikesRVM/VM_AddressArray;");
   public static final VM_TypeReference OffsetArray = findOrCreate("Lcom/ibm/JikesRVM/VM_OffsetArray;");
   public static final VM_TypeReference ExtentArray = findOrCreate("Lcom/ibm/JikesRVM/VM_ExtentArray;");
+  public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
   public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCall;");
 
@@ -222,6 +224,8 @@ public class VM_TypeReference implements VM_SizeConstants{
 	if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
 	return null;
       }
+    } else if (isCodeArrayType()) {
+      return Code;
     } else {
       return findOrCreate(classloader, name.parseForArrayElementDescriptor());
     }
@@ -242,12 +246,12 @@ public class VM_TypeReference implements VM_SizeConstants{
    */
   public final int getDimensionality() {
     if (isArrayType()) {
-      if (isWordArrayType()) {
+      if (isWordArrayType() || isCodeArrayType()) {
 	return 1;
       } else {
 	return name.parseForArrayDimensionality();
       }
-    } else if (isWordType()) {
+    } else if (isWordType() || isCodeType()) {
       return -1;
     } else if (isClassType()) {
       return 0;
@@ -260,7 +264,7 @@ public class VM_TypeReference implements VM_SizeConstants{
    * Return the innermost element type reference for an array
    */
   public final VM_TypeReference getInnermostElementType() {
-    if (isWordArrayType()) {
+    if (isWordArrayType() || isCodeArrayType()) {
       return getArrayElementType();
     } else {
       return findOrCreate(classloader, name.parseForInnermostArrayElementDescriptor());
@@ -271,14 +275,15 @@ public class VM_TypeReference implements VM_SizeConstants{
    * Does 'this' refer to a class?
    */ 
   public final boolean isClassType() throws VM_PragmaUninterruptible {
-    return name.isClassDescriptor() && !isWordArrayType() && !isWordType();
+    return name.isClassDescriptor() &&
+      !(isWordArrayType() || isWordType() || isCodeArrayType() || isCodeType());
   }
       
   /**
    * Does 'this' refer to an array?
    */ 
   public final boolean isArrayType() throws VM_PragmaUninterruptible {
-    return name.isArrayDescriptor() || isWordArrayType();
+    return name.isArrayDescriptor() || isWordArrayType() || isCodeArrayType();
   }
 
   /**
@@ -303,6 +308,13 @@ public class VM_TypeReference implements VM_SizeConstants{
   }
 
   /**
+   * Does 'this' refer to VM_Code
+   */
+  public final boolean isCodeType() throws VM_PragmaUninterruptible {
+    return this == Code;
+  }
+
+  /**
    * Does 'this' refer to VM_WordArray, VM_AddressArray, VM_OffsetArray or VM_ExtentArray
    */
   final boolean isWordArrayType() throws VM_PragmaUninterruptible {
@@ -310,10 +322,19 @@ public class VM_TypeReference implements VM_SizeConstants{
   }
 
   /**
+   * Does 'this' refer to VM_CodeArray
+   */
+  final boolean isCodeArrayType() throws VM_PragmaUninterruptible {
+    return this == CodeArray;
+  }
+
+  /**
    * Does 'this' refer to VM_Magic?
    */
   public final boolean isMagicType() {
-    return this == Magic || this == SysCall || isWordType() || isWordArrayType();
+    return this == Magic || this == SysCall 
+      || isWordType() || isWordArrayType() 
+      || isCodeType() || isCodeArrayType();
   }
 
   /**
@@ -332,6 +353,7 @@ public class VM_TypeReference implements VM_SizeConstants{
     if (isReferenceType() || isWordType()) return BYTES_IN_ADDRESS; 
     if (this == Long || this == Double) return BYTES_IN_LONG;
     if (this == Void) return 0;
+    if (this == Code) return VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
     return BYTES_IN_INT; //all int like types 
   }
     
@@ -472,7 +494,7 @@ public class VM_TypeReference implements VM_SizeConstants{
       if (VM.VerifyAssertions) VM._assert(resolvedType == null || resolvedType == ans);
       resolvedType = ans;
     } else if (isArrayType()) {
-      if (isWordArrayType()) {
+      if (isWordArrayType() || isCodeArrayType()) {
 	// Ensure that we only create one VM_Array object for each pair of names for this type.
 	// Do this by resolving VM_AddressArray to [VM_Addresss
 	resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();

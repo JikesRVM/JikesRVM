@@ -1289,6 +1289,19 @@ public class BootImageWriter extends BootImageWriterMessages
 	      else if (VM.BuildFor64Addr)
 		bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
           }
+          else if (rvmElementType.equals(VM_Type.CodeType)) {
+	    if (VM.BuildForPowerPC) {
+	      int values[] = (int[]) jdkObject;
+	      for (int i = 0; i < arrayCount; ++i)
+		bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_INT), values[i]);
+	    } else if (VM.BuildForIA32) {
+	      byte values[] = (byte[]) jdkObject;
+	      for (int i = 0; i < arrayCount; ++i)
+		bootImage.setByte(arrayImageOffset + i, values[i]);
+	    } else {
+	      fail("unexpected architecture");
+	    }
+          }
           else
             fail("unexpected primitive array type: " + rvmArrayType);
         } else {
@@ -1345,6 +1358,13 @@ public class BootImageWriter extends BootImageWriterMessages
 	  if (verbose >= 2) depth--;
 	  VM_ExtentArray addrArray = (VM_ExtentArray) jdkObject;
 	  Object backing = addrArray.getBacking();
+	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	}
+
+	if (rvmType == VM_Type.CodeArrayType) {
+	  if (verbose >= 2) depth--;
+	  VM_CodeArray codeArray = (VM_CodeArray) jdkObject;
+	  Object backing = codeArray.getBacking();
 	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
 	}
 

@@ -72,7 +72,7 @@ public abstract class VM_MemberReference {
   public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tref, VM_Atom mn, VM_Atom md) {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
-      if (tref.isArrayType() && !tref.isWordArrayType()) {
+      if (tref.isArrayType() && !(tref.isWordArrayType() || tref.isCodeArrayType())) {
 	tref = VM_Type.JavaLangObjectType.getTypeRef();
       }
       key = new VM_MethodReference(tref, mn, md);
