@@ -28,9 +28,6 @@ public final class Options implements VM_Uninterruptible, Constants {
   private static int maxHeapSize;     
   private static int currentHeapSize; 
 
-  static int minNurseryPages  = Plan.DEFAULT_MIN_NURSERY;
-  static int maxNurseryPages  = Plan.DEFAULT_MAX_NURSERY;
-
   public static int getCurrentHeapSize() {
     return currentHeapSize;
   }
@@ -151,23 +148,6 @@ $$$$ END LOOP
       printHelp();
       return true;
     }
-
-    // BEGIN LEGACY CODE: TODO REMOVE ME
-    if(arg.startsWith("fixedNursery=") ||
-	    arg.startsWith("nursery_size=")) {
-      String tmp = arg.substring(13);
-      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
-      minNurseryPages = maxNurseryPages;
-      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
-      return true;
-    }
-    if (arg.startsWith("boundedNursery=")) {
-      String tmp = arg.substring(15);
-      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
-      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
-      return true;
-    }
-    // END LEGACY CODE: TODO REMOVE ABOVE
 
     // Required format of arg is 'name=value'
     // Split into 'name' and 'value' strings

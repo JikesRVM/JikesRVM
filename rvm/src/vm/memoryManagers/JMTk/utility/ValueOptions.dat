@@ -56,3 +56,18 @@ V stressTest int MAX_INT stress
 Perform GCs very frequently ??????
 val = 1<<val;
 
+
+V minNurseryPages int Plan.DEFAULT_MIN_NURSERY fixedNursery
+Use a fixed size nursery
+int val2 = Conversions.bytesToPagesUp(val<<20); \
+maxNurseryPages = val2; \
+if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
+val = val2;
+
+
+V maxNurseryPages int Plan.DEFAULT_MAX_NURSERY boundedNursery
+Bound the maximum size of the nursery
+int val2 = Conversions.bytesToPagesUp(val<<20); \
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
+val = val2;
+
