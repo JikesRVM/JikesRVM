@@ -1776,8 +1776,6 @@ function emitBooterLinker
    print '#!/bin/ksh'
    print '# Generate vm booter.'
 
-   print '. ./environment'
-
    # Allow the build directory to be different in the host/boot image
    # writing system, and on the target system.
    print ""
