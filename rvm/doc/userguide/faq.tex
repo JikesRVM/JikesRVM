@@ -82,7 +82,9 @@ compilation, adaptive optimization, garbage collection, thread
 scheduling, and synchronization.
 
 \subsubsection{Who is using RVM?}
-\remark{TODO. add url}
+A list of current RVM researchers is available at
+\xlink{{\tt \RVMUserListURL}}{\RVMUserListURL}.  If you would like to 
+be added to the web page, let us know.
 
 \subsection{Getting RVM and Documentation}
 
@@ -90,47 +92,57 @@ scheduling, and synchronization.
 
 You need to download two bundles: the RVM source, and the RVM standard library
 jar file.  Each of these is available for download from DeveloperWorks at
-\remark{TODO! insert URL}.  
-The RVM source is also available through a public CVS server 
-\remark{TODO.  URL}. 
+\xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  If you would like to 
+The RVM source is also available through a 
+public 
+\xlink{CVS server}{\RVMCVSURL}.
 
-You can also download the source to the libraries \remark{TODO URL} under
-a separate license. \remark{TODO URL}
+You can also download the source to the libraries under
+a separate 
+\xlink{license}{\RVMLibSourceLicenseURL}.
 
 \subsubsection{Is there a list of known bugs?}
 
 See the bug tracking system available on DeveloperWorks at 
-\remark{TODO URL}.
+\xlink{{\tt \RVMBugURL}}{\RVMBugURL}.
 
 The bug tracking lists {\em defects}, representing bugs in the system, and
 {\em features}, which are TODO items to improve the system.
 
 \subsubsection{Is there documentation on-line?}
 
-Yes.  See
-\remark{TODO URL}
+Yes.  See the RVM Home page at
+\xlink{{\tt \RVMHomeURL}}{\RVMHomeURL}.
 
 
 \subsubsection{Can I get the Quicksilver Quasi-Static System?}
 
 No. This project is no longer active or supported.
 
+\subsubsection{Can I get DejaVu?}
+
+Not yet.  The DejaVu team hopes to release some code shortly.
+
 \subsection{Licenses}
 
-The RVM implementation is licensed open-source under the Common Public
-License. \remark{TODO URL} There are separate, more restrictive licenses 
-for the binary and 
-source to the Java standard libraries for RVM.  See the DeveloperWorks
-web pages for more details. \remark{TODO URL}
+The RVM implementation is licensed open-source under the 
+\xlink{Common Public License}{\CPLURL}. 
+There are separate, more restrictive licenses 
+for the 
+\xlink{binary}{\RVMLibBinaryLicenseURL} and 
+\xlink{source}{\RVMLibSourceLicenseURL} 
+to the Java standard libraries for RVM.  See the DeveloperWorks
+web pages for more details. 
 
 \subsection{Building RVM}
 
 \subsubsection{Which jikes should I use?}
-\remark{TODO URL}
-At Watson, we're currently using jikes v1.13 to compile the RVM source on
+At Watson, we're currently using 
+\xlink{{\tt jikes}}{\jikesURL} v1.13 to compile the RVM source on
 both Linux and AIX.  We've had reports from users that v1.14 has problems
-on Linux.  In order to build the rvmrt.jar library, we applied patch 62 to
-the jikes build to fix a jikes scoping problem.
+on Linux.  In order to build the {\tt rvmrt.jar} library, we applied 
+patch 62
+to the jikes build to fix a jikes scoping problem.
 
 
 \subsubsection{Has anybody thought about incremental boot image writing?}
@@ -143,6 +155,8 @@ mechanism in place to trace these kinds of dependencies.  There are other
 examples, too.  In summary: incremental boot image writing would be nice,
 but it's not easy to support, and it hasn't been at the top of our
 priorities.
+
+\subsubsection{How can I include my own classes in the boot image?}
 
 \subsection{Runtime implementation}
 
@@ -193,7 +207,7 @@ property, which constrains the optimizations.
 Sort of.  RVM includes enough zip support to read compressed jar files.
 For complete java.util.zip functionality, you are recommended to find 
 a pure Java implementation of java.util.zip.  We have successfully used
-JazzLib. \remark{add URL here}
+\xlink{JazzLib}{\jazzlibURL}. 
 
 \subsubsection{Why doesn't the RVM source use packages?}
 
@@ -332,15 +346,17 @@ LOCK prefix.
 This class implements some useful common low-level synchronization
 sequences, such as fetch-and-add and test-and-set.  The VM\_Sychronization
 primities, in turn, are implemented using VM\_Magic.prepare and attempt.
-\item [VM\_ProcessorLock]
+\item [
+\xlink{VM\_ProcessorLock}{\VMProcessorLockURL}
+]
 This lock is used to enforce mutual exclusion between {\tt VM\_Processors}
 (pthreads.)  It provides a non-blocking attempt to require the lock
 ({\tt tryLock()}) as well as a blocking spin-lock ({\tt lock()}).
-\remark{TODO: add pointer to URL}
-\item [VM\_Lock]
+\item [
+\xlink{VM\_Lock}{\VMLockURL}
+]
 This class provides the normal synchronization operations on Java objects
 between Java threads.  The implementation is a variant of Thin Locks.
-\remark{TODO: add pointer to URL}
 \item [monitorenter and monitorexit]
 Synchronized statements in Java source code are compiled to monitorenter
 and exit in the Java bytecode.  The RVM compilers implement these
@@ -409,15 +425,23 @@ the beginning of the compiler phase.
 
 \subsubsection{What is Heap Array SSA form?}
 
-See the SAS 2000 paper. \remark{ADD URL}
+See the 
+\xlink{SAS 2000 paper}{\SASPaperURL}. 
 
 \subsubsection{Is ABCD included?}
 
 The open-source distribution includes a derivative of the prototype ABCD 
-implementation used for the PLDI 2000 paper.
+implementation used for the 
+\xlink{PLDI 2000 paper}{\ABCDPaperURL}.
 However, ABCD is {\em not} enabled by default.  The current implementation
 is incorrect, as it checks only upper bounds and not lower bounds.
 There is a command-line option to turn on the current implementation.
+
+\subsubsection{How do I insert my new compiler pass in the optimizing
+compiler driver?}
+
+\subsubsection{What if I want my pass to do inter-procedural analysis?}
+
 
 \subsubsection{What is the OptTestHarness?}
 

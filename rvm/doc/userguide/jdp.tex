@@ -12,12 +12,11 @@ RVM effort.  Because no existing debugger satisfactorily meets the
 needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
 name primitive.  {\tt jdp} uses a technique called Remote
 Reflection (see the related paper on the RVM 
-\remark{TODO: update the URL}
-\xlink{web page}{http://www.research.ibm.com/jalapeno}.  This
+\xlink{web page}{\RVMPubsURL}.  This
 allows {\tt jdp} to run out-of-process, yet it uses reflection extensively to
 access the internal data structures as if it resides inside the RVM.
 
-   {\tt jdp} is written in Java\trademark and JNI with native code in C.  {\tt jdp}
+{\tt jdp} is written in Java\trademark and JNI with native code in C.  {\tt jdp}
 uses the
 AIX {\tt ptrace} interface and the standard Unix process support (fork,
 wait, ...).  When porting to another platform, this native portion
