@@ -695,6 +695,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     {
       //  locate existing site  in table
       jsrSiteMap = null;
+    findJSRSiteMap:
       for( mapNum = 0; mapNum < mapCount; mapNum++) {
         if ( MCSites[mapNum] == byteindex) {
           // gc site found - get index in unusual map table and the unusual Map
@@ -703,15 +704,16 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
           if (unusualMapIndex == JSR_INDEX_MASK) {
             // greater than 127 unusualMaps- sequential scan of locate others unusual map
             for (unusualMapIndex = JSR_INDEX_MASK; unusualMapIndex < numberUnusualMaps; unusualMapIndex++) {
-              if (unusualMaps[unusualMapIndex].getReturnAddressOffset() == returnOffset)
+              if (unusualMaps[unusualMapIndex].getReturnAddressOffset() == returnOffset) {
                 jsrSiteMap = unusualMaps[unusualMapIndex];
-              break;
+		break findJSRSiteMap;
+	      }
             }
             VM.sysFail(" can't find unusual map !!!!!!! - should never occur");
-          }
-          else
+          } else {
             jsrSiteMap = unusualMaps[unusualMapIndex];
-          break;
+            break findJSRSiteMap;
+	  }
         }
       }
     }
