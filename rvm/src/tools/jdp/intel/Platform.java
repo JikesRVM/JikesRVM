@@ -211,7 +211,10 @@ public class Platform implements jdpConstants {
     return currentFP1(pid);
   }
 
-  public static native int       getFPFromPR(int pr);
+  public static native int       getFPFromPR1(int pid, int pr);
+  public static        int       getFPFromPR(int pr) {
+    return getFPFromPR1(pid, pr);
+  }
 
   public static native int       fregtop1(int pid);
   public static        int       fregtop (){
