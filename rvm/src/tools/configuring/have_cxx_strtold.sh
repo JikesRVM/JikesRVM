@@ -1,6 +1,15 @@
 #! /usr/bin/env bash
-set -e
+# -*- coding: iso-8859-1 ; mode: shell-script ;-*-
+# (C) Copyright © IBM Corp. 2003, 2005
+#
+# $Id$
+#
+# Purpose: Autodetect whether:
 msg="Do we have a C++ strtold() function?"
+#
+# @author Steven Augart
+# @date 22 October 2003
+set -e
 echo $msg >> ${LOG}
 echo -n "$msg..." >&2
 
