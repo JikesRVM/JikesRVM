@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.VM_Runtime;
  * @author Stephen Fink
  * @author Eugene Gluzberg
  * @author Dave Grove
+ * @modified Steven Augart
  */
 public final class Method extends AccessibleObject implements Member {
   final VM_Method method;
@@ -32,6 +33,14 @@ public final class Method extends AccessibleObject implements Member {
   Method(VM_Method m) {
     method = m;
   }
+
+  // XXX For use by com.ibm.JikesRVM.VM_StackTrace.getRunMethodMarkingPrelude()
+  // XXX If you know a better way to solve the problem I'm solving with this,
+  // XXX please tell me. --Steve Augart
+  public VM_Method getVM_Method() {
+    return method;
+  }
+  
 
   public boolean equals(Object other) { 
     if (other instanceof Method) {
