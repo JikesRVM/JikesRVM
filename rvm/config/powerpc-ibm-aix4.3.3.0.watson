@@ -15,6 +15,7 @@
 #########
 # target architecutre is PowerPC
 export RVM_FOR_POWERPC=1
+export RVM_FOR_32_ADDR=1
 
 # target OS is AIX
 export RVM_FOR_AIX=1
@@ -23,6 +24,7 @@ export RVM_FOR_AIX=1
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
 export BOOTIMAGE_LOAD_ADDRESS="0x30000000"
+export MAXIMUM_MAPPABLE_ADDRESS="0xd0000000"
 
 ##########
 # PART II: Where to find tools and resources on this target

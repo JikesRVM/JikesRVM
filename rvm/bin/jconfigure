@@ -271,6 +271,11 @@ integer RVM_FOR_IA32=0     # also implies linux
 integer RVM_FOR_AIX=0	   # also implies ppc
 integer RVM_FOR_LINUX=0	   # 
 
+# 32-bit or 64-bit address size
+#
+integer RVM_FOR_32_ADDR=0
+integer RVM_FOR_64_ADDR=0
+
 # Here are the choices for compiler components and extensions.
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
 #
@@ -419,6 +424,7 @@ fi
 #    RVM_WITH_xxx --> -DRVM_WITH_xxx
 #
 PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=$BOOTIMAGE_LOAD_ADDRESS"
+PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS -DMAXIMUM_MAPPABLE_ADDRESS=$MAXIMUM_MAPPABLE_ADDRESS"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_WITH' | sed 's@RVM@-DRVM@'`"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_WITHOUT' | sed 's@RVM@-DRVM@'`"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_ON' | sed 's@RVM@-DRVM@'`"
