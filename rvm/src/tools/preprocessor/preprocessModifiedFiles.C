@@ -645,7 +645,7 @@ preprocess(const char *srcFile, const char *dstFile)
 
 		if (fclose(fout)) {
 		    fprintf(stderr,
-			    "%s: Trouble while closing an output file: ");
+			    "%s: Trouble while closing an output file: ", Me);
 		    perror(dstFile);
 		    if (!keep_going)
 			return TROUBLE;
@@ -1173,11 +1173,11 @@ cleanup_and_die(int signum)
 #ifdef __GLIBC__	    
 	    " (%s)"
 #endif
-	    "; cleaning up.\n", Me, 
+	    "; cleaning up.\n", Me, signum,
 #ifdef __GLIBC__	    
-	    strsignal(signum),
+	    strsignal(signum)
 #endif
-signum);
+	);
     delete_on_trouble();
     signal(signum, SIG_DFL);
     raise(signum);
