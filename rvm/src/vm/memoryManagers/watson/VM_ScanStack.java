@@ -206,6 +206,7 @@ public class VM_ScanStack
 	    int top_ip = t.contextRegisters.getInnermostInstructionAddress();
 	    int top_fp = t.contextRegisters.getInnermostFramePointer();
 	    VM_Scheduler.dumpStack( top_ip, top_fp );
+	    VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
 	  }
 	}
 	if (DUMP_STACK_REFS) {
