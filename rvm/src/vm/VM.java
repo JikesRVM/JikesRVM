@@ -578,6 +578,7 @@ public class VM extends VM_Properties implements VM_Constants,
     } else {
       if (runningVM) {
 	char[] chars = java.lang.JikesRVMSupport.getBackingCharArray(value);
+	int numChars = java.lang.JikesRVMSupport.getStringLength(value);
 	for (int i = 0; i < chars.length; i++) 
 	  write(chars[i]);
       } else {

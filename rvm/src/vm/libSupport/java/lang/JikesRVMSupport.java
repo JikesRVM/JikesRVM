@@ -31,4 +31,8 @@ public class JikesRVMSupport {
   public static char[] getBackingCharArray(String str) throws VM_PragmaUninterruptible {
     return str.value;
   }
+
+  public static int getStringLength(String str) throws VM_PragmaUninterruptible {
+    return str.count;
+  }
 }
