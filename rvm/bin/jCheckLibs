@@ -88,10 +88,11 @@ if [[ -r $license_file && x$MD5SUM != x && -x $MD5SUM ]] ; then
   fi
   if [[ $license != $md5 ]] ; then
     if [[ -f $license_cache ]] ; then
-      grep -v $license_name $license_cache > $license_cache.$$
+      grep -v $license_name $license_cache > $license_cache.$$ || true
     fi
     echo "$license_name $md5" >> $license_cache.$$
     mv -f $license_cache.$$ $license_cache
+    chmod 600 $license_cache
   fi
 fi
 
@@ -175,7 +176,7 @@ if [[ x$automatic = x ]] ; then
   fi
 fi
 if [[ x$automatic = xy || x$automatic = xyes ]] ; then
-  echo "Dowloading $RVM_ROOT/jlibraries-$revision.tar.gz"
+  echo "\nDowloading $RVM_ROOT/jlibraries-$revision.tar.gz"
   options="?rev=$revision&license=$license"
   $WGET -q -O $RVM_ROOT/jlibraries-$revision.tar.gz \
   "http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries.tar.gz$options"
