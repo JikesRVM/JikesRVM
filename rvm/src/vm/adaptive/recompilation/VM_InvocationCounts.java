@@ -16,6 +16,7 @@ import com.ibm.JikesRVM.opt.*;
  * recompilation at a default optimization level.
  * 
  * @author Dave Grove
+ * @modified Peter Sweeney 8/2003 to process command line arguments
  */
 public final class VM_InvocationCounts {
 
@@ -59,18 +60,31 @@ public final class VM_InvocationCounts {
     cp.execute();
   }
 
+  /**
+   *  Initialize the recompilation strategy.
+   *
+   *  Note: This uses the command line options to set up the
+   *  optimization plans, so this must be run after the command line
+   *  options are available.  
+   */
+  static void init() {
+    createOptimizationPlan();
+    VM_BaselineCompiler.options.INVOCATION_COUNTERS=true;
+  }
+
   private static  OPT_OptimizationPlanElement[] _optPlan;
   private static OPT_Options _options;
-
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
   static void createOptimizationPlan() {
     _options = new OPT_Options();
+
     int optLevel = VM_Controller.options.INVOCATION_COUNT_OPT_LEVEL;
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
     _options.setOptLevel(optLevel);
+    VM_RecompilationStrategy.processCommandLineOptions(_options,optLevel,optLevel,optCompilerOptions);
     _optPlan = OPT_OptimizationPlanner.createOptimizationPlan(_options);
   }
 

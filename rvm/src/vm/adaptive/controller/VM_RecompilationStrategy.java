@@ -273,14 +273,15 @@ abstract class VM_RecompilationStrategy {
   /**
    * Process the command line arguments and pass the appropriate ones to the 
    * OPT_Options
+   * Called by sampling and counters recompilation strategy.
    * 
    * @param options The options being constructed
    * @param optLevel The level of the options being constructed
    * @param maxOptLevel The maximum valid opt level
    * @param optCompilerOptions The list of command line options
    */
-  void processCommandLineOptions(OPT_Options options, int optLevel, int maxOptLevel,
-				 String optCompilerOptions[]) {
+  static void processCommandLineOptions(OPT_Options options, int optLevel, int maxOptLevel,
+					String optCompilerOptions[]) {
 
     String prefix = "opt"+optLevel+":";
     for (int j=0; j<optCompilerOptions.length; j++) {
