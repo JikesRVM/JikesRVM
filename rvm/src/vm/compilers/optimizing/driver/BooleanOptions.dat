@@ -199,7 +199,7 @@ Focus compilation effort based on frequency profile data
 PRINT_PHASES -1 false phases
 Print short message for each compilation phase
 
-PRINT_ALL_IR -1 false 
+PRINT_ALL_IR -1 false
 Dump the IR after each compiler phase
 
 PRINT_INLINE_REPORT -1 false
@@ -225,9 +225,6 @@ Print dependence graph before postpass scheduling
 
 PRINT_COALESCING -1 false pcoal
 Print coalescing output
-
-PRINT_DETAILED_INLINE_REPORT -1 false
-Print report regarding inlining decisions made with Gnosys turned on
 
 ## Options for IR printing at various points in compilation
 PRINT_HIGH -1 false high
@@ -303,5 +300,3 @@ Enable debugging support for ABCD (Array Bound Check elimination on Demand)
 PRINT_MC_SIZE -1 false
 Report generated machine code size
 
-SKIP_UNKNOWN_MAGIC -1 false
-Skip generation of unknown magic calls
