@@ -105,8 +105,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     if (!considerForRecompilation(hme, plan)) return null;
 
-    // double prevCompileTime = hme.getCompiledMethod().getCompilationTime();
-    double prevCompileTime = estimatePrevCompileTime(hme);
+    double prevCompileTime = 0.0;
+    if (VM_Controller.options.ESTIMATE_COMPILATION_TIME) {
+      prevCompileTime = estimatePrevCompileTime(hme);
+    } else {
+      prevCompileTime = hme.getCompiledMethod().getCompilationTime();
+    }
     
     // Now we know the compiler that generated the method (prevCompiler).
     // the compile time it took to generate it (prevCompileTime), and that 
@@ -121,6 +125,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     // spend just as much time in the method in the future as we have so far.
     VM_RecompilationChoice bestActionChoice = null;
     double bestActionTime = futureTimeForMethod;
+    double bestCost = 0.0;
     
     if (VM.LogAOSEvents) { 
       VM_AOSLogging.recordControllerEstimateCostDoNothing
@@ -148,12 +153,14 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 	VM_AOSLogging.recordControllerEstimateCostOpt
 	  (cmpMethod.getMethod(),
 	   choice.toString(),
+	   cost,
 	   curActionTime);
       }
       
       if (curActionTime < bestActionTime) {
 	bestActionTime = curActionTime;
 	bestActionChoice = choice;
+	bestCost = cost;
       }
     }
     
@@ -163,7 +170,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     } else {
       plan = bestActionChoice.makeControllerPlan(cmpMethod, prevCompiler,
 						 futureTimeForMethod,
-						 bestActionTime);
+						 bestActionTime,
+						 bestCost);
     }
     return plan;
   }
@@ -266,10 +274,11 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     if (futureTimeForMethod > futureTimeOptimized + millis) {
       VM_AOSLogging.recordOSRRecompilationDecision(prev);
       VM_ControllerPlan p = new VM_ControllerPlan(prev.getCompPlan(), 
-                                                         prev.getTimeCreated(),
-                                                         hme.getCMID(),
-                                                         prev.getExpectedSpeedup(),
-                                                         prev.getPriority());
+						  prev.getTimeCreated(),
+						  hme.getCMID(),
+						  prev.getExpectedSpeedup(),
+						  millis,
+						  prev.getPriority());
 	  // set up state to trigger osr
 	  p.setStatus(VM_ControllerPlan.OSR_BASE_2_OPT);
       return p;
@@ -312,6 +321,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 							  futureTimeForMethod);
       VM_AOSLogging.recordControllerEstimateCostOpt(cmpMethod.getMethod(),
 						    "O"+prevOptLevel+"AI",
+						    prevCompileTime,
 						    futureTimeForFDOMethod);
     }
 
@@ -323,6 +333,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 				  optLevel, null, 
 				  cmpMethod.getId(), 
 				  event.getBoostFactor(),
+				  futureTimeForFDOMethod,
 				  priority);
       plan.execute();
     }
