@@ -36,7 +36,7 @@ done
 # make build directory
 mkdir -p $DEST_DIR
 export RVM_BUILD=$DEST_DIR/tmp_build
-$RVM_ROOT/rvm/bin/jconfigure JMTkFullAdaptiveSemispace < /dev/null
+$RVM_ROOT/rvm/bin/jconfigure FullAdaptiveSemiSpace < /dev/null
 cd $RVM_BUILD
 ./jbuild -nolink -nobooter
 
