@@ -273,7 +273,7 @@ public final class VM_MethodCountData
    * @return a value [0.0...1.0]
    */
   private double countsToHotness(double numCounts) {
-    if (VM.VerifyAssertions) VM.assert(numCounts <= totalCountsTaken);
+    if (VM.VerifyAssertions) VM._assert(numCounts <= totalCountsTaken);
     return numCounts / totalCountsTaken;
   }
 
@@ -506,15 +506,15 @@ public final class VM_MethodCountData
     if (DEBUG && VM.VerifyAssertions) {
       // (1) Verify map and cmids are in synch
       for (int i=0; i<map.length; i++) {
-	VM.assert(map[i] == 0 || cmids[map[i]] == i);
+	VM._assert(map[i] == 0 || cmids[map[i]] == i);
       }
       for (int i=1; i<nextIndex; i++) {
-	VM.assert(map[cmids[i]] == i);
+	VM._assert(map[cmids[i]] == i);
       }
 
       // Verify that heap property holds on data.
       for (int i=2; i<nextIndex; i++) {
-	VM.assert(counts[i] <= counts[i/2]);
+	VM._assert(counts[i] <= counts[i/2]);
       }
     }
   }

@@ -78,14 +78,14 @@ final class VM_AppelHeap extends VM_Heap
       VM_Address middle = VM_Memory.roundDownPage(start.add(end.diff(start) / 2));
       if (nurseryHeap.sense() == VM_ContiguousHeap.FORWARD) {
 	  int available = fromHeap.current().diff(middle);
-	  if (VM.VerifyAssertions) VM.assert(available > 0);
+	  if (VM.VerifyAssertions) VM._assert(available > 0);
 	  VM_Address newMiddle = nurseryHeap.start.add(available);
 	  nurseryHeap.setRegion(nurseryHeap.start, newMiddle, VM_ContiguousHeap.FORWARD);
 	  fromHeap.extendRegion(newMiddle);
       }
       else {
 	  int available = middle.diff(fromHeap.current());
-	  if (VM.VerifyAssertions) VM.assert(available > 0);
+	  if (VM.VerifyAssertions) VM._assert(available > 0);
 	  VM_Address newMiddle = nurseryHeap.end.sub(available);
 	  nurseryHeap.setRegion(newMiddle, nurseryHeap.end, VM_ContiguousHeap.BACKWARD);
 	  fromHeap.extendRegion(newMiddle);
@@ -149,11 +149,11 @@ final class VM_AppelHeap extends VM_Heap
   }
 
   public void detach(int size) throws VM_PragmaUninterruptible {
-      VM.assert(false);
+      VM._assert(false);
   }
 
-  public void zeroFreeSpace() throws VM_PragmaUninterruptible { VM.assert(false); }
-  public void zeroFreeSpaceParallel() throws VM_PragmaUninterruptible { VM.assert(false); }
-  public int freeMemory() throws VM_PragmaUninterruptible { VM.assert(false); return 0; }
+  public void zeroFreeSpace() throws VM_PragmaUninterruptible { VM._assert(false); }
+  public void zeroFreeSpaceParallel() throws VM_PragmaUninterruptible { VM._assert(false); }
+  public int freeMemory() throws VM_PragmaUninterruptible { VM._assert(false); return 0; }
 
 }

@@ -333,7 +333,7 @@ public class VM_EventLogger implements VM_Uninterruptible {
          }
       else
          { // end of event
-         if (VM.VerifyAssertions) VM.assert(eventIndex > 0 && eventLogger.eventId[eventIndex - 1] == NETWORK_SELECT);
+         if (VM.VerifyAssertions) VM._assert(eventIndex > 0 && eventLogger.eventId[eventIndex - 1] == NETWORK_SELECT);
          eventIndex -= 1;
          eventLogger.eventData1[eventIndex] = nready; // number of sockets ready
          eventLogger.eventData2[eventIndex] += 1;     // number of event repetitions

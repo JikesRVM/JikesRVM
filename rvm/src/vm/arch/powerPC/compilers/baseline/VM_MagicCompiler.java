@@ -331,7 +331,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitMTLR(S0);                                         // ...return address
       asm.emitBLR ();                                           // return to caller
     } else if (methodName == VM_MagicNames.dynamicBridgeTo) {
-      if (VM.VerifyAssertions) VM.assert(compiler.klass.isDynamicBridge());
+      if (VM.VerifyAssertions) VM._assert(compiler.klass.isDynamicBridge());
          
       // fetch parameter (address to branch to) into CT register
       //
@@ -482,7 +482,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitSTU (T0, -4, SP);
     } else {
       VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + "\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
   }
 

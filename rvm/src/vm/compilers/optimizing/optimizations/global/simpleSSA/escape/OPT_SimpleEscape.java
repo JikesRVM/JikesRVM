@@ -149,7 +149,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
 
       if (VM.VerifyAssertions && use.type == null) {
 	  ir.printInstructions();
-	  VM.assert(false, "type of " + use + " is null");
+	  VM._assert(false, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -171,7 +171,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
 
       if (VM.VerifyAssertions && def.type == null) {
 	  ir.printInstructions();
-	  VM.assert(false, "type of " + def + " is null");
+	  VM._assert(false, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes

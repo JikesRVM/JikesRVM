@@ -120,7 +120,7 @@ final class OPT_Diamond {
     
     OPT_Instruction cb = top.firstBranchInstruction();
     // for now we only support IfCmp diamonds.
-    if (VM.VerifyAssertions) VM.assert(IfCmp.conforms(cb));
+    if (VM.VerifyAssertions) VM._assert(IfCmp.conforms(cb));
 
     OPT_BranchOperand takenTarget = IfCmp.getTarget(cb);
     if (Label.getBlock(takenTarget.target).block == left) {
@@ -138,7 +138,7 @@ final class OPT_Diamond {
     
     OPT_Instruction cb = top.firstBranchInstruction();
     // for now we only support IfCmp diamonds.
-    if (VM.VerifyAssertions) VM.assert(IfCmp.conforms(cb));
+    if (VM.VerifyAssertions) VM._assert(IfCmp.conforms(cb));
 
     OPT_BranchOperand takenTarget = IfCmp.getTarget(cb);
     if (Label.getBlock(takenTarget.target).block == side) {

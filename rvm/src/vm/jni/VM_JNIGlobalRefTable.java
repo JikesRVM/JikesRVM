@@ -16,8 +16,8 @@ class VM_JNIGlobalRefTable {
     static int free = 0;
 
     static int newGlobalRef(Object referent) {
-	if (VM.VerifyAssertions) VM.assert( free < 100 );
-	if (VM.VerifyAssertions) VM.assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(referent) ) );
+	if (VM.VerifyAssertions) VM._assert( free < 100 );
+	if (VM.VerifyAssertions) VM._assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(referent) ) );
 	refs[ free ] = referent;
 	return - free++;
     }

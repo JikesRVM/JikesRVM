@@ -25,9 +25,9 @@ public class VM_Statistic implements VM_Uninterruptible {
   }
 
   public final int count() { return count; }
-  public final double last() { if (VM.VerifyAssertions) VM.assert(count > 0); return last; }
+  public final double last() { if (VM.VerifyAssertions) VM._assert(count > 0); return last; }
   public final double sum()  { return sum; }
-  public final double max()  { if (VM.VerifyAssertions) VM.assert(count > 0); return max; }
-  public final double avg()  { if (VM.VerifyAssertions) VM.assert(count > 0); return sum / count; }
+  public final double max()  { if (VM.VerifyAssertions) VM._assert(count > 0); return max; }
+  public final double avg()  { if (VM.VerifyAssertions) VM._assert(count > 0); return sum / count; }
 
 }

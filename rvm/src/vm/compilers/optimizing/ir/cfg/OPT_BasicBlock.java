@@ -1199,7 +1199,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final OPT_BasicBlock segregateInstruction(OPT_Instruction target, 
 						   OPT_IR ir) {
-    if (OPT_IR.PARANOID) VM.assert(this == target.getBasicBlock());
+    if (OPT_IR.PARANOID) VM._assert(this == target.getBasicBlock());
     
     OPT_BasicBlock BB1 = splitNodeAt(target.getPrev(), ir);
     this.insertOut(BB1);
@@ -1235,7 +1235,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final OPT_BasicBlock splitNodeAt(OPT_Instruction last_instr_BB1, 
 					  OPT_IR ir) {
-    if (OPT_IR.PARANOID) VM.assert(this == last_instr_BB1.getBasicBlock());
+    if (OPT_IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
 
     OPT_BasicBlock BB1 = this;
     OPT_BasicBlock BB2 = new OPT_BasicBlock(last_instr_BB1.bcIndex, 
@@ -1257,7 +1257,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     // Update code ordering (see header comment above)
     if (BB3 == null) {
       ir.cfg.addLastInCodeOrder(BB2);
-      if (OPT_IR.PARANOID) VM.assert(BB1.next == BB2 && BB2.prev == BB1);
+      if (OPT_IR.PARANOID) VM._assert(BB1.next == BB2 && BB2.prev == BB1);
       ir.cfg.breakCodeOrder(BB1, BB2);
     } else {
       ir.cfg.breakCodeOrder(BB1, BB3);
@@ -1304,7 +1304,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   public final OPT_BasicBlock splitNodeWithLinksAt(OPT_Instruction last_instr_BB1,
 						   OPT_IR ir) {
     
-    if (OPT_IR.PARANOID) VM.assert(this == last_instr_BB1.getBasicBlock());
+    if (OPT_IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
     
     OPT_BasicBlock BB2 = splitNodeAt(last_instr_BB1, ir);
     this.insertOut(BB2);
@@ -1588,7 +1588,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
            e.hasMoreElements(); ) {
         OPT_BasicBlockEnumeration targets = e.next().getBranchTargets();
         while (targets.hasMoreElements()) {
-          VM.assert(targets.next() == succBB);
+          VM._assert(targets.next() == succBB);
         }
       }
     }

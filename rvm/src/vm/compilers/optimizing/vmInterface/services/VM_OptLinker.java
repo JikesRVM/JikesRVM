@@ -80,7 +80,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       // code is executed, the method offset table will contain a valid value.
     default:
       if (VM.VerifyAssertions)
-	VM.assert(VM.NOT_REACHED, 
+	VM._assert(VM.NOT_REACHED, 
 		  "Unexpected case in VM_OptLinker.resolveDynamicLink");
       break;
     }

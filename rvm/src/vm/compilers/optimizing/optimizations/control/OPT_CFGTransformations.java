@@ -187,7 +187,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   private static void addToLoops(OPT_BasicBlock b, OPT_LSTNode n) {
     while (n.loop != null) {
       if (VM.VerifyAssertions)
-        VM.assert(n.hasOneIn());
+        VM._assert(n.hasOneIn());
       n.loop.set(b.getNumber());
       n = (OPT_LSTNode)n.firstInNode();
     }

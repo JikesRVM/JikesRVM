@@ -253,7 +253,7 @@ public class VM_Memory implements VM_Uninterruptible {
    * Returned: nothing
    */
   public static void zeroPages(VM_Address start, int len) {
-    if (VM.VerifyAssertions) VM.assert(isPageAligned(start) && isPageMultiple(len));
+    if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall2(bootRecord.sysZeroPagesIP, start.toInt(), len);
   }
@@ -360,7 +360,7 @@ public class VM_Memory implements VM_Uninterruptible {
   public static VM_Address mmap(VM_Address address, int size, 
                          int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
+      VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
     return VM_Address.max();  // not implemented: requires new magic for 6 args, etc.
     // VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     // return VM.sysCallXXX(bootRecord.sysMMapIP, address, size, prot, flags, fd, offset);
@@ -375,7 +375,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static VM_Address mmapFile(VM_Address address, int size, int fd, int prot) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM_Address.fromInt(VM.sysCall4(bootRecord.sysMMapGeneralFileIP, address.toInt(), size, fd, prot));
   }
@@ -390,7 +390,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static VM_Address mmap(VM_Address address, int size, int prot, int flags) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int result = VM.sysCall4(bootRecord.sysMMapNonFileIP, address.toInt(), size, prot, flags);
     return VM_Address.fromInt(result);
@@ -404,7 +404,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static VM_Address mmap(VM_Address address, int size) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM_Address.fromInt(VM.sysCall2(bootRecord.sysMMapDemandZeroFixedIP, address.toInt(), size));
   }
@@ -415,7 +415,7 @@ public class VM_Memory implements VM_Uninterruptible {
    * Returned: VM_Address (of region)
    */
   public static VM_Address mmap(int size) {
-    if (VM.VerifyAssertions) VM.assert(isPageMultiple(size));
+    if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM_Address.fromInt(VM.sysCall1(bootRecord.sysMMapDemandZeroAnyIP, size));
   }
@@ -428,7 +428,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static int munmap(VM_Address address, int size) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall2(bootRecord.sysMUnmapIP, address.toInt(), size);
   }
@@ -442,7 +442,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static boolean mprotect(VM_Address address, int size, int prot) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall3(bootRecord.sysMProtectIP, address.toInt(), size, prot) == 0;
   }
@@ -456,7 +456,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static boolean msync(VM_Address address, int size, int flags) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall3(bootRecord.sysMSyncIP, address.toInt(), size, flags) == 0;
   }
@@ -470,7 +470,7 @@ public class VM_Memory implements VM_Uninterruptible {
    */
   public static boolean madvise(VM_Address address, int size, int advice) {
     if (VM.VerifyAssertions)
-      VM.assert(isPageAligned(address) && isPageMultiple(size));
+      VM._assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall3(bootRecord.sysMAdviseIP, address.toInt(), size, advice) == 0;
   }
@@ -586,7 +586,7 @@ public class VM_Memory implements VM_Uninterruptible {
         temp >>>= 1;
         pagesizeLog++;
       }
-      if (VM.VerifyAssertions) VM.assert((1 << pagesizeLog) == pagesize);
+      if (VM.VerifyAssertions) VM._assert((1 << pagesizeLog) == pagesize);
     }
     return pagesize;
   }

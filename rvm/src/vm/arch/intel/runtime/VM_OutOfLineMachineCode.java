@@ -218,7 +218,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    Thread state stored into VM_Registers object 
    */
   private static INSTRUCTION[] generateSaveThreadStateInstructions() {
-    if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
+    if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
     int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
     int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
@@ -253,7 +253,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
   private static INSTRUCTION[] generateThreadSwitchInstructions() {
-    if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
+    if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
     int   fpOffset = VM_Entrypoints.registersFPField.getOffset();

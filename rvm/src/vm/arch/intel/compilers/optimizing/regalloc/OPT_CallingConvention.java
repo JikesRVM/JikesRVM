@@ -523,7 +523,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     
     OPT_Instruction p = ir.firstInstructionInCodeOrder().
       nextInstructionInCodeOrder();
-    if (VM.VerifyAssertions) VM.assert(p.operator == IR_PROLOGUE);
+    if (VM.VerifyAssertions) VM._assert(p.operator == IR_PROLOGUE);
     OPT_Instruction start = p.nextInstructionInCodeOrder();
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -589,7 +589,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       }
     }
 
-    if (VM.VerifyAssertions) VM.assert(paramByteOffset == 8, "pb = "+paramByteOffset);
+    if (VM.VerifyAssertions) VM._assert(paramByteOffset == 8, "pb = "+paramByteOffset);
     
     // Now that we've made the calling convention explicit in the prologue,
     // set IR_PROLOGUE to have no defs.

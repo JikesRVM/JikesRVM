@@ -43,7 +43,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   //
   public void enqueueHighPriority (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
     t.next = head;
     head = t;
     if (tail == null)
@@ -54,7 +54,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   //
   public void enqueue (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
     if (head == null)
       head = t;
     else
@@ -82,8 +82,8 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   // Used by RCGC to dequeue collectorThread by processor ID
   //
   VM_Thread dequeue (int processorID) {
-    if (VM.VerifyAssertions) VM_Scheduler.assert(processorID != 0);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(head != null);
+    if (VM.VerifyAssertions) VM_Scheduler._assert(processorID != 0);
+    if (VM.VerifyAssertions) VM_Scheduler._assert(head != null);
 
     VM_Thread currentThread = head;
     VM_Thread nextThread = head.next;
@@ -108,7 +108,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
       nextThread = nextThread.next;
     }
 
-    if (VM.VerifyAssertions) VM_Scheduler.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM_Scheduler._assert(VM.NOT_REACHED);
     return null;
   }
 

@@ -74,7 +74,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
         VM.sysWrite("\nVM_ScanObject: objRef = ");
         VM.sysWrite(VM_Magic.objectAsAddress(type));
         VM.sysWrite("\n");
-        VM.assert(type != null);
+        VM._assert(type != null);
       }
     }
     if ( type.isClassType() ) {
@@ -85,7 +85,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
       VM_GCStatistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
     else {
-      if (VM.VerifyAssertions) VM.assert(type.isArrayType());
+      if (VM.VerifyAssertions) VM._assert(type.isArrayType());
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
         int num_elements = VM_Magic.getArrayLength(obj);

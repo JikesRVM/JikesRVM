@@ -440,9 +440,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   static void yield (VM_Processor p) {
     VM_Thread myThread = getCurrentThread();
     if (VM.VerifyAssertions) {
-      VM.assert(p.processorMode==VM_Processor.NATIVE);
-      VM.assert(VM_Processor.vpStatus[p.vpStatusIndex]==VM_Processor.BLOCKED_IN_NATIVE);
-      VM.assert(myThread.isNativeIdleThread==true);
+      VM._assert(p.processorMode==VM_Processor.NATIVE);
+      VM._assert(VM_Processor.vpStatus[p.vpStatusIndex]==VM_Processor.BLOCKED_IN_NATIVE);
+      VM._assert(myThread.isNativeIdleThread==true);
     }
     myThread.beingDispatched = true;
     p.transferMutex.lock();
@@ -460,8 +460,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
 
     if (VM.VerifyAssertions) 
-      VM.assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
-    if (VM.VerifyAssertions) VM.assert(myThread.beingDispatched == true);
+      VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
+    if (VM.VerifyAssertions) VM._assert(myThread.beingDispatched == true);
 
     // become another thread
     //
@@ -498,7 +498,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
 
     VM_Processor p = VM_Thread.getCurrentThread().nativeAffinity;
-    if (VM.VerifyAssertions) VM.assert( p != null, "null nativeAffinity, should have been recorded by C caller\n");
+    if (VM.VerifyAssertions) VM._assert( p != null, "null nativeAffinity, should have been recorded by C caller\n");
     
     // ship the thread to the native processor
     p.transferMutex.lock();
@@ -575,7 +575,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread currentThread = getCurrentThread();
     currentThread.run();
     terminate();
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
 
@@ -661,11 +661,11 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     VM_Scheduler.threadCreationMutex.unlock();
     if (VM.VerifyAssertions) 
-      VM.assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
+      VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
 
     if (terminateSystem) {
       VM.sysExit(0);
-      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
     //add Native Thread Virtual Processor to dead VP queue
@@ -692,7 +692,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     VM_Processor.getCurrentProcessor().dispatch();
 
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
   
   /**
@@ -800,7 +800,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 //-#if RVM_FOR_IA32
     VM_Magic.returnToNewStack(newFP);
 //-#endif
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -956,7 +956,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       // before copying, make sure new stack isn't too small
       //
       if (VM.VerifyAssertions)
-	  VM.assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
+	  VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
 
       VM_Memory.aligned32Copy(newFP, myFP, myDepth);
 
@@ -984,7 +984,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       if (VM.TraceThreads) VM_Scheduler.trace("VM_Thread", 
 					      "last non Daemon demonized");
       VM.sysExit(0);
-      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
   

@@ -89,8 +89,8 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Usable from classes outside this package?
    */ 
   public final boolean isPublic() {
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
@@ -98,8 +98,8 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Usable only from this class?
    */ 
   public final boolean isPrivate() { 
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PRIVATE) != 0; 
   }
    
@@ -107,8 +107,8 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Usable from subclasses?
    */ 
   public final boolean isProtected() { 
-    if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PROTECTED) != 0; 
   } 
 
@@ -147,7 +147,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
       // and have had their static initializers run by the boot image writer.
       //
       if (!thisClass.isResolved()) VM.sysWrite("unresolved: \"" + this + "\" referenced from \"" + that + "\"\n");
-      if (VM.VerifyAssertions) VM.assert(thisClass.isResolved());
+      if (VM.VerifyAssertions) VM._assert(thisClass.isResolved());
       return false;
     }
 

@@ -115,7 +115,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase
 
     if (yp == YIELDPOINT_PROLOGUE) {
       if (VM.VerifyAssertions) {
-	VM.assert((insertionPoint != null) && 
+	VM._assert((insertionPoint != null) && 
 		  (insertionPoint.getOpcode() == IR_PROLOGUE_opcode));
       }
       // put it after the prologue

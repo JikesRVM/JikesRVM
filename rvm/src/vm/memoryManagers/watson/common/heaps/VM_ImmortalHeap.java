@@ -122,7 +122,7 @@ public final class VM_ImmortalHeap extends VM_Heap
    * @return the reference for the allocated array object 
    */
   public Object allocateAlignedArray(VM_Array type, int numElements, int alignment) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(type.isInitialized());
+    if (VM.VerifyAssertions) VM._assert(type.isInitialized());
     int size = type.getInstanceSize(numElements);
     size = VM_Memory.align(size, WORDSIZE);
     Object[] tib = type.getTypeInformationBlock();

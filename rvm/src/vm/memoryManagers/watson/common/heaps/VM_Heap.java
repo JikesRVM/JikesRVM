@@ -81,7 +81,7 @@ public abstract class VM_Heap
     bootHeap.start = bootRecord.bootImageStart;
     bootHeap.end = bootRecord.bootImageEnd;
     bootHeap.setAuxiliary();
-    if (VM.VerifyAssertions) VM.assert(bootHeap.refInHeap(VM_Magic.objectAsAddress(bootHeap)));
+    if (VM.VerifyAssertions) VM._assert(bootHeap.refInHeap(VM_Magic.objectAsAddress(bootHeap)));
   }
 
   /**
@@ -155,7 +155,7 @@ public abstract class VM_Heap
    * Set minRef, maxRef, size and update bootRecord heap ranges
    */
   void setAuxiliary() throws VM_PragmaUninterruptible {     
-    if (VM.VerifyAssertions) VM.assert(id < bootRecord.heapRanges.length - 2); 
+    if (VM.VerifyAssertions) VM._assert(id < bootRecord.heapRanges.length - 2); 
     bootRecord.heapRanges[2 * id] = start.toInt();
     bootRecord.heapRanges[2 * id + 1] = end.toInt();
     minRef = VM_ObjectModel.minimumObjectRef(start);
@@ -183,7 +183,7 @@ public abstract class VM_Heap
    * Zero the entire heap
    */
   public final void zero() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(VM_Memory.roundDownPage(size) == size);
+    if (VM.VerifyAssertions) VM._assert(VM_Memory.roundDownPage(size) == size);
     VM_Memory.zeroPages(start, size);
   }
 
@@ -191,8 +191,8 @@ public abstract class VM_Heap
    * Zero the portion of the s ..e range of this heap that is assigned to the given processor
    */
   public final void zeroParallel(VM_Address s, VM_Address e) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(s.GE(start));
-    if (VM.VerifyAssertions) VM.assert(e.LE(end));
+    if (VM.VerifyAssertions) VM._assert(s.GE(start));
+    if (VM.VerifyAssertions) VM._assert(e.LE(end));
     int np = VM_CollectorThread.numCollectors();
     VM_CollectorThread self = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     int which = self.gcOrdinal - 1;  // gcOrdinal starts at 1
@@ -201,7 +201,7 @@ public abstract class VM_Heap
     VM_Address zeroEnd = zeroBegin.add(chunk);
     if (zeroEnd.GT(end)) zeroEnd = end;
     int size = zeroEnd.diff(zeroBegin);  // actual size to zero
-    if (VM.VerifyAssertions) VM.assert(VM_Memory.roundUpPage(size) == size);
+    if (VM.VerifyAssertions) VM._assert(VM_Memory.roundUpPage(size) == size);
     VM_Memory.zeroPages(zeroBegin, size);
 
   }
@@ -210,7 +210,7 @@ public abstract class VM_Heap
    * size is specified in bytes and must be positive - automatically rounded up to the next page
    */
   public void attach(int size) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(bootRecord != null);
+    if (VM.VerifyAssertions) VM._assert(bootRecord != null);
     if (size < 0) 
       VM.sysFail("VM_Heap.attach given negative size\n");
     if (this.size != 0)
@@ -225,7 +225,7 @@ public abstract class VM_Heap
 	start.LT(VM_Address.fromInt(128))) {  // errno range
       VM.sysWrite("VM_Heap failed to mmap ", size / 1024);
       VM.sysWrite(" Kbytes with errno = "); VM.sysWrite(start); VM.sysWriteln();
-      if (VM.VerifyAssertions) VM.assert(false);
+      if (VM.VerifyAssertions) VM._assert(false);
     }
     end = start.add(size);
     if (verbose >= 1) {
@@ -249,7 +249,7 @@ public abstract class VM_Heap
       VM.sysWrite(" Kbytes at ");
       VM.sysWrite(end);
       VM.sysWriteln(" with errno = ", status);
-      if (VM.VerifyAssertions) VM.assert(false);
+      if (VM.VerifyAssertions) VM._assert(false);
     }
     if (verbose >= 1) {
       VM.sysWrite("VM_Heap.grow successfully mmap additional ", (sz - size) / 1024);
@@ -358,7 +358,7 @@ public abstract class VM_Heap
    * @return the reference for the allocated object
    */
   public final Object allocateScalar(VM_Class type) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(type.isInitialized());
+    if (VM.VerifyAssertions) VM._assert(type.isInitialized());
     int size = type.getInstanceSize();
     Object[] tib = type.getTypeInformationBlock();
     return allocateScalar(size, tib);
@@ -375,7 +375,7 @@ public abstract class VM_Heap
    * @return the reference for the allocated array object 
    */
   public final Object allocateArray(VM_Array type, int numElements) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(type.isInitialized());
+    if (VM.VerifyAssertions) VM._assert(type.isInitialized());
     int size = type.getInstanceSize(numElements);
     Object[] tib = type.getTypeInformationBlock();
     return allocateArray(numElements, size, tib);

@@ -174,7 +174,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	report ("7 too complex exit\n"); return true;}
       succBlock = Label.getBlock(Goto.getTarget(aGoto).target).block;
       if (VM.VerifyAssertions)
-	VM.assert (aGoto == exitBlock.lastRealInstruction());
+	VM._assert (aGoto == exitBlock.lastRealInstruction());
     } else {
       succBlock = exitBlock.getFallThroughBlock();
     }
@@ -485,10 +485,10 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     tmp.insertBefore (Goto.create(GOTO, mainHeader.makeJumpTarget()));
     
     // repair back edge in mainExit
-    if (VM.VerifyAssertions) VM.assert (mainExit != null);
+    if (VM.VerifyAssertions) VM._assert (mainExit != null);
     tmp = mainExit.lastInstruction();
     if (VM.VerifyAssertions)
-      VM.assert ((   mainExit.lastRealInstruction() == null)
+      VM._assert ((   mainExit.lastRealInstruction() == null)
 		 || !mainExit.lastRealInstruction().isBranch());
     tmp.insertBefore
       (IfCmp.create (INT_IFCMP, ifcmpGuard.copyU2U(),

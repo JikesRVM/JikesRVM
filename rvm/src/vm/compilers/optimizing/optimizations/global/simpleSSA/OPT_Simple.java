@@ -181,7 +181,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
 	  OPT_RegisterOperand rhsRegOp = rhs.asRegister();
 	  for (OPT_RegisterOperand use = reg.useList; use != null; use = nextUse) {
 	    nextUse = use.getNext(); // get early before reg's useList is updated. 
-	    if (VM.VerifyAssertions) VM.assert(rhsRegOp.register.getType() == use.register.getType());
+	    if (VM.VerifyAssertions) VM._assert(rhsRegOp.register.getType() == use.register.getType());
             OPT_DefUse.transferUse(use, rhsRegOp);
 	  }
 	} else if (rhs.isConstant()) {

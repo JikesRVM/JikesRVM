@@ -74,7 +74,7 @@ public class VM_WriteBuffer implements VM_Constants,
   static void growWriteBuffer() throws VM_PragmaUninterruptible {
     VM_Processor vp = VM_Processor.getCurrentProcessor();
 
-    if (VM.VerifyAssertions) VM.assert(vp.modifiedOldObjectsTop==vp.modifiedOldObjectsMax);
+    if (VM.VerifyAssertions) VM._assert(vp.modifiedOldObjectsTop==vp.modifiedOldObjectsMax);
 
     VM_Address newBufAddr = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
 							   WRITE_BUFFER_SIZE));
@@ -93,7 +93,7 @@ public class VM_WriteBuffer implements VM_Constants,
   }
 
   static void setupProcessor(VM_Processor p) throws VM_PragmaInterruptible {
-    if (VM.VerifyAssertions) VM.assert(VM_Collector.NEEDS_WRITE_BARRIER == true);
+    if (VM.VerifyAssertions) VM._assert(VM_Collector.NEEDS_WRITE_BARRIER == true);
 
     // setupProcessor will be called twice for the PRIMORDIAL processor.
     // Once while building the bootImage (VM.runningVM=false) and again when
@@ -104,7 +104,7 @@ public class VM_WriteBuffer implements VM_Constants,
 	// allocate buffer, but cannot set TOP and MAX addresses
 	p.modifiedOldObjects = new int[WRITE_BUFFER_SIZE >> 2];
       } else {
-	if (VM.VerifyAssertions) VM.assert(p.modifiedOldObjects != null);
+	if (VM.VerifyAssertions) VM._assert(p.modifiedOldObjects != null);
 	// initialize write buffer pointers, setting "max" so as to reserve last slot
 	// for ptr to next write buffer (initially null). see also: VM.boot() write buffer init.
 	p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects).sub(4);
@@ -113,7 +113,7 @@ public class VM_WriteBuffer implements VM_Constants,
     } else {
       // setup for processors created while the VM is running.
       // allocate buffer and initialize integer pointers to TOP & MAX
-      if (VM.VerifyAssertions) VM.assert(VM.runningVM == true);
+      if (VM.VerifyAssertions) VM._assert(VM.runningVM == true);
       p.modifiedOldObjects = new int[WRITE_BUFFER_SIZE >> 2];
       p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects).sub(4);
       p.modifiedOldObjectsMax = p.modifiedOldObjectsTop.add((p.modifiedOldObjects.length << 2) - 4);
@@ -174,7 +174,7 @@ public class VM_WriteBuffer implements VM_Constants,
     }
     
     if (VM.VerifyAssertions)
-      VM.assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
+      VM._assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
 		 (vp.modifiedOldObjectsTop.GE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4))) );
     
     freeBuffers(vp);
@@ -210,7 +210,7 @@ public class VM_WriteBuffer implements VM_Constants,
   static void resetBarrierBits(VM_Processor vp) throws VM_PragmaUninterruptible {
     int count = 0;
     
-    if (VM.VerifyAssertions) VM.assert(VM_Allocator.writeBarrier == true);
+    if (VM.VerifyAssertions) VM._assert(VM_Allocator.writeBarrier == true);
     
     if (trace) VM_Scheduler.trace("VM_WriteBuffer", "in resetBarrierBits");
     
@@ -248,7 +248,7 @@ public class VM_WriteBuffer implements VM_Constants,
     }
     
     if (VM.VerifyAssertions)
-      VM.assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
+      VM._assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
 		 (vp.modifiedOldObjectsTop.GE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4))) );
     
     freeBuffers(vp);
@@ -303,7 +303,7 @@ public class VM_WriteBuffer implements VM_Constants,
     }
     
     if (VM.VerifyAssertions)
-      VM.assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
+      VM._assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
 		 (vp.modifiedOldObjectsTop.GE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4))) );
     
     freeBuffers(vp);

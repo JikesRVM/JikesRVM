@@ -38,7 +38,7 @@ public final class OPT_BitSet {
    */
   public void addAll(OPT_BitSet B) {
     if (VM.VerifyAssertions) {
-      VM.assert(map == B.map);
+      VM._assert(map == B.map);
     }
     vector.or(B.vector);
   }

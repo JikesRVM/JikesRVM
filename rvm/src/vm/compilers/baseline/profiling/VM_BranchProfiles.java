@@ -31,7 +31,7 @@ final class VM_BranchProfiles implements VM_BytecodeConstants {
       }
       if (low >= high) { 
 	// search failed
-	if (VM.VerifyAssertions) { VM.assert(false); }
+	if (VM.VerifyAssertions) { VM._assert(false); }
 	return null;
       }
       if (bci > bcIndex) {
@@ -116,7 +116,7 @@ final class VM_BranchProfiles implements VM_BytecodeConstants {
 
       default: { 
 	int size = JBC_length[code];
-	if (VM.VerifyAssertions) VM.assert(size > 0);
+	if (VM.VerifyAssertions) VM._assert(size > 0);
 	bcIndex += size;
 	break;
       }
@@ -124,7 +124,7 @@ final class VM_BranchProfiles implements VM_BytecodeConstants {
     }
 
     // Make sure we are in sync
-    if (VM.VerifyAssertions) VM.assert(countIdx == cs.length); 
+    if (VM.VerifyAssertions) VM._assert(countIdx == cs.length); 
 
     if (dataIdx != data.length) {
       // We had a switch statment; shrink the array.

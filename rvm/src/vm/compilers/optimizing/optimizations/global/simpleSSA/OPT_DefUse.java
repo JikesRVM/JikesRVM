@@ -181,7 +181,7 @@ final class OPT_DefUse implements OPT_Operators {
   static void transferUse(OPT_RegisterOperand origRegOp, 
 			  OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions)
-      VM.assert(origRegOp.register.getType() == newRegOp.register.getType());
+      VM._assert(origRegOp.register.getType() == newRegOp.register.getType());
     OPT_Instruction inst = origRegOp.instruction;
     if (DEBUG)
       VM.sysWrite("Transfering a use of " + origRegOp + " in " + inst + 

@@ -179,7 +179,7 @@ abstract class OPT_AbstractRegisterPool {
     case OPT_Register.VALIDATION_TYPE: 
       return getValidation();
     }
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 

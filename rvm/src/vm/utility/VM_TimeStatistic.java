@@ -17,12 +17,12 @@ public class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible
     public double lastStop = -1.0;
 
     public void start(double x) {
-	if (VM.VerifyAssertions) VM.assert(curStart == -1.0);
+	if (VM.VerifyAssertions) VM._assert(curStart == -1.0);
 	lastStart = curStart = x;
     }
 
     public void stop(double x) {
-	if (VM.VerifyAssertions) VM.assert(curStart != -1.0);
+	if (VM.VerifyAssertions) VM._assert(curStart != -1.0);
 	lastStop = x;
 	addSample(x - curStart);
 	curStart = -1.0;

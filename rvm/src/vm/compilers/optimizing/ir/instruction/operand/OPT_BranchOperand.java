@@ -26,7 +26,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
    * @param targ target of branch
    */
   OPT_BranchOperand(OPT_Instruction targ) {
-    if (VM.VerifyAssertions) VM.assert(Label.conforms(targ));
+    if (VM.VerifyAssertions) VM._assert(Label.conforms(targ));
     target = targ;
   }
 

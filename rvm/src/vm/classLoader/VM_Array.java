@@ -75,7 +75,7 @@ public final class VM_Array extends VM_Type
       case VM_Atom.DoubleTypeCode:  return 3;
       case VM_Atom.CharTypeCode:    return 1;
       }
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return -1;
   }
 
@@ -131,7 +131,7 @@ public final class VM_Array extends VM_Type
    * Runtime type information for this array type.
    */
   public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
 
@@ -202,7 +202,7 @@ public final class VM_Array extends VM_Type
 	return arrayOfLongType;
       }
 
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }
 
@@ -572,7 +572,7 @@ public final class VM_Array extends VM_Type
   public final synchronized void resolve() {
     if (isResolved())
       return;
-    if (VM.VerifyAssertions) VM.assert(state == CLASS_LOADED);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
     if (elementType.isLoaded() && !elementType.isResolved()) {
       try {
@@ -610,7 +610,7 @@ public final class VM_Array extends VM_Type
   public final synchronized void instantiate() {
     if (isInstantiated())
       return;
-    if (VM.VerifyAssertions) VM.assert(state == CLASS_RESOLVED);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
   
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Array: instantiate " + descriptor + "\n");
     

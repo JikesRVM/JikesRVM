@@ -140,7 +140,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    *  Debugging with method_to_print. Switch following 2
    *  to both be non-final. Set DBG_SELECTIVE to true
-   *  DBG_SELECTED will then be true when the method matches
+   *  DBG_SELECTED will then be true when the method matches.
+   *  You must also uncomment the assignment to DBG_SELECTIVE in start
    */
   private static final boolean DBG_SELECTIVE = false;
   private static final boolean DBG_SELECTED = false;
@@ -179,9 +180,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (DBG_SELECTIVE) {
       if (gc.options.hasMETHOD_TO_PRINT() &&
 	  gc.options.fuzzyMatchMETHOD_TO_PRINT(gc.method.toString())) {
-	DBG_SELECTED = true;
+	VM.sysWrite("Whoops! you need to uncomment the assignment to DBG_SELECTED");
+	// DBG_SELECTED = true;
       } else {
-	DBG_SELECTED = false;
+	// DBG_SELECTED = false;
       }
       
     }
@@ -418,7 +420,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  VM_Type type = getRefTypeOf(ref).asArray().getElementType();
-	  if (VM.VerifyAssertions) VM.assert(type.isReferenceType());
+	  if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
 	  s = _aloadHelper(REF_ALOAD, ref, index, type);
 	}
 	break;
@@ -432,7 +434,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 	  VM_Type type = getArrayTypeOf(ref);
 	  if (VM.VerifyAssertions) {
-	    VM.assert(type == OPT_ClassLoaderProxy.ByteArrayType || 
+	    VM._assert(type == OPT_ClassLoaderProxy.ByteArrayType || 
 		      type == OPT_ClassLoaderProxy.BooleanArrayType);
 	  }
 	  if (type == OPT_ClassLoaderProxy.ByteArrayType)
@@ -581,7 +583,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  VM_Type type = getRefTypeOf(ref).asArray().getElementType();
-	  if (VM.VerifyAssertions) VM.assert(type.isReferenceType());
+	  if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
 	  if (do_CheckStore(ref, val, type))
 	      break;
 	  s = AStore.create(REF_ASTORE, 
@@ -601,7 +603,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 	  VM_Type type = getArrayTypeOf(ref);
 	  if (VM.VerifyAssertions) {
-	    VM.assert(type == OPT_ClassLoaderProxy.ByteArrayType || 
+	    VM._assert(type == OPT_ClassLoaderProxy.ByteArrayType || 
 		      type == OPT_ClassLoaderProxy.BooleanArrayType);
 	  }
 	  if (type == OPT_ClassLoaderProxy.ByteArrayType)
@@ -1549,7 +1551,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    isExtant = true;
 	    type = OPT_ClassLoaderProxy.JavaLangStringType;
 	  } else if (VM.VerifyAssertions)
-	    VM.assert(false, "unexpected receiver");
+	    VM._assert(false, "unexpected receiver");
 	  receiverClassResolved = type.isResolved();
 	  if ((meth.getDeclaringClass() != type) && type.isClassType()) {
 	    VM_Method vmeth = 
@@ -1877,7 +1879,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(op1))
 	    break;
 	  if (VM.VerifyAssertions)
-	    VM.assert(getArrayTypeOf(op1).isArrayType());
+	    VM._assert(getArrayTypeOf(op1).isArrayType());
 	  OPT_RegisterOperand t = gc.temps.makeTempInt();
 	  s = GuardedUnary.create(ARRAYLENGTH, t, op1, getCurrentGuard());
 	  push(t.copyD2U());
@@ -1919,7 +1921,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
-	  if (VM.VerifyAssertions) VM.assert(op2.isRef());
+	  if (VM.VerifyAssertions) VM._assert(op2.isRef());
 	  if (CF_CHECKCAST && !classLoading) {
 	    if (op2.isDefinitelyNull()) {
 	      push(op2);
@@ -1965,7 +1967,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
-	  if (VM.VerifyAssertions) VM.assert(op2.isRef());
+	  if (VM.VerifyAssertions) VM._assert(op2.isRef());
 	  if (CF_INSTANCEOF && !classLoading) {
 	    if (op2.isDefinitelyNull()) {
 	      push(new OPT_IntConstantOperand(0));
@@ -2015,7 +2017,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(op0))
 	    break;
-	  if (VM.VerifyAssertions) VM.assert(op0.isRef());
+	  if (VM.VerifyAssertions) VM._assert(op0.isRef());
 	  if (gc.options.MONITOR_NOP) {
 	    s = null;
 	  } else {
@@ -2170,7 +2172,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       bcInfo.finishedInstruction();
 
       // check runoff
-      if (VM.VerifyAssertions) VM.assert(bcInfo.currentInstruction() <= runoff);
+      if (VM.VerifyAssertions) VM._assert(bcInfo.currentInstruction() <= runoff);
       if (!endOfBasicBlock && bcInfo.currentInstruction() == runoff) {
         if (DBG_BB || DBG_SELECTED)
           db("runoff occurred! current basic block: " + currentBBLE + 
@@ -2188,7 +2190,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           return;
         }
         if (fallThrough) {
-          if (VM.VerifyAssertions) VM.assert(bcInfo.currentInstruction() < bcInfo.getLength());
+          if (VM.VerifyAssertions) VM._assert(bcInfo.currentInstruction() < bcInfo.getLength());
           // Get/Create fallthrough BBLE and record it as 
           // currentBBLE's fallThrough.
           currentBBLE.fallThrough = getOrCreateBlock(bcInfo.currentInstruction());
@@ -2405,7 +2407,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       } else {
         OPT_Operand meet = OPT_Operand.meet(gc.result, val, gc.resultReg);
         // Return value can't be forced to bottom...violation of Java spec.
-        if (VM.VerifyAssertions) VM.assert(meet != null);
+        if (VM.VerifyAssertions) VM._assert(meet != null);
         gc.result = meet;
       }
     }
@@ -2479,7 +2481,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_iload(int index) {
     OPT_Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM.assert(r.isIntLike());
+    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -2495,7 +2497,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_fload(int index) {
     OPT_Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM.assert(r.isFloat());
+    if (VM.VerifyAssertions) VM._assert(r.isFloat());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -2511,7 +2513,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_aload(int index) {
     OPT_Operand r = getLocal(index);
-    if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) VM.assert(false, r + " not ref, but a " + r.getType());
+    if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) VM._assert(false, r + " not ref, but a " + r.getType());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -2527,7 +2529,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_lload(int index) {
     OPT_Operand r = getLocalDual(index);
-    if (VM.VerifyAssertions) VM.assert(r.isLong());
+    if (VM.VerifyAssertions) VM._assert(r.isLong());
     if (LOCALS_ON_STACK) {
       pushDual(r);
       return null;
@@ -2543,7 +2545,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_dload(int index) {
     OPT_Operand r = getLocalDual(index);
-    if (VM.VerifyAssertions) VM.assert(r.isDouble());
+    if (VM.VerifyAssertions) VM._assert(r.isDouble());
     if (LOCALS_ON_STACK) {
       pushDual(r);
       return null;
@@ -2561,7 +2563,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_iinc(int index, int amount) {
     OPT_Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM.assert(r.isIntLike());
+    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
       replaceLocalsOnStack(index, OPT_ClassLoaderProxy.IntType);
     }
@@ -2698,7 +2700,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param r operand to push
    */
   void push(OPT_Operand r) {
-    if (VM.VerifyAssertions) VM.assert(r.instruction == null);
+    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
     stack.push(r);
   }
 
@@ -2708,7 +2710,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param r operand to push
    */
   void pushDual(OPT_Operand r) {
-    if (VM.VerifyAssertions) VM.assert(r.instruction == null);
+    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
     stack.push(DUMMY);
     stack.push(r);
   }
@@ -2720,7 +2722,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param type data type of operand
    */
   void push(OPT_Operand r, VM_Type type) {
-    if (VM.VerifyAssertions) VM.assert(r.instruction == null);
+    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
     if (type.isVoidType())
       return;
     if (type.isLongType() || type.isDoubleType())
@@ -2736,7 +2738,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param b1 bytecode index to associate with the pushed operand
    */
   private OPT_Instruction pushCopy(OPT_Operand op1, int b1) {
-    if (VM.VerifyAssertions) VM.assert(op1.instruction == null);
+    if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
     if (op1 instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand reg = (OPT_RegisterOperand)op1;
       if (!reg.register.isLocal())
@@ -2754,7 +2756,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op1 operand to push
    */
   private OPT_Instruction pushCopy(OPT_Operand op1) {
-    if (VM.VerifyAssertions) VM.assert(op1.instruction == null);
+    if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
     if (op1 instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand reg = (OPT_RegisterOperand)op1;
       if (!reg.register.isLocal())
@@ -2779,7 +2781,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popInt() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isIntLike(), r.toString());
+    if (VM.VerifyAssertions) VM._assert(r.isIntLike(), r.toString());
     return r;
   }
 
@@ -2788,7 +2790,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popFloat() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isFloat());
+    if (VM.VerifyAssertions) VM._assert(r.isFloat());
     return r;
   }
 
@@ -2797,7 +2799,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popRef() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isRef() || r.isAddress());
+    if (VM.VerifyAssertions) VM._assert(r.isRef() || r.isAddress());
     return r;
   }
 
@@ -2806,7 +2808,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popAddress() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isAddress());
+    if (VM.VerifyAssertions) VM._assert(r.isAddress());
     return r;
   }
 
@@ -2815,7 +2817,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popLong() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isLong());
+    if (VM.VerifyAssertions) VM._assert(r.isLong());
     popDummy();
     return r;
   }
@@ -2825,7 +2827,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popDouble() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isDouble());
+    if (VM.VerifyAssertions) VM._assert(r.isDouble());
     popDummy();
     return r;
   }
@@ -2835,7 +2837,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   void popDummy() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r == DUMMY);
+    if (VM.VerifyAssertions) VM._assert(r == DUMMY);
   }
 
   /**
@@ -2889,7 +2891,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op operand to get type of
    */
   private VM_Type getArrayTypeOf(OPT_Operand op) {
-    if (VM.VerifyAssertions) VM.assert(!op.isDefinitelyNull());
+    if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
     return op.asRegister().type;
   }
 
@@ -2900,7 +2902,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op operand to get type of
    */
   private VM_Type getRefTypeOf(OPT_Operand op) {
-    if (VM.VerifyAssertions) VM.assert(!op.isDefinitelyNull());
+    if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
     // op must be a RegisterOperand or StringConstantOperand
     if (op instanceof OPT_StringConstantOperand)
       return OPT_ClassLoaderProxy.JavaLangStringType; 
@@ -2919,13 +2921,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private void assertIsType(OPT_Operand op, VM_Type type) {
     if (VM.VerifyAssertions) {
       if (op.isDefinitelyNull()) {
-        VM.assert(type.isReferenceType());
+        VM._assert(type.isReferenceType());
       } else if (op.isIntLike()) {
-        VM.assert(type.isIntLikeType());
+        VM._assert(type.isIntLikeType());
       } else {
         VM_Type type1 = op.getType();
 	if (OPT_ClassLoaderProxy.includesType(type, type1) == NO)
-	    VM.assert(false, op + ": " + type + " is not assignable with " + type1);
+	    VM._assert(false, op + ": " + type + " is not assignable with " + type1);
       }
     }
   }
@@ -2939,7 +2941,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private void assertIsAssignable(VM_Type parentType, VM_Type childType) {
     if (VM.VerifyAssertions)
 	if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO)
-	    VM.assert(false, parentType + " not assignable with " + childType);
+	    VM._assert(false, parentType + " not assignable with " + childType);
   }
 
   //// DEBUGGING.
@@ -2975,7 +2977,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (op instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
       if (VM.VerifyAssertions)
-        VM.assert((rop.scratchObject == null) || 
+        VM._assert((rop.scratchObject == null) || 
                   (rop.scratchObject instanceof OPT_RegisterOperand) || 
                   (rop.scratchObject instanceof OPT_TrueGuardOperand));
       return rop.scratchObject != null;
@@ -3023,14 +3025,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (op instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
       if (VM.VerifyAssertions) {
-        VM.assert((rop.scratchObject == null) || 
+        VM._assert((rop.scratchObject == null) || 
                   (rop.scratchObject instanceof OPT_RegisterOperand)
                   || (rop.scratchObject instanceof OPT_TrueGuardOperand));
       }
       return (OPT_Operand)rop.scratchObject;
     }
     if (VM.VerifyAssertions)
-      VM.assert(op instanceof OPT_StringConstantOperand);
+      VM._assert(op instanceof OPT_StringConstantOperand);
     return new OPT_TrueGuardOperand();
   }
 
@@ -3041,7 +3043,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private void setCurrentGuard(OPT_Operand guard) {
     if (currentGuard instanceof OPT_RegisterOperand) {
       if (VM.VerifyAssertions)
-        VM.assert(!(guard instanceof OPT_TrueGuardOperand));
+        VM._assert(!(guard instanceof OPT_TrueGuardOperand));
       // shouldn't happen given current generation --dave.
       OPT_RegisterOperand combined = gc.temps.makeTempValidation();
       appendInstruction(Binary.create(GUARD_COMBINE, combined, 
@@ -3628,7 +3630,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   // helper function for ifnull/ifnonnull bytecodes
   private OPT_Instruction _refIfNullHelper(OPT_ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM.assert(cond.isEQUAL() || cond.isNOT_EQUAL());
+    if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
     int offset = bcInfo.getBranchTarget();
     OPT_Operand op0 = popRef();
     if (offset == 3)
@@ -3706,7 +3708,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   
   // helper function for if_acmp?? bytecodes
   private OPT_Instruction _refIfCmpHelper(OPT_ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM.assert(cond.isEQUAL() || cond.isNOT_EQUAL());
+    if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
     int offset = bcInfo.getBranchTarget();
     OPT_Operand op1 = popRef();
     OPT_Operand op0 = popRef();
@@ -4088,7 +4090,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param i local variable number
    */
   private OPT_Operand getLocalDual(int i) {
-    if (VM.VerifyAssertions) VM.assert(_localState[i + 1] == DUMMY);
+    if (VM.VerifyAssertions) VM._assert(_localState[i + 1] == DUMMY);
     OPT_Operand local = _localState[i];
     if (DBG_LOCAL || DBG_SELECTED) db("getting local " + i + " for use: " + local);
     return local.copy();
@@ -4345,7 +4347,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     void rectifyStacks(OPT_BasicBlock block, OperandStack stack, 
 		       BasicBlockLE p) {
       if (stack == null || stack.isEmpty()) {
-	if (VM.VerifyAssertions) VM.assert(p.stackState == null);
+	if (VM.VerifyAssertions) VM._assert(p.stackState == null);
 	if (!p.isStackKnown())
 	  p.setStackKnown();
 	if (DBG_STACK || DBG_SELECTED)
@@ -4383,7 +4385,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  db("First stack rectifiction for " + p + "(" + 
 	     p.block + ") simply saving");
 	}
-	if (VM.VerifyAssertions) VM.assert(p.stackState == null);
+	if (VM.VerifyAssertions) VM._assert(p.stackState == null);
 	p.stackState = new OperandStack(stack.getCapacity());
 	for (int i = stack.getSize() - 1; i >= 0; i--) {
 	  OPT_Operand op = stack.getFromTop(i);
@@ -4420,7 +4422,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	if (DBG_STACK || DBG_SELECTED) db("rectifying stacks");
 	try {
 	    if (VM.VerifyAssertions)
-		VM.assert(stack.getSize() == p.stackState.getSize());
+		VM._assert(stack.getSize() == p.stackState.getSize());
 	} catch (NullPointerException e) {
 	    System.err.println("stack size " + stack.getSize());
 	    System.err.println(stack);
@@ -4434,7 +4436,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand sop = stack.getFromTop(i);
 	  OPT_Operand mop = p.stackState.getFromTop(i);
 	  if ((sop == DUMMY) || (sop instanceof ReturnAddressOperand)) {
-	    if (VM.VerifyAssertions) VM.assert(mop.similar(sop));
+	    if (VM.VerifyAssertions) VM._assert(mop.similar(sop));
 	  } else {
 	    // By BASIC assumption, sop and mop must be OPT_RegisterOperands.
 	    OPT_RegisterOperand rsop = sop.asRegister();
@@ -4489,7 +4491,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       OPT_Operand[] incomingState = localState;
       OPT_Operand[] presentState = p.localState;
       if (VM.VerifyAssertions)
-	VM.assert(incomingState.length == presentState.length);
+	VM._assert(incomingState.length == presentState.length);
       for (int i = 0, n = incomingState.length; i < n; ++i) {
 	OPT_Operand pOP = presentState[i];
 	OPT_Operand iOP = incomingState[i];
@@ -4589,7 +4591,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 		  nlh[j++] = curr.handlers[i].entryBlock;
 		} else {
 		  if (VM.VerifyAssertions) {
-		    VM.assert(curr.handlers[i].entryBlock.hasZeroIn(), 
+		    VM._assert(curr.handlers[i].entryBlock.hasZeroIn(), 
 			      "Non-generated handler with CFG edges");
 		  }
 		}
@@ -4624,7 +4626,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      db("injected " + icurr + " between " + curr + " and " + 
 		 icurr.epilogueBBLE.fallThrough);
 	    if (VM.VerifyAssertions) {
-	      VM.assert(icurr.epilogueBBLE.block ==
+	      VM._assert(icurr.epilogueBBLE.block ==
 			icurr.gc.cfg.lastInCodeOrder());
 	    }
 	    curr = icurr.epilogueBBLE;
@@ -4683,7 +4685,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	gc.epilogue.remove();
 	gc.epilogue.deleteIn();
 	gc.epilogue.deleteOut();
-	if (VM.VerifyAssertions) VM.assert(gc.epilogue.hasZeroOut());
+	if (VM.VerifyAssertions) VM._assert(gc.epilogue.hasZeroOut());
 	gc.epilogue = null;
       }
       // if gc has an unlockAndRethrow block that was not used, then remove it
@@ -5095,7 +5097,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 			    BasicBlockLE newBBLE, 
 			    boolean left) {
       if (parent == null) {
-	if (VM.VerifyAssertions) VM.assert(root == null);
+	if (VM.VerifyAssertions) VM._assert(root == null);
 	root = newBBLE;
 	root.setBlack();
 	if (DBG_BBSET) db("inserted "+newBBLE+" as root of tree");
@@ -5212,7 +5214,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     private void verifyTree() {
       if (VM.VerifyAssertions) {
-	VM.assert(root.isBlack());
+	VM._assert(root.isBlack());
 	verifyTree(root, -1, bcInfo.getLength());
 	countBlack(root);
       }
@@ -5220,16 +5222,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     private void verifyTree(BasicBlockLE node, int min, int max) {
       if (VM.VerifyAssertions) {
-	VM.assert(node.low >= min);
-	VM.assert(node.low <= max);
+	VM._assert(node.low >= min);
+	VM._assert(node.low <= max);
 	if (node.left != null) {
-	  VM.assert(node.isBlack() || node.left.isBlack());
-	  VM.assert(node.left.parent == node);
+	  VM._assert(node.isBlack() || node.left.isBlack());
+	  VM._assert(node.left.parent == node);
 	  verifyTree(node.left, min, node.low);
 	}
 	if (node.right != null) {
-	  VM.assert(node.isBlack() || node.right.isBlack());
-	  VM.assert(node.right.parent == node);
+	  VM._assert(node.isBlack() || node.right.isBlack());
+	  VM._assert(node.right.parent == node);
 	  verifyTree(node.right, node.low, max);
 	}
       }
@@ -5239,7 +5241,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (node == null)	return 1;
       int left = countBlack(node.left);
       int right = countBlack(node.right);
-      if (VM.VerifyAssertions) VM.assert(left == right);
+      if (VM.VerifyAssertions) VM._assert(left == right);
       if (node.isBlack())
 	left++;
       return left;
@@ -5322,7 +5324,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     void push(OPT_Operand val) {
-      if (VM.VerifyAssertions) VM.assert(val.instruction == null);
+      if (VM.VerifyAssertions) VM._assert(val.instruction == null);
       stack[top++] = val;
     }
 
@@ -5363,7 +5365,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     void replaceFromTop(int n, OPT_Operand op) {
-      if (VM.VerifyAssertions) VM.assert(op.instruction == null);
+      if (VM.VerifyAssertions) VM._assert(op.instruction == null);
       stack[top - n - 1] = op;
     }
   }

@@ -36,9 +36,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   VM_Compiler(VM_BaselineCompiledMethod cm) {
     super(cm);
-    if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
-    if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
-    if (VM.VerifyAssertions) VM.assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
+    if (VM.VerifyAssertions) VM._assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
+    if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
+    if (VM.VerifyAssertions) VM._assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
     frameSize        = getFrameSize(method);
     spSaveAreaOffset = getSPSaveAreaOffset(method);
     firstLocalOffset = getFirstLocalOffset(method);
@@ -180,7 +180,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (val == 0) {
       asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
     } else if (val == 1) {
-      if (VM.VerifyAssertions) VM.assert(val == 1);
+      if (VM.VerifyAssertions) VM._assert(val == 1);
       asm.emitLFDtoc(F0, VM_Entrypoints.longOneField.getOffset(), T0);
     }
     asm.emitSTFDU (F0, -8, SP);
@@ -1817,7 +1817,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitLX (T0, T2, JTOC);
       asm.emitSTU (T0, -4, SP);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFDX (F0, T2, JTOC);
       asm.emitSTFDU (F0, -8, SP);
     }
@@ -1835,7 +1835,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitLtoc(T0, fieldOffset);
 	asm.emitSTU (T0, -4, SP);
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLFDtoc(F0, fieldOffset, T0);
 	asm.emitSTFDU (F0, -8, SP);
       }
@@ -1849,7 +1849,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitBC    (NE, label);       // retry, if reservation lost
 	asm.emitSTU   (T0, -4, SP);      // push value
       } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
 	asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
@@ -1887,7 +1887,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitSTX(T0, T2, JTOC);
       }
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD    (F0, 0, SP );
       asm.emitCAL    (SP, 8, SP);
       asm.emitSTFDX(F0, T2, JTOC);
@@ -1915,7 +1915,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	  asm.emitSTtoc(T0, fieldOffset, T1);
 	}
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLFD    (F0, 0, SP );
 	asm.emitCAL    (SP, 8, SP);
 	asm.emitSTFDtoc(F0, fieldOffset, T0);
@@ -1937,7 +1937,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	}
 	// asm.emitSYNC(); // to make putstatic of a volatile field a write barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
       } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
 	asm.emitL      (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
@@ -1967,7 +1967,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitLX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
       asm.emitST(T0, 0, SP);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFDX (F0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
       asm.emitSTFDU(F0, -4, SP);
     }
@@ -1985,7 +1985,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitL (T0, fieldOffset, T1);
 	asm.emitST(T0, 0, SP);
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLFD  (F0, fieldOffset, T1);
 	asm.emitSTFDU(F0, -4, SP);
       }
@@ -2001,7 +2001,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitBC    (NE, label);           // retry, if reservation lost
 	asm.emitST    (T0, 0, SP);           // push value
       } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
 	asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
@@ -2041,7 +2041,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	//-#endif
       }
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD (F0,  0, SP); // F0 = doubleword value
       asm.emitL   (T1,  8, SP); // T1 = object reference
       asm.emitCAL (SP, 12, SP);
@@ -2071,7 +2071,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	  //-#endif
 	}
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLFD (F0,  0, SP); // F0 = doubleword value
 	asm.emitL   (T1,  8, SP); // T1 = object reference
 	asm.emitCAL (SP, 12, SP);
@@ -2095,7 +2095,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	}
 	// asm.emitSYNC(); // to make putfield of a volatile field a write barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
       } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
 	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
 	asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
@@ -2171,7 +2171,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (target.isObjectInitializer()) { // invoke via method's jtoc slot
       asm.emitLtoc(T0, target.getOffset());
     } else { // invoke via class's tib slot
-      if (VM.VerifyAssertions) VM.assert(!target.isStatic());
+      if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       asm.emitLtoc(T0, target.getDeclaringClass().getTibOffset());
       asm.emitL   (T0, target.getOffset(), T0);
     }
@@ -2508,7 +2508,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   // offset of i-th local variable with respect to FP
   private int localOffset (int i) {
     int offset = firstLocalOffset - (i << 2);
-    if (VM.VerifyAssertions) VM.assert(offset < 0x8000);
+    if (VM.VerifyAssertions) VM._assert(offset < 0x8000);
     return offset;
   }
 
@@ -2872,7 +2872,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	else asm.emitL(gp++, stackOffset, SP);
       }
     }
-    if (VM.VerifyAssertions) VM.assert(stackOffset == 0);
+    if (VM.VerifyAssertions) VM._assert(stackOffset == 0);
   }
 
   // push return value of method "m" from register to operand stack.

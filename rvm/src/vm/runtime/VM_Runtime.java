@@ -240,7 +240,7 @@ public class VM_Runtime implements VM_Constants {
     throws VM_ResolutionException, OutOfMemoryError { 
 
     VM_Class cls = VM_TypeDictionary.getValue(dictionaryId).asClass();
-    if (VM.VerifyAssertions) VM.assert(cls.isClassType());
+    if (VM.VerifyAssertions) VM._assert(cls.isClassType());
     if (!cls.isInitialized())
       initializeClassForDynamicLink(cls);
 
@@ -418,7 +418,7 @@ public class VM_Runtime implements VM_Constants {
     if (VM.BuildForProfiling) VM_Profiler.disableProfiling();
     
     VM_Class cls = VM_TypeDictionary.getValue(dictionaryId).asClass();
-    if (VM.VerifyAssertions) VM.assert(cls.isClassType());
+    if (VM.VerifyAssertions) VM._assert(cls.isClassType());
     if (!cls.isInitialized())
       initializeClassForDynamicLink(cls);
 
@@ -623,11 +623,11 @@ public class VM_Runtime implements VM_Constants {
       } else {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters);
       }
-      if (VM.VerifyAssertions) VM.assert(exceptionRegisters.inuse == true); 
+      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;
       VM_Magic.restoreHardwareExceptionState(exceptionRegisters);
 
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
 
     Throwable exceptionObject;
@@ -840,7 +840,7 @@ public class VM_Runtime implements VM_Constants {
 						  methodStartAddress.add(catchBlockOffset), 
 						  exceptionObject, 
 						  exceptionRegisters);
-	      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	  }
 	  
 	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
@@ -855,7 +855,7 @@ public class VM_Runtime implements VM_Constants {
     VM.enableGC();
     exceptionObject.printStackTrace();
     VM_Thread.terminate();
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 
   /**

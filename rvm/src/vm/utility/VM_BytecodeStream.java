@@ -113,7 +113,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see nextInstruction()
    */
   public final int peekNextOpcode() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex < bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
     return getUnsignedByte(bcIndex);
   }
 
@@ -123,7 +123,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see peekNextOpcode()
    */
   public final int nextInstruction() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex < bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
     opcode = readUnsignedByte();
     wide = (opcode == JBC_wide);
     return opcode;
@@ -156,7 +156,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see skipInstruction(int)
    */
   public final void skipInstruction() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int len = JBC_length[opcode] - 1;
     if (wide) len += len;
     if (len >= 0) bcIndex += len;
@@ -171,7 +171,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see skipInstruction()
    */
   public final void skipInstruction(int opcode, boolean wide) {
-    if (VM.VerifyAssertions) VM.assert(bcIndex < bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
     int len = JBC_length[opcode] - 1;
     if (wide) len += len;
     if (len >= 0) bcIndex += len;
@@ -184,7 +184,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return signed byte value
    */
   public final int getByteValue() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_bipush);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_bipush);
     return readSignedByte();
   }
 
@@ -194,7 +194,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return signed short value
    */
   public final int getShortValue() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_sipush);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_sipush);
     return readSignedShort();
   }
 
@@ -208,7 +208,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getLocalNumber() {
     if (VM.VerifyAssertions)
-      VM.assert((opcode >= JBC_iload && opcode <= JBC_aload) ||
+      VM._assert((opcode >= JBC_iload && opcode <= JBC_aload) ||
                 (opcode >= JBC_istore && opcode <= JBC_astore) ||
                 opcode == JBC_iinc || opcode == JBC_ret);
     return readUnsignedByte();
@@ -224,7 +224,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getWideLocalNumber() {
     if (VM.VerifyAssertions)
-      VM.assert(wide &&
+      VM._assert(wide &&
                 ((opcode >= JBC_iload && opcode <= JBC_aload) ||
                  (opcode >= JBC_istore && opcode <= JBC_astore) ||
                  opcode == JBC_iinc));
@@ -238,7 +238,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getWideIncrement()
    */
   public final int getIncrement() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_iinc);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_iinc);
     return readSignedByte();
   }
 
@@ -249,7 +249,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getIncrement()
    */
   public final int getWideIncrement() {
-    if (VM.VerifyAssertions) VM.assert(wide && opcode == JBC_iinc);
+    if (VM.VerifyAssertions) VM._assert(wide && opcode == JBC_iinc);
     return readSignedShort();
   }
 
@@ -261,7 +261,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getBranchOffset() {
     if (VM.VerifyAssertions)
-      VM.assert((opcode >= JBC_ifeq && opcode <= JBC_ifle) ||
+      VM._assert((opcode >= JBC_ifeq && opcode <= JBC_ifle) ||
                 (opcode >= JBC_if_icmpeq && opcode <= JBC_if_icmple) ||
                 opcode == JBC_if_acmpeq || opcode == JBC_if_acmpne ||
                 opcode == JBC_ifnull || opcode == JBC_ifnonnull ||
@@ -277,7 +277,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getWideBranchOffset() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_goto_w || opcode == JBC_jsr_w);
+      VM._assert(opcode == JBC_goto_w || opcode == JBC_jsr_w);
     return readSignedInt();
   }
 
@@ -287,7 +287,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final void alignSwitch() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_tableswitch || opcode == JBC_lookupswitch);
+      VM._assert(opcode == JBC_tableswitch || opcode == JBC_lookupswitch);
     int align = bcIndex & 3;
     if (align != 0) bcIndex += 4-align; // eat padding
   }
@@ -299,7 +299,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getDefaultSwitchOffset() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_tableswitch || opcode == JBC_lookupswitch);
+      VM._assert(opcode == JBC_tableswitch || opcode == JBC_lookupswitch);
     return readSignedInt();
   }
 
@@ -310,7 +310,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getHighSwitchValue()
    */
   public final int getLowSwitchValue() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_tableswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
     return readSignedInt();
   }
 
@@ -321,7 +321,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getLowSwitchValue()
    */
   public final int getHighSwitchValue() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_tableswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
     return readSignedInt();
   }
 
@@ -332,7 +332,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getTableSwitchOffset(int)
    */
   public final void skipTableSwitchOffsets(int num) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_tableswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
     bcIndex += (num << 2);
   }
 
@@ -345,7 +345,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return switch offset
    */
   public final int getTableSwitchOffset(int num) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_tableswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
     return getSignedInt(bcIndex + (num << 2));
   }
 
@@ -361,7 +361,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return switch offset
    */
   public final int computeTableSwitchOffset(int value, int low, int high) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_tableswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
     if (value < low || value > high) return 0;
     return getSignedInt(bcIndex + ((value - low) << 2));
   }
@@ -373,7 +373,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return number of switch pairs
    */
   public final int getSwitchLength() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_lookupswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     return readSignedInt();
   }
 
@@ -385,7 +385,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getLookupSwitchOffset(int)
    */
   public final void skipLookupSwitchPairs(int num) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_lookupswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     bcIndex += (num << 3);
   }
 
@@ -399,7 +399,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getLookupSwitchValue(int)
    */
   public final int getLookupSwitchOffset(int num) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_lookupswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     return getSignedInt(bcIndex + (num << 3) + 4);
   }
 
@@ -413,7 +413,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getLookupSwitchOffset(int)
    */
   public final int getLookupSwitchValue(int num) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_lookupswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     return getSignedInt(bcIndex + (num << 3));
   }
 
@@ -430,7 +430,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return switch offset
    */
   public final int computeLookupSwitchOffset(int value, int num) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_lookupswitch);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     for (int i = 0; i < num; i++)
       if (getSignedInt(bcIndex + (i << 3)) == value)
         return getSignedInt(bcIndex + (i << 3) + 4);
@@ -447,7 +447,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getFieldReferenceIndex() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
+      VM._assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
                 opcode == JBC_getfield || opcode == JBC_putfield);
     return readUnsignedShort();
   }
@@ -462,7 +462,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final VM_Field getFieldReference(int index) {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
+      VM._assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
                 opcode == JBC_getfield || opcode == JBC_putfield);
     return declaringClass.getFieldRef(index);
   }
@@ -476,7 +476,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final VM_Field getFieldReference() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
+      VM._assert(opcode == JBC_getstatic || opcode == JBC_putstatic ||
                 opcode == JBC_getfield || opcode == JBC_putfield);
     int index = readUnsignedShort();
     return declaringClass.getFieldRef(index);
@@ -492,7 +492,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   final int getMethodReferenceIndex() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
+      VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
     return readUnsignedShort();
   }
@@ -507,7 +507,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   final VM_Method getMethodReference(int index) {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
+      VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
     return declaringClass.getMethodRef(index);
   }
@@ -521,7 +521,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   final VM_Method getMethodReference() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
+      VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
     int index = readUnsignedShort();
     return declaringClass.getMethodRef(index);
@@ -532,7 +532,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Used for invokeinterface
    */
   public final void alignInvokeInterface() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_invokeinterface);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_invokeinterface);
     bcIndex += 2; // eat superfluous stuff
   }
 
@@ -546,7 +546,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getTypeReferenceIndex() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_new || opcode == JBC_anewarray ||
+      VM._assert(opcode == JBC_new || opcode == JBC_anewarray ||
                 opcode == JBC_checkcast || opcode == JBC_instanceof ||
                 opcode == JBC_multianewarray);
     return readUnsignedShort();
@@ -562,7 +562,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final VM_Type getTypeReference(int index) {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_new || opcode == JBC_anewarray ||
+      VM._assert(opcode == JBC_new || opcode == JBC_anewarray ||
                 opcode == JBC_checkcast || opcode == JBC_instanceof ||
                 opcode == JBC_multianewarray);
     return declaringClass.getTypeRef(index);
@@ -577,7 +577,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final VM_Type getTypeReference() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_new || opcode == JBC_anewarray ||
+      VM._assert(opcode == JBC_new || opcode == JBC_anewarray ||
                 opcode == JBC_checkcast || opcode == JBC_instanceof ||
                 opcode == JBC_multianewarray);
     int index = readUnsignedShort();
@@ -592,7 +592,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getPrimitiveArrayType(int)
    */
   public final int getArrayElementType() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_newarray);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
     return readUnsignedByte();
   }
 
@@ -605,7 +605,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getPrimitiveArrayType()
    */
   public final VM_Type getPrimitiveArrayType(int etype) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_newarray);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
     return VM_Array.getPrimitiveArrayType(etype);
   }
 
@@ -617,7 +617,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getPrimitiveArrayType(int)
    */
   public final VM_Type getPrimitiveArrayType() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_newarray);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
     int etype = readUnsignedByte();
     return VM_Array.getPrimitiveArrayType(etype);
   }
@@ -632,7 +632,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getObjectArrayType()
    */
   public final VM_Type getObjectArrayType(VM_Type klass) {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_anewarray);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
     return klass.getArrayTypeForElementType();
   }
 
@@ -643,7 +643,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getObjectArrayType(VM_Type)
    */
   public final VM_Type getObjectArrayType() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_anewarray);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
     VM_Type klass = getTypeReference();
     return klass.getArrayTypeForElementType();
   }
@@ -654,7 +654,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return array dimension
    */
   public final int getArrayDimension() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_multianewarray);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_multianewarray);
     return readUnsignedByte();
   }
 
@@ -666,10 +666,10 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @return the opcode of the wide instruction
    */
   public final int getWideOpcode() {
-    if (VM.VerifyAssertions) VM.assert(wide && opcode == JBC_wide);
+    if (VM.VerifyAssertions) VM._assert(wide && opcode == JBC_wide);
     opcode = readUnsignedByte();
     if (VM.VerifyAssertions)
-      VM.assert((opcode >= JBC_iload && opcode <= JBC_aload) ||
+      VM._assert((opcode >= JBC_iload && opcode <= JBC_aload) ||
                 (opcode >= JBC_istore && opcode <= JBC_astore) ||
                 opcode == JBC_iinc);
     return opcode;
@@ -688,7 +688,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see getStringConstant(int)
    */
   public final int getConstantIndex() {
-    if (VM.VerifyAssertions) VM.assert(opcode == JBC_ldc);
+    if (VM.VerifyAssertions) VM._assert(opcode == JBC_ldc);
     return readUnsignedByte();
   }
 
@@ -706,7 +706,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getWideConstantIndex() {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_ldc_w || opcode == JBC_ldc2_w);
+      VM._assert(opcode == JBC_ldc_w || opcode == JBC_ldc2_w);
     return readUnsignedShort();
   }
 
@@ -724,7 +724,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final byte getConstantType(int index) {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_ldc || opcode == JBC_ldc_w ||
+      VM._assert(opcode == JBC_ldc || opcode == JBC_ldc_w ||
                 opcode == JBC_ldc2_w);
     byte desc = declaringClass.getLiteralDescription(index);
     return desc;
@@ -744,7 +744,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final int getIntConstant(int index) {
     if (VM.VerifyAssertions)
-      VM.assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
+      VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.INT_LITERAL);
     int offset = declaringClass.getLiteralOffset(index) >> 2;
@@ -766,7 +766,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final long getLongConstant(int index) {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_ldc2_w &&
+      VM._assert(opcode == JBC_ldc2_w &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.LONG_LITERAL);
     int offset = declaringClass.getLiteralOffset(index) >> 2;
@@ -788,7 +788,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final float getFloatConstant(int index) {
     if (VM.VerifyAssertions)
-      VM.assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
+      VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.FLOAT_LITERAL);
     int offset = declaringClass.getLiteralOffset(index) >> 2;
@@ -811,7 +811,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final double getDoubleConstant(int index) {
     if (VM.VerifyAssertions)
-      VM.assert(opcode == JBC_ldc2_w &&
+      VM._assert(opcode == JBC_ldc2_w &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.DOUBLE_LITERAL);
     int offset = declaringClass.getLiteralOffset(index) >> 2;
@@ -834,7 +834,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final String getStringConstant(int index) {
     if (VM.VerifyAssertions)
-      VM.assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
+      VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.STRING_LITERAL);
     int offset = declaringClass.getLiteralOffset(index) >> 2;
@@ -872,55 +872,55 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
         }
         break;
       default:
-        if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
   //// READ BYTECODES
 
   private final byte readSignedByte() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return bcodes[bcIndex++];
   }
   private final int readUnsignedByte() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return (int)(bcodes[bcIndex++] & 0xFF);
   }
   private final int getUnsignedByte(int index) {
-    if (VM.VerifyAssertions) VM.assert(index <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     return (int)(bcodes[index] & 0xFF);
   }
 
   private final int readSignedShort() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << 8;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
   // UNUSED!
   private final int getSignedShort(int index) {
-    if (VM.VerifyAssertions) VM.assert(index <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     int i = bcodes[index++] << 8;
     i |= (bcodes[index] & 0xFF);
     return (int)i;
   }
 
   private final int readUnsignedShort() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = (bcodes[bcIndex++] & 0xFF) << 8;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
   // UNUSED!
   private final int getUnsignedShort(int index) {
-    if (VM.VerifyAssertions) VM.assert(index <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     int i = (bcodes[index++] & 0xFF) << 8;
     i |= (bcodes[index] & 0xFF);
     return (int)i;
   }  
 
   private final int readSignedInt() {
-    if (VM.VerifyAssertions) VM.assert(bcIndex <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << 24;
     i |= (bcodes[bcIndex++] & 0xFF) << 16;
     i |= (bcodes[bcIndex++] & 0xFF) << 8;
@@ -928,7 +928,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
     return i;
   }
   private final int getSignedInt(int index) {
-    if (VM.VerifyAssertions) VM.assert(index <= bcLength);
+    if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     int i = bcodes[index++] << 24;
     i |= (bcodes[index++] & 0xFF) << 16;
     i |= (bcodes[index++] & 0xFF) << 8;

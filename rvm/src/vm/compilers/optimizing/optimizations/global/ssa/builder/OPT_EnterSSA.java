@@ -1118,7 +1118,7 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
           }
         }
         if (VM.VerifyAssertions && meet==null)
-	    VM.assert(false, result + " and " + t + " meet to null");
+	    VM._assert(false, result + " and " + t + " meet to null");
         result = meet;
       }
     }

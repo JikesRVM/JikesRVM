@@ -5,9 +5,7 @@
 package com.ibm.JikesRVM;
 
 import  java.util.*;
-import  OPT_Operators.*;
 import instructionFormats.*;
-
 
 /**
  * This module holds utility functions for SSA form.
@@ -92,7 +90,7 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
     OPT_InstructionEnumeration e = bb.enumerateBranchInstructions();
     OPT_RegisterOperand aux = null;
     if (VM.VerifyAssertions)
-      VM.assert(Move.conforms(c));
+      VM._assert(Move.conforms(c));
     OPT_RegisterOperand lhs = Move.getResult(c);
     OPT_Instruction i = c.nextInstructionInCodeOrder();
     while (!BBend.conforms(i)) {

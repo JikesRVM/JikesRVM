@@ -62,7 +62,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   // Don't handle OPT_OptimizingCompilerExceptions (leave it up to caller to decide what to do)
   // Precondition: compilationInProgress "lock" has been acquired
   private static VM_CompiledMethod optCompile(VM_Method method, OPT_CompilationPlan plan) throws OPT_OptimizingCompilerException {
-    if (VM.VerifyAssertions) VM.assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
+    if (VM.VerifyAssertions) VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
     
     Timer timer = null; // Only used if VM.MeasureCompilation 
     if (VM.MeasureCompilation) {

@@ -423,7 +423,7 @@ public final class OPT_BranchOptimizations
       }
       if ((target2Label == nextLabel) && endsBlock) {
 	// found a conditional branch to the next instruction. Reduce to IfCmp
-	if (VM.VerifyAssertions) VM.assert(cb.operator() == INT_IFCMP2);
+	if (VM.VerifyAssertions) VM._assert(cb.operator() == INT_IFCMP2);
 	IfCmp.mutate(cb, INT_IFCMP,
 		     IfCmp2.getGuardResult(cb), IfCmp2.getVal1(cb),
 		     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb), 
@@ -747,7 +747,7 @@ public final class OPT_BranchOptimizations
       // make sure no register is defined more than once in this block.
       for (Enumeration defs = s.getDefs(); defs.hasMoreElements(); ) {
         OPT_Operand def = (OPT_Operand)defs.nextElement();
-        if (VM.VerifyAssertions) VM.assert(def.isRegister());
+        if (VM.VerifyAssertions) VM._assert(def.isRegister());
         OPT_Register r = def.asRegister().register;
         if (defined.contains(r)) return true;
         defined.add(r);
@@ -826,7 +826,7 @@ public final class OPT_BranchOptimizations
         }
       }
 
-      if (VM.VerifyAssertions) VM.assert(s.getNumberOfDefs() == 1);
+      if (VM.VerifyAssertions) VM._assert(s.getNumberOfDefs() == 1);
 
       OPT_Operand def = (OPT_Operand)s.getDefs().nextElement();
       OPT_RegisterOperand rDef = def.asRegister();

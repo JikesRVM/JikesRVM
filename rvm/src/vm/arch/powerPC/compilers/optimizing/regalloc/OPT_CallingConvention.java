@@ -138,7 +138,7 @@ implements OPT_PhysicalRegisterConstants {
 
     OPT_Instruction prologueInstr = 
       ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
-    if (VM.VerifyAssertions) VM.assert(prologueInstr.operator == IR_PROLOGUE);
+    if (VM.VerifyAssertions) VM._assert(prologueInstr.operator == IR_PROLOGUE);
     OPT_Instruction start = prologueInstr.nextInstructionInCodeOrder();
 
     int int_index = 0;

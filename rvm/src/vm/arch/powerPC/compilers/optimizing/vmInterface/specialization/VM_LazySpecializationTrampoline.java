@@ -157,7 +157,7 @@ implements VM_BaselineConstants, VM_DynamicBridge
     }	    
 
     // does not return here
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);  
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);  
   }
 
   static private INSTRUCTION[] lazySpecializerInstructions = null;

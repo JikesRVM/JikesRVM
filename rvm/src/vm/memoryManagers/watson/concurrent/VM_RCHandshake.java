@@ -24,7 +24,7 @@ class VM_RCHandshake extends VM_Handshake implements VM_Uninterruptible
     private void
     initiateCollection()
     {
-	if (VM.VerifyAssertions && !VM.BuildForConcurrentGC) VM.assert(VM.NOT_REACHED);
+	if (VM.VerifyAssertions && !VM.BuildForConcurrentGC) VM._assert(VM.NOT_REACHED);
 
 	VM_Scheduler.collectorMutex.lock();
 

@@ -544,7 +544,7 @@ public class VM_Allocator extends VM_GCStatistics
       return largeHeap.isLive(ref);
     } else {
       VM.sysWrite("gc_isLive: ref not in any known heap: ", ref);
-      VM.assert(false);
+      VM._assert(false);
       return false;
     }
   }
@@ -629,7 +629,7 @@ public class VM_Allocator extends VM_GCStatistics
       return ref;
 
     VM.sysWrite("processPtrValue: ref not in any known heap: ", ref);
-    VM.assert(false);
+    VM._assert(false);
     return VM_Address.zero();
   }  // processPtrValue
 }

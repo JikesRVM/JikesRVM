@@ -154,7 +154,7 @@ class OPT_BytecodeInfo {
                                         declaringClass, i);
       default:
         {
-          VM.assert(VM.NOT_REACHED, "invalid literal type: 0x" + 
+          VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + 
                     Integer.toHexString(desc));
           return  null;
         }

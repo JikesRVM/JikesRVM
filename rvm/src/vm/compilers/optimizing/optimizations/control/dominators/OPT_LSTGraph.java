@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import java.util.*;
-import OPT_SpaceEffGraphNode.*;
 
 /**
  * Identify natural loops and builds the LST (Loop Structure Tree)
@@ -206,7 +205,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   }
 
   private void setDepth(OPT_IR ir, OPT_LSTNode node, int depth) {
-    if (VM.VerifyAssertions) VM.assert(node.depth == 0);
+    if (VM.VerifyAssertions) VM._assert(node.depth == 0);
     node.depth = depth;
     for (Enumeration e = node.getChildren();
 	 e.hasMoreElements();) {
@@ -234,8 +233,9 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    */
   private void findBackEdges(OPT_BasicBlock bb, int numBlocks) {
     OPT_Stack stack = new OPT_Stack();
-    GraphEdgeEnumeration[] BBenum = new GraphEdgeEnumeration[numBlocks];
-
+    OPT_SpaceEffGraphNode.GraphEdgeEnumeration[] BBenum = 
+      new OPT_SpaceEffGraphNode.GraphEdgeEnumeration[numBlocks];
+    
     // push node on to the emulated activation stack
     stack.push(bb);
 
@@ -245,7 +245,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
 
       // check if we were already processing this node, if so we would have
       // saved the state of the enumeration in the loop below
-      GraphEdgeEnumeration e = BBenum[bb.getNumber()];
+      OPT_SpaceEffGraphNode.GraphEdgeEnumeration e = BBenum[bb.getNumber()];
       if (e == null) {
 	if (DEBUG) { System.out.println(" Initial processing of " + bb);  }
 	bb.setDfsVisited();
@@ -288,7 +288,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    * @param bb the basic block
    */
   private void clearBackEdges(OPT_SpaceEffGraphNode bb) {
-    GraphEdgeEnumeration f = bb.outEdges();
+    OPT_SpaceEffGraphNode.GraphEdgeEnumeration f = bb.outEdges();
     while (f.hasMoreElements()) {
       OPT_SpaceEffGraphEdge outEdge = f.next();
       outEdge.clearBackEdge();

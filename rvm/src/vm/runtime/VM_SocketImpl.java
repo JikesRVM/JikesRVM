@@ -129,7 +129,7 @@ public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object op
           }
           
           default:
-          VM.assert(VM.NOT_REACHED);
+          VM._assert(VM.NOT_REACHED);
           }
     
 }  // end method setSocketOptionImpl

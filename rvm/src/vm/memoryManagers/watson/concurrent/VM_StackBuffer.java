@@ -347,7 +347,7 @@ public class VM_StackBuffer
 
 	    if (!object.isZero()) {
 		if (VM.VerifyAssertions && ! FILTER_STACK_REFS) 
-		    VM.assert(VM_Allocator.isPossibleRefOrMalloc(object));
+		    VM._assert(VM_Allocator.isPossibleRefOrMalloc(object));
 
 		addToStackBuffer(object, t);		// can optimize by hoisting parts
 

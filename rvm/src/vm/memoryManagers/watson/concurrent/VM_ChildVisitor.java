@@ -11,8 +11,8 @@ public abstract class VM_ChildVisitor
     extends VM_RCGC
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    protected boolean visit(VM_Address object) { VM.assert(false); return false; }
-    protected boolean visit(VM_Address object, VM_Address objectRef) { VM.assert(false); return false; }
+    protected boolean visit(VM_Address object) { VM._assert(false); return false; }
+    protected boolean visit(VM_Address object, VM_Address objectRef) { VM._assert(false); return false; }
 
     protected final boolean ignorePrimitiveTypes = false;
 

@@ -551,7 +551,7 @@ public final class OPT_Instruction
   public int getNumberOfPureDefs() {
     if (operator.hasVarDefs()) {
       if (VM.VerifyAssertions) {
-	VM.assert(operator.getNumberOfDefUses() == 0);
+	VM._assert(operator.getNumberOfDefUses() == 0);
       }
       int numOps = operator.getNumberOfFixedPureDefs();
       for (; numOps < ops.length; numOps++) {
@@ -573,7 +573,7 @@ public final class OPT_Instruction
   public int getNumberOfPureUses() {
     if (operator.hasVarDefs()) {
       if (VM.VerifyAssertions) {
-	VM.assert(operator.getNumberOfDefUses() == 0);
+	VM._assert(operator.getNumberOfDefUses() == 0);
       }
       int numOps = operator.getNumberOfFixedPureUses();
       int i = getNumberOfDefs() + numOps;
@@ -1135,7 +1135,7 @@ public final class OPT_Instruction
    * Note that marking as a PEI implies marking as GCpoint.
    */
   public void markAsPEI() {
-    if (VM.VerifyAssertions) VM.assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
     operatorInfo |= (OI_PEI_VALID | OI_PEI | OI_GC_VALID | OI_GC);
   }
 
@@ -1145,7 +1145,7 @@ public final class OPT_Instruction
    * Leave exception state (if any) unchanged.
    */
   public void markAsNonGCPoint() {
-    if (VM.VerifyAssertions) VM.assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
     operatorInfo &= ~OI_GC;
     operatorInfo |= OI_GC_VALID;
   }
@@ -1156,7 +1156,7 @@ public final class OPT_Instruction
    * Leave PEI status (if any) unchanged.
    */
   public void markAsGCPoint() {
-    if (VM.VerifyAssertions) VM.assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
     operatorInfo |= (OI_GC_VALID | OI_GC);
   }
 
@@ -1165,7 +1165,7 @@ public final class OPT_Instruction
    * Mark this instruction as being neither an exception or GC point.
    */
   public void markAsNonPEINonGCPoint() {
-    if (VM.VerifyAssertions) VM.assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
     operatorInfo &= ~(OI_PEI | OI_GC);
     operatorInfo |= (OI_PEI_VALID | OI_GC_VALID);
   }
@@ -1225,7 +1225,7 @@ public final class OPT_Instruction
    * @return The probability that the branch is taken.  
    */
   float getBranchProbability() {
-    if (VM.VerifyAssertions) VM.assert(isTwoWayBranch());
+    if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     return BranchProfileCarrier.getBranchProfile(this).takenProbability;
   }
 
@@ -1236,7 +1236,7 @@ public final class OPT_Instruction
    * @param The probability that the branch is taken.  
    */
   void setBranchProbability(float takenProbability) {
-    if (VM.VerifyAssertions) VM.assert(isTwoWayBranch());
+    if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     BranchProfileCarrier.getBranchProfile(this).takenProbability = 
       takenProbability;
   } 
@@ -1248,7 +1248,7 @@ public final class OPT_Instruction
    * 
    */
   void flipBranchProbability() {
-    if (VM.VerifyAssertions) VM.assert(isTwoWayBranch());
+    if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     setBranchProbability(1.0f-getBranchProbability());
   }
 
@@ -1458,7 +1458,7 @@ public final class OPT_Instruction
     if (OPT_IR.PARANOID) {
       isForwardLinked();
       newInstr.isNotLinked();
-      VM.assert(!isBbLast(), "cannot insert after last instruction of block");
+      VM._assert(!isBbLast(), "cannot insert after last instruction of block");
     }
 
     // set position unless someone else has
@@ -1502,7 +1502,7 @@ public final class OPT_Instruction
     if (OPT_IR.PARANOID) {
       isBackwardLinked();
       newInstr.isNotLinked();
-      VM.assert(!isBbFirst(), "Cannot insert before first instruction of block");
+      VM._assert(!isBbFirst(), "Cannot insert before first instruction of block");
     }
 
     // set position unless someone else has
@@ -1534,7 +1534,7 @@ public final class OPT_Instruction
     if (OPT_IR.PARANOID) {
       isLinked();
       newInstr.isNotLinked();
-      VM.assert(isBbInside(), "Can only replace BbInside instructions");
+      VM._assert(isBbInside(), "Can only replace BbInside instructions");
     }
 
     OPT_Instruction old_prev = prev;
@@ -1567,7 +1567,7 @@ public final class OPT_Instruction
   public OPT_Instruction remove() {
     if (OPT_IR.PARANOID) {
       isLinked();
-      VM.assert(!isBbFirst() && !isBbLast(), 
+      VM._assert(!isBbFirst() && !isBbLast(), 
 		"Removal of first/last instructions in block not supported");
     }
 
@@ -1586,23 +1586,23 @@ public final class OPT_Instruction
    * the calls to VM.Assert don't need to be guarded by VM.VerifyAssertions.
    */
   private void isLinked() {
-    VM.assert(prev.next == this, "is_linked: failure (1)");
-    VM.assert(next.prev == this, "is_linked: failure (2)");
+    VM._assert(prev.next == this, "is_linked: failure (1)");
+    VM._assert(next.prev == this, "is_linked: failure (2)");
   }
   private void isBackwardLinked() {
-    VM.assert(prev.next == this, "is_backward_linked: failure (1)");
+    VM._assert(prev.next == this, "is_backward_linked: failure (1)");
     // OK if next is null (IR under construction)
-    VM.assert(next == null || next.prev == this, 
+    VM._assert(next == null || next.prev == this, 
 	      "is_backward_linked: failure (2)");
   }
   private void isForwardLinked() {
     // OK if prev is null (IR under construction)
-    VM.assert(prev == null || prev.next == this, 
+    VM._assert(prev == null || prev.next == this, 
 	      "is_forward_linked: failure (1)");
-    VM.assert(next.prev == this, "is_forward_linked (2)");
+    VM._assert(next.prev == this, "is_forward_linked (2)");
   }
   private void isNotLinked() {
-    VM.assert(prev == null && next == null, "is_not_linked: failure (1)");
+    VM._assert(prev == null && next == null, "is_not_linked: failure (1)");
   }
 
   

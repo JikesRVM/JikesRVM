@@ -915,7 +915,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   private void insertEndPrologue() {
     OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
-    if (VM.VerifyAssertions) VM.assert(inst.getOpcode() == IR_PROLOGUE_opcode);
+    if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
     inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
     inst.remove();
   }
@@ -1069,7 +1069,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
                   // No need to use a scratch register here.
                   replaceOperandWithSpillLocation(s,op.asRegister());
                   //-#else
-                  VM.assert(NOT_REACHED);
+                  VM._assert(NOT_REACHED);
                   //-#endif
                 }
               }

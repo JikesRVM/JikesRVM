@@ -144,7 +144,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     private final OPT_BasicBlock getNotTakenBlock(OPT_Instruction s) {
       s = s.getNext();
       if (Goto.conforms(s)) return s.getBranchTarget();
-      if (VM.VerifyAssertions) VM.assert(s.operator() == BBEND);
+      if (VM.VerifyAssertions) VM._assert(s.operator() == BBEND);
       return s.getBasicBlock().nextBasicBlockInCodeOrder();
     }
 

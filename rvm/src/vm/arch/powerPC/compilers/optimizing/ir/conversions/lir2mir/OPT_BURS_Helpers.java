@@ -723,7 +723,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   void CMP_ZERO(OPT_BURS burs, OPT_Instruction s, OPT_Operator op, 
 		OPT_RegisterOperand def, OPT_Operand left,
 		OPT_ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM.assert(!cond.isUNSIGNED());
+    if (VM.VerifyAssertions) VM._assert(!cond.isUNSIGNED());
     if (!def.register.spansBasicBlock()) {
       def.register = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
     }
@@ -737,7 +737,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   void CMP_ZERO(OPT_BURS burs, OPT_Instruction s, OPT_Operator op, 
 		OPT_RegisterOperand def, OPT_RegisterOperand left, 
 		OPT_Operand right, OPT_ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM.assert(!cond.isUNSIGNED());
+    if (VM.VerifyAssertions) VM._assert(!cond.isUNSIGNED());
     if (!def.register.spansBasicBlock()) {
       def.register = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
     }
@@ -753,7 +753,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 			 OPT_RegisterOperand left, 
 			 OPT_IntConstantOperand Mask,
 			 OPT_ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM.assert(!cond.isUNSIGNED());
+    if (VM.VerifyAssertions) VM._assert(!cond.isUNSIGNED());
     int mask = Mask.value;
     if (mask < 0) {
       mask = ~mask;
@@ -1334,7 +1334,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     int imm = right.value;
-    if (VM.VerifyAssertions) VM.assert(imm < (0x8000 - 4));
+    if (VM.VerifyAssertions) VM._assert(imm < (0x8000 - 4));
     OPT_Instruction inst = OPT_IRTools.nonPEIGC (MIR_Load.create
 						    (PPC_LWZ, 
 						     R(defHigh), 
@@ -1421,7 +1421,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     int imm = right.value;
     if (VM.VerifyAssertions)
-      VM.assert(imm < (0x8000 - 4));
+      VM._assert(imm < (0x8000 - 4));
     OPT_Instruction inst = 
       OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defHigh), 
 					       left, I(imm), loc, guard));
@@ -1508,7 +1508,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
         // We're in trouble if there is another instruction between 
         // s and lastInstr!
         if (VM.VerifyAssertions)
-          VM.assert(s.nextInstructionInCodeOrder() == lastInstr);
+          VM._assert(s.nextInstructionInCodeOrder() == lastInstr);
         // Set branch = target of GOTO
         branch = (OPT_BranchOperand)Goto.getTarget(lastInstr);
       } else {

@@ -47,7 +47,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_DefUse.computeDU(ir);
       GlobalCSE(ir.firstBasicBlockInCodeOrder());
       if (VM.VerifyAssertions)
-	VM.assert(avail.size() == 0, avail.toString());
+	VM._assert(avail.size() == 0, avail.toString());
     }
   }
   

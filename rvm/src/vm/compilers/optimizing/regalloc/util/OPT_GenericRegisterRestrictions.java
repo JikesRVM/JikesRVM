@@ -248,7 +248,7 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    */
   final boolean allVolatilesForbidden(OPT_Register symb) {
     if (VM.VerifyAssertions) {
-      VM.assert(symb != null);
+      VM._assert(symb != null);
     }
     RestrictedRegisterSet s = getRestrictions(symb);
     if (s == null) return false;
@@ -261,8 +261,8 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    */
   final boolean isForbidden(OPT_Register symb, OPT_Register phys) {
     if (VM.VerifyAssertions) {
-      VM.assert(symb != null);
-      VM.assert(phys != null);
+      VM._assert(symb != null);
+      VM._assert(phys != null);
     }
     RestrictedRegisterSet s = getRestrictions(symb);
     if (s == null) return false;

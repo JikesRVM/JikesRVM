@@ -383,7 +383,7 @@ public class VM_Allocator extends VM_GCStatistics
     VM_Thread activeThread = st.activeThread;
     int tid = activeThread.getIndex();
 
-    if (VM.VerifyAssertions) VM.assert(tid == VM_Thread.getCurrentThread().getIndex());
+    if (VM.VerifyAssertions) VM._assert(tid == VM_Thread.getCurrentThread().getIndex());
 
     // if Processor is in fromSpace, copy and update array entry
     if (nurseryHeap.refInHeap(sta)) {
@@ -439,7 +439,7 @@ public class VM_Allocator extends VM_GCStatistics
       initTime.start(startTime);
       minorGCTime.start(initTime.lastStart);
       
-      if (VM.VerifyAssertions) VM.assert( initGCDone == false );  
+      if (VM.VerifyAssertions) VM._assert( initGCDone == false );  
 
       gcCount++;
 
@@ -592,7 +592,7 @@ public class VM_Allocator extends VM_GCStatistics
     if (VM_CollectorThread.MEASURE_WAIT_TIMES)
       mylocal.incrementWaitTimeTotals();
     
-    if (VM.VerifyAssertions) VM.assert(!majorCollection);
+    if (VM.VerifyAssertions) VM._assert(!majorCollection);
 
     if ( VM_GCLocks.testAndSetFinishLock() ) {
       // BEGIN SINGLE GC THREAD SECTION - MINOR END
@@ -813,7 +813,7 @@ public class VM_Allocator extends VM_GCStatistics
 	    VM_Scheduler.trace("prepareNonParticipatingVPsForGC:",
 			       "native processor with non-zero allocation ptr, id =",vp.id);
 	    vp.dumpProcessorState();
-	    VM.assert(false);
+	    VM._assert(false);
 	  }
 	}
       }
@@ -921,7 +921,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @return the address of the Object in Mature Space
    */
   static VM_Address copyAndScanObject (VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(nurseryHeap.refInHeap(fromRef));
+    if (VM.VerifyAssertions) VM._assert(nurseryHeap.refInHeap(fromRef));
     return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
 
@@ -963,14 +963,14 @@ public class VM_Allocator extends VM_GCStatistics
     
     if (PROCESSOR_LOCAL_ALLOCATE) {
       // local heap pointer set in initProcessor, should still be 0, ie no allocates yet
-      if (VM.VerifyAssertions) VM.assert(VM_Chunk.unusedChunk1(st));
+      if (VM.VerifyAssertions) VM._assert(VM_Chunk.unusedChunk1(st));
     }
     
     if (VM.VerifyAssertions) {
       // processor should already be copied, ie NOT in nursery
-      VM.assert(!nurseryHeap.refInHeap(sta));
+      VM._assert(!nurseryHeap.refInHeap(sta));
       // and its processor array entry updated
-      VM.assert(sta.EQ(VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id])));
+      VM._assert(sta.EQ(VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id])));
     }
     
     VM_Address oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
@@ -1049,14 +1049,14 @@ public class VM_Allocator extends VM_GCStatistics
     
       // for minor collections, non-nursery objects are assumed live.
       if (VM.VerifyAssertions) {
-	VM.assert(smallHeap.refInHeap(ref) || largeHeap.refInHeap(ref));
+	VM._assert(smallHeap.refInHeap(ref) || largeHeap.refInHeap(ref));
       }
       return true;
     } else { 
       // Major Collection procsssing of Nursery & Mature Space
 
       // should never see an object in the Nursery during Major Collections
-      if (VM.VerifyAssertions) VM.assert(!nurseryHeap.refInHeap(ref));
+      if (VM.VerifyAssertions) VM._assert(!nurseryHeap.refInHeap(ref));
 
       if (smallHeap.refInHeap(ref)) {
 	if (smallHeap.isLive(ref)) {
@@ -1081,7 +1081,7 @@ public class VM_Allocator extends VM_GCStatistics
       }
     }
 
-    if (VM.VerifyAssertions) VM.assert(false);
+    if (VM.VerifyAssertions) VM._assert(false);
     return true; 
   }  
        
@@ -1114,7 +1114,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     if (majorCollection) {
       // Major collection; we should have already evacuated the nursery.
-      if (VM.VerifyAssertions) VM.assert(!nurseryHeap.refInHeap(ref));
+      if (VM.VerifyAssertions) VM._assert(!nurseryHeap.refInHeap(ref));
       
       if (smallHeap.refInHeap(ref)) {
 	if (smallHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
@@ -1140,7 +1140,7 @@ public class VM_Allocator extends VM_GCStatistics
       if (VM.VerifyAssertions) {
 	if (!mallocHeap.refInHeap(ref)) {
 	  VM.sysWriteln("processPtrValue encountered bad reference = ", ref);
-	  VM.assert(false);
+	  VM._assert(false);
 	}
       }
       
@@ -1156,7 +1156,7 @@ public class VM_Allocator extends VM_GCStatistics
 	      bootHeap.refInHeap(ref) || immortalHeap.refInHeap(ref) ||
 	      mallocHeap.refInHeap(ref))) {
 	  VM.sysWriteln("processPtrValue encountered bad reference = ", ref);
-	  VM.assert(false);
+	  VM._assert(false);
 	}
       }
       return ref; 

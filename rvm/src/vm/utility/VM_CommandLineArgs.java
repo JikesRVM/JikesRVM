@@ -188,7 +188,7 @@ class VM_CommandLineArgs {
     for (int i = 0; i < numArgs; ++i) {
       int cnt = sysArg(i, buf);
       // !!TODO: if i-th arg too long, enlarge buf[] and try again
-      if (VM.VerifyAssertions) VM.assert(cnt != -1); 
+      if (VM.VerifyAssertions) VM._assert(cnt != -1); 
       String arg = new String(buf, 0, 0, cnt);
       if (app_prefix.count > 0) {
         args[i] = arg;
@@ -211,7 +211,7 @@ class VM_CommandLineArgs {
             }
             cnt = sysArg(i, buf);
             // !!TODO: if i-th arg too long, enlarge buf[] and try again
-            if (VM.VerifyAssertions) VM.assert(cnt != -1);
+            if (VM.VerifyAssertions) VM._assert(cnt != -1);
             String val = new String(buf, 0, 0, cnt);
             args[i-1] += val;
             args[i] = null;
@@ -327,11 +327,11 @@ class VM_CommandLineArgs {
 	}
 	break;
       case VERBOSE_GC_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM_BootRecord.the_boot_record.verboseGC = 1;
 	break;
       case VERBOSE_CLS_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM.verboseClassLoading = true;
 	break;
 
@@ -403,7 +403,7 @@ class VM_CommandLineArgs {
 	// compiler (may be baseline or optimizing).
         // ----------------------------------------------------
       case IRC_HELP_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
@@ -424,7 +424,7 @@ class VM_CommandLineArgs {
         // Access adaptive configuration's initial runtime optimizing compiler.
         // --------------------------------------------------------------------
       case AOS_IRC_HELP_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_BaseOptions.printHelp("-X:aos:base");
 	//-#else
@@ -446,7 +446,7 @@ class VM_CommandLineArgs {
 	// Access adaptive configuration's optimizing compiler (recompilation and other uses)
         // --------------------------------------------------------------------
       case AOS_OPT_HELP_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	OPT_Options.printHelp("-X:aos:opt");
 	//-#else
@@ -469,7 +469,7 @@ class VM_CommandLineArgs {
 	// Access adaptive configuration's baseline compiler 
         // --------------------------------------------------------------------
       case AOS_BASE_HELP_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_BaseOptions.printHelp("-X:aos:base");
 	//-#else
@@ -537,7 +537,7 @@ class VM_CommandLineArgs {
         // Access adaptive configuration's AOS
         // -------------------------------------------------------------------
       case AOS_HELP_ARG:  // -X:aos passed 'help' as an option
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.processCommandLineArg("help");
 	//-#else
@@ -558,7 +558,7 @@ class VM_CommandLineArgs {
         // Access GC options
         // -------------------------------------------------------------------
       case GC_HELP_ARG:  // -X:gc passed 'help' as an option
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM_Collector.processCommandLineArg("help");
 	break;
       case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
@@ -570,7 +570,7 @@ class VM_CommandLineArgs {
         // Access GCTk optios
         // -------------------------------------------------------------------
       case GCTK_HELP_ARG:  // -X:gctk passed 'help' as an option
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_GCTk
 	GCTk_Collector.processCommandLineArg("help");
 	//-#else
@@ -608,7 +608,7 @@ class VM_CommandLineArgs {
         // optimizing - these options go to the baseline only)
         // ----------------------------------------------------
       case BASE_HELP_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
@@ -633,7 +633,7 @@ class VM_CommandLineArgs {
 	//  would not be used to compile anything
         // ----------------------------------------------------
       case OPT_HELP_ARG:
-	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);

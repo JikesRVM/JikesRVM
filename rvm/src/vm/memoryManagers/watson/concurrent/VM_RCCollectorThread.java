@@ -57,7 +57,7 @@ class VM_RCCollectorThread extends VM_CollectorThread
 	
 	p.localEpoch = VM_Scheduler.globalEpoch;
 	
-	if (VM.VerifyAssertions) VM.assert(isActive);
+	if (VM.VerifyAssertions) VM._assert(isActive);
 	
 	if (trace) VM_Scheduler.trace("VM_RCCollectorThread", "starting collection");
 	
@@ -97,7 +97,7 @@ class VM_RCCollectorThread extends VM_CollectorThread
 		t.processorAffinity.scheduleThread(t); // should this be transferThread???
 	      else {
 		t.dump();
-		VM.assert(false);
+		VM._assert(false);
 	      }
 	    }
 	    collect.notifyCompletion();        // notify mutators waiting on previous handshake object

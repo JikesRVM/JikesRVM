@@ -140,7 +140,7 @@ final class VM_GCMapIteratorGroup {
     if (testOptCompilerIterator != null && type == testOptCompilerIterator.getType())
       return testOptCompilerIterator;
     
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
   
@@ -150,7 +150,7 @@ final class VM_GCMapIteratorGroup {
    * @return jniIterator
    */
   VM_GCMapIterator getJniIterator() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(jniIterator!=null);
+    if (VM.VerifyAssertions) VM._assert(jniIterator!=null);
     return jniIterator;  
   }
 }

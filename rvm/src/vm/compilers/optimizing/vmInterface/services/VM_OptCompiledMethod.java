@@ -105,7 +105,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	  VM.sysWrite("\n");
       }
     } else {
-      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -321,18 +321,18 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
 
   final void setUnsignedNonVolatileOffset(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (NONVOLATILE_MASK >>> NONVOLATILE_SHIFT));
     _bits = (_bits & ~NONVOLATILE_MASK) | (((long)x) << NONVOLATILE_SHIFT);
   }
   final void setUnsignedExceptionOffset(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (EXCEPTION_OBJ_MASK >>> EXCEPTION_OBJ_SHIFT));
     _bits = (_bits & ~EXCEPTION_OBJ_MASK) | (((long)x) << EXCEPTION_OBJ_SHIFT);
   }
   final void setFirstNonVolatileGPR(int x) {
     if (x == -1) {
       _bits |= INTEGER_MASK;
     } else {
-      if (VM.VerifyAssertions) VM.assert(x >= 0 && x < NO_INTEGER_ENTRY);
+      if (VM.VerifyAssertions) VM._assert(x >= 0 && x < NO_INTEGER_ENTRY);
       _bits = (_bits & ~INTEGER_MASK) | (((long)x) << INTEGER_SHIFT);
     }
   }
@@ -340,12 +340,12 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     if (x == -1) {
       _bits |= FLOAT_MASK;
     } else {
-      if (VM.VerifyAssertions) VM.assert(x >= 0 && x < NO_FLOAT_ENTRY);
+      if (VM.VerifyAssertions) VM._assert(x >= 0 && x < NO_FLOAT_ENTRY);
       _bits = (_bits & ~FLOAT_MASK) | (((long)x) << FLOAT_SHIFT);
     }
   }
   final void setOptLevel(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (OPT_LEVEL_MASK >>> OPT_LEVEL_SHIFT));
     _bits = (_bits & ~OPT_LEVEL_MASK) | (((long)x) << OPT_LEVEL_SHIFT);
   }
   final void setSaveVolatile(boolean sv) {
@@ -361,7 +361,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       _bits &= ~INSTRU_METHOD_MASK;
   }
   final void setFrameFixedSize(int x) {
-    if (VM.VerifyAssertions) VM.assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
+    if (VM.VerifyAssertions) VM._assert(x >= 0 && x < (FIXED_SIZE_MASK >>> FIXED_SIZE_SHIFT));
     _bits = (_bits & ~FIXED_SIZE_MASK) | (((long)x) << FIXED_SIZE_SHIFT);
   }
   

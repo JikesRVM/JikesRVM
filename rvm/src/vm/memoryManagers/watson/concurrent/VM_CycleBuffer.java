@@ -67,7 +67,7 @@ public final class VM_CycleBuffer
 	last.objects[last.entries++] = object.toInt();
 
 	if (VM.VerifyAssertions && !object.isZero()) 
-	    VM.assert(isBuffered(object) && color(object) == WHITE && VM_Allocator.isPossibleRef(object));
+	    VM._assert(isBuffered(object) && color(object) == WHITE && VM_Allocator.isPossibleRef(object));
 	if (CB_COUNT_EVENTS) { if (object.isZero()) cyclesFound++; else whiteObjects++; }
 
 	if (TRACEADDS) {
@@ -208,7 +208,7 @@ public final class VM_CycleBuffer
 
 	    size++;
 
-	    if (VM.VerifyAssertions) VM.assert(VM_Allocator.isPossibleRef(object));
+	    if (VM.VerifyAssertions) VM._assert(VM_Allocator.isPossibleRef(object));
 
 	    if (color(object) != WHITE) {
 		modified = true;
@@ -225,7 +225,7 @@ public final class VM_CycleBuffer
 
 	boolean garbageCycle = (! modified) && (externalReferenceCount == 0);
 
-	if (VM.VerifyAssertions && VM_RootBuffer.ASYNC && VM_Scheduler.numProcessors == 1) VM.assert(! modified);
+	if (VM.VerifyAssertions && VM_RootBuffer.ASYNC && VM_Scheduler.numProcessors == 1) VM._assert(! modified);
 
 	if (CB_COUNT_EVENTS && size > 0) {
 	    cyclesProcessed++;
@@ -249,7 +249,7 @@ public final class VM_CycleBuffer
 	    VM_Address object = VM_Address.fromInt(cc.objects[ci]);
 	    if (object.isZero()) { ci--; break; }
 
-	    // HACK // if (VM.VerifyAssertions) VM.assert(isBuffered(object));
+	    // HACK // if (VM.VerifyAssertions) VM._assert(isBuffered(object));
 
 	    if (! isBuffered(object) || color(object) == GREEN || color(object) == RED) {
 		dumpRefcountInfo("FREEING CYCLE ELEMENT NOT MARKED BUFFERED ", object);
@@ -259,7 +259,7 @@ public final class VM_CycleBuffer
 		visualizeCycle(xp.buffer, xp.index);
 	    }
 
-	    if (VM.VerifyAssertions) VM.assert(color(object) != GREEN && color(object) != RED);
+	    if (VM.VerifyAssertions) VM._assert(color(object) != GREEN && color(object) != RED);
 
 	    releaseWhite(object);
 	}
@@ -316,7 +316,7 @@ public final class VM_CycleBuffer
 	    VM_Address object = VM_Address.fromInt(cc.objects[ci]);
 	    if (object.isZero()) { ci--; break; }
 
-	    // HACK // if (VM.VerifyAssertions) VM.assert(isBuffered(object));
+	    // HACK // if (VM.VerifyAssertions) VM._assert(isBuffered(object));
 
 	    if (! isBuffered(object) || color(object) == GREEN || color(object) == RED) {
 		dumpRefcountInfo("REFURBISHED CYCLE ELEMENT NOT BUFFERED ", object);
@@ -326,7 +326,7 @@ public final class VM_CycleBuffer
 		visualizeCycle(xp.buffer, xp.index);
 	    }
 
-	    if (VM.VerifyAssertions) VM.assert(color(object) != GREEN && color(object) != RED);
+	    if (VM.VerifyAssertions) VM._assert(color(object) != GREEN && color(object) != RED);
 
 	    refurbish(object);
 
@@ -335,7 +335,7 @@ public final class VM_CycleBuffer
 
 	// Should only do this if externalReferenceCount != 0
 	if (color(firstObject) != PURPLE) {
-	    if (VM.VerifyAssertions) VM.assert (! isBuffered(firstObject));
+	    if (VM.VerifyAssertions) VM._assert (! isBuffered(firstObject));
 	    VM_RootBuffer.buffer.add(firstObject);
 	}
 
@@ -424,7 +424,7 @@ public final class VM_CycleBuffer
 
 
     private static void cyclicDecrementRC (VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(!object.isZero());
+	if (VM.VerifyAssertions) VM._assert(!object.isZero());
     
 	if (VM.VerifyAssertions && object.EQ(VM_Allocator.refToWatch))
 	    VM.sysWrite("#### Cyclic decrementing RC of watched object\n");
@@ -498,7 +498,7 @@ public final class VM_CycleBuffer
 
 
     private static void cyclicDecrementRC2 (VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(!object.isZero());
+	if (VM.VerifyAssertions) VM._assert(!object.isZero());
     
 	int color = color(object);
 
@@ -510,7 +510,7 @@ public final class VM_CycleBuffer
 	    return;
 	}
 
-	if (VM.VerifyAssertions) VM.assert(! isZeroReferenceCount(object));
+	if (VM.VerifyAssertions) VM._assert(! isZeroReferenceCount(object));
 
 	decReferenceCount(object);
 	if (! isZeroCyclicReferenceCount(object)) { 
@@ -623,7 +623,7 @@ class VM_CycleChildVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
     public final void decrementChildCounts(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(VM_RootBuffer.ASYNC);
 	visitChildren(object);
     }
 

@@ -157,7 +157,7 @@ public class VM_Handshake {
     // (see VM_CollectorThread.run)
     //
     for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
-      if (VM.VerifyAssertions) VM.assert(VM_Processor.nativeProcessors[i] != null);
+      if (VM.VerifyAssertions) VM._assert(VM_Processor.nativeProcessors[i] != null);
       VM_Processor.nativeProcessors[i].lockInCIfInC();
       if (trace) {
         int newStatus =  VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex];
@@ -291,7 +291,7 @@ public class VM_Handshake {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
       // check that current value is as expected
-      if (VM.VerifyAssertions && (value!=0)) VM.assert( lockoutVal == value );
+      if (VM.VerifyAssertions && (value!=0)) VM._assert( lockoutVal == value );
       // OK, reset to zero
       if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
 			  VM_Entrypoints.lockoutProcessorField.offset,

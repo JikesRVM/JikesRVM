@@ -54,7 +54,7 @@ class OPT_ValueGraph implements OPT_Operators {
               if (v2.name instanceof OPT_Register && 
                   v2.label instanceof OPT_Register &&
                   v2.label != v2.name) {
-                VM.assert(false);
+                VM._assert(false);
               }
             } 
             v.copyVertex(v2);

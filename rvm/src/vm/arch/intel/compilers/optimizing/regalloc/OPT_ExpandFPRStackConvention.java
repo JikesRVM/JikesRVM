@@ -99,8 +99,8 @@ implements OPT_Operators{
           OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);
           s.insertBefore(MIR_Nullary.create(DUMMY_DEF,OPT_IRTools.D(fpr)));
         }
-        if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
-        if (VM.VerifyAssertions) VM.assert(fpStackOffset <
+        if (VM.VerifyAssertions) VM._assert(fpStackOffset >= 0);
+        if (VM.VerifyAssertions) VM._assert(fpStackOffset <
                                            NUM_ALLOCATABLE_FPR);
       }
     }

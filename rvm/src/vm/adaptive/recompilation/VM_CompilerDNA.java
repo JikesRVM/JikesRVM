@@ -194,14 +194,14 @@ class VM_CompilerDNA implements VM_Constants {
 				     double[] valueHolder) throws IOException {
 
     String s = in.readLine();
-    if (VM.VerifyAssertions) VM.assert(s != null);
+    if (VM.VerifyAssertions) VM._assert(s != null);
     
     // parse the string
     StringTokenizer parser = new StringTokenizer(s);
     
     // make sure the title matches
     String token = parser.nextToken();
-    if (VM.VerifyAssertions) VM.assert(token.equals(title));
+    if (VM.VerifyAssertions) VM._assert(token.equals(title));
     
     // walk through the array, making sure we still have tokens
     for (int i=0;
@@ -237,7 +237,7 @@ class VM_CompilerDNA implements VM_Constants {
       case OPT1: return 1;
       case OPT2: return 2;
       default:
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED, "Unknown compiler constant\n");
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
 	return -99;
     }
   }
@@ -262,7 +262,7 @@ class VM_CompilerDNA implements VM_Constants {
       case 1: return OPT1;
       case 2: return OPT2;
       default:
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED, "Unknown Opt Level\n");
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
 	return -99;
     }
   }

@@ -803,7 +803,7 @@ public class VM_Allocator
 
     // make a small scalar from the free object available in next_slot
     private static VM_Address makeScalar (VM_SizeControl the_size, Object[] tib, int size) {
-	if (VM.VerifyAssertions) VM.assert(!the_size.next_slot.isZero());
+	if (VM.VerifyAssertions) VM._assert(!the_size.next_slot.isZero());
 
 	VM_Address rawaddr = the_size.next_slot;
 
@@ -905,7 +905,7 @@ public class VM_Allocator
 
 	if (VM.VerifyAssertions) {
 	    VM_Type type = VM_Magic.getObjectType(result);
-	    VM.assert(!type.asArray().getElementType().isAddressType());
+	    VM._assert(!type.asArray().getElementType().isAddressType());
 	}
 	return result;
     }
@@ -993,7 +993,7 @@ public class VM_Allocator
 
 
     private static VM_Address makeArray (Object[] tib, int numElements, int size, VM_SizeControl the_size) {
-	if (VM.VerifyAssertions) VM.assert(!the_size.next_slot.isZero());
+	if (VM.VerifyAssertions) VM._assert(!the_size.next_slot.isZero());
 
 	VM_Address rawaddr = the_size.next_slot;
 
@@ -1079,7 +1079,7 @@ public class VM_Allocator
 	// if (current_block.nextblock != 0) return 0;
 
 	// dfb: Huh?  I don't understand the above if/return statement, so for now assume it never happens.
-	if (VM.VerifyAssertions) VM.assert(current_block.nextblock == 0);
+	if (VM.VerifyAssertions) VM._assert(current_block.nextblock == 0);
 
 	/// NEW LOGIC; trigger gc when no more blocks are available
 	/// if (--blocks_available <= 2) {
@@ -1172,12 +1172,12 @@ public class VM_Allocator
 	if (gcInProgress) {
 	    int pid = VM_Processor.getCurrentProcessor().id;
 	    if (VM.VerifyAssertions) 
-		VM.assert(VM_Scheduler.numProcessors == 1 || pid != VM_Scheduler.numProcessors) ;
+		VM._assert(VM_Scheduler.numProcessors == 1 || pid != VM_Scheduler.numProcessors) ;
 	    else if (VM_Scheduler.numProcessors != 1 && pid == VM_Scheduler.numProcessors)
 		return;		// don't suspend GC while GCing
 
 	    // This should be true; for now, make it so.
-	    // VM.assert(VM_Thread.getCurrentThread().processorAffinity != null);
+	    // VM._assert(VM_Thread.getCurrentThread().processorAffinity != null);
 	    if (VM_Thread.getCurrentThread().processorAffinity == null)
 		VM_Thread.getCurrentThread().processorAffinity = VM_Processor.getCurrentProcessor();
 
@@ -1368,7 +1368,7 @@ public class VM_Allocator
 		VM.sysWrite("**** Bad next free address from slot at ");
 		VM.sysWrite(objaddr);
 		VM.sysWrite("\n");
-		VM.assert(false);
+		VM._assert(false);
 	    }
 
 	    checkAllocation(the_size.next_slot, the_size);
@@ -1877,7 +1877,7 @@ public class VM_Allocator
 
 		if (entry == 0) break; // temporary loop end for preprocessed buffers
 
-		if (VM.VerifyAssertions) VM.assert(!object.isZero());
+		if (VM.VerifyAssertions) VM._assert(!object.isZero());
 
 		if (GC_FILTER_MALLOC_REFS && isMalloc(object)) {
 		    if (VM_RCBarriers.DONT_BARRIER_BLOCK_CONTROLS) { // else too verbose
@@ -1942,7 +1942,7 @@ public class VM_Allocator
 	    mallocHeap.show();
 	    VM_StackBuffer.dumpBufferInfo(bufptr, object);
 
-	    if (VM.VerifyAssertions) VM.assert(false);
+	    if (VM.VerifyAssertions) VM._assert(false);
 	}
     }
 
@@ -1998,7 +1998,7 @@ public class VM_Allocator
 		final VM_Address object = VM_Address.fromInt(entry & VM_RCBuffers.OBJECT_MASK);
 		final int lowbit = entry & VM_RCBuffers.DECREMENT_FLAG;
 
-		if (VM.VerifyAssertions) VM.assert(!object.isZero());
+		if (VM.VerifyAssertions) VM._assert(!object.isZero());
 
 		if (lowbit == 0) {
 		    checkRef("Bad inc ref in preprocessing of mutation buffer", object, bufptr);
@@ -2020,7 +2020,7 @@ public class VM_Allocator
 		    dest = dest.add(4);
 
 		    if (dest.GT(destmax)) {
-			if (VM.VerifyAssertions) VM.assert(deststart.NE(start));
+			if (VM.VerifyAssertions) VM._assert(deststart.NE(start));
 
 			// VM_Magic.setMemoryWord(destmax+4, dest-4); // save pointer to last entry
 			VM_Magic.setMemoryWord(dest, 0);
@@ -2030,7 +2030,7 @@ public class VM_Allocator
 			deststart = start;
 			destmax   = start.add(VM_RCBuffers.INCDEC_BUFFER_LAST_OFFSET);
 
-			if (VM.VerifyAssertions) VM.assert(!dest.isZero());
+			if (VM.VerifyAssertions) VM._assert(!dest.isZero());
 		    }
 		}
 	    }
@@ -2516,7 +2516,7 @@ public class VM_Allocator
     /////////////////////////////////////////////////////////////////////////////
 
     static void incrementRC (VM_Address object) { 
-	if (VM.VerifyAssertions) VM.assert(!object.isZero());
+	if (VM.VerifyAssertions) VM._assert(!object.isZero());
 
 	if (VM.VerifyAssertions && object == refToWatch)
 	    VM.sysWrite("#### Incrementing RC of watched object\n");
@@ -2569,7 +2569,7 @@ public class VM_Allocator
 
 
     static void removeInternalPointersAndFree (VM_Address ref) {
-	if (VM.VerifyAssertions) VM.assert(isPossibleRef(ref));
+	if (VM.VerifyAssertions) VM._assert(isPossibleRef(ref));
 
 	if (VM.VerifyAssertions && ref == refToWatch)
 	    VM.sysWrite("#### Freeing watched object\n");
@@ -2614,8 +2614,8 @@ public class VM_Allocator
 
     // Once refcount drops to zero, free the object
     static void freeObject (VM_Address ref) {
-	if (VM.VerifyAssertions) VM.assert(isPossibleRef(ref)); 
-	if (VM.VerifyAssertions) VM.assert(! isBuffered(ref)); 
+	if (VM.VerifyAssertions) VM._assert(isPossibleRef(ref)); 
+	if (VM.VerifyAssertions) VM._assert(! isBuffered(ref)); 
 	if (GC_COUNT_ALLOC) freedCount++;
 
 	VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
@@ -2642,9 +2642,9 @@ public class VM_Allocator
 	    int blocks = largeSpaceAlloc[page_num];
 
 	    if (VM.VerifyAssertions) {
-		VM.assert(blocks > 0);
+		VM._assert(blocks > 0);
 		if (blocks != 1) 
-		    VM.assert(blocks == (-largeSpaceAlloc[page_num + blocks - 1]));
+		    VM._assert(blocks == (-largeSpaceAlloc[page_num + blocks - 1]));
 	    }
 
 	    // Zero large blocks here so they don't create mutator pauses
@@ -2669,7 +2669,7 @@ public class VM_Allocator
 	    VM.sysWrite("Object in unknown space at ");
 	    VM.sysWrite(ref);
 	    VM.sysWriteln(" of type ", VM_Magic.getObjectType(VM_Magic.addressAsObject(ref)).toString());
-	    VM.assert(NOT_REACHED);
+	    VM._assert(NOT_REACHED);
 	}
     }
 
@@ -3027,7 +3027,7 @@ public class VM_Allocator
     //
 
     static boolean processFinalizerListElement (VM_FinalizerListElement le) {
-	VM.assert(NOT_REACHED);
+	VM._assert(NOT_REACHED);
 	return false;
     }
 

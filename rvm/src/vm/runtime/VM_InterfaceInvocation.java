@@ -110,7 +110,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	installITable(C, (VM_Class)I);
       }
       Object[] iTable = findITable(tib, id);
-      if (VM.VerifyAssertions) VM.assert(iTable != null);
+      if (VM.VerifyAssertions) VM._assert(iTable != null);
       return iTable;
     }
   }
@@ -234,7 +234,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
       for (int j=0; j<interfaceMethods.length; j++) {
 	VM_Method im = interfaceMethods[j];
 	if (im.isClassInitializer()) continue; 
-	if (VM.VerifyAssertions) VM.assert(im.isPublic() && im.isAbstract()); 
+	if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
 	int id = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(im.getName(), im.getDescriptor());
 	VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
 	// NOTE: if there is some error condition, then we are playing a dirty trick and
@@ -311,7 +311,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
       iTables = tmp;
       tib[TIB_ITABLES_TIB_INDEX] = iTables;
     }
-    if (VM.VerifyAssertions) VM.assert(iTables[iTables.length-1] == null);
+    if (VM.VerifyAssertions) VM._assert(iTables[iTables.length-1] == null);
     Object[] iTable = buildITable(C, I);
     iTables[iTables.length - 1] = iTable;
     // iTables[0] is a move to front cache; fill it here so we can
@@ -331,7 +331,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     for (int i=0; i<interfaceMethods.length; i++) {
       VM_Method im = interfaceMethods[i];
       if (im.isClassInitializer()) continue; 
-      if (VM.VerifyAssertions) VM.assert(im.isPublic() && im.isAbstract()); 
+      if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
       VM_Method vm = C.findVirtualMethod(im.getName(), im.getDescriptor());
       // NOTE: if there is some error condition, then we are playing a dirty trick and
       //       pretending that a static method of VM_Runtime is a virtual method.
@@ -368,7 +368,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    * @return offset in TIB/IMT
    */ 
   public static int getIMTOffset(int id) {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForIMTInterfaceInvocation);
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int offset = VM_InterfaceMethodSignatureDictionary.getValue(id);
     if (offset == UNRESOLVED_INTERFACE_METHOD_OFFSET) {
       // we haven't assigned this signature an offset yet; do it now.
@@ -387,8 +387,8 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    * Return the index of the interface method m in the itable
    */
   public static int getITableIndex(VM_Class klass, VM_Method m) {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForITableInterfaceInvocation);
-    if (VM.VerifyAssertions) VM.assert(klass.isLoaded() && klass.isInterface());
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForITableInterfaceInvocation);
+    if (VM.VerifyAssertions) VM._assert(klass.isLoaded() && klass.isInterface());
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int i=0; i<methods.length; i++) {
       if (methods[i] == m) return i+1;
@@ -477,7 +477,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     }
 
     private VM_Method getSoleTarget(int index) {
-      if (VM.VerifyAssertions) VM.assert(populationCount(index) == 1);
+      if (VM.VerifyAssertions) VM._assert(populationCount(index) == 1);
       return links[index].method;
     }
 

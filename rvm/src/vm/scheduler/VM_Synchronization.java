@@ -70,7 +70,7 @@ public class VM_Synchronization implements VM_Uninterruptible {
 
   public static final VM_Address fetchAndAddAddressWithBound(VM_Address addr, int increment, VM_Address bound) throws VM_PragmaInline {
     VM_Address oldValue, newValue;
-    if (VM.VerifyAssertions) VM.assert(increment > 0);
+    if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
       oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
       newValue = oldValue.add(increment);
@@ -81,7 +81,7 @@ public class VM_Synchronization implements VM_Uninterruptible {
 
   public static final VM_Address fetchAndSubAddressWithBound(VM_Address addr, int decrement, VM_Address bound) throws VM_PragmaInline {
     VM_Address oldValue, newValue;
-    if (VM.VerifyAssertions) VM.assert(decrement > 0);
+    if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {
       oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
       newValue = oldValue.sub(decrement);
@@ -93,7 +93,7 @@ public class VM_Synchronization implements VM_Uninterruptible {
   public static final VM_Address fetchAndAddAddressWithBound(Object base, int offset, 
                                                       int increment, VM_Address bound) throws VM_PragmaInline {
     VM_Address oldValue, newValue;
-    if (VM.VerifyAssertions) VM.assert(increment > 0);
+    if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
       oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
       newValue = oldValue.add(increment);
@@ -105,7 +105,7 @@ public class VM_Synchronization implements VM_Uninterruptible {
   public static final VM_Address fetchAndSubAddressWithBound(Object base, int offset, 
                                                       int decrement, VM_Address bound) throws VM_PragmaInline {
     VM_Address oldValue, newValue;
-    if (VM.VerifyAssertions) VM.assert(decrement > 0);
+    if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {
       oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
       newValue = oldValue.sub(decrement);

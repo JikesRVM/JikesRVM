@@ -108,7 +108,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
     // dimensionality
     if (t1.isPrimitiveType() || t1.isPrimitiveType()) {
       if (VM.VerifyAssertions)
-        VM.assert(t1 != t2);
+        VM._assert(t1 != t2);
       VM_Type type = JavaLangObjectType;
       --arrayDimensions;
       while (arrayDimensions-- > 0)

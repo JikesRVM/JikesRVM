@@ -438,7 +438,7 @@ public final class OPT_IR implements OPT_Operators {
    * @return that requested block
    */
   public OPT_BasicBlock getBasicBlock(int number){
-    if (VM.VerifyAssertions) VM.assert(basicBlockMap != null);
+    if (VM.VerifyAssertions) VM._assert(basicBlockMap != null);
     return basicBlockMap[number];
   }
 

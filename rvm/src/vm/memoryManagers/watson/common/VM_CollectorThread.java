@@ -328,7 +328,7 @@ public class VM_CollectorThread extends VM_Thread
 	//
 	for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
 	  VM_Processor vp = VM_Processor.nativeProcessors[i];
-	  if (VM.VerifyAssertions) VM.assert(vp != null);
+	  if (VM.VerifyAssertions) VM._assert(vp != null);
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
 	    if (debug_native)
@@ -342,7 +342,7 @@ public class VM_CollectorThread extends VM_Thread
 	//
 	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
 	  VM_Processor vp = VM_Scheduler.processors[i];
-	  if (VM.VerifyAssertions) VM.assert(vp != null);
+	  if (VM.VerifyAssertions) VM._assert(vp != null);
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
 	    if (debug_native)
@@ -478,7 +478,7 @@ public class VM_CollectorThread extends VM_Thread
       // should not reach here: system error:
       VM_Scheduler.trace("ERROR", "resumeAttachedProcessors: VP not BLOCKED", i);
       VM_Scheduler.trace("   ", "vpstatus =",VM_Processor.vpStatus[vp.vpStatusIndex]);
-      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 
     }  // end loop over attachedProcessors[]
   }  // resumeAttachedProcessors

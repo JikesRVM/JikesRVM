@@ -141,7 +141,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, 
 					       OPT_IR ir) {
     if (VM.VerifyAssertions)
-      VM.assert(InstrumentedCounter.conforms(counterInst));
+      VM._assert(InstrumentedCounter.conforms(counterInst));
 
     OPT_IntConstantOperand intOp =
       InstrumentedCounter.getData(counterInst);

@@ -79,7 +79,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
 
-    if (VM.VerifyAssertions) VM.assert(registers.inuse == true);
+    if (VM.VerifyAssertions) VM._assert(registers.inuse == true);
     registers.inuse = false;
 
     // 'give back' the portion of the stack we borrowed to run 
@@ -94,7 +94,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // "branches" to catchBlockInstructionAddress
     VM_Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
   
 
@@ -125,7 +125,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 	 i++, frameOffset += 4) {
       registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryWord(fp.sub(frameOffset));
     }
-    if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0);
+    if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
     
     registers.unwindStackFrame();
 

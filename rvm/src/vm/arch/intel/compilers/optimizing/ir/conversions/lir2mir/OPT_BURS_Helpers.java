@@ -206,13 +206,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     AddrStack = new AddrStackElement(base, index, scale, disp, AddrStack);
   }
   final void augmentAddress(OPT_Operand op) {
-    if (VM.VerifyAssertions) VM.assert(AddrStack != null, "No address to augment");
+    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to augment");
     if (op.isRegister()) {
       OPT_RegisterOperand rop = op.asRegister();
       if (AddrStack.base == null) {
 	AddrStack.base = rop;
       } else if (AddrStack.index == null) {
-	if (VM.VerifyAssertions) VM.assert(AddrStack.scale == (byte)0);
+	if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
 	AddrStack.index = rop;
       } else {
 	throw new OPT_OptimizingCompilerException("three base registers in address");
@@ -223,15 +223,15 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
   }
   final void combineAddresses() {
-    if (VM.VerifyAssertions) VM.assert(AddrStack != null, "No address to combine");
+    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to combine");
     AddrStackElement tmp = AddrStack;
     AddrStack = AddrStack.next;
-    if (VM.VerifyAssertions) VM.assert(AddrStack != null, "only 1 address to combine");
+    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "only 1 address to combine");
     if (tmp.base != null) {
       if (AddrStack.base == null) {
 	AddrStack.base = tmp.base;
       } else if (AddrStack.index == null) {
-	if (VM.VerifyAssertions) VM.assert(AddrStack.scale == (byte)0);
+	if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
 	AddrStack.index = tmp.base;
       } else {
 	throw new OPT_OptimizingCompilerException("three base registers in address");
@@ -239,7 +239,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
     if (tmp.index != null) {
       if (AddrStack.index == null) {
-	if (VM.VerifyAssertions) VM.assert(AddrStack.scale == (byte)0);
+	if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
 	AddrStack.index = tmp.index;
 	AddrStack.scale = tmp.scale;
       } else if (AddrStack.base == null && tmp.scale == (byte)0) {
@@ -253,7 +253,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   final OPT_MemoryOperand consumeAddress(byte size, 
 					 OPT_LocationOperand loc,
 					 OPT_Operand guard) {
-    if (VM.VerifyAssertions) VM.assert(AddrStack != null, "No address to consume");
+    if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to consume");
     OPT_MemoryOperand mo = 
       new OPT_MemoryOperand(AddrStack.base, AddrStack.index, AddrStack.scale,
 			    AddrStack.displacement, size, loc, guard);
@@ -276,7 +276,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     MOStack = new MOStackElement(mo, MOStack);
   }
   final OPT_MemoryOperand consumeMO() {
-    if (VM.VerifyAssertions) VM.assert(MOStack != null, "No memory operand to consume");
+    if (VM.VerifyAssertions) VM._assert(MOStack != null, "No memory operand to consume");
     OPT_MemoryOperand mo = MOStack.mo;
     MOStack = MOStack.next;
     return mo;
@@ -486,13 +486,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   // condition code state
   private OPT_ConditionOperand cc;
   void pushCOND(OPT_ConditionOperand c) {
-    if (VM.VerifyAssertions) VM.assert(cc == null);
+    if (VM.VerifyAssertions) VM._assert(cc == null);
     cc = c ;
   }
   OPT_ConditionOperand consumeCOND() {
     OPT_ConditionOperand ans = cc;
     if (VM.VerifyAssertions) {
-      VM.assert(cc != null);
+      VM._assert(cc != null);
       cc = null;
     }
     return ans;
@@ -601,7 +601,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       // semantics before doing a particular f2int conversion.  To do this
       // we must have a store/load sequence to cause IEEE rounding.
       if (value instanceof OPT_BURSManagedFPROperand) {
-	if (VM.VerifyAssertions) VM.assert(value.similar(myFP0()));
+	if (VM.VerifyAssertions) VM._assert(value.similar(myFP0()));
 	burs.append(MIR_Move.create(IA32_FSTP, MO_CONV(burs, DW), value));
 	burs.append(MIR_Move.create(IA32_FLD, myFP0(), MO_CONV(burs, DW)));
       } else {
@@ -1389,8 +1389,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 		      OPT_Operand val1, OPT_Operand val2) {
     if (val1.isRegister() && val1.asRegister().register.isFloatingPoint()) {
       if (VM.VerifyAssertions) {
-        VM.assert(val2.isRegister());
-        VM.assert(val2.asRegister().register.isFloatingPoint());
+        VM._assert(val2.isRegister());
+        VM._assert(val2.asRegister().register.isFloatingPoint());
       }
       burs.append(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1)));
       burs.append(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), val2)));

@@ -76,7 +76,7 @@ public class VM_ScanStack implements VM_Constants, VM_GCConstants {
 	t.hardwareExceptionRegisters.inuse) {
       ip = t.hardwareExceptionRegisters.ip;
       compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
-      if (VM.VerifyAssertions) VM.assert(compiledMethod != null);
+      if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
       compiledMethod.setObsolete( false );
       code = VM_Magic.objectAsAddress( compiledMethod.getInstructions() );
       newcode = VM_Allocator.processPtrValue( code );

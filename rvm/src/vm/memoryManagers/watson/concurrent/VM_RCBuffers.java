@@ -194,7 +194,7 @@ public class VM_RCBuffers
 
     static void	freeIncDecBuffer(VM_Address addr)
     {
-	VM.assert(false);	// not used -- bufs freed incrementally in processMutationBuffer
+	VM._assert(false);	// not used -- bufs freed incrementally in processMutationBuffer
 
 	for (VM_Address buf = addr, nextbuf = VM_Address.zero(); !buf.isZero(); buf = nextbuf) {
 

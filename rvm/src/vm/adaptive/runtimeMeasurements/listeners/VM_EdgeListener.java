@@ -88,7 +88,7 @@ class VM_EdgeListener extends VM_ContextListener
   public void setBuffer(int[] buffer) {
     // ensure buffer is proper length
     if (VM.VerifyAssertions) {
-      VM.assert(buffer.length%3 == 0);
+      VM._assert(buffer.length%3 == 0);
     }
 
     if (DEBUG) {

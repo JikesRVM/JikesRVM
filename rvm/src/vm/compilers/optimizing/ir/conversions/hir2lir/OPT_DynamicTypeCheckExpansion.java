@@ -44,7 +44,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // instanceof, intIfCmp based on the U/D chains.
       // See CMVC defect 166860.
       OPT_Operand val2 = IfCmp.getVal2(next);
-      if (VM.VerifyAssertions) VM.assert(val2.isIntConstant());
+      if (VM.VerifyAssertions) VM._assert(val2.isIntConstant());
       int ival2 = ((OPT_IntConstantOperand)val2).value;
       OPT_ConditionOperand cond = IfCmp.getCond(next);
       boolean branchCondition = 
@@ -123,7 +123,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // check instead of producing a value.
       OPT_Operand val2 = IfCmp.getVal2(next);
       if (VM.VerifyAssertions)
-	VM.assert(val2.isIntConstant());
+	VM._assert(val2.isIntConstant());
       int ival2 = ((OPT_IntConstantOperand)val2).value;
       OPT_ConditionOperand cond = IfCmp.getCond(next);
       boolean branchCondition = 
@@ -357,7 +357,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	if (compType.getDimensionality() == 1) {
 	  VM_Class et = compType.asArray().getElementType().asClass();
 	  if (et.isResolved() && et.isFinal()) {
-	    if (VM.VerifyAssertions) VM.assert(!et.isInterface());
+	    if (VM.VerifyAssertions) VM._assert(!et.isInterface());
 	    OPT_RegisterOperand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
 	    OPT_RegisterOperand etTIB = getTIB(curBlock.lastInstruction(), ir, et);
 	    curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 

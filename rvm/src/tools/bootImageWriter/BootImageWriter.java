@@ -528,7 +528,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	if (newBootRecordImageOffset != bootRecordImageOffset) {
 	    VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageOffset);
 	    VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageOffset);
-	    VM.assert(newBootRecordImageOffset == bootRecordImageOffset);
+	    VM._assert(newBootRecordImageOffset == bootRecordImageOffset);
 	}
     } catch (IllegalAccessException e) {
       fail("unable to update boot record: "+e);
@@ -1577,7 +1577,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
         public Object addressAsObject(VM_Address address) {
 	  VM.sysWriteln("anonymous VM_ObjectAddressMapper: called addressAsObject");
-	  VM.assert(VM.NOT_REACHED);
+	  VM._assert(VM.NOT_REACHED);
           return null;
         }
       }

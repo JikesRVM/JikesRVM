@@ -147,7 +147,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     case DOUBLE_CMPL_opcode:
     case FLOAT_CMPL_opcode:
       break;
-    default: if (VM.VerifyAssertions) VM.assert (false);
+    default: if (VM.VerifyAssertions) VM._assert (false);
       break;
     }
     OPT_Register res = Binary.getClearResult(s).register;
@@ -296,7 +296,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
 
   private static void long_ifcmp(OPT_Instruction s, OPT_IR ir) {
-    if (VM.VerifyAssertions) VM.assert(!IfCmp.getCond(s).isUNSIGNED());
+    if (VM.VerifyAssertions) VM._assert(!IfCmp.getCond(s).isUNSIGNED());
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB3 = BB1.splitNodeAt(s, ir);
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);

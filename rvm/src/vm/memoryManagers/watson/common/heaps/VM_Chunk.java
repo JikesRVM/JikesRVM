@@ -210,8 +210,8 @@ final class VM_Chunk implements VM_GCConstants {
     // and trap as a fatal error.
     if (VM.VerifyAssertions) {
       VM_Thread t = VM_Thread.getCurrentThread();
-      VM.assert(!VM_Allocator.gcInProgress);
-      VM.assert(!t.disallowAllocationsByThisThread);
+      VM._assert(!VM_Allocator.gcInProgress);
+      VM._assert(!t.disallowAllocationsByThisThread);
     }
 
     // Try to get a chunk from the backing heap.

@@ -52,7 +52,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
 
   static {
     if (VM.VerifyAssertions) {
-      VM.assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
     }
   }
 
@@ -77,7 +77,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     int idx = VM_Magic.objectAsType(tib[0]).getTibSlot() << TIB_SHIFT;
-    if (VM.VerifyAssertions) VM.assert((idx & TIB_MASK) == idx);
+    if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
     int tibWord = (VM_Magic.getIntAtOffset(ref, TIB_OFFSET) & ~TIB_MASK) | idx;
     VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibWord);
 
@@ -89,7 +89,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, int tibAddr, VM_Type type) {
     int idx = type.getTibSlot() << TIB_SHIFT;
-    if (VM.VerifyAssertions) VM.assert((idx & TIB_MASK) == idx);
+    if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
     bootImage.setAddressWord(refOffset + TIB_OFFSET, idx);
   }
 
@@ -143,13 +143,13 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) {
-    if (VM.VerifyAssertions) VM.assert(TIB_SHIFT == 2);
+    if (VM.VerifyAssertions) VM._assert(TIB_SHIFT == 2);
     int ME = 31 - TIB_SHIFT;
     int MB = HASH_STATE_BITS;
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
-	VM.assert(dest != 0);
-	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+	VM._assert(dest != 0);
+	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
       asm.emitL   (dest, TIB_OFFSET, object);
       asm.emitANDI(0, dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -174,11 +174,11 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
                                          byte object) {
-    if (VM.VerifyAssertions) VM.assert(TIB_SHIFT == 2);
+    if (VM.VerifyAssertions) VM._assert(TIB_SHIFT == 2);
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
-	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
-	VM.assert(dest != object);
+	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+	VM._assert(dest != object);
       }
       asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
       asm.emitTEST_Reg_Imm(dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -211,7 +211,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * @param ir the enclosing OPT_IR
    */
   public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) {
-    if (VM.VerifyAssertions) VM.assert(TIB_SHIFT == 2);
+    if (VM.VerifyAssertions) VM._assert(TIB_SHIFT == 2);
     OPT_RegisterOperand result = GuardedUnary.getClearResult(s);
     OPT_Operand guard = GuardedUnary.getClearGuard(s);
     OPT_RegisterOperand headerWord = OPT_ConvertToLowLevelIR.InsertLoadOffset(s, ir, INT_LOAD, 
@@ -223,7 +223,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       // the TIB word holding a forwarding pointer.  If the method is interruptible, then
       // it can't be executing during GC time and therefore does not need these extra instructions
       if (VM.VerifyAssertions) {
-	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
       
       OPT_BasicBlock prevBlock = s.getBasicBlock();

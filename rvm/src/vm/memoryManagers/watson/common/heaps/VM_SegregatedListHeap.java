@@ -210,8 +210,8 @@ public final class VM_SegregatedListHeap extends VM_Heap
    */
   protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) {
-      VM.assert(size <= GC_MAX_SMALL_SIZE);
-      VM.assert(VM_Processor.getCurrentProcessor().backingSLHeap == this);
+      VM._assert(size <= GC_MAX_SMALL_SIZE);
+      VM._assert(VM_Processor.getCurrentProcessor().backingSLHeap == this);
     }
     return allocateFastPath(size);
   }
@@ -463,7 +463,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       VM.sysWriteln("size = ", GC_SIZEVALUES[the_size.ndx]);
     }
 
-    if (VM.VerifyAssertions) VM.assert(the_mark != null);
+    if (VM.VerifyAssertions) VM._assert(the_mark != null);
 
     for (; i < the_mark.length ; i++) {
       if (the_mark[i] == 0) break;
@@ -656,7 +656,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       VM.sysWrite(" allocating "); VM.sysWrite(currentBlock.nextblock);
       VM.sysWrite(" baseAddr "); VM.sysWrite(allocBlock.baseAddr);
       VM.sysWrite("\n");
-      if (VM.VerifyAssertions) VM.assert(allocBlock.slotsize==GC_SIZEVALUES[ndx]);
+      if (VM.VerifyAssertions) VM._assert(allocBlock.slotsize==GC_SIZEVALUES[ndx]);
       VM_Processor.getCurrentProcessor().enableThreadSwitching();
     }
 
@@ -1193,7 +1193,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	if (GCDEBUG_PARTIAL) VM_Scheduler.trace(" Found an empty block at",
 						" head of partial list", partialBlockList[i]);
 	if (local_first_free_block == null) {
-	  if (VM.VerifyAssertions) VM.assert(local_first_free_ndx == OUT_OF_BLOCKS);
+	  if (VM.VerifyAssertions) VM._assert(local_first_free_ndx == OUT_OF_BLOCKS);
 	  local_first_free_block = this_block;
 	}
 	temp = this_block.nextblock;
@@ -1214,7 +1214,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	  // In this stanza, we make the next's next the next of this_block, and put
 	  // original next on the freelist
 	  if (local_first_free_block == null) {
-	    if (VM.VerifyAssertions) VM.assert(local_first_free_ndx == OUT_OF_BLOCKS);
+	    if (VM.VerifyAssertions) VM._assert(local_first_free_ndx == OUT_OF_BLOCKS);
 	    local_first_free_block = next_block;
 	  }
 	  this_block.nextblock = next_block.nextblock; // out of live list

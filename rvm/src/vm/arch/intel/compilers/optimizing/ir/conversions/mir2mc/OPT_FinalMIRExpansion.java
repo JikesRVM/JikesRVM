@@ -311,16 +311,16 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
         // Expand as:
         //        FLD M    (push M on FP stack).
         //        FSTP F(i+1)  (copy F0 to F(i+1) and pop register stack)
-        if (VM.VerifyAssertions) VM.assert(result.isRegister());
+        if (VM.VerifyAssertions) VM._assert(result.isRegister());
         int i = phys.getFPRIndex(result.asRegister().register);   
         s.insertBefore(MIR_Move.create(IA32_FLD,D(phys.getFPR(0)),value));
         MIR_Move.mutate(s,IA32_FSTP,D(phys.getFPR(i+1)),D(phys.getFPR(0)));
       }
     } else {
       // We have FMOV M, Fi
-      if (VM.VerifyAssertions) VM.assert(value.isRegister());
+      if (VM.VerifyAssertions) VM._assert(value.isRegister());
       if (VM.VerifyAssertions) 
-        VM.assert(result instanceof OPT_MemoryOperand);
+        VM._assert(result instanceof OPT_MemoryOperand);
       int i = phys.getFPRIndex(value.asRegister().register);   
       if (i!=0) {
         // Expand as:
@@ -339,7 +339,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
   private static void expandYieldpoint(OPT_Instruction s,
 				       OPT_IR ir,
 				       VM_Method meth) {
-    if (VM.VerifyAssertions) VM.assert(ir.options.FIXED_JTOC);
+    if (VM.VerifyAssertions) VM._assert(ir.options.FIXED_JTOC);
 
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,

@@ -107,7 +107,7 @@ final class VM_GCSynchronizationBarrier {
   double rendezvousRecord(double start, double end) throws VM_PragmaUninterruptible {
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     int which = rendezvousCount[myProcessorId]++;
-    VM.assert(which < rendezvousIn[0].length);
+    VM._assert(which < rendezvousIn[0].length);
     rendezvousIn[myProcessorId][which]  = (int)((start - rendezvousStartTime)*1000000);
     rendezvousOut[myProcessorId][which] = (int)((end - rendezvousStartTime)*1000000);
     return end - start;
@@ -147,7 +147,7 @@ final class VM_GCSynchronizationBarrier {
     if (VM.VerifyAssertions) {
       if (entryCounts[myProcessorId]!=0) {
 	VM_Scheduler.trace("startupRendezvous:", "on entry entryCount =",entryCounts[myProcessorId]);
-	VM.assert(entryCounts[myProcessorId]==0);
+	VM._assert(entryCounts[myProcessorId]==0);
       }
     }
     if ( myNumber > 1 ) {
@@ -324,7 +324,7 @@ final class VM_GCSynchronizationBarrier {
 	VM_Scheduler.trace("removeProcessor", "no collector thread - dumping vp");
 	vp.dumpProcessorState();
       }
-      VM.assert(ct.isGCThread == true);
+      VM._assert(ct.isGCThread == true);
     }
 
     // put it back on the global collector thread queue

@@ -103,7 +103,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
       if (bb.getInfrequent()) 
 	newOrdering[i++] = bb;
     }
-    if (VM.VerifyAssertions) VM.assert(i == numBlocks);
+    if (VM.VerifyAssertions) VM._assert(i == numBlocks);
     return newOrdering;
   }
 
@@ -124,7 +124,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
     // Check that first basic block is unchanged in newOrdering
     // (To relax this restriction, we'll need to add a goto at the top,
     //  which seems like it would never be a win.)
-    if (VM.VerifyAssertions) VM.assert(newOrdering[0] == ir.cfg.firstInCodeOrder());
+    if (VM.VerifyAssertions) VM._assert(newOrdering[0] == ir.cfg.firstInCodeOrder());
 
     // Add/remove unconditional goto's as needed.
     for (int i = 0; i<newOrdering.length; i++) {

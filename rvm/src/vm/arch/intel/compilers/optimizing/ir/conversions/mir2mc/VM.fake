@@ -20,15 +20,9 @@ class VM {
 
     public static boolean NOT_REACHED;
 
-    public static void assert(boolean c) {
+    public static void _assert(boolean c) { }
 
-    }
+    public static void _assert(boolean c, String s) { }
 
-    public static void assert(boolean c, String s) {
-
-    }
-
-    public static void sysWrite(String s) {
-
-    }
+    public static void sysWrite(String s) { }
 }

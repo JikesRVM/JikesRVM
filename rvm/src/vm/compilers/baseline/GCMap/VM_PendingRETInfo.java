@@ -48,7 +48,7 @@ final class VM_PendingRETInfo {
   // ------------------ Instance Method ---------------------------
 
   public void updateReturnAddressLocation(int newLocation) {
-    if (VM.VerifyAssertions) VM.assert(!updatedOnce);
+    if (VM.VerifyAssertions) VM._assert(!updatedOnce);
     updatedOnce = true;
     returnAddressLocation = newLocation;
   }

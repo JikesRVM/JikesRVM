@@ -146,7 +146,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */ 
   private static int[] growArray(int[] array, int newLength) {
     // assertion: no special array initialization needed (default 0 is ok)
-    if (VM.VerifyAssertions) VM.assert(NEEDS_DYNAMIC_LINK == 0); 
+    if (VM.VerifyAssertions) VM._assert(NEEDS_DYNAMIC_LINK == 0); 
     int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync(); // be sure array initialization is visible before we publish the reference!
@@ -172,7 +172,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * could be read/used by any thread.
    */
   static void setMethodOffset(VM_Method method, int offset) {
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
+    if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     methodOffsets[method.getDictionaryId()] = offset;
   }
 
@@ -193,7 +193,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * that field no longer require any class loading action to be performed.
    */ 
   static void setFieldOffset(VM_Field field, int offset) {
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
+    if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     fieldOffsets[field.getDictionaryId()] = offset;
   }
 }

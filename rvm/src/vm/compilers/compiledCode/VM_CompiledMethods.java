@@ -34,7 +34,7 @@ public class VM_CompiledMethods {
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {
-      if (VM.VerifyAssertions) VM.assert(false, "Unexpected compiler type!");
+      if (VM.VerifyAssertions) VM._assert(false, "Unexpected compiler type!");
     }
     compiledMethods[id] = cm;
     return cm;
@@ -46,8 +46,8 @@ public class VM_CompiledMethods {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
-      VM.assert(0 < compiledMethodId);
-      VM.assert(compiledMethodId <= currentCompiledMethodId);
+      VM._assert(0 < compiledMethodId);
+      VM._assert(compiledMethodId <= currentCompiledMethodId);
     }
 
     return compiledMethods[compiledMethodId];
@@ -128,7 +128,7 @@ public class VM_CompiledMethods {
     if (compiledMethod.getMethod().declaringClass.isJavaLangObjectType())
       return;
 
-    if (VM.VerifyAssertions) VM.assert(compiledMethods[cmid] != null);
+    if (VM.VerifyAssertions) VM._assert(compiledMethods[cmid] != null);
 
     if (obsoleteMethods == null) {
       // This should tend not to get too big as it gets compressed as we

@@ -966,7 +966,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   public void dumpMap() {
     if (VM.VerifyAssertions)
-      VM.assert(map != null);
+      VM._assert(map != null);
     map.dump();
   }
 

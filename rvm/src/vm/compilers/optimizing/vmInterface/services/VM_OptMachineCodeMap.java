@@ -320,11 +320,11 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
 	if (iei == -1) iei = INVALID_IEI;
 	if (gci == -1) gci = INVALID_GCI;
 	if (VM.VerifyAssertions) {
-	  VM.assert((cm  & (CALL_MASK>>>CALL_SHIFT)) == cm);
-	  VM.assert((bci & (BCI_MASK>>>BCI_SHIFT)) == bci);
-	  VM.assert((iei & (IEI_MASK>>>IEI_SHIFT)) == iei);
-	  VM.assert((gci & (GCI_MASK>>>GCI_SHIFT)) == gci);
-	  VM.assert((mco & (OFFSET_MASK>>>OFFSET_SHIFT)) == mco);
+	  VM._assert((cm  & (CALL_MASK>>>CALL_SHIFT)) == cm);
+	  VM._assert((bci & (BCI_MASK>>>BCI_SHIFT)) == bci);
+	  VM._assert((iei & (IEI_MASK>>>IEI_SHIFT)) == iei);
+	  VM._assert((gci & (GCI_MASK>>>GCI_SHIFT)) == gci);
+	  VM._assert((mco & (OFFSET_MASK>>>OFFSET_SHIFT)) == mco);
 	}
 	long t = START_OF_ENTRY;
 	t |= (((long)cm) << CALL_SHIFT);
@@ -342,16 +342,16 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
 	if (iei == -1) iei = BIG_INVALID_IEI;
 	if (gci == -1) gci = BIG_INVALID_GCI;
 	if (VM.VerifyAssertions) {
-	  VM.assert(BIG_CALL_IDX_ADJ == 0 &&
+	  VM._assert(BIG_CALL_IDX_ADJ == 0 &&
 		    BIG_BCI_IDX_ADJ == 0 &&
 		    BIG_OFFSET_IDX_ADJ == 0);
-	  VM.assert(BIG_GCI_IDX_ADJ == 1 &&
+	  VM._assert(BIG_GCI_IDX_ADJ == 1 &&
 		    BIG_IEI_IDX_ADJ == 1);
-	  VM.assert((cm  & (BIG_CALL_MASK>>>BIG_CALL_SHIFT)) == cm);
-	  VM.assert((bci & (BIG_BCI_MASK>>>BIG_BCI_SHIFT)) == bci);
-	  VM.assert((iei & (BIG_IEI_MASK>>>BIG_IEI_SHIFT)) == iei);
-	  VM.assert((gci & (BIG_GCI_MASK>>>BIG_GCI_SHIFT)) == gci);
-	  VM.assert((mco & (BIG_OFFSET_MASK>>>BIG_OFFSET_SHIFT)) == mco);
+	  VM._assert((cm  & (BIG_CALL_MASK>>>BIG_CALL_SHIFT)) == cm);
+	  VM._assert((bci & (BIG_BCI_MASK>>>BIG_BCI_SHIFT)) == bci);
+	  VM._assert((iei & (BIG_IEI_MASK>>>BIG_IEI_SHIFT)) == iei);
+	  VM._assert((gci & (BIG_GCI_MASK>>>BIG_GCI_SHIFT)) == gci);
+	  VM._assert((mco & (BIG_OFFSET_MASK>>>BIG_OFFSET_SHIFT)) == mco);
 	}
 	// long 1
 	long t = START_OF_BIG_ENTRY;
@@ -466,7 +466,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    */
   private final boolean isBigEntry(int entry) {
     if (VM.VerifyAssertions) {
-      VM.assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
+      VM._assert((MCInformation[entry] & START_OF_ENTRY) == START_OF_ENTRY);
     }
     return (MCInformation[entry] & START_OF_BIG_ENTRY) == START_OF_BIG_ENTRY;
   }

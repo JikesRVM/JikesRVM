@@ -26,7 +26,7 @@ abstract class OPT_StaticFieldReader {
    */
   public static OPT_ConstantOperand getStaticFieldValue(VM_Field field) 
     throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM.assert(field.isStatic());
+    if (VM.VerifyAssertions) VM._assert(field.isStatic());
 
     VM_Type fieldType = field.getType();
     int slot = field.getOffset() >>> 2;

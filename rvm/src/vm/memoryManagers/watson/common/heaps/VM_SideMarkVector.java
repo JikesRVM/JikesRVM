@@ -46,7 +46,7 @@ final class VM_SideMarkVector implements VM_Constants {
 
   private int wordIndex (Object object) throws VM_PragmaUninterruptible {
     int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) / BITS_PER_INT;
-    if (VM.VerifyAssertions) VM.assert(index >= 0 && index < marks.length);
+    if (VM.VerifyAssertions) VM._assert(index >= 0 && index < marks.length);
     return index;
   }
 
@@ -61,7 +61,7 @@ final class VM_SideMarkVector implements VM_Constants {
       VM.sysWrite(" word ", wordIndex);
       VM.sysWrite(" bit ", index, "} ");
     }
-    if (VM.VerifyAssertions) VM.assert(index >= 0 && index < BITS_PER_INT);
+    if (VM.VerifyAssertions) VM._assert(index >= 0 && index < BITS_PER_INT);
     return index;
   }
 
@@ -92,7 +92,7 @@ final class VM_SideMarkVector implements VM_Constants {
    * Write the given value in the mark bit.
    */
   void writeMarkBit (Object object, int b) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert((b & ~0x1) == 0);
+    if (VM.VerifyAssertions) VM._assert((b & ~0x1) == 0);
     if (DEBUG) VM.sysWriteln("writeMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int bitnum = bitIndex(object, word);
@@ -106,7 +106,7 @@ final class VM_SideMarkVector implements VM_Constants {
    * Atomically write the given value in the mark bit.
    */
   void atomicWriteMarkBit(Object object, int value) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert((value & ~0x1) == 0);
+    if (VM.VerifyAssertions) VM._assert((value & ~0x1) == 0);
     if (DEBUG) VM.sysWriteln("atomicWriteMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int offset = word << LOG_WORDSIZE;
@@ -127,7 +127,7 @@ final class VM_SideMarkVector implements VM_Constants {
    * Used to mark objects during a parallel scan of objects during GC.
    */
   boolean testAndMark(Object object, int value) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert((value & ~0x1) == 0);
+    if (VM.VerifyAssertions) VM._assert((value & ~0x1) == 0);
     if (DEBUG) VM.sysWrite("testAndMark ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int offset = word << LOG_WORDSIZE;

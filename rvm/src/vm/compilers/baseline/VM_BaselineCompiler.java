@@ -1494,7 +1494,7 @@ public abstract class VM_BaselineCompiler {
 	  classPreresolved = true;
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
 	  emit_unresolved_getstatic(fieldRef);
 	} else {
@@ -1528,7 +1528,7 @@ public abstract class VM_BaselineCompiler {
 	  classPreresolved = true;
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
 	  emit_unresolved_putstatic(fieldRef);
 	} else {
@@ -1554,7 +1554,7 @@ public abstract class VM_BaselineCompiler {
 	  } // report the exception at runtime
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	  emit_unresolved_getfield(fieldRef);
 	} else {
@@ -1580,7 +1580,7 @@ public abstract class VM_BaselineCompiler {
 	  } // report the exception at runtime
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield "+fieldRef);
 	  emit_unresolved_putfield(fieldRef);
 	} else {
@@ -1694,7 +1694,7 @@ public abstract class VM_BaselineCompiler {
 
       case 0xba: /* unused */ {
 	if (shouldPrint) asm.noteBytecode(biStart, "unused");
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 	break;
       }
 
@@ -1868,7 +1868,7 @@ public abstract class VM_BaselineCompiler {
 	  break;
 	}
 	default:
-	  if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 	}
 	break;
       }
@@ -1921,7 +1921,7 @@ public abstract class VM_BaselineCompiler {
 
       default:
 	VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     }
     return asm.finalizeMachineCode(bytecodeMap);

@@ -164,7 +164,7 @@ public class VM_MachineReflection implements VM_Constants {
 	  GPRs[--GPR] = VM_Reflection.unwrapObject(otherArgs[i]);
 	}
       } else  {
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
     }
   }

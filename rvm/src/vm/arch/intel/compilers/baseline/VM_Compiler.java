@@ -760,8 +760,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     // 12: temp1 += eax  temp1 is now result.hi
     // 13: store result.hi
     // 14: restore JTOC
-    if (VM.VerifyAssertions) VM.assert(S0 != EAX);
-    if (VM.VerifyAssertions) VM.assert(S0 != EDX);
+    if (VM.VerifyAssertions) VM._assert(S0 != EAX);
+    if (VM.VerifyAssertions) VM._assert(S0 != EDX);
     asm.emitMOV_Reg_RegDisp (JTOC, SP, 8);          // step 1: JTOC is temp0
     asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 2
     asm.emitMUL_Reg_RegInd(EAX, SP);    // step 3
@@ -864,9 +864,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the lshsl bytecode
    */
   protected final void emit_lshl() {
-    if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
-    if (VM.VerifyAssertions) VM.assert (ECX != T1);
-    if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
+    if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
+    if (VM.VerifyAssertions) VM._assert (ECX != T1);
+    if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
     // 1: pop shift amount into JTOC (JTOC must be restored at the end)
     // 2: pop low half into T0
     // 3: pop high half into T1
@@ -909,9 +909,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the lshr bytecode
    */
   protected final void emit_lshr() {
-    if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
-    if (VM.VerifyAssertions) VM.assert (ECX != T1);
-    if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
+    if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
+    if (VM.VerifyAssertions) VM._assert (ECX != T1);
+    if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
     // 1: pop shift amount into JTOC (JTOC must be restored at the end)
     // 2: pop low half into T0
     // 3: pop high half into T1
@@ -956,9 +956,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the lushr bytecode
    */
   protected final void emit_lushr() {
-    if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
-    if (VM.VerifyAssertions) VM.assert (ECX != T1);
-    if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
+    if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
+    if (VM.VerifyAssertions) VM._assert (ECX != T1);
+    if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
     // 1: pop shift amount into JTOC (JTOC must be restored at the end)
     // 2: pop low half into T0
     // 3: ECX <- JTOC, copy the shift count
@@ -1408,7 +1408,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
     asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
     asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
     asm.emitFUCOMPP();                        // compare and pop FPU *2
     asm.emitFNSTSW();                     // move FPU flags into (E)AX
@@ -1434,7 +1434,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
     asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
     asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
     asm.emitFUCOMPP();                        // compare and pop FPU *2
     asm.emitFNSTSW();                     // move FPU flags into (E)AX
@@ -1460,7 +1460,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
     asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
     asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
     asm.emitFUCOMPP();                        // compare and pop FPU *2
     asm.emitFNSTSW();                     // move FPU flags into (E)AX
@@ -1486,7 +1486,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
     asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
     asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
     asm.emitFUCOMPP();                        // compare and pop FPU *2
     asm.emitFNSTSW();                     // move FPU flags into (E)AX
@@ -1870,7 +1870,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (fieldRef.getSize() == 4) { 
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, WORDSIZE); // get high part
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get low part
     }
@@ -1885,7 +1885,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	asm.emitPUSH_Reg        (T0);
@@ -1916,7 +1916,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);        // store low part
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, WORDSIZE); // store high part
     }
@@ -1934,7 +1934,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	asm.emitPUSH_Reg        (T0);
@@ -1964,7 +1964,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
       asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
       asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
@@ -1983,7 +1983,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	asm.emitPUSH_Reg        (T0);
@@ -2019,7 +2019,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
       asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
@@ -2046,7 +2046,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
 	asm.emitPUSH_Reg        (T0);
@@ -2117,7 +2117,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitCALL_RegDisp(JTOC, target.getOffset());
       genResultRegisterUnload(target);
     } else {
-      if (VM.VerifyAssertions) VM.assert(!target.isStatic());
+      if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       // invoke via class's tib slot
       int methodRefOffset = target.getOffset();
       asm.emitMOV_Reg_RegDisp (S0, JTOC, target.getDeclaringClass().getTibOffset());
@@ -2621,7 +2621,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param params number of parameter words (including "this" if any).
    */
   private final void genParameterRegisterLoad (int params) {
-    if (VM.VerifyAssertions) VM.assert(0 < params);
+    if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
       asm.emitMOV_Reg_RegDisp(T0, SP, (params-1) << LG_WORDSIZE);
     }
@@ -2696,7 +2696,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	offset -= WORDSIZE;
       }
     }
-    if (VM.VerifyAssertions) VM.assert(offset == - WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(offset == - WORDSIZE);
   }
    
   /** 
@@ -3432,7 +3432,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     // baseline invocation
     // one paramater, on the stack  -- actual code
     if (methodName == VM_MagicNames.dynamicBridgeTo) {
-      if (VM.VerifyAssertions) VM.assert(klass.isDynamicBridge());
+      if (VM.VerifyAssertions) VM._assert(klass.isDynamicBridge());
 
       // save the branch address for later
       asm.emitPOP_Reg (S0);		// S0<-code address

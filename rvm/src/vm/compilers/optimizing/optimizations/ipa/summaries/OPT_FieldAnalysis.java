@@ -52,7 +52,7 @@ final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     if (VM.VerifyAssertions) {
       if (t.isClassType() && !t.asClass().isLoaded()) {
         VM.sysWrite("NOT LOADED: " + t + "\n");
-        VM.assert(false);
+        VM._assert(false);
       }
     }
     if (t.isPrimitiveType())
@@ -178,7 +178,7 @@ final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     if (VM.VerifyAssertions) {
       if (info == null)
         VM.sysWrite("ERROR recordBottom: method " + m + " field " + f);
-      VM.assert(info != null);
+      VM._assert(info != null);
     }
     info.setBottom();
     info.setAnalyzed();

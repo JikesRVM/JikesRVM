@@ -59,7 +59,7 @@ public final class VM_Class extends VM_Type
    * An "interface" description rather than a "class" description?
    */ 
   public final boolean isInterface() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
 
@@ -67,7 +67,7 @@ public final class VM_Class extends VM_Type
    * Usable from other packages?
    */ 
   final boolean isPublic() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
@@ -75,7 +75,7 @@ public final class VM_Class extends VM_Type
    * Non-subclassable?
    */ 
   final boolean isFinal() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0; 
   }
 
@@ -83,7 +83,7 @@ public final class VM_Class extends VM_Type
    * Non-instantiable?
    */ 
   final boolean isAbstract() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
 
@@ -91,7 +91,7 @@ public final class VM_Class extends VM_Type
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
   final boolean isSpecial() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_SPECIAL) != 0; 
   }
 
@@ -105,7 +105,7 @@ public final class VM_Class extends VM_Type
    * (null --> "unknown - wasn't recorded by compiler").
    */
   public final VM_Atom getSourceName() { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return sourceName;
   }
 
@@ -114,7 +114,7 @@ public final class VM_Class extends VM_Type
    * ie. class is "java/lang/Object").
    */
   public final VM_Class getSuperClass() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return superClass;
   }
 
@@ -122,7 +122,7 @@ public final class VM_Class extends VM_Type
    * Currently loaded classes that "extend" this class.
    */ 
   final VM_Class[] getSubClasses() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return subClasses;
   }
 
@@ -131,7 +131,7 @@ public final class VM_Class extends VM_Type
    * (ie. not including superclasses).
    */
   public final VM_Class[] getDeclaredInterfaces() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return declaredInterfaces;
   }
 
@@ -139,7 +139,7 @@ public final class VM_Class extends VM_Type
    * Fields defined directly by this class (ie. not including superclasses).
    */ 
   public final VM_Field[] getDeclaredFields() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return declaredFields;
   }
 
@@ -147,7 +147,7 @@ public final class VM_Class extends VM_Type
    * Methods defined directly by this class (ie. not including superclasses).
    */
   public final VM_Method[] getDeclaredMethods() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return declaredMethods;
   }
 
@@ -156,7 +156,7 @@ public final class VM_Class extends VM_Type
    *  or initializer already been run).
    */ 
   final VM_Method getClassInitializerMethod() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return classInitializerMethod;
   }
 
@@ -167,7 +167,7 @@ public final class VM_Class extends VM_Type
    * @return description (null --> not found)
    */ 
   final VM_Field findDeclaredField(VM_Atom fieldName, VM_Atom fieldDescriptor) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     for (int i = 0, n = declaredFields.length; i < n; ++i) {
       VM_Field field = declaredFields[i];
       if (field.getName() == fieldName && 
@@ -185,7 +185,7 @@ public final class VM_Class extends VM_Type
    */ 
   final VM_Method findDeclaredMethod(VM_Atom methodName, 
                                      VM_Atom methodDescriptor) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     for (int i = 0, n = declaredMethods.length; i < n; ++i) {
       VM_Method method = declaredMethods[i];
       if (method.getName() == methodName && 
@@ -229,7 +229,7 @@ public final class VM_Class extends VM_Type
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
   public final int getLiteralOffset(int constantPoolIndex) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     // jtoc slot number --> jtoc offset
     return constantPool[constantPoolIndex] << 2; 
   }
@@ -238,7 +238,7 @@ public final class VM_Class extends VM_Type
    * Get description of a literal constant.
    */ 
   public final byte getLiteralDescription(int constantPoolIndex) {
-    if (VM.VerifyAssertions) VM.assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
     // jtoc slot number --> description
     return VM_Statics.getSlotDescription(constantPool[constantPoolIndex]); 
   }
@@ -370,7 +370,7 @@ public final class VM_Class extends VM_Type
    * Does this class override java.lang.Object.finalize()?
    */
   public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return (finalizeMethod != null);
   }
 
@@ -379,7 +379,7 @@ public final class VM_Class extends VM_Type
    * if one exists
    */
   public final VM_Method getFinalizer() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return finalizeMethod;
   }
 
@@ -388,7 +388,7 @@ public final class VM_Class extends VM_Type
    * Values in these fields are shared by all class instances.
    */
   public final VM_Field[] getStaticFields() {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return staticFields;
   }
 
@@ -397,7 +397,7 @@ public final class VM_Class extends VM_Type
    * Values in these fields are distinct for each class instance.
    */
   public final VM_Field[] getInstanceFields() {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return instanceFields;
   }
 
@@ -405,7 +405,7 @@ public final class VM_Class extends VM_Type
    * Statically dispatched methods of this class.
    */
   public final VM_Method[] getStaticMethods() {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return staticMethods;
   }
 
@@ -414,7 +414,7 @@ public final class VM_Class extends VM_Type
    * (composed with supertypes, if any).
    */
   public final VM_Method[] getVirtualMethods() {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return virtualMethods;
   }
 
@@ -423,7 +423,7 @@ public final class VM_Class extends VM_Type
    * (including object header).
    */
   public final int getInstanceSize() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return instanceSize;
   }
 
@@ -444,7 +444,7 @@ public final class VM_Class extends VM_Type
    * Offsets are with respect to object pointer -- see VM_Field.getOffset().
    */
   public final int[] getReferenceOffsets() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
 
@@ -456,7 +456,7 @@ public final class VM_Class extends VM_Type
    */
   public final VM_Method findVirtualMethod(VM_Atom memberName, 
                                     VM_Atom memberDescriptor) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method methods[] = getVirtualMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
@@ -475,7 +475,7 @@ public final class VM_Class extends VM_Type
    */
   public final VM_Method findStaticMethod(VM_Atom memberName, 
                                    VM_Atom memberDescriptor) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method methods[] = getStaticMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
@@ -492,7 +492,7 @@ public final class VM_Class extends VM_Type
    * @return method description (null --> not found)
    */
   final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method methods[] = getStaticMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
@@ -507,7 +507,7 @@ public final class VM_Class extends VM_Type
    * Runtime type information for this class type.
    */
   public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return typeInformationBlock;
   }
 
@@ -707,7 +707,7 @@ public final class VM_Class extends VM_Type
     // later, during instantiate(), we'll replace it with full type 
     // information block (including method-slots).
     //
-    if (VM.VerifyAssertions) VM.assert(TIB_TYPE_INDEX == 0);
+    if (VM.VerifyAssertions) VM._assert(TIB_TYPE_INDEX == 0);
     Object[] tib = VM_RuntimeStructures.newTIB(1);
     tib[TIB_TYPE_INDEX] = this;
     VM_Statics.setSlotContents(tibSlot, tib);
@@ -760,7 +760,7 @@ public final class VM_Class extends VM_Type
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
-    if (VM.VerifyAssertions) VM.assert(state == CLASS_VACANT);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_VACANT);
 
     if (input.readInt() != 0xCAFEBABE)
       throw new ClassFormatError("bad magic number");
@@ -787,7 +787,7 @@ public final class VM_Class extends VM_Type
 	  }
 
 	case TAG_UNUSED:
-	  if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	  if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	  break;
 
 	case TAG_INT:
@@ -854,7 +854,7 @@ public final class VM_Class extends VM_Type
 	    break; // out: atom dictionary id
 
 	  case TAG_UNUSED:
-	    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	    break;
 
 	  case TAG_INT: 
@@ -915,7 +915,7 @@ public final class VM_Class extends VM_Type
 	    // (this constant pool entry is no longer needed)
 
 	  default:
-	    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	  }
       }
     } catch (java.io.UTFDataFormatException x) {
@@ -1022,7 +1022,7 @@ public final class VM_Class extends VM_Type
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) resolve " 
                                           + descriptor + "\n");
-    if (VM.VerifyAssertions) VM.assert(state == CLASS_LOADED);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
     // load/resolve superclass
     //
@@ -1311,7 +1311,7 @@ public final class VM_Class extends VM_Type
    * the class initializer has run.
    */
   void setAllFinalStaticJTOCEntries() {
-    if (VM.VerifyAssertions) VM.assert (isInitialized());
+    if (VM.VerifyAssertions) VM._assert (isInitialized());
     VM_Field[] fields = getStaticFields();
     for (int i=0; i<fields.length; i++) {
       VM_Field f = fields[i];
@@ -1331,7 +1331,7 @@ public final class VM_Class extends VM_Type
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) instantiate " 
                                           + descriptor + "\n");
-    if (VM.VerifyAssertions) VM.assert(state == CLASS_RESOLVED);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
 
     // instantiate superclass
     //
@@ -1431,7 +1431,7 @@ public final class VM_Class extends VM_Type
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) initialize " + 
                                           descriptor + "\n");
-    if (VM.VerifyAssertions) VM.assert(state == CLASS_INSTANTIATED);
+    if (VM.VerifyAssertions) VM._assert(state == CLASS_INSTANTIATED);
     state = CLASS_INITIALIZING;
     if (VM.verboseClassLoading) VM.sysWrite("[Initializing "+
                                             descriptor.classNameFromDescriptor()
@@ -1533,8 +1533,8 @@ public final class VM_Class extends VM_Type
    * code for the method.
    */
   public void updateMethod(VM_Method m) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
+    if (VM.VerifyAssertions) VM._assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
     if (m.isClassInitializer()) return; // we never put this method in the jtoc anyways!
 
     if (m.isStatic() || m.isObjectInitializer()) {
@@ -1552,9 +1552,9 @@ public final class VM_Class extends VM_Type
    *       the most recent instructions for the method.
    */
   public void updateJTOCEntry(VM_Method m) {
-    if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions) VM.assert(m.isStatic() || m.isObjectInitializer());
+    if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
+    if (VM.VerifyAssertions) VM._assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(m.isStatic() || m.isObjectInitializer());
     int slot = m.getOffset() >>> 2;
     VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
   }
@@ -1570,7 +1570,7 @@ public final class VM_Class extends VM_Type
   public void updateTIBEntry(VM_Method m) {
     if (VM.VerifyAssertions) {
       VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
-      VM.assert(vm == m);
+      VM._assert(vm == m);
     }
     int offset = m.getOffset() >>> 2;
     typeInformationBlock[offset] = m.getCurrentInstructions();

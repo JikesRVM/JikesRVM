@@ -108,7 +108,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
       // the run loop, or are starting again after the yield below.
 
       if (VM.VerifyAssertions)
-	VM.assert( VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()) ==
+	VM._assert( VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()) ==
 		   VM_Magic.objectAsAddress(myNativeProcessor) );
 
       // Get ID of osThread currently executing in the NativeProcessor, and this
@@ -237,7 +237,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
 			   myNativeProcessor.id);
 	VM_Scheduler.trace("VM_NativeIdleThread:","myProcessor->dumpProcessorState...");
 	myNativeProcessor.dumpProcessorState();
-	VM.assert(false);
+	VM._assert(false);
       } 
 
       // after the above wait is satisfied ; there is work on the transfer queue- so do a yield

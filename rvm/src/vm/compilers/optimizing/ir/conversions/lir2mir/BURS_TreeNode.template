@@ -50,7 +50,7 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
   }
 
   final void setNonTerminal(int nonterminal) {
-     if (VM.VerifyAssertions) VM.assert(nonterminal <= 0xff);
+     if (VM.VerifyAssertions) VM._assert(nonterminal <= 0xff);
      word = (word & 0xffff00ff) | (nonterminal << 8);
   }
 

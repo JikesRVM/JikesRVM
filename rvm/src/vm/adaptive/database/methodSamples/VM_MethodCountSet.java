@@ -28,7 +28,7 @@ public final class VM_MethodCountSet {
    * @param _counters array of counters
    */
   VM_MethodCountSet(VM_CompiledMethod[] _cms, double[] _counters) {
-    if (VM.VerifyAssertions) VM.assert(_cms.length == _counters.length);
+    if (VM.VerifyAssertions) VM._assert(_cms.length == _counters.length);
     cms = _cms;
     counters= _counters;
   }

@@ -424,7 +424,7 @@ public class GenerateAssembler {
 	emitTab(level);
 	emit("if (VM.VerifyAssertions && !");
 	emitTest(argNumber, argEncoding);
-	emit(") VM.assert(false, inst.toString());\n");
+	emit(") VM._assert(false, inst.toString());\n");
     }
 
     /**
@@ -910,7 +910,7 @@ public class GenerateAssembler {
 				emitTab(level);
 				emit("if (VM.VerifyAssertions && !(");
 				emitArgs(i, Register);
-				emit(" < 4)) VM.assert(false, inst.toString());\n");
+				emit(" < 4)) VM._assert(false, inst.toString());\n");
 			    }
 		
 	    }

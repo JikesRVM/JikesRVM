@@ -106,7 +106,7 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
     int offset = VM_TableBasedDynamicLinker.getFieldOffset(fid);
     // if we're doing a putfield, we've instantiated ref already, therefore
     // the offset can't possibly still be unresolved.
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
+    if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     resolvedPutfield(ref, offset, value);
   }
 
@@ -143,7 +143,7 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
       VM_Field target = VM_FieldDictionary.getValue(fid);
       VM_Runtime.initializeClassForDynamicLink(target.getDeclaringClass());
       offset = VM_TableBasedDynamicLinker.getFieldOffset(fid);
-      if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
+      if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     }
     resolvedPutstatic(offset, value);
   }

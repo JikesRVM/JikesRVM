@@ -160,7 +160,7 @@ public class VM_LargeHeap extends VM_Heap
 
   boolean isLive (VM_Address ref) throws VM_PragmaUninterruptible {
       VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(ref);
-      if (VM.VerifyAssertions) VM.assert(refInHeap(ref));
+      if (VM.VerifyAssertions) VM._assert(refInHeap(ref));
       int page_num = addr.diff(start ) >> 12;
       return (largeSpaceMark[page_num] != 0);
   }
@@ -168,7 +168,7 @@ public class VM_LargeHeap extends VM_Heap
   boolean mark (VM_Address ref) throws VM_PragmaUninterruptible {
 
     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
-    if (VM.VerifyAssertions) VM.assert(addrInHeap(tref));
+    if (VM.VerifyAssertions) VM._assert(addrInHeap(tref));
 
     int ij;
     int page_num = (tref.diff(start)) >>> 12;

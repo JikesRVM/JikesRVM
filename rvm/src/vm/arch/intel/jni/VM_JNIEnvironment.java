@@ -152,7 +152,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   // 
   public int pushJNIRef( Object ref ) {
     if (ref == null) return 0;
-    if (VM.VerifyAssertions) VM.assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(ref) ) );
+    if (VM.VerifyAssertions) VM._assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(ref) ) );
     JNIRefsTop += 4;
     if (JNIRefsTop >> 2 >= JNIRefs.length) {
 	int[] newrefs = new int[ JNIRefs.length * 2 ];

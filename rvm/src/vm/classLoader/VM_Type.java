@@ -81,17 +81,17 @@ package com.ibm.JikesRVM;
    
   // Downcasting.
   public final VM_Class asClass() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(dimension == 0);
+    if (VM.VerifyAssertions) VM._assert(dimension == 0);
     return (VM_Class)this;
   }
 
   public final VM_Array asArray() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(dimension > 0);
+    if (VM.VerifyAssertions) VM._assert(dimension > 0);
     return (VM_Array)this;
   }
 
   public final VM_Primitive asPrimitive() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert(dimension < 0);
+    if (VM.VerifyAssertions) VM._assert(dimension < 0);
     return (VM_Primitive)this;
   }
 
@@ -397,7 +397,7 @@ package com.ibm.JikesRVM;
    * get superclass id vector (see VM_DynamicTypeCheck)
    */ 
   final short[] getSuperclassIds () throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsShortArray(getTypeInformationBlock()
                                        [VM.TIB_SUPERCLASS_IDS_INDEX]);
   }
@@ -406,7 +406,7 @@ package com.ibm.JikesRVM;
    * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
   final int[] getDoesImplement () throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 	 
@@ -480,7 +480,7 @@ package com.ibm.JikesRVM;
 
     // at this point, we know that rhs and lhs are both classes
     //
-    if (VM.VerifyAssertions) VM.assert(lhs.isClassType() && rhs.isClassType());
+    if (VM.VerifyAssertions) VM._assert(lhs.isClassType() && rhs.isClassType());
 
     lhs.load();
     lhs.resolve();

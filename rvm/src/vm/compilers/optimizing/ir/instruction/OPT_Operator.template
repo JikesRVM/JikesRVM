@@ -136,7 +136,7 @@ $$$$ END IF
    * @return number of operands that are pure defs
    */
   public int getNumberOfPureDefs() {
-    if (VM.VerifyAssertions) VM.assert(!hasVarDefs());
+    if (VM.VerifyAssertions) VM._assert(!hasVarDefs());
     return numberDefs;
   }
 
@@ -201,7 +201,7 @@ $$$$ END IF
    * @return number of operands that are defs
    */
   public int getNumberOfDefs() {
-    if (VM.VerifyAssertions) VM.assert(!hasVarDefs());
+    if (VM.VerifyAssertions) VM._assert(!hasVarDefs());
     return numberDefs + numberDefUses;
   }
   
@@ -215,7 +215,7 @@ $$$$ END IF
    * @return how many operands are uses
    */
   public int getNumberOfUses() {
-    if (VM.VerifyAssertions) VM.assert(!hasVarUses());
+    if (VM.VerifyAssertions) VM._assert(!hasVarUses());
     return numberDefUses + numberUses;
   }
 

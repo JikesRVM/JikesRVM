@@ -91,7 +91,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
   static {
     if (VM.VerifyAssertions) {
-      VM.assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
     }
   }
 

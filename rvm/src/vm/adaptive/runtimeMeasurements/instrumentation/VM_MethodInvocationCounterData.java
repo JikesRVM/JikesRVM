@@ -49,7 +49,7 @@ final class VM_MethodInvocationCounterData extends VM_ManagedCounterData
    **/
   public void reset()  
   { 
-    VM.assert(false, "TODO: implement reset for VM_BasicBlockCounterDatabase"); 
+    VM._assert(false, "TODO: implement reset for VM_BasicBlockCounterDatabase"); 
   }
 
 } // end of class

@@ -38,7 +38,7 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
   // Add a VP to tail of queue.
   //
   synchronized void enqueue (VM_Processor p) throws VM_PragmaInterruptible {
-    if (VM.VerifyAssertions) VM_Scheduler.assert(p.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM_Scheduler._assert(p.next == null); // not currently on any other queue
     if (head == null)
       head = p;
     else

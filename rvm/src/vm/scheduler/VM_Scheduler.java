@@ -153,7 +153,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // Returned: never returns (virtual processors begin running)
   //
   static void boot (VM_Thread mainThread) throws VM_PragmaInterruptible {
-    if (VM.VerifyAssertions) VM.assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
+    if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)
       trace("VM_Scheduler.boot","numProcessors =", numProcessors);
@@ -372,7 +372,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       trace("VM_Scheduler.boot", "completed - terminating");
 
     VM_Thread.terminate();
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   //
@@ -380,11 +380,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //
 
   /**
-   * Override standard assertion checker.
-   * @deprecated Should use VM.assert()
+   * Override standard._assertion checker.
+   * @deprecated Should use VM._assert()
    */
-  static void assert(boolean b) {
-    VM.assert(b);
+  static void _assert(boolean b) {
+    VM._assert(b);
   }
 
 
@@ -433,7 +433,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadExitIP);	
 
     // does not return
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 
   }
 

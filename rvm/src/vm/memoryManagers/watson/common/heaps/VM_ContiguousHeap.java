@@ -98,12 +98,12 @@ public final class VM_ContiguousHeap extends VM_Heap
     int offset = VM_Entrypoints.contiguousHeapCurrentField.getOffset();
     if (sense == FORWARD) {
 	VM_Address addr = VM_Synchronization.fetchAndAddAddressWithBound(this, offset, size, end);
-	if (VM.VerifyAssertions) VM.assert(start.LE(current) && current.LE(end));
+	if (VM.VerifyAssertions) VM._assert(start.LE(current) && current.LE(end));
 	if (!addr.isMax()) return addr;
     }
     else {
 	VM_Address addr = VM_Synchronization.fetchAndSubAddressWithBound(this, offset, size, start);
-	if (VM.VerifyAssertions) VM.assert(start.LE(current) && current.LE(end));
+	if (VM.VerifyAssertions) VM._assert(start.LE(current) && current.LE(end));
 	if (!addr.isMax()) return addr.sub(size);
     }
     return VM_Address.zero();
@@ -139,13 +139,13 @@ public final class VM_ContiguousHeap extends VM_Heap
   }
 
   public void setRegion(VM_Address s, VM_Address e, int se) throws VM_PragmaUninterruptible {
-      if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
+      if (VM.VerifyAssertions) VM._assert(se == FORWARD || se == BACKWARD);
       sense = se;
       setRegion(s, e);
   }
 
   public void setRegion(VM_Address s, VM_Address c, VM_Address e, int se) throws VM_PragmaUninterruptible {
-      if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
+      if (VM.VerifyAssertions) VM._assert(se == FORWARD || se == BACKWARD);
       sense = se;
       setRegion(s, e);
       current = c;
@@ -164,12 +164,12 @@ public final class VM_ContiguousHeap extends VM_Heap
 
   public void extendRegion(VM_Address newBoundary) throws VM_PragmaUninterruptible {
       if (sense == FORWARD) {
-	  if (VM.VerifyAssertions) VM.assert(newBoundary.GE(end));
+	  if (VM.VerifyAssertions) VM._assert(newBoundary.GE(end));
 	  end = newBoundary;
 	  setAuxiliary();
       }
       else {
-	  if (VM.VerifyAssertions) VM.assert(newBoundary.LE(start));
+	  if (VM.VerifyAssertions) VM._assert(newBoundary.LE(start));
 	  start = newBoundary;
 	  setAuxiliary();
       }

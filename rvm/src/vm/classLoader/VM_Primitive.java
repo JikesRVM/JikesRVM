@@ -73,12 +73,12 @@ public final class VM_Primitive extends VM_Type
 
   // these should never be called.
   public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return false;
   }
       
   public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }
 
@@ -121,7 +121,7 @@ public final class VM_Primitive extends VM_Type
       case FloatTypeCode:   this.stackWords = 1; break;
       case DoubleTypeCode:  this.stackWords = 2; break;
       case CharTypeCode:    this.stackWords = 1; break;
-      default:              if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+      default:              if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
 
     state = CLASS_INITIALIZED; // primitives have no "load, resolve, instantiate, initialize" phases

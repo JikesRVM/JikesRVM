@@ -33,7 +33,7 @@ class OPT_RegSpillListElement extends OPT_LinkedListElement {
    * @param value the spill value
    */
   public final void setSpill(int value) {
-    if (VM.VerifyAssertions) VM.assert(value > 0);
+    if (VM.VerifyAssertions) VM._assert(value > 0);
     this.value = value;
   }
 
@@ -70,7 +70,7 @@ class OPT_RegSpillListElement extends OPT_LinkedListElement {
    */
   public final int getRealRegNumber() {
     if (VM.VerifyAssertions) {
-      VM.assert(!isSpill(), 
+      VM._assert(!isSpill(), 
 	"OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
     }
 
@@ -84,7 +84,7 @@ class OPT_RegSpillListElement extends OPT_LinkedListElement {
    */
   public final int getSpill() {
     if (VM.VerifyAssertions) {
-      VM.assert(isSpill(), 
+      VM._assert(isSpill(), 
       "OPT_RegSpillListElement asked for a spill, when it had a real register");
     }
 

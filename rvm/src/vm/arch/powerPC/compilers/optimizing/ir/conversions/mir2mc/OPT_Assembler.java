@@ -841,7 +841,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  OPT_Instruction target = bop.target;
 	  
 	  if (VM.VerifyAssertions) {
-	    VM.assert(target.getOpcode() == LABEL_opcode);
+	    VM._assert(target.getOpcode() == LABEL_opcode);
 	  }
 
 	  // resolve the target instruction, in LABEL_opcode, 
@@ -996,9 +996,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
      
     // turn this into VM.VerifyAssertions later
     if (VM.VerifyAssertions) {
-      VM.assert(code[patchOffset] == NOPtemplate);
-      VM.assert(rel32 <= (MAX_DISPL << LG_INSTRUCTION_WIDTH));
-      VM.assert(rel32 >= (MIN_DISPL << LG_INSTRUCTION_WIDTH));
+      VM._assert(code[patchOffset] == NOPtemplate);
+      VM._assert(rel32 <= (MAX_DISPL << LG_INSTRUCTION_WIDTH));
+      VM._assert(rel32 >= (MIN_DISPL << LG_INSTRUCTION_WIDTH));
     }
     /* the rel32 has to be in the range from -2^25 to 2^25-1, 
      * is is guaranteed when generating code for IG_PATCH_POINT.

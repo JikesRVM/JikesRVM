@@ -259,7 +259,7 @@ public class VM extends VM_Properties
 
     VM_Scheduler.boot(mainThread);
     if (VM.VerifyAssertions) 
-      VM.assert(VM.NOT_REACHED);
+      VM._assert(VM.NOT_REACHED);
   }
 
   private static VM_Class[] classObjects = new VM_Class[0];
@@ -311,21 +311,21 @@ public class VM extends VM_Properties
   /**
    * Verify a runtime assertion (die w/traceback if assertion fails).
    * Note: code your assertion checks as 
-   * "if (VM.VerifyAssertions) VM.assert(xxx);"
+   * "if (VM.VerifyAssertions) VM._assert(xxx);"
    * @param b the assertion to verify
    */
-  public static void assert(boolean b) {
-    assert(b, null);
+  public static void _assert(boolean b) {
+    _assert(b, null);
   }
 
   /**
    * Verify a runtime assertion (die w/message and traceback if 
    * assertion fails).   Note: code your assertion checks as 
-   * "if (VM.VerifyAssertions) VM.assert(xxx,yyy);"
+   * "if (VM.VerifyAssertions) VM._assert(xxx,yyy);"
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  static void assert(boolean b, String message) {
+  static void _assert(boolean b, String message) {
     if (!VM.VerifyAssertions) {
       // somebody forgot to conditionalize their call to assert with
       // "if (VM.VerifyAssertions)"
@@ -592,7 +592,7 @@ public class VM extends VM_Properties
    * @param value  exit value
    */
   public static void shutdown(int value) {
-    if (VM.VerifyAssertions) VM.assert(VM.runningVM);
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
@@ -951,7 +951,7 @@ public class VM extends VM_Properties
     // 3.
     //
     if (VM.VerifyAssertions) {
-      VM.assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
+      VM._assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
       myThread.disallowAllocationsByThisThread = true;
     }
   }
@@ -963,7 +963,7 @@ public class VM extends VM_Properties
     if (VM.VerifyAssertions) {
       VM_Thread myThread = VM_Thread.getCurrentThread();
       // recursion not allowed
-      VM.assert(myThread.disallowAllocationsByThisThread == true); 
+      VM._assert(myThread.disallowAllocationsByThisThread == true); 
       myThread.disallowAllocationsByThisThread = false;
     }
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -977,7 +977,7 @@ public class VM extends VM_Properties
    * @return the main method of the main thread
    */
   public static VM_Method getMainMethod() throws VM_PragmaInterruptible {
-    if(VM.VerifyAssertions) VM.assert(_mainThread != null);
+    if(VM.VerifyAssertions) VM._assert(_mainThread != null);
     return ((MainThread)_mainThread).getMainMethod();
   } 
 

@@ -341,7 +341,7 @@ public class VM_Allocator extends VM_GCStatistics
       throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
     if (PROCESSOR_LOCAL_ALLOCATE) {
       VM_Address addr = VM_Chunk.allocateChunk1(size);
-      if (VM.VerifyAssertions && variableNursery) VM.assert(appelHeap.addrInHeap(addr));
+      if (VM.VerifyAssertions && variableNursery) VM._assert(appelHeap.addrInHeap(addr));
       return addr;
     } else {
       return globalAllocateRawMemory(size);
@@ -491,7 +491,7 @@ public class VM_Allocator extends VM_GCStatistics
 	  VM_Scheduler.trace("prepareNonParticipatingVPsForGC:",
 			     "native processor with non-zero allocation ptr, id =",vp.id);
 	  vp.dumpProcessorState();
-	  VM.assert(false);
+	  VM._assert(false);
 	}
       }
     }
@@ -554,7 +554,7 @@ public class VM_Allocator extends VM_GCStatistics
 	minorGCTime.start(initTime.lastStart);
     
       
-      if (VM.VerifyAssertions) VM.assert( initGCDone == false );  
+      if (VM.VerifyAssertions) VM._assert( initGCDone == false );  
       
       gcCount++;
 
@@ -1063,7 +1063,7 @@ public class VM_Allocator extends VM_GCStatistics
 	// is no zeroing of nursery during gc, each block is zeroed by the
 	// processor that allocates it...and we must be doing processor
 	// local allocates
-	if (VM.VerifyAssertions) VM.assert(PROCESSOR_LOCAL_ALLOCATE == true);
+	if (VM.VerifyAssertions) VM._assert(PROCESSOR_LOCAL_ALLOCATE == true);
     }
     
     if (majorCollection) {
@@ -1130,7 +1130,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @return the address of the Object in ToSpace (as a reference)
    */
   private static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(validFromRef(fromRef));
+    if (VM.VerifyAssertions) VM._assert(validFromRef(fromRef));
     return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
 
@@ -1185,7 +1185,7 @@ public class VM_Allocator extends VM_GCStatistics
     VM_Thread    activeThread = st.activeThread;
     int          tid = activeThread.getIndex();
     
-    if (VM.VerifyAssertions) VM.assert(tid == VM_Thread.getCurrentThread().getIndex());
+    if (VM.VerifyAssertions) VM._assert(tid == VM_Thread.getCurrentThread().getIndex());
     
     // if compiled for processor local chunking of "mature space" reset processor local 
     // pointers, to cause first request to get a block (only reset on major collection
@@ -1252,14 +1252,14 @@ public class VM_Allocator extends VM_GCStatistics
     
     if (PROCESSOR_LOCAL_ALLOCATE) {
       // local heap pointer set in initProcessor, should still be 0, ie no allocates yet
-      if (VM.VerifyAssertions) VM.assert(VM_Chunk.unusedChunk1(st));
+      if (VM.VerifyAssertions) VM._assert(VM_Chunk.unusedChunk1(st));
     }
     
     if (VM.VerifyAssertions) {
       // processor should already be copied, ie NOT in FromSpace
-      VM.assert(!nurseryHeap.refInHeap(sta));
+      VM._assert(!nurseryHeap.refInHeap(sta));
       // and its processor array entry updated
-      VM.assert(sta.EQ(VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id])));
+      VM._assert(sta.EQ(VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id])));
     }
     
     oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
@@ -1325,7 +1325,7 @@ public class VM_Allocator extends VM_GCStatistics
   }
   
   // following referenced by refcountGC methods (but not called)
-  static void gc_scanStacks () throws VM_PragmaUninterruptible { VM.assert(false); }
+  static void gc_scanStacks () throws VM_PragmaUninterruptible { VM._assert(false); }
   
   // Check if the "integer" pointer points to a dead or live object.
   // If live, and in the FromSpace (ie has been marked and forwarded),
@@ -1376,7 +1376,7 @@ public class VM_Allocator extends VM_GCStatistics
     if (immortalHeap.refInHeap(ref)) return true;
 
     VM.sysWriteln("Bad finalizer element in unknown heap: address = ", ref);
-    VM.assert(false);
+    VM._assert(false);
 
     return false;
 
@@ -1440,7 +1440,7 @@ public class VM_Allocator extends VM_GCStatistics
     if (toHeap.refInHeap (ref)) return ref;
 
     VM.sysWriteln("processPtrValue encountered bad reference = ", ref);
-    VM.assert(false);
+    VM._assert(false);
     return null;
   }
 

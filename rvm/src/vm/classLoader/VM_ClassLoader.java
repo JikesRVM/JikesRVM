@@ -92,7 +92,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
         return VM_Type.VoidType;
 
       default:
-        VM.assert(NOT_REACHED);
+        VM._assert(NOT_REACHED);
         return null;
     }
   }
@@ -254,7 +254,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
     currentDynamicLibraryId++;
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
       dynamicLibraries = growArray(dynamicLibraries, currentDynamicLibraryId << 1); // grow array by 2x
-    if (VM.VerifyAssertions) VM.assert(dynamicLibraries[currentDynamicLibraryId] == null);
+    if (VM.VerifyAssertions) VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
     // prepend "lib" if there is no path in the name
     // attach the suffix .a to the library name for AIX, .so for Linux
@@ -273,7 +273,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
     currentDynamicLibraryId++;
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
       dynamicLibraries = growArray(dynamicLibraries, currentDynamicLibraryId << 1); // grow array by 2x
-    if (VM.VerifyAssertions) VM.assert(dynamicLibraries[currentDynamicLibraryId] == null);
+    if (VM.VerifyAssertions) VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
     dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname);
   }
@@ -387,7 +387,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    */ 
   private static int[] growArray(int[] array, int newLength) {
     // assertion: no special array initialization needed (default 0 is ok)
-    if (VM.VerifyAssertions) VM.assert(NEEDS_DYNAMIC_LINK == 0); 
+    if (VM.VerifyAssertions) VM._assert(NEEDS_DYNAMIC_LINK == 0); 
     int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i)
       newarray[i] = array[i];
@@ -675,7 +675,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
       // and have had their static initializers run by the boot image writer.
       //
       if (!referentClass.isResolved()) VM.sysWrite("unresolved: \"" + referent + "\" referenced from \"" + referrer + "\"\n");
-      if (VM.VerifyAssertions) VM.assert(referentClass.isResolved());
+      if (VM.VerifyAssertions) VM._assert(referentClass.isResolved());
       return false;
     }
 

@@ -475,7 +475,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Instruction lastInstr = bb.lastRealInstruction();
     if (lastInstr.operator() == IA32_JMP) {
       // We're in trouble if there is another instruction between s and lastInstr!
-      if (VM.VerifyAssertions) VM.assert(s.nextInstructionInCodeOrder() == lastInstr);
+      if (VM.VerifyAssertions) VM._assert(s.nextInstructionInCodeOrder() == lastInstr);
       // Set testFailed to target of GOTO
       testFailed = MIR_Branch.getTarget(lastInstr);
       nextInstr = lastInstr.nextInstructionInCodeOrder();

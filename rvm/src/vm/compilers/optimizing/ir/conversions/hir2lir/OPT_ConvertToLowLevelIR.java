@@ -332,7 +332,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     int highLimit = TableSwitch.getHigh(s).value;
     int number = highLimit - lowLimit + 1;
     if (VM.VerifyAssertions)
-      VM.assert(number > 0);    // also checks that there are < 2^31 targets
+      VM._assert(number > 0);    // also checks that there are < 2^31 targets
     OPT_Operand val = TableSwitch.getClearValue(s);
     OPT_BranchOperand defaultLabel = TableSwitch.getClearDefault(s);
     if (number < 8) {           // convert into a lookupswitch
@@ -469,7 +469,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						    int min, 
 						    int max) {
     if (VM.VerifyAssertions)
-      VM.assert(low <= high, "broken control logic in _lookupswitchHelper");
+      VM._assert(low <= high, "broken control logic in _lookupswitchHelper");
 
     int middle = (low + high) >> 1;             // find middle
 
@@ -652,7 +652,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     if (methOp != null && methOp.unresolved) {
       unresolved = true;
       if (VM.VerifyAssertions)
-	VM.assert(Call.getAddress(s) == null, 
+	VM._assert(Call.getAddress(s) == null, 
 		  "Unresolved call with InstrAddr?");
       OPT_RegisterOperand instrAddr = 
 	ir.regpool.makeTemp(OPT_ClassLoaderProxy.InstructionArrayType);
@@ -1201,7 +1201,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    */
   static OPT_RegisterOperand getVMType (OPT_Instruction ptr, OPT_IR ir, 
 					VM_Type t) {
-    if (VM.VerifyAssertions) VM.assert(!t.isPrimitiveType());
+    if (VM.VerifyAssertions) VM._assert(!t.isPrimitiveType());
     OPT_RegisterOperand tib = getTIB(ptr, ir, t);
     return  InsertUnary(ptr, ir, GET_TYPE_FROM_TIB, 
 			OPT_ClassLoaderProxy.VM_Type_type, tib);

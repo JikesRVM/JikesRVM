@@ -78,7 +78,7 @@ final class OPT_WeightedBranchTargets {
 	OPT_BranchProfileOperand prof = TableSwitch.getDefaultBranchProfile(s);
 	float taken = prob * prof.takenProbability;
 	total += prof.takenProbability;
-	if (VM.VerifyAssertions) VM.assert(epsilon(total, 1f), "total = "+total);
+	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total);
 	addEdge(target, taken);
       } else if (LowTableSwitch.conforms(s)) {
 	int number = LowTableSwitch.getNumberOfTargets(s);
@@ -90,7 +90,7 @@ final class OPT_WeightedBranchTargets {
 	  total += prof.takenProbability;
 	  addEdge(target, taken);
 	}
-	if (VM.VerifyAssertions) VM.assert(epsilon(total, 1f), "total = "+total);
+	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total);
       } else if (LookupSwitch.conforms(s)) {
 	int number = LookupSwitch.getNumberOfTargets(s);
 	float total = 0f;
@@ -105,7 +105,7 @@ final class OPT_WeightedBranchTargets {
 	OPT_BranchProfileOperand prof = LookupSwitch.getDefaultBranchProfile(s);
 	float taken = prob * prof.takenProbability;
 	total += prof.takenProbability;
-	if (VM.VerifyAssertions) VM.assert(epsilon(total, 1f), "total = "+total);
+	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total);
 	addEdge(target, taken);
       } else {
 	throw new OPT_OptimizingCompilerException("TODO "+s+"\n");

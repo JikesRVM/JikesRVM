@@ -339,7 +339,7 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
       container.cfg.linkInCodeOrder(container.prologue, testFailed);
       return  container;
     } else {
-      if (VM.VerifyAssertions) VM.assert(inlDec.getNumberOfTargets() == 1);
+      if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
       VM_Method callee = inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee 

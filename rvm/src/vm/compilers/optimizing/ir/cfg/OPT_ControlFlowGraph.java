@@ -251,11 +251,11 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param toAdd a block to add after old in the code ordering
    */
   void insertAfterInCodeOrder(OPT_BasicBlock old, OPT_BasicBlock toAdd) {
-    if (OPT_IR.SANITY_CHECK) VM.assert(toAdd.next == null);
-    if (OPT_IR.SANITY_CHECK) VM.assert(toAdd.prev == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.next == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.prev == null);
     OPT_SpaceEffGraphNode oldNext = old.next;
     if (oldNext == null) {
-      if (OPT_IR.SANITY_CHECK) VM.assert(_lastNode == old);
+      if (OPT_IR.SANITY_CHECK) VM._assert(_lastNode == old);
       old.append(toAdd);
       _lastNode = toAdd;
     } else {
@@ -275,11 +275,11 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param toAdd a block to add before old in the code ordering
    */
   void insertBeforeInCodeOrder(OPT_BasicBlock old, OPT_BasicBlock toAdd) {
-    if (OPT_IR.SANITY_CHECK) VM.assert(toAdd.next == null);
-    if (OPT_IR.SANITY_CHECK) VM.assert(toAdd.prev == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.next == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(toAdd.prev == null);
     OPT_SpaceEffGraphNode oldPrev = old.prev;
     if (oldPrev == null) {
-      if (OPT_IR.SANITY_CHECK) VM.assert(_firstNode == old);
+      if (OPT_IR.SANITY_CHECK) VM._assert(_firstNode == old);
       _firstNode = toAdd;
       toAdd.append(old);
     } else {
@@ -297,8 +297,8 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param bb the block to add to the end of the code ordering
    */
   void addLastInCodeOrder(OPT_BasicBlock bb) {
-    if (OPT_IR.SANITY_CHECK) VM.assert(bb.next == null);
-    if (OPT_IR.SANITY_CHECK) VM.assert(bb.prev == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(bb.next == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(bb.prev == null);
     if (_firstNode == null) {
       _firstNode = bb;
       _lastNode = bb;
@@ -318,8 +318,8 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param bb2 the basic block to follow bb1 in the code ordering
    */
   void linkInCodeOrder(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
-    if (OPT_IR.SANITY_CHECK) VM.assert(bb1.next == null);
-    if (OPT_IR.SANITY_CHECK) VM.assert(bb2.prev == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(bb1.next == null);
+    if (OPT_IR.SANITY_CHECK) VM._assert(bb2.prev == null);
     bb1.append(bb2);
     if (bb1 == _lastNode) {
       _lastNode = bb2;
@@ -336,8 +336,8 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param bb2 the second block
    */
   void breakCodeOrder(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
-    if (OPT_IR.SANITY_CHECK) VM.assert(bb1.next == bb2);
-    if (OPT_IR.SANITY_CHECK) VM.assert(bb2.prev == bb1);
+    if (OPT_IR.SANITY_CHECK) VM._assert(bb1.next == bb2);
+    if (OPT_IR.SANITY_CHECK) VM._assert(bb2.prev == bb1);
     bb1.next = null;
     bb2.prev = null;
   }

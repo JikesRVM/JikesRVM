@@ -47,7 +47,7 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) VM.assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
+    if (VM.VerifyAssertions) VM._assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
    main: while (true) {
       if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
       if (VM_Scheduler.terminated) VM_Thread.terminate();

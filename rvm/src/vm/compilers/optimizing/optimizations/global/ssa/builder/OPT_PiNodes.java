@@ -143,7 +143,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
             IfCmp.getGuardResult(instr);
 
         if (VM.VerifyAssertions)
-          VM.assert(ifGuard != null);
+          VM._assert(ifGuard != null);
         // get compared variables
         OPT_Operand a = IfCmp.getVal1(instr);
         OPT_Operand b = IfCmp.getVal2(instr);

@@ -37,12 +37,12 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     registers.ip = catchBlockInstructionAddress;
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
 
-    if (VM.VerifyAssertions) VM.assert(registers.inuse == true);
+    if (VM.VerifyAssertions) VM._assert(registers.inuse == true);
     registers.inuse = false;
 
     // "branches" to catchBlockInstructionAddress
     VM_Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 
   /**

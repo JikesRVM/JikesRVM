@@ -318,7 +318,7 @@ public class VM_Entrypoints implements VM_Constants {
 			       || ((top < bot) && ((bot - top) != 4)));
       if (discontigious)
 	VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_WriteBufferBase+"<----\n");
-      VM.assert(!discontigious);
+      VM._assert(!discontigious);
     }
     GCTk_TraceBufferBase        = getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
 
@@ -330,7 +330,7 @@ public class VM_Entrypoints implements VM_Constants {
 			   || ((top < bot) && ((bot - top) != 28)));
       if (unaligned)
 	VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_BumpPointerBase+"<----\n");
-      VM.assert(!unaligned);
+      VM._assert(!unaligned);
     }
   
     top = getMember("Lcom/ibm/JikesRVM/VM_Processor;", "allocSync0", "I").getOffset();
@@ -341,7 +341,7 @@ public class VM_Entrypoints implements VM_Constants {
 			   || ((top < bot) && ((bot - top) != 28)));
       if (unaligned)
 	VM.sysWrite("---->"+top+","+bot+"->"+GCTk_SyncPointerBase+"<----\n");
-      VM.assert(!unaligned);
+      VM._assert(!unaligned);
     }
 	  
     top = getMember("LGCTk_ChunkAllocator;", "allocChunkStart0", "I").getOffset();
@@ -352,7 +352,7 @@ public class VM_Entrypoints implements VM_Constants {
 			   || ((top < bot) && ((bot - top) != 60)));
       if (unaligned) 
 	VM.sysWrite("---->"+top+","+bot+"->"+GCTk_ChunkAllocatorBase+"<----\n");
-      VM.assert(!unaligned);
+      VM._assert(!unaligned);
     }
     //-#endif
   }
@@ -389,11 +389,11 @@ public class VM_Entrypoints implements VM_Constants {
       //  2. the class containing the specified member didn't get compiled
       //
       VM.sysWrite("VM_Entrypoints.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
-      VM.assert(NOT_REACHED);
+      VM._assert(NOT_REACHED);
     } catch (VM_ResolutionException e) {
       VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" + classDescriptor+
 		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
-      VM.assert(NOT_REACHED);
+      VM._assert(NOT_REACHED);
     }
     return null; // placate jikes
   }

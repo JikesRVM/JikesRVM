@@ -75,7 +75,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
     this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << 2);
-    if (VM.VerifyAssertions) VM.assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
+    if (VM.VerifyAssertions) VM._assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
 
     if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
@@ -98,10 +98,10 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   public void enableThreadSwitching () {
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) 
-      VM.assert(threadSwitchingEnabledCount <= 1);
+      VM._assert(threadSwitchingEnabledCount <= 1);
     if (VM.VerifyAssertions && 
         VM_Collector.gcInProgress() && !VM.BuildForConcurrentGC) 
-	VM.assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
+	VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
       threadSwitchRequested = -1;
@@ -135,7 +135,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
    * Note: This method is ONLY intended for use by VM_Thread.
    */ 
   void dispatch () {
-    if (VM.VerifyAssertions) VM.assert(lockCount == 0);// no processor locks should be held across a thread switch
+    if (VM.VerifyAssertions) VM._assert(lockCount == 0);// no processor locks should be held across a thread switch
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDispatchEvent();
 
     VM_Thread newThread = getRunnableThread();
@@ -209,7 +209,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
           // on the RVM	
           i++;
           if (loopcheck++ >= 1000000) break;
-          if (VM.VerifyAssertions) VM.assert (t.isNativeIdleThread);
+          if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread);
         }
       } else {
         if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
@@ -225,7 +225,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       if (ioQueue.isReady()) {
         VM_Thread t = ioQueue.dequeue();
         if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
-        if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+        if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
         return t;
       }
     }
@@ -233,25 +233,25 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     if (!readyQueue.isEmpty()) {
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
-      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+      if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
     if (ioQueue.isReady()) {
       VM_Thread t = ioQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue", t.getIndex());
-      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+      if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
     if (!idleQueue.isEmpty()) {
       VM_Thread t = idleQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: idleQueue", t.getIndex());
-      if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+      if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
-    VM.assert(VM.NOT_REACHED); // should never get here (the idle thread should always be: running, on the idleQueue, or (maybe) on the transferQueue)
+    VM._assert(VM.NOT_REACHED); // should never get here (the idle thread should always be: running, on the idleQueue, or (maybe) on the transferQueue)
     return null;
   }
 
@@ -510,10 +510,10 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     boolean result = true;
     do {
       oldState = VM_Magic.prepare(VM_Magic.addressAsObject(vpStatusAddress), 0);
-      if (VM.VerifyAssertions) VM.assert(oldState != BLOCKED_IN_NATIVE) ;
+      if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
       if (oldState != IN_NATIVE) {
         if (VM.VerifyAssertions) 
-          VM.assert((oldState==IN_JAVA)||(oldState==IN_SIGWAIT)) ;
+          VM._assert((oldState==IN_JAVA)||(oldState==IN_SIGWAIT)) ;
         result = false;
         break;
       }
@@ -531,9 +531,9 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     boolean result = true;
     do {
       oldState = VM_Magic.prepare(VM_Magic.addressAsObject(vpStatusAddress), 0);
-      if (VM.VerifyAssertions) VM.assert(oldState != BLOCKED_IN_SIGWAIT) ;
+      if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_SIGWAIT) ;
       if (oldState != IN_SIGWAIT) {
-        if (VM.VerifyAssertions) VM.assert(oldState==IN_JAVA);
+        if (VM.VerifyAssertions) VM._assert(oldState==IN_JAVA);
         result = false;
         break;
       }
@@ -708,7 +708,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   // The following are conditionalized by "if (VM.VerifyAssertions)"
   //
   /**
-   * number of processor locks currently held (for assertion checking)
+   * number of processor locks currently held (for._assertion checking)
    */
   public int              lockCount;     
 

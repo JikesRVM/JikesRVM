@@ -63,7 +63,7 @@ public class FinalizerThread extends VM_Thread
 	   try {
 
 	     VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
-	     if (VM.VerifyAssertions) VM.assert(method != null);
+	     if (VM.VerifyAssertions) VM._assert(method != null);
 	     Object[]  none = new Object[0];
 	     Object    ret = VM_Reflection.invoke(method, o, none);
 	   }

@@ -198,13 +198,13 @@ public abstract class VM_RCGC
 
 
     private static final boolean addToBigCount(VM_Address object, int value, int[] table) {
-	if (VM.VerifyAssertions) VM.assert(OVERFLOW_POSSIBLE);
+	if (VM.VerifyAssertions) VM._assert(OVERFLOW_POSSIBLE);
 
 	if (DEBUG_BIGCOUNTS && color(object) != GREEN) dumpRefcountInfo("Non-green object getting big: ", object);
 
 	int i = lookupEntry(object, table);
 	if (i == HASH_ERROR) {
-	    if (VM.VerifyAssertions) VM.assert(value > 0);
+	    if (VM.VerifyAssertions) VM._assert(value > 0);
 	    i = createEntry(object, table);
 	    table[i+1] = value;
 	    return true;	// signal new entry created
@@ -224,7 +224,7 @@ public abstract class VM_RCGC
 
 
     private static final int getBigCount(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(OVERFLOW_POSSIBLE);
+	if (VM.VerifyAssertions) VM._assert(OVERFLOW_POSSIBLE);
 
 	int i = lookupEntry(object, overflowTable);
 	return overflowTable[i+1];
@@ -232,7 +232,7 @@ public abstract class VM_RCGC
 
 
     private static final int getBigCyclicCount(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(OVERFLOW_POSSIBLE);
+	if (VM.VerifyAssertions) VM._assert(OVERFLOW_POSSIBLE);
 
 	int i = lookupEntry(object, cyclicOverflowTable);
 	return cyclicOverflowTable[i+1];
@@ -287,7 +287,7 @@ public abstract class VM_RCGC
 	if (c == ORANGE) return "o";
 	if (c == BLUE)   return "b";
 
-	if (VM.VerifyAssertions) VM.assert(false);
+	if (VM.VerifyAssertions) VM._assert(false);
 	return "X";
     }
 
@@ -353,7 +353,7 @@ public abstract class VM_RCGC
 	    dumpRefcountInfo("Trying to decrement 0 count ", object);
 	}
 
-	if (VM.VerifyAssertions) VM.assert((rc & COUNTFLDMASK) != 0); // can't dec a zero count
+	if (VM.VerifyAssertions) VM._assert((rc & COUNTFLDMASK) != 0); // can't dec a zero count
 
 	if (OVERFLOW_POSSIBLE && count == 0) {
 	    boolean notLong = addToBigCount(object, -LONG_COUNT_DELTA);
@@ -364,7 +364,7 @@ public abstract class VM_RCGC
 	else 
 	    rc = ((rc & ~ BUFFERED) - 1) | (rc & BUFFERED); // rc = rc - 1, unsigned
 
-	if (VM.VerifyAssertions) VM.assert((rc & BUFFERED) == buffered);
+	if (VM.VerifyAssertions) VM._assert((rc & BUFFERED) == buffered);
 
 	setRefcount(object, rc);
 
@@ -402,7 +402,7 @@ public abstract class VM_RCGC
     }
 
     public static final void setRefcount(VM_Address object, int value) { 
-	if (VM.VerifyAssertions) VM.assert((value & EMPTYMASK) == 0);
+	if (VM.VerifyAssertions) VM._assert((value & EMPTYMASK) == 0);
 
 	VM_Magic.setMemoryWord(object.add(VM_AllocatorHeader.REFCOUNT_OFFSET), value);
     }
@@ -419,7 +419,7 @@ public abstract class VM_RCGC
 
 	setRefcount(object, cloned);
 
-	if (VM.VerifyAssertions) VM.assert(cyclicReferenceCount(object) == referenceCount(object));
+	if (VM.VerifyAssertions) VM._assert(cyclicReferenceCount(object) == referenceCount(object));
     }
 
     public static final boolean isZeroCyclicReferenceCount (VM_Address object) {
@@ -431,7 +431,7 @@ public abstract class VM_RCGC
 	int count = rc & XCOUNTMASK;
 
 	if (count == 0) {
-	    if (VM.VerifyAssertions) VM.assert((rc & XCOUNTOVERFLOW) != 0);
+	    if (VM.VerifyAssertions) VM._assert((rc & XCOUNTOVERFLOW) != 0);
 	    boolean notLong = addToBigCyclicCount(object, -LONG_COUNT_DELTA);
 	    rc = rc | XCOUNTMASK;
 	    if (notLong)
@@ -461,7 +461,7 @@ public abstract class VM_RCGC
     }
 
     static final void setCyclicReferenceCount (VM_Address object, int value) {
-	if (VM.VerifyAssertions) VM.assert(value <= COUNTMASK && value >= 0);
+	if (VM.VerifyAssertions) VM._assert(value <= COUNTMASK && value >= 0);
 	int rc = refcount(object);
 	if ((rc & XCOUNTOVERFLOW) != 0)
 	    clearBigCyclicCount(object);
@@ -508,7 +508,7 @@ public abstract class VM_RCGC
 	// Don't print this, because these aren't re-colorings, just initializations
 	// print("Colored green:  ", setGreen);   percentage(setGreen, setColors, "colorings");
 
-	if (VM.VerifyAssertions) VM.assert(setRed == 0);
+	if (VM.VerifyAssertions) VM._assert(setRed == 0);
 	// print("Colored red:    ", setRed);     percentage(setRed, setColors, "colorings");
     }
 }

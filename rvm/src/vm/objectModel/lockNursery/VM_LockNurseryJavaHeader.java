@@ -367,7 +367,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    */
   public static void allocateThinLock(VM_Type t) {
     if (t.thinLockOffset == -1) {
-      if (VM.VerifyAssertions) VM.assert(t.isClassType());
+      if (VM.VerifyAssertions) VM._assert(t.isClassType());
       VM_Class klass = t.asClass();
       int fieldOffset = objectEndOffset(klass) - 4; // layout field backwards!
       klass.thinLockOffset = fieldOffset;

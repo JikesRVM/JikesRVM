@@ -70,7 +70,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Return the (zero-based indexed) nth GPR that may hold a parameter.
    */
   final OPT_Register getGPRParam(int n) {
-    if (VM.VerifyAssertions) VM.assert(n < 2);
+    if (VM.VerifyAssertions) VM._assert(n < 2);
     if (n==0) {
       return getEAX();
     } else {
@@ -89,7 +89,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * Return the (zero-based indexed) nth GPR that may hold a return value.
    */
   OPT_Register getReturnGPR(int n) {
-    if (VM.VerifyAssertions) VM.assert(n < 2);
+    if (VM.VerifyAssertions) VM._assert(n < 2);
     if (n==0) {
       return getEAX();
     } else {
@@ -343,7 +343,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @return the first GPR register used to hold a return value
    */
   OPT_Register getFirstReturnGPR() {
-    if (VM.VerifyAssertions) VM.assert(NUM_RETURN_GPRS > 0);
+    if (VM.VerifyAssertions) VM._assert(NUM_RETURN_GPRS > 0);
     return getEAX();
   }
 
@@ -351,7 +351,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @return the second GPR register used to hold a return value
    */
   OPT_Register getSecondReturnGPR() {
-    if (VM.VerifyAssertions) VM.assert(NUM_RETURN_GPRS > 1);
+    if (VM.VerifyAssertions) VM._assert(NUM_RETURN_GPRS > 1);
     return getEDX();
   }
 
@@ -359,7 +359,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @return the FPR register used to hold a return value
    */
   OPT_Register getReturnFPR() {
-    if (VM.VerifyAssertions) VM.assert(NUM_RETURN_FPRS == 1);
+    if (VM.VerifyAssertions) VM._assert(NUM_RETURN_FPRS == 1);
     return getFPR(0);
   }
 
@@ -435,7 +435,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    */
   static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
-      VM.assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -450,7 +450,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    */
   static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
-      VM.assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {

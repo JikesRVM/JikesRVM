@@ -53,7 +53,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
 
   static {
     if (VM.VerifyAssertions) {
-      VM.assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
     }
   }
 
@@ -79,7 +79,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     int tibPtr = VM_Magic.objectAsAddress(tib).toInt();
     if (VM.VerifyAssertions) {
-      VM.assert((tibPtr & BITS_MASK) == 0);
+      VM._assert((tibPtr & BITS_MASK) == 0);
     }
     int tibWord = (VM_Magic.getIntAtOffset(ref, TIB_OFFSET) & BITS_MASK) | tibPtr;
     VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibWord);
@@ -150,8 +150,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     int ME = 31 - LOG_TIB_ALIGNMENT;
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
-	VM.assert(dest != 0);
-	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+	VM._assert(dest != 0);
+	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
       asm.emitL   (dest, TIB_OFFSET, object);
       asm.emitANDI(0, dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -174,8 +174,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
                                          byte object) {
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
-	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
-	VM.assert(dest != object);
+	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+	VM._assert(dest != object);
       }
       asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
       asm.emitTEST_Reg_Imm(dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -217,7 +217,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       // the TIB word holding a forwarding pointer.  If the method is interruptible, then
       // it can't be executing during GC time and therefore does not need these extra instructions
       if (VM.VerifyAssertions) {
-	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
 
       OPT_BasicBlock prevBlock = s.getBasicBlock();

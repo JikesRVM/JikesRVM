@@ -100,9 +100,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     VM_Class klass	= method.getDeclaringClass();
 
     /* initialization */
-    if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
-    if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
-    if (VM.VerifyAssertions) VM.assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
+    if (VM.VerifyAssertions) VM._assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
+    if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
+    if (VM.VerifyAssertions) VM._assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
 
     VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
     int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
@@ -393,10 +393,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     }
 
     // The loop below assumes the following relationship:
-    if (VM.VerifyAssertions) VM.assert(FIRST_AIX_VOLATILE_FPR==FIRST_VOLATILE_FPR);
-    if (VM.VerifyAssertions) VM.assert(LAST_AIX_VOLATILE_FPR<=LAST_VOLATILE_FPR);
-    if (VM.VerifyAssertions) VM.assert(FIRST_AIX_VOLATILE_GPR==FIRST_VOLATILE_GPR);
-    if (VM.VerifyAssertions) VM.assert(LAST_AIX_VOLATILE_GPR<=LAST_VOLATILE_GPR);
+    if (VM.VerifyAssertions) VM._assert(FIRST_AIX_VOLATILE_FPR==FIRST_VOLATILE_FPR);
+    if (VM.VerifyAssertions) VM._assert(LAST_AIX_VOLATILE_FPR<=LAST_VOLATILE_FPR);
+    if (VM.VerifyAssertions) VM._assert(FIRST_AIX_VOLATILE_GPR==FIRST_VOLATILE_GPR);
+    if (VM.VerifyAssertions) VM._assert(LAST_AIX_VOLATILE_GPR<=LAST_VOLATILE_GPR);
 
 
     // create one VM_Assembler object for each argument

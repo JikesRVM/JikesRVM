@@ -120,7 +120,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
           if (VM.VerifyAssertions && realRegNumber > LAST_GCMAP_REG) {
             System.out.println(elem);
             System.out.println(LAST_GCMAP_REG);
-            VM.assert(false, "reg > last GC Map Reg!!");
+            VM._assert(false, "reg > last GC Map Reg!!");
           }
 
 	  // get the bit position for this register number
@@ -181,7 +181,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
 				      int registerNumber, 
 				      int[] gcMap) {
     if (VM.VerifyAssertions) {
-      VM.assert(registerNumber >= FIRST_GCMAP_REG && 
+      VM._assert(registerNumber >= FIRST_GCMAP_REG && 
 		registerNumber <= LAST_GCMAP_REG, 
 		"Bad registerNumber");
     }
@@ -342,7 +342,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
   private final void addSpillLocation(int spill) throws VM_PragmaInterruptible {
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
-      VM.assert(false, "Unexpected spill passed:" + spill);
+      VM._assert(false, "Unexpected spill passed:" + spill);
     }
     // get the next entry (with the NEXT bit set) ...
     int entry = getNextMapEntry();

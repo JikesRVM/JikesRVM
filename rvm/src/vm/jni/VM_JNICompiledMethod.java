@@ -29,13 +29,13 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
   public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible { 
     // this method should never get called.
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
       
   public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible { 
     // this method should never get called.
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   public final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {

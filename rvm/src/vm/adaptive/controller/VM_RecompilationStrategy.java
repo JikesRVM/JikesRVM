@@ -233,7 +233,7 @@ abstract class VM_RecompilationStrategy {
       VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod)cmpMethod;
       return VM_CompilerDNA.getCompilerConstant(optMeth.getOptLevel());
     default:
-      if (VM.VerifyAssertions) VM.assert(false, "Unknown Compiler");
+      if (VM.VerifyAssertions) VM._assert(false, "Unknown Compiler");
       return -1;
     }
   }

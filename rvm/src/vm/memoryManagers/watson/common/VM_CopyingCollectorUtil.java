@@ -62,7 +62,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
       toObj = VM_Magic.addressAsObject(toRef);
       if (VM.VerifyAssertions && !(VM_AllocatorHeader.stateIsForwarded(forwardingPtr) && VM_GCUtil.validRef(toRef))) {
 	VM_Scheduler.traceHex("copyAndScanObject", "invalid forwarding ptr =",forwardingPtr);
-	VM.assert(false);  
+	VM._assert(false);  
       }
       return toRef;
     }
@@ -73,7 +73,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
     if (VM_Allocator.writeBarrier) {
       forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;
     }
-    if (VM.VerifyAssertions) VM.assert(VM_GCUtil.validObject(type));
+    if (VM.VerifyAssertions) VM._assert(VM_GCUtil.validObject(type));
     int numBytes;
     if (type.isClassType()) {
       VM_Class classType = type.asClass();
@@ -139,14 +139,14 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 
 	// GC threads are assumed not to have native processors.  if this proves
 	// false, then we will have to deal with its write buffers
-	if (VM.VerifyAssertions) VM.assert(t.nativeAffinity == null);
+	if (VM.VerifyAssertions) VM._assert(t.nativeAffinity == null);
 	
 	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM.assert(!fromHeap.refInHeap(ta));
+	if (VM.VerifyAssertions) VM._assert(!fromHeap.refInHeap(ta));
 	
 	if (VM.VerifyAssertions) oldstack = t.stack;    // for verifying gc stacks not moved
 	VM_ScanObject.scanObjectOrArray(t);
-	if (VM.VerifyAssertions) VM.assert(oldstack == t.stack);
+	if (VM.VerifyAssertions) VM._assert(oldstack == t.stack);
 	
 	if (t.jniEnv != null) VM_ScanObject.scanObjectOrArray(t.jniEnv);
 
@@ -164,7 +164,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Processing mutator thread ",i);
 	
 	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM.assert(!(fromHeap.refInHeap(ta)));
+	if (VM.VerifyAssertions) VM._assert(!(fromHeap.refInHeap(ta)));
 	
 	// scan thread object to force "interior" objects to be copied, marked, and
 	// queued for later scanning.

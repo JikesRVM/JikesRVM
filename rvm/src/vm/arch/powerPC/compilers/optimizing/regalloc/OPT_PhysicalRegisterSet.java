@@ -401,7 +401,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   OPT_Register getFirstVolatileConditionRegister() {
     if (VM.VerifyAssertions) {
-      VM.assert(getFirstConditionRegister() != getTSR());
+      VM._assert(getFirstConditionRegister() != getTSR());
     }
     return  getFirstConditionRegister();
   }
@@ -478,7 +478,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   final byte getSPR(OPT_Register r) {
     if (VM.VerifyAssertions) {
-      VM.assert ( (r == getXER()) || (r == getLR()) || (r == getCTR()) ); 
+      VM._assert ( (r == getXER()) || (r == getLR()) || (r == getCTR()) ); 
     } 
     if (r == getXER()) {
       return 1;
@@ -535,7 +535,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
-      VM.assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -550,7 +550,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
-      VM.assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -589,7 +589,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   Enumeration enumerateGPRParameters(int n) {
     if (VM.VerifyAssertions)
-      VM.assert(n <= NUMBER_INT_PARAM);
+      VM._assert(n <= NUMBER_INT_PARAM);
     return new PhysicalRegisterEnumeration(FIRST_INT_PARAM,
                                            FIRST_INT_PARAM + n - 1);
   }
@@ -619,7 +619,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
    */
   Enumeration enumerateFPRParameters(int n) {
     if (VM.VerifyAssertions)
-      VM.assert(n <= NUMBER_DOUBLE_PARAM);
+      VM._assert(n <= NUMBER_DOUBLE_PARAM);
     return new PhysicalRegisterEnumeration(FIRST_DOUBLE_PARAM,
                                            FIRST_DOUBLE_PARAM + n - 1);
   }

@@ -255,7 +255,7 @@ public final class VM_RootBuffer
 	    for (int src = 0; src < bufEntries; src++) {
 		VM_Address object = VM_Address.fromInt(bufRoots[src]);
 
-		// if (VM.VerifyAssertions) VM.assert(isBuffered(object)); HACK!!!
+		// if (VM.VerifyAssertions) VM._assert(isBuffered(object)); HACK!!!
 		if (! isBuffered(object)) println("|||| *************** <<<<<<<<<<<< NOT BUFFERED IN SWEEP >>>>>>>>>>>>> ******************");
 
 		if (isZeroReferenceCount(object)) {
@@ -304,7 +304,7 @@ public final class VM_RootBuffer
     public final void collectCycles() {
 	// Note: must be called after sweepRootBuffer()
 
-	if (VM.VerifyAssertions) VM.assert(! ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! ASYNC);
 	if (CC_COUNT_EVENTS) cycleCollections++;
 
 	markGray();
@@ -322,7 +322,7 @@ public final class VM_RootBuffer
 
 
     public final void markGray() {
-	if (VM.VerifyAssertions) VM.assert(! ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! ASYNC);
 
 	for (VM_RootBuffer buf = this; buf != null; buf = buf.next) {
 
@@ -338,7 +338,7 @@ public final class VM_RootBuffer
 
 		    // dumpRefcountInfo("Mark gray ", object);
 
-		    if (VM.VerifyAssertions) VM.assert(color(object) == GRAY || ! isZeroReferenceCount(object));
+		    if (VM.VerifyAssertions) VM._assert(color(object) == GRAY || ! isZeroReferenceCount(object));
 
 		    int g = VM_GrayVisitor.grayVisited; // debug
 		    
@@ -363,7 +363,7 @@ public final class VM_RootBuffer
     }
 
     private final void scan() {
-	if (VM.VerifyAssertions) VM.assert(! ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! ASYNC);
 
 	for (VM_RootBuffer buf = this; buf != null; buf = buf.next) {
 
@@ -387,7 +387,7 @@ public final class VM_RootBuffer
     }
 
     private final void collectWhite () {
-	if (VM.VerifyAssertions) VM.assert(! ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! ASYNC);
 
 	int rootsFound = 0;	// debug
 
@@ -454,7 +454,7 @@ public final class VM_RootBuffer
 
     private final static void asyncFreeCycles () {
 	if (VM_Scheduler.numProcessors > 1) {
-	    if (VM.VerifyAssertions) VM.assert(ASYNC);
+	    if (VM.VerifyAssertions) VM._assert(ASYNC);
 
 	    if (currentCycles != null) {
 		currentCycles.freeCycles();
@@ -468,7 +468,7 @@ public final class VM_RootBuffer
     public final void asyncCollectCycles () {
 	// Note: must be called after sweepRootBuffer() and asyncFreeCycles()
 
-	if (VM.VerifyAssertions) VM.assert(ASYNC);
+	if (VM.VerifyAssertions) VM._assert(ASYNC);
 	if (CC_COUNT_EVENTS) cycleCollections++;
 	long tStart;
 	if (VM_CycleBuffer.TIME_CYCLE_COLLECTION) tStart = VM_Time.cycles();
@@ -496,7 +496,7 @@ public final class VM_RootBuffer
     }
 
     public final void asyncMarkGray() {
-	if (VM.VerifyAssertions) VM.assert(ASYNC);
+	if (VM.VerifyAssertions) VM._assert(ASYNC);
 
 	if (STATS) VM_AsyncGrayVisitor.grayVisited = 0;	// statistics
 
@@ -515,7 +515,7 @@ public final class VM_RootBuffer
 
 		    // int g = VM_AsyncGrayVisitor.grayVisited; // debug
 		    
-		    if (VM.VerifyAssertions) VM.assert(! isZeroReferenceCount(object));
+		    if (VM.VerifyAssertions) VM._assert(! isZeroReferenceCount(object));
 
 		    if (color(object) != GRAY)
 			asyncGrayVisitor.markGray(object);
@@ -540,7 +540,7 @@ public final class VM_RootBuffer
     }
 
     private final void asyncScan() {
-	if (VM.VerifyAssertions) VM.assert(ASYNC);
+	if (VM.VerifyAssertions) VM._assert(ASYNC);
 
 	for (VM_RootBuffer buf = this; buf != null; buf = buf.next) {
 
@@ -574,7 +574,7 @@ public final class VM_RootBuffer
 
 
     private final void asyncCollectWhite () {
-	if (VM.VerifyAssertions) VM.assert(ASYNC);
+	if (VM.VerifyAssertions) VM._assert(ASYNC);
 	int cycles = 0;
 
 	for (VM_RootBuffer buf = this; buf != null; buf = buf.next) {
@@ -798,13 +798,13 @@ class VM_GrayVisitor
     public static int grayVisited = 0;	// debug
 
     public final void markGray(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
-	if (VM.VerifyAssertions) VM.assert(color(object) != GREEN && color(object) != RED && color(object) != WHITE);
+	if (VM.VerifyAssertions) VM._assert(! VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(color(object) != GREEN && color(object) != RED && color(object) != WHITE);
 
 	if (true) grayVisited++;		// debug
 
 	if (color(object) != GRAY) {
-	    if (VM.VerifyAssertions) VM.assert(color(object) == BLACK || color(object) == PURPLE);
+	    if (VM.VerifyAssertions) VM._assert(color(object) == BLACK || color(object) == PURPLE);
 	    // if (VM_Processor.getCurrentProcessor().localEpoch > 0) dumpRefcountInfo("  coloring gray and visiting: ", object);
 
 	    if (trace1) VM.sysWrite("*");
@@ -831,7 +831,7 @@ class VM_BlackVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
     public final void scanBlack(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! VM_RootBuffer.ASYNC);
 
 	if (color(object) != BLACK) {
 	    if (trace1) VM.sysWrite("X");
@@ -866,7 +866,7 @@ class VM_ScanVisitor
     }
 
     public final void scan(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! VM_RootBuffer.ASYNC);
 
 	visit(object);
     }
@@ -896,7 +896,7 @@ class VM_WhiteVisitor
     public static int whiteFreed;	// statistics
 
     public final void collectWhite (VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(! VM_RootBuffer.ASYNC);
 
 	if (color(object) == WHITE && ! isBuffered(object)) { // DEAL WITH BUFFERED DIFFERENTLY?????????????
 	    if (trace1) VM.sysWrite("O");
@@ -938,8 +938,8 @@ class VM_AsyncGrayVisitor
     public static int grayVisited;	// debug
 
     public final void markGray(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
-	if (VM.VerifyAssertions) VM.assert(color(object) != GREEN && color(object) != RED && color(object) != WHITE);
+	if (VM.VerifyAssertions) VM._assert(VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(color(object) != GREEN && color(object) != RED && color(object) != WHITE);
 
 	if (true) grayVisited++;		// debug
 
@@ -967,7 +967,7 @@ class VM_AsyncGrayVisitor
 	    }
 	    else {
 		// Found old aborted search due to concurrent modification
-		if (VM.VerifyAssertions) VM.assert(VM_Scheduler.numProcessors > 1);
+		if (VM.VerifyAssertions) VM._assert(VM_Scheduler.numProcessors > 1);
 
 		if (VM_RootBuffer.TRACE_ASYNC_DETAIL) dumpRefcountInfo("Can't dec zero CRC ", object);
 		return false;
@@ -982,7 +982,7 @@ class VM_AsyncGrayVisitor
 	    return visitChildren(object);
 	}
 	else {
-	    VM.assert(NOT_REACHED);
+	    VM._assert(NOT_REACHED);
 	    return false;
 	}
     }
@@ -995,7 +995,7 @@ class VM_AsyncBlackVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
     public final void scanBlack(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(VM_RootBuffer.ASYNC);
 	visit(object);
     }
 
@@ -1028,7 +1028,7 @@ class VM_AsyncScanVisitor
     }
 
     public final void scan(VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(VM_RootBuffer.ASYNC);
 
 	visit(object);
     }
@@ -1059,7 +1059,7 @@ class VM_AsyncWhiteVisitor
     public static int whiteFreed;	// statistics
 
     public final void collectWhite (VM_Address object) {
-	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
+	if (VM.VerifyAssertions) VM._assert(VM_RootBuffer.ASYNC);
 	visit(VM_Address.zero(), object);
     }
 

@@ -104,8 +104,8 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
     this.adjustmentBounds = adjustmentBounds;
     this.numEpochs        = numEpochs;
     this.historyMap       = new int[(int)(VM_CompiledMethods.numCompiledMethods() * 1.25)];
-    if (VM.VerifyAssertions) VM.assert(NOT_MAPPED == 0);
-    if (VM.VerifyAssertions) VM.assert(NOT_MAPPED != FIRST_ENTRY);
+    if (VM.VerifyAssertions) VM._assert(NOT_MAPPED == 0);
+    if (VM.VerifyAssertions) VM._assert(NOT_MAPPED != FIRST_ENTRY);
     this.history          = new int[128][];
     listener.setOrganizer(this);
   }
@@ -314,7 +314,7 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	}
 	history = tmp;
       }
-      if (VM.VerifyAssertions) VM.assert(history[idx] == null);
+      if (VM.VerifyAssertions) VM._assert(history[idx] == null);
       history[idx] = new int[ENTRY_IDX+numEpochs];
       history[idx][CMID_IDX] = cmid;
       historyMap[cmid] = idx;

@@ -41,7 +41,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     // branch to catch block
     //
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
-    if (VM.VerifyAssertions) VM.assert(registers.inuse == true); 
+    if (VM.VerifyAssertions) VM._assert(registers.inuse == true); 
 
     registers.inuse = false;
 
@@ -56,7 +56,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     }
 
     VM_Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
    
 
@@ -81,7 +81,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
       }
     }
     // Restore nonvolatile registers used by the baseline compiler.
-    if (VM.VerifyAssertions) VM.assert(VM_Compiler.SAVED_GPRS == 1);
+    if (VM.VerifyAssertions) VM._assert(VM_Compiler.SAVED_GPRS == 1);
     registers.gprs[JTOC] = VM_Magic.getMemoryWord(fp.add(VM_Compiler.JTOC_SAVE_OFFSET));
     
     registers.unwindStackFrame();

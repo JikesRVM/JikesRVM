@@ -131,8 +131,8 @@ public final class VM_ThreadIOQueue extends VM_AbstractThreadQueue
   //
   void enqueue(VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
-    if (VM.VerifyAssertions) VM_Scheduler.assert((t.waitFdRead >= 0||t.waitFdWrite >= 0) && t.waitFdReady == false);
+    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM_Scheduler._assert((t.waitFdRead >= 0||t.waitFdWrite >= 0) && t.waitFdReady == false);
       
     // trace("VM_ThreadIOQueue.enqueue: before ");
       

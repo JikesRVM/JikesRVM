@@ -51,7 +51,7 @@ public abstract class VM_Configuration {
   //  true  --> execute assertion checks at runtime
   //
   // Note: code your assertion checks as 
-  // "if (VM.VerifyAssertions) VM.assert(xxx);"
+  // "if (VM.VerifyAssertions) VM._assert(xxx);"
   //
   public static final boolean VerifyAssertions = 
         //-#if RVM_WITHOUT_ASSERTIONS

@@ -83,7 +83,7 @@ abstract class VM_ForwardReference {
   //
   static VM_ForwardReference resolveMatching (VM_Assembler asm, VM_ForwardReference q, int bi) {
     if (q == null) return null;
-    if (VM.VerifyAssertions) VM.assert(bi <= q.targetBytecodeIndex);
+    if (VM.VerifyAssertions) VM._assert(bi <= q.targetBytecodeIndex);
     if (bi != q.targetBytecodeIndex) return q;
     VM_ForwardReference r = q.next;
     while (q != null) {

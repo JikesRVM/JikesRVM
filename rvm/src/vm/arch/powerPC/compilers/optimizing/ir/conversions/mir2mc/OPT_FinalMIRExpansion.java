@@ -144,7 +144,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	  OPT_Register JTOC = phys.getJTOC();
 	  OPT_Register CTR = phys.getCTR();
 	  if (VM.VerifyAssertions) 
-	    VM.assert(p.bcIndex >= 0 && p.position != null);
+	    VM._assert(p.bcIndex >= 0 && p.position != null);
 	  int offset = VM_Entrypoints.optResolveMethod.getOffset();
 	  if (OPT_Bits.fits(offset, 16)) {
 	    p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 

@@ -269,12 +269,12 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     // dependencies via scalar operands
     earlyPos = scheduleScalarDefsEarly(inst.getUses(),
 				       ir.firstInstructionInCodeOrder(), inst);
-    if (VM.VerifyAssertions) VM.assert (earlyPos != null);
+    if (VM.VerifyAssertions) VM._assert (earlyPos != null);
     
     // memory dependencies
     if (ir.IRStage == ir.HIR) {
       earlyPos = scheduleHeapDefsEarly(ssad.getHeapUses(inst), earlyPos, inst);
-      if (VM.VerifyAssertions) VM.assert (earlyPos != null);
+      if (VM.VerifyAssertions) VM._assert (earlyPos != null);
     }
 
     /* don't put memory stores or PEIs on speculative path */
@@ -338,7 +338,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       if (to == null) {
 	lateBlock = getOrigBlock (inst);
       } else {
-	if (VM.VerifyAssertions) VM.assert (getState (inst) != done);
+	if (VM.VerifyAssertions) VM._assert (getState (inst) != done);
 	lateBlock = to;
 	move (inst, to);
       }
@@ -362,7 +362,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     OPT_BasicBlock bBlock = getBlock (b);
 
     if (VM.VerifyAssertions)
-      VM.assert (aBlock != bBlock
+      VM._assert (aBlock != bBlock
 		 && dominator.dominates (aBlock, bBlock));
     
     OPT_BasicBlock last = null;
@@ -389,7 +389,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     if (aDomDepth > bDomDepth) return a;
     if (aDomDepth < bDomDepth) return b;
 
-    if (VM.VerifyAssertions) VM.assert (aBlock == bBlock);
+    if (VM.VerifyAssertions) VM._assert (aBlock == bBlock);
     
     // if an instruction depends on a branch, it can not be placed in
     // this block. Make sure we record this fact. We use this
@@ -455,7 +455,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 //  	def = _getRealExceptionDef(def)
       //  ;
       
-      if (VM.VerifyAssertions) VM.assert (def != null);
+      if (VM.VerifyAssertions) VM._assert (def != null);
       earlyPos = maxDominatorDepth (scheduleEarly (def), earlyPos);      
     }
     return  earlyPos;
@@ -473,7 +473,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	  break;
 	}
       }
-      if (VM.VerifyAssertions) VM.assert (i >= 0);
+      if (VM.VerifyAssertions) VM._assert (i >= 0);
     }
     return res;
   }
@@ -558,7 +558,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       else {
 	OPT_Instruction def = defs.next().instruction;
 	// we are in SSA, so there is at most one definition.
-	if (VM.VerifyAssertions) VM.assert (!defs.hasMoreElements());
+	if (VM.VerifyAssertions) VM._assert (!defs.hasMoreElements());
 	//if (defs.hasMoreElements()) {
 	//  VM.sysWrite("GCP: multiple defs: " + reg + "\n");
 	//  return  null;
@@ -608,9 +608,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 		     + ", "+lateBlock.getNumber()+"\n");
 	VM.sysWrite (""+inst+"\n");
       }
-      VM.assert (dominator.dominates (earlyBlock.getNumber(), 
+      VM._assert (dominator.dominates (earlyBlock.getNumber(), 
 				      origBlock.getNumber()));
-      VM.assert (dominator.dominates (earlyBlock.getNumber(), 
+      VM._assert (dominator.dominates (earlyBlock.getNumber(), 
 				      lateBlock.getNumber()));
     }
     for (;;) {
@@ -919,7 +919,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 //  	      return false;
 //  	  }
 //  	}
-//  	if (VM.VerifyAssertions) VM.assert (idx >= 0);
+//  	if (VM.VerifyAssertions) VM._assert (idx >= 0);
 	
 //  	y = definingInstruction (ops[idx]);
 //        }
@@ -928,7 +928,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	OPT_HeapOperand[] ops = null;
 	//VM.sysWrite (" y: "+y+"\n");
 	// check for access to volatile field
-	if (VM.VerifyAssertions) VM.assert (LocationCarrier.conforms (y));
+	if (VM.VerifyAssertions) VM._assert (LocationCarrier.conforms (y));
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
 	if (loc == null || loc.isFieldAccess() && loc.getField().isVolatile()){
 	  //VM.sysWrite (" no loc or volatile field\n");	  

@@ -75,7 +75,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * Return the machine code for this compiled method
    */
   public final INSTRUCTION[] getInstructions() throws VM_PragmaUninterruptible { 
-    if (VM.VerifyAssertions) VM.assert((bitField1 & COMPILED) != 0);
+    if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
     return instructions; 
   }
 

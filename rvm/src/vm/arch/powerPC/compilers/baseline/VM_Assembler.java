@@ -187,7 +187,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     if (VM.TraceAssembler) System.out.print(" <- " + hex(sourceMachinecodeIndex << 2));
     int delta = mIP - sourceMachinecodeIndex;
     INSTRUCTION instr = mc.getInstruction(sourceMachinecodeIndex);
-    if (VM.VerifyAssertions) VM.assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
+    if (VM.VerifyAssertions) VM._assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
     instr |= (delta<<2);
     mc.putInstruction(sourceMachinecodeIndex, instr);
   }
@@ -200,7 +200,7 @@ final class VM_Assembler implements VM_BaselineConstants,
       instr |= (delta<<2);
       mc.putInstruction(sourceMachinecodeIndex, instr);
     } else {
-      if (VM.VerifyAssertions) VM.assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
+      if (VM.VerifyAssertions) VM._assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
       instr ^= 0x01000008; // make skip instruction with opposite sense
       mc.putInstruction(sourceMachinecodeIndex-1, instr); // skip unconditional branch to target
       mc.putInstruction(sourceMachinecodeIndex,  Btemplate | (delta&0xFFFFFF)<<2);
@@ -254,7 +254,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int AIrtemplate = 13<<26;
 
   final void emitAIr (int RT, int RA, int SI) {
-    if (VM.VerifyAssertions) VM.assert(fits(SI, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(SI, 16));
     INSTRUCTION mi = AIrtemplate | RT<<21 | RA<<16 | (SI & 0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "ai.", RT, RA, signedHex(SI));
@@ -275,7 +275,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int ANDItemplate = 28<<26;
 
   final void emitANDI (int RA, int RS, int U) {
-    if (VM.VerifyAssertions) VM.assert((U>>>16) == 0);
+    if (VM.VerifyAssertions) VM._assert((U>>>16) == 0);
     INSTRUCTION mi = ANDItemplate | RS<<21 | RA<<16 | U;
     if (VM.TraceAssembler)
       asm(mIP, mi, "andi.", RA, RS, hex(U));
@@ -286,7 +286,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int Btemplate = 18<<26;
 
   private final void _emitB (int relative_address) {
-    if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
+    if (VM.VerifyAssertions) VM._assert(fits(relative_address,24));
     INSTRUCTION mi = Btemplate | (relative_address&0xFFFFFF)<<2;
     if (VM.TraceAssembler)
       asm(mIP, mi, "b", signedHex(relative_address<<2));
@@ -305,7 +305,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   final void emitB (int relative_address) {
     relative_address -= mIP;
-    if (VM.VerifyAssertions) VM.assert(relative_address < 0);
+    if (VM.VerifyAssertions) VM._assert(relative_address < 0);
     _emitB(relative_address);
   }
 
@@ -318,7 +318,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int BLAtemplate = 18<<26 | 3;
 
   final void emitBLA (int address) {
-    if (VM.VerifyAssertions) VM.assert(fits(address,24));
+    if (VM.VerifyAssertions) VM._assert(fits(address,24));
     INSTRUCTION mi = BLAtemplate | (address&0xFFFFFF)<<2;
     if (VM.TraceAssembler)
       asm(mIP, mi, "bla", hex(address));
@@ -329,7 +329,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int BLtemplate = 18<<26 | 1;
 
   private final void _emitBL (int relative_address) {
-    if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
+    if (VM.VerifyAssertions) VM._assert(fits(relative_address,24));
     INSTRUCTION mi = BLtemplate | (relative_address&0xFFFFFF)<<2;
     if (VM.TraceAssembler)
       asm(mIP, mi, "bl", signedHex(relative_address<<2));
@@ -364,7 +364,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     case GE: return LT;
     case NE: return EQ;
     }
-    if (VM.VerifyAssertions) VM.assert(false);
+    if (VM.VerifyAssertions) VM._assert(false);
     return -1;
   }
 
@@ -409,7 +409,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   final void emitBC (int cc, int relative_address) {
     relative_address -= mIP;
-    if (VM.VerifyAssertions) VM.assert(relative_address < 0);
+    if (VM.VerifyAssertions) VM._assert(relative_address < 0);
     _emitBC(cc, relative_address);
   }
 
@@ -475,7 +475,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int CALtemplate = 14<<26;
 
   final void emitCAL (int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = CALtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "cal", RT, signedHex(D), RA);
@@ -486,7 +486,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int CAUtemplate = 15<<26;
 
   final void emitCAU (int RT, int RA, int UI) {
-    if (VM.VerifyAssertions) VM.assert(UI == (UI&0xFFFF));
+    if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
     INSTRUCTION mi = CAUtemplate | RT<<21 | RA<<16 | UI;
     if (VM.TraceAssembler)
       asm(mIP, mi, "cau", RT, RA, hex(UI));
@@ -495,7 +495,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final void emitCAU (int RT, int UI) {
-    if (VM.VerifyAssertions) VM.assert(UI == (UI&0xFFFF));
+    if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
     INSTRUCTION mi = CAUtemplate | RT<<21 | UI;
     if (VM.TraceAssembler)
       asm(mIP, mi, "cau", RT, 0, hex(UI));
@@ -523,7 +523,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int CMPItemplate = 11<<26;
 
   final void emitCMPI (int BF, int RA, int V) {
-    if (VM.VerifyAssertions) VM.assert(fits(V, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(V, 16));
     INSTRUCTION mi = CMPItemplate | BF<<23 | RA<<16 | (V&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "cmpi", BF, RA, signedHex(V));
@@ -532,7 +532,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final void emitCMPI (int RA, int V) {
-    if (VM.VerifyAssertions) VM.assert(fits(V, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(V, 16));
     INSTRUCTION mi = CMPItemplate | RA<<16 | (V&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "cmpi", 0, RA, signedHex(V));
@@ -744,7 +744,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   // (the Assembler Language Reference seems ambiguous) 
   //
   final void emitLM(int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = (46<<26)  | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lm", RT, signedHex(D), RA);
@@ -756,7 +756,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   // (the Assembler Language Reference seems ambiguous) 
   //
   final void emitSTM(int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = (47<<26)  | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lm", RT, signedHex(D), RA);
@@ -768,7 +768,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int Ltemplate = 32<<26;
 
   final void emitL (int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = Ltemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "l", RT, signedHex(D), RA);
@@ -779,7 +779,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LBZtemplate = 34<<26;
 
   final void emitLBZ (int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LBZtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lbz", RT, signedHex(D), RA);
@@ -800,7 +800,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LHAtemplate = 42<<26;
 
   final void emitLHA (int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LHAtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lha", RT, signedHex(D), RA);
@@ -811,7 +811,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LHZtemplate = 40<<26;
 
   final void emitLHZ (int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LHZtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lhz", RT, signedHex(D), RA);
@@ -822,7 +822,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LFDtemplate = 50<<26;
 
   final void emitLFD (int FRT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LFDtemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lfd", FRT, signedHex(D), RA);
@@ -833,7 +833,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LFDUtemplate = 51<<26;
 
   final void emitLFDU (int FRT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LFDUtemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lfdu", FRT, signedHex(D), RA);
@@ -854,7 +854,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LFStemplate = 48<<26;
 
   final void emitLFS (int FRT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LFStemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lfs", FRT, signedHex(D), RA);
@@ -883,7 +883,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final void emitLIL (int RT, int D) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = CALtemplate | RT<<21 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lil", RT, signedHex(D));
@@ -894,7 +894,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int LUtemplate = 33<<26;
 
   final void emitLU (int RT, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LUtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "lu", RT, signedHex(D), RA);
@@ -1079,7 +1079,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int SFItemplate = 8<<26;
 
   final void emitSFI (int RA, int RS, int S) {
-    if (VM.VerifyAssertions) VM.assert(fits(S,16));
+    if (VM.VerifyAssertions) VM._assert(fits(S,16));
     INSTRUCTION mi = SFItemplate | RS<<21 | RA<<16 | S;
     if (VM.TraceAssembler)
       asm(mIP, mi, "sfi", RA, RS, signedHex(S));
@@ -1180,7 +1180,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STtemplate = 36<<26;
 
   final void emitST (int RS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "st", RS, signedHex(D), RA);
@@ -1191,7 +1191,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STBtemplate = 38<<26;
 
   final void emitSTB (int RS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STBtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "stb", RS, signedHex(D), RA);
@@ -1232,7 +1232,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STFDtemplate = 54<<26;
 
   final void emitSTFD (int FRS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STFDtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "stfd", FRS, signedHex(D), RA);
@@ -1243,7 +1243,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STFDUtemplate = 55<<26;
 
   final void emitSTFDU (int FRS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STFDUtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "stfdu", FRS, signedHex(D), RA);
@@ -1264,7 +1264,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STFStemplate = 52<<26;
 
   final void emitSTFS (int FRS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STFStemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "stfs", FRS, signedHex(D), RA);
@@ -1275,7 +1275,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STFSUtemplate = 53<<26;
 
   final void emitSTFSU (int FRS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STFSUtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "stfsu", FRS, signedHex(D), RA);
@@ -1286,7 +1286,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int STUtemplate = 37<<26;
 
   final void emitSTU (int RS, int D, int RA) {
-    if (VM.VerifyAssertions) VM.assert(fits(D, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = STUtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
     if (VM.TraceAssembler)
       asm(mIP, mi, "stu", RS, signedHex(D), RA);
@@ -1389,7 +1389,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int XORItemplate = 26<<26;
 
   final void emitXORI (int RA, int RS, int V) {
-    if (VM.VerifyAssertions) VM.assert(fits(V, 16));
+    if (VM.VerifyAssertions) VM._assert(fits(V, 16));
     INSTRUCTION mi = XORItemplate |  RS<<21 | RA<<16  | V&0xFFFF;
     if (VM.TraceAssembler)
       asm(mIP, mi, "xori", RA, RS, V);

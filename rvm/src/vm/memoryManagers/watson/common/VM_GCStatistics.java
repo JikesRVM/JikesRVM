@@ -113,13 +113,13 @@ class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Ca
 
   static void updateGCStats(int GCType, int copied) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) 
-      VM.assert(copied >= 0);
+      VM._assert(copied >= 0);
     if (GCType == DEFAULT || GCType == MAJOR)
       bytesCopied.addSample(copied);
     else if (GCType == MINOR)
       minorBytesCopied.addSample(copied);
     else
-      VM.assert(false);
+      VM._assert(false);
   }
 
   static void printGCStats(int GCType) throws VM_PragmaUninterruptible {

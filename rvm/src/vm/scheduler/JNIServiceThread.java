@@ -186,7 +186,7 @@ class JNIServiceThread extends Thread   {
       default:
 	// bad requestType value from C
 	VM.sysWrite("JNIServiceThread: bad request value from external pthread.\n");
-	VM_Scheduler.assert(VM.NOT_REACHED);
+	VM_Scheduler._assert(VM.NOT_REACHED);
       }
 
 

@@ -43,13 +43,13 @@ final class VM_DeadThreadQueue extends VM_AbstractThreadQueue implements VM_Unin
 
    // add on the one that died
    //
-   if (VM.VerifyAssertions) VM_Scheduler.assert(deadThread.beingDispatched == true);
+   if (VM.VerifyAssertions) VM_Scheduler._assert(deadThread.beingDispatched == true);
    queue.enqueue(deadThread);
    ++length;
   }
 
   VM_Thread dequeue () { 
-    if (VM.VerifyAssertions) VM_Scheduler.assert(VM.NOT_REACHED); // should not be called
+    if (VM.VerifyAssertions) VM_Scheduler._assert(VM.NOT_REACHED); // should not be called
     return null;
   }
   

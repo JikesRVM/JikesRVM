@@ -218,7 +218,7 @@ class VM_PriorityQueue {
    *  @return the priority of the front object
    */
   synchronized final public double rootValue() {
-    if (VM.VerifyAssertions) VM.assert(!isEmpty());
+    if (VM.VerifyAssertions) VM._assert(!isEmpty());
 
     return queue[1].priority;
   }

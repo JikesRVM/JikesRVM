@@ -499,7 +499,7 @@ final class OPT_NormalBURS extends OPT_BURS {
 	return out.toNode();
       }
     }
-    if (VM.VerifyAssertions) VM.assert(false);
+    if (VM.VerifyAssertions) VM._assert(false);
     return null;
   }
 

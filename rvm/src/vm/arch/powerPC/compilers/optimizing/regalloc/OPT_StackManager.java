@@ -485,7 +485,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     }
 
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().getNext();
-    if (VM.VerifyAssertions) VM.assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
+    if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, R(R0),
                                      R(phys.getLR()))); // 1
@@ -557,7 +557,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       ir.stackManager.hasPrologueYieldpoint();
 
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().getNext();
-    if (VM.VerifyAssertions) VM.assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
+    if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
     // Stack overflow check
     if (stackOverflow) {
@@ -884,6 +884,6 @@ final class OPT_StackManager extends OPT_GenericStackManager
   void replaceOperandWithSpillLocation(OPT_Instruction s, 
                                                OPT_RegisterOperand symb) {
     // PowerPC does not support memory operands.
-    VM.assert(NOT_REACHED);
+    VM._assert(NOT_REACHED);
   }
 }

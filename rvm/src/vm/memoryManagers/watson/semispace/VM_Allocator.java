@@ -449,7 +449,7 @@ public class VM_Allocator extends VM_GCStatistics
 
       // Set up flags 
       //
-      if (VM.VerifyAssertions) VM.assert( initGCDone == false );  
+      if (VM.VerifyAssertions) VM._assert( initGCDone == false );  
       gcInProgress = true;
       gcDone = false;
       gcCount++;
@@ -721,7 +721,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @return the address of the Object in ToSpace (as a reference)
    */
   static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM.assert(fromHeap.refInHeap(fromRef));
+    if (VM.VerifyAssertions) VM._assert(fromHeap.refInHeap(fromRef));
     return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
 
@@ -808,7 +808,7 @@ public class VM_Allocator extends VM_GCStatistics
   static void gc_scanProcessor () throws VM_PragmaUninterruptible {
     VM_Processor   st = VM_Processor.getCurrentProcessor();
     // verify that processor copied out of FromSpace earlier
-    if (VM.VerifyAssertions) VM.assert(!fromHeap.refInHeap(VM_Magic.objectAsAddress(st)));
+    if (VM.VerifyAssertions) VM._assert(!fromHeap.refInHeap(VM_Magic.objectAsAddress(st)));
 
     VM_Address oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
     VM_ScanObject.scanObjectOrArray(st);
@@ -882,7 +882,7 @@ public class VM_Allocator extends VM_GCStatistics
 	return false;
       }
     } else {
-      if (VM.VerifyAssertions) VM.assert(largeHeap.refInHeap(ref));
+      if (VM.VerifyAssertions) VM._assert(largeHeap.refInHeap(ref));
       if (largeHeap.isLive(ref)) {
 	return true;  
       } else {
@@ -959,7 +959,7 @@ public class VM_Allocator extends VM_GCStatistics
   static Object[] newTIB (int n) throws VM_PragmaUninterruptible {
     if (VM.runningVM) {
       Object[] newtib = (Object[])immortalHeap.allocateAlignedArray(VM_Type.JavaLangObjectArrayType, n, VM_JavaHeader.TIB_ALIGNMENT);
-      if (VM.VerifyAssertions) VM.assert((VM_Magic.objectAsAddress(newtib).toInt() & (VM_JavaHeader.TIB_ALIGNMENT-1)) == 0);
+      if (VM.VerifyAssertions) VM._assert((VM_Magic.objectAsAddress(newtib).toInt() & (VM_JavaHeader.TIB_ALIGNMENT-1)) == 0);
       return newtib;
     } else {
       return new Object[n];

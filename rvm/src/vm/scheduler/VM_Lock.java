@@ -294,7 +294,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       return false; // caller will try again
     } else { // can't yield - must spin and let caller retry
       // potential deadlock if user thread is contending for a lock with thread switching disabled
-      if (VM.VerifyAssertions) VM.assert(VM_Thread.getCurrentThread().isGCThread);
+      if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread().isGCThread);
       mutex.unlock(); // thread-switching benign
       return false; // caller will try again
     }
@@ -345,10 +345,10 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    */
   private void deflate (Object o, int lockOffset) {
     if (VM.VerifyAssertions) {
-      VM.assert(lockedObject == o);
-      VM.assert(recursionCount == 0);
-      VM.assert(entering.isEmpty());
-      VM.assert(waiting.isEmpty());
+      VM._assert(lockedObject == o);
+      VM._assert(recursionCount == 0);
+      VM._assert(entering.isEmpty());
+      VM._assert(waiting.isEmpty());
     }
     if (STATS) deflations++;
     VM_ThinLock.deflate(o, lockOffset, this);
@@ -386,7 +386,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[MAX_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
-      VM.assert((VM_Scheduler.locks.length-1<=(VM_ThinLockConstants.TL_LOCK_ID_MASK>>>VM_ThinLockConstants.TL_LOCK_ID_SHIFT))
+      VM._assert((VM_Scheduler.locks.length-1<=(VM_ThinLockConstants.TL_LOCK_ID_MASK>>>VM_ThinLockConstants.TL_LOCK_ID_SHIFT))
                 || (VM_ThinLockConstants.TL_LOCK_ID_MASK==-1));
   }
   
@@ -460,7 +460,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   private static void globalizeFreeLocks () {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.freeLocks <= LOCK_ALLOCATION_UNIT_SIZE) {
-      if (VM.VerifyAssertions) VM.assert(mine.freeLock != null);
+      if (VM.VerifyAssertions) VM._assert(mine.freeLock != null);
       VM_Lock q = mine.freeLock;
       while (q.nextFreeLock != null) {
 	q = q.nextFreeLock;
@@ -499,7 +499,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   private static void localizeFreeLocks () {
     if (true) return; // TEMP
     VM_Processor mine = VM_Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) VM.assert(mine.freeLock == null);
+    if (VM.VerifyAssertions) VM._assert(mine.freeLock == null);
     lockAllocationMutex.lock();
     if (globalFreeLocks <= LOCK_ALLOCATION_UNIT_SIZE){
       mine.freeLock   = globalFreeLock;

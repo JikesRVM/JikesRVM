@@ -93,7 +93,7 @@ final class VM_ControllerMemory implements VM_Constants {
       case 3:  numOpt3++; break;
       case 4:  numOpt4++; break; 
       default:
-	if (VM.VerifyAssertions) VM.assert(NOT_REACHED, "Unknown Opt Level");
+	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
       }
     }
 

@@ -549,7 +549,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * @param reg2 the other operand or the extended opcode
    */
   private void emitSIBRegOperands(byte base, byte index, short scale, int disp, byte reg2) {
-      if (VM.VerifyAssertions) VM.assert(index != ESP);
+      if (VM.VerifyAssertions) VM._assert(index != ESP);
       if (disp == 0 && base != EBP) {
 	  setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
 	  setMachineCodes(mi++, sib(scale, base, index));
@@ -867,7 +867,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   final void patchShortBranch (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+2);
-    if (VM.VerifyAssertions) VM.assert(fits(relOffset, 8));
+    if (VM.VerifyAssertions) VM._assert(fits(relOffset, 8));
     sourceIndex++; // skip the op code
     emitImm8((byte)relOffset, sourceIndex);
   }
@@ -1173,7 +1173,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 
   // trap 
   final void emitINT_Imm (int v) {
-    if (VM.VerifyAssertions) VM.assert(v <= 0xFF);
+    if (VM.VerifyAssertions) VM._assert(v <= 0xFF);
     int miStart = mi;
     if (v == 3) { // special case interrupt
       setMachineCodes(mi++, (byte) 0xCC);
@@ -1331,7 +1331,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     } else {
       setMachineCodes(mi++, (byte) 0xC2);
       emitImm16(parameterBytes);
-      if (VM.VerifyAssertions) VM.assert ((parameterBytes & 0xffff0000) == 0); 
+      if (VM.VerifyAssertions) VM._assert ((parameterBytes & 0xffff0000) == 0); 
       if (lister != null) lister.I(miStart, "RET", parameterBytes);
     }
   }
@@ -1375,7 +1375,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     // floating point conditional moves
     final void emitFCMOV_Cond_Reg_Reg(byte cond, byte reg1, byte reg2) {
 	int miStart = mi;
-	if (VM.VerifyAssertions) VM.assert(reg1 == FP0);
+	if (VM.VerifyAssertions) VM._assert(reg1 == FP0);
 	switch (cond) {
 	case LLT:
 	    setMachineCodes(mi++, (byte) 0xDA);
@@ -1410,7 +1410,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	    setMachineCodes(mi++, (byte) (0xD8 + reg2));
 	    break;
 	default:
-	    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+	    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 	}
 	if (lister != null) lister.RR(miStart, "FCMOV" + CONDITION[cond], reg1, reg2);
     }
@@ -1418,7 +1418,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     // floating point push of ST(i) into ST(0)
     final void emitFLD_Reg_Reg(byte destReg, byte srcReg) {
 	int miStart = mi;
-	if (VM.VerifyAssertions) VM.assert(destReg == FP0);
+	if (VM.VerifyAssertions) VM._assert(destReg == FP0);
 	setMachineCodes(mi++, (byte) 0xD9);
 	setMachineCodes(mi++, (byte) (0xC0 + srcReg));
 	if (lister != null) lister.R(miStart, "FLD", srcReg);
@@ -1427,7 +1427,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     // floating point copy of ST(0) into ST(I)
     final void emitFST_Reg_Reg(byte destReg, byte srcReg) {
 	int miStart = mi;
-	if (VM.VerifyAssertions) VM.assert(srcReg == FP0);
+	if (VM.VerifyAssertions) VM._assert(srcReg == FP0);
 	setMachineCodes(mi++, (byte) 0xDD);
 	setMachineCodes(mi++, (byte) (0xD0 + destReg));
 	if (lister != null) lister.R(miStart, "FST", destReg);
@@ -1436,7 +1436,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     // floating point pop of ST(0) into ST(I)
     final void emitFSTP_Reg_Reg(byte destReg, byte srcReg) {
 	int miStart = mi;
-	if (VM.VerifyAssertions) VM.assert(srcReg == FP0);
+	if (VM.VerifyAssertions) VM._assert(srcReg == FP0);
 	setMachineCodes(mi++, (byte) 0xDD);
 	setMachineCodes(mi++, (byte) (0xD8 + destReg));
 	if (lister != null) lister.R(miStart, "FST", destReg);
@@ -1529,7 +1529,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 
 	// if not, bad instruction, so die
 	if (nonZeroReg == FP0)
-	    VM.assert(false, "FXCH of " + regOne + ", " + regTwo);
+	    VM._assert(false, "FXCH of " + regOne + ", " + regTwo);
 
 	// generate it, with special case (of course) for FP1
 	setMachineCodes(mi++, (byte) 0xD9);

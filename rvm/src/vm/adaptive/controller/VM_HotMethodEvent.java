@@ -41,8 +41,8 @@ abstract class VM_HotMethodEvent {
    */
   VM_HotMethodEvent(VM_CompiledMethod _cm, double _numSamples) {
     if (VM.VerifyAssertions) {
-      VM.assert(_cm != null, "Don't create me for null compiled method!");
-      VM.assert(_numSamples >= 0.0, "Invalid numSamples value");
+      VM._assert(_cm != null, "Don't create me for null compiled method!");
+      VM._assert(_numSamples >= 0.0, "Invalid numSamples value");
     }
     cm = _cm;
     numSamples = _numSamples;

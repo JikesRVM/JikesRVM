@@ -608,7 +608,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           } else if (op instanceof OPT_UnreachableOperand) {
             // do nothing
           } else {
-            if (VM.VerifyAssertions) VM.assert(false);
+            if (VM.VerifyAssertions) VM._assert(false);
           }
         }
       }
@@ -637,7 +637,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           guardUnion(op.asRegister().register, r);
         } else {
           if (VM.VerifyAssertions) {
-            VM.assert(op instanceof OPT_TrueGuardOperand ||
+            VM._assert(op instanceof OPT_TrueGuardOperand ||
                       op instanceof OPT_UnreachableOperand);
           }
         }
@@ -699,7 +699,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   private OPT_Register guardFind(OPT_Register r)
   {
     OPT_Register start = r;
-    if (VM.VerifyAssertions) VM.assert (r.scratchObject != null);
+    if (VM.VerifyAssertions) VM._assert (r.scratchObject != null);
     while (r.scratchObject != r) r = (OPT_Register) r.scratchObject;
     while (start.scratchObject != r) {
       start.scratchObject = r;

@@ -354,7 +354,7 @@ public class VM_GCWorkQueue {
 	VM_Scheduler.trace("GCWorkQueue:putToWorkBuffer:","dumping all thread stacks");
 	VM_GCUtil.dumpAllThreadStacks();
 	***/
-	VM.assert(false);
+	VM._assert(false);
       }
     }
 

@@ -204,8 +204,8 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
   private static int getSummary(VM_Method method) {
     int idx = method.getDictionaryId();
     if (VM.VerifyAssertions) {
-      VM.assert(method.getBytecodes() != null);
-      VM.assert(isValid(summaries[idx]));
+      VM._assert(method.getBytecodes() != null);
+      VM._assert(isValid(summaries[idx]));
     }
     return summaries[idx];
   }
@@ -217,8 +217,8 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
   private static VM_Field[] getWriteSummary(VM_Method method) {
     int idx = method.getDictionaryId();
     if (VM.VerifyAssertions) {
-      VM.assert(method.getBytecodes() != null);
-      VM.assert(isValid(summaries[idx]));
+      VM._assert(method.getBytecodes() != null);
+      VM._assert(isValid(summaries[idx]));
     }
     return writeSets[idx];
   }
@@ -286,7 +286,7 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
 
   private static int setSize(int s, int size) {
     if (VM.VerifyAssertions)
-      VM.assert(size >= 0);
+      VM._assert(size >= 0);
     if (size > SIZE_MASK)
       return s |= SIZE_MASK; 
     else 
@@ -558,7 +558,7 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
           break;
         case JBC_xxxunusedxxx:
           if (VM.VerifyAssertions)
-            VM.assert(VM.NOT_REACHED);
+            VM._assert(VM.NOT_REACHED);
           break;
         case JBC_new:
           bcIndex += 2;
@@ -608,7 +608,7 @@ final class VM_OptMethodSummary implements VM_BytecodeConstants {
           break;
         default:
           if (VM.VerifyAssertions)
-            VM.assert(VM.NOT_REACHED);
+            VM._assert(VM.NOT_REACHED);
           break;
       }
     }

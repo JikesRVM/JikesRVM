@@ -174,9 +174,9 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   // methods called from utility methods of VM_GCUtil, VM_ScanObject,
   // VM_ScanStack, VM_ScanStatics
   //
-  static final void       processPtrField( VM_Address location ) { VM.assert(false); }
-  static final VM_Address processPtrValue( VM_Address reference ) { VM.assert(false); return null; }
-  static final void       processWriteBufferEntry( VM_Address discard ) { VM.assert(false); }
+  static final void       processPtrField( VM_Address location ) { VM._assert(false); }
+  static final VM_Address processPtrValue( VM_Address reference ) { VM._assert(false); return null; }
+  static final void       processWriteBufferEntry( VM_Address discard ) { VM._assert(false); }
 
   // Other fields and methods referenced from common GC classes or elsewhere
   // in VM (ex. VM_Entrypoints)

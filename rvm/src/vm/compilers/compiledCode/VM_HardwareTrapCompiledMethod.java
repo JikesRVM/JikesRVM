@@ -26,7 +26,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
     //
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
       
@@ -39,7 +39,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
     //
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   public final void printStackTrace(int instructionOffset, java.io.PrintStream out) {
@@ -54,7 +54,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
    * Set the stack browser to the innermost logical stack frame of this method
    */
   public final void set(VM_StackBrowser browser, int instr) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
        
   /**

@@ -37,8 +37,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
 
   static {
     if (VM.VerifyAssertions) {
-      VM.assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
-      VM.assert(HASH_STATE_BITS == 0); // don't support copying collectors yet.
+      VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(HASH_STATE_BITS == 0); // don't support copying collectors yet.
     }
   }
 
@@ -71,7 +71,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * copyingGC not currently supported.
    */
   public static void gcProcessTIB(VM_Address ref) {
-    VM.assert(NOT_REACHED);
+    VM._assert(NOT_REACHED);
   }
 
   /**
