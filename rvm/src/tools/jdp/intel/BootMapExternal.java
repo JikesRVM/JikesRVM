@@ -640,10 +640,10 @@ class BootMapExternal extends BootMap {
   public VM_Method findVMMethod(int methodID, boolean usingCompiledMethodID){
     if (usingCompiledMethodID) {
       // the methodID is an index into the compiled method table VM_ClassLoader.compiledMethods[]
-      VM_CompiledMethod[] compiledMths = VM_ClassLoader.getCompiledMethods();
+      VM_CompiledMethod[] compiledMths = VM_CompiledMethods.getCompiledMethods();
       // System.out.println("findVMMethod: looking for compiled method ID " + methodID +
       // 	 " out of " + compiledMths.length);
-      // System.out.println("findVMMethod: compiled " + VM_ClassLoader.numCompiledMethods());
+      // System.out.println("findVMMethod: compiled " + VM_CompiledMethods.numCompiledMethods());
       
       VM_CompiledMethod compiledMethod = compiledMths[methodID];
       if (compiledMethod !=null) {

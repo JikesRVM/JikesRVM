@@ -292,7 +292,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       // Java stackframe.
       boolean ypTakenInCallerCMIDValid = true;
       VM_CompiledMethod ypTakenInCM = 
-        VM_ClassLoader.getCompiledMethod(ypTakenInCMID);
+        VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
 
       // Check for one of the following:
       //    Caller is top-of-stack psuedo-frame
@@ -866,7 +866,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
       VM_CompiledMethod compiledMethod = 
-        VM_ClassLoader.getCompiledMethod(compiledMethodId);
+        VM_CompiledMethods.getCompiledMethod(compiledMethodId);
       if (compiledMethod.getCompilerInfo().getCompilerType() == VM_CompilerInfo.BASELINE) {
         //-#if RVM_FOR_POWERPC
 	registers.gprs[VM_BaselineConstants.SP] += delta;
@@ -929,7 +929,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
         int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
         if (compiledMethodId != INVISIBLE_METHOD_ID) {
           VM_CompiledMethod compiledMethod = 
-            VM_ClassLoader.getCompiledMethod(compiledMethodId);
+            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
           if (compiledMethod.getCompilerInfo().getCompilerType() == 
               VM_CompilerInfo.BASELINE) {
             int spOffset = VM_Compiler.getSPSaveAreaOffset

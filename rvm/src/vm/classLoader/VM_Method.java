@@ -351,9 +351,9 @@ class VM_Method extends VM_Member
 
          // save it away
          //
-         VM_ClassLoader.setCompiledMethod(compiledMethod.getId(), compiledMethod);
+         VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
          mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
-         mostRecentlyGeneratedCompilerInfo = compiledMethod.getCompilerInfo(); //!!TODO: get rid of this
+         mostRecentlyGeneratedCompiledMethod = compiledMethod;
 
          if (VM.TraceTimes) VM_Timer.stop(VM_Timer.METHOD_COMPILE);
          }
@@ -400,7 +400,7 @@ class VM_Method extends VM_Member
       if (VM.VerifyAssertions) VM.assert(isLoaded());
 
       if (VM.VerifyAssertions) VM.assert(isCompiled());
-      return mostRecentlyGeneratedCompilerInfo;
+      return mostRecentlyGeneratedCompiledMethod.getCompilerInfo();
       }
 
    //
@@ -413,7 +413,7 @@ class VM_Method extends VM_Member
      if (VM.VerifyAssertions) VM.assert(isLoaded());
 
      mostRecentlyGeneratedInstructions = null;
-     mostRecentlyGeneratedCompilerInfo = null;
+     mostRecentlyGeneratedCompiledMethod = null;
      }
 
    // Find "catch" block for a bytecode of this method that might be guarded
@@ -485,10 +485,10 @@ class VM_Method extends VM_Member
       {
       if (VM.VerifyAssertions) VM.assert(isLoaded());
 
-      VM_ClassLoader.setCompiledMethod(compiledMethod.getId(), compiledMethod);
+      VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
 
       this.mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
-      this.mostRecentlyGeneratedCompilerInfo = compiledMethod.getCompilerInfo(); //!!TODO: get rid of this
+      this.mostRecentlyGeneratedCompiledMethod = compiledMethod;
 
       VM_Method     updatedMethod       = this;
       int           updatedIndex        = this.getOffset() >>> 2;
@@ -498,7 +498,7 @@ class VM_Method extends VM_Member
       // all subclasses that inherited the method.
       this.getDeclaringClass().resetMethod(this, updatedInstructions, true);
       
-      // !!TODO: reclaim entries in VM_ClassLoader.compiledMethods[] corresponding to
+      // !!TODO: reclaim entries in VM_CompiledMethods.compiledMethods[] corresponding to
       // code that is no longer in use (ie. return address does not appear on
       // any stack and entrypoint does not appear in jtoc or in any method dispatch table)
       }
@@ -543,7 +543,7 @@ class VM_Method extends VM_Member
    // The following are set during "compilation".
    //
    private INSTRUCTION[]          mostRecentlyGeneratedInstructions; // machine code most recently generated for this method
-   private VM_CompilerInfo        mostRecentlyGeneratedCompilerInfo; // compiler-specific information associated with those machine instructions !!TODO: get rid of this
+   private VM_CompiledMethod      mostRecentlyGeneratedCompiledMethod; // compiled method associated with those machine instructions
 
    private String nativeProcedureName;                 // the name of the native procedure in the native library
    private int nativeIP;                               // the IP of the native p rocedure

@@ -89,7 +89,7 @@ final class OPT_ClassLoadingDependencyManager {
         if (invalidatedMethods != null) {
           while (invalidatedMethods.hasNext()) {
             int cmid = ((Integer)invalidatedMethods.next()).intValue();
-            VM_CompiledMethod im = VM_ClassLoader.getCompiledMethod(cmid);
+            VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
             invalidate(im);
           }
           db.removeNotOverriddenDependency(overridden);
@@ -106,7 +106,7 @@ final class OPT_ClassLoadingDependencyManager {
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = ((Integer)invalidatedMethods.next()).intValue();
-        VM_CompiledMethod im = VM_ClassLoader.getCompiledMethod(cmid);
+        VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
         invalidate(im);
       }
       db.removeNoSubclassDependency(sc);

@@ -32,7 +32,7 @@ class VM_CodeFinder {
 	  else if (enc[i] >= 0 && skip) { skip = false; i++; }
 	  else if (enc[i] >= 0 && !skip) {
 	    VM_CompiledMethod z =
-	      VM_ClassLoader.getCompiledMethod(enc[i]);
+	      VM_CompiledMethods.getCompiledMethod(enc[i]);
 	    if ( z.getMethod() == m ) 
 	      return true;
 	    else {
@@ -48,7 +48,7 @@ class VM_CodeFinder {
 
   public static Enumeration getCompiledCode(final VM_Method sourceMethod) {
     final VM_CompiledMethod[] allCompiledCode =
-      VM_ClassLoader.getCompiledMethods();
+      VM_CompiledMethods.getCompiledMethods();
 
     int i;
     for(i = 0; i < allCompiledCode.length; i++) 

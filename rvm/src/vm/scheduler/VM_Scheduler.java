@@ -631,7 +631,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	writeString("   <invisible method>\n");
       } else {
 	// normal java frame(s)
-	VM_CompiledMethod compiledMethod    = VM_ClassLoader.getCompiledMethod(compiledMethodId);
+	VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM_Method         method            = compiledMethod.getMethod();
 	int               instructionOffset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 	int               lineNumber        = compiledMethod.getCompilerInfo().findLineNumberForInstruction(instructionOffset);

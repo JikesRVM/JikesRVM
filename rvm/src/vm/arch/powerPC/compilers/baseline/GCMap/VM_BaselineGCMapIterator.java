@@ -95,7 +95,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
                            fp                       = VM_Magic.getCallerFramePointer(fp);
          int               ip                       = VM_Magic.getNextInstructionAddress(fp);
          int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
-         VM_CompiledMethod callingCompiledMethod    = VM_ClassLoader.getCompiledMethod(callingCompiledMethodId);
+         VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
          VM_CompilerInfo   callingCompilerInfo      = callingCompiledMethod.getCompilerInfo();
          int               callingInstructionOffset = ip - VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions());
 

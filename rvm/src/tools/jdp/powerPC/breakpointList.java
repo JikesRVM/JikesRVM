@@ -54,7 +54,7 @@ class breakpointList extends Vector implements jdpConstants {
       return false;
     }
 
-    VM_CompilerInfo compInfo = VM_ClassLoader.getCompiledMethod(compiledMethodID).getCompilerInfo();
+    VM_CompilerInfo compInfo = VM_CompiledMethods.getCompiledMethod(compiledMethodID).getCompilerInfo();
 
     // find the current source line 
     try {

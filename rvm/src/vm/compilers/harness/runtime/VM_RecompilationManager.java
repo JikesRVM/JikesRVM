@@ -21,9 +21,9 @@ public final class VM_RecompilationManager {
    * loaded methods
    */ 
   public static void recompileAllDynamicallyLoadedMethods(boolean report) {
-    int numMethods = VM_ClassLoader.numCompiledMethods();
+    int numMethods = VM_CompiledMethods.numCompiledMethods();
     // To avoid the assertion for unused cmids
-    VM_CompiledMethod[] compiledMethods = VM_ClassLoader.getCompiledMethods();
+    VM_CompiledMethod[] compiledMethods = VM_CompiledMethods.getCompiledMethods();
     for (int cmid=1; cmid<numMethods; cmid++) {
       VM_CompiledMethod cpMeth = compiledMethods[cmid];
       if (cpMeth == null) {

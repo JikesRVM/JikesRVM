@@ -166,7 +166,7 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
 	VM.enableGC();return;
      }
 
-     if (VM_ClassLoader.getCompiledMethod(calleeCMID) == null) {
+     if (VM_CompiledMethods.getCompiledMethod(calleeCMID) == null) {
        VM.sysWrite("VM_EdgeListener:update: Found a callee cmid (");
        VM.sysWrite(calleeCMID, false);
        VM.sysWrite(") with a null compiled method, exiting");
@@ -174,7 +174,7 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
      }
 
      buffer[bufferIndex+0] = calleeCMID;
-     // VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodID);
+     // VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
      // VM_Method callee         = compiledMethod.getMethod();
 
      returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
@@ -190,7 +190,7 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
 	buffer[bufferIndex+1] = 0;	VM.enableGC(); return;
      }
 
-     if (VM_ClassLoader.getCompiledMethod(callerCMID) == null) {
+     if (VM_CompiledMethods.getCompiledMethod(callerCMID) == null) {
        VM.sysWrite("VM_EdgeListener:update: Found a caller cmid (");
        VM.sysWrite(calleeCMID, false);
        VM.sysWrite(") with a null compiled method, exiting");
@@ -201,7 +201,7 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
 
      // store the offset of the return address from the beginning of the 
      // instruction
-     VM_CompiledMethod callerCM = VM_ClassLoader.getCompiledMethod(callerCMID);
+     VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
      int beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
      buffer[bufferIndex+2] = returnAddress - beginningOfMachineCode;
 
@@ -227,7 +227,7 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
 	   VM.sysWrite(compiledMethodID);
 	   if(true) {
 	      VM_CompiledMethod compiledMethod = null;
-	      compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodID);
+	      compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
 	      VM_Method  method = compiledMethod.getMethod();
 	      VM.sysWrite(method);
 	   }

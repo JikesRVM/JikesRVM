@@ -95,7 +95,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
       double ns = VM_Controller.methodSamples.getData(cmid);
       if (ns > 3.0) {
 	VM_CompilerInfo info = 
-	  VM_ClassLoader.getCompiledMethod(cmid).getCompilerInfo();
+	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
 	int compilerType = info.getCompilerType();
 
 	// Enqueue it unless it's either a trap method or already opt compiled
@@ -107,7 +107,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
 	    new VM_HotMethodRecompilationEvent(cmid, ns);
 	  if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
 	    if (VM.LogAOSEvents) {
-	      VM_CompiledMethod m = VM_ClassLoader.getCompiledMethod(cmid);
+	      VM_CompiledMethod m = VM_CompiledMethods.getCompiledMethod(cmid);
 	      VM_AOSLogging.controllerNotifiedForHotness(m, ns);
 	    }
 	  } else {

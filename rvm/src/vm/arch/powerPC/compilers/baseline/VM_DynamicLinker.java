@@ -47,7 +47,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     int               callingFrame             = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame             = VM_Magic.getCallerFramePointer(callingFrame);
     int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(callingFrame);
-    VM_CompiledMethod callingCompiledMethod    = VM_ClassLoader.getCompiledMethod(callingCompiledMethodId);
+    VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
     VM_CompilerInfo   callingCompilerInfo      = callingCompiledMethod.getCompilerInfo();
     
     callingFrame             = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());

@@ -470,7 +470,7 @@ public class VM_Class extends VM_Type
 
     int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
     VM_CompiledMethod compiledMethod = 
-      VM_ClassLoader.getCompiledMethod(compiledMethodId);
+      VM_CompiledMethods.getCompiledMethod(compiledMethodId);
     VM_Method method = compiledMethod.getMethod();
     ClassLoader theclassloader = method.getDeclaringClass().getClassLoader();
     if (DEBUG) { 

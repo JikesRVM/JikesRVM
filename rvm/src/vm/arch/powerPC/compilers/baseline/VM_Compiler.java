@@ -18,7 +18,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   //-----------//
    
   static VM_CompiledMethod compile (VM_Method method) {
-    int compiledMethodId = VM_ClassLoader.createCompiledMethodId();
+    int compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
     if (method.isNative()) {
       VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative
         (compiledMethodId, method);

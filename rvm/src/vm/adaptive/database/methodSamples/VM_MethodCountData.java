@@ -58,7 +58,8 @@ public final class VM_MethodCountData
    * Reset fields.
    */
   private void initialize() {
-    map = new int[(int)(VM_ClassLoader.numCompiledMethods() * 1.25)];
+    int numCompiledMethods = VM_CompiledMethods.numCompiledMethods();
+    map = new int[ numCompiledMethods + (numCompiledMethods >>> 2) ];
     counts = new double[256];
     cmids = new int[256];
     nextIndex = 1;
@@ -120,7 +121,7 @@ public final class VM_MethodCountData
 		" times counted (undecayed  "+undecayedTotalCountsTaken+")\n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
-      VM_Method m = VM_ClassLoader.getCompiledMethod(cmids[i]).getMethod();
+      VM_Method m = VM_CompiledMethods.getCompiledMethod(cmids[i]).getMethod();
       VM.sysWrite(counts[i] + " ("+percent+"%) "+m+"\n");
       if (m.getDeclaringClass().isInBootImage()) {
 	VM.sysWrite(" BOOT\n");
@@ -299,7 +300,7 @@ public final class VM_MethodCountData
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
 	VM_CompilerInfo info = 
-	  VM_ClassLoader.getCompiledMethod(cmid).getCompilerInfo();
+	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
 	int compilerType = info.getCompilerType();
 
 	// Enqueue it unless it's either a trap method or already opt compiled
@@ -313,7 +314,7 @@ public final class VM_MethodCountData
 	    new VM_HotMethodRecompilationEvent(cmid, ns);
 	  if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
 	    if (VM.LogAOSEvents) {
-	      VM_CompiledMethod m = VM_ClassLoader.getCompiledMethod(cmid);
+	      VM_CompiledMethod m = VM_CompiledMethods.getCompiledMethod(cmid);
 	      VM_AOSLogging.controllerNotifiedForHotness(m, ns);
 	    }
 	  } else {
@@ -348,7 +349,7 @@ public final class VM_MethodCountData
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
 	VM_CompilerInfo info = 
-	  VM_ClassLoader.getCompiledMethod(cmid).getCompilerInfo();
+	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
 	int compilerType = info.getCompilerType();
 	if (compilerType == VM_CompilerInfo.OPT && 
 	    ((VM_OptCompilerInfo)info).getOptLevel() == optLevel) {
@@ -497,7 +498,7 @@ public final class VM_MethodCountData
       }
       for (int i=1; i<nextIndex; i++) {
 	VM.assert(map[cmids[i]] == i);
-	VM.assert(VM_ClassLoader.getCompiledMethod(cmids[i]) != null);
+	VM.assert(VM_CompiledMethods.getCompiledMethod(cmids[i]) != null);
       }
 
       // Verify that heap property holds on data.
