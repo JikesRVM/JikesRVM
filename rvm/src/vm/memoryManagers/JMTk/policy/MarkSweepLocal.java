@@ -183,7 +183,7 @@ final class MarkSweepLocal extends SegregatedFreeList
    */
   protected final void postExpandSizeClass(VM_Address block, int sizeClass) {
     Memory.zeroSmall(block.add(MARK_BITMAP_BASE), 
-                     VM_Word.fromInt(bitmaps[sizeClass]).lsh(LOG_BYTES_IN_BITMAP).toExtent());
+                     VM_Word.fromIntZeroExtend(bitmaps[sizeClass]).lsh(LOG_BYTES_IN_BITMAP).toExtent());
   };
 
   /**

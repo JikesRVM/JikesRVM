@@ -268,7 +268,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param w the word to be logged
    */
   public static void write(VM_Word w) {
-    write(w.toAddress());
+    writeHex(w.toLong(), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -277,7 +277,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param a the address to be logged
    */
   public static void write(VM_Address a) {
-    writeHex(VM_Interface.addressToLong(a), BYTES_IN_ADDRESS);
+    writeHex(a.toLong(), BYTES_IN_ADDRESS);
   }
 
   /**

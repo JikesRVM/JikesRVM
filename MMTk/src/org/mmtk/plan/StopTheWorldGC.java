@@ -290,7 +290,7 @@ public abstract class StopTheWorldGC extends BasePlan
         Log.write(" ms");
       }
       Log.write("   ");
-      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
+      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10).toInt());
       Log.write(" KB ");
       Log.flush();
     }
@@ -465,7 +465,7 @@ public abstract class StopTheWorldGC extends BasePlan
     gcStopTime = VM_Interface.cycles();
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
       Log.write("-> ");
-      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
+      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10).toInt());
       Log.write(" KB   ");
       if (Options.verbose == 1) {
         Log.write(VM_Interface.cyclesToMillis(gcStopTime - gcStartTime)); 

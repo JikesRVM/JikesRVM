@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -111,7 +112,7 @@ public class LocalDeque extends LocalSSB
       return popOverflow(arity);
     } else {
       if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
+        VM_Interface._assert(bufferOffset(head).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
       return true;
     }
   }
@@ -140,7 +141,7 @@ public class LocalDeque extends LocalSSB
    */
   protected final VM_Address uncheckedPop() throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromInt(BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.sub(BYTES_IN_ADDRESS);
     // if (VM_Interface.VerifyAssertions) enqueued--;
     return VM_Magic.getMemoryAddress(head);
@@ -214,7 +215,7 @@ public class LocalDeque extends LocalSSB
   private final boolean consumerStarved(int arity) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
     VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity)); 
-    if (bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS))) {
+    if (bufferOffset(tail).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset())) {
       // entries in tail, so consume tail
       if (isReset()) {
         head = queue.alloc(); // no head, so alloc a new one

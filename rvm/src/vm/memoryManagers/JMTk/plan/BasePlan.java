@@ -531,7 +531,7 @@ public abstract class BasePlan
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static long usedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(Plan.getPagesUsed());
+    return Conversions.pagesToBytes(Plan.getPagesUsed()).toLong();
   }
 
 
@@ -543,7 +543,7 @@ public abstract class BasePlan
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static long reservedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(Plan.getPagesReserved());
+    return Conversions.pagesToBytes(Plan.getPagesReserved()).toLong();
   }
 
   /**
@@ -757,7 +757,7 @@ public abstract class BasePlan
    * @param pages The number of pages
    */
   public static void writePages(int pages, int mode) {
-    double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
+    double mb = Conversions.pagesToBytes(pages).toWord().rshl(20).toInt();
     switch (mode) {
       case PAGES: Log.write(pages); Log.write(" pgs"); break; 
       case MB:    Log.write(mb); Log.write(" Mb"); break;
@@ -847,14 +847,14 @@ public abstract class BasePlan
    * @param start the start of the released resource
    * @param bytes the number of bytes released
    */
-  protected static void releaseVMResource(VM_Address start, int bytes) {} 
+  protected static void releaseVMResource(VM_Address start, VM_Extent bytes) {} 
   
   /**
    * After VMResource acquisition
    * @param start the start of the acquired resource
    * @param bytes the number of bytes acquired
    */
-  protected static void acquireVMResource(VM_Address start, VM_Address end, int bytes) {} 
+  protected static void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {} 
   //-endif
 
 }

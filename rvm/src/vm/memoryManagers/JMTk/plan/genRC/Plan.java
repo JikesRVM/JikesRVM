@@ -564,7 +564,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       }
     } else if (RCBaseHeader.markSanityRC(object)) {
       Scan.enumeratePointers(object, sanityEnum);
-    } else if (object.EQ(VM_Address.fromInt(0x43080334))) {
+    } else if (object.EQ(VM_Address.fromIntZeroExtend(0x43080334))) {
       Log.writeln("scanned by marked already!");
     }
   }

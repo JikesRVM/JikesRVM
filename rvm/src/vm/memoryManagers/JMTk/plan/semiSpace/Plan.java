@@ -275,12 +275,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param end the end of the resource
    * @param bytes the number of bytes released
    */
-  protected static final void releaseVMResource(VM_Address start, int bytes) {
+  protected static final void releaseVMResource(VM_Address start, VM_Extent bytes) {
     //Log.write("Plan.releaseVMResource:", start);
     //Log.write("-", start.add(bytes));
     //Log.writeln(", bytes released: ", bytes);
     //reportSpaces();
-    objectMap.release(start, bytes);  
+    objectMap.release(start, bytes.toInt());  
   }
   
   /**
@@ -289,7 +289,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param end the end of the resource
    * @param bytes the number of byted acquired
    */
-  protected static final void acquireVMResource(VM_Address start, VM_Address end, int bytes) {
+  protected static final void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {
   }
   
   /**

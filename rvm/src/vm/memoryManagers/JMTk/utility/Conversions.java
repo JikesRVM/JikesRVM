@@ -34,8 +34,8 @@ public class Conversions implements Constants, VM_Uninterruptible {
       return (megs + ((VMResource.BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (VMResource.LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
   }
 
-  public static int bytesToMmapChunksUp(int bytes) {
-    return (bytes + (LazyMmapper.MMAP_CHUNK_SIZE - 1)) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
+  public static int bytesToMmapChunksUp(VM_Extent bytes) {
+    return bytes.add(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
   }
 
   public static int pagesToMmapChunksUp(int pages) {
@@ -67,16 +67,16 @@ public class Conversions implements Constants, VM_Uninterruptible {
     return chunk.toInt();
   }
 
-  public static int pagesToBytes(int pages) {
-    return pages << LOG_BYTES_IN_PAGE;
+  public static VM_Extent pagesToBytes(int pages) {
+    return VM_Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
   }
 
   public static int bytesToPagesUp(int bytes) {
-    return bytesToPagesUp(VM_Extent.fromInt(bytes));
+    return bytesToPagesUp(VM_Extent.fromIntZeroExtend(bytes));
   }
   
   public static int bytesToPages(int bytes) {
-    return bytesToPages(VM_Extent.fromInt(bytes));
+    return bytesToPages(VM_Extent.fromIntZeroExtend(bytes));
   }
   
   public static int bytesToPagesUp(VM_Extent bytes) {

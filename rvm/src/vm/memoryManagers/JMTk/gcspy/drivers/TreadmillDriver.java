@@ -268,7 +268,7 @@ class TreadmillDriver extends AbstractDriver
    */
   private int getSuperPageLength(VM_Address addr) {
     VM_Address sp = TreadmillLocal.getSuperPage(addr);
-    return Conversions.pagesToBytes(losVM.getSize(sp));
+    return Conversions.pagesToBytes(losVM.getSize(sp)).toInt();
   }
 
   /**

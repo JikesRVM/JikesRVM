@@ -383,7 +383,7 @@ public class VM_Statics implements VM_Constants {
     //-#if RVM_FOR_64_ADDR
     return VM_Magic.addressAsObject(VM_Address.fromLong(getSlotContentsAsLong(slot)));
     //-#else
-    return VM_Magic.addressAsObject(VM_Address.fromInt(slots[slot]));
+    return VM_Magic.addressAsObject(VM_Address.fromIntZeroExtend(slots[slot]));
     //-#endif
   }
 
@@ -394,7 +394,7 @@ public class VM_Statics implements VM_Constants {
     //-#if RVM_FOR_64_ADDR
     return VM_Magic.addressAsObjectArray(VM_Address.fromLong(getSlotContentsAsLong(slot)));
     //-#else
-    return VM_Magic.addressAsObjectArray(VM_Address.fromInt(slots[slot]));
+    return VM_Magic.addressAsObjectArray(VM_Address.fromIntZeroExtend(slots[slot]));
     //-#endif
   }
 

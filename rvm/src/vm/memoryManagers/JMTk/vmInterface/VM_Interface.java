@@ -1158,27 +1158,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Get the long for an address
-   *
-   * @param addr the address
-   * @return long for the address
-   */
-  public static long addressToLong(VM_Address addr)
-  {
-    //-#if RVM_FOR_32_ADDR
-    return addr.toInt();
-    //-#elif RVM_FOR_64_ADDR
-    return addr.toLong();
-    //-#endif
-  }
-
-
-  /**
    * Get the long for an offset
    *
    * @param offset the offset
    * @return long for the offset
    */
+//TODO: Delete, add sToLong to VM_Offset (signed to long)
   public static long offsetToLong(VM_Offset offset)
   {
     //-#if RVM_FOR_32_ADDR

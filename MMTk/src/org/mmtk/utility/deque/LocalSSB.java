@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -99,7 +100,7 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
     if (bufferOffset(tail).isZero())
       insertOverflow(arity);
     else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(tail).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
   }
 
   /**
@@ -111,7 +112,7 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    */
   protected final void uncheckedInsert(VM_Address value) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromInt(BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.sub(BYTES_IN_ADDRESS);
     VM_Magic.setMemoryAddress(tail, value);
     //    if (VM_Interface.VerifyAssertions) enqueued++;

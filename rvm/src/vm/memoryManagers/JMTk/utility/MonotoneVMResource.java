@@ -70,7 +70,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       return VM_Address.zero();
     }
     lock();
-    int bytes = Conversions.pagesToBytes(pageRequest);
+    VM_Extent bytes = Conversions.pagesToBytes(pageRequest);
     VM_Address tmpCursor = cursor.add(bytes);
     if (tmpCursor.GT(sentinel)) {
       unlock();
@@ -82,7 +82,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       unlock();
       acquireHelp(oldCursor, pageRequest);
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
-      Memory.zero(oldCursor, VM_Extent.fromIntZeroExtend(bytes));
+      Memory.zero(oldCursor, bytes);
       // Memory.zeroPages(oldCursor, bytes);
       //-if RVM_WITH_GCSPY
       if (VM_Interface.GCSPY)
@@ -104,7 +104,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
     cursor = start;
     //-if RVM_WITH_GCSPY
     if (VM_Interface.GCSPY)
-      Plan.releaseVMResource(start, bytes.toInt());
+      Plan.releaseVMResource(start, bytes);
     //-endif
   }
 
