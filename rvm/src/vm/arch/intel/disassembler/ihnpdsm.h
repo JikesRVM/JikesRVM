@@ -19,10 +19,15 @@
 #ifndef P__DSM_C
 #define P__DSM_C
 
-// disable return of instruction data parameters other than
+// Original version disables return of instruction data parameters other than
 // length and type
+// Enable it now to get the r/m, mod, and reg/op field to compute the 
+// branch target address
 #undef RETPARMS
-#define RETPARMS 0
+#define RETPARMS 1
+
+// index of EIP register in the register buffer 
+#define IP  8
 
 typedef char           CHAR;
 typedef unsigned char  UCHAR;
@@ -103,6 +108,10 @@ typedef struct parlist {             /* the parameter area                   */
     UCHAR  retindex;                 /* returned index register field        */
     UCHAR  retscale;                 /* returned scale factor field          */
   #endif
+  UCHAR  retregop;                 /* returned reg/op field in mod R/M byte  */
+  UCHAR  retmod;                   /* returned mod field                     */
+  UCHAR  retrm;                    /* returned r/m field                     */
+
 } PARLIST;
 
 void p__DisAsm (PARLIST * parmptr, int print);

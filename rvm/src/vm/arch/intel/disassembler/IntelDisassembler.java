@@ -13,6 +13,7 @@
  * @author Ton Ngo 
  * @date 2/12/2001 
  */
+
 class IntelDisassembler {
 
   public static byte[] intToByteArray(int[] intArray) {
@@ -61,6 +62,30 @@ class IntelDisassembler {
   public static native byte[] instructionLength(byte[] instr);
   public static byte[] instructionLength(int instrArray[]) {
     return instructionLength(intToByteArray(instrArray));
+  }
+
+
+  /**
+   * Test if this is a CALL instruction
+   */
+  public static boolean isCallInstruction(int instrArray[]) {
+    String instructionString = disasm(instrArray, 1, 0);
+    if (instructionString.indexOf("CALL") == -1)
+      return false;
+    else 
+      return true;
+  }
+
+  /**
+   * Compute the target address for a call, jump, or jump conditional
+   */
+  public static native int getBranchTarget(byte instrArray[], int[] regs);
+  // just a way to return more info from decoding the branch target
+  public static native boolean isLastAddressIndirect();   
+
+  public static int getBranchTarget(int instrArray[], int[] regs) {
+    byte bArray[] = intToByteArray(instrArray);
+    return getBranchTarget(bArray, regs);
   }
 
   /**

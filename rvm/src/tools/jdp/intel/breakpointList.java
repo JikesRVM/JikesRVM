@@ -129,48 +129,80 @@ class breakpointList extends Vector implements jdpConstants {
       return;
     }    
  
-    address = owner.reg.hardwareIP();        
+    // Need to decode the instruction to see if it's a call or jump
+    // get 3 memory words to decode the instruction
+    address = owner.reg.hardwareIP();  
+    int instr[] = new int[MAX_INSTRUCTION_SIZE];    
+    for (int i=0; i<MAX_INSTRUCTION_SIZE; i++) {
+      instr[i] = owner.mem.readNoBP(0, address+(i*4));  // thread = 0
+      if (instr[i]==-1) {
+	System.out.println("setStepBreakpoint: cannot get instruction");
+	return;
+      } 
+    }
     bp.next_addr = Platform.nextInstructionAddress(address);
     // bp.next_I = owner.mem.read(bp.next_addr);
     bp.methodID = owner.bmap.getCompiledMethodID(owner.reg.currentFP(), bp.next_addr);
 
     // if jumping over method invocation, don't worry about the branch target
     current_I = owner.mem.read(address);
-
-    // boolean is_brl = check for branch and link
-    boolean is_brl = false;
+    boolean is_brl = IntelDisassembler.isCallInstruction(instr);
+      
     if (over_brl && is_brl) {      
-      // System.out.println("setStepBreakpoint: next " + Integer.toHexString(bp.next_addr));
+      // System.out.println("setStepBreakpoint: over call, " + Integer.toHexString(bp.next_addr));
       Platform.setbp(bp.next_addr);
       return;
     }
 
-    // if it's other types of branch or we are stepping into call on a brl
-    // then we also need to set a breakpoint at the branch target
-    int branch_addr = owner.mem.branchTarget(current_I, address);
+    try {
+      // if it's other types of branch or we are stepping into call on a brl
+      // then we also need to set a breakpoint at the branch target
+      // int branch_addr = owner.mem.branchTarget(current_I, address);
+      
+      int regs[] = owner.reg.getVMThreadGPR(0);
+      int branch_addr = IntelDisassembler.getBranchTarget(instr, regs);
 
-    // is the branch address valid?       
-    // do we have breakpoint here already?
-    if (branch_addr!=-1 && branch_addr!=bp.next_addr) {     
-
-      if (skip_prolog) {     // should we skip the prolog in the callee?
-	bp.branch_offset = owner.bmap.scanPrologSize(branch_addr);
+      // if return, address is -2:  set step breakpoint at return address of stack frame
+      if (branch_addr==-2) {
+	setLinkBreakpoint(thread);
+	return;
       }
 
-      if (is_brl) { 
-	// save the new methodID to be used during the prolog section that
-        // will initialize the method ID in the new stack frame
-	bp.methodID = owner.bmap.getCompiledMethodIDForInstruction(branch_addr);	
-	bp.next_addr = branch_addr + bp.branch_offset;
-	bp.next_I = owner.mem.read(bp.next_addr);
-      } else {
-	bp.branch_addr = branch_addr + bp.branch_offset;
-	bp.branch_I = owner.mem.read(bp.branch_addr);
-	// System.out.println("setStepBreakpoint: btarget " + 
-	// 		   Integer.toHexString(bp.branch_addr));
-	Platform.setbp(bp.branch_addr);
+      // if not a branch or call, address is -1
+      if (branch_addr!=-1) {
+        if (IntelDisassembler.isLastAddressIndirect()) {
+          branch_addr = owner.mem.read(branch_addr);
+          // System.out.println("setStepBreakpoint: indirect branch address " + Integer.toHexString(branch_addr));
+        } else {
+          // System.out.println("setStepBreakpoint: branch address " + Integer.toHexString(branch_addr));
+        }
+        
+        // is the branch address valid?       
+        // do we have breakpoint here already?
+        if (branch_addr!=-1 && branch_addr!=bp.next_addr) {     
+          
+          if (skip_prolog) {     // should we skip the prolog in the callee?
+            bp.branch_offset = owner.bmap.scanPrologSize(branch_addr);
+          }
+          
+          if (is_brl) { 
+            // save the new methodID to be used during the prolog section that
+            // will initialize the method ID in the new stack frame
+            bp.methodID = owner.bmap.getCompiledMethodIDForInstruction(branch_addr);	
+            bp.next_addr = branch_addr + bp.branch_offset;   // skip past the prolog
+            // bp.next_I = owner.mem.read(bp.next_addr);
+          } else {
+            bp.branch_addr = branch_addr + bp.branch_offset;
+            // bp.branch_I = owner.mem.read(bp.branch_addr);
+            // System.out.println("setStepBreakpoint: btarget " + 
+            // 		   Integer.toHexString(bp.branch_addr));
+            Platform.setbp(bp.branch_addr);
+          }
+        
+        }
       }
-
+    } catch (java.lang.Exception e) {
+      System.out.println("setStepBreakpoint: fail to compute branch target");
     }
 
     Platform.setbp(bp.next_addr);
@@ -196,10 +228,14 @@ class breakpointList extends Vector implements jdpConstants {
     bp = (breakpoint) elementAt(thread); // get breakpoint object for this thread
 
     if (bp.next_addr!=-1) {
-      // System.out.println("Clearing step " + bp.toString());
+      // System.out.println("Clearing step " + Integer.toHexString(bp.next_addr) +
+      //		 ", " + Integer.toHexString(bp.branch_addr));
       Platform.clearbp(bp.next_addr);
       bp.next_addr = -1;
-      bp.branch_addr = -1;
+      if (bp.branch_addr!=-1) {
+	Platform.clearbp(bp.branch_addr);
+	bp.branch_addr = -1;
+      }
     }
   }
 
@@ -430,6 +466,7 @@ class breakpointList extends Vector implements jdpConstants {
       if (bp.next_addr == address || bp.branch_addr == address) 
 	return bp;
     }
+    /* System.out.println("lookup: not found in breakpoint list"); */
     return null;
   }
 

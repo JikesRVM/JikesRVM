@@ -988,7 +988,7 @@ typedef struct {
    int MMXop:1;         // MMX operation - use MMX registers
 } FLAGS;
 
-/*TANGO: debug flag */
+/* debug flag */
 int debug = 0;
 
 /****************************************************************************/
@@ -1342,6 +1342,11 @@ void p__DisAsm(PARLIST *parmptr,int print) {
      *hbuff = 0;
   if (ibuff) 
      *ibuff = 0;
+  parm->retregop = flags.regf;
+  parm->retmod = flags.mod;
+  parm->retrm = flags.rm;
+  /* printf("ihnpdsm: mod=%x, reg/op=%x, r/m=%x\n", parm->retmod, parm->retregop, parm->retrm);  */
+
 } 
 
 /****************************************************************************/
@@ -1677,7 +1682,7 @@ static UCHAR getNextByte(void) {
     *hbuff++ = hexConvVal[ic&0x0F];
   } 
   if (debug)
-      printf("TANGO getNextByte:  %s\n", hbuff);
+      printf("getNextByte:  %s\n", hbuff);
   return ic;
 } 
 
@@ -1707,7 +1712,7 @@ static USHORT getNextWord(void) {
     } // endfor
   } 
   if (debug)
-      printf("TANGO getNextWord:  %s\n", hbuff);
+      printf("getNextWord:  %s\n", hbuff);
   return Dword1;
 } 
 
@@ -1738,7 +1743,7 @@ static ULONG getNextDword(void) {
     } // endfor
   } 
   if (debug)
-      printf("TANGO getNextDword:  0x%08x\n", Dword1);
+      printf("getNextDword:  0x%08x\n", Dword1);
   return Dword1;
 } 
 
@@ -1978,7 +1983,7 @@ static void op_IL(FLAGS & flags) {
 /****************************************************************************/
 /*                                                                          */
 /*  DESCRIPTION:                                                            */
-/*              putput the standard memory operands to the instruction      */
+/*              Output the standard memory operands to the instruction      */
 /*              buffer, if present.                                         */
 /*                                                                          */
 /*  PARAMETERS:                                                             */
