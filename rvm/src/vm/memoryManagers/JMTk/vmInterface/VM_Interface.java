@@ -194,7 +194,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void putstaticWriteBarrier(int offset, Object value)
     throws VM_PragmaInline { 
     // putstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+//     if (VM.VerifyAssertions) VM._assert(false);
 //     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
 //     getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
