@@ -860,7 +860,7 @@ public class ObjectMap
   private static final int addressToPage(Address addr) //throws InlinePragma 
   {
     if (Assert.VERIFY_ASSERTIONS) {    
-      boolean inHeap = VMResource.refInVM(addr);
+      boolean inHeap = VMResource.addressInVM(addr);
       if (!inHeap) 
         debugln(0, "Bad address: ", addr);
       Assert._assert(inHeap, "Address is outside the heap");
@@ -880,7 +880,7 @@ public class ObjectMap
   private static final int addressToSlot(Address addr) //throws InlinePragma 
   {
     if (Assert.VERIFY_ASSERTIONS) {    
-      boolean inHeap = VMResource.refInVM(addr);
+      boolean inHeap = VMResource.addressInVM(addr);
       if (!inHeap) 
         debugln(0, "Bad address: ", addr);
       Assert._assert(inHeap, "Address is outside the heap");
