@@ -851,11 +851,16 @@ final class OPT_SSADictionary implements OPT_Operators {
   private void aloadHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
     VM_Type type = ALoad.getArray(s).getType();
-    if (!type.asArray().getElementType().isPrimitiveType())
-      type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-    registerUse(s, type);
-    if (uphi)
-      registerDef(s, b, type);
+
+    // After cond branch splitting, operand may be a Null constant
+    // filter out it now  -- Feng
+    if (type.isArrayType()) { 
+      if (!type.asArray().getElementType().isPrimitiveType())
+	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      registerUse(s, type);
+      if (uphi)
+	registerDef(s, b, type);
+    }
   }
 
   /** 
@@ -869,10 +874,15 @@ final class OPT_SSADictionary implements OPT_Operators {
   private void astoreHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
     VM_Type type = AStore.getArray(s).getType();
-    if (!type.asArray().getElementType().isPrimitiveType())
-      type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-    registerUse(s, type);
-    registerDef(s, b, type);
+
+    // After cond branch splitting, operand may be a Null constant
+    // filter out it now  -- Feng
+    if (type.isArrayType()) {
+      if (!type.asArray().getElementType().isPrimitiveType())
+	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      registerUse(s, type);
+      registerDef(s, b, type);
+    }
   }
 
   /** 
@@ -885,9 +895,14 @@ final class OPT_SSADictionary implements OPT_Operators {
   private void arraylengthHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
     VM_Type type = GuardedUnary.getVal(s).getType();
-    if (!type.asArray().getElementType().isPrimitiveType())
-      type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-    registerUse(s, type);
+    
+    // After cond branch splitting, operand may be a Null constant
+    // filter out it now  -- Feng
+    if (type.isArrayType()) {
+      if (!type.asArray().getElementType().isPrimitiveType())
+	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      registerUse(s, type);
+    }
   }
 
   /** 

@@ -460,24 +460,30 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
         case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
           VM_Type type = ALoad.getArray(s).getType();
-          if (!type.asArray().getElementType().isPrimitiveType())
-            type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-          if (seenLoad.contains(type))
-            resultSet.add(type);
-          if (seenStore.contains(type))
-            resultSet.add(type);
-          seenLoad.add(type);
+
+          if (type.isArrayType()) {
+            if (!type.asArray().getElementType().isPrimitiveType())
+              type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+            if (seenLoad.contains(type))
+              resultSet.add(type);
+            if (seenStore.contains(type))
+              resultSet.add(type);
+            seenLoad.add(type);
+          }
           break;
         case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
         case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
         case REF_ASTORE_opcode:case BYTE_ASTORE_opcode:
         case SHORT_ASTORE_opcode:
           type = AStore.getArray(s).getType();
-          if (!type.asArray().getElementType().isPrimitiveType())
-            type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-          if (seenLoad.contains(type))
-            resultSet.add(type);
-          seenStore.add(type);
+
+          if (type.isArrayType()) {
+            if (!type.asArray().getElementType().isPrimitiveType())
+              type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+            if (seenLoad.contains(type))
+              resultSet.add(type);
+            seenStore.add(type);
+          }
         default:
           break;
       }

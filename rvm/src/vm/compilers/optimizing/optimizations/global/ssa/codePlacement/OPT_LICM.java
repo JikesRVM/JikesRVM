@@ -241,7 +241,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	return;
     }
 
-    // explicitely INCLUDE instructions
+    // explicitly INCLUDE instructions
     if (!shouldMove(inst, ir)) {
       if (DEBUG) System.out.println("                           shouldMove failed");
 	return;
@@ -409,6 +409,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * How expensive is it to place an instruction in this block?
    */
   final int frequency (OPT_BasicBlock b) {
+    if (b.getInfrequent()) return -1;
     //-#if BLOCK_COUNTER_WORKS
     OPT_Instruction inst = b.firstInstruction();
     return  basicBlockCounter.getCount(inst.bcIndex, inst.position);
