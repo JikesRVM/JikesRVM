@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
@@ -346,10 +346,8 @@ CONF_SPECIFIC_TOP_LEVEL_SOURCES=""
 
 # Strings to use in the scripts as the locations of various commands.
 #
-# These could be overridden by someone with -D on the command line.
-# Or in the config file, no?
-JIKES_WARNING_FLAGS=-nowarn
-JAVAC_WARNING_FLAGS=-nowarn
+# These could be overridden by someone with -D on the command line, or 
+# in the config file.
 HOST_JIKES_STR1="HOST_JIKES"
 HOST_JIKES_STR="\$$HOST_JIKES_STR1"
 HOST_JAVA_STR1="HOST_JAVA_RT"
@@ -379,6 +377,10 @@ HOST_SHLD_STR="\$$HOST_SHLD_STR1"
 SED_STR1="SED"
 SED_STR="\$$SED_STR1"
 
+# Use Java warnings?
+JIKES_WARNING_FLAGS=-nowarn
+JAVAC_WARNING_FLAGS=-nowarn
+
 # Generate map of bootimage?
 #
 declare -x -i GENERATE_MAP=1
@@ -403,6 +405,7 @@ declare -i RVM_FOR_IA32=0     # Implies Linux
 #
 declare -i RVM_FOR_AIX=0	   # Implies PPC
 declare -i RVM_FOR_LINUX=0	   # Implies nothing.
+declare -i RVM_FOR_OSX=0	   # Implies PPC.
 
 # 32-bit or 64-bit address size
 #
@@ -485,6 +488,13 @@ declare -i BUILD_WITH_PARANOID_PREPROCESSOR=0
 ## MISC (to be categorized)
 declare -i RVM_WITH_NOFLUSH
 : ${RVM_WITH_NOFLUSH=0}
+
+## Consequences of the target Operating System.
+## These are overridden in the OSX config file.
+declare -i HAS_DLCOMPAT
+: ${HAS_DLCOMPAT=0}
+
+
 
 
 #---------------------------------------#
@@ -573,7 +583,6 @@ else
     OBJECT_MODEL_PATH_STR=objectModel/default
 fi
 
-
 if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
@@ -592,7 +601,7 @@ fi
 PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
 PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
 -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
-CLEANUP='/bin/rm -f $tmpf'	# used by EXIT trap.
+CLEANUP='/bin/rm -f ${tmpf-}'	# used by EXIT trap.
 tmpf=/tmp/jconfigure.$$
 set | sed -n -e 's/^RVM_FOR_/-DRVM_FOR_/p' \
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'			\
@@ -621,14 +630,12 @@ fi
 
 # Place where bootimage runner lives.
 #
+BOOTIMAGE_RUNNER_DIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner"
+BOOTIMAGE_RUNNER_DIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner"
 if (( RVM_FOR_POWERPC )); then
-    BOOTIMAGE_RUNNER_DIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner"
-    BOOTIMAGE_RUNNER_DIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner"
     BOOTIMAGE_RUNNER_SUBDIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner/powerPC"
     BOOTIMAGE_RUNNER_SUBDIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/powerPC"
 elif (( RVM_FOR_IA32 )); then
-    BOOTIMAGE_RUNNER_DIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner"
-    BOOTIMAGE_RUNNER_DIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner"
     BOOTIMAGE_RUNNER_SUBDIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner/IA32"
     BOOTIMAGE_RUNNER_SUBDIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/IA32"
 else
@@ -1307,12 +1314,12 @@ function emitExpander () {
 	    rm -rf ${SCRATCH_DIRECTORY_STR}
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/JikesRVM
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
-	    echo *.* | \$XARGS -r rm -f
+	    echo *.* | \$XARGS rm -f
 	EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 	    cd ${GENERATED_FILES_DIRECTORY_STR}/instructionFormats
-	    echo *.* | \$XARGS -r rm -f
+	    echo *.* | \$XARGS rm -f
 	EOF
     fi
     cat <<- EOF
@@ -1461,14 +1468,13 @@ function emitCopier () {
 EOF
     emit_disable_exit_on_error
 
-    ## Approach abandoned because xargs will exit with status 123
-    ## upon nonzero exit status from jbuild.prep.host, but 
-    ## jbuild.prep.host will exit with status 1 when files are modified.
-    ## So, all the non-zero return values get mapped to 123, and we 
-    ## want to distinguish 1 (OK) 
+    ## I abandoned using XARGS with jbuild.prep.host, because xargs will
+    ## exit with status 123 upon nonzero exit status from jbuild.prep.host,
+    ## but jbuild.prep.host will exit with status 1 when files are modified.
+    ##
+    ## So, all the non-zero return values get mapped to 123, but we
+    ## want to distinguish 1 (some files changed) 
     ## from other non-zero return values (trouble).
-    #
-    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
 
     cat <<- EOF
 	    if [[ ! \$FILES ]]; then
@@ -1495,7 +1501,7 @@ EOF
 	# Update from directories containing machine generated source files.
 	# Do this after we copy the "normal" files to allow us to
 	# overwrite any dummy versions of the files we have sitting
-	# around in the shadow (telling people that the file is generated).
+	# around in the source tree.
 	if tracing preprocessor; then
 	    cleanline
 	    echo -n "\${ME}: expanding ${GENERATED_FILES_DIRECTORY_STR}: "
@@ -1593,7 +1599,7 @@ EOF
 	    # This avoids any limits on the size of the command-line arguments.
 	    # 'echo' is a bash builtin, and as such is unaffected by such O/S 
 	    # limits. 
-	    echo *.class | \$XARGS -r rm -f
+	    echo *.class | \$XARGS rm -f
 	    touch ${CLASSES_INVALID_STR} 
 	    close_paren "classes cleaned "
 	    trap "" EXIT
@@ -1639,14 +1645,14 @@ EOF
 	    ## not the letter 'O'.
 	    $HOST_JAR_STR -c0f jksvm.jar Dummy.class
 
-	    \$FIND . -name '*.class' | \$XARGS -r $HOST_JAR_STR -u0f jksvm.jar
+	    \$FIND . -name '*.class' | \$XARGS $HOST_JAR_STR -u0f jksvm.jar
 	    close_paren 'jksvm.jar built'
 
 	    open_paren 'building jksvmsrc.jar'
 	    run rm -f jksvmsrc.jar
 	    run $HOST_JAR_STR -c0f jksvmsrc.jar Dummy.java
 	    ## -r is XARGS's no-run-if-empty flag.
-	    \$FIND . -name '*.java' | run \$XARGS -r $HOST_JAR_STR -u0f jksvmsrc.jar
+	    \$FIND . -name '*.java' | run \$XARGS $HOST_JAR_STR -u0f jksvmsrc.jar
 	    close_paren 'jksvmsrc.jar built'
 
 	else
@@ -2269,7 +2275,7 @@ EOF
 	    echo >&2 -n "\$ME: '$BOOTIMAGE_WRITER_DIR_STR'/"
 	fi
 
-	builtin echo \$FILES | run \$XARGS -r $BUILD_DIRECTORY_STR/jbuild.prep.host --disable-modification-exit-status \$PREPROC_FLAGS $(echo $PREPROCESSOR_DEFINITIONS) $SCRATCH_DIRECTORY_STR 
+	builtin echo \$FILES | run \$XARGS $BUILD_DIRECTORY_STR/jbuild.prep.host --disable-modification-exit-status \$PREPROC_FLAGS $(echo $PREPROCESSOR_DEFINITIONS) $SCRATCH_DIRECTORY_STR 
 
 	# compile BootImageWriter.java
 	#
@@ -2348,6 +2354,11 @@ function emitCheckIfIAmTheTarget () {
 	echo '    trap "" EXIT'
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
+   elif (( RVM_FOR_OSX )); then
+	echo "if [[ \$(uname) != Darwin ]]; then"
+	echo '   echo "please run me on Darwin/OSX"'
+	echo '   exit 1'
+	echo 'fi'
     elif (( RVM_FOR_LINUX )); then
 	echo "if [[ \$(uname) != Linux ]]; then"
 	echo '    echo "please run me on Linux"'
@@ -2372,7 +2383,7 @@ function emitCheckIfIAmTheTarget () {
 	fi
     else
 	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
-neither RVM_FOR_AIX nor RVM_FOR_LINUX is defined."
+neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
     fi
     echo ""
 }
@@ -2467,6 +2478,7 @@ $(emitBoilerplate)
     CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
     echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     if (( RVM_FOR_AIX )); then
+	local -r shlib_suffix=.a
 
 	cat <<- EOF
 
@@ -2477,21 +2489,39 @@ $(emitBoilerplate)
 	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so.0
 	do
 	    oldbase="\$(basename \${_library} .so.0)"
-	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}.a"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
 	unset oldbase dest_lib _library || :
 EOF
-    else
+    elif (( RVM_FOR_OSX )); then
+	local -r shlib_suffix=.jnilib
 cat <<- EOF
-	## On Linux, on the other hand, dynamically loaded libraries end in 
-	## .so.  The classpath builder conveniently generates them 
-	## with this suffix.
+	## OSX requires that JNI libraries end in .jnilib, 
+	## Also, the classpath builder, 
+	## on OSX, generates the files with the suffix ".so".  
+	## We transform one to the other.
 	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so
+	do
+	    oldbase="\$(basename \${_library} .so)"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
+	    copyIfNewer "\$_library" "\$dest_lib"
+	done
+	unset oldbase dest_lib _library || :
+EOF
+    elif (( RVM_FOR_LINUX )); then
+	local -r shlib_suffix=.so
+cat <<- EOF
+	## On Linux, dynamically loaded libraries end in .so.
+	## The classpath builder conveniently generates them with that suffix.
+	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*${shlib_suffix}
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
 EOF
+    else
+	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
+neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
     fi
     cat <<- EOF
 	echo >&2  -n '(classpath native libraries copied) '
@@ -2519,11 +2549,6 @@ EOF_RUNBOOTIMAGE_H
 	# build the JNI library for creating processes
 	chdir ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
 EOF
-    if (( RVM_FOR_AIX )); then
-	local -r shlib_suffix=.a
-    else
-	local -r shlib_suffix=.so
-    fi
     DEST="${BUILD_DIRECTORY_STR}/libjpnexec${shlib_suffix}"
     echo "run \$GNU_MAKE CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
 
@@ -2535,8 +2560,7 @@ EOF
 
     if (( RVM_FOR_32_ADDR )); then
 	CC_DEFINES="$CC_DEFINES -DRVM_FOR_32_ADDR -URVM_FOR_64_ADDR"
-    fi
-    if (( RVM_FOR_64_ADDR )); then
+    elif (( RVM_FOR_64_ADDR )); then
 	CC_DEFINES="$CC_DEFINES -DRVM_FOR_64_ADDR -URVM_FOR_32_ADDR"
     fi
   
@@ -2559,6 +2583,15 @@ EOF
 		IMAGE=
 EOF
 
+    elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
+	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
+ 	echo "LDSHARED=\"$HOST_SHLD_STR\""
+	echo "BOOTER_CXXM=\$BOOTER_CXX"
+	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
+
+	echo 'CCLIBS="${EXTRA_CCLIBS-} -ldl -lm"'
+	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
+
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	echo "LDSHARED=\"$HOST_SHLD_STR\""
@@ -2570,7 +2603,7 @@ EOF
 	echo '# TODO Need to find out if it is still needed.  And if it is, 
 # why not make it available for the other configs too? '
 	echo 'CCLIBS="${EXTRA_CCLIBS-} -ldl -lm"'
-	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
+	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
@@ -2580,7 +2613,7 @@ EOF
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
 	
 	echo 'CCLIBS="-lpthread -ldl -lm"'
-	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
+	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "declare -a gnu_compiler_flags
@@ -2603,8 +2636,13 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
     fi
     echo ""
 
+    if (( HAS_DLCOMPAT )); then
+	DLCOMPAT_DEFINE_FLAG=-DHAS_DLCOMPAT
+    else
+	DLCOMPAT_DEFINE_FLAG=
+    fi
     echo 'declare -i linkedit=0'
-    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX ) )); then
+    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX || RVM_FOR_OSX ) )); then
 	cat <<- EOF
 	chdir $BOOTIMAGE_RUNNER_DIR_STR
 
@@ -2633,6 +2671,7 @@ EOF
 	    cat <<- EOF
 		chdir $BOOTIMAGE_RUNNER_DIR_STR
 		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1 \
+		$DLCOMPAT_DEFINE_FLAG \
 		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
 
 		echo >&2 -n "(build libhpm.a library) "
@@ -2668,6 +2707,7 @@ EOF
 	    cat <<- EOF
 	chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
 	  \${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \
+	  ${DLCOMPAT_DEFINE_FLAG} \
 	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
 
 	chdir ${SCRATCH_DIRECTORY_STR} &&\
