@@ -359,7 +359,6 @@ public class VM_ClassLoader
     if (VM.BuildForIMTInterfaceInvocation)
       VM_InterfaceMethodSignatureDictionary.init();
 
-    VM_CompiledMethods.init();
     dynamicLibraries = new VM_DynamicLibrary[0];
 
     VM_Type.init();

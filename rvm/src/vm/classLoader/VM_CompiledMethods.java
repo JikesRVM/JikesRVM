@@ -11,8 +11,8 @@
  * @author Derek Lieber
  * @author Arvin Shepherd
  */
-public class VM_CompiledMethods
-  {
+public class VM_CompiledMethods {
+
 
   // Create an id that will uniquely identify a version of machine code generated for some method.
   // Taken:    nothing
@@ -20,21 +20,21 @@ public class VM_CompiledMethods
   // See also: setCompiledMethod(), getCompiledMethod()
   //
   static synchronized int createCompiledMethodId() {
-    return ++currentCompiledMethodId;
+    int id = ++currentCompiledMethodId;
+    if (id == compiledMethods.length) {
+      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
+    }
+    return id;
   }
 
   // Install a newly compiled method.
-  //
-  static void setCompiledMethod(int compiledMethodId,
-				VM_CompiledMethod compiledMethod) {
-    if (compiledMethodId >= compiledMethods.length)
-      compiledMethods = growArray(compiledMethods, compiledMethodId << 1); // grow array by 2x in anticipation of more entries being added
-    if (VM.VerifyAssertions)
-	VM.assert(compiledMethods[compiledMethodId] == null);
-			// Slots are never reused even when a slot becomes
-			// obsolete. This is because there can be parallel data
+  // Must be synchronized to avoid losing an update via a growArray in createCompiledMethodId
+  static synchronized void setCompiledMethod(int compiledMethodId,
+					     VM_CompiledMethod compiledMethod) {
+    // Slots are never reused even when a slot becomes obsolete. 
+    // This is because there can be parallel data structures indexed by cmid.
+    if (VM.VerifyAssertions) VM.assert(compiledMethods[compiledMethodId] == null);
     compiledMethods[compiledMethodId] = compiledMethod;
-    VM_Magic.sync();	// make sure the update is visible on other procs
   }
 
   // Fetch a previously compiled method.
@@ -113,8 +113,8 @@ public class VM_CompiledMethods
   // can only be collected once we are certain that they are no longer being
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
-  static void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
-    if ( compiledMethod == null ) return;
+  static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
+    if (compiledMethod == null) return;
 
     int	cmid = compiledMethod.getId();
 
@@ -123,18 +123,19 @@ public class VM_CompiledMethods
     // and are not updated on recompilation.
     // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
     //	and update TIB to use newly recompiled method.
-    if ( compiledMethod.getMethod().declaringClass.isJavaLangObjectType() )
+    if (compiledMethod.getMethod().declaringClass.isJavaLangObjectType())
       return;
 
-    if (VM.VerifyAssertions)		// Any good reason this could happen?
-	VM.assert( compiledMethods[ cmid ] != null );
+    if (VM.VerifyAssertions) {
+      // Any good reason this could happen?
+      VM.assert(compiledMethods[ cmid ] != null);
+    }
 
-    if ( obsoleteMethods == null ) {
+    if (obsoleteMethods == null) {
       // This should tend not to get too big as it gets compressed as we
       // snip obsollete code at GC time.
       obsoleteMethods = new int[ 100 ];
-    }
-    else if (obsoleteMethodCount >= obsoleteMethods.length) {
+    } else if (obsoleteMethodCount >= obsoleteMethods.length) {
       int newArray[] = new int[obsoleteMethods.length*2];
       // Disable GC during array copy because GC can alter the source array
       VM.disableGC();
@@ -145,8 +146,7 @@ public class VM_CompiledMethods
       obsoleteMethods = newArray;
     }
     compiledMethod.setObsolete( true );
-    obsoleteMethods[ obsoleteMethodCount++ ] = cmid;
-    VM_Magic.sync();	// make sure the update is visible on other procs
+    obsoleteMethods[obsoleteMethodCount++] = cmid;
   }
 
   // Snip reference to CompiledMethod so that we can reclaim code space. If
@@ -154,20 +154,19 @@ public class VM_CompiledMethods
   // marking it NOT obsolete. Keep such reference until a future GC.
   // NOTE: It's expected that this is processed during GC, after scanning
   //	stacks to determine which methods are currently executing.
-  static void snipObsoleteCompiledMethods( ) {
-    if ( obsoleteMethods == null ) return;
+  static void snipObsoleteCompiledMethods() {
+    if (obsoleteMethods == null) return;
     
     int oldCount = obsoleteMethodCount;
     obsoleteMethodCount = 0;
 
-    for ( int i = 0; i < oldCount; i++ ) {
-      int currCM = obsoleteMethods[ i ];
-      if ( compiledMethods[ currCM ].isObsolete() ) {
-	compiledMethods[ currCM ] = null;		// break the link
-      }
-      else {
-	obsoleteMethods[ obsoleteMethodCount++ ] = currCM; // keep it
-	compiledMethods[ currCM ].setObsolete( true );	// maybe next time
+    for (int i = 0; i < oldCount; i++) {
+      int currCM = obsoleteMethods[i];
+      if (compiledMethods[currCM].isObsolete()) {
+	compiledMethods[currCM] = null;		// break the link
+      } else {
+	obsoleteMethods[obsoleteMethodCount++] = currCM; // keep it
+	compiledMethods[currCM].setObsolete(true);	 // maybe next time
       }
     }
   }
@@ -176,11 +175,11 @@ public class VM_CompiledMethods
   // implementation //
   //----------------//
 
-   // Java methods that have been compiled into machine code.
-   // Note that there may be more than one compiled versions of the same method
-   // (ie. at different levels of optimization).
-   //
-  private static VM_CompiledMethod[] compiledMethods;
+  // Java methods that have been compiled into machine code.
+  // Note that there may be more than one compiled versions of the same method
+  // (ie. at different levels of optimization).
+  //
+  private static VM_CompiledMethod[] compiledMethods = new VM_CompiledMethod[16000];
 
   // Index of most recently allocated slot in compiledMethods[].
   //
@@ -190,19 +189,12 @@ public class VM_CompiledMethods
   private static int[]	obsoleteMethods;
   private static int	obsoleteMethodCount;
 
-   // Initialize for bootimage.
-   //
-  static void init() {
-    compiledMethods = new VM_CompiledMethod[0];
-  }
-
   // Expand an array.
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
     VM_CompiledMethod[] newarray = VM_RuntimeStructures.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
-
     VM_Magic.sync();
     return newarray;
   }
