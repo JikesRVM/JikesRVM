@@ -577,7 +577,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
 	VM_Array codeArray = VM_Type.CodeType.asArray();
 	for (int i=0; i<cmethods.length; i++) {
 	    VM_CompiledMethod cm = cmethods[i];
-	    if (cm == null) continue;
+	    if (cm == null || !cm.isCompiled()) continue;
 	    INSTRUCTION[] code = cm.getInstructions();
 	    codeCount++;
 	    int size = codeArray.getInstanceSize(code.length);
