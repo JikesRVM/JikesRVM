@@ -390,7 +390,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * execute this.<p>
    *
    * In this case, it means releasing the large object space (which
-   * triggers the sweep phase of the mark-sweep collector used by the
+   * triggers the sweep phase of the treadmill collector used by the
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
@@ -411,10 +411,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     ((hi) ? ss0VM : ss1VM).release();
     CopySpace.release(((hi) ? ss0VM : ss1VM), ssMR);
     ImmortalSpace.release(immortalVM, null);
-    if (getPagesReserved() + required >= getTotalPages()) {
-      progress = false;
-    } else
-      progress = true;
+    progress = (getPagesReserved() + required < getTotalPages());
   }
 
 
@@ -432,7 +429,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) throws VM_PragmaInline {
+  public static final VM_Address traceObject (VM_Address obj)
+    throws VM_PragmaInline {
     if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
