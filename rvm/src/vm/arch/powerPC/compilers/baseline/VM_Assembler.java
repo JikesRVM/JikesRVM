@@ -60,10 +60,40 @@ public final class VM_Assembler implements VM_BaselineConstants,
     return (val == 0 || val == -1);
   }
 
-  void noteBytecode (int i, String bcode) {
+  void noteBytecode (int i, String bcode) throws VM_PragmaNoInline {
     String s1 = VM_Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
     VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
   }
+
+  void noteBytecode (int i, String bcode, int x) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+x);
+  }
+
+  void noteBytecode (int i, String bcode, long x) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+x);
+  }
+
+  void noteBytecode (int i, String bcode, Object o) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+o);
+  }
+
+  void noteBytecode (int i, String bcode, int x, int y) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+x+" "+y);
+  }
+
+  void noteBranchBytecode (int i, String bcode, int off,
+                           int bt) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
+  }
+
+  void noteTableswitchBytecode (int i, int l, int h, int d) throws VM_PragmaNoInline {
+    noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
+  }
+
+  void noteLookupswitchBytecode (int i, int n, int d) throws VM_PragmaNoInline {
+    noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
+  }
+  
 
   /* Handling backward branch references */
 

@@ -406,61 +406,61 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       }
 
       case JBC_aconst_null: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aconst_null ");
+	if (shouldPrint) asm.noteBytecode(biStart, "aconst_null");
 	emit_aconst_null();
 	break;
       }
 
       case JBC_iconst_m1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1");
 	emit_iconst(-1);
 	break;
       }
 
       case JBC_iconst_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_0 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_0");
 	emit_iconst(0);
 	break;
       }
 
       case JBC_iconst_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_1 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_1");
 	emit_iconst(1);
 	break;
       }
 
       case JBC_iconst_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_2 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_2");
 	emit_iconst(2);
 	break;
       }
 
       case JBC_iconst_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_3 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_3");
 	emit_iconst(3);
 	break;
       }
 
       case JBC_iconst_4: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_4 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_4");
 	emit_iconst(4);
 	break;
       }
 
       case JBC_iconst_5: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_5 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "iconst_5");
 	emit_iconst(5);
 	break;
       }
 
       case JBC_lconst_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lconst_0 ");  // floating-point 0 is long 0
+	if (shouldPrint) asm.noteBytecode(biStart, "lconst_0");  // floating-point 0 is long 0
 	emit_lconst(0);
 	break;
       }
 
       case JBC_lconst_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lconst_1 ");
+	if (shouldPrint) asm.noteBytecode(biStart, "lconst_1");
 	emit_lconst(1);
 	break;
       }
@@ -497,21 +497,21 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_bipush: {
 	int val = bcodes.getByteValue();
-	if (shouldPrint) asm.noteBytecode(biStart, "bipush " + val);
+	if (shouldPrint) asm.noteBytecode(biStart, "bipush", val);
 	emit_iconst(val);
 	break;
       }
 
       case JBC_sipush: {
 	int val = bcodes.getShortValue();
-	if (shouldPrint) asm.noteBytecode(biStart, "sipush " + val);
+	if (shouldPrint) asm.noteBytecode(biStart, "sipush", val);
 	emit_iconst(val);
 	break;
       }
 
       case JBC_ldc: {
 	int index = bcodes.getConstantIndex();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "ldc", index);
 	int offset = klass.getLiteralOffset(index);
 	emit_ldc(offset);
 	break;
@@ -519,7 +519,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_ldc_w: {
 	int index = bcodes.getWideConstantIndex();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc_w " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "ldc_w", index);
 	int offset = klass.getLiteralOffset(index);
 	emit_ldc(offset);
 	break;
@@ -527,7 +527,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_ldc2_w: {
 	int index = bcodes.getWideConstantIndex();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w", index);
 	int offset = klass.getLiteralOffset(index);
 	emit_ldc2(offset);
 	break;
@@ -535,35 +535,35 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_iload: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "iload " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "iload" , index);
 	emit_iload(index);
 	break;
       }
 
       case JBC_lload: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "lload " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "lload", index);
 	emit_lload(index);
 	break;
       }
 
       case JBC_fload: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "fload " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "fload", index);
 	emit_fload(index);
 	break;
       }
 
       case JBC_dload: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "dload " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "dload", index);
 	emit_dload(index);
 	break;
       }
 
       case JBC_aload: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "aload " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "aload", index);
 	emit_aload(index);
 	break;
       }
@@ -738,35 +738,35 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_istore: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "istore " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "istore", index);
 	emit_istore(index);
 	break;
       }
 
       case JBC_lstore: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "lstore", index);
 	emit_lstore(index);
 	break;
       }
 
       case JBC_fstore: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "fstore", index);
 	emit_fstore(index);
 	break;
       }
 
       case JBC_dstore: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "dstore", index);
 	emit_dstore(index);
 	break;
       }
 
       case JBC_astore: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "astore " + index);
+	if (shouldPrint) asm.noteBytecode(biStart, "astore", index);
 	emit_astore(index);
 	break;
       }
@@ -1213,7 +1213,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_iinc: {
 	int index = bcodes.getLocalNumber();
 	int val = bcodes.getIncrement();
-	if (shouldPrint) asm.noteBytecode(biStart, "iinc " + index + " " + val);
+	if (shouldPrint) asm.noteBytecode(biStart, "iinc",index, val);
 	emit_iinc(index, val);
 	break;
       }
@@ -1341,7 +1341,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifeq: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifeq " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifeq", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifeq(bTarget);
 	break;
@@ -1350,7 +1350,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifne: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifne " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifne", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifne(bTarget);
 	break;
@@ -1359,7 +1359,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_iflt: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "iflt " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "iflt", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_iflt(bTarget);
 	break;
@@ -1368,7 +1368,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifge: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifge " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifge", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifge(bTarget);
 	break;
@@ -1377,7 +1377,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifgt: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifgt " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifgt", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifgt(bTarget);
 	break;
@@ -1386,7 +1386,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifle: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifle " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifle", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifle(bTarget);
 	break;
@@ -1395,7 +1395,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_icmpeq: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpeq " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpeq", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_icmpeq(bTarget);
 	break;
@@ -1404,7 +1404,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_icmpne: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpne " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpne", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_icmpne(bTarget);
 	break;
@@ -1413,7 +1413,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_icmplt: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmplt " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmplt", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_icmplt(bTarget);
 	break;
@@ -1422,7 +1422,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_icmpge: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpge " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpge", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_icmpge(bTarget);
 	break;
@@ -1431,7 +1431,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_icmpgt: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpgt " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpgt", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_icmpgt(bTarget);
 	break;
@@ -1440,7 +1440,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_icmple: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmple " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmple", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_icmple(bTarget);
 	break;
@@ -1449,7 +1449,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_acmpeq: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_acmpeq " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpeq", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_acmpeq(bTarget);
 	break;
@@ -1458,7 +1458,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_if_acmpne: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "if_acmpne " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpne", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_if_acmpne(bTarget);
 	break;
@@ -1467,7 +1467,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_goto: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset; // bi has been bumped by 3 already
-	if (shouldPrint) asm.noteBytecode(biStart, "goto " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "goto", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_goto(bTarget);
 	break;
@@ -1476,14 +1476,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_jsr: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "jsr " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr", offset, bTarget);
 	emit_jsr(bTarget);
 	break;
       }
 
       case JBC_ret: {
 	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "ret " +index);
+	if (shouldPrint) asm.noteBytecode(biStart, "ret ", index);
 	emit_ret(index);
 	break;
       }
@@ -1493,7 +1493,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	int defaultval = bcodes.getDefaultSwitchOffset();
 	int low = bcodes.getLowSwitchValue();
 	int high = bcodes.getHighSwitchValue();
-	if (shouldPrint) asm.noteBytecode(biStart, "tableswitch [" + low + "--" + high + "] " + defaultval);
+	if (shouldPrint) asm.noteTableswitchBytecode(biStart, low, high, defaultval);
 	emit_tableswitch(defaultval, low, high);
 	break;
       }
@@ -1502,7 +1502,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	bcodes.alignSwitch();
 	int defaultval = bcodes.getDefaultSwitchOffset();
 	int npairs = bcodes.getSwitchLength();
-	if (shouldPrint) asm.noteBytecode(biStart, "lookupswitch [<" + npairs + ">]" + defaultval);
+	if (shouldPrint) asm.noteLookupswitchBytecode(biStart, npairs, defaultval);
 	emit_lookupswitch(defaultval, npairs);
 	break;
       }
@@ -1551,9 +1551,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_getstatic: {
 	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + fieldRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "getstatic", fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic ", fieldRef);
 	  emit_unresolved_getstatic(fieldRef);
 	} else {
 	  emit_resolved_getstatic(fieldRef);
@@ -1563,9 +1563,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       
       case JBC_putstatic: {
 	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + fieldRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "putstatic", fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic ", fieldRef);
 	  emit_unresolved_putstatic(fieldRef);
 	} else {
 	  emit_resolved_putstatic(fieldRef);
@@ -1575,9 +1575,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_getfield: {
 	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + fieldRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield ", fieldRef);
 	  emit_unresolved_getfield(fieldRef);
 	} else {
 	  emit_resolved_getfield(fieldRef);
@@ -1587,9 +1587,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_putfield: {
 	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + fieldRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "putfield", fieldRef);
 	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield "+fieldRef);
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield ", fieldRef);
 	  emit_unresolved_putfield(fieldRef);
 	} else {
 	  emit_resolved_putfield(fieldRef);
@@ -1612,7 +1612,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	//-#endif
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + methodRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual", methodRef);
 	if (methodRef.getType().isMagicType()) {
 	  if (emit_Magic(methodRef)) {
 	    break;
@@ -1620,7 +1620,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	} 
 
 	if (methodRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
 	} else {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
@@ -1649,7 +1649,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	}
 	//-#endif
 	VM_MethodReference methodRef = bcodes.getMethodReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + methodRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
 	VM_Method target = methodRef.resolveInvokeSpecial();
 	if (target != null) {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
@@ -1682,13 +1682,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	//-#endif
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + methodRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
 	if (methodRef.getType().isMagicType()) {
 	  if (emit_Magic(methodRef))
 	    break;
 	}
 	if (methodRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef);
 	  emit_unresolved_invokestatic(methodRef);
 	} else {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
@@ -1720,8 +1720,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	bcodes.alignInvokeInterface();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + methodRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface "+methodRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
 	emit_invokeinterface(methodRef); 
 
 	//-#if RVM_WITH_OSR
@@ -1741,8 +1741,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_new: {
 	VM_TypeReference typeRef = bcodes.getTypeReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "new " + typeRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+typeRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef);
 	VM_Type type = typeRef.peekResolvedType();
 	if (type != null && (type.isInitialized() || type.isInBootImage())) { 
 	  emit_resolved_new(type.asClass());
@@ -1756,8 +1756,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	int atype = bcodes.getArrayElementType();
 	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
 	if (VM.VerifyAssertions) VM._assert(array.isResolved());
-	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + atype + "(" + array + ")");
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
+	if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array);
 	emit_resolved_newarray(array);
 	break;
       }
@@ -1766,8 +1766,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	VM_TypeReference elementTypeRef = bcodes.getTypeReference();
 	VM_TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
 
-	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + arrayRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+arrayRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef);
 	
 	if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
 	  VM._assert(false, "During compilation of " + method 
@@ -1810,7 +1810,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
       case JBC_checkcast: {
 	VM_TypeReference typeRef = bcodes.getTypeReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + typeRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "checkcast", typeRef);
 	VM_Type type = typeRef.peekResolvedType();
 	if (type != null) {
 	  if (type.isClassType()) {
@@ -1834,14 +1834,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	    break;
 	  }
 	}
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast "+typeRef);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast ", typeRef);
 	emit_checkcast(typeRef);
 	break;
       }
 
       case JBC_instanceof: {
 	VM_TypeReference typeRef = bcodes.getTypeReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + typeRef);
+	if (shouldPrint) asm.noteBytecode(biStart, "instanceof", typeRef);
 	VM_Type type = typeRef.peekResolvedType();
 	if (type != null) {
 	  if (type.isClassType()) {
@@ -1861,7 +1861,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	    }
 	  }
 	}
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof "+typeRef);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof ", typeRef);
 	emit_instanceof(typeRef);
 	break;
       }
@@ -1885,63 +1885,63 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	int index = bcodes.getWideLocalNumber();
 	switch (widecode) {
 	case JBC_iload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide iload " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide iload", index);
 	  emit_iload(index);
 	  break;
 	}
 	case JBC_lload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide lload " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide lload", index);
 	  emit_lload(index);
 	  break;
 	}
 	case JBC_fload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide fload " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide fload", index);
 	  emit_fload(index);
 	  break;
 	}
 	case JBC_dload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide dload " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide dload", index);
 	  emit_dload(index);
 	  break;
 	}
 	case JBC_aload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide aload " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide aload", index);
 	  emit_aload(index);
 	  break;
 	}
 	case JBC_istore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide istore " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide istore", index);
 	  emit_istore(index);
 	  break;
 	}
 	case JBC_lstore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide lstore " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide lstore", index);
 	  emit_lstore(index);
 	  break;
 	}
 	case JBC_fstore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide fstore " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide fstore", index);
 	  emit_fstore(index);
 	  break;
 	}
 	case JBC_dstore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide dstore " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide dstore", index);
 	  emit_dstore(index);
 	  break;
 	}
 	case JBC_astore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide astore " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide astore", index);
 	  emit_astore(index);
 	  break;
 	}
 	case JBC_iinc: {
 	  int val = bcodes.getWideIncrement();
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide inc " + index + " by " + val);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide inc", index, val);
 	  emit_iinc(index, val);
 	  break;
 	}
 	case JBC_ret: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide ret " + index);
+	  if (shouldPrint) asm.noteBytecode(biStart, "wide ret", index);
 	  emit_ret(index);
 	  break;
 	}
@@ -1954,7 +1954,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_multianewarray: {
 	VM_TypeReference typeRef = bcodes.getTypeReference();
 	int dimensions        = bcodes.getArrayDimension();
-	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray " + typeRef + dimensions);
+	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray", typeRef);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray");
 	emit_multianewarray(typeRef, dimensions);
 	break;
@@ -1963,7 +1963,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifnull: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifnull " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnull", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifnull(bTarget);
 	break;
@@ -1972,7 +1972,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_ifnonnull: {
 	int offset = bcodes.getBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "ifnonnull " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnonnull", offset, bTarget);
 	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_ifnonnull(bTarget);
 	break;
@@ -1981,7 +1981,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_goto_w: {
 	int offset = bcodes.getWideBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "goto_w " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "goto_w", offset, bTarget);
 	if(offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
 	emit_goto(bTarget);
 	break;
@@ -1990,7 +1990,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       case JBC_jsr_w: {
 	int offset = bcodes.getWideBranchOffset();
 	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBytecode(biStart, "jsr_w " + offset + " [" + bTarget + "] ");
+	if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr_w", offset, bTarget);
 	emit_jsr(bTarget);
 	break;
       }
@@ -2006,7 +2006,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	case PSEUDO_LoadIntConst: {
 	  int value = bcodes.readIntConst();
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int "+value);
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
 	  
 	  int slot = VM_Statics.findOrCreateIntLiteral(value);
 	  int offset = slot << LOG_BYTES_IN_INT;
@@ -2018,7 +2018,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	case PSEUDO_LoadLongConst: {
 	  long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
  
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long "+value);
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
 	  
 	  int slot = VM_Statics.findOrCreateLongLiteral(value);
 	  int offset = slot << LOG_BYTES_IN_INT;
@@ -2030,7 +2030,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	case PSEUDO_LoadFloatConst: {
 	  int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
 	  
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float "+ibits);
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
 	  
 	  int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
 	  int offset = slot << LOG_BYTES_IN_INT;
@@ -2042,7 +2042,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	case PSEUDO_LoadDoubleConst: {
 	  long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double "+lbits);
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
 	  
 	  int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
 	  int offset = slot << LOG_BYTES_IN_INT;
@@ -2054,7 +2054,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	case PSEUDO_LoadAddrConst: {
 	  int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_addr "+bcIndex);
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_addr", bcIndex);
 	  // for bytecode to get future bytecode's address
 	  // we register it and patch it later.
 	  emit_loadaddrconst(bcIndex);
@@ -2077,7 +2077,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	    break;
 	  }
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic "+methodRef.toString());
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
 	  emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
 	  break;
 	}
@@ -2096,7 +2096,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	  int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
 	  int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid "+cmid);
+	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
 	  
 	  this.pendingCMID = cmid;
 	  this.pendingIdx = origIdx+this.method.getOsrPrologueLength();
@@ -2116,7 +2116,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	}
 	default:
 	  if (VM.TraceOnStackReplacement) VM.sysWrite("Unexpected PSEUDO code "
-				 +VM.intAsHexString(pseudo_opcode)+"\n");
+                                                      +VM.intAsHexString(pseudo_opcode)+"\n");
 	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 	  break;
 	}
@@ -2166,8 +2166,19 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
    * Uninterruptible code.
    * 
    * @param msg description of bytecode that is violating the invariant
+   * @param obj object that provides further information
    */
-  protected final void forbiddenBytecode(String msg) {
+  protected final void forbiddenBytecode(String msg, Object obj) throws VM_PragmaNoInline {
+    forbiddenBytecode(msg+obj);
+  }
+
+  /**
+   * Print a warning message whan we compile a bytecode that is forbidden in
+   * Uninterruptible code.
+   * 
+   * @param msg description of bytecode that is violating the invariant
+   */
+  protected final void forbiddenBytecode(String msg) throws VM_PragmaNoInline {
     if (!VM.ParanoidVerifyUnint && VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; //Programmer has asserted that we don't have to do checking for this method.
     VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
   }
