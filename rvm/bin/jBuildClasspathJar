@@ -21,11 +21,6 @@ CVS_SPIN_ATTEMPTS=5
 CVS_SLEEP_ATTEMPTS=5
 
 ##
-## read local config
-##
-. ${RVM_HOST_CONFIG:?$ME: The environment variable RVM_HOST_CONFIG is not set!  Aborting!}
-
-##
 ## defaults
 ##
 export CHECK=0
