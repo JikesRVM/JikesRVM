@@ -85,7 +85,7 @@ public class Throwable implements java.io.Serializable {
   public int maxOutOfMemoryErrors = 5; /* again, a guess at a good value.
 					  Resettable if the user wants to. */
   public void tallyOutOfMemoryError() {
-    if (++numWeirdErrors >= maxWeirdErrors) {
+    if (++numOutOfMemoryErrors >= maxOutOfMemoryErrors) {
       /* We exit before printing, in case we're in some weird hell where
 	 everything is broken, even VM.sysWriteln().. */
       VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
