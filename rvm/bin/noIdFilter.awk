@@ -12,29 +12,25 @@
 #
 # Files that don't have a CVS/RCS $Id tag.
 #
-/\/bin\/classpath.stamp/ { next }
-/\/bin\/ids\/rvmrt.stamp/ { next }
-/\/bin\/ids\/set\/R-/ { next }
+/\/bin\/classpath\.stamp/ { next }
 
 /\/doc\/userguide\// { next }
 
-/\/regression\/tests\/javalex\/qb1.lex.ref/ {next}
+/\/regression\/tests\/javalex\/qb1\.lex\.ref/ {next}
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ { next }
 /\/regression\/tests\/mauve\/mauve-jikesrvm/ {next}
 
-/\/src\/tools\/preprocessor\/testFancy.preprocessor/ { next }
-/\/src\/tools\/preprocessor\/testSimple.preprocessor/ { next }
+/\/src\/tools\/preprocessor\/testFancy\.preprocessor/ { next }
+/\/src\/tools\/preprocessor\/testSimple\.preprocessor/ { next }
 
-/\/tools\/bootImageRunner\/VM_0005fInetAddress.h/ { next }
-/\/tools\/bootImageWriter\/rvm.security/ { next }
+/\/tools\/bootImageRunner\/VM_0005fInetAddress\.h/ { next }
+/\/tools\/bootImageWriter\/rvm\.security/ { next }
 /\/tools\/jburg\/COPYRIGHT/ { next }
-
-/\/ids\/rvmrt.stamp/ { next }
 
 /\/ReleaseNotes-/ { next }
 
-/\/TimeLimit.sanity/ { next }
-/\/TimeLimit.performance/ { next }
+/\/TimeLimit\.sanity/ { next }
+/\/TimeLimit\.performance/ { next }
 
 /\.properties$/ { next }
 /\.properties\.sample$/ { next }
