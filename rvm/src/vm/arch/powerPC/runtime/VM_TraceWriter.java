@@ -166,6 +166,9 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
     VM_Magic.setIntAtOffset(buffer, index, version_number);
     index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
     // write name of header file
+    if(VM_HardwarePerformanceMonitors.verbose>=4) {
+      VM.sysWriteln("VM_TraceWriter.writeHeader() write headerFilename \"",VM_HardwarePerformanceMonitors.hpm_info.headerFilename(),"\"");
+    }
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, VM_HardwarePerformanceMonitors.hpm_info.headerFilename().getBytes());
 
     // write header to file.

@@ -1044,7 +1044,7 @@ public class VM_HardwarePerformanceMonitors
   {
     int length = bytes.length;
     if(verbose>=4) {
-      VM.sysWriteln("VM_HPMs.writeStringToBuffer(",index,") with bytes.length ",length);
+      VM.sysWriteln(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ",length);
     }
     VM_Magic.setIntAtOffset(buffer, index, length);		index += SIZE_OF_INT;
     for (int i=0; i<length; i++) {

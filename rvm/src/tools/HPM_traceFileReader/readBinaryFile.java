@@ -37,7 +37,7 @@ class readBinaryFile
     for (int i=0; i<args.length; i++) {
       String arg = args[i];
       if (arg.charAt(0) != '-') {
-	if(debug>=2)System.out.println("CommandLineOptions.processArgs() filenames = \""+arg+"\"");
+	if(debug>=2)System.out.println("main() filenames = \""+arg+"\"");
 	filename = arg;
       } else if (arg.compareTo("-length") == 0) {
 	String Length = args[++i];
@@ -46,6 +46,9 @@ class readBinaryFile
 	} catch (NumberFormatException e) {
 	  System.out.println("***main() -length "+Length+" throws NumberFormatException!***");
 	}
+      } else {
+	System.err.println("***main() unrecognized command line argument \""+arg+"\"!***");
+	usage();
       }
     }
 
