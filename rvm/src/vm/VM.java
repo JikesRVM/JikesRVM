@@ -960,6 +960,8 @@ public class VM extends VM_Properties
 
   public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); writeln(); swUnlock(); }
 
+  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8, String s9, String s10, String s11, String s12, String s13, int i14)             throws NoInlinePragma { swLock(); showProc(); showThread(); write(s1); write(s2); write(s3); write(s4); write(s5); write(s6); write(s7); write(i8); write(s9); write(s10); write(s11); write(s12); write(s13); write(i14); writeln(); swUnlock(); }
+  
   public static void psysWrite    (char [] c, int l)     throws NoInlinePragma { swLock(); showProc(); write(c, l); swUnlock(); }
 
   public static void psysWriteln (Address a)         throws NoInlinePragma { swLock(); showProc(); write(a); writeln(); swUnlock(); }
@@ -1016,6 +1018,28 @@ public class VM extends VM_Properties
 
     // print a traceback and die
     VM_Scheduler.traceback(message);
+    if (VM.runningVM)
+      VM.shutdown(exitStatusSysFail);
+    else
+      VM.sysExit(exitStatusSysFail);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /**
+   * Exit virtual machine due to internal failure of some sort.  This
+   * two-argument form is  needed for us to call before the VM's Integer class
+   * is initialized.   
+   *
+   * @param message  error message describing the problem
+   * @param number  an integer to append to <code>message</code>.  
+   */
+  public static void sysFail(String message, int number) 
+    throws NoInlinePragma 
+  {
+    handlePossibleRecursiveCallToSysFail(message, number);
+
+    // print a traceback and die
+    VM_Scheduler.traceback(message, number);
     if (VM.runningVM)
       VM.shutdown(exitStatusSysFail);
     else
@@ -1083,25 +1107,52 @@ public class VM extends VM_Properties
     handlePossibleRecursiveExit("sysFail", ++inSysFail, message);
   }
 
+  private static void handlePossibleRecursiveCallToSysFail(String message, 
+                                                           int number) 
+  {
+    handlePossibleRecursiveExit("sysFail", ++inSysFail, message, number);
+  }
+
 
   private static int inSysExit = 0;
   private static void handlePossibleRecursiveCallToSysExit() {
-    handlePossibleRecursiveExit("sysExit", ++inSysExit, null);
+    handlePossibleRecursiveExit("sysExit", ++inSysExit);
   }
 
   private static int inShutdown = 0;
   /** Used only by VM.shutdown() */
   private static void handlePossibleRecursiveShutdown() {
-    handlePossibleRecursiveExit("shutdown", ++inShutdown, null);
+    handlePossibleRecursiveExit("shutdown", ++inShutdown);
   }
   
-  /** @param called Name of the function called: "sysExit", "sysFail", or
-   * "shutdown".
-   * @param depth How deep are we in that function?
-   * @param message What message did it have?  null means this particular
-   * shutdown function  does not come with a message. */
+  private static void handlePossibleRecursiveExit(String called, int depth) {
+    handlePossibleRecursiveExit(called, depth, null);
+  }
+
   private static void handlePossibleRecursiveExit(String called, int depth, 
                                                   String message) {
+    handlePossibleRecursiveExit(called, depth, message, false, -9999999);
+  }
+
+  private static void handlePossibleRecursiveExit(String called, int depth, 
+                                                  String message, int number) {
+    handlePossibleRecursiveExit(called, depth, message, true, number);
+  }
+
+
+  /** @param called Name of the function called: "sysExit", "sysFail", or
+   *    "shutdown".
+   * @param depth How deep are we in that function?
+   * @param message What message did it have?  null means this particular
+   *    shutdown function  does not come with a message.
+   * @param showNumber Print <code>number</code> following
+   *    <code>message</code>? 
+   * @param number Print this number, if <code>showNumber</code> is true. */
+  private static void handlePossibleRecursiveExit(String called, int depth, 
+                                                  String message,
+                                                  boolean showNumber,
+                                                  int number) 
+  {
     /* We adjust up by nProcessorAdjust since we do not want to prematurely
        abort.  Consider the case where VM_Scheduler.numProcessors is greater
        than maxSystemTroubleRecursionDepth.  (This actually happened.)
@@ -1115,14 +1166,26 @@ public class VM extends VM_Properties
             + nProcessorAdjust
             + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) 
     {
-      ptsysWriteln("VM.", called, "(): We're in a",
-                   depth > nProcessors ? "n (unambiguously)" : " (likely)",
-                   " recursive call to VM.", called, "(), ", depth, 
-                   " deep\n",
-                   message == null ? "" : "   ", 
-                   message == null ? "" : called, 
-                   message == null ? "": " was called with the message: ", 
-                   message == null ? "" : message);
+      if (showNumber) {
+        ptsysWriteln("VM.", called, "(): We're in a",
+                     depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                     " recursive call to VM.", called, "(), ", depth, 
+                     " deep\n",
+                     message == null ? "" : "   ", 
+                     message == null ? "" : called, 
+                     message == null ? "": " was called with the message: ", 
+                     message == null ? "" : message, 
+                     number);
+      } else {
+        ptsysWriteln("VM.", called, "(): We're in a",
+                     depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                     " recursive call to VM.", called, "(), ", depth, 
+                     " deep\n",
+                     message == null ? "" : "   ", 
+                     message == null ? "" : called, 
+                     message == null ? "": " was called with the message: ", 
+                     message == null ? "" : message);
+      }
     }
     if (depth > maxSystemTroubleRecursionDepth + nProcessorAdjust) {
       dieAbruptlyRecursiveSystemTrouble();
