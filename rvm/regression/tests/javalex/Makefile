@@ -34,8 +34,4 @@ endif
 	$(MAKE) START_ARGS=$< sanity-check-rule
 
 check:
-ifeq ($(CLASSPATH_LIBRARIES),YES)
-	@diff $(START_ARGS).java qb1.lex.ref.classpath
-else
-	@diff $(START_ARGS).java qb1.lex.ref.oldlibs
-endif
+@diff $(START_ARGS).java qb1.lex.ref.classpath

@@ -40,18 +40,10 @@ vpath %.class		$(BENCH_CLASS_CP)
 #
 # how to compile
 #
-ifeq (x$(CLASSPATH_LIBRARIES),YES)
-  ALL_PATH = $(BENCH_SOURCE_PATH) \
-	     $(BENCH_CLASS_PATH) \
-	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
-	     $(JAL_BUILD)/RVM.classes/rvmrt.jar
-else
-  ALL_PATH = $(BENCH_SOURCE_PATH) \
-	     $(BENCH_CLASS_PATH) \
-	     $(JAL_BUILD)/RVM.classes/jksvm.jar \
-	     $(JAL_BUILD)/RVM.classes/rvmrt.jar \
-	     $(HOST_REPOSITORIES)
-endif
+ALL_PATH = $(BENCH_SOURCE_PATH) \
+	   $(BENCH_CLASS_PATH) \
+	   $(JAL_BUILD)/RVM.classes/jksvm.jar \
+	   $(JAL_BUILD)/RVM.classes/rvmrt.jar
 
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
