@@ -218,7 +218,7 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos >= (dstPos+4)) {
-	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
+	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
@@ -241,7 +241,7 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos >= (dstPos+4)) {
-	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
+	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
