@@ -731,9 +731,9 @@ public class VM extends VM_Properties implements VM_Constants,
    *                              false - print as decimal only
    */
   public static void write(long value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    if (runningVM) {
+    if (runningVM) 
       VM_SysCall.sysWriteLong(value, hexToo?1:0);
-    } else
+    else
       System.err.print(value);
   }
 
