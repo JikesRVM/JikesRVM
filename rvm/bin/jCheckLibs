@@ -162,7 +162,7 @@ cat <<EOF
 Version [$revision] of rvmrt.jar is required for this build.
 
 You can download this revision from
-http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries?rev=$revision.
+http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries?rev=$revision
 EOF
 if [[ x$license = x || x$WGET = x ]] ; then
   exit 1
