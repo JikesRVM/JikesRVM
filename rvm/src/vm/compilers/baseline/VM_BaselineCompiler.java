@@ -33,10 +33,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    */
   public static VM_BaselineOptions options;
 
-  /** 
-   * Holds the options as the command line is being processed. 
+  /**
+   * has fullyBootedVM been called by VM.boot?
    */
-  protected static VM_BaselineOptions setUpOptions;
+  protected static boolean fullyBootedVM = false;
 
   /**
    * The method being compiled
@@ -111,6 +111,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 		    (!options.hasMETHOD_TO_PRINT() ||
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
+    if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
+    if (shouldPrint && !fullyBootedVM) {
+      shouldPrint = false;
+      if (options.PRINT_METHOD) {
+	VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
+      }
+    }
+
     klass = method.getDeclaringClass();
     //-#if RVM_WITH_OSR
     // new synthesized bytecodes for osr
@@ -129,30 +137,29 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    */
   static void initOptions() {
     options = new VM_BaselineOptions();
-    setUpOptions = new VM_BaselineOptions();
   }
 
   /**
-   * After all the command line options have been processed, set up the official version of the options
-   * that will be used during execution. Do any error checks that are needed.
+   * Now that VM is fully booted, enable options 
+   * such as PRINT_MACHINE_CODE that require a fully booted VM.
    */
-  static void postBootOptions() {
-    // If the user has requested machine code dumps, then force a test of method to print option so
-    // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
-    // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
-    // for the check.
-    if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
+  static void fullyBootedVM() {
+    // If the user has requested machine code dumps, then force a test 
+    // of method to print option so extra classes needed to process 
+    // matching will be loaded and compiled upfront. Thus avoiding getting
+    // stuck looping by just asking if we have a match in the middle of 
+    // compilation. Pick an obsure string for the check.
+    if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
     //-#if !RVM_WITH_ADAPTIVE_SYSTEM
-    if (setUpOptions.PRELOAD_CLASS != null) {
+    if (options.PRELOAD_CLASS != null) {
       VM.sysWrite("Option preload_class should only be used when the optimizing compiler is the runtime");
       VM.sysWrite(" compiler or in an adaptive system\n");
       VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
     //-#endif
-
-    options = setUpOptions;   // Switch to the version with the user command line processed
+    fullyBootedVM = true;
   }
 
   /**
@@ -161,15 +168,11 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * @param arg     Command line argument with prefix stripped off
    */
   public static void processCommandLineArg(String prefix, String arg) {
-    if (setUpOptions != null) {
-      if (setUpOptions.processAsOption(prefix, arg)) {
-	return;
-      } else {
-	VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-      }
+    if (options.processAsOption(prefix, arg)) {
+      return;
     } else {
-      VM.sysWrite("VM_BaselineCompiler: Compiler setUpOptions not enabled; Ignoring argument \""+ arg + "\"\n");
+      VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
+      VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
   }
 
@@ -191,7 +194,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * Top level driver for baseline compilation of a method.
    */
   protected void compile() {
-    if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
 
     VM_ReferenceMaps refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);

@@ -114,7 +114,7 @@ public class VM extends VM_Properties implements VM_Constants,
     // Reset the options for the baseline compiler to avoid carrying 
     // them over from bootimage writing time.
     // 
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up baseline compiler options");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
@@ -243,19 +243,15 @@ public class VM extends VM_Properties implements VM_Constants,
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 
-    ///////////////////////////////////////////
-    // The VM is fully booted at this point. //
-    ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////
+    // The VM is now fully booted.                               //
+    // By this we mean that we can execute arbitrary Java code.  //
+    ///////////////////////////////////////////////////////////////
+    if (verboseBoot >= 1) VM.sysWriteln("VM is now fully booted");
     
-    // Inform memory manager that VM is fully booted.
+    // Inform interested subsystems that VM is fully booted.
     MM_Interface.fullyBootedVM();
-
-    // Allow Baseline compiler to respond to command line arguments.
-    // Must wait until VM is fully booted because some options
-    // enable actions (eg dumping machine code) that require a fully booted VM.
-    //
-    if (verboseBoot >= 1) VM.sysWriteln("Compiler processing rest of boot options");
-    VM_BaselineCompiler.postBootOptions();
+    VM_BaselineCompiler.fullyBootedVM();
 
     // Allow profile information to be read in from a file
     // 
