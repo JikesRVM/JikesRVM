@@ -561,14 +561,21 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   static void traceback(String message) {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     lockOutput();
-    tracebackWithoutLock(message);
+    VM.sysWriteln(message);
+    tracebackWithoutLock();
+    unlockOutput();
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+  }
+  static void traceback(String message, int number) {
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    lockOutput();
+    VM.sysWriteln(message, number);
+    tracebackWithoutLock();
     unlockOutput();
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
-  static void tracebackWithoutLock(String message) {
-    VM.sysWrite(message);
-    VM.sysWrite("\n");
+  static void tracebackWithoutLock() {
 
     dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
 
