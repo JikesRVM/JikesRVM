@@ -2546,7 +2546,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	// Call uncommon case typechecking routine to do the right thing when this code actually executes.
 	asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitLI (T0, methodRef.getId());            // id of method reference we are trying to call
+	asm.emitLVAL (T0, methodRef.getId());            // id of method reference we are trying to call
 	peekAddr(T1, count-1);           // the "this" object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
 	asm.emitBCCTRL();                 // throw exception, if link error
