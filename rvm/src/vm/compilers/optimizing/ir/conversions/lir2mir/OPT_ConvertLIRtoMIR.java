@@ -66,42 +66,22 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    //-#endif
 	    }
 	    else 
-		// array_ref[ARRAY_LENGTH_OFFSET] contains the length
+		// array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
 		Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			    GuardedUnary.getClearVal(s), I(ARRAY_LENGTH_OFFSET), 
+			    GuardedUnary.getClearVal(s),
+                            I(VM_ObjectModel.getArrayLengthOffset()), 
 			    new OPT_LocationOperand(), 
 			    GuardedUnary.getClearGuard(s));
 	  }
 	  break;
 
-	case GET_OBJ_STATUS_opcode:
-	  {
-	    // TODO: Valid location operand?
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(OBJECT_STATUS_OFFSET), null, 
-			GuardedUnary.getClearGuard(s));
-	  }
-	  break;
-
-        case SET_OBJ_STATUS_opcode:
-          {
-            Store.mutate(s, INT_STORE, GuardedSet.getClearVal(s),
-                GuardedSet.getClearRef(s), I(OBJECT_STATUS_OFFSET), null,
-                GuardedSet.getClearGuard(s));
-          }
-          break;
-
 	case GET_OBJ_TIB_opcode:
 	  {
-	    // TODO: Valid location operand?
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(OBJECT_TIB_OFFSET), null, 
-			GuardedUnary.getClearGuard(s));
+	    VM_ObjectModel.lowerGET_OBJ_TIB(s, ir);
 	  }
 	  break;
 
+	  //-#if RVM_WITH_REALTIME_GC
 	case GET_OBJ_RAW_opcode:
 	  {
 	    OPT_Operand address = GuardedUnary.getClearVal(s);
@@ -110,6 +90,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 			GetField.getClearGuard(s));
 	  }
 	  break;
+	  //-#endif
 
 	case GET_CLASS_TIB_opcode:
 	  {

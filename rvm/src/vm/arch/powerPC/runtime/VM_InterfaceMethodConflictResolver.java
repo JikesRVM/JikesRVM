@@ -71,7 +71,7 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
   // factor out to reduce code space in each call.
   //
   private static void insertStubPrologue (VM_Assembler asm) {
-    asm.emitL(S0, OBJECT_TIB_OFFSET, T0);
+    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
   }
 
   // Generate a subtree covering from low to high inclusive.

@@ -23,7 +23,7 @@ public final class VM_CycleBuffer
 
     // CONSTANTS
 
-    private static final int BUFFERSIZE = (GC_BLOCKSIZE - ARRAY_HEADER_SIZE) >> 2;
+    private static final int BUFFERSIZE = (GC_BLOCKSIZE - VM_JavaHeader.MINIMUM_HEADER_SIZE) >> 2;
     
     private static final boolean FREECYCLES  = true;
 
@@ -418,7 +418,7 @@ public final class VM_CycleBuffer
 	} 
 
 	if (VM_RCGC.referenceCountTIBs)
-	    VM_Allocator.decrementRC(VM_Magic.getMemoryWord(object + OBJECT_TIB_OFFSET)); // or cyclicDecrementRC?
+	    VM_Allocator.decrementRC(VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(object))); // or cyclicDecrementRC?
     }
 
 
@@ -492,7 +492,7 @@ public final class VM_CycleBuffer
 	} 
 
 	if (VM_RCGC.referenceCountTIBs)
-	    VM_Allocator.decrementRC(VM_Magic.getMemoryWord(object + OBJECT_TIB_OFFSET)); // or cyclicDecrementRC?
+	  VM_Allocator.decrementRC(VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(object))); // or cyclicDecrementRC?
     }
 
 

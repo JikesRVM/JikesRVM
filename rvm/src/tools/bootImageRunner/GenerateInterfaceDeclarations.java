@@ -267,8 +267,8 @@ class GenerateInterfaceDeclarations {
         + VM_Constants.STACK_SIZE_GUARD + ";\n");
     System.out.print("static const int VM_Constants_INVISIBLE_METHOD_ID        = "
         + VM_Constants.INVISIBLE_METHOD_ID + ";\n");
-    System.out.print("static const int VM_Constants_OBJECT_THREAD_ID_SHIFT     = "
-        + VM_Constants.OBJECT_THREAD_ID_SHIFT + ";\n");
+    System.out.print("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT = "
+        + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
     System.out.print("static const int VM_Constants_STACKFRAME_HEADER_SIZE             = "
         + VM_Constants.STACKFRAME_HEADER_SIZE + ";\n");
     System.out.print("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET        = "

@@ -323,6 +323,17 @@ public class VM_Class extends VM_Type
   }
 
   /**
+   * Does this object implement the VM_SynchronizedObject interface?
+   * @see VM_SynchronizedObject
+   */ 
+  final boolean isSynchronizedObject() {
+    VM_Class[] interfaces = getDeclaredInterfaces();
+    for (int i = 0, n = interfaces.length; i < n; ++i)
+      if (interfaces[i].isSynchronizedObjectType()) return true;
+    return false;
+  }
+
+  /**
    * Should the methods of this class be compiled with special 
    * register save/restore logic?
    * @see VM_DynamicBridge
@@ -435,6 +446,18 @@ public class VM_Class extends VM_Type
   public final int getInstanceSize() {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return instanceSize;
+  }
+
+  final int getInstanceSizeInternal() {
+    return instanceSize;
+  }
+
+  /**
+   * Add a field to the object; only meant to be called from VM_ObjectModel et al.
+   * must be called when lock on class object is already held (ie from resolve).
+   */
+  final void increaseInstanceSize(int numBytes) {
+    instanceSize += numBytes;
   }
 
   /**
@@ -659,7 +682,7 @@ public class VM_Class extends VM_Type
   /**
    * total size of per-instance data, in bytes
    */
-  private int          instanceSize;           
+  private int          instanceSize;  
   /**
    * offsets of reference-containing instance fields
    */
@@ -719,7 +742,7 @@ public class VM_Class extends VM_Type
     // information block (including method-slots).
     //
     if (VM.VerifyAssertions) VM.assert(TIB_TYPE_INDEX == 0);
-    Object[] tib = new Object[1];
+    Object[] tib = VM_RuntimeStructures.newTIB(1);
     tib[TIB_TYPE_INDEX] = this;
     VM_Statics.setSlotContents(tibSlot, tib);
   }
@@ -1023,7 +1046,15 @@ public class VM_Class extends VM_Type
       superClass.load();
       superClass.resolve();
       depth = 1 + superClass.depth;
+      thinLockOffset = superClass.thinLockOffset;
+      instanceSize = superClass.instanceSize;
+    } else {
+      instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
     }
+
+    if (isSynchronizedObject() || this == VM_Type.JavaLangClassType)
+      VM_ObjectModel.allocateThinLock(this);
+
     if (VM.verboseClassLoading) VM.sysWrite("[Preparing "+
                                             descriptor.classNameFromDescriptor()
                                             +"]\n");
@@ -1072,6 +1103,11 @@ public class VM_Class extends VM_Type
 	  staticMethods.addElement(method);
 	  continue;
 	}
+
+	// Now deal with virtual methods
+
+	if (method.isSynchronized())
+	  VM_ObjectModel.allocateThinLock(this);
 
 	// method could override something in superclass - check for it
 	//
@@ -1131,15 +1167,12 @@ public class VM_Class extends VM_Type
 
     // lay out instance fields
     //
-    instanceSize = SCALAR_HEADER_SIZE;
-    int fieldOffset = OBJECT_HEADER_OFFSET;
+    VM_ObjectModel.layoutInstanceFields(this);
+
+    // count reference fields and update dynamic linking data structures
     int referenceFieldCount = 0;
     for (int i = 0, n = instanceFields.length; i < n; ++i) {
       VM_Field field     = instanceFields[i];
-      int      fieldSize = field.getSize();
-      fieldOffset  -= fieldSize; // lay out fields "backwards"
-      field.offset  = fieldOffset;
-      instanceSize += fieldSize;
       if (field.getType().isReferenceType())
 	referenceFieldCount += 1;
       // Should be ok to do here instead of in initialize, because
@@ -1166,8 +1199,7 @@ public class VM_Class extends VM_Type
 
     // create "type information block" and initialize its first four words
     //
-    typeInformationBlock = 
-      new Object[TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length];
+    typeInformationBlock = VM_RuntimeStructures.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     typeInformationBlock[0] = this;
     if (VM.BuildForFastDynamicTypeCheck) {
@@ -1742,7 +1774,7 @@ public class VM_Class extends VM_Type
   // Additional fields and methods for Interfaces               //
   //------------------------------------------------------------//
 
-  private static final Object interfaceCountLock = new Object();
+  private static final Object interfaceCountLock = new VM_Synchronizer();
   private static int          interfaceCount     = 0;
   private int                 interfaceId        = -1; 
 

@@ -27,9 +27,9 @@ public class VM_GCUtil
   static int minLargeRef;
   static int maxLargeRef;
 
-  static int tibForArrayType;
-  static int tibForClassType;
-  static int tibForPrimitiveType;
+  static Object[] tibForArrayType;
+  static Object[] tibForClassType;
+  static Object[] tibForPrimitiveType;
 
   static void boot() {
     bootImageStart = VM_BootRecord.the_boot_record.startAddress;
@@ -40,28 +40,30 @@ public class VM_GCUtil
     largeEnd = largeStart + VM_BootRecord.the_boot_record.largeSize;
 
 
-    minBootRef = bootImageStart + ARRAY_HEADER_SIZE;    // start + 12
-    maxBootRef = bootImageEnd - SCALAR_HEADER_SIZE - OBJECT_HEADER_OFFSET;  // end + 4
-    minHeapRef = heapStart + ARRAY_HEADER_SIZE;    // start + 12
-    maxHeapRef = heapEnd - SCALAR_HEADER_SIZE - OBJECT_HEADER_OFFSET;  // end + 4
-    minLargeRef = largeStart + ARRAY_HEADER_SIZE;    // start + 12
-    maxLargeRef = largeEnd - SCALAR_HEADER_SIZE - OBJECT_HEADER_OFFSET;  // end + 4
+    minBootRef  = VM_ObjectModel.minimumObjectRef(bootImageStart);
+    maxBootRef  = VM_ObjectModel.maximumObjectRef(bootImageEnd);
+    minHeapRef  = VM_ObjectModel.minimumObjectRef(heapStart);
+    maxHeapRef  = VM_ObjectModel.maximumObjectRef(heapEnd);
+    minLargeRef = VM_ObjectModel.minimumObjectRef(largeStart);
+    maxLargeRef = VM_ObjectModel.maximumObjectRef(largeEnd);
 
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
-    VM_Type t = VM_Array.getPrimitiveArrayType( 10 );
-    tibForArrayType = VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(t) + OBJECT_TIB_OFFSET);
-    tibForPrimitiveType = VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(VM_Type.IntType) + OBJECT_TIB_OFFSET);
+    VM_Type t = VM_Array.getPrimitiveArrayType(10);
+    tibForArrayType = VM_ObjectModel.getTIB(t);
+    tibForPrimitiveType = VM_ObjectModel.getTIB(VM_Type.IntType);
     t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);
-    tibForClassType = VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(t) + OBJECT_TIB_OFFSET);
+    tibForClassType = VM_ObjectModel.getTIB(t);
     if (TRACE) {
-      VM_Scheduler.traceHex("VM_GCUtil.boot","tibForArrayType =", tibForArrayType);
-      VM_Scheduler.traceHex("VM_GCUtil.boot","tibForPrimitiveType =", tibForPrimitiveType);
-      VM_Scheduler.traceHex("VM_GCUtil.boot","tibForClassType =", tibForClassType);
+      VM_Scheduler.traceHex("VM_GCUtil.boot","tibForArrayType =", 
+                            VM_Magic.objectAsAddress(tibForArrayType));
+      VM_Scheduler.traceHex("VM_GCUtil.boot","tibForPrimitiveType =", 
+                            VM_Magic.objectAsAddress(tibForPrimitiveType));
+      VM_Scheduler.traceHex("VM_GCUtil.boot","tibForClassType =", 
+                            VM_Magic.objectAsAddress(tibForClassType));
     }
   }
 
-  static boolean
-  referenceInVM ( int ref ) {
+  static boolean referenceInVM(int ref) {
     if ( (ref >= minBootRef && ref <= maxHeapRef) ||
 	 (ref >= minLargeRef && ref <= maxLargeRef) )
       return true;
@@ -69,20 +71,30 @@ public class VM_GCUtil
       return false;
   }
 
-  static boolean
-  referenceInBootImage ( int ref ) {
+  static boolean referenceInVM (Object o) {
+    return referenceInVM(VM_Magic.objectAsAddress(o));
+  }
+
+  static boolean referenceInBootImage(int ref) {
     if ( (ref >= minBootRef) && (ref <= maxBootRef) )
       return true;
     else
       return false;
   }
 
-  static boolean
-  referenceInHeap ( int ref ) {
+  static boolean referenceInBootImage(Object o) {
+    return referenceInBootImage(VM_Magic.objectAsAddress(o));
+  }
+
+  static boolean referenceInHeap(int ref) {
     if ( (ref >= minHeapRef) && (ref <= maxHeapRef) )
       return true;
     else
       return false;
+  }
+
+  static boolean referenceInHeap(Object o) {
+    return referenceInHeap(VM_Magic.objectAsAddress(o));
   }
 
   // a range test used by the opt compiler. it should probably be
@@ -129,7 +141,7 @@ public class VM_GCUtil
       return false;  // type address is outside of heap
 
     // check if types tib is one of three possible values
-    int typeTib = VM_Magic.getMemoryWord(typeAddress + OBJECT_TIB_OFFSET);
+    Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
     if ( (typeTib == tibForClassType) || (typeTib == tibForArrayType) ||
 	 (typeTib == tibForPrimitiveType) )
       return true;
@@ -164,28 +176,40 @@ public class VM_GCUtil
   static boolean
   validRef ( int ref ) {
     if (ref == VM_NULL) return true;
-    if ( ! referenceInVM(ref)) {
-      VM.sysWrite("validRef: REF outside heap, ref = "); VM.sysWriteHex(ref); VM.sysWrite("\n");
+    if (!referenceInVM(ref)) {
+      VM.sysWrite("validRef: REF outside heap, ref = "); 
+      VM.sysWriteHex(ref); VM.sysWrite("\n");
       return false;
     }
-    int tib = VM_Magic.getMemoryWord(ref + OBJECT_TIB_OFFSET);
-    if ( ! referenceInVM(tib)) {
+    if (VM_Collector.MOVES_OBJECTS) {
+      if (VM_AllocatorHeader.isForwarded(VM_Magic.addressAsObject(ref)) ||
+	  VM_AllocatorHeader.isBeingForwarded(VM_Magic.addressAsObject(ref))) {
+	return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)
+      }
+    }
+    
+    Object[] tib = VM_ObjectModel.getTIB(ref);
+    if (!referenceInVM(tib)) {
       VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWriteHex(ref);
-      VM.sysWrite(" tib = ");VM.sysWriteHex(tib); VM.sysWrite("\n");
+      VM.sysWrite(" tib = ");VM.sysWriteHex(VM_Magic.objectAsAddress(tib)); 
+      VM.sysWrite("\n");
       return false;
     }
-    int type = VM_Magic.getMemoryWord(tib);
-    if ( ! validType(type)) {
+    int type = VM_Magic.objectAsAddress(tib[0]);
+    if (!validType(type)) {
       VM.sysWrite("validRef: invalid TYPE, ref = "); VM.sysWriteHex(ref);
-      VM.sysWrite(" tib = ");VM.sysWriteHex(tib);
+      VM.sysWrite(" tib = ");
+      VM.sysWriteHex(VM_Magic.objectAsAddress(tib));
       VM.sysWrite(" type = ");VM.sysWriteHex(type); VM.sysWrite("\n");
       return false;
     }
     return true;
   }  // validRef
 
-   public static void
-   dumpRef ( int ref ) {
+   public static void dumpRef (Object ref) {
+     dumpRef(VM_Magic.objectAsAddress(ref));
+   }
+   public static void dumpRef (int ref) {
      VM.sysWrite("REF=");
      if (ref==VM_NULL) {
        VM.sysWrite("NULL\n");
@@ -196,12 +220,9 @@ public class VM_GCUtil
        VM.sysWrite(" (REF OUTSIDE OF HEAP)\n");
        return;
      }
-     VM.sysWrite(" TIB=");
-     int tib = VM_Magic.getMemoryWord(ref + OBJECT_TIB_OFFSET);
-     VM.sysWriteHex(tib);
-     VM.sysWrite(" STATUS=");
-     VM.sysWriteHex(VM_Magic.getMemoryWord(ref + OBJECT_STATUS_OFFSET));
-     if ( ! (referenceInBootImage(tib) || referenceInHeap(tib)) ) {
+     VM_ObjectModel.dumpHeader(ref);
+     Object[] tib = VM_ObjectModel.getTIB(ref);
+     if (!(referenceInBootImage(tib) || referenceInHeap(tib)) ) {
        VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
        return;
      }

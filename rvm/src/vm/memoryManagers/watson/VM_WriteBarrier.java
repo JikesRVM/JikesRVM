@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$/
+//$Id$
 
 /**
  * This class contains the Java code that the opt compiler will
@@ -17,8 +17,6 @@
  * @see OPT_ExpandRuntimeServices (logic to inline this code)
  */
 class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
-
-  private static final int BarrierBitByteOffset = VM.BuildForIA32 ? 0:3;
 
   /**
    * This method is inlined to implement the write barrier for aastores
@@ -83,9 +81,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
   private static void internalWriteBarrier(Object ref) {
     // force internal method to be inlined when compiled by Opt
     VM_Magic.pragmaInline();
-    int statusWord = VM_Magic.getIntAtOffset(ref, OBJECT_STATUS_OFFSET);
-    if ((statusWord & OBJECT_BARRIER_MASK) != 0) {
-      doWriteBarrierInsertion(ref, statusWord);
+    if (VM_AllocatorHeader.testBarrierBit(ref)) {
+      doWriteBarrierInsertion(ref);
     }
   }
 
@@ -94,14 +91,12 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * Put out of line due to Steve Blackburn et al experience that
    * outlining the uncommon case yields the best performance.
    */
-  private static void doWriteBarrierInsertion(Object ref, 
-					      int statusWord) {
+  private static void doWriteBarrierInsertion(Object ref) {
     VM_Magic.pragmaNoInline();
 
     // (1) mark reference as being in the write buffer 
-    statusWord = statusWord ^ OBJECT_BARRIER_MASK;
-    VM_Magic.setByteAtOffset(ref, OBJECT_STATUS_OFFSET+BarrierBitByteOffset,(byte)statusWord);
-    
+    VM_AllocatorHeader.clearBarrierBit(ref);
+
     // (2) add reference to write buffer
     VM_Processor p = VM_Processor.getCurrentProcessor();
     int wbTop = p.modifiedOldObjectsTop;
@@ -115,7 +110,6 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
       VM_WriteBuffer.growWriteBuffer();
     }
   }
-
 
   /**
    * This method generates write barrier entries needed as a consequence of
@@ -131,6 +125,4 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
 						 int end) {
     internalWriteBarrier(ref);
   }
-
-
 }

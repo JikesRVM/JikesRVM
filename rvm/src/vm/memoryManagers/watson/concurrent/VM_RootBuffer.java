@@ -30,7 +30,7 @@ public final class VM_RootBuffer
 
     static VM_CycleBuffer currentCycles;
 
-    private static final int BUFFERSIZE        = (4*GC_BLOCKSIZE - ARRAY_HEADER_SIZE) >> 2;
+    private static final int BUFFERSIZE        = (4*GC_BLOCKSIZE - VM_JavaHeader.MINIMUM_HEADER_SIZE) >> 2;
 
     private static final boolean BIG_BUFFERS = true;
 

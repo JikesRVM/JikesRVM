@@ -28,23 +28,6 @@ class VM_Synchronization implements VM_Uninterruptible {
       return true;
    }
 
-  // used to mark boot image objects during a parallel scan of objects during GC
-  //
-  static final boolean testAndMark (Object base, int offset, int value)
-  {
-    VM_Magic.pragmaInline();
-    int oldValue;
-    do 
-      {
-	oldValue = VM_Magic.prepare(base, offset);              // get old value
-	int markBit  = oldValue & VM.OBJECT_GC_MARK_MASK;  // extract mark bit
-	if ( markBit == value) return false;               // if object marked return
-      }
-    while (! VM_Magic.attempt(base, offset, oldValue, oldValue ^ VM.OBJECT_GC_MARK_MASK)); // try to mark
-    return true;                                           // mark successful
-  }
-
-
    static final int fetchAndStore(Object base, int offset, int newValue) {
       VM_Magic.pragmaInline();
       int oldValue;
@@ -53,7 +36,6 @@ class VM_Synchronization implements VM_Uninterruptible {
       } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
       return oldValue;
    }
-
 
    static final int fetchAndAdd(Object base, int offset, int increment) {
       VM_Magic.pragmaInline();
@@ -83,27 +65,4 @@ class VM_Synchronization implements VM_Uninterruptible {
       } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
       return oldValue;
    }
-
-  // used to mark small heap objects during a parallel scan of objects during GC
-  //
-  static final int fetchAndMarkBusy (Object base, int offset) {
-    return fetchAndMarkBusy(base, offset, VM_Collector.MARK_VALUE);
-  } 
-
-  // used to mark small heap objects during a parallel scan of objects during GC
-  //
-  static final int fetchAndMarkBusy (Object base, int offset, int value)
-  {
-    VM_Magic.pragmaInline();
-    int oldValue;
-    do 
-      {
-	oldValue = VM_Magic.prepare(base, offset);              // get old value
-	int markBit  = oldValue & VM.OBJECT_GC_MARK_MASK;  // extract mark bit
-	if ( markBit == value) return oldValue;            // return forward ptr or busy pattern
-      }
-    while (! VM_Magic.attempt(base, offset, oldValue, VM_Collector.BEING_FORWARDED_PATTERN)); // try to mark
-    return oldValue;                                       // return status word
-  }
-
 }

@@ -140,7 +140,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, PARAMS_FP_OFFSET);// S0 <- Parameters
-    asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- Parameters.length()
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());	// T1 <- Parameters.length()
     asm.emitCMP_Reg_Imm     (T1, 0);			// length == 0 ?
 
     int parameterLoopLabel = asm.getMachineCodeIndex();
@@ -156,7 +156,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     /* write fprs onto fprs registers */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, FPRS_FP_OFFSET);	// S0 <- FPRs
-    asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- FPRs.length()
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());	// T1 <- FPRs.length()
     asm.emitSHL_Reg_Imm (T1, LG_WORDSIZE + 1 );		// length in bytes
     asm.emitADD_Reg_Reg (S0, T1);			// S0 <- last FPR + 8
     asm.emitCMP_Reg_Imm (T1, 0);			// length == 0 ?
@@ -174,7 +174,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     /* write gprs: S0 = Base address of GPRs[], T1 = GPRs.length */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, GPRS_FP_OFFSET);	// S0 <- GPRs
-    asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- GPRs.length()
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());	// T1 <- GPRs.length()
     asm.emitCMP_Reg_Imm (T1, 0);			// length == 0 ?
     VM_ForwardReference fr3 = asm.forwardJcc(asm.EQ);	// result 0 --> branch to end
     asm.emitMOV_Reg_RegInd (T0, S0);			// T0 <- GPRs[0]

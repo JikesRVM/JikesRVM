@@ -651,6 +651,11 @@ EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(
 			      Prepare.getLocation(P(p)),                  \
                               Prepare.getGuard(P(p)))));
 
+r:	ATTEMPT(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+
 #
 r:	LONG_LOAD(r,INT_CONSTANT)
 21

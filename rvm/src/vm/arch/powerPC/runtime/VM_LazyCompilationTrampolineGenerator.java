@@ -20,7 +20,7 @@ class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
   static INSTRUCTION[] getTrampoline () {
     int offset = ((VM_Method)VM.getMember("LVM_DynamicLinker;", "lazyMethodInvoker", "()V")).getOffset();
     INSTRUCTION[] stub;
-    if (offset < 0xFFFF) {
+    if (offset < 0x7FFF) {
       stub = VM_RuntimeStructures.newInstructions(3);
       stub[0] = VM_Assembler.L     (S0, offset, JTOC);
       stub[1] = VM_Assembler.MTCTR (S0);

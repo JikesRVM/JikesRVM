@@ -229,7 +229,7 @@ class BootMapExternal extends BootMap {
    *         false otherwise.
    */
   public boolean isInstructionAddress(int startAddress, int address) {
-    int endAddress = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
+    int endAddress = owner.mem.read(startAddress + VM_ObjectModel.getArrayLengthOffset());
     endAddress = startAddress + (endAddress-1)*4;
     if (address>=startAddress && address<=endAddress)
       return true;
@@ -287,7 +287,7 @@ class BootMapExternal extends BootMap {
    */
   public int instructionOffset(int compiledMethodID, int address) {
     int startAddress = instructionAddress(compiledMethodID);
-    int endAddress = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
+    int endAddress = owner.mem.read(startAddress + VM_ObjectModel.getArrayLengthOffset());
     endAddress = startAddress + endAddress;
     // System.out.println("instructionOffset: code @ " + Integer.toHexString(startAddress) +
       		 // " to " + Integer.toHexString(endAddress));
@@ -501,7 +501,7 @@ class BootMapExternal extends BootMap {
    * Return 0 if the pattern is not found (code may be from the optimizing compiler)
    */
   public int scanPrologSize(int startAddress) {
-    int byteLength = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
+    int byteLength = owner.mem.read(startAddress + VM_ObjectModel.getArrayLengthOffset());
     // limit: 60 bytes should be enough to capture the prolog
     if (byteLength > 60)
       byteLength = 60;
@@ -845,7 +845,7 @@ class BootMapExternal extends BootMap {
 	  // some 150 entries will be native or else and have no instructions
 	  endAddress[i] = 0;
 	} else {
-	  int codeSize = owner.mem.read(startAddress[i] + VM.ARRAY_LENGTH_OFFSET);
+	  int codeSize = owner.mem.read(startAddress[i] + VM_ObjectModel.getArrayLengthOffset());
 	  // For AIX, code is word size (4 bytes), for Lintel, code is byte size
 	  // endAddress[i] = startAddress[i] + codeSize*4;
 	  endAddress[i] = startAddress[i] + codeSize;
@@ -998,7 +998,7 @@ class BootMapExternal extends BootMap {
    */
   // This no longer works, the compiled method ID is not being saved with the instruction block
   // public int methodIDForAddress(int methodAddress) {    
-  //   int length = owner.mem.read(methodAddress + VM.ARRAY_LENGTH_OFFSET);
+  //   int length = owner.mem.read(methodAddress + VM_ObjectModel.getArrayLengthOffset());
   //   return owner.mem.read(methodAddress + (length-1)*4);
   // }
 

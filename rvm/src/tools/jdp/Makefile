@@ -55,7 +55,7 @@ CLASSES   = \
 	InterpreterStack.class \
 	addressRemapper.class \
 	unInitType.class \
-	mapVM.class 
+        mapVM.class
 
 # Class files that contain native methods, and for which there is a
 # corresponding .c file.  If this makefile is to be used for .class files only,

@@ -214,9 +214,20 @@ public class VM_Magic {
 
   /**
    * Get Object at arbitrary (byte) offset from object.
-   * Use getObjectAtOffset(obj, ofs) instead of addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
+   * Use getObjectAtOffset(obj, ofs) instead of 
+   * addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
    */
   static Object getObjectAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
+  }
+
+  /**
+   * Get Object[] at arbitrary (byte) offset from object.
+   * Use getObjectArrayAtOffset(obj, ofs) instead of 
+   * (Object[])addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
+   */
+  static Object[] getObjectArrayAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -344,6 +355,16 @@ public class VM_Magic {
       return null;               // tool isn't interested in remapping
       
     return objectAddressRemapper.addressAsObject(address);
+  }
+
+  /**
+   * Cast bits.
+   * @param address object array reference as bits
+   * @return object array reference
+   */
+  public static Object[] addressAsObjectArray(int address) {
+    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
   }
 
   /**
@@ -576,16 +597,6 @@ public class VM_Magic {
   public static VM_Type getObjectType(Object object) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     return null;
-  }
-
-  /**
-   * Get an objects status field.
-   * @param object object reference
-   * @return status field
-   */
-  public static int getObjectStatus(Object object) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
-    return -1;
   }
 
   /**

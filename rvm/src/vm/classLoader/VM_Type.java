@@ -293,7 +293,12 @@
   /**
    * supertype of all types
    */
-  public static VM_Type JavaLangObjectType;    
+  public static VM_Type JavaLangObjectType;
+
+  public static VM_Type JavaLangClassType;
+
+  public static VM_Array JavaLangObjectArrayType;
+  
   public static VM_Type NativeBridgeType;
   /**
    * supertype of all exception types
@@ -319,6 +324,11 @@
    * interface implemented to prevent compiler-inserted threadswitching
    */
   static VM_Type UninterruptibleType;   
+  /**
+   * interface implemented to hint to the runtime system that an object
+   * may be locked
+   */
+  static VM_Type SynchronizedObjectType;   
   /**
    * interface implemented to save/restore appropriate registers 
    * during dynamic linking, etc.
@@ -348,6 +358,7 @@
   public final boolean isJavaLangStringType()    { return this == JavaLangStringType;    }
   public final boolean isMagicType()             { return this == MagicType;             }
   public final boolean isUninterruptibleType()   { return this == UninterruptibleType;   }
+  public final boolean isSynchronizedObjectType(){ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType()     { return this == DynamicBridgeType;     }
   public final boolean isSaveVolatileType()      { return this == SaveVolatileType;      }
   public final boolean isNativeBridgeType()      { return this == NativeBridgeType;      }
@@ -501,7 +512,7 @@
   protected int     tibSlot;      
   /**
    * instance of java.lang.Class corresponding to this type 
-   * (null --> not created yet)
+   * (null --> not created yet
    */
   private   Class   classForType; 
   /**
@@ -511,11 +522,21 @@
   /**
    * -1 => primitive, 0 => Class/Interface, positive => array (number of [)
    */
-  protected int     dimension;    
+  int     dimension;    
   /**
    * number of superclasses to Object
    */
   protected int     depth;        
+
+  /**
+   * At what offset is the thin lock word to be found in instances of
+   * objects of this type?  A value of -1 indicates that the instances of
+   * this type do not have inline thin locks. <p>
+   * Accessed directly instead of via accessor function because this class is not Uninterruptible.
+   * TODO: once we have method-level uninterruptibility make this protected and
+   *       add appropriate accessor methods.
+   */
+  public int thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
 
   static void init() {
     // create primitive type descriptions
@@ -550,26 +571,19 @@
       
     // create additional, frequently used, type descriptions
     //
-    JavaLangObjectType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"));
-    JavaLangThrowableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"));
-    JavaLangStringType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"));
-    JavaLangCloneableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"));
-    JavaIoSerializableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"));
-    MagicType             = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"));
-    UninterruptibleType   = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"));
-    DynamicBridgeType     = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"));
-    SaveVolatileType      = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"));
-    NativeBridgeType      = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"));
+    JavaLangObjectType    = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"));
+    JavaLangClassType     = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Class;"));
+    JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;")).asArray();
+    JavaLangThrowableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"));
+    JavaLangStringType    = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"));
+    JavaLangCloneableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"));
+    JavaIoSerializableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"));
+    MagicType             = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"));
+    UninterruptibleType   = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"));
+    SynchronizedObjectType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_SynchronizedObject;"));
+    DynamicBridgeType     = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"));
+    SaveVolatileType      = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"));
+    NativeBridgeType      = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"));
   }
 
   public String toString() {
@@ -584,4 +598,5 @@
   protected boolean isAcyclicReference() {
     return acyclic;
   }
+
 }

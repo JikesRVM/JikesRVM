@@ -86,7 +86,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // create new frame
     //
     asm.emitCAL  (S0,  0, FP);                  // S0 := old frame pointer
-    asm.emitL    (T0, ARRAY_LENGTH_OFFSET, T3); // T0 := number of spill words
+    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
     asm.emitCAL  (T3, -4, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
     spillLoop:
     asm.emitAIr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
@@ -140,7 +140,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     setupFPRLoader:
     asm.emitMFLR (T3);                          // T3 := address of first fpr load instruction
-    asm.emitL    (T0, ARRAY_LENGTH_OFFSET, T2); // T0 := number of fprs to be loaded
+    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T2); // T0 := number of fprs to be loaded
     asm.emitCAL  (T3, VOLATILE_FPRS<<2,    T3); // T3 := address of first instruction following fpr loads
     asm.emitSLI  (T0, T0,                   2); // T0 := number of bytes of fpr load instructions
     asm.emitSF   (T3, T0,                  T3); // T3 := address of instruction for highest numbered fpr to be loaded
@@ -150,7 +150,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     setupGPRLoader:
     asm.emitMFLR (T3);                          // T3 := address of first gpr load instruction
-    asm.emitL    (T0, ARRAY_LENGTH_OFFSET, T1); // T0 := number of gprs to be loaded
+    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T1); // T0 := number of gprs to be loaded
     asm.emitCAL  (T3, VOLATILE_GPRS<<2,    T3); // T3 := address of first instruction following gpr loads
     asm.emitSLI  (T0, T0,                   2); // T0 := number of bytes of gpr load instructions
     asm.emitSF   (T3, T0,                  T3); // T3 := address of instruction for highest numbered gpr to be loaded

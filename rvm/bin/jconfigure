@@ -328,6 +328,13 @@ integer RVM_WITH_BASE_RUNTIME_COMPILER=0
 integer RVM_WITH_OPT_RUNTIME_COMPILER=0
 integer RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM=0
 
+# Here are the choices for the object model
+#
+integer RVM_WITH_DEFAULT_OBJECT_MODEL=1
+integer RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL=0
+integer RVM_WITH_ONE_WORD_PTR_OBJECT_MODEL=0
+integer RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL=0
+
 # Here are the choices for additional components that are under development and/or are excluded from default build.
 #
 integer RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0   # use pThread library to access multiple CPU's (or not)
@@ -369,7 +376,6 @@ integer RVM_WITH_JKSVM_JAR=0
 # we define such directives for all configs on the target,
 # but still allow them to be overridden on the command line
 # or in a build-config file.
-
 . $RVM_TARGET_CONFIG
 
 
@@ -405,6 +411,18 @@ else
    echo "Unknown configuration $CONFIGURATION_NAME"
    exit 1
 fi
+
+# set the relative path to the object model.
+if (( RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL )); then
+  OBJECT_MODEL_PATH_STR=objectModel/oneWordMaskTIB
+elif (( RVM_WITH_ONE_WORD_PTR_OBJECT_MODEL )); then
+  OBJECT_MODEL_PATH_STR=objectModel/oneWordTIBPtr
+elif (( RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL )); then
+  OBJECT_MODEL_PATH_STR=objectModel/oneWordIndexTIB
+else
+  OBJECT_MODEL_PATH_STR=objectModel/default
+fi
+
 
 
 if (( RVM_FOR_LINUX && RVM_FOR_POWERPC )); then
@@ -487,6 +505,10 @@ function emitSourceList
    if [[ -e $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler ]]; then
      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler # architecture dependent
    fi
+
+   print $RVM_ROOT/rvm/src/vm/objectModel
+   print $RVM_ROOT/rvm/src/vm/objectModel/lockNursery
+   print $RVM_ROOT/rvm/src/vm/$OBJECT_MODEL_PATH_STR
 
    # other components
    #
@@ -692,7 +714,7 @@ function emitSourceList
 function emitEnvironmentKsh
    {
 
-# read the target environmet file
+# read the target environment file
 #
    print '#!/bin/ksh'
    print '# Set the enviroment.'
@@ -1517,6 +1539,7 @@ function emitImageLinker
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
    #
+   print "   print '[LVM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
@@ -1699,7 +1722,7 @@ function emitImageLinker
              GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
 		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
      else
-       print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR\
+       print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
              -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
              GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
 		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
@@ -2047,6 +2070,44 @@ function emitToolCompiler
      print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    fi
    }
+#
+# Emit script to build jdp when it is invoked
+#
+function emitJDPBuilder
+   {
+   print '#!/bin/ksh'
+   print '# Build jdp the first time it is invoked'
+   print '. $RVM_BUILD/environment'
+   print 'set -e'
+   print 'CURRENT_DIR=`pwd`'
+   print 'if [[ ! -a $RVM_BUILD/RVM.tools/jdp.class ]];'
+   print 'then'
+   print ' '
+   print ' echo "JDP classes are not compiled yet, compiling now ..."'
+   print ' '
+   print ' if [[ ! -a $RVM_BUILD/RVM.tools ]];'
+   print '   then'
+   print '   cd $RVM_BUILD'
+   print '   mkdir RVM.tools'
+   print ' fi'
+   print ' '
+   print ' cd $RVM_ROOT/rvm/src/tools/jdp'
+   print ' $GNU_MAKE copy_$ARCH OBJECT_MODEL_PATH='$OBJECT_MODEL_PATH_STR
+   print ' if [[ $? != 0 ]]'
+   print '  then'
+   print '   echo "Could not copy jdp files."'
+   print '   exit 1'
+   print ' fi'
+   print ' cd $RVM_BUILD/RVM.tools'
+   print ' $GNU_MAKE compile'
+   print ' if [[ $? != 0 ]]'
+   print '   then'
+   print '    echo "Could not compile jdp."'
+   print '    exit 1'
+   print ' fi'
+   print ' cd $CURRENT_DIR'
+   print 'fi' 
+   }
   
 #----------------------#
 # SECTION 6 - MAINLINE #
@@ -2123,10 +2184,13 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkBooter
 emitToolCompiler              >$BUILD_DIRECTORY/jbuild.tool
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.tool
 
+emitJDPBuilder                >$BUILD_DIRECTORY/jbuild.buildJDP
+chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.buildJDP
+
 # write the environment specific configuration files
 #
 
-# read the host environmet file
+# read the host environment file
 . $RVM_HOST_CONFIG
 export CURRENT_CONFIG_FILE=$RVM_HOST_CONFIG
 emitMakefile	      	      >$BUILD_DIRECTORY/jbuild.Make.rules
@@ -2134,7 +2198,7 @@ emitMakefile	      	      >$BUILD_DIRECTORY/jbuild.Make.rules
 emitEnvironmentKsh	      >$BUILD_DIRECTORY/jbuild.environment
 chmod +x$PERM		      $BUILD_DIRECTORY/jbuild.environment
 
-# read the target environmet file
+# read the target environment file
 . $RVM_TARGET_CONFIG
 export CURRENT_CONFIG_FILE=$RVM_TARGET_CONFIG
 emitMakefile		      >$BUILD_DIRECTORY/Make.rules

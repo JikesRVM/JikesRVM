@@ -30,4 +30,6 @@ sanity:		sanity-check-rule
 check:
 	@$(FGREP) -q "Method score:" $(OUT)
 
+do-gather-performance:
+	cat $(OUT) >> $(PERF_LOG)
 

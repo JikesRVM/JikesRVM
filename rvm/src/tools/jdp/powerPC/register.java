@@ -11,7 +11,7 @@
  */
 
 
-abstract class register implements VM_Constants, VM_BaselineConstants, registerConstants
+abstract class register implements VM_Constants, VM_BaselineConstants, registerConstants, VM_ThinLockConstants
 {
   /**
    * Pointer back to the process that owns this set of registers
@@ -88,7 +88,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
    * @return the thread ID, also an index to VM_Scheduler.threads
    */
   public int registerToTPIndex(int regValue) {
-    return regValue >>> OBJECT_THREAD_ID_SHIFT;
+    return regValue >>> TL_THREAD_ID_SHIFT;
   }
 
   /**

@@ -22,12 +22,14 @@ public class VM_ScanObject
   scanObjectOrArray ( int objRef ) {
     VM_Type    type;
     
-    // First process the TIB pointer in the object header to relocate it.
+    // First process the TIB to relocate it.
     // Necessary only if the allocator/collector moves objects
+    // and the object model is actually storing the TIB as a pointer.
     // 
-    if (VM_Allocator.movesObjects)
-      VM_Allocator.processPtrField(objRef + OBJECT_TIB_OFFSET);   
-    
+    if (VM_Allocator.movesObjects) {
+      VM_ObjectModel.gcProcessTIB(objRef);
+    }
+
     type = VM_Magic.getObjectType(VM_Magic.addressAsObject(objRef));
     if ( type.isClassType() ) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
@@ -48,7 +50,7 @@ public class VM_ScanObject
 	}
       }
     }
-  }  // scanObjectOrArray
+  } 
 
   static void
   scanObjectOrArray ( Object objRef ) {

@@ -12,7 +12,7 @@
 
 import java.lang.reflect.*;
 
-class RemoteInterpreter extends InterpreterBase
+class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 {
   static String jbiFileName = "~/jvmBuild/RVM.map";
 
@@ -546,7 +546,7 @@ class RemoteInterpreter extends InterpreterBase
     // Check bounds
     if (index<0)
       _throwException(new ArrayIndexOutOfBoundsException("negative index"));    
-    int realArrayLength = Platform.readmem(mappedArray.getAddress() + VM.ARRAY_LENGTH_OFFSET);
+    int realArrayLength = Platform.readmem(mappedArray.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
     if (index >= realArrayLength)
       _throwException(new ArrayIndexOutOfBoundsException("index="+index+" >= "+realArrayLength));
 
@@ -767,8 +767,8 @@ class RemoteInterpreter extends InterpreterBase
     // System.out.println("X_getfield: constant pool index " + index + " of current class " + getCurrentClass() + ", for mapped object " + mappedObject);
 
     // (1) Compute pointer to the VM_Type, which should be VM_Class since we expect an object
-    int addr = Platform.readmem(mappedObject.getAddress() + 
-				       VM_ObjectLayoutConstants.OBJECT_TIB_OFFSET);
+    int addr = VM_ObjectModel.getTIB(this,mappedObject.getAddress());
+    // int addr = JDPObjectModel.getTIBFromPlatform(mappedObject.getAddress());
     addr = Platform.readmem(addr);           
     // System.out.println("X_getfield: candidate object VM_Class @ " + Integer.toHexString(addr));
 
@@ -888,7 +888,7 @@ class RemoteInterpreter extends InterpreterBase
    */
   int X_arraylength(Object obj) {
     mapVM mappedObj = (mapVM) obj;
-    int length = Platform.readmem(mappedObj.getAddress() + VM.ARRAY_LENGTH_OFFSET);
+    int length = Platform.readmem(mappedObj.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
     if (traceExtension)	
       System.out.println("X_arraylength: array length for " + mappedObj + ", " + length);
     return length;
@@ -900,8 +900,9 @@ class RemoteInterpreter extends InterpreterBase
   boolean X_checkcast(Object ref, VM_Type lhsType) throws VM_ResolutionException {
 
     // compute the address of the class object
-    int typeAddress = Platform.readmem(((mapVM) ref).getAddress() + 
-				       VM_ObjectLayoutConstants.OBJECT_TIB_OFFSET);
+    int addr = ((mapVM)ref).getAddress();
+    int typeAddress = VM_ObjectModel.getTIB(this,addr);
+    // int typeAddress = JDPObjectModel.getTIBFromPlatform(addr);
     typeAddress = Platform.readmem(typeAddress);           
 
     // read the class name for the object from the JVM side
@@ -991,6 +992,24 @@ class RemoteInterpreter extends InterpreterBase
     }
   }
 
+  /**
+   * Return the contents of a JTOC slot in the debuggee
+   *
+   * @param slot 
+   */
+  public int readJTOCSlot(int slot) {
+    int ptr = mapVM.getJTOC() + (slot << 2);
+    return Platform.readmem(ptr);
+  }
+
+  /**
+   * Return the contents of a memory location in the debuggee
+   *
+   * @param ptr the memory location
+   */
+  public int readMemory(ADDRESS ptr) {
+    return Platform.readmem(ptr);
+  }
 }
 
 

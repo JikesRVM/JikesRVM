@@ -50,7 +50,7 @@ import Platform;
 import java.util.*;
 import java.io.*;
 
-class mapVM {
+class mapVM implements JDPServiceInterface {
   // init flag
   static boolean initialized = false;
   static Class mapClass;
@@ -381,7 +381,7 @@ class mapVM {
 
       // dumpCache();
 
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       System.out.println("mapVM.cachePointer:  cannot find JTOC register using the name JT, has the name been changed in VM_BaselineConstants.java?");
     }
   }
@@ -399,7 +399,7 @@ class mapVM {
   // 	   continue;
   // 	 codeStartAddress = Platform.readmem(methodAddress + VMMethodInstructions_offset);
   // 	 if (codeStartAddress!=0) {
-  // 	   codeEndAddress = Platform.readmem(codeStartAddress + VM.ARRAY_LENGTH_OFFSET);
+  // 	   codeEndAddress = Platform.readmem(codeStartAddress + VM_ObjectModel.getArrayLengthOffset() );
   // 	   codeEndAddress = codeStartAddress + codeEndAddress*4;
   // 	 }
   //   }
@@ -610,7 +610,8 @@ class mapVM {
    */
   public void handleAbstractClass() {
     // get the pointer to the real VM_Type on the JVM side
-    int typeAddress = Platform.readmem(address + VM_ObjectLayoutConstants.OBJECT_TIB_OFFSET);
+    int typeAddress = VM_ObjectModel.getTIB(this,address);
+    // int typeAddress = JDPObjectModel.getTIBFromPlatform(address);
     typeAddress = Platform.readmem(typeAddress);           
 
     int descriptorAddress = Platform.readmem(typeAddress + VMTypeDescriptor_offset);
@@ -654,7 +655,7 @@ class mapVM {
   
     // get the char array address and size from the JVM side
     address = Platform.readmem(address + valueField.getOffset());
-    int count = Platform.readmem(address + VM.ARRAY_LENGTH_OFFSET);
+    int count = Platform.readmem(address + VM_ObjectModel.getArrayLengthOffset() );
 
     // copy the char array that constitute the String
     char cloneArray[] = new char[count];
@@ -683,7 +684,7 @@ class mapVM {
     }
 
     // get the element count from the JVM side
-    int count = Platform.readmem(mappedArray.getAddress() + VM.ARRAY_LENGTH_OFFSET);
+    int count = Platform.readmem(mappedArray.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
 
     // fill up the array with contents from the JVM side
     int address = mappedArray.getAddress();
@@ -777,7 +778,7 @@ class mapVM {
    */
   static String getVMAtomString(int VMAtomObjectAddress) {
     int stringAddr = Platform.readmem(VMAtomObjectAddress + VMAtomVal_offset);
-    int size = Platform.readmem(stringAddr + VM.ARRAY_LENGTH_OFFSET);
+    int size = Platform.readmem(stringAddr + VM_ObjectModel.getArrayLengthOffset() );
     byte className[] = new byte[size];
     for (int i=0; i<size; i++) {
       className[i] = Platform.readByte(stringAddr+i);
@@ -802,7 +803,7 @@ class mapVM {
     byte[] keyByte = new byte[len];
     keyString.getBytes(0, len, keyByte, 0);
     int hash = dictionaryExtension.hashName(keyByte);
-    int chainLength = Platform.readmem(TypeDictionary_chains + VM.ARRAY_LENGTH_OFFSET);
+    int chainLength = Platform.readmem(TypeDictionary_chains + VM_ObjectModel.getArrayLengthOffset() );
     int chainIndex = (hash & 0x7fffffff) % chainLength;
     int chainAddr = Platform.readmem(TypeDictionary_chains + chainIndex*4);
     // System.out.println("manualTypeSearch: chain index " + chainIndex +
@@ -813,7 +814,7 @@ class mapVM {
       return 0;
 
     // Then walk through the index in the chain and check each VM_Atom    
-    chainLength = Platform.readmem(chainAddr + VM.ARRAY_LENGTH_OFFSET);
+    chainLength = Platform.readmem(chainAddr + VM_ObjectModel.getArrayLengthOffset() );
     int candidateId = -1;
 
     for (int i=0; i<chainLength; i++) {
@@ -825,7 +826,7 @@ class mapVM {
 	return 0;
 
       int candidateStringAddr = Platform.readmem(candidateAtomAddr + VMAtomVal_offset);
-      int candidateLength = Platform.readmem(candidateStringAddr + VM.ARRAY_LENGTH_OFFSET);
+      int candidateLength = Platform.readmem(candidateStringAddr + VM_ObjectModel.getArrayLengthOffset() );
       // System.out.println("manualTypeSearch: VM_Atom @" + Integer.toHexString(candidateAtomAddr));
 
       if (candidateLength==len) {
@@ -906,4 +907,22 @@ class mapVM {
     return "mapVM " + type.getName() + " @ " + Integer.toHexString(address);
   }
 
+  /**
+   * Return the contents of a memory location in the debuggee
+   *
+   * @param ptr the memory location
+   */
+  public int readMemory(ADDRESS ptr) {
+    return Platform.readmem(ptr);
+  }
+
+  /**
+   * Return the contents of a JTOC slot in the debuggee
+   *
+   * @param slot 
+   */
+  public int readJTOCSlot(int slot) {
+    int ptr = getJTOC() + (slot << 2);
+    return Platform.readmem(ptr);
+  }
 }

@@ -82,6 +82,13 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, object, offset, 
 					  null));
       bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.getObjectArrayAtOffset) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(OPT_ClassLoaderProxy.JavaLangObjectArrayType);
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, 
+					  null));
+      bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setObjectAtOffset) {
       OPT_Operand val = bc2ir.popRef();
       OPT_Operand offset = bc2ir.popInt();
@@ -149,6 +156,10 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsObject) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Type.JavaLangObjectType);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.addressAsObjectArray) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(OPT_ClassLoaderProxy.JavaLangObjectArrayType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsType) {
@@ -252,13 +263,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       bc2ir.markGuardlessNonNull(op0);
       bc2ir.appendInstruction(Unary.create(GET_TYPE_FROM_TIB, op0, 
                                            tibPtr.copyD2U()));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.getObjectStatus) {
-      OPT_Operand val = bc2ir.popRef();
-      OPT_RegisterOperand op0 = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_STATUS, op0, 
-                                                  val, 
-                                                  new OPT_TrueGuardOperand()));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.getArrayLength) {
       OPT_Operand val = bc2ir.popRef();

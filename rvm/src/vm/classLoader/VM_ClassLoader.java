@@ -35,7 +35,7 @@ public class VM_ClassLoader
    * the lock; writing any of the data structures requires acquiring 
    * the lock. 
    */
-  public static Object lock;
+  public static VM_Synchronizer lock;
 
   
   /**
@@ -321,7 +321,7 @@ public class VM_ClassLoader
   static void init(String vmClassPath) {
     // Create classloader serialization lock.
     //
-    lock = new Object();
+    lock = new VM_Synchronizer();
       
     // specify place where vm classes and resources live
     //
@@ -540,7 +540,6 @@ public class VM_ClassLoader
     // not found
     return null;
   }
-
 
   /**
    * Create id for use by C signal handler as placeholder to mark stackframe

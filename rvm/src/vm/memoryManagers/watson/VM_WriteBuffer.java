@@ -155,12 +155,8 @@ public class VM_WriteBuffer
       while ( start <= end ) {
 	wbref = VM_Magic.getMemoryWord( start );
 	
-	// get header statusword, turn barrier bit back on (now off)
-	do {
-	  oldStatus = VM_Magic.prepare(VM_Magic.addressAsObject(wbref), VM.OBJECT_STATUS_OFFSET);
-	  status = oldStatus | VM.OBJECT_BARRIER_MASK;    // OR with mask to set bit
-	} while (!VM_Magic.attempt(VM_Magic.addressAsObject(wbref), VM.OBJECT_STATUS_OFFSET, oldStatus, status));
-	
+	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
+
 	// Call method in specific collector to process write buffer entry
 	VM_Allocator.processWriteBufferEntry(wbref);
 
@@ -211,7 +207,7 @@ public class VM_WriteBuffer
    */
   static void
   resetBarrierBits(VM_Processor vp) {
-    int wbref, status, oldStatus;
+    int wbref;
     int count = 0;
     int start, top, end, lastSlotAddr;
     
@@ -245,12 +241,7 @@ public class VM_WriteBuffer
       
       while ( start <= end ) {
 	wbref = VM_Magic.getMemoryWord( start );
-	
-	// get header statusword, turn barrier bit back on (now off)
-	do {
-	  oldStatus = VM_Magic.prepare(VM_Magic.addressAsObject(wbref), VM.OBJECT_STATUS_OFFSET);
-	  status = oldStatus | VM.OBJECT_BARRIER_MASK;    // OR with mask to set bit
-	} while (!VM_Magic.attempt(VM_Magic.addressAsObject(wbref), VM.OBJECT_STATUS_OFFSET, oldStatus, status));
+	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref)); // IS THIS CORRECT???
 	start = start + 4;
       }
       start = VM_Magic.getMemoryWord( lastSlotAddr );  // get addr of next buffer
@@ -280,7 +271,7 @@ public class VM_WriteBuffer
    */
   static void
   moveToWorkQueue (VM_Processor vp) {
-    int wbref, status, oldStatus;
+    int wbref;
     int count = 0;
     int start, top, end, lastSlotAddr;
     
@@ -303,11 +294,7 @@ public class VM_WriteBuffer
       while ( start <= end ) {
 	wbref = VM_Magic.getMemoryWord( start );
 	
-	// get header statusword, turn barrier bit back on (now off)
-	do {
-	  oldStatus = VM_Magic.prepare(VM_Magic.addressAsObject(wbref), VM.OBJECT_STATUS_OFFSET);
-	  status = oldStatus | VM.OBJECT_BARRIER_MASK;    // OR with mask to set bit
-	} while (!VM_Magic.attempt(VM_Magic.addressAsObject(wbref), VM.OBJECT_STATUS_OFFSET, oldStatus, status));
+	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
 
 	// added writebuffer ref to work queue of executing collector thread
 	VM_GCWorkQueue.putToWorkBuffer( wbref );
@@ -336,7 +323,7 @@ public class VM_WriteBuffer
    */
   static void
   checkForEmpty(VM_Processor vp) {
-    int end,start,wbref,wbstatus,wbtib;
+    int end,start,wbref,wbstatus;
     
     if ( vp.modifiedOldObjectsTop != VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4 ) {
       
@@ -348,10 +335,7 @@ public class VM_WriteBuffer
 	  while ( start <= end ) {
 	    wbref = VM_Magic.getMemoryWord( start );
 	    VM_Scheduler.trace("************","value of ref",wbref);
-	    wbstatus = VM_Magic.getMemoryWord(wbref+VM.OBJECT_STATUS_OFFSET);
-	    VM_Scheduler.trace("            ","status of object",wbstatus);
-	    wbtib = VM_Magic.getMemoryWord(wbref+VM.OBJECT_TIB_OFFSET);
-	    VM_Scheduler.trace("            ","TIB of object",wbtib);
+	    VM_ObjectModel.dumpHeader(wbref);
 	    start = start+4;
 	  }
       }  // DEBUG_WRITEBUFFER

@@ -614,7 +614,7 @@ public final class VM_Callbacks {
    * VM exit callback list.
    */
   private static CallbackList exitCallbacks = null;
-  private static Object exitLock = new Object();
+  private static Object exitLock = new VM_Synchronizer();
   private static boolean exitCallbacksStarted = false;
 
   /**
@@ -676,7 +676,7 @@ public final class VM_Callbacks {
    * Application Run Start callback list.
    */
   private static CallbackList appRunStartCallbacks = null;
-  private static Object appRunStartLock = new Object();
+  private static Object appRunStartLock = new VM_Synchronizer();
 
   /**
    * Register a callback for when the application starts a run
@@ -731,7 +731,7 @@ public final class VM_Callbacks {
    * Application Run Complete callback list.
    */
   private static CallbackList appRunCompleteCallbacks = null;
-  private static Object appRunCompleteLock = new Object();
+  private static Object appRunCompleteLock = new VM_Synchronizer();
 
   /**
    * Register a callback for when the application completes a run

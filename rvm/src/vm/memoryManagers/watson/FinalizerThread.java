@@ -21,7 +21,7 @@ public class FinalizerThread extends VM_Thread
    {
    private final static boolean TRACE        = false; // emit trace messages?
    private final static boolean TRACE_DETAIL = false; // emit detail messages?
-   public  static Object marker = new Object(); 
+   public  static Object marker = new VM_Synchronizer(); 
 
 
    // Run the finalizer thread (one per RVM)

@@ -77,7 +77,7 @@ public class VM extends VM_Properties implements VM_Constants,
     //    because it's accessed
     //    by compiler-generated stack overflow checks.
     //
-    VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> OBJECT_THREAD_ID_SHIFT];
+    VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack) + STACK_SIZE_GUARD;
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
@@ -219,6 +219,8 @@ public class VM extends VM_Properties implements VM_Constants,
     //Ensure that all classes in the boot image that have static synchronized methods have their class objects loaded:
     (VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Thread;")).asClass()).getClassForType();
      
+    VM_Lock.boot();
+
     // Begin multiprocessing.
     //
     VM_Scheduler.boot(mainThread);
@@ -334,14 +336,14 @@ public class VM extends VM_Properties implements VM_Constants,
    */
   public static void sysWrite(String value) {
     if (runningVM) {
-      // might be calling this from delicate place; so disable thread
-      // switching
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      boolean enabled = VM_Processor.getCurrentProcessor().threadSwitchingEnabled();
+      if (enabled) VM_Processor.getCurrentProcessor().disableThreadSwitching();
       for (int i = 0, n = value.length(); i < n; ++i) {
         sysWrite(value.charAt(i));
       }
-      VM_Processor.getCurrentProcessor().enableThreadSwitching();
-    } else {
+      if (enabled) VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    }
+    else {
       System.err.print(value);
     }
   }
@@ -414,6 +416,18 @@ public class VM extends VM_Properties implements VM_Constants,
     } else
       System.err.print(value);
   }
+
+  public static void sysWriteln ()                { sysWrite("\n"); }
+  public static void sysWriteln (int i)           { sysWrite(i,false);        sysWriteln(); }
+  public static void sysWriteln (String s)        { sysWrite(s);        sysWriteln(); }
+  public static void sysWrite   (String s, int i) { sysWrite(s);        sysWrite(i,false); }
+  public static void sysWriteln (String s, int i) { sysWrite(s,i);      sysWriteln(); }
+  public static void sysWrite   (int i, String s) { sysWrite(i,false);        sysWrite(s); }
+  public static void sysWriteln (int i, String s) { sysWrite(i,s);      sysWriteln(); }
+  public static void sysWrite   (String s1, String s2) { sysWrite(s1);  sysWrite(s2); }
+  public static void sysWriteln (String s1, String s2) { sysWrite(s1);  sysWriteln(s2); }
+  public static void sysWrite   (String s1, int i, String s2) { sysWrite(s1);  sysWrite(i,false); sysWrite(s2); }
+  public static void sysWriteln (String s1, int i, String s2) { sysWrite(s1);  sysWrite(i,false); sysWriteln(s2); }
 
   /**
    * Exit virtual machine due to internal failure of some sort.

@@ -58,10 +58,12 @@ public final class VM_OptMachineCodeMap
     generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
-      int ie = (inlineEncoding == null) ? 0 : (inlineEncoding.length*4 + ARRAY_HEADER_SIZE);
-      int gc = (gcMaps == null) ? 0 : (gcMaps.length*4 + ARRAY_HEADER_SIZE);
-      int mySize = 12 + SCALAR_HEADER_SIZE;
-      int totalMapBytes = ie + gc + mySize + MCInformation.length*8;
+      VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
+      VM_Array longArrayType = VM_Array.getPrimitiveArrayType(11);
+      int ie = (inlineEncoding == null) ? 0 : intArrayType.getInstanceSize(inlineEncoding.length);
+      int gc = (gcMaps == null) ? 0 : intArrayType.getInstanceSize(gcMaps.length);
+      int mySize = this.getClass().getVMType().asClass().getInstanceSize();
+      int totalMapBytes = ie + gc + mySize + longArrayType.getInstanceSize(MCInformation.length);
       recordStats(ir.method, totalMapBytes, machineCodeSize << LG_INSTRUCTION_WIDTH);
     }
 

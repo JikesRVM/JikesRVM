@@ -80,10 +80,10 @@ public class OPT_Compiler {
       // bad news and shouldn't be ignored.
       throw  e;
     } catch (Throwable e) {
-      e.printStackTrace();
-      throw  new OPT_OptimizingCompilerException("OPT_Compiler", 
-                "untrapped failure during init, "
-          + " Converting to OPT_OptimizingCompilerException");
+	e.printStackTrace();
+	throw  new OPT_OptimizingCompilerException("OPT_Compiler", 
+						   "untrapped failure during init, "
+						   + " Converting to OPT_OptimizingCompilerException");
     }
   }
 

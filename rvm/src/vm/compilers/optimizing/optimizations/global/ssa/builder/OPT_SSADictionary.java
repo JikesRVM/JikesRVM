@@ -560,9 +560,9 @@ class OPT_SSADictionary
         //-#endif
         // do nothing: these cases handled by registerUnknown
         break;
-    case UBYTE_LOAD_opcode: case BYTE_LOAD_opcode: 
-    case USHORT_LOAD_opcode: case SHORT_LOAD_opcode: 
-    case INT_LOAD_opcode: case LONG_LOAD_opcode:
+      case UBYTE_LOAD_opcode: case BYTE_LOAD_opcode: 
+      case USHORT_LOAD_opcode: case SHORT_LOAD_opcode: 
+      case INT_LOAD_opcode: case LONG_LOAD_opcode: case REF_LOAD_opcode:
         // !!TODO: how to handle this special case?
         break;
       case BYTE_STORE_opcode: case SHORT_STORE_opcode:
@@ -573,10 +573,10 @@ class OPT_SSADictionary
         phiHelper(s, b);
         break;
       default:
-	if (!s.isPEI()) {
-	  System.out.println("SSA dictionary failed on " + s.toString());
-	  throw  new OPT_OperationNotImplementedException(
-            "OPT_SSADictionary: Unsupported opcode " + s);
+        if (!s.isPEI()) {
+          System.out.println("SSA dictionary failed on " + s.toString());
+          throw  new OPT_OperationNotImplementedException(
+                                                          "OPT_SSADictionary: Unsupported opcode " + s);
 	}
     }           // switch
     if (insertPEIDeps) {

@@ -52,7 +52,7 @@ public abstract class VM_RCGC
     // Value used by BootImageWriter to mark boot image objects as not collectable.
     // NOTE: If you change this value or the values of RED or COLORSHIFT (or RCBITS) you must change
     //       BootImageWriter.java to keep the value it uses synchronized.
-    public static final int BOOTIMAGE_REFCOUNT = (RED<<COLORSHIFT)|1; // colored red to prevent RC updates
+    public static final int BOOTIMAGE_REFCOUNT = RED|1; // colored red to prevent RC updates
 
     // COUNT FIELD(S)
 
@@ -396,13 +396,13 @@ public abstract class VM_RCGC
     // LOW-LEVEL FUNCTIONS
 
     public static final int refcount(int object) { 
-	return VM_Magic.getMemoryWord(object + VM.OBJECT_REFCOUNT_OFFSET);
+	return VM_Magic.getMemoryWord(object + VM_AllocatorHeader.REFCOUNT_OFFSET);
     }
 
     public static final void setRefcount(int object, int value) { 
 	if (VM.VerifyAssertions) VM.assert((value & EMPTYMASK) == 0);
 
-	VM_Magic.setMemoryWord(object + VM.OBJECT_REFCOUNT_OFFSET, value);
+	VM_Magic.setMemoryWord(object + VM_AllocatorHeader.REFCOUNT_OFFSET, value);
     }
 
 

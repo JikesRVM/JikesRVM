@@ -24,7 +24,7 @@
  * @author Derek Lieber
  */
 public class VM_Primitive extends VM_Type
-  implements VM_Constants, VM_ClassLoaderConstants {
+  implements VM_Constants, VM_ClassLoaderConstants, VM_SynchronizedObject {
   //-----------//
   // Interface //
   //-----------//

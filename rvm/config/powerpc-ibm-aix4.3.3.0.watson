@@ -54,7 +54,7 @@ export JIKES="/homes/fury5/jalapeno/bin/jikes-1.13"
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
-export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc"
+export CPLUS="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
 
 # how to link a shared C++ library
 export LDSHARED="/usr/gnu/bin/g++ -shared"

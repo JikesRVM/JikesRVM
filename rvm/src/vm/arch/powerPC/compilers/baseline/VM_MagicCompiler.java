@@ -21,8 +21,7 @@
  * @author Derek Lieber
  * @author Janice Sheperd
  */
-class VM_MagicCompiler implements VM_BaselineConstants, 
-				  VM_ObjectLayoutConstants {
+class VM_MagicCompiler implements VM_BaselineConstants {
 
   // These constants do not really belong here, but since I am making this change
   // I might as well make it a little better.  All size in bytes.
@@ -360,7 +359,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          }
 
       if (methodName == VM_MagicNames.getIntAtOffset ||
-		   methodName == VM_MagicNames.getObjectAtOffset)
+          methodName == VM_MagicNames.getObjectAtOffset ||
+          methodName == VM_MagicNames.getObjectArrayAtOffset)
       {
 		  asm.emitL  (T0, +4, SP); // pop object
 		  asm.emitL  (T1,  0, SP); // pop offset
@@ -572,6 +572,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
           methodName == VM_MagicNames.addressAsByteArray      ||
           methodName == VM_MagicNames.addressAsIntArray       ||
           methodName == VM_MagicNames.addressAsObject         ||
+          methodName == VM_MagicNames.addressAsObjectArray    ||
           methodName == VM_MagicNames.addressAsType           ||
           methodName == VM_MagicNames.objectAsType            ||
           methodName == VM_MagicNames.objectAsByteArray       ||
@@ -602,12 +603,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       if (methodName == VM_MagicNames.getObjectType)
          {
          generateGetObjectType(asm);
-         return;
-         }
-         
-      if (methodName == VM_MagicNames.getObjectStatus)
-         {
-         generateGetObjectStatus(asm);
          return;
          }
          
@@ -736,26 +731,9 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       //            +-------------------------+    /
 
       asm.emitL (T0,  0, SP);                   // get object pointer
-      asm.emitL (T0,  OBJECT_TIB_OFFSET, T0);   // get type information block pointer
+      VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
       asm.emitL (T0,  TIB_TYPE_INDEX << 2, T0); // get "type" field from type information block
       asm.emitST(T0,  0, SP);                   // *sp := type
-      }
-
-   // Generate code for "int VM_Magic.getObjectStatus(Object object)".
-   //
-   static void
-   generateGetObjectStatus(VM_Assembler asm)
-      {
-      // On entry the stack looks like this:
-      //
-      //                     hi-mem
-      //            +-------------------------+    \
-      //    SP ->   |    (Object object)      |     |- java operand stack
-      //            +-------------------------+    /
-
-      asm.emitL (T0,  0, SP);                    // get object pointer
-      asm.emitL (T0,  OBJECT_STATUS_OFFSET, T0); // get object status field
-      asm.emitST(T0,  0, SP);                    // *sp := length
       }
 
    // Generate code for "int VM_Magic.getArrayLength(Object object)".
@@ -771,7 +749,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       //            +-------------------------+    /
 
       asm.emitL (T0,  0, SP);                   // get object pointer
-      asm.emitL (T0,  ARRAY_LENGTH_OFFSET, T0); // get array length field
+      asm.emitL (T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
       asm.emitST(T0,  0, SP);                   // *sp := length
       }
 

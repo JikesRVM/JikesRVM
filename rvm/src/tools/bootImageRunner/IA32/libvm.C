@@ -296,7 +296,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   int threadID = *(int *) (localVirtualProcessorAddress + VM_Processor_threadId_offset);
   /* get the index of the thread in the threads array multiplied by the array element
      size (4) */
-  int threadIndex = threadID >> (VM_Constants_OBJECT_THREAD_ID_SHIFT - 2);
+  int threadIndex = threadID >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT - 2);
 
   /* get the address of the threads array  */
   unsigned int threadsArrayAddress =
@@ -833,7 +833,7 @@ createJVM (int vmInSeparateThread)
    * processor object.
    */
   *(unsigned int *) (pr + VM_Processor_threadId_offset) =
-		VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_Constants_OBJECT_THREAD_ID_SHIFT;
+		VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
   *(unsigned int *) (pr + VM_Processor_jtoc_offset) = jtoc;
   *(unsigned int *) (pr + VM_Processor_framePointer_offset) = (int)sp - 8;
   } 

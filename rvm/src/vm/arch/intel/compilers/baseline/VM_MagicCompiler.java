@@ -19,7 +19,7 @@
  * @author Janice Shepherd
  * @date 7 Jul 1998 
  */
-class VM_MagicCompiler implements VM_BaselineConstants, VM_ObjectLayoutConstants 
+class VM_MagicCompiler implements VM_BaselineConstants
    {
    //-----------//
    // interface //

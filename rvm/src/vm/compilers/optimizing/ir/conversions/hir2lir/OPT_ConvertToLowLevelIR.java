@@ -215,17 +215,15 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	break;
 
       case IG_CLASS_TEST_opcode:
-	{
-	  IfCmp.mutate(s, INT_IFCMP, null, 
-		       getTIB(s, ir, 
-			      InlineGuard.getClearValue(s), 
-			      InlineGuard.getClearGuard(s)), 
-		       getTIB(s, ir, InlineGuard.getGoal(s).asType()), 
-		       OPT_ConditionOperand.NOT_EQUAL(), 
-		       InlineGuard.getClearTarget(s),
-		       InlineGuard.getClearBranchProfile(s));
-	  break;
-	}
+	IfCmp.mutate(s, INT_IFCMP, null, 
+		     getTIB(s, ir, 
+			    InlineGuard.getClearValue(s), 
+			    InlineGuard.getClearGuard(s)), 
+		     getTIB(s, ir, InlineGuard.getGoal(s).asType()), 
+		     OPT_ConditionOperand.NOT_EQUAL(), 
+		     InlineGuard.getClearTarget(s),
+		     InlineGuard.getClearBranchProfile(s));
+	break;
 
       case IG_METHOD_TEST_opcode:
 	{

@@ -73,7 +73,7 @@ public class VM_Runtime implements VM_Constants {
 
     Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
                                                targetTibOffset);
-    Object rhsTib = VM_Magic.getObjectAtOffset(object, OBJECT_TIB_OFFSET);
+    Object rhsTib = VM_ObjectModel.getTIB(object);
     if (lhsTib == rhsTib)
       return true; // exact match
          
@@ -95,7 +95,7 @@ public class VM_Runtime implements VM_Constants {
 
     Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
                                               targetTibOffset);
-    Object rhsTib= VM_Magic.getObjectAtOffset(object, OBJECT_TIB_OFFSET);
+    Object rhsTib= VM_ObjectModel.getTIB(object);
     return (lhsTib == rhsTib);
   }
 
@@ -113,7 +113,7 @@ public class VM_Runtime implements VM_Constants {
       
     Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
                                                targetTibOffset);
-    Object rhsTib = VM_Magic.getObjectAtOffset(object, OBJECT_TIB_OFFSET);
+    Object rhsTib= VM_ObjectModel.getTIB(object);
     if (lhsTib == rhsTib)
       return; // exact match
 
@@ -415,30 +415,6 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * Get a new object hashcode value.  Returns a 32 bit word
-   * containing a shifted 8-bit hashcode.
-   *
-   * @return word containing a new object hashcode
-   * @see java.lang.Object.hashCode()
-   */ 
-  public static int newObjectHashCode() {
-    int hashCode;       
-    // Generate a 32 bit integer with a non-0 hashcode.  A hashcode
-    // is a 8-bit number, left shifted 2 bits within a 32 bit word.
-    // The right 2 bits are used for garbage collection.
-    // Note that the hashcode generator is not guarded by a serialization
-    // lock, but that's ok because we're not required to guarantee 
-    // unique hashcodes.
-    //
-    do {
-      hashCodeGenerator += OBJECT_HASHCODE_UNIT;
-      hashCode = hashCodeGenerator & OBJECT_HASHCODE_MASK;
-    } while (hashCode == 0);
-    return hashCode;
-  }
-
-
-  /**
    * Get an object's "hashcode" value.
    * @return object's hashcode
    * Side effect: hash value is generated and stored into object's 
@@ -446,24 +422,7 @@ public class VM_Runtime implements VM_Constants {
    * @see java.lang.Object.hashCode()
    */ 
   public static int getObjectHashCode(Object object) {
-    int hashCode = VM_Magic.getIntAtOffset(object, OBJECT_STATUS_OFFSET) 
-      & OBJECT_HASHCODE_MASK;
-    if (hashCode != 0)
-      return hashCode; // object already has a hashcode
-       
-    // Install hashcode.
-    //
-    hashCode = newObjectHashCode();
-    while (true) {
-      int statusWord = VM_Magic.prepare(object, OBJECT_STATUS_OFFSET);
-      if ((statusWord & OBJECT_HASHCODE_MASK) != 0)
-	return statusWord & OBJECT_HASHCODE_MASK; // another thread 
-                                            // installed a hashcode
-
-      if (VM_Magic.attempt(object, OBJECT_STATUS_OFFSET, statusWord, 
-                           statusWord | hashCode))
-	return hashCode; // hashcode installed successfully
-    }
+      return VM_ObjectModel.getObjectHashCode(object);
   }
 
   //---------------------------------------------------------------//
@@ -545,7 +504,7 @@ public class VM_Runtime implements VM_Constants {
   public static Object[] findITable(Object[] tib, int id) 
     throws IncompatibleClassChangeError, VM_ResolutionException {
     Object[] iTables = 
-      (Object[])tib[VM_ObjectLayoutConstants.TIB_ITABLES_TIB_INDEX];
+      (Object[])tib[VM_TIBLayoutConstants.TIB_ITABLES_TIB_INDEX];
     if (VM.DirectlyIndexedITables) {
       // ITable is at fixed offset
       return (Object[])iTables[id];
@@ -728,7 +687,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static void unlockAndThrow (Object objToUnlock, Throwable objToThrow) {
     VM_Magic.pragmaNoInline();
-    VM_Lock.inlineUnlock(objToUnlock);
+    VM_Lock.unlock(objToUnlock);
     athrow(objToThrow);
   }
 
@@ -784,8 +743,6 @@ public class VM_Runtime implements VM_Constants {
   // implementation //
   //----------------//
    
-  private static int hashCodeGenerator; // seed for generating Object hash codes
-
   static void init() {
     // tell "RunBootImage.C" to pass control to 
     // "VM_Runtime.deliverHardwareException()"
@@ -828,8 +785,8 @@ public class VM_Runtime implements VM_Constants {
     }
 
     int    nelts     = numElements[dimIndex];
-    int    size      = ARRAY_HEADER_SIZE + (nelts << 
-                                            arrayType.getLogElementSize());
+    int    size      = 
+      VM_ObjectModel.computeArrayHeaderSize(arrayType) + (nelts << arrayType.getLogElementSize());
     Object newObject = VM_Allocator.allocateArray(nelts, size, 
                                                   arrayType.getTypeInformationBlock());
 

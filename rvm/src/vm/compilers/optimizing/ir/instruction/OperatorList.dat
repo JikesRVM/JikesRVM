@@ -1394,20 +1394,6 @@ none
 ##########
 # 'Unary' operators for manipulating the Jikes RVM object model
 ##########
-# Get the status word of an object (implements GetObjectStatus magic)
-GET_OBJ_STATUS
-GuardedUnary
-none
-
-
-
-# Set the status word of an object (implements SetObjectStatus magic)
-SET_OBJ_STATUS
-GuardedSet
-none
-
-
-
 # Get the TIB ptr of an object 
 GET_OBJ_TIB
 GuardedUnary

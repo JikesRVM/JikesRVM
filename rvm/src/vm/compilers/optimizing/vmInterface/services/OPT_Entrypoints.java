@@ -35,9 +35,9 @@ public class OPT_Entrypoints implements VM_Constants {
     threadSwitchFromPrologueMethod = (VM_Method) VM.getMember("LVM_Thread;", "threadSwitchFromPrologue", "()V");
     threadSwitchFromBackedgeMethod = (VM_Method) VM.getMember("LVM_Thread;", "threadSwitchFromBackedge", "()V");
     optLockMethod = 
-      (VM_Method)VM.getMember("LVM_Lock;", "inlineLock", "(Ljava/lang/Object;)V");
+      (VM_Method)VM.getMember("LVM_ThinLock;", "inlineLock", "(Ljava/lang/Object;I)V");
     optUnlockMethod = 
-      (VM_Method)VM.getMember("LVM_Lock;", "inlineUnlock", "(Ljava/lang/Object;)V");
+      (VM_Method)VM.getMember("LVM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;I)V");
     unlockAndThrow = 
       (VM_Method)VM.getMember("LVM_Runtime;", "unlockAndThrow", 
 			      "(Ljava/lang/Object;Ljava/lang/Throwable;)V");

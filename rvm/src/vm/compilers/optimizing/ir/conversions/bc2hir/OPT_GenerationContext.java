@@ -689,7 +689,7 @@ final class OPT_GenerationContext implements OPT_Constants,
       // force java.lang.Class object into declaringClass.classForType
       method.getDeclaringClass().getClassForType();
       OPT_Instruction s = Unary.create(GET_CLASS_OBJECT,
-				       temps.makeTemp(VM_Type.JavaLangObjectType),
+				       temps.makeTemp(VM_Type.JavaLangClassType),
 				       new OPT_TypeOperand(method.getDeclaringClass()));
       appendInstruction(target, s, bcIndex);
       return Unary.getResult(s).copyD2U();

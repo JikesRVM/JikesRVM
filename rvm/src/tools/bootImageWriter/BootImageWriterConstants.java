@@ -38,10 +38,5 @@ public interface BootImageWriterConstants extends VM_Constants {
    * = 1, since slot 0 is reserved for null
    */
   public static final int FIRST_TYPE_DICTIONARY_INDEX = 1;
-
-  /**
-   * for RCGC: reference count field colored red (6) to prevent RC updates
-   */
-  public static final int BOOTIMAGE_REFCOUNT = (6 << 28) | 1;
 }
 

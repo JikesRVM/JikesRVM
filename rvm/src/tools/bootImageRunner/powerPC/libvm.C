@@ -434,7 +434,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 
    // Copy trapped register set into current thread's "hardware exception registers" save area.
    //
-   int       threadOffset = save->gpr[TID] >> (VM_Constants_OBJECT_THREAD_ID_SHIFT - 2);
+   int       threadOffset = save->gpr[TID] >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT - 2);
    unsigned  threads      = *(unsigned  *)((char *)jtoc + ThreadsOffset);
    unsigned *thread       = *(unsigned **)((char *)threads + threadOffset);
    unsigned *registers    = *(unsigned **)((char *)thread + VM_Thread_hardwareExceptionRegisters_offset);

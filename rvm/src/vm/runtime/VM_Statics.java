@@ -302,6 +302,13 @@
     }
 
     /**
+     * Fetch contents of a slot, as an object array.
+     */ 
+    public static Object[] getSlotContentsAsObjectArray(int slot) {
+      return VM_Magic.addressAsObjectArray(slots[slot]);
+    }
+
+    /**
      * Set contents of a slot, as an integer.
      */
     public static void setSlotContents(int slot, int value) {

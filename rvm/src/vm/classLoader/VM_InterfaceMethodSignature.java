@@ -12,7 +12,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_InterfaceMethodSignature implements VM_ObjectLayoutConstants {
+class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants {
   //-----------//
   // interface //
   //-----------//

@@ -745,7 +745,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Get this thread's id for use in lock ownership tests.
    */ 
-  final int getLockingId() { return threadSlot << OBJECT_THREAD_ID_SHIFT; }
+  final int getLockingId() { return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; }
   
   //------------------------------------------//
   // Interface to memory management subsystem //

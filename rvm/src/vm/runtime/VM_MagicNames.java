@@ -63,6 +63,7 @@ class VM_MagicNames {
   static VM_Atom getByteAtOffset;
   static VM_Atom getIntAtOffset;
   static VM_Atom getObjectAtOffset;
+  static VM_Atom getObjectArrayAtOffset;
   static VM_Atom getLongAtOffset;
   static VM_Atom setByteAtOffset;
   static VM_Atom setIntAtOffset;
@@ -86,6 +87,7 @@ class VM_MagicNames {
     
   static VM_Atom objectAsAddress;          
   static VM_Atom addressAsObject;          
+  static VM_Atom addressAsObjectArray;          
   static VM_Atom addressAsType;
   static VM_Atom objectAsType;
   static VM_Atom addressAsByteArray;
@@ -112,7 +114,6 @@ class VM_MagicNames {
   static VM_Atom longBitsAsDouble;
              
   static VM_Atom getObjectType;            
-  static VM_Atom getObjectStatus;          
   static VM_Atom getArrayLength;           
    
   static VM_Atom sync;
@@ -182,6 +183,7 @@ class VM_MagicNames {
     getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
     getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
     getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
+    getObjectArrayAtOffset        = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
     getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
     setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
     setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
@@ -205,6 +207,7 @@ class VM_MagicNames {
       
     objectAsAddress               = VM_Atom.findOrCreateAsciiAtom("objectAsAddress");
     addressAsObject               = VM_Atom.findOrCreateAsciiAtom("addressAsObject");
+    addressAsObjectArray          = VM_Atom.findOrCreateAsciiAtom("addressAsObjectArray");
     addressAsType                 = VM_Atom.findOrCreateAsciiAtom("addressAsType");
     objectAsType                  = VM_Atom.findOrCreateAsciiAtom("objectAsType");
     addressAsByteArray            = VM_Atom.findOrCreateAsciiAtom("addressAsByteArray");
@@ -232,7 +235,6 @@ class VM_MagicNames {
     longBitsAsDouble              = VM_Atom.findOrCreateAsciiAtom("longBitsAsDouble");
       
     getObjectType                 = VM_Atom.findOrCreateAsciiAtom("getObjectType");
-    getObjectStatus               = VM_Atom.findOrCreateAsciiAtom("getObjectStatus");
     getArrayLength                = VM_Atom.findOrCreateAsciiAtom("getArrayLength");
 
     sync                          = VM_Atom.findOrCreateAsciiAtom("sync");

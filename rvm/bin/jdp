@@ -85,35 +85,7 @@ then
 fi
 
 # make sure all the debugger classes are built
-CURRENT_DIR=`pwd`
-
-if [[ ! -a $RVM_BUILD/RVM.tools/jdp.class ]];
-  then
-
-  echo "JDP classes are not compiled yet, compiling now ..."
-
-  if [[ ! -a $RVM_BUILD/RVM.tools ]];
-    then
-    cd $RVM_BUILD
-    mkdir RVM.tools
-  fi
-
-  cd $RVM_ROOT/rvm/src/tools/jdp
-  $GNU_MAKE copy_$ARCH
-  if [[ $? != 0 ]]
-    then
-      echo "Could not copy jdp files."
-      exit 1
-  fi
-  cd $RVM_BUILD/RVM.tools
-  $GNU_MAKE compile
-  if [[ $? != 0 ]]
-    then
-      echo "Could not compile jdp."
-      exit 1
-  fi
-  cd $CURRENT_DIR
-fi 
+$RVM_BUILD/jbuild.buildJDP
 
 
 #************************************************************

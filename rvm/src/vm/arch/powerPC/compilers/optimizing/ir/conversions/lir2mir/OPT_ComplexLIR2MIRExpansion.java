@@ -14,6 +14,7 @@ import instructionFormats.*;
  * @modified Vivek Sarkar
  * @modified Igor Pechtchanski
  * @modified Martin Trapp
+ * @modified Stephen Fink
  */
 abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
 
@@ -52,6 +53,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
       case GET_TIME_BASE_opcode:
 	get_time_base(s, ir);
 	break;
+      case ATTEMPT_opcode:
+        attempt(s, ir);
+        break;
       }
     }
     OPT_DefUse.recomputeSpansBasicBlock(ir);
@@ -349,7 +353,44 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     BB2.insertOut(BB2);
     ir.cfg.linkInCodeOrder(BB1, BB2);
   }
+
+  private static void attempt(OPT_Instruction s, OPT_IR ir) {
+    OPT_BasicBlock BB1 = s.getBasicBlock();
+    OPT_BasicBlock BB4 = BB1.splitNodeAt(s, ir);
+    OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
+    OPT_BasicBlock BB3 = BB2.createSubBlock(0, ir);
+    BB1.insertOut(BB2);
+    BB1.insertOut(BB3);
+    BB2.insertOut(BB4);
+    BB3.insertOut(BB4);
+    ir.cfg.linkInCodeOrder(BB1, BB2);
+    ir.cfg.linkInCodeOrder(BB2, BB3);
+    ir.cfg.linkInCodeOrder(BB3, BB4);
+
+    // mutate ATTEMPT into a STWCX
+    OPT_RegisterOperand newValue = (OPT_RegisterOperand)Attempt.getNewValue(s);
+    OPT_RegisterOperand address = (OPT_RegisterOperand)Attempt.getAddress(s);
+    OPT_Operand offset = Attempt.getOffset(s);
+    OPT_LocationOperand location = Attempt.getLocation(s);
+    OPT_Operand guard = Attempt.getGuard(s);
+    OPT_RegisterOperand result = Attempt.getResult(s);
+    MIR_Store.mutate(s,PPC_STWCXr, newValue, address, offset, location,
+                     guard);
+
+    
+    // Branch to BB3 iff the STWXC succeeds (CR(0) is EQUAL)
+    // Else fall through to BB2
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND,
+                                                R(phys.getConditionRegister(0)),
+						OPT_PowerPCConditionOperand.EQUAL(),
+						BB3.makeJumpTarget(),
+						new OPT_BranchProfileOperand()));
+    // BB2 sets result to FALSE and jumps to BB4
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(0)));
+    BB2.appendInstruction(MIR_Branch.create(PPC_B, BB4.makeJumpTarget()));
+    
+    // BB3 sets result to TRUE and falls through to BB4
+    BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), I(1)));
+  }
 }
-
-
-

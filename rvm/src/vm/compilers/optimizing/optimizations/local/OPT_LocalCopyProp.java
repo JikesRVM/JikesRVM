@@ -62,7 +62,11 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
 		  OPT_Operand value = (OPT_Operand)info.get(rUse.register);
 		  if (value != null) {
 		    didSomething = true;
-		    s.replaceOperand(use, value.copy());
+		    value = value.copy();
+		    if (value instanceof OPT_RegisterOperand) {
+		      ((OPT_RegisterOperand)value).type = rUse.type; // preserve program point specific typing!
+		    }
+		    s.replaceOperand(use, value);
 		  }
 		}
 	      }

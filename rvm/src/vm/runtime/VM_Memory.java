@@ -513,4 +513,11 @@ class VM_Memory implements VM_Uninterruptible {
 
     VM.sysWrite("mmap tests done\n");
   }
+
+
+  static int align (int address, int alignment) {
+      VM_Magic.pragmaInline();
+      return (address + alignment - 1) & ~(alignment - 1);
+  }
+
 }

@@ -18,13 +18,13 @@ public class VM_Allocator implements VM_Constants {
   private static int    startAddress; // start of heap
   private static int    freeAddress;  // start of free area within heap
   private static int    endAddress;   // end of heap
-  private static Object lock;         // lock for serializing heap accesses
+  private static VM_Synchronizer lock;         // lock for serializing heap accesses TODO: make getHeapSpace a static fync method and get rid of this lock
   
   /**
    * Initialize for boot image.
    */
   static void init() {
-    lock = new Object();
+    lock = new VM_Synchronizer();
     VM_GCWorkQueue.init();
     VM_CollectorThread.init();
   }
@@ -34,9 +34,7 @@ public class VM_Allocator implements VM_Constants {
    *
    * @param bootrecord  reference for the system VM_BootRecord
    */
-  static void
-    boot(VM_BootRecord bootrecord)
-  {
+  static void boot(VM_BootRecord bootrecord) {
     startAddress = freeAddress = bootrecord.freeAddress;
     endAddress   = bootrecord.endAddress;
 
@@ -55,9 +53,7 @@ public class VM_Allocator implements VM_Constants {
   /**
    * Request a garbage collection cycle.
    */
-  public static void
-    gc() {
-    
+  public static void gc() {
     // Tell gc thread to reclaim space, then wait for it to complete its work.
     // The gc thread will do its work by calling collect(), below.
     //
@@ -67,8 +63,7 @@ public class VM_Allocator implements VM_Constants {
   /**
    * return true if a garbage collection is in progress
    */
-  public static boolean
-  gcInProgress() {
+  public static boolean gcInProgress() {
     return false;
   }
 
@@ -77,8 +72,7 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return the number of bytes
    */
-  public static long
-    totalMemory() {
+  public static long totalMemory() {
     return endAddress - startAddress;
   }
   
@@ -87,8 +81,7 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return number of bytes available
    */
-  public static long
-    freeMemory() {
+  public static long freeMemory() {
     return endAddress - freeAddress;
   }
   
@@ -102,51 +95,11 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return the reference for the allocated object
    */
-  public static Object
-    allocateScalar (int size, Object[] tib, boolean hasFinalizer)
-    throws OutOfMemoryError {
-    
-    if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)
-      VM.sysFail("VM_Allocator: allocation requested while gc disabled");
-    
-    // allocate (zero-filled) space
-    //
-    //  |<--------------------size---------------->|
-    //  .                            |<--hdr size->|
-    //  .                            |<--- hdr offset--->|
-    //  +-------------------+--------+------+------+-----+-----+
-    //  |         ...       | field0 | tib  |status| free| free|
-    //  +-------------------+--------+------+------+-----+-----+
-    //                                   freeAddress^     ^objAddress
-    
-    int objAddress;
-    synchronized (lock)
-      {
-	VM_Allocator.freeAddress += size;
-	if (VM_Allocator.freeAddress > VM_Allocator.endAddress)
-	  VM.sysFail("VM_Allocator: OutOfMemoryError");
-	objAddress = VM_Allocator.freeAddress - SCALAR_HEADER_SIZE - OBJECT_HEADER_OFFSET;
-      }
-    
-    // set .tib field
-    //
-    VM_Magic.setMemoryWord(objAddress + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
-
-    // store address of new object into a field of type Object, to keep it
-    // live in case GC occurs during call to addElement
-    Object objRef = VM_Magic.addressAsObject(objAddress);
-    
-    // if the class has a finalizer, add object to list of
-    // live objects with finalizers
-    //
-    if( hasFinalizer ) {
-      VM_Finalizer.addElement(objRef);
-    }
-
-    // return object reference
-    //
+  public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer) throws OutOfMemoryError {
+    int objAddress = getHeapSpace(size);
+    Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
+    if (hasFinalizer) VM_Finalizer.addElement(objRef);
     return objRef;
-    
   }
   
   /**
@@ -162,59 +115,19 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return the reference for the allocated object
    */
-  public static Object
-    cloneScalar (int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError {
-
-    if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)
-      VM.sysFail("VM_Allocator: allocation requested while gc disabled");
-    
-    // allocate (zero-filled) space
-    //
-    //  |<--------------------size---------------->|
-    //  .                            |<--hdr size->|
-    //  .                            |<--- hdr offset--->|
-    //  +-------------------+--------+------+------+-----+-----+
-    //  |         ...       | field0 | tib  |status| free| free|
-    //  +-------------------+--------+------+------+-----+-----+
-    //                                   freeAddress^     ^objAddress
-
+  public static Object cloneScalar (int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
     boolean hasFinalizer =
       VM_Magic.addressAsType(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-    
-    int objAddress;
-    synchronized (lock)
-      {
-	VM_Allocator.freeAddress += size;
-	if (VM_Allocator.freeAddress > VM_Allocator.endAddress)
-	  VM.sysFail("VM_Allocator: OutOfMemoryError");
-	objAddress = VM_Allocator.freeAddress - SCALAR_HEADER_SIZE - OBJECT_HEADER_OFFSET;
-      }
-    
-    // set .tib field
-    //
-    VM_Magic.setMemoryWord(objAddress + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
-    
-    // initialize fields
-    //
-    if (VM.VerifyAssertions) VM.assert(cloneSrc != null);
-    int cnt = size - SCALAR_HEADER_SIZE;
-    int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
-    int dst = objAddress                         + OBJECT_HEADER_OFFSET - cnt;
-    VM_Memory.aligned32Copy(dst, src, cnt);
+    int objAddress = getHeapSpace(size);
+    Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
 
-    // store address of new object into a field of type Object, to keep it
-    // live in case GC occurs during call to addElement
-    Object objRef = VM_Magic.addressAsObject(objAddress);
+    // initialize object fields with data from passed in object to clone
+    if (cloneSrc != null) {
+      VM_ObjectModel.initializeScalarClone(objRef, cloneSrc, size);
+    }
     
-    // if the class has a finalizer, add object to list of
-    // live objects with finalizers
-    //
-    if( hasFinalizer )
-      VM_Finalizer.addElement(objRef);
-    
-    // return object reference
-    //
+    if (hasFinalizer)  VM_Finalizer.addElement(objRef);
+
     return objRef;
   }
   
@@ -229,47 +142,10 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return the reference for the allocated array object 
    */
-  public static Object
-    allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError {
-    
-    if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)
-      VM.sysFail("VM_Allocator: allocation requested while gc disabled");
-    
-    // allocate (zero-filled) space
-    //
-    //  |<--------------------size---------------->|
-    //  |<-----hdr size---->|                      .
-    //  |<-----hdr offset-->|                      .
-    //  +------+------+-----+------+---------------+----+
-    //  | tib  |status| len | elt0 |     ...       |free|
-    //  +------+------+-----+------+---------------+----+
-    //                        ^objAddress           ^freeAddress
-    
-    // array size might not be a word multiple,
-    // so we must round up "freeAddress" to word multiple in order
-    // to preserve alignment for future allocations.
-    //
-    int objAddress;
-    synchronized (lock)
-      {
-	objAddress = VM_Allocator.freeAddress - OBJECT_HEADER_OFFSET;
-	VM_Allocator.freeAddress += ((size + 3) & ~3);
-	if (VM_Allocator.freeAddress > VM_Allocator.endAddress)
-	  VM.sysFail("VM_Allocator: OutOfMemoryError");
-      }
-    
-    // set .tib field
-    //
-    VM_Magic.setMemoryWord(objAddress + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
-    
-    // set .length field
-    //
-    VM_Magic.setMemoryWord(objAddress + ARRAY_LENGTH_OFFSET, numElements);
-    
-    // return object reference
-    //
-    return VM_Magic.addressAsObject(objAddress);
+  public static Object allocateArray (int numElements, int size, Object[] tib) throws OutOfMemoryError {
+    size = (size + 3) & ~3; // preserve word alignment
+    int objAddress = getHeapSpace(size);
+    return VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
   }
   
   /**
@@ -287,65 +163,44 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return the reference for the allocated array object 
    */
-  public static Object
-    cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError {
-    
+  public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
+    size = (size + 3) & ~3; // preserve word alignment
+    int objAddress = getHeapSpace(size);
+    Object objRef = VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
+
+     // initialize array elements
+     if (cloneSrc != null) {
+       VM_ObjectModel.initializeArrayClone(objRef, cloneSrc, size);
+     }
+
+     return objRef;  // return reference for allocated array
+  }
+
+
+  /**
+   * Allocate size bytes of heap space.
+   */
+  private static int getHeapSpace(int size) {
     if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)
       VM.sysFail("VM_Allocator: allocation requested while gc disabled");
-    
-    // allocate (zero-filled) space
-    //
-    //  |<--------------------size---------------->|
-    //  |<-----hdr size---->|                      .
-    //  |<-----hdr offset-->|                      .
-    //  +------+------+-----+------+---------------+----+
-    //  | tib  |status| len | elt0 |     ...       |free|
-    //  +------+------+-----+------+---------------+----+
-    //                        ^objAddress           ^freeAddress
-    
-    // array size might not be a word multiple,
-    // so we must round up "freeAddress" to word multiple in order
-    // to preserve alignment for future allocations.
-    //
     int objAddress;
     synchronized (lock)
       {
-	objAddress = VM_Allocator.freeAddress - OBJECT_HEADER_OFFSET;
-	VM_Allocator.freeAddress += ((size + 3) & ~3);
+	objAddress = VM_Allocator.freeAddress;
+	VM_Allocator.freeAddress += size;
 	if (VM_Allocator.freeAddress > VM_Allocator.endAddress)
 	  VM.sysFail("VM_Allocator: OutOfMemoryError");
       }
-    
-    // set .tib field
-    //
-    VM_Magic.setMemoryWord(objAddress + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
-    
-    // set .length field
-    //
-    VM_Magic.setMemoryWord(objAddress + ARRAY_LENGTH_OFFSET, numElements);
-    
-    // initialize array elements
-    //
-    if (VM.VerifyAssertions) VM.assert(cloneSrc != null);
-    int cnt = size - ARRAY_HEADER_SIZE;
-    int src = VM_Magic.objectAsAddress(cloneSrc);
-    int dst = objAddress;
-    VM_Memory.aligned32Copy(dst, src, cnt); 
-    
-    // return object reference
-    //
-    return VM_Magic.addressAsObject(objAddress);
+    return objAddress;
   }
   
   /**
    * Reclaim unreferenced memory (ignored)
    */
-  static void
-    collect()  {
+  static void collect()  {
     // VM.sysWrite("VM_Allocator: gc unimplemented: nothing reclaimed\n");
   }
-  
+
   // methods called from utility methods of VM_GCUtil, VM_ScanObject,
   // VM_ScanStack, VM_ScanStatics
   //
@@ -355,7 +210,6 @@ public class VM_Allocator implements VM_Constants {
   // Other fields and methods referenced from common GC classes or elsewhere
   // in VM (ex. VM_Entrypoints)
   //
-  static final int     BEING_FORWARDED_PATTERN = 0;
   static final int     MARK_VALUE = 0;
   static final boolean movesObjects = false;
   static final boolean writeBarrier = false;

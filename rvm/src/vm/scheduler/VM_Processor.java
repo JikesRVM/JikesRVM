@@ -28,7 +28,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   // found blocked in native code
   //
   static int            numberNativeProcessors   = 0;
-  static Object         nativeProcessorCountLock = new Object();
+  static VM_Synchronizer nativeProcessorCountLock = new VM_Synchronizer();
   static VM_Processor[] nativeProcessors         = new VM_Processor[100];
 
   // fields to track attached processors - processors created for user
@@ -895,6 +895,7 @@ if (loopcheck++ >= 1000000) break;
   int	 small_live;		// count live objects during gc
   long   totalBytesAllocated;	// used for instrumentation in allocators
   long   totalObjectsAllocated; // used for instrumentation in allocators
+  long   synchronizedObjectsAllocated; // used for instrumentation in allocators
 //-#endif
 //-#if RVM_WITH_GCTk
 

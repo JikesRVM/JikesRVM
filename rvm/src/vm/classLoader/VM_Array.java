@@ -80,7 +80,7 @@ public class VM_Array extends VM_Type
    * @return size
    */
   public final int getInstanceSize(int numelts) {
-    return ARRAY_HEADER_SIZE + (numelts << getLogElementSize());
+    return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
    //--------------------------------------------------------------------------------------------------//
@@ -548,7 +548,7 @@ public class VM_Array extends VM_Type
     // install partial type information block (type-slot but no method-slots) for use in type checking.
     // later, during instantiate(), we'll replace it with full type information block (including method-slots).
     //
-    Object[] tib = new Object[1];
+    Object[] tib = VM_RuntimeStructures.newTIB(1);
     tib[0] = this;
     VM_Statics.setSlotContents(tibSlot, tib);
   }
@@ -600,7 +600,7 @@ public class VM_Array extends VM_Type
       javaLangObjectTIB = cls.getTypeInformationBlock();
     }
        
-    typeInformationBlock = new Object[javaLangObjectTIB.length];
+    typeInformationBlock = VM_RuntimeStructures.newTIB(javaLangObjectTIB.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     typeInformationBlock[0] = this;
     if (VM.BuildForFastDynamicTypeCheck) {

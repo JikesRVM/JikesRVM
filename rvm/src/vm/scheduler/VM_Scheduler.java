@@ -33,7 +33,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   static final int MAX_PROCESSORS = 13;   // allow processors = 1 to 12
 
   /** Maximum number of VM_Thread's that we can support. */
-  static final int MAX_THREADS = OBJECT_THREAD_ID_MASK >>> OBJECT_THREAD_ID_SHIFT;
+  static final int LOG_MAX_THREADS = 14;
+  static final int MAX_THREADS = 1 << LOG_MAX_THREADS;
 
   // Flag for controlling virtual-to-physical processor binding.
   //

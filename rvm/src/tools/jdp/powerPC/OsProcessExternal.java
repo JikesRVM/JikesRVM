@@ -9,7 +9,8 @@
  */
 import java.io.*;
 
-class OsProcessExternal extends OsProcess implements VM_Constants {
+class OsProcessExternal extends OsProcess implements VM_Constants,
+VM_ThinLockConstants {
 
   /**
    * Constructor for external implementation of OsProcess
@@ -42,7 +43,7 @@ class OsProcessExternal extends OsProcess implements VM_Constants {
 	 JTOC_POINTER,
 	 GPR_NAMES,
 	 FPR_NAMES,
-	 OBJECT_THREAD_ID_SHIFT); 
+	 TL_THREAD_ID_SHIFT); 
 
     mem = new memoryExternal(this);
     reg = new registerExternal(this);
@@ -80,7 +81,7 @@ class OsProcessExternal extends OsProcess implements VM_Constants {
 	 JTOC_POINTER,
 	 GPR_NAMES,
 	 FPR_NAMES,
-	 OBJECT_THREAD_ID_SHIFT); 
+	 TL_THREAD_ID_SHIFT); 
     mem = new memoryExternal(this);
     reg = new registerExternal(this);    
     bpset = new breakpointList(this);

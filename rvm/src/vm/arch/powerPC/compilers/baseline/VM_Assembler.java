@@ -1307,6 +1307,22 @@ class VM_Assembler implements VM_BaselineConstants {
     mc.addInstruction(mi);
   }
 
+  static final int RLWINM_template = 21<<26;
+
+  static final INSTRUCTION RLWINM (int RA, int RS, int SH, int MB, int ME) {
+    return 21<<26 | RS<<21 | RA<<16 | SH<<11 | MB<<6 | ME<<1;
+  }
+
+  final void emitRLWINM (int RA, int RS, int SH, int MB, int ME) {
+    INSTRUCTION mi = RLWINM_template | RS<<21 | RA<<16 | SH<<11 | MB<<6 | ME<<1;
+    /*
+    if (VM.TraceAssembler)
+      asm(mIP, mi, "rlwinm", RA, RS, SH, MB, ME);
+    */
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int SFrtemplate = 31<<26 | 8<<1 | 1;
 
   static final INSTRUCTION SFr (int RT, int RA, int RB) {

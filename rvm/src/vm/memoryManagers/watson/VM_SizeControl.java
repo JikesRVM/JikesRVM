@@ -20,14 +20,13 @@
  *
  */
 class VM_SizeControl implements VM_Constants {
-// Size must change if the size of a SizeControl changes
-/// TODO: remove last_allocated.
-static final int Size = 24 + SCALAR_HEADER_SIZE;
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_SizeControl;")).asClass();
 
-int first_block;
-int current_block;
-int last_allocated;
-int ndx;
-int next_slot;
-int lastBlockToKeep;        // GSC
+  int first_block;
+  int current_block;
+  /// TODO: remove last_allocated.
+  int last_allocated;
+  int ndx;
+  int next_slot;
+  int lastBlockToKeep;        // GSC
 }
