@@ -92,7 +92,7 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       // of every instruction will be set by calling setmcOffset.
       //////////
       int codeLength = OPT_Assembler.generateCode(ir, shouldPrint);
-  
+
       //////////
       // STEP 3: Generate all the mapping information 
       // associated with the machine code.
@@ -103,7 +103,13 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       info.createFinalExceptionTable(ir);
       // 3b: Create the primary machine code map
       info.createFinalMCMap(ir, codeLength);
-  
+      //-#if RVM_FOR_IA32
+      // 3c: Create code patching maps
+      if (ir.options.guardWithCodePatch()) {
+	info.createCodePatchMaps(ir);
+      }
+      //-#endif
+
       if (shouldPrint) {
         // print exception tables (if any)
         VM_OptExceptionTable etable = info.getExceptionTable();

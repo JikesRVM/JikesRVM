@@ -49,11 +49,11 @@ E REGALLOC_ALGORITHM byte LINEAR_SCAN_REGALLOC
 Selection of register allocation algorithm
 "LINEAR_SCAN_REGALLOC useLinearScanRegAlloc ls" 
 
-E INLINING_GUARD byte IG_METHOD_TEST
+E INLINING_GUARD byte VM.BuildForIA32?IG_CODE_PATCH:IG_METHOD_TEST
 Selection of guard mechanism for inlined virtual calls that cannot be statically bound
 "IG_METHOD_TEST guardWithMethodTest ig_method_test" \
 "IG_CLASS_TEST guardWithClassTest ig_class_test" \
-"IG_TRAP guardWithTrap ig_trap"
+"IG_CODE_PATCH guardWithCodePatch ig_code_patch"
 
 E FP_MODE byte FP_STRICT
 Selection of strictness level for floating point computations

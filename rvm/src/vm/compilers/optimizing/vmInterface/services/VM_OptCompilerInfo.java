@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import instructionFormats.*;
+
 /** 
  * An implementation of VM_CompilerInfo for the OPT compiler.
  *
@@ -14,7 +16,8 @@
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-final class VM_OptCompilerInfo extends VM_CompilerInfo {
+final class VM_OptCompilerInfo extends VM_CompilerInfo 
+  implements OPT_Operators {
 
   /**
    * Get compiler that generated this method's machine code.
@@ -218,6 +221,9 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo {
   private VM_OptExceptionTable _eMap;
   /** The outermost method */
   private VM_Method _method;
+  //-#if RVM_FOR_IA32
+  private int[] patchMap;
+  //-#endif
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
@@ -390,11 +396,59 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo {
 
   /**
    * Create the final exception table from the IR for the method.
-   * @param ir
+   * @param ir the ir 
    */
   public final void createFinalExceptionTable (OPT_IR ir) {
     if (ir.hasReachableExceptionHandlers()) {
       _eMap = new VM_OptExceptionTable(ir);
     }
   }
+
+  //-#if RVM_FOR_IA32
+  /**
+   * Create the code patching maps from the IR for the method
+   * @param ir the ir 
+   */
+  public final void createCodePatchMaps(OPT_IR ir) {
+    // (1) count the patch points
+    int patchPoints = 0;
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
+	 s != null;
+	 s = s.nextInstructionInCodeOrder()) {
+      if (s.operator() == PATCH_POINT) {
+	patchPoints++;
+      }
+    }
+    // (2) if we have patch points, create the map.
+    if (patchPoints != 0) {
+      patchMap = new int[patchPoints*2];
+      int idx = 0;
+      for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
+	   s != null;
+	   s = s.nextInstructionInCodeOrder()) {
+	if (s.operator() == PATCH_POINT) {
+	  int patchPoint = s.getmcOffset();
+	  int newTarget = PatchPoint.getTarget(s).target.getmcOffset();
+	  // A patch map is the offset of the last byte of the patch point
+	  // and the new branch immediate to lay down if the code is ever patched.
+	  patchMap[idx++] = patchPoint-1;
+	  patchMap[idx++] = newTarget - patchPoint;
+	}
+      }
+    }
+  }
+
+  /**
+   * Apply the code patches to the INSTRUCTION array of cm
+   */
+  public final void applyCodePatches(VM_CompiledMethod cm) {
+    if (patchMap != null) {
+      INSTRUCTION[] code = cm.getInstructions();
+      for (int idx=0; idx<patchMap.length; idx += 2) {
+	VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+      }
+    }
+  }
+  //-#endif
+
 }

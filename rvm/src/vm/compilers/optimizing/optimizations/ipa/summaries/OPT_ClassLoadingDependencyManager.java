@@ -119,8 +119,7 @@ final class OPT_ClassLoadingDependencyManager {
   private void invalidate (VM_CompiledMethod cm) {
     VM_Method m = cm.getMethod();
     if (TRACE || DEBUG)
-      report("CLDM: Invalidating compiled method " + cm.getId() + "(" + 
-          m + ")\n");
+      report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
     // (1) Blow away information about this now invalid compiled 
     // method being held on the VM_Method
     m.clearMostRecentCompilation();
@@ -151,7 +150,13 @@ final class OPT_ClassLoadingDependencyManager {
         }
       }
     }
+    //-#if RVM_FOR_IA32
+    // (3) Apply any code patches
+    VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
+    info.applyCodePatches(cm);
+    //-#endif
   }
+
   static final boolean DEBUG = false;
   static final boolean TRACE = false;
 

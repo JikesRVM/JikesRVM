@@ -55,10 +55,10 @@ Inline allocation of scalars and arrays
 INLINE 1 true
 Inline statically resolvable calls
 
-EAGER_INLINE 1 true
-Speculatively inline non-final virtual calls
+GUARDED_INLINE 1 true
+Guarded inlining of non-final virtual calls
 
-EAGER_INLINE_INTERFACE 1 true
+GUARDED_INLINE_INTERFACE 1 true
 Speculatively inline non-final interface calls
 
 PREEX_INLINE 1 true

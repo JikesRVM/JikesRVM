@@ -1216,6 +1216,12 @@ class GenerateAssembler {
 	emitTab(3);    emit("case IA32_LOCK_opcode:\n");
 	emitTab(4);    emit("emitLockNextInstruction();\n");
 	emitTab(4);    emit("break;\n");
+
+	// Kludge for PATCH_POINT 
+	emittedOpcodes.add("LOCK");
+	emitTab(3);    emit("case PATCH_POINT_opcode:\n");
+	emitTab(4);    emit("emitPatchPoint();\n");
+	emitTab(4);    emit("break;\n");
 	
 	Set errorOpcodes = getErrorOpcodes( emittedOpcodes );
 	if (! errorOpcodes.isEmpty()) {

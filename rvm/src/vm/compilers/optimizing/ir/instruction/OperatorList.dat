@@ -328,6 +328,13 @@ store
 
 
 # conditional branch based on value/condition operands
+PATCH_POINT
+PatchPoint
+branch | conditional
+
+
+
+# conditional branch based on value/condition operands
 INT_IFCMP
 IfCmp
 branch | conditional

@@ -114,6 +114,12 @@ TrapIf
 "U Cond OPT_ConditionOperand" "U TCode OPT_TrapCodeOperand"
 
 
+PatchPoint
+1 0 2
+"D GuardResult OPT_RegisterOperand" \
+"U Target OPT_BranchOperand" "U BranchProfile OPT_BranchProfileOperand"
+
+
 IfCmp
 1 0 5
 "D GuardResult OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \

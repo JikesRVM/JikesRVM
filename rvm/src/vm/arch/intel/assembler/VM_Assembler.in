@@ -658,6 +658,72 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   }
 
   /**
+   * Generate a patch point into the generated code.
+   * (1) force patch point to be 16 bit aligned by optionally
+   *     generating a nop.
+   * (2) emit a short branch (2 byte) around 3 bytes of nops.
+   * (3) If the the code is later patched, we first patch the 3
+   *     nop bytes to be the upper 24 bits of a long jump
+   *     instruction, then update the 2 bytes of the patch
+   *     point to be an unconditional jump with a 32 bit immediate.
+   */
+  final void emitPatchPoint() {
+    if ((mi & 0x1) == 1) {
+      emitNOP();
+    }
+    VM_ForwardReference r = forwardJMP();
+    emitNOP();
+    emitNOP();
+    emitNOP();
+    r.resolve(this);
+  }
+
+  /**
+   * Apply a patch.
+   * We expect the following instruction stream:
+   *  i1; JMP rel8; NOP; NOP; NOP; i2;
+   * where patchOffset is the index of the last NOP.
+   * We patch it to be
+   *  i1; JMP rel32; i2;
+   *
+   * @param code        the code array to patch
+   * @param patchOffset the offset of the last byte of the patch point
+   * @param rel32       the new immediate to use in the branch instruction
+   *                    the code patcher is going to lay down before patchOffset
+   */
+  final static void patchCode(INSTRUCTION[] code,
+			      int patchOffset,
+			      int rel32) {
+    byte p0 = (byte)0xE9;
+    byte p1 = (byte) (rel32 & 0x000000ff);
+    byte p2 = (byte)((rel32 & 0x0000ff00) >>>  8);
+    byte p3 = (byte)((rel32 & 0x00ff0000) >>> 16);
+    byte p4 = (byte)((rel32 & 0xff000000) >>> 24);
+    if ((patchOffset & 0x2) == 0x2) {
+      // (a) lay down p4,p3,p2 one byte at a time
+      // (b) pick up the two bytes before p0 and then
+      //     lay down b2b1p0p1 as a word.
+      code[patchOffset--] = p4;
+      code[patchOffset--] = p3;
+      code[patchOffset--] = p2;
+      patchOffset -= 2; // skip over p1, p0
+      byte b1 = code[patchOffset--];
+      byte b2 = code[patchOffset];
+      int patch = (((int)p1&0xff) << 24) | (((int)p0&0xff) << 16) | 
+	          (((int)b1&0xff) << 8)  |  ((int)b2&0xff);
+      VM_Magic.setIntAtOffset(code, patchOffset, patch);
+    } else {
+      // (a) lay down p4
+      // (b) lay down p0p1p2p3 as a word
+      code[patchOffset--] = p4;
+      patchOffset -= 3; // skip over p0p1p2p3
+      int patch = (((int)p3&0xff) << 24) | (((int)p2&0xff) << 16) |
+        	  (((int)p1&0xff) << 8)  |  ((int)p0&0xff);
+      VM_Magic.setIntAtOffset(code, patchOffset, patch);
+    }
+  }
+
+  /**
    *  Generate a forward JMP instruction into the generated code.
    * This form is used when the compiler wants to hang onto the
    * forward reference object and call resolve on it directly.  These
