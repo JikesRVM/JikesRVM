@@ -170,7 +170,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
 
   //-#if RVM_FOR_AIX
-  static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xf0000000);
+  static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xd0000000);
   //-#endif
   //-#if RVM_FOR_LINUX
   static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xc0000000);
