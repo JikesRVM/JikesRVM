@@ -47,6 +47,10 @@
 // linux on ppc does not save FPRs - is this true still?
 #define NFPRS  0
 #define GETCONTEXT_IMPLEMENTED 0
+
+// work out the compilation problem
+typedef unsigned long ulong_t;
+
 #endif
 
 #ifdef RVM_FOR_AIX
@@ -275,7 +279,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
 #ifdef RVM_FOR_LINUX
  void cTrapHandler(int signum, siginfo_t *siginfo, void* arg3) {
    sigcontext* context = getLinuxSavedContext(signum, arg3);
-   ulong_t faultingAddress = siginfo->si_addr;
+   ulong_t faultingAddress = (ulong_t)siginfo->si_addr;
    pt_regs *save = context->regs;
    ulong_t ip = save->nip;
    ulong_t lr = save->link;
@@ -397,7 +401,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 #ifdef RVM_FOR_LINUX
    for (int i = 0; i < NGPRS; ++i)
      gprs[i] = save->gpr[i];
-   for (i = 0; i < NFPRS; ++i)  // linux on PPC does not save FPRs ?
+   for (int i = 0; i < NFPRS; ++i)  // linux on PPC does not save FPRs ?
      fprs[i] = -1.0;   
    *ipLoc = save->nip + 4; // +4 so it looks like return address
    *lrLoc = save->link;
