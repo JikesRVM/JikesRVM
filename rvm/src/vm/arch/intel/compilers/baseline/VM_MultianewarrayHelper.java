@@ -41,7 +41,7 @@ public class VM_MultianewarrayHelper {
     VM_Address argp = VM_Magic.getFramePointer().add(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
 	argp = argp.sub(4);
-	numElements[i] = VM_Magic.getMemoryWord(argp);
+	numElements[i] = VM_Magic.getMemoryInt(argp);
     }
     VM.enableGC();
     

@@ -88,7 +88,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // processor reg upon return to java.  it must be reported
     // so it will be relocated, if necessary
     //
-    VM_Address callers_fp = VM_Address.fromInt(VM_Magic.getMemoryWord(this.framePtr));
+    VM_Address callers_fp = VM_Magic.getMemoryAddress(this.framePtr);
     jniSavedProcessorRegAddr = callers_fp.sub(JNI_PR_OFFSET);
     //-#if RVM_FOR_AIX
     jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
@@ -103,7 +103,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // this forces saved non volatile regs to be restored from save area
     // where those containing refs have been relocated if necessary
     //
-    VM_Magic.setMemoryWord(callers_fp.sub(JNI_GC_FLAG_OFFSET), 1);
+    VM_Magic.setMemoryInt(callers_fp.sub(JNI_GC_FLAG_OFFSET), 1);
   }
   
   // return (address of) next ref in the current "frame" on the
@@ -142,7 +142,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
-    int registerLocation = VM_Magic.getMemoryWord(this.framePtr) - JNI_RVM_NONVOLATILE_OFFSET;
+    int registerLocation = VM_Magic.getMemoryInt(this.framePtr) - JNI_RVM_NONVOLATILE_OFFSET;
 
     for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR - 1; --i) {
       registerLocations[i] = registerLocation;

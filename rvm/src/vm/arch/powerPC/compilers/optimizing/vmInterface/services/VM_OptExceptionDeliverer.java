@@ -60,7 +60,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     int firstInteger = compiledMethod.getFirstNonVolatileGPR();
     if (firstInteger >= 0) {
       for (int i = firstInteger; i < 32; i++) {
-	registers.gprs[i] = VM_Magic.getMemoryWord(fp.add(frameOffset));
+	registers.gprs[i] = VM_Magic.getMemoryInt(fp.add(frameOffset));
 	frameOffset += 4;
       }
     }

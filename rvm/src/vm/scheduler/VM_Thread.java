@@ -1019,8 +1019,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
             VM_CompiledMethods.getCompiledMethod(compiledMethodId);
           if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
             int spOffset = VM_Compiler.getSPSaveAreaOffset((VM_NormalMethod)compiledMethod.getMethod());
-            VM_Magic.setMemoryWord(fp.add(spOffset), 
-                                   VM_Magic.getMemoryWord(fp.add(spOffset)) + delta);
+            VM_Magic.setMemoryAddress(fp.add(spOffset), 
+				      VM_Magic.getMemoryAddress(fp.add(spOffset)).add(delta));
             if (traceAdjustments) 
               VM.sysWrite(" sp=", VM_Magic.getMemoryWord(fp.add(spOffset)));
           }
@@ -1167,9 +1167,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	// align stack frame
 	int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
 	fp = VM_Address.fromInt(sp.sub(INITIAL_FRAME_SIZE).toInt() & ~STACKFRAME_ALIGNMENT_MASK);
-	VM_Magic.setMemoryWord(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
-	VM_Magic.setMemoryWord(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip.toInt());
-	VM_Magic.setMemoryWord(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
+	VM_Magic.setMemoryInt(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
+	VM_Magic.setMemoryInt(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip.toInt()); // need to fix
+	VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
 	
     // initialize thread stack as if "startoff" method had been called
     // by an empty "sentinal" frame  (with a single argument ???)

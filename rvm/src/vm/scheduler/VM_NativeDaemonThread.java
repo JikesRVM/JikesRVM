@@ -291,7 +291,7 @@ if (stuckEnv == null) {
 //-#if RVM_FOR_IA32
     VM_Magic.setMemoryAddress(topJavaFP.add(VM_JNICompiler.JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#else 
-    VM_Address callerFP  = VM_Address.fromInt(VM_Magic.getMemoryWord(topJavaFP));
+    VM_Address callerFP  = VM_Magic.getMemoryAddress(topJavaFP);
     VM_Magic.setMemoryAddress(callerFP.sub(JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#endif 
 

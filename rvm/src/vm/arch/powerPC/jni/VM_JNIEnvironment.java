@@ -757,9 +757,9 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-    VM_Address fp = VM_Address.fromInt(VM_Magic.getMemoryWord(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
-    fp = VM_Address.fromInt(VM_Magic.getMemoryWord(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
-    VM_Address gluefp = VM_Address.fromInt(VM_Magic.getMemoryWord(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
+    VM_Address fp = VM_Address.fromInt(VM_Magic.getMemoryInt(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
+    fp = VM_Address.fromInt(VM_Magic.getMemoryInt(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
+    VM_Address gluefp = VM_Address.fromInt(VM_Magic.getMemoryInt(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
 
     // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
     // skipping the args which are not part of the arguments for the target method
@@ -791,35 +791,35 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
       if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
 	// move 2 words from the vararg FPR save area into the spill area of the caller
-	hiword = VM_Magic.getMemoryWord(gluefp.add(varargFPROffset));
+	hiword = VM_Magic.getMemoryInt(gluefp.add(varargFPROffset));
 	varargFPROffset+=4;
-	loword = VM_Magic.getMemoryWord(gluefp.add(varargFPROffset));
+	loword = VM_Magic.getMemoryInt(gluefp.add(varargFPROffset));
 	varargFPROffset+=4;
-	VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), hiword);
+	VM_Magic.setMemoryInt(gluefp.add(spillAreaOffset), hiword);
 	spillAreaOffset+=4;
-	VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), loword);
+	VM_Magic.setMemoryInt(gluefp.add(spillAreaOffset), loword);
 	spillAreaOffset+=4;
       } 
 
       else if (argTypes[i].isLongType()) {
 	// move 2 words from the vararg GPR save area into the spill area of the caller
-	hiword = VM_Magic.getMemoryWord(gluefp.add(varargGPROffset));
+	hiword = VM_Magic.getMemoryInt(gluefp.add(varargGPROffset));
 	varargGPROffset+=4;
-	VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), hiword);
+	VM_Magic.setMemoryInt(gluefp.add(spillAreaOffset), hiword);
 	spillAreaOffset+=4;
 	// this covers the case when the long value straddles the spill boundary
 	if (spillAreaOffset<spillAreaLimit) {
-	  loword = VM_Magic.getMemoryWord(gluefp.add(varargGPROffset));
+	  loword = VM_Magic.getMemoryInt(gluefp.add(varargGPROffset));
 	  varargGPROffset+=4;
-	  VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), loword);
+	  VM_Magic.setMemoryInt(gluefp.add(spillAreaOffset), loword);
 	  spillAreaOffset+=4;
 	}
       }
 
       else {
-	hiword = VM_Magic.getMemoryWord(gluefp.add(varargGPROffset));
+	hiword = VM_Magic.getMemoryInt(gluefp.add(varargGPROffset));
 	varargGPROffset+=4;
-	VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), hiword);
+	VM_Magic.setMemoryInt(gluefp.add(spillAreaOffset), hiword);
 	spillAreaOffset+=4;
       }
 
@@ -1063,7 +1063,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // overflowarea  (pointer)
     // reg_save_area (pointer)
     VM_Address va_list_addr = argAddress;
-    int word1 = VM_Magic.getMemoryWord(va_list_addr);
+    int word1 = VM_Magic.getMemoryInt(va_list_addr);
     int gpr = word1 >> 24;
     int fpr = (word1 >> 16) & 0x0FF;
     va_list_addr = va_list_addr.add(4);
@@ -1108,14 +1108,14 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  // overflow, OTHER
 	  // round it, bytes are saved from lowest to highest one, regardless endian
 	  overflowoffset = (overflowoffset + 7) & -8;
-	  hiword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
 	  overflowoffset += 4;
-	  loword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
 	  overflowoffset += 4;
 	} else {
 	  // get value from fpr, increase fpr by 1
-	  hiword = VM_Magic.getMemoryWord(fprarray.add(fpr*8));
-	  loword = VM_Magic.getMemoryWord(fprarray.add(fpr*8 + 4));
+	  hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*8));
+	  loword = VM_Magic.getMemoryInt(fprarray.add(fpr*8 + 4));
 	  fpr += 1;
 	}
 	long doubleBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
@@ -1133,17 +1133,17 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  // overflow, OTHER
 	  // round overflowoffset, assuming overflowarea is aligned to 8 bytes
 	  overflowoffset = (overflowoffset + 7) & -8;
-	  hiword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
 	  overflowoffset += 4;
-	  loword = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
 	  overflowoffset += 4;
 	  
 	  // va-ppc.h makes last gpr useless
 	  gpr = 11;
 	} else {
 	  gpr += (gpr + 1) & 0x01;  // if gpr is even, gpr += 1
-	  hiword = VM_Magic.getMemoryWord(gprarray.add(gpr*4));
-	  loword = VM_Magic.getMemoryWord(gprarray.add((gpr+1)*4));
+	  hiword = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
+	  loword = VM_Magic.getMemoryInt(gprarray.add((gpr+1)*4));
 	  gpr += 2;
 	}
 	long longBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
@@ -1155,10 +1155,10 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	int ivalue;
 	if (gpr > LAST_OS_PARAMETER_GPR) {
 	  // overflow, OTHER
-	  ivalue = VM_Magic.getMemoryWord(overflowarea.add(overflowoffset));
+	  ivalue = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
 	  overflowoffset += 4;
 	} else {
-	  ivalue = VM_Magic.getMemoryWord(gprarray.add(gpr*4));
+	  ivalue = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
 	  gpr += 1;
 	} 
 	
@@ -1206,7 +1206,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     VM_Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
       int loword, hiword;
-      hiword = VM_Magic.getMemoryWord(addr);
+      hiword = VM_Magic.getMemoryInt(addr);
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword + 
       // " or " + VM.intAsHexString(hiword) + "\n");
@@ -1218,19 +1218,19 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       if (argTypes[i].isFloatType()) {
 	// NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
 	// so we have to extract it as a double and convert it back to a float
-	loword = VM_Magic.getMemoryWord(addr);
+	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);                       
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
 	
       } else if (argTypes[i].isDoubleType()) {
-	loword = VM_Magic.getMemoryWord(addr);
+	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
-	loword = VM_Magic.getMemoryWord(addr);
+	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
@@ -1290,8 +1290,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     for (int i=0; i<argCount; i++) {
 	
       VM_Address addr = argAddress.add(8*i);
-      int hiword = VM_Magic.getMemoryWord(addr);
-      int loword = VM_Magic.getMemoryWord(addr.add(4));
+      int hiword = VM_Magic.getMemoryInt(addr);
+      int loword = VM_Magic.getMemoryInt(addr.add(4));
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword + 
       //	  " or " + VM.intAsHexString(hiword) + "\n");
@@ -1356,7 +1356,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
     // scan the memory for the null termination of the string
     while (true) {
-      word = VM_Magic.getMemoryWord(addr);
+      word = VM_Magic.getMemoryInt(addr);
       int byte0 = ((word >> 24) & 0xFF);
       int byte1 = ((word >> 16) & 0xFF);
       int byte2 = ((word >> 8) & 0xFF);

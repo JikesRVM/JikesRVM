@@ -116,7 +116,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     // store RVM JTOC address in last (extra) entry in JNIFunctions array
     // to be restored when native C invokes JNI functions implemented in java
     //
-    // following causes exception in checkstore, so forced to setMemoryWord instead
+    // following causes exception in checkstore, so forced to setMemoryInt instead
     // JNIFunctions[FUNCTIONCOUNT+1] = VM_Magic.addressAsByteArray(VM_Magic.getTocPointer());
     VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
 			      VM_Magic.getTocPointer());
@@ -811,7 +811,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     VM_Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
 
-      int loword = VM_Magic.getMemoryWord(addr);
+      int loword = VM_Magic.getMemoryInt(addr);
       int hiword;
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + loword + 
@@ -824,19 +824,19 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
       if (argTypes[i].isFloatType()) {
 	// NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
 	// so we have to extract it as a double and convert it back to a float
-	hiword = VM_Magic.getMemoryWord(addr);
+	hiword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);                       
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
 	
       } else if (argTypes[i].isDoubleType()) {
-	hiword = VM_Magic.getMemoryWord(addr);
+	hiword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
-	hiword = VM_Magic.getMemoryWord(addr);
+	hiword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
@@ -897,7 +897,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     VM_Address addr = argAddress;
     for (int i=0; i<argCount; i++, addr = addr.add(8)) {
 
-      int loword = VM_Magic.getMemoryWord(addr);
+      int loword = VM_Magic.getMemoryInt(addr);
       int hiword;
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + loword + 
@@ -910,12 +910,12 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
 
       } else if (argTypes[i].isDoubleType()) {
-	hiword = VM_Magic.getMemoryWord(addr.add(4));
+	hiword = VM_Magic.getMemoryInt(addr.add(4));
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
-	hiword = VM_Magic.getMemoryWord(addr.add(4));
+	hiword = VM_Magic.getMemoryInt(addr.add(4));
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
@@ -966,7 +966,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
     // scan the memory for the null termination of the string
     while (true) {
-      word = VM_Magic.getMemoryWord(addr);
+      word = VM_Magic.getMemoryInt(addr);
       int byte3 = ((word >> 24) & 0xFF);
       int byte2 = ((word >> 16) & 0xFF);
       int byte1 = ((word >> 8) & 0xFF);

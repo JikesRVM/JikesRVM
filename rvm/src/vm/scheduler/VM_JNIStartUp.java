@@ -44,7 +44,7 @@ public class VM_JNIStartUp implements Runnable {
     // obtain the JNIEnv pointer and the pthread ID
     // based on the struct parms defined in libjni.C
     externalJNIEnvAddress = VM_Magic.getMemoryAddress(argAddress.add(4));
-    pthreadID             = VM_Magic.getMemoryWord(argAddress.add(8));
+    pthreadID             = VM_Magic.getMemoryInt(argAddress.add(8));
 
     if (trace) 
       System.out.println("VM_JNIStartUp: " + VM.intAsHexString(argAddress.toInt()) +

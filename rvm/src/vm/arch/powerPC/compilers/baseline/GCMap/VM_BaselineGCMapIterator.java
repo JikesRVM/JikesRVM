@@ -130,7 +130,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       bridgeParameterMappingRequired = true;
       bridgeParameterIndex   = bridgeParameterInitialIndex;
       bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
-      bridgeRegisterLocation = VM_Address.fromInt(VM_Magic.getMemoryWord(framePtr));
+      bridgeRegisterLocation = VM_Magic.getMemoryAddress(framePtr);
       bridgeRegisterLocation = bridgeRegisterLocation.sub(8 * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
 							  4 * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
     }

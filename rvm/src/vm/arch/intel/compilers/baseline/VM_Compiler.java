@@ -3308,26 +3308,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.getMemoryWord) {
+    if (methodName == VM_MagicNames.getMemoryInt ||
+	methodName == VM_MagicNames.getMemoryWord ||
+	methodName == VM_MagicNames.getMemoryAddress) {
       asm.emitPOP_Reg(T0);	// address
       asm.emitPUSH_RegInd(T0); // pushes [T0+0]
       return true;
     }
 
-    if (methodName == VM_MagicNames.getMemoryAddress) {
-      asm.emitPOP_Reg(T0);	// address
-      asm.emitPUSH_RegInd(T0); // pushes [T0+0]
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.setMemoryWord) {
-      asm.emitPOP_Reg(T0);  // value
-      asm.emitPOP_Reg(S0);  // address
-      asm.emitMOV_RegInd_Reg(S0,T0); // [S0+0] <- T0
-      return true;
-    }
-
-    if (methodName == VM_MagicNames.setMemoryAddress) {
+    if (methodName == VM_MagicNames.setMemoryInt ||
+	methodName == VM_MagicNames.setMemoryWord ||
+	methodName == VM_MagicNames.setMemoryAddress) {
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // address
       asm.emitMOV_RegInd_Reg(S0,T0); // [S0+0] <- T0

@@ -155,7 +155,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       VM.sysWriteHex(mapOffset);
       VM.sysWrite(".\n");
       VM.sysWrite("Reference is ");
-      VM.sysWriteHex ( VM_Magic.getMemoryWord ( framePtr.add(mapOffset) ) );
+      VM.sysWriteHex ( VM_Magic.getMemoryInt ( framePtr.add(mapOffset) ) );
       VM.sysWrite(".\n");
       if (mapId < 0) 
 	VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");

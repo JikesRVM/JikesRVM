@@ -142,6 +142,8 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   }
 
 
+  static private VM_Address sentinelFP = VM_Address.fromInt(STACKFRAME_SENTINAL_FP);
+
   /**
    * Scans a threads stack during collection to find object references.
    * Locate and save locations containing roots and/or return addresses.
@@ -206,13 +208,13 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     // with a "topJavaFrame" = 0. There may be references in the threads
     // JNIrefs side stack that need to be processed, below after the loop.
 
-    if ( fp.NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP)) ) {
+    if ( fp.NE(sentinelFP)) {
 
       // At start of loop:
       //   fp -> frame for method invocation being processed
       //   ip -> instruction pointer in the method (normally a call site)
       
-      while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
+      while (VM_Magic.getCallerFramePointer(fp).NE(sentinelFP)) {
 	
 	int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
 	
@@ -262,7 +264,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	     refaddr = iterator.getNextReferenceAddress()) {
 	  
 	  if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
-	    VM_Address ref = VM_Address.fromInt(VM_Magic.getMemoryWord(refaddr));
+	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
 	    if (!VM_Interface.validRef(ref)) {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
@@ -414,7 +416,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORD_SIZE)) {
       VM.sysWrite(loc.diff(start).toInt(), " ");
       VM.sysWrite(loc); VM.sysWrite(" ");
-      VM_Address value = VM_Address.fromInt(VM_Magic.getMemoryWord(loc));
+      VM_Address value = VM_Magic.getMemoryAddress(loc);
       VM.sysWrite(value);
       VM.sysWrite(" ");
       if (DUMP_STACK >= 3 && VM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )

@@ -261,12 +261,14 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL  (T2, +4, SP); // pop newvalue high 
       asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue high
       asm.emitCAL(SP, 16, SP); // drop all args
-    } else if (methodName == VM_MagicNames.getMemoryWord ||
+    } else if (methodName == VM_MagicNames.getMemoryInt ||
+	       methodName == VM_MagicNames.getMemoryWord ||
 	       methodName == VM_MagicNames.getMemoryAddress) {
       asm.emitL  (T0,  0, SP); // address
       asm.emitL  (T0,  0, T0); // *address
       asm.emitST (T0,  0, SP); // *sp := *address
-    } else if (methodName == VM_MagicNames.setMemoryWord ||
+    } else if (methodName == VM_MagicNames.setMemoryInt ||
+	       methodName == VM_MagicNames.setMemoryWord ||
 	       methodName == VM_MagicNames.setMemoryAddress) {
       asm.emitL  (T0,  4, SP); // address
       asm.emitL  (T1,  0, SP); // value

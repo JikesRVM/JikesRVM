@@ -69,6 +69,8 @@ public class VM_MagicNames {
   public static final VM_Atom setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
   public static final VM_Atom setDoubleAtOffset             = VM_Atom.findOrCreateAsciiAtom("setDoubleAtOffset");
 
+  public static final VM_Atom getMemoryInt                  = VM_Atom.findOrCreateAsciiAtom("getMemoryInt");
+  public static final VM_Atom setMemoryInt                  = VM_Atom.findOrCreateAsciiAtom("setMemoryInt");
   public static final VM_Atom getMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("getMemoryWord");
   public static final VM_Atom setMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("setMemoryWord");
   public static final VM_Atom getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");

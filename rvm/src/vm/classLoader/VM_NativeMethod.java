@@ -178,8 +178,8 @@ public final class VM_NativeMethod extends VM_Method {
       nativeIP = symbolAddress.toInt();		// Intel use direct branch address
       nativeTOC = 0;                          // not used
       //-#else
-      nativeIP  = VM_Magic.getMemoryWord(symbolAddress);     // AIX use a triplet linkage
-      nativeTOC = VM_Magic.getMemoryWord(symbolAddress.add(4));
+      nativeIP  = VM_Magic.getMemoryInt(symbolAddress);     // AIX use a triplet linkage
+      nativeTOC = VM_Magic.getMemoryInt(symbolAddress.add(4));
       //-#endif
       // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
       return true;

@@ -217,7 +217,7 @@ public class VM_Magic {
 
   /**
    * Get int at arbitrary (byte) offset from object.
-   * Use getIntAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
+   * Use getIntAtOffset(obj, ofs) instead of getMemoryInt(objectAsAddress(obj)+ofs)
    */
   public static int getIntAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -227,7 +227,7 @@ public class VM_Magic {
   /**
    * Get Object at arbitrary (byte) offset from object.
    * Use getObjectAtOffset(obj, ofs) instead of 
-   * addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
+   * addressAsObject(getMemoryAddress(objectAsAddress(obj)+ofs))
    */
   public static Object getObjectAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -237,7 +237,7 @@ public class VM_Magic {
   /**
    * Get Object[] at arbitrary (byte) offset from object.
    * Use getObjectArrayAtOffset(obj, ofs) instead of 
-   * (Object[])addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
+   * (Object[])addressAsObject(getMemoryAddr(objectAsAddress(obj)+ofs))
    */
   public static Object[] getObjectArrayAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -257,9 +257,14 @@ public class VM_Magic {
    * Get contents of a memory location.
    * @deprecated  Use getIntAtOffset / getObjectAtOffset where possible.
    */
-  public static int getMemoryWord(VM_Address address) {
+  public static int getMemoryInt(VM_Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
+    return 0;
+  }
+
+  public static VM_Word getMemoryWord(VM_Address address) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
   }
 
   public static VM_Address getMemoryAddress(VM_Address address) {
@@ -310,7 +315,11 @@ public class VM_Magic {
    * Set contents of memory location.
    * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
    */
-  public static void setMemoryWord(VM_Address address, int value) {
+  public static void setMemoryInt(VM_Address address, int value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  public static void setMemoryWord(VM_Address address, VM_Word value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 

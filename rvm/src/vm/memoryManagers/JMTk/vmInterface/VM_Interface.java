@@ -169,14 +169,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
 
-  //-#if RVM_FOR_AIX
-  static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xd0000000);
-  //-#endif
-  //-#if RVM_FOR_LINUX
-  static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xc0000000);
-  //-#endif
-
-
   public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
@@ -314,6 +306,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final int bootImageAddress = 
   //-#value BOOTIMAGE_LOAD_ADDRESS
   ;
+
+  public static VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(
+  //-#value MAXIMUM_MAPPABLE_ADDRESS
+  );
+
+
+  // 0xd for aix and 0xc for linux
+
 
     /*
   public static void checkBootImageAddress (int addr) {

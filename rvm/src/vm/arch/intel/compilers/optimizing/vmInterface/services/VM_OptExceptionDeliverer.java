@@ -124,7 +124,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     for (int i = optMethod.getFirstNonVolatileGPR(); 
 	 i<NUM_NONVOLATILE_GPRS; 
 	 i++, frameOffset += 4) {
-      registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryWord(fp.sub(frameOffset));
+      registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryInt(fp.sub(frameOffset));
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
     
