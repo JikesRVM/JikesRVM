@@ -25,12 +25,10 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   
   //-#if RVM_WITH_POWEROPEN_ABI
   static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS; // fp + cr + lr + res + res + toc
-  //-#endif
-  //-#if RVM_WITH_SVR4_ABI && RVM_FOR_LINUX
+  //-#elif RVM_WITH_SVR4_ABI
   // native frame header size, used for java-to-native glue frame header 
   static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr
-  //-#endif
-  //-#if RVM_WITH_SVR4_ABI && RVM_FOR_OSX
+  //-#elif RVM_WITH_MACH_O_ABI
   // native frame header size, used for java-to-native glue frame header 
   static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS;  // fp + cp + lr???
   //-#endif
@@ -57,7 +55,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   public static final int JNI_SAVE_AREA_SIZE                = JNI_GC_FLAG_OFFSET;
   //-#endif
 
-  //-#if RVM_WITH_SVR4_ABI
+  //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
   // LINUX saves prologue address in lr slot of glue frame (1), see the picture
   // in VM_JNICompiler
   public static final int JNI_GC_FLAG_OFFSET                = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;

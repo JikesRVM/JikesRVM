@@ -152,7 +152,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);      
   
-    //-#if RVM_WITH_SVR4_ABI
+    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
     // buy mini frame (2)
     asm.emitSTAddrU   (FP, -JNI_SAVE_AREA_SIZE, FP);
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id at mini frame (2)
@@ -180,7 +180,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     // save current frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
     // to start scanning this stack during GC, if top of stack is still executing in C
-    //-#if RVM_WITH_SVR4_ABI
+    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
     // for Linux, save mini (2) frame pointer, which has method id
     asm.emitLAddr (PROCESSOR_REGISTER, 0, FP);
     asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNITopJavaFPField.getOffset(), S0);
@@ -323,12 +323,15 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     
     // offset to the spill area in the callee (OS frame):
     int spillOffsetOS;
-    if ((VM.BuildForLinux && VM.BuildForPowerPC && VM.BuildFor64Addr) || VM.BuildForAix || VM.BuildForOsx) {
+    if (VM.BuildForPowerOpenABI || VM.BuildForMachOABI) {
       // 1st spill = JNIEnv, 2nd spill = class
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2*BYTES_IN_STACKSLOT;
-    } else if (VM.BuildForLinux && VM.BuildFor32Addr) {
+    } else if (VM.BuildForSVR4ABI) {
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE;
+    } else {
+	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
+    
 
     // offset to the spill area in the caller (RVM frame), relative to the callee's FP
     int spillOffsetVM = frameSize + STACKFRAME_HEADER_SIZE;
@@ -425,7 +428,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
   }
   
-  //-#if RVM_WITH_SVR4_ABI
+  //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
   /**
    * Generates instructions to copy parameters from RVM convention to OS convention.
    * @param asm, the VM_Assembler object
@@ -1024,7 +1027,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         asm.emitSTFD (i, offset, FP);
         offset+=BYTES_IN_DOUBLE;
       }
-      //-#elif RVM_WITH_SVR4_ABI
+      //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
       // save all parameter registers
       offset = STACKFRAME_HEADER_SIZE + 0;
       for (int i=FIRST_OS_PARAMETER_GPR; i<=LAST_OS_PARAMETER_GPR; i++) {
@@ -1037,7 +1040,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       }
       //-#endif
     } else {
-      //-#if RVM_WITH_SVR4_ABI
+      //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
       // adjust register contents (following SVR4 ABI) for normal JNI functions
       // especially dealing with long, spills
       // number of parameters of normal JNI functions should fix in
@@ -1079,7 +1082,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     int retryLoop  = asm.getMachineCodeIndex();
     // acquire Jikes RVM PROCESSOR_REGISTER (and JTOC OSX/Linux only).
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), T0);
-    //-#if RVM_WITH_SVR4_ABI
+    //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
     // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
     // Thus, we only need this load on non-AIX platforms
     asm.emitLAddr(JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset(), T0);
@@ -1221,7 +1224,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     frNormalPrologue.resolve(asm);
   } 
 
-  //-#if RVM_WITH_SVR4_ABI
+  //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
   // SVR4 rounds gprs to odd for longs, but rvm convention uses all
   // we only process JNI functions that uses parameters directly
   // so only handle parameters in gprs now
@@ -1266,5 +1269,5 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       }
     }
   }
-  //-#endif RVM_WITH_SVR4_ABI
+  //-#endif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
 }

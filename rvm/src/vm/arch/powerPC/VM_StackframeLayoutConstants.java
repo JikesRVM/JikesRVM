@@ -126,8 +126,7 @@ public interface VM_StackframeLayoutConstants  {
   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  2*BYTES_IN_STACKSLOT; // spot for this frame's callee to put return address
   static final int STACKFRAME_METHOD_ID_OFFSET        =  BYTES_IN_STACKSLOT; // spot for this frame's method id
   static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame
-  //-#endif
-  //-#if RVM_WITH_SVR4_ABI
+  //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID
   static final int STACKFRAME_METHOD_ID_OFFSET        =  2*BYTES_IN_STACKSLOT;
   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  BYTES_IN_STACKSLOT;

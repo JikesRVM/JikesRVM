@@ -853,6 +853,14 @@ declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 #
 declare -x -i RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=0
 
+##
+## Which ABI should VM_JNICompiler.java build for?
+##
+declare -i RVM_WITH_MACH_O_ABI=0 # OSX (Darwin)
+declare -i RVM_WITH_POWEROPEN_ABI=0 # AIX; Linux: ppc64
+declare -i RVM_WITH_SVR4_ABI=0	# Linux: x86, ppc32
+
+
 # controls for diagnostic flags
 declare -i RVM_FOR_STRESSGC=0
 
@@ -1033,10 +1041,18 @@ if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
 
-if (( (( RVM_FOR_AIX )) || (( (( RVM_FOR_LINUX )) && (( RVM_FOR_POWERPC )) && (( RVM_FOR_64_ADDR )))) )); then
+if (( RVM_FOR_OSX )); then
+    RVM_WITH_MACH_O_ABI=1
+    RVM_WITH_POWEROPEN_ABI=0
+    RVM_WITH_SVR4_ABI=0
+elif (( RVM_FOR_AIX
+	|| (( RVM_FOR_LINUX && RVM_FOR_POWERPC && RVM_FOR_64_ADDR )) ))
+then
+    RVM_WITH_MACH_O_ABI=0
     RVM_WITH_POWEROPEN_ABI=1
     RVM_WITH_SVR4_ABI=0
-else
+else				# Linux/x86; Linux/ppc32
+    RVM_WITH_MACH_O_ABI=0
     RVM_WITH_POWEROPEN_ABI=0
     RVM_WITH_SVR4_ABI=1
 fi

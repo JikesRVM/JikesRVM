@@ -15,6 +15,9 @@ import com.ibm.JikesRVM.classloader.*;
  *  -from Java to C:  all user-defined native methods
  *  -C to Java:  all JNI functions in VM_JNIFunctions.java
  * </pre>
+ *
+ * If this code is being used, then we assume RVM_WITH_SVR4_ABI is set.
+ * 
  * @author Ton Ngo
  * @author Steve Smith
  */
