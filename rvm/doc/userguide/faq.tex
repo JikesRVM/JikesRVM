@@ -60,7 +60,7 @@ We currently have the following four mailing lists:
 \end{description}
 
 
-\subsubsection{How can I contribute to \jrvm{}?}
+\subsubsection{How can I contribute to \jrvm{}?\@}
 \xlink{Bug reports or feature requests can be submitted directly}[ at
 {\tt \RVMBugURL}]{\RVMBugURL}.  
 Information about contributing bug fixes or extensions to the system
@@ -69,7 +69,7 @@ can be found at
 
 \subsection{Getting \jrvm{} and Documentation}
 
-\subsubsection{How do I get \jrvm{}?}
+\subsubsection{How do I get \jrvm{}?\@}
 
 You can download the \jrvm{} source from DeveloperWorks at \xlink{{\tt
 \RVMDownloadURL}}{\RVMDownloadURL}.  The \jrvm{} source is also available
@@ -85,7 +85,7 @@ The bug tracking system lists {\em defects}, representing bugs in the system, an
 
 \subsubsection{Is there documentation on-line?}
 
-Yes.  \xlink{See the \jrvm{} Home Page}[at
+Yes.  \xlink{See the \jrvm{} Home Page}[ at
 {\tt \RVMHomeURL}]{\RVMHomeURL}.
 
 \subsubsection{Can I get the Quicksilver Quasi-Static System?}
@@ -98,14 +98,14 @@ No. This project is not supported.
 
 \subsubsection{What happened to {\tt jdp}?}
 
-\link{The {\tt jdp} debugger is no longer maintained.}[See
+\link{The {\tt jdp} debugger is no longer maintained.}[ See
 Section~\Ref{} (page~\Pageref) for more details.]{section:debugging}
 
 \subsection{Building \jrvm}
 
 
 \subsubsection{What's the right value to use for
-\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?} }
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?} }%
 \label{singleProcessorQuestion}
 
 Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
@@ -155,12 +155,12 @@ jikesrvm-researchers from November of 2001}{\RVMResearcherMailingListArchiveURL/
 
 In
 order for our $m$-to-$n$ threading scheme to work, we need to be able to swap
-stacks for a single pthread.  This only works if glibc is built with an
+stacks for a single pthread.  This only works if \texttt{glibc} is built with an
 option to use the GS segment register to address certain pthread-specific
 state.  Otherwise, \texttt{glibc} attempts to use stack-pointer
 arithmetic to find pthread-specific state, which fails once we bash the stack.
 
-On Red Hat\TMweb{} Linux and SuSE\Rweb{} Linux, glibc is built with this option by
+On Red Hat\TMweb{} Linux and SuSE\Rweb{} Linux, \texttt{glibc} is built with this option by
 default, but it is possible that other Linux distributions do not do
 this.  On Red Hat Linux, the libs built with GS segment addressing are
 located in /lib/i686/*.so, and one can use ``\texttt{ldd
