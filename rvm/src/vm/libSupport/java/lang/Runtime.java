@@ -48,20 +48,7 @@ public class Runtime {
 
   static {
     defaultProperties = new Properties();
-
-    defaultProperties.put("file.separator", "/");
-    defaultProperties.put("path.separator", ":");
-    defaultProperties.put("line.separator", "\n");
-        
-    defaultProperties.put("java.compiler", "JikesRVM");
-    defaultProperties.put("java.vendor", "IBM");
-    defaultProperties.put("java.version", "1.3.0");
-    defaultProperties.put("java.vm.version", "1.3.0");
-    defaultProperties.put("java.vm.name", "JikesRVM");
-    defaultProperties.put("file.encoding", "8859_1");
-    defaultProperties.put("java.io.tmpdir", "/tmp");
-
-    defaultProperties.put("user.timezone", "America/New_York");
+    VMRuntime.insertSystemProperties(defaultProperties);
   }
 
   public void addShutdownHook(Thread hook) throws IllegalArgumentException, 
@@ -71,7 +58,7 @@ public class Runtime {
   }
 
   public int availableProcessors() {
-    throw new VM_UnimplementedError();
+    return VMRuntime.availableProcessors();
   }
     
   public Process exec(String prog) throws java.io.IOException, 
@@ -136,11 +123,11 @@ public class Runtime {
   }
 
   public long freeMemory() {
-    return VM_Runtime.freeMemory();
+    return VMRuntime.freeMemory();
   }
 
   public void gc() {
-    VM_Runtime.gc();
+    VMRuntime.gc();
   }
 
   public InputStream getLocalizedInputStream(InputStream stream) {
@@ -193,7 +180,7 @@ public class Runtime {
   }
     
   public long maxMemory() {
-    return VM_Runtime.maxMemory();
+    return VMRuntime.maxMemory();
   }
 
   public boolean removeShutdownHook(Thread hook) throws IllegalStateException,
@@ -213,7 +200,7 @@ public class Runtime {
   }
   
   public long totalMemory() {
-    return VM_Runtime.totalMemory();
+    return VMRuntime.totalMemory();
   }
 
   public void traceInstructions(boolean enable) {

@@ -17,8 +17,7 @@ import com.ibm.JikesRVM.classloader.*;
  * sequence of machine instructions. See also: VM_Linker.
  *
  * <p> Note #1: If you add, remove, or change the signature of 
- * any of these methods,
- * you must change VM_Entrypoints to match.
+ * any of these methods you may need to change VM_Entrypoints to match.
  *
  * <p> Note #2: Code here must be carefully written to be gc-safe 
  * while manipulating
@@ -101,10 +100,6 @@ public class VM_Runtime implements VM_Constants {
     if (VM.VerifyAssertions)  VM._assert(rhsType.isResolved());
     if (VM.VerifyAssertions)  VM._assert(lhsType.isResolved());
 
-    /* Short-circuit call to isAssignableWith, since we must already be
-     * resolved.  */ 
-    // isAssignableWith(lhsType, rhsType);
-    
     return lhsType == rhsType || VM_DynamicTypeCheck.instanceOfResolved(lhsType, rhsType);
   }
 
@@ -481,40 +476,6 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * Initiate a garbage collection.
-   * Called from java/lang/Runtime.
-   */ 
-  public static void gc () {
-    MM_Interface.gc();
-  }
-
-  /**
-   * Return the approximate amount of free memory available for allocation.
-   * Called from /java/lang/Runtime
-   */
-  public static long freeMemory() {
-    return MM_Interface.freeMemory();
-  }
-
-
-  /**
-   * Return amount of total memory in the system.
-   * Called from /java/lang/Runtime.
-   */
-  public static long totalMemory() {
-    return MM_Interface.totalMemory();
-  }
-
-  /**
-   * Return maximum amount of memory the system will attempt to use.
-   * Called from /java/lang/Runtime.
-   */
-  public static long maxMemory() {
-    return MM_Interface.maxMemory();
-  }
-
-
-  /**
    * Helper function to actually throw the required exception.
    * Keep out of line to mitigate code space when quickNewArray is inlined.
    */
@@ -533,7 +494,7 @@ public class VM_Runtime implements VM_Constants {
    * @see java.lang.Object#hashCode().
    */ 
   public static int getObjectHashCode(Object object) {
-      return VM_ObjectModel.getObjectHashCode(object);
+    return VM_ObjectModel.getObjectHashCode(object);
   }
 
   //---------------------------------------------------------------//
@@ -546,8 +507,7 @@ public class VM_Runtime implements VM_Constants {
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
    */ 
-  public static void initializeClassForDynamicLink(VM_Class cls) 
-  {
+  public static void initializeClassForDynamicLink(VM_Class cls) {
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
 
