@@ -8,11 +8,12 @@
 
 include		$(RVM_BUILD)/Make.rules
 
-BENCH_SOURCE_PATH=$(BENCH_HOME)/ipsixql-1_0_2
-BENCH_CLASS_PATH=$(BENCH_HOME)/ipsixql-1_0_2
+BENCH_NAME=ipsixql
+include		$(JAL_ROOT)/rvm/regression/Local.rules
 
+BENCH_CLASS_PATH=$(BENCH_HOME)
+BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE = 50
-
 START_NAME=IpsixqlHarness
 EXPECTED=ipsixql.expected
 
@@ -25,7 +26,7 @@ endif
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 $(WORKING)/william.pdom:	$(WORKING)
-	cp -f $(BENCH_SOURCE_PATH)/william.pdom $(WORKING)/william.pdom
+	echo $(ipsixql_HOME) ;  cp -f $(BENCH_SOURCE_PATH)/william.pdom $(WORKING)/william.pdom
 
 sanity: 	$(WORKING)/william.pdom sanity-check-rule
 
