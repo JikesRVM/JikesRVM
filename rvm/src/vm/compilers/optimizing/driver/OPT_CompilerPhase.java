@@ -111,7 +111,7 @@ abstract class OPT_CompilerPhase
 
     if (ir.options.PRINT_PHASES)
       VM.sysWrite(" done\n");
-    if (printingEnabled(ir.options, false)) {
+    if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
 	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         dumpIR(ir, "After " + getName());
