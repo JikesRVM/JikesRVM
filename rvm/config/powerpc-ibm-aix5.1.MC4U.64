@@ -56,7 +56,7 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # sources for current stable version of classpath
-export CLASSPATH_ROOT=/home/jalapeno/classpath-0.08
+export CLASSPATH_ROOT=/home/jalapeno/classpath-0.10
 
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
@@ -94,7 +94,7 @@ export XARGS="/usr/gnu/bin/xargs"
 export ZIP_CMD="/usr/bin/zip"
 export UNZIP_CMD="/usr/bin/unzip"
 
-# Horrible kludge to convince nm, ar, etc to all play together nicely in 64 bit mode.
+# Horrible kludge to convince AIX's nm, ar, etc to all play together nicely in 64 bit mode.
 export OBJECT_MODE=32_64
 
 export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
