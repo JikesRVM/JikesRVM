@@ -168,26 +168,49 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	  }
 	}
 	break;
-      default:
+      case IA32_TEST_opcode:
 	{
-	  for (OPT_OperandEnumeration me = s.getMemoryOperands(); 
-	       me.hasMoreElements(); ) {
-	    OPT_MemoryOperand mop = (OPT_MemoryOperand)me.next();
-	    if (mop.size == 1) {
-	      for (OPT_OperandEnumeration e2 = s.getRootOperands(); 
-		   e2.hasMoreElements(); ) {
-		OPT_Operand rootOp = e2.next();
-		if (rootOp.isRegister()) {
-		  restrictTo8Bits(rootOp.asRegister().register);
-		}
-	      }
+	  // at least 1 of the two operands must be in a register
+	  if (!MIR_Test.getVal2(s).isConstant()) {
+	    if (MIR_Test.getVal1(s).isRegister()) {
+	      noteMustNotSpill(MIR_Test.getVal1(s).asRegister().register);
+	    } else if (MIR_Test.getVal2(s).isRegister()) {
+	      noteMustNotSpill(MIR_Test.getVal2(s).asRegister().register);
 	    }
 	  }
 	}
+	handle8BitRestrictions(s);
+	break;
+
+      default:
+	  handle8BitRestrictions(s);
 	break;
       }
     }
   }
+
+
+  /**
+   * Ensure that if an operand has an 8 bit memory operand that
+   * all of its register operands are in 8 bit registers.
+   * @param s the instruction to restrict
+   */
+  final void handle8BitRestrictions(OPT_Instruction s) {
+    for (OPT_OperandEnumeration me = s.getMemoryOperands(); 
+	 me.hasMoreElements(); ) {
+      OPT_MemoryOperand mop = (OPT_MemoryOperand)me.next();
+      if (mop.size == 1) {
+	for (OPT_OperandEnumeration e2 = s.getRootOperands(); 
+	     e2.hasMoreElements(); ) {
+	  OPT_Operand rootOp = e2.next();
+	  if (rootOp.isRegister()) {
+	    restrictTo8Bits(rootOp.asRegister().register);
+	  }
+	}
+      }
+    }
+  }
+
 
   /**
    * Ensure that a particular register is only assigned to AL, BL, CL, or

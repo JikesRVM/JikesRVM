@@ -86,11 +86,18 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
                              null);
           }
           break;
-
-        case LABEL_opcode: case BBEND_opcode: case UNINT_BEGIN_opcode: 
-        case UNINT_END_opcode:
-          // These generate no code, so don't count them.
-          break;
+	  
+        case IA32_TEST_opcode: 
+	  {
+	    // don't bother telling rest of compiler that memory operand
+	    // must be first; we can just commute it here.
+	    if (MIR_Test.getVal2(p).isMemory()) {
+	      OPT_Operand tmp = MIR_Test.getClearVal1(p);
+	      MIR_Test.setVal1(p, MIR_Test.getClearVal2(p));
+	      MIR_Test.setVal2(p, tmp);
+	    }
+	  }
+	  break;
 
         case NULL_CHECK_opcode:
           {

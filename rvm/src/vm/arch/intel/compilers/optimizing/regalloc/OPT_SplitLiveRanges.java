@@ -191,6 +191,25 @@ implements OPT_Operators {
               }
             }
             break;
+
+	  case IA32_TEST_opcode:
+	    {
+	      if (MIR_Test.getVal1(s).isRegister() &&
+		  MIR_Test.getVal1(s).similar(MIR_Test.getVal2(s))) {
+		OPT_RegisterOperand rop = MIR_Test.getVal1(s).asRegister();
+		OPT_RegisterOperand tmp = findOrCreateTemp(rop, newMap, ir);
+		insertMoveBefore(tmp.copyRO(), rop.copyRO(), s);
+		MIR_Test.getVal1(s).asRegister().register = tmp.register;
+		MIR_Test.getVal2(s).asRegister().register = tmp.register;
+	      } else {
+		// other cases are a little complex, so split all live ranges
+		// rather than thinking about the cases twice
+		// (let OPT_RegisterRestrictions do the heavy lifting).
+		splitAllLiveRanges(s, newMap, ir, true);
+	      }
+	    }
+	    break;
+	    
           case IR_PROLOGUE_opcode: 
             {
               if (SPLIT_PARAMS) {
