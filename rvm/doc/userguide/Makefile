@@ -38,7 +38,7 @@ LATEX  ?= latex
 DVIPS ?= dvips
 BIBTEX ?= bibtex
 MAKEINDEX ?= makeindex
-HYPERLATEX ?= /homes/meriadoc/jalapeno/contrib/hyperlatex/hyperlatex
+HYPERLATEX ?= hyperlatex
 PS2GIF ?= ps2gif
 
 INPUT_FILES = 	userguide.tex \
