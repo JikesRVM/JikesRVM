@@ -140,7 +140,8 @@ static void
 fullVersion()
 {
     shortVersion();
-    fprintf(SysTraceFile, "configuration info:\n\thost %s\n\ttarget %s\n",
+    fprintf(SysTraceFile, "\tcvs timestamp: %s\n", rvm_cvstimestamp);
+    fprintf(SysTraceFile, "\thost config: %s\n\ttarget config: %s\n",
 	    rvm_host_configuration, rvm_target_configuration);
     fprintf(SysTraceFile, "\theap default initial size: %u MBytes\n",
 	    heap_default_initial_size/(1024*1024));
@@ -250,6 +251,10 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	}
 	if (strequal(token, "-showversion")) {
 	    shortVersion();
+	    continue;
+	}
+	if (strequal(token, "-showfullversion")) {
+	    fullVersion();
 	    continue;
 	}
 	if (strequal(token, "-findMappable")) {
