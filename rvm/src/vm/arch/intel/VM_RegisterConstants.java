@@ -56,7 +56,7 @@ interface VM_RegisterConstants {
 
   // Note: the order here is important.  The opt-compiler allocates
   // the volatile registers in the order they appear here.
-  static final byte[]  VOLATILE_GPRS = { ECX, EDX, EAX };
+  static final byte[]  VOLATILE_GPRS = { EAX, EDX, ECX };
   static final int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
     
   // Note: the order here is important.  The opt-compiler allocates
