@@ -34,7 +34,7 @@ public abstract class OPT_StaticFieldReader {
     if (fieldType == VM_Type.AddressType) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (VM_Address) obj;
-      return new OPT_IntConstantOperand(val.toInt());
+      return new OPT_IntConstantOperand(val.toInt(), VM_Type.AddressType);
     } else if (fieldType == VM_Type.WordType) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
@@ -56,7 +56,7 @@ public abstract class OPT_StaticFieldReader {
       return new OPT_StringConstantOperand(val, slot);
     } else {
       // TODO: Add array and scalar reference constant operands
-      throw new OPT_OptimizingCompilerException("Unsupported type");
+      throw new OPT_OptimizingCompilerException("Unsupported type " + fieldType);
     }
   }
 
