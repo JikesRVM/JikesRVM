@@ -100,6 +100,7 @@ dist-clean:	clean
 distrib:;	mkdir -p $(distdir)/ps
 		-cp userguide.ps $(distdir)/ps
 		-cp -r ${HTML_DIR} $(distdir)
+		-chmod -Rf g+w $(distdir)/${HTML_DIR}
 
 
 
