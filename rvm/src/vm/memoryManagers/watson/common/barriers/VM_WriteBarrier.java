@@ -2,8 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
-
 package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.VM_Constants;
@@ -42,48 +40,24 @@ public class VM_WriteBarrier implements VM_Constants {
   }
 
   /**
-   * This method is inlined to implement the write barrier for resolved putfields of references
+   * This method implements the write barrier for putfields of references
    *
    * @param ref    The base pointer of the array
    * @param offset The offset being stored into.  NOTE: This is in bytes.
    * @param value  The value being stored
    */
-  public static void resolvedPutfieldWriteBarrier(Object ref, int offset, Object value) 
+  public static void putfieldWriteBarrier(Object ref, int offset, Object value) 
     throws VM_PragmaUninterruptible {
     internalWriteBarrier(ref);
   }
 
   /**
-   * This method is inlined to implement the write barrier for unresolved putfields of references
-   *
-   * @param ref   The base pointer of the array
-   * @param fid   The field id that is being stored into.
-   * @param value The value being stored
-   */
-  public static void unresolvedPutfieldWriteBarrier(Object ref, int fid, Object value) 
-      throws VM_PragmaUninterruptible {
-    internalWriteBarrier(ref);
-  }
-
-  /**
-   * This method is inlined to implement the write barrier for resolved putfields of references
+   * This method is inlined to implement the write barrier for putstatics of references
    *
    * @param fieldOffset  The offset of static field ( from JTOC)
    * @param value        The value being stored
    */
-  public static void resolvedPutStaticWriteBarrier(int fieldOffset, Object value) 
-    throws VM_PragmaUninterruptible {
-    // currently there is no write barrier for statics, all statics are
-    // scanned during each collection - a design decision
-  }
-
-  /**
-   * This method is inlined to implement the write barrier for unresolved putfields of references
-   *
-   * @param fieldId  The field id that is being stored into.
-   * @param value    The value being stored
-   */
-  public static void unresolvedPutStaticWriteBarrier(int fieldId, Object value) 
+  public static void putstaticWriteBarrier(int fieldOffset, Object value) 
     throws VM_PragmaUninterruptible {
     // currently there is no write barrier for statics, all statics are
     // scanned during each collection - a design decision
@@ -95,14 +69,11 @@ public class VM_WriteBarrier implements VM_Constants {
    * So, we share an internal implementation method...
    */
   private static void internalWriteBarrier(Object ref) 
-      throws VM_PragmaInline, VM_PragmaUninterruptible {
-    // force internal method to be inlined when compiled by Opt
+    throws VM_PragmaInline, VM_PragmaUninterruptible {
     if (VM_AllocatorHeader.testBarrierBit(ref)) {
       doWriteBarrierInsertion(ref);
     }
   }
-
-    static VM_Address xxx;
 
   /**
    * Actually do the insertion into the write barrier.

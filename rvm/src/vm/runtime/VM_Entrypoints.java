@@ -27,7 +27,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_Method athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
-
   // Allocation-related entry points
   //
   public static final VM_Method resolvedNewScalarMethod  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZI)Ljava/lang/Object;");
@@ -154,11 +153,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field SQBEField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SynchronizedCounter;", "count", "I");
   public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
-
-  public static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
+  public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
@@ -166,16 +162,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field modifiedOldObjectsMaxField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "modifiedOldObjectsMax", "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field contiguousHeapCurrentField      = getField("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_ContiguousHeap;", "current", "Lcom/ibm/JikesRVM/VM_Address;");
 
-
   public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
-  public static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
-
-  //public static final VM_Field finalizerListElementValueField   = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "value", "Lcom/ibm/JikesRVM/VM_Address;");
-  //public static final VM_Field finalizerListElementPointerField = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
-
+  public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_WriteBarrier;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
   //-#endif
 
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");

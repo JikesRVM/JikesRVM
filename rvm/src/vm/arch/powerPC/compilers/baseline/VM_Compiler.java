@@ -1797,13 +1797,13 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_getstatic(VM_Field fieldRef) {
-    emitDynamicLinkingSequence(fieldRef); // leaves field offset in T2
+    emitDynamicLinkingSequence(T1, fieldRef, true); 
     if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitLX (T0, T2, JTOC);
+      asm.emitLX (T0, T1, JTOC);
       asm.emitSTU (T0, -4, SP);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      asm.emitLFDX (F0, T2, JTOC);
+      asm.emitLFDX (F0, T1, JTOC);
       asm.emitSTFDU (F0, -8, SP);
     }
   }
@@ -1830,19 +1830,20 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putstatic(VM_Field fieldRef) {
+    emitDynamicLinkingSequence(T1, fieldRef, true);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compileUnresolvedPutstaticBarrier(asm, spSaveAreaOffset, fieldRef.getDictionaryId());
+      VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
+      emitDynamicLinkingSequence(T1, fieldRef, false);
     }
-    emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitL    (T0, 0, SP);
       asm.emitCAL  (SP, 4, SP);
-      asm.emitSTX(T0, T2, JTOC);
+      asm.emitSTX(T0, T1, JTOC);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD    (F0, 0, SP );
       asm.emitCAL    (SP, 8, SP);
-      asm.emitSTFDX(F0, T2, JTOC);
+      asm.emitSTFDX(F0, T1, JTOC);
     }
   }
 
@@ -1853,7 +1854,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_putstatic(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
+      VM_Barriers.compilePutstaticBarrierImm(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitL    (T0, 0, SP);
@@ -1873,7 +1874,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_getfield(VM_Field fieldRef) {
-    emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
+    emitDynamicLinkingSequence(T2, fieldRef, true);
     asm.emitL (T1, 0, SP); // T1 = object reference
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitLX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
@@ -1908,19 +1909,20 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putfield(VM_Field fieldRef) {
+    emitDynamicLinkingSequence(T1, fieldRef, true);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compileUnresolvedPutfieldBarrier(asm, spSaveAreaOffset, fieldRef.getDictionaryId());
+      VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
+      emitDynamicLinkingSequence(T1, fieldRef, false);	
     }
-    emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
     if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitL  (T1, 4, SP); // T1 = object reference
+      asm.emitL  (T2, 4, SP); // T1 = object reference
       asm.emitL  (T0, 0, SP); // T0 = value
       asm.emitCAL(SP, 8, SP);  
       asm.emitSTX(T0, T2, T1);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD (F0,  0, SP); // F0 = doubleword value
-      asm.emitL   (T1,  8, SP); // T1 = object reference
+      asm.emitL   (T2,  8, SP); // T1 = object reference
       asm.emitCAL (SP, 12, SP);
       asm.emitSTFDX(F0, T2, T1);
     }
@@ -1933,7 +1935,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_putfield(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset);
+      VM_Barriers.compilePutfieldBarrierImm(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitL  (T1, 4, SP); // T1 = object reference
@@ -1961,7 +1963,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_invokevirtual(VM_Method methodRef) {
     int methodRefParameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     int objectOffset = (methodRefParameterWords << 2) - 4;
-    emitDynamicLinkingSequence(methodRef); // leaves method offset in T2
+    emitDynamicLinkingSequence(T2, methodRef); // leaves method offset in T2
     asm.emitL   (T0, objectOffset,      SP); // load this
     VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0); // load TIB
     asm.emitLX  (T2, T2, T1);  
@@ -2026,7 +2028,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_invokespecial(VM_Method methodRef) {
     // must be a static method; if it was a super then declaring class _must_ be resolved
-    emitDynamicLinkingSequence(methodRef); // leaves method offset in T2
+    emitDynamicLinkingSequence(T2, methodRef); // leaves method offset in T2
     asm.emitLX    (T0, T2, JTOC); 
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(true, methodRef);
@@ -2044,7 +2046,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param methodRef the referenced method
    */
   protected final void emit_unresolved_invokestatic(VM_Method methodRef) {
-    emitDynamicLinkingSequence(methodRef);		      // leaves method offset in T2
+    emitDynamicLinkingSequence(T2, methodRef);		      // leaves method offset in T2
     asm.emitLX  (T0, T2, JTOC); // method offset left in T2 by emitDynamicLinkingSequence
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(false, methodRef);
@@ -2365,36 +2367,42 @@ public class VM_Compiler extends VM_BaselineCompiler
     return offset;
   }
 
-  private void emitDynamicLinkingSequence(VM_Field fieldRef) {
-    emitDynamicLinkingSequence(fieldRef.getDictionaryId(), 
+  private void emitDynamicLinkingSequence(int reg, VM_Field fieldRef, boolean couldBeZero) {
+    emitDynamicLinkingSequence(reg, fieldRef.getDictionaryId(), couldBeZero,
 			       VM_Entrypoints.fieldOffsetsField.getOffset(),
 			       VM_Entrypoints.resolveFieldMethod.getOffset());
   }
-
-  private void emitDynamicLinkingSequence(VM_Method methodRef) {
-    emitDynamicLinkingSequence(methodRef.getDictionaryId(), 
+  private void emitDynamicLinkingSequence(int reg, VM_Method methodRef) {
+    emitDynamicLinkingSequence(reg, methodRef.getDictionaryId(), true,
 			       VM_Entrypoints.methodOffsetsField.getOffset(),
 			       VM_Entrypoints.resolveMethodMethod.getOffset());
   }
 
-  private void emitDynamicLinkingSequence(int memberId,
+  private void emitDynamicLinkingSequence(int reg, int memberId,
+					  boolean couldBeZero,
 					  int tableOffset,
 					  int resolverOffset) {
-    int label = asm.getMachineCodeIndex();
+    if (couldBeZero) {
+      int label = asm.getMachineCodeIndex();
 
-    // load offset table
-    asm.emitLtoc (T2, tableOffset);
-    asm.emitLoffset(T2, T2, memberId << 2);
+      // load offset table
+      asm.emitLtoc (reg, tableOffset);
+      asm.emitLoffset(reg, reg, memberId << 2);
 
-    // test for non-zero offset and branch around call to resolver
-    asm.emitCMPI (T2, 0);				      // T2 ?= 0, is field's class loaded?
-    VM_ForwardReference fr1 = asm.emitForwardBC(NE);
-    asm.emitLtoc (T0, resolverOffset);
-    asm.emitMTCTR (T0);
-    asm.emitLVAL (T0, memberId);                              // dictionaryId of member we are resolving
-    asm.emitCall (spSaveAreaOffset);			      // link; will throw exception if link error
-    asm.emitB    (label);                       	      // go back and try again
-    fr1.resolve(asm);
+      // test for non-zero offset and branch around call to resolver
+      asm.emitCMPI (reg, 0);				      // reg ?= 0, is field's class loaded?
+      VM_ForwardReference fr1 = asm.emitForwardBC(NE);
+      asm.emitLtoc (T0, resolverOffset);
+      asm.emitMTCTR (T0);
+      asm.emitLVAL (T0, memberId);                            // dictionaryId of member we are resolving
+      asm.emitCall (spSaveAreaOffset);			      // link; will throw exception if link error
+      asm.emitB    (label);                       	      // go back and try again
+      fr1.resolve(asm);
+    } else {
+      // load offset table
+      asm.emitLtoc (reg, tableOffset);
+      asm.emitLoffset(reg, reg, memberId << 2);
+    }
   }
 
   // Load/Store assist

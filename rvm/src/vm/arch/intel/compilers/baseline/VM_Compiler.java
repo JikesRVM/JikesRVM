@@ -1848,7 +1848,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_getstatic(VM_Field fieldRef) {
-    emitDynamicLinkingSequence(T0, fieldRef); 
+    emitDynamicLinkingSequence(T0, fieldRef, true); 
     if (fieldRef.getSize() == 4) { 
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
     } else { // field is two words (double or long)
@@ -1879,10 +1879,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putstatic(VM_Field fieldRef) {
+    emitDynamicLinkingSequence(T0, fieldRef, true);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compileUnresolvedPutstaticBarrier(asm, fieldRef.getDictionaryId());
+      VM_Barriers.compilePutstaticBarrier(asm, T0);
+      emitDynamicLinkingSequence(T0, fieldRef, false);
     }
-    emitDynamicLinkingSequence(T0, fieldRef);
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
     } else { // field is two words (double or long)
@@ -1899,7 +1900,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_putstatic(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compilePutstaticBarrier(asm, fieldOffset);
+      VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
@@ -1916,7 +1917,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_getfield(VM_Field fieldRef) {
-    emitDynamicLinkingSequence(T0, fieldRef);
+    emitDynamicLinkingSequence(T0, fieldRef, true);
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
       asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
@@ -1955,10 +1956,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putfield(VM_Field fieldRef) {
+    emitDynamicLinkingSequence(T0, fieldRef, true);
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compileUnresolvedPutfieldBarrier(asm, fieldRef.getDictionaryId());
+      VM_Barriers.compilePutfieldBarrier(asm, T0);
+      emitDynamicLinkingSequence(T0, fieldRef, false);
     }
-    emitDynamicLinkingSequence(T0, fieldRef);
     if (fieldRef.getSize() == 4) {// field is one word
       asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
@@ -1983,7 +1985,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_putfield(VM_Field fieldRef) {
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier(asm, fieldRef.getOffset());
+      VM_Barriers.compilePutfieldBarrierImm(asm, fieldRef.getOffset());
     }
     int fieldOffset = fieldRef.getOffset();
     if (fieldRef.getSize() == 4) { // field is one word
@@ -3570,31 +3572,37 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     return offsetToFrameHead + offset;
   }
   
-  private void emitDynamicLinkingSequence(byte reg, VM_Field fieldRef) {
-    emitDynamicLinkingSequence(reg, fieldRef.getDictionaryId(), 
+  private void emitDynamicLinkingSequence(byte reg, VM_Field fieldRef, boolean couldBeZero) {
+    emitDynamicLinkingSequence(reg, fieldRef.getDictionaryId(), couldBeZero,
 			       VM_Entrypoints.fieldOffsetsField.getOffset(),
 			       VM_Entrypoints.resolveFieldMethod.getOffset());
   }
 
   private void emitDynamicLinkingSequence(byte reg, VM_Method methodRef) {
-    emitDynamicLinkingSequence(reg, methodRef.getDictionaryId(), 
+    emitDynamicLinkingSequence(reg, methodRef.getDictionaryId(), true,
 			       VM_Entrypoints.methodOffsetsField.getOffset(),
 			       VM_Entrypoints.resolveMethodMethod.getOffset());
   }
 
   private void emitDynamicLinkingSequence(byte reg, int memberId,
+					  boolean couldBeZero,
 					  int tableOffset,
 					  int resolverOffset) {
     int memberOffset = memberId << 2;
-    int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
-    asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
-    asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
-    asm.emitTEST_Reg_Reg    (reg, reg);                    // reg ?= 0, is field's class loaded?
-    VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip call instructions
-    asm.emitPUSH_Imm(memberId);                            // pass member's dictId
-    genParameterRegisterLoad(1);                           // pass 1 parameter word
-    asm.emitCALL_RegDisp(JTOC, resolverOffset);            // does class loading as sideffect
-    asm.emitJMP_Imm (retryLabel);                          // reload reg with valid value
-    fr.resolve(asm);                                       // come from Jcc above.
+    if (couldBeZero) {
+      int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
+      asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
+      asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
+      asm.emitTEST_Reg_Reg    (reg, reg);                    // reg ?= 0, is field's class loaded?
+      VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip call instructions
+      asm.emitPUSH_Imm(memberId);                            // pass member's dictId
+      genParameterRegisterLoad(1);                           // pass 1 parameter word
+      asm.emitCALL_RegDisp(JTOC, resolverOffset);            // does class loading as sideffect
+      asm.emitJMP_Imm (retryLabel);                          // reload reg with valid value
+      fr.resolve(asm);                                       // come from Jcc above.
+    } else {
+      asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
+      asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member
+    }
   }
 }

@@ -192,14 +192,13 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     //-#endif
   }
 
-  public static void resolvedPutfieldWriteBarrier(Object ref, int offset,
-						  Object value)
+  public static void putfieldWriteBarrier(Object ref, int offset, Object value)
     throws VM_PragmaInline {
     getPlan().putFieldWriteBarrier(VM_Magic.objectAsAddress(ref), offset,
 				   VM_Magic.objectAsAddress(value));
   }
   
-  public static void resolvedPutStaticWriteBarrier(int offset, Object value)
+  public static void putstaticWriteBarrier(int offset, Object value)
     throws VM_PragmaInline { 
     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
     getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
@@ -221,21 +220,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
     getPlan().arrayCopyRefCountWriteBarrier(src, tgt);
-  }
-
-  public static void unresolvedPutfieldWriteBarrier(Object ref, int fieldID,
-						    Object value)
-    throws VM_PragmaInline {
-    int offset = VM_ClassLoader.getFieldFromId(fieldID).getOffset();
-    getPlan().putFieldWriteBarrier(VM_Magic.objectAsAddress(ref), offset,
-				   VM_Magic.objectAsAddress(value));
-  }
-  
-  public static void unresolvedPutStaticWriteBarrier(int fieldID, Object value)
-    throws VM_PragmaInline { 
-    int offset = VM_ClassLoader.getFieldFromId(fieldID).getOffset();
-    VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
-    getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
 
   /**
