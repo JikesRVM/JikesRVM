@@ -1,5 +1,9 @@
-
+/*
+ * (C) Copyright IBM Corp 2003
+ */
+//$Id$
 package java.lang.ref;
+
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**

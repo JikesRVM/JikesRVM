@@ -9,7 +9,6 @@ package java.lang.ref;
  *
  * @author Julian Dolby
  * @author Perry Cheng
- *
  */
 public final class JikesRVMSupport {
 
