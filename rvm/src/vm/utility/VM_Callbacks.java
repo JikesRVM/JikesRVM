@@ -16,20 +16,23 @@ import java.util.Enumeration;
  *
  * The following events are currently implemented.  See code for exact
  * invocation syntax.
- *      ClassLoaded       - called when a VM_Class is loaded
- *      ClassResolved     - called when a VM_Class is resolved
- *      ClassInstantiated - called when a VM_Class is instantiated
- *      ClassInitialized  - called when a VM_Class is initialized
+ *      ClassLoaded       - called after a VM_Class is loaded
+ *      ClassResolved     - called after a VM_Class is resolved
+ *      ClassInstantiated - called after a VM_Class is instantiated
+ *      ClassInitialized  - called after a VM_Class is initialized
  *      MethodOverride    - called when a method in a newly loaded class
  *                          overrides a method in an existing class
+ *      MethodCompile     - called before a method is compiled
  *      ForName           - called when java.lang.Class.forName() is invoked
  *      BootImageWriting  - called when boot image writing is started
  *      Startup           - called when the VM has completed booting
  *      Exit              - called when the VM is about to exit
- *      AppRunStart       - called right before the application starts a run
- *                          (many applications have several runs)
- *      AppRunComplete    - called right after the application completes a run
- *                          (many applications have several runs)
+ *      AppRunStart       - called before the application starts a run
+ *                          (many applications have several runs -- needs
+ *                          application support)
+ *      AppRunComplete    - called after the application completes a run
+ *                          (many applications have several runs --- needs
+ *                          application support)
  *
  * @author Igor Pechtchanski
  */
@@ -345,6 +348,76 @@ public final class VM_Callbacks {
       ((MethodOverrideMonitor) l.callback).notifyMethodOverride(method, parent);
     }
     methodOverrideEnabled = true;
+  }
+
+  /**
+   * Interface for monitoring method compile.
+   */
+  public static interface MethodCompileMonitor {
+    /**
+     * Notify the monitor that a method is about to be compiled.
+     * NOTE: use VM.runningVM and VM.writingBootImage to determine
+     *       whether the VM is running
+     * @param method the method that will be compiled
+     * @param compiler the compiler that will be invoked.
+     *        Values are constants in VM_CompilerInfo
+     */
+    public void notifyMethodCompile(VM_Method method, int compiler);
+  }
+
+  /**
+   * Method compile callback list.
+   */
+  private static CallbackList methodCompileCallbacks = null;
+  private static Object methodCompileLock = new Object();
+  private static boolean methodCompileEnabled = true;
+
+  /**
+   * Register a callback for method compile.
+   * @param cb the object to notify when event happens
+   */
+  public static void addMethodCompileMonitor(MethodCompileMonitor cb) {
+    synchronized (methodCompileLock) {
+      if (TRACE_ADDMONITOR || TRACE_METHODCOMPILE) {
+        VM.sysWrite("adding method compile monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      methodCompileCallbacks = new CallbackList(cb, methodCompileCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that a method is about to be compiled.
+   * NOTE: use VM.runningVM and VM.writingBootImage to determine
+   *       whether the VM is running
+   * @param method the method that will be compiled
+   * @param compiler the compiler that will be invoked
+   *        Values are constants in VM_CompilerInfo
+   */
+  public static void notifyMethodCompile(VM_Method method, int compiler) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!methodCompileEnabled) return;
+    methodCompileEnabled = false;
+    if (TRACE_METHODCOMPILE) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking method compile monitors: ");
+      VM.sysWrite(method);
+      VM.sysWrite(":");
+      VM.sysWrite(compiler);
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = methodCompileCallbacks; l != null; l = l.next) {
+      if (TRACE_METHODCOMPILE) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((MethodCompileMonitor) l.callback).notifyMethodCompile(method, compiler);
+    }
+    methodCompileEnabled = true;
   }
 
   /**
@@ -721,6 +794,7 @@ public final class VM_Callbacks {
   private final static boolean TRACE_CLASSINITIALIZED  = false;
   private final static boolean TRACE_CLASSINSTANTIATED = false;
   private final static boolean TRACE_METHODOVERRIDE    = false;
+  private final static boolean TRACE_METHODCOMPILE     = false;
   private final static boolean TRACE_FORNAME           = false;
   private final static boolean TRACE_BOOTIMAGE         = false;
   private final static boolean TRACE_STARTUP           = false;
