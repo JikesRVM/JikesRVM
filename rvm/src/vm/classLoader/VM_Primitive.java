@@ -147,7 +147,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
 	stackWords = 1; //Kris Venstermans: dependant of Magic or not ?
 	name = tr.getName();
       } else {
-	if (VM.VerifyAssertions) VM._assert(false, "This should be a type reference referring to a VM_Primitive: ", tr);
+	if (VM.VerifyAssertions) VM._assert(false);
 	stackWords = -1;
 	name = null;
       }
