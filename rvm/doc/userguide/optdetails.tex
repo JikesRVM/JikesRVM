@@ -254,8 +254,8 @@ more operands.
 The IR operators are defined by the class {\tt OPT\_Operators}, which in
 turn is automatically generated from a template by a driver.  The input to the
 driver are two files, both called {\tt OperatorList.dat}.  One input
-file resides in {\tt vm/optimizingCompiler/IR} and defines machine-independent
-operators.  The other resides in {\tt vm/arch/\{arch\}/optimizingCompiler/IR}
+file resides in {\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction} and defines machine-independent
+operators.  The other resides in {\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/instruction}
 and defines machine-dependent operators, where \{arch\} is the
 specific architecture of interest, such as powerPC.
 
@@ -331,7 +331,7 @@ description of the API.
 
 \index{InstructionFormatList.dat}
 Each fixed-length instruction format is defined in the text file 
-{\tt \$RVM\_ROOT/rvm/src/vm/optimizingCompiler/IR/InstructionFormatList.dat}.
+{\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction/InstructionFormatList.dat}.
 Each record in this file has four lines:
 \begin{itemize}
 \item {\tt NAME}: the name of the instruction format
@@ -401,13 +401,14 @@ For example, for any instruction {\tt s} that carries a {\tt Result} operand
 {\tt ResultCarrier.conforms(s)} and {\tt ResultCarrier.getResult(s)} to access
 the {\tt Result} operand.
 
-Finally, a note on rationale.  Religious object-oriented philosophers will
-cringe at the InstructionFormats.  Instead, all this functionality could
-be implemented more cleanly with a hierarchy of
-instruction types exploiting inheritance.  We rejected the class hierarchy 
-approach due to efficiency concerns of frequent virtual method dispatch
-and type checks.  Recent improvements in our dynamic type checking
-algorithms may alleviate this concern.
+Finally, a note on rationale.  Religious object-oriented philosophers
+will cringe at the InstructionFormats.  Instead, all this
+functionality could be implemented more cleanly with a hierarchy of
+instruction types exploiting (multiple) inheritance.  We rejected the
+class hierarchy approach due to efficiency concerns of frequent
+virtual/interface method dispatch and type checks.  Recent
+improvements in our interface invocation sequence and dynamic type
+checking algorithms may alleviate some of this concern.
 
 %%%%%%%%%%%%%%%%%%%%%%%
 \subsection{BURS Rules}\label{burs}
@@ -421,7 +422,7 @@ Simple, Efficient Code-Generator Generator'' by Fraser, Hanson, and
 Proebsting, LOPLAS 1(3), Sept.\ 1992.)
 The instruction selection rules for each architecture are specified in an
 architecture-specific file called {\tt LIR2MIR.rules}, which resides in
-{\tt vm/arch/\{arch\}/optimizingCompiler/ConvertLIR2MIR}, where \{arch\} is the
+{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/conversions/lir2mir}, where \{arch\} is the
 specific architecture of interest, such as powerPC.  The rules are
 used in generating a parser, which transforms the IR.
 
@@ -496,9 +497,9 @@ The rules file is used to generate a file called {\tt ir.brg}, which, in
 turn, is used to produce a file called {\tt OPT\_BURS\_STATE.java}.
 
 For more information on helper functions look at
-{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS\_Helpers.java}.
+{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/conversions/lir2mir/OPT\_BURS\_Helpers.java}.
 For more information on the BURS algorithm see
-{\tt \$RVM\_ROOT/rvm/src/vm/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS.java}.
+{\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir/OPT\_BURS.java}.
 
 %%%%%%%%%%%%%%%%%%%%%%%
 \subsection{"Magic" Methods}\label{magic}
@@ -507,27 +508,22 @@ For more information on the BURS algorithm see
 \index{semantic inlining}
 Certain methods, known as "magic" methods and declared as static methods of 
 \xlink{{\tt VM\_Magic}}{\VMMagicURL}, 
-are treated differently by the 
-compiler. Because these methods access raw memory (such as portions of 
-object headers) or registers, or are operating system calls they cannot be
-implemented in Java\trademark code. Instead, for each of these methods,
-the Java instructions to generate the code is stored in 
-{\tt OPT\_GenerateMagic} (to generate HIR) and {\tt VM\_MagicCompiler}
-(to generate assembly code)\footnote{The optimizing compiler always uses the set
-of instructions that generate HIR; the instructions that generate assembly code
-are only invoked by the baseline compiler.}.
+are treated differently by the compiler. Because these methods access
+raw memory (such as portions of object headers) or registers, or are
+operating system calls they cannot be implemented in Java\trademark
+code. Instead, for each of these methods, the Java instructions to
+generate the code is stored in {\tt OPT\_GenerateMagic} and {\tt
+OPT\_GenerateMachineSpecificMagic} (to generate HIR) and {\tt
+VM\_MagicCompiler} (to generate assembly code)\footnote{The optimizing
+compiler always uses the set of instructions that generate HIR; the
+instructions that generate assembly code are only invoked by the
+baseline compiler.}.
 
 When a call site
 is being compiled, and it is determined that the call target is one of these
 magic methods, control is transferred to the list of instructions which will
 generate the HIR for that method. The HIR for the magic method is always 
 inlined into the caller method.
-
-Magic macro methods are so called not because they are compiled as explained 
-above, but because they are methods that consist mostly of calls to magic 
-methods. Magic macro methods are compiled in the normal fashion, but their
-magic methods are compiled as explained above. All magic macro methods are
-inlined by the compiler.
 
 \subsection{Adaptive Optimization System}\label{aos}
 
