@@ -53,7 +53,7 @@ These native methods are non-blocking system calls or C library
 services.  To implement a syscall, the RVM compilers generate a call
 sequence consistent with the platform's underlying calling convention.
 A {\tt syscall} is not a GC-safe point, so {\tt syscalls} may modify the
-Java heap (eg. memcpy). For more details on the mechanics of adding a
+Java heap (eg. {\tt memcpy()}). For more details on the mechanics of adding a
 new syscall to the system, see the header comments of 
 \xlink{{\tt VM\_SysCall.java}}{\VMSysCallURL}.
 
