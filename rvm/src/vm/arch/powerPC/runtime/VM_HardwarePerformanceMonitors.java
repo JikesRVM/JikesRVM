@@ -48,7 +48,7 @@ public class VM_HardwarePerformanceMonitors
   static private int        EVENT_RECORD = 2;
   static private int       THREAD_RECORD = 3;
 
-  // Set true in VM.boot() to tell VM_Processor when it is safe to collect hpm data!  
+  // Set true in VM_HPMs.setUpHPMinfo() to tell VM_Processor when it is safe to collect hpm data!  
   static public  boolean hpm_safe = false;
 
   /*
@@ -117,7 +117,7 @@ public class VM_HardwarePerformanceMonitors
     if (VM.BuildForHPM) {
       VM.sysWriteln("Boolean Options (-X:hpm:<option>=true or -X:hpm:<option>=false) default is false");
       VM.sysWriteln(" Option       Description"); 
-      VM.sysWriteln(" trace        dump HPM counter values at each thread switch.");
+      VM.sysWriteln(" trace        trace HPM counter values at each thread switch.");
       VM.sysWriteln(" processor    print name of processor and number of counters.");
       VM.sysWriteln(" listAll      list all events associated with each counter.");
       VM.sysWriteln(" listSelected list selected events for each counter.");
@@ -246,6 +246,7 @@ public class VM_HardwarePerformanceMonitors
 	  VM.shutdown(-1);
 	}
       } else if (name2.equals("threadGroup")) {
+	// not tested
 	String value = arg.substring(split+1);
 	if (value.compareTo("true")==0) {
 	  hpm_thread_group = true;
@@ -255,6 +256,7 @@ public class VM_HardwarePerformanceMonitors
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:threadGroup={true|false} is the correct syntax");
 	}
       } else if (name2.equals("test")) {
+	// hidden command line argument
 	String value = arg.substring(split+1);
 	if (value.compareTo("true")==0) {
 	  hpm_test = true;
@@ -405,9 +407,6 @@ public class VM_HardwarePerformanceMonitors
 	openFileOutputStream(hpm_info.filenamePrefix+".headerFile");
 	writeHeader();
 
-	// start collecting trace information
-	hpm_safe = true;
-
 	// write thread records
 	for (int i=1; i < VM_Scheduler.threadAllocationIndex; i++){
 	  // write header to file.
@@ -425,6 +424,8 @@ public class VM_HardwarePerformanceMonitors
 	  writeThread(global_tid, i, name );      
 	}
       }
+      // start collecting trace information
+      hpm_safe = true;
 
       if (verbose>=4)VM.sysWrite("          max_length is ",max_length);
       max_length = ((max_length/4)+1)*4; // multiple of 4
