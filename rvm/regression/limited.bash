@@ -31,12 +31,16 @@ EOF
     exit $exit_status
 }
     
-## Auxiliary fumnctions
+## Auxiliary functions
 function kill_children_of () {
     [[ "$*" ]] || usage 1 "No pids specified to kill the kids of"
     for pid; do
 	kill -STOP $pid
-	local children="$(ps -ef | awk '$3~/'$pid'/{print $2}')"
+	if [[ `uname` == Darwin ]]; then
+	    local children="$(ps -wwajx | awk '$3~/'$pid'/{print $2}')"
+	else
+	    local children="$(ps -ef | awk '$3~/'$pid'/{print $2}')"
+	fi
 	if [ "$children" ]; then
 	    kill_pids $children
 	    kill -9 $children

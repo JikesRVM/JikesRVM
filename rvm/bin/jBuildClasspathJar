@@ -70,7 +70,8 @@ done
 ##
 if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
     if [[ -e $DEST_DIR/stamp ]]; then
-	if ! $DIFF -q $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp ; then
+	if ! diff $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null
+	then
 	    echo "Removing out-of-date GNU Classpath checkout"
 	    rm -rf $DEST_DIR
 	fi

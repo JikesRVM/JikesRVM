@@ -24,17 +24,21 @@
 #include <InterfaceDeclarations.h>
  
        .file    "bootThread.s"
-#ifdef __linux__
-       .text    0   # function name
-       .globl   bootThread   # external visibility
+#if (defined __linux__)
+       .text    0   // function name
+       .globl   bootThread   /* external visibility */
        bootThread:
+#elif (defined __MACH__)
+       .text
+       .globl   _bootThread   /* external visibility */
+       _bootThread:
 #else
 #ifdef __GNUC__
 	.globl	.bootThread
        .bootThread:
 #else
-       .csect   .bootThread[ro]   # function name
-       .globl   .bootThread[ro]   # external visibility
+       .csect   .bootThread[ro]   /* function name */
+       .globl   .bootThread[ro]   /* external visibility */
        bootThread:
 #endif
 #endif
@@ -48,9 +52,9 @@
          */
         
 #ifdef RVM_FOR_32_ADDR 
-        lwz     S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   # fetch method entrypoint address
+         lwz     S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   /* fetch method entrypoint address*/
 #else
-        ld      S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   # fetch method entrypoint address
+     ld      S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   /* fetch method entrypoint address*/
 #endif
         mtlr    S0
-        blr                       # branch to it
+        blr                       /* branch to it */

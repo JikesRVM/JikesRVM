@@ -142,7 +142,7 @@ static const char license[] =
 #include <unistd.h>     /* unlink */
 #include <stdlib.h>     /* exit */
 #include <sys/stat.h>   /* stat */
-#if (defined __linux__) 
+#if (defined __linux__)  || (defined __MACH__)
 #include <limits.h> /* xxx_MAX */
 #else
 #include <sys/limits.h> /* xxx_MAX */

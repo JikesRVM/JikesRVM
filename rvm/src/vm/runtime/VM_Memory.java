@@ -335,6 +335,21 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   ////////////////////////
 
   // constants for protection and mapping calls
+  //-#if RVM_FOR_OSX    
+  public static final int PROT_NONE  = 0;
+  public static final int PROT_READ  = 1;
+  public static final int PROT_WRITE = 2;
+  public static final int PROT_EXEC  = 4;
+
+  public static final int MAP_SHARED    =  1;
+  public static final int MAP_PRIVATE   =  2;
+  public static final int MAP_FIXED     = 0x0010;
+  public static final int MAP_ANONYMOUS = 0x1000;
+
+  public static final int MS_ASYNC      = 1;
+  public static final int MS_INVALIDATE = 2;
+  public static final int MS_SYNC       = 0;
+  //-#endif
   //-#if RVM_FOR_LINUX
   public static final int PROT_NONE  = 0;
   public static final int PROT_READ  = 1;
@@ -549,7 +564,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   // There are other SHMCTL that are not included for now.
   //-#endif
 
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   public static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
   public static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
   public static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait

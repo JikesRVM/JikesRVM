@@ -364,7 +364,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     asm.emitLAddr(S1, 0, FP);
     asm.emitMFLR  (T0);
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // save return address of JNI method in mini frame (2)
     asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
     //-#endif
@@ -407,7 +407,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     int label1    = asm.getMachineCodeIndex();                            // inst index of the following load
     asm.emitLAddr    (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // mimi (1) FP -> mimi(2) FP -> java caller
     asm.emitLAddr   (PROCESSOR_REGISTER, 0, PROCESSOR_REGISTER);
     //-#endif
@@ -437,7 +437,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // return to caller
     //
     asm.emitLAddr  (T3, 0 , FP);                                // get previous frame
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T3);
     //-#endif
     //-#if RVM_FOR_AIX

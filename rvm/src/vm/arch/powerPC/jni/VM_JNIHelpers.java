@@ -55,8 +55,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 	argObjs = packageParameterFromVarArg(mth, varargAddress);
 	//-#endif
 	
-	//-#if RVM_FOR_LINUX
-	// pass in the frame pointer of glue stack frames
+	//-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  // pass in the frame pointer of glue stack frames
 	// stack frame looks as following:
 	//      this method -> 
 	//
@@ -73,8 +73,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 	//-#if RVM_FOR_AIX
 	argObjs = packageParameterFromVarArg(mth, argAddress);
 	//-#endif
-	//-#if RVM_FOR_LINUX
-	argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
+	//-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
 	//-#endif
       }
     }
@@ -100,7 +100,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
     //-#endif
@@ -125,7 +125,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
     //-#endif
@@ -315,7 +315,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
     //-#endif
   }
@@ -338,7 +338,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
     //-#endif
   }
@@ -421,7 +421,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     Object[] argObjectArray;
     
     switch (argtype) {
-      //-#if RVM_FOR_LINUX
+      //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     case SVR4_DOTARG:
       // argAddress is the glue frame pointer
       argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
@@ -430,7 +430,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     case JVALUE_ARG:
       argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
       break;
-      //-#if RVM_FOR_LINUX
+      //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     case SVR4_VARARG:
       argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
       break;
@@ -450,7 +450,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   }
 
 
-  //-#if RVM_FOR_LINUX 
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   /* The method reads out parameters from registers saved in native->java glue stack frame (glueFP)
    * and the spill area of native stack frame (caller of glueFP).
    * 
@@ -475,10 +475,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // spill area offset
     VM_Address overflowarea = nativeFP.add(NATIVE_FRAME_HEADER_SIZE);
     
-    // overflowarea is aligned to 8 bytes
+    // -#if RVM_FOR_LINUX
+    //overflowarea is aligned to 8 bytes
     if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
     
-    // adjust gpr and fpr to normal numbering, make life easier
+    // -#endif
+    
+    //adjust gpr and fpr to normal numbering, make life easier
     int gpr = (skip4Args) ? 7:6;       // r3 - env, r4 - cls, r5 - method id
     int fpr = 1;
     
@@ -519,6 +522,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   // -- Feng
   // 
   static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, VM_Address argAddress) {
+    //-#if RVM_FOR_OSX
+    // XXX CJH TODO!!!!
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    //-#endif
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -538,10 +545,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     va_list_addr = va_list_addr.add(4);
     VM_Address regsavearea = VM_Magic.getMemoryAddress(va_list_addr);
     
-    // overflowarea is aligned to 8 bytes
+    // -#if RVM_FOR_LINUX
+    //overflowarea is aligned to 8 bytes
     if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
     
-    // adjust gpr and fpr to normal numbering, make life easier
+    // -#endif
+    
+    //adjust gpr and fpr to normal numbering, make life easier
     gpr += 3;
     fpr += 1;
     
@@ -558,7 +568,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return argObjectArray;
   }
 
-  static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
+  //-#endif  RVM_FOR_LINUX || RVM_FOR_OSX
+
+  //-#if RVM_FOR_LINUX
+static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
 				     VM_Address gprarray, VM_Address fprarray,
 				     VM_Address overflowarea, int gpr, int fpr,
 				     VM_JNIEnvironment env) {
@@ -649,7 +662,99 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       }
     }
   }
-  //-#endif  RVM_FOR_LINUX
+  //-#endif RVM_FOR_LINUX
+  //-#if RVM_FOR_OSX
+  static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
+				     VM_Address gprarray, VM_Address fprarray,
+				     VM_Address overflowarea, int gpr, int fpr,
+                                     VM_JNIEnvironment env) {
+    // also make overflow offset, we may need to round it
+    int overflowoffset = 0;
+    int argCount = argTypes.length;
+
+    // now interpret values by types, see PPC ABI
+    for (int i=0; i<argCount; i++) {
+      int regIncrementGpr = 1;
+      if (argTypes[i].isFloatType()
+          || argTypes[i].isDoubleType()) {
+        int loword, hiword;
+        if (fpr > LAST_OS_PARAMETER_FPR) {
+          // overflow, OTHER
+          // round it, bytes are saved from lowest to highest one, regardless endian
+          // overflowoffset = (overflowoffset + 7) & -8;
+          hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          overflowoffset += BYTES_IN_INT;
+          loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          overflowoffset += BYTES_IN_INT;
+        } else {
+          // get value from fpr, increase fpr by 1
+          hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE));
+          loword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT));
+        }
+        long doubleBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+        if (argTypes[i].isFloatType()) {
+          argObjectArray[i] = VM_Reflection.wrapFloat((float)(Double.longBitsToDouble(doubleBits)));
+        } else { // double type
+          argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
+          regIncrementGpr = 2;
+        }
+	
+        //		VM.sysWriteln("double "+Double.longBitsToDouble(doubleBits));
+	
+      } else if (argTypes[i].isLongType()) {
+        int loword, hiword;
+        if (gpr > LAST_OS_PARAMETER_GPR-1) {
+          // overflow, OTHER
+          // round overflowoffset, assuming overflowarea is aligned to 8 bytes
+          //overflowoffset = (overflowoffset + 7) & -8;
+          hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          overflowoffset += BYTES_IN_INT;
+          loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          overflowoffset += BYTES_IN_INT;
+	  
+          // va-ppc.h makes last gpr useless
+          regIncrementGpr = 2;
+        } else {
+          hiword = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
+          loword = VM_Magic.getMemoryInt(gprarray.add((gpr+1)*4));
+          regIncrementGpr = 2;
+        }
+        long longBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = VM_Reflection.wrapLong(longBits);
+	
+      } else {
+        // int type left now
+        int ivalue;
+        if (gpr > LAST_OS_PARAMETER_GPR) {
+          // overflow, OTHER
+          ivalue = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          overflowoffset += 4;
+        } else {
+          ivalue = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
+        } 
+	
+        //		VM.sysWriteln("int "+ivalue);
+	
+        if (argTypes[i].isBooleanType()) {
+          argObjectArray[i] = VM_Reflection.wrapBoolean(ivalue);
+        } else if (argTypes[i].isByteType()) {
+          argObjectArray[i] = VM_Reflection.wrapByte((byte)ivalue);
+        } else if (argTypes[i].isShortType()) {
+          argObjectArray[i] = VM_Reflection.wrapShort((short)ivalue);
+        } else if (argTypes[i].isCharType()) {
+          argObjectArray[i] = VM_Reflection.wrapChar((char)ivalue);
+        } else if (argTypes[i].isIntType()) {
+          argObjectArray[i] = VM_Reflection.wrapInt(ivalue);
+        } else if (argTypes[i].isReferenceType()) {
+          argObjectArray[i] = env.getJNIRef(ivalue);
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        }
+      }
+      gpr += regIncrementGpr;
+    }
+  }
+  //-#endif RVM_FOR_OSX
 
 
   /**

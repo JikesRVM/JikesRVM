@@ -26,6 +26,7 @@ import java.io.*;
  */
 final class VMSystem {
 
+
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
     try {
       if (src == null || dst == null)    VM_Runtime.raiseNullPointerException();

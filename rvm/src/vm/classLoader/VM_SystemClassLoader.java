@@ -233,7 +233,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	      zipFileCache.put(path, zf);
 	    }
 	  }
-		  
+
 	  ZipEntry ze = zf.getEntry(name);
 	  if (ze == null) continue;
 	  

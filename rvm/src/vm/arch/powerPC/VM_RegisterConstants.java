@@ -86,7 +86,20 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int FIRST_OS_NONVOLATILE_FPR       = 14;
   static final int LAST_OS_VARARG_PARAMETER_FPR   =  8;
   // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr 
+  static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr
+  //-#endif
+  //-#if RVM_FOR_OSX
+  static final int FIRST_OS_PARAMETER_GPR         =  3;
+  static final int LAST_OS_PARAMETER_GPR          = 10;
+  static final int FIRST_OS_VOLATILE_GPR          =  3;
+  static final int LAST_OS_VOLATILE_GPR           = 12;
+  static final int FIRST_OS_NONVOLATILE_GPR       = 13;
+  static final int FIRST_OS_PARAMETER_FPR         =  1;
+  static final int LAST_OS_PARAMETER_FPR          = 13;
+  static final int FIRST_OS_NONVOLATILE_FPR       = 14;
+  static final int LAST_OS_VARARG_PARAMETER_FPR   =  8;
+  // native frame header size, used for java-to-native glue frame header 
+  static final int NATIVE_FRAME_HEADER_SIZE       =  24;  // fp + cp + lr 
   //-#endif
 
   /////////////////////////////////////////////////////////
@@ -173,7 +186,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int JNI_SAVE_AREA_SIZE                = JNI_GC_FLAG_OFFSET;
   //-#endif
 
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   // LINUX saves prologue address in lr slot of glue frame (1), see picture blow
   static final int JNI_GC_FLAG_OFFSET                = JNI_AFFINITY_OFFSET + 4;
   static final int JNI_MINI_FRAME_POINTER_OFFSET     = 

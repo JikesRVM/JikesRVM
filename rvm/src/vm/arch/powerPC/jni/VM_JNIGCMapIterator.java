@@ -94,7 +94,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     //-#if RVM_FOR_AIX
     jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
     //-#endif
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // ScanThread calls getReturnAddressLocation() to get this stack frame
     // it is already processed
     jniSavedReturnAddr       = VM_Address.zero();

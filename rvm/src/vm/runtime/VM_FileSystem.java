@@ -674,7 +674,6 @@ public class VM_FileSystem {
       VM_FileSystem.prepareStandardFd(1);
       VM_FileSystem.prepareStandardFd(2);
     }
-    
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);

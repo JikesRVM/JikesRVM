@@ -37,12 +37,23 @@
 //
 
 #ifdef RVM_FOR_LINUX
-#define USE_MMAP 1 // choose mmap() for Linux --SB
+#define GETCONTEXT_IMPLEMENTED 0
 #include <asm/cache.h>
+#endif
+
+#ifdef RVM_FOR_OSX
+#include <sys/stat.h>
+#include <mach/ppc/thread_status.h>
+extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
+#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
 #include <ucontext.h>
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
+#define USE_MMAP 1 // choose mmap() for Linux --SB
 #define NGPRS 32
 // linux on ppc does not save FPRs - is this true still?
 #define NFPRS  0
@@ -60,6 +71,123 @@ typedef unsigned long ulong_t;
 extern "C" char *sys_siglist[];
 #endif
 
+void internalSyncCache(int, int);
+
+
+#if (defined RVM_FOR_OSX)
+#define GET_GPR(info, r) (*getRegAddress(info, r))
+#define SET_GPR(info, r, value) *getRegAddress(info, r)=(value)
+ unsigned int* getRegAddress(ppc_thread_state_t *state, int r) {
+   unsigned int *result = 0;
+   switch (r) {
+   case  0:
+     result = &state->r0;
+     break;
+   case 1  :
+     result = &state->r1;
+     break;
+   case 2  :
+     result = &state->r2;
+     break;
+   case 3  :
+     result = &state->r3;
+     break;
+   case 4  :
+     result = &state->r4;
+     break;
+   case 5  :
+     result = &state->r5;
+     break;
+   case 6  :
+     result = &state->r6;
+     break;
+   case 7  :
+     result = &state->r7;
+     break;
+   case 8  :
+     result = &state->r8;
+     break;
+   case 9  :
+     result = &state->r9;
+     break;
+   case 10  :
+     result = &state->r10;
+     break;
+   case 11  :
+     result = &state->r11;
+     break;
+   case 12  :
+     result = &state->r12;
+     break;
+   case 13  :
+     result = &state->r13;
+     break;
+   case 14  :
+     result = &state->r14;
+     break;
+   case 15  :
+     result = &state->r15;
+     break;
+   case 16  :
+     result = &state->r16;
+     break;
+   case 17  :
+     result = &state->r17;
+     break;
+   case 18  :
+     result = &state->r18;
+     break;
+   case 19  :
+     result = &state->r19;
+     break;
+   case 20  :
+     result = &state->r20;
+     break;
+   case 21  :
+     result = &state->r21;
+     break;
+   case 22  :
+     result = &state->r22;
+     break;
+   case 23  :
+     result = &state->r23;
+     break;
+   case 24  :
+     result = &state->r24;
+     break;
+   case 25  :
+     result = &state->r25;
+     break;
+   case 26  :
+     result = &state->r26;
+     break;
+   case 27  :
+     result = &state->r27;
+     break;
+   case 28  :
+     result = &state->r28;
+     break;
+   case 29  :
+     result = &state->r29;
+     break;
+   case 30  :
+     result = &state->r30;
+     break;
+   case 31  :
+     result = &state->r31;
+     break;
+   }
+
+   return result;
+ }
+
+#else
+#define GET_GPR(info, r) (info->gpr[r])
+#define SET_GPR(info, r, value) info->gpr[r] = value
+//  int* getRegAddress(mstsave *save, int r) {
+//    return &save->gpr[r];
+//  }
+#endif  
 
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
@@ -169,6 +297,7 @@ void cSignalHandler(int signum, siginfo_t* siginfo, void* arg3) {
    sigcontext* context = getLinuxSavedContext(signum, arg3);
    pt_regs *save = context->regs;
    unsigned iar  =  save->nip;
+   unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
 #endif
 #ifdef RVM_FOR_AIX
 void cSignalHandler(int signum, int zero, sigcontext *context) {
@@ -179,8 +308,16 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
    context64 *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/context.h"
 #endif
    unsigned iar  =  save->iar;
-#endif
    unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
+#endif
+#if (defined RVM_FOR_OSX)
+void cSignalHandler(int signum, siginfo_t *zero, struct ucontext *context)
+   {
+     struct mcontext* info = context->uc_mcontext;
+     ppc_thread_state_t *save = &info->ss;
+     unsigned iar  =  save->srr0;
+     unsigned jtoc =  GET_GPR(save, VM_Constants_JTOC_POINTER);
+#endif
 
    if (signum == SIGALRM) {     
      processTimerTick();
@@ -218,15 +355,23 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
      // C-library code, so we use boot image jtoc address (== VmToc) instead.
      //
      VM_Address dumpStack = *(VM_Address *)((char *)VmToc + DumpStackAndDieOffset);
-     save->gpr[VM_Constants_FIRST_VOLATILE_GPR] =
-       save->gpr[VM_Constants_FRAME_POINTER];
 #ifdef RVM_FOR_LINUX
      save->link = save->nip + 4; // +4 so it looks like a return address
      save->nip = dumpStack;
+     save->gpr[VM_Constants_FIRST_VOLATILE_GPR] =
+       save->gpr[VM_Constants_FRAME_POINTER];
+#endif
+#ifdef RVM_FOR_OSX
+      save->lr = save->srr0 + 4; // +4 so it looks like a return address
+      save->srr0 = dumpStack;
+      SET_GPR(save, VM_Constants_FIRST_VOLATILE_GPR,
+              GET_GPR(save, VM_Constants_FRAME_POINTER));
 #endif
 #ifdef RVM_FOR_AIX
      save->lr = save->iar + 4; // +4 so it looks like a return address
      save->iar = dumpStack;
+     save->gpr[VM_Constants_FIRST_VOLATILE_GPR] =
+       save->gpr[VM_Constants_FRAME_POINTER];
 #endif
      return;
    }
@@ -246,8 +391,25 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
    pt_regs *save = context->regs;
    ulong_t ip = save->nip;
    ulong_t lr = save->link;
-#endif
+   unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
+#endif // RVM_FOR_LINUX
 
+#if (defined RVM_FOR_OSX)
+void cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
+   {
+     struct mcontext* info = context->uc_mcontext;
+     ppc_thread_state_t *save = &info->ss;
+     unsigned ip  =  save->srr0;
+     ulong_t lr = save->lr;
+     unsigned jtoc =  GET_GPR(save, VM_Constants_JTOC_POINTER);
+   if (isVmSignal(ip, jtoc))
+     if ((signum == SIGSEGV || signum == SIGBUS) &&
+         siginfo->si_addr == (void*)save->srr0) {
+       siginfo->si_addr = (void*)context->uc_mcontext->es.dar;
+     }
+   ulong_t faultingAddress = (ulong_t)siginfo->si_addr;
+#endif // RVM_FOR_OSX
+     
 #ifdef RVM_FOR_AIX
   ulong_t testFaultingAddress = 0xdead1234;
   int faultingAddressLocation = -1; // uninitialized
@@ -318,11 +480,11 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    }
    ulong_t ip = save->iar;
    ulong_t lr = save->lr;
-#endif
+   unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
+#endif // RVM_FOR_AIX
 
    // fetch address of java exception handler
    //
-   unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
    VM_Address javaExceptionHandler = *(VM_Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
    
    const int TID = VM_Constants_THREAD_ID_REGISTER;
@@ -351,7 +513,19 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    int isRecoverable = isNullPtrExn | isTrap;
 
    if (lib_verbose || !isRecoverable) {
-     fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
+#if (defined RVM_FOR_OSX)
+      fprintf(SysTraceFile,"trap: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
+      fprintf(SysTraceFile,"            mem=0x%08x\n", siginfo->si_addr);
+      fprintf(SysTraceFile,"            dar=0x%08x\n", context->uc_mcontext->es.dar );
+      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)(save->srr0));
+      fprintf(SysTraceFile,"             ip=0x%08x\n", save->srr0);
+      fprintf(SysTraceFile,"             lr=0x%08x\n", save->lr);
+      fprintf(SysTraceFile,"             fp=0x%08x\n", GET_GPR(save,FP));
+      fprintf(SysTraceFile,"            tid=0x%08x\n", GET_GPR(save,TID));
+      fprintf(SysTraceFile,"             pr=0x%08x\n", GET_GPR(save,VM_Constants_PROCESSOR_REGISTER));
+      fprintf(SysTraceFile,"        handler=0x%08x\n", javaExceptionHandler);
+#else
+      fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
      fprintf(SysTraceFile,"             ip=0x%08lx\n", ip);
      fprintf(SysTraceFile,"            mem=0x%08lx\n", faultingAddress);
 #ifdef RVM_FOR_AIX
@@ -369,6 +543,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
      fprintf(SysTraceFile,"    exn_handler=0x%08lx\n", javaExceptionHandler);
      fprintf(SysTraceFile,"   pthread_self=0x%08lx\n", pthread_self());
      fprintf(SysTraceFile,"          instr=0x%08lx\n", *(unsigned *)ip);
+#endif // RVM_FOR_OSX
      if (isRecoverable)
        fprintf(SysTraceFile,"%s: normal trap\n", Me);
      else {
@@ -380,8 +555,12 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 
    // Copy trapped register set into current thread's "hardware exception registers" save area.
    //
+#if (defined RVM_FOR_OSX)
    unsigned instruction   = *((unsigned *)ip);
-   int       threadOffset = save->gpr[TID] >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT - 2);
+#else
+   unsigned instruction   = *((unsigned *)ip);
+#endif
+   int       threadOffset = GET_GPR(save,TID) >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT - 2);
    unsigned  threads      = *(unsigned  *)((char *)jtoc + ThreadsOffset);
    unsigned *thread       = *(unsigned **)((char *)threads + threadOffset);
    unsigned *registers    = *(unsigned **)((char *)thread + VM_Thread_hardwareExceptionRegisters_offset);
@@ -400,12 +579,18 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
       // We could try to continue, but sometimes doing so results in cascading failures
       // and it's hard to tell what the real problem was.
       VM_Address dumpStack = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
-      save->gpr[P0] = save->gpr[FP];
 #ifdef RVM_FOR_LINUX
+      save->gpr[P0] = save->gpr[FP];
       save->link = save->nip + 4; // +4 so it looks like a return address
       save->nip = dumpStack;
 #endif
+#if (defined RVM_FOR_OSX)
+      SET_GPR(save, P0, GET_GPR(save, FP));
+      save->lr = save->srr0 + 4; // +4 so it looks like a return address
+      save->srr0 = dumpStack;
+#endif
 #ifdef RVM_FOR_AIX
+      save->gpr[P0] = save->gpr[FP];
       save->lr = save->iar + 4; // +4 so it looks like a return address
       save->iar = dumpStack;
 #endif
@@ -420,6 +605,18 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    *ipLoc = save->nip + 4; // +4 so it looks like return address
    *lrLoc = save->link;
 #endif
+   
+#ifdef RVM_FOR_OSX
+   {
+     for (int i = 0; i < NGPRS; ++i)
+       gprs[i] = GET_GPR(save, i);
+     //     for (i = 0; i < NFPRS; ++i)
+     //       fprs[i] = -1.0;   
+   }
+   *ipLoc = save->srr0 + 4; // +4 so it looks like return address
+   *lrLoc = save->lr;
+#endif
+   
 #ifdef RVM_FOR_AIX
    for (int i = 0; i < NGPRS; ++i)
      gprs[i] = save->gpr[i];
@@ -433,17 +630,22 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    // Insert artificial stackframe at site of trap.
    // This frame marks the place where "hardware exception registers" were saved.
    //
-   int   oldFp = save->gpr[FP];
+   int   oldFp = GET_GPR(save, FP);
    int   newFp = oldFp - VM_Constants_STACKFRAME_HEADER_SIZE;
 #ifdef RVM_FOR_LINUX
    *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->nip + 4; // +4 so it looks like return address
 #endif
+   
+#ifdef RVM_FOR_OSX
+   *(int *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
+#endif
+   
 #ifdef RVM_FOR_AIX
    *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
 #endif
    *(VM_Address *)(newFp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET)        = HardwareTrapMethodId;
    *(VM_Address *)(newFp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)    = oldFp;
-   save->gpr[FP] = newFp;
+   SET_GPR(save, FP, newFp);
 
    // Set execution to resume in java exception handler rather than re-executing instruction
    // that caused the trap.
@@ -453,7 +655,13 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    int      trapInfo    = 0;
    int      haveFrame   = 1;
 
-   switch (signum) {
+#if (defined RVM_FOR_OSX)
+   if ((signum == SIGSEGV || signum == SIGBUS) &&
+       siginfo->si_addr == (void*)save->srr0) {
+     siginfo->si_addr = (void*)context->uc_mcontext->es.dar;
+   }
+#endif
+    switch (signum) {
       case SIGSEGV:
 	if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
 	  if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
@@ -535,19 +743,29 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	    // a useful error dump before exiting by returning to VM_Scheduler.dumpStackAndDie
 	    // passing it the fp of the offending thread.
 	    VM_Address dumpStack = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
-	    save->gpr[P0] = save->gpr[FP];
 #ifdef RVM_FOR_LINUX
+	    save->gpr[P0] = save->gpr[FP];
 	    save->link = save->nip + 4; // +4 so it looks like a return address
 	    save->nip = dumpStack;
 #endif
+#if (defined RVM_FOR_OSX)
+      SET_GPR(save, P0, GET_GPR(save, FP));
+      save->lr = save->srr0 + 4; // +4 so it looks like a return address
+      save->srr0 = dumpStack;
+#endif
 #ifdef RVM_FOR_AIX
+	    save->gpr[P0] = save->gpr[FP];
 	    save->lr = save->iar + 4; // +4 so it looks like a return address
 	    save->iar = dumpStack;
 #endif
 	    return;
 	  }
 	  *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset) = stackLimit;
-	  *(unsigned *)(save->gpr[VM_Constants_PROCESSOR_REGISTER] + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+    unsigned *limit_address =
+      (unsigned*)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +
+                  VM_Processor_activeThreadStackLimit_offset);
+    
+    *limit_address = stackLimit;
 	  
 	  break;
 	}
@@ -563,8 +781,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    
    // pass arguments to java exception handler
    //
-   save->gpr[P0] = trapCode;
-   save->gpr[P1] = trapInfo;
+   SET_GPR(save, P0, trapCode);
+   SET_GPR(save, P1, trapInfo);
 
    if (haveFrame) {
      // set link register to make it look like java exception handler
@@ -574,8 +792,16 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
        ; // bad branch - use contents of link register as best guess of call site
      else
        save->link = save->nip + 4; // +4 so it looks like a return address
-#endif
-#ifdef RVM_FOR_AIX
+#elif RVM_FOR_OSX
+   if (save->srr0 == 0)
+      { // bad branch - use contents of link register as best guess of call site
+      ;
+      }
+   else
+      {
+      save->lr = save->srr0 + 4; // +4 so it looks like a return address
+      }
+#elif RVM_FOR_AIX
      if (save->iar == 0)
        ; // bad branch - use contents of link register as best guess of call site
      else
@@ -597,6 +823,9 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    //
 #ifdef RVM_FOR_LINUX
    save->nip = javaExceptionHandler;
+#endif
+#if (defined RVM_FOR_OSX)
+   save->srr0 = javaExceptionHandler;
 #endif
 #ifdef RVM_FOR_AIX
    save->iar = javaExceptionHandler;
@@ -635,7 +864,7 @@ int createJVM(int vmInSeparateThread) {
 
    // don't buffer trace or error message output
    //
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
    setvbuf(SysErrorFile, 0, _IONBF, 0);
    setvbuf(SysTraceFile, 0, _IONBF, 0);
 #endif
@@ -828,6 +1057,21 @@ int createJVM(int vmInSeparateThread) {
      return 1;
    }
 #endif
+#if (defined RVM_FOR_OSX)
+   struct sigaltstack stackInfo;
+   if ((stackInfo.ss_sp = (char*)malloc(SIGSTKSZ)) == NULL)
+     {
+       fprintf(SysErrorFile, "%s: malloc failed (errno=%d)\n", Me, errno);
+       return 1;
+     }     /* error return */
+   stackInfo.ss_size = SIGSTKSZ;
+   stackInfo.ss_flags = 0;
+   if (sigaltstack(&stackInfo, 0) < 0)
+      {
+      fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
+      return 1;
+      }
+#endif
 #ifdef RVM_FOR_AIX
    struct sigstack stackInfo;
    stackInfo.ss_sp = topOfSignalStack;
@@ -844,6 +1088,28 @@ int createJVM(int vmInSeparateThread) {
    SIGFILLSET(action.sa_mask);
    SIGDELSET(action.sa_mask, SIGCONT);
 #endif
+#if (defined RVM_FOR_OSX)
+   struct sigaction action;
+   action.sa_handler = (SIGNAL_HANDLER)cTrapHandler;
+   action.sa_flags   = SA_ONSTACK | SA_RESTART;
+   action.sa_flags   |= SA_SIGINFO;
+   if (sigfillset(&(action.sa_mask)))
+   {
+     fprintf(SysErrorFile, "%s: sigfillset failed (errno=%d)\n", Me, errno);
+     return 1;
+   }
+   /* exclude the signal used to poke pthreads */
+   if (sigdelset(&(action.sa_mask), SIGCONT))
+   {
+     fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", Me, errno);
+     return 1;
+   }
+   if (sigaction(SIGBUS, &action, 0)) // catch null pointer references
+      {
+      fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+      return 1;
+      }
+#endif
    if (sigaction(SIGSEGV, &action, 0) || // catch null pointer references
        sigaction(SIGTRAP, &action, 0) || // catch array bounds violations
        sigaction(SIGILL, &action, 0)) {  // catch vm errors (so we can try to give a traceback)
@@ -855,6 +1121,9 @@ int createJVM(int vmInSeparateThread) {
    //
 #ifdef RVM_FOR_LINUX
    action.sa_sigaction = cSignalHandler;
+#endif
+#ifdef RVM_FOR_OSX
+   action.sa_handler = (SIGNAL_HANDLER) cSignalHandler;
 #endif
 #ifdef RVM_FOR_AIX
    action.sa_handler = (SIGNAL_HANDLER) cSignalHandler;
@@ -928,7 +1197,7 @@ int createJVM(int vmInSeparateThread) {
      
      // wait for the JNIStartUp code to set the completion flag before returning
      while (!bootRecord.bootCompleted) {
-#if (_AIX43 || RVM_FOR_LINUX)
+#if (_AIX43 || RVM_FOR_LINUX || RVM_FOR_OSX)
     sched_yield();
 #else
     pthread_yield();

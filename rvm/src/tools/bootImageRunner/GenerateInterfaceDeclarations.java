@@ -657,6 +657,20 @@ class GenerateInterfaceDeclarations {
   static void emitAssemblerDeclarations () {
 
     //-#if RVM_FOR_POWERPC
+    //-#if RVM_FOR_OSX
+    if (VM.BuildForPowerPC) {
+      pln("#define FP r"   + VM_BaselineConstants.FP);
+      pln("#define JTOC r" + VM_BaselineConstants.JTOC);
+      pln("#define TI r"   + VM_BaselineConstants.TI);
+      pln("#define PROCESSOR_REGISTER r"    + VM_BaselineConstants.PROCESSOR_REGISTER);
+      pln("#define S0 r"   + VM_BaselineConstants.S0);
+      pln("#define T0 r"   + VM_BaselineConstants.T0);
+      pln("#define T1 r"   + VM_BaselineConstants.T1);
+      pln("#define T2 r"   + VM_BaselineConstants.T2);
+      pln("#define T3 r"   + VM_BaselineConstants.T3);
+      pln("#define STACKFRAME_NEXT_INSTRUCTION_OFFSET " + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+    }
+    //-#else
     if (VM.BuildForPowerPC) {
       pln(".set FP,"   + VM_BaselineConstants.FP);
       pln(".set JTOC," + VM_BaselineConstants.JTOC);
@@ -674,6 +688,7 @@ class GenerateInterfaceDeclarations {
       if (!VM.BuildForAix) 
         pln(".set T4,"   + (VM_BaselineConstants.T3 + 1));
     }
+    //-#endif
     //-#endif
 
     //-#if RVM_FOR_IA32

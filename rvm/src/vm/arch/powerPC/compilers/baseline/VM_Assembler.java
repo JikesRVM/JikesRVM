@@ -743,6 +743,18 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
+  static final int LFSXtemplate = 31<<26 | 535<<1;
+
+  static final int LFSX (int FRT, int RA, int RB) {
+    return 31<<26 | FRT<<21 | RA<<16 | RB<<11 | 535<<1;
+  }
+
+  final void emitLFSX (int FRT, int RA, int RB) {
+    int mi = LFSXtemplate | FRT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int LHAXtemplate = 31<<26 | 343<<1;
 
   public final void emitLHAX (int RT, int RA, int RB) {
@@ -808,6 +820,14 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
+  static final int MFSPRtemplate = 31<<26 | 339<<1;
+
+  final void emitMFSPR (int RT, int SPR) {
+    int mi = MFSPRtemplate | RT<<21 | SPR<<16;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
   public final void emitMTLR (int RS) {
@@ -824,6 +844,26 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
  
+  static final int FMRtemplate = 63<<26 | 72<<1;
+
+  final void emitFMR (int RA, int RB) {
+    int mi = FMRtemplate | RA<<21 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int FRSPtemplate = 63<<26 | 12<<1;
+
+  static final int FRSP (int RT, int RB) {
+    return 63<<26 | RT<<21 |  RB<<11 | 12<<1;
+  }
+
+  final void emitFRSP (int RT, int RB) {
+    int mi = FRSPtemplate | RT<<21 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int MULHWUtemplate = 31<<26 | 11<<1;
 
   public final void emitMULHWU (int RT, int RA, int RB) {
@@ -1033,6 +1073,18 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mIP++;
     mc.addInstruction(mi);
   }
+  static final int STFSXtemplate = 31<<26 | 663<<1;
+
+  static final int STFSX(int FRS, int RA, int RB) {
+    return 31<<26 | FRS<<21 | RA<<16 | RB<<11 | 663<<1;
+  }
+
+  final void emitSTFSX (int FRS, int RA, int RB) {
+    int mi = STFSXtemplate | FRS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
 
   static final int STFDtemplate = 54<<26;
 
@@ -1917,4 +1969,417 @@ public final class VM_Assembler implements VM_BaselineConstants,
       }
     }
   }
+  public static String getOpcodeName(int opcode) {
+    String s;
+    switch (opcode) {
+    case 0x00: s = "nop";
+      break;
+    case 0x01: s = "aconst_null";
+      break;
+    case 0x02: s = "iconst_m1"; 
+      break;
+    case 0x03: s = "iconst_0"; 
+      break;
+    case 0x04: s = "iconst_1"; 
+      break;
+    case 0x05: s = "iconst_2"; 
+      break;
+    case 0x06: s = "iconst_3"; 
+      break;
+    case 0x07: s = "iconst_4"; 
+      break;
+    case 0x08: s = "iconst_5"; 
+      break;
+    case 0x09: s = "lconst_0"; 
+      break;
+    case 0x0a: s = "lconst_1"; 
+      break;
+    case 0x0b: s = "fconst_0"; 
+      break;
+    case 0x0c: s = "fconst_1"; 
+      break;
+    case 0x0d: s = "fconst_2"; 
+      break;
+    case 0x0e: s = "dconst_0"; 
+      break;
+    case 0x0f: s = "dconst_1"; 
+      break;
+    case 0x10: s = "bipush"; 
+      break;
+    case 0x11: s = "sipush"; 
+      break;
+    case 0x12: s = "ldc"; 
+      break;
+    case 0x13: s = "ldc_w"; 
+      break;
+    case 0x14: s = "ldc2_w"; 
+      break;
+    case 0x15: s = "iload"; 
+      break;
+    case 0x16: s = "lload"; 
+      break;
+    case 0x17: s = "fload"; 
+      break;
+    case 0x18: s = "dload"; 
+      break;
+    case 0x19: s = "aload"; 
+      break;
+    case 0x1a: s = "iload_0"; 
+      break;
+    case 0x1b: s = "iload_1"; 
+      break;
+    case 0x1c: s = "iload_2"; 
+      break;
+    case 0x1d: s = "iload_3"; 
+      break;
+    case 0x1e: s = "lload_0"; 
+      break;
+    case 0x1f: s = "lload_1"; 
+      break;
+    case 0x20: s = "lload_2"; 
+      break;
+    case 0x21: s = "lload_3"; 
+      break;
+    case 0x22: s = "fload_0"; 
+      break;
+    case 0x23: s = "fload_1"; 
+      break;
+    case 0x24: s = "fload_2"; 
+      break;
+    case 0x25: s = "fload_3"; 
+      break;
+    case 0x26: s = "dload_0"; 
+      break;
+    case 0x27: s = "dload_1"; 
+      break;
+    case 0x28: s = "dload_2"; 
+      break;
+    case 0x29: s = "dload_3"; 
+      break;
+    case 0x2a: s = "aload_0"; 
+      break;
+    case 0x2b: s = "aload_1"; 
+      break;
+    case 0x2c: s = "aload_2"; 
+      break;
+    case 0x2d: s = "aload_3"; 
+      break;
+    case 0x2e: s = "iaload"; 
+      break;
+    case 0x2f: s = "laload"; 
+      break;
+    case 0x30: s = "faload"; 
+      break;
+    case 0x31: s = "daload"; 
+      break;
+    case 0x32: s = "aaload"; 
+      break;
+    case 0x33: s = "baload"; 
+      break;
+    case 0x34: s = "caload"; 
+      break;
+    case 0x35: s = "saload"; 
+      break;
+    case 0x36: s = "istore"; 
+      break;
+    case 0x37: s = "lstore"; 
+      break;
+    case 0x38: s = "fstore"; 
+      break;
+    case 0x39: s = "dstore"; 
+      break;
+    case 0x3a: s = "astore"; 
+      break;
+    case 0x3b: s = "istore_0"; 
+      break;
+    case 0x3c: s = "istore_1"; 
+      break;
+    case 0x3d: s = "istore_2"; 
+      break;
+    case 0x3e: s = "istore_3"; 
+      break;
+    case 0x3f: s = "lstore_0"; 
+      break;
+    case 0x40: s = "lstore_1"; 
+      break;
+    case 0x41: s = "lstore_2"; 
+      break;
+    case 0x42: s = "lstore_3"; 
+      break;
+    case 0x43: s = "fstore_0"; 
+      break;
+    case 0x44: s = "fstore_1"; 
+      break;
+    case 0x45: s = "fstore_2"; 
+      break;
+    case 0x46: s = "fstore_3"; 
+      break;
+    case 0x47: s = "dstore_0"; 
+      break;
+    case 0x48: s = "dstore_1"; 
+      break;
+    case 0x49: s = "dstore_2"; 
+      break;
+    case 0x4a: s = "dstore_3"; 
+      break;
+    case 0x4b: s = "astore_0"; 
+      break;
+    case 0x4c: s = "astore_1"; 
+      break;
+    case 0x4d: s = "astore_2"; 
+      break;
+    case 0x4e: s = "astore_3"; 
+      break;
+    case 0x4f: s = "iastore"; 
+      break;
+    case 0x50: s = "lastore";  
+      break;
+    case 0x51: s = "fastore"; 
+      break;
+    case 0x52: s = "dastore"; 
+      break;
+    case 0x53: s = "aastore"; 
+      break;
+    case 0x54: s = "bastore"; 
+      break;
+    case 0x55: s = "castore"; 
+      break;
+    case 0x56: s = "sastore"; 
+      break;
+    case 0x57: s = "pop"; 
+      break;
+    case 0x58: s = "pop2"; 
+      break;
+    case 0x59: s = "dup"; 
+      break;
+    case 0x5a: s = "dup_x1"; 
+      break;
+    case 0x5b: s = "dup_x2"; 
+      break;
+    case 0x5c: s = "dup2"; 
+      break;
+    case 0x5d: s = "dup2_x1"; 
+      break;
+    case 0x5e: s = "dup2_x2"; 
+      break;
+    case 0x5f: s = "swap"; 
+      break;
+    case 0x60: s = "iadd"; 
+      break;
+    case 0x61: s = "ladd"; 
+      break;
+    case 0x62: s = "fadd"; 
+      break;
+    case 0x63: s = "dadd"; 
+      break;
+    case 0x64: s = "isub"; 
+      break;
+    case 0x65: s = "lsub"; 
+      break;
+    case 0x66: s = "fsub"; 
+      break;
+    case 0x67: s = "dsub"; 
+      break;
+    case 0x68: s = "imul"; 
+      break;
+    case 0x69: s = "lmul"; 
+      break;
+    case 0x6a: s = "fmul"; 
+      break;
+    case 0x6b: s = "dmul"; 
+      break;
+    case 0x6c: s = "idiv"; 
+      break;
+    case 0x6d: s = "ldiv"; 
+      break;
+    case 0x6e: s = "fdiv"; 
+      break;
+    case 0x6f: s = "ddiv"; 
+      break;
+    case 0x70: s = "irem"; 
+      break;
+    case 0x71: s = "lrem"; 
+      break;
+    case 0x72: s = "frem"; 
+      break;
+    case 0x73: s = "drem"; 
+      break;
+    case 0x74: s = "ineg"; 
+      break;
+    case 0x75: s = "lneg"; 
+      break;
+    case 0x76: s = "fneg"; 
+      break;
+    case 0x77: s = "dneg"; 
+      break;
+    case 0x78: s = "ishl"; 
+      break;
+    case 0x79: s = "lshl"; 
+      break;
+    case 0x7a: s = "ishr"; 
+      break;
+    case 0x7b: s = "lshr"; 
+      break;
+    case 0x7c: s = "iushr"; 
+      break;
+    case 0x7d: s = "lushr"; 
+      break;
+    case 0x7e: s = "iand"; 
+      break;
+    case 0x7f: s = "land"; 
+      break;
+    case 0x80: s = "ior"; 
+      break;
+    case 0x81: s = "lor"; 
+      break;
+    case 0x82: s = "ixor"; 
+      break;
+    case 0x83: s = "lxor"; 
+      break;
+    case 0x84: s = "iinc"; 
+      break;
+    case 0x85: s = "i2l"; 
+      break;
+    case 0x86: s = "i2f"; 
+      break;
+    case 0x87: s = "i2d"; 
+      break;
+    case 0x88: s = "l2i"; 
+      break;
+    case 0x89: s = "l2f"; 
+      break;
+    case 0x8a: s = "l2d"; 
+      break;
+    case 0x8b: s = "f2i"; 
+      break;
+    case 0x8c: s = "f2l"; 
+      break;
+    case 0x8d: s = "f2d"; 
+      break;
+    case 0x8e: s = "d2i"; 
+      break;
+    case 0x8f: s = "d2l"; 
+      break;
+    case 0x90: s = "d2f"; 
+      break;
+    case 0x91: s = "i2b"; 
+      break;
+    case 0x92: s = "i2c"; 
+      break;
+    case 0x93: s = "i2s"; 
+      break;
+    case 0x94: s = "lcmp"; 
+      break;
+    case 0x95: s = "fcmpl"; 
+      break;
+    case 0x96: s = "fcmpg"; 
+      break;
+    case 0x97: s = "dcmpl"; 
+      break;
+    case 0x98: s = "dcmpg"; 
+      break;
+    case 0x99: s = "ifeq"; 
+      break;
+    case 0x9a: s = "ifne"; 
+      break;
+    case 0x9b: s = "iflt"; 
+      break;
+    case 0x9c: s = "ifge"; 
+      break;
+    case 0x9d: s = "ifgt"; 
+      break;
+    case 0x9e: s = "ifle"; 
+      break;
+    case 0x9f: s = "if_icmpeq"; 
+      break;
+    case 0xa0: s = "if_icmpne"; 
+      break;
+    case 0xa1: s = "if_icmplt"; 
+      break;
+    case 0xa2: s = "if_icmpge"; 
+      break;
+    case 0xa3: s = "if_icmpgt"; 
+      break;
+    case 0xa4: s = "if_icmple"; 
+      break;
+    case 0xa5: s = "if_acmpeq"; 
+      break;
+    case 0xa6: s = "if_acmpne"; 
+      break;
+    case 0xa7: s = "goto"; 
+      break;
+    case 0xa8: s = "jsr"; 
+      break;
+    case 0xa9: s = "ret"; 
+      break;
+    case 0xaa: s = "tableswitch"; 
+      break;
+    case 0xab: s = "lookupswitch"; 
+      break;
+    case 0xac: s = "ireturn"; 
+      break;
+    case 0xad: s = "lreturn"; 
+      break;
+    case 0xae: s = "freturn"; 
+      break;
+    case 0xaf: s = "dreturn"; 
+      break;
+    case 0xb0: s = "areturn"; 
+      break;
+    case 0xb1: s = "return"; 
+      break;
+    case 0xb2: s = "getstatic"; 
+      break;
+    case 0xb3: s = "putstatic"; 
+      break;
+    case 0xb4: s = "getfield"; 
+      break;
+    case 0xb5: s = "putfield"; 
+      break;
+    case 0xb6: s = "invokevirtual"; 
+      break;
+    case 0xb7: s = "invokespecial"; 
+      break;
+    case 0xb8: s = "invokestatic"; 
+      break;
+    case 0xb9: s = "invokeinterface"; 
+      break;
+    case 0xba: s = "unused"; 
+      break;
+    case 0xbb: s = "new"; 
+      break;
+    case 0xbc: s = "newarray"; 
+      break;
+    case 0xbd: s = "anewarray"; 
+      break;
+    case 0xbe: s = "arraylength"; 
+      break;
+    case 0xbf: s = "athrow"; 
+      break;
+    case 0xc0: s = "checkcast"; 
+      break;
+    case 0xc1: s = "instanceof"; 
+      break;
+    case 0xc2: s = "monitorenter";
+      break;
+    case 0xc3: s = "monitorexit"; 
+      break;
+    case 0xc4: s = "wide"; 
+      break;
+    case 0xc5: s = "multianewarray"; 
+      break;
+    case 0xc6: s = "ifnull"; 
+      break;
+    case 0xc7: s = "ifnonnull"; 
+      break;
+    case 0xc8: s = "goto_w"; 
+      break;
+    case 0xc9: s = "jsr_w";
+      break;
+    default: s = "UNKNOWN";
+      break;
+    }
+    return s;
+  }
+
 }

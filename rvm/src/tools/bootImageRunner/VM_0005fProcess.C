@@ -18,6 +18,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#if (defined __MACH__ )
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#else
+extern char **environ;
+#endif
 
 // Java includes
 #include <jni.h>
@@ -268,12 +274,10 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 
     // Set environment for child process.
     if (environment != 0) {
-      extern char **environ;
       environ = envp.get();
     }
 #if 0
     else {
-      extern char **environ;
       fprintf(stderr, "Current environment:\n");
       char **p = environ;
       while (*p != 0 ) {

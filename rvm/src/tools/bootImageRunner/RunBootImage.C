@@ -38,8 +38,10 @@
 #include <limits.h>		// INT_MAX
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
-#ifdef __linux__
-#include <asm/cache.h>
+#if (defined __linux__)
+  #include <asm/cache.h>
+#endif
+#if (defined __linux__) || (defined __MACH__)
 #include <ucontext.h>
 #include <signal.h>
 #else

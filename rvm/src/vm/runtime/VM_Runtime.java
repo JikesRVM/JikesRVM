@@ -918,7 +918,8 @@ public class VM_Runtime implements VM_Constants {
       fp = VM_Magic.getCallerFramePointer(fp);
     } while ( !MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP)) ;
 
-	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
+	//-#if RVM_FOR_POWERPC
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
 	// for SVR4 convention, a Java-to-C frame has two mini frames,
 	// stop before the mini frame 1 whose ip is in VM (out of line machine
 	// code), in the case of sentinel fp, it has to return the callee's fp
@@ -930,7 +931,10 @@ public class VM_Runtime implements VM_Constants {
 	}
 	//-#else
 	return callee_fp;
-	//-#endif
+  //-#endif // RVM_FOR_LINUX || RVM_FOR_OSX
+	//-#else
+	return callee_fp;
+	//-#endif // RVM_FOR_POWERPC
   }
 
   /**

@@ -224,7 +224,7 @@ public class Runtime {
     // VMs are free to ignore this...
   }
 
-  private static final String LIB_SUFFIX = VM.BuildForLinux ? ".so" : ".a";
+  private static final String LIB_SUFFIX = (VM.BuildForLinux) ? ".so" :  ((VM.BuildForOsx) ? ".jnilib" : ".a");
 
   static String nativeGetLibname(String pathname, String libname) {
     if (pathname != null && !("".equals(pathname)))

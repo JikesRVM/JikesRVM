@@ -4388,7 +4388,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @exception OutOfMemoryError if the system runs out of memory   
    */  
   private static VM_Address GetByteArrayElements(int envJREF, int arrayJREF, VM_Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements for ");
+    if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
@@ -4397,6 +4397,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       // alloc non moving buffer in C heap for a copy of string contents
       VM_Address copyBuffer = VM_SysCall.sysMalloc(size);
+
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();

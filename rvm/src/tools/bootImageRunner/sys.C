@@ -53,6 +53,33 @@ extern "C" int sched_yield(void);
 #include <sched.h>
 #endif
 
+/* OSX/Darwin */
+#elif (defined __MACH__)
+#include <sys/stat.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/ioctl.h>
+#include <httpd/os.h>
+#include <mach-o/dyld.h>
+#include <mach/host_priv.h>
+#include <mach/mach_init.h>
+#include <mach/mach_host.h>
+#include <mach/vm_map.h>
+#include <mach/processor_info.h>
+#include <mach/processor.h>
+#include <mach/thread_act.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
+#if (defined HAS_DLCOMPAT)
+#include <dlfcn.h>
+#endif
+#define MAP_ANONYMOUS MAP_ANON 
+#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#include <sched.h>
+#endif
+
+
 /* AIX/PowerPC */
 #else
 #include <sys/cache.h>
@@ -99,7 +126,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 
 #endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 
-/* #define DEBUG_SYS */
+/* #define DEBUG_SYS               */
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 // #define VERBOSE_PTHREAD false
 #define VERBOSE_PTHREAD lib_verbose
@@ -828,8 +855,7 @@ setTimeSlicer(int msTimerDelay)
 		Me, strerror(errorCode));
 	sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-
-#elif (defined RVM_FOR_LINUX) // && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#elif (defined RVM_FOR_LINUX)  || (defined __MACH__)// && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // NOTE: This code is ONLY called if we have defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
     //
@@ -971,6 +997,13 @@ sysNumProcessors()
 
 #ifdef RVM_FOR_LINUX
     numpc = get_nprocs_conf();
+#elif RVM_FOR_OSX
+    int mib[2];
+    size_t len;
+    mib[0] = CTL_HW;
+    mib[1] = HW_NCPU;
+    len = sizeof(numpc);
+    sysctl(mib, 2, &numpc, &len, NULL, 0);
 #else
     numpc = _system_configuration.ncpus;
 #endif
@@ -1543,18 +1576,20 @@ extern "C" void
 sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor with single virtual processor\n", Me);
+    fprintf(stderr, "%s: sysVirtualProcessorBind: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
     int numCpus;
+
     numCpus = sysconf(_SC_NPROCESSORS_ONLN);
     if (VERBOSE_PTHREAD)
-	fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
+      fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
+#endif
 
     // Linux does not seem to have this
-#ifndef RVM_FOR_LINUX
-    if (numCpus == -1)
-    {
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+#else
+    if (numCpus == -1) {
 	fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
 	perror(NULL);
 	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
@@ -1565,14 +1600,13 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
     int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
     fprintf(SysTraceFile, "%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
 
-    if (rc)
-    {
+    if (rc) {
 	fprintf(SysErrorFile, "%s: bindprocessor failed (errno=%d): ", Me, errno);
 	perror(NULL);
 	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-#endif // ! defined RVM_FOR_LINUX
-#endif // !defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+#endif // ! defined RVM_FOR_LINUX or defined RVM_FOR_OSX
+    //#endif // !defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 }
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
@@ -1680,7 +1714,7 @@ sysPthreadSelf()
     sigemptyset(&input_set);
     sigaddset(&input_set, SIGCONT);
 
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     /*
      *  Provide space for this pthread to process exceptions.  This is
      * needed on Linux because multiple pthreads can handle signals
@@ -1700,7 +1734,7 @@ sysPthreadSelf()
     }
 #endif
 
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
 #else
     rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
@@ -1768,6 +1802,43 @@ sysVirtualProcessorYield()
 #else
     fprintf(stderr, "%s: sysVirtualProcessorYield: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#endif
+}
+
+//
+// Taken -- address of an integer lockword
+//       -- value to store in the lockword to 'release' the lock
+// release the lockout word by storing the in it
+// and wait for a signal.
+extern "C" int
+sysPthreadSigWait( int UNUSED_SVP * lockwordAddress, 
+		   int UNUSED_SVP  lockReleaseValue )
+{
+#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
+    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#else
+    sigset_t input_set, output_set;
+    int      sig;
+
+    *lockwordAddress = lockReleaseValue;
+
+    sigemptyset(&input_set);
+    sigaddset(&input_set, SIGCONT);
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+    pthread_sigmask(SIG_BLOCK, NULL, &output_set);
+#else
+    sigthreadmask(SIG_BLOCK, NULL, &output_set);
+#endif
+    sigwait(&input_set, &sig);
+
+    // if status has been changed to BLOCKED_IN_SIGWAIT (because of GC)
+    // sysYield until unblocked
+    //
+    while ( *lockwordAddress == 5 /*VM_Processor.BLOCKED_IN_SIGWAIT*/ )
+	sysVirtualProcessorYield();
+
+    return 0;
 #endif
 }
 
@@ -2051,7 +2122,7 @@ sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
 
 #ifdef RVM_FOR_AIX
     _sync_cache_range(address, size);
-#elif defined RVM_FOR_LINUX && defined RVM_FOR_POWERPC
+#elif (defined RVM_FOR_LINUX || defined RVM_FOR_OSX) && defined RVM_FOR_POWERPC
     {
 	if (size < 0) {
 	    fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
@@ -2082,6 +2153,10 @@ sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
 #else  // only needed on PowerPC platforms; skip here
     ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(int address, int size)\n");
 #endif
+}
+
+void internalSyncCache(int address, int size) {
+  sysSyncCache((char*)address, size);
 }
 
 //-----------------//
@@ -2246,7 +2321,7 @@ sysMAdvise(char POSSIBLY_UNUSED	     *start,
 	   size_t POSSIBLY_UNUSED   length,
 	   int POSSIBLY_UNUSED	    advice)
 {
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     return -1; // unimplemented in Linux
 #else
     return madvise(start, length, advice);
@@ -2299,6 +2374,10 @@ findMappable()
 extern "C" int
 sysDlopen(char *libname)
 {
+#if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
+   fprintf(SysTraceFile, "sys: dlopen not implemented yet\n");
+   return 0;
+#else
     void * libHandler;
     do {
 	libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
@@ -2312,6 +2391,7 @@ sysDlopen(char *libname)
     }
 
     return (int)libHandler;
+#endif
 }
 
 // Look up symbol in dynamic library.
@@ -2321,7 +2401,12 @@ sysDlopen(char *libname)
 extern "C" void*
 sysDlsym(int libHandler, char *symbolName)
 {
+#if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
+   fprintf(SysTraceFile, "sys: dlsym not implemented yet\n");
+   return 0;
+#else
     return dlsym((void *) libHandler, symbolName);
+#endif
 }
 
 // Unload dynamic library.
@@ -2415,7 +2500,7 @@ sysNetLocalHostName(char *buf, int limit)
 extern "C" int
 sysNetRemoteHostName(int internetAddress, char *buf, int limit)
 {
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
     hostent * resultAddress;
 
     fprintf(SysTraceFile, "untested system call sysNetRemoteHostName()\n");
@@ -2504,7 +2589,7 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
 }
 #endif
 
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX || defined RVM_FOR_OSX)
 extern "C" int
 sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
 {
@@ -2556,7 +2641,7 @@ extern "C" int
 sysNetSocketPort(int fd)
 {
     sockaddr_in info;
-#ifdef RVM_FOR_AIX
+#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
     int len;
 #endif
 #ifdef RVM_FOR_LINUX
@@ -2586,7 +2671,7 @@ extern "C" int
 sysNetSocketLocalAddress(int fd)
 {
     sockaddr_in info;
-#ifdef RVM_FOR_AIX
+#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
     int len;
 #endif
 #ifdef RVM_FOR_LINUX
@@ -2616,7 +2701,7 @@ extern "C" int
 sysNetSocketFamily(int fd)
 {
     sockaddr_in info;
-#ifdef RVM_FOR_AIX
+#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
     int len;
 #endif
 #ifdef RVM_FOR_LINUX
@@ -2787,7 +2872,7 @@ sysNetSocketAccept(int fd, void *connectionObject)
     int interruptsThisTime = 0;
     int connectionFd = -1;
     sockaddr_in info;
-#ifdef RVM_FOR_AIX
+#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
     int len;
 #endif
 #ifdef RVM_FOR_LINUX

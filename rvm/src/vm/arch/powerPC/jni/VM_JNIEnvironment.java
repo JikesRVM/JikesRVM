@@ -51,7 +51,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     //-#if RVM_FOR_AIX
     JNIFunctions = functions;
     AIXLinkageTriplets = new VM_AddressArray[functions.length];
-    //-#elif RVM_FOR_LINUX
+    //-#elif RVM_FOR_LINUX  || RVM_FOR_OSX
     // An extra entry is allocated, to hold the RVM JTOC
     JNIFunctions = new VM_CodeArray[functions.length + 1];
     System.arraycopy(functions, 0, JNIFunctions, 0, functions.length);
@@ -78,7 +78,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     }
     //-#endif
 
-    //-#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // set JTOC content, how about GC ? will it move JTOC ?
     int offset = getJNIFunctionsJTOCOffset();
     VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(offset),
@@ -99,7 +99,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     // the first is the AIXLinkageTriplets to be used to invoke VM_JNIFunctions
     //-#if RVM_FOR_AIX
     JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(AIXLinkageTriplets));
-    //-#elif RVM_FOR_LINUX
+    //-#elif RVM_FOR_LINUX || RVM_FOR_OSX
     JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(JNIFunctions));
     //-#endif
 

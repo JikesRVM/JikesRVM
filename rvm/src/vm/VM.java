@@ -72,7 +72,7 @@ public class VM extends VM_Properties implements VM_Constants,
     runningVM        = true;
     runningAsSubsystem = false;
     verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
-
+                  
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 

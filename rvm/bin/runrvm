@@ -105,7 +105,7 @@ sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
 		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
 		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
-		"-Dos.arch=$(uname -m)" )
+		"-Dos.arch=\"$(uname -m)\"" )
 
 # Now execute the VM
 prog="$rvm_build/JikesRVM"

@@ -60,7 +60,14 @@ public abstract class VM_Configuration {
 	  false;
 	//-#endif
 
-  /** Assertion checking.
+   public static final boolean BuildForOsx =
+	//-#if RVM_FOR_OSX
+	  true;
+	//-#else
+	  false;
+	//-#endif
+
+ /** Assertion checking.
       <dl>
       <dt>false</dt>  <dd> no assertion checking at runtime</dd>
       <dt>true  </dt> <dd> execute assertion checks at runtime</dd>

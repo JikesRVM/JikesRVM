@@ -292,7 +292,11 @@ function signalled() {
     kill -INT $$
     ## The EXIT trap will handle it.
 }
-trap signalled HUP INT ABRT BUS PIPE TERM PWR
+maybe_trap=""
+if [[ $(trap -l) == *") SIGPWR"* ]] ; then
+    maybe_trap="PWR"
+fi
+trap signalled HUP INT ABRT BUS PIPE TERM ${maybe_trap}
 
 # I'd like to make it always be an error if we were to access any 
 # unset variables.  HOWEVER, we have a bug in BASH version 2.05b.0(1)-release
