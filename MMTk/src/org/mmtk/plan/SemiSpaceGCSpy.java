@@ -10,7 +10,6 @@ import org.mmtk.policy.TreadmillSpace;
 import org.mmtk.policy.TreadmillLocal;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
@@ -63,6 +62,10 @@ public class SemiSpaceGCSpy extends SemiSpaceBase implements Uninterruptible {
    *
    * Class variables
    */
+
+  // use a slightly more expensive hashing operation (no other effect) 
+  public static final boolean NEEDS_LINEAR_SCAN = true;
+
   // The event, BEFORE_COLLECTION or AFTER_COLLECTION
   private static final int BEFORE_COLLECTION = 0;
   private static final int SEMISPACE_COPIED = BEFORE_COLLECTION + 1;

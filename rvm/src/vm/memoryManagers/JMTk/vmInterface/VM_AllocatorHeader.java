@@ -25,6 +25,7 @@ public final class VM_AllocatorHeader {
   public static final boolean STEAL_NURSERY_GC_HEADER = Plan.STEAL_NURSERY_GC_HEADER;
   // not supported during expected transition to new object model.
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+  public static final boolean NEEDS_LINEAR_SCAN = Plan.NEEDS_LINEAR_SCAN;
 
   public static final int REQUESTED_BITS = Plan.GC_HEADER_BITS_REQUIRED;
   public static final int NUM_BYTES_HEADER = Plan.GC_HEADER_BYTES_REQUIRED;

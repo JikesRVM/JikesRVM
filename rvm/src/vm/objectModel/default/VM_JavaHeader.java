@@ -305,7 +305,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       } 
     }
    
-    return ObjectReference.fromAddress(next);
+    return next.toObjectReference();
   }
  
   /**

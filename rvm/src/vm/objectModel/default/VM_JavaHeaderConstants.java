@@ -68,8 +68,9 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    * Does this object model place the hash for a hashed and moved object 
    * after the data (at a dynamic offset)
    */
-  static final boolean DYNAMIC_HASH_OFFSET = ADDRESS_BASED_HASHING && false;
-
+  static final boolean DYNAMIC_HASH_OFFSET 
+    = ADDRESS_BASED_HASHING && VM_AllocatorHeader.NEEDS_LINEAR_SCAN;
+                                           
   /**
    * Can we perform a linear scan?
    */

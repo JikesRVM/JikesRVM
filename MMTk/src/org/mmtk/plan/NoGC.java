@@ -9,7 +9,6 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.scan.MMType;
@@ -53,7 +52,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
 
   // allocators
-  private BumpPointer def;
+  private ImmortalLocal def;
 
   /****************************************************************************
    *
@@ -72,7 +71,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * Constructor
    */
   public NoGC() {
-    def = new BumpPointer(defaultSpace);
+    def = new ImmortalLocal(defaultSpace);
   }
 
   /**

@@ -5,12 +5,12 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
@@ -61,6 +61,7 @@ public abstract class BasePlan
   public static final boolean NEEDS_WRITE_BARRIER = false;
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
+  public static final boolean NEEDS_LINEAR_SCAN = false;
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
@@ -123,7 +124,7 @@ public abstract class BasePlan
    * Instance variables
    */
   private int id = 0;                     // Zero-based id of plan instance
-  public BumpPointer immortal;
+  public ImmortalLocal immortal;
   protected LargeObjectLocal los;
   Log log;
 
@@ -153,7 +154,7 @@ public abstract class BasePlan
   BasePlan() {
     id = planCount++;
     plans[id] = (Plan) this;
-    immortal = new BumpPointer(immortalSpace);
+    immortal = new ImmortalLocal(immortalSpace);
     los = new LargeObjectLocal(loSpace);
     log = new Log();
   }

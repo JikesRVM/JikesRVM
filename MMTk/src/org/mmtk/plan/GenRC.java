@@ -6,6 +6,7 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
@@ -13,7 +14,6 @@ import org.mmtk.policy.RefCountLOSLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
@@ -74,7 +74,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
 
   // allocators
-  protected BumpPointer nursery;
+  protected CopyLocal nursery;
 
   // counters
   private int incCounter;
@@ -98,7 +98,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * Constructor
    */
   public GenRC() {
-    nursery = new BumpPointer(nurserySpace);
+    nursery = new CopyLocal(nurserySpace);
   }
 
   /****************************************************************************

@@ -13,7 +13,6 @@ import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;

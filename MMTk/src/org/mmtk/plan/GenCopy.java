@@ -5,10 +5,10 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.vm.Assert;
@@ -75,7 +75,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    *
    * Instance variables
    */
-  private BumpPointer mature;
+  private CopyLocal mature;
 
 
   /****************************************************************************
@@ -98,7 +98,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    */
   public GenCopy() {
     super();
-    mature = new BumpPointer(matureSpace0);
+    mature = new CopyLocal(matureSpace0);
   }
 
 
