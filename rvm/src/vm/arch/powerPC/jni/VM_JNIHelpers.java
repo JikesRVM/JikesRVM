@@ -46,11 +46,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       argObjs = packageParameterFromJValue(mth, argAddress);
     } else {
       if (isDotDotStyle) {
-        //-#if RVM_WITH_POWEROPEN_ABI
+        //-#if RVM_WITH_POWEROPEN_ABI  || RVM_WITH_MACH_O_ABI
         VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);
         argObjs = packageParameterFromVarArg(mth, varargAddress);
         
-        //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+        //-#elif RVM_WITH_SVR4_ABI
         // pass in the frame pointer of glue stack frames
         // stack frame looks as following:
         //      this method -> 
@@ -65,9 +65,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         //-#endif
       } else {
         // var arg
-        //-#if RVM_WITH_POWEROPEN_ABI
+        //-#if RVM_WITH_POWEROPEN_ABI  || RVM_WITH_MACH_O_ABI
         argObjs = packageParameterFromVarArg(mth, argAddress);
-        //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+        //-#elif RVM_WITH_SVR4_ABI
         argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
         //-#endif
       }
@@ -424,9 +424,14 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     case JVALUE_ARG:
       argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
       break;
-      //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+      //-#if RVM_WITH_SVR4_ABI 
     case SVR4_VARARG:
       argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
+      break;
+      //-#endif
+      //-#if RVM_WITH_MACH_O_ABI
+    case SVR4_VARARG:
+      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
       break;
       //-#endif
     case AIX_VARARG:
@@ -514,12 +519,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   // in the area, while only gprs starting from r3 are used.
   //
   // -- Feng
-  // 
+  //
+  // XXX CJH TODO:
   static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, VM_Address argAddress) {
-    //-#if RVM_FOR_OSX
-    // XXX CJH TODO!!!!
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    //-#endif
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];

@@ -17,7 +17,7 @@
 #include <stdlib.h>             /* malloc() prototype */
 
 int verbose=1;
-char *savedArrayPointer;
+static char *savedArrayPointer;
 
 /*
  * Class:     ArrayFunctions
