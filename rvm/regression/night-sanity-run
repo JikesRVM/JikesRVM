@@ -83,7 +83,24 @@ chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
-(cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs $GNU_TAR czvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
+(cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs $GNU_TAR czvf $tarfile) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+
+# if that worked, transfer the tar file
+# to developerWorks via a special CVS commit.
+if [ $? = 0 ] ; then
+  cd $RVM_ROOT/sanityResults
+  transfer=`uname`.tar.gz
+  cp $tarfile $transfer
+  cvs add $transfer
+  cvs commit -m "night sanity" $transfer
+  rm -f $transfer
+  mv CVS/Entries CVS/tmp
+  grep -v $transfer < CVS/tmp > CVS/Entries
+  rm -f CVS/tmp
+  cd $RVM_ROOT
+fi
+
 
 # determine how many ran, failed, and passed, then build a summary line
 numran=`grep "sane" $RUN_LOG | wc -l`
