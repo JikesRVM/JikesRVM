@@ -9,6 +9,7 @@ import instructionFormats.*;
  * Contains architecture-specific helper functions for BURS.
  * 
  * @author Dave Grove
+ * @author Stephen Fink
  */
 abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   implements OPT_Operators, OPT_PhysicalRegisterConstants {
@@ -500,17 +501,19 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
 
   /**
-   * Expansion of FLOAT_2INT and DOUBLE_2INT
-   * It's tempting to use FIST, but it doesn't
-   * produce the right answers due to treatment 
-   * of NaN's and infinities.
+   * Expansion of FLOAT_2INT and DOUBLE_2INT, by calling VM_Math
    * 
+   * Note: we cannot inline VM_Math.doubleToInt, since we cannot register
+   * allocate it and preserve IEEE FPR semantics, since IA32 has 80-bit
+   * FPRs.  TODO: support the fp strict option, including inlining of
+   * strict into non-strict.
+   *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
    * @param result the result operand
    * @param value the second operand
    */
-  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
+  final void FPR_2INT_VM_Math(OPT_BURS burs, OPT_Instruction s,
 		      OPT_RegisterOperand result,
 		      OPT_Operand value) {
     OPT_RegisterOperand doubleVal = burs.ir.regpool.makeTempDouble();
@@ -534,6 +537,60 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(CPOS(s, MIR_Call.mutate1(s, IA32_CALL, result, null, 
 					 targetAddr, targetMeth, 
 					 doubleVal)));
+  }
+
+  /**
+   * Expansion of FLOAT_2INT and DOUBLE_2INT, using the FIST instruction.
+   * 
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param result the result operand
+   * @param value the second operand
+   */
+  final void FPR_2INT_FIST(OPT_BURS burs, OPT_Instruction s,
+		      OPT_RegisterOperand result,
+		      OPT_Operand value) {
+
+    int offset = - burs.ir.stackManager.allocateSpaceForCaughtException();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
+    // convert value to an integer and store in FP0.
+    burs.append(MIR_Move.create(IA32_MOV, D(getFPR(0)), value));
+    burs.append(MIR_Move.create(IA32_FIST, sl, D(getFPR(0))));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), D(getFPR(0))));
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), sl));
+
+    // Now deal with NaNs
+    // Compare FP1 with itself, to see if its a NaN.  If so, move 0.0 into
+    // FP0.  
+    // move 0.0 into FP2
+    burs.append(MIR_Nullary.create(IA32_FLDZ, D(getFPR(0))));
+    burs.append(MIR_Move.create(IA32_FSTP, D(getFPR(0)), D(getFPR(2))));
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(1)), D(getFPR(1))));
+    burs.append(MIR_CondMove.create(IA32_FCMOV, D(getFPR(0)),
+                                    D(getFPR(2)), 
+                                    OPT_IA32ConditionOperand.PE()));
+    // Finally, move FP0 to result
+    burs.append(MIR_Move.mutate(s,IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FLOAT_2INT and DOUBLE_2INT
+   * 
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param result the result operand
+   * @param value the second operand
+   */
+  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
+		      OPT_RegisterOperand result,
+		      OPT_Operand value) {
+    OPT_Options options = getIR().options;
+    if (options.f2intVM_Math()) {
+      FPR_2INT_VM_Math(burs,s,result,value);
+    } else if (options.f2intFist()) {
+      FPR_2INT_FIST(burs,s,result,value);
+    } else {
+      OPT_OptimizingCompilerException.TODO("Unsupported f2int option");
+    }
   }
 
   /**
