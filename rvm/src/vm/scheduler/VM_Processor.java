@@ -101,10 +101,11 @@ implements VM_Uninterruptible, VM_Constants {
    */ 
   public void enableThreadSwitching () {
     ++threadSwitchingEnabledCount;
-    if (VM.VerifyAssertions) 
+    if (VM.VerifyAssertions) {
       VM._assert(threadSwitchingEnabledCount <= 1);
-    if (VM.VerifyAssertions && MM_Interface.gcInProgress()) 
-      VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
+      if (MM_Interface.gcInProgress()) 
+	  VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
+    }
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
       threadSwitchRequested = -1;
