@@ -19,12 +19,20 @@ START_NAME=
 EXPECTED=
 BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
+CFLAGS+=-Wno-unused -Wno-conversion		#for GCC
+CFLAGS+=-std=gnu99
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
-TESTS = Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
+# Tests for JNI 1.1
+TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
+
+# Tests for JNI 1.2
+TESTS_12 := JNI12 StringRegion
+
+TESTS := $(TESTS_11) $(TESTS_12)
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
 
