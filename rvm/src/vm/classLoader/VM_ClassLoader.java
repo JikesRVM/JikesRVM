@@ -637,7 +637,7 @@ public class VM_ClassLoader
     VM_Method method = VM_ClassLoader.findOrCreateMethod(VM_Atom.findOrCreateAsciiAtom("L<hardware>;"),
 							 VM_Atom.findOrCreateAsciiAtom("<trap>"),
 							 VM_Atom.findOrCreateAsciiAtom("()V"));
-    INSTRUCTION[]     instructions     = new INSTRUCTION[0];
+    INSTRUCTION[]     instructions     = VM_RuntimeStructures.newInstructions(0);
     VM_CompilerInfo   compilerInfo     = new VM_HardwareTrapCompilerInfo();
     int               compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
     VM_CompiledMethod compiledMethod   = new VM_CompiledMethod(compiledMethodId, method, instructions, compilerInfo);

@@ -49,7 +49,7 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       }
 
       int approxMachinecodeSize = OPT_FinalMIRExpansion.expand(ir);
-      ir.MIRInfo.machinecode = new INSTRUCTION[approxMachinecodeSize];
+      ir.MIRInfo.machinecode = VM_RuntimeStructures.newInstructions(approxMachinecodeSize);
     }
   }
   /**

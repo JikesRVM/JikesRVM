@@ -29,7 +29,7 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
     if (countConflicts) {
       stubLength += countLength;
     }
-    INSTRUCTION[] stub = new INSTRUCTION[stubLength];
+    INSTRUCTION[] stub = VM_RuntimeStructures.newInstructions(stubLength);
 
     // (2) Convert links into more array for easier handling.
     VM_InterfaceMethodSignature.Link[] entries = new VM_InterfaceMethodSignature.Link[numEntries];

@@ -423,7 +423,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(new int[STACK_SIZE_NORMAL >> 2]);
+    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
     // collector doesn't move
@@ -541,7 +541,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(new int[STACK_SIZE_NORMAL >> 2]);
+    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 

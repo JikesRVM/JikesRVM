@@ -141,6 +141,15 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
+  // Compiler support for real-time garbage collection
+  //
+  public static final boolean BuildForRealtimeGC =
+      //-#if RVM_WITH_REALTIME_GC
+        true;
+      //-#else
+        false;
+      //-#endif
+
   // Brooks-style redirection barrier
   public static final boolean BuildWithRedirectSlot =
       //-#if RVM_WITH_REDIRECT_SLOT

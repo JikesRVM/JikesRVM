@@ -148,11 +148,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     collectorThreadStacks = new int[MAX_PROCESSORS][];
     for (int i = 0; i < MAX_PROCESSORS; ++i)
-      collectorThreadStacks[i] = new int[STACK_SIZE_COLLECTOR >> 2];
+      collectorThreadStacks[i] = VM_RuntimeStructures.newStack(STACK_SIZE_COLLECTOR);
 
     startupThreadStacks   = new int[MAX_PROCESSORS][];
     for (int i = 0; i < MAX_PROCESSORS; ++i)
-      startupThreadStacks[i]   = new int[STACK_SIZE_NORMAL >> 2];
+      startupThreadStacks[i]   = VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL);
 
     // allocate initial processor list
     //

@@ -295,6 +295,7 @@ integer RVM_WITH_NONCOPYING_GC=0
 integer RVM_WITH_GENERATIONAL_GC=0
 integer RVM_WITH_FIXED_NURSERY_GC=0
 integer RVM_WITH_CONCURRENT_GC=0     # aka reference counting, aka RCGC
+integer RVM_WITH_REALTIME_GC=0
 integer RVM_WITH_NO_GC=0
 
 #
@@ -644,6 +645,8 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
    elif (( $RVM_WITH_CONCURRENT_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/concurrent
+   elif (( $RVM_WITH_REALTIME_GC )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/realtime
    elif (( $RVM_WITH_NO_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/noGC
    fi
@@ -1556,7 +1559,7 @@ function emitImageLinker
 
    print "   print '[LVM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
 
-   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC )); then
+   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC || RVM_WITH_REALTIME_GC )); then
       print "   print '[LVM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[LVM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"

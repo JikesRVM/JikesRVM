@@ -217,7 +217,7 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+4)) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos >= (dstPos+4))) {
 	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -240,7 +240,7 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+4)) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos >= (dstPos+4))) {
 	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -263,7 +263,7 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+2)) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos >= (dstPos+2))) {
 	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -286,7 +286,7 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+2)) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos >= (dstPos+2))) {
 	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -310,15 +310,18 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
 	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
 				VM_Magic.objectAsAddress(src) + (srcPos<<2),
 				len<<2);
-      } else {
+      } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
 	while (len-- != 0)
 	  dst[--dstPos] = src[--srcPos];
+      } else {
+	while (len-- != 0)
+	  dst[dstPos++] = src[srcPos++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -332,15 +335,18 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
 	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
 				VM_Magic.objectAsAddress(src) + (srcPos<<2),
 				len<<2);
-      } else {
+      } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
 	while (len-- != 0)
 	  dst[--dstPos] = src[--srcPos];
+      } else {
+	while (len-- != 0)
+	  dst[dstPos++] = src[srcPos++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -354,15 +360,18 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
 	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
 				VM_Magic.objectAsAddress(src) + (srcPos<<3),
 				len<<3);
-      }	else {
+      } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
 	while (len-- != 0)
 	  dst[--dstPos] = src[--srcPos];
+      } else {
+	while (len-- != 0)
+	  dst[dstPos++] = src[srcPos++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -376,15 +385,18 @@ public class VM_Array extends VM_Type
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
+      if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
 	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
 				VM_Magic.objectAsAddress(src) + (srcPos<<3),
 				len<<3);
-      } else {
+      } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
 	while (len-- != 0)
 	  dst[--dstPos] = src[--srcPos];
+      } else {
+	while (len-- != 0)
+	  dst[dstPos++] = src[srcPos++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -413,7 +425,7 @@ public class VM_Array extends VM_Type
 	  }
 
 	  // handle as two cases, for efficiency and in case subarrays overlap
-	  if (src != dst || srcPos > dstPos) {
+	  if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
 	    VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
 				    VM_Magic.objectAsAddress(src) + (srcPos<<2),
 				    len<<2);
@@ -427,13 +439,17 @@ public class VM_Array extends VM_Type
 		//-#endif
 	      }
 	    }
-	  } else {
+	  } else if (srcPos < dstPos) {
 	    srcPos = (srcPos + len) << 2;
 	    dstPos = (dstPos + len) << 2;
 	    while (len-- != 0) {
 	      srcPos -= 4;
 	      dstPos -= 4;
-	      VM_Magic.setObjectAtOffset(dst, dstPos, VM_Magic.getObjectAtOffset(src, srcPos));
+	      if (! VM.BuildForRealtimeGC)
+		  VM_Magic.setObjectAtOffset(dst, dstPos, VM_Magic.getObjectAtOffset(src, srcPos));
+	      else
+		  dst[dstPos>>2] = src[srcPos>>2];
+
 	      if (VM.BuildForConcurrentGC) {
 		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available with concurrent memory managers
 		VM_RCBuffers.addIncrement(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(dst) + dstPos),
@@ -441,6 +457,9 @@ public class VM_Array extends VM_Type
 		//-#endif
 	      }
 	    }
+	  } else {
+	    while (len-- != 0)
+	      dst[dstPos++] = src[srcPos++];
 	  }
 	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
 	    // generate write buffer entries for modified target array entries

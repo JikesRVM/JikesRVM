@@ -36,7 +36,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
-    this(new int[STACK_SIZE_NORMAL >> 2]);
+    this(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
   }
 
   /**
@@ -731,7 +731,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (!VM.BuildForConcurrentGC && VM_Collector.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
-    int[] newStack = new int[newSize];
+    int[] newStack = VM_RuntimeStructures.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
