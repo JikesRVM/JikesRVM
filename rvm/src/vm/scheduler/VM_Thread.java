@@ -460,7 +460,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //-#endif
 
     // VM_Scheduler.trace("VM_Thread", "threadSwitch");
-    timerTickYield();
+    timerTickYield(whereFrom);
 
     //-#if RVM_WITH_OSR
     VM_Thread myThread = getCurrentThread();
@@ -474,9 +474,29 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Suspend execution of current thread, in favor of some other thread.
    * Move this thread to a random virtual processor (for minimal load balancing)
    * if this processor has other runnable work.
+   *
+   * @param whereFrom  backedge, prologue, epilogue?
    */ 
-  public static void timerTickYield () {
+  public static void timerTickYield (int whereFrom) 
+  {
+    VM_Scheduler.interruptQuantumCounter++;
+
+    boolean threadSwitch = ! (VM_Scheduler.interruptQuantumCounter < VM.schedulingMultiplier);
     VM_Thread myThread = getCurrentThread();
+    //-#if RVM_WITH_HPM
+    if (VM_HardwarePerformanceMonitors.sample) {
+      // sample HPM counter values at every interrupt.
+      if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	  ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, threadSwitch);
+      }
+    }
+    //-#endif 
+
+    if (! threadSwitch) return;
+
+    VM_Scheduler.interruptQuantumCounter = 0;
+    // thread switch
     myThread.beingDispatched = true;
     if (trace) VM_Scheduler.trace("VM_Thread", "timerTickYield() scheduleThread ", myThread.getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(myThread);
