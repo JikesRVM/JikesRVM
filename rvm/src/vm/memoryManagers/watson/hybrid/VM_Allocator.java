@@ -48,13 +48,6 @@ public class VM_Allocator extends VM_GCStatistics
   implements VM_Constants, VM_Uninterruptible {
 
   /**
-   * When true, causes each gc thread to measure accumulated wait times
-   * during collection. Forces summary statistics to be generated.
-   * See VM_CollectorThread.MEASURE_WAIT_TIMES.
-   */
-  static final boolean RENDEZVOUS_TIMES = VM_CollectorThread.MEASURE_WAIT_TIMES;
-
-  /**
    * Initialize for boot image - executed when bootimage is being build
    */
   static  void init () {
@@ -535,10 +528,10 @@ public class VM_Allocator extends VM_GCStatistics
       //
       // It is NOT required that all GC threads reach here before any can proceed
       //
-      tempStart = RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
+      tempStart = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
       while(!initGCDone); // spin until initialization finished
       VM_Magic.isync();             // prevent following inst. from moving infront of waitloop
-      tempEnd = RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
+      tempEnd = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
 
       // each gc thread copies own VM_Processor, resets processor register & processor
       // local allocation pointers
@@ -556,14 +549,13 @@ public class VM_Allocator extends VM_GCStatistics
     VM_CollectorThread mylocal = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
     // add in initialization spin wait time to accumulated collection rendezvous time
-    if (RENDEZVOUS_TIMES) 
-      mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvousRecord(tempStart, tempEnd);
+    mylocal.rendezvous();
 
     // following rendezvous seems to be necessary, we are not sure why. Without it,
     // some processors proceed into finding roots, before all gc threads have
     // executed the above gc_initProcessor, and this seems related to the failure.
     // 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+    mylocal.rendezvous();
          
     // Begin finding roots for this collection.
     // roots are (fromSpace) object refs in the jtoc or on the stack or in writebuffer
@@ -585,7 +577,7 @@ public class VM_Allocator extends VM_GCStatistics
     // objects.  Because if we scan a VM_Method, and then update its code pointer
     // we can no longer compute old ip offsets for updating saved ip values
     //
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+    mylocal.rendezvous();
 
     if (mylocal.gcOrdinal == 1)	scanTime.start(rootTime);
 
@@ -627,7 +619,7 @@ public class VM_Allocator extends VM_GCStatistics
       }
       
       // ALL threads have to wait to see if any finalizable objects are found
-      VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+      mylocal.rendezvous();
      
       if (VM_Finalizer.foundFinalizableObject) {
 
@@ -639,7 +631,7 @@ public class VM_Allocator extends VM_GCStatistics
       }
     }  //  end of Finalization Processing
 
-    if (mylocal.gcOrdinal == 1) finishTime.start(finalizeTime);
+
 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
@@ -651,6 +643,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     if ( VM_GCLocks.testAndSetFinishLock() ) {
       // BEGIN SINGLE GC THREAD SECTION - MINOR END
+      finishTime.start(finalizeTime);
 
       // reset allocation pointers to the empty nursery area
       nurseryHeap.reset();
@@ -730,14 +723,14 @@ public class VM_Allocator extends VM_GCStatistics
 
      // ALL COLLECTOR THREADS IN PARALLEL
 
-     VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+    mylocal.rendezvous();
 
      VM_GCWorkQueue.resetWorkQBuffers();  // reset thread local work queue buffers
 
     // Each participating processor clears the mark array for the blocks it owns
     smallHeap.zeromarks(VM_Processor.getCurrentProcessor());
 
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+    mylocal.rendezvous();
 
     if (mylocal.gcOrdinal == 1)  rootTime.start(initTime);
 
@@ -777,7 +770,7 @@ public class VM_Allocator extends VM_GCStatistics
       }
       
       // ALL threads have to wait to see if any finalizable objects are found
-      VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+      mylocal.rendezvous();
      
       if (VM_Finalizer.foundFinalizableObject) {
 	// Some were found. Now ALL threads execute emptyWorkQueue again, this time
@@ -801,7 +794,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     // Added this Rendezvous to prevent mypid==1 from proceeding before all others
     // have completed the above, especially if mypid=1 did NOT free any blocks
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+    mylocal.rendezvous();
 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
@@ -904,9 +897,6 @@ public class VM_Allocator extends VM_GCStatistics
    * All GC threads execute in parallel.
    */
   public static void collect () {
-    VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-
-    long freeBefore = smallHeap.freeMemory();
 
     // set running threads context regs so that a scan of its stack
     // will start at the caller of collect (ie. VM_CollectorThread.run)
@@ -918,7 +908,8 @@ public class VM_Allocator extends VM_GCStatistics
 
     gcCollectMinor();
 
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+    VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    myThread.rendezvous();
   
     if (verbose >= 2 && (myThread.gcOrdinal == 1))
       VM_Scheduler.trace("collect: after Minor Collection","smallHeap free memory = ",(int)smallHeap.freeMemory());
@@ -933,7 +924,7 @@ public class VM_Allocator extends VM_GCStatistics
 
       gcCollectMajor();	
 
-      VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES);
+      myThread.rendezvous();
 
       if (myThread.gcOrdinal == 1) {
 	if (verbose >= 2) {
