@@ -137,11 +137,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
     double liveRatio = Plan.reservedMemory() / ((double) currentHeapSize);
     double ratio = computeHeapChangeRatio(liveRatio);
     int newSize = (int)(ratio * (double)oldSize);
-    if (newSize > 10 * (1<<20)) {
-      newSize = (newSize + (1<<20)) >> 20 << 20;
-    } else {
-      newSize = (newSize + (1<<10)) >> 10 << 10;
-    }
+    newSize = (newSize + (1<<20)) >> 20 << 20;
     if (newSize > maxHeapSize) newSize = maxHeapSize;
     if (newSize != oldSize) {
       // Heap size is going to change
@@ -164,16 +160,14 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
 
     if (liveRatio > 1) {
       // Perhaps indicates bad bookkeeping in JMTk?
-      if (Options.verbose > 2) {
-	VM_Interface.sysWriteln("Live ratio greater than 1: ",liveRatio);
-	liveRatio = 1;
-      }
+      VM_Interface.sysWriteln("GCWarning: Live ratio greater than 1: ",liveRatio);
+      liveRatio = 1;
     }
     if (gcLoad > 1) {
-      // Can happen....I can't explain why --dave
-      VM_Interface.sysWriteln("GC load was greater than 1!! ",gcLoad);
-      VM_Interface.sysWriteln("total time ",totalTime);
-      VM_Interface.sysWriteln("gc time ",accumulatedGCTime);
+      // Appears that this can actually happen....I can't explain why --dave
+      VM_Interface.sysWriteln("GCWarning: GC load was greater than 1!! ",gcLoad);
+      VM_Interface.sysWriteln("GCWarning:\ttotal time ",totalTime);
+      VM_Interface.sysWriteln("GCWarnin:\tgc time ",accumulatedGCTime);
       gcLoad = 1;
     }
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
