@@ -62,6 +62,52 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
   Throwable pendingException = null;
 
+  /*
+   * accessor methods
+   */
+  public boolean hasNativeStackFrame() throws VM_PragmaUninterruptible  {
+    return alwaysHasNativeFrame || JNIRefsTop != 0;
+  }
+
+  public VM_Address topJavaFP() throws VM_PragmaUninterruptible  {
+      return JNITopJavaFP;
+  }
+
+  public int[] refsArray() throws VM_PragmaUninterruptible {
+      return JNIRefs;
+  }
+
+  public int refsTop() throws VM_PragmaUninterruptible  {
+      return JNIRefsTop;
+  }
+   
+  public int savedRefsFP() throws VM_PragmaUninterruptible  {
+      return JNIRefsSavedFP;
+  }
+
+  public void setTopJavaFP(VM_Address topJavaFP) throws VM_PragmaUninterruptible  {
+      JNITopJavaFP = topJavaFP;
+  }
+
+  public void setSavedPRreg(VM_Processor vp) throws VM_PragmaUninterruptible  {
+      savedPRreg = vp;
+  }
+
+  public void setSavedTerminationContext(VM_Registers regs) throws VM_PragmaUninterruptible  {
+      savedContextForTermination = regs;
+  }
+
+  public VM_Registers savedTerminationContext() throws VM_PragmaUninterruptible  {
+      return savedContextForTermination;
+  }
+
+  public void setFromNative(VM_Address topJavaFP, VM_Processor nativeVP, int threadId) throws VM_PragmaUninterruptible  {
+      alwaysHasNativeFrame = true;
+      JNITopJavaFP = topJavaFP;
+      savedPRreg = nativeVP;
+      savedTIreg = threadId;
+  }
+
   // Saved context for thread attached to external pthread.  This context is
   // saved by the JNIService thread and points to the point in JNIStartUp thread
   // where it yields to the queue in the native VM_Processor.
