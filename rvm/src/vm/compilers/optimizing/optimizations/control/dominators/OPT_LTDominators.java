@@ -45,7 +45,7 @@ class OPT_LTDominators extends OPT_Stack {
   private OPT_ControlFlowGraph cfg;
 
   /**
-   * put your documentation comment here
+   * The entry point for this phase
    * @param ir the IR
    * @param forward Should we compute regular dominators, or post-dominators?
    */
@@ -62,7 +62,7 @@ class OPT_LTDominators extends OPT_Stack {
   }
 
   /**
-   * put your documentation comment here
+   * The constructor, called by the perform method
    * @param   OPT_IR ir
    * @param forward Should we compute regular dominators, or post-dominators?
    */
