@@ -275,7 +275,7 @@ integer RVM_FOR_CYGWIN=0   #
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
 #
 integer RVM_WITH_OPT_COMPILER=0
-integer RVM_WITH_ADAPTIVE_COMPILER=0 # superset of opt
+integer RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
 # The following must be set if using any of the RVM memory managers
@@ -301,7 +301,7 @@ integer RVM_WITH_OPT_BOOTIMAGE_COMPILER=0
 #
 integer RVM_WITH_BASE_RUNTIME_COMPILER=0
 integer RVM_WITH_OPT_RUNTIME_COMPILER=0
-integer RVM_WITH_ADAPTIVE_RUNTIME_COMPILER=0
+integer RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM=0
 
 # Here are the choices for additional components that are under development and/or are excluded from default build.
 #
@@ -660,7 +660,7 @@ function emitSourceList
       
    # Adaptive compiler components.
    #
-   if (( RVM_WITH_ADAPTIVE_COMPILER )); then
+   if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
       print $RVM_ROOT/rvm/src/vm/adaptive/controller
       print $RVM_ROOT/rvm/src/vm/adaptive/recompilation
       print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements
@@ -725,7 +725,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/baseline
    elif (( $RVM_WITH_OPT_RUNTIME_COMPILER )); then
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/optimizing
-   elif (( $RVM_WITH_ADAPTIVE_RUNTIME_COMPILER )); then
+   elif (( $RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM )); then
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
    fi
 
@@ -1006,7 +1006,7 @@ function emitExpander
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
-   if (( RVM_WITH_ADAPTIVE_COMPILER )); then
+   if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
 
@@ -1022,13 +1022,13 @@ function emitExpander
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/classLoader && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
 
    if (( RVM_WITH_OPT_COMPILER )); then
-      print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_COMPILER)"
+      print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
       if (( RVM_WITH_EXTREME_ASSERTIONS )); then
      print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing/ir/instruction && $GNU_MAKE_STR \$SILENT_MAKE fatalInstructionFormat ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
       fi
    fi
-   if (( RVM_WITH_ADAPTIVE_COMPILER )); then
-   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_COMPILER)"
+   if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
+   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
    fi
    
    print 'print ""'
@@ -1575,7 +1575,7 @@ function emitImageLinker
           print "   print '[[B'                               >> $PRIMORDIAL_CLASSES_STR"
       fi
 
-      if (( RVM_WITH_ADAPTIVE_COMPILER )); then
+      if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
           print "   print '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
@@ -1976,7 +1976,7 @@ function emitToolCompiler
    }
   
 #----------------------#
-# SECTION 4 - MAINLINE #
+# SECTION 6 - MAINLINE #
 #----------------------#
     
 print "$ME: setting up $BUILD_DIRECTORY for $CONFIGURATION_NAME"

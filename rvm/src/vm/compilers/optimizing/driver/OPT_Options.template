@@ -60,7 +60,7 @@ $$$$ END LET USE_OPT_LEVELS
 
   private static void instancePrintHelpHeader(String prefix) {
     VM.sysWrite("Commands\n");
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if(prefix.equals("-X:aos:irc")) {
       VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of optimizing compiler's command-line options\n");
       VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the optimizing compiler's options at a specific optimization level; otherwise, if optimization level not specified, print options for all levels\n");

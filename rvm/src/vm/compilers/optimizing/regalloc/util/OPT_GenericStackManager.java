@@ -269,7 +269,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
     boolean removeYieldpoints = isSingleBlock && ! preventYieldPointRemoval;
 
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // In adaptive systems if we require a frame, we don't remove 
     //  any yield poits
     if (frameRequired) {

@@ -371,7 +371,7 @@ class VM_CommandLineArgs {
         // ----------------------------------------------------
       case IRC_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
 	//-#else
@@ -379,7 +379,7 @@ class VM_CommandLineArgs {
 	//-#endif
 	break;
       case IRC_ARG: // "-X:irc:arg"; pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
 	VM.sysExit(1);
 	//-#else
@@ -392,7 +392,7 @@ class VM_CommandLineArgs {
         // --------------------------------------------------------------------
       case AOS_IRC_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	OPT_Options.printHelp("-X:aos:irc");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
@@ -401,7 +401,7 @@ class VM_CommandLineArgs {
 	break;
       case AOS_IRC_ARG:
 	// "-X:aos:irc:arg" pass 'arg' as option to initial runtime compiler
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_RuntimeCompiler.processCommandLineArg(arg);
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
@@ -414,7 +414,7 @@ class VM_CommandLineArgs {
         // --------------------------------------------------------------------
       case AOS_OPT_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	OPT_Options.printHelp("-X:aos:opt");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
@@ -424,7 +424,7 @@ class VM_CommandLineArgs {
       case AOS_OPT_ARG:
 	// "-X:aos:opt[?]:arg" defer processing of 'opt[?]:arg' to
 	// the optimizing compiler.
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.addOptCompilerOption("opt"+arg);
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
@@ -438,7 +438,7 @@ class VM_CommandLineArgs {
         // -------------------------------------------------------------------
       case AOS_SHARE_ARG:
 	// -X:aos:share[?]:o=v expands to -X:aos:o=v and -X:aos:opt[?]:o=v.
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	String optCompilerOption  = "opt";
 	String shareOption        = "";
 	boolean optLevelSpecified = false;
@@ -482,7 +482,7 @@ class VM_CommandLineArgs {
         // -------------------------------------------------------------------
       case AOS_HELP_ARG:  // -X:aos passed 'help' as an option
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.processCommandLineArg("help");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"'\n");
@@ -490,7 +490,7 @@ class VM_CommandLineArgs {
 	//-#endif
 	break;
       case AOS_ARG: // "-X:aos:arg" pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.processCommandLineArg(arg);
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+arg+"' has an illegal prefix '"+p.value+"'\n");

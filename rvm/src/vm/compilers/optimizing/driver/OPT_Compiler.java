@@ -51,7 +51,7 @@ public class OPT_Compiler {
       options = (OPT_Options)options.clone();
       options.SIMPLE_ESCAPE_IPA = false;
 
-      //-#if RVM_WITH_ADAPTIVE_COMPILER
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
       // Disable instrumentation because this method is compiled
       // before the adaptive system is finished booting.  Not pretty,
       // but it works for now.

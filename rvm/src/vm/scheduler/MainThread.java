@@ -38,7 +38,7 @@ class MainThread extends Thread {
 
     // VM_Scheduler.trace("MainThread", "run");
       
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // initialize the controller and runtime measurement subsystems
     VM_Controller.boot();
     //-#endif

@@ -203,7 +203,7 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalCSE(false));
     // Flow-insensitive field analysis
     addComponent(p, new OPT_FieldAnalysis());
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Insert counter on each method prologue
     addComponent(p, new OPT_InsertMethodInvocationCounter());
     // Insert yieldpoint counters
@@ -373,7 +373,7 @@ class OPT_OptimizationPlanner {
     // Perform peephole branch optimizations
     addComponent(p, new OPT_BranchOptimizations(1));
 
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Convert high level place holder instructions into actual instrumenation
     addComponent(p, new OPT_LowerInstrumentation());
     //-#endif

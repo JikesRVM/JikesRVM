@@ -140,7 +140,7 @@ public abstract class VM_Configuration {
   // Epilogue yieldpoints increase sampling accuracy for adaptive recompilation.
   // In particular, they are key for large, leaf, loop-free methods.
   public static final boolean UseEpilogueYieldPoints =
-      //-#if RVM_WITH_ADAPTIVE_COMPILER 
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
         true;
       //-#else
         false;
@@ -151,7 +151,7 @@ public abstract class VM_Configuration {
   // Getting accurate compilation time information is critical for
   // good adaptive system performance.
   public static final boolean BuildForCpuMonitoring = 
-      //-#if RVM_WITH_ADAPTIVE_COMPILER
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
         true;
       //-#else
         false;

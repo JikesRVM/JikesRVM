@@ -223,7 +223,7 @@ public class VM_Thread implements VM_Constants, VM_BaselineConstants, VM_Uninter
     if(VM.BuildForDeterministicThreadSwitching) 
       VM_Processor.getCurrentProcessor().deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
 
-//-#if RVM_WITH_ADAPTIVE_COMPILER
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
     // We use threadswitches as a rough approximation of time. 
     // Every threadswitch is a clock tick.
     VM_Controller.controllerClock++;
@@ -583,7 +583,7 @@ public class VM_Thread implements VM_Constants, VM_BaselineConstants, VM_Uninter
        myThread.notifyAll();
        }
 
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
     //-#endif
 

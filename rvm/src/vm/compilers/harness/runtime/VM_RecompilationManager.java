@@ -52,7 +52,7 @@ public final class VM_RecompilationManager {
       }
     }
 
-    //-#if RVM_WITH_ADAPTIVE_COMPILER
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // clear profiling counter
     if (DEBUG||report) { VM.sysWrite("Reseting profiling information\n"); }
     VM_RuntimeMeasurements.resetReportableObjects();

@@ -201,7 +201,7 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 	}
 
 	// Get a runtime count of how many times guards fail at runtime	
-	//-#if RVM_WITH_ADAPTIVE_COMPILER
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	if (COUNT_FAILED_METHOD_GUARDS && 
 	    VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
 	  // Need a name for the event to count.  In this example, a
