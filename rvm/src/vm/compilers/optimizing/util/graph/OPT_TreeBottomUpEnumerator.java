@@ -27,7 +27,7 @@ final class OPT_TreeBottomUpEnumerator implements Enumeration {
 
   /**
    * constructor: it creates the list of nodes
-   * @param   OPT_TreeNode root
+   * @param root  Root of the tree whose elements are to be visited.
    */
   OPT_TreeBottomUpEnumerator(OPT_TreeNode root) {
     list = new java.util.ArrayList();

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -555,8 +555,8 @@ class OPT_ValueGraph implements OPT_Operators {
    * Find or create an OPT_ValueGraphVertex corresponding to a 
    * given variable.
    *
-   * @param op the variable
-   * @return a value graph vertex corresponding to this variable
+   * @param var   The variable
+   * @return A value graph vertex corresponding to this variable
    */
   private OPT_ValueGraphVertex findOrCreateVertex(Object var) {
     if (var instanceof OPT_Register)

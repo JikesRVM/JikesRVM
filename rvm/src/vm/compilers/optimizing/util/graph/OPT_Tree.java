@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -21,7 +21,6 @@ public class OPT_Tree {
 
   /**
    * constructor where the root is not initially known
-   * @param node
    */
   public OPT_Tree() {
     root = null;
@@ -29,7 +28,7 @@ public class OPT_Tree {
 
   /**
    * constructor where the root is initially known
-   * @param node
+   * @param node  Root of the tree.
    */
   public OPT_Tree(OPT_TreeNode node) {
     root = node;

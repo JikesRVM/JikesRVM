@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -59,8 +59,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
   /** 
    * Perform the transformation for a given register appearance
    *
-   * @param rop the def or use to check
-   * @param options controlling compiler options
+   * @param rop  The def or use to check
    */
   private void transform (OPT_RegisterOperand rop) {
     OPT_Instruction inst = rop.instruction;

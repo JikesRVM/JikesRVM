@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -28,7 +28,7 @@ final class OPT_TreeTopDownEnumerator implements Enumeration {
 
   /**
    * constructor: it creates the list of nodes
-   * @param   OPT_TreeNode root
+   * @param   root Root of the tree to traverse
    */
   OPT_TreeTopDownEnumerator(OPT_TreeNode root) {
     list = new java.util.ArrayList();
