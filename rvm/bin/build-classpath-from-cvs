@@ -19,16 +19,17 @@
 ME=${0##*/}
 function usage () {
     cat >&2 <<EOF
-Usage: $ME <classpath-checkout-dir> \$CLASSPATH_INSTALLATION
-  Configure and build a GNU Classpath CVS Head checkout in the directory
-  <classpath-checkout-dir> and then install it in
-  <classpath-installation-dir>.  Use the proper configuration options for
-  Jikes RVM.
+Usage: $ME <classpath-checkout-dir> \$CLASSPATH_INSTALLATION <classpath-config-args>
+  Configure and build a GNU Classpath CVS Head checkout which is
+  already present in the directory <classpath-checkout-dir> and 
+  then install it in <classpath-installation-dir>.  Use the proper
+  configuration options for Jikes RVM.
 
-  <classpath-checkout-dir> is in Jikes RVM.
+  <classpath-config-args> are any extra configuration arguments you 
+  want to use.
 EOF
 }
-if (( $# != 2 )); then
+if (( $# < 2 )); then
     usage;
     exit 2;
 fi
@@ -38,6 +39,7 @@ function croak () {
     exit 3
 }
 declare -r srcdir="$1" installdir="$2"
+shift; shift
 set -e
 trap 'echo "Unexpected error; aborting"' ERR
 cd $srcdir || croak "Unable to change directories into $srcdir."
@@ -49,6 +51,23 @@ if ! [ -f configure ] || ! [ -x configure ]; then
     echo "$ME: done running autogen.sh"
 fi
 
-./configure --disable-gtk-peer --prefix=${installdir}
+if ! [[ $JIKES ]] \
+    && [[ ${RVM_HOST_CONFIG} ]] && [[ -r ${RVM_HOST_CONFIG} ]]
+then
+    eval $(grep JIKES ${RVM_HOST_CONFIG})
+fi
+if [[ $JIKES ]] && ! [[ -x $JIKES ]]; then
+    unset JIKES
+fi
+if ! [[ $JIKES ]] \
+    && [[ ${RVM_TARGET_CONFIG} ]] && [[ -r ${RVM_TARGET_CONFIG} ]]
+then
+    eval $(grep JIKES ${RVM_TARGET_CONFIG})
+fi
+if [[ ! $JIKES ]]; then
+    JIKES=$(type -p jikes)
+fi
+
+./configure --disable-gtk-peer --prefix=${installdir} ${JIKES+--with-jikes=}${JIKES} "$@"
 make
 make install
