@@ -85,7 +85,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
     bufferSize = numberOfBufferTriples * 3;
     buffer     = new int[bufferSize];
 
-    edgeListener.setBuffer(buffer, bufferSize); 
+    edgeListener.setBuffer(buffer); 
 
     // allocate internal data structures.
     callGraph   = VM_AdaptiveInlining.getPartialCallGraph();
