@@ -133,12 +133,12 @@ final class VMRuntime {
     p.put("java.vm.specification.vendor", "Sun Microsystems Inc.");
     p.put("java.vm.specification.version", "1.0");
 
-    p.put("java.class.version", "48.0"); /* 48.0 brings us through Java
-                                            version 1.4.  Java 1.5 bumps the
-                                            class file format up to 49.0.  I
-                                            don't have a reference to version
-                                            49.0 handy (yet).  
-                                            --augart, 13 Sept 2004 */
+    /* 48.0 brings us through Java version 1.4.  Java 1.5 bumps the class file
+       format up to 49.0.  The changes for version 49.0 are described at
+       <http://java.sun.com/docs/books/vmspec/2nd-edition/jvms-proposed-changes.html>;
+       I don't have a reference to version 49.0 handy (yet).  
+       --augart, 13 Sept 2004 */
+    p.put("java.class.version", "48.0"); 
 
     p.put("file.separator", "/");
     p.put("path.separator", ":");
