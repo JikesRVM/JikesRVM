@@ -7,7 +7,6 @@
 # @author: Martin Trapp
 #
 
-
 basename=`basename $0`
 mypath=$RVM_ROOT/rvm/regression/$basename
 
@@ -33,7 +32,7 @@ if [ "x$command" = xkill ] ; then
     # Think about a portable way to stop $pid from spawning new processes
     
     # find kids and call script recursiveley
-    childs=`ps -ef | awk '$3~'/$pid/'{print $2}`
+    childs=`ps -ef | awk '$3~/'$pid'/{print $2}'`
     if [ "x$childs" != x ] ; then
       $mypath kill $childs
       #echo killing $childs
