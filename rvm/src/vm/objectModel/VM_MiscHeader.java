@@ -39,7 +39,7 @@ public final class VM_MiscHeader implements VM_Uninterruptible {
   // Support for YYY (an example of how to add a word to all objects)
   /////////////////////////  
   // offset from object ref to yet-to-be-defined instrumentation word
-  // static final int YYY_DATA_OFFSET = (VM.YYY ? MISC_HEADER_START - GC_TRACING_HEADER_WORDS - 4 : 0)
+  // static final int YYY_DATA_OFFSET = (VM.YYY ? MISC_HEADER_START - GC_TRACING_HEADER_WORDS : 0)
   // static final int YYY_HEADER_BYTES = (VM.YYY ? 4 : 0)
 
   /**
