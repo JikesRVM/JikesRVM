@@ -312,7 +312,7 @@ public class VM_Allocator implements VM_Constants,
   public static void heapExhausted(VM_SegregatedListHeap h, int size, int count) {
     if (count > GC_RETRY_COUNT) outOfMemory(size, "Out of memory trying to allocate small object");
     flag2nd = count > 0;
-    gc1("Garnage collection triggered by small request of size ", size);
+    gc1("Garbage collection triggered by small request of size ", size);
   }
     
 
