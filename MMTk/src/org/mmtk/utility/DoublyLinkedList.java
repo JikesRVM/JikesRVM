@@ -6,14 +6,20 @@ package org.mmtk.utility;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.ObjectModel;
 import org.mmtk.utility.gcspy.TreadmillDriver;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import com.ibm.JikesRVM.VM_Magic;
-
 /**
+ * FIXME This class must be re-written as it makes the assumption that
+ * the implementation language (Java) and the language being
+ * implemented are the same.  This is true in the case of Jikes RVM,
+ * but it is not true for any VM implementing a language other than
+ * Java.
+ *
+ *
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
@@ -21,7 +27,8 @@ import com.ibm.JikesRVM.VM_Magic;
  *  
  * The treadmill object itself must not be moved.
  *
- * Access to the instances may be synchronized depending on the constructor argument.
+ * Access to the instances may be synchronized depending on the
+ * constructor argument.
  *
  * @author Perry Cheng
  * @version $Revision$
@@ -83,7 +90,7 @@ final class DoublyLinkedList
   }
 
   static public final Object getOwner(Address node) {
-    return VM_Magic.addressAsObject(node.loadAddress(LIST_OFFSET));
+    return node.loadObjectReference(LIST_OFFSET).toObject();
   }
 
   static public final int headerSize() throws InlinePragma {
@@ -115,7 +122,7 @@ final class DoublyLinkedList
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
     node.store(head, NEXT_OFFSET);
-    node.store(VM_Magic.objectAsAddress(owner), LIST_OFFSET);
+    node.store(ObjectReference.fromObject(owner), LIST_OFFSET);
     if (!head.isZero())
       head.store(node, PREV_OFFSET);
     head = node;

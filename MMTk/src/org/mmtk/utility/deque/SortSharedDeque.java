@@ -352,7 +352,7 @@ public abstract class SortSharedDeque extends SharedDeque
   * @param addr The slot containing the address of the buffer to check.
   */
   private final void checkIfSorted() {
-    if (Assert.VerifyAssertions) {
+    if (Assert.VERIFY_ASSERTIONS) {
       Address next, buf, end;
       Word prevKey = Word.max();
       end = tail;

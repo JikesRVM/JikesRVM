@@ -10,6 +10,12 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
+ * FIXME The DoublyLinkedList class, upon which this depends, must be
+ * re-written as it makes the assumption that the implementation
+ * language (Java) and the language being implemented are the same.
+ * This is true in the case of Jikes RVM, but it is not true for any
+ * VM implementing a language other than Java.
+ *
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains

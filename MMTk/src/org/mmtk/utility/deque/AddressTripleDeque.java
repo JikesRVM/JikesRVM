@@ -8,7 +8,7 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
-
+import org.vmmagic.pragma.Uninterruptible;
 
 
 /**

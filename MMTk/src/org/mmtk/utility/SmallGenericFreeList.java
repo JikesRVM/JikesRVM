@@ -8,9 +8,11 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * This is a very simple, generic malloc-free allocator.  It works

@@ -8,8 +8,6 @@ package org.mmtk.utility;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Constants;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -17,7 +15,7 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng  
  */  
 
-public class Memory implements Uninterruptible, Constants, VM_Constants {
+public class Memory implements Uninterruptible, Constants {
 
   /* Inlining this loop into the uninterruptible code can cause/encourage the
    GCP into moving a get_obj_tib into the interruptible region where the tib
@@ -56,12 +54,18 @@ public class Memory implements Uninterruptible, Constants, VM_Constants {
   }
 
   public static void zeroSmall(Address start, Extent len) throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert((len.toInt() & (BYTES_IN_INT-1)) == 0
+                     && (start.toInt() & (BYTES_IN_INT-1)) == 0);
     Address end = start.add(len);
     for (Address i = start; i.LT(end); i = i.add(BYTES_IN_INT)) 
       i.store(0);
   }
 
   public static void set (Address start, int len, int v) throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert((len & (BYTES_IN_INT-1)) == 0
+                     && (start.toInt() & (BYTES_IN_INT-1)) == 0);
     for (int i=0; i < len; i += BYTES_IN_INT) 
       start.store(v, Offset.fromInt(i));
   }
@@ -69,6 +73,9 @@ public class Memory implements Uninterruptible, Constants, VM_Constants {
   // start and len must both be 4-byte aligned
   //
   public static void zero(Address start, Extent len) throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert((len.toInt() & (BYTES_IN_INT-1)) == 0
+                     && (start.toInt() & (BYTES_IN_INT-1)) == 0);
     if (len.GT(Extent.fromIntZeroExtend(256))) 
       org.mmtk.vm.Memory.zero(start, len);
     else
