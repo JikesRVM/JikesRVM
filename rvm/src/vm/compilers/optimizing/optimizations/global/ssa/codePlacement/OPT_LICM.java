@@ -1046,8 +1046,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       return ((  useDominates (AStore.getArray (inst), block))
 	      && useDominates (AStore.getIndex (inst), block));
     if (VM.VerifyAssertions) {
-      VM.sysWrite ("inst: "+inst+"\n");
-      VM._assert (false);
+      VM._assert(false, "inst: " + inst);
     }
     return false;
   }
