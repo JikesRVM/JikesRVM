@@ -4,8 +4,8 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.classloader.VM_ReflectionSupport;
+import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.VM_Reflection;
 
 /**
  * Library support interface of Jikes RVM
@@ -26,47 +26,93 @@ public final class Method extends AccessibleObject implements Member {
     method = m;
   }
 
-  public boolean equals(Object object) { 
-    return VM_ReflectionSupport.methodEquals(this,object);
-  }
-
-  public Class getDeclaringClass() {
-    return VM_ReflectionSupport.getDeclaringClass(this);
-  }
-
-  public Class[] getExceptionTypes() {
-    return VM_ReflectionSupport.getExceptionTypes(this);
-  }
-
-  public int getModifiers() {
-    return VM_ReflectionSupport.getModifiers(this);
-  }
-
-  public String getName() {
-    return VM_ReflectionSupport.getName(this);
-  }
-
-  public Class[] getParameterTypes() {
-    return VM_ReflectionSupport.getParameterTypes(this);
-  }
-
-  public Class getReturnType() {
-    return VM_ReflectionSupport.getReturnType(this);
-  }
-
-  public String getSignature() {
-    return VM_ReflectionSupport.getSignature(this);
-  }
-
   public int hashCode() {
     return getName().hashCode();
   }
 
-  public Object invoke(Object receiver, Object args[])
-    throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    return VM_ReflectionSupport.invoke(this,receiver,args);
+  public boolean equals(Object other) { 
+    if (other instanceof Method) {
+      return method == ((Method)other).method;
+    } else {
+      return false;
+    }
   }
 
+  public Class getDeclaringClass() {
+    return method.getDeclaringClass().getClassForType();
+  }
+
+  public Class[] getExceptionTypes() {
+    VM_TypeReference[] exceptionTypes = method.getExceptionTypes();
+    if (exceptionTypes == null) {
+      return new Class[0];
+    } else {
+      return JikesRVMSupport.typesToClasses(exceptionTypes);
+    }
+  }
+
+  public int getModifiers() {
+    return method.getModifiers();
+  }
+
+  public String getName() {
+    return method.getName().toString();
+  }
+
+  public Class[] getParameterTypes() {
+    return JikesRVMSupport.typesToClasses(method.getParameterTypes());
+  }
+
+  public Class getReturnType() {
+    try {
+      return method.getReturnType().resolve().getClassForType();
+    } catch (ClassNotFoundException e) {
+      throw new InternalError(e.toString()); // Should never happen.
+    }
+  }
+
+  public String getSignature() {
+    return method.getDescriptor().toString();
+  }
+
+  public Object invoke(Object receiver, Object args[])
+    throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+    // validate "this" argument
+    //
+    if (!method.isStatic()) {
+      if (receiver == null) throw new NullPointerException();
+      receiver = JikesRVMSupport.makeArgumentCompatible(method.getDeclaringClass(), receiver);
+    }
+    
+    // validate number and types of remaining arguments
+    //
+    VM_TypeReference[] parameterTypes = method.getParameterTypes();
+    if (args == null) {
+      if (parameterTypes.length != 0) {
+	throw new IllegalArgumentException("argument count mismatch");
+      }
+    } else if (args.length != parameterTypes.length) {
+      throw new IllegalArgumentException("argument count mismatch");
+    }
+    for (int i = 0, n = parameterTypes.length; i < n; ++i) {
+      try {
+	args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
+      } catch (ClassNotFoundException e) {
+	throw new InternalError(e.toString()); // Should never happen.
+      }
+    }
+
+    // invoke method
+    // Note that we catch all possible exceptions, not just Error's and RuntimeException's,
+    // for compatibility with jdk behavior (which even catches a "throw new Throwable()").
+    //
+    try {
+      return VM_Reflection.invoke(method, receiver, args);
+    } catch (Throwable e) {
+      throw new InvocationTargetException(e);
+    }
+  }
 
   public String toString() {
     StringBuffer buf;

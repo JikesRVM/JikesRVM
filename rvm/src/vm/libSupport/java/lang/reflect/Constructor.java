@@ -25,27 +25,16 @@ public final class Constructor extends AccessibleObject implements Member {
     constructor = m;
   }
 
-  // For use by java.io.ObjectInputStream
-  VM_Method getConstructor() {
-    return constructor;
-  }
-
-  public boolean equals(Object object) {
-    if (object != null && object instanceof Constructor) {
-      Constructor other = (Constructor)object;
-	    
-      // The underlying methods are unique because
-      //  1) The only path to a Constructor is Class.getConstructor
-      //  2) Class has a unique map to VM_Class
-      //  3) VM_Methods are unique in VM_Classes.
-      //
-      return constructor == other.constructor;
+  public boolean equals(Object other) {
+    if (other instanceof Constructor) {
+      return constructor == ((Constructor)other).constructor;
+    } else {
+      return false;
     }
-    return false;
   }
     
   public Class getDeclaringClass() {
-    return VM_ReflectionSupport.getDeclaringClass(this);
+    return constructor.getDeclaringClass().getClassForType();
   }
 
   public Class[] getExceptionTypes() {

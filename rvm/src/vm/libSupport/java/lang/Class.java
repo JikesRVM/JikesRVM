@@ -16,6 +16,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.classloader.VM_ReflectionSupport;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 
+import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 
 
@@ -40,7 +41,7 @@ public final class Class implements java.io.Serializable {
   VM_Type type;
 
   /**
-   * This field holds the protection domain of this clas
+   * This field holds the protection domain of this class.
    */
   ProtectionDomain pd;
 
@@ -66,12 +67,12 @@ public final class Class implements java.io.Serializable {
   }
 
   public ClassLoader getClassLoader() {
-    ClassLoader cl = JikesRVMSupport.getTypeForClass(this).getClassLoader();
+    ClassLoader cl = type.getClassLoader();
     return cl == VM_SystemClassLoader.getVMClassLoader() ? null : cl;
   }
 
   public Class getComponentType() {
-    return VM_ReflectionSupport.getComponentType(this);
+    return type.isArrayType() ? type.asArray().getElementType().getClassForType() : null;
   }
 
   public Class[] getClasses() {
@@ -137,7 +138,19 @@ public final class Class implements java.io.Serializable {
   }
 
   public Class[] getInterfaces () {
-    return VM_ReflectionSupport.getInterfaces(this);
+    if (type.isArrayType()) {
+      // arrays implement JavaLangSerializable & JavaLangCloneable
+      return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
+			   VM_Type.JavaIoSerializableType.getClassForType() };
+    } else if (type.isClassType()) {
+      VM_Class[] interfaces  = type.asClass().getDeclaredInterfaces();
+      Class[]    jinterfaces = new Class[interfaces.length];
+      for (int i = 0; i != interfaces.length; i++)
+	jinterfaces[i] = interfaces[i].getClassForType();
+      return jinterfaces;
+    } else {
+      return new Class[0];
+    }
   }
 
   public Method getMethod(String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
@@ -188,27 +201,38 @@ public final class Class implements java.io.Serializable {
   }
 
   public Class getSuperclass () {
-    return VM_ReflectionSupport.getSuperclass(this);
+    if (type.isArrayType()) {
+      return VM_Type.JavaLangObjectType.getClassForType();
+    } else if (type.isClassType()) {
+      VM_Class myClass = type.asClass();
+      if (myClass.isInterface()) return null;
+      VM_Type supe = myClass.getSuperClass();
+      return supe == null ? null : supe.getClassForType();
+    } else {
+      return null;
+    }
   }
     
   public boolean isArray() {
-    return VM_ReflectionSupport.isArray(this);     
+    return type.isArrayType();
   }
 
   public boolean isAssignableFrom(Class cls) {
-    return VM_ReflectionSupport.isAssignableFrom(this,cls);
+    return type == cls.type || VM_Runtime.isAssignableWith(type, cls.type);
   }
 
   public boolean isInstance(Object object) {
-    return VM_ReflectionSupport.isInstance(this,object);
+    if (object == null) return false;
+    if (isPrimitive())  return false;
+    return isAssignableFrom(object.getClass());
   }
 
   public boolean isInterface() {
-    return VM_ReflectionSupport.isInterface(this);
+    return type.isClassType() && type.asClass().isInterface();
   }
 
   public boolean isPrimitive() {
-    return VM_ReflectionSupport.isPrimitive(this);
+    return type.isPrimitiveType();
   }
 
   public Object newInstance() throws IllegalAccessException, InstantiationException {
@@ -216,7 +240,6 @@ public final class Class implements java.io.Serializable {
   }
 
   private String toResourceName(String resName) {
-        
     // Turn package name into a directory path
     if (resName.charAt(0) == '/') return resName.substring(1);
 
@@ -227,7 +250,18 @@ public final class Class implements java.io.Serializable {
   }
 
   public String toString() {
-    return VM_ReflectionSupport.classToString(this);
+    String name = type.toString();
+    if (isPrimitive()) {
+      return name;
+    } else if (type.isArrayType()) {
+      return "class " + name;
+    } else {
+      if (isInterface()) {
+	return "interface " + name;
+      } else  {
+	return "class "     + name;
+      }
+    }
   }
 
   public Package getPackage() {
