@@ -285,7 +285,7 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method optAllocAdviceNewArrayArrayMethod = getMethod("LVM_OptLinker;", "allocAdviceNewArrayArray", "([III)Ljava/lang/Object;");
   //-#endif
 
-  static final VM_Method sysArrayCopy = getMethod("Ljava/lang/System;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+  static final VM_Method sysArrayCopy = getMethod("Lcom/ibm/JikesRVM/librarySupport/SystemSupport;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
   //-#endif
 
 
