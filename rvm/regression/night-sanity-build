@@ -25,7 +25,7 @@ echo "Building the boot images\n" >> $BUILD_LOG
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results -norun -wait sem" -config $1 >> $BUILD_LOG 2>> $BUILD_LOG
 
 # build javadoc for FullAdaptiveSemispace image.
-. $RVM_ROOT/images/JMTkFullAdaptiveSemispace/jbuild.environment
+. $RVM_ROOT/images/FullAdaptiveSemiSpace/jbuild.environment
 $RVM_ROOT/rvm/bin/jdoc.sh $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
 
 echo "\n\nBuild complete, builder script exiting.\n" >> $BUILD_LOG
