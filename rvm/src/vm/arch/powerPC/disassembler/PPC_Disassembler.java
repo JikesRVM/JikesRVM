@@ -223,8 +223,7 @@ public class PPC_Disassembler implements VM_Constants {
    */
   static int destination;
 
-  static
-  int opcode_to_form[] = {
+  static int[] opcode_to_form = {
     /* table to convert opcode into */
     /* instruction formats          */
 
@@ -307,7 +306,7 @@ public class PPC_Disassembler implements VM_Constants {
     EXTENDED    /* OPCODE 63 */
   };
   
-  static opcode_tab Dform[] = {
+  static opcode_tab[] Dform = {
     
     /* Table for the D instruction format */
     
@@ -383,8 +382,7 @@ public class PPC_Disassembler implements VM_Constants {
   };
   
 
-  static
-  opcode_tab XLform[] = {
+  static opcode_tab[] XLform = {
     
     /* Table for the XL instruction format */
     
@@ -442,8 +440,7 @@ public class PPC_Disassembler implements VM_Constants {
    *  "format" is how the instruction should be printed (specific to the disassembler) 
    */
 
-  static
-  opcodeXX opcode30[] = {
+  static opcodeXX[] opcode30 = {
     
     /* 	 	     key        form     format       mnemonic       */
     /* 		     ---        ----     ------       --------       */
@@ -469,8 +466,7 @@ public class PPC_Disassembler implements VM_Constants {
    */
   
   
-  static
-  opcodeXX opcode31[] = {
+  static opcodeXX[] opcode31 = {
     
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
@@ -669,7 +665,7 @@ public class PPC_Disassembler implements VM_Constants {
 //-#endif    
   };
   
-  static opcode_tab opcode58[] = {
+  static opcode_tab[] opcode58 = {
     /* Table for the instruction format of opcode 58*/
     
     /*    EO                            format      mnemonic   */
@@ -680,7 +676,7 @@ public class PPC_Disassembler implements VM_Constants {
     /*    3,    */  new opcode_tab (      X,      "RESERVED")
   };
   
-  static opcode_tab opcode62[] = {
+  static opcode_tab[] opcode62 = {
     /* Table for the instruction format of opcode 58*/
     
     /*    EO                            format      mnemonic   */
@@ -696,8 +692,7 @@ public class PPC_Disassembler implements VM_Constants {
  *  the instruction format and "format" is how the
  *  instruction should be printed.  */
 
-  static
-  opcodeXX opcode63[] = {
+  static opcodeXX[] opcode63 = {
 
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
@@ -739,8 +734,7 @@ public class PPC_Disassembler implements VM_Constants {
 //-#endif    
   };
 
-  static
-  opcodeXX opcode59[] = {
+  static opcodeXX[] opcode59 = {
     
     /*  opcode59 table: These are the addition for the PowerPC set
      *  Key is  bits 26 through 31 of the instruction. 
@@ -768,8 +762,7 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(       41,	 A_FORM,	0,	"fsubs.")  
   };
 
-  static
-  opcodeXX Aform[] = {
+  static opcodeXX[] Aform = {
     
     /*  Aform table: The key is computed by taking 
      *  bits 26 through 31 of the instruction. "Form" is
@@ -1119,7 +1112,7 @@ public class PPC_Disassembler implements VM_Constants {
       }
   }
   
-  static String Mforms[]  = { "rlimi", "rlimi.", "rlinm", "rlinm.",
+  static String[] Mforms  = { "rlimi", "rlimi.", "rlinm", "rlinm.",
       "rlmi", "rlmi.", "rlnm", "rlnm."};
   
   /* Decode the M instruction format */
