@@ -79,6 +79,9 @@ public class Throwable implements java.io.Serializable {
 	 everything is broken, even VM.sysWriteln().. */
       VM.sysExit(VM.exitStatusTooManyThrowableErrors);
     }
+    if (numWeirdErrors > 1 ) {
+      VM.sysWriteln("I'm now ", numWeirdErrors, " levels deep in weird Errors while handling this Throwable");
+    }
   }
   
   private int numOutOfMemoryErrors = 0;
@@ -89,6 +92,9 @@ public class Throwable implements java.io.Serializable {
       /* We exit before printing, in case we're in some weird hell where
 	 everything is broken, even VM.sysWriteln().. */
       VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
+    }
+    if (numOutOfMemoryErrors > 1 ) {
+      VM.sysWriteln("I'm now ", numOutOfMemoryErrors, " levels deep in OutOfMemoryErrors while handling this Throwable");
     }
   }
   
@@ -154,7 +160,7 @@ public class Throwable implements java.io.Serializable {
     }
   }
     
-  public synchronized void printStackTrace (PrintLN err) {
+  public synchronized void printStackTrace(PrintLN err) {
     //    err.println("This is a call to printStackTrace()"); // DEBUG
     try {
       /* A routine to avoid OutOfMemoryErrors, which I think we will never see
@@ -183,17 +189,21 @@ public class Throwable implements java.io.Serializable {
 
 
   public void printStackTrace(PrintWriter err) {
-    PrintLN pln;
+    PrintLN pln = null;
     try {
       pln = PrintContainer.get(err);
     } catch (OutOfMemoryError dummy) {
       tallyOutOfMemoryError();
-      VM.sysWriteln("printStackTrace: Out of memory while trying to allocate a simple stupid PrintContainer(PrintWriter) to print the trace.  I give up.");
-      return;
+      VM.sysWriteln("Throwable.printStackTrace(PrintWriter): Out of memory");
     } catch (Throwable dummy) {
       tallyWeirdError();
-      VM.sysWriteln("Throwable.printStackTrace(PrintWriter) caught an unexpected Throwable while allocating a simple 'PrintContainer(PrintWriter)' object to print a stack trace.  Giving up.");
-      return;
+      VM.sysWriteln("Throwable.printStackTrace(PrintWriter) caught an unexpected Throwable");
+    } finally {
+      if (pln == null) {
+	VM.sysWrite("\twhile allocating a simple 'PrintContainer(PrintWriter)' object to print a stack trace.");
+	VM.sysWriteln("\tDegrading to sysWrite.");	
+	pln = PrintContainer.readyPrinter;
+      }
     }
 
     // Any out-of-memory is caught deeper down the call stack.
@@ -202,17 +212,24 @@ public class Throwable implements java.io.Serializable {
 
 
   public void printStackTrace(PrintStream err) {
-    PrintLN pln;
+    PrintLN pln = null;
     try {
       pln = PrintContainer.get(err);
     } catch (OutOfMemoryError dummy) {
       tallyOutOfMemoryError();
-      VM.sysWriteln("printStackTrace: Out of memory while trying to allocate a simple stupid PrintContainer(PrintStream) to print the trace.  I give up.");
-      return;
+      VM.sysWriteln("Throwable.printStackTrace(PrintStream): Out of memory");
+      dummy.sysWrite();
     } catch (Throwable dummy) {
       tallyWeirdError();
-      VM.sysWriteln("Throwable.printStackTrace(PrintWriter) caught an unexpected Throwable while allocating a simple 'PrintContainer(PrintStream)' object to print a stack trace.  Giving up.");
-      return;
+      VM.sysWriteln("Throwable.printStackTrace(PrintStream): Caught an unexpected Throwable");
+      dummy.sysWrite();
+      pln = PrintContainer.readyPrinter;
+    } finally {
+      if (pln == null) {
+	VM.sysWriteln("\twhile trying to allocate a simple PrintContainer(PrintStream) object to print a stack trace.");
+	VM.sysWriteln("\tDegrading to sysWrite()");
+	pln = PrintContainer.readyPrinter;
+      }
     }
     // Any out-of-memory is caught deeper down the call stack.
     printStackTrace(pln);
@@ -229,7 +246,11 @@ public class Throwable implements java.io.Serializable {
       err.println(this.toString());
   }
   
-//   void printJustThisThrowableNoStackTrace(PrintLN err) {
+  public void sysWrite() {
+    VM.sysWriteln(this.toString());
+  }
+
+//   printJustThisThrowableNoStackTrace(PrintLN err) {
 //     // Safer version!
     
 //   }
@@ -237,7 +258,6 @@ public class Throwable implements java.io.Serializable {
   /* We could make this more functional in the face of running out of memory,
    * but probably not worth the hassle. */
   public String toString() {
-
     String msg;
     final String messageIfOutOfMemory 
       = "<getMessage() ran out of memory; no text available>";
