@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
  * This class is responsible for growing and shrinking the 
@@ -13,7 +14,23 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  * @author Perry Cheng
  * @author Dave Grove
  */
-public abstract class HeapGrowthManager {
+public abstract class HeapGrowthManager implements VM_Uninterruptible {
+
+  // TODO: These really need to become longs.
+  /**
+   * The initial heap size (-Xms) in bytes
+   */
+  private static int initialHeapSize; 
+
+  /**
+   * The maximum heap size (-Xms) in bytes
+   */
+  private static int maxHeapSize;     
+
+  /**
+   * The current heap size in bytes
+   */
+  private static int currentHeapSize; 
 
   /**
    * An encoding of the function used to manage heap size.  
@@ -44,19 +61,103 @@ public abstract class HeapGrowthManager {
   private static double endLastMajorGC;
   private static double accumulatedGCTime;
 
-  static {
+  /**
+   * Initialize heap size parameters and the mechanisms
+   * used to adaptively change heap size.
+   */
+  public static void boot(int initial, int max) {
+    initialHeapSize = initial;
+    maxHeapSize = max;
+    if (initialHeapSize > maxHeapSize) 
+      maxHeapSize = initialHeapSize;
+    currentHeapSize = initialHeapSize;
     if (VM_Interface.VerifyAssertions) sanityCheck();
-  }
-
-  public static void boot() {
     endLastMajorGC = VM_Interface.now();
   }
 
+  /**
+   * @return the current heap size in bytes
+   */
+  public static int getCurrentHeapSize() {
+    return currentHeapSize;
+  }
+
+  /**
+   * Return the max heap size in bytes (as set by -Xmx).
+   *
+   * @return The max heap size in bytes (as set by -Xmx).
+   */
+  public static int getMaxHeapSize() {
+    return maxHeapSize;
+  }
+
+  /**
+   * Return the initial heap size in bytes (as set by -Xms).
+   *
+   * @return The initial heap size in bytes (as set by -Xms).
+   */
+  public static int getInitialHeapSize() {
+    return initialHeapSize;
+  }
+
+  /**
+   * Forcibly grow the heap by the given number of bytes.
+   * Used to provide headroom when handling an OutOfMemory
+   * situation.
+   * @param size number of bytes to grow the heap
+   */
+  public static void overrideGrowHeapSize(int size) {
+    currentHeapSize += size;
+  }
+  
+  /**
+   * Record the time taken by the current GC;
+   * used to compute gc load, one of the inputs
+   * into the heap size management function
+   */
   public static void recordGCTime(double time) {
     accumulatedGCTime += time;
   }
 
-  public static double computeHeapChangeRatio(double liveRatio) {
+  /**
+   * Reset timers used to compute gc load
+   */
+  public static void reset() {
+    endLastMajorGC = VM_Interface.now();
+    accumulatedGCTime = 0;
+  }
+
+  /** 
+   * Decide how to grow/shrink the heap to respond
+   * to application's memory usage.
+   * @return true if heap size was changed, false otherwise
+   */
+  public static boolean considerHeapSize() {
+    int oldSize = currentHeapSize;
+    double liveRatio = Plan.reservedMemory() / ((double) Plan.totalMemory());
+    double ratio = computeHeapChangeRatio(liveRatio);
+    int newSize = (int)(ratio * (double)oldSize);
+    if (newSize > 10 * (1<<20)) {
+      newSize = (newSize + (1<<20)) >> 20 << 20;
+    } else {
+      newSize = (newSize + (1<<10)) >> 10 << 10;
+    }
+    if (newSize > maxHeapSize) newSize = maxHeapSize;
+    if (newSize != oldSize) {
+      // Heap size is going to change
+      currentHeapSize = newSize;
+      if (Options.verbose >= 2) { 
+	VM_Interface.sysWrite("Heap changed from ", (int) (oldSize / 1024)); 
+	VM_Interface.sysWrite("KB to ", (int) (newSize / 1024)); 
+	VM_Interface.sysWriteln("KB"); 
+      } 
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private static double computeHeapChangeRatio(double liveRatio) {
     // (1) compute GC load.
     double totalTime = VM_Interface.now() - endLastMajorGC;
     double gcLoad = accumulatedGCTime / totalTime;
@@ -106,11 +207,6 @@ public abstract class HeapGrowthManager {
     if (Options.verbose > 2) VM_Interface.sysWriteln("After gcLoad adjustment factor is ",factor);
 
     return factor;
-  }
-
-  public static void reset() {
-    endLastMajorGC = VM_Interface.now();
-    accumulatedGCTime = 0;
   }
 
   /**

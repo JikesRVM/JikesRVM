@@ -24,48 +24,6 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Dave Grove
  **/
 public final class Options implements VM_Uninterruptible, Constants {
-  // TODO: These really need to become longs.
-  private static int initialHeapSize; 
-  private static int maxHeapSize;     
-  private static int currentHeapSize; 
-
-  public static int getCurrentHeapSize() {
-    return currentHeapSize;
-  }
-
-  public static void setCurrentHeapSize(int heapSize) {
-    currentHeapSize = heapSize;
-  }
-  
-  /**
-   * Return the max heap size in bytes (as set by -Xmx).
-   *
-   * @return The max heap size in bytes (as set by -Xmx).
-   */
-  public static int getMaxHeapSize() {
-    return maxHeapSize;
-  }
-
-  /**
-   * Return the initial heap size in bytes (as set by -Xms).
-   *
-   * @return The initial heap size in bytes (as set by -Xms).
-   */
-  public static int getInitialHeapSize() {
-    return initialHeapSize;
-  }
-
-  public static void overrideGrowHeapSize (int size) {
-    currentHeapSize += size;
-  }
-  
-  public static void setDefaultHeapSizes(int initial, int max) {
-    initialHeapSize = initial;
-    maxHeapSize = max;
-    if (initialHeapSize > maxHeapSize) 
-      maxHeapSize = initialHeapSize;
-    currentHeapSize = initialHeapSize;
-  }
 
    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES

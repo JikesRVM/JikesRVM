@@ -78,14 +78,13 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static final void boot (VM_BootRecord theBootRecord) throws VM_PragmaInterruptible {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
-    Options.setDefaultHeapSizes(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
+    HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     Util.boot(theBootRecord);
     Plan.boot();
     VMResource.boot();
     Statistics.boot();
     SynchronizedCounter.boot();
     Monitor.boot();
-    HeapGrowthManager.boot();
   }
 
   /**
@@ -226,7 +225,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static int getMaxHeapSize() {
-    return Options.getMaxHeapSize();
+    return HeapGrowthManager.getMaxHeapSize();
   }
 
   /**
@@ -235,7 +234,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The initial heap size in bytes (as set by -Xms).
    */
   public static int getInitialHeapSize() {
-    return Options.getInitialHeapSize();
+    return HeapGrowthManager.getInitialHeapSize();
   }
 
   public static int getMaxHeaps() {
@@ -253,7 +252,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
 
   // Is string A a prefix of string B (encoded as an ASCII byte array)?
   //
-  private static boolean isPrefix (String a, byte [] b) {
+  private static boolean isPrefix (String a, byte [] b) throws VM_PragmaInterruptible {
     int aLen = a.length();
     if (aLen > b.length)
       return false;
@@ -516,7 +515,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void emergencyGrowHeap(int growSize) { // in bytes
     // This can be undoable if the current thread doesn't cause 'em all to exit.
     // if (VM.VerifyAssertions && growSize < 0) VM._assert(false);
-    Options.overrideGrowHeapSize(growSize);
+    HeapGrowthManager.overrideGrowHeapSize(growSize);
   }
   
   public static int synchronizedCounterOffset = -1;

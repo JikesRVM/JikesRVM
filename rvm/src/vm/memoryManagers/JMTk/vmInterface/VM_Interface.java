@@ -239,31 +239,13 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", VM_Time.toMilliSecs(gcTime));
     
     if (Plan.isLastGCFull()) {
-      int oldSize = Options.getCurrentHeapSize(); 
-      double liveRatio = Plan.reservedMemory() / ((double) Plan.totalMemory());
-      int newSize = oldSize;
+      boolean heapSizeChanged = false;
       if (Options.variableSizeHeap && why != EXTERNALLY_TRIGGERED_GC) {
-	double ratio = HeapGrowthManager.computeHeapChangeRatio(liveRatio);
-	newSize = (int)(ratio * (double)oldSize);
-	if (newSize > 10 * (1<<20)) {
-	  newSize = (newSize + (1<<20)) >> 20 << 20;
-	} else {
-	  newSize = (newSize + (1<<10)) >> 10 << 10;
-	}
-	int maxSize = Options.getMaxHeapSize();
-	if (newSize > maxSize) newSize = maxSize;
+	// Don't consider changing the heap size if gc was forced by System.gc()
+	heapSizeChanged = HeapGrowthManager.considerHeapSize();
       }
       HeapGrowthManager.reset();
-      if (newSize != oldSize) {
-	// Heap size is going to change
-	Options.setCurrentHeapSize(newSize);
-	if (Options.verbose >= 2) { 
-	  VM.sysWrite("Heap changed from ", (int) (oldSize / 1024)); 
-	  VM.sysWrite("KB to ", (int) (newSize / 1024)); 
-	  VM.sysWriteln("KB"); 
-	} 
-      } else {
-	// Heap size did not change
+      if (!heapSizeChanged) {
         double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
 	if (usage > OUT_OF_MEMORY_THRESHOLD) {
 	if (why == INTERNALLY_TRIGGERED) {

@@ -440,7 +440,7 @@ public abstract class BasePlan
    * management system, in bytes.
    */
   public static long totalMemory() throws VM_PragmaUninterruptible {
-    return Options.getCurrentHeapSize();
+    return HeapGrowthManager.getCurrentHeapSize();
   }
 
   /**
