@@ -274,6 +274,7 @@ public final class OPT_Instruction
 
     if (operator == LABEL) {
       result.append("LABEL"+Label.getBlock(this).block.getNumber());
+      if (Label.getBlock(this).block.getInfrequent()) result.append(" (Infrequent)");
       return result.toString();
     }
 
