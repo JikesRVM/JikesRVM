@@ -240,6 +240,7 @@ public abstract class VM_Method extends VM_Member {
    * <li> If is the synthetic 'this' method used by jikes to
    *      factor out default initializers for <init> methods then it is interruptible.
    * <li> If it throws the <CODE>InterruptiblePragma</CODE> exception it is interruptible.
+   * <li> If it throws the <CODE>PreemptiblePragma</CODE> exception it is interruptible.
    * <li> If it throws the <CODE>UninterruptiblePragma</CODE> exception it is not interruptible.
    * <li> If it throws the <CODE>UninterruptibleNoWarnPragma</CODE> exception it is not interruptible.
    * <li> If it throws the <CODE>UnpreemptiblePragma</CODE> exception it is not interruptible.
@@ -252,6 +253,7 @@ public abstract class VM_Method extends VM_Member {
     if (isObjectInitializerHelper()) return true;
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return true;
+      if (PreemptiblePragma.declaredBy(this)) return true;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
       if (UninterruptiblePragma.declaredBy(this)) return false;
       if (UnpreemptiblePragma.declaredBy(this)) return false;
@@ -272,6 +274,7 @@ public abstract class VM_Method extends VM_Member {
     if (isObjectInitializerHelper()) return false;
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return false;
+      if (PreemptiblePragma.declaredBy(this)) return false;
       if (UnpreemptiblePragma.declaredBy(this)) return true;
     }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
@@ -289,6 +292,7 @@ public abstract class VM_Method extends VM_Member {
     if (isObjectInitializerHelper()) return false;
     if (exceptionTypes != null) {
       if (InterruptiblePragma.declaredBy(this)) return false;
+      if (PreemptiblePragma.declaredBy(this)) return false;
       if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
       if (UninterruptiblePragma.declaredBy(this)) return true;
     }
