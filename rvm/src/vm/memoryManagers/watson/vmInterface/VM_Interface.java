@@ -233,6 +233,7 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
+  public static final boolean NEEDS_RC_WRITE_BARRIER = false;
   public static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
   public static boolean useMemoryController = false;
 
