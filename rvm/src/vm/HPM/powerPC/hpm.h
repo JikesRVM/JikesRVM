@@ -29,6 +29,8 @@
 #define MODE_PROCTREE    32	/* turns process tree counting on */
 #define MODE_UPPER_BOUND 63	/* upper bound */
 
+int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
+
 extern "C" int   hpm_init(int my_filter);
 extern "C" int   hpm_get_number_of_counters();
 extern "C" char *hpm_get_processor_name();
