@@ -47,8 +47,11 @@ public class Memory implements VM_Uninterruptible {
     return isSetHelper(start, size, false, 0);
   }
 
-  public static boolean assertIsZeroed(VM_Address start, int size) throws VM_PragmaInline {
-    return isSetHelper(start, size, true, 0);
+  // this is in the inline allocation sequence when VM_Interface.VerifyAssertions
+  // therefore it is very carefully written to reduce the impact on code space.
+  public static void assertIsZeroed(VM_Address start, int size) throws VM_PragmaNoInline {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(isSetHelper(start, size, true, 0));
   }
 
   public static boolean assertIsSet(VM_Address start, int size, int v) throws VM_PragmaInline {

@@ -311,7 +311,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, size, null, null);
     VM_Address region = plan.alloc(size, true, allocator, advice);
-    if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
+    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, size);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, true, allocator);
     return result;
@@ -341,7 +341,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, size, null, null);
     VM_Address region = plan.alloc(size, false, allocator, advice);
-    if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
+    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, size);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, false, allocator);
     return result;

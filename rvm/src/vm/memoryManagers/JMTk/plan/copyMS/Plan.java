@@ -180,8 +180,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	region = VM_Address.zero();
       }
     }
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
+    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
     return region;
   }
   

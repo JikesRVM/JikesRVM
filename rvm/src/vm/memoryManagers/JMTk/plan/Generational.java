@@ -203,8 +203,7 @@ public abstract class Generational extends StopTheWorldGC
 	region = VM_Address.zero();
       }
     }
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
+    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
     return region;
   }
 
