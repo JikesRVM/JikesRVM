@@ -1028,12 +1028,12 @@ public class VM_Allocator extends VM_GCStatistics
       VM_Array objectArray    = VM_Type.JavaLangObjectArrayType;
       Object[] objectArrayTIB = objectArray.getTypeInformationBlock();
       int      size           = VM_Type.JavaLangObjectArrayType.getInstanceSize(n);
-      int      storage        = immortalHeap.allocateRawMemory(size, VM_JavaHeader.TIB_ALIGNMENT, 
+      VM_Address storage      = immortalHeap.allocateRawMemory(size, VM_JavaHeader.TIB_ALIGNMENT, 
 							       VM_JavaHeader.computeArrayHeaderSize(objectArray));
       Object[] newtib         = (Object[]) VM_ObjectModel.initializeArray(storage, objectArrayTIB, n, size);
 
       VM_AllocatorHeader.writeMarkBit(newtib, BOOT_MARK_VALUE);
-      if (VM.VerifyAssertions) VM.assert((VM_Magic.objectAsAddress(newtib) & (VM_JavaHeader.TIB_ALIGNMENT-1)) == 0);
+      if (VM.VerifyAssertions) VM.assert((VM_Magic.objectAsAddress(newtib).toInt() & (VM_JavaHeader.TIB_ALIGNMENT-1)) == 0);
       return newtib;
   }
   //-#endif
