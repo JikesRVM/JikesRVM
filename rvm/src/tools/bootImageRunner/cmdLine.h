@@ -19,7 +19,14 @@ static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
 static const int INITIAL_HEAP_INDEX            = VERBOSE_BOOT_INDEX+1;
 static const int MS_INDEX                      = INITIAL_HEAP_INDEX+1;
 static const int MX_INDEX                      = MS_INDEX+1;
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+static const int SS_INDEX                      = MX_INDEX+1;
+static const int SG_INDEX                      = SS_INDEX+1;
+static const int SX_INDEX                      = SG_INDEX+1;
+static const int SYSLOGFILE_INDEX              = SX_INDEX+1;
+#else
 static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
+#endif /* RVM_WITH_FLEXIBLE_STACK_SIZES */
 static const int BOOTIMAGE_FILE_INDEX          = SYSLOGFILE_INDEX+1;
 static const int VM_INDEX                      = BOOTIMAGE_FILE_INDEX+1;
 static const int GC_INDEX                      = VM_INDEX+1;
@@ -42,6 +49,11 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:h=",
    "-Xms",
    "-Xmx",
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+   "-Xss",
+   "-Xsg",
+   "-Xsx",
+#endif
    "-X:sysLogfile=",
    "-X:i=",
    "-X:vm",
@@ -61,8 +73,13 @@ static const char* nonStandardUsage[] = {
    "    -X                       print usage on nonstandard options", 
    "    -X:verbose               print out additional lowlevel information",
    "    -X:verboseBoot=<number>  print out messages while booting VM",
-   "    -Xms<number>             initial size of heap in megabytes",
-   "    -Xmx<number>             maximum size of heap in megabytes",
+   "    -Xms<number>[unit]      initial size of heap (default unit: MiB)",
+   "    -Xmx<number>[unit]      maximum size of heap (default unit: MiB)",
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+   "    -Xss<number>[unit]      initial Java thread stack size (default unit: KiB)",
+   "    -Xsg<number>[unit]      Java thread stack growth increment (default unit: KiB)",
+   "    -Xsx<number>[unit]      maximum Java thread stack size (default unit: KiB)",
+#endif
    "    -X:sysLogfile=<filename> write standard error message to <filename>",
    "    -X:i=<filename>          read boot image from <filename>",
    "    -X:vm:<option>           pass <option> to virtual machine",
