@@ -697,7 +697,24 @@ function emitSourceList
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genHybrid
       elif (( $RVM_WITH_SIMPLE_RC )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
+      elif (( $RVM_WITH_NO_GC )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
       fi
+#      if (( $RVM_WITH_SEMI_SPACE )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace
+#      elif (( $RVM_WITH_MARK_SWEEP )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
+#      elif (( $RVM_WITH_GEN_COPY )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
+#      elif (( $RVM_WITH_GEN_MS )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
+#      elif (( $RVM_WITH_COPY_MS )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
+#      elif (( $RVM_WITH_SIMPLE_RC )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
+#      elif (( $RVM_WITH_NO_GC )); then
+#         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
+#      fi
    fi
 
    # Add support for hardware performance monitors on PowerPC
