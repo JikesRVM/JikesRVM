@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * A field of a java class.
@@ -205,13 +205,13 @@ public final class VM_Field extends VM_Member {
    */
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	VM_Interface.putstaticWriteBarrier(offset, ref);
+      if (MM_Interface.NEEDS_WRITE_BARRIER) {
+	MM_Interface.putstaticWriteBarrier(offset, ref);
       }
       VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);
     } else {
-      if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	VM_Interface.putfieldWriteBarrier(obj, offset, ref);
+      if (MM_Interface.NEEDS_WRITE_BARRIER) {
+	MM_Interface.putfieldWriteBarrier(obj, offset, ref);
       }
       VM_Magic.setObjectAtOffset(obj, offset, ref);
     }

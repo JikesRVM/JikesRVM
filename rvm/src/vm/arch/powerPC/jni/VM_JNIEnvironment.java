@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.lang.reflect.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -1457,7 +1457,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
+      MM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");

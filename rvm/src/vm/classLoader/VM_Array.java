@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 /**
@@ -198,7 +198,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     // virtual method fields and substuting an appropriate type field.
     //
     Object[] javaLangObjectTIB = VM_Type.JavaLangObjectType.getTypeInformationBlock();
-    typeInformationBlock = VM_Interface.newTIB(javaLangObjectTIB.length);
+    typeInformationBlock = MM_Interface.newTIB(javaLangObjectTIB.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[0] = this;
@@ -521,9 +521,9 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     int dstOffset = dstIdx << LOG_BYTES_IN_ADDRESS;
     int bytes = len << LOG_BYTES_IN_ADDRESS;
     
-    if (!VM_Interface.NEEDS_WRITE_BARRIER 
+    if (!MM_Interface.NEEDS_WRITE_BARRIER 
 	&& ((src != dst) || loToHi)) {
-      if (VM.VerifyAssertions) VM._assert(!VM_Interface.NEEDS_WRITE_BARRIER);
+      if (VM.VerifyAssertions) VM._assert(!MM_Interface.NEEDS_WRITE_BARRIER);
       VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstOffset),
 			      VM_Magic.objectAsAddress(src).add(srcOffset),
 			      bytes);
@@ -541,8 +541,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       // perform the copy
       while (len-- != 0) {
 	Object value = VM_Magic.getObjectAtOffset(src, srcOffset);
-	if (VM_Interface.NEEDS_WRITE_BARRIER)
-	  VM_Interface.arrayStoreWriteBarrier(dst, dstOffset>>LOG_BYTES_IN_ADDRESS, value);
+	if (MM_Interface.NEEDS_WRITE_BARRIER)
+	  MM_Interface.arrayStoreWriteBarrier(dst, dstOffset>>LOG_BYTES_IN_ADDRESS, value);
 	else
 	  VM_Magic.setObjectAtOffset(dst, dstOffset, value);
 	srcOffset += increment;
@@ -575,7 +575,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     } else {
       // the arrays overlap: must use temp array
       VM_Array ary = VM_Magic.getObjectType(src).asArray();
-      int allocator = VM_Interface.pickAllocator(ary);
+      int allocator = MM_Interface.pickAllocator(ary);
       Object temp[] = (Object[])
 	VM_Runtime.resolvedNewArray(len, ary.getInstanceSize(len), 
 				    ary.getTypeInformationBlock(), allocator);

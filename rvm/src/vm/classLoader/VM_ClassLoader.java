@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import java.util.StringTokenizer;
 import java.io.*;
@@ -243,7 +243,7 @@ public class VM_ClassLoader implements VM_Constants,
    */ 
   private static VM_DynamicLibrary[] growArray(VM_DynamicLibrary[] array, 
                                                int newLength) {
-    VM_DynamicLibrary[] newarray = VM_Interface.newContiguousDynamicLibraryArray(newLength);
+    VM_DynamicLibrary[] newarray = MM_Interface.newContiguousDynamicLibraryArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i) {
       newarray[i] = array[i];
     }

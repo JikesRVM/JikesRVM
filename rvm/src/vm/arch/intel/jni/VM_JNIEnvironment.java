@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import java.lang.reflect.*;
 
 /**
@@ -206,7 +206,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 	return 0;
 
     if (VM.VerifyAssertions) 
-	VM._assert( VM_Interface.validRef( VM_Magic.objectAsAddress(ref) ) );
+	VM._assert( MM_Interface.validRef( VM_Magic.objectAsAddress(ref) ) );
 
     if (JNIRefsTop>>2 >= JNIRefs.length)
 	VM.sysFail("unchecked pushes exceeded fudge length!");
@@ -1084,7 +1084,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[ jniRefOffset >> 2 ]));
+      MM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[ jniRefOffset >> 2 ]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");
