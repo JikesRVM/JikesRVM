@@ -34,9 +34,10 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * Creates a new exception handler basic block at the specified location,
    * which catches the specified type of exception.
    * 
-   * @param loc bytecode index to create basic block at
-   * @param eType the exception type
-   * @param cfg the OPT_ControlFlowGraph that will contain the basic block
+   * @param loc   Bytecode index to create basic block at
+   * @param position  The inline context for this basic block
+   * @param type  The exception type
+   * @param cfg   The OPT_ControlFlowGraph that will contain the basic block
    */
   OPT_ExceptionHandlerBasicBlock(int loc, 
                                  OPT_InlineSequence position,
@@ -95,9 +96,9 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
 
   /**
    * Return YES/NO/MAYBE values that answer the question is it guarenteed that 
-   * this handler block will catch an exception of the type et.
+   * this handler block will catch an exception of type <code>cand</code>
    * 
-   * @param et the VM_TypeReference of the exception in question.
+   * @param cand  the VM_TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
   public byte mustCatchException(VM_TypeReference cand) {
@@ -165,7 +166,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * Set the set of registers live before the first instruction of
    * this basic block
    *
-   * @param the set of registers live before the first instruction of
+   * @param   liveSet The set of registers live before the first instruction of
    * this basic block
    */
   public void setLiveSet(OPT_LiveSet liveSet) {

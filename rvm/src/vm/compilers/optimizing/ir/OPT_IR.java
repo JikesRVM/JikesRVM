@@ -215,8 +215,8 @@ public final class OPT_IR implements OPT_Operators {
   }
 
   /**
-   * @param meth the method to compile
-   * @param cp   the compilation plan to execute
+   * @param m    The method to compile
+   * @param cp   The compilation plan to execute
    */
   public OPT_IR(VM_NormalMethod m, OPT_CompilationPlan cp) {
     method = m;
