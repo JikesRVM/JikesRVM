@@ -43,7 +43,7 @@ fi
 . $RVM_HOST_CONFIG
 
 # Create a temporary build directory
-$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBasecopyingGC
+$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseSemispace
 cd $RVM_BUILD
 ./jbuild.expand
 ./jbuild.copy
