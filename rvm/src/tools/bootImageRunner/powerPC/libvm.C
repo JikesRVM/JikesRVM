@@ -462,6 +462,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     
     if (signum == SIGALRM) {     
         processTimerTick();
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*) context);
+#endif
         return;
     }
     
@@ -470,6 +473,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
         if (lib_verbose)
             fprintf(SysTraceFile, "%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
                     Me, rvmPTR_ARG(iar));
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*)context);
+#endif
         return;
     }
    
@@ -490,6 +496,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
                     " a thread switch\n", Me);
             *flag = 1;
         }
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*)context);
+#endif
         return;
     }
 
@@ -520,8 +529,14 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
 #endif
         SET_GPR(save, VM_Constants_FIRST_VOLATILE_GPR,
                 GET_GPR(save, VM_Constants_FRAME_POINTER));
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*)context);
+#endif
         return;
     }
+#if defined RVM_FOR_OSX
+    sigreturn((struct sigcontext*)context);
+#endif
 }
  
 
@@ -997,6 +1012,10 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     save->srr0 = javaExceptionHandler;
 #elif defined RVM_FOR_AIX
     save->iar = javaExceptionHandler;
+#endif
+    
+#if defined RVM_FOR_OSX
+    sigreturn((struct sigcontext*)context);
 #endif
 }
 
