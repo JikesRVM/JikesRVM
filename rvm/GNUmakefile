@@ -61,7 +61,7 @@ FIND:=find  $(GENSRC) src -follow  ${find_match_junk_names} -o -name examples -p
 FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
 # etags in emacs 21.3.CVS-2003-09-23 does not support "--defines, nor  --globals".
-EFLAGS:=--members --declarations
+EFLAGS:=--members --declarations --language=java
 
 # A forced target.
 .PHONY: FORCE tags
