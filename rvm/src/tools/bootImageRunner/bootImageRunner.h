@@ -61,7 +61,6 @@ extern void findMappable(void);
 #if defined(RVM_FOR_POWERPC)
 /* Used in libvm.C, sys.C.  Defined in assembly code: */
 extern void bootThread(int jtoc, int pr, int ti_or_ip, int fp); // assembler routine
-  //  extern void internalSyncCache(int, int);
 #elif defined(RVM_FOR_IA32)
 extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler routine
 #else
