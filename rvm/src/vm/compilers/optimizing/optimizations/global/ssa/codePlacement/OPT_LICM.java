@@ -35,6 +35,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     OPT_Instruction inst = ir.firstInstructionInCodeOrder();
     while (inst != null) {
       OPT_Instruction next = inst.nextInstructionInCodeOrder();
+      // System.out.println("scheduleEarly: " + inst);
       scheduleEarly(inst);
       inst = next;
     }
@@ -210,6 +211,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case LONG_BITS_AS_DOUBLE_opcode:
     case ARRAYLENGTH_opcode:
     case GET_OBJ_TIB_opcode:
+    case GET_OBJ_RAW_opcode:
     case GET_CLASS_TIB_opcode:
     case GET_TYPE_FROM_TIB_opcode:
     case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
@@ -226,22 +228,32 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    */
   void scheduleEarly (OPT_Instruction inst) {
     
-    if (getState(inst) >= early) return;
+    if (getState(inst) >= early) {
+	//	System.out.println("                           getState > early");
+	return;
+    }
     setState(inst, early);
 
     // already on outer level?
-    if (ir.HIRInfo.LoopStructureTree.getLoopNestDepth(getBlock(inst)) == 0)
-      return;
-    
+    if (ir.HIRInfo.LoopStructureTree.getLoopNestDepth(getBlock(inst)) == 0) {
+	// System.out.println("                           already on outer level");
+	return;
+    }
+
     // explicitely INCLUDE instructions
-    if (!shouldMove(inst, ir)) return;
-    
+    if (!shouldMove(inst, ir)) {
+        // System.out.println("                           shouldMove failed");
+	return;
+    }
+
     OPT_Instruction earlyPos = ir.firstInstructionInCodeOrder();
     // dependencies via scalar operands
     earlyPos = scheduleDefEarly(inst.getUses(), earlyPos);
     // memory dependencies
     if (inst.isImplicitLoad() || inst.isImplicitStore() || inst.isPEI())
       earlyPos = scheduleDefEarly(ssad.getHeapUses(inst), earlyPos, inst);
+
+    // System.out.println("                           moved to " + earlyPos);
 
     // move inst to its new location
     move(inst, upto(earlyPos, inst));
