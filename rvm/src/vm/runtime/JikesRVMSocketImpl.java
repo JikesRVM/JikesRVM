@@ -596,4 +596,25 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   protected void finalize() throws IOException {
     close();
   }
+
+  /**
+   * Set up socket factories to use JikesRVMSocketImpl
+   */
+  static void boot() {
+    try {
+      Socket.setSocketImplFactory(new SocketImplFactory() {
+	  public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
+	});
+      ServerSocket.setSocketFactory(new SocketImplFactory() {
+	  public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
+	});
+      DatagramSocket.setDatagramSocketImplFactory(new DatagramSocketImplFactory() {
+	  public DatagramSocketImpl createDatagramSocketImpl() { 
+	    throw new VM_UnimplementedError ("Need to implement JikesRVMDatagramSocketImpl");
+	  }});
+    } catch (java.io.IOException e) {
+      VM.sysFail("trouble setting socket impl factories");
+    }
+  }
+
 }

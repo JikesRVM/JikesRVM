@@ -276,6 +276,15 @@ public class VM extends VM_Properties implements VM_Constants,
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
 
+    // set up JikesRVM socket I/O
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing socket factories");
+    JikesRVMSocketImpl.boot();
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
+    com.ibm.JikesRVM.adaptive.VM_Controller.boot();
+    //-#endif
+
     // The first argument must be a class name.
     if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
     if (applicationArguments.length == 0) {
