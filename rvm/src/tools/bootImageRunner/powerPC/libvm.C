@@ -165,7 +165,7 @@ extern "C" void processTimerTick() {
    if ((*theBootRecord).lockoutProcessor == 0x0CCCCCCC) return;     
       
    // Turn on thread-switch flag in each virtual processor.
-   // Note that "jtoc" is not necessairly valid, because we might have interrupted
+   // Note that "jtoc" is not necessarily valid, because we might have interrupted
    // C-library code, so we use boot image jtoc address (== VmToc) instead.
    // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
    // For now, we assume table is fixed in boot image and never moves.
@@ -236,7 +236,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
    if (signum == SIGQUIT) { // asynchronous signal used to awaken internal debugger
       
       // Turn on debug-request flag.
-      // Note that "jtoc" is not necessairly valid, because we might have interrupted
+      // Note that "jtoc" is not necessarily valid, because we might have interrupted
       // C-library code, so we use boot image jtoc address (== VmToc) instead.
       // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
       // For now, we assume table is fixed in boot image and never moves.
@@ -258,7 +258,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
      // Process was killed from command line with a DumpStack signal
      // Dump stack by returning to VM_Scheduler.dumpStackAndDie passing
      // it the fp of the current thread.
-     // Note that "jtoc" is not necessairly valid, because we might have interrupted
+     // Note that "jtoc" is not necessarily valid, because we might have interrupted
      // C-library code, so we use boot image jtoc address (== VmToc) instead.
      // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
      // For now, we assume table is fixed in boot image and never moves.
