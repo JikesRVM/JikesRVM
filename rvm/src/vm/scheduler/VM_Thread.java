@@ -489,6 +489,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       Throwable t = myThread.externalInterrupt;
       myThread.externalInterrupt = null;
       myThread.throwInterruptWhenScheduled = false;
+      t.fillInStackTrace();
       VM_Runtime.athrow(t);
     }
   }
