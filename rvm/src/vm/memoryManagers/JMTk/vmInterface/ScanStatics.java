@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.AddressQueue;
+import com.ibm.JikesRVM.memoryManagers.JMTk.AddressDequeue;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Statics;
 import com.ibm.JikesRVM.VM_Address;
@@ -26,7 +26,7 @@ public class ScanStatics
    * Scan static variables (JTOC) for object references.
    * Executed by all GC threads in parallel, with each doing a portion of the JTOC.
    */
-  public static void scanStatics (AddressQueue rootLocations) throws VM_PragmaUninterruptible {
+  public static void scanStatics (AddressDequeue rootLocations) throws VM_PragmaUninterruptible {
 
     int numSlots = VM_Statics.getNumberOfSlots();
     VM_Address slots = VM_Statics.getSlots();

@@ -23,7 +23,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-public class SharedQueue extends Queue 
+public class SharedDequeue extends Dequeue 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -37,10 +37,10 @@ public class SharedQueue extends Queue
    * Constructor
    *
    */
-  SharedQueue(RawPageAllocator rpa, int arity) {
+  SharedDequeue(RawPageAllocator rpa, int arity) {
     this.rpa = rpa;
     this.arity = arity;
-    lock = new Lock("SharedQueue");
+    lock = new Lock("SharedDequeue");
     completionFlag = 0;
   }
 
@@ -72,12 +72,12 @@ public class SharedQueue extends Queue
     } 
     bufsenqueued++;
     if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(checkQueueLength(bufsenqueued));
+      VM_Interface._assert(checkDequeueLength(bufsenqueued));
     }
     unlock();
   }
 
-  final void flushQueue(int arity) {
+  final void flushDequeue(int arity) {
     VM_Address buf = dequeue(arity);
     while (!buf.isZero()) {
       free(bufferStart(buf));
@@ -198,7 +198,7 @@ public class SharedQueue extends Queue
    * @param length The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */
-  private final boolean checkQueueLength(int length) {
+  private final boolean checkDequeueLength(int length) {
     VM_Address top = head;
     int l = 0;
     while (!top.isZero() && l <= length) {

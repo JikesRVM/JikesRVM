@@ -78,8 +78,8 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
    *   t.hardwareExceptionRegisters
    *   t.hardwareExceptionRegisters.gprs 
    */
-  public static void scanThread(VM_Thread t, AddressQueue rootLocations, 
-				AddressPairQueue codeLocations) {
+  public static void scanThread(VM_Thread t, AddressDequeue rootLocations, 
+				AddressPairDequeue codeLocations) {
 	
     Plan plan = VM_Interface.getPlan();
 
@@ -132,7 +132,7 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
 
   static VM_Thread failed = null;
 
-  private static void codeLocationsPush (AddressPairQueue codeLocations,
+  private static void codeLocationsPush (AddressPairDequeue codeLocations,
 					 VM_Address code, VM_Address ipLoc, 
 					 int where, VM_Thread t) {
     VM_Address ip = VM_Magic.getMemoryAddress(ipLoc);
@@ -187,7 +187,7 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
    * @param rootLocations  set to store addresses containing roots
    * @param relocate_code  set to store addresses containing return addresses (if null, skip)
    */
-  private static void scanThreadInternal (AddressQueue rootLocations, AddressPairQueue codeLocations,
+  private static void scanThreadInternal (AddressDequeue rootLocations, AddressPairDequeue codeLocations,
 					 VM_Thread t, VM_Address top_frame) {
     
     if (DUMP_STACK >= 1) VM.sysWriteln("Scanning thread ", t.getIndex());

@@ -23,14 +23,14 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * Each instance stores word-sized values into a local buffer.  When
  * the buffer is full, or if the <code>flushLocal()</code> method is
  * called, the buffer enqueued at the tail of a
- * <code>SharedQueue</code>.  This class provides no mechanism for
+ * <code>SharedDequeue</code>.  This class provides no mechanism for
  * dequeing.<p>
  *
  * The implementation is intended to be as efficient as possible, in
  * time and space, as it is used in critical code such as the GC work
  * queue and the write buffer used by many "remembering"
  * collectors. Each instance has just two fields: a bump pointer and a
- * pointer to the <code>SharedQueue</code><p>
+ * pointer to the <code>SharedDequeue</code><p>
  *
  * Preconditions: Buffers are always aligned on buffer-size address
  * boundaries.<p>
@@ -44,7 +44,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */ 
-class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
+class LocalSSB extends Dequeue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -58,9 +58,9 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
-  LocalSSB(SharedQueue queue) {
+  LocalSSB(SharedDequeue queue) {
     this.queue = queue;
-    tail = Queue.TAIL_INITIAL_VALUE;
+    tail = Dequeue.TAIL_INITIAL_VALUE;
   }
 
   /**
@@ -69,9 +69,9 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * queue).
    */
   public void flushLocal() {
-    if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
+    if (tail.NE(Dequeue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(queue.getArity());
-      tail = Queue.TAIL_INITIAL_VALUE;
+      tail = Dequeue.TAIL_INITIAL_VALUE;
     }
   }
 
@@ -139,7 +139,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * Private instance methods and fields
    */
   protected VM_Address tail;   // the buffer
-  protected SharedQueue queue; // the shared queue
+  protected SharedDequeue queue; // the shared queue
 
   /**
    * Buffer space has been exhausted, allocate a new buffer and enqueue
@@ -149,7 +149,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    */
   private final void insertOverflow(int arity) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
-    if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
+    if (tail.NE(Dequeue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
     tail = queue.alloc().add(bufferLastOffset(arity)).add(BYTES_IN_ADDRESS);

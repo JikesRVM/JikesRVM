@@ -12,8 +12,8 @@ import java.util.Date;
 import java.lang.ref.Reference;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-import com.ibm.JikesRVM.memoryManagers.JMTk.AddressQueue;
-import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairQueue;
+import com.ibm.JikesRVM.memoryManagers.JMTk.AddressDequeue;
+import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairDequeue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
@@ -628,9 +628,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param interiorRootLocations set to store addresses containing
    * return adddresses, or <code>null</code> if not required
    */
-  public static void computeAllRoots(AddressQueue rootLocations,
-				     AddressPairQueue interiorRootLocations) {
-    AddressPairQueue codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
+  public static void computeAllRoots(AddressDequeue rootLocations,
+				     AddressPairDequeue interiorRootLocations) {
+    AddressPairDequeue codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
 
     ScanStatics.scanStatics(rootLocations);
     while (true) {
@@ -731,17 +731,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Put this Reference object on its ReferenceQueue (if it has one)
+   * Put this Reference object on its ReferenceDequeue (if it has one)
    * when its referent is no longer sufficiently reachable. The
    * definition of "reachable" is defined by the semantics of the
    * particular subclass of Reference. The implementation of this
    * routine is determined by the the implementation of
-   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
+   * java.lang.ref.ReferenceDequeue in GNU classpath. It is in this
    * class rather than the public Reference class to ensure that Jikes
    * has a safe way of enqueueing the object, one that cannot be
    * overridden by the application program.
    * 
-   * @see java.lang.ref.ReferenceQueue
+   * @see java.lang.ref.ReferenceDequeue
    * @param r the Reference object
    * @return <code>true</code> if the reference was enqueued
    */

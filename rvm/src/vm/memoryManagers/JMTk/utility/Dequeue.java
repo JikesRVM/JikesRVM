@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  */ 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-class Queue implements Constants, VM_Uninterruptible {
+class Dequeue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************

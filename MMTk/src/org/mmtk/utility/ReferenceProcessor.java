@@ -111,7 +111,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
      process them. If the reference is non-reachable, or it has been
      cleared, we no longer care about it. Otherwise, depending on the
      semantics of the type of reference, we may resurrect the referent
-     and/or enqueue the reference object on its ReferenceQueue.
+     and/or enqueue the reference object on its ReferenceDequeue.
    */
   private int traverse(int semantics) throws VM_PragmaLogicallyUninterruptible {
 

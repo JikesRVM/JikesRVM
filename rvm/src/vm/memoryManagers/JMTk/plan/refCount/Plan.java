@@ -53,9 +53,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MemoryResource rcMR;
 
   // shared queues
-  private static SharedQueue incPool;
-  private static SharedQueue decPool;
-  private static SharedQueue rootPool;
+  private static SharedDequeue incPool;
+  private static SharedDequeue decPool;
+  private static SharedDequeue rootPool;
 
   // GC state
   private static int required;  // how many pages must this GC yeild?
@@ -95,9 +95,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private int wbFastPathCounter;
 
   // queues (buffers)
-  private AddressQueue incBuffer;
-  private AddressQueue decBuffer;
-  private AddressQueue rootSet;
+  private AddressDequeue incBuffer;
+  private AddressDequeue decBuffer;
+  private AddressDequeue rootSet;
 
   // enumerators
   RCDecEnumerator decEnum;
@@ -126,11 +126,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     addSpace(RC_SPACE, "RC Space");
 
     // instantiate shared queues
-    incPool = new SharedQueue(metaDataRPA, 1);
+    incPool = new SharedDequeue(metaDataRPA, 1);
     incPool.newClient();
-    decPool = new SharedQueue(metaDataRPA, 1);
+    decPool = new SharedDequeue(metaDataRPA, 1);
     decPool.newClient();
-    rootPool = new SharedQueue(metaDataRPA, 1);
+    rootPool = new SharedDequeue(metaDataRPA, 1);
     rootPool.newClient();
   }
 
@@ -138,9 +138,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Constructor
    */
   public Plan() {
-    incBuffer = new AddressQueue("inc buf", incPool);
-    decBuffer = new AddressQueue("dec buf", decPool);
-    rootSet = new AddressQueue("root set", rootPool);
+    incBuffer = new AddressDequeue("inc buf", incPool);
+    decBuffer = new AddressDequeue("dec buf", decPool);
+    rootSet = new AddressDequeue("root set", rootPool);
     los = new RefCountLOSLocal(losVM, rcMR);
     rc = new RefCountLocal(rcSpace, this, los, incBuffer, decBuffer, rootSet);
     decEnum = new RCDecEnumerator(this);

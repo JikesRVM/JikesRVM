@@ -35,8 +35,8 @@ final class RefCountLocal extends SegregatedFreeList
    *
    * Class variables
    */
-  private static SharedQueue rootPool;
-  private static SharedQueue tracingPool;
+  private static SharedDequeue rootPool;
+  private static SharedDequeue tracingPool;
 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
   private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
@@ -49,10 +49,10 @@ final class RefCountLocal extends SegregatedFreeList
   private RefCountLOSLocal los;
   private Plan plan;
 
-  private AddressQueue incBuffer;
-  private AddressQueue decBuffer;
-  private AddressQueue rootSet;
-  private AddressQueue tracingBuffer;
+  private AddressDequeue incBuffer;
+  private AddressDequeue decBuffer;
+  private AddressDequeue rootSet;
+  private AddressDequeue tracingBuffer;
 
   private boolean decrementPhase = false;
 
@@ -82,7 +82,7 @@ final class RefCountLocal extends SegregatedFreeList
    * @param plan The plan with which this local thread is associated.
    */
   RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
-		AddressQueue inc, AddressQueue dec, AddressQueue root) {
+		AddressDequeue inc, AddressDequeue dec, AddressDequeue root) {
     super(space.getVMResource(), space.getMemoryResource(), plan_);
     rcSpace = space;
     plan = plan_;
@@ -92,7 +92,7 @@ final class RefCountLocal extends SegregatedFreeList
     decBuffer = dec;
     rootSet = root;
     if (Plan.REF_COUNT_SANITY_TRACING) {
-      tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
+      tracingBuffer = new AddressDequeue("tracing buffer", tracingPool);
     }
     if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this, plan_);
@@ -105,10 +105,10 @@ final class RefCountLocal extends SegregatedFreeList
    * into the boot image by the build process.
    */
   static {
-    rootPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
+    rootPool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
     rootPool.newClient();
     if (Plan.REF_COUNT_SANITY_TRACING) {
-      tracingPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
+      tracingPool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
       tracingPool.newClient();
     }
 
