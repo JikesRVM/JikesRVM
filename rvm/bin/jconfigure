@@ -2330,17 +2330,32 @@ EOF
 	    exit 0
 	fi
 
-	# copy and preprocess $generator_classes.java
+	## Where are our sources?
+	old_generator_dir=${BOOTIMAGE_RUNNER_DIR_STR}
+	# The new_generator_dir is scaffolding for a work-in-progress
+	# feature --Steve Augart, 26 May 2004
+
+	new_generator_dir=${ROOT_DIRECTORY_STR}/rvm/src/tools/generateInterfaceDeclarations
+	if [[ \${INTERFACE_GENERATOR_DIR-} ]]; then
+	    generator_dir=\${INTERFACE_GENERATOR_DIR}
+	elif [[ -d \$new_generator_dir ]]; then
+	    generator_dir=\$new_generator_dir
+	elif [[ -d \$old_generator_dir ]]; then
+	    generator_dir=\$old_generator_dir
+	fi
+
+	# Preprocess and copy the java source files for the Generator.
 	#
 
 	PREPROC_FLAGS="--only-boolean-constants-in-conditions ${PARANOID_PREPROCESSOR_FLAG}"
 	if tracing preprocessor; then
 	    cleanline >&2
-	    echo >&2 -n "\$ME: $BOOTIMAGE_RUNNER_DIR_STR"/
+	    echo >&2 -n "\$ME: \${generator_dir}"/
 	fi
 	
-	cd ${BOOTIMAGE_RUNNER_DIR_STR}
-	generator_sources=\$(for file in ${generator_classes}.java; do [[ ! -e \$file ]] || echo \$file; done)
+	cd \${generator_dir}
+	generator_sources=\$(for file in ${generator_classes}.java; do [[ ! -f \$file ]] || echo \$file; done)
+
  	run $BUILD_DIRECTORY_STR/jbuild.prep.host \
  		--disable-modification-exit-status \$PREPROC_FLAGS \
  		$(echo $PREPROCESSOR_DEFINITIONS) \
