@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.classloader.TypeDescriptorParsing;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import java.lang.ref.Reference;
 
@@ -274,7 +275,7 @@ public class VM extends VM_Properties implements VM_Constants,
       pleaseSpecifyAClass();
     }
     if (applicationArguments.length > 0 && 
-	!isJavaClassName(applicationArguments[0])) {
+	! TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
       VM.sysWrite("vm: \"");
       VM.sysWrite(applicationArguments[0]);
       VM.sysWrite("\" is not a legal Java class name.\n");
@@ -327,34 +328,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.sysExit(VM.exitStatusBogusCommandLineArg);
   }
 
-
-  /** Is @param s a valid name for a Java class? 
-   *
-   * Would it be better for me to convert this to a char array?  That's the
-   * way the example in The Java Class Libraries for
-   * Character.isJavaIdentifier*()  is worded.  */
-  private static boolean isJavaClassName(String s) throws VM_PragmaInterruptible {
-    boolean identStart = true;	// pretend we just saw a .
-    for (int i = 0; i < s.length(); ++i) {
-      char c = s.charAt(i);
-      if (identStart && Character.isJavaIdentifierStart(c)) {
-	identStart = false;	// on to the next one.
-	continue;
-      }
-      if (identStart)
-	return false;		// failure to match identifier start.
-      if (c == '.') {
-	identStart = true;
-	continue;
-      }
-      /* We have a character that is not the first one of a Java identifier */
-      if (!Character.isJavaIdentifierPart(c))
-	return false;
-      /* And on we go around the loop */
-    }
-    // Must not finish by needing the start of another identifier.
-    return ! identStart;
-  }
 
   private static VM_Class[] classObjects = new VM_Class[0];
   /**
@@ -441,21 +414,40 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param message the message to print if the assertion is false
    */
   public static void _assert(boolean b, String message) {
-    if (!VM.VerifyAssertions) {
-      // somebody forgot to conditionalize their call to assert with
-      // "if (VM.VerifyAssertions)"
-      _assertionFailure("vm internal error: assert called when !VM.VerifyAssertions");
-    }
-
-    if (!b) _assertionFailure(message);
+    _assert(b, message, null);
   }
 
-  private static void _assertionFailure(String message) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
-    if (message == null) message = "vm internal error at:";
-    if (VM.runningVM) {
-      sysFail(message);
+  public static void _assert(boolean b, String msg1, String msg2) {
+    if (!VM.VerifyAssertions) {
+      sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
+      sysWriteln("vm: if (VM.VerifyAssertions)");
+      _assertionFailure("vm internal error: assert called when !VM.VerifyAssertions", null);
     }
-    throw new RuntimeException(message);
+    if (!b) _assertionFailure(msg1, msg2);
+  }
+
+
+
+
+  private static void _assertionFailure(String msg1, String msg2) 
+    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
+  {
+    if (msg1 == null && msg2 == null)
+      msg1 = "vm internal error at:";
+    if (msg2 == null) {
+      msg2 = msg1;
+      msg1 = null;
+    }
+    if (VM.runningVM) {
+      if (msg1 != null) {
+	sysWrite(msg1);
+	//	sysWrite(": ");
+      }
+      sysFail(msg2);
+    }
+    throw new RuntimeException((msg1 != null ? msg1 : "") 
+			       // + ( (msg1 != null) ? ": " : "") 
+			       + msg2);
   }
 
 
