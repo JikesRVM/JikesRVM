@@ -512,13 +512,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     this.mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
     this.mostRecentlyGeneratedCompiledMethod = compiledMethod;
 
-    VM_Method     updatedMethod       = this;
-    int           updatedIndex        = this.getOffset() >>> 2;
-    INSTRUCTION[] updatedInstructions = this.mostRecentlyGeneratedInstructions;
 
     // Install the new method in jtoc/tib. If virtual, will also replace in
     // all subclasses that inherited the method.
-    this.getDeclaringClass().resetMethod(this, updatedInstructions, true);
+    this.getDeclaringClass().resetMethod(this, true);
 
     // Now that we've updated the jtoc/tib, old version is now obsolete
     VM_CompiledMethods.setCompiledMethodObsolete( previouslyGeneratedCompiledMethod );

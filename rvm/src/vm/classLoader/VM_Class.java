@@ -1515,10 +1515,6 @@ public class VM_Class extends VM_Type
    * reset its jtoc slot to point to a newly-compiled version of the
    * method (if lazy compilation is off) or the lazy compilation stub.
    */
-  void resetStaticMethod(VM_CompiledMethod cm) {
-    resetStaticMethod(cm, getInitialInstructions(cm));
-  }
-
   void resetStaticMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     VM_Method m = cm.getMethod();
@@ -1534,11 +1530,12 @@ public class VM_Class extends VM_Type
    * Given a static method, reset its jtoc slot to point to the given
    * instruction array
    */
-  synchronized void resetStaticMethod(VM_Method m, INSTRUCTION[] code) {
+  synchronized void resetStaticMethod(VM_Method m) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     if (VM.VerifyAssertions)
       VM.assert(m.isStatic() || m.isObjectInitializer() ||
                 m.isClassInitializer());
+    INSTRUCTION[] code = m.getMostRecentlyGeneratedInstructions();
     int slot = m.getOffset() >>> 2;
     VM_Statics.setSlotContents(slot, code);
   }
@@ -1604,6 +1601,10 @@ public class VM_Class extends VM_Type
    * Given a virtual method, reset its TIB entry to point to the given
    * instruction array
    */
+  synchronized void resetTIBEntry(VM_Method m) {
+    resetTIBEntry( m, m.getMostRecentlyGeneratedInstructions() );
+  }
+
   synchronized void resetTIBEntry(VM_Method m, INSTRUCTION[] code) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     if (VM.VerifyAssertions)
@@ -1657,11 +1658,11 @@ public class VM_Class extends VM_Type
    * override the method to point to a newly-compiled version of the
    * method (if lazy compilation is off) or the lazy compilation stub.
    */
-  void resetVirtualMethod(VM_CompiledMethod cm) {
+  private void resetVirtualMethod(VM_CompiledMethod cm) {
     resetVirtualMethod(cm, getInitialInstructions(cm));
   }
 
-  void resetVirtualMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
+  private void resetVirtualMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
     if (!isResolved()) return;
     VM_Method m = cm.getMethod();
     VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
@@ -1671,6 +1672,10 @@ public class VM_Class extends VM_Type
     VM_Class[] subClasses = getSubClasses(); 
     for (int i = 0; i < subClasses.length; i++)
       subClasses[i].resetVirtualMethod(cm, code);
+  }
+
+  synchronized void resetVirtualMethod(VM_Method m) {
+    resetVirtualMethod( m, m.getMostRecentlyGeneratedInstructions() );
   }
 
   void resetVirtualMethod(VM_Method m, INSTRUCTION[] code) {
@@ -1719,21 +1724,17 @@ public class VM_Class extends VM_Type
    * subclasses that don't override the method) if it's virtual or its
    * jtoc slot if it's static to point to the given instruction array.
    */
-  void resetMethod(VM_Method m, INSTRUCTION[] code) {
-    resetMethod(m, code, false);
-  }
-
-  void resetMethod(VM_Method m, INSTRUCTION[] code, boolean recurse) {
+  void resetMethod(VM_Method m, boolean recurse) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
       // invalidate jtoc slot
-      resetStaticMethod(m, code);
+      resetStaticMethod(m);
     } else {
       // invalidate TIB entry
       if (recurse)
-        resetVirtualMethod(m, code);
+        resetVirtualMethod(m);
       else
-        resetTIBEntry(m, code);
+        resetTIBEntry(m);
     }
   }
 
