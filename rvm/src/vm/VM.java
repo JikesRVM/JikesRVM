@@ -259,10 +259,12 @@ public class VM extends VM_Properties implements VM_Constants,
    */
   private static void runClassInitializer(String className) throws VM_PragmaInterruptible {
     VM_Atom  classDescriptor = 
-       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+      VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
     if (cls.isInBootImage()) {
-      VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getCurrentInstructions());
+      VM_Method clinit = cls.getClassInitializerMethod();
+      clinit.compile();
+      VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
   }

@@ -144,7 +144,6 @@ public final class VM_Class extends VM_Type
 
   /**
    * Methods defined directly by this class (ie. not including superclasses).
-   * TODO: must prevent user access.
    */
   public final VM_Method[] getDeclaredMethods() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
@@ -1066,7 +1065,6 @@ public final class VM_Class extends VM_Type
 	}
 
 	// Now deal with virtual methods
-
 	if (method.isSynchronized()) {
 	  VM_ObjectModel.allocateThinLock(this);
 	  if (VM.VerifyUnint) {
@@ -1165,7 +1163,11 @@ public final class VM_Class extends VM_Type
     //
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       VM_Method method = staticMethods[i];
-      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
+      if (method.isClassInitializer()) {
+	method.offset = 0xdeadbeef; // should never be used.
+      } else {
+	method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
+      }
     }
 
     // create "type information block" and initialize its first four words
@@ -1321,13 +1323,13 @@ public final class VM_Class extends VM_Type
 
     // compile static methods and put their addresses into jtoc
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
-      // !!TODO: no need to put <clinit>'s instructions into the jtoc, 
-      // because we never call the code from anywhere other than 
-      // "VM_Class.initialize()", below.
-      // this would save us a precious jtoc slot.
-
+      // don't bother compiling <clinit> here;
+      // compile it right before we invoke it in initialize.
+      // This also avoids putting clinit's in the bootimage.
       VM_Method method = staticMethods[i];
-      VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
+      if (!method.isClassInitializer()) {
+	VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
+      }
     }
 
     VM_InterfaceInvocation.initializeDispatchStructures(this);
@@ -1439,8 +1441,11 @@ public final class VM_Class extends VM_Type
     }
 
     // report that a class is about to be marked initialized to 
-    // anyone who has registered interest
-    reportInitialize();
+    // the opt compiler so it can invalidate speculative CHA optimizations
+    // before an instance of this class could actually be created.
+    //-#if RVM_WITH_OPT_COMPILER
+    if (OptCLDepManager != null) OptCLDepManager.classInitialized(this);
+    //-#endif
 
     state = CLASS_INITIALIZED;
 
@@ -1485,17 +1490,6 @@ public final class VM_Class extends VM_Type
   //-#endif
 
   /**
-   * This method is invoked from VM_Class.initialize() immediately before 
-   * 'this' is marked as INITIALIZED.  
-   */
-  private void reportInitialize() {
-    //-#if RVM_WITH_OPT_COMPILER
-    if (OptCLDepManager != null)
-      OptCLDepManager.classInitialized(this);
-    //-#endif
-  }
-
-  /**
    * Given a method declared by this class, update all
    * dispatching tables to refer to the current compiled
    * code for the method.
@@ -1503,8 +1497,9 @@ public final class VM_Class extends VM_Type
   public void updateMethod(VM_Method m) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
+    if (m.isClassInitializer()) return; // we never put this method in the jtoc anyways!
 
-    if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
+    if (m.isStatic() || m.isObjectInitializer()) {
       updateJTOCEntry(m);
     } else {
       updateVirtualMethod(m);
@@ -1521,7 +1516,7 @@ public final class VM_Class extends VM_Type
   public void updateJTOCEntry(VM_Method m) {
     if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions) VM.assert(m.isStatic() || m.isObjectInitializer() || m.isClassInitializer());
+    if (VM.VerifyAssertions) VM.assert(m.isStatic() || m.isObjectInitializer());
     int slot = m.getOffset() >>> 2;
     VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
   }
