@@ -663,6 +663,102 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   // Implementation //
   //----------------//
 
+  /*
+   * NOTE: The order of field declarations determines
+   *       the layout of the fields in the processor object
+   *       For IA32, it is valuable (saves code space) to
+   *       declare the most frequently used fields first so that
+   *       they can be accessed with 8 bit immediates.
+   *       On PPC, we have plenty of bits of immediates in 
+   *       load/store instructions, so it doesn't matter.
+   */
+
+  /*
+   * BEGIN FREQUENTLY ACCESSED INSTANCE FIELDS
+   */
+
+  /**
+   * Is it time for this processor's currently running VM_Thread 
+   * to call its "threadSwitch" method?
+   * A value of: 
+   *    -1 means yes
+   *     0 means no
+   * This word is set by a timer interrupt every 10 milliseconds and
+   * interrogated by every compiled method, typically in the method's prologue.
+   */ 
+  int threadSwitchRequested;
+  
+  /**
+   * thread currently running on this processor
+   */
+  VM_Thread        activeThread;    
+
+//-#if RVM_FOR_IA32
+  // to free up (nonvolatile or) scratch registers
+  Object jtoc;
+  int    threadId;
+  /**
+   * FP for current frame (opt compiler wants FP register) 
+   * TODO warn GC about this guy
+   */
+  int    framePointer;        
+  /**
+   * "hidden parameter" for interface invocation thru the IMT
+   */
+  int    hiddenSignatureId;   
+  /**
+   * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
+   */
+  int    arrayIndexTrapParam; 
+//-#endif
+
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+  // An array of VM_SizeControl: used by noncopying memory managers;
+  // by making one such array per processor, allocations can be performed
+  // in parallel without locking, except when a new block is needed.
+  // 
+  VM_SizeControl[] sizes;
+  VM_SizeControl[] GC_INDEX_ARRAY;
+
+  // Writebuffer for generational collectors
+  // contains a "remembered set" of old objects with modified object references.
+  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
+  //   initial:    |   |   |   |   |lnk|             later:    |obj|obj|   |   |lnk|
+  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
+  //            ^top            ^max                                ^top    ^max
+  //
+  int[]  modifiedOldObjects;          // the buffer
+  int    modifiedOldObjectsTop;       // address of most recently filled slot
+  int    modifiedOldObjectsMax;       // address of last available slot in buffer
+
+  // pointers for allocation from Processor local memory "chunks"
+  //
+  /**
+   * current position within current allocation buffer
+   */
+  int    localCurrentAddress;  
+  /**
+   * end (1 byte beyond) of current allocation buffer
+   */
+  int    localEndAddress;      
+
+  // pointers for allocation from processor local "chunks" or "ToSpace" memory,
+  // for copying live objects during GC.
+  //
+  /**
+   * current position within current "chunk"
+   */
+  int    localMatureCurrentAddress;   
+  /**
+   * end (1 byte beyond) of current "chunk"
+   */
+  int    localMatureEndAddress;       
+//-#endif
+
+  /*
+   * END FREQUENTLY ACCESSED INSTANCE FIELDS
+   */
+  
   /**
    * Identity of this processor.
    * Note: 1. VM_Scheduler.processors[id] == this processor
@@ -678,17 +774,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    *   true  means "cpu is now executing vm code (on a vm stack)"
    */ 
   boolean isInitialized;
-  
-  /**
-   * Is it time for this processor's currently running VM_Thread 
-   * to call its "threadSwitch" method?
-   * A value of: 
-   *    -1 means yes
-   *     0 means no
-   * This word is set by a timer interrupt every 10 milliseconds and
-   * interrogated by every compiled method, typically in the method's prologue.
-   */ 
-  int threadSwitchRequested;
   
   /**
    * Should this processor dispatch a new VM_Thread when 
@@ -707,10 +792,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    */ 
   boolean threadSwitchPending;
 
-  /**
-   * thread currently running on this processor
-   */
-  VM_Thread        activeThread;    
   /**
    * thread previously running on this processor
    */
@@ -760,53 +841,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   //--------------------//
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-
-  // An array of VM_SizeControl: used by noncopying memory managers;
-  // by making one such array per processor, allocations can be performed
-  // in parallel without locking, except when a new block is needed.
-  // 
-  VM_SizeControl[] sizes;
-  VM_SizeControl[] GC_INDEX_ARRAY;
-
-  // Writebuffer for generational collectors
-  // contains a "remembered set" of old objects with modified object references.
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //   initial:    |   |   |   |   |lnk|             later:    |obj|obj|   |   |lnk|
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //            ^top            ^max                                ^top    ^max
-  //
-  int[]  modifiedOldObjects;          // the buffer
-  int    modifiedOldObjectsTop;       // address of most recently filled slot
-  int    modifiedOldObjectsMax;       // address of last available slot in buffer
-
   // Reference Counting Collector additions 
   int    incDecBuffer;        // the buffer
   int    incDecBufferTop;     // address of most recently filled slot in buffer
   int    incDecBufferMax;     // address of last available slot in buffer
   int    localEpoch;
-
-  // pointers for allocation from Processor local memory "chunks"
-  //
-  /**
-   * current position within current allocation buffer
-   */
-  int    localCurrentAddress;  
-  /**
-   * end (1 byte beyond) of current allocation buffer
-   */
-  int    localEndAddress;      
-
-  // pointers for allocation from processor local "chunks" or "ToSpace" memory,
-  // for copying live objects during GC.
-  //
-  /**
-   * current position within current "chunk"
-   */
-  int    localMatureCurrentAddress;   
-  /**
-   * end (1 byte beyond) of current "chunk"
-   */
-  int    localMatureEndAddress;       
 
   // misc. fields - probably should verify if still in use
   //
@@ -814,7 +853,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   int	 small_live;		// count live objects during gc
   long   totalBytesAllocated;	// used for instrumentation in allocators
   long   totalObjectsAllocated; // used for instrumentation in allocators
-
 //-#endif
 //-#if RVM_WITH_GCTk
 
@@ -943,24 +981,4 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     VM_Scheduler.writeString("\n");
 //-#endif
   }
-  
-//-#if RVM_FOR_IA32
-  // to free up (nonvolatile or) scratch registers
-  Object jtoc;
-  int    threadId;
-  /**
-   * FP for current frame (opt compiler wants FP register) 
-   * TODO warn GC about this guy
-   */
-  int    framePointer;        
-  /**
-   * "hidden parameter" for interface invocation thru the IMT
-   */
-  int    hiddenSignatureId;   
-  /**
-   * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
-   */
-  int    arrayIndexTrapParam; 
-//-#endif
-
 }
