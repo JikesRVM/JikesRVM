@@ -14,6 +14,7 @@
  * <li> the first int in each map is a bit map of registers that
  *   contain references (the MSB is used for chaining,
  *   we assume it will never contain a reference)
+ * <li> the remaining ints will be spill locations
  * <li> the sequence will continue as long as the most significant bit
  *   is set to 1
  * </ul>
@@ -33,21 +34,37 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
   public static final int ERROR        = -2;
 
   /**
+   *  The initial allocation size for a map
+   */
+  public static final int INITIAL_MAP_SIZE = 16;
+
+  /**
    * bit pattern for the "next" bit in the GC maps array
    */
   private static final int NEXT_BIT = 0x80000000;
+
   /** 
-   * the index of the last map entry
+   * the index of the last map entry in use
    */
   private int lastGCMapEntry;      
+
+  /**
+   *  The gc map array, a sequence of gc maps.  Each sequence starts
+   *  with a register bit mask and is followed by a list of spills.
+   *  The most significant bit of the spill location is used to chain
+   *  the list.  
+   *  Note: We could definitely be smarter in our representation of spills!
+   */
   private int[] gcMapInformation;
+
+  public final static boolean DEBUG = false;
 
   /**
    * Constructor, called during compilation
    */
   VM_OptGCMap() {
     lastGCMapEntry = -1;
-    gcMapInformation = new int[16];   // initial map size
+    gcMapInformation = new int[INITIAL_MAP_SIZE];   // initial map size
   }
   
   /**
@@ -82,6 +99,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
       int bitMap = 0;
       // count the spills so we know how big of an array we'll need
       int numSpills = 0;
+      int numRegs = 0;
 
       // Because the output data structure (the map) stores register
       // information before spills, we need to traverse the list twice
@@ -94,6 +112,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
         if (elem.isSpill()) {
 	  numSpills++;
 	} else {
+	  numRegs++;
           int realRegNumber = elem.getRealRegNumber();
 
           if (VM.VerifyAssertions && realRegNumber > LAST_GCMAP_REG) {
@@ -131,6 +150,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
 
       // don't forget to report that there are no more spills
       mapIndex = endCurrentMap(index);
+
     }
     return mapIndex;
   }
@@ -142,7 +162,6 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
   /**
    * Returns the GC map information for the GC map information entry passed
    * @param  entry     map entry
-   * @param  gcMap            the encoded GCMap
    * @param  gcMap     the gc map
    */
   public static int gcMapInformation(int entry, int[] gcMap) {
@@ -204,9 +223,10 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
 
 
   /**
-   * put your documentation comment here
-   * @param entry
-   * @return 
+   * Determines if the next bit is set for the entry passed in the gc map passed
+   * @param entry the entry (index) to check 
+   * @param gcMap the gcmap
+   * @return whether the next bit is set 
    */
   private static boolean nextBitSet(int entry, int[] gcMap) {
     return (gcMap[entry] & NEXT_BIT) == NEXT_BIT;
@@ -252,15 +272,16 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
   private int getNextMapEntry() {
     // make sure we have enough room
     int oldLength = gcMapInformation.length - 1;
-    if (lastGCMapEntry >= oldLength)
+    if (lastGCMapEntry >= oldLength) {
       // expand the mapInformation array to be twice as big
       resizeMapInformation(oldLength << 1);
+    }
     return ++lastGCMapEntry;
   }
 
   /**
-   * put your documentation comment here
-   * @param newSize
+   * Resize the map array
+   * @param newSize the new size for the map array
    */
   private void resizeMapInformation(int newSize) {
     int[] newMapInformation = new int[newSize];
@@ -273,10 +294,10 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
   //////////
   // Setters for GC Maps
   //////////
+
   /**
-   * Sets the register map information for the entry passed
-   * @param  entry            map entry
-   * @param  registerNumber   the register number to set to true
+   * Sets the register map information at the next available entry
+   * @param  bitmap    map entry
    */
   private final int setRegisterBitMap(int bitMap) {
     // Set the appropriate bit, but make sure we preserve the NEXT bit!
@@ -293,13 +314,15 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
   private final void addAllSpills(int spillArray[]) {
     // 1) sort all the spills we saved to allow for checking for missed refs
     //  at GC time, if the flag is on in VM_OptGenericGCMapIterator.java
-    int length = spillArray.length;
-    for (int i = 0; i < length - 1; i++) {
-      for (int j = i+1; j < length; j++) {
-	if (spillArray[i] > spillArray[j]) {
-	  int tmp = spillArray[i];
-	  spillArray[i] = spillArray[j];
-	  spillArray[j] = tmp;
+    if (VM_OptGenericGCMapIterator.lookForMissedReferencesInSpills) {
+      int length = spillArray.length;
+      for (int i = 0; i < length - 1; i++) {
+	for (int j = i+1; j < length; j++) {
+	  if (spillArray[i] > spillArray[j]) {
+	    int tmp = spillArray[i];
+	    spillArray[i] = spillArray[j];
+	    spillArray[j] = tmp;
+	  }
 	}
       }
     }
@@ -316,8 +339,9 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
    */
   private final void addSpillLocation(int spill) {
     // make sure the value doesn't overflow the maximum spill location
-    if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767)))
+    if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
       VM.assert(false, "Unexpected spill passed:" + spill);
+    }
     // get the next entry (with the NEXT bit set) ...
     int entry = getNextMapEntry();
     gcMapInformation[entry] = spill | NEXT_BIT;
@@ -325,8 +349,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
 
   /**
    * Ends the current map
-   * @param firstIndex
-   * @return 
+   * @param firstIndex the index of the beginning of the map
+   * @return the index of the beginning of the map (may be different)
    */
   private final int endCurrentMap(int firstIndex) {
     int lastEntry = lastGCMapEntry;
@@ -334,24 +358,52 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants  {
     // adjust the last entry so that the NEXT bit is not set.
     gcMapInformation[lastEntry] = gcMapInformation[lastEntry] & ~NEXT_BIT;
 
-    // search in previous locations
-    loop: for (int i = 0; i < firstIndex;) {
-      int index = i;
-      for (int k = firstIndex; k <= lastEntry;) {
-        int old = gcMapInformation[i++];
-        int nnn = gcMapInformation[k++];
-        if (old != nnn) {
-          // find next entry
-          while ((old & NEXT_BIT) != 0)
-            old = gcMapInformation[i++];
-          continue  loop;
-        }
+    if (DEBUG) {
+      System.out.println("\nendCurrentMap called with firstIndex: "+
+			 firstIndex +", lastGCMapEntry: "+ lastGCMapEntry);
+      System.out.println("gc map array before reuse checking");
+      for (int i=0; i<=lastGCMapEntry; i++) {
+	System.out.println(i+ ": "+ gcMapInformation[i]);
       }
-      // found it !!, eliminate entry and reuse an old one
-      lastGCMapEntry = firstIndex - 1;
-      return index;
     }
+
+    // Now that we know the complete map information, let's determine if
+    // we really need to store it, or instead can reuse a previous map.
+    int candidateBeginningIndex = 0; //this will be the beginning  
+    int candidateIndex = candidateBeginningIndex;  // this will walk the map
+    int curIndex = firstIndex;
+    while (candidateIndex < firstIndex && curIndex <= lastEntry) {
+      int old = gcMapInformation[candidateIndex++];
+      int cur = gcMapInformation[curIndex++];
+      if (old != cur) {
+	if (DEBUG) {
+	  System.out.println("entries at "+ (candidateIndex-1)
+			     +" and "+ (curIndex-1) +" don't match");
+	}
+	// this entry won't work, advance to candidateIndex to GC map entry
+	//  and reset curIndex
+	while ((old & NEXT_BIT) != 0) {
+	  old = gcMapInformation[candidateIndex++];
+	}
+
+	// update the beginning index too
+	candidateBeginningIndex = candidateIndex;
+	curIndex = firstIndex;
+      } else if ((old & NEXT_BIT) == 0) {
+	// we've checked all of the candidate without stopping, so we found
+	//  a winner to reuse
+
+	if (DEBUG) {
+	  System.out.println("found a matching map: ["+ candidateBeginningIndex
+			     +", "+ (candidateIndex-1) +"] == ["+
+			     firstIndex +", "+ lastGCMapEntry +"]");
+	}
+
+	lastGCMapEntry = firstIndex - 1;
+	return candidateBeginningIndex;
+      }
+    }
+
     return firstIndex;
   }
-
 }  
