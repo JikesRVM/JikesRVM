@@ -1,13 +1,18 @@
 This section provides some information on various
-implementation details for the RVM runtime system.
+implementation details for the Jikes RVM runtime system.
 
-\subsection{Object Layout} \label{sssec:objects}
-Values in the Java\trademark programm language are either {\em
-primitive} (e.g. {\tt int}, 
-{\tt double}, etc.)  or they are {\em references} (that is, pointers) to
-objects.  Objects are either {\em arrays} having components or {\em
-simple objects} having fields.  RVM's object model is governed by four
-criteria: 
+\subsection{Object Model} \label{sssec:objects}
+\index{object model}
+An {\em object model} dictates how to represent objects in storage;
+the best object model will maximize efficiency of frequent language
+operations while minimizing storage overhead. Jikes RVM's object model
+is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
+
+Values in the Java\trademark programming language are either {\em
+primitive} (e.g. {\tt int}, {\tt double}, etc.)  or they are {\em
+references} (that is, pointers) to objects.  Objects are either {\em
+arrays} having elements or {\em scalar objects} having fields.  RVM's
+object model is governed by the following criteria:
 \begin{itemize}
 \item{}
 field and array accesses should be as fast as possible,
@@ -16,14 +21,16 @@ null-pointer checks should be performed by the hardware if possible,
 \item{}
 virtual method dispatch should be fast, and 
 \item{}
-other (less frequent) Java operations  should not be prohibitively slow.
+other (less frequent) Java operations should not be prohibitively slow.
+\item{}
+per object storage overhead should be as small as possible
 \end{itemize}
 
 Assuming the reference to an object is in a register, the object's
 fields can be accessed at a fixed displacement in a single
 instruction.  To facilitate array access, the reference to an array
 points to the first (zeroth) component of an array and the remaining
-components are laid out in ascending order.  The number of components
+elements are laid out in ascending order.  The number of elements
 in an array, its {\em length}, is kept just before its first
 component.
 
@@ -34,8 +41,8 @@ object reference generate a NullPointerException.  In the RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
 The AIX\AIXTMFootnote operating system permits loads from low memory,
 but accesses 
-to very high memory, at small {\em negative} offsets from a null
-pointer, normally cause hardware interrupts.\footnote{In AIX, it is at
+to very high memory (at small {\em negative} offsets from a null
+pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
 least theoretically possible for another process to cause a shared
 system library to get loaded into very high memory.  This remote
 possibility is not a concern in a research project, but would need to
@@ -55,14 +62,14 @@ offsets from the object reference.
 \hbox{\psfig{file=object.ps,height=3.5in}}
 }\hfil
 \end{gif}
-\caption{Layout of a simple object and an array object in RVM.}
+\caption{Layout of a scalar object and an array object in RVM.}
 \label{fig:objects}
 \end{figure}
 
 \index{field access}
 \index{array access}
 In summary, in RVM, arrays grow up from the object reference (with the
-array length at a fixed negative offset), while simple objects grow
+array length at a fixed negative offset), while scalar objects grow
 down from the object reference with all fields at a negative offset
 (see figure~\ref{fig:objects}).  A field access is accomplished with a
 single instruction using base-displacement addressing.  Most array
