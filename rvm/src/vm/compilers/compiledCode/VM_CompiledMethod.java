@@ -29,6 +29,8 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   //-#if RVM_WITH_QUICK_COMPILER
   public final static int QUICK     = 5; // quick-compiled code
   public final static int NUM_COMPILER_TYPES = 5;
+  //-#else
+  public final static int NUM_COMPILER_TYPES = 4;
   //-#endif
 
   /*

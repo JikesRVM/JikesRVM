@@ -21,6 +21,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private final int parameterWords;
   private int firstLocalOffset;
+  private boolean hasCounterArray;
 
   /**
    * Create a VM_Compiler object for the compilation of method.
@@ -29,6 +30,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
+    hasCounterArray = cm.hasCounterArray();
   }
 
   /**
@@ -1732,7 +1734,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
     asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
 
-    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       int firstCounter = edgeCounterIdx;
       edgeCounterIdx += (n + 1);
 
@@ -1779,7 +1781,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int offset  = bcodes.getLookupSwitchOffset(i);
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
-      if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+      if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
         // Flip conditions so we can jump over the increment of the taken counter.
         VM_ForwardReference fr = asm.forwardJcc(asm.NE);
         incEdgeCounter(S0, edgeCounterIdx++);
@@ -1792,7 +1794,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     bcodes.skipLookupSwitchPairs(npairs);
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
-    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       incEdgeCounter(S0, edgeCounterIdx++); // increment default counter
     }
     asm.emitJMP_ImmOrLabel(mTarget, bTarget);
@@ -2478,7 +2480,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // establish the JTOC register
       VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
-      if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+      if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
         // use (nonvolatile) EBX to hold base of this methods counter array
         asm.emitMOV_Reg_RegDisp(EBX, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
         asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
@@ -2635,7 +2637,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   private final void genCondBranch(byte cond, int bTarget) {
     int mTarget = bytecodeMap[bTarget];
-    if (!VM.runningTool && compiledMethod.hasCounterArray()) {
+    if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
       // Allocate two counters: taken and not taken
       int entry = edgeCounterIdx;
       edgeCounterIdx += 2;
@@ -2657,7 +2659,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
 
   private final void incEdgeCounter(byte scratch, int counterIdx) {
-    if (VM.VerifyAssertions) VM._assert(compiledMethod.hasCounterArray());
+    if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegDisp(scratch, EBX, counterIdx<<2);
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
@@ -2665,7 +2667,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
 
   private final void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
-    if (VM.VerifyAssertions) VM._assert(compiledMethod.hasCounterArray());
+    if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, asm.WORD, counterIdx<<2);
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;

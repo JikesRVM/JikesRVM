@@ -7,10 +7,7 @@ package com.ibm.JikesRVM;
 /**
  * @author Anthony Cocchi
  */
-//-#if RVM_WITH_QUICK_COMPILER
-public 
-  //-#endif
-  final class VM_BasicBlock {
+public final class VM_BasicBlock {
 
  // structure to describe the basic blocks of the byte code
  // Used in calculating stack map and local variable map for

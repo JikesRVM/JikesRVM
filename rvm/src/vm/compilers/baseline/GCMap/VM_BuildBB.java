@@ -13,14 +13,9 @@ import com.ibm.JikesRVM.classloader.*;
  *
  * @author Anthony Cocchi
  */
-//-#if RVM_WITH_QUICK_COMPILER
-public
-  //-#endif
-  final class VM_BuildBB
-  implements VM_BytecodeConstants
-             //-#if RVM_WITH_QUICK_COMPILER
-             , VM_BBConstants 
-             //-#endif
+
+public final class VM_BuildBB
+  implements VM_BytecodeConstants , VM_BBConstants 
 {
 
 
@@ -43,38 +38,24 @@ public
   /** 
    * basic blocks of the byte code 
    */
-  //-#if RVM_WITH_QUICK_COMPILER
-  public 
-    //-#endif
-    VM_BasicBlockFactory      bbf;
-  //-#if RVM_WITH_QUICK_COMPILER
-  public 
-    //-#endif
-    VM_BasicBlock             basicBlocks[];       
+  public VM_BasicBlockFactory      bbf;
+  public VM_BasicBlock             basicBlocks[];       
 
   /** 
    * identify which block a byte is part of 
    */
-  //-#if RVM_WITH_QUICK_COMPILER
-  public 
-    //-#endif
-    short                     byteToBlockMap[]; 
+  public short                     byteToBlockMap[]; 
 
   /**
    * Number of unique jsr targets processed
    */
-  //-#if RVM_WITH_QUICK_COMPILER
-  public 
-    //-#endif
-    int                       numJsrs; 
+  public int                       numJsrs; 
   
   /**
    * Number of GC points found
    */
-  //-#if RVM_WITH_QUICK_COMPILER
-  public
-    //-#endif
-    int                       gcPointCount;
+
+  public int                       gcPointCount;
 
   // This variable is used in multiple methods of this class, make it accessible
   int bytelength;
@@ -97,10 +78,7 @@ public
    * The results will be used by VM_BuildReferenceMaps
    */
   
-  //-#if RVM_WITH_QUICK_COMPILER
-  public
-    //-#endif
-    void determineTheBasicBlocks(VM_NormalMethod method) {
+  public void determineTheBasicBlocks(VM_NormalMethod method) {
     VM_ExceptionHandlerMap    exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int                       retList[];    // List of basic block numbers that end with a "ret" instruction.
     VM_BytecodeStream         bcodes;       // The bytecodes being analyzed.

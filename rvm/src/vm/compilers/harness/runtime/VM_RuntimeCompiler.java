@@ -724,7 +724,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
     // when we reach here the QUICK compiler is enabled.
     quickCompilerEnabled = true;
     
-    for (int i=0; i<earlyQuickArgs.length; i+=1) {
+    for (int i=0; i<earlyQuickArgs.length; i+=2) {
       processQuickCommandLineArg(earlyQuickArgs[i],earlyQuickArgs[i+1]);
     }
     VM_QuickCompiler.initOptions();

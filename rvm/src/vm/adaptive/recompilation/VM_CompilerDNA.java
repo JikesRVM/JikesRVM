@@ -55,9 +55,6 @@ public class VM_CompilerDNA implements VM_Constants {
   //-#elif RVM_FOR_IA32
   private static final double[] compilationRates = {
     332.79,
-    //-#if RVM_WITH_QUICK_COMPILER
-    0,
-    //-#endif
     9.58, 4.11, 1.66};
   //-#endif
 
@@ -70,14 +67,11 @@ public class VM_CompilerDNA implements VM_Constants {
   private static final double[] speedupRates = {
     1.00, 
     //-#if RVM_WITH_QUICK_COMPILER
-    2.00, 
+    1.32, 
     //-#endif
     4.73, 6.65, 7.39};
   //-#elif RVM_FOR_IA32
   private static final double[] speedupRates = {1.00,
-                                                //-#if RVM_WITH_QUICK_COMPILER
-                                                2.00,
-                                                //-#endif
                                                 4.66, 6.82, 7.04};
   //-#endif
 

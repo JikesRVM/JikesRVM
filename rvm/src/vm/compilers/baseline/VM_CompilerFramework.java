@@ -41,12 +41,12 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   /**
    * The method being compiled
    */
-  protected /* final */ VM_NormalMethod method;
+  protected VM_NormalMethod method;
 
   /** 
    * The declaring class of the method being compiled
    */
-  protected /* final */ VM_Class klass;
+  protected VM_Class klass;
 
   /**
    * The VM_Assembler being used for this compilation
@@ -56,7 +56,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   /**
    * The bytecodes of the method being compiled
    */
-  protected /* final */ VM_BytecodeStream bcodes;
+  protected VM_BytecodeStream bcodes;
 
   /**
    * Mapping from bytecodes to machine code offsets
@@ -114,7 +114,16 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
     klass = method.getDeclaringClass();
 
+    //-#if RVM_WITH_OSR
+    // new synthesized bytecodes for osr
+    if (method.isForOsrSpecialization()) 
+      bcodes = method.getOsrSynthesizedBytecodes();
+    else
+      bcodes = method.getBytecodes();
+    //-#else
     bcodes = method.getBytecodes();
+    //-#endif
+    
     bytecodeMap = new int [bcodes.length()+1];
     isInterruptible = method.isInterruptible();
     if (isInterruptible) {
