@@ -2217,6 +2217,20 @@ chmod +x$PERM		      $BUILD_DIRECTORY/environment.pl
 
 print -n "(control files and scripts installed) "
 
+# this option works around our (non)implementation of java.math.*
+if (( RVM_WITH_HOST_JAVA_MATH )); then
+  . $RVM_HOST_CONFIG
+
+  rm -rf $BUILD_DIRECTORY/tmp
+  mkdir -p $BUILD_DIRECTORY/tmp
+  cd $BUILD_DIRECTORY/tmp
+  $HOST_JAR xf $HOST_REPOSITORIES java/math
+  $HOST_JAR c0f $BUILD_DIRECTORY/javamath.jar java/math/*.class 
+  rm -rf $BUILD_DIRECTORY/tmp
+
+  print -n "(javamath.jar created) "
+fi
+
 print ""
 
 if [[ $quiet != 1 ]]; then
