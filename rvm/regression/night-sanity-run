@@ -134,7 +134,7 @@ fi
 
 # Describe where the information can be found
 # Describe where the information can be found
- echo "Output of this run is available at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz\n" >> $MSG
+echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
 
 # echo "     run details: $RUN_LOG\n " >> $MSG
 # echo "     build details: $BUILD_LOG\n " >> $MSG
