@@ -153,9 +153,16 @@ set -o noglob
 ## Oddly, bash gripes even when the reserved words are quoted.  How odd.
 set +H
 
+# The expression:
+#	'\!' -name 'javacore*.txt' \
+# ignores the dump files that occur on AIX if the host JDK crashes.
+# We'll get warned anyway, because the image will fail to build, but there
+# is no point in getting warned multiply.
+
 declare -r -a find_optsA=( \
 	-name CVS -prune \
         -o \
+	'\!' -name 'javacore*.txt' \
 	'\!' -name '*~'  \
 	'\!' -name '.*~'  \
 	'\!' -name '.#*' \
