@@ -122,13 +122,10 @@ public final class OSR_BaselineExecStateExtractor
     /* extract values for local and stack, but first of all
      * we need to get type information for current PC.
      */    
-    OSR_LocalAndStackTypeMatcher typer =
-      OSR_LocalAndStackTypeMatcher.v();
-    
-    typer.register(fooM, bcIndex);
+    OSR_BytecodeTraverser typer = new OSR_BytecodeTraverser();
+	typer.computeLocalStackTypes(fooM, bcIndex);
     byte[] localTypes = typer.getLocalTypes();
     byte[] stackTypes = typer.getStackTypes();
-    typer.clean();
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("BC Index : "+bcIndex+"\n");
