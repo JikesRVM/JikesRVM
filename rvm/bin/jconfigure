@@ -292,6 +292,25 @@ integer RVM_WITH_FIXED_NURSERY_GC=0
 integer RVM_WITH_CONCURRENT_GC=0     # aka reference counting, aka RCGC
 integer RVM_WITH_NO_GC=0
 
+#
+# GCTk Options
+#
+integer RVM_WITH_GCTk=0
+integer RVM_WITH_GCTk_COPY=0
+integer RVM_WITH_GCTk_BLOCK_INDIRECT=0
+integer RVM_WITH_GCTk_NULL=0
+integer RVM_WITH_GCTk_SEMISPACE=0
+integer RVM_WITH_GCTk_GEN=0
+integer RVM_WITH_GCTk_GEN_APPEL=0
+integer RVM_WITH_GCTk_DETAIL_STATS=0
+integer RVM_WITH_GCTk_PAUSE_STATS=0
+integer RVM_WITH_GCTk_WB_STATS=0
+integer RVM_WITH_GCTk_WRITEBARRIER=0
+integer RVM_WITH_GCTk_BOOTIMAGE_SCAN=0
+integer RVM_WITH_GCTk_ALLOC_ADVICE=0
+integer RVM_WITH_GCTk_GCTRACE=0
+
+
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
 integer RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
@@ -655,6 +674,45 @@ function emitSourceList
 
    # Memory manager components.
    #
+   #
+   # Start GCTk components
+   #
+   if (( $RVM_WITH_GCTk )); then
+      GCTk_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/GCTk
+      if (( $RVM_WITH_GCTk_GEN )); then
+	GCTk_COL=Gen
+      elif (( $RVM_WITH_GCTk_SEMISPACE )); then
+	GCTk_COL=SemiSpace
+      else
+	GCTk_COL=null
+      fi
+      if (( $RVM_WITH_GCTk_BLOCK_INDIRECT )); then
+        suff=BlockIndirect
+        GCTk_COL=$GCTk_COL$suff
+      fi
+      # architecture specific writebarrier support for baseline compilers
+      #
+#      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
+
+      print $GCTk_ROOT
+      print $GCTk_ROOT/allocators
+      print $GCTk_ROOT/collectors
+      print $GCTk_ROOT/collectors/$GCTk_COL
+      print $GCTk_ROOT/util
+      print $GCTk_ROOT/vm
+
+      if (( $RVM_WITH_GCTk_EXPERIMENTAL )); then
+      print $GCTk_ROOT/experimental
+      print $GCTk_ROOT/experimental/allocators
+      print $GCTk_ROOT/experimental/collectors
+      print $GCTk_ROOT/experimental/collectors/$GCTk_COL
+      print $GCTk_ROOT/experimental/util
+      print $GCTk_ROOT/experimental/vm
+      fi
+   else 
+   #
+   # End GCTk components
+   #
 
    # common allocator and collector classes for RVM memory managers
    #
@@ -687,7 +745,7 @@ function emitSourceList
    elif (( $RVM_WITH_NO_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/noGC
    fi
-
+   fi
 
    # Bootimage compiler components.
    #
@@ -965,12 +1023,11 @@ function emitExpander
    print 'fi'
 
    # Make the tools that we need to do template expansion
-   if (( RVM_WITH_OPT_COMPILER )); then
+   if (( RVM_WITH_ADAPTIVE_SYSTEM || RVM_WITH_OPT_COMPILER  || RVM_WITH_GCTk )); then
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
-   if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+   if (( RVM_WITH_OPT_COMPILER )); then
+   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
 
    # build VM_Assembler on Intel
@@ -992,6 +1049,9 @@ function emitExpander
    fi
    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
+   fi
+   if (( RVM_WITH_GCTk )); then
+   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/memoryManagers/GCTk && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
    
    print 'print ""'
@@ -1325,6 +1385,10 @@ function emitImageLinker
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
       print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
+      if (( RVM_WITH_GCTk )); then
+          print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
+      fi
+
    else
       # Put minimum number of vm classes into boot image (just sufficient to
       # dynamically load remaining portions of the system).
@@ -1340,6 +1404,9 @@ function emitImageLinker
             
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
+      if (( RVM_WITH_GCTk )); then
+          print "   print $CLASSES_DIRECTORY/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES"
+      fi
    fi
 
    # Now add classes sufficient to start up the vm and to dynamically load anything that's not
@@ -1460,7 +1527,9 @@ function emitImageLinker
    print "   print '[LVM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
+   if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
    print "   print '[LVM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+   fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/String;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/Class;'               >> $PRIMORDIAL_CLASSES_STR"
@@ -1552,6 +1621,10 @@ function emitImageLinker
           print "   print 'LOPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
    fi
+  if (( RVM_WITH_GCTk )); then
+      print "   print '[LGCTk_Counter;'             >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[LGCTk_CounterLong;'         >> $PRIMORDIAL_CLASSES_STR"
+  fi
 
    # For performance testing, a full opt base boot image should have all classes
    # that would be in FullOpt, except for the OPT compiler-related ones.
@@ -1795,6 +1868,18 @@ function emitBooterLinker
    fi
    print ""
 
+   if ((RVM_WITH_GCTk)); then
+      print 'GCTk="-DGCTk"'
+   else
+      print 'GCTk='
+   fi
+
+   if ((RVM_WITH_GCTk_GCTRACE)); then
+      print 'GCTkTrace="-DGCTkTrace"'
+   else
+      print 'GCTkTrace='
+   fi
+
 
    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX ) )); then
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -1810,7 +1895,7 @@ function emitBooterLinker
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
-		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
+		\$GCTk \$GCTkTrace \$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
