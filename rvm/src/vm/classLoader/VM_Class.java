@@ -137,7 +137,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /**
    * Usable from other packages?
    */ 
-  final boolean isPublic() throws VM_PragmaUninterruptible { 
+  public final boolean isPublic() throws VM_PragmaUninterruptible { 
     return (modifiers & ACC_PUBLIC) != 0; 
   }
 
