@@ -35,6 +35,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public final static String Id = "$Id$"; 
   public static final boolean needsWriteBarrier = false;
   public static final boolean needsRefCountWriteBarrier = false;
+  public static final boolean refCountCycleDetection = false;
   public static final boolean movesObjects = true;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -208,6 +209,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || getPagesReserved() > getTotalPages()) {
+      required = mr.reservedPages() - mr.committedPages();
+      if (mr == ssMR)
+	required = required<<1;  // must account for copy reserve
       VM_Interface.triggerCollection();
       return true;
     }
@@ -397,7 +401,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("   After Collection: ");
       showUsage();
     }
-    if (getPagesReserved() >= getTotalPages()) {
+    if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
 	VM.sysFail("Out of memory");
       progress = false;
@@ -433,6 +437,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   // GC state
   private static boolean hi = false;   // If true, we are allocating from the "higher" semispace.
   private static boolean progress = true;  // are we making progress?
+  private static int required;  // how many pages must this GC yeild?
 
 
   //

@@ -45,6 +45,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
 
   public static final boolean needsWriteBarrier = true;
   public static final boolean needsRefCountWriteBarrier = false;
+  public static final boolean refCountCycleDetection = false;
   public static final boolean movesObjects = true;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -297,6 +298,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       if (VM.VerifyAssertions)	VM._assert(mr != metaDataMR);
+      required = mr.reservedPages() - mr.committedPages();
+      if (mr == nurseryMR || mr == matureMR)
+	required = required<<1;  // must account for copy reserve
       fullHeapGC = mustCollect || fullHeapGC;
       VM_Interface.triggerCollection();
       return true;
@@ -470,7 +474,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
       VM.sysWrite("      trigger = ", getTotalPages());
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
     }
-    if (getPagesReserved() >= getTotalPages()) {
+    if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
 	VM.sysFail("Out of memory");
       progress = false;
@@ -514,6 +518,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   private static boolean hi = false;   // If true, we are allocating from the "higher" mature semispace.
   private static boolean fullHeapGC = false;
   private static boolean progress = true;  // are we making progress?
+  private static int required; // how many pages must this GC yeild? 
 
   //
   // Final class variables (aka constants)
