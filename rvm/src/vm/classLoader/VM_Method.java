@@ -96,6 +96,44 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     return lineNumbers[candidateIndex];
   }
 
+  // Annotations are sparse and sorted in bytecode order. State for the last
+  // successful lookup is kept. We first check it to catch repeated quries
+  // for the same bytecode. Failing this, we perform a binary search where the
+  // first probe is either the next sequential entry or 0 (typical cases).
+  final boolean queryAnnotationForBytecode( int pc, byte mask ) {
+
+    if ( annotationNum == 0 ) return false;		// none
+
+    int currPC = annotationPC[ annotationPrior ];	// prior pc found
+    int annotationIndex, Lo, Hi;
+
+    if ( currPC == pc )					// same as last match
+      annotationIndex = annotationPrior;
+    else {
+      if ( currPC < pc ) {
+	Lo = annotationPrior+1;
+	Hi = annotationNum-1;
+      }
+      else {
+	Lo = 0;
+	Hi = annotationPrior-1;
+      }
+      annotationIndex = Lo;		// start with next sequential entry
+      while( true ) {
+	if ( Lo > Hi ) return false;	// not found
+	currPC = annotationPC[ annotationIndex ];
+	if ( currPC == pc ) break;	// found
+	if ( currPC < pc )
+	  Lo = annotationIndex+1;
+	else
+	  Hi = annotationIndex-1;
+	annotationIndex = (Lo+Hi) >> 1;	// split for next probe
+      }
+    }
+    annotationPrior = annotationIndex;
+    return (annotationValue[ annotationIndex ] & mask) == mask;
+  }
+
   //-------------------------------------------------------------------//
   //                             Section 1.                            //
   // The following are available after the declaring class has been    //
@@ -258,6 +296,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   final void setLineNumberMap(VM_LineNumberMap lnm) {
     lineNumberMap = lnm;
   }
+
 
   //------------------------------------------------------------------//
   //                        Section 2.                                //
@@ -546,6 +585,14 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    */
   private VM_LocalVariable[]     localVariables;      
 
+  // Byte Code Annotations
+  private short[]	annotationPC;
+  private byte[]	annotationValue;
+  static final byte	annotationNullCheck = 4;
+  static final byte	annotationBoundsCheck = 3;	// Both Upper/Lower
+  private int		annotationNum;
+  private int		annotationPrior;
+
   //
   // The following is set during "resolution".
   //
@@ -687,6 +734,32 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
         else
           input.skipBytes(attLength);
         continue;
+      }
+
+      annotationNum = 0;
+      if (attName == VM_ClassLoader.arrayNullCheckAttributeName)
+      {
+	int attNum = attLength/3;
+	annotationPC = new short[ attNum ];
+	annotationValue = new byte[ attNum ];
+	for ( int attIndex = 0; attIndex < attNum; attIndex++ )
+	{
+	  short pc	= (short) input.readUnsignedShort();
+	  byte  value	= (byte)  input.readUnsignedByte();
+	  if ( value != 0 ) {		// exclude non-interesting 0 values
+					// seen coming from soot
+	    annotationPC[ annotationNum ] = pc;
+	    annotationValue[ annotationNum++ ] = value;
+	  }
+	}
+	if ( annotationNum == 0 ) {	// no entries of interest
+	  annotationPC = null;		// allow storage to be reclaimed
+	  annotationValue = null;
+	}
+	else {
+	  annotationPrior = 0;		// 1st probe
+	}
+	continue;
       }
 
       input.skipBytes(attLength);

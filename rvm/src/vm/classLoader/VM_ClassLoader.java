@@ -351,6 +351,7 @@ public class VM_ClassLoader
   static VM_Atom deprecatedAttributeName;             // "Deprecated"
   static VM_Atom innerClassesAttributeName;           // "InnerClasses"
   static VM_Atom syntheticAttributeName;              // "Synthetic"
+  static VM_Atom arrayNullCheckAttributeName;         // "ArrayNullCheckAttribute"
 
   /**
    * Offsets of fields and methods of java classes that have been encountered 
@@ -410,6 +411,7 @@ public class VM_ClassLoader
     deprecatedAttributeName             = VM_Atom.findOrCreateAsciiAtom("Deprecated");
     innerClassesAttributeName           = VM_Atom.findOrCreateAsciiAtom("InnerClasses");
     syntheticAttributeName              = VM_Atom.findOrCreateAsciiAtom("Synthetic");
+    arrayNullCheckAttributeName		= VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
 
     VM_TypeDictionary.init();
     VM_FieldDictionary.init();
