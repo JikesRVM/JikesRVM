@@ -188,6 +188,7 @@ class VM_Heap
     }
 
     static public void showAllHeaps() {
+	VM.sysWriteln(heapCount, " heaps");
 	for (int i=0; i<heapCount; i++) {
 	    VM.sysWrite("Heap ", i, ": "); 
 	    allHeaps[i].show(); 
@@ -208,12 +209,16 @@ class VM_Heap
 
 
     public void show() {
-	int tab = 25 - name.length();
+	show(true);
+    }
+
+    public void show(boolean newline) {
+	int tab = 26 - name.length();
 	for (int i=0; i<tab; i++) VM.sysWrite(" ");
 	VM.sysWrite(name, ": ");
 	VM.sysWriteField(6, size / 1024); VM.sysWrite(" Kb  at  "); 
 	showRange();
-	VM.sysWriteln();
+	if (newline) VM.sysWriteln();
     }
 
     public void touchPages() {
