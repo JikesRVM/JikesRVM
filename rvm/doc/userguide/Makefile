@@ -39,6 +39,7 @@ INPUT_FILES = 	userguide.tex \
 		optdetails.tex \
 		performance.tex \
 		profiling.tex \
+		regression.tex \
 		running.tex \
 		remark.tex \
 		vmdetails.tex
@@ -88,9 +89,9 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 %.gif:	%.ps
 	${PS2GIF} -res 50 $< $@
 
-.INTERMEDIATE:	userguide.dvi ${GENERATOR}.java
+.INTERMEDIATE:	${GENERATOR}.java
 
-clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} 
+clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} userguide.dvi
 
 dist-clean:	clean
 		rm -f userguide.ps
