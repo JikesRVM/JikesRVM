@@ -4,6 +4,8 @@
 //$Id$
 
 /**
+ * A Heap Abstraction.
+ * 
  * @author Perry Cheng
  * @modified Dave Grove
  */
@@ -12,6 +14,7 @@ abstract class VM_Heap
 
   private static VM_BootRecord bootRecord;
   static VM_BootHeap bootHeap;
+  protected static VM_MallocHeap mallocHeap;
   public static final int MAX_HEAPS = 10;
   public static final VM_Heap [] allHeaps = new VM_Heap[MAX_HEAPS];
   private static int heapCount = 0;
@@ -38,8 +41,9 @@ abstract class VM_Heap
   /**
    * Boot the heaps.  Must be called exactly once from VM_Allocator.boot.
    */
-  static void boot(VM_BootHeap bh, VM_BootRecord br) {
+  static void boot(VM_BootHeap bh, VM_MallocHeap mh, VM_BootRecord br) {
     bootHeap = bh;
+    mallocHeap = mh;
     bootRecord = br;
     bootHeap.start = bootRecord.bootImageStart;
     bootHeap.end = bootRecord.bootImageEnd;
@@ -125,13 +129,19 @@ abstract class VM_Heap
     maxRef = VM_ObjectModel.maximumObjectRef(end);
     size = end.diff(start);
   }
-    
+
+  /**
+   * Set the region that the heap is managing
+   */
   public void setRegion(VM_Address s, VM_Address e) {
     start = s;
     end = e;
     setAuxiliary();
   }
 
+  /**
+   * How big is the heap (in bytes)
+   */
   public int getSize() {
     return size;
   }

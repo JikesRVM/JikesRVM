@@ -11,28 +11,28 @@
  */
 final class VM_SideMarkVector implements VM_Constants, 
 					 VM_Uninterruptible {
-  VM_Address baseAddress;
-  VM_Address highAddress;
-  int[] marks;
+  private VM_Address baseAddress;
+  private VM_Address highAddress;
+  private int[] marks;
 
   static final int LOG_INT_SIZE = 5;
   static final int BITS_PER_INT = 32;
   static final int LOG_WORDSIZE = 2;
-  static final int ALIGNMENT    = 4; // align all objects on 4-byte boundaries
+  static final int ALIGNMENT    = 4; // all objects aligned on 4-byte boundaries
 
   private static final boolean DEBUG = false;
 
-
-  void boot (VM_Address baseAddress, VM_Address highAddress) {
-    this.baseAddress = baseAddress;
-    this.highAddress = highAddress;
-    int bytes        = highAddress.diff(baseAddress);
-    int quanta       = bytes / ALIGNMENT;
-    this.marks       = new int[quanta / BITS_PER_INT + 1];
+  public void boot(VM_MallocHeap mh,
+		   VM_Address base,
+		   VM_Address high) {
+    baseAddress = base;
+    highAddress = high;
+    int bytes   = high.diff(base);
+    int quanta  = bytes / ALIGNMENT;
+    marks       = (int[])mh.allocateArray(VM_Array.arrayOfIntType, quanta / BITS_PER_INT + 1);
   }
 
   private int wordIndex (Object object) {
-    VM_Magic.pragmaInline();
     int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) / BITS_PER_INT;
     if (VM.VerifyAssertions) VM.assert(index >= 0 && index < marks.length);
     return index;
@@ -40,7 +40,6 @@ final class VM_SideMarkVector implements VM_Constants,
 
 
   private int bitIndex (Object object, int wordIndex) {
-    VM_Magic.pragmaInline();
     int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) % BITS_PER_INT;
     if (DEBUG) {
       VM.sysWrite(" {Length ", marks.length);
@@ -55,36 +54,32 @@ final class VM_SideMarkVector implements VM_Constants,
   }
 
 
-  private static int mask (int bitIndex) {
-    VM_Magic.pragmaInline();
+  private int mask (int bitIndex) {
     return ~(1 << bitIndex);
   }
 
 
-  private static int getBit (int word, int bitIndex) {
-    VM_Magic.pragmaInline();
+  private int getBit (int word, int bitIndex) {
     return (word >>> bitIndex) & 0x1;
   }
 
 
   /**
-     * Test to see if the mark bit has the given value
-     */
+   * Test to see if the mark bit has the given value
+   */
   boolean testMarkBit (Object object, int value) {
-    VM_Magic.pragmaInline();
     if (DEBUG) VM.sysWriteln("testMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
     int bitnum = bitIndex(object, word);
     int bit    = getBit(marks[word], bitnum);
     return (bit & value) != 0;
   }
-
+  
 
   /**
-     * Write the given value in the mark bit.
-     */
+   * Write the given value in the mark bit.
+   */
   void writeMarkBit (Object object, int b) {
-    VM_Magic.pragmaInline();
     if (VM.VerifyAssertions) VM.assert((b & ~0x1) == 0);
     if (DEBUG) VM.sysWriteln("writeMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
@@ -96,10 +91,9 @@ final class VM_SideMarkVector implements VM_Constants,
 
 
   /**
-     * Atomically write the given value in the mark bit.
-     */
+   * Atomically write the given value in the mark bit.
+   */
   void atomicWriteMarkBit(Object object, int value) {
-    VM_Magic.pragmaInline();
     if (VM.VerifyAssertions) VM.assert((value & ~0x1) == 0);
     if (DEBUG) VM.sysWriteln("atomicWriteMarkBit ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);
@@ -118,10 +112,9 @@ final class VM_SideMarkVector implements VM_Constants,
 
 
   /**
-     * Used to mark boot image objects during a parallel scan of objects during GC.
-     */
+   * Used to mark objects during a parallel scan of objects during GC.
+   */
   boolean testAndMark(Object object, int value) {
-    VM_Magic.pragmaInline();
     if (VM.VerifyAssertions) VM.assert((value & ~0x1) == 0);
     if (DEBUG) VM.sysWrite("testAndMark ", VM_Magic.objectAsAddress(object));
     int word   = wordIndex(object);

@@ -38,7 +38,7 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
 
     // attatch heaps.
     if (verbose >= 2) VM.sysWriteln("Attaching heaps");
-    VM_Heap.boot(bootHeap, bootrecord);
+    VM_Heap.boot(bootHeap, null, bootrecord);
     immortalHeap.attach(bootrecord.smallSpaceSize);
 
     VM_GCUtil.boot();

@@ -174,43 +174,27 @@ public class VM_Array extends VM_Type
     switch (atype)
       {
       case  4: 
-	if (arrayOfBooleanType == null)
-	  arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfBooleanType;
          
       case  5: 
-	if (arrayOfCharType == null)
-	  arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfCharType;
          
       case  6: 
-	if (arrayOfFloatType == null)
-	  arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfFloatType;
          
       case  7: 
-	if (arrayOfDoubleType == null)
-	  arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfDoubleType;
          
       case  8: 
-	if (arrayOfByteType == null)
-	  arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfByteType;
          
       case  9: 
-	if (arrayOfShortType == null)
-	  arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfShortType;
          
       case 10: 
-	if (arrayOfIntType == null)
-	  arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfIntType;
          
       case 11: 
-	if (arrayOfLongType == null)
-	  arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfLongType;
       }
 
@@ -519,14 +503,14 @@ public class VM_Array extends VM_Type
   //----------------//
    
   private static Object[] javaLangObjectTIB;
-  private static VM_Array arrayOfBooleanType;
-  private static VM_Array arrayOfByteType;
-  private static VM_Array arrayOfShortType;
-  private static VM_Array arrayOfIntType;
-  private static VM_Array arrayOfLongType;
-  private static VM_Array arrayOfFloatType;
-  private static VM_Array arrayOfDoubleType;
-  private static VM_Array arrayOfCharType;
+  static VM_Array arrayOfBooleanType;
+  static VM_Array arrayOfByteType;
+  static VM_Array arrayOfShortType;
+  static VM_Array arrayOfIntType;
+  static VM_Array arrayOfLongType;
+  static VM_Array arrayOfFloatType;
+  static VM_Array arrayOfDoubleType;
+  static VM_Array arrayOfCharType;
 
   private VM_Type  elementType;
   private VM_Type  innermostElementType;
@@ -642,5 +626,17 @@ public class VM_Array extends VM_Type
   // No-op (arrays have no <clinit> method).
   //
   public final void initialize() { }
+
+
+  static void init() {
+    arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+  }
 
 }

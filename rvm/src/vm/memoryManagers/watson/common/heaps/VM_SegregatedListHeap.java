@@ -44,10 +44,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
   private int total_blocks_in_use;
 
-  private static final VM_Array BCArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
   private static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-  private static final int byteArrayHeaderSize = VM_ObjectModel.computeArrayHeaderSize(byteArrayType);
-  private static Object[] byteArrayTIB;  // we cache this because the code to get this is interruptible
 
   // value below is a tuning parameter: for single threaded appl, on multiple processors
   private static final int         numBlocksToKeep = 10;     // GSC 
@@ -141,20 +138,10 @@ final class VM_SegregatedListHeap extends VM_Heap
       build_list_for_new_block(init_blocks[i], st.sizes[i]);
     }
 
-    VM_BlockControl.boot();
-
     // Now allocate the blocks array - which will be used to allocate blocks to sizes
     
-    // GET STORAGE FOR BLOCKS ARRAY 
-    //    storage for entries in blocks array: 4 bytes/ ref
     num_blocks = size / GC_BLOCKSIZE;
-    int blocks_array_size = BCArrayType.getInstanceSize(num_blocks);
-    VM_Address blocks_array_storage = immortalHeap.allocateZeroedMemory(blocks_array_size);
-    VM_Address blocks_storage = immortalHeap.allocateZeroedMemory((num_blocks-GC_SIZES) * VM_BlockControl.getInstanceSize());
-
-    // available from before
-    Object[] BCArrayTIB = BCArrayType.getTypeInformationBlock();
-    blocks = (VM_BlockControl []) (VM_ObjectModel.initializeArray(blocks_array_storage, BCArrayTIB, num_blocks, blocks_array_size));
+    blocks = (VM_BlockControl[]) immortalHeap.allocateArray(VM_BlockControl.ARRAY_TYPE, num_blocks);
 
     // index for highest page in heap
     highest_block = num_blocks -1;
@@ -177,16 +164,11 @@ final class VM_SegregatedListHeap extends VM_Heap
     init_blocks    = null;        // these are currently live through blocks
 
     // Now allocate the rest of the VM_BlockControls
-    int bcSize = VM_BlockControl.getInstanceSize();
-    Object[] bcTIB = VM_BlockControl.getTIB();
     for (int i = GC_SIZES; i < num_blocks; i++) {
-      VM_Address bcAddress = blocks_storage.add((i - GC_SIZES) * bcSize);
-      VM_BlockControl bc = (VM_BlockControl) VM_ObjectModel.initializeScalar(bcAddress, bcTIB, bcSize);
+      VM_BlockControl bc = (VM_BlockControl) immortalHeap.allocateScalar(VM_BlockControl.TYPE);
       blocks[i] = bc;
       bc.baseAddr = start.add(i * GC_BLOCKSIZE); 
       bc.nextblock = (i == num_blocks - 1) ? OUT_OF_BLOCKS : i + 1;
-      // set alloc pointer = 0 here
-      bc.mark = null;
     }
   
     // statistics arrays for blocks usage
@@ -609,7 +591,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 	VM_ObjectModel.setArrayLength(alloc_block.mark, size);
 	return theblock;
       } else {    // free the existing array space
-	mallocHeap.free(VM_Magic.objectAsAddress(alloc_block.mark).sub(byteArrayHeaderSize));
+	mallocHeap.atomicFreeArray(alloc_block.mark);
       }
     }
     // allocate a mark array from the malloc heap.
@@ -695,8 +677,8 @@ final class VM_SegregatedListHeap extends VM_Heap
       if (size <= alloc_block.alloc_size) {
 	VM_ObjectModel.setArrayLength(alloc_block.mark, size);
 	return 0;
-      } else {    // free the existing array space
-	mallocHeap.free(VM_Magic.objectAsAddress(alloc_block.mark).sub(byteArrayHeaderSize));
+      } else {    // free the existing make array
+	mallocHeap.atomicFreeArray(alloc_block.mark);
       }
     }
 
@@ -717,11 +699,6 @@ final class VM_SegregatedListHeap extends VM_Heap
       if (size <= GC_SIZEVALUES[i]) return i;
     return -1;
   }
-
-
-
-
-
 
 
   //  a debugging routine: to make sure a pointer is into the give block
@@ -806,12 +783,6 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-
-  protected int getByteArrayInstanceSize (int numelts) {
-    int bytes = byteArrayHeaderSize + numelts;
-    int round = (bytes + (WORDSIZE - 1)) & ~(WORDSIZE - 1);
-    return round;
-  }
 
   public long freeMemory () {
     return freeBlocks() * GC_BLOCKSIZE;

@@ -71,12 +71,11 @@ public class VM_Allocator extends VM_GCStatistics
 					   4 * VM_Memory.getPagesize());
     int nurserySize = bootrecord.nurserySize;
     
-    VM_Heap.boot(bootHeap, bootrecord);
+    VM_Heap.boot(bootHeap, mallocHeap, bootrecord);
     immortalHeap.attach(immortalSize);
     largeHeap.attach(bootrecord.largeSpaceSize);
     nurseryHeap.attach(bootrecord.nurserySize);
     smallHeap.attach(smallHeapSize);
-    mallocHeap.attach(bootrecord);
 
     nurseryHeap.reset();
 
@@ -627,7 +626,6 @@ public class VM_Allocator extends VM_GCStatistics
       // Initialize heaps for collection
       bootHeap.startCollect();
       immortalHeap.startCollect();
-      mallocHeap.startCollect();
       largeHeap.startCollect();
       smallHeap.startCollect();
 

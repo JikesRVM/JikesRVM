@@ -111,7 +111,7 @@ public class VM_Allocator extends VM_GCStatistics
     int immortalSize = VM_Memory.roundUpPage(1024 * 1024 + (4 * largeSize / ps) + 4 * ps);
 
     if (verbose >= 2) VM.sysWriteln("Attaching heaps");
-    VM_Heap.boot(bootHeap, bootrecord);
+    VM_Heap.boot(bootHeap, /* no malloc heap in this collector */null, bootrecord);
     fromHeap.attach(oneHeapSize);
     toHeap.attach(oneHeapSize);
     immortalHeap.attach(immortalSize);

@@ -123,7 +123,7 @@ public class VM_Allocator
     else
       MAJOR_GC_DELTA = nurserySize/2;   // .50 of nursery for small nursery
     
-    VM_Heap.boot(bootHeap, bootrecord);
+    VM_Heap.boot(bootHeap, /* no malloc heap with this collector*/ null, bootrecord);
     immortalHeap.attach(immortalSize);
     largeHeap.attach(largeSize);
     if (variableNursery) {

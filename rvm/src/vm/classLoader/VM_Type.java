@@ -628,6 +628,9 @@
     NativeBridgeType      = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
     AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Address;"), VM_SystemClassLoader.getVMClassLoader());
+
+    VM_Array.init();
+
   }
 
   public String toString() {

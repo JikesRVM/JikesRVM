@@ -95,23 +95,17 @@ public class VM_Allocator extends VM_GCStatistics
 					     ((int) (0.05 * smallHeapSize)) + 
 					     4 * VM_Memory.getPagesize());
 
-    VM_Heap.boot(bootHeap, bootrecord);
+    VM_Heap.boot(bootHeap, mallocHeap, bootrecord);
     immortalHeap.attach(immortalSize);
     largeHeap.attach(bootrecord.largeSpaceSize);
     smallHeap.attach(smallHeapSize);
-    mallocHeap.attach(bootrecord);
 
     VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
     smallHeap.boot(st, immortalHeap);
 
     VM_GCUtil.boot();
 
-    // create the finalizer object 
     VM_Finalizer.setup();
-
-    VM_Address min = bootHeap.start.LT(immortalHeap.start) ? bootHeap.start : immortalHeap.start;
-    VM_Address max = bootHeap.end.GT(immortalHeap.start) ? bootHeap.end : immortalHeap.end;
-    VM_AllocatorHeader.boot(min, max);
 
     if (verbose >= 1) showParameter();
   }
@@ -273,7 +267,6 @@ public class VM_Allocator extends VM_GCStatistics
 
       bootHeap.startCollect();
       immortalHeap.startCollect();
-      mallocHeap.startCollect();
 
       // Now initialize the large object space mark array
       largeHeap.startCollect();

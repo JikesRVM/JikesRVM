@@ -7,16 +7,32 @@
  * @author Dave Grove
  */
 final class VM_BootHeap extends VM_Heap
-  implements VM_Uninterruptible {
+  implements VM_Uninterruptible,
+	     VM_AllocatorHeaderConstants {
 
   VM_BootHeap() {
     super("Boot Image Heap");
+    if (USE_SIDE_MARK_VECTOR) {
+      markVector = new VM_SideMarkVector();
+    }
   }
 
   /**
    * the current mark value
    */
   private int markValue;
+
+  /**
+   * A side mark vector, in case object model doesn't have mark bit in object
+   */
+  private VM_SideMarkVector markVector;
+
+  void setAuxiliary() {
+    super.setAuxiliary();
+    if (USE_SIDE_MARK_VECTOR) {
+      markVector.boot(mallocHeap, start, end);
+    }
+  }
 
   /**
    * Allocate size bytes of raw memory.
@@ -46,7 +62,11 @@ final class VM_BootHeap extends VM_Heap
    * @return whether or not the object was already marked
    */
   public boolean mark(VM_Address ref) {
-    return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
+    if (USE_SIDE_MARK_VECTOR) {
+      return markVector.testAndMark(ref, markValue);
+    } else {
+      return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
+    }
   }
 
   /**
@@ -54,7 +74,11 @@ final class VM_BootHeap extends VM_Heap
    */
   public boolean isLive(VM_Address ref) {
     Object obj = VM_Magic.addressAsObject(ref);
-    return VM_AllocatorHeader.testMarkBit(obj, markValue);
+    if (USE_SIDE_MARK_VECTOR) {
+      return markVector.testMarkBit(obj, markValue);
+    } else {
+      return VM_AllocatorHeader.testMarkBit(obj, markValue);
+    }
   }
 
   /**

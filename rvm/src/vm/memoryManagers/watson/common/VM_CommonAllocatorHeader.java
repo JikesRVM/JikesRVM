@@ -49,48 +49,30 @@ public class VM_CommonAllocatorHeader
   }
 
 
-  /*
-   * Mark Bit
-   */
-
-  protected static final VM_SideMarkVector markVector = new VM_SideMarkVector();
-
   /**
    * test to see if the mark bit has the given value
    */
   static boolean testMarkBit(Object ref, int value) {
-    if (USE_SIDE_MARK_VECTOR) {
-      return markVector.testMarkBit(ref, value);
-    } else {
-      return (VM_ObjectModel.readAvailableBitsWord(ref) & value) != 0;
-    }
+    return (VM_ObjectModel.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
   static void writeMarkBit(Object ref, int value) {
-    if (USE_SIDE_MARK_VECTOR) {
-      markVector.writeMarkBit(ref, value);
-    } else {
-      int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
-      int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
-      VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
-    }
+    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
+    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
   }
 
   /**
    * atomically write the given value in the mark bit.
    */
   static void atomicWriteMarkBit(Object ref, int value) {
-    if (USE_SIDE_MARK_VECTOR) {
-      markVector.atomicWriteMarkBit(ref, value);
-    } else {
-      while (true) {
-	int oldValue = VM_ObjectModel.prepareAvailableBits(ref);
-	int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
-	if (VM_ObjectModel.attemptAvailableBits(ref, oldValue, newValue)) break;
-      }
+    while (true) {
+      int oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
+      if (VM_ObjectModel.attemptAvailableBits(ref, oldValue, newValue)) break;
     }
   }
 
@@ -98,17 +80,13 @@ public class VM_CommonAllocatorHeader
    * used to mark boot image objects during a parallel scan of objects during GC
    */
   static boolean testAndMark(Object ref, int value) {
-    if (USE_SIDE_MARK_VECTOR) {
-      return markVector.testAndMark(ref, value);
-    } else {
-      int oldValue;
-      do {
-	oldValue = VM_ObjectModel.prepareAvailableBits(ref);
-	int markBit = oldValue & GC_MARK_BIT_MASK;
-	if (markBit == value) return false;
-      } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, oldValue ^ GC_MARK_BIT_MASK));
-      return true;
-    }
+    int oldValue;
+    do {
+      oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      int markBit = oldValue & GC_MARK_BIT_MASK;
+      if (markBit == value) return false;
+    } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, oldValue ^ GC_MARK_BIT_MASK));
+    return true;
   }
 
 

@@ -49,13 +49,4 @@ public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader
   public static void dumpHeader(Object ref) {
     // nothing to do (no bytes of GC header)
   }
-
-  /**
-   * Perform boot-time initialization: allocate the mark vector for the bootimage
-   */
-  static void boot(VM_Address bootBaseAddress, VM_Address bootHighAddress) {
-    if (USE_SIDE_MARK_VECTOR) {
-      markVector.boot(bootBaseAddress, bootHighAddress);
-    }
-  }
 }

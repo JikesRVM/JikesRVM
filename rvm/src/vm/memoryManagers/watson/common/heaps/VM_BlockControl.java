@@ -26,42 +26,20 @@
 
 ///TODO: remove Alloc1, Alloc2, and byte[] alloc.
 //
-final class VM_BlockControl
-    implements VM_Constants, VM_GCConstants, VM_Uninterruptible
-{
-    VM_Address baseAddr;
-    int slotsize;		// slotsize
-    byte[] mark;
-    byte[] alloc;
-    int nextblock;
-    byte[] Alloc1;
-    byte[] Alloc2;
-    boolean live;
-    boolean sticky;
-    int alloc_size;	// allocated length of mark and alloc arrays
-    int allocCount; // RCGC number of allocated slots in the block
+final class VM_BlockControl {
 
-
-    static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-
-    private static int      instanceSize;
-    private static Object[] TIB;
-
-
-    static void boot () {
-	instanceSize = TYPE.getInstanceSize();
-	TIB = TYPE.getTypeInformationBlock();
-    }
-
-
-    static Object[] getTIB () {
-	return TIB;
-    }
-
-
-    static int getInstanceSize () {
-	if (VM.VerifyAssertions) VM.assert(instanceSize != 0);
-	return instanceSize;
-    }
-
+  VM_Address baseAddr;
+  int slotsize;	  // slotsize
+  byte[] mark;
+  byte[] alloc;
+  int nextblock;
+  byte[] Alloc1;
+  byte[] Alloc2;
+  boolean live;
+  boolean sticky;
+  int alloc_size; // allocated length of mark and alloc arrays
+  int allocCount; // RCGC number of allocated slots in the block
+  
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  static final VM_Array ARRAY_TYPE = TYPE.getArrayTypeForElementType();
 }

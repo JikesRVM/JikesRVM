@@ -10,17 +10,25 @@
  * @author Perry Cheng
  */
 final class VM_ImmortalHeap extends VM_Heap
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+  implements VM_Constants, VM_GCConstants, VM_Uninterruptible, VM_AllocatorHeaderConstants {
 
   private VM_Address allocationCursor;
   private int markValue;
   private VM_ProcessorLock spaceLock = new VM_ProcessorLock();
 
   /**
+   * A side mark vector, in case object model doesn't have mark bit in object
+   */
+  private VM_SideMarkVector markVector;
+
+  /**
    * Initialize for boot image - called from init of various collectors or spaces
    */
   VM_ImmortalHeap() {
     super("Immortal Heap");
+    if (USE_SIDE_MARK_VECTOR) {
+      markVector = new VM_SideMarkVector();
+    }
   }
 
   /**
@@ -29,6 +37,13 @@ final class VM_ImmortalHeap extends VM_Heap
   public void attach (int size) {
     super.attach(size);
     allocationCursor = start;
+  }
+
+  void setAuxiliary() {
+    super.setAuxiliary();
+    if (USE_SIDE_MARK_VECTOR) {
+      markVector.boot(mallocHeap, start, end);
+    }
   }
 
   /**
@@ -55,7 +70,11 @@ final class VM_ImmortalHeap extends VM_Heap
    * @return whether or not the object was already marked
    */
   public boolean mark(VM_Address ref) {
-    return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
+    if (USE_SIDE_MARK_VECTOR) {
+      return markVector.testAndMark(ref, markValue);
+    } else {
+      return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
+    }
   }
 
   /**
@@ -63,7 +82,11 @@ final class VM_ImmortalHeap extends VM_Heap
    */
   public boolean isLive(VM_Address ref) {
     Object obj = VM_Magic.addressAsObject(ref);
-    return VM_AllocatorHeader.testMarkBit(obj, markValue);
+    if (USE_SIDE_MARK_VECTOR) {
+      return markVector.testMarkBit(obj, markValue);
+    } else {
+      return VM_AllocatorHeader.testMarkBit(obj, markValue);
+    }
   }
 
   /**
@@ -137,18 +160,10 @@ final class VM_ImmortalHeap extends VM_Heap
       VM_ObjectModel.initializeAvailableByte(newObj); 
       VM_AllocatorHeader.setBarrierBit(newObj);
     }    
-    VM_AllocatorHeader.writeMarkBit(newObj, markValue);
-  }
-
-
-  private static short[] dummyShortArray = new short[1];
-
-  public short[] allocateShortArray(int numElements) {
-    Object [] tib = VM_ObjectModel.getTIB(dummyShortArray);
-    // XXXXX Is this the right way to compute size in object model?
-    int size = ((2 * numElements + 3) & ~3) + VM_ObjectModel.computeHeaderSize(tib);
-    VM_Address region = allocateZeroedMemory(size);
-    return (short[]) VM_ObjectModel.initializeArray(region, tib,
-						    numElements, size);
+    if (USE_SIDE_MARK_VECTOR) {
+      markVector.writeMarkBit(newObj, markValue);
+    } else {
+      VM_AllocatorHeader.writeMarkBit(newObj, markValue);
+    }
   }
 }

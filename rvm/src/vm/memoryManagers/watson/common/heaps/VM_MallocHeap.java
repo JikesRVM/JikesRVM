@@ -4,18 +4,26 @@
 //$Id$
 
 /**
- *  An area representing space manipulated by malloc-free.
- *  The main functionality is to provide the refInHeap/addrInHeap functionality.
+ * An area representing space manipulated by malloc-free.
+ * The main functionality is to provide the refInHeap/addrInHeap functionality.
+ * <p>
+ * NOTE: Space allocated from the MallocHeap is not managed by
+ *       Jikes RVM's garbage collectors.  In particular, objects in
+ *       this space are not traced during collection.  Therefore
+ *       objects in the malloc heap <STRONG>must not</STRONG> contain
+ *       pointers to objects to any copying space and also must not
+ *       be the only pointer to an object in another space.
+ *       We'd really like to disallow pointers from a malloc heap to 
+ *       all other heaps, but in practice pointers from the malloc heap
+ *       to the bootimage heap do exist and must be allowed.
  *
  *  @author Perry Cheng
+ *  @author David Grove
  */
-
 public class VM_MallocHeap extends VM_Heap 
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
 
   // Internal management
-  private VM_BootRecord bootrecord;
-  private int markValue;
   private VM_ProcessorLock spaceLock = new VM_ProcessorLock();
 
   /**
@@ -25,13 +33,10 @@ public class VM_MallocHeap extends VM_Heap
     super("Malloc Heap");
   }
 
-
   /**
    * Initialize for execution.
    */
   public void attach (int size) { VM.sysFail("Cannot attach malloc space with size"); }
-
-  public void attach (VM_BootRecord br) { bootrecord = br; }
 
   /**
    * Get total amount of memory used by malloc space.
@@ -41,36 +46,6 @@ public class VM_MallocHeap extends VM_Heap
   public int totalMemory () {
     return size;
   }
-
-  /**
-   * Mark an object in the boot heap
-   * @param ref the object reference to mark
-   * @return whether or not the object was already marked
-   */
-  public boolean mark(VM_Address ref) {
-    if (VM.VerifyAssertions) VM.assert(!VM_AllocatorHeaderConstants.USE_SIDE_MARK_VECTOR);
-    return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
-  }
-
-  /**
-   * Is the object reference live?
-   */
-  public boolean isLive(VM_Address ref) {
-    if (VM_AllocatorHeaderConstants.USE_SIDE_MARK_VECTOR) {
-      return true;
-    } else {
-      Object obj = VM_Magic.addressAsObject(ref);
-      return VM_AllocatorHeader.testMarkBit(obj, markValue);
-    }
-  }
-
-  /**
-   * Work to do before collection starts
-   */
-  public void startCollect() {
-    // flip the sense of the mark bit.
-    markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
-  }    
 
   /**
    * Allocate a scalar object. Fills in the header for the object,
@@ -105,6 +80,32 @@ public class VM_MallocHeap extends VM_Heap
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     return o;
   }
+  
+  /**
+   * Atomically free an array object.
+   * @param obj the object to free
+   */
+  public void atomicFreeArray(Object o) {
+    // NOTE: making an evil assumption about the object model here
+    //       to avoid requiring object model to have an object-to-base-addr function.
+    //       This might be the wrong design decison.
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    VM_Type t = VM_Magic.getObjectType(o);
+    int fudge = VM_ObjectModel.computeArrayHeaderSize(t.asArray());
+    VM_Address start = VM_Magic.objectAsAddress(o).sub(fudge);
+    free(start);
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+  }
+
+  
+  /**
+   * Free a memory region.
+   * @param addr the pointer to free
+   */
+  public void free(VM_Address addr) {
+    VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
+    // Cannot correctly change start/end here
+  }
 
   /**
    * Allocate size bytes of zeroed memory.
@@ -119,7 +120,7 @@ public class VM_MallocHeap extends VM_Heap
     //       This method is sometimes called when the GC system is in a delicate state.
     spaceLock.lock();
 
-    VM_Address region = VM_Address.fromInt(VM.sysCall1(bootrecord.sysMallocIP, size));
+    VM_Address region = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
     VM_Address regionEnd = region.add(size);
     if (region.isZero()) {
       VM.sysFail("VM_MallocHeap failed to malloc " + size  + " bytes");
@@ -147,18 +148,7 @@ public class VM_MallocHeap extends VM_Heap
    * For example, setting the GC state bits in the object header.
    */
   protected void postAllocationProcessing(Object newObj) { 
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
-      VM_ObjectModel.initializeAvailableByte(newObj); 
-      VM_AllocatorHeader.setBarrierBit(newObj);
-    }    
-    if (!VM_AllocatorHeaderConstants.USE_SIDE_MARK_VECTOR) {
-      VM_AllocatorHeader.writeMarkBit(newObj, markValue);
-    }
+    // nothing to do in this heap since the GC subsystem
+    // ignores objects in the malloc heap.
   }
-
-  void free(VM_Address addr) {
-    VM.sysCall1(bootrecord.sysFreeIP, addr.toInt());
-    // Cannot correctly change start/end here
-  }
-
 }
