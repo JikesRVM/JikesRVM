@@ -48,9 +48,15 @@ public class LOSPointer implements Constants, VM_Uninterruptible {
    */
   public VM_Address alloc(boolean isScalar, EXTENT bytes) throws VM_PragmaInline {
     VM_Address result = VM_Address.zero();
+    int tryCount = 0;
     while (result.isZero()) {
       result = los.alloc(isScalar, bytes);
-      if (Plan.verbose > 1) VM.sysWriteln("LOSPointer.alloc allocated ", result);
+      if (Plan.verbose > 1) {
+	VM.sysWrite("LOSPointer.alloc allocated ", result);
+	VM.sysWriteln("   request = ", bytes);
+      }
+      if (tryCount++ > 2) 
+	VM.sysFail("Out of Memory during large object allocation");
     }
     return result;
   }
