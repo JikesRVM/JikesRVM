@@ -59,21 +59,6 @@ methods, and stubs for the other fields and methods expected by the rest
 of the RVM runtime (not all will be needed in any one implementation).
 \end{enumerate}
 
-The provided collectors contain a number of common methods which you
-will want to use (``use'' presently means copy into your {\tt
-VM\_Allocator} file).
-Some of them are:
-\begin{description}
-\item[scanStatics] which scans all class static variables (in the JTOC) and
-reports all references.
-\item[scanObjectOrArray] which scans an object or array and reports any references
-in that object or array.
-\item[scanStack] which scans a threads stack and reports any references in
-local variables or saved registers.  This will use make use of the compiler
-specific StackMapIterators and the compiler generated stack maps for GC safe points.
-All threads, except the executing collector threads, will be stopped a safe points.
-\end{description}
-
 \subsection{Load Balancing Work Queue} \label{sssec:workqueue}
 \index{VM\_GCWorkQueue class}
 \index{finalizable objects}
@@ -117,7 +102,6 @@ generational contains an as yet very experimental capability to require
 objects to survive more than one collection before being treated as old.
 (The constants GC\_OLD, GC\_STEPS, and GC\_THRESHHOLD) used in this 
 collector are part of the implementation.)
-
 
 \subsection{Starting Garbage Collection} \label{sssec:startgc}
 \index{VM\_Handshake class}
