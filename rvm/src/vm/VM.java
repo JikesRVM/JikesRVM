@@ -144,7 +144,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
-    VM_BootstrapClassLoader.boot();
+    VM_SystemClassLoader.boot();
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
@@ -381,7 +381,7 @@ public class VM extends VM_Properties implements VM_Constants,
     }
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getVMClassLoader(), classDescriptor);
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
