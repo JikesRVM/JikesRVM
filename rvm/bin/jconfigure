@@ -776,6 +776,9 @@ function emitEnvironmentKsh
    print ""
    if (( RVM_WITH_GNU_CLASSPATH )); then
        print "export CLASSPATH_LIBRARIES=YES"
+       if [[ x$CLASSPATH_SRC != x ]]; then
+	   print "export CLASSPATH_SRC=$CLASSPATH_SRC"
+       fi
    fi
    print ""
    }
@@ -908,6 +911,8 @@ function emitMakefile
 #
 function emitController
    {
+   . $RVM_HOST_CONFIG
+
    print '#!/bin/ksh'
    print '# Run all phases of vm builder.'
    print 'set -e'
@@ -943,10 +948,11 @@ function emitController
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
     print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f )'
    else
-    print '. $RVM_HOST_CONFIG'
-    print 'if [[ x$CLASSPATH_SRC = x ]]; then'
-    print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
-    print 'fi'
+    if [[ x$CLASSPATH_SRC = x ]]; then
+      print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
+    else
+      print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
+    fi
    fi
    print ''
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
@@ -2301,6 +2307,8 @@ if (( ! BUILD_RVMRT_JAR )); then
   . $RVM_HOST_CONFIG
   if [[ x$CLASSPATH_SRC = x ]]; then
     $RVM_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath
+  else
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar --full-build --check
   fi
  fi
 fi

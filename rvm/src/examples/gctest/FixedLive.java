@@ -28,6 +28,8 @@ class FixedLive {
     if (liveSize < 0)
       System.out.println("Amount of live data must be positive");
     runTest();
+
+    System.exit(0);
   }
 
   static double setupTime = 0.0;

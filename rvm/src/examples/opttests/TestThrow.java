@@ -44,7 +44,6 @@ class TestThrow
       catch (MyErrorBase  e)
          {
          System.out.println("caught: " + e);
-      // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
          }
       
       // test "vm" exceptions
@@ -55,8 +54,7 @@ class TestThrow
          }
       catch (IOException e)
          {
-         System.out.println("caught: " + e);
-      // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
+         System.out.println("caught: " + e.getClass());
          }
       }
 

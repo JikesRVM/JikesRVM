@@ -25,6 +25,8 @@ class LargeAlloc {
       base = true;
     allocSize = base ? 500 : 3000;
     runTest();
+
+    System.exit(0);
   }
 
 

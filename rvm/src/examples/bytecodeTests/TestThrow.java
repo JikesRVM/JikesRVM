@@ -55,8 +55,7 @@ class TestThrow
          }
       catch (IOException e)
          {
-         SystemOut.println("caught: " + e);
-      // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
+         SystemOut.println("caught: " + e.getClass());
          }
       
       // test throw through synchronized block

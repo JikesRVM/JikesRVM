@@ -218,7 +218,7 @@ want: class cast exception
 run1
 TestExceptionThrow
 caught: MyError
-caught: java.io.FileNotFoundException: xyzzy
+caught: class java.io.FileNotFoundException
 run2
  IndexOutOfBoundsException: 'java.lang.IndexOutOfBoundsException: I was thrwon in run7()!!!', but caught in run()!!!
  At End
@@ -235,7 +235,7 @@ run6
 run7
 TestThrow
 caught: MyError
-caught: java.io.FileNotFoundException: xyzzy
+caught: class java.io.FileNotFoundException
 run8
  IndexOutOfBoundsException caught
  At End

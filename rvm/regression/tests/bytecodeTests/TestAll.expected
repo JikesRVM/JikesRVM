@@ -796,7 +796,7 @@ clinit called for TestClassInitializerD
 123
 TestThrow
 caught: MyTestError
-caught: java.io.FileNotFoundException: xyzzy
+caught: class java.io.FileNotFoundException
 caught: MyTestError
 TestFinally
 2
