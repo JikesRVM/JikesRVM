@@ -7,7 +7,7 @@
  * Magic methods for accessing raw machine memory, registers, and 
  * operating system calls.
  * 
- * These are "inline assembler functions" that cannot be implemented in
+ * <p> These are "inline assembler functions" that cannot be implemented in
  * java code. Their names are recognized by RVM's compilers 
  * and cause inline machine code to be generated instead of 
  * actual method calls.
@@ -764,6 +764,14 @@ public class VM_Magic {
    public static void roundToZero() {
      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
    }
+
+   /**
+    * Clear the hardware floating point state
+    */
+   public static void clearFloatingPointState() {
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+   }
+
 //-#endif
   
   //---------------------------------------//

@@ -116,6 +116,7 @@ class VM_MagicNames {
   //-#endif
   //-#if RVM_FOR_IA32
   static VM_Atom roundToZero;
+  static VM_Atom clearFloatingPointState;
   //-#endif
 
   static VM_Atom pragmaNoInline;
@@ -229,6 +230,7 @@ class VM_MagicNames {
     //-#endif
     //-#if RVM_FOR_IA32
     roundToZero                   = VM_Atom.findOrCreateAsciiAtom("roundToZero");
+    clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
     //-#endif
 
     pragmaNoInline                = VM_Atom.findOrCreateAsciiAtom("pragmaNoInline");

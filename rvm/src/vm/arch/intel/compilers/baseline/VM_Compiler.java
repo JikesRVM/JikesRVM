@@ -3602,6 +3602,11 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
       return;
     }
+    if (methodName == VM_MagicNames.clearFloatingPointState) {
+      // Clear the hardware floating-point state
+      asm.emitFNINIT();
+      return;
+    }
     
     if (methodName == VM_MagicNames.clearThreadSwitchBit) { // nothing to do
       // ignore obsolete magic

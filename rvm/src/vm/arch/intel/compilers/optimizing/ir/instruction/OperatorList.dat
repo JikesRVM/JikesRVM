@@ -265,6 +265,13 @@ none
 
 
 
+# Clear all hardware floating-point state
+CLEAR_FLOATING_POINT_STATE
+Empty
+none
+
+
+
 # float/double addition
 FP_ADD
 Binary
