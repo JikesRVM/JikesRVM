@@ -119,6 +119,28 @@ abstract class SegregatedFreeList extends Allocator
   /**
    * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
    *
+   * This code first tries the fast version and, if needed, the slow path.
+   *
+   * @param isScalar True if the object to occupy this space will be a
+   * scalar.
+   * @param bytes The size of the object to occupy this space, in bytes.
+   * @return The address of the first word of <code>bytes</code>
+   * contigious bytes of zeroed memory.
+   */
+  public final VM_Address alloc (boolean isScalar, EXTENT bytes) 
+    throws VM_PragmaInline {
+    if (FRAGMENTATION_CHECK)
+      bytesAlloc += bytes;
+    VM_Address cell = allocFast(isScalar, bytes);
+    if (cell.isZero()) 
+      return allocSlow(isScalar, bytes);
+    else
+      return cell;
+  }
+
+  /**
+   * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
+   *
    * This code must be efficient and must compile easily.  Here we
    * minimize the number of calls to inlined functions, and force the
    * "slow path" (uncommon case) out of line to reduce pressure on the
@@ -131,10 +153,8 @@ abstract class SegregatedFreeList extends Allocator
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address alloc(boolean isScalar, EXTENT bytes) 
+  public final VM_Address allocFast (boolean isScalar, EXTENT bytes) 
     throws VM_PragmaInline {
-    if (FRAGMENTATION_CHECK)
-      bytesAlloc += bytes;
 
     int sizeClass = getSizeClass(bytes);
     VM_Address cell = freeList.get(sizeClass);
@@ -143,26 +163,26 @@ abstract class SegregatedFreeList extends Allocator
       freeList.set(sizeClass, getNextCell(cell));
       postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes);
       Memory.zeroSmall(cell, bytes);
-      return cell;
-    } else
-      return allocFromNextFreeList(isScalar, bytes, sizeClass);
+    } 
+    return cell;
+
   }
 
   abstract void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
 			  EXTENT bytes);
 
   /**
-   * Allocate <code>bytes</code> contigious bytes of non-zeroed memory
-   * in a context where the free list is empty. This will mean either
-   * finding another block with a non-empty free list, or allocating a
-   * new block.<p>
+   * Allocate <code>bytes</code> contigious bytes of non-zeroed memory.
+   * First check if the fast path works.  This is needed since this method
+   * may be called in the context when the fast version was NOT just called.
+   * If this fails, it will try finding another block with a non-empty free list, 
+   * or allocating a new block.<p>
    *
    * This code should be relatively infrequently executed, so it is
    * forced out of line to reduce pressure on the compilation of the
    * core alloc routine.<p>
    *
-   * Precondition: The free list for <code>sizeClass</code> is
-   * exhausted.<p>
+   * Precondition: None 
    *
    * Postconditions: A new cell has been allocated (not zeroed), and
    * the block containing the cell has been placed on the appropriate
@@ -174,11 +194,16 @@ abstract class SegregatedFreeList extends Allocator
    * @param bytes The size of the object to occupy this space, in bytes.
    * @param sizeClass  The size class of the cell to be allocated.
    * @return The address of the first word of the <code>bytes</code>
-   * contigious bytes of non-zerod memory.
+   * contigious bytes of zerod memory.
    */
-  private final VM_Address allocFromNextFreeList(boolean isScalar, int bytes,
-						 int sizeClass)
-    throws VM_PragmaNoInline {
+   public final VM_Address allocSlowOnce (boolean isScalar, int bytes) throws VM_PragmaNoInline {
+
+
+    VM_Address cell = allocFast(isScalar, bytes);
+    if (!cell.isZero()) 
+	return cell;
+
+    int sizeClass = getSizeClass(bytes);
     VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
       // flush the current (empty) free list
@@ -188,7 +213,7 @@ abstract class SegregatedFreeList extends Allocator
       current = BlockAllocator.getNextBlock(current);
       while (!current.isZero()) {
 	advanceToBlock(current, sizeClass);
-	VM_Address cell = getFreeList(current);
+	cell = getFreeList(current);
 	if (!cell.isZero()) {
 	  // this block has at least one free cell, so use it
 	  currentBlock.set(sizeClass, current);
@@ -202,33 +227,14 @@ abstract class SegregatedFreeList extends Allocator
 	current = BlockAllocator.getNextBlock(current);
       }
     }
-    return allocSlow(isScalar, bytes);
-  }
 
-  /**
-   * Perform a slow path allocation, attempting just once to acquire
-   * space.  This method is called by the super class's allocSlow()
-   * method which will handle the case of resource exhaustion,
-   * re-calling this method if necessary.
-   *
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
-   * @param bytes The size of the object to occupy this space, in bytes.
-   * @return The address of the first word of <code>bytes</code>
-   * contigious bytes of zeroed memory, or zero if memory could not be
-   * acquired.
-   */
-  protected final VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes)
-    throws VM_PragmaInline {
-    int sizeClass = getSizeClass(bytes);
-    VM_Address cell = expandSizeClass(sizeClass);
+    cell = expandSizeClass(sizeClass);
     if (cell.isZero())
       return VM_Address.zero();
 
     cellsInUse[sizeClass]++;
     freeList.set(sizeClass, getNextCell(cell));
-    postAlloc(cell, currentBlock.get(sizeClass), sizeClass,
-	      bytes);
+    postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes);
     Memory.zeroSmall(cell, bytes);
     return cell;
   }
@@ -546,11 +552,11 @@ abstract class SegregatedFreeList extends Allocator
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value -= (1<<INUSE_SHIFT);
     VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
+    int count = value>>INUSE_SHIFT;
     if (VM.VerifyAssertions) {
-      VM._assert((value>>INUSE_SHIFT) < (1<<INUSE_BITS));
-      VM._assert((value>>INUSE_SHIFT) > 0);
+      VM._assert(count >= 0 && count < (1<<INUSE_BITS));
     }
-    return value>>INUSE_SHIFT;
+    return count;
   }
 
   ////////////////////////////////////////////////////////////////////////////
