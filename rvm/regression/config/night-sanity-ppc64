@@ -1,4 +1,5 @@
 prototype                        -test-list nightly-tests-extended
+prototype-opt                    -test-list nightly-tests-extended
 BaseBaseMarkSweep                -test-list nightly-tests
 BaseBaseSemiSpace                -test-list nightly-tests
 BaseBaseGenCopy                  -test-list nightly-tests
