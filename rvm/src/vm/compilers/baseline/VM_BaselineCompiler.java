@@ -1770,9 +1770,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+arrayRef);
 	
 	if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
-	  VM.sysWriteln("During compilation of "+method+" found a anewarray of "+elementTypeRef);
-	  VM.sysWriteln("You must use the 'create' function to create an array of this type");
-	  VM._assert(false);
+	  VM._assert(false, "During compilation of " + method 
+		    + " found an anewarray of "+ elementTypeRef + "\n"
+		    + "You must use the 'create' function to create an array of this type");
 	}
 
 	// We can do early resolution of the array type if the element type 
@@ -2168,7 +2168,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
    */
   protected final void forbiddenBytecode(String msg) {
     if (!VM.ParanoidVerifyUnint && VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; //Programmer has asserted that we don't have to do checking for this method.
-    VM.sysWriteln("WARNING "+ method + ": contains forbidden bytecode "+msg);
+    VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
   }
 
   /**
