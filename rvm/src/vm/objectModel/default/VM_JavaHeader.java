@@ -366,7 +366,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Non-atomic write of word containing available bits
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-                                            int ref, VM_Word val) {
+                                            int ref, VM_Word val) throws VM_PragmaInterruptible {
     //-#if RVM_FOR_32_ADDR
     bootImage.setAddressWord(ref + STATUS_OFFSET, val.toInt());
     //-#else
