@@ -28,8 +28,8 @@ configuration of JMTk components which together define the memory
 management strategy for a particular build of Jikes RVM.\@  The
 \texttt{policy} sub-directory contains classes implementing various
 memory management policies (such as \xlink{mark-sweep
-    collection}{\MarkSweepCollectorURL}, \xlink{free-list
-    allocation}{\BaseFreeListURL}, \xlink{bump-pointer
+    collection}{\MarkSweepLocalURL}, \xlink{free-list
+    allocation}{\SegregatedFreeListURL}, \xlink{bump-pointer
     allocation}{\BumpPointerURL}, etc.).  The \texttt{utility}
 sub-directory contains classes implementing generic utilities (such as
 \xlink{load-balancing parallel dequeues}{\SharedDequeURL},
