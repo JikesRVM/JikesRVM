@@ -79,7 +79,9 @@
 
 #ifndef UNUSED			// we're having trouble with some g++ versions
 				// doing "unused"
-#define UNUSED
+#define UNUSED __attribute__((unused))
+/* In GNU C, __attribute__((unused)) really means "possibly unused". */
+#define POSSIBLY_UNUSED UNUSED
 #endif
 
 
@@ -2021,7 +2023,7 @@ getMod_rm_dw(FLAGS & flags)
 /*                                                                          */
 /****************************************************************************/
 static void 
-op_IL(FLAGS & UNUSED flags ) 
+op_IL(FLAGS UNUSED & flags ) 
 {
     parm->iptr = startiptr+1;
     if (mbuff) {
@@ -2329,7 +2331,7 @@ memopSetParms(FLAGS flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_NL(FLAGS & UNUSED flags)
+op_NL(FLAGS UNUSED & flags)
 {
 }
 
@@ -2472,7 +2474,7 @@ op_0C(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_06(FLAGS & UNUSED flags) 
+op_06(FLAGS UNUSED & flags) 
 {
     int Dword1 = (instr & 0x18) >> 3;   // get register number
     operandSegRegister(Dword1);
@@ -2822,7 +2824,7 @@ op_6A(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_70(FLAGS & UNUSED flags)
+op_70(FLAGS UNUSED & flags)
 {
 
   signed char ic = getNextByte();
@@ -2859,10 +2861,10 @@ op_70(FLAGS & UNUSED flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_80(FLAGS & UNUSED flags)
+op_80(FLAGS UNUSED & flags)
 {
   long Dword2;
-  ULONG Dword1;
+//  ULONG Dword1;
   ULONG immmask = 0xFFFFFFFF;
   static const USHORT mnem8083[8] = { ADD, OR, ADC, SBB, AND, SUB, XOR, CMP } ;
 
@@ -3324,7 +3326,7 @@ op_C0(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_C2(FLAGS & UNUSED flags)
+op_C2(FLAGS UNUSED & flags)
 {
   USHORT Dword1 = getNextWord();
   operandDecimal(Dword1);
@@ -3348,7 +3350,7 @@ op_C2(FLAGS & UNUSED flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_C3(FLAGS & UNUSED flags)
+op_C3(FLAGS UNUSED & flags)
 {
   parm->rettype = retneartype;
   parm->retoffset = 0;                 // it is RET 0
@@ -3448,7 +3450,7 @@ op_C8(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_CB(FLAGS & UNUSED flags)
+op_CB(FLAGS UNUSED & flags)
 {
   parm->rettype = retfartype;
   parm->retoffset = 0;                 // it is RETF 0
@@ -3467,7 +3469,7 @@ op_CB(FLAGS & UNUSED flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_CC(FLAGS & UNUSED flags)
+op_CC(FLAGS UNUSED & flags)
 {
   UCHAR ic = 3;
   operandHex(ic);
@@ -3488,7 +3490,7 @@ op_CC(FLAGS & UNUSED flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_CD(FLAGS & UNUSED flags)
+op_CD(FLAGS UNUSED & flags)
 {
   UCHAR ic = getNextByte();                       // get next byte of instruction
   operandHex(ic);
@@ -3509,7 +3511,7 @@ op_CD(FLAGS & UNUSED flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_CE(FLAGS & UNUSED flags)
+op_CE(FLAGS UNUSED & flags)
 {
   UCHAR ic = 4;
   parm->retoffset = ic;
@@ -3529,7 +3531,7 @@ op_CE(FLAGS & UNUSED flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_CF(FLAGS & UNUSED flags)
+op_CF(FLAGS UNUSED & flags)
 {
   parm->rettype = intrettype;
   parm->retoffset = 0;
@@ -3593,7 +3595,7 @@ op_D0(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_D4(FLAGS & UNUSED flags)
+op_D4(FLAGS UNUSED & flags)
 {
   UCHAR ic = getNextByte();
   if (ic != 0x0A) 
@@ -4883,7 +4885,7 @@ op_0F90(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_0FA0(FLAGS & UNUSED flags)
+op_0FA0(FLAGS UNUSED & flags)
 {
   operandSegRegister(FS);
 } 
@@ -4937,7 +4939,7 @@ op_0FA4(FLAGS & flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_0FA8(FLAGS & UNUSED flags) 
+op_0FA8(FLAGS UNUSED & flags) 
 {
     operandSegRegister(GS);
 }
