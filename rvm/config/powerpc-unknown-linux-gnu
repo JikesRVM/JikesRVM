@@ -107,6 +107,7 @@ export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
 
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
 
+export BENCHMARK_ROOT=""
 
 # Used for the Emacs spell-checker
 #  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM

@@ -93,3 +93,5 @@ export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
 export CLASSPATH_ROOT="/exp/dodo/ali/home/share/classpath-0.06"
 ##export CLASSPATH_ROOT="/exp/dodo/ali/home/share/classpath"
+
+export BENCHMARK_ROOT=""
