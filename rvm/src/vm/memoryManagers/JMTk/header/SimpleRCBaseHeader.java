@@ -159,6 +159,11 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getRCColor(object) == GREY;
   }
+  public static boolean isGreyOrGreen(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int color = getRCColor(object);
+    return (color == GREY) || (color == GREEN);
+  }
   private static int getRCColor(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return COLOR_MASK & VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
@@ -180,7 +185,7 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
     boolean rtn;
     do {
       oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
-      newValue = (oldValue & ~BASE_COLOR_MASK) | PURPLE | BUFFERED_MASK;
+      newValue = (oldValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
       if ((oldValue & BUFFERED_MASK) == 0)
 	rtn = true; // need to add to buffer
       else
@@ -198,7 +203,7 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
     if (VM.VerifyAssertions) VM._assert(color != GREEN);
     do {
       oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
-      newValue = (oldValue & ~BASE_COLOR_MASK) | color;
+      newValue = (oldValue & ~COLOR_MASK) | color;
     } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
 
@@ -210,8 +215,6 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
   // fastest ("bufferd?", "green?" and "(green | purple)?") 
   private static final int     BUFFERED_MASK = 0x1;  //  .. 00001
   protected static final int      COLOR_MASK = 0xe;  //  .. 00110 
-  // we never change the color green, hence the color mask
-  protected static final int BASE_COLOR_MASK = 0x6;  //  .. 00110 
   private static final int             BLACK = 0x0;  //  .. x000x
   private static final int              GREY = 0x2;  //  .. x001x
   private static final int             WHITE = 0x4;  //  .. x010x

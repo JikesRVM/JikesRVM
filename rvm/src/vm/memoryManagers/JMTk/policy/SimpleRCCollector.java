@@ -264,7 +264,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   // Methods relating to synchronous cyclic garbage collection.  See
   // Bacon & Rajan ECOOP 2002, Fig 2.
   //
-  // Not that there appears to be an error in their encoding of
+  // Note that there appears to be an error in their encoding of
   // MarkRoots which allows it to over-zealously free a grey object
   // with a RC of zero which is also unprocessed in the root set.  I
   // believe the correct encoding is as follows:
@@ -288,7 +288,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   public final void markGrey(VM_Address object)
     throws VM_PragmaInline {
     while (!object.isZero()) {
-      if (!SimpleRCHeader.isGrey(object)) {
+      if (!SimpleRCHeader.isGreyOrGreen(object)) {
 	SimpleRCHeader.makeGrey(object);
 	ScanObject.scan(object);
       }
@@ -327,7 +327,9 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
 	SimpleRCHeader.makeBlack(object);
 	ScanObject.scan(object);
 	plan.addToFreeBuf(object);
-      }
+      } else if (SimpleRCHeader.isGreen(object))
+	plan.addToDecBuf(object); 
+
       object = workQueue.pop();
     }
   }
