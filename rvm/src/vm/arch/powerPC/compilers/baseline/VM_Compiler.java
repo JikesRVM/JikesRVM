@@ -539,7 +539,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load the null constant.
    */
   protected final void emit_aconst_null() {
-    asm.emitLI(T0,  0);
+    asm.emitLVAL(T0,  0);
     pushAddr(T0);
   }
 
@@ -548,7 +548,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param val the int constant to load
    */
   protected final void emit_iconst(int val) {
-    asm.emitLI(T0, val);
+    asm.emitLVAL(T0, val);
     pushInt(T0);
   }
 
@@ -1278,7 +1278,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
       asm.emitSLW  (T3, T1, T0);    // low bits of l shifted n or n-32 bits
       VM_ForwardReference fr1 = asm.emitForwardBC(EQ); // if shift less than 32, goto
-      asm.emitLI (T0,  0);        // low bits are zero
+      asm.emitLVAL(T0,  0);        // low bits are zero
       pushLong(T3,T0);
       VM_ForwardReference fr2 = asm.emitForwardB();
       fr1.resolve(asm);
@@ -1334,7 +1334,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
       asm.emitSRW (T3, T2, T0);    // high bits of l shifted n or n-32 bits
       VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
-      asm.emitLI (T0,  0);        // high bits are zero
+      asm.emitLVAL(T0,  0);        // high bits are zero
       pushLong(T0,T3);
       VM_ForwardReference fr2 = asm.emitForwardB();
       fr1.resolve(asm);
@@ -1634,7 +1634,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     // A NaN => 0
-    asm.emitLI  (T0, 0);
+    asm.emitLVAL(T0, 0);
     pushInt(T0);
     fr2.resolve(asm);
   }
@@ -1730,19 +1730,19 @@ public class VM_Compiler extends VM_BaselineCompiler
     VM_ForwardReference fr3 = asm.emitForwardBC(LT);
     VM_ForwardReference fr4 = asm.emitForwardBC(GT);
     //-#endif
-    asm.emitLI  (T0,  0);      // a == b
+    asm.emitLVAL(T0,  0);      // a == b
     VM_ForwardReference fr5 = asm.emitForwardB();
     fr1.resolve(asm);
     //-#if RVM_FOR_32_ADDR
     fr3.resolve(asm);
     //-#endif
-    asm.emitLI  (T0, -1);      // a <  b
+    asm.emitLVAL(T0, -1);      // a <  b
     VM_ForwardReference fr6 = asm.emitForwardB();
     fr2.resolve(asm);
     //-#if RVM_FOR_32_ADDR
     fr4.resolve(asm);
     //-#endif
-    asm.emitLI  (T0,  1);      // a >  b
+    asm.emitLVAL(T0,  1);      // a >  b
     fr5.resolve(asm);
     fr6.resolve(asm);
     pushInt(T0);
@@ -1756,14 +1756,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     popFloat(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(LE);
-    asm.emitLI  (T0,  1); // the GT bit of CR0
+    asm.emitLVAL(T0,  1); // the GT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLI  (T0, -1); // the LT or UO bits of CR0
+    asm.emitLVAL(T0, -1); // the LT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLI  (T0,  0);
+    asm.emitLVAL(T0,  0);
     fr2.resolve(asm);
     fr4.resolve(asm);
     pushInt(T0);
@@ -1777,14 +1777,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     popFloat(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(GE);
-    asm.emitLI  (T0, -1);     // the LT bit of CR0
+    asm.emitLVAL(T0, -1);     // the LT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLI  (T0,  1);     // the GT or UO bits of CR0
+    asm.emitLVAL(T0,  1);     // the GT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLI  (T0,  0);     // the EQ bit of CR0
+    asm.emitLVAL(T0,  0);     // the EQ bit of CR0
     fr2.resolve(asm);
     fr4.resolve(asm);
     pushInt(T0);
@@ -1798,14 +1798,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     popDouble(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(LE);
-    asm.emitLI  (T0,  1); // the GT bit of CR0
+    asm.emitLVAL(T0,  1); // the GT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLI  (T0, -1); // the LT or UO bits of CR0
+    asm.emitLVAL(T0, -1); // the LT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLI  (T0,  0);
+    asm.emitLVAL(T0,  0);
     fr2.resolve(asm);
     fr4.resolve(asm);
     pushInt(T0);
@@ -1819,14 +1819,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     popDouble(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(GE);
-    asm.emitLI  (T0, -1); // the LT bit of CR0
+    asm.emitLVAL(T0, -1); // the LT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLI  (T0,  1); // the GT or UO bits of CR0
+    asm.emitLVAL(T0,  1); // the GT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLI  (T0,  0); // the EQ bit of CR0
+    asm.emitLVAL(T0,  0); // the EQ bit of CR0
     fr2.resolve(asm);
     fr4.resolve(asm);
     pushInt(T0);
@@ -1992,7 +1992,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_ifnull(int bTarget) {
     popAddr(T0);
-    asm.emitLI (T1,  0);
+    asm.emitLVAL(T1,  0);
     asm.emitCMPAddr(T0, T1);  
     genCondBranch(EQ, bTarget);
   }
@@ -2003,7 +2003,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_ifnonnull(int bTarget) {
     popAddr(T0);
-    asm.emitLI (T1,  0);
+    asm.emitLVAL(T1,  0);
     asm.emitCMPAddr (T0, T1);  
     genCondBranch(NE, bTarget);
   }
@@ -2546,7 +2546,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	// Call uncommon case typechecking routine to do the right thing when this code actually executes.
 	asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitLVAL (T0, methodRef.getId());            // id of method reference we are trying to call
+	asm.emitLVAL(T0, methodRef.getId());            // id of method reference we are trying to call
 	peekAddr(T1, count-1);           // the "this" object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
 	asm.emitBCCTRL();                 // throw exception, if link error
@@ -2672,10 +2672,10 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLAddrToc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                    // T0 := number of elements
-    asm.emitLVAL (T1, width);         // T1 := log element size
-    asm.emitLVAL (T2, headerSize);    // T2 := header bytes
+    asm.emitLVAL(T1, width);         // T1 := log element size
+    asm.emitLVAL(T2, headerSize);    // T2 := header bytes
     asm.emitLAddrToc(T3, tibOffset);  // T3 := tib
-    asm.emitLVAL (T4, whichAllocator);// T4 := allocator
+    asm.emitLVAL(T4, whichAllocator);// T4 := allocator
     asm.emitBCCTRL();
     pokeAddr(T0,0);
   }
@@ -2688,7 +2688,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLAddrToc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                // T0 := number of elements
-    asm.emitLVAL (T1, typeRef.getId());      // T1 := id of type ref
+    asm.emitLVAL(T1, typeRef.getId());      // T1 := id of type ref
     asm.emitBCCTRL();
     pokeAddr(T0,0);
   }
@@ -2858,7 +2858,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       VM_ForwardReference fr1 = asm.emitForwardBC(NE);
       asm.emitLAddrToc (T0, resolverOffset);
       asm.emitMTCTR (T0);
-      asm.emitLVAL (T0, memberId);            // id of member we are resolving
+      asm.emitLVAL(T0, memberId);            // id of member we are resolving
       asm.emitBCCTRL (); 			      // link; will throw exception if link error
       asm.emitB    (label);                   // go back and try again
       fr1.resolve(asm);
@@ -3108,14 +3108,14 @@ public class VM_Compiler extends VM_BaselineCompiler
 	int id = compiledMethod.getId();
 	com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
 	asm.emitLAddrToc (T0, VM_Entrypoints.invocationCountsField.getOffset());
-	asm.emitLVAL (T1, compiledMethod.getId() << LOG_BYTES_IN_INT);
+	asm.emitLVAL(T1, compiledMethod.getId() << LOG_BYTES_IN_INT);
 	asm.emitLIntX   (T2, T0, T1);                       
 	asm.emitADDICr  (T2, T2, -1);
 	asm.emitSTWX  (T2, T0, T1);
 	VM_ForwardReference fr2 = asm.emitForwardBC(asm.GT);
 	asm.emitLAddrToc (T0, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitLVAL (T0, id);
+	asm.emitLVAL(T0, id);
 	asm.emitBCCTRL();
 	fr2.resolve(asm);
       }
@@ -3644,13 +3644,13 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T0);  // pop object
       if (VM.BuildForSingleVirtualProcessor) {
 	asm.emitSTWX(T2, T1, T0); // store new value (on one VP this succeeds by definition)
-	asm.emitLI   (T0,  1);   // T0 := true
+	asm.emitLVAL(T0,  1);   // T0 := true
 	pushInt(T0);  // push success of conditional store
       } else {
 	asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
-	asm.emitLI   (T0,  0);  // T0 := false
+	asm.emitLVAL(T0,  0);  // T0 := false
 	VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
-	asm.emitLI   (T0,  1);   // T0 := true
+	asm.emitLVAL(T0,  1);   // T0 := true
 	fr.resolve(asm);
 	pushInt(T0);  // push success of conditional store
       }
@@ -3662,7 +3662,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T0);  // pop object
       if (VM.BuildForSingleVirtualProcessor) {
 	asm.emitSTAddrX(T2,  T1, T0); // store new value (on one VP this succeeds by definition)
-	asm.emitLI   (T0,  1);   // T0 := true
+	asm.emitLVAL(T0,  1);   // T0 := true
 	pushAddr(T0);  // push success of conditional store
       } else {
         if (VM.BuildFor32Addr) {
@@ -3670,9 +3670,9 @@ public class VM_Compiler extends VM_BaselineCompiler
         } else {
 	  asm.emitSTDCXr(T2,  T1, T0); // store new value and set CR0
         }
-	asm.emitLI   (T0,  0);  // T0 := false
+	asm.emitLVAL(T0,  0);  // T0 := false
 	VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
-	asm.emitLI   (T0,  1);   // T0 := true
+	asm.emitLVAL(T0,  1);   // T0 := true
 	fr.resolve(asm);
 	pushInt(T0);  // push success of conditional store
       }
@@ -3780,7 +3780,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	       methodName == VM_MagicNames.wordToWord) {
       // no-op   
     } else if (methodName == VM_MagicNames.wordToLong) {
-      asm.emitLI(T0,0);
+      asm.emitLVAL(T0,0);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordFromInt ||
 	       methodName == VM_MagicNames.wordFromIntSignExtend) {
@@ -3834,21 +3834,21 @@ public class VM_Compiler extends VM_BaselineCompiler
       generateAddrComparison(GE);
     } else if (methodName == VM_MagicNames.wordIsZero) {
       // unsigned comparison generating a boolean
-      asm.emitLI (T0,  0);
+      asm.emitLVAL(T0,  0);
       pushAddr(T0);
       generateAddrComparison(EQ);
     } else if (methodName == VM_MagicNames.wordIsMax) {
       // unsigned comparison generating a boolean
-      asm.emitLI (T0, -1);
+      asm.emitLVAL(T0, -1);
       pushAddr(T0);
       generateAddrComparison(EQ);
     } else if (methodName == VM_MagicNames.wordZero) {
       // unsigned comparison generating a boolean
-      asm.emitLI (T0,  0);
+      asm.emitLVAL(T0,  0);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordMax) {
       // unsigned comparison generating a boolean
-      asm.emitLI (T0, -1);
+      asm.emitLVAL(T0, -1);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordAnd) {
       popAddr(T0);
@@ -3862,7 +3862,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordNot) {
       popAddr(T0);
-      asm.emitLI(T1, -1);
+      asm.emitLVAL(T1, -1);
       asm.emitXOR(T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordXor) {
@@ -3882,14 +3882,14 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void generateAddrComparison(int cc) {
     popAddr(T1);
     popAddr(T0);
-    asm.emitLI(T2,  1);
+    asm.emitLVAL(T2,  1);
     if (VM.BuildFor32Addr) {
       asm.emitCMPL(T0, T1);    // unsigned comparison
     } else {
       asm.emitCMPLD(T0, T1);   // unsigned comparison
     } 
     VM_ForwardReference fr = asm.emitForwardBC(cc);
-    asm.emitLI(T2,  0);
+    asm.emitLVAL(T2,  0);
     fr.resolve(asm);
     pushInt(T2);
   }
