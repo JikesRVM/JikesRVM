@@ -21,8 +21,7 @@ class CpuMonitor extends VM_Thread
          return;
          }
       VM_Thread t = new CpuMonitor();
-      t.isAlive = true;
-      t.schedule();
+      t.start();
       }
 
    private

@@ -619,6 +619,40 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     terminate();
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
+
+
+  /**
+   * Update internal state of Thread and Scheduler to indicate that
+   * a thread is about to start
+   */
+  void registerThread() {
+    isAlive = true; 
+    VM_Scheduler.threadCreationMutex.lock();
+    VM_Scheduler.numActiveThreads += 1;
+    if (isDaemon) VM_Scheduler.numDaemons += 1;
+    VM_Scheduler.threadCreationMutex.unlock();
+  }
+
+
+  /**
+   * Start execution of 'this' by putting it on the appropriate queue
+   * of an unspecified virutal processor.
+   */
+  public synchronized void start() {
+    registerThread();
+    schedule();
+  }
+
+  /**
+   * Start execution of 'this' by putting it on the given queue.
+   * Precondition: If the queue is global, caller must have the appropriate mutex.
+   * @param q the VM_ThreadQueue on which to enqueue this thread.
+   */
+  void start(VM_ThreadQueue q) {
+    registerThread();
+    q.enqueue(this);
+  }
+
  
   /**
    * Terminate execution of current thread by abandoning all 
@@ -641,7 +675,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     synchronized (myThread) { // release anybody waiting on this thread - 
 
 	// begin critical section
-	//
+        //
 	VM_Scheduler.threadCreationMutex.lock();
 	VM_Processor.getCurrentProcessor().disableThreadSwitching();
 	
@@ -994,22 +1028,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   protected final void makeDaemon (boolean on) {
     if (isDaemon == on) return;
-    VM_Scheduler.threadCreationMutex.lock();
     isDaemon = on;
-    if (on) {
-      if (++VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
-	if (VM.TraceThreads) VM_Scheduler.trace("VM_Thread", 
-                                                "last non Daemon demonized");
-        VM_Scheduler.threadCreationMutex.unlock();
-	VM.sysExit(0);
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-      }
-      else {
-        VM_Scheduler.threadCreationMutex.unlock();
-      }
-    } else {
-      --VM_Scheduler.numDaemons;
-      VM_Scheduler.threadCreationMutex.unlock();
+    if (!isAlive) return; 
+    VM_Scheduler.threadCreationMutex.lock();
+    VM_Scheduler.numDaemons += on ? 1 : -1;
+    VM_Scheduler.threadCreationMutex.unlock();
+
+    if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
+      if (VM.TraceThreads) VM_Scheduler.trace("VM_Thread", 
+					      "last non Daemon demonized");
+      VM.sysExit(0);
+      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
     }
   }
   
@@ -1052,55 +1081,11 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       return;
     }
 
-    // begin critical section
-    //
-/*******
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-
-    assignThreadSlot();
-    VM_Scheduler.numActiveThreads += 1;
-
-    if (VM.BuildForConcurrentGC) { // RCGC - currently assign a 
-      // thread to a processor - no migration yet
-      if (VM_Scheduler.allProcessorsInitialized) {
-	//-#if RVM_WITH_CONCURRENT_GC 
-        //// because VM_RCCollectorThread only available for concurrent 
-        //memory managers
-	if (VM_RCCollectorThread.GC_ALL_TOGETHER && 
-            VM_Scheduler.numProcessors > 1) {
-	  // assign new threads to first N-1 processors, reserve last for gc
-	  processorAffinity = VM_Scheduler.
-            processors[(threadSlot % (VM_Scheduler.numProcessors-1)) + 1];
-	} else {
-	  processorAffinity = VM_Scheduler.processors
-            [(threadSlot % VM_Scheduler.numProcessors) + 1];
-	}
-	//-#endif
-      }
-    }
-
-    // end critical section
-    //
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
-    VM_Scheduler.threadCreationMutex.unlock();
-
-*******/
-
     // create a normal (ie. non-primordial) thread
     //
-  //VM_Scheduler.trace("VM_Thread", "create");
+    //VM_Scheduler.trace("VM_Thread", "create");
       
     stackLimit = VM_Magic.objectAsAddress(stack) + STACK_SIZE_GUARD;
-
-    // make sure thread id will fit in Object .status field
-    //
-/****
-    if (VM.VerifyAssertions) 
-      VM.assert(threadSlot == (((threadSlot << OBJECT_THREAD_ID_SHIFT) 
-                                &(OBJECT_THREAD_ID_MASK) ) 
-                               >>  OBJECT_THREAD_ID_SHIFT ));
-*****/
 
     // get instructions for method to be executed as thread startoff
     //
@@ -1116,7 +1101,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     int sp = VM_Magic.objectAsAddress(stack) + (stack.length << 2);
     int fp = STACKFRAME_SENTINAL_FP;
 
-//-#if RVM_FOR_IA32 // TEMP!!
+//-#if RVM_FOR_IA32 
 
     // initialize thread stack as if "startoff" method had been called
     // by an empty baseline-compiled "sentinal" frame with one local variable
@@ -1148,8 +1133,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
-    VM_Scheduler.numActiveThreads += 1;
-
 
     if (VM.BuildForConcurrentGC) { // RCGC - currently assign a 
       // thread to a processor - no migration yet
@@ -1170,11 +1153,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       }
     }
 
-//-#if RVM_FOR_IA32 // TEMP!!
+    VM_Scheduler.threadCreationMutex.unlock();
+
+//-#if RVM_FOR_IA32 
 //-#else
     contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
 //-#endif
-    VM_Scheduler.threadCreationMutex.unlock();
     VM.enableGC();
 
     // only do this at runtime because it will call VM_Magic

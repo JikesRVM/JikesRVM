@@ -128,7 +128,7 @@ class VM_ControllerThread extends VM_Thread {
     VM_CompilationThread ct = new VM_CompilationThread();
     VM_Controller.compilationThread = ct;
     ct.makeDaemon(true);
-    VM_Processor.getCurrentProcessor().scheduleThread(ct);
+    ct.start();
   }
 
   /**
@@ -198,7 +198,7 @@ class VM_ControllerThread extends VM_Thread {
 	 e.hasMoreElements(); ) {
       VM_Organizer o = (VM_Organizer)e.nextElement();
       o.makeDaemon(true);
-      VM_Processor.getCurrentProcessor().scheduleThread(o);
+      o.start();
     }
   }
 

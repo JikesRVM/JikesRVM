@@ -247,12 +247,10 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = 0; i < numProcessors; ++i) {
       VM_Thread t;
       t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[i], processors[1+i]);
-      t.isAlive = true;
-      processors[1+i].readyQueue.enqueue(t);
+      t.start(processors[1+i].readyQueue);
 
       t = new VM_IdleThread(processors[1+i]);
-      t.isAlive = true;
-      processors[1+i].idleQueue.enqueue(t);
+      t.start(processors[1+i].idleQueue);
     }
 
     VM_Thread t;
@@ -260,22 +258,18 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildWithNativeDaemonProcessor) {
       // Create one collector thread and one idle thread for the NATIVEDAEMON processor
       t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[numProcessors], processors[nativeDPndx]);
-      t.isAlive = true;
-      processors[nativeDPndx].readyQueue.enqueue(t);
+      t.start(processors[nativeDPndx].readyQueue);
       t = new VM_IdleThread(processors[nativeDPndx]);
-      t.isAlive = true;
-      processors[nativeDPndx].idleQueue.enqueue(t);
+      t.start(processors[nativeDPndx].idleQueue);
       // create the NativeDaemonThread that runs on the NativeDaemonProcessor
       t = new VM_NativeDaemonThread(processors[nativeDPndx]);
-      t.isAlive = true;
-      processors[nativeDPndx].readyQueue.enqueue(t);
+      t.start(processors[nativeDPndx].readyQueue);
     }
     // Create one debugger thread.
     //
 
     t = new DebuggerThread();
-    t.isAlive = true;
-    debuggerQueue.enqueue(t);
+    t.start(debuggerQueue);
 
     // JNI support
     attachThreadRequested = 0;
@@ -283,13 +277,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // Schedule "main" thread for execution.
     //
-    VM_Processor.getCurrentProcessor().scheduleThread(mainThread);
+    mainThread.start();
 
     // Create the FinalizerThread
     //
     FinalizerThread tt = new FinalizerThread();
     tt.makeDaemon(true);
-    VM_Processor.getCurrentProcessor().scheduleThread(tt);
+    tt.start();
 
     // the one we're running on
     processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; 
@@ -324,6 +318,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
       processors[i].activeThread = target;
       processors[i].activeThreadStackLimit = target.stackLimit;
+      target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
@@ -345,6 +340,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
+      target.registerThread(); // let scheduler know that thread is active.
       if (VM.TraceThreads)
         trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
       if (VM.BuildForPowerPC) {

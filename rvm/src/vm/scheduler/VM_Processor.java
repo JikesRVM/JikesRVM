@@ -344,8 +344,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     VM_Processor newProcessor = new VM_Processor(generateNativeProcessorId(), NATIVE);
     // create idle thread for this native processor, running in attached mode
     VM_Thread t = new VM_NativeIdleThread(newProcessor, true);
-    t.isAlive = true;
-    newProcessor.idleQueue.enqueue(t);
+    t.start(newProcessor.idleQueue);
 
     // Make the current thread the active thread for this native VP
     newProcessor.activeThread = withThisThread;
@@ -409,7 +408,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // create idle thread for processor
     VM_Thread t = new VM_NativeIdleThread(newProcessor);
-    t.isAlive = true;
 
     // There is a race between the native pthread which will be started shortly
     // and will run and intilize its idle thread, and our pthread/thread which
@@ -419,7 +417,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     // of the native processor now, before the native pthread starts.
     //
     ////newProcessor.idleQueue.enqueue(t);
-    newProcessor.transferQueue.enqueue(t);
+    t.start(newProcessor.transferQueue);
 
     // create VM_Thread for virtual cpu to execute
     //
@@ -455,6 +453,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     newProcessor.activeThread = target;
     newProcessor.activeThreadStackLimit = target.stackLimit;
+    target.registerThread(); // let scheduler know that thread is active.
     //-#if RVM_FOR_POWERPC
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                  VM_Magic.objectAsAddress(newProcessor),
@@ -536,8 +535,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     // ?? will this affinity be a problem when idle thread temporarily migrates
     // ?? to a blue processor ??
     VM_Thread t = new VM_NativeIdleThread(newProcessor);
-    t.isAlive = true;
-    newProcessor.transferQueue.enqueue(t);
+    t.start(newProcessor.transferQueue);
 
     // create VM_Thread for virtual cpu to execute
     //
@@ -553,11 +551,12 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     //-#else
-		// Need to set startuplock here
+    // Need to set startuplock here
     VM.sysInitializeStartupLocks(1);
-		//-#endif
+    //-#endif
     newProcessor.activeThread = target;
     newProcessor.activeThreadStackLimit = target.stackLimit;
+    target.registerThread(); // let scheduler know that thread is active.
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				 VM_Magic.objectAsAddress(newProcessor),
 				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
