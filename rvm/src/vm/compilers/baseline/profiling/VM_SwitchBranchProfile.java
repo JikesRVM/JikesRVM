@@ -54,7 +54,7 @@ final class VM_SwitchBranchProfile extends VM_BranchProfile {
 
   private static float sumCounts(int[] counts, int start, int numEntries) {
     float sum = 0.0f;
-    for (int i=start; i<numEntries; i++) {
+    for (int i=start; i<start+numEntries; i++) {
       sum += (float)counts[i];
     }
     return sum;
