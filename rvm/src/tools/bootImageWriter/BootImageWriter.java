@@ -206,7 +206,7 @@ public class BootImageWriter extends BootImageWriterMessages
     /* Report a field that is an instance field in the host JDK but a static
        field in ours.  */
     public void traceFieldNotStaticInHostJdk() {
-      traceNulledWord(": field not in host jdk");
+      traceNulledWord(": field not static in host jdk");
     }
 
     /**
