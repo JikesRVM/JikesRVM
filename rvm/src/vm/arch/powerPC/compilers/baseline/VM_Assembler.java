@@ -29,13 +29,6 @@ class VM_Assembler implements VM_BaselineConstants {
      bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
 
      mIP will be incremented to point to the next machine instruction.
-
-     Note: since most of the calls on these methods will have the same
-     constant arguments (e.g. SP, the stack pointer), a method call overhead
-     per instruction could be avoided by generating the machine code
-     explicitly inline.  Alternately, a Java-to-Java preprocessor might
-     achieve the same affect by aggressive constant propagation.
-
   */
 
   VM_Assembler (int length) {
