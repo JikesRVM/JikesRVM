@@ -148,23 +148,26 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_Reg_Reg(SP, FP);
     asm.emitPOP_Reg(FP);
 
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
+
     // don't use CALL since it will push on the stack frame the return address to here 
     asm.emitJMP_RegDisp(JTOC, VM_Entrypoints.athrowOffset);
 
     fr.resolve(asm);  // branch to here if no exception 
 
     // no exception, proceed to return to caller    
-    asm.emitMOV_Reg_RegInd(S0, FP);       // restore caller FP into VM_Processor.framepointer
-
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerOffset,
-                                              S0);
-
     asm.emitMOV_Reg_RegDisp (EBX, FP, EBX_SAVE_OFFSET);    // restore nonvolatile ebx register
     asm.emitMOV_Reg_RegDisp (JTOC, FP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI/JTOC register
 
     asm.emitMOV_Reg_Reg(SP, FP);                           // discard current stack frame
     asm.emitPOP_Reg(FP);
+
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
+
     // return to caller 
     // pop parameters from stack (Note that parameterWords does not include "this")
     if (method.isStatic())
@@ -764,8 +767,12 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
     // Restore the VM_Processor value saved on the Java to C transition
     VM_ProcessorLocalState.emitSetProcessor(asm, EBX, 
-                                        VM_Entrypoints.JNIEnvSavedPROffset);
+					    VM_Entrypoints.JNIEnvSavedPROffset);
 
+
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.framePointerOffset,
+                                              FP);
     
     // Test if calling Java JNIFunction on a RVM processor or 
     // a Native processor.
