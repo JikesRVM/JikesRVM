@@ -277,10 +277,12 @@ public abstract class BasePlan
    * <code>a</code>.
    */
   private static Space getSpaceFromAllocatorAnyPlan(Allocator a) {
-    for (int i=0; i<plans.length; i++) {
-      Space space = plans[i].getSpaceFromAllocator(a);
-      if (space != null)
-        return space;
+    for (int i = 0; i < plans.length; i++) {
+      if (plans[i] != null) {
+	Space space = plans[i].getSpaceFromAllocator(a);
+	if (space != null)
+	  return space;
+      }
     }
     return null;
   }
