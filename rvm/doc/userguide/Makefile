@@ -97,6 +97,8 @@ dist-clean:	clean
 		rm -rf ${HTML_DIR}
 
 distrib:;	mkdir -p $(distdir)/ps
+		-rm -f $(distdir)/ps/userguide.ps
+		-rm -rf $(distdir)/HTML
 		-cp userguide.ps $(distdir)/ps
 		-cp -r ${HTML_DIR} $(distdir)
 		-chmod -Rf g+rwX ${distdir}
