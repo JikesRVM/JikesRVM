@@ -1027,7 +1027,6 @@ public class GenerateAssembler {
 	excludedOpcodes.add("FUCOMPP");
 	excludedOpcodes.add("SAHF");
 	excludedOpcodes.add("NOP");
-	excludedOpcodes.add("RDTSC");
 	excludedOpcodes.add("ENTER");
     }
 

@@ -76,14 +76,6 @@ none
 
 -1
 
-# Implements the magic to read the time base register
-GET_TIME_BASE
-Nullary
-none
-
-
--1
-
 # PowerPC dcbf instruction
 DCBF
 CacheOp

@@ -875,6 +875,22 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
   }
 
+  /**
+   * Expansion of RDTSC (called GET_TIME_BASE for consistency with PPC)
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param result the result/first operand
+   */
+  final void GET_TIME_BASE(OPT_BURS burs,
+                           OPT_Instruction s,
+                           OPT_RegisterOperand result) {
+    OPT_Register highReg = result.register;
+    OPT_Register lowReg = burs.ir.regpool.getSecondReg(highReg);
+    burs.append(MIR_Nullary.create(IA32_RDTSC, R(getEAX())));
+    burs.append(MIR_Move.create(IA32_MOV, R(lowReg), R(getEAX())));
+    burs.append(MIR_Move.create(IA32_MOV, R(highReg), R(getEDX())));
+  }
 
   /**
    * Expansion of LONG_MUL_ACC

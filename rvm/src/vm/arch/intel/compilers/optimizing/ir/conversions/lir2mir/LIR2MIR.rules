@@ -3811,3 +3811,10 @@ stm:      CLEAR_FLOATING_POINT_STATE
 EMIT_INSTRUCTION
 EMIT(MIR_Empty.mutate(P(p), IA32_FNINIT));
 
+#####
+# RDTSC
+#####
+r:      GET_TIME_BASE
+15
+EMIT_INSTRUCTION
+GET_TIME_BASE(burs, P(p), Nullary.getResult(P(p)));

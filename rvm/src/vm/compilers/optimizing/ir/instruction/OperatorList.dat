@@ -50,6 +50,13 @@ none
 
 
 
+# Get the current time
+GET_TIME_BASE
+Nullary
+none
+
+
+
 # Allocate a new object. Even though we know that the class is ready to go,
 # there still can be some fringe error cases, so make this as an immedPEI.
 # NOTE: If we wanted to do a little more checking in BC2IR, then we might be able

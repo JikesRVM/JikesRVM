@@ -447,8 +447,11 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     else if (methodName == VM_MagicNames.addressGE) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.HIGHER_EQUAL();
       addressCmpHelper(bc2ir,gc,cond,null);
-    }
-    else {
+    } else if (methodName == VM_MagicNames.getTimeBase) {
+      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
+      bc2ir.appendInstruction(Nullary.create(GET_TIME_BASE, op0));
+      bc2ir.pushDual(op0.copyD2U());
+    } else {
       // Wasn't machine-independent, so try the machine-dependent magics next.
       OPT_GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
     }

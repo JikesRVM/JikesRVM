@@ -3499,11 +3499,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.getTimeBase) {
-      VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTimeBase in " + method + "\n");
-      asm.emitMOV_RegInd_Imm(SP, 0);  // TEMP!! for now, return 0
+      asm.emitRDTSC();  // read timestamp counter instruction
+      asm.emitPUSH_Reg(EDX); // upper 32 bits
+      asm.emitPUSH_Reg(EAX); // lower 32 bits
       return;
     }
-
 
     if (methodName == VM_MagicNames.addressFromInt ||
 	methodName == VM_MagicNames.addressToInt) {

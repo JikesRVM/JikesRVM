@@ -1150,6 +1150,13 @@ AF_CF_OF_PF_SF_ZF
 
 
 ####################
+IA32_RDTSC
+MIR_Nullary
+none
+CF_OF
+
+
+####################
 MIR_END
 Unassigned
 none

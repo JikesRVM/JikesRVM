@@ -194,10 +194,6 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.appendInstruction(CallSpecial.create4(SYSCALL, op0, ip, 
 						  toc, p1, p2, p3, p4));
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.getTimeBase) {
-      OPT_RegisterOperand op0 = gc.temps.makeTempLong();
-      bc2ir.appendInstruction(Nullary.create(GET_TIME_BASE, op0));
-      bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
       if (!gc.options.NO_CACHE_FLUSH)
         bc2ir.appendInstruction(Empty.create(READ_CEILING));
