@@ -19,7 +19,7 @@ public class VM_CompiledMethods
   // Returned: id
   // See also: setCompiledMethod(), getCompiledMethod()
   //
-  static int createCompiledMethodId() {
+  static synchronized int createCompiledMethodId() {
     return ++currentCompiledMethodId;
   }
 
