@@ -1275,7 +1275,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // Save AIX non-volatile GPRs that will not be saved and restored by RVM.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_OS_NONVOLATILE_GPR; i < FIRST_NONVOLATILE_GPR; i++) {
+    for (int i = FIRST_RVM_RESERVED_NV_GPR;
+         i <= LAST_RVM_RESERVED_NV_GPR; i++) {
       asm.emitSTAddr(i, offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
@@ -1428,8 +1429,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // Here we only save & restore ONLY those registers not restored by RVM
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_OS_NONVOLATILE_GPR; i < FIRST_NONVOLATILE_GPR; i++) {
-      asm.emitLAddr (i, offset, FP);                     // 4 instructions
+    for (int i = FIRST_RVM_RESERVED_NV_GPR;
+         i <= LAST_RVM_RESERVED_NV_GPR; i++) {
+      asm.emitLAddr (i, offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
 
