@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Word;
@@ -49,6 +50,7 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    */
   BumpPointer(MonotoneVMResource vmr) {
     bp = INITIAL_BP_VALUE;
+    if (useLimit) limit = INITIAL_LIMIT_VALUE;
     vmResource = vmr;
   }
 
@@ -62,6 +64,7 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    */
   public void rebind(MonotoneVMResource vmr) {
     bp = INITIAL_BP_VALUE;
+    if (useLimit) limit = INITIAL_LIMIT_VALUE;
     vmResource = vmr;
   }
 
@@ -74,18 +77,24 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    * @param bytes The number of bytes allocated
    * @return The address of the first byte of the allocated region
    */
-  public VM_Address alloc(boolean isScalar, EXTENT bytes) throws VM_PragmaInline {
+  final public VM_Address alloc(boolean isScalar, EXTENT bytes) throws VM_PragmaInline {
     VM_Address oldbp = bp;
     VM_Address newbp = oldbp.add(bytes);
     bp = newbp;
-    VM_Word tmp = oldbp.toWord().xor(newbp.toWord());
-    if (tmp.GT(VM_Word.fromInt(TRIGGER)))
-      return allocSlowPath(bytes);
+    if (useLimit) {
+      if (newbp.GT(limit))
+	return allocSlowPath(bytes);
+    }
+    else {
+      VM_Word tmp = oldbp.toWord().xor(newbp.toWord());
+      if (tmp.GT(VM_Word.fromInt(TRIGGER)))
+	return allocSlowPath(bytes);
+    }
     return oldbp;
   }
 
 
-  private VM_Address allocSlowPath(EXTENT bytes) throws VM_PragmaNoInline { 
+  final private VM_Address allocSlowPath(EXTENT bytes) throws VM_PragmaNoInline { 
     int blocks = Conversions.bytesToBlocks(bytes);
     VM_Address start = VM_Address.zero();
     while (start.isZero()) {
@@ -93,6 +102,8 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
       if (Plan.verbose > 5) VM.sysWriteln("BumpPointer.allocSlowPath acquired ", start);
     }
     bp = start.add(bytes);
+    if (useLimit)
+      limit = start.add(Conversions.blocksToBytes(blocks));
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(start, bytes));
     return start;
   }
@@ -107,6 +118,7 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   // Instance variables
   //
   private VM_Address bp;
+  private VM_Address limit;
   private MonotoneVMResource vmResource;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -117,4 +129,6 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   //
   private static final EXTENT TRIGGER = VMResource.BLOCK_SIZE - 1;
   private static final VM_Address INITIAL_BP_VALUE = VM_Address.fromInt(TRIGGER);
+  private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
+  private static final boolean useLimit = true;
 }
