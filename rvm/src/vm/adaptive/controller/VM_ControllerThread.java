@@ -33,7 +33,7 @@ class VM_ControllerThread extends VM_Thread {
 
   /**
    * constructor
-   * @param sentinel: an object to signal when up and running
+   * @param sentinel   An object to signal when up and running
    */
   VM_ControllerThread(Object sentinel)  { 
     this.sentinel = sentinel; 

@@ -158,13 +158,12 @@ public final class VM_ControllerPlan {
 
 
   /**
-   * This method will recompile the method designated by the passed 
-   * controller plan.  It also 
+   * This method will recompile the method designated by the controller plan
+   * {@link #getCompPlan}.  It also 
    *  1) credits the samples associated with the old compiled method
    *     ID to the new method ID and clears the old value.
    *  2) clears inlining information
    *  3) updates the status of the controller plan
-   * @param plan the controller plan to use for the recompilation
    */
   public VM_CompiledMethod doRecompile() {
     OPT_CompilationPlan cp = getCompPlan();

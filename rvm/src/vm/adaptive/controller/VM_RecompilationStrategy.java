@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -113,7 +113,7 @@ abstract class VM_RecompilationStrategy {
    * 
    * @param hme the VM_HotMethodEvent
    * @param plan the VM_ControllerPlan for the compiled method (may be null)
-   * @param prevCompiler the previous compiler 
+   * @return true/false value
    * 
    */
   boolean considerForRecompilation(VM_HotMethodEvent hme, 

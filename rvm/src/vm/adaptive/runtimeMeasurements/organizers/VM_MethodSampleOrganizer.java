@@ -30,7 +30,6 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
   private int filterOptLevel;
 
   /**
-   * @param listener         the associated listener
    * @param filterOptLevel   filter out all opt-compiled methods that 
    *                         were compiled at this level or higher
    */

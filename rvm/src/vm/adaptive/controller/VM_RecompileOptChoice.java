@@ -52,7 +52,7 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * future time for the method if nothing changes?
    *
    * @param prevCompiler The previous compiler 
-   * @param futureExecutionTime The expected future execution time of
+   * @param futureTimeForMethod The expected future execution time of
    *        the method if left running with the previous compiler.
    * @return The expected future execution time if this choice were selected 
    */

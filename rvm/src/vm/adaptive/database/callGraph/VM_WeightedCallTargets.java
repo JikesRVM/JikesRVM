@@ -55,7 +55,7 @@ public abstract class VM_WeightedCallTargets {
   public abstract double totalWeight();
 
   /**
-   * @param desired VM_Method that is the only statically possible target
+   * @param goal VM_Method that is the only statically possible target
    * @return the filtered call targets or null if no such target exisits
    */
   public abstract VM_WeightedCallTargets filter(VM_Method goal);

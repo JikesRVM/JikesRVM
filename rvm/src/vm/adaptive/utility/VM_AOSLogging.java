@@ -605,7 +605,7 @@ public class VM_AOSLogging {
    * i.e., the method has been inserted in the controller queue.
    * @param hotMethod   method to be recompiled,
    * @param numSamples  number of samples attributed to the method
-   * @param triple      edge that should be inlined.
+   * @param boost       Boost level if the recompilation occurs.
    */
   public static void controllerNotifiedForInlining(VM_CompiledMethod hotMethod,
                                                    double numSamples, 
@@ -698,7 +698,7 @@ public class VM_AOSLogging {
    * @param MCLength size of machine code
    * @param totalMCLength cumulative size of machine code
    * @param compTime compilation time for this method
-   * @param totalComptime cumulative compilation time for this method
+   * @param totalCompTime cumulative compilation time for this method
    * @param totalLogOfRates running sum of the natural logs of the rates
    * @param totalLogValueMethods number of methods used in the log of rates
    * @param totalMethods total number of methods
