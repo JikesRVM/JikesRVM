@@ -1,3 +1,4 @@
+
 ;;; -*- coding: iso-8859-1; -*-
 ;;;
 ;;; Copyright © IBM Corp 2003
@@ -15,8 +16,8 @@
     (add-to-list 'load-path (concat r "/rvm/aux"))
     (require 'jikes-rvm)))
 
-;; I recommend adding the following to your c-mode hooks; they can make it
-;; more pleasant to edit Jikes RVM code:
+;; I recommend adding the following to your c-mode-common-hook; they can make
+;; it more pleasant to edit Jikes RVM code.
 (add-hook 'c-mode-common-hook
 	  #'(lambda ()
 	      (turn-on-font-lock)
@@ -37,5 +38,5 @@
 ;	      (c-toggle-hungry-state 1)
 
 	      ;; c-context-line-break is not part of GNU Emacs 20.7
-	      (if (fboundp 'c-context-line-break)
+	      (when (fboundp 'c-context-line-break)
 		  (define-key c-mode-base-map "\r" 'c-context-line-break))))
