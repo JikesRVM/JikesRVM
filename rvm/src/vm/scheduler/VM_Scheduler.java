@@ -14,35 +14,37 @@
  * @author Derek Lieber
  */
 public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
-  // Index of processor in which "VM.boot()" runs.
-  // This index is also used as a "processor lock owner id".
-  // Values start at 1, so that processors[0] == null corresponds to an unlocked processor lock.
-  //
 
-  // TEMPORARY flag (08/21/01 SES) to allow SMP builds WITHOUT a native daemon thread/processor
-  // set to false to avoid native daemeon
-  static final boolean BuildWithNativeDaemon = true;
-
+  /** Index of initial processor in which "VM.boot()" runs. */
   static final int PRIMORDIAL_PROCESSOR_ID = 1;
 
-  // Index of thread in which "VM.boot()" runs.
-  // This index, when shifted by OBJECT_THREAD_ID_SHIFT, is used as an "object lock owner id".
-  // Values start at 1, so that threads[0] == null corresponds to an unlocked object lock.
-  //
+  /** Index of thread in which "VM.boot()" runs */
   static final int PRIMORDIAL_THREAD_INDEX = 1;
 
-  // Maximum number of VM_Processor's that we can support.
-  //
-  static final int MAX_PROCESSORS = 12;
+  // A processors id is its index in the processors array & a threads
+  // id is its index in the threads array.  id's start at 1, so that
+  // id 0 can be used in locking to represent an unheld lock
+
+  /**
+   * Maximum number of VM_Processor's that we can support. In SMP builds
+   * the NativeDaemonProcessor takes one slot & the RVM can be run with
+   * 1 to MAX_PROCESSORS-1 processors
+   **/
+  static final int MAX_PROCESSORS = 13;   // allow processors = 1 to 12
    
-  // Maximum number of VM_Thread's that we can support.
-  //
+  /** Maximum number of VM_Thread's that we can support. */
   static final int MAX_THREADS = OBJECT_THREAD_ID_MASK >>> OBJECT_THREAD_ID_SHIFT;
+
+  /**
+   * flag to allow SMP builds WITHOUT a native daemon thread/processor.
+   * set to false to avoid creating the native daemeon
+   **/
+  static final boolean BuildWithNativeDaemon = true;
  
   // Flag for controlling virtual-to-physical processor binding.
   //
   static final int NO_CPU_AFFINITY = -1;
-   
+
   // Virtual cpu's.
   //
   static int                  cpuAffinity   = NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
@@ -130,10 +132,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //
   static final boolean countLocks = false;
   
-  // RC vars
+  // RC (concurrent GC) vars
   static int              globalEpoch = -1;
   final static int EPOCH_MAX = 32 * 1024;
-
   // ~RC vars
 
   // Initialize boot image.
