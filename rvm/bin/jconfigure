@@ -1607,9 +1607,19 @@ function emitImageLinker
       # and/or classes that opt wants to be in the bootimage to 
       # generate decent code (avoid dynamic linking, get them opt compiled)
       if (( RVM_WITH_OPT_BOOTIMAGE_COMPILER )); then
+         print "   print 'Ljava/util/AbstractSet;'         >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/Arrays;'         >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/Enumeration;'         >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/util/Stack;'               >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/Dictionary;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/HashMap\$HashIterator;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/HashMap\$1;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/TreeMap;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/TreeMap\$TreeMapIterator;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/TreeMap\$3;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/TreeMap\$4;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/TreeSet;'          >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/Stack;'               >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'Ljava/util/Vector\$1;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/RuntimeException;'    >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/VirtualMachineError;' >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/Error;'               >> $PRIMORDIAL_CLASSES_STR"
