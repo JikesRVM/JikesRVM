@@ -6,10 +6,12 @@
 // @author Stephen Fink
 
 // Definitions of constants for handling C command-line arguments
+// These are actually only included by one caller, RunBootImage.C
 
 #ifndef CMDLINE_H 
 #define CMDLINE_H
 
+/* These definitions shadow nonStandardArgs, the array immediately below. */
 static const int HELP_INDEX                    = 0;
 static const int VERBOSE_INDEX                 = HELP_INDEX+1;
 static const int INITIAL_HEAP_INDEX            = VERBOSE_INDEX+1;
