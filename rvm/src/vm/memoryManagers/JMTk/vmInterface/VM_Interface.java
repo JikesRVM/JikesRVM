@@ -11,11 +11,12 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Statistics;
-import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
+// import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 import com.ibm.JikesRVM.memoryManagers.JMTk.AddressQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -113,10 +114,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);
     tibForClassType = VM_ObjectModel.getTIB(t);
     Plan.boot();
+    VMResource.boot();
     Statistics.boot();
     synchronizedCounterOffset = VM_Entrypoints.synchronizedCounterField.getOffset();
     Monitor.boot();
-    VMResource.boot();
   }
 
   /**
@@ -315,7 +316,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
     */
   public static void setWorkBufferSize (int size) {
-    WorkQueue.WORK_BUFFER_SIZE = 4 * size;
+      // WorkQueue.WORK_BUFFER_SIZE = 4 * size;
   }
 
   public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
@@ -342,11 +343,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     Type t = type.JMTKtype;
     if (t.initialized)
       return t.allocator;
-    int allocator = Plan.DEFAULT_ALLOCATOR;
+    int allocator = Plan.DEFAULT_SPACE;
     String s = type.toString();
     if (s.startsWith("com.ibm.JikesRVM.memoryManagers.") ||
 	s.equals("com.ibm.JikesRVM.VM_Processor"))
-      allocator = Plan.IMMORTAL_ALLOCATOR;
+      allocator = Plan.IMMORTAL_SPACE;
     t.initialized = true;
     t.allocator = allocator;
     return allocator;
@@ -381,8 +382,26 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return VM_Address.zero();     // getPlan().allocCopy()...  FIXME
   }
 
+  // Schedule the finalizerThread, if there are objects to be finalized
+  // and the finalizerThread is on its queue (ie. currently idle).
+  // Should be called at the end of GC after moveToFinalizable has been called,
+  // and before mutators are allowed to run.
+  //
+  public static void scheduleFinalizerThread () throws VM_PragmaUninterruptible {
+    int finalizedCount = Finalizer.countToBeFinalized();
+    boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();
+    if (finalizedCount > 0 && !alreadyScheduled) {
+      VM_Thread t = VM_Scheduler.finalizerQueue.dequeue();
+      VM_Processor.getCurrentProcessor().scheduleThread(t);
+    }
+  }
+
   public static void addFinalizer(Object obj) throws VM_PragmaInterruptible {
-    VM_Finalizer.addCandidate(obj);
+    Finalizer.addCandidate(obj);
+  }
+
+  public static Object getFinalizedObject () throws VM_PragmaInterruptible {
+    return Finalizer.get();
   }
 
   public static VM_Address processPtrValue (VM_Address obj) throws VM_PragmaUninterruptible, VM_PragmaInline { 
@@ -572,7 +591,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       Object [] shortArrayTib = shortArrayType.getTypeInformationBlock();
       int offset = VM_JavaHeader.computeArrayHeaderSize(shortArrayType);
       int arraySize = shortArrayType.getInstanceSize(n);
-      Object result = allocateArray(n, arraySize, shortArrayTib, Plan.IMMORTAL_ALLOCATOR);
+      Object result = allocateArray(n, arraySize, shortArrayTib, Plan.IMMORTAL_SPACE);
       return (short []) result;
     }
 
@@ -597,12 +616,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       int fullSize = arraySize + alignment;  // somewhat wasteful
       if (VM.VerifyAssertions) VM._assert(alignment > offset);
       AllocAdvice advice = getPlan().getAllocAdvice(null, fullSize, null, null);
-      VM_Address fullRegion = getPlan().alloc(fullSize, false, Plan.IMMORTAL_ALLOCATOR, advice);
+      VM_Address fullRegion = getPlan().alloc(fullSize, false, Plan.IMMORTAL_SPACE, advice);
       VM_Address tmp = fullRegion.add(alignment);
       int mask = ~((1 << logAlignment) - 1);
       VM_Address region = VM_Address.fromInt(tmp.toInt() & mask).sub(offset);
       Object result = VM_ObjectModel.initializeArray(region, stackTib, n, arraySize);
-      getPlan().postAlloc(result, stackTib, arraySize, false, Plan.IMMORTAL_ALLOCATOR);
+      getPlan().postAlloc(result, stackTib, arraySize, false, Plan.IMMORTAL_SPACE);
       return (int []) result;
     }
 
@@ -642,7 +661,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM_Array objectArrayType = VM_Type.JavaLangObjectArrayType;
       Object [] objectArrayTib = objectArrayType.getTypeInformationBlock();
       int arraySize = objectArrayType.getInstanceSize(n);
-      Object result = allocateArray(n, arraySize, objectArrayTib, Plan.TIB_ALLOCATOR);
+      Object result = allocateArray(n, arraySize, objectArrayTib, Plan.IMMORTAL_SPACE);
       return (Object []) result;
     } else
       return new Object[n];
