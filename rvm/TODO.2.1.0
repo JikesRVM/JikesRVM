@@ -12,9 +12,9 @@ DONE (ie close enough for now) (3) Memory Manager restructuring:
   -- at a minimum javadoc header comments on all classes; javadoc on
      all methods of VM_Heap.
 
-(4) One word object model: ensure that all configurations measured in
+DONE (4) One word object model: ensure that all configurations measured in
     the ecoop'02 paper still work.
-  Dave G -- working on it now
+  -- verified that BaseBase passes bytecode tests for all variants measured in the paper.
 
 (5) All files must have copyright, id, and author tags.  Some of the
     files added since 2.0.3 are missing them.
