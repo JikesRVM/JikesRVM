@@ -1039,7 +1039,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
   //-#if RVM_FOR_OSX
   static void generateReturnCodeForJNIMethod(VM_Assembler asm, VM_Method mth) {
     VM_TypeReference t = mth.getReturnType();
-    if (t.isLongType()) {
+    if (VM.BuildFor32Addr && t.isLongType()) {
       asm.emitMR(S0, T0);
       asm.emitMR(T0, T1);
       asm.emitMR(T1, S0);

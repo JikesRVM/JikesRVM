@@ -38,7 +38,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
   public static final boolean CF_LONG = true;
 
   /** 
-   * Constant fold long operations?
+   * Constant fold address operations?
    */
   public static final boolean CF_ADDR = true;
 
@@ -1093,25 +1093,6 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             }
           }
         }
-        //-#if RVM_FOR_64_ADDR
-        if (op2.isIntConstant()) { //Magic Address, Offset can do add with integer
-          long val2 = op2.asIntConstant().value;
-          OPT_Operand op1 = Binary.getVal1(s);
-          if (op1.isLongConstant()) {
-            // BOTH CONSTANTS: FOLD
-            long val1 = op1.asLongConstant().value;
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1-val2));
-            return MOVE_FOLDED;
-          } else { //KV: TODO: check if op1 can be int constant ?
-            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-            if (val2 == 0L) {                 // x + 0 == x
-              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), 
-                          Binary.getClearVal1(s));
-              return MOVE_REDUCED;
-            }
-          }
-        }
-        //-#endif
       }
       return UNCHANGED;
     case LONG_AND_opcode:
@@ -1376,30 +1357,6 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             //-#endif
           }
         }
-        //-#if RVM_FOR_64_ADDR
-        if (op2.isIntConstant()) { //Magic Address, Offset can do sub with integer
-          long val2 = op2.asIntConstant().value;
-          OPT_Operand op1 = Binary.getVal1(s);
-          if (op1.isLongConstant()) {
-            // BOTH CONSTANTS: FOLD
-            long val1 = op1.asLongConstant().value;
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1-val2));
-            return MOVE_FOLDED;
-          } else { //KV: TODO: check if op1 can be int constant ?
-            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-            if (val2 == 0L) {                 // x - 0 == x
-              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), 
-                          Binary.getClearVal1(s));
-              return MOVE_REDUCED;
-            }
-            // x - c = x + -c
-            // prefer adds, since some architectures have addi but not subi
-            Binary.mutate(s, LONG_ADD, Binary.getClearResult(s), 
-                          Binary.getClearVal1(s), LC(-val2));
-            return REDUCED;
-          }
-        }
-        //-#endif
       }
       return UNCHANGED;
     case LONG_USHR_opcode:

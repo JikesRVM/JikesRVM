@@ -1338,18 +1338,6 @@ stm:	INT_IFCMP(r,INT_CONSTANT)
 EMIT_INSTRUCTION
 CMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), true);
 
-stm:	INT_IFCMP(REF_NEG(r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_NEGr, Unary.getResult(PL(p)),           \
-                     Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_NOT(r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_XORr, Unary.getResult(PL(p)),           \
-                     R(Unary.getVal(PL(p))), Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
-
 stm:	INT_IFCMP(INT_2BYTE(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
@@ -1361,30 +1349,6 @@ stm:	INT_IFCMP(INT_2SHORT(r),INT_CONSTANT)
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_EXTSHr, Unary.getResult(PL(p)),         \
                      Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_ADD(r,r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ADDr, Binary.getResult(PL(p)),          \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_AND(r,r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ANDr, Binary.getResult(PL(p)),          \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_OR(r,r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ORr, Binary.getResult(PL(p)),           \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_XOR(r,r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_XORr, Binary.getResult(PL(p)),          \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(INT_USHR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
@@ -1404,32 +1368,6 @@ EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_SRAWr, Binary.getResult(PL(p)),         \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&U16(Move.getVal(PLR(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ANDISr, Binary.getResult(PL(p)),        \
-                     R(Binary.getVal1(PL(p))),                               \
-                     SRI(Move.getVal(PLR(p)), 16), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&MASK(Move.getVal(PLR(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO_AND_MASK(P(p), Binary.getResult(PL(p)),           \
-                              R(Binary.getVal1(PL(p))),                      \
-                              IC(Move.getVal(PLR(p))), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ADDICr, Binary.getResult(PL(p)),        \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ANDIr, Binary.getResult(PL(p)),         \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
 stm:	INT_IFCMP(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
@@ -1447,18 +1385,6 @@ stm:	INT_IFCMP(INT_SHR(r,INT_CONSTANT),INT_CONSTANT)
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_SRAWIr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_AND(r,REF_NOT(r)),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ANDCr, Binary.getResult(PL(p)),         \
-                     R(Binary.getVal1(PL(p))), Unary.getVal(PLR(p)), IfCmp.getCond(P(p)));
-
-stm:	INT_IFCMP(REF_OR(r,REF_NOT(r)),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ORCr, Binary.getResult(PL(p)),          \
-                     R(Binary.getVal1(PL(p))), Unary.getVal(PLR(p)), IfCmp.getCond(P(p)));
 
 # IfCmp(boolcmp, 0/1)
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
