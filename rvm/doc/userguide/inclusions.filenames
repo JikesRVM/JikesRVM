@@ -5,6 +5,7 @@ installation.tex
 running.tex
 regression.tex
 eclipse.tex
+gcspy.tex
 componentOverview.tex
 vmdetails.tex
 threads.tex
@@ -26,6 +27,7 @@ faq.tex
 ack.tex
 cmdline.tex
 licenses.tex
+cpl-text.tex
 contributions.tex
 trademark-macros.tex
 remark.tex

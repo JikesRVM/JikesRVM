@@ -103,6 +103,7 @@ INPUT_FILES = 	userguide.tex \
 		jni.tex \
 		libraries.tex \
 		licenses.tex \
+		cpl-text.tex \
 		magic.tex \
 		optdetails.tex \
 		performance.tex \

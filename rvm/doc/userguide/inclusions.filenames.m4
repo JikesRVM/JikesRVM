@@ -42,6 +42,7 @@ faq.tex
 ack.tex
 cmdline.tex
 licenses.tex
+cpl-text.tex
 contributions.tex
 dnl Here are the ones that just include macro definitions and so forth
 trademark-macros.tex
