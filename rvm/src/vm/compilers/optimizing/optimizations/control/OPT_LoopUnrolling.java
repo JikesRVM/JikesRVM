@@ -51,14 +51,14 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
     ir.setInstructionScratchWord(0);
     
-    unrollLoops (ir);
+    unrollLoops(ir);
   }
   
   /**
    * unroll the loops.
    * still to be done
    */
-  private static void unrollLoops (OPT_IR ir) {
+  private static void unrollLoops(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
     if (lstg != null)
       unrollLoopTree((OPT_LSTNode)lstg.firstNode(), ir);
@@ -69,11 +69,11 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    * @param t
    * @param ir
    */
-  static int unrollLoopTree (OPT_LSTNode t, OPT_IR ir) {
+  static int unrollLoopTree(OPT_LSTNode t, OPT_IR ir) {
     int res = 0;
     Enumeration e = t.outNodes();
     if (!e.hasMoreElements()) {
-      boolean doNaiveUnrolling = unrollLeaf (t, ir);
+      boolean doNaiveUnrolling = unrollLeaf(t, ir);
       // not yet: if (doNaiveUnrolling) naiveUnroller (t, ir);
     }
     else while (e.hasMoreElements()) {
@@ -90,7 +90,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
   static int theCnt=0;
   
-  static boolean unrollLeaf (OPT_LSTNode t, OPT_IR ir) {
+  static boolean unrollLeaf(OPT_LSTNode t, OPT_IR ir) {
     int instructionsInLoop = 0;
     OPT_BasicBlock exitBlock = null, succBlock = null, predBlock = null;
     OPT_BitVector nloop = t.loop;
@@ -112,6 +112,11 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     while (loopBlocks.hasMoreElements()) {
       OPT_BasicBlock b = loopBlocks.next();
       blocks++;
+      // check infrequency
+      if (b.getInfrequent()) {
+        report("no unrolling in infrequent code\n"); return false;
+      }
+      
       // check for size
       instructionsInLoop += b.getNumberOfRealInstructions();
       if (instructionsInLoop > MaxInstructions) {
