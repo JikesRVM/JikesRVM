@@ -638,7 +638,6 @@ struct JNIEnv_ {
     unsigned largeHeapSize;     /* specify with option "-lh"         */
     unsigned nurserySize;       /* specify with option "-nh"         */
     unsigned permanentHeapSize; /* specify with option "-ph"         */
-    unsigned qstaticMode;       /* specify with option "-qs"         */
     char*    sysLogFile;        /* specify with option "-sysLogFile" */
     char*    bootFilename;      /* boot image, specify with option "-i" */
     char**   JavaArgs;          /* command line arguments to pass to the VM */
