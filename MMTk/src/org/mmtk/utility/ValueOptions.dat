@@ -33,7 +33,7 @@ GC verbosity level
 if (val < 0) VM_Interface.sysFail("Unreasonable verbosity level " + val);
 
 
-V cycleMetaDataPages int MAX_INT cycle_metadate_limit
+V cycleMetaDataPages int MAX_INT cycle_metadata_limit
 ????????
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + val); \
