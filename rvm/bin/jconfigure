@@ -1267,11 +1267,7 @@ function emitCompiler
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
    print "   rm -f $TOP_LEVEL_CLASSES"
-   if (( BUILD_RVMRT_JAR )); then
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $TOP_LEVEL_SOURCES"
-   else 
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
-   fi
+   print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
    print '   print -n "(classes compiled) "'
    print ""
    print "   rm -f jksvm.jar"
