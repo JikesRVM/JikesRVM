@@ -17,14 +17,16 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Scheduler;
+
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
-import java.lang.ref.JikesRVMSupport;
+
 
 
 /**
@@ -174,7 +176,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
                 VM.sysWriteln("    resurrecting: ", oldReferent);
               }
               makeAlive(oldReferent);
-              if (!JikesRVMSupport.wasEnqueued((Reference)VM_Magic.addressAsObject(newReference))) {
+              if (!VM_Interface.referenceWasEverEnqueued((Reference)VM_Magic.addressAsObject(newReference))) {
               // Ensure phantomly reachable objects are enqueued only
               // the first time they become phantomly reachable
               enqueue = true;
@@ -248,7 +250,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             Reference referenceAsObject =
               (Reference) VM_Magic.addressAsObject(newReference);
             
-            JikesRVMSupport.enqueue(referenceAsObject);
+            VM_Interface.enqueueReference(referenceAsObject);
             
             readyListHead = referenceAsObject;
             
