@@ -1,0 +1,9 @@
+BaseBaseCopyMS -test-list jmtk-sanity-tests
+BaseBaseGenCopy -test-list jmtk-sanity-tests
+BaseBaseGenMS -test-list jmtk-sanity-tests
+BaseBaseGenRC -test-list jmtk-sanity-tests
+BaseBaseMarkSweep -test-list jmtk-sanity-tests
+BaseBaseNoGC -test-list jmtk-sanity-tests
+BaseBaseRefCount -test-list jmtk-sanity-tests
+BaseBaseSemiSpace -test-list jmtk-sanity-tests
+BaseBaseUPSemiSpace -test-list jmtk-sanity-tests
