@@ -118,7 +118,7 @@ class Start {
 	    System.exit( -1 );
 	}
 
-	// report statistics
+	// gather statistics
 	long totalBytes = 0;
 	long totalLatency = 0;
 	int numRequests = 0;
@@ -130,6 +130,14 @@ class Start {
 	    numVerifiedRequests += workers[i].numVerifiedRequests;
 	}
 
+	// check number of requests or time
+	if (requestCount != -1) 
+	    if (numRequests != requestCount*clients)
+		System.err.println("ERROR: got only " + numRequests +
+				   " pages, not the " + requestCount*clients +
+				   " expected");
+
+	// report statistics
 	System.out.println("Downloaded " + totalBytes + " bytes in " + numRequests + " requests");
 	System.out.println("Verified " + numVerifiedRequests + " requests");
 	System.out.println("Average latency of " + (double)totalLatency/(double)numRequests + " ms");
