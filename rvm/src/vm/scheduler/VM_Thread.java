@@ -820,6 +820,9 @@ VM_Uninterruptible {
     // adjust FP
     //
     registers.gprs[FP] += delta;
+    //-#if RVM_FOR_IA32
+    registers.fp += delta;     // separate fp field only exists for IA32
+    //-#endif
     if (traceAdjustments) {
       VM.sysWrite(" fp=");
       VM.sysWrite(registers.gprs[FP]);
