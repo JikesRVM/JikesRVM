@@ -116,11 +116,13 @@ final class VM_SegregatedListHeap extends VM_Heap
     }
 
     // set up GC_INDEX_ARRAY for this Processor
-    st.GC_INDEX_ARRAY = new VM_SizeControl[GC_MAX_SMALL_SIZE + 1];
+    // NOTE: we exploit the fact that all allocations are word aligned to
+    //       reduce the size of the index array by 4x....
+    st.GC_INDEX_ARRAY = new VM_SizeControl[(GC_MAX_SMALL_SIZE>>2) + 1];
     st.GC_INDEX_ARRAY[0] = st.sizes[0];  // for size = 0
-    for (int i = 0, j = 1; i < GC_SIZES; i++) {
-      for (; j <= GC_SIZEVALUES[i]; j++) {
-	st.GC_INDEX_ARRAY[j] = st.sizes[i];
+    for (int i = 0, j = 4; i < GC_SIZES; i++) {
+      for (; j <= GC_SIZEVALUES[i]; j+=4) {
+	st.GC_INDEX_ARRAY[j>>2] = st.sizes[i];
       }
     }
 
@@ -219,7 +221,10 @@ final class VM_SegregatedListHeap extends VM_Heap
     //       optimal code when inlined by the optimzing compiler.  
     //       If you change it you must verify that the efficient 
     //       inlined allocation sequence isn't hurt! --dave
-    VM_Address loc = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY).add(size << 2);
+    // NOTE: we exploit the fact that all allocations are word aligned to
+    //       reduce the size of the index array by 4x....
+    size = VM_Memory.align(size, 4);
+    VM_Address loc = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY).add(size);
     VM_Address rs = VM_Magic.getMemoryAddress(loc);
     VM_SizeControl the_size = VM_Magic.addressAsSizeControl(rs);
     VM_Address next_slot = the_size.next_slot;
@@ -345,7 +350,9 @@ final class VM_SegregatedListHeap extends VM_Heap
       // and in fact it could be running on a different virtual processor.
       // Therefore, reacquire the processor local size control.
       // reset the_size in case we are on a different processor after GC
-      the_size  = VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY[size];
+      // NOTE: we exploit the fact that all allocations are word aligned to
+      //       reduce the size of the index array by 4x....
+      the_size  = VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY[size>>2];
 
       // At this point allocation might or might not succeed, since the
       // thread which originally requested the collection is usually not
@@ -871,7 +878,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     st.GC_INDEX_ARRAY = 
       (VM_SizeControl[])VM_ObjectModel.initializeArray(region, 
 						       scArrayType.getTypeInformationBlock(), 
-						       GC_MAX_SMALL_SIZE + 1, 
+						       (GC_MAX_SMALL_SIZE>>2) + 1, 
 						       regionSize);
 
     VM.enableGC();
@@ -885,11 +892,12 @@ final class VM_SegregatedListHeap extends VM_Heap
       build_list_for_new_block(blocks[ii], st.sizes[i]);
     }
 	
+    // NOTE: we exploit the fact that all allocations are word aligned to
+    //       reduce the size of the index array by 4x....
     st.GC_INDEX_ARRAY[0]  = st.sizes[0];  // for size = 0
-    int  j = 1;
-    for (int i = 0; i < GC_SIZES; i++) {
-      for (; j <= GC_SIZEVALUES[i]; j++) { 
-	st.GC_INDEX_ARRAY[j] = st.sizes[i];
+    for (int i = 0, j=4; i < GC_SIZES; i++) {
+      for (; j <= GC_SIZEVALUES[i]; j+=4) { 
+	st.GC_INDEX_ARRAY[j>>2] = st.sizes[i];
       }
     }
     
