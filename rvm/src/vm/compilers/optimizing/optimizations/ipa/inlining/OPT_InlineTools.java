@@ -36,16 +36,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @return true if legal, false otherwise
    */
   public static boolean legalToInline(VM_Method caller, VM_Method callee) {
-    if (callee == null) {
-      return false;            // Unable to idenitfy callee
-    }
-    if (!callee.getDeclaringClass().isLoaded()) {
-      return false;
-    }
-    if (OPT_ClassLoaderProxy.needsDynamicLink(callee, caller.getDeclaringClass())) {
-      return false;  // Can't inline due to class loading state of callee
-    }
-    return true;
+    return (callee != null) && callee.getDeclaringClass().isLoaded();
   }
 
   public static boolean hasBody(VM_Method callee) {
@@ -178,11 +169,9 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     return false;
   }
 
-  private static VM_Atom arraycopyName = 
-    VM_Atom.findOrCreateAsciiAtom("arraycopy");
+  private static VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom("arraycopy");
   private static VM_Atom objectArrayCopyDescriptor = 
-      VM_Atom.findOrCreateAsciiAtom(
-      "([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
+    VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Should the callee method be barred from ever being considered for inlining?
@@ -197,47 +186,47 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     return callee.hasNoInlinePragma();
   }
 
-    private static final VM_Atom[] thirdRailClasses = new VM_Atom[]{
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptCompiledMethod;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Barriers;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BasicBlock;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiler;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineExceptionTable;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineOptions;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildBB;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildReferenceMaps;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Compiler;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLink;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker$DL_Helper;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ForwardReference;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_HardwareTrapCompiledMethod;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JSRSubroutineInfo;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MagicCompiler;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_PendingRETInfo;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Runtime;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;"),
-	VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_UnusualMaps;"),
-	VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Runtime;"),
-	VM_Atom.findOrCreateAsciiAtom("Ljava/lang/System;")
-    };
+  private static final VM_Atom[] thirdRailClasses = new VM_Atom[]{
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptCompiledMethod;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Barriers;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BasicBlock;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiler;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineExceptionTable;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineOptions;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildBB;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildReferenceMaps;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Compiler;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLink;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker$DL_Helper;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ForwardReference;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_HardwareTrapCompiledMethod;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JSRSubroutineInfo;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MagicCompiler;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_PendingRETInfo;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Runtime;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_UnusualMaps;"),
+    VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Runtime;"),
+    VM_Atom.findOrCreateAsciiAtom("Ljava/lang/System;")
+  };
 
 
-    public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
-	if (! callee.getDeclaringClass().getName().startsWith("com.ibm.JikesRVM.VM_")) {
-	    VM_Atom defn = caller.getDeclaringClass().getDescriptor();
-	    for(int i = 0; i < thirdRailClasses.length; i++) {
-		if (defn == thirdRailClasses[i])
-		    return true;
-	    }
-	}
-
-	return false;
+  public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
+    if (!callee.getDeclaringClass().getName().startsWith("com.ibm.JikesRVM.VM_")) {
+      VM_Atom defn = caller.getDeclaringClass().getDescriptor();
+      for(int i = 0; i < thirdRailClasses.length; i++) {
+	if (defn == thirdRailClasses[i])
+	  return true;
+      }
     }
+
+    return false;
+  }
 }
 
 
