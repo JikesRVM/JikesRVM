@@ -472,7 +472,7 @@ full one and small one used for configurations considered less
 critical.  Thus, we have the following two files:
 
 \begin{description}
-\item[nightly-tests] file
+\item[\IndexTexttt{nightly-tests}] file
 \begin{verbatim}
 gctest
 bytecodeTests
@@ -488,10 +488,11 @@ javalex
 xerces
 xalan
 soot
+ipsixql
 SPECjvm98 
 SPECjbb2000 
 \end{verbatim}
-\item[nightly-tests-short] file
+\item[\texttt{nightly-tests-short}] file
 \begin{verbatim}
 gctest
 bytecodeTests
@@ -507,17 +508,18 @@ javalex
  We then have a control file for {\tt{NightSanityDriver}} that runs a
 selection of boot images using these two sets of regression tests.
 Note that we use the nightly-tests-short list of tests for
-configurations that mainly for debugging purposes
-(ExtremeAssertionsOptOptSemiSpace) or are configurations that one can
-create but would not want to use in practice (BaseAdaptiveSemiSpace).
+configurations that exist mainly for debugging purposes
+(e.g., \texttt{ExtremeAssertions}\textit{*}) or that one can
+create but would not want to use in practice.
 To ensure relatively complete coverage testing of the optimizing
 compiler, we chose one optimizing configuration (FullOptMarkSweep) on
 which to run with all the different optimization levels.
 
 \begin{verbatim}
-BaseBaseCopyMS                   -test-list nightly-tests
-BaseAdaptiveCopyMS               -test-list nightly-tests-short
-FullAdaptiveCopyMS               -test-list nightly-tests
+prototype                        -test-list nightly-tests
+prototype-opt                    -test-list nightly-tests
+development                      -test-list nightly-tests
+production                       -test-list nightly-tests
 BaseBaseMarkSweep                -test-list nightly-tests
 FullAdaptiveMarkSweep            -test-list nightly-tests
 BaseBaseSemiSpace                -test-list nightly-tests
@@ -528,7 +530,6 @@ ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
 BaseBaseCopyMSUP                 -test-list nightly-tests-short
 FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" \
                                      -test-list nightly-tests-short
-FastAdaptiveCopyMS               -test-list nightly-tests-short
 FastAdaptiveMarkSweep            -test-list nightly-tests-short
 \end{verbatim}
 

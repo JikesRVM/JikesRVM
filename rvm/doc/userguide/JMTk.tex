@@ -16,10 +16,10 @@ JMTk classes are contained in the
 In keeping with the goal of modularity and portability, as far as
 possible Jikes RVM-specific code is factored out.  Such VM-specific
 code resides in a separate package,
-(\xlink{\texttt{com.ibm.JikesRVM.memoryManagers.vmInterface}}{\vmInterfacePackageURL}),
-and can be found in the \texttt{vmInterface} sub-directory.  All other
+(\xlink{\texttt{\MMpackage\-.\vmInterface}}{\vmInterfacePackageURL}),
+and can be found in the \texttt{\vmInterface} sub-directory.  All other
 code is part of the
-\xlink{\texttt{com.ibm.JikesRVM.memoryManagers.JMTk}}{\JMTkPackageURL}
+\xlink{\texttt{\MMpackage\-.JMTk}}{\JMTkPackageURL}
 package.
 
 The \texttt{plan} sub-directory contains classes that define
@@ -177,11 +177,11 @@ mechanisms, including:
       memory}{\RawPageAllocatorURL} (for use by meta data, for example).
 \end{itemize}
 
-\subsection{VMInterface} \label{sssec:vminterface}
+\subsection{\texttt{VMInterface}} \label{sssec:vminterface}
 
 The \texttt{vmInterface} sub-directory provides the interface between
 Jikes RVM and JMTk.  The primary interface is provided by
-\xlink{\texttt{VMInterface.java}}{\VMInterfaceURL}.  Key
+\xlink{\texttt{VM\-In\-ter\-face\-.java}}{\VMInterfaceURL}.  Key
 VM-dependent mechanisms include:
 
 \begin{itemize}

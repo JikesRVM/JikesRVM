@@ -52,7 +52,7 @@
 \newcommand{\instruction}{\it}
 \T\newcommand{\SectionName}[1]{{\sc #1}}
 \W\newcommand{\SectionName}[1]{\textbf{#1}}
-\newcommand{\RVMTarFile}{jikesrvm-{\version}.tar.gz}
+\newcommand{\RVMTarFile}{jikes\-r\-v\-m-{\version}\-.tar\-.gz}
 
 %Define URLs
 %\newcommand{\RVMHomeURL}{http://www.ibm.com/developerworks/oss/jikesrvm}
@@ -71,15 +71,15 @@
 \newcommand{\RVMDownloadURL}{{\RVMHomeURL}/download}
 \newcommand{\RVMCVSURL}{\RVMHomeURL/cvsweb.html}
 %\newcommand{\RVMUserListURL}{{\RVMHomeURL}/info/users.shtml}
-\newcommand{\RVMMailingListURL}{http://www.ibm.com/developerworks/oss/mailman/listinfo/}
-\newcommand{\RVMResearcherMailingListURL}{\RVMMailingListURL/jikesrvm-researchers}
+\newcommand{\RVMMailingListURL}{http://\-www.ibm.com/\-de\-ve\-lo\-per\-works/\-oss/\-mail\-man/\-list\-in\-fo/}
+\newcommand{\RVMResearcherMailingListURL}{\RVMMailingListURL/jikes\-r\-v\-m-re\-sear\-chers}
 \newcommand{\RVMResearcherMailingListArchiveURL}{http://www-124.ibm.com/pipermail/jikesrvm-researchers}
 \newcommand{\RVMRegressionMailingListURL}{\RVMMailingListURL/jikesrvm-researchers}
 \newcommand{\RVMCoreMailingListURL}{\RVMMailingListURL/jikesrvm-core}
 \newcommand{\RVMAnnounceMailingListURL}{\RVMMailingListURL/jikesrvm-announce}
 %\newcommand{\RVMBugURL}{\RVMDownloadURL}
 %\newcommand{\RVMBugURL}{http://www-124.ibm.com/developerworks/bugs/?group\_id=95}
-\newcommand{\RVMContribURL}{{\RVMHomeURL}/info/contributions.shtml}
+\newcommand{\RVMContribURL}{{\RVMHomeURL}\-/\-in\-fo\-/\-con\-tri\-bu\-tions\-.shtml}
 \newcommand{\RVMTeachingResourcesURL}{{\RVMHomeURL}/info/course-info.shtml}
 \newcommand{\CPLURL}{http://oss.software.ibm.com/developerworks/opensource/license-cpl.html}
 \newcommand{\IBMURL}{http://www.ibm.com}
@@ -93,6 +93,7 @@
 \newcommand{\OSXURL}{http://directory.google.com/Top/Computers/Software/Operating\_Systems/Mac\_OS/System\_Software/Mac\_OS\_X/?tc=1}
 
 % package com.ibm.JikesRVM
+\newcommand{\JikesRVMpackage}{com\-.ibm\-.Jikes\-RVM}
 \newcommand{\JikesRVMJavadocURL}{{\RVMJavadocURL}/com/ibm/JikesRVM}
 \newcommand{\VMURL}{\JikesRVMJavadocURL/VM.html}
 \newcommand{\VMAbstractThreadQueueURL}{{\JikesRVMJavadocURL}/VM\_AbstractThreadQueue.html}
@@ -159,11 +160,13 @@
 \newcommand{\StopTheWorldGCURL}{{\JMTkJavadocURL}/StopTheWorldGC.html}
 \newcommand{\VMResourceURL}{{\JMTkJavadocURL}/VMResource.html}
 % package com.ibm.JikesRVM.memoryManagers.watson
+\newcommand{\MMpackage}{\JikesRVMpackage{}.me\-mo\-ry\-Ma\-na\-gers}
 \newcommand{\WatsonGCJavadocURL}{{\MMJavadocURL}/watson}
 \newcommand{\VMGCLocksURL}{{\WatsonGCJavadocURL}/VM\_GCLocks.html}
 \newcommand{\VMGCWorkQueueURL}{{\WatsonGCJavadocURL}/VM\_GCWorkQueue.html}
 % package com.ibm.JikesRVM.memoryManagers.vmInterface
-\newcommand{\VMInterfaceJavadocURL}{{\MMJavadocURL}/vmInterface}
+\newcommand{\vmInterface}{v\-m\-In\-ter\-face}
+\newcommand{\VMInterfaceJavadocURL}{{\MMJavadocURL}/\vmInterface}
 \newcommand{\vmInterfacePackageURL}{{\VMInterfaceJavadocURL}/package-frame.html}
 \newcommand{\ScanObjectURL}{{\VMInterfaceJavadocURL}/ScanObject.html}
 \newcommand{\ScanStaticsURL}{{\VMInterfaceJavadocURL}/ScanStatics.html}
@@ -203,6 +206,7 @@
 
 
 \T \hyphenation{Class-path}
+\T \hyphenation{a-vai-la-ble}
 \T \hyphenation{Post-Script}
 \T \hyphenation{li-bra-ries}
 \T \hyphenation{di-rec-to-ry}
@@ -213,14 +217,14 @@
 \T \hyphenation{j-con-fi-gure}
 \T \hyphenation{Run-Sa-ni-ty-Tests}
 \T \hyphenation{Pow-er-PC}
-\newcommand{\gnuMakeURL}{http://www.gnu.org/software/make/}
-\newcommand{\gnuTarURL}{http://www.gnu.org/software/tar/tar.html}
+\newcommand{\gnuMakeURL}{http:\-//\-www\-.gnu\-.org\-/\-software\-/\-make}
+\newcommand{\gnuTarURL}{http:\-//\-www\-.gnu\-.org\-/\-soft\-ware\-/\-tar\-/\-tar\-.html}
 %\newcommand{\jikesURL}{http://oss.software.ibm.com/developerworks/opensource/jikes}
-\newcommand{\jikesURL}{http://oss.soft\-ware.ibm.com/\-de\-ve\-l\-o\-per\-works/\-op\-en\-source/\-jikes}
-\newcommand{\HyperlatexURL}{http://www.cs.ruu.nl/\-\~{}otfried/\-Hyperlatex/}
-\newcommand{\AIXJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-index.html}
-\newcommand{\LinuxJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-index.html}
-\newcommand{\BlackdownURL}{http://www.black\-down.org}
+\newcommand{\jikesURL}{http:\-//\-oss\-.soft\-ware\-.ibm\-.com\-/\-de\-ve\-l\-o\-per\-works\-/\-op\-en\-source\-/\-jikes}
+\newcommand{\HyperlatexURL}{http:\-//www\-.cs\-.ruu\-.nl\-/\-\~{}ot\-fried\-/\-Hy\-per\-la\-tex/}
+\newcommand{\AIXJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-in\-dex.html}
+\newcommand{\LinuxJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-in\-dex.html}
+\newcommand{\BlackdownURL}{http:\-//\-www\-.black\-down\-.org}
 \newcommand{\SystemJournalPaperURL}{{\RVMPubsURL}\#ibmsj00}
 \newcommand{\JavaGrandePaperURL}{{\RVMPubsURL}\#grande99}
 \newcommand{\OOPSLAPaperURL}{{\RVMPubsURL}\#oopsla00\_aos}
@@ -259,6 +263,8 @@
 \oddsidemargin 0mm
 \evensidemargin 0mm
 \topmargin 0mm
+%\textwidth 10cm
+%\textheight 8in
 \textwidth 15cm
 \textheight 22cm
 \advance\textheight by -\topskip

@@ -79,8 +79,8 @@ on the yield-point sampling mechanism.
 This directory contains the \xlink{{\tt
 VM\_Com\-pi\-la\-tion\-Thread}}{\VMCompilationThreadURL}, which 
 processes
-events placed on {\tt compilationQueue} by the {\tt
-VM\_Con\-trol\-lerThread}, and invokes the optimizing compiler using the
+events placed on {\tt com\-pi\-la\-tion\-Queue} by the {\tt
+VM\-\_\-Con\-trol\-ler\-Thread}, and invokes the optimizing compiler using the
 information passed in the event.  Another class in this directory is
 \xlink{{\tt VM\_CompilerDNA}}{\VMCompilerDNAURL}, which contains the cost/benefit
 parameters that drive the \xlink{{\tt
@@ -106,7 +106,7 @@ based on yield points, are taken.  These samples occur when a Java
 to another Java {\tt Thread}.  The sample is taken before the thread switch occurs.
 See the 
 \xlink{{\tt threadSwitch}}{\VMThreadthreadSwitchURL} method in
-{\tt \$RVM\_\-ROOT/rvm/src/vm/scheduler/VM\_Thread} for details.
+{\tt \$RVM\_\-ROOT\-/\-rvm\-/\-src\-/\-vm\-/\-sche\-du\-ler\-/\-VM\_Thread} for details.
 There may be many active listeners at one
 time.  For example, we may take regular method samples to determine
 recompilation candidates (\xlink{{\tt
@@ -144,9 +144,9 @@ is mechanically generated from a template.
 To add or modify the command-line options in {\tt
 VM\_AOSOptions.java}, you must modify either {\tt BooleanOptions.dat},
 {\tt ValueOptions.dat}, {\tt ShareBooleanOptions.dat}, or {\tt
-ShareValueOptions.dat}.  You should describe your desired command-line
+Share\-Val\-ue\-Op\-tions\-.dat}.  You should describe your desired command-line
 option as discussed \link{in the \SectionName{Command-Line Arguments}
-section}[ (Appendix~\Ref)]{section:cmdline}.  The options in the {\tt
+section}[ (Appendix~\Ref, on page~\Pageref)]{section:cmdline}.  The options in the {\tt
 ShareBooleanOptions.dat} and {\tt ShareValueOptions.dat} files are
 defined as both AOS and optimizing compiler options.
 

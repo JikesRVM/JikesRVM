@@ -351,8 +351,8 @@ primitives, in turn, are implemented using VM\_Magic.prepare and attempt.
 \item[\xlink{VM\_ProcessorLock}{\VMProcessorLockURL}]%
 \IndexttClass{VM\_ProcessorLock}
 
-This lock is used to enforce mutual exclusion between {\tt VM\_Processors}
-(pthreads.)  It provides a non-blocking attempt to require the lock
+This lock is used to enforce mutual exclusion between {\tt VM\-\_\-Pro\-ces\-sors}
+(p\-threads.)  It provides a non-blocking attempt to require the lock
 ({\tt tryLock()}) as well as a blocking spin-lock ({\tt lock()}).
 
 \item[\xlink{VM\_Lock}{\VMLockURL}]%
@@ -468,15 +468,16 @@ bounds and not lower bounds.
 The interprocedural flow-sensitive escape analysis in the 
 \xlink{OOSPLA 99 paper}{\EscapeAnalysisPaperURL} is not currently included.
 
-However, the distribution includes a less-powerful flow-insensitive
+However, the distribution includes a (less powerful) flow-{\bf in}\-sen\-si\-tive
 escape analysis.  See  
-\xlink{{\tt OPT\_SimpleEscape.java}}{\OPTSimpleEscapeURL}.
+\xlink{{\tt OPT\-\_\-Sim\-ple\-Es\-cape\-.java}}{\OPTSimpleEscapeURL}.
 
 \subsubsection{How do I insert my new compiler pass in the optimizing
 compiler driver?}
 \index{compiler pass, inserting a new one}
 
-See \link{the Optimizing Compiler Implementation Details section}[ (\Ref)]{sec:optdriver} of the userguide, which describes how to
+See \link{the Optimizing Compiler Implementation Details section}[
+  (Section~\Ref, on page~\Pageref)]{sec:optdriver} of the userguide, which describes how to
 add phases to class 
 \xlink{\texttt{OPT\_OptimizationPlanner}}{\OPTOptimizationPlannerURL}.
 

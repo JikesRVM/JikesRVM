@@ -266,7 +266,8 @@ Notice how the third line was broken up by using ``$\backslash$''.
 
 So, by default, Jikes RVM uses the {\em strict} floating-point
 semantics.  To use the option that allows fused multiply-add
-instructions, specify {\tt -X:irc:allow\_fma} on the command-line.
+({\texonly{\sc} FMA})
+instructions, specify ``{\tt -X:irc:allow\_fma}'' on the command-line.
 Given an {\tt OPT\_Options} object called {\tt options}, your code can
-query if fma is allowed by testing {\tt options.allowFMA()}.
+query if {\texonly{\sc} FMA} is allowed by testing ``{\tt op\-tions\-.al\-low\-F\-M\-A()}''.
 
