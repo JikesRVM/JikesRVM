@@ -172,6 +172,11 @@ public class VM_Interface implements VM_Constants {
       VM_WriteBarrier.arrayCopyWriteBarrier(ref, start, end);
   }
 
+  public static void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) 
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
+
 
   /**
    * Returns true if GC is in progress.
@@ -267,6 +272,10 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static void processPtrField (VM_Address location) throws VM_PragmaUninterruptible {
+    VM_Allocator.processPtrField(location);
+  }
+
+  public static void processPtrField (VM_Address location, boolean root) throws VM_PragmaUninterruptible { 
     VM_Allocator.processPtrField(location);
   }
 
