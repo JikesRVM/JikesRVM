@@ -37,7 +37,6 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   //
   static final int REGISTER_ZERO              = 0; // special instruction semantics on this register
   static final int FRAME_POINTER              = 1; // same as AIX/OSX/Linux
-  static final int JTOC_POINTER               = 2; // AIX toc; OSX scratch; Linux unused?
   static final int FIRST_VOLATILE_GPR         = FIRST_OS_PARAMETER_GPR;
   //                                            ...
   static final int LAST_VOLATILE_GPR          = LAST_OS_PARAMETER_GPR;
@@ -46,7 +45,13 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // AIX 64 bit ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
   static final int FIRST_RVM_RESERVED_NV_GPR  = VM.BuildFor64Addr? 14 : 13;
   static final int PROCESSOR_REGISTER         = FIRST_RVM_RESERVED_NV_GPR;
+  //-#if RVM_FOR_LINUX
+  static final int JTOC_POINTER               = PROCESSOR_REGISTER + 1; // 2 is used by Linux for thread context
+  static final int KLUDGE_TI_REG              = PROCESSOR_REGISTER + 2; // migration aid while killing TI
+  //-#else
+  static final int JTOC_POINTER               = 2; // AIX toc; OSX scratch; Linux thread context
   static final int KLUDGE_TI_REG              = PROCESSOR_REGISTER + 1; // migration aid while killing TI
+  //-#endif
   static final int LAST_RVM_RESERVED_NV_GPR   = KLUDGE_TI_REG; // will become PR when KLUDGE_TI dies.
   static final int FIRST_NONVOLATILE_GPR      = LAST_RVM_RESERVED_NV_GPR+1;
   //                                            ...

@@ -387,15 +387,15 @@ static int isVmSignal(VM_Address iar, VM_Address jtoc)
 */
 
 
-sigcontext* 
-getLinuxSavedContext(int signum, void* arg3) 
+pt_regs* 
+getLinuxSavedRegisters(int signum, void* arg3) 
 {
 #if defined(GETCONTEXT_IMPLEMENTED)
    ucontext_t uc;
    getcontext(&uc);
-   return &(uc.uc_mcontext);
+   return uc.uc_mcontext.regs;
 #elif defined(SIGNAL_ARG3_IS_UCONTEXT)
-   return &((ucontext_t*)arg3)->uc_mcontext;
+   return ((ucontext_t*)arg3)->uc_mcontext.regs;
 #else
    /* Unfortunately, getcontext() (/usr/include/ucontext.h) is not implemented
       in Linux at the time of this writing (Linux/PPC Kernel <= 2.4.3), but
@@ -405,7 +405,7 @@ getLinuxSavedContext(int signum, void* arg3)
    */
 #warning Linux does not support getcontext()
 #define SIGCONTEXT_MAGIC 5
-   sigcontext* context = (sigcontext *) (((void **) arg3) + SIGCONTEXT_MAGIC);
+   mcontext_t* context = (mcontext_t *) (((void **) arg3) + SIGCONTEXT_MAGIC);
    if (context->signal != signum) {
      // We're in trouble.  Try to produce some useful debugging info
      fprintf(stderr, "%s:%d Failed to grab context from signal stack frame!\n", __FILE__, __LINE__);
@@ -416,11 +416,10 @@ getLinuxSavedContext(int signum, void* arg3)
      exit(-1);
    }
 
-   return context;
+   return context->regs;
 #endif
 }
 #endif
-
 
 /* Handle software signals.
 
@@ -433,8 +432,7 @@ getLinuxSavedContext(int signum, void* arg3)
 void 
 cSignalHandler(int signum, siginfo_t* siginfo, void* arg3) 
 {
-    sigcontext* context = getLinuxSavedContext(signum, arg3);
-    pt_regs *save = context->regs;
+    pt_regs *save = getLinuxSavedRegisters(signum, arg3);
     VM_Word iar  =  save->nip;
 #endif
 #if 0
@@ -609,9 +607,8 @@ getFaultingAddress(mstsave *save)
 void 
 cTrapHandler(int signum, siginfo_t *siginfo, void* arg3) 
 {
-    sigcontext* context = getLinuxSavedContext(signum, arg3);
     uintptr_t faultingAddress = (uintptr_t) siginfo->si_addr;
-    pt_regs *save = context->regs;
+    pt_regs *save = getLinuxSavedRegisters(signum, arg3);
     uintptr_t ip = save->nip;
     uintptr_t lr = save->link;
     VM_Address jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
