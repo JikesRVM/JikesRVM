@@ -56,7 +56,7 @@ endif
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
 %.class:		%.java $(WORKING)/cp
-	$(HOST_JIKES) -d $(WORKING)/cp -classpath $(ALL_CP) $<
+	$(HOST_JAVAC) -d $(WORKING)/cp -classpath $(ALL_CP) $<
 
 #
 # how to run
