@@ -192,9 +192,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final void increment(VM_Address object) 
     throws VM_PragmaInline {
-    RCBaseHeader.incRC(object);
-    if (Plan.REF_COUNT_CYCLE_DETECTION && !RCBaseHeader.isGreen(object))
-      RCBaseHeader.makeBlack(object);
+    RCBaseHeader.incRC(object, true);
   }
 
   public final FreeListVMResource getVMResource() { return vmResource;}

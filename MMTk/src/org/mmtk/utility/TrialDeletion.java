@@ -350,7 +350,7 @@ final class TrialDeletion extends CycleDetector
       break;
     case SCAN_BLACK: 
       if (!RCBaseHeader.isGreen(object)) {
-	RCBaseHeader.incRC(object);
+	RCBaseHeader.incRC(object, false);
 	if (!RCBaseHeader.isBlack(object))
 	  blackQueue.push(object);
       }

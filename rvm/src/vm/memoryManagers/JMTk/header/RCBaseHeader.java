@@ -41,6 +41,10 @@ public abstract class RCBaseHeader implements Constants {
   private static final int      BARRIER_BIT = 1;
   public static final int BARRIER_BIT_MASK  = 1<<BARRIER_BIT;  // ...10
 
+  public static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
+  public static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd
+  public static final int DEC_BUFFER = -1; // dec to non-zero RC, need to bufr
+
   public static boolean isSmallObject(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return (VM_Interface.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
@@ -114,9 +118,23 @@ public abstract class RCBaseHeader implements Constants {
    *
    * @param object The object whose RC is to be incremented.
    */
-  public static void incRC(VM_Address object)
+  public static void incRC(VM_Address object, boolean makeBlack)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    changeRC(object, INCREMENT);
+    int oldValue, newValue;
+    if (Plan.SUPPORTS_PARALLEL_GC) {
+      do {
+	oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
+	newValue = oldValue + INCREMENT;
+	if (Plan.REF_COUNT_CYCLE_DETECTION && makeBlack)
+	  newValue = (newValue & ~PURPLE);
+      } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    } else {
+      oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+      newValue = oldValue + INCREMENT;
+      if (Plan.REF_COUNT_CYCLE_DETECTION && makeBlack)
+	newValue = (newValue & ~PURPLE);
+      VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
+    }
   }
 
   /**
