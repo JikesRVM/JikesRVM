@@ -117,7 +117,7 @@ fi
 ## ${classpath_arg[@]}
 #
 # Note: Writing it like this commented-out line below will break!  Must not
-# incorporate the assignment into the declare, at least under Bash 2.05b.
+# incorporate the assignment into the declare, due to a bug in Bash 2.05b.
 #
 #declare -a user_args=("$@")
 #
