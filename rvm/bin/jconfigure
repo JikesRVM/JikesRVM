@@ -1592,7 +1592,6 @@ cat <<- EOF
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
 	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
 	export JIKES_WARNING_FLAGS='${JIKES_WARNING_FLAGS}'
-
 EOF
     [[ ${HOST_JAVA_HOME-} ]] && echo "export $HOST_JAVA_HOME_STR1='$HOST_JAVA_HOME'"
     if [ "${HOST_JAVA_LD_LIBRARY_PATH-}" ]; then
@@ -1608,6 +1607,7 @@ EOF
     [[ ! ${ANT_CMD-} ]] || echo "export ANT_CMD='$ANT_CMD'"
     echo ""
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
+    [[ ! ${XALAN_J_DIR} ]] || echo "export XALAN_J_DIR='${XALAN_J_DIR}'"
     echo ""
     [[ ! ${CLASSPATH_ROOT-} ]] || echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
     [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"
