@@ -56,6 +56,14 @@ public class VM_StackTrace implements VM_Constants {
    */
   private final int[] offsets;
   
+  /** Should this be (or is this) a verbose stack trace? */
+  public boolean isVerbose() {
+    return /* If we're printing verbose stack traces... */
+      (VM.VerboseStackTracePeriod > 0) 
+      /* AND this particular trace meets the periodicity requirements */
+      && (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
+  }
+
   /**
    * Create a trace of the current call stack
    */
@@ -68,14 +76,12 @@ public class VM_StackTrace implements VM_Constants {
     walkFrames(true, skip+1);
     
     // Debugging trick: print every nth stack trace created
-    if (VM.VerboseStackTracePeriod > 0) {
-      if (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0) {
-        VM.disableGC();
-        VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex);
-        VM_Scheduler.dumpStack();
-        VM.sysWriteln("END Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex, " ]");
-        VM.enableGC();
-      }
+    if (isVerbose()) {
+      VM.disableGC();
+      VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex);
+      VM_Scheduler.dumpStack();
+      VM.sysWriteln("END Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex, " ]");
+      VM.enableGC();
     }
   }
 
