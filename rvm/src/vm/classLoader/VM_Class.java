@@ -570,35 +570,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   //--------------------------------------------------------------------//
 
   /**
-   * Read this class's description from its .class file.
-
-   OLD CODE: I think we don't need this anymore???
-  public final synchronized void load() {
-    if (isLoaded()) return;
-
-    if (classLoadingDisabled) {
-      throw new RuntimeException("ClassLoading Disabled : "
-				 +this.getDescriptor());
-    }
-
-    if (VM.TraceClassLoading && VM.runningVM) 
-      VM.sysWrite("VM_Class: (begin) load " + descriptor + "\n");
-
-    VM_Thread myThread;
-    
-    try {
-      classloader.loadClass(toString());
-    } catch (ClassNotFoundException e) { 
-      // no .class file
-      throw new NoClassDefFoundError(descriptor.classNameFromDescriptor());
-    }
-
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load " + descriptor + "\n");
-  }
-  */
-
-
-  /**
    * Create an instance of a VM_Class.
    * @param typeRef the cannonical type reference for this type.
    * @param input the data stream from which to read the class's description.
