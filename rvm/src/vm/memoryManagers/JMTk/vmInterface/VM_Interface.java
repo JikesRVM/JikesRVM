@@ -285,26 +285,16 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(proc.mmPlan != null);
   }
 
-  //-#if RVM_FOR_POWERPC
-  //-#if RVM_FOR_AIX
-  public static final int bootImageAddress = 0x30000000;
-  //-#endif
-  //-#if RVM_FOR_LINUX
-  public static final int bootImageAddress = 0x31000000;
-  //-#endif
-  //-#endif
-
-  //-#if RVM_FOR_IA32
-  //-#if RVM_FOR_LINUX
-  public static final int bootImageAddress = 0x43000000;
-  //-#endif
-  //-#endif
-
   public static final boolean NEEDS_WRITE_BARRIER = Plan.needsWriteBarrier;
   public static final boolean NEEDS_RC_WRITE_BARRIER = Plan.needsRefCountWriteBarrier;
   public static final boolean MOVES_OBJECTS = Plan.movesObjects;
   public static boolean useMemoryController = false;
 
+  public static final int bootImageAddress = 
+  //-#value BOOTIMAGE_LOAD_ADDRESS
+  ;
+
+    /*
   public static void checkBootImageAddress (int addr) {
     if (bootImageAddress != addr) {
       VM.sysWriteln("checkBootImageAddress detected mismatch");
@@ -313,7 +303,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM._assert(false);
     }
   }
-
+    */
   public static void setWorkBufferSize (int size) {
     WorkQueue.WORK_BUFFER_SIZE = 4 * size;
   }
