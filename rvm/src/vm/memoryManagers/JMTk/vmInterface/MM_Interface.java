@@ -450,6 +450,10 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
 
+  public static boolean mightBeTIB (VM_Address obj) throws VM_PragmaInline, VM_PragmaUninterruptible {
+    return VMResource.refIsImmortal(obj);
+  }
+
   public static Object[] newTIB (int n) throws VM_PragmaInline, VM_PragmaInterruptible {
     if (VM.runningVM) {
       VM_Array objectArrayType = VM_Type.JavaLangObjectArrayType;

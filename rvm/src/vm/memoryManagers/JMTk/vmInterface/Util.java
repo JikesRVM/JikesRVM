@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
+import com.ibm.JikesRVM.memoryManagers.JMTk.LazyMmapper;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -57,7 +58,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
 
   // check if an address appears to point to an instance of VM_Type
   public static boolean validType(VM_Address typeAddress) throws VM_PragmaUninterruptible {
-    if (!VMResource.refInVM(typeAddress))
+     if (!mappedVMRef(typeAddress))
       return false;  // type address is outside of heap
 
     // check if types tib is one of three possible values
@@ -97,7 +98,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
   public static boolean validRef(VM_Address ref) throws VM_PragmaUninterruptible {
 
     if (ref.isZero()) return true;
-    if (!VMResource.refInVM(ref)) {
+     if (!mappedVMRef(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = "); VM.sysWrite(ref); VM.sysWrite("\n");
       VMResource.showAll();
       return false;
@@ -111,7 +112,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
     
     Object[] tib = VM_ObjectModel.getTIB(ref);
     VM_Address tibAddr = VM_Magic.objectAsAddress(tib);
-    if (!VMResource.refInVM(tibAddr)) {
+    if (!mappedVMRef(ref)) {
       VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
@@ -140,6 +141,9 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
     return true;
   }  // validRef
 
+  public static boolean mappedVMRef (VM_Address ref) throws VM_PragmaUninterruptible {
+    return VMResource.refInVM(ref) && LazyMmapper.refIsMapped(ref);
+  }
 
    public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
      VM.sysWrite("REF=");
@@ -148,13 +152,13 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
        return;
      }
      VM.sysWrite(ref);
-     if (!VMResource.refInVM(ref)) {
-       VM.sysWrite(" (REF OUTSIDE OF HEAP)\n");
+     if (!mappedVMRef(ref)) {
+       VM.sysWrite(" (REF OUTSIDE OF HEAP OR NOT MAPPED)\n");
        return;
      }
      VM_ObjectModel.dumpHeader(ref);
      VM_Address tib = VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(ref));
-     if (!VMResource.refInVM(tib)) {
+     if (!MM_Interface.mightBeTIB(tib)) {
        VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
        return;
      }

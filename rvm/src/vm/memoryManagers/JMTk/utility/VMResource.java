@@ -127,6 +127,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
     int bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toInt();
     Plan.bootVM.acquireHelp(BasePlan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
+    LazyMmapper.boot(BasePlan.BOOT_START, bootSize);
   }
 
   public static VMResource resourceForPage(VM_Address addr) {
