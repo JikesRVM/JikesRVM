@@ -90,7 +90,7 @@ public class Throwable implements java.io.Serializable {
       VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
     }
     if (numOutOfMemoryErrors > 1 ) {
-      VM.sysWriteln("I'm now ", numOutOfMemoryErrors, " levels deep in OutOfMemoryErrors while handling this Throwable");
+      VM.sysWriteln("GC Warning: I'm now ", numOutOfMemoryErrors, " levels deep in OutOfMemoryErrors while handling this Throwable");
     }
   }
   
