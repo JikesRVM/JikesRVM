@@ -27,8 +27,8 @@ V LOGFILE_NAME String \"AOSLog.txt\" lf
 Name of log file
 
 
-V COMPILER_DNA_FILE_NAME String \"CompilerDNA.txt\" dna
-Name of compiler DNA file
+V COMPILER_DNA_FILE_NAME String \"\" dna
+Name of compiler DNA file (no name ==> use default DNA)
 
 
 V LOGGING_LEVEL int 0

@@ -112,9 +112,9 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   static void init()  { 
     // check to see if the raw rates are specified during boot time
-    if (VM_Controller.options.USE_COMPILER_DNA_FILE) {
+    if (!VM_Controller.options.COMPILER_DNA_FILE_NAME.equals("")) {
       //  Read the DNA values from disk
-      readDNA();
+      readDNA(VM_Controller.options.COMPILER_DNA_FILE_NAME);
     }
 
     numCompilers = compilerNames.length;
@@ -180,12 +180,13 @@ public class VM_CompilerDNA implements VM_Constants {
 
   /** 
    * Read a serialized representation of the DNA info
+   * @param filename DNA filename
    */
-  static private void readDNA() {
+  static private void readDNA(String filename) {
     try {
 
       LineNumberReader in =
-	new LineNumberReader(new FileReader(VM_Controller.options.COMPILER_DNA_FILE_NAME));
+	new LineNumberReader(new FileReader(filename));
 
       // Expected Format
       //   CompilationRates  aaa.a  bbbb.b cccc.c dddd.d ....

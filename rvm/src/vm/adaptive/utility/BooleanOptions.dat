@@ -23,9 +23,6 @@ After completion, should we dump inlining decisions?
 USE_OFFLINE_INLINE_PLAN -1 false
 Should we read a inlining plan from disk and use it to perform inlining?
 
-USE_COMPILER_DNA_FILE -1 false
-Should we read the compiler DNA (relative cost/benefits) from a file?
-
 EARLY_EXIT -1 false
 Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
 
