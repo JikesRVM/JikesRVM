@@ -304,31 +304,48 @@ function doBuild {
 
     if [[ $BUILD = "Yes" ]]; then
 	say "creating $NAME $EXTRA_CONFIG_ARGS"
-	$GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null
-	cd $RVM_BUILD 
-
-	if [[ $CLEAN = "Yes" ]]; then
+	$GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null \
+		|| failed=$?
+	if (( failed )); then
+	    say "Failed while running $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME"
+	fi
+	if (( ! failed )); then
+	    say "Going into directory $RVM_BUILD"
+	    cd $RVM_BUILD || failed=$?
+	    if (( failed )); then
+		say "cd $RVM_BUILD failed!"
+	    fi
+	fi
+	if (( ! failed )) && [[ $CLEAN = "Yes" ]]; then
 	    say "cleaning build directory"
-	    ./jbuild -clean
+	    ./jbuild -clean || failed=$?
+	    if (( failed )); then
+		say "./jbuild -clean FAILED with status $failed"
+	    fi
 	fi
 
-	say "Building $NAME."
-	say "Output from the build will go into ${RVM_BUILD}/RVM.trace"
-	./jbuild -trace -demographics &> RVM.trace
-	failed=$?
-	if (( failed )); then
-	    say "Failed while building $NAME."
-	    say "  See $RVM_BUILD/RVM.trace for details"
+	if (( ! failed )); then
+	    say "Building $NAME."
+	    say "Output from the build will go into ${RVM_BUILD}/RVM.trace"
+	    ./jbuild -trace -demographics &> RVM.trace || failed=$?
+	    if (( failed )); then
+		say "FAILED while building $NAME."
+		say "  See $RVM_BUILD/RVM.trace for details"
+	    else
+		say "Successfully built $NAME"
+	    fi
 	fi
 
 	if [[ $WAIT ]]; then
+	    say "Leaving a wait marker in \"$WAIT\""
 	    # Leave a marker to signify the building is done.
 	    if (( failed )); then
 		echo "FAILED to build $NAME at $(date) on $(hostname)"
 		say "  See $RVM_BUILD/RVM.trace for details"
+		say "You may remove this file" 
 	    else
 		echo "SUCCESS Built $NAME."
-		echo "You may remove this file" 
+		say "You may remove this file" 
 	    fi > $RVM_BUILD/$WAIT
 	fi
     else 
@@ -360,28 +377,26 @@ function doBuild {
 		return 2
 	    elif fgrep SUCCESS $WAIT; then
 		# fgrep will print the message for us.
-		;
+		:
 	    elif [[ ! -s $WAIT ]]; then
 		say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
 	    else
-		return -1
 		say "$WAIT is not in a recognized format!"
 		say "Internal error."
+		return -1
 	    fi
 	fi
 
-	cd $RVM_BUILD
-
-	if [[ ! -e JikesRVM && -e RVM.image ]]; then
-	    say "Linking $NAME"
+	(( failed )) && return $failed
+	
+	cd $RVM_BUILD || failed=$?
 	    say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
-	    ./jbuild -trace -booter >>  RVM.trace 2>&1
-	    failed=$?
+	    ./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
 	    if (( failed )); then
 		say "FAILED to build $NAME at $(date) on $(hostname)"
 		say "  See $RVM_BUILD/RVM.trace for details"
 	    else
-		say "Linked successfully"
+		say "Linked $NAME successfully"
 	    fi
 	fi
     fi
@@ -548,6 +563,9 @@ function main () {
   fi
 
   for config in $CONFIG_LIST; do
+      echo "";
+      echo ""
+      say "Trying configuration $config"
       setConfiguration $config; time runTests
   done
 
