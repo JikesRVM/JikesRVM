@@ -593,7 +593,7 @@ function unsetEnvironment() {
     trap '' ERR
     ## Turn off all of the environment variables that we get when we 
     ## source config files but that might not be set if we were to source
-    ## a different such file.
+    ## a different such config file.
     unset HOST_JIKES $HOST_JIKES_STR1
     unset HOST_JAVA $HOST_JAVA_STR1 
     unset HOST_JAVAC $HOST_JAVAC_STR1
@@ -611,6 +611,7 @@ function unsetEnvironment() {
     unset HOST_JAVA_LD_LIBRARY_PATH
     unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
     unset PS MD5SUM GREP GNU_TAR FIND FGREP DIFF CVS BASH AWK
+    unset BENCHMARK_ROOT
     set $flags;			# turn back on -e, if it was off.
 }
 
@@ -1183,11 +1184,11 @@ function emitMakefile () {
 	XARGS = $XARGS
 	UNZIP_CMD = $UNZIP_CMD
 
-	BENCHMARK_ROOT = $BENCHMARK_ROOT
 
 	CLASSPATH_LIBRARIES = YES
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
+    [[ ! ${BENCHMARK_ROOT-} ]] || echo "BENCHMARK_ROOT = $BENCHMARK_ROOT"
 }
 
 
