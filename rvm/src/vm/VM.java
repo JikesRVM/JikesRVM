@@ -214,10 +214,6 @@ public class VM extends VM_Properties
       VM.sysExit(1);
     }
 
-    // Now that we've processed the command line arguments, 
-    // enable HPM if the command lines indicate that we should
-    VM_HardwarePerformanceMonitors.boot();
-
     // Allow Baseline compiler to respond to command line arguments
     // The baseline compiler ignores command line arguments until all are processed
     // otherwise printing may occur because of compilations ahead of processing the
@@ -233,6 +229,10 @@ public class VM extends VM_Properties
 
     VM_Lock.boot();
     
+    // set up HPM
+    if (verbose>=1) VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
+    if (BuildForHPM) VM_HardwarePerformanceMonitors.boot();
+
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     // 
@@ -240,6 +240,11 @@ public class VM extends VM_Properties
 
     // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
     VM_Thread.getCurrentThread().initializeJNIEnv();
+
+    //-#if RVM_WITH_HPM
+    runClassInitializer("com.ibm.JikesRVM.Java2HPM");
+    //-#endif
+    VM_HardwarePerformanceMonitors.setUpHPMinfo();
 
     // Run class intializers that require fully booted VM
     runClassInitializer("java.lang.Double");
@@ -273,6 +278,15 @@ public class VM extends VM_Properties
     // Create one debugger thread.
     VM_Thread t = new DebuggerThread();
     t.start(VM_Scheduler.debuggerQueue);
+
+    //-#if RVM_WITH_HPM
+    // make sure collector threads have HPM_info initialized!
+    if (VM_HardwarePerformanceMonitors.enabled()) {
+      if (verbose>=1)VM.sysWrite(" VM.boot() VM_Processor.hpm_safe = true and call sysHPMresetCounters()\n");
+      VM_Processor.hpm_safe = true;
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
+    }
+    //-#endif
 
     // End of boot thread. Relinquish control to next job on work queue.
     //
@@ -591,6 +605,18 @@ public class VM extends VM_Properties
   public static void sysWriteln (int i1, String s1, String s2) throws VM_PragmaNoInline { sysWrite(i1);  sysWrite(s1); sysWriteln(s2); }
   public static void sysWrite   (String s1, int i1, String s2, int i2) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWrite(i2); }
   public static void sysWriteln (String s1, int i1, String s2, int i2) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWriteln(i2); }
+  public static void sysWrite   (String s1, int i1, String s2, long l1) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWrite(  l1); }
+  public static void sysWriteln (String s1, int i1, String s2, long l1) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWriteln(l1); }
+
+  public static void sysWrite   (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(i1); sysWrite(  s3); }
+  public static void sysWriteln (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(i1); sysWriteln(s3); }
+
+  public static void sysWrite   (String s1, String s2, String s3, int i1) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(s3); sysWrite(  i1); }
+  public static void sysWriteln (String s1, String s2, String s3, int i1) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(s3); sysWriteln(i1); }
+
+  public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(s3); sysWrite(i1); sysWrite(  s4); }
+  public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(s3); sysWrite(i1); sysWriteln(s4); }
+
 
   /**
    * Exit virtual machine due to internal failure of some sort.
