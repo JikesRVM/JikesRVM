@@ -1,5 +1,5 @@
 <request-set>
- <get-request url="http://localhost:8080/examples/servlet/HelloWorldExample"
+ <get-request url="http://localhost:8080/examples/servlet/HelloWorldExample" 
               desired="expected/HelloWorldExample" />
  <get-request url="http://localhost:8080/examples/servlet/RequestInfoExample" />
  <get-request url="http://localhost:8080/examples/servlet/RequestHeaderExample" />
@@ -7,5 +7,38 @@
  <post-request url="http://localhost:8080/examples/servlet/RequestParamExample">
    <form-param name="firstname" value="julian" />
    <form-param name="lastname" value="dolby" />
+ </post-request>
+ <get-request url="http://localhost:8080/examples/servlet/CookieExample" />
+ <post-request url="http://localhost:8080/examples/servlet/CookieExample">
+   <form-param name="cookiename" value="testCookie" />
+   <form-param name="cookievalue" value="testValue" />
+ </post-request>
+ <get-request url="http://localhost:8080/examples/servlet/SessionExample" />
+ <post-request url="http://localhost:8080/examples/servlet/SessionExample">
+   <form-param name="dataname" value="one" />
+   <form-param name="datavalue" value="two" />
+ </post-request>
+ <get-request url="http://localhost:8080/examples/jsp/snp/snoop.jsp" />
+ <get-request url="http://localhost:8080/examples/jsp/error/error.html" />
+ <post-request url="http://localhost:8080/examples/jsp/error/err.jsp">
+   <form-param name="name" value="audi" />
+   <form-param name="submit" value="Submit" />
+ </post-request>
+ <post-request url="http://localhost:8080/examples/jsp/error/err.jsp">
+   <form-param name="name" value="integra" />
+   <form-param name="submit" value="Submit" />
+ </post-request>
+ <get-request url="http://localhost:8080/examples/jsp/sessions/carts.html" />
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.html">
+   <form-param name="item" value="Concert+ticket" />
+   <form-param name="submit" value="add" />
+ </post-request>
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.html">
+   <form-param name="item" value="Switch-blade" />
+   <form-param name="submit" value="add" />
+ </post-request>
+ <post-request url="http://localhost:8080/examples/jsp/sessions/carts.html">
+   <form-param name="item" value="Switch-blade" />
+   <form-param name="submit" value="remove" />
  </post-request>
 </request-set>

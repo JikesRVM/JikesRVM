@@ -44,7 +44,7 @@ LHEAPSIZE=200
 # the stress-test client
 #
 CLIENT_NAME=TestClient.Start
-CLIENT_ARGS="-requests $(TOMCAT_TEST_HOME)/requests.xml -clients 10 -time 30"
+CLIENT_ARGS="-requests $(TOMCAT_TEST_HOME)/requests.xml -clients 10 -count 100"
 
 CLIENT_SOURCES=$(foreach FILE, $(notdir $(wildcard $(JAL_ROOT)/rvm/src/examples/tomcat/TestClient/*.java)), TestClient/$(FILE))
 CLIENT_CLASSES=$(patsubst %.java,%.class,$(CLIENT_SOURCES))

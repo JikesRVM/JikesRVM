@@ -7,6 +7,7 @@ package TestClient;
 
 import java.io.*;
 import org.apache.tomcat.util.xml.*;
+import HTTPClient.CookieModule;
 
 class Start {
 
@@ -87,6 +88,9 @@ class Start {
 		runForSeconds = -1;
 	    }
 	}
+
+	// tell HTTPClient to accept cookies
+	CookieModule.setCookiePolicyHandler(null);
 
 	// start desired number of clieants
 	Worker[] workers = new Worker[ clients ];
