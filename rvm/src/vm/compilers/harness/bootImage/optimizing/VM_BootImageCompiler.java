@@ -43,6 +43,17 @@ class VM_BootImageCompiler {
       // to avoid needing to stick the dependency database in the bootimage
       options.PREEX_INLINE = false;
 
+      // We currently don't know where the JTOC is going to end up
+      // while we're compiling at bootimage writing 
+      // (not until the image is actually built and we're pickling it
+      //  does the current bootimage writer know where the JTOC will end up).
+      // TODO: Fix the bootimage writer so that the jtoc can be found at a 
+      // known location from the bootrecord.  Possibly by making the bootrecord
+      // reachable from a JTOC slot and then making the jtoc be the very first object
+      // in the bootimage (cost would be that at booting we would have 1 extra load 
+      // to acquire the bootrecord address from its jtoc slot).
+      options.FIXED_JTOC = false;
+
       // Compute summaries of bootimage methods if we haven't encountered them yet.
       // Does not handle unimplemented magics very well; disable until
       // we can get a chance to either implement them on IA32 or fix the 
