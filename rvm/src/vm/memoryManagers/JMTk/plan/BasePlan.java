@@ -607,7 +607,7 @@ public abstract class BasePlan
     VM_Interface.sysWrite(" is in unknown space ");
     VM_Interface.sysWriteln(space);
     VM_Interface.sysWrite("Type = ");
-    VM_Interface.sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
+    VM_Interface.sysWriteTypeDescriptor(obj);
     VM_Interface.sysWriteln();
     VM_Interface.sysWrite(source);
     VM_Interface.sysFail(": unknown space");

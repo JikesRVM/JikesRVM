@@ -6,7 +6,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
@@ -165,7 +164,7 @@ final class RefCountLocal extends SegregatedFreeList
     if (time) Statistics.rcIncTime.start();
     if (Options.verbose > 2) processIncBufsAndCount(); else processIncBufs();
     if (time) Statistics.rcIncTime.stop();
-    VM_CollectorThread.gcBarrier.rendezvous();
+    VM_Interface.rendezvous();
     if (time) Statistics.rcDecTime.start();
     processDecBufs();
     if (time) Statistics.rcDecTime.stop();

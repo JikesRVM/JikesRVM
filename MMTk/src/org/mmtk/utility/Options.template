@@ -6,10 +6,10 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_PragmaNoOptCompile;
 
 /**
  * Class to handle command-line arguments and options for JMTk.
@@ -95,7 +95,7 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public static boolean process(String arg) throws com.ibm.JikesRVM.VM_PragmaNoOptCompile,
+  public static boolean process(String arg) throws VM_PragmaNoOptCompile,
 	                                           VM_PragmaInterruptible {
 
     // First handle the "option commands"
@@ -116,7 +116,7 @@ $$$$ END LOOP
     // Split into 'name' and 'value' strings
     int split = arg.indexOf('=');
     if (split == -1) {
-      VM.sysWrite("  Illegal option specification!\n  \""+arg+
+      VM_Interface.sysWrite("  Illegal option specification!\n  \""+arg+
 		  "\" must be specified as a name-value pair in the form of option=value\n");
       return false;
     }
@@ -200,69 +200,69 @@ $$$$ END LOOP
   // Print a short description of every option
   // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
   // boot image writing.
-  public static void printHelp() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+  public static void printHelp() throws VM_PragmaNoOptCompile {
 
-    VM.sysWrite("Commands\n");
-    VM.sysWrite("-X:gc[:help]\t\t\tPrint brief description of JMTk's command-line arguments\n");
-    VM.sysWrite("-X:gc:printOptions\t\tPrint the current values of JMTk's options\n");
-    VM.sysWrite("\n");
+    VM_Interface.sysWrite("Commands\n");
+    VM_Interface.sysWrite("-X:gc[:help]\t\t\tPrint brief description of JMTk's command-line arguments\n");
+    VM_Interface.sysWrite("-X:gc:printOptions\t\tPrint the current values of JMTk's options\n");
+    VM_Interface.sysWrite("\n");
 
     //Begin generated help messages
-    VM.sysWrite("Boolean Options (-X:gc:<option>=true or -X:gc:<option>=false)\n");
-    VM.sysWrite("Option                                 Description\n");
+    VM_Interface.sysWrite("Boolean Options (-X:gc:<option>=true or -X:gc:<option>=false)\n");
+    VM_Interface.sysWrite("Option                                 Description\n");
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM.sysWrite("CMD_NAME OPTION.DESCRIP\n");
+    VM_Interface.sysWrite("CMD_NAME OPTION.DESCRIP\n");
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM.sysWrite("\nValue Options (-X:gc:<option>=<value>)\n");
-    VM.sysWrite("Option                         Type    Description\n");
+    VM_Interface.sysWrite("\nValue Options (-X:gc:<option>=<value>)\n");
+    VM_Interface.sysWrite("Option                         Type    Description\n");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
           $$$$ LET TNAME @PAD("TYPE", 7, " ")
-    VM.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
+    VM_Interface.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
           $$$$ END LET TYPE_NAME
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
      $$$$ END SPLIT OPTION.DECL
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM.sysWrite("\nSelection Options (set option to one of an enumeration of possible values)\n");
+    VM_Interface.sysWrite("\nSelection Options (set option to one of an enumeration of possible values)\n");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
-    VM.sysWrite("\t\tOPTION.DESCRIP\n");
+    VM_Interface.sysWrite("\t\tOPTION.DESCRIP\n");
 	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM.sysWrite("MAIN_CMD_NAME");
+    VM_Interface.sysWrite("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-    VM.sysWrite("CMD_NAME ");
+    VM_Interface.sysWrite("CMD_NAME ");
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP CONSTNAME
           $$$$ END LET MAIN_CMD_NAME
-    VM.sysWrite("\n");
+    VM_Interface.sysWrite("\n");
      $$$$ END IF TAG == E
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
 
-    VM.sysExit(1);
+    VM_Interface.sysExit(1);
   }    
 
   // print the options values
   public static void printOptions() throws VM_PragmaInterruptible {
-    VM.sysWrite(asString());
+    VM_Interface.sysWrite(asString());
   }
 
-  public static String asString() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile,
+  public static String asString() throws VM_PragmaNoOptCompile,
                                   VM_PragmaInterruptible {
     String s = "Current value of JMTk options:\n";
     //Begin generated option value printing 

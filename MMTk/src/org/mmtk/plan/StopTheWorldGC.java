@@ -5,12 +5,9 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.SynchronizationBarrier;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -157,7 +154,7 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   public void collect () {
 
-    boolean designated = (VM_CollectorThread.gcBarrier.rendezvous() == 1);
+    boolean designated = (VM_Interface.rendezvous() == 1);
     if (designated) Statistics.initTime.start();
     prepare();        
     if (designated) Statistics.initTime.stop();
@@ -182,7 +179,7 @@ public abstract class StopTheWorldGC extends BasePlan
     } else {
       if (designated) Statistics.finalizeTime.start();
       if (designated) Finalizer.moveToFinalizable(); 
-      VM_CollectorThread.gcBarrier.rendezvous();
+      VM_Interface.rendezvous();
       if (designated) Statistics.finalizeTime.stop();
     }
       
@@ -209,10 +206,10 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected final void prepare() {
     double start = VM_Interface.now();
-    int order = VM_CollectorThread.gcBarrier.rendezvous();
+    int order = VM_Interface.rendezvous();
     if (order == 1)
       baseGlobalPrepare(start);
-    VM_CollectorThread.gcBarrier.rendezvous();
+    VM_Interface.rendezvous();
     if (order == 1)
       for (int i=0; i<planCount; i++) {
 	Plan p = plans[i];
@@ -220,7 +217,7 @@ public abstract class StopTheWorldGC extends BasePlan
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
-    VM_CollectorThread.gcBarrier.rendezvous();
+    VM_Interface.rendezvous();
   }
 
   /**
@@ -279,7 +276,7 @@ public abstract class StopTheWorldGC extends BasePlan
       VM_Interface.prepareNonParticipating((Plan) this);  
     else
       VM_Interface.prepareParticipating((Plan) this);  
-    VM_CollectorThread.gcBarrier.rendezvous();
+    VM_Interface.rendezvous();
     if (Options.verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
   }
@@ -289,7 +286,7 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected final void release() {
     if (Options.verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for termination");
-    int order = VM_CollectorThread.gcBarrier.rendezvous();
+    int order = VM_Interface.rendezvous();
     baseThreadLocalRelease(order);
     if (order == 1) {
       int count = 0;
@@ -302,10 +299,10 @@ public abstract class StopTheWorldGC extends BasePlan
       }
       if (Options.verbose >= 4) VM_Interface.sysWriteln("  There were ",count," non-participating GC threads");
     }
-    order = VM_CollectorThread.gcBarrier.rendezvous();
+    order = VM_Interface.rendezvous();
     if (order == 1)
       baseGlobalRelease();
-    VM_CollectorThread.gcBarrier.rendezvous();
+    VM_Interface.rendezvous();
   }
 
   /**
@@ -378,7 +375,7 @@ public abstract class StopTheWorldGC extends BasePlan
 	       && values.isEmpty() && locations.isEmpty()));
 
     if (Options.verbose >= 4) VM_Interface.psysWriteln("    waiting at barrier");
-    VM_CollectorThread.gcBarrier.rendezvous();
+    VM_Interface.rendezvous();
   }
 
   /**

@@ -5,9 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -18,9 +16,6 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
-import com.ibm.JikesRVM.VM_Scheduler;
-
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -97,14 +92,14 @@ public class ReferenceProcessor implements VM_Uninterruptible {
   private void addCandidate(Reference ref) throws VM_PragmaNoInline, VM_PragmaInterruptible {
     if (TRACE) {
         VM_Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
-        VM_Address referent = getReferent(referenceAsAddress);
-        VM.sysWriteln("Adding Reference: ", referenceAsAddress);
-        VM.sysWriteln("       ReferENT:  ", referent);
+        VM_Address referent = VM_Interface.getReferent(referenceAsAddress);
+        VM_Interface.sysWriteln("Adding Reference: ", referenceAsAddress);
+        VM_Interface.sysWriteln("       ReferENT:  ", referent);
     }
     
     lock.acquire();
-    setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref),
-                              waitingListHead);
+    VM_Interface.setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref),
+					   waitingListHead);
     waitingListHead = VM_Magic.objectAsAddress(ref);
     countOnWaitingList += 1;    
     lock.release();
@@ -123,13 +118,13 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     if (TRACE) {
       switch (semantics) {
       case SOFT_SEMANTICS:
-        VM.sysWriteln("Starting ReferenceProcessor.traverse(SOFT)");
+        VM_Interface.sysWriteln("Starting ReferenceProcessor.traverse(SOFT)");
         break;
       case WEAK_SEMANTICS:
-        VM.sysWriteln("Starting ReferenceProcessor.traverse(WEAK)");
+        VM_Interface.sysWriteln("Starting ReferenceProcessor.traverse(WEAK)");
         break;
       case PHANTOM_SEMANTICS:
-        VM.sysWriteln("Starting ReferenceProcessor.traverse(PHANTOM)");
+        VM_Interface.sysWriteln("Starting ReferenceProcessor.traverse(PHANTOM)");
         break;
       }
     }
@@ -143,7 +138,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
       
     while (!reference.isZero()) {
       if (TRACE) 
-        VM.sysWriteln("+++ old reference: ", reference);
+        VM_Interface.sysWriteln("+++ old reference: ", reference);
 
       // If the reference is dead, we're done with it. Let it (and
       // possibly its referent) be garbage-collected.
@@ -153,11 +148,11 @@ public class ReferenceProcessor implements VM_Uninterruptible {
         
         
         VM_Address newReference = getForwardingAddress(reference);
-        VM_Address oldReferent = getReferent(reference);
+        VM_Address oldReferent = VM_Interface.getReferent(reference);
 
         if (TRACE_DETAIL) {
-          VM.sysWriteln("    new reference: ", newReference);
-          VM.sysWriteln(" old referENT: ", oldReferent);
+          VM_Interface.sysWriteln("    new reference: ", newReference);
+          VM_Interface.sysWriteln(" old referENT: ", oldReferent);
         }
         
         // If the application has cleared the referent the Java spec says
@@ -173,7 +168,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
               // Keep phantomly reachable objects from being collected
               // until they are completely unreachable.
               if (TRACE_DETAIL) {
-                VM.sysWriteln("    resurrecting: ", oldReferent);
+                VM_Interface.sysWriteln("    resurrecting: ", oldReferent);
               }
               makeAlive(oldReferent);
               if (!VM_Interface.referenceWasEverEnqueued((Reference)VM_Magic.addressAsObject(newReference))) {
@@ -186,7 +181,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // Unless we've completely run out of memory, we keep
             // softly reachable objects alive.
             if (TRACE_DETAIL) {
-              VM.sysWriteln("    resurrecting: ", oldReferent);
+              VM_Interface.sysWriteln("    resurrecting: ", oldReferent);
             }
             makeAlive(oldReferent);
           }
@@ -198,7 +193,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             VM_Address newReferent = getForwardingAddress(oldReferent);
 
             if (TRACE) {
-              VM.sysWriteln(" new referENT: ", newReferent);
+              VM_Interface.sysWriteln(" new referENT: ", newReferent);
             }
             
             // The reference object stays on the waiting list, and the
@@ -208,12 +203,13 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // copying collector.
 
             // Update the referent
-            setReferent(newReference, newReferent);
+            VM_Interface.setReferent(newReference, newReferent);
 
             // Update 'next' pointer of the previous reference in the
             // linked list of waiting references.
             if (!prevReference.isZero()) {
-              setNextReferenceAsAddress(prevReference, newReference);
+              VM_Interface.setNextReferenceAsAddress(prevReference, 
+						     newReference);
             }
             
             waiting += 1;
@@ -225,7 +221,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // Referent is unreachable.
             
             if (TRACE) {
-              VM.sysWriteln(" UNREACHABLE:  ", oldReferent);
+              VM_Interface.sysWriteln(" UNREACHABLE:  ", oldReferent);
             }
 
             // Weak and soft references always clear the referent
@@ -235,9 +231,9 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // occur.
             if (semantics != PHANTOM_SEMANTICS) {
               if (TRACE_DETAIL) {
-                VM.sysWriteln(" clearing: ", oldReferent);
+                VM_Interface.sysWriteln(" clearing: ", oldReferent);
               }
-              setReferent(newReference, VM_Address.zero());
+              VM_Interface.setReferent(newReference, VM_Address.zero());
             }
             enqueue = true;
           }
@@ -258,7 +254,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
           }
         }
       }
-      reference = getNextReferenceAsAddress(reference);
+      reference = VM_Interface.getNextReferenceAsAddress(reference);
     }
 
     countOnWaitingList = waiting;
@@ -267,10 +263,10 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     waitingListHead = newHead;
     
     if (!prevReference.isZero())
-      setNextReferenceAsAddress(prevReference, VM_Address.zero());
+      VM_Interface.setNextReferenceAsAddress(prevReference, VM_Address.zero());
 
     if (TRACE) {
-      VM.sysWriteln("Ending ReferenceProcessor.traverse()");
+      VM_Interface.sysWriteln("Ending ReferenceProcessor.traverse()");
     }
 
     return enqueued;
@@ -285,30 +281,10 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     // no-op for mark-sweep or copying collectors
   }
   
-  private static VM_Address getReferent (VM_Address addr) {
-    return VM_Magic.getMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()));    
-  }
-  
-  private static void setReferent (VM_Address addr, VM_Address referent) {
-    VM_Magic.setMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()), referent);    
-  }
-  
-  private static VM_Address getNextReferenceAsAddress (VM_Address ref) {
-    return VM_Magic.getMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
-    
-  }
-  
-  private static void setNextReferenceAsAddress (VM_Address ref, VM_Address next) {
-    VM_Magic.setMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()),
-                              next);
-    
-  }
-
   private static VM_Address getForwardingAddress(VM_Address addr) {
     // TODO: use new routine in Plan!
     return Plan.traceObject(addr);
   }
-
 
   /** Set flag indicating if soft references referring to non-strongly
       reachable objects should be cleared during GC. Usually this is 

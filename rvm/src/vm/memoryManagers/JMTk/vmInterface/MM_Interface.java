@@ -68,7 +68,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final void init () throws VM_PragmaInterruptible {
     VM_CollectorThread.init();
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
-    VM_Interface.initVM_Interface();
+    VM_Interface.init();
   }
 
 

@@ -35,6 +35,7 @@ import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
+import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.VM_Magic;
@@ -67,12 +68,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * statics as at the completion of this routine will be reflected in
    * the boot image.  Any objects referenced by those statics will be
    * transitively included in the boot image.
-   *
-   * This is called from MM_Interface, and would be just called init()
-   * but for the pass-through methods at the bottom.
-   *  // TODO: Rename to init() after the transition is over.
    */
-  public static final void initVM_Interface () throws VM_PragmaInterruptible {
+  public static final void init () throws VM_PragmaInterruptible {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
       "Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
@@ -496,6 +493,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
   public static void sysFail(String message) { VM.sysFail(message); }
 
+  public static void sysExit(int rc) throws VM_PragmaUninterruptible {
+    VM.sysExit(rc);
+  }
+
   public static void sysWrite   (VM_Atom value)         { VM.sysWrite(value); }
   public static void sysWriteln (VM_Atom value)         { VM.sysWriteln(value); }
   public static void sysWrite   (VM_Word value)         { VM.sysWrite(value); }
@@ -604,5 +605,39 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static boolean isAcyclic(Object[] tib) {
     return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
   }
- 
+
+  /* Used in processing weak references etc */
+
+  public static VM_Address getReferent (VM_Address addr) {
+    return VM_Magic.getMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()));    
+  }
+  
+  public static void setReferent (VM_Address addr, VM_Address referent) {
+    VM_Magic.setMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()), referent);    
+  }
+  
+  public static VM_Address getNextReferenceAsAddress (VM_Address ref) {
+    return VM_Magic.getMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
+    
+  }
+  
+  public static void setNextReferenceAsAddress (VM_Address ref, VM_Address next) {
+    VM_Magic.setMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()),
+                              next);
+    
+  }
+
+  public static void sysWriteTypeDescriptor(VM_Address obj) 
+        throws VM_PragmaUninterruptible {
+    sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
+  }
+
+  /**
+   * Rendezvous with all other processors, returning the rank,
+   * ie the order this processor arrived at the barrier.
+   */
+  public static int rendezvous() throws VM_PragmaUninterruptible {
+    return VM_CollectorThread.gcBarrier.rendezvous();
+  }
+
 }

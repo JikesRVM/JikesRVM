@@ -45,7 +45,7 @@ public class MarkSweepHeader {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(Object ref, Object[] tib, int size,
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
 				      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
@@ -61,7 +61,7 @@ public class MarkSweepHeader {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeLOSHeader(Object ref, Object[] tib, int size,
+  public static void initializeLOSHeader(VM_Address ref, Object[] tib, int size,
 					 boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));

@@ -14,7 +14,7 @@ Should reference type processing be disabled?
 ignoreSystemGC false
 Should we ignore calls to java.lang.System.gc?
 
-genCycleDetection false gen_cycle_detection
+genCycleDetection false
 Should we use a generational approach to cycle detection
 
 fragmentationStats false
