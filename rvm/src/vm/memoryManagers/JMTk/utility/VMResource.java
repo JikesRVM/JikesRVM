@@ -88,6 +88,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   //
   private static VMResource resourceTable[]; // Points to corresponding VM resource.  null if no corresponding VM resource.
   private static byte spaceTable[];          // Status of each page
+  private static byte tagTable[];            // Space-specific information of each page
   private static int count;                  // How many VMResources exist now?
   private static VMResource resources[];     // List of all VMResources.
   final private static int MAX_VMRESOURCE = 20;
@@ -100,6 +101,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   static {
     resources = new VMResource[MAX_VMRESOURCE];
     spaceTable = new byte[NUM_PAGES];
+    tagTable = new byte[NUM_PAGES];
     for (int blk = 0; blk < NUM_PAGES; blk++) 
       spaceTable[blk] = Plan.UNUSED_SPACE;
   }
@@ -147,6 +149,26 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
     return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
 				    addr.toInt() >>> LOG_PAGE_SIZE);
+  }
+
+  public static byte getTag (VM_Address addr) {
+    int page =  addr.toInt() >>> LOG_PAGE_SIZE;
+    return tagTable[page];
+  }
+
+  public static void setTag (VM_Address addr, int pages, byte v) {
+    int start =  addr.toInt() >>> LOG_PAGE_SIZE;
+    for (int i=0; i<pages; i++)
+	tagTable[start+i] = v;
+  }
+
+  public static void clearTag (VM_Address addr, int pages, byte v) {
+    int start =  addr.toInt() >>> LOG_PAGE_SIZE;
+    for (int i=0; i<pages; i++) {
+	if (tagTable[start+i] != v)
+	    VM.sysFail("VMResource.clearTag: current tag does not match expected value");
+	tagTable[start+i] = (byte) 0;
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////
