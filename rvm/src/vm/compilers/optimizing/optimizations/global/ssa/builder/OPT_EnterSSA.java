@@ -140,6 +140,8 @@ implements OPT_Operators, OPT_Constants {
     ir.actualSSAOptions.setInsertUsePhis(insertUsePhis);
     ir.actualSSAOptions.setInsertPEIDeps(insertPEIDeps);
     ir.actualSSAOptions.setExcludeGuards(excludeGuards);
+    ir.actualSSAOptions.setScalarValid(true);
+    ir.actualSSAOptions.setHeapValid(!scalarsOnly);
   }
 
   /**

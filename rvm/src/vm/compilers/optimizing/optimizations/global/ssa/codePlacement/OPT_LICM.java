@@ -72,6 +72,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     }
     resetLandingPads();
     if (DEBUG) OPT_SSA.printInstructions (ir);
+    ir.actualSSAOptions.setScalarValid(false);
   }
 
   /**

@@ -47,8 +47,10 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_Simple.copyPropagation(ir);
       OPT_DefUse.computeDU(ir);
       GlobalCSE(ir.firstBasicBlockInCodeOrder());
-      if (VM.VerifyAssertions)
+      if (VM.VerifyAssertions) {
         VM._assert(avail.size() == 0, avail.toString());
+      }
+      ir.actualSSAOptions.setScalarValid(false);
     }
   }
   
