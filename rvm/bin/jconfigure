@@ -398,6 +398,15 @@ declare -i RVM_WITH_OSR=0
 # SECTION 4 - ARGUMENT PARSING         #
 #--------------------------------------#
 
+function croak_usage () {
+    # Display the error message.  If it's a multi-line error message, indent
+    # the second and subsequent lines by a few spaces.
+    echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
+    echo >&2 "${ME}: Type \"${ME} -help\" for usage information."
+    trap '' EXIT
+    exit 33
+}
+
 quiet=0
 while :
 do
@@ -413,23 +422,18 @@ do
 	-quiet|--quiet ) 
 	    quiet=1;;
 
+	-*)  croak_usage "I don't understand the flag \"$1\""
+	    ;;
+
 	"" ) break;;
 
-	* ) CONFIGURATION_NAME="$1";;
+
+	* ) CONFIGURATION_NAME="$1"; ;;
     esac
 
     shift
 done
 
-
-function croak_usage () {
-    # Display the error message.  If it's a multi-line error message, indent
-    # the second and subsequent lines by a few spaces.
-    echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
-    echo >&2 "${ME}: Type \"${ME} -help\" for usage information."
-    trap '' EXIT
-    exit 33
-}
 
 [[ "${CONFIGURATION_NAME}" ]] || croak_usage "Please specify <configuration-name>"
 
@@ -2497,48 +2501,92 @@ function emitToolPreprocessor () {
 }
   
 function emitPluginBuilder () {
-    cat <<- 'EOF'
+    cat <<- EOF
 	#! /bin/bash
 	# Build and install Jikes RVM launching plugin for Eclipse 2.x
 
 	# pick up configuration to learn where Ant is
-EOF
-    emitBoilerplate
+	$(emitBoilerplate)
 
-    cat <<- 'EOF'
-	. "${RVM_BUILD}/environment"
+	. "\${RVM_BUILD}/environment"
+
+
+	usage () {
+	    echo "Usage: \$ME [ --help ] [ -trace ] [ -v ] [ -x ] [ -- ] [ <eclipse-install-dir> ]"
+	}
+
+	help() {
+	    usage;
+	    echo "\$ME: To specify Eclipse's installation directory, do one of the following"
+	    echo "\$ME: (in order of decreasing precedence):" 
+	    echo "  1: invoke this program as \$ME [<flags>] <eclipse-install-dir>"
+	    echo "  2: set ECLIPSE_INSTALL_DIR in \${RVM_TARGET_CONFIG}, or
+	    echo "  3: set the environment variable ECLIPSE_INSTALL_DIR"
+	}
+
+	QUIET_ANT=-quiet
+	unset TRACE_FLAG XFLAG VFLAG || :
+
+	while (( \$# > 0 )); do
+	    arg="\$1";
+	    if [[ \$arg = -v ]]; then
+	        VFLAG=-v
+		shift
+	    elif [[ \$arg = -x ]]; then
+	        XFLAG=-x
+		shift
+	    elif [[ \$arg = -trace ]] || [[ \$arg = --trace ]]; then
+	        TRACE_FLAG=-trace
+	        QUIET_ANT=
+		shift
+	    elif [[ \$arg = -- ]]; then
+	        shift		# The end of the flag arguments
+	        break;
+	    elif [[ \$arg = -help ]] || [[ \$arg = --help ]]; then
+	        shift
+		help
+	    elif [[ \$arg == -* ]]; then
+		echo >&2 "\$ME: Unknown flag: \$1"
+		usage >&2
+		exit 33
+	    fi
+	done
 
 	# allow user-specified Eclipse install to override env
-	if [[ $1 ]]; then
-	    ECLIPSE_INSTALL_DIR=$1
+	if [[ \$1 ]]; then
+	    ECLIPSE_INSTALL_DIR=\$1
+	    shift
 	fi
 
+	if (( \$# != 0 )); then
+	    echo >&2 "$ME: Too many arguments."
+	    usage >&2
+	    exit 33;
+	fi
 	# must have Eclipse for command line or env
-	if [[ ! ${ECLIPSE_INSTALL_DIR} ]]; then
-	    echo "$ME: must specify Eclipse's installation directory: do one of"
-	    echo "(in order of decreasing precedence):" 
-	    echo "  1: invoke this program as \$ME <eclipse install dir>"
-	    echo "  2: set ECLIPSE_INSTALL_DIR in ${RVM_TARGET_CONFIG}, or
-	    echo "  3: set the environment variable ECLIPSE_INSTALL_DIR"
+	if [[ ! \${ECLIPSE_INSTALL_DIR} ]]; then
+	    echo "\$ME: You must (but didn't) specify the directory where Eclipse is installed."
+	    help;
 	    trap "" EXIT
 	    exit 2
-	fi
+	fi >&2
 
 	# must have Ant
-	if [[ ! ${ANT_CMD} ]]; then
-	    echo "must specify ANT_CMD in ${RVM_TARGET_CONFIG}"
+	if [[ ! \${ANT_CMD} ]]; then
+	    echo "must specify ANT_CMD in \${RVM_TARGET_CONFIG}"
 	    trap "" EXIT
 	    exit 2
 	fi
 
 	# build the plugin
 	echo "building org.eclipse.jdt.launching.jikesrvm"
+    	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
 
-	echo "eclipse.dir=${ECLIPSE_INSTALL_DIR}" > ${JAL_ROOT}/rvm/src/tools/eclipse/plugin2/ant.properties
+	echo "eclipse.dir=\${ECLIPSE_INSTALL_DIR}" > \${JAL_ROOT}/rvm/src/tools/eclipse/plugin2/ant.properties
 
-	cd ${JAL_ROOT}/rvm/src/tools/eclipse/plugin2
-	export JAVA_HOME=${HOST_JAVA_HOME}
-	${ANT_CMD} -quiet install
+	cd \${JAL_ROOT}/rvm/src/tools/eclipse/plugin2
+	export JAVA_HOME=\${HOST_JAVA_HOME}
+	\${ANT_CMD} \$QUIET_ANT install
 
 	EOF
 }
@@ -2567,17 +2615,14 @@ then
 	if ! read -n 1 -p "${ME}: ${BUILD_DIRECTORY} already exists, replace it? (y/n) --> " response; then
 	    # Shell does not let us distinguish EOF from I/O errors.
 	    got_EOF=1
-	    response=EOF
 	fi
-	echo ""		# finish the line since our user did not type 'n' for us.
+	echo ""		# finish the line since our user did not type a newline' for us.
 	if [[ $got_EOF ]]; then
 	    echo >&2 "${ME}: Got EOF (End of File).  We won't write anything."
+	    response=EOF
 	fi
 	if [[ $response != y* ]]; then
-	    echo >&2 "${ME}: Operation aborted, nothing written."
-	    ## Why on earth do we want to keep Make happy in this situation?
-	    ## Do we not want it to get upset?
-	    # exit 0 # to keep make happy
+	    echo >&2 "${ME}: Operation aborted; nothing written."
 	    trap '' EXIT
 	    exit 1
 	fi
