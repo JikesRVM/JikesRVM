@@ -82,4 +82,4 @@ export PS="/usr/bin/ps"
 export SED=/usr/bin/sed
 export WGET=wget
 export XARGS="/usr/bin/xargs"
-export UNZIP="/usr/contrib/bin/unzip"
+export UNZIP_CMD="/usr/contrib/bin/unzip"

@@ -54,7 +54,7 @@ $(WORKING)/httpd.txt:		$(BENCH_HOME)/httpd.txt $(WORKING)
 
 $(RVM_BUILD)/RVM.classes/java/util/Observable.class:	$(HOST_REPOSITORIES)
 	@echo Work around java.util.Observable bug in Volano
-	@cd $(RVM_BUILD)/RVM.classes/; unzip -qqoU $(HOST_REPOSITORIES) java/util/Observable.class > /dev/null 2>&1
+	@cd $(RVM_BUILD)/RVM.classes/; $(UNZIP_CMD) -qqoU $(HOST_REPOSITORIES) java/util/Observable.class > /dev/null 2>&1
 
 client-check:
 ifneq ($(MODE),PERFORMANCE)
