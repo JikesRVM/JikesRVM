@@ -182,6 +182,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
       bbPendingRETs = new VM_PendingRETInfo[bbMaps.length];
     }
     handlersAllDone = (tryHandlerLength == 0);
+
+    // write poison values to help distinguish different errors
+    for(int ii = 0; ii < reachableHandlerBBNums.length; ii++)
+	reachableHandlerBBNums[ii] = -1;
+
   }
   else {
     tryHandlerLength       = 0;
@@ -339,7 +344,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	                                 byteToBlockMap[tryHandlerPC[i]];
           reachableHandlersCount++;
 
-	  if (tryStartPC[i] == start) {
+	  // if (tryStartPC[i] == start) {
 	    int handlerBBNum = byteToBlockMap[tryHandlerPC[i]];
 	    if (bbMaps[handlerBBNum] == null) {
               bbMaps[handlerBBNum] = new byte[currBBMap.length];
@@ -348,7 +353,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	      bbMaps[handlerBBNum][currBBStkEmpty+1] = REFERENCE;
 	      blockStkTop[handlerBBNum] = currBBStkEmpty+1;
 	    }
-	  }
+	  // }
 	}
     }
     else
