@@ -1,0 +1,6 @@
+   . $1/FastBaseBaseSemispace
+   export RVM_WITH_OPT_TEST_HARNESS=1 
+   export RVM_WITH_ALL_CLASSES=1 
+   export RVM_WITH_OPT_COMPILER=1 
+   
+   CONF_SPECIFIC_SOURCES_LIST="$CONF_SPECIFIC_SOURCE_LIST rvm/src/tools/optTestHarness"
