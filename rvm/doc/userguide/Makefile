@@ -1,14 +1,38 @@
+# $Id$
+
+## First, we go through a lot of cruft in order to decide whether we'll be
+## generating the *_options.tex files out of source.
+
+## We want to be able to run this before the user has ever created
+## an RVM_BUILD directory.  
+## (Pretend that the user has never done those things before.)
+
+## To do that, we need to be able to compile and run Java programs.
 ifdef RVM_BUILD
     include $(RVM_BUILD)/Make.rules.host
-else
-ifdef RVM_HOST_CONFIG
-    config_file := $(shell . $(RVM_HOST_CONFIG) && echo $$USER_GUIDE_CONFIG)
+endif
 
-    HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_VM_RT)
-    HOST_JAVAC := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_JAVAC)
-    HOST_REPOSITORIES := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_REPOSITORIES)
+## These rely upon the style of Jikes RVM configuration-file writing
+## that defines all config variables in the file, without 
+ifneq (${RVM_HOST_CONFIG},)
+   ifeq (${USER_GUIDE_CONFIG},)
+       USER_GUIDE_CONFIG := $(shell . $(RVM_HOST_CONFIG) && echo $${USER_GUIDE_CONFIG-})
+   endif
+
+   ifeq (${HOST_VM_RT},)
+        HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_VM_RT-)
+   endif
+
+   ifeq (${HOST_VM_RT},)
+        HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVA-)
+   endif
+
+   ifeq (${HOST_JAVAC},)
+       HOST_JAVAC := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVAC-})
+#    HOST_REPOSITORIES := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_REPOSITORIES)
+   endif
 endif
-endif
+
 
 GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
 GENERATOR := GenerateFromTemplate
@@ -47,8 +71,10 @@ OPT_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) \
 			 ${OPT_OPTION_DIR}/ValueOptions.dat
 OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
-config_file ?= config.mk
-include $(config_file)
+ifneq (${USER_GUIDE_CONFIG},)
+	include $(USER_GUIDE_CONFIG)
+endif
+
 LATEX  ?= latex
 DVIPS ?= dvips
 BIBTEX ?= bibtex
