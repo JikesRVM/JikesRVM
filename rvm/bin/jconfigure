@@ -74,11 +74,15 @@ trap -- 'echo >&2 "$ME: We are exiting due to an error; the triggering exit stat
 "' EXIT
 set -e;
 
-## Complain
 function croak_nonusage () {
     # Display the error message.  If it's a multi-line error message, indent
-    # the second and subsequent lines by a few spaces.
-    echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
+    # the second and subsequent lines by a few spaces.  
+    # Try to auto-wrap the message if we have GNU Fold.
+
+    local gnufold="/usr/bin/fold --width=65 --spaces"
+    $gnufold < /dev/null &> /dev/null || gnufold=cat
+
+    echo "${ME}: $*" | $gnufold | sed -e '2,$s/^/     /' >&2
     trap '' EXIT
     exit 1
 }
@@ -379,7 +383,9 @@ declare -i RVM_FOR_STRESSGC=0
 declare -i RVM_WITH_OSR=0
 
 
-# These ones were being left out.  In other words, they were tested but never set.
+# These have preprocessor "//-#if" conditional directives that 
+# test against them.   If we put the preprocessor into paranoid mode, it
+# complains about any tests against undefined conditionals.
 declare -i RVM_WITHOUT_LOAD_BALANCING=0	# default in VM_IdleThread.java
 declare -i RVM_WITH_FREE_LOCK_BALANCING=0	# In VM_Lock.java
 declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0	
@@ -392,6 +398,7 @@ declare -i JIKESBT=0
 declare -i BLOCK_COUNTER_WORKS=0
 declare -i RVM_WITH_CLASS_WRITER=0
 declare -i RVM_WITH_DEBUG=0
+declare -i BYTE_SIZED_INSTRUCTION=0
 
 
 #---------------------------------------#
@@ -494,7 +501,8 @@ PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} $(set     \
 		-e 's/^RVM_FOR_/-DRVM_FOR_/p'		\
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'		\
 		-e 's/^JIKES/-DJIKES/p'		\
-		-e 's/^BLOCK_COUNTER_WORKS=/-DBLOCK_COUNTER_WORKS=/p'		\
+		-e 's/^BYTE_SIZED_INSTRUCTION/-DBYTE_SIZED_INSTRUCTION/p' \
+		-e 's/^BLOCK_COUNTER_WORKS=/-DBLOCK_COUNTER_WORKS=/p'	  \
 		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p')"
 
 # Place where bootimage runner lives.
