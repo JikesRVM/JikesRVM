@@ -10,7 +10,7 @@ import org.mmtk.utility.AddressDeque;
 import org.mmtk.utility.AddressPairDeque;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.Util;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.DebugUtil;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIteratorGroup;
@@ -381,7 +381,7 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
           if (DUMP_STACK >= 3)
             VM.sysWriteln("--- Processing return address ", returnAddress,
                           " located at ", returnAddressLoc);
-          if (!Util.addrInBootImage(returnAddress))
+          if (!DebugUtil.addrInBootImage(returnAddress))
             codeLocationsPush(codeLocations, code, returnAddressLoc, 3, t);
         }
         

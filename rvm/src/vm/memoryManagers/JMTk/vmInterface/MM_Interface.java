@@ -163,7 +163,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaInterruptible {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
-    Util.boot(theBootRecord);
+    DebugUtil.boot(theBootRecord);
     Plan.boot();
     VMResource.boot();
     SynchronizedCounter.boot();
@@ -363,7 +363,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param ref the address to log information about
    */
   public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
-    Util.dumpRef(ref);
+    DebugUtil.dumpRef(ref);
   }
 
   /**
@@ -374,7 +374,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   public static boolean validRef(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return Util.validRef(ref);
+    return DebugUtil.validRef(ref);
   }
 
   /**
