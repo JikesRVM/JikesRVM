@@ -83,7 +83,7 @@ public class VM_Runtime implements VM_Constants {
 	operator.  */
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
     VM_Type lhsType = tRef.resolve(); // may throw CNF Exception
-    lhsType.resolve();
+    lhsType.resolve(); // forces loading/resolution of super class/interfaces
 
     /* Test for null only AFTER we have resolved the type of targetID. */
     if (object == null)
