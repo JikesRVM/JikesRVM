@@ -831,7 +831,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM_TypeReference superType = getTypeRef(input.readUnsignedShort()); // possibly null
     if (!(isInterface() || superType == null)) {
       superClass = superType.resolve().asClass();
-      superClass.addSubClass(this);
     }
 
     int numInterfaces = input.readUnsignedShort();
@@ -926,6 +925,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     state = CLASS_LOADED;
+
+    VM_Magic.sync(); // we're about to leak a reference to 'this' force memory to be consistent
+
+    if (superClass != null) {
+      // MUST wait until end of constructor to 'publish' the subclass link.
+      // If we do this earlier, then people can see an incomplete VM_Class object
+      // by traversing the subclasses of our superclass!
+      superClass.addSubClass(this);
+    }
 
     VM_Callbacks.notifyClassLoaded(this);
 
