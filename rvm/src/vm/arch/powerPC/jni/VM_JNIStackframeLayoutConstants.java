@@ -92,7 +92,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
     +(LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * BYTES_IN_DOUBLE;
 
   public static final int JNI_GLUE_RVM_EXTRA_GPRS_SIZE =
-    (FIRST_RVM_RESERVED_NV_GPR - LAST_RVM_RESERVED_NV_GPR + 1) * BYTES_IN_ADDRESS;
+    (LAST_RVM_RESERVED_NV_GPR - FIRST_RVM_RESERVED_NV_GPR + 1) * BYTES_IN_ADDRESS;
   
   // offset to previous to java frame 1 (* BYTES_IN_ADDRESS)
   public static final int JNI_GLUE_FRAME_OTHERS  = 1 * BYTES_IN_ADDRESS;
