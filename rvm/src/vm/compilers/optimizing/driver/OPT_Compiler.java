@@ -319,11 +319,19 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * @param method The method being compiled
    */
   private static void fail (Throwable e, VM_NormalMethod method) {
-    VM.sysWrite("OPT_Compiler failure during compilation of " 
-              + method.toString() + "\n");
-    e.printStackTrace();
-    throw new OPT_OptimizingCompilerException("OPT_Compiler", 
+    OPT_OptimizingCompilerException optExn = new OPT_OptimizingCompilerException("OPT_Compiler", 
 					      "failure during compilation of", method.toString());
+    if (e instanceof OutOfMemoryError) {
+	VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ",
+		      method.toString());
+	optExn.isFatal = false;
+    }
+    else {
+	VM.sysWriteln("OPT_Compiler failure during compilation of ",
+		      method.toString());
+	e.printStackTrace();
+    }
+    throw optExn;
   }
 
   /**
