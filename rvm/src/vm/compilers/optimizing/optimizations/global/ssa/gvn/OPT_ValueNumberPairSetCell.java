@@ -32,10 +32,6 @@ class OPT_ValueNumberPairSetCell extends OPT_DF_AbstractCell {
     numbers = new OPT_ValueNumberPair[INITIAL_CAPACITY];
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object getKey () {
     return  key;
   }
@@ -50,12 +46,6 @@ class OPT_ValueNumberPairSetCell extends OPT_DF_AbstractCell {
     return  contains(v.v1, v.v2);
   }
 
-  /**
-   * put your documentation comment here
-   * @param v1
-   * @param v2
-   * @return 
-   */
   boolean contains (int v1, int v2) {
     if (universal)
       return  true;
@@ -76,11 +66,6 @@ class OPT_ValueNumberPairSetCell extends OPT_DF_AbstractCell {
     add(v.v1, v.v2);
   }
 
-  /**
-   * put your documentation comment here
-   * @param v1
-   * @param v2
-   */
   void add (int v1, int v2) {
     if (universal)
       return;
@@ -115,11 +100,6 @@ class OPT_ValueNumberPairSetCell extends OPT_DF_AbstractCell {
     remove(v.v1, v.v2);
   }
 
-  /**
-   * put your documentation comment here
-   * @param v1
-   * @param v2
-   */
   void remove (int v1, int v2) {
     if (universal)
       throw  new OPT_OptimizingCompilerException(
@@ -158,10 +138,6 @@ class OPT_ValueNumberPairSetCell extends OPT_DF_AbstractCell {
     return  result;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public String toString () {
     if (universal)
       return  ("UNIVERSAL");

@@ -103,13 +103,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       int ix;                   
       ABCD_ClosureValue next = null;
 
-      /**
-       * put your documentation comment here
-       * @param       int cc
-       * @param       int ixx
-       * @param       OPT_Instruction srcc
-       * @param       ABCD_ClosureValue nextt
-       */
       ABCD_ClosureValue (int cc, int ixx, OPT_Instruction srcc, 
           ABCD_ClosureValue nextt) {
         c = cc;
@@ -137,47 +130,25 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       public OPT_RegisterOperand var;
       public OPT_RegisterOperand arr;
 
-      /**
-       * put your documentation comment here
-       * @param       OPT_RegisterOperand cvar
-       * @param       OPT_RegisterOperand carr
-       */
       ABCD_ConstraintKey (OPT_RegisterOperand cvar, OPT_RegisterOperand carr) {
         var = cvar;
         arr = carr;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public int hashCode () {
         return  var.register.hashCode() + arr.register.hashCode();
       }
 
-      /**
-       * put your documentation comment here
-       * @param o
-       * @return 
-       */
       public boolean equals (Object o) {
         return  (o instanceof ABCD_ConstraintKey) 
             && ((ABCD_ConstraintKey)o).var.similar(var)
             && ((ABCD_ConstraintKey)o).arr.similar(arr);
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public ABCD_ConstraintKey copy () {
         return  new ABCD_ConstraintKey(var, arr);
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public String toString () {
         String s = var.asRegister().register.toString();
         s += "<=" + arr.asRegister().register.toString();
@@ -185,56 +156,30 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       }
     }
 
-    /**
-     * put your documentation comment here
-     */
     final class ABCD_Constraint {
       public ABCD_ConstraintKey key;
       public int c;
 
-      /**
-       * put your documentation comment here
-       * @param       OPT_RegisterOperand var
-       * @param       int cc
-       * @param       OPT_RegisterOperand arr
-       */
       ABCD_Constraint (OPT_RegisterOperand var, int cc, 
           OPT_RegisterOperand arr) {
         key = new ABCD_ConstraintKey(var, arr);
         c = cc;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public int hashCode () {
         return  key.hashCode() + c;
       }
 
-      /**
-       * put your documentation comment here
-       * @param o
-       * @return 
-       */
       public boolean equals (Object o) {
         return  (o instanceof ABCD_Constraint) 
             && ((ABCD_Constraint)o).key.equals(key)
             && ((ABCD_Constraint)o).c == c;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public ABCD_Constraint copy () {
         return  new ABCD_Constraint(key.var, c, key.arr);
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public OPT_Instruction def () {
         if (key.var.register == null)
           return  null;
@@ -245,10 +190,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
           return  null;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public String toString () {
         String s = key.toString();
         if (c >= 0)
@@ -327,75 +268,36 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
         return  guards;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       boolean isPending () {
         return  a == PENDING_ANSWER;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       boolean isReduced () {
         return  a == TRUE_CYC_ANSWER;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       boolean isResolved () {
         return  a == TRUE_ANSWER || a == FALSE_ANSWER || a == BAD_FALSE_ANSWER;
       }
 
-      /**
-       * put your documentation comment here
-       * @param constraint
-       * @return 
-       */
       boolean isWeakerThan (ABCD_Constraint constraint) {
         return  c > constraint.c;
       }
 
-      /**
-       * put your documentation comment here
-       * @param constraint
-       * @return 
-       */
       boolean isWeakerEqThan (ABCD_Constraint constraint) {
         return  c >= constraint.c;
       }
-      /**
-       * the birth number (analysis counter)
-       */
       private int id = era;         
-      /**
-       * serves to give birth id's
-       */
       static private int era = 0;   
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       boolean isCurrent () {
         return  id == era;
       }
 
-      /**
-       * put your documentation comment here
-       */
       static void nextEra () {
         era++;
       }
 
-      /**
-       * put your documentation comment here
-       * @param constraint
-       */
       void makePending (ABCD_Constraint constraint) {
         // reanalyze: switch back to pending and 
         // decrease the constant c (when strengthening the true answer)
@@ -406,10 +308,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
         a = PENDING_ANSWER;
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       boolean getResult () {
         if (a == TRUE_ANSWER || a == TRUE_CYC_ANSWER)
           return  true;
@@ -472,10 +370,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
         }
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public String toString () {
         String s;
         switch (a) {
@@ -681,10 +575,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
     }
     private int depth = 0;      // recursion depth
 
-    /**
-     * put your documentation comment here
-     * @return 
-     */
     private String depthString () {
       String s = new String("ABCD: ");
       int i = depth;
@@ -809,11 +699,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
     private OPT_Instruction closureSentinelIdom = null; 
     private ABCD_Constraint closureConstraint = null;          
 
-    /**
-     * put your documentation comment here
-     * @param def
-     * @param dist
-     */
     private void addClosureEdges (OPT_Instruction def, int dist) {
       if (false && ir.options.DEBUG_ABCD) {
         System.out.println(depthString() + "adding edges\t" + def);
@@ -915,12 +800,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       return  12345678;         // TODO: this is the worst hack!
     }
 
-    /**
-     * put your documentation comment here
-     * @param a
-     * @param b
-     * @return 
-     */
     private boolean isDominatedBy (OPT_Instruction a, OPT_Instruction b) {
       OPT_BasicBlock aBB = a.getBasicBlock();
       OPT_BasicBlock bBB = b.getBasicBlock();
@@ -1305,12 +1184,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       return  pred;
     }
 
-    /**
-     * put your documentation comment here
-     * @param loop
-     * @param constraint
-     * @return 
-     */
     private ABCD_Answer reduce (OPT_Instruction loop, 
         ABCD_Constraint constraint) {
       // interrupt reduction of the current loop, by remembering the 
@@ -1336,11 +1209,6 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
       OPT_Instruction check;                    // the redundant bounds-check
       java.util.HashSet guards;      // set of guards needed to prove redundancy
 
-      /**
-       * put your documentation comment here
-       * @param       OPT_Instruction check
-       * @param       java.util.HashSet guards
-       */
       RedundantCheck (OPT_Instruction check, java.util.HashSet guards) {
         this.check = check;
         this.guards = guards;

@@ -15,19 +15,10 @@ import  java.util.*;
  */
 class OPT_ValueGraphEdge extends OPT_SpaceEffGraphEdge {
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_ValueGraphVertex src
-   * @param   OPT_ValueGraphVertex target
-   */
   OPT_ValueGraphEdge (OPT_ValueGraphVertex src, OPT_ValueGraphVertex target) {
     super(src, target);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public String toString () {
     OPT_ValueGraphVertex src = (OPT_ValueGraphVertex)fromNode();
     OPT_ValueGraphVertex dest = (OPT_ValueGraphVertex)toNode();

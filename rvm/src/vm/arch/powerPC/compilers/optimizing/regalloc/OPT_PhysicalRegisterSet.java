@@ -491,8 +491,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     regName[CR] = "CR";
   }
   /**
-   * put your documentation comment here
-   * @return 
+   * @return R0, a temporary register
    */
   static final int TEMP = FIRST_INT;   // temporary register (currently r0)
   OPT_Register getTemp() {

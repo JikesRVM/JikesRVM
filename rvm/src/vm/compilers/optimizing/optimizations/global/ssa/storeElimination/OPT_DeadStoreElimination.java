@@ -1003,7 +1003,6 @@ class OPT_DeadStoreSystem extends OPT_DF_System
      * @param l the left-hand side of the equation
      * @param r the first operand on the right-hand side of this equation
      * @return true iff the value of l changes as a result.
-     * put your documentation comment here
      */
     boolean evaluateForArrays (OPT_DF_LatticeCell l, OPT_DF_LatticeCell r) {
       OPT_ValueNumberPairSetCell lhs = (OPT_ValueNumberPairSetCell)l;

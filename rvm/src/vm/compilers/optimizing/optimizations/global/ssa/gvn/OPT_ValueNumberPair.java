@@ -12,36 +12,19 @@ class OPT_ValueNumberPair {
   int v1;       // the value number of an array pointer
   int v2;       // the value number of an array index
 
-  /**
-   * put your documentation comment here
-   */
   OPT_ValueNumberPair () {
   }
 
-  /**
-   * put your documentation comment here
-   * @param   int v1
-   * @param   int v2
-   */
   OPT_ValueNumberPair (int v1, int v2) {
     this.v1 = v1;
     this.v2 = v2;
   }
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_ValueNumberPair p
-   */
   OPT_ValueNumberPair (OPT_ValueNumberPair p) {
     this.v1 = p.v1;
     this.v2 = p.v2;
   }
 
-  /**
-   * put your documentation comment here
-   * @param o
-   * @return 
-   */
   public boolean equals (Object o) {
     if (!(o instanceof OPT_ValueNumberPair))
       return  false;
@@ -49,10 +32,6 @@ class OPT_ValueNumberPair {
     return  (v1 == p.v1) && (v2 == p.v2);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public String toString () {
     return  "<" + v1 + "," + v2 + ">";
   }

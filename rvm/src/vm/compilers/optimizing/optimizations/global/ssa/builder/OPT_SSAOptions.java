@@ -25,102 +25,54 @@ class OPT_SSAOptions {
   // analysis?
   private boolean insertUsePhis;      // constuct Heap SSA with uPhi functions?
   private boolean insertPEIDeps;      // constuct Heap SSA with PEI deps?
-  private java.util.Set heapTypes;         // restrict Heap SSA to this set of types?
+  private java.util.Set heapTypes;    // restrict Heap SSA to this set of types?
   private boolean heapValid;          // is Heap SSA info valid?
   private boolean scalarValid;        // is Scalar SSA info valid?
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final boolean getScalarsOnly () {
     return  scalarsOnly;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final boolean getBackwards () {
     return  backwards;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final boolean getInsertUsePhis () {
     return  insertUsePhis;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final boolean getInsertPEIDeps () {
     return  insertPEIDeps;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final java.util.Set getHeapTypes () {
     return  heapTypes;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final boolean getHeapValid () {
     return  heapValid;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final boolean getScalarValid () {
     return  scalarValid;
   }
 
-  /**
-   * put your documentation comment here
-   * @param b
-   */
   final void setScalarsOnly (boolean b) {
     scalarsOnly = b;
   }
 
-  /**
-   * put your documentation comment here
-   * @param b
-   */
   final void setBackwards (boolean b) {
     backwards = b;
   }
 
-  /**
-   * put your documentation comment here
-   * @param b
-   */
   final void setInsertUsePhis (boolean b) {
     insertUsePhis = b;
   }
 
-  /**
-   * put your documentation comment here
-   * @param b
-   */
   final void setInsertPEIDeps (boolean b) {
     insertPEIDeps = b;
   }
 
-  /**
-   * put your documentation comment here
-   * @param s
-   */
   final void setHeapTypes (java.util.Set s) {
     heapTypes = s;
   }
@@ -131,10 +83,6 @@ class OPT_SSAOptions {
     heapValid = b;
   }
 
-  /**
-   * put your documentation comment here
-   * @param b
-   */
   final void setScalarValid (boolean b) {
     scalarValid = b;
   }

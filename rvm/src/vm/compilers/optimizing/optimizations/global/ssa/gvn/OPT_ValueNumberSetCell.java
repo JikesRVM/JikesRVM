@@ -35,10 +35,6 @@ class OPT_ValueNumberSetCell extends OPT_DF_AbstractCell {
     numbers = new int[INITIAL_CAPACITY];
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object getKey () {
     return  key;
   }
@@ -129,10 +125,6 @@ class OPT_ValueNumberSetCell extends OPT_DF_AbstractCell {
     return  result;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public String toString () {
     if (universal)
       return  ("UNIVERSAL");

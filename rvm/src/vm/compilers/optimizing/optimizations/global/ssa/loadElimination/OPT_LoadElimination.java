@@ -15,9 +15,6 @@ import instructionFormats.*;
 final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
     implements OPT_Operators {
 
-  /**
-   * put your documentation comment here
-   */
   OPT_LoadElimination () {
     super("Redundant Load Elimination", new OPT_OptimizationPlanElement[] {
       // 1. Set up IR state to control SSA translation as needed
@@ -44,29 +41,14 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
       implements OPT_Operators {
     static final boolean DEBUG = false;
 
-    /**
-     * put your documentation comment here
-     * @param options
-     * @return 
-     */
     final boolean shouldPerform (OPT_Options options) {
       return  options.LOAD_ELIMINATION;
     }
 
-    /**
-     * put your documentation comment here
-     * @return 
-     */
     final String getName () {
       return  "Array SSA Load Elimination";
     }
 
-    /**
-     * put your documentation comment here
-     * @param options
-     * @param before
-     * @return 
-     */
     final boolean printingEnabled (OPT_Options options, boolean before) {
       return  false;
     }
@@ -355,51 +337,28 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
       int v2;                   // second value number (array index)
       final static int NONE = -2;
 
-      /**
-       * put your documentation comment here
-       * @param       Object type
-       * @param       int valueNumber
-       */
       UseRecord (Object type, int valueNumber) {
         this.type = type;
         this.v1 = valueNumber;
         this.v2 = NONE;
       }
 
-      /**
-       * put your documentation comment here
-       * @param       Object type
-       * @param       int v1
-       * @param       int v2
-       */
       UseRecord (Object type, int v1, int v2) {
         this.type = type;
         this.v1 = v1;
         this.v2 = v2;
       }
 
-      /**
-       * put your documentation comment here
-       * @param o
-       * @return 
-       */
       public boolean equals (Object o) {
         UseRecord u = (UseRecord)o;
         return  ((u.type == type) && (u.v1 == v1) && (u.v2 == v2));
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
       public int hashCode () {
         return  type.hashCode() + v1 + v2;
       }
     }
 
-    /**
-     * put your documentation comment here
-     */
     static class UseRecordSet {
       java.util.HashSet set = new java.util.HashSet(10);
 
@@ -425,12 +384,6 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
         set.add(u);
       }
 
-      /**
-       * put your documentation comment here
-       * @param H
-       * @param v1
-       * @param v2
-       */
       void add (OPT_HeapVariable H, int v1, int v2) {
         UseRecord u = new UseRecord(H.getHeapType(), v1, v2);
         set.add(u);
@@ -524,37 +477,18 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement
    */
   private static class LoadEliminationPreparation extends OPT_CompilerPhase {
 
-    /**
-     * put your documentation comment here
-     * @param options
-     * @return 
-     */
     final boolean shouldPerform (OPT_Options options) {
       return  options.LOAD_ELIMINATION;
     }
 
-    /**
-     * put your documentation comment here
-     * @return 
-     */
     final String getName () {
       return  "Load Elimination Preparation";
     }
 
-    /**
-     * put your documentation comment here
-     * @param options
-     * @param before
-     * @return 
-     */
     final boolean printingEnabled (OPT_Options options, boolean before) {
       return  false;
     }
 
-    /**
-     * put your documentation comment here
-     * @param ir
-     */
     final public void perform (OPT_IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination

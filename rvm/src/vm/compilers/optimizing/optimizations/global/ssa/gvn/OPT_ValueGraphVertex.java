@@ -20,10 +20,6 @@ class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   OPT_ValueGraphVertex[] targets;   // operand vertices, in order
   int arity;                        // number of operands needed
 
-  /**
-   * put your documentation comment here
-   * @param   Object name
-   */
   OPT_ValueGraphVertex (Object name) {
     this.name = name;
   }
@@ -60,42 +56,22 @@ class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
     targets = new OPT_ValueGraphVertex[arity];
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   Object getLabel () {
     return  label;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   Object getName () {
     return  name;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   int getValueNumber () {
     return  valueNumber;
   }
 
-  /**
-   * put your documentation comment here
-   * @param number
-   */
   void setValueNumber (int number) {
     valueNumber = number;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   boolean isConstant () {
     return  (label instanceof OPT_ConstantOperand);
   }
@@ -112,27 +88,14 @@ class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
     return  targets[i];
   }
 
-  /**
-   * put your documentation comment here
-   * @param target
-   * @param pos
-   */
   public void addTarget (OPT_ValueGraphVertex target, int pos) {
     targets[pos] = target;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public int getArity () {
     return  arity;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public String toString () {
     StringBuffer s = new StringBuffer("Vertex: " + name + " " + label);
     s.append(" Targets: ");
