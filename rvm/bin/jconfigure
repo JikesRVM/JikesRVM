@@ -188,12 +188,11 @@ load "${bin_dir}/libjconfigure.bash" ;
 
 ## WORKAROUND:
 ## This should be a no-op.  However, this works around the Bash 2.05b bug where
-## it thinks midline was unset.
+## it thinks midline is unset.
 # echo ${midline-UNSET} > /dev/null		# "echo" fails miserably.
 builtin echo ${midline-UNSET} > /dev/null
 # Also problems with this one.  This one, too, breaks in bad places.
 builtin echo ${have_function_relative_LINENO-UNSET} > /dev/null
-
 
 ## POSSIBLE FUTURE WORKAROUND:
 ## # Do the same thing for the other global variables that are set inside 
@@ -205,11 +204,13 @@ checkenv RVM_ROOT
 
 ## Place where RVM bootimage, booter, and runtime support files will be placed.
 checkenv --may-not-exist RVM_BUILD
+
 ## What configuration will host the build process?
 checkenv RVM_HOST_CONFIG
+
 ## What configuration will run the system?
-# checkenv RVM_TARGET_CONFIG
 [[ ${RVM_TARGET_CONFIG-} ]] || export RVM_TARGET_CONFIG="${RVM_HOST_CONFIG}"
+checkenv RVM_TARGET_CONFIG
 
 #---------------------------#
 # SECTION 1a - DOCUMENTATION #
