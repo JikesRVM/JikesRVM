@@ -39,7 +39,7 @@ SRCS=   $(TABLES_JAVA) \
 default:		assembler clean
 
 $(VM_ASM_JAVA):
-	cp $(GEN_FILES_DIR)/VM_Assembler.java $(VM_ASM_JAVA)
+	$(CP) $(GEN_FILES_DIR)/VM_Assembler.java $(VM_ASM_JAVA)
 
 $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 	$(GENERATE) OPT_InstructionFormatTables.template $(TABLES_JAVA) FORMAT_FILE=$(ARCH_IFS)
@@ -48,16 +48,16 @@ $(OPCODE_JAVA):		OPT_OperatorFormatTables.template $(ARCH_OPS)
 	$(GENERATE) OPT_OperatorFormatTables.template $(OPCODE_JAVA) OPERATOR_FILE=$(ARCH_OPS)
 
 $(SCRATCH_DIR)/com/ibm/JikesRVM/%.java:	%.fake
-	cp $< $@
+	$(CP) $< $@
 
 assembler:		$(GEN_FILES_DIR)/OPT_Assembler.java
 
 $(SCRATCH_DIR)/GenerateAssembler.java:	GenerateAssembler.java
-	cp GenerateAssembler.java $(SCRATCH_DIR) 
+	$(CP) GenerateAssembler.java $(SCRATCH_DIR) 
 
 $(GEN_FILES_DIR)/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
 	$(JCOMPILE) -d $(SCRATCH_DIR) $(SRCS) $(SCRATCH_DIR)/GenerateAssembler.java
 	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
 
 clean:
-	rm -f $(FAKE_SRC) $(FAKE_CLS)
+	$(RM) $(FAKE_SRC) $(FAKE_CLS)

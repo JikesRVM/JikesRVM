@@ -83,8 +83,8 @@ endif
 
 $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 ifeq (${HOST_VM_TYPE},Kaffe)
-	rm -f $(phony_home_dir)/.kafferc
-	cp dot-kafferc $(phony_home_dir)/.kafferc
+	$(RM) $(phony_home_dir)/.kafferc
+	$(CP) dot-kafferc $(phony_home_dir)/.kafferc
 endif
 	$(host_vm_envars) \
 	$(HOST_VM_RT) \
