@@ -6,7 +6,7 @@
 #
 # Build the RVM standard libraries, rvmrt.jar, from the java source files.
 #
-# Invocation:  jBuildLibs [--install]
+# Invocation:  jBuildLibs [--installOnly]
 #
 # Authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp
 
@@ -20,9 +20,12 @@ ME=`basename $0`
 
 function usage
 {
-  echo usage: $ME [--install]
-  echo Build the RVM standard libraries, rvmrt.jar, from the java source files.
-  echo --install installs the new jar file in $RVM_ROOT/support/lib
+cat <<EOF
+usage: $ME [--installOnly]
+Build the RVM standard libraries, rvmrt.jar, from the java source files.
+--installOnly don't build, just tell the rvm to use the rvmrt.jar in
+              \$RVM_ROOT/support/libs, whereever that might have come from.
+EOF
   exit $1
 }
 
@@ -30,8 +33,7 @@ function do_install
 {
   print "$ME: Copying rvmrt.jar to $RVM_ROOT/support/lib"
   cp -f $RVM_BUILD/rvmrt.jar $RVM_ROOT/support/lib
-  cp rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.required # sync the RVM
-  cp rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.installed
+  cp -f rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.installed
 }
 
 ##
@@ -41,14 +43,13 @@ function do_install
 while [[ $# > 0 ]] ; do
   echo $1
   case $1 in
-    --install) install="y";;
+    --installOnly) installOnly="y";;
     --help) usage 0;;
     -h) usage 0;;
     *) usage 1;;
   esac
   shift
 done
-
 
 
 # Place where source files reside.
@@ -74,6 +75,23 @@ if [[ $RVM_HOST_CONFIG = "" ]]; then
    exit 1
 fi
 . $RVM_HOST_CONFIG
+
+if [[ x$installOnly = xy ]] ; then
+  if [[ ! -r $RVM_ROOT/support/lib/rvmrt.jar ]] ; then
+    echo "can't open $RVM_ROOT/support/lib/rvmrt.jar."
+    exit 1
+  fi
+  mkdir -p /tmp/jbli$$
+  cd /tmp/jbli$$
+  $HOST_JAR xf $RVM_ROOT/support/lib/rvmrt.jar rvmrt.id
+  cp -f rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.installed
+  cd /tmp
+  rm -rf /tmp/jbli$$
+  echo "\$RVM_ROOT/support/lib/rvmrt.jar installed for"
+  echo "RVM_ROOT=$RVM_ROOT."
+  exit 0
+fi
+
 
 # Create a temporary build directory
 $RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseSemispace
@@ -103,11 +121,9 @@ $HOST_JAR -cvf $RVM_BUILD/rvmrt.jar rvmrt.id com java
 
 
 # Install the new jar file?
-if [[ x$install != xy ]] ; then
-  if tty -s; then # keyboard is live (ie. this is not an automated build)
-    print -n "$ME: Install new rvmrt.jar in $RVM_ROOT/support/lib? (y/n)"
-    read install
-  fi
+if tty -s; then # keyboard is live (ie. this is not an automated build)
+  print -n "$ME: Install new rvmrt.jar in $RVM_ROOT/support/lib? (y/n)"
+  read install
 fi
 # Install now?
 if [[ x$install = xy ]] ; then
