@@ -103,7 +103,7 @@ class Log implements Constants, VM_Uninterruptible {
   Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
       VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
-		 		 		 		      OVERFLOW_MESSAGE.charAt(i));
+				     OVERFLOW_MESSAGE.charAt(i));
   }
   
   /**
@@ -140,22 +140,21 @@ class Log implements Constants, VM_Uninterruptible {
     
     nextDigit = (int)(l % 10);
     nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
-		 		 		 		 		       negative
-		 		 		 		 		       ? - nextDigit
-		 		 		 		 		       : nextDigit);
+					      negative
+					      ? - nextDigit
+					      : nextDigit);
     VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
     
-    while (l != 0)
-      {
-		 nextDigit = (int)(l % 10);
-		 nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
-		 		 		 		 		 		   negative
-		 		 		 		 		 		   ? - nextDigit
-		 		 		 		 		 		   : nextDigit);
-		 VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
-		 l = l / 10;
-      }
+    while (l != 0) {
+      nextDigit = (int)(l % 10);
+      nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+						negative
+						? - nextDigit
+						: nextDigit);
+      VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
+      l = l / 10;
+    }
     
     if (negative)
       VM_Interface.setArrayNoBarrier(intBuffer, index--, '-');
@@ -596,13 +595,12 @@ class Log implements Constants, VM_Uninterruptible {
 
     write(HEX_PREFIX);
 
-    for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--)
-      {
-		 nextDigit = (int)(l >>> (digitNumber * BITS_IN_HEX_DIGIT)) & 0xf;
-		 char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
-		 		 		 		 		 		        nextDigit);
-		 add(nextChar);
-      }
+    for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
+      nextDigit = (int)(l >>> (digitNumber * BITS_IN_HEX_DIGIT)) & 0xf;
+      char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+						     nextDigit);
+      add(nextChar);
+    }
   }
 
   /**
@@ -643,12 +641,12 @@ class Log implements Constants, VM_Uninterruptible {
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
       bufferIndex += VM_Interface.copyStringToChars(s, buffer, bufferIndex,
-		 		 		 		 		 		     MESSAGE_BUFFER_SIZE + 1);
+						    MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
-		 overflow = true;
-		 VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
-		 		 		 		        OVERFLOW_MESSAGE_FIRST_CHAR); 
-		 bufferIndex--;
+	overflow = true;
+	VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
+				       OVERFLOW_MESSAGE_FIRST_CHAR); 
+	bufferIndex--;
       }
     } else
       overflow = true;
@@ -673,8 +671,7 @@ class Log implements Constants, VM_Uninterruptible {
    * sets the flag so that a thread identifier will be included before
    * the logged message
    */
-  private void setThreadIdFlag()
-  {
+  private void setThreadIdFlag() {
     threadIdFlag = true;
   }
 
