@@ -88,6 +88,22 @@ The bug tracking system lists {\em defects}, representing bugs in the system, an
 Yes.  \xlink{See the \jrvm{} Home Page}[ at
 {\tt \RVMHomeURL}]{\RVMHomeURL}.
 
+\subsubsection{How do I build the Javadoc-format API documentation?}%
+\index{Javadoc-format API documentation}%
+\index{API Documentation}
+
+First, the \xlink{online Javadoc}[, at {\tt \RVMJavadocURL},]{%
+    \RVMJavadocURL} is updated daily, so you may not need to build it
+yourself.  If you do want to build it, use the program
+\texttt{\$RVM\_ROOT/rvm/bin/jdoc.sh}.   Just running
+``\texttt{javadoc *.java}'' does not work, since the \texttt{javadoc}
+parser does not understand \jrvm{}'s preprocessor syntax.\footnote{Nor does
+the parser for its compatible Free Software replacement,
+\texttt{gjdoc}}
+Basically, \texttt{jdoc.sh} runs \texttt{javadoc} on the copy of the
+source that is in the \texttt{\$RVM\_BUILD} directories, that is, the
+{\em output} of the preprocessor. 
+
 \subsubsection{Can I get the Quicksilver Quasi-Static System?}
 
 No. This project is no longer active or supported.
