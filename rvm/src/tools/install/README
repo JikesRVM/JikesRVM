@@ -1,0 +1,11 @@
+-*-text-*-
+
+This directory contains stuff that you'll only use if you're
+installing Jikes RVM on your system to be invoked as something like
+/usr/local/bin/rvm or /usr/bin/rvm.  
+
+It will install a slightly different version of the "rvm" command that
+is backwards-compatible with the one in rvm/bin/rvm; if you have set
+RVM_ROOT, the installed "rvm" will try to invoke the one in your Jikes
+RVM source tree.  
+
