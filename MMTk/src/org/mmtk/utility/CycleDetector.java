@@ -17,8 +17,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 abstract class CycleDetector implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  abstract public boolean collectCycles(boolean time);
-  abstract public void possibleCycleRoot(VM_Address object);
-  abstract public void enumeratePointer(VM_Address object);
-  abstract public void printTimes(boolean totals);
+  abstract boolean collectCycles(boolean time);
+  abstract void possibleCycleRoot(VM_Address object);
+  abstract void printTimes(boolean totals);
 }

@@ -19,18 +19,6 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date    $Date$
  */
 
-public class Enumerate implements VM_Uninterruptible {
-  protected Plan plan;
-
-  /* Constructor 
-   */
-
-  Enumerate(Plan plan) { 
-    this.plan = plan; 
-  }
-
-  public void enumeratePointerLocation(VM_Address location) 
-      throws VM_PragmaInline {
-    plan.enumeratePointerLocation(location);
-  }
+abstract public class Enumerate implements VM_Uninterruptible {
+  abstract public void enumeratePointerLocation(VM_Address location);
 }

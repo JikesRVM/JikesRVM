@@ -99,6 +99,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private AddressQueue decBuffer;
   private AddressQueue rootSet;
 
+  // enumerators
+  RCDecEnumerator decEnum;
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Initialization
@@ -140,6 +143,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     rootSet = new AddressQueue("root set", rootPool);
     los = new RefCountLOSLocal(losVM, rcMR);
     rc = new RefCountLocal(rcSpace, this, los, incBuffer, decBuffer, rootSet);
+    decEnum = new RCDecEnumerator(this);
   }
 
   /**
@@ -508,23 +512,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return forwardingWord;
   }
 
-  /**
-   * A pointer location has been enumerated by ScanObject.  This is
-   * the callback method, allowing the plan to perform an action with
-   * respect to that location.
-   *
-   * @param location An address known to contain a pointer.  The
-   * location is within the object being scanned by ScanObject.
-   */
-  public final void enumeratePointerLocation(VM_Address location) {
-    VM_Address object = VM_Magic.getMemoryAddress(location);
-    if (!object.isZero()) {
-      byte space = VMResource.getSpace(object);
-      if (space == RC_SPACE || space == LOS_SPACE)
-	rc.enumeratePointer(object);
-    }
-  }
-
   public static boolean willNotMove (VM_Address obj) {
     return true;
   }
@@ -624,6 +611,29 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (tgt.GE(RC_START))
       incBuffer.push(tgt);
   }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Pointer enumeration
+  //
+
+  /**
+   * A field of an object is being enumerated by ScanObject as part of
+   * a recursive decrement (when an object dies, its referent objects
+   * must have their counts decremented).  If the field points to the
+   * RC space, decrement the count for the referent.
+   *
+   * @param objLoc The address of a reference field with an object
+   * being enumerated.
+   */
+  final void enumerateDecrementPointerLocation(VM_Address objLoc)
+    throws VM_PragmaInline {
+    VM_Address object = VM_Magic.getMemoryAddress(objLoc);
+    if (isRCObject(object))
+      decBuffer.push(object);
+    //      rc.decrement(object);
+  }
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -740,6 +750,27 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void printPlanTimes(boolean totals) {
     rc.printTimes(totals);
+  }
+
+  /**
+   * Return true if the object resides within the RC space
+   *
+   * @param object An object reference
+   * @return True if the object resides within the RC space
+   */
+  static final boolean isRCObject(VM_Address object)
+    throws VM_PragmaInline {
+    if (object.isZero()) 
+      return false;
+    else {
+      VM_Address addr = VM_Interface.refToAddress(object);
+      if (addr.GE(RC_START)) {
+	if (VM_Interface.VerifyAssertions)
+	  VM_Interface._assert(addr.LT(HEAP_END));
+	return true;
+      } else 
+	return false;
+    }
   }
 }
 

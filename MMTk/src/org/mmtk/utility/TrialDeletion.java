@@ -102,6 +102,11 @@ final class TrialDeletion extends CycleDetector
   private AddressQueue cycleBufferB;
   private AddressQueue freeBuffer;
 
+  private TDGreyEnumerator greyEnum;
+  private TDScanEnumerator scanEnum;
+  private TDScanBlackEnumerator scanBlackEnum;
+  private TDCollectEnumerator collectEnum;
+
   private boolean collectedCycles = false;
   private int phase = MARK_GREY;
   private int visitCount = 0;
@@ -143,9 +148,14 @@ final class TrialDeletion extends CycleDetector
     cycleBufferA = new AddressQueue("cycle buf A", cyclePoolA);
     cycleBufferB = new AddressQueue("cycle buf B", cyclePoolB);
     freeBuffer = new AddressQueue("free buffer", freePool);
+
+    greyEnum = new TDGreyEnumerator(this);
+    scanEnum = new TDScanEnumerator(this);
+    scanBlackEnum = new TDScanBlackEnumerator(this);
+    collectEnum = new TDCollectEnumerator(this);
   }
 
-  public final boolean collectCycles(boolean time) {
+  final boolean collectCycles(boolean time) {
     collectedCycles = false;
     if (shouldFilterPurple()) {
       filterPurpleBufs();
@@ -221,7 +231,7 @@ final class TrialDeletion extends CycleDetector
     return end;
   }
 
-  public final void possibleCycleRoot(VM_Address object)
+  final void possibleCycleRoot(VM_Address object)
     throws VM_PragmaInline {
     if (purpleBufferAisOpen)
       purpleBufferA.insert(object);
@@ -304,13 +314,16 @@ final class TrialDeletion extends CycleDetector
 
   private final void processGreyObject(VM_Address object, AddressQueue tgt)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!RCBaseHeader.isGreen(object));
     if (RCBaseHeader.isPurple(object)) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isLiveRC(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(RCBaseHeader.isLiveRC(object));
       markGrey(object);
       tgt.push(object);
     } else {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isGrey(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(RCBaseHeader.isGrey(object));
       RCBaseHeader.clearBufferedBit(object); // FIXME Why? Why not above?
     }
   }
@@ -321,7 +334,8 @@ final class TrialDeletion extends CycleDetector
     AddressQueue tgt = cycleBufferB;
     phase = SCAN;
     while (!(object = src.pop()).isZero()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       scan(object);
       tgt.push(object);
     }
@@ -332,62 +346,45 @@ final class TrialDeletion extends CycleDetector
     AddressQueue src = cycleBufferB;
     phase = COLLECT;
     while (!(object = src.pop()).isZero()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       RCBaseHeader.clearBufferedBit(object);
       collectWhite(object);
     }
   }
 
-  public final void enumeratePointer(VM_Address object)
-    throws VM_PragmaInline {
-    switch (phase) {
-    case MARK_GREY: 
-      if (!RCBaseHeader.isGreen(object)) {
-	if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isLiveRC(object));
-	RCBaseHeader.decRC(object, false);
-	workQueue.push(object);
-      }
-      break;
-    case SCAN: 
-      if (!RCBaseHeader.isGreen(object))
-	workQueue.push(object);
-      break;
-    case SCAN_BLACK: 
-      if (!RCBaseHeader.isGreen(object)) {
-	RCBaseHeader.incRC(object, false);
-	if (!RCBaseHeader.isBlack(object))
-	  blackQueue.push(object);
-      }
-      break;
-    case COLLECT:  
-      if (RCBaseHeader.isGreen(object))
-	plan.addToDecBuf(object); 
-      else
-	workQueue.push(object);
-      break;
-    default:
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    }
-  }
-
   private final void markGrey(VM_Address object)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(workQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       visitCount++;
       if (!RCBaseHeader.isGrey(object)) {
 	RCBaseHeader.makeGrey(object);
-	ScanObject.enumeratePointers(object, plan.enum);
+	ScanObject.enumeratePointers(object, greyEnum);
       }
       object = workQueue.pop();
     }
   }
+  final void enumerateGrey(VM_Address object)
+    throws VM_PragmaInline {
+    if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(RCBaseHeader.isLiveRC(object));
+      RCBaseHeader.decRC(object, false);
+      workQueue.push(object);
+    }
+  }
+
   private final void scan(VM_Address object)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(workQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       if (RCBaseHeader.isGrey(object)) {
 	if (RCBaseHeader.isLiveRC(object)) {
 	  phase = SCAN_BLACK;
@@ -395,44 +392,72 @@ final class TrialDeletion extends CycleDetector
 	  phase = SCAN;
 	} else {
 	  RCBaseHeader.makeWhite(object);
-	  ScanObject.enumeratePointers(object, plan.enum);
+	  ScanObject.enumeratePointers(object, scanEnum);
 	}
       } 
       object = workQueue.pop();
     }
   }
+  final void enumerateScan(VM_Address object) 
+    throws VM_PragmaInline {
+    if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object))
+      workQueue.push(object);
+  }
+
   private final void scanBlack(VM_Address object)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(blackQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(blackQueue.pop().isZero());
     while (!object.isZero()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       //      if (!SimpleRCBaseHeader.isGreen(object)) {
       if (!RCBaseHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
 	RCBaseHeader.makeBlack(object);
-	ScanObject.enumeratePointers(object, plan.enum);
+	ScanObject.enumeratePointers(object, scanBlackEnum);
       }
       object = blackQueue.pop();
     }
   }
+  final void enumerateScanBlack(VM_Address object)
+    throws VM_PragmaInline {
+    if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
+      RCBaseHeader.incRC(object, false);
+      if (!RCBaseHeader.isBlack(object))
+	blackQueue.push(object);
+    }
+  }
+
   private final void collectWhite(VM_Address object)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(workQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
 	RCBaseHeader.makeBlack(object);
-	ScanObject.enumeratePointers(object, plan.enum);
+	ScanObject.enumeratePointers(object, collectEnum);
 	freeBuffer.push(object);
       }
       object = workQueue.pop();
     }
   }
-  public void resetVisitCount() {
+  final void enumerateCollect(VM_Address object) 
+    throws VM_PragmaInline {
+    if (Plan.isRCObject(object)) {
+      if (RCBaseHeader.isGreen(object))
+	plan.addToDecBuf(object); 
+      else
+	workQueue.push(object);
+    }
+  }
+
+  void resetVisitCount() {
     visitCount = 0;
   }
-  public int getVisitCount() throws VM_PragmaInline {
+  int getVisitCount() throws VM_PragmaInline {
     return visitCount;
   }
-  public final void printTimes(boolean totals) {
+  final void printTimes(boolean totals) {
     double time;
     if (collectedCycles) {
       time = (totals) ? Statistics.cdGreyTime.sum() : Statistics.cdGreyTime.lastMs();

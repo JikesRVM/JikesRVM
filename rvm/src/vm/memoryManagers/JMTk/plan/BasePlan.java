@@ -115,7 +115,6 @@ public abstract class BasePlan
   //
   private int id = 0;                     // Zero-based id of plan instance
   public BumpPointer immortal;
-  public Enumerate enum;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -152,7 +151,6 @@ public abstract class BasePlan
     id = planCount++;
     plans[id] = (Plan) this;
     immortal = new BumpPointer(immortalVM);
-    enum = new Enumerate((Plan) this);
   }
 
   /**

@@ -250,23 +250,6 @@ final class RefCountLocal extends SegregatedFreeList
   //
 
   /**
-   * A pointer location has been enumerated by ScanObject.  This is
-   * the callback method, allowing the plan to perform an action with
-   * respect to that location.
-   *
-   * @param object
-   */
-  public final void enumeratePointer(VM_Address object)
-    throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!object.isZero());
-
-    if (!Plan.REF_COUNT_CYCLE_DETECTION || decrementPhase)
-      decBuffer.push(object);
-    else if (Plan.REF_COUNT_CYCLE_DETECTION)
-      cycleDetector.enumeratePointer(object);
-  }
-  
-  /**
    * Decrement the reference count of an object.  If the count drops
    * to zero, the release the object, performing recursive decremetns
    * and freeing the object.  If not, then if cycle detection is being
@@ -299,7 +282,7 @@ final class RefCountLocal extends SegregatedFreeList
   private final void release(VM_Address object) 
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
-    ScanObject.enumeratePointers(object, plan.enum);
+    ScanObject.enumeratePointers(object, plan.decEnum);
     if (!Plan.REF_COUNT_CYCLE_DETECTION || !RCBaseHeader.isBuffered(object)) 
       free(object);
   }
