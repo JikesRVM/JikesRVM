@@ -63,7 +63,7 @@ esac
 
 if [[ $RVM_SPECJVM98 = "" ]]; then
   echo -e "$0: RVM_SPECJVM98 environment variable not set; \n\tRVM_SPECJVM98=\"/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98\""
-  RVM_SPECJVM98="/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/SPECjvm98"
+  RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
 fi
 
 echo -e "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
