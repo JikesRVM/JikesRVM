@@ -418,7 +418,6 @@ fi
 # TODO soon: change this flag # this stanza is depricated
 if [[ X"$RVM_TARGET_OS" = X"linuxsmp" ]]; then
    export RVM_FOR_LINUX=1
-   export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 fi
 
 if [[ X"$RVM_TARGET_OS" = X"Cygwin" ]]; then
@@ -475,9 +474,9 @@ if [[ X"$RVM_TARGET_ARCH" = X ]]; then
 fi
 
 if (( RVM_FOR_LINUX || RVM_FOR_CYGWIN )); then
-    export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 # TEMPORARY until multithreading works on linux
-else
-    export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+    if [[ x$RVM_TARGET_OS != xlinuxsmp ]]; then
+      export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 # TEMPORARY until multithreading works on linux
+    fi
 fi
 
 #--------------------------------------#
@@ -1776,6 +1775,7 @@ function emitBooterLinker
    print '#!/bin/ksh'
    print '# Generate vm booter.'
 
+   print '. ./environment'
 
    # Allow the build directory to be different in the host/boot image
    # writing system, and on the target system.
