@@ -68,7 +68,7 @@ else
 fi
 CLEANUP=":"
 unset xited || :
-if trap -- 'xited=$? finalarg=$_; set +vx; echo >&2 "$ME:$LINENO: some command we just ran (probably with a
+if trap -- 'xited=$? finalarg=$_; set +vx; echo >&2 "$ME: some command we just ran (probably with a
       final argument of \"$finalarg\") exited with status $xited, possibly in source
       file line # $LINENO ${FUNCNAME+'"'"'and function '"'"'}$FUNCNAME
       I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT; eval $CLEANUP' ERR
@@ -82,7 +82,7 @@ else
     unset have_err_trap || :
 fi
 
-trap -- 'echo >&2 "$ME:$LINENO: We are exiting due to an error; the triggering exit status was ${xited:-$?}.
+trap -- 'echo >&2 "$ME: We are exiting due to an error; the triggering exit status was ${xited:-$?}.
    possibly in source file line # $LINENO and function $FUNCNAME
 "; eval $CLEANUP' EXIT
 set -e;
@@ -835,8 +835,7 @@ function emitBoilerplate () {
 	# Returns false (exit 1) if we are not.
     cat <<- 'EOF'
 	function tracing() {
-	    set +v +x
-	    [[ $TRACE_FLAG ]] || { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return 1 ; }
+	    [[ $TRACE_FLAG ]] || return 1
 
 	    local -i dflt=1      # default answer, false  (using exit codes)
 	    # Canonicalize.
@@ -864,14 +863,14 @@ function emitBoilerplate () {
 		local arg="$1"
 		# If an exact match, return YES.
 		if [[ $TRACE_FLAG == *,${arg},* ]]; then
-	   	    { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return 0; }
+		    return 0;
 		# If an exact anti-match, return NO
 		elif [[ $TRACE_FLAG == *,no-${arg},* ]]; then
-	   	    { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return 1; }
+		    return 1;
 		fi
 	    fi 
 	    # Give in to the default, whatever that is.
-	    { [ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG ; return $dflt; }
+	    return $dflt;
 	}
 	## END inline Bash boilerplate.
 	EOF
@@ -903,7 +902,7 @@ function emit_enable_exit_on_error () {
 	EOF
     if (( have_err_trap )); then
 	cat <<- 'EOF'
-	if trap -- 'finalarg="$_" xited=$?; set +vx; echo >&2 "$ME:$LINENO: some command we just ran (probably with a
+	if trap -- 'finalarg="$_" xited=$?; set +vx; echo >&2 "$ME: some command we just ran (probably with a
 	      final argument of \"$finalarg\") exited with status $xited, possibly in source
 	      file line # $LINENO${FUNCNAME+'"'"' and function '"'"'\"}$FUNCNAME${FUNCNAME+\"}
 	      I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT' ERR
@@ -1150,12 +1149,10 @@ function emitController () {
 		         [-clean] [-recompile] [-nolink] [-nobooter] [-booter]
 
 		    -trace: As if \"-trace=most\".  Some debugging information.
-		    -trace=make:  Make is run with the -w option, which generates 
-			additional output useful for GNU Emacs's M-x compile mode.  
-			Make is run without the --silent flag.
+		    -trace=make:  Make is no longer run with --silent.
 		    -trace=ant:  Ant is no longer run with -quiet.
-		    -trace=preprocessor: Follow the process of running the preprocessor on
-			 Java source code
+		    -trace=preprocessor: Follow the process of running the preprocessor on Java
+		          source code (and nothing else)
 		    -trace=BootImageWriter: the BootImageWriter sends out lots of information 
 		         (about 9420 lines in a BaseBaseCopyMS build.)  That's why -trace
 		         no longer includes the BootImageWriter output by default.
@@ -1282,7 +1279,7 @@ function emitExpander () {
 
 	# Process command-line args   
 	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
-	MFLAGS=--silent
+	SILENT_MAKE=--silent
 	while (( \$# > 0 )); do
 	    arg="\$1"
 	    [[ \$arg != --?* ]] || arg=\${arg#-}
@@ -1302,7 +1299,7 @@ function emitExpander () {
 	    shift
 	done
 	if tracing make; then
-	    MFLAGS=-w
+	    SILENT_MAKE=
 	fi
 
 	echo -n "\${ME}: "
@@ -1330,11 +1327,11 @@ function emitExpander () {
 	    exit 0
 	fi
 	# Make the tools that we need to do template expansion
-	${GNU_MAKE_STR} \${MFLAGS} -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
+	${GNU_MAKE_STR} \${SILENT_MAKE} -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	echo "
-declare -a cmd=(${GNU_MAKE_STR} \${MFLAGS} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
+declare -a cmd=(${GNU_MAKE_STR} \${SILENT_MAKE} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
 ! tracing make || echo \"\${cmd[@]}\"
 \"\${cmd[@]}\"
 "
@@ -1342,39 +1339,39 @@ declare -a cmd=(${GNU_MAKE_STR} \${MFLAGS} -f ${ROOT_DIRECTORY_STR}/rvm/src/tool
 
     # build command line options for core VM
     echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
     
     # build command line options for JMTk
     echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
     
     # build VM_Assembler on Intel
     if (( RVM_FOR_IA32 )); then
 	echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
 	if (( RVM_WITH_OPT_COMPILER )); then
 	echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
 	fi
     fi
 
     # Do the expansion
     echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/classLoader MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/classLoader MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
 
     if (( RVM_WITH_OPT_COMPILER )); then
 	echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
 	if (( RVM_WITH_EXTREME_ASSERTIONS )); then
 	    echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing/ir/instruction fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing/ir/instruction fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
 	fi
     fi
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	echo "\
-${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
     fi
     
     echo '
@@ -1408,7 +1405,7 @@ function emitCopier () {
 
 	# Process command-line args   
 	unset TRACE_FLAG  VFLAG XFLAG CLEAN_FLAG || :
-	MFLAGS=--silent
+	SILENT_MAKE=--silent
 	while (( \$# > 0 )); do
 	    arg="\$1"
 	    if [[ \$arg = -- ]]; then
@@ -1433,7 +1430,7 @@ function emitCopier () {
 	done
 
 	if tracing make; then
-	    MFLAGS=-w
+	    SILENT_MAKE=
 	fi
 	echo -n "\${ME}: "
 
@@ -1451,7 +1448,7 @@ function emitCopier () {
 #    	[[ \$XFLAG ]] || XFLAG=+x
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Make the preprocessor
-	${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 	cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep.host
 	echo -n '(preprocessor built) '
 
@@ -1684,7 +1681,7 @@ function emitImageLinker () {
 
 	# Process command-line args
 	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG DEMOGRAPHICS_FLAG || :
-	MFLAGS=--silent
+	SILENT_MAKE=--silent
 	while (( \$# > 0 )); do
 	    arg="\$1"
 	    [[ \$arg != --?* ]] || arg="\${arg#-}"
@@ -1711,7 +1708,7 @@ function emitImageLinker () {
 #    	[[ \$XFLAG ]] || XFLAG=+x
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	if tracing make; then
-	    MFLAGS=-w
+	    SILENT_MAKE=
 	fi
 
 EOF
@@ -1744,52 +1741,44 @@ EOF
     # (1) Generate a list of Excluded classes that we don't want in the bootimage
     #
 
-    cat <<- EOF
-        sed -e 's/[ 	]*#.*//' -e '/^$/d' > ${EXCLUDED_CLASSES_STR} <<- EOF_EXCLUDED_CLASSES
-	# skip: needed to build bootimage, but not to run it
-	    BootImageInterface.class
-	    Dummy.class
-	    OptDummy.class
+    # skip: needed to build bootimage, but not to run it
+    echo "   echo BootImageInterface               > ${EXCLUDED_CLASSES_STR}"
+    echo "   echo Dummy.class                      >> ${EXCLUDED_CLASSES_STR}"
+    echo "   echo OptDummy.class                   >> ${EXCLUDED_CLASSES_STR}"
 
-	# skip: JikesRVMSocketImpl; don't load native libs unless needed
-	    JikesRVMSocketImpl.class
+    # skip: JikesRVMSocketImpl; don't load native libs unless needed
+    echo "   echo JikesRVMSocketImpl               >> ${EXCLUDED_CLASSES_STR}"
 
-	# skip: don't put application class loader in, due to static data issues
-	    ApplicationClassLoader.class
+    # skip: don't put application class loader in, due to static data issues
+    echo "   echo ApplicationClassLoader.class     >> ${EXCLUDED_CLASSES_STR}"
 
-	# We can't carry these from bootimage writing to runtime without special treatment
-	    java/lang/ref/PhantomReference.class
-	    java/lang/ref/SoftReference.class
-	    java/lang/ref/WeakReference.class
-EOF_EXCLUDED_CLASSES
-EOF
+    # We can't carry these from bootimage writing to runtime without special treatment
+    echo "   echo java/lang/ref/PhantomReference.class     >> ${EXCLUDED_CLASSES_STR}"
+    echo "   echo java/lang/ref/SoftReference.class     >> ${EXCLUDED_CLASSES_STR}"
+    echo "   echo java/lang/ref/WeakReference.class     >> ${EXCLUDED_CLASSES_STR}"
 
     # Add any configuration specific exclusions
     for exclusion in ${CONF_SPECIFIC_EXCLUSIONS_LIST}; do
-	echo "    echo '${exclusion}'          >> ${EXCLUDED_CLASSES_STR}"
+	echo "   echo '${exclusion}'                  >> ${EXCLUDED_CLASSES_STR}"
     done
 
     # 
     # (2) Generate a list of primary classes (non-arrays, non compiler generated (Foo${bar})
     #     classes that will be included in the bootimage unless explicitly excluded.
     
-    echo "    cd ${CLASSES_DIRECTORY_STR}"
+    echo "   cd ${CLASSES_DIRECTORY_STR}"
     
-    # Start a subshell where the output from a series of commands will go to
-    # one output stream.
-    echo "("
-    # ${FIND}'s action defaults to -print if none is explicitly specified.
     if (( RVM_WITH_ALL_CLASSES )); then
-        echo "    \${FIND} . -name '*.class'"
+       echo "   \${FIND} . -name '*.class' -print > ${PRIMORDIAL_CLASSES_STR}.1"
     else
-	echo "    \$FIND . -name 'VM*.class'"
+	echo "   \$FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	    echo "    \$FIND ./com/ibm/JikesRVM/opt -name '*.class'"
+	    echo "   \$FIND ./com/ibm/JikesRVM/opt -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
         fi
-	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
-	echo "    \$FIND . -name JikesRVMSupport.class"
+	echo "   \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+	echo "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
     fi
-    echo ") > ${PRIMORDIAL_CLASSES_STR}.1"
+
     cat <<- EOF
     \${SED} -e 's/#.*//' -e '/^[ \t]*\$/d' >> ${PRIMORDIAL_CLASSES_STR}.1 << EOF_PRIMORDIAL_CLASSES_STR_1
 # VM daemon threads that don't start with VM for historical reasons
@@ -2214,7 +2203,6 @@ EOF
 	BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -littleEndian"
     fi
 
-    # OPT_ARGS may be set at build time in jconfigure.
     echo ""
     echo 'OPT_ARGS="'$OPT_ARGS' $DEBUG_ARGS"'
 
@@ -2303,7 +2291,7 @@ EOF
 
     echo "cd $BOOTIMAGE_WRITER_DIR_STR"
 
-    echo "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$MFLAGS \$VERBOSE_STR\
+    echo "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
 	  RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
 	  RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
 	  RVM_BOOTIMAGE=$BOOTIMAGE_STR\
@@ -2388,7 +2376,7 @@ function emitBooterLinker () {
     echo ""
 
     echo 'unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :'
-    echo 'MFLAGS=--silent'
+    echo 'SILENT_MAKE=--silent'
     echo "while (( \$# > 0 )); do"
     echo '    arg="$1"'
     echo '    [[ $arg != --?* ]] || arg="${arg#-}"'
@@ -2409,7 +2397,7 @@ function emitBooterLinker () {
     echo "done"
  
     echo "if tracing make; then"
-    echo "    MFLAGS=-w"
+    echo "    SILENT_MAKE="
     echo "fi"
     echo "echo -n \"\$ME: \""
 #    echo "! tracing jbuild || XFLAG=-x"
@@ -2467,7 +2455,7 @@ function emitBooterLinker () {
     echo -e "\necho -n '(classpath native libraries copied) '"
 
     # Make a target platform preprocessor for use in gctest
-    echo "${GNU_MAKE_STR} \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+    echo "${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
     echo "cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep.target"
 
     # Create RunBootImage.h file.
@@ -2495,7 +2483,7 @@ EOF2
 	local -r shlib_suffix=.so
     fi
     DEST='$JAL_BUILD/libjpnexec'${shlib_suffix}
-    echo '$GNU_MAKE $MFLAGS -f Makefile.proc DEST='$DEST $DEST 
+    echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST='$DEST $DEST 
 
     if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
@@ -2515,22 +2503,17 @@ EOF2
     else
 	# Build the blocking system call wrapper library, if requested
 	DEST='$JAL_BUILD/libsyswrap'${shlib_suffix}
-	echo '$GNU_MAKE $MFLAGS -f Makefile.syswrap DEST="'$DEST'" CXXFLAGS+="'"$CC_DEFINES"\" "$DEST"
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST="'$DEST'" CXXFLAGS+="'"$CC_DEFINES"\" "$DEST"
     fi
 
     echo "BOOTER_CXX=run_booter_cxx"
-    echo "BOOTER_CC=run_booter_cc"
     # Generate information useful for GNU Emacs.
     echo "\
 function run () {
+    ! tracing make || echo \"\$ME[0]: Entering directory \\\`${PWD}'\"
     ! tracing make || echo \"\$@\"
     \"\$@\"
-}
-function chdir() {
-    ! tracing make || echo \"\$ME[0]: Entering directory \\\`\$1'\"
-    \\cd \"\$1\"
-}
-"
+}"
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
 	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES \"\$@\"; }"
         echo "LDSHARED=\"$HOST_SHLD_STR\""
@@ -2560,15 +2543,11 @@ function chdir() {
 	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES)"
-	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
-	echo "function run_booter_cc() { run $HOST_CC_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
+	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES \"\$@\"; }"
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
-	echo "function run_booter_cxx() { run $HOST_CPLUS_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
-	echo "function run_booter_cc() { run $HOST_CC_STR \"\${gnu_compiler_flags[@]}\" \"\$@\"; }"
+	echo "function run_booter_cxx () { run $HOST_CPLUS_STR \${CXXFLAGS} -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES \"\$@\"; }"
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
     fi
@@ -2632,51 +2611,36 @@ function chdir() {
 	echo 'echo -n "(booter linked)"'
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
-	# We use -Wno-unreachable-code to compile ihnpdsm.C because there 
-	# are stub functions there for stuff not appropriate to this 
-	# particular build, but which still has references to it in 
-	# the Java code. 
-
-	# We use -Wno-missing-noreturn because of the same stubbed-out 
-	# functions; some of them call sysExit().
-
-	# We use -Wno-float-equal because we legitimately compare floats in 
-	# sys.C. 
-
 	cat <<- EOF
-	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
-	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+	cd ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	  \${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
 	  \${IMAGE} -DRVM_BOOTIMAGE=\"${BOOTIMAGE_STR}\" \
 	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
 
-	\${BOOTER_CXX} -Wno-float-equal -Wno-unreachable-code \
-	  -Wno-missing-noreturn \
-	  -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-
-	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
-	\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
-	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
-	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
-	  -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler \
-	  -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
-
-	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
-
-	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
-
-	\${BOOTER_CXX} -Wno-unreachable-code \
-	  -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
+	cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} && \
+		\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR} \
+		-o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
+	cd ${BOOTIMAGE_RUNNER_DIR_STR} && \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} && \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+		-o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
+	cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} && \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+	        -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler \
+		-o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
+	cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler && \
+	    \${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
+	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
+	cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler && \
+	   \${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
 	   -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
-
-	chdir ${SCRATCH_DIRECTORY_STR}
-	\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+	cd ${SCRATCH_DIRECTORY_STR} && \
+	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
 	    sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \${CCLIBS}
-
 	echo "(booter linked)"
+
 EOF
     else
 	echo 'echo "I do not know how to link the booter"'
