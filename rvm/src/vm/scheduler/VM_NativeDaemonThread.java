@@ -66,15 +66,11 @@ class VM_NativeDaemonThread extends VM_Thread {
     }
 
 
-  public void run () { // overrides VM_Thread
+  public void run () throws VM_PragmaNoOptCompile /* refs stored in registers by opt compiler will not be relocated by GC */{
 
     if (trace) VM_Scheduler.trace(" Entering run method of NDT ", "  ");
     VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor();
     int i, transferCount=0, stuckCount=0;
-
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
-    VM_Magic.pragmaNoOptCompile();
 
     // save current frame pointer in threads JNIEnv, and set flag recognized by GC
     // which will cause this (NativeIdleThread) thread to have its stack scanned

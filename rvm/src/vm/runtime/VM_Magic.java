@@ -882,17 +882,5 @@ public class VM_Magic {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  //----------------------//
-  // Pragmas              //
-  //----------------------//
-
-  /**
-   * User directive that the method containing this pragma should be not be
-   * compiled by the optimizing compiler.  Only used by VM_NativeIdleThread.
-   */
-  public static void pragmaNoOptCompile() {
-    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-  
 }
 

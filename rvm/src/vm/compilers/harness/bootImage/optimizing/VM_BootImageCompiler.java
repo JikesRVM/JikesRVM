@@ -14,7 +14,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
  * @author Dave Grove
  * @author Derek Lieber
  */
-
 public class VM_BootImageCompiler {
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
@@ -86,6 +85,8 @@ public class VM_BootImageCompiler {
     if (method.isNative()) {
       VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
       return VM_JNICompiler.compile(method);
+    } else if (method.hasNoOptCompilePragma()) {
+      return baselineCompile(method);
     } else {
       VM_CompiledMethod cm = null;
       OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
@@ -127,19 +128,24 @@ public class VM_BootImageCompiler {
 	    }
 	  }
 	}
-	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
-	cm = VM_BaselineCompiler.compile(method);
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	// Must estimate compilation time by using offline ratios.
-	// It is tempting to time via System.currentTimeMillis()
-	// but 1 millisecond granularity isn't good enough because the 
-	// the baseline compiler is just too fast.
-	double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
-	cm.setCompilationTime(compileTime);
-	//-#endif
-	return cm;
+	return baselineCompile(method);
       }
     }
+  }
+
+
+  private static VM_CompiledMethod baselineCompile(VM_Method method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+    VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    // Must estimate compilation time by using offline ratios.
+    // It is tempting to time via System.currentTimeMillis()
+    // but 1 millisecond granularity isn't good enough because the 
+    // the baseline compiler is just too fast.
+    double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    cm.setCompilationTime(compileTime);
+    //-#endif
+    return cm;
   }
 
   /**

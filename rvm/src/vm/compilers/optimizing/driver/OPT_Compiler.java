@@ -214,12 +214,6 @@ public class OPT_Compiler {
     try {
       printMethodMessage(method, options);
       OPT_IR ir = cp.execute();
-      // Temporary workaround memory retention problems
-      /* TODO: delete me!
-      if (!cp.irGeneration) {
-	cleanIR(ir);
-      }
-      */
       // if doing analysis only, don't try to return an object
       if (cp.analyzeOnly || cp.irGeneration)
 	return null;
@@ -236,41 +230,6 @@ public class OPT_Compiler {
       return null;
     }
   }
-
-  /**
-   * For some unknown reasons this is needed for the GC to free completely 
-   * the IR.
-   * TODO: Find out why and avoid the overhead of explictly nulling everything
-   * My guess is that the problem is that the physical register 
-   * (OPT_Registers 0-80)
-   * are "globals" and persistient.  This keeps much of the IR reachable 
-   * after compilation
-   * completes.  If we ever make the opt compiler truly reentrant, 
-   * this would be fixed. --dave.
-  static void cleanIR (OPT_IR ir) {
-    OPT_DefUse.clearDU(ir);
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-        != null;) {
-      int numberOperands = instr.getNumberOfOperands();
-      OPT_Instruction next = instr.nextInstructionInCodeOrder();
-      for (int i = 0; i < numberOperands; i++) {
-        OPT_Operand op = instr.getOperand(i);
-        instr.putOperand(i, null);
-        if (op == null)
-          continue;
-        op.instruction = null;
-        if (op instanceof OPT_RegisterOperand) {
-          OPT_RegisterOperand regOp = (OPT_RegisterOperand)op;
-          regOp.scratchObject = null;
-          regOp.register = null;
-        }
-      }
-      instr.scratchObject = null;
-      instr.clearLinks();
-      instr = next;
-    }
-  }
-  */
 
   /**
    * Debugging aid.
@@ -360,6 +319,10 @@ public class OPT_Compiler {
     }
     if (method.getDeclaringClass().isBridgeFromNative()) {
       String msg = "Native Bridge prologue not implemented";
+      throw OPT_MagicNotImplementedException.EXPECTED(msg);
+    }
+    if (method.hasNoOptCompilePragma()) {
+      String msg = "Method throws VM_PragmaNoOptCompile";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
     if (method.isNative()) {

@@ -344,10 +344,19 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     
   /**
    * Has this method been marked as forbidden to inline?
-   * ie., it throws the <CODE>VM_PragmaNoInline</CODE> exception?
+   * ie., it throws the <CODE>VM_PragmaNoInline</CODE> or
+   * the <CODE>VM_PragmaNoOptCompile</CODE> exception?
    */
   public final boolean hasNoInlinePragma() {
-    return VM_PragmaNoInline.declaredBy(this);
+    return VM_PragmaNoInline.declaredBy(this) || VM_PragmaNoOptCompile.declaredBy(this);
+  }
+    
+  /**
+   * Has this method been marked as no opt compile?
+   * ie., it throws the <CODE>VM_PragmaNoOptCompile</CODE> exception?
+   */
+  public final boolean hasNoOptCompilePragma() {
+    return VM_PragmaNoOptCompile.declaredBy(this);
   }
     
   //------------------------------------------------------------------//

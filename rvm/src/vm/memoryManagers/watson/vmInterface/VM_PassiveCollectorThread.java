@@ -19,16 +19,12 @@ class VM_PassiveCollectorThread extends VM_Thread {
   
   // Run a collector thread (one per VM_Processor).
   //
-  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */ {
+  public void run() throws VM_PragmaLogicallyUninterruptible, /* YUCK...a bold face lie -- dave */
+                           VM_PragmaNoOptCompile /* refs stored in registers by opt compiler will not be relocated by GC */{
     
     // myProcessor local variable will be relocated by GC if Processor object
     // is moved, and is used to reset Processor register after sigWait (after GC)
     VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor();
-    
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not 
-    //  be relocated by GC
-    VM_Magic.pragmaNoOptCompile();
     
     // save current frame pointer in threads JNIEnv
     // passive collector threads will have their stacks scanned

@@ -21,6 +21,7 @@ import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaNoOptCompile;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
@@ -181,13 +182,10 @@ public class VM_CollectorThread extends VM_Thread {
    * will be different for the different allocators/collectors
    * that the RVM can be configured to use.
    */
-  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */ {
+  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */,
+                           VM_PragmaNoOptCompile /* refs stored in registers by opt compiler will not be relocated by GC */{
     int mypid;   // id of processor thread is running on - constant for the duration
     // of each collection - actually should always be id of associated processor
-    
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
-    VM_Magic.pragmaNoOptCompile();
     
     while (true) {
       

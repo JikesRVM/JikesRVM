@@ -401,8 +401,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL(T0, 0, SP);    // address
       asm.emitCAL(SP, 4, SP);  // pop
       asm.emitICBI(0, T0);
-    } else if (methodName == VM_MagicNames.pragmaNoOptCompile) {
-      // meaningless;  for the optimizing compiler forces baseline compilation
     } else if (methodName == VM_MagicNames.wordFromInt ||
 	       methodName == VM_MagicNames.wordToInt ||
 	       methodName == VM_MagicNames.wordToAddress ||

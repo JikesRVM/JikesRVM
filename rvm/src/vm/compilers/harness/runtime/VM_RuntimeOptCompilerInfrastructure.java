@@ -179,6 +179,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * @param plan the compilation plan to use
    */
   private static VM_CompiledMethod optCompileWithFallBackInternal(VM_Method method, OPT_CompilationPlan plan) {
+    if (method.hasNoOptCompilePragma()) return fallback(method);
     try {
       return optCompile(method, plan);
     } catch (OPT_OptimizingCompilerException e) {

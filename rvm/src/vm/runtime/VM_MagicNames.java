@@ -125,8 +125,6 @@ public class VM_MagicNames {
   public static final VM_Atom clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   //-#endif
 
-  public static final VM_Atom pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
-
   public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
   public static final VM_Atom wordToInt                     = VM_Atom.findOrCreateAsciiAtom("toInt");
   public static final VM_Atom wordToWord                    = VM_Atom.findOrCreateAsciiAtom("toWord");

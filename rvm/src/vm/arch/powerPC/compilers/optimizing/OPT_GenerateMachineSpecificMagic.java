@@ -198,8 +198,7 @@ class OPT_GenerateMachineSpecificMagic
       // (and never plan to implement) and those (usually new ones) 
       // that we want to be warned that we don't implement.
       String msg = "Magic method not implemented: " + meth;
-      if (methodName == VM_MagicNames.returnToNewStack || 
-	  methodName == VM_MagicNames.pragmaNoOptCompile) {
+      if (methodName == VM_MagicNames.returnToNewStack) {
 	throw OPT_MagicNotImplementedException.EXPECTED(msg);
       } else {
 	return false;

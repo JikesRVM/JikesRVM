@@ -78,13 +78,11 @@ class VM_NativeIdleThread extends VM_IdleThread {
       run_ForNormalJava();
   }
 
-  public void run_ForNormalJava() { // original 3GT run loop
-
+  public void run_ForNormalJava() throws VM_PragmaNoOptCompile {
     // Make sure Opt compiler does not compile this method.  Although GC will scan
     // this run methods frame, fixing references, any references saved in register
     // save areas would not get reported, so we prevent OPT compilation.
     //
-    VM_Magic.pragmaNoOptCompile();
 
     // Save current frame pointer in threads JNIEnv, 
     // and set flag recognized by GC
@@ -183,16 +181,13 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
   }  // end of run
 
-  public void run_ForAttachJVM() { // similar to run() for Red/Blue threads
-    VM_Processor myNativeProcessor = VM_ProcessorLocalState.getCurrentProcessor();
-
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler 
-    //  will not be relocated by GC
-    // (SJF: once again, what does this mean??  If you think there's a bug
-    // in the opt-compiler, please report it.)
+  public void run_ForAttachJVM() throws VM_PragmaNoOptCompile { // similar to run() for Red/Blue threads
+    // Make sure Opt compiler does not compile this method.  Although GC will scan
+    // this run methods frame, fixing references, any references saved in register
+    // save areas would not get reported, so we prevent OPT compilation.
     //
-    VM_Magic.pragmaNoOptCompile();
+
+    VM_Processor myNativeProcessor = VM_ProcessorLocalState.getCurrentProcessor();
 
     // save current frame pointer in threads JNIEnv, and 
     // set flag recognized by GC

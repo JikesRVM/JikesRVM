@@ -1011,9 +1011,8 @@ public class VM extends VM_Properties
   /**
    * Place to set breakpoints (called by compiled code).
    */
-  public static void debugBreakpoint() throws VM_PragmaNoInline {
-    // the following forces this method to have a full prologue
-    // because it is baseline compiled.
-    VM_Magic.pragmaNoOptCompile();
+  public static void debugBreakpoint() throws VM_PragmaNoInline, VM_PragmaNoOptCompile {
+    // no inline to make sure it doesn't disappear from callee
+    // no opt compile to force a full prologue sequence (easier for debugger to grok)
   }
 }

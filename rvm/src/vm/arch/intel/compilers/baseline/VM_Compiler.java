@@ -3272,7 +3272,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.objectAsShortArray      ||
 	methodName == VM_MagicNames.objectAsByteArray       ||
 	methodName == VM_MagicNames.objectAsIntArray       ||
-	methodName == VM_MagicNames.pragmaNoOptCompile      ||
 	methodName == VM_MagicNames.addressAsThread         ||
 	methodName == VM_MagicNames.objectAsThread          ||
 	methodName == VM_MagicNames.objectAsProcessor       ||

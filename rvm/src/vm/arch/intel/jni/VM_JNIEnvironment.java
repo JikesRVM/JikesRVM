@@ -563,9 +563,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object invokeWithDotDotVarArg(int methodID, VM_Type expectReturnType)
-    throws Exception, VM_PragmaNoInline {
-    VM_Magic.pragmaNoOptCompile();	// expect a certain stack frame structure
-
+    throws Exception, 
+	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
     VM_Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
 
@@ -583,8 +582,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
 					      VM_Type expectReturnType, boolean skip4Args)
-    throws Exception, VM_PragmaNoInline {
-    VM_Magic.pragmaNoOptCompile();	// expect a certain stack frame structure
+    throws Exception,
+	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
 
     VM_Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
@@ -750,8 +749,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args, 
 					boolean isVarArg) 
-    throws Exception, VM_PragmaNoInline {
-    VM_Magic.pragmaNoOptCompile();   // expect a certain stack frame structure
+    throws Exception,
+	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
 
     VM_Method targetMethod;
     int returnValue;

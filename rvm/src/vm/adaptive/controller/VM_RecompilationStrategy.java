@@ -215,10 +215,18 @@ abstract class VM_RecompilationStrategy {
 	  // The opt compiler does not implement this calling convention.
 	  return -1;
 	}
-	if (VM_Interface.MOVES_OBJECTS && !cmpMethod.getMethod().isInterruptible()) {
+	if (cmpMethod.getMethod().hasNoOptCompilePragma()) {
+	  // Explict declaration that the method should not be opt compiled.
+	  return -1;
+	}
+	if (!cmpMethod.getMethod().isInterruptible()) {
 	  // A crude filter to identify the subset of core VM methods that 
 	  // can't be recompiled because we require their code to be non-moving.
 	  // We really need to do a better job of this to avoid missing too many opportunities.
+	  // NOTE: it doesn't matter whether or not the GC is non-moving here, 
+	  //       because recompiling effectively moves the code to a new location even if 
+	  //       GC never moves it again!!!
+	  //      (C code may have a return address or other naked pointer into the old instruction array)
 	  return -1;
 	}
 	return 0;

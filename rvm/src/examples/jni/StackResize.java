@@ -64,10 +64,7 @@ class StackResize
    * stack limit, then call a native method expecting the
    * stack to get resized.
    */ 
-  public static boolean nativeWithStackAlmostFull() {
-    // using FP value, so don't optimize
-    VM_Magic.pragmaNoOptCompile();
-
+  public static boolean nativeWithStackAlmostFull() throws VM_PragmaNoOptCompile {
     VM_Thread th = VM_Thread.getCurrentThread();
     // VM.disableGC();   // holding frame pointer
     int fp = VM_Magic.getFramePointer();
