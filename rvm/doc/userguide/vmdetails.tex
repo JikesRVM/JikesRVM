@@ -466,8 +466,9 @@ The RVM provides callbacks for most runtime events of interest to the RVM
 programmer, such as classloading, VM bootimage creation, and VM exit.  The
 callbacks allow arbitrary code to be executed on any of the supported events.
 
-The callbacks are accessed through the nested interfaces defined in the {\tt
-VM\_Callbacks} class.  There is one interface per event type.  To be notified
+The callbacks are accessed through the nested interfaces defined in the 
+\xlink{{\tt VM\_Callbacks}}{\VMCallbacksURL} 
+class.  There is one interface per event type.  To be notified
 of an event, register an instance of a class that implements the corresponding
 interface with {\tt VM\_Callbacks} by calling the corresponding {\tt add...()}
 method.  For example, to be notified when a class is instantiated (see section
