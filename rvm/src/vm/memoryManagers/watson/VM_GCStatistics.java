@@ -3,10 +3,11 @@
  */
 //$Id$
 
-class VM_GCStatistics implements VM_GCConstants, 
-				 VM_Uninterruptible,
-				 VM_Callbacks.ExitMonitor, 
-				 VM_Callbacks.AppRunStartMonitor {
+ class VM_GCStatistics implements VM_GCConstants, 
+                                VM_Uninterruptible,
+                                VM_Callbacks.ExitMonitor, 
+                                VM_Callbacks.AppRunStartMonitor {
+
 
   // Number and types of GC
   static int gcExternalCount = 0;   // number of calls from System.gc
@@ -34,7 +35,7 @@ class VM_GCStatistics implements VM_GCConstants,
   static int collisionCount = 0;
 
   // more statistics
-  static final boolean COUNT_BY_TYPES    = false;
+  static final boolean COUNT_BY_TYPE     = false;
   static final boolean COUNT_ALLOCATIONS = false;
 
   // verify that all allocations are word size aligned
@@ -47,23 +48,26 @@ class VM_GCStatistics implements VM_GCConstants,
   static final int MINOR = 1;
   static final int MAJOR = 2;
 
+    static void boot() {
+	VM_Callbacks.addExitMonitor(new VM_GCStatistics());
+    }
 
-  /**
-   * To be called when the VM is about to exit.
-   * @param value the exit value
-   */
-  public void notifyExit(int value) {
-    printSummaryStatistics();
-  }
-
-  /**
-   * To be called when the application starts a run
-   * @param value the exit value
-   */
-  public void notifyAppRunStart(int value) {
-    VM.sysWrite("Clearing VM_Allocator statistics\n");
-    clearSummaryStatistics();
-  }
+   /**
+    * To be called when the VM is about to exit.
+    * @param value the exit value
+    */
+   public void notifyExit(int value) {
+     printSummaryStatistics();
+   }
+ 
+   /**
+    * To be called when the application starts a run
+    * @param value the exit value
+    */
+   public void notifyAppRunStart(int value) {
+     VM.sysWrite("Clearing VM_Allocator statistics\n");
+     clearSummaryStatistics();
+   }
 
   static void updateGCStats(int GCType, int copied) {
       if (VM.VerifyAssertions) 
@@ -166,19 +170,23 @@ class VM_GCStatistics implements VM_GCConstants,
     // showParameter();
     VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
     if (gcCount != 0) {
-	VM.sysWrite("GC Summary:  Minor Times   ");
-	VM.sysWrite("total ", minorGCTime.sumS(), " (s)    ");
-	VM.sysWrite("avg ", minorGCTime.avgMs(), " (ms)    ");
-	VM.sysWriteln("max ", minorGCTime.maxMs(), " (ms)    ");
+	if (minorGCTime.count() > 0) {
+	    VM.sysWrite("GC Summary:  Minor Times   ");
+	    VM.sysWrite("total ", minorGCTime.sumS(), " (s)    ");
+	    VM.sysWrite("avg ", minorGCTime.avgMs(), " (ms)    ");
+	    VM.sysWriteln("max ", minorGCTime.maxMs(), " (ms)    ");
+	}
 	if (majorGCTime.count() > 0) {
 	    VM.sysWrite("GC Summary:  Major Times   ");
 	    VM.sysWrite("total ", majorGCTime.sumS(), " (s)    ");
 	    VM.sysWrite("avg ", majorGCTime.avgMs(), " (ms)    ");
 	    VM.sysWriteln("max ", majorGCTime.maxMs(), " (ms)    ");
 	}
-	VM.sysWrite("GC Summary:  Minor copied  ");
-	VM.sysWrite("avg ", (int) minorBytesCopied.avg() / 1024, " (Kb)    ");
-	VM.sysWriteln("max ", (int) minorBytesCopied.max() / 1024, " (Kb)");
+	if (minorBytesCopied.count() > 0) {
+	    VM.sysWrite("GC Summary:  Minor copied  ");
+	    VM.sysWrite("avg ", (int) minorBytesCopied.avg() / 1024, " (Kb)    ");
+	    VM.sysWriteln("max ", (int) minorBytesCopied.max() / 1024, " (Kb)");
+	}
 	if (majorBytesCopied.count() > 0) {
 	    VM.sysWrite("GC Summary:  Major copied  ");
 	    VM.sysWrite("avg ", (int) majorBytesCopied.avg() / 1024, " (Kb)    ");
@@ -241,21 +249,116 @@ class VM_GCStatistics implements VM_GCConstants,
       VM.sysWrite(Long.toString(bytes));
       VM.sysWrite("\n");
     }
+
+    if (COUNT_BY_TYPE)	printCountsByType();
+
   } // printSummaryStatistics
 
+  private static void printBytes(int fieldWidth, int bytes) {
+      if (bytes > 10000) {
+	  VM.sysWriteField(fieldWidth - 3, bytes / 1024); 
+	  VM.sysWrite(" Kb");
+      }
+      else
+	  VM.sysWriteField(fieldWidth, bytes); 
+  }
 
-  static void profileCopy (Object obj, Object[] tib) {
-      if (COUNT_BY_TYPES) {
+  private static void printCountsLine(VM_Atom descriptor, 
+				      int allocCount, int allocBytes,
+				      int copyCount, int copyBytes,
+				      int scanCount, int scanBytes) {
+      VM.sysWriteField(10, allocCount);
+      VM.sysWrite(" ("); printBytes(9, allocBytes); VM.sysWrite(")");
+      VM.sysWriteField(10, copyCount);
+      VM.sysWrite(" ("); printBytes(9, copyBytes); VM.sysWrite(")");
+      VM.sysWriteField(10, scanCount);
+      VM.sysWrite(" ("); printBytes(9, scanBytes); VM.sysWrite(")");
+      VM.sysWrite("     ");
+      VM.sysWrite(descriptor);
+      VM.sysWriteln();
+  }
+
+  static void printCountsByType()  {
+
+	VM.sysWriteln("  Object Demographics by type (Grouped by allocBytes: >=1Mb, >=10K, <10K)");
+	VM.sysWriteln("          Alloc                  Copy                  Scan            Class     ");
+	VM.sysWriteln("     count       bytes     count      bytes      count       bytes               ");
+	VM.sysWriteln("--------------------------------------------------------------------------------------------");
+	int  allocCount = 0, allocBytes = 0;
+	int  copyCount = 0, copyBytes = 0;
+	int  scanCount = 0, scanBytes = 0;
+	int  maxId = VM_TypeDictionary.getNumValues();
+	for (int i = 1; i < maxId; i++) {
+	    VM_Type type = VM_TypeDictionary.getValue(i);
+	    allocCount += type.allocCount;
+	    allocBytes += type.allocBytes;
+	    copyCount += type.copyCount;
+	    copyBytes += type.copyBytes;
+	    scanCount += type.scanCount;
+	    scanBytes += type.scanBytes;
+	}
+	for (int i = 1; i < maxId; i++) {
+	    VM_Type type = VM_TypeDictionary.getValue(i);
+	    if (type.allocBytes >= 1024 * 1024)
+		printCountsLine(type.getDescriptor(),
+				type.allocCount, type.allocBytes,
+				type.copyCount, type.copyBytes,
+				type.scanCount, type.scanBytes);
+	}
+	for (int i = 1; i < maxId; i++) {
+	    VM_Type type = VM_TypeDictionary.getValue(i);
+	    if (type.allocBytes >= 10 * 1024 && type.allocBytes < 1024 * 1024)
+		printCountsLine(type.getDescriptor(),
+				type.allocCount, type.allocBytes,
+				type.copyCount, type.copyBytes,
+				type.scanCount, type.scanBytes);
+	}
+	for (int i = 1; i < maxId; i++) {
+	    VM_Type type = VM_TypeDictionary.getValue(i);
+	    if (type.allocBytes < 1024 && type.allocBytes > 0)
+		printCountsLine(type.getDescriptor(),
+				type.allocCount, type.allocBytes,
+				type.copyCount, type.copyBytes,
+				type.scanCount, type.scanBytes);
+	}
+	VM.sysWriteln();
+	printCountsLine(VM_Atom.findOrCreateAsciiAtom("TOTAL"),
+			allocCount, allocBytes,
+			copyCount, copyBytes,
+			scanCount, scanBytes);
+  } // printCountsByType
+
+
+  public  static void printclass (VM_Address ref) {
+    VM_Type  type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
+    VM.sysWrite(type.getDescriptor());
+  }
+
+
+  static void profileCopy (Object obj, int size, Object[] tib) {
+      VM_Magic.pragmaInline();
+      if (COUNT_BY_TYPE) {
           VM_Type t = VM_Magic.objectAsType(tib[0]);
-	  // t.copiedCount++;
+	  t.copyCount++;
+	  t.copyBytes += size;
+      }
+  }
+
+  static void profileScan (Object obj, int size, Object[] tib) {
+      VM_Magic.pragmaInline();
+      if (COUNT_BY_TYPE) {
+          VM_Type t = VM_Magic.objectAsType(tib[0]);
+	  t.scanCount++;
+	  t.scanBytes += size;
       }
   }
 
   static void profileAlloc (VM_Address addr, int size, Object[] tib) {
       VM_Magic.pragmaInline();
-      if (COUNT_BY_TYPES) {
+      if (COUNT_BY_TYPE) {
           VM_Type t = VM_Magic.objectAsType(tib[0]);
-	  // t.allocatedCount++;
+	  t.allocCount++;
+	  t.allocBytes += size;
       }
       if (COUNT_ALLOCATIONS) {
 	  VM_Processor st = VM_Processor.getCurrentProcessor();
