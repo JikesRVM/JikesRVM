@@ -426,10 +426,9 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SLWI, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_SHL(r,r)
-10
+20
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_SLW, Binary.getResult(P(p)),                 \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+INT_SHIFT(P(p),PPC_SLW);
 
 r:	INT_SHL(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 10
@@ -446,10 +445,9 @@ EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_SRAWI, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_SHR(r,r)
-10
+20
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_SRAW, Binary.getResult(P(p)),                \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+INT_SHIFT(P(p),PPC_SRAW);
 
 r:	INT_SHR(INT_AND(r,INT_CONSTANT),INT_CONSTANT)
 POSITIVE_MASK(Binary.getVal2(PL(p)))?10:INFINITE
@@ -475,10 +473,9 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SRWI, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_USHR(r,r)
-10
+20
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_SRW, Binary.getResult(P(p)),                 \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+INT_SHIFT(P(p),PPC_SRW);
 
 r:	INT_USHR(INT_AND(r,INT_CONSTANT),INT_CONSTANT)
 POSITIVE_MASK(Binary.getVal2(PL(p)))?10:INFINITE

@@ -965,6 +965,26 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     return  power;
   }
 
+  /**
+   * Emits instructions to perform an integer shift operation. This is because
+   * we need to take the logical AND of the RHS (the amount to shift by) with
+   * 31 before we perform the shift. Thus, we create and use a new temporary
+   * register to hold the (RHS &amp; 0x1f).
+   * @param s instruction, containing the destination register and operands
+   * (both registers) - the value <code>P(p)</code> one uses in PPC32.rules.
+   * @param shift the shift operation to perform: one of <code>PPC_SLW</code>,
+   * <code>PPC_SRW</code>, or <code>PPC_SRAW</code>
+   */
+  protected void INT_SHIFT(OPT_Instruction s, OPT_Operator shift)
+  {
+    if (VM.VerifyAssertions) VM._assert(shift==PPC_SRW || shift==PPC_SRAW ||
+                                        shift==PPC_SLW);
+  	OPT_Register t0=regpool.getInteger();
+  	EMIT(MIR_Binary.create(PPC_ANDIr, R(t0), R(Binary.getVal2(s)), I(0x1f)));
+  	EMIT(MIR_Binary.mutate(s, shift, Binary.getResult(s),
+                           R(Binary.getVal1(s)), R(t0)));
+  }
+
   protected final void INT_DIV_IMM(OPT_Instruction s, 
 				   OPT_RegisterOperand def, 
 				   OPT_RegisterOperand left, 
