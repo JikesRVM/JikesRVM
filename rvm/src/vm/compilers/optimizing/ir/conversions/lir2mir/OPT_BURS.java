@@ -310,17 +310,17 @@ final class OPT_BURS implements OPT_Operators {
    * @param burs the OPT_BURS_STATE object.
    */
   private void generateTrees(OPT_DepGraph dg, OPT_BURS_STATE burs) {
-    // Append tree roots with predCount = 0 to readyStack
+    // Append tree roots with predCount = 0 to readySet
     for (OPT_SpaceEffGraphNode n = dg.lastNode();
 	 n != null; 
 	 n = n.getPrev()) {
       if (n.scratch == 0) {
-	readyStackPush((OPT_BURS_TreeNode)n.scratchObject);
+	readySetInsert((OPT_BURS_TreeNode)n.scratchObject);
       }
     }
-    // Emit code for each tree root in readyStack
-    while (readyStackNotEmpty()) {
-      OPT_BURS_TreeNode k = readyStackPop();
+    // Emit code for each tree root in readySet
+    while (readySetNotEmpty()) {
+      OPT_BURS_TreeNode k = readySetRemove();
       // Invoke burs.code on the supernodes of k in a post order walk of the
       // tree (thus code for children is emited before code for the parent).
       if (DEBUG) VM.sysWrite("PROCESSING FOR TREEROOT #" + k.dg_node + "\n");
@@ -397,7 +397,7 @@ final class OPT_BURS implements OPT_Operators {
           int count = --dest.scratch;
           if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
           if (count == 0) {
-            readyStackPush((OPT_BURS_TreeNode)dest.scratchObject);
+            readySetInsert((OPT_BURS_TreeNode)dest.scratchObject);
 	  }
         }
       }
@@ -518,97 +518,86 @@ final class OPT_BURS implements OPT_Operators {
     }
   }
 
+  /**
+   * A priority queue of ready tree nodes. 
+   * Used to keep track of the tree roots that are ready to be 
+   * emitted during code generation (since all of their 
+   * predecessors have been emitted already).  
+   * readySetRemove returns the node that uses the maximum
+   * number of registers.  This is a heuristic that tends to 
+   * reduce register pressure and enable coalescing by the 
+   * register allocator. (Goal is to end live ranges 'early').
+   */
+  private OPT_BURS_TreeNode[] heap = new OPT_BURS_TreeNode[16];
+  private int numElements = 0;
 
   /**
-   * The actual work list of tree roots, ready to be processed. 
-   * (The "ready stack").
+   * Add a node to the ready set.
    */
-  private OPT_BURS_TreeNode[] stack = new OPT_BURS_TreeNode[32];
-  private int stackTop = 0;
-
-  /**
-   * We keep track of tree roots that represent Move instructions separately.
-   * We only process moves when the 'normal' stack is empty, in an attempt
-   * to force MIR move instructions to the bottom of live ranges.  This
-   * may help facilitate register coalescing, for the case when the move
-   * instruction ends one live range and begins another.  Out-of-SSA
-   * creates this pattern frequently.
-   */
-  private OPT_BURS_TreeNode[] moveStack = new OPT_BURS_TreeNode[32];
-  private int moveStackTop = 0;
-
-  /**
-   * Push a node that represents a MOVE onto a separate stack.
-   */
-  private void moveStackPush(OPT_BURS_TreeNode node) {
-    if (moveStackTop == moveStack.length) {
-      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[moveStack.length*2];
-      for (int i=0; i<moveStack.length; i++) {
-	tmp[i] = moveStack[i];
-      }
-      moveStack = tmp;
+  private void readySetInsert(OPT_BURS_TreeNode node) {
+    // Adjust numRegisters to bias towards picking store 
+    // instructions, since they do not start new live ranges.
+    if (node.getInstruction().isExplicitStore()) {
+      node.setNumRegisters(node.numRegisters()+2);
     }
-    moveStack[moveStackTop++] = node;
-  }
 
-  /**
-   * Return top of the work stack representing Moves.
-   */
-  private OPT_BURS_TreeNode moveStackPop() {
-    return moveStack[--moveStackTop];
-  }
-
-  /**
-   * Is a particular tree rooted at node only a MOVE instruction?
-   *
-   * We encourage standalone moves to float to the bottom of the
-   * basic block, in the hopes of reducing lifetimes and facilitating
-   * global coalescing downstream. 
-   */
-  private boolean isSingleMove(OPT_BURS_TreeNode node) {
-    OPT_Instruction s = node.getInstruction();
-    if (s != null && s.isMove()) {
-      return node.child1 == Register || node.child1 == IntConstant;
-    } 
-    return false;
-  }
-
-  /**
-   * Push node on work stack.  If the node represents a move instruction,
-   * we push it on a separate stack.
-   */
-  private void readyStackPush(OPT_BURS_TreeNode node) {
-    if (isSingleMove(node)) {
-      moveStackPush(node);
-    } else {
-      // push on the regular stack.
-      if (stackTop == stack.length) {
-        OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[stack.length*2];
-        for (int i=0; i<stack.length; i++) {
-          tmp[i] = stack[i];
-        }
-        stack = tmp;
+    numElements++;
+    if (numElements == heap.length) {
+      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[heap.length*2];
+      for (int i=0; i<heap.length; i++) {
+	tmp[i] = heap[i];
       }
-      stack[stackTop++] = node;
+      heap = tmp;
     }
-  }
 
-  /**
-   * Return top of work stack.  If and only if the 'normal' stack is
-   * empty, then return a node from the stack of MOVE nodes.
-   */
-  private OPT_BURS_TreeNode readyStackPop() {
-    if (stackTop == 0) {
-      return moveStackPop();
-    } else {
-      return stack[--stackTop];
+    // restore heap property
+    int current = numElements;
+    heap[current] = node;
+    for (int parent = current / 2;
+	 current > 1 && heap[current].numRegisters() > heap[parent].numRegisters();
+	 current = parent, parent = current / 2) {
+      swap(current, parent);
     }
   }
 
   /**
    * Are there nodes to process on the stack?
    */
-  private boolean readyStackNotEmpty() {
-    return (stackTop > 0 || moveStackTop >0);
+  private boolean readySetNotEmpty() {
+    return numElements > 0;
+  }
+
+  /** 
+   * Remove a node from the ready set
+   */
+  private OPT_BURS_TreeNode readySetRemove() {
+    OPT_BURS_TreeNode ans = heap[1];
+    heap[1] = heap[numElements--];
+    heapify(1);
+    return ans;
+  }
+    
+  private void heapify(int p) {
+    int l = p * 2;
+    int r = l + 1;
+    int max = p;
+    if (l <= numElements &&
+	heap[l].numRegisters() > heap[max].numRegisters()) {
+      max = l;
+    }
+    if (r <= numElements &&
+	heap[r].numRegisters() > heap[max].numRegisters()) {
+      max = r;
+    }
+    if (max != p) {
+      swap(p, max);
+      heapify(max);
+    }
+  }
+
+  private void swap(int x, int y) {
+    OPT_BURS_TreeNode t = heap[x];
+    heap[x] = heap[y];
+    heap[y] = t;
   }
 }
