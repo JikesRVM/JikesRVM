@@ -9,9 +9,9 @@
 INCLUDED_MAKEFILE?=$(RVM_BUILD)/Make.rules.target
 include	$(INCLUDED_MAKEFILE)
 
-# This only affects testing, since SCRATCH_DIR will only be reset 
-# if we don't have a value (whether command-line or from the environment).
-
+## This only affects testing, since SCRATCH_DIR will only be reset 
+## if we don't have a value (whether command-line or from the environment).
+##
 ## We need an explicit SCRATCH_DIR of ., so that we can work even for
 ## folks who don't put "." in their PATH variables.
 SCRATCH_DIR?=.
@@ -19,9 +19,16 @@ SCRATCH_DIR?=.
 TOOL_NAME=preprocessModifiedFiles
 TOOL:=$(SCRATCH_DIR)/${TOOL_NAME}
 TEST_TOOL:=$(TOOL) --disable-modification-exit-status
-# -P means "do not generate #line directives"
-# -C means to leave the text of comments in the output.
-CPP:=/lib/cpp -P -C
+# There are several "will never be executed" warnings 
+# triggered under GCC 3.3.1 when we have  
+# the optimizer enabled and specify the -Wunreachable-code flag.  
+# As of this writing (August, 2003), that is the subject of a GCC bug report,
+# http://gcc.gnu.org/bugzilla/show_bug.cgi?id=12082
+## Some of these options make GCC 2.96 unhappy (for example, -Wendif-labels),
+## so I won't set them here
+## in the distribution.  (They are the ones I test with, though.)
+# -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts  -fkeep-inline-functions -Wundef -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wfloat-equal -Wendif-labels -Wmissing-format-attribute  -Wno-long-long -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo
+CXXFLAGS+=-W -Wall  
 
 
 tool:
@@ -39,10 +46,18 @@ $(TOOL): ${TOOL_NAME}.C
 %.S: %.C
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -S $< -o $@
 
+%.ii: %.C
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $@
+
 # Preprocessor testing.
 # These rules make the executable anywhere; usually here if you're testing.
 
-TESTS:=test1 test2 test3 test4 test5 test6 test7a test7b test8a test8b test8c test8d test9 test10
+# -P means "do not generate #line directives"
+# -C means to leave the text of comments in the output.
+CPP:=/lib/cpp -P -C
+
+
+TESTS:=test1 test2 test3 test4 test5 test6 test7a test7b test8a test8b test8c test8d test9 test10 test11 test12 test13
 .PHONY: tool test $(TESTS) cleantest clean
 
 test:			${TOOL} $(TESTS)
@@ -144,6 +159,18 @@ test9: ${TOOL}
 
 test10: ${TOOL}
 	{ ${TEST_TOOL} -DA=1 -DB=1 /tmp testNoSuchFile.preprocessor; (( $$? == 2 )) ; }
+
+test11: ${TOOL}
+	@echo testing the no-arguments case\; should complain
+	{ ${TEST_TOOL} ; (( $$? == 2 )); }
+
+test12: ${TOOL}
+	@echo testing the output-dir-only-after--- case\; should comment but exit with normal status
+	{ ${TEST_TOOL} --verbose -- a ; (( $$? == 0 ));  }
+
+test13: ${TOOL}
+	@echo testing the output-dir-only-after--- case\; should complain
+	{ ${TEST_TOOL} --verbose -- ; (( $$? == 2 ));  }
 
 cleantest:
 	$(RM) test*.actual test*.expected /tmp/test*.preprocessor
