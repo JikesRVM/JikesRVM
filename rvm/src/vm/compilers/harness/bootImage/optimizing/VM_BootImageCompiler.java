@@ -32,7 +32,7 @@ class VM_BootImageCompiler {
       options.setOptLevel(3); 
 
       // Disable things that we think are a bad idea in this context
-      options.EAGER_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
+      options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
 
       // would increase build time by some 25%
       options.GCP = false;
@@ -41,7 +41,10 @@ class VM_BootImageCompiler {
 	 
       // Pre-existence based inlining isn't supported for bootimage writing
       // to avoid needing to stick the dependency database in the bootimage
+      // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
+      // TODO: fix this silliness and support these optimizations at bootimage writing time!
       options.PREEX_INLINE = false;
+      options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
 
       // We currently don't know where the JTOC is going to end up
       // while we're compiling at bootimage writing 
