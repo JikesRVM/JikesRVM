@@ -1,7 +1,6 @@
 This section provides some information on various
 implementation details for the Jikes\TMweb{} RVM runtime system.
 
-
 \subsection{Object Model}\label{sssec:objects}
 \index{object model}
 
@@ -10,6 +9,11 @@ the best object model will maximize efficiency of frequent language
 operations while minimizing storage overhead. \jrvm's
 object model 
 is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
+The \jrvm object model underwent major changes between versions
+2.3.3 and 2.3.4 of the system.  In particular, in 2.3.3 and before a 
+``reverse scalar'' object model was used in which scalars and arrays
+were layed out in different directions in memory to optimize null
+pointer checks on AIX. 
 
 \paragraph{Overview}
 Values in the Java\TMweb{} programming language are either {\em
@@ -27,7 +31,7 @@ instance field and array accesses should be as fast as possible,
 \item
 null-pointer checks should be performed by the hardware if possible, 
 \item
-virtual method dispatch should be fast,
+method dispatch and other frequent runtime services should be fast,
 \item
 other (less frequent) Java operations should not be prohibitively
 slow, and
@@ -48,26 +52,16 @@ element. Thus, compiled code can access array elements via base +
 scaled index addressing.
 
 The Java programming language requires that an attempt to access an
-object through a {\tt null} 
-object reference generates a \IndexTexttt{NullPointerException}.
-In Jikes RVM, references
-are machine addresses, and {\tt null} is represented by address $0$.
-The AIX\TMweb{} operating system permits loads from low memory,
-but accesses 
-to very high memory (at small {\em negative} offsets from a null
-pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
-least theoretically possible for another process to cause a shared
-system library to get loaded into very high memory.  This remote
-possibility is not a concern in a research project, but would need to
-be addressed by a commercial JVM.\@  It would be sufficient to forbid
-read and write access to the last page of addressable memory.
-(Accesses to some of the fields of objects bigger than a page could be
-checked explicitly without having a major impact on performance.)}
-Thus, attempts to index off a null array reference are trapped by
-the hardware, because array accesses require loading the array length
-which is $-4$ bytes off the array reference.  A hardware null-pointer
-check for field accesses is effected by locating fields at negative
-offsets from the object reference.
+object through a {\tt null} object reference generates a
+\IndexTexttt{NullPointerException}.  In Jikes RVM, references are
+machine addresses, and {\tt null} is represented by address $0$.  
+On Linux, accesses to both very low and very high memory can be
+trapped by the hardware, thus all null checks can be made implicit.
+However, the AIX\TMweb{} operating system permits loads from low
+memory, but accesses to very high memory (at small {\em negative}
+offsets from a null pointer) normally cause hardware 
+interrupts. Therefore on AIX only a subset of pointer dereferences can
+be protected by an implicit null check. 
 
 \paragraph{Object Header}
 \index{object header}
