@@ -23,6 +23,8 @@ interface VM_AssemblerConstants {
   static final byte  NS = 0x9; // (not sign) positive or zero??
   static final byte  PE = 0xA; // (even parity)
   static final byte  PO = 0xB; // (odd parity)
+  static final byte  U  = 0xA; // (unordered floating point #s)
+  static final byte  NU = 0xB; // (ordered floating point #s)
   static final byte  LT = 0xC; // less than
   static final byte  GE = 0xD; // greater than or equal (not less than)
   static final byte  LE = 0xE; // less than or equal (not greater than)
