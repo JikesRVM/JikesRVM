@@ -607,6 +607,28 @@ $$$$ END IF
     return (traits & yieldPoint) != 0;
   }
 
+  /**
+   * Does the operator pop the floating-point stack?
+   * 
+   * @return <code>true</code> if the operator pops the floating-point
+   * stack.
+   *         or <code>false</code> if not.
+   */
+  public final boolean isFpPop() {
+    return (traits & fpPop) != 0;
+  }
+
+  /**
+   * Does the operator push on the floating-point stack?
+   * 
+   * @return <code>true</code> if the operator pushes on the floating-point
+   * stack.
+   *         or <code>false</code> if not.
+   */
+  public final boolean isFpPush() {
+    return (traits & fpPush) != 0;
+  }
+
 
 $$$$ IF ARCHITECTURE == "NONE"
   private static final OPT_Register[] _empty = new OPT_Register[0];
