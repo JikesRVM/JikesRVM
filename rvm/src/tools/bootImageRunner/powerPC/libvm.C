@@ -876,6 +876,8 @@ int createJVM(int vmInSeparateThread) {
    if (lib_verbose) 
      fprintf(SysTraceFile, "Testing faulting-address location\n");
    *((int *) testFaultingAddress) = 42;
+   if (lib_verbose) 
+     fprintf(SysTraceFile, "Done testing faulting-address location\n");
 #endif
 
    // execute vm startup thread
