@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.Java2HPM;
  * This class provides support to hardware performance monitors
  * without making any assumption of what PowerPC architecture Jikes RVM is running on.
  * <p>
- * No instances of this class are every created.
+ * No instances of this class is every created.
  * <p>
  * Writes aggregate HPM data to console when called back.
  * <p> 
@@ -49,7 +49,7 @@ public class VM_HardwarePerformanceMonitors
   static private int       THREAD_RECORD = 3;
 
   // Set true in VM_HPMs.setUpHPMinfo() to tell VM_Processor when it is safe to collect hpm data!  
-  static public  boolean hpm_safe = false;
+  static public  boolean safe = false;
 
   /*
    * static fields required size calculations
@@ -58,7 +58,7 @@ public class VM_HardwarePerformanceMonitors
   static public  int     SIZE_OF_INT        = 4;
   static public  int     SIZE_OF_LONG       = 8;
   // FORMAT(int), (buffer_code & VP)(int), global_tid(int), tid(int), real_time(long), delta(long)
-  static public  int     SIZE_OF_HEADER     = 32; 
+  static public  int     SIZE_OF_HEADER     = 24; 
 
   static private int     record_size        = 0;     // in bytes, record size
   /**
@@ -100,6 +100,9 @@ public class VM_HardwarePerformanceMonitors
   // test HPM access times for sysCalls and JNI
   static private boolean hpm_test = false;
 
+  // sample HPM value more frequently than a thread switch?
+  static public  boolean sample = false;
+
   /*
    * HPM information 
    */
@@ -121,6 +124,7 @@ public class VM_HardwarePerformanceMonitors
       VM.sysWriteln(" processor    print name of processor and number of counters.");
       VM.sysWriteln(" listAll      list all events associated with each counter.");
       VM.sysWriteln(" listSelected list selected events for each counter.");
+      VM.sysWriteln(" sample       sample HPM values more frequently than thread switch (set interruptQuantum and interruptQuantumMultiplier.");
       //VM.sysWriteln(" test       at end of execution, compute access time with sysCall and JNI.");
       VM.sysWriteln();
       VM.sysWriteln("Value Options (-X:hpm:<option>=<value>)");
@@ -261,7 +265,19 @@ public class VM_HardwarePerformanceMonitors
 	if (value.compareTo("true")==0) {
 	  hpm_test = true;
 	} else if (value.compareTo("false")!=0) {
+	  hpm_test = false;
+	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:test={true|false} is the correct syntax");
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
+	}
+      } else if (arg.startsWith("sample=")) {
+	String tmp = arg.substring(split+1);
+	if (tmp.compareTo("true")==0) { 
+	  sample = true;
+	} else if (tmp.compareTo("false")==0) { 	
+	  sample = false;
+	} else {
+	  VM.sysWriteln("\n***VM_HPMs.processArgs() invalid -X:hpm:sample argument \""+tmp+"\"!***\n");
 	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
       } else {
@@ -269,9 +285,9 @@ public class VM_HardwarePerformanceMonitors
 	VM.shutdown(VM.exitStatusBogusCommandLineArg);
       }
       //-#endif
-    } else {
+    } else { // ! VM.BuildForHPM
       VM.sysWriteln("\nrvm: Hardware performance monitors not supported.  Illegal command line options \""+arg+"\"\n");
-      printHelp();
+      VM.shutdown(VM.exitStatusHPMTrouble);
     }
   }  
   
@@ -356,6 +372,7 @@ public class VM_HardwarePerformanceMonitors
    */
   static public void setUpHPMinfo() {
     if (VM.BuildForHPM && enabled) {
+      //-#if RVM_WITH_HPM
       if(verbose>=2) VM.sysWriteln("VM_HPMs.setUpHPMinfo()");
       /* 
        * Initialize hpm_info.
@@ -423,7 +440,7 @@ public class VM_HardwarePerformanceMonitors
 	}
       }
       // start collecting trace information
-      hpm_safe = true;
+      safe = true;
 
       if (verbose>=4)VM.sysWrite("          max_length is ",max_length);
       max_length = ((max_length/4)+1)*4; // multiple of 4
@@ -456,6 +473,7 @@ public class VM_HardwarePerformanceMonitors
 	VM.sysWrite("hpm_info.short_name[0] \"");VM.sysWrite(hpm_info.short_names[0]);
 	VM.sysWrite("\"\n");
       }
+      //-#endif
     }
   }
   /*
@@ -578,12 +596,16 @@ public class VM_HardwarePerformanceMonitors
    * @param name        thread name
    */
   static public void writeThreadToHeaderFile(int global_tid, int tid, String name) {
-    if(verbose>=2){
-      VM.sysWrite  ("VM_HPMs.writeThreadToHeaderFile(",global_tid,",",tid);
-      VM.sysWrite(",",name,") hpm_safe = "); VM.sysWriteln(hpm_safe);
-    }
-    if (hpm_safe) {
-      writeThread(global_tid, tid, name);
+    if (VM.BuildForHPM && enabled) {
+      //-#if RVM_WITH_HPM
+      if(verbose>=2){
+	VM.sysWrite  ("VM_HPMs.writeThreadToHeaderFile(",global_tid,",",tid);
+	VM.sysWrite(",",name,") safe = "); VM.sysWriteln(safe);
+      }
+      if (safe) {
+	writeThread(global_tid, tid, name);
+      }
+      //-#endif
     }
   }
   /*
@@ -806,8 +828,12 @@ public class VM_HardwarePerformanceMonitors
    * Report the aggregate counts for processors and threads.
    */
   static private void stopUpdateResetAndReport() {
-    stopUpdateAndReset();
-    Report();
+    if (VM.BuildForHPM && enabled) {
+      //-#if RVM_WITH_HPM
+      stopUpdateAndReset();
+      Report();
+      //-#endif
+    }
   }
 
   /**
@@ -849,7 +875,8 @@ public class VM_HardwarePerformanceMonitors
     stop();
 
     // update hpm counters of current processor and thread.
-    VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(VM_Thread.getCurrentThread(), null, false);
+    VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(VM_Thread.getCurrentThread(), null, 
+							     false, false);
 
     reset();
   }
