@@ -1450,7 +1450,7 @@ operandSignedHex(long val, const char *suffix)
 ULONG _lrotl4(ULONG val)
 {
     if (debug)
-	printf("Calling _lrotl4: 0x%08x\n", val);  
+	printf("Calling _lrotl4: 0x%08lx\n", val);  
 
     ULONG tmp = (val >> 28) & 0x0f;
     return ((val << 4) | tmp);
@@ -1462,7 +1462,7 @@ static void
 operandHex(ULONG val, const char *suffix) 
 {
    if (debug)
-      printf("Calling operandHex: 0x%08x\n", val);
+      printf("Calling operandHex: 0x%08lx\n", val);
 
    if (ibuff) {
       // there must always be at least one digit
@@ -1517,7 +1517,7 @@ static void
 operandDecimal(long val, const char *suffix) 
 {
    if (ibuff) {
-      ibuff += sprintf(ibuff, "%d%s",val, suffix ? suffix : "");
+      ibuff += sprintf(ibuff, "%ld%s",val, suffix ? suffix : "");
    } // endif
 } 
 
@@ -1787,7 +1787,7 @@ getNextDword(void)
 	} // endfor
     } 
     if (debug)
-	printf("getNextDword:  0x%08x\n", Dword1);
+	printf("getNextDword:  0x%08lx\n", Dword1);
     return Dword1;
 } 
 
@@ -2030,7 +2030,7 @@ op_IL(FLAGS UNUSED & flags )
 	/*********************************************************************/
 	/* put the hexcode of the first byte of the instruction into mbuff   */
 	/*********************************************************************/
-	sprintf(mbuff, "%s%02.2X", mnemstr[ILLEGAL].string, *startiptr);
+	sprintf(mbuff, "%s%2.2X", mnemstr[ILLEGAL].string, *startiptr);
     } 
     parm->rettype = illegtype;
 } 
