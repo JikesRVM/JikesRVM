@@ -22,3 +22,23 @@ Other notes:
         BOOTIMAGE_LOAD_ADDRESS
   + sysCalls were moved from VM to VM_SysCall.  Naming conventions were 
     changed to make parameter/return types explicit in name.
+
+----------------------------------------------------------------------------
+Release planning:
+
+Must do/fix items
+-----------------
+ -- PowerPC/Linux doesn't work at all
+ -- PowerPC/AIX fails large number of tests
+ -- Verify that Eclipse runs as expected on FastAdaptive and OptBase images
+ -- Merge back latest set of PowerPC64 changes (Dave/Perry)
+ -- update JMTk documentation to explictly list configurations
+    believed to be stable vs. experimental (SemiSpace only stable
+    config?).
+    To be stable the config must pass all sanity tests with Full/Fast images.
+
+Should do/fix
+-------------
+ -- incorporate weak reference contribution (on must list?)
+ -- cleanup command line processing and documentation for GC subsystem
+ -- remaining Linux regression failures
