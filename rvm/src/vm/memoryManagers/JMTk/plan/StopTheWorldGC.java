@@ -276,6 +276,7 @@ public abstract class StopTheWorldGC extends BasePlan
       VM_Interface.prepareNonParticipating((Plan) this);  
     else
       VM_Interface.prepareParticipating((Plan) this);  
+    flushRememberedSets();
     VM_Interface.rendezvous();
     if (Options.verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
@@ -345,7 +346,6 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void processAllWork() throws VM_PragmaNoInline {
 
     if (Options.verbose >= 4) VM_Interface.psysWriteln("  Working on GC in parallel");
-    flushRememberedSets();
     do {
       if (Options.verbose >= 5) VM_Interface.psysWriteln("    processing root locations");
       while (!rootLocations.isEmpty()) {
