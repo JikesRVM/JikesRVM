@@ -79,7 +79,6 @@ userguide.dvi:	$(TEX_FILES) main.bib
 html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 	$(HYPERLATEX) userguide
 	chmod u+w ${HTML_DIR}
-	cp ${NAV_GIFS} ${HTML_DIR}
 	cp ${HTML_GRAPHICS} ${HTML_DIR}
 	cd ${HTML_DIR} \
 	&& chmod u+w ${NAV_GIFS} && chmod u+w ${HTML_GRAPHICS} \
