@@ -1306,8 +1306,9 @@ emitMoveImms 0xC7
 emitFSTATE() {
   acronym=$1
   comment=$2
-  opExt=$3
-  pre=$4
+  opcode=$3
+  opExt=$4
+  pre=$5
   if [ x$pre != x ]; then
      prefix="
     setMachineCodes(mi++, (byte) ${pre});"
@@ -1319,41 +1320,45 @@ cat <<EOF
   // ${comment}
   final void emit${acronym}_RegDisp (byte dstReg, int dstDisp) {
     int miStart = mi;$prefix
-    setMachineCodes(mi++, (byte) 0xDD);
+    setMachineCodes(mi++, (byte) ${opcode});
     emitRegDispRegOperands(dstReg, dstDisp, (byte) ${opExt});
-    if (lister != null) lister.RD(miStart, "${opcode}", dstReg, dstDisp);
+    if (lister != null) lister.RD(miStart, "${acronym}", dstReg, dstDisp);
   }
 
   // ${comment}
   final void emit${acronym}_RegInd (byte dstReg) {
     int miStart = mi;$prefix
-    setMachineCodes(mi++, (byte) 0xDD);
+    setMachineCodes(mi++, (byte) ${opcode});
     emitRegIndirectRegOperands(dstReg, (byte) ${opExt});
-    if (lister != null) lister.RN(miStart, "${opcode}", dstReg);
+    if (lister != null) lister.RN(miStart, "${acronym}", dstReg);
   }
 
   // ${comment}
   final void emit${acronym}_RegIdx (byte baseReg, byte indexReg, short scale, int disp) {
     int miStart = mi;$prefix
-    setMachineCodes(mi++, (byte) 0xDD);
+    setMachineCodes(mi++, (byte) ${opcode});
     emitSIBRegOperands(baseReg, indexReg, scale, disp, (byte) ${opExt});
-    if (lister != null) lister.RXD(miStart, "${opcode}", baseReg, indexReg, scale, disp);
+    if (lister != null) lister.RXD(miStart, "${acronym}", baseReg, indexReg, scale, disp);
   }
 
   // ${comment}
   final void emit${acronym}_RegOff (byte indexReg, short scale, int disp) {
     int miStart = mi;$prefix
-    setMachineCodes(mi++, (byte) 0xDD);
+    setMachineCodes(mi++, (byte) ${opcode});
     emitRegOffRegOperands(indexReg, scale, disp, (byte) ${opExt});
-    if (lister != null) lister.RFD(miStart, "${opcode}", indexReg, scale, disp);
+    if (lister != null) lister.RFD(miStart, "${acronym}", indexReg, scale, disp);
   }
 
 EOF
 }
 
-emitFSTATE FNSAVE "save FPU state ignoring pending exceptions" 6
-emitFSTATE FSAVE "save FPU state respecting pending exceptions" 6 0x9B
-emitFSTATE FRSTOR "restore FPU state" 4
+emitFSTATE FNSAVE "save FPU state ignoring pending exceptions" 0xDD 6
+emitFSTATE FSAVE "save FPU state respecting pending exceptions" 0xDD 6 0x9B
+emitFSTATE FRSTOR "restore FPU state" 0xDD 4
+emitFSTATE FLDCW "load FPU control word" 0xD9 5
+emitFSTATE FSTCW "store FPU control word, checking for exceptions" 0xD9 7 0x9B
+emitFSTATE FNSTCW "store FPU control word, ignoring exceptions" 0xD9 7
+
 
 emitFCONST() {
 opcode=$1

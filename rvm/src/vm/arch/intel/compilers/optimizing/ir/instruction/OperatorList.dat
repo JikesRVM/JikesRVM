@@ -713,6 +713,13 @@ none
 
 
 ####################
+IA32_FSTCW
+MIR_UnaryNoRes
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FSTP
 MIR_Move
 none

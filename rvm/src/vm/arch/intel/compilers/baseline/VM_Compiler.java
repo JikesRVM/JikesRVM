@@ -3537,8 +3537,6 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
 
     if (methodName == VM_MagicNames.roundToZero) {
-      /**
-       * TODO: Uncomment this when the assembler supports it.
       // Store the FPU Control Word to a JTOC slot
       asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordOffset);
       // Set the bits in the status word that control round to zero.
@@ -3547,7 +3545,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset, 0x0c00);
       // Now store the result back into the FPU Control Word
       asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
-      */
 
       return;
     }
