@@ -245,6 +245,16 @@ function help_message () {
 	EOF
 }
    
+
+#---------------------------------------#
+# SECTION 1b -- Get HOST_CLASSPATH_ROOT #
+#---------------------------------------#
+
+. "${RVM_HOST_CONFIG}"
+[[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
+
+
+
 #--------------------------------------#
 # SECTION 2 - DEFINITIONS OF CONSTANTS #
 #--------------------------------------#
@@ -386,7 +396,7 @@ JAVAC_WARNING_FLAGS=-nowarn
 declare -x -i GENERATE_MAP=1
 
 # Current version of RVM
-CVS_TIMESTAMP=`cat $RVM_ROOT/rvm/_timestamp/timestamp`
+CVS_TIMESTAMP=$(cat $RVM_ROOT/rvm/_timestamp/timestamp)
 JIKESRVM_VERSION="Jikes RVM 2.3.0.1+CVS"
 
 # Default values for RunBootImage constants.
@@ -487,27 +497,57 @@ declare -i RVM_WITH_DEBUG=0
 declare -i BUILD_WITH_PARANOID_PREPROCESSOR=0
 
 ## MISC (to be categorized)
-declare -i RVM_WITH_NOFLUSH
-: ${RVM_WITH_NOFLUSH=0}
+declare -i RVM_WITH_NOFLUSH=0
+# : ${RVM_WITH_NOFLUSH=0}
 
 ## Consequences of the target Operating System.
 ## These are overridden in the OSX config file.
-declare -i HAS_DLCOMPAT
-: ${HAS_DLCOMPAT=0}
-
-
-
+declare -i HAS_DLCOMPAT=0
+# : ${HAS_DLCOMPAT=0}
 
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
 #---------------------------------------#
+
+function unsetEnvironment() {
+    local flags="$-"
+    set +e
+    # disable ERR Trap.  This only affects this function, not the 
+    # global environment.
+    trap '' ERR
+    ## Turn off all of the environment variables that we get when we 
+    ## source config files but that might not be set if we were to source
+    ## a different such file.
+    unset HOST_JIKES $HOST_JIKES_STR1
+    unset HOST_JAVA $HOST_JAVA_STR1 
+    unset HOST_JAVAC $HOST_JAVAC_STR1
+    unset HOST_JAVA_HOME $HOST_JAVA_HOME_STR1 
+    unset HOST_JAVADOC $HOST_JAVADOC_STR1 
+    unset HOST_JAR $HOST_JAR_STR1 
+    unset HOST_REPOSITORIES $HOST_REPOSITORIES_STR1 
+    unset HOST_TOOLS $HOST_TOOLS_STR1 
+    unset GNU_MAKE $GNU_MAKE_STR1 
+    unset CC $HOST_CC_STR1 
+    unset CPP $HOST_CPP_STR1 
+    unset CPLUS $HOST_CPLUS_STR1 
+    unset LDSHARED $HOST_SHLD_STR1 
+    unset WGET XARGS UNZIP 
+    unset HOST_JAVA_LD_LIBRARY_PATH
+    unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
+    unset PS MD5SUM GREP GNU_TAR FIND FGREP DIFF CVS BASH AWK
+    set $flags;			# turn back on -e, if it was off.
+}
+
 # One use of the target_config file is to define
 # directives that hold for all configurations 
 # defined on the target. By sourcing it here,
 # we define such directives for all configs on the target,
 # but still allow them to be overridden on the command line
 # or in a build-config file.
+
+unsetEnvironment;
 . "${RVM_TARGET_CONFIG}"
+[[ ${CLASSPATH_ROOT-} ]]  && declare -r TARGET_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 
 # echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
@@ -1074,15 +1114,6 @@ function emitMakefile () {
 }
 
 
-function unsetEnvironment() {
-    ## Turn off all of the environment variables that we get when we 
-    ## source config files but that might not be set if we were to source
-    ## a different such file.
-    unset HOST_JAVA_LD_LIBRARY_PATH CPP $HOST_CPP_STR1 || :
-    unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT || :
-}
-
-
 # Emit a script to run each phase of vm builder in turn.
 
 function emitController () {
@@ -1560,7 +1591,7 @@ EOF
 EOF
 
     # copy classpath jar file
-    CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+    CPS="${HOST_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
     cat <<EOF
 	SYSTEM_TYPE=\$($CPS/classpath/config.guess)
 	SRC=$CPS/\$SYSTEM_TYPE/lib/glibj.zip
@@ -2507,7 +2538,7 @@ $(emitBoilerplate)
     fi
 
     # copy native libraries
-    CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+    CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
     echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     if (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
