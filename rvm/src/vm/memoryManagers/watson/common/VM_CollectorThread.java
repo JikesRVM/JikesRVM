@@ -459,8 +459,8 @@ class VM_CollectorThread extends VM_Thread
   // Returned: collector
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
-  static VM_CollectorThread 
-    createActiveCollectorThread(int[] stack, VM_Processor processorAffinity) throws VM_PragmaInterruptible {
+  static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) throws VM_PragmaInterruptible {
+    int[] stack =  VM_RuntimeStructures.newImmortalStack(STACK_SIZE_COLLECTOR);
     //-#if RVM_WITH_CONCURRENT_GC
     return new VM_RCCollectorThread(stack, true, processorAffinity);
     //-#else
