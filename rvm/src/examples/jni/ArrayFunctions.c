@@ -3,7 +3,7 @@
  *
  * $Id$
  */
-/*
+/**
  * Test JNI Functions related to Array
  * Implement native methods from ArrayFunctions.java 
  * 
