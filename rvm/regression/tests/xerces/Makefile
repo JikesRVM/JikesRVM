@@ -20,20 +20,23 @@ BENCH_CLASS_PATH=$(BENCH_HOME)/build/xercesImpl.jar:$(BENCH_HOME)/build/xercesSa
 
 INPUT_FILES=$(wildcard $(XML_DATA)/shakespeare.1.10.xml/*.xml)
 
+TESTS=dom.Counter sax.Counter
+
 ifeq ($(MODE),PERFORMANCE)
-  ITERATIONS=11
+  ITERATIONS=2
 else
   ITERATIONS=1
 endif
 
-START_NAME=Driver
-START_ARGS=$(ITERATIONS) dom.Counter main $(INPUT_FILES)
+$(TESTS): %: 
+	 $(MAKE) START_NAME=Driver START_ARGS="$(ITERATIONS) $@ main $(INPUT_FILES)" OUT=$(OUT).$@ sanity-check-rule
 
-sanity:		sanity-check-rule
+sanity:		$(TESTS)
+	 $(MAKE) do-sanity-finish
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
-do-gather-performance:
+do-gather-performance:  
 	 @$(AWK) -f $(JAL_ROOT)/rvm/regression/tests/xerces/perf.awk $(OUT) >> $(PERF_LOG)
 
 check:

@@ -13,6 +13,10 @@ BEGIN {
   eTime = 0
 }
 
+/Method:/ {
+  method = $2
+}
+
 /ELAPSED TIME/ { 
    if (iter > 0)  {
      eTime = eTime + $3; 
@@ -26,5 +30,5 @@ BEGIN {
 
 # print summary at the end
 END {
-    print "Elasped Time(ms): " eTime
+    print method " Elapsed Time(ms): " eTime
 }
