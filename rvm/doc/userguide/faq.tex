@@ -14,10 +14,10 @@ The Jikes Research Virtual Machine (Jikes RVM) is a software project
 designed to provide the academic and research communities with a
 flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
-choices.  Jikes RVM executes Java\TMweb\ programs useful for research on
+choices.  Jikes RVM executes Java\TMweb{} programs useful for research on
 fundamental virtual machine design issues.
 It runs on AIX\TMweb{}/PowerPC\TMweb{}, Mac OS X/PowerPC,
-Linux\Rweb{}/PowerPC, and Linux/IA-32, 
+Linux\Rweb{}/PowerPC, and Linux/x86, 
 and exhibits industry-strength performance for many benchmark programs
 on these platforms.  Jikes RVM includes the latest VM
 technologies for dynamic compilation, adaptive optimization, garbage
@@ -99,24 +99,24 @@ No. This project is not supported.
 \subsubsection{What happened to {\tt jdp}?}
 
 \link{The {\tt jdp} debugger is no longer maintained.}[See
-Section~\Ref{} for more details.]{section:debugging}
+Section~\Ref{} (page~\Pageref) for more details.]{section:debugging}
 
 \subsection{Building \jrvm}
 
 
 \subsubsection{What's the right value to use for
-RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?} 
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR?} }
 \label{singleProcessorQuestion}
 
 Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
 threading.  In $m$-to-$n$ threading
-(RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equals 0), the virtual machine
+(\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} equals 0), the virtual machine
 multiplexes $m$ Java {\tt Thread}s
 onto $n$ virtual processors (operating system pthreads).
-In $m$-to-$1$ threading (RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equals 1),
+In $m$-to-$1$ threading (\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} equals 1),
 all $m$ Java threads run on a single virtual processor.  Jikes RVM 
 can only exploit multiple CPUs on a hardware SMP machine if 
-built with RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equal to 0.
+built with \varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} equal to 0.
 
 Unfortunately, $m$-to-$n$ threading is not supported on all platforms due to
 mismatches between Jikes RVM  and the host pthread implementation.  
@@ -124,7 +124,7 @@ The key issue is that because Jikes RVM multiplexes Java threads
 (each with their own stack) onto operating system threads, the
 C libraries it is linked with must not use the value of a thread's
 stackpointer/framepointer to access pthread-local storage.  The
-preferred values for RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR are as
+preferred values for \varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} are as
 follows: 
 
 \begin{description}
@@ -135,9 +135,9 @@ follows:
 
 \item[{\tt Linux/PowerPC}]  1 (SMP is not supported)
 
-\item[{\tt Linux 2.2/IA32}] 1 (SMP is not supported)
+\item[{\tt Linux 2.2/x86-32}] 1 (SMP is not supported)
 
-\item[{\tt Linux 2.4/IA32}] 0 (SMP is supported), but with the
+\item[{\tt Linux 2.4/x86-32}] 0 (SMP is supported), but with the
 additional restriction that you must link with a version of \texttt{glibc} that
 was compiled to use the GS segment register to access pthread-specific
 state.  Depending on your Linux\Rweb{} distribution, this may not be the
@@ -154,7 +154,7 @@ jikesrvm-researchers from November of 2001}{\RVMResearcherMailingListArchiveURL/
 \subsubsection{Why does Jikes RVM care about what version of \texttt{glibc} my x86 system uses?}
 
 In
-order for our $m$:$n$ threading scheme to work, we need to be able to swap
+order for our $m$-to-$n$ threading scheme to work, we need to be able to swap
 stacks for a single pthread.  This only works if glibc is built with an
 option to use the GS segment register to address certain pthread-specific
 state.  Otherwise, \texttt{glibc} attempts to use stack-pointer
@@ -163,8 +163,8 @@ arithmetic to find pthread-specific state, which fails once we bash the stack.
 On Red Hat\TMweb{} Linux and SuSE\Rweb{} Linux, glibc is built with this option by
 default, but it is possible that other Linux distributions do not do
 this.  On Red Hat Linux, the libs built with GS segment addressing are
-located in /lib/i686/*.so, and one can use \texttt{ldd
-  \$RVM\_BUILD/JikesRVM'} to check whether the \texttt{JikesRVM} boot
+located in /lib/i686/*.so, and one can use ``\texttt{ldd
+  \$RVM\_BUILD/JikesRVM}'' to check whether the \texttt{JikesRVM} boot
 image runner is linked against those libraries or not.
 
 \subsubsection{How do I know if my x86 \texttt{glibc} uses the GS
@@ -211,7 +211,7 @@ jbuild -help}'' to see a list of sub-options you can give to the {\tt
 \subsubsection{How can I include my own classes in the boot image?}
 
 The {\tt jconfigure} script defines which classes go in the boot image, by
-spitting out the file {\tt \$RVM\_\-BUILD/\-RVM.primordials}.  By default, any
+spitting out the file {\tt \$RVM\_\-BUILD/\-RVM.\-primordials}.  By default, any
 class, with the {\tt VM\_} prefix, in a defined directory set, goes in the
 boot image.
 
@@ -230,7 +230,7 @@ No.  RVM relies on two compilers, and compiles all methods to native code.
 
 Most JNI functionality is supported. A few functions are not. 
 There are a few functions that are only supported on AIX\TMweb{}
-and some other functions that are only supported on Linux\Rweb{}/IA32.
+and some other functions that are only supported on Linux\Rweb{}/x86-32.
 
 \subsubsection{Does \jrvm{} support user-defined class loaders?}
 Yes, with the caveat that we do not verify linking constraints.
@@ -272,7 +272,7 @@ RVM implements an $m$-to-$n$ threading model, where $m$ is the number of
 Java threads and $n$ is the number of Posix threads (ie., pthreads).  RVM
 does not know or care whether the Posix threads are implemented as kernel
 threads or user-level level threads.  You can specify $n$, the number of
-Posix threads to use, on the command line with {\tt -X:processors=n}.
+Posix threads to use, on the command line with {\tt -X:processors=$n$}.
 You should normally set $n$ to be the number of physical processors on
 your machine.  
 
@@ -284,8 +284,8 @@ thread, and a
 is the base class representing each
 Posix thread.  
 
-\link{On some platforms, only $m$-to-1 threading is supported}[.  See 
-question~\Ref]{singleProcessorQuestion}.
+\link{On some platforms, only $m$-to-$1$ threading is supported}[.  See 
+question~\Ref on page~\Pageref]{singleProcessorQuestion}.
 
 \subsubsection{What is the list of operations that may cause a GC?}
 
@@ -294,7 +294,7 @@ force a GC.\@  Some cases to look out for include:
 \begin{itemize}
 \item any instruction that throws an exception,
 \item any call that may cause a stack overflow,
-\item any monitorenter on a contended lock,
+\item any {\instruction monitorenter} on a contended lock,
 \item string concatenation, and
 \item any thread-switch point may allow another thread to force GC.\@
 \end{itemize}
@@ -316,9 +316,10 @@ See the discussion in \link{the JNI section}[ (Section~\Ref, page~\Pageref)]{sec
 relate to each other?}
 
 There are at least six ways to enforce mutual exclusion in the
-RVM runtime.  For normal library code and most VM code, monitorenter and
-monitorexit should suffice.  The lower-level primitives provide 
-building blocks for implementing monitorenter and exit. Some VM systems,
+RVM runtime.  For normal library code and most VM code, {\instruction monitorenter} and
+{\instruction monitorexit} should suffice.  The lower-level primitives provide 
+building blocks for implementing {\instruction monitorenter} and
+{\instruction monitorexit}. Some VM systems,
 such as thread scheduling and GC, resort to lower-level primitives for
 situations where normal Java object locking is inconvenient or illegal.
 \begin{description}
@@ -337,9 +338,11 @@ The attempt call ends the conditional critical section, and returns true
 if and only there were no intervening writes to the guarded memory
 location.
 
-On PowerPC, the compilers implement prepare and attempt using the lwarx
-and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
-LOCK prefix to implement attempt; prepare is a normal load instruction.
+On PowerPC, the compilers implement prepare and attempt using the
+{\instruction lwarx}
+and {\instruction stwcx} instructions.  On x86-32\-/\-IA-32, the compilers rely on
+{\instruction CMPXCHG} with the
+LOCK prefix to implement attempt; prepare is a normal {\instruction load} instruction.
 
 \item[\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
 
@@ -361,10 +364,11 @@ This lock is used to enforce mutual exclusion between {\tt VM\-\_\-Pro\-ces\-sor
 This class provides the normal synchronization operations on Java objects
 between Java threads.  The implementation is a variant of Thin Locks.
 
-\item[monitorenter and monitorexit]
+\item[{\instruction monitorenter} and {\instruction monitorexit}]
 
-Synchronized statements in Java source code are compiled to monitorenter
-and exit in the Java bytecode.  The RVM compilers implement these
+Synchronized statements in Java source code are compiled to
+{\instruction monitorenter}
+and {\instruction monitorexit} in the Java bytecode.  The RVM compilers implement these
 bytecodes by inserting calls to \xlink{{\tt VM\_Lock}}{\VMLockURL} routines; 
 the optimizing
 compiler inlines the common cases.
@@ -429,7 +433,8 @@ intervene and cause a different Java\TMweb{} thread (VM\_Thread) to
 run on the current 
 pthread (VM\_Processor), even if no exception is thrown.  
 Thread switch points include yield points inserted in prologues, epilogues, 
-and back edges, monitorenter and exits.
+back edges, {\instruction monitorenter} instructions, and
+{\instruction monitorexit} instructions.
 
 A GC safe point is any instruction where the compiler must generate a GC map, 
 including every thread switch point.  In particular, every 
