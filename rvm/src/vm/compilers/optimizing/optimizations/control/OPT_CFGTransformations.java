@@ -22,7 +22,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   private static boolean DEBUG = true;
 
   // gack
-  private static OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private static OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
 
   /**
    * This is the method that actually does the work of the phase.

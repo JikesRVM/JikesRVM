@@ -663,7 +663,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   }
 
   private OPT_Simple _os = new OPT_Simple(false, false);
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
 
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE

@@ -35,7 +35,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   private OPT_IR ir;
 
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
 
   private boolean splitSomeBlock = false;
 

@@ -22,7 +22,7 @@ import instructionFormats.*;
 public final class OPT_Simple extends OPT_CompilerPhase
   implements OPT_Operators, OPT_Constants {
 
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false);
 
   /**
    * Perform type propagation?

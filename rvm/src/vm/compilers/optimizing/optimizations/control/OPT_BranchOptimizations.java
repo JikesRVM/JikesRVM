@@ -21,38 +21,35 @@ public final class OPT_BranchOptimizations
   extends OPT_BranchOptimizationDriver {
 
   /**
-   * The final branch optimzation pass run immediately before
-   * LIR to MIR conversion.  This has several special implications:
-   * Code reordering has already run, therefore branch optimization 
-   *     may not change the code order to avoid undoing the selected code order.
-   * (2) We no longer care whether or not we introduce irreducible control flow.
-   *     Therefore branch optmization can apply the goto optimization that
-   *     duplicates a conditional branch that is the target of a goto.
-   *     This optimization is actually somewhat important because it can 
-   *     get a boolean cmp into the same basic block as the conditional branch
-   *     that jumps on the result of the boolean cmp, thus eliminating
-   *     the actually need to compute a boolean value.
+   * Is branch optimizations allowed to change the code order to
+   * create fallthrough edges (and thus merge basic blocks)?
+   * After we run code reordering, we disallow this transformation to avoid
+   * destroying the desired code order.
    */
-  private boolean afterCodeReorder = false;
+  private boolean mayReorderCode;
+
+  /**
+   * Are we allowed to duplication conditional branches?
+   * Restricted until backedge yieldpoints are inserted to 
+   * avoid creating irreducible control flow by duplicating
+   * a conditional branch in a loop header into a block outside the
+   * loop, thus creating two loop entry blocks.
+   */
+  private boolean mayDuplicateCondBranches;
+   
 
   private OPT_BranchOptimizations () { }
 
   /** 
    * @param level the minimum optimization level at which the branch 
-   * optimizations should be performed.
-   */
-  OPT_BranchOptimizations (int level) {
-    super(level);
-  }
-
-  /** 
-   * @param level the minimum optimization level at which the branch 
    *              optimizations should be performed.
-   * @param afterCodeReorderPass is this after code reordering?
+   * @param mayReorderCode are we allowed to change the code order?
+   * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
    */
-  OPT_BranchOptimizations (int level, boolean afterCodeReorderPass) {
+  OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
     super(level);
-    afterCodeReorder = afterCodeReorderPass;
+    mayReorderCode = mayReorderCode;
+    mayDuplicateCondBranches = mayDuplicateCondBranches;
   }
   
   /**
@@ -153,7 +150,7 @@ public final class OPT_BranchOptimizations
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
-    if (afterCodeReorder && IfCmp.conforms(targetInst)) {
+    if (mayDuplicateCondBranches && IfCmp.conforms(targetInst)) {
       // unconditional branch to a conditional branch.
       // If the Goto is the only branch instruction in its basic block
       // and the IfCmp is the only non-GOTO branch instruction
@@ -162,26 +159,6 @@ public final class OPT_BranchOptimizations
       // target of targetInst's block.
       // We impose these additional restrictions to avoid getting 
       // multiple conditional branches in a single basic block.
-      // We currently only do this optimization late in compilation
-      // because it can introduce irreducible control flow which 
-      // breaks all the optimization passes that depend on the 
-      // loop structure tree. 
-      // However, this optimization is actually somewhat useful for two reasons:
-      // (1) it can result in better instruction selection by getting the 
-      //     conditional branch and the computation of the operands to the condition
-      //     into the same basic block
-      // (2) by duplicating the conditional branch it is often the case that
-      //     one (or both) copies of the conditional branch get constant
-      //     operands and can be completely eliminated.
-      // Our current strategy is to be conservative and only allow this 
-      // optimization during the last branch optimization pass in LIR. This
-      // gives us (1) in most cases, but we miss out on (2) which may actually
-      // be more important.
-      // Ideally, we'd have a cheap test to determine whether or not the 
-      // CFG edges that are added by this transformation will in fact result
-      // in irreducible control flow and only block the transformation then.
-      // NOTE: if backedge insertion was done a little differently, then
-      //       this might just fall out. --dave
       if (!g.prevInstructionInCodeOrder().isBranch() && 
 	  (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
 	   targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
@@ -196,7 +173,7 @@ public final class OPT_BranchOptimizations
     }
 
     // try to create a fallthrough
-    if (!afterCodeReorder && targetBlock.getNumberOfIn() == 1) {
+    if (mayReorderCode && targetBlock.getNumberOfIn() == 1) {
       OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
       if (ftBlock != null) {
         OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();

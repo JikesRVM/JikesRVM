@@ -8,12 +8,8 @@ import instructionFormats.*;
 /**
  * This class inserts yield points in
  *  1) a method's prologue 
- *  2) targets of backwards branches
- *  3) (optionally) exits of a method 
- *
- * <p> Simple algorithm for targets of backwards branches: if there's
- *      an edge from basic block i -> basic block j
- *      and i >= j, add a yield point to basic block j
+ *  2) loop headers
+ *  3) (optionally) method exits (epilogue, athrow)
  *
  * @author Stephen Fink
  * @author Dave Grove
@@ -36,18 +32,18 @@ class OPT_YieldPoints extends OPT_CompilerPhase
    * @return "Yield Point Insertion"
    */
   final String getName() {
-    return  "Yield Point Insertion";
+    return "Yield Point Insertion";
   }
 
   /**
    * This phase contains no per-compilation instance fields.
    */
   final OPT_CompilerPhase newExecution(OPT_IR ir) {
-    return  this;
+    return this;
   }
 
   /**
-   * Insert yield points in method prologues, back edges, and method exits
+   * Insert yield points in method prologues, loop heads, and method exits
    * 
    * @param ir the governing IR
    */
@@ -56,53 +52,48 @@ class OPT_YieldPoints extends OPT_CompilerPhase
       return;   // don't insert yieldpoints in Uninterruptible code.
     }
     
-    // renumber basic blocks 
-    ir.cfg.compactNodeNumbering();
-    boolean[] hasYP = new boolean[ir.cfg.numberOfNodes + 1];
-
     // (1) Insert prologue yieldpoint unconditionally.
     //     As part of prologue/epilogue insertion we'll remove
     //     the yieldpoints in trival methods that otherwise wouldn't need 
     //     a stackframe.
     prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.inlineSequence);
     
-    // (2) Walk basic blocks, looking for backward branches or method exits via
-    //      returns or throws
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
-	 e.hasMoreElements();) {
-      OPT_BasicBlock block = e.next();
+    // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
+    if (VM.UseEpilogueYieldPoints) {
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+	   e.hasMoreElements();) {
+	OPT_BasicBlock block = e.next();
+	if (block.hasReturn() || block.hasAthrowInst()) {
+	  prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.inlineSequence);
+	} 
+      }
+    }
 
-      if (VM.UseEpilogueYieldPoints && 
-	  (block.hasReturn() || block.hasAthrowInst())) {
-	prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, 
-		     ir.gc.inlineSequence);
-      } else {
-	// look for a backwards branch; if we find one insert yp at target.
-	for (OPT_InstructionEnumeration enum = block.enumerateBranchInstructions(); 
-	     enum.hasMoreElements();) {
-	  OPT_Instruction instr = enum.next();
-	  for (OPT_BasicBlockEnumeration enum2 = instr.getBranchTargets();
-	       enum2.hasMoreElements();) {
-	    OPT_BasicBlock destBB = enum2.next();
-	    int bbNum = destBB.getNumber();
-	    if (bbNum <= block.getNumber() && 
-		bbNum < hasYP.length && 
-		!hasYP[bbNum]) {
-	      OPT_Instruction dest = destBB.firstInstruction();
-	      if (dest.position.getMethod().isInterruptible()) {
-		prependYield(destBB, YIELDPOINT_BACKEDGE, dest.bcIndex, dest.position);
-		hasYP[bbNum] = true;
-	      }
-	    }
-	  }
-	}
+    // (3) Insert yieldpoints in loop heads based on the LST.
+    OPT_LSTGraph lst = ir.HIRInfo.LoopStructureTree;
+    if (lst != null) {
+      for (java.util.Enumeration e = lst.getRoot().getChildren(); e.hasMoreElements();) {
+	processLoopNest((OPT_LSTNode)e.nextElement());
       }
     }
   }
 
   /**
+   * Process all loop heads in a loop nest by inserting a backedge yieldpoint in each of them.
+   */
+  private void processLoopNest(OPT_LSTNode n) {
+    for (java.util.Enumeration e = n.getChildren(); e.hasMoreElements();) {
+      processLoopNest((OPT_LSTNode)e.nextElement());
+    }
+    OPT_Instruction dest = n.header.firstInstruction();
+    if (dest.position.getMethod().isInterruptible()) {
+      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.bcIndex, dest.position);
+    }
+  }
+
+  /**
    * Add a YIELD instruction to the appropriate place for the basic 
-   *   block passed.
+   * block passed.
    * 
    * @param bb the basic block
    * @param yp the yieldpoint operator to insert

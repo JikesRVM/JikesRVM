@@ -34,11 +34,6 @@ import java.util.*;
 class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 
   /**
-   * The optimization level at which this phase should run
-   */
-  int optLevel;
-
-  /**
    * The IR on which to operate.
    */
   private OPT_IR ir;
@@ -53,26 +48,18 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    */
   private OPT_BasicBlock[] topOrder;
 
-  OPT_EstimateBlockFrequencies(int ol) {
-    optLevel = ol;
-  }
-
   public String getName () { return  "Estimate Block Frequencies"; }
-
-  public boolean shouldPerform (OPT_Options options) {
-    return options.getOptLevel() >= optLevel;
-  }
 
   /**
    * Compute relative basic block frequencies for the argument IR based on the
    * branch probability information on each conditional and multiway branch.
-   * 
+   * Assumptions: (1) LST is valid
+   *              (2) basic block numbering is dense (compact has been called).
    * @param _ir the IR on which to apply the phase
    */
   public void perform (OPT_IR _ir) {
     // Prepare 
     ir = _ir;
-    ir.cfg.compactNodeNumbering();
     ir.cfg.resetTopSorted();
     ir.cfg.buildTopSort();
     topOrder = new OPT_BasicBlock[ir.cfg.numberOfNodes()];
@@ -85,10 +72,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       ptr.clearScratchFlag();
     }
 
-    // Compute dominator information and lst.
-    OPT_LTDominators.approximate(ir, true);
-    OPT_DominatorTree.perform(ir, true);
-    OPT_LSTGraph.perform(ir);
+    // Get pre-computed LST from IR.
     lst = ir.HIRInfo.LoopStructureTree;
 
     // Compute loop multipliers

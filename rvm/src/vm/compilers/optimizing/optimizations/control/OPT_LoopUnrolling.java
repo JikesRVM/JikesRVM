@@ -42,7 +42,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     if (ir.hasReachableExceptionHandlers()) return;
     OPT_DefUse.computeDU (ir);
     new OPT_Simple().perform(ir);
-    new OPT_BranchOptimizations(-1).perform(ir, true);
+    new OPT_BranchOptimizations(-1, true, true).perform(ir, true);
 
     new OPT_CFGTransformations().perform(ir);
     // Note: the following unfactors the CFG

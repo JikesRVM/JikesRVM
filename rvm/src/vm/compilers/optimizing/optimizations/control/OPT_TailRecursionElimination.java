@@ -24,7 +24,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
   implements OPT_Operators {
 
   private static final boolean DEBUG = false;
-  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
+  private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
 
   final boolean shouldPerform (OPT_Options options) {
     return  options.getOptLevel() >= 1;
