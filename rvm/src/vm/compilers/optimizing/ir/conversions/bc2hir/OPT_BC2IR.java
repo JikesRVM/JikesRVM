@@ -3375,7 +3375,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return IfCmp.create(INT_IFCMP, guard, op0, 
 			  new OPT_IntConstantOperand(0), 
 			  cond, generateTarget(offset),
-			  gc.getConditionalBranchProfileOperand(instrIndex));
+			  gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
     }
     OPT_RegisterOperand val = (OPT_RegisterOperand)op0;
     OPT_BranchOperand branch = null;
@@ -3455,7 +3455,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
 			      cond, branch,
-			      gc.getConditionalBranchProfileOperand(instrIndex));
+			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
 
 	}
       case INSTANCEOF_NOTNULL_opcode:
@@ -3526,7 +3526,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
 			      cond, branch,
-			      gc.getConditionalBranchProfileOperand(instrIndex));
+			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
 	}
       case DOUBLE_CMPG_opcode:case DOUBLE_CMPL_opcode:
       case FLOAT_CMPG_opcode:case FLOAT_CMPL_opcode:case LONG_CMP_opcode:
@@ -3570,7 +3570,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_RegisterOperand guard = gc.temps.makeTempValidation();
 	  return IfCmp.create(operator, guard, val1, val2, cond, 
 			      branch, 
-			      gc.getConditionalBranchProfileOperand(instrIndex));
+			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
 	}
       default:
 	// Fall through and Insert INT_IFCMP
@@ -3582,7 +3582,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return IfCmp.create(INT_IFCMP, guard, val, 
 			new OPT_IntConstantOperand(0), 
 			cond, branch,
-			gc.getConditionalBranchProfileOperand(instrIndex));
+			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
   }
 
   // helper function for if_icmp?? bytecodes
@@ -3619,7 +3619,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(INT_IFCMP, guard, op0, op1, cond, 
 			generateTarget(offset),
-			gc.getConditionalBranchProfileOperand(instrIndex));
+			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
   }
 
   // helper function for ifnull/ifnonnull bytecodes
@@ -3697,7 +3697,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, ref, 
 			new OPT_NullConstantOperand(), cond, branch,
-			gc.getConditionalBranchProfileOperand(instrIndex));
+			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
   }
   
   // helper function for if_acmp?? bytecodes
@@ -3730,7 +3730,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, op0, op1, 
 			cond, generateTarget(offset),
-			gc.getConditionalBranchProfileOperand(instrIndex));
+			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
   }
 
   //// REPLACE LOCALS ON STACK.

@@ -586,12 +586,16 @@ final class OPT_GenerationContext implements OPT_Constants,
   ///////////
   // Profile data
   ///////////
-  public OPT_BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex) {
+  public OPT_BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
     if (branchProfiles != null) {
       VM_BranchProfile bp = VM_EdgeCounts.getBranchProfile(branchProfiles, bcIndex);
       return new OPT_BranchProfileOperand(((VM_ConditionalBranchProfile)bp).getTakenProbability());
     } 
-    return new OPT_BranchProfileOperand(); // defaults to .5, ie 50/50 taken/notTaken
+    if (backwards) {
+      return new OPT_BranchProfileOperand(0.9); // assume loop backedge and loop executes 10 times.
+    } else {
+      return new OPT_BranchProfileOperand(0.5); // 50/50 taken/notTaken
+    }
   }
 
   public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {
