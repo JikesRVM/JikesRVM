@@ -71,7 +71,8 @@ function tracing() {
 	# No-all is a no-op, since we only 
 	# trace if it's explicitly requested.
 	TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
-	TRACE_FLAG=${TRACE_FLAG/,most,/,preprocessor,make,no-BootImageWriter,ant,jbuild,}
+#	TRACE_FLAG=${TRACE_FLAG/,most,/,all,preprocessor,make,no-BootImageWriter,ant,jbuild,}
+	TRACE_FLAG=${TRACE_FLAG/,most,/,all,no-BootImageWriter,}
     fi
     # TRACE_FLAG is now in canonical form.
     if [[ $TRACE_FLAG == *,all,* ]]; then
@@ -111,15 +112,15 @@ function copyIfNewer () {
     fi
 }
 
-function run () {
+function run() {
     ! tracing make || echo "$@"
     "$@"
 }
 
 function chdir() {
     # Generate information useful for GNU Emacs.
-    \cd "$1"
     ! tracing make || echo "$ME[0]: Entering directory \`$PWD'"
+    \cd "$1"
 }
 
 ## Error Reporting 
@@ -132,6 +133,7 @@ function config_gnufold () {
 
 
 function show_mesg_raw () {
+    cleanline
     [[ ${gnufold-''} ]] || config_gnufold
     echo "$*" | $gnufold | sed -e '2,$s/^/     /';
 }
@@ -294,5 +296,27 @@ set -o nounset;			# may cause trouble!
 function cleanFileList() {
     ${SED=sed} -e 's/^[ 	]*//' -e 's/[ 	]*#.*//' -e '/^$/d' "$@"
 }
+
+
+## Message reporting in general.
+declare -i midline=0;		# are we in the middle of a line?
+function echo() {
+    builtin echo "$@"
+    if [[ ${1-} = -n ]]; then
+	midline=1
+    else
+	midline=0
+    fi
+}
+
+## Print out a clean line.
+function cleanline() {
+    if ((midline)); then
+	echo ""
+    fi
+}
+
+
+
 
 ## END libjconfigure.bash
