@@ -58,8 +58,7 @@ export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"
 export JAR="$HOST_JAVA_HOME/bin/jar"
 
 # the JDK standard library jar files
-#export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/rt.jar"
-export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/jre/lib/graphics.jar:${HOST_JAVA_HOME}/jre/lib/security.jar:${HOST_JAVA_HOME}/jre/lib/charsets.jar"
+export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/jre/lib/graphics.jar:${HOST_JAVA_HOME}/jre/lib/security.jar:${HOST_JAVA_HOME}/jre/lib/charsets.jar:${HOST_JAVA_HOME}/jre/lib/ibmpkcs.jar"
 
 # the JDK tools jar
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
