@@ -42,12 +42,12 @@ as possible.
 
 \index{field access}
 \index{array access}
-Assuming the reference to an object resides in a register, compiled code can 
-access the object's fields at a fixed displacement in a single
-instruction.  To facilitate array access, the reference to an array
-points to the first (zeroth) element of an array and the remaining
-elements are laid out in ascending order.  The number of elements in
-an array, its {\em length}, resides just before its first
+Assuming the reference to an object resides in a register, compiled
+code can access the object's fields at a fixed displacement in a
+single instruction.  To facilitate array access, the reference to an
+array points to the first (zeroth) element of an array and the
+remaining elements are laid out in ascending order.  The number of
+elements in an array, its {\em length}, resides just before its first
 element. Thus, compiled code can access array elements via base +
 scaled index addressing.
 
