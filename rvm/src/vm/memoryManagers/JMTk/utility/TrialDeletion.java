@@ -191,8 +191,7 @@ final class TrialDeletion extends CycleDetector
   private final boolean shouldCollectCycles(boolean fullHeap) {
     boolean major, minor;
     major = ((Plan.getPagesAvail() < Options.cycleDetectionPages) ||
-	     (Plan.getMetaDataPagesUsed() > 2 * Options.cycleMetaDataPages) ||
-	     (Plan.getMetaDataPagesUsed() > (0.8 * Options.metaDataPages)));
+	     (Plan.getMetaDataPagesUsed() > (Options.metaDataPages)));
     
 
     if (Options.genCycleDetection) {
