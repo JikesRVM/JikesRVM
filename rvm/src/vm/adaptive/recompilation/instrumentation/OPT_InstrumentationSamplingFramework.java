@@ -841,6 +841,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * in a conditional, but no code duplication is performed.
    */
   private static void performVariationNoDuplication(OPT_IR ir) {
+    // The register containing the counter value to check
+    cbsReg = ir.regpool.makeTempInt();
 
     Vector v = new Vector();
     for (OPT_BasicBlockEnumeration allBB = ir.getBasicBlocks(); 
