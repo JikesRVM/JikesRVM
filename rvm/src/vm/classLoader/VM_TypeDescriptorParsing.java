@@ -16,9 +16,9 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public class VM_TypeDescriptorParsing 
   implements VM_ClassLoaderConstants // gets us constants.
 {
-  private final boolean DEBUG = true;
-  // Vacuous.  Keeps us from creating a default constructor.
-  private VM_TypeDescriptorParsing() { super(); };
+  // Vacuous.  Keeps us from creating a default constructor.  We don't need to
+  // instantiate this class, since it has only static methods.
+  private VM_TypeDescriptorParsing() {};
   
   /** Is the string @param s a valid name for a Java class? 
    *
@@ -113,7 +113,7 @@ public class VM_TypeDescriptorParsing
       String s = a.toUnicodeString();
     } catch (java.io.UTFDataFormatException udfe) {
       IllegalArgumentException iae 
-	= new IllegalArgumentException("The atom in question does not represent a valid UTF8 string.  Something is broken.");
+	= new IllegalArgumentException("The atom in question does not represent a valid UTF8 string, so it's not a type descriptor.");
       iae.initCause(udfe);
       throw iae;
     }
