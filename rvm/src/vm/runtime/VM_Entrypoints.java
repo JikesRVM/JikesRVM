@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -15,7 +15,13 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  */
 public class VM_Entrypoints implements VM_Constants {
-  public static final VM_NormalMethod bootMethod            = getMethod("Lcom/ibm/JikesRVM/VM;", "boot", "()V");
+
+  public static final VM_NormalMethod bootMethod               =
+    getMethod("Lcom/ibm/JikesRVM/VM;", "boot", "()V");
+
+  public static final VM_Method java_lang_reflect_Method_invokeMethod =
+    getMethod("Ljava/lang/reflect/Method;", "invoke", 
+              "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
   public static final VM_Field magicObjectRemapperField = getField("Lcom/ibm/JikesRVM/VM_Magic;", "objectAddressRemapper","Lcom/ibm/JikesRVM/VM_ObjectAddressRemapper;");
  
@@ -281,6 +287,9 @@ public class VM_Entrypoints implements VM_Constants {
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
     //-#endif
 
+  public static final VM_Field classLoaderLoadedClasses =
+    getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/HashMap;");
+
   static {
 
     // Don't mark the following as runtime serivce methods;
@@ -308,7 +317,7 @@ public class VM_Entrypoints implements VM_Constants {
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
-      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), clsDescriptor);
+      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), clsDescriptor);
       VM_Class cls = (VM_Class)tRef.resolve();
       cls.resolve();
 
