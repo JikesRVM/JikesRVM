@@ -587,15 +587,31 @@ BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), \
             BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), \
 	    BooleanCmp.getCond(P(p)));
 
-r:	BOOLEAN_CMP(crz, ZERO)
-26
+boolcmp: BOOLEAN_CMP(r,riv)
+13
 EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(MIR_Compare.mutate(P(p), IA32_CMP, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))));
+
+r:	BOOLEAN_CMP(cz, ZERO)
+26
+EMIT_INSTRUCTION 
 BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP(cz, ZERO)
+0
+EMIT_INSTRUCTION 
+pushCOND(BooleanCmp.getCond(P(p))); 
 
 r:	BOOLEAN_CMP(szp, ZERO)
 EQ_NE(BooleanCmp.getCond(P(p)))?26:INFINITE
 EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP(szp, ZERO)
+EQ_NE(BooleanCmp.getCond(P(p)))?0:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)));
 
 ### Memory operands ###
 r:	BOOLEAN_CMP(load32,riv)
@@ -605,6 +621,12 @@ BOOLEAN_CMP(burs, PL(p), BooleanCmp.getResult(P(p)), \
             consumeMO(), BooleanCmp.getVal2(P(p)), \
 	    BooleanCmp.getCond(P(p)));
 
+boolcmp: BOOLEAN_CMP(load32,riv)
+15
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(MIR_Compare.mutate(PL(p), IA32_CMP, consumeMO(), BooleanCmp.getVal2(P(p)))); 
+
 r:	BOOLEAN_CMP(r,load32)
 41
 EMIT_INSTRUCTION
@@ -612,67 +634,21 @@ BOOLEAN_CMP(burs, PR(p), BooleanCmp.getResult(P(p)), \
             BooleanCmp.getVal1(P(p)), consumeMO(), \
 	    BooleanCmp.getCond(P(p)));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(r,riv), OTHER_OPERAND(riv,riv))
-28
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_S(P(p),B), \
-            BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), \
-	    BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_STORE(BOOLEAN_CMP(load32,riv), OTHER_OPERAND(riv,riv))
-30
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_S(P(p),B), \
-	    consumeMO(), BooleanCmp.getVal2(PL(p)), \
-	    BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_STORE(BOOLEAN_CMP(r,load32), OTHER_OPERAND(riv,riv))
-30
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_S(P(p),B), \
-	    BooleanCmp.getVal1(PL(p)), consumeMO(), \
-	    BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_ASTORE(BOOLEAN_CMP(r,riv), OTHER_OPERAND(r,riv))
-28
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_AS(P(p),B_S,B), \
-            BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), \
-	    BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_ASTORE(BOOLEAN_CMP(load32,riv), OTHER_OPERAND(r,riv))
-30
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_AS(P(p),B_S,B), \
-	    consumeMO(), BooleanCmp.getVal2(PL(p)), \
-	    BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_ASTORE(BOOLEAN_CMP(r,load32), OTHER_OPERAND(r,riv))
-30
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_AS(P(p),B_S,B), \
-	    BooleanCmp.getVal1(PL(p)), consumeMO(), \
-	    BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_STORE(BOOLEAN_CMP(crz, ZERO), OTHER_OPERAND(riv,riv))
+boolcmp: BOOLEAN_CMP(r,load32)
 15
 EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, PL(p), MO_S(P(p), B), BooleanCmp.getCond(PL(p)));
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(MIR_Compare.mutate(PR(p), IA32_CMP, BooleanCmp.getVal1(P(p)), consumeMO()));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(szp, ZERO), OTHER_OPERAND(riv, riv))
-EQ_NE(BooleanCmp.getCond(PL(p)))?15:INFINITE
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_S(P(p), B), BooleanCmp.getCond(PL(p)));
-
-stm:	BYTE_ASTORE(BOOLEAN_CMP(crz, ZERO), OTHER_OPERAND(r,riv))
+stm:	BYTE_STORE(boolcmp, OTHER_OPERAND(riv,riv))
 15
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, PL(p), MO_AS(P(p), B_S, B), BooleanCmp.getCond(PL(p)));
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Set.mutate(P(p), IA32_SET$B, MO_S(P(p),B), COND(consumeCOND())));
 
-stm:	BYTE_ASTORE(BOOLEAN_CMP(szp, ZERO), OTHER_OPERAND(r, riv))
-EQ_NE(BooleanCmp.getCond(PL(p)))?15:INFINITE
-EMIT_INSTRUCTION
-BOOLEAN_CMP(burs, P(p), MO_AS(P(p), B_S, B), BooleanCmp.getCond(PL(p)));
+stm:	BYTE_ASTORE(boolcmp, OTHER_OPERAND(r,riv))
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Set.mutate(P(p), IA32_SET$B, MO_AS(P(p),B_S,B), COND(consumeCOND())));
 
 ##################################
 # Conditional moves
@@ -732,95 +708,34 @@ CMOV_CMP(burs, P(p), CondMove.getVal1(P(p)), consumeMO()); \
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-# CMOV((BooleanCmp(x,y), 0 or 1), tv, fv)
-r:	CMOV(BOOLEAN_CMP(r, riv), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?(13 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
+# CMOV((boolcmp, 0/1), tv, fv)
+r:	CMOV(boolcmp, OTHER_OPERAND(ZERO, arg))
+(CondMove.getCond(P(p)).isNOT_EQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), consumeCOND(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r:	CMOV(BOOLEAN_CMP(r, riv), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isEQUAL())?(13 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
+r:	CMOV(boolcmp, OTHER_OPERAND(ZERO, arg))
+(CondMove.getCond(P(p)).isEQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r:	CMOV(BOOLEAN_CMP(r, riv), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isEQUAL())?(13 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
+r:	CMOV(boolcmp, OTHER_OPERAND(ONE, arg))
+(CondMove.getCond(P(p)).isEQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), consumeCOND(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r:	CMOV(BOOLEAN_CMP(r, riv), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?(13 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-# CMOV((BooleanCmp(x,y), 0 or 1), tv, fv) when x or y is a memory operand
-r:	CMOV(BOOLEAN_CMP(load32, riv), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(r, load32), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO()); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(load32, riv), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isEQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(r, load32), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isEQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO()); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(load32, riv), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isEQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(r, load32), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isEQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO()); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(load32, riv), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p))); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(r, load32), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?(15 + 30):INFINITE
-EMIT_INSTRUCTION
-CMOV_CMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO()); \
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
+r:	CMOV(boolcmp, OTHER_OPERAND(ONE, arg))
+(CondMove.getCond(P(p)).isNOT_EQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 # CMOV((cz, 0), tv ,fv); condition code already set
 r:	CMOV(cz, OTHER_OPERAND(ZERO, arg))
-30
+30 
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
@@ -830,56 +745,6 @@ r:	CMOV(szp, OTHER_OPERAND(ZERO, arg))
 30
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-# CMOV((BooleanCmp(cz, ZERO), ZERO/ONE), tv, fv); condition code already set.
-r:	CMOV(BOOLEAN_CMP(cz, ZERO), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(cz, ZERO), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isEQUAL())?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(cz, ZERO), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isEQUAL())?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(cz, ZERO), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL())?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-# CMOV((BooleanCmp(szp, ZERO), ZERO/ONE), tv, fv); condition code already set.
-r:	CMOV(BOOLEAN_CMP(szp, ZERO), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(szp, ZERO), OTHER_OPERAND(ZERO, arg))
-(CondMove.getCond(P(p)).isEQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(szp, ZERO), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isEQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r:	CMOV(BOOLEAN_CMP(szp, ZERO), OTHER_OPERAND(ONE, arg))
-(CondMove.getCond(P(p)).isNOT_EQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?30:INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), BooleanCmp.getCond(PL(p)).flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 ##################################
@@ -3398,67 +3263,26 @@ stm:	INT_IFCMP(r, load32)
 EMIT_INSTRUCTION
 IFCMP(burs, P(p), IfCmp.getVal1(P(p)), consumeMO(), IfCmp.getCond(P(p)));
 
-# IfCmp(BooleanCmp(x,y), 0 or 1)
-stm:	INT_IFCMP(BOOLEAN_CMP(r, riv), ZERO)
+# IfCmp(boolcmp, 0/1)
+stm:	INT_IFCMP(boolcmp, ZERO)
+(IfCmp.getCond(P(p)).isNOT_EQUAL())?13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
+
+stm:	INT_IFCMP(boolcmp, ZERO)
+(IfCmp.getCond(P(p)).isEQUAL())?13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND().flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
+
+stm:	INT_IFCMP(boolcmp, ONE)
+(IfCmp.getCond(P(p)).isEQUAL())?13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
+
+stm:	INT_IFCMP(boolcmp, ONE)
 (IfCmp.getCond(P(p)).isNOT_EQUAL())?26:INFINITE
 EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, riv), ZERO)
-(IfCmp.getCond(P(p)).isEQUAL())?26:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode());
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, riv), ONE)
-(IfCmp.getCond(P(p)).isEQUAL())?26:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, riv), ONE)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?26:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode());
-
-# IfCmp(BooleanCmp(x,y), 0 or 1) when x or y is a memory operand
-stm:	INT_IFCMP(BOOLEAN_CMP(load32, riv), ZERO)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, load32), ZERO)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO(), BooleanCmp.getCond(PL(p)));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(load32, riv), ZERO)
-(IfCmp.getCond(P(p)).isEQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode());
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, load32), ZERO)
-(IfCmp.getCond(P(p)).isEQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO(), BooleanCmp.getCond(PL(p)).flipCode());
-
-stm:	INT_IFCMP(BOOLEAN_CMP(load32, riv), ONE)
-(IfCmp.getCond(P(p)).isEQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, load32), ONE)
-(IfCmp.getCond(P(p)).isEQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO(), BooleanCmp.getCond(PL(p)));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(load32, riv), ONE)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), consumeMO(), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode());
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, load32), ONE)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?28:INFINITE
-EMIT_INSTRUCTION
-IFCMP(burs, P(p), BooleanCmp.getVal1(PL(p)), consumeMO(), BooleanCmp.getCond(PL(p)).flipCode());
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND().flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
 
 # IfCmp(cz, 0); condition code already set
 stm:	INT_IFCMP(cz, ZERO)
@@ -3471,48 +3295,6 @@ stm:	INT_IFCMP(szp, ZERO)
 EQ_NE(IfCmp.getCond(P(p)))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(IfCmp.getCond(P(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-# IfCmp(BooleanCmp(cz, ZERO), ZERO/ONE); condition code already set.
-stm:	INT_IFCMP(BOOLEAN_CMP(cz, ZERO), ZERO)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(cz, ZERO), ZERO)
-(IfCmp.getCond(P(p)).isEQUAL())?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p)).flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(cz, ZERO), ONE)
-(IfCmp.getCond(P(p)).isNOT_EQUAL())?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p)).flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(cz, ZERO), ONE)
-(IfCmp.getCond(P(p)).isEQUAL())?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-#IfCmp(BooleanCmp(szp, ZERO), ZERO/ONE); condition code already set
-stm:	INT_IFCMP(BOOLEAN_CMP(szp, ZERO), ZERO)
-(IfCmp.getCond(P(p)).isNOT_EQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(szp, ZERO), ZERO)
-(IfCmp.getCond(P(p)).isEQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p)).flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(szp, ZERO), ONE)
-(IfCmp.getCond(P(p)).isNOT_EQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p)).flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(BOOLEAN_CMP(szp, ZERO), ONE)
-(IfCmp.getCond(P(p)).isEQUAL()&&EQ_NE(BooleanCmp.getCond(PL(p))))?11:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BooleanCmp.getCond(PL(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
 
 #####
 # INT_IFCMP2: TODO interesting rules

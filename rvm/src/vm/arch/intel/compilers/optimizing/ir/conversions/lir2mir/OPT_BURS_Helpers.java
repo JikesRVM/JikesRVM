@@ -469,6 +469,21 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
 
+  // condition code state
+  private OPT_ConditionOperand cc;
+  void pushCOND(OPT_ConditionOperand c) {
+    if (VM.VerifyAssertions) VM.assert(cc == null);
+    cc = c ;
+  }
+  OPT_ConditionOperand consumeCOND() {
+    OPT_ConditionOperand ans = cc;
+    if (VM.VerifyAssertions) {
+      VM.assert(cc != null);
+      cc = null;
+    }
+    return ans;
+  }
+    
   /*
    * IA32-specific emit rules that are complex 
    * enough that we didn't want to write them in the LIR2MIR.rules file.
@@ -1318,13 +1333,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 			 OPT_Operand val2,
 			 OPT_ConditionOperand cond) {
     burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
-    if (res instanceof OPT_RegisterOperand) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
-      burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
-    } else {
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, res, COND(cond))));
-    }
+    OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
+    burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
+    burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
   }
 
 
