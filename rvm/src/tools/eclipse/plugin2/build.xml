@@ -36,7 +36,6 @@ $Id$
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
-  <property name="build.compiler" value="jikes"/>
   <property name="build.config.debug" value="yes"/>
 
   <path id="project.classpath">
