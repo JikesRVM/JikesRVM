@@ -25,10 +25,10 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 #	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
 # -U: Maintain uppercase MS-DOS file names if we need to.
 # -o: Overwrite if we need to.  (I think -f might be better)
-# 
+# (Uh, no.  At least with unzip 5.50, we want -u instead, for update 
 #  > /dev/null 2> /dev/null
 #  > /dev/null 2> /dev/null
-	cd $(SCRATCH_DIR); $(UNZIP_CMD) -foqq $< $(UTIL_KLUDGE_EXTRACT)
+	cd $(SCRATCH_DIR); $(UNZIP_CMD) -uoqq $< $(UTIL_KLUDGE_EXTRACT)
 	cd $(SCRATCH_DIR); $(HOST_JAR) -cf $@ $(UTIL_KLUDGE_CLASSES)
 	@echo -n "(built $$(basename ${UTIL_KLUDGE_JAR}) "
 
