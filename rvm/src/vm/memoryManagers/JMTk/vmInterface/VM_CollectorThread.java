@@ -188,7 +188,7 @@ public class VM_CollectorThread extends VM_Thread {
    * Run method for collector thread (one per VM_Processor).
    * Enters an infinite loop, waiting for collections to be requested,
    * performing those collections, and then waiting again.
-   * Calls MM_Interface.collect to perform the collection, which
+   * Calls VM_Interface.collect to perform the collection, which
    * will be different for the different allocators/collectors
    * that the RVM can be configured to use.
    */
@@ -206,7 +206,7 @@ public class VM_CollectorThread extends VM_Thread {
       VM_Scheduler.collectorMutex.lock();
       if (trace > 1) {
 	VM_Scheduler.trace("VM_CollectorThread", "yielding");
-	MM_Interface.getPlan().show();
+	VM_Interface.getPlan().show();
       }
 
       VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
@@ -284,7 +284,7 @@ public class VM_CollectorThread extends VM_Thread {
     
       if (trace > 2) VM_Scheduler.trace("VM_CollectorThread", "starting collection");
       if (getThis().isActive) 
-	MM_Interface.collect();     // gc
+	VM_Interface.getPlan().collect();     // gc
       if (trace > 1) VM_Scheduler.trace("VM_CollectorThread", "finished collection");
       
       // wait for other collector threads to arrive here
@@ -310,7 +310,7 @@ public class VM_CollectorThread extends VM_Thread {
 	handshake.reset();
 
 	// schedule the FinalizerThread, if there is work to do & it is idle
-	MM_Interface.scheduleFinalizerThread();
+	VM_Interface.scheduleFinalizerThread();
       } 
       
       // wait for other collector threads to arrive here

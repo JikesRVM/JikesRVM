@@ -4,15 +4,11 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -232,7 +228,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return True if the object resides in a copying space.
    */
   public final static boolean isCopyObject(Object obj) {
-    VM_Address addr = MM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
+    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 
@@ -244,7 +240,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public final static boolean isLive(VM_Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
+    VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case NURSERY_SPACE:   return CopySpace.isLive(obj);
@@ -253,9 +249,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
-      default:              if (VM.VerifyAssertions) {
-	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
-			      VM.sysFail("Plan.traceObject: unknown space");
+      default:              if (VM_Interface.VerifyAssertions) {
+	                      VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
+			      VM_Interface.sysFail("Plan.traceObject: unknown space");
                             }
 			    return false;
     }

@@ -4,13 +4,13 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.SynchronizationBarrier;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -133,7 +133,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static final boolean stressTestGCRequired()
     throws VM_PragmaInline {
     int pagesReserved = Plan.getPagesReserved();
-    if (MM_Interface.fullyInitialized() &&
+    if (VM_Interface.fullyInitialized() &&
 	((pagesReserved ^ lastStressPagesReserved) > Options.stressTest)) {
       lastStressPagesReserved = pagesReserved;
       return true;
@@ -163,7 +163,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (designated) Statistics.initTime.stop();
 
     if (designated) Statistics.rootTime.start();
-    MM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
+    VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
     if (designated) Statistics.rootTime.stop();
 
     if (designated) Statistics.scanTime.start();
@@ -195,7 +195,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Prepare for a collection.
    */
   protected final void prepare() {
-    double start = MM_Interface.now();
+    double start = VM_Interface.now();
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalPrepare(start);
@@ -203,7 +203,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (order == 1)
       for (int i=0; i<planCount; i++) {
 	Plan p = plans[i];
-	if (MM_Interface.isNonParticipating(p))
+	if (VM_Interface.isNonParticipating(p))
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
@@ -226,27 +226,27 @@ public abstract class StopTheWorldGC extends BasePlan
     Statistics.gcCount++;
     gcStartTime = start;
     if ((verbose == 1) || (verbose == 2)) {
-      VM.sysWrite("[GC ", Statistics.gcCount);
+      VM_Interface.sysWrite("[GC ",Statistics.gcCount);
       if (verbose == 1) 
-	VM.sysWrite(" Start ", (gcStartTime - bootTime), " s");
+	VM_Interface.sysWrite(" Start ",(gcStartTime - bootTime)," s");
       else	
-	VM.sysWrite(" Start ", 1000*(gcStartTime - bootTime), " ms");
-      VM.sysWrite("   ", Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB ");
+	VM_Interface.sysWrite(" Start ",1000*(gcStartTime - bootTime)," ms");
+      VM_Interface.sysWrite("   ",Conversions.pagesToBytes(Plan.getPagesUsed())>>10," KB ");
     }
     if (verbose > 2) {
-      VM.sysWrite("Collection ", Statistics.gcCount);
-      VM.sysWrite(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      VM.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
-      VM.sysWriteln();
-      VM.sysWrite("  Before Collection: ");
+      VM_Interface.sysWrite("Collection ",Statistics.gcCount);
+      VM_Interface.sysWrite(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      VM_Interface.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
+      VM_Interface.sysWriteln();
+      VM_Interface.sysWrite("  Before Collection: ");
       MemoryResource.showUsage(MB);
       if (verbose >= 4) {
-	  VM.sysWrite("                     ");
+	  VM_Interface.sysWrite("                     ");
 	  MemoryResource.showUsage(PAGES);
       }
     }
     globalPrepare();
-    MM_Interface.resetComputeAllRoots();
+    VM_Interface.resetComputeAllRoots();
   }
 
   /**
@@ -263,11 +263,11 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   public final void baseThreadLocalPrepare(int order) {
     if (order == NON_PARTICIPANT)
-      MM_Interface.prepareNonParticipating((Plan) this);  
+      VM_Interface.prepareNonParticipating((Plan) this);  
     else
-      MM_Interface.prepareParticipating((Plan) this);  
+      VM_Interface.prepareParticipating((Plan) this);  
     VM_CollectorThread.gcBarrier.rendezvous();
-    if (verbose >= 4) VM.sysWriteln("  Preparing all collector threads for start");
+    if (verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
   }
 
@@ -275,19 +275,19 @@ public abstract class StopTheWorldGC extends BasePlan
    * Clean up after a collection
    */
   protected final void release() {
-    if (verbose >= 4) VM.sysWriteln("  Preparing all collector threads for termination");
+    if (verbose >= 4) VM_Interface.sysWriteln("  Preparing all collector threads for termination");
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     baseThreadLocalRelease(order);
     if (order == 1) {
       int count = 0;
       for (int i=0; i<planCount; i++) {
 	Plan p = plans[i];
-	if (MM_Interface.isNonParticipating(p)) {
+	if (VM_Interface.isNonParticipating(p)) {
 	  count++;
 	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
 	}
       }
-      if (verbose >= 4) VM.sysWriteln("  There were ", count, " non-participating GC threads");
+      if (verbose >= 4) VM_Interface.sysWriteln("  There were ",count," non-participating GC threads");
     }
     order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
@@ -307,28 +307,28 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseGlobalRelease() {
     globalRelease();
     gcInProgress = false;    // GC is in progress until after release!
-    gcStopTime = MM_Interface.now();
+    gcStopTime = VM_Interface.now();
     if ((verbose == 1) || (verbose == 2)) {
-      VM.sysWrite("-> ");
-      VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB   ");
+      VM_Interface.sysWrite("-> ");
+      VM_Interface.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10," KB   ");
       if (verbose == 1)
-	VM.sysWriteln(1000 * (gcStopTime - gcStartTime), " ms]");
+	VM_Interface.sysWriteln(1000 * (gcStopTime - gcStartTime)," ms]");
       else
-	VM.sysWriteln("End ", 1000 * (gcStopTime - bootTime), " ms]");
+	VM_Interface.sysWriteln("End ",1000 * (gcStopTime - bootTime)," ms]");
     }
     if (verbose > 2) {
-      VM.sysWrite("   After Collection: ");
+      VM_Interface.sysWrite("   After Collection: ");
       MemoryResource.showUsage(MB);
       if (verbose >= 4) {
-	  VM.sysWrite("                     ");
+	  VM_Interface.sysWrite("                     ");
 	  MemoryResource.showUsage(PAGES);
       }
-      VM.sysWrite("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      VM.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
-      VM.sysWriteln();
-      VM.sysWrite("    Collection time: ");
-      VM.sysWrite(gcStopTime - gcStartTime, 3);
-      VM.sysWriteln(" seconds");
+      VM_Interface.sysWrite("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      VM_Interface.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
+      VM_Interface.sysWriteln();
+      VM_Interface.sysWrite("    Collection time: ");
+      VM_Interface.sysWrite(gcStopTime - gcStartTime,3);
+      VM_Interface.sysWriteln(" seconds");
     }
     valuePool.reset();
     locationPool.reset();
@@ -356,15 +356,15 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void processAllWork() throws VM_PragmaNoInline {
 
-    if (verbose >= 4) VM.psysWriteln("  Working on GC in parallel");
+    if (verbose >= 4) VM_Interface.psysWriteln("  Working on GC in parallel");
     flushRememberedSets();
     do {
-      if (verbose >= 5) VM.psysWriteln("    processing root locations");
+      if (verbose >= 5) VM_Interface.psysWriteln("    processing root locations");
       while (!rootLocations.isEmpty()) {
 	VM_Address loc = rootLocations.pop();
 	traceObjectLocation(loc, true);
       }
-      if (verbose >= 5) VM.psysWriteln("    processing interior root locations");
+      if (verbose >= 5) VM_Interface.psysWriteln("    processing interior root locations");
       while (!interiorRootLocations.isEmpty()) {
 	VM_Address obj = interiorRootLocations.pop1();
 	VM_Address interiorLoc = interiorRootLocations.pop2();
@@ -372,12 +372,12 @@ public abstract class StopTheWorldGC extends BasePlan
 	VM_Address newInterior = traceInteriorReference(obj, interior, true);
 	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
-      if (verbose >= 5) VM.psysWriteln("    processing gray objects");
+      if (verbose >= 5) VM_Interface.psysWriteln("    processing gray objects");
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
 	ScanObject.scan(v);  // NOT traceObject
       }
-      if (verbose >= 5) VM.psysWriteln("    processing locations");
+      if (verbose >= 5) VM_Interface.psysWriteln("    processing locations");
       while (!locations.isEmpty()) {
 	VM_Address loc = locations.pop();
 	traceObjectLocation(loc, false);
@@ -386,7 +386,7 @@ public abstract class StopTheWorldGC extends BasePlan
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
 	       && values.isEmpty() && locations.isEmpty()));
 
-    if (verbose >= 4) VM.psysWriteln("    waiting at barrier");
+    if (verbose >= 4) VM_Interface.psysWriteln("    waiting at barrier");
     VM_CollectorThread.gcBarrier.rendezvous();
   }
 

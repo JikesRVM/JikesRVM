@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -18,6 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 class Queue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 

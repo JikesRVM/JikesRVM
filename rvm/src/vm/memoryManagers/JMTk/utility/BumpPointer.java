@@ -5,16 +5,11 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Scheduler;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -111,7 +106,7 @@ final class BumpPointer extends Allocator implements Constants, VM_Uninterruptib
   }
 
   public void show() {
-    VM.sysWriteln("cursor = ", cursor, " limit = ", limit);
+    VM_Interface.sysWriteln("cursor = ",cursor," limit = ",limit);
   }
 
   ////////////////////////////////////////////////////////////////////////////

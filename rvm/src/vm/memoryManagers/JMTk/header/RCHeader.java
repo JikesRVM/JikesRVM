@@ -5,13 +5,11 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -22,7 +20,8 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-public class RCHeader extends RCBaseHeader implements VM_Constants {
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+public class RCHeader extends RCBaseHeader {
   /**
    * Perform any required initialization of the GC portion of the header.
    * 
@@ -36,12 +35,12 @@ public class RCHeader extends RCBaseHeader implements VM_Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT
     int initialValue = INCREMENT;
-    if (Plan.refCountCycleDetection && MM_Interface.isAcyclic(tib))
+    if (Plan.refCountCycleDetection && VM_Interface.isAcyclic(tib))
       initialValue |= GREEN;
     
     VM_Magic.setIntAtOffset(ref, RC_HEADER_OFFSET, initialValue);
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~SMALL_OBJECT_MASK) | Plan.getInitialHeaderValue(size);
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 }

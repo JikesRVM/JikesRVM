@@ -4,9 +4,9 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -45,8 +45,8 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
    * @param addr2 the second address to be inserted into the address queue
    */
   public final void insert(VM_Address addr1, VM_Address addr2) {
-    if (VM.VerifyAssertions) VM._assert(!addr1.isZero());
-    if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     checkInsert(2);
     uncheckedInsert(addr1);
     uncheckedInsert(addr2);
@@ -59,8 +59,8 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
    * @param addr2 the second value to be pushed onto the address queue
    */
   public final void push(VM_Address addr1, VM_Address addr2) {
-    if (VM.VerifyAssertions) VM._assert(!addr1.isZero());
-    if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     checkPush(2);
     uncheckedPush(addr2);
     uncheckedPush(addr1);

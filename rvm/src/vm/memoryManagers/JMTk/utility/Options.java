@@ -7,8 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Word;
+
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -18,6 +17,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  *
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Options implements VM_Uninterruptible, Constants {
 
   static int initialHeapSize = 100 * (1 << 20);
@@ -37,7 +37,7 @@ public class Options implements VM_Uninterruptible, Constants {
 
   public static void process (String arg) throws VM_PragmaInterruptible {
     if (arg.startsWith("noFinalizer")) {
-	VM.sysWriteln("NO MORE FINALIZER!");
+	VM_Interface.sysWriteln("NO MORE FINALIZER!");
 	noFinalizer = true;
     }
     else if (arg.equals("ignoreSystemGC")) {
@@ -46,65 +46,65 @@ public class Options implements VM_Uninterruptible, Constants {
     else if (arg.startsWith("initial=")) {
       String tmp = arg.substring(8);
       int size = Integer.parseInt(tmp);
-      if (size <= 0) VM.sysFail("Unreasonable heap size " + tmp);
+      if (size <= 0) VM_Interface.sysFail("Unreasonable heap size " + tmp);
       heapSize = size * (1 << 20);
     }
     else if (arg.startsWith("los=")) {  // deprecated
       String tmp = arg.substring(4);
       int size = Integer.parseInt(tmp);
-      if (size <= 0) VM.sysFail("Unreasonable large heap size " + tmp);
+      if (size <= 0) VM_Interface.sysFail("Unreasonable large heap size " + tmp);
       largeHeapSize = size * (1 << 20);  
     }
     else if (arg.startsWith("max=")) {
       String tmp = arg.substring(4);
       int size = Integer.parseInt(tmp);
-      if (size <= 0) VM.sysFail("Unreasonable heap size " + tmp);
+      if (size <= 0) VM_Interface.sysFail("Unreasonable heap size " + tmp);
       maxHeapSize = size * (1 << 20);
     }
     else if (arg.startsWith("verbose=")) {
       String tmp = arg.substring(8);
       int level = Integer.parseInt(tmp);
-      if (level < 0) VM.sysFail("Unreasonable verbosity level " + tmp);
+      if (level < 0) VM_Interface.sysFail("Unreasonable verbosity level " + tmp);
       Plan.verbose = level;
     }
     else if (arg.startsWith("nursery_size=")) {
       String tmp = arg.substring(13);
       nurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
-      if (nurseryPages <= 0) VM.sysFail("Unreasonable nursery size " + tmp);
+      if (nurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
     }
     else if (arg.startsWith("metadata_limit=")) {
       String tmp = arg.substring(15);
       metaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
-      if (metaDataPages <= 0) VM.sysFail("Unreasonable metadata limit " + tmp);
+      if (metaDataPages <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + tmp);
     }
     else if (arg.startsWith("cycle_metadata_limit=")) {
       String tmp = arg.substring(21);
       cycleMetaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
-      if (cycleMetaDataPages <= 0) VM.sysFail("Unreasonable cycle metadata limit " + tmp);
+      if (cycleMetaDataPages <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + tmp);
     }
     else if (arg.startsWith("cycle_detection_limit=")) {
       String tmp = arg.substring(22);
       cycleDetectionPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
-      if (cycleDetectionPages <= 0) VM.sysFail("Unreasonable cycle detection limit " + tmp);
+      if (cycleDetectionPages <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + tmp);
     }
     else if (arg.startsWith("time_cap=")) {
       String tmp = arg.substring(9);
       gcTimeCap = Integer.parseInt(tmp);
-      if (gcTimeCap <= 0) VM.sysFail("Unreasonable time cap " + tmp);
+      if (gcTimeCap <= 0) VM_Interface.sysFail("Unreasonable time cap " + tmp);
     }
     else if (arg.startsWith("stress=")) {
       String tmp = arg.substring(7);
       stressTest = 1<<Integer.parseInt(tmp);
     }
     else 
-      VM.sysWriteln("Ignoring unknown GC option: ", arg);
+      VM_Interface.sysWriteln("Ignoring unknown GC option: ",arg);
     if (heapSize != 0) // if deprecated interface is used
       initialHeapSize = heapSize + largeHeapSize;
     if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
     if (VM_Extent.fromInt(maxHeapSize).GT(Plan.MAX_SIZE)) {
-	VM.sysWriteln("Specified heap size ", maxHeapSize >>> 20);
-	VM.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ", (int) (Plan.MAX_SIZE.toInt() >>> 20), " Mb");
-	VM.sysFail("Max heap too large");
+	VM_Interface.sysWriteln("Specified heap size ",maxHeapSize >>> 20);
+	VM_Interface.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ",(int) (Plan.MAX_SIZE.toInt() >>> 20)," Mb");
+	VM_Interface.sysFail("Max heap too large");
     }
   }
 

@@ -6,15 +6,12 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
+
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -24,6 +21,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class MarkSweepHeader {
 
   /**
@@ -51,9 +49,9 @@ public class MarkSweepHeader {
   public static void initializeHeader(Object ref, Object[] tib, int size,
 				      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
@@ -67,9 +65,9 @@ public class MarkSweepHeader {
   public static void initializeLOSHeader(Object ref, Object[] tib, int size,
 					 boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref, newValue);
   }
 
   /**
@@ -112,12 +110,12 @@ public class MarkSweepHeader {
    */
   static public boolean testMarkBit(Object ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (VM_ObjectModel.readAvailableBitsWord(ref) & MARK_BIT_MASK) == value;
+    return (VM_Interface.readAvailableBitsWord(ref) & MARK_BIT_MASK) == value;
   }
 
   static public boolean isSmallObject(Object ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (VM_ObjectModel.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
+    return (VM_Interface.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
   }
 
   /**
@@ -128,9 +126,9 @@ public class MarkSweepHeader {
    */
   public static void writeMarkBit(Object ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~MARK_BIT_MASK) | value;
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
@@ -143,9 +141,9 @@ public class MarkSweepHeader {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
-      oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      oldValue = VM_Interface.prepareAvailableBits(ref);
       newValue = (oldValue & ~MARK_BIT_MASK) | value;
-    } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, newValue));
+    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,newValue));
   }
 
   /**
@@ -159,10 +157,10 @@ public class MarkSweepHeader {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, markBit;
     do {
-      oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      oldValue = VM_Interface.prepareAvailableBits(ref);
       markBit = oldValue & MARK_BIT_MASK;
       if (markBit == value) return false;
-    } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, oldValue ^ MARK_BIT_MASK));
+    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue ^ MARK_BIT_MASK));
     return true;
   }
 }

@@ -4,14 +4,11 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -99,7 +96,7 @@ final class TreadmillLocal extends LargeObjectAllocator
   public final void prepare() {
 //     if (PARANOID)
 //       sanity();
-    if (VM.VerifyAssertions) VM._assert(treadmill.toSpaceEmpty());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(treadmill.toSpaceEmpty());
   }
 
   /**
@@ -124,7 +121,7 @@ final class TreadmillLocal extends LargeObjectAllocator
       free(cell);
     }
     treadmill.flip();
-    if (VM.VerifyAssertions) VM._assert(treadmill.toSpaceEmpty());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(treadmill.toSpaceEmpty());
   }
 
 

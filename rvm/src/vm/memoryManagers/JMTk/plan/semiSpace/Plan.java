@@ -4,24 +4,21 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.classloader.VM_Array;
 
 /**
  * This class implements a simple semi-space collector. See the Jones
@@ -85,7 +82,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
   
   // Memory layout constants
-  public  static final long            AVAILABLE = MM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   private static final VM_Extent         SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3)));
   private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3 * 0.3)));
   public  static final VM_Extent        MAX_SIZE = SS_SIZE.add(SS_SIZE);
@@ -168,7 +165,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc (int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       return los.alloc(isScalar, bytes);
     } else {
@@ -177,7 +174,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
       case      LOS_SPACE:  return los.alloc(isScalar, bytes);
       default: 
-	if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
 	return VM_Address.zero();
       }
     }
@@ -203,7 +200,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case  DEFAULT_SPACE: return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); return;
-      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -220,7 +217,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address allocCopy(VM_Address original, int bytes, 
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bytes < LOS_SIZE_THRESHOLD);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes < LOS_SIZE_THRESHOLD);
     VM_Address result = ss.alloc(isScalar, bytes);
     return result;
   }
@@ -328,7 +325,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == ssMR)
 	required = required<<1;  // must account for copy reserve
-      MM_Interface.triggerCollection(MM_Interface.RESOURCE_TRIGGERED_GC);
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
@@ -439,7 +436,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final VM_Address traceObject (VM_Address obj) throws VM_PragmaInline {
     if (obj.isZero()) return obj;
-    VM_Address addr = MM_Interface.refToAddress(obj);
+    VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case LOW_SS_SPACE:    return   hi  ? CopySpace.traceObject(obj) : obj;
@@ -448,15 +445,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
       case BOOT_SPACE:	    return ImmortalSpace.traceObject(obj);
       case META_SPACE:	    return obj;
-      default:              if (VM.VerifyAssertions) {
-	                      VM.sysWrite("Plan.traceObject: obj ", obj);
-	                      VM.sysWrite(" or addr ", addr);
-	                      VM.sysWrite(" of page ", Conversions.addressToPagesDown(addr));
-	                      VM.sysWriteln(" is in unknown space", space);
-	                      VM.sysWrite("Type = ");
-			      VM.sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
-			      VM.sysWriteln();
-			      VM.sysFail("Plan.traceObject: unknown space");
+      default:              if (VM_Interface.VerifyAssertions) {
+	                      VM_Interface.sysWrite("Plan.traceObject: obj ",obj);
+	                      VM_Interface.sysWrite(" or addr ",addr);
+	                      VM_Interface.sysWrite(" of page ",Conversions.addressToPagesDown(addr));
+	                      VM_Interface.sysWriteln(" is in unknown space",space);
+	                      VM_Interface.sysWrite("Type = ");
+			      VM_Interface.sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
+			      VM_Interface.sysWriteln();
+			      VM_Interface.sysFail("Plan.traceObject: unknown space");
                             }
 			    return obj;
     }
@@ -487,7 +484,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * one of the semi-spaces.
    */
   public static final boolean isSemiSpaceObject(Object ref) {
-    VM_Address addr = MM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
+    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
     return (addr.GE(SS_START) && addr.LE(SS_END));
   }
 
@@ -499,7 +496,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final boolean isLive(VM_Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = MM_Interface.refToAddress(obj);
+    VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case LOW_SS_SPACE:    return CopySpace.isLive(obj);
@@ -508,9 +505,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
-      default:              if (VM.VerifyAssertions) {
-	                      VM.sysWriteln("Plan.isLive: unknown space", space);
-			      VM.sysFail("Plan.isLive: unknown space");
+      default:              if (VM_Interface.VerifyAssertions) {
+	                      VM_Interface.sysWriteln("Plan.isLive: unknown space",space);
+			      VM_Interface.sysFail("Plan.isLive: unknown space");
                             }
 			    return false;
     }
@@ -538,7 +535,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static boolean willNotMove (VM_Address obj) {
    boolean movable = VMResource.refIsMovable(obj);
    if (!movable) return true;
-   VM_Address addr = MM_Interface.refToAddress(obj);
+   VM_Address addr = VM_Interface.refToAddress(obj);
    return (hi ? ss1VM : ss0VM).inRange(addr);
   }
 

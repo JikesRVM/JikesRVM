@@ -4,13 +4,12 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -275,8 +274,8 @@ abstract class SegregatedFreeList extends Allocator
     setSizeClass(block, sizeClass);
     postExpandSizeClass(block, sizeClass);
     
-    if (VM.VerifyAssertions)
-      VM._assert(!lastCell.isZero());
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!lastCell.isZero());
     return lastCell;
   }
 
@@ -412,7 +411,7 @@ abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getSizeClass(int bytes)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert((bytes > 0) && (bytes <= 8192));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert((bytes > 0) && (bytes <= 8192));
 
     int sz1 = bytes - 1;
     int offset = 0;
@@ -434,7 +433,7 @@ abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getBaseCellSize(int sc) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert((sc >= 0) && (sc < SIZE_CLASSES));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
     return ((sc < 16) ? (sc +  1) <<  2:
 	    (sc < 19) ? (sc - 11) <<  4:
@@ -492,10 +491,10 @@ abstract class SegregatedFreeList extends Allocator
     VM_Word value = VM_Word.fromInt((cell.toInt() & FREE_LIST_MASK) | (sizeClass << SIZE_CLASS_SHIFT) | (inuse << INUSE_SHIFT));
     VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
     
-    if (VM.VerifyAssertions) {
-      VM._assert(inuse == getInUse(block));
-      VM._assert(cell == getFreeList(block));
-      VM._assert(sizeClass == getSizeClass(block));
+    if (VM_Interface.VerifyAssertions) {
+      VM_Interface._assert(inuse == getInUse(block));
+      VM_Interface._assert(cell == getFreeList(block));
+      VM_Interface._assert(sizeClass == getSizeClass(block));
     }
   }
 
@@ -550,8 +549,8 @@ abstract class SegregatedFreeList extends Allocator
     value -= (1<<INUSE_SHIFT);
     VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
     int count = value>>INUSE_SHIFT;
-    if (VM.VerifyAssertions) {
-      VM._assert(count >= 0 && count < (1<<INUSE_BITS));
+    if (VM_Interface.VerifyAssertions) {
+      VM_Interface._assert(count >= 0 && count < (1<<INUSE_BITS));
     }
     return count;
   }

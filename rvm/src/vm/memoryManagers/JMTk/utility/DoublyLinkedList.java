@@ -3,13 +3,11 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -95,7 +93,7 @@ final class DoublyLinkedList
   }
 
   public final void add (VM_Address node) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(isNode(node));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(isNode(node));
     if (lock != null) lock.acquire();
     VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
     VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), head);
@@ -107,7 +105,7 @@ final class DoublyLinkedList
   }
 
   public final void remove (VM_Address node) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(isNode(node));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(isNode(node));
     if (lock != null) lock.acquire();
     VM_Address prev = VM_Magic.getMemoryAddress(node.add(PREV_OFFSET));
     VM_Address next = VM_Magic.getMemoryAddress(node.add(NEXT_OFFSET));
@@ -144,7 +142,7 @@ final class DoublyLinkedList
    * @return True if the cell is found on the treadmill
    */
   public final boolean isMember (VM_Address node) {
-    if (VM.VerifyAssertions) VM._assert(isNode(node));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
     VM_Address cur = head;
@@ -162,12 +160,12 @@ final class DoublyLinkedList
   public final void show() {
     if (lock != null) lock.acquire();
     VM_Address cur = head;
-    VM.sysWrite(cur);
+    VM_Interface.sysWrite(cur);
     while (!cur.isZero()) {
       cur =      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
-      VM.sysWrite(" -> ", cur);
+      VM_Interface.sysWrite(" -> ",cur);
     }
-    VM.sysWriteln();
+    VM_Interface.sysWriteln();
     if (lock != null) lock.release();
   }
 

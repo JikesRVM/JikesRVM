@@ -5,9 +5,9 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -34,7 +34,7 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
    */
   ImmortalVMResource(byte space_, String vmName, MemoryResource mr, VM_Address vmStart, VM_Extent bytes) {
     super(space_, vmName, mr, vmStart, bytes, (byte) (VMResource.IN_VM | VMResource.IMMORTAL));
-    if (VM.VerifyAssertions) VM._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
     sentinel = start.add(bytes);
   }
 
@@ -45,7 +45,7 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
   }
 
   public final void release() {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
   
 }

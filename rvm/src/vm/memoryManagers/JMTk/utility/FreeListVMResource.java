@@ -7,9 +7,9 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -67,7 +67,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
   public final VM_Address acquire(int pages, MemoryResource mr,
 				  boolean chargeMR) {
-    if (VM.VerifyAssertions) VM._assert(mr != null);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != null);
     if (chargeMR && !mr.acquire(pages))
       return VM_Address.zero();
     lock();
@@ -76,7 +76,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
       unlock();
       if (chargeMR)
 	mr.release(pages);
-      MM_Interface.getPlan().poll(true, mr);
+      VM_Interface.getPlan().poll(true, mr);
       return VM_Address.zero();
     }
     pagetotal += pages;
@@ -88,7 +88,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
 
   public VM_Address acquire(int request) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     return VM_Address.zero();
   }
 

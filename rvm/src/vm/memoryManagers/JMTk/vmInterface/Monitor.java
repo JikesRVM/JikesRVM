@@ -34,6 +34,6 @@ public class Monitor
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    MM_Interface.getPlan().notifyExit(value);
+    VM_Interface.getPlan().notifyExit(value);
   }
 }

@@ -5,14 +5,13 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
+
 import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Magic;
 
@@ -42,16 +41,16 @@ final class ImmortalSpace extends BasePolicy
    * test to see if the mark bit has the given value
    */
   private static boolean testMarkBit(Object ref, int value) {
-    return (VM_ObjectModel.readAvailableBitsWord(ref) & value) != 0;
+    return (VM_Interface.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
   private static void writeMarkBit(Object ref, int value) {
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
@@ -59,9 +58,9 @@ final class ImmortalSpace extends BasePolicy
    */
   private static void atomicWriteMarkBit(Object ref, int value) {
     while (true) {
-      int oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      int oldValue = VM_Interface.prepareAvailableBits(ref);
       int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
-      if (VM_ObjectModel.attemptAvailableBits(ref, oldValue, newValue)) break;
+      if (VM_Interface.attemptAvailableBits(ref,oldValue,newValue)) break;
     }
   }
 
@@ -73,10 +72,10 @@ final class ImmortalSpace extends BasePolicy
     throws VM_PragmaInline {
     int oldValue;
     do {
-      oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      oldValue = VM_Interface.prepareAvailableBits(ref);
       int markBit = oldValue & GC_MARK_BIT_MASK;
       if (markBit == value) return false;
-    } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, oldValue ^ GC_MARK_BIT_MASK));
+    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue ^ GC_MARK_BIT_MASK));
     return true;
   }
 
@@ -95,7 +94,7 @@ final class ImmortalSpace extends BasePolicy
 
   public static VM_Address traceObject(VM_Address object) {
     if (testAndMark(object, immortalMarkState)) 
-      MM_Interface.getPlan().enqueue(object);
+      VM_Interface.getPlan().enqueue(object);
     return object;
   }
 

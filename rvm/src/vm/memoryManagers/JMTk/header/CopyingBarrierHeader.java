@@ -5,16 +5,12 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
+
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -25,6 +21,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * @author Steve Fink
  * @author Dave Grove
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class CopyingBarrierHeader extends CopyingHeader {
 
   public static final int GC_MARK_BIT_MASK    = 0x1;
@@ -39,14 +36,14 @@ public class CopyingBarrierHeader extends CopyingHeader {
    * test to see if the barrier bit is set
    */
   static boolean testBarrierBit(Object ref) throws VM_PragmaUninterruptible {
-    return VM_ObjectModel.testAvailableBit(ref, GC_BARRIER_BIT_IDX);
+    return VM_Interface.testAvailableBit(ref,GC_BARRIER_BIT_IDX);
   }
 
   /**
    * clear the barrier bit (indicates that object is in write buffer)
    */
   static void clearBarrierBit(Object ref) throws VM_PragmaUninterruptible {
-    VM_ObjectModel.setAvailableBit(ref, GC_BARRIER_BIT_IDX, false);
+    VM_Interface.setAvailableBit(ref,GC_BARRIER_BIT_IDX,false);
   }
 
   /**
@@ -54,7 +51,7 @@ public class CopyingBarrierHeader extends CopyingHeader {
    * if a reference is stored into it).
    */
   static void setBarrierBit(Object ref) throws VM_PragmaUninterruptible {
-    VM_ObjectModel.setAvailableBit(ref, GC_BARRIER_BIT_IDX, true);
+    VM_Interface.setAvailableBit(ref,GC_BARRIER_BIT_IDX,true);
   }
 
 
@@ -62,16 +59,16 @@ public class CopyingBarrierHeader extends CopyingHeader {
    * test to see if the mark bit has the given value
    */
   static boolean testMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
-    return (VM_ObjectModel.readAvailableBitsWord(ref) & value) != 0;
+    return (VM_Interface.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
   static void writeMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
@@ -79,9 +76,9 @@ public class CopyingBarrierHeader extends CopyingHeader {
    */
   static void atomicWriteMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
     while (true) {
-      int oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      int oldValue = VM_Interface.prepareAvailableBits(ref);
       int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
-      if (VM_ObjectModel.attemptAvailableBits(ref, oldValue, newValue)) break;
+      if (VM_Interface.attemptAvailableBits(ref,oldValue,newValue)) break;
     }
   }
 

@@ -9,14 +9,14 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM;
+
 
 /*
  * Conversions between different units.
  *
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
   public static VM_Extent roundDownMB (VM_Extent bytes) {
@@ -50,7 +50,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
 
   public static int addressToPages (VM_Address addr) {
     int page = addressToPagesDown(addr);
-    if (VM.VerifyAssertions) VM._assert(pagesToAddress(page).EQ(addr));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToAddress(page).EQ(addr));
     return page;
   }
 
@@ -72,7 +72,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
 
   public static int bytesToPages (int bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (VM.VerifyAssertions) VM._assert(pagesToBytes(pages) == bytes);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToBytes(pages) == bytes);
     return pages;
   }
 

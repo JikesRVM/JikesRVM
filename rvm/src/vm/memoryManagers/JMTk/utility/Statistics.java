@@ -5,6 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
@@ -102,7 +103,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
    * @param value the exit value
    */
   public void notifyAppRunStart(String app, int value) throws VM_PragmaUninterruptible {
-    if (MM_Interface.verbose() >= 1) VM.sysWrite("Clearing memory management statistics\n");
+    if (VM_Interface.verbose() >= 1) VM.sysWrite("Clearing memory management statistics\n");
     clearSummaryStatistics();
   }
 
@@ -119,10 +120,10 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
   static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
 
-    if (MM_Interface.verbose() >= 2)
+    if (VM_Interface.verbose() >= 2)
       printGCPhaseTimes();  	
 
-    if (MM_Interface.verbose() >= 1) {
+    if (VM_Interface.verbose() >= 1) {
       printVerboseOutputLine(GCType);
       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
         VM_CollectorThread.printThreadWaitTimes();
@@ -184,7 +185,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     int np = VM_Scheduler.numProcessors;
     // showParameter();
-    if (MM_Interface.verbose() >= 1) {
+    if (VM_Interface.verbose() >= 1) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
       if (gcCount != 0) {
         if (minorGCTime.count() > 0) {
@@ -216,7 +217,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                     collisionCount/gcCount);
     }
 
-    if (MM_Interface.verbose() >= 1 && gcCount>0) {
+    if (VM_Interface.verbose() >= 1 && gcCount>0) {
       VM.sysWrite("GC Summary: Average Phase Time:");
       VM.sysWrite("  init ", initTime.avg() * 1000.0, " ms");
       VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");

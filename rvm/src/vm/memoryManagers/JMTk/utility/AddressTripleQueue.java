@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class AddressTripleQueue extends LocalQueue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
  
@@ -47,9 +48,9 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
    */
   public final void insert(VM_Address addr1, VM_Address addr2, 
 			   VM_Address addr3) {
-    if (VM.VerifyAssertions) VM._assert(!addr1.isZero());
-    if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
-    if (VM.VerifyAssertions) VM._assert(!addr3.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());
     checkInsert(3);
     uncheckedInsert(addr1);
     uncheckedInsert(addr2);
@@ -63,9 +64,9 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
    * @param addr2 the third address to be pushed onto the address queue
    */
   public final void push(VM_Address addr1, VM_Address addr2, VM_Address addr3){
-    if (VM.VerifyAssertions) VM._assert(!addr1.isZero());
-    if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
-    if (VM.VerifyAssertions) VM._assert(!addr3.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());
     checkPush(3);
     uncheckedPush(addr3);
     uncheckedPush(addr2);

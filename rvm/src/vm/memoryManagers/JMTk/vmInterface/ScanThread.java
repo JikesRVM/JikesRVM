@@ -75,7 +75,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   //
   public static void scanThread(VM_Thread t, AddressQueue rootLocations, AddressPairQueue codeLocations) {
 	
-    Plan plan = MM_Interface.getPlan();
+    Plan plan = VM_Interface.getPlan();
 
 	// An additional complication is that when a stack is copied,
 	// special adjustments relating to SP values have to be made.

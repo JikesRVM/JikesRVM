@@ -4,14 +4,12 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -90,8 +88,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   static {
-    if (VM.VerifyAssertions)
-      VM._assert(BLOCK_SIZE_CLASSES <= (1<<FREE_LIST_BITS));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(BLOCK_SIZE_CLASSES <= (1<<FREE_LIST_BITS));
     blockMask = new int[BLOCK_SIZE_CLASSES];
     buddyMask = new int[BLOCK_SIZE_CLASSES];
     for (byte sc = 0; sc <= MAX_BLOCK_SIZE_CLASS; sc++) {
@@ -105,8 +103,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   // Allocation & freeing
   //
   public final VM_Address alloc(byte blockSizeClass) {
-    if (VM.VerifyAssertions)
-      VM._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     VM_Address rtn = VM_Address.zero();
     if (PARANOID)
       sanity();
@@ -130,8 +128,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 	return VM_Address.zero(); // need to GC & retry...
     }
     
-    if (VM.VerifyAssertions)
-      VM._assert(rtn.EQ(VM_Address.fromInt(rtn.toInt() & blockMask[blockSizeClass]).add(BLOCK_HEADER_SIZE)));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(rtn.EQ(VM_Address.fromInt(rtn.toInt() & blockMask[blockSizeClass]).add(BLOCK_HEADER_SIZE)));
 
     if (PARANOID)
       sanity();
@@ -142,9 +140,9 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     return slowAlloc(originalSC, originalSC);
   }
   private final VM_Address slowAlloc(byte requestedSC, byte originalSC) {
-    if (VM.VerifyAssertions) {
-      VM._assert((originalSC >= 0) && (originalSC <= MAX_BLOCK_SIZE_CLASS));
-      VM._assert((requestedSC >= 0) && (requestedSC <= MAX_BLOCK_SIZE_CLASS));
+    if (VM_Interface.VerifyAssertions) {
+      VM_Interface._assert((originalSC >= 0) && (originalSC <= MAX_BLOCK_SIZE_CLASS));
+      VM_Interface._assert((requestedSC >= 0) && (requestedSC <= MAX_BLOCK_SIZE_CLASS));
     }
     VM_Address rtn = VM_Address.zero();
 
@@ -159,8 +157,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       byte srcSC = getFreeListID(requestedSC, originalSC);
       if (!freeList.get(srcSC).isZero()) {  // available through free list
 	rtn = freeList.get(srcSC);
-	if (VM.VerifyAssertions)
-	  VM._assert(VMResource.getTag(rtn) == originalSC);
+	if (VM_Interface.VerifyAssertions)
+	  VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
 	freeList.set(srcSC, getNextFLBlock(rtn));
 	if (!getNextFLBlock(rtn).isZero())
 	  setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
@@ -168,13 +166,13 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 	rtn = slowAlloc((byte) (requestedSC + 1), originalSC);
 	if (rtn.isZero())
 	  return VM_Address.zero(); // need to GC & retry...
-	if (VM.VerifyAssertions)
-	  VM._assert(VMResource.getTag(rtn) == originalSC);
+	if (VM_Interface.VerifyAssertions)
+	  VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
 	rtn = split(rtn, (byte) (requestedSC + 1), originalSC, srcSC);
 	if (rtn.isZero())
 	  return VM_Address.zero(); // need to GC & retry...
-	if (VM.VerifyAssertions)
-	  VM._assert(VMResource.getTag(rtn) == originalSC);
+	if (VM_Interface.VerifyAssertions)
+	  VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
       }
     }
     if (!rtn.isZero())
@@ -184,18 +182,18 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   
   private final VM_Address split(VM_Address parent, byte parentSC,
 				 byte originalSC, byte targetFL) {
-    if (VM.VerifyAssertions)
-      VM._assert(VMResource.getTag(parent) == originalSC);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(VMResource.getTag(parent) == originalSC);
     if (parentSC == PAGE_BLOCK_SIZE_CLASS) {
       if (!incPageCharge(1))
 	return VM_Address.zero();
     }
     VM_Address next = parent.add(rawBlockSize(parentSC - 1));
     
-    if (VM.VerifyAssertions) VM._assert(VMResource.getTag(next) == getOriginalSC(targetFL));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(VMResource.getTag(next) == getOriginalSC(targetFL));
     addToFreeList(next, targetFL);
-    if (VM.VerifyAssertions)
-      VM._assert(VMResource.getTag(parent) == originalSC);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(VMResource.getTag(parent) == originalSC);
     return parent;
   }
   
@@ -206,7 +204,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (blockSizeClass >= PAGE_BLOCK_SIZE_CLASS) {
       decPageCharge(1<<(blockSizeClass-PAGE_BLOCK_SIZE_CLASS));
     }
-    if (VM.VerifyAssertions) VM._assert(blockSizeClass == VMResource.getTag(block));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(blockSizeClass == VMResource.getTag(block));
     merge(block, blockSizeClass, blockSizeClass);
     if (PARANOID)
       sanity();
@@ -236,8 +234,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
   private final void release(VM_Address block, byte blockSizeClass) {
     block = block.sub(BLOCK_HEADER_SIZE);
-    if (VM.VerifyAssertions) 
-      VM._assert(block.toInt() == (block.toInt() & ~((1<<MAX_BLOCK_LOG)-1)));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(block.toInt() == (block.toInt() & ~((1<<MAX_BLOCK_LOG)-1)));
     vmResource.release(block, memoryResource, blockSizeClass, false);
   }
 
@@ -246,11 +244,11 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       VM_Address block = freeList.get(fl);
       VM_Address prev = VM_Address.zero();
       while (!block.isZero()) {
-	if (VM.VerifyAssertions) {
-	  VM._assert(isFree(block));
-	  VM._assert(fl == getFreeListID(block));
-	  VM._assert(prev.EQ(getPrevFLBlock(block)));
-	  VM._assert(freeListEntries(block) == 1);
+	if (VM_Interface.VerifyAssertions) {
+	  VM_Interface._assert(isFree(block));
+	  VM_Interface._assert(fl == getFreeListID(block));
+	  VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
+	  VM_Interface._assert(freeListEntries(block) == 1);
 	}
 	prev = block;
 	block = getNextFLBlock(block);
@@ -272,7 +270,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   private final void merge(VM_Address child, byte childSC, byte originalSC) {
-    if (VM.VerifyAssertions) VM._assert(originalSC == VMResource.getTag(child));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(originalSC == VMResource.getTag(child));
     if (childSC == MAX_BLOCK_SIZE_CLASS)
       release(child, originalSC);
     else {
@@ -293,7 +291,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
 
   private final void addToFreeList(VM_Address block, byte freeListID) {
-    if (VM.VerifyAssertions) VM._assert(VMResource.getTag(block) == getOriginalSC(freeListID));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(VMResource.getTag(block) == getOriginalSC(freeListID));
     VM_Address next = freeList.get(freeListID);
     VM_Magic.setMemoryAddress(block.add(FL_MARKER_OFFSET), BASE_FL_MARKER.sub(freeListID));
     VM_Magic.setMemoryAddress(block.add(FL_NEXT_FIELD_OFFSET), next);
@@ -314,7 +312,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     else {
       VM_Address prev = getPrevFLBlock(block);
       VM_Address next = getNextFLBlock(block);
-      if (VM.VerifyAssertions) VM._assert(!prev.isZero());
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!prev.isZero());
       setNextFLBlock(prev, next);
       if (!next.isZero())
 	setPrevFLBlock(next, prev);
@@ -354,7 +352,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   public static final void linkedListInsert(VM_Address block, VM_Address prev) {
-    if (VM.VerifyAssertions) VM._assert(!block.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
     VM_Address next;
     if (!prev.isZero()) {
       next = VM_Magic.getMemoryAddress(prev.add(NEXT_FIELD_OFFSET));
@@ -368,7 +366,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   public static final void unlinkBlock(VM_Address block) {
-    if (VM.VerifyAssertions) VM._assert(!block.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
     VM_Address next = getNextBlock(block);
     VM_Address prev = getPrevBlock(block);
     VM_Magic.setMemoryAddress(block.add(PREV_FIELD_OFFSET), VM_Address.zero());
@@ -422,8 +420,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   private static final int rawBlockSize(int blockSizeClass) {
-    if (VM.VerifyAssertions) 
-      VM._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     return 1<<(MIN_BLOCK_LOG + blockSizeClass);
   }
 

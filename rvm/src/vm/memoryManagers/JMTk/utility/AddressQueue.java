@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class AddressQueue extends LocalQueue implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$"; 
  
@@ -46,7 +47,7 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
    * @param addr the address to be inserted into the address queue
    */
   public final void insert(VM_Address addr) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(!addr.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
     checkInsert(1);
     uncheckedInsert(addr);
   }
@@ -57,7 +58,7 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(VM_Address addr) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(!addr.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
     checkPush(1);
     uncheckedPush(addr);
   }

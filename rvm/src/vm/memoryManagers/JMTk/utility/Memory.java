@@ -5,8 +5,9 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -15,7 +16,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Memory;
 
 
 /*
@@ -29,13 +29,13 @@ public class Memory implements VM_Uninterruptible {
   // installed via an int_store
   //
   private static boolean isSetHelper(VM_Address start, int size, boolean verbose, int v) throws VM_PragmaNoInline {
-    if (VM.VerifyAssertions) VM._assert(size == (size & (~3)));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(size == (size & (~3)));
     for (int i=0; i<size; i+=4) 
       if (VM_Magic.getMemoryInt(start.add(i)) != v) {
 	if (verbose) {
-	    VM.psysWriteln("Memory range does not contain only value ", v);
-	    VM.sysWriteln("Non-zero range: ", start, " .. ", start.add(size));
-	    VM.sysWriteln("First bad value at ", start.add(i));
+	    VM_Interface.psysWriteln("Memory range does not contain only value ", v);
+	    VM_Interface.sysWriteln("Non-zero range: ", start, " .. ", start.add(size));
+	    VM_Interface.sysWriteln("First bad value at ", start.add(i));
 	    dumpMemory(start, 0, size);
 	}
 	return false;
@@ -73,7 +73,7 @@ public class Memory implements VM_Uninterruptible {
   //
   public static void zero(VM_Address start, VM_Extent len) throws VM_PragmaInline {
     if (len.GT(VM_Extent.fromInt(256))) 
-	VM_Memory.zero(start, len);
+	VM_Interface.zero(start, len);
     else
 	zeroSmall(start, len);
   }
@@ -85,7 +85,7 @@ public class Memory implements VM_Uninterruptible {
   // start and len must both be OS-page aligned
   //
   public static void zeroPages(VM_Address start, int len) throws VM_PragmaInline {
-    VM_Memory.zeroPages(start, len);
+    VM_Interface.zeroPages(start, len);
   }
 
   // Derived forms
@@ -98,7 +98,7 @@ public class Memory implements VM_Uninterruptible {
   }
 
   public static void dumpMemory(VM_Address addr, int before, int after) {
-    VM_Memory.dumpMemory(addr, before, after);
+    VM_Interface.dumpMemory(addr, before, after);
   }
 
 }

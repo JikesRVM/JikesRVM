@@ -4,13 +4,12 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -134,19 +133,19 @@ final class TrialDeletion
   }
 
   public final void collectCycles() {
-    double filterStart = VM_Time.now();
+    double filterStart = VM_Interface.now();
     filterPurpleBufs();
     processFreeBufs();
     if ((Plan.getPagesAvail() < Options.cycleDetectionPages) ||
 	(Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages) ||
 	(Plan.getMetaDataPagesUsed() > (0.8 * Options.metaDataPages))) {
-      double cycleStart = VM_Time.now();
+      double cycleStart = VM_Interface.now();
       double filterTime = cycleStart - filterStart;
       double filterLimit = ((double)Options.gcTimeCap)/FILTER_TIME_FACTOR;
       if ((cycleStart < Plan.getTimeCap()) || (filterTime > filterLimit)) {
 	double remaining = Plan.getTimeCap() - cycleStart;
 	double start = 0;
-	if (Plan.verbose > 0) { start = cycleStart; VM.sysWrite("(CD "); }
+	if (Plan.verbose > 0) { start = cycleStart; VM_Interface.sysWrite("(CD "); }
 	doMarkGreyPhase(cycleStart + (remaining/3)); // grey phase => 1/3 of remaining
 	if (Plan.verbose > 0) start = timePhase(start, "G");
 	doScanPhase();
@@ -156,18 +155,18 @@ final class TrialDeletion
 	processFreeBufs();
 	if (Plan.verbose > 0) start = timePhase(start, "F");
 	if (Plan.verbose > 0) {
-	  VM.sysWrite("= ");
-	  VM.sysWrite((VM_Time.now() - cycleStart)*1000);
-	  VM.sysWrite(" ms)");
+	  VM_Interface.sysWrite("= ");
+	  VM_Interface.sysWrite((VM_Interface.now() - cycleStart)*1000);
+	  VM_Interface.sysWrite(" ms)");
 	}
       }
     }
   }
  
   private final double timePhase(double start, String phase) {
-    double end = VM_Time.now();
-    VM.sysWrite(phase); VM.sysWrite(" ");
-    VM.sysWrite((end - start)*1000); VM.sysWrite(" ms ");
+    double end = VM_Interface.now();
+    VM_Interface.sysWrite(phase); VM_Interface.sysWrite(" ");
+    VM_Interface.sysWrite((end - start)*1000); VM_Interface.sysWrite(" ms ");
     return end;
   }
 
@@ -188,8 +187,8 @@ final class TrialDeletion
     int purple = 0;
     while (!(obj = src.pop()).isZero()) {
       purple++;
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(obj));
-      if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isBuffered(obj));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(obj));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isBuffered(obj));
       if (RCBaseHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
 	if (RCBaseHeader.isPurple(VM_Magic.addressAsObject(obj)))
 	  tgt.push(obj);
@@ -221,18 +220,18 @@ final class TrialDeletion
       visitCount = 0;
       while (visitCount < GREY_VISIT_BOUND && !(obj = src.pop()).isZero())
 	processGreyObject(obj, tgt);
-    } while (!obj.isZero() && VM_Time.now() < markGreyTimeCap);
+    } while (!obj.isZero() && VM_Interface.now() < markGreyTimeCap);
   }
 
   private final void processGreyObject(VM_Address object, AddressQueue tgt)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
     if (RCBaseHeader.isPurple(object)) {
-      if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isLiveRC(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isLiveRC(object));
       markGrey(object);
       tgt.push(object);
     } else {
-      if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isGrey(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isGrey(object));
       RCBaseHeader.clearBufferedBit(object); // FIXME Why? Why not above?
     }
   }
@@ -243,7 +242,7 @@ final class TrialDeletion
     AddressQueue tgt = cycleBufferB;
     phase = SCAN;
     while (!(object = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
       scan(object);
       tgt.push(object);
     }
@@ -254,7 +253,7 @@ final class TrialDeletion
     AddressQueue src = cycleBufferB;
     phase = COLLECT;
     while (!(object = src.pop()).isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
       RCBaseHeader.clearBufferedBit(object);
       collectWhite(object);
     }
@@ -265,7 +264,7 @@ final class TrialDeletion
     switch (phase) {
     case MARK_GREY: 
       if (!RCBaseHeader.isGreen(object)) {
-	if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isLiveRC(object));
+	if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isLiveRC(object));
 	RCBaseHeader.decRC(object);
 	workQueue.push(object);
       }
@@ -288,15 +287,15 @@ final class TrialDeletion
 	workQueue.push(object);
       break;
     default:
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
   }
 
   private final void markGrey(VM_Address object)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
       visitCount++;
       if (!RCBaseHeader.isGrey(object)) {
 	RCBaseHeader.makeGrey(object);
@@ -307,9 +306,9 @@ final class TrialDeletion
   }
   private final void scan(VM_Address object)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
       if (RCBaseHeader.isGrey(object)) {
 	if (RCBaseHeader.isLiveRC(object)) {
 	  phase = SCAN_BLACK;
@@ -325,9 +324,9 @@ final class TrialDeletion
   }
   private final void scanBlack(VM_Address object)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(blackQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(blackQueue.pop().isZero());
     while (!object.isZero()) {
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(object));
       //      if (!SimpleRCBaseHeader.isGreen(object)) {
       if (!RCBaseHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
 	RCBaseHeader.makeBlack(object);
@@ -338,7 +337,7 @@ final class TrialDeletion
   }
   private final void collectWhite(VM_Address object)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
 	RCBaseHeader.makeBlack(object);

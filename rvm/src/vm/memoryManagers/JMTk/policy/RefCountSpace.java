@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -91,7 +91,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public void prepare() { 
     if (!Options.noFinalizer)
-      VM.sysFail("-X:gc:noFinalizer must be used with RefCount Plan");
+      VM_Interface.sysFail("-X:gc:noFinalizer must be used with RefCount Plan");
     bootImageMark = !bootImageMark;
   }
 
@@ -122,7 +122,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
 
     if (root) {
       increment(object);
-      MM_Interface.getPlan().addToRootSet(object);
+      VM_Interface.getPlan().addToRootSet(object);
     } // else we were called via the finalizer mechanism, we need to ignore
 
     return object;
@@ -154,7 +154,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final void incrementTraceCount(VM_Address object) 
     throws VM_PragmaInline {
     if (RCBaseHeader.incTraceRC(object)) {
-      MM_Interface.getPlan().addToTraceBuffer(object); 
+      VM_Interface.getPlan().addToTraceBuffer(object); 
       Plan.enqueue(object);
     }
   }
@@ -170,7 +170,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @return The object (a no-op in this case).
    */
   public final VM_Address traceBootObject(VM_Address object) {
-    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
     if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
       RCBaseHeader.setBufferedBit(object);
       Plan.enqueue(object);

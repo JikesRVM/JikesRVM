@@ -4,19 +4,18 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
  * This class implements thread-local behavior for a reference counted
@@ -251,7 +250,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void enumeratePointer(VM_Address object)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(!object.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!object.isZero());
 
     if (!Plan.refCountCycleDetection || decrementPhase)
       decBuffer.push(object);
@@ -306,7 +305,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void free(VM_Address object) 
     throws VM_PragmaInline {
-    VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
+    VM_Address ref = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(ref);
     if (space == Plan.LOS_SPACE)
       los.free(ref);
@@ -332,7 +331,7 @@ final class RefCountLocal extends SegregatedFreeList
    * established during the sanity scan.
    */
   private final void rcSanityCheck() {
-    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
     VM_Address obj;
     int checked = 0;
     while (!(obj = tracingBuffer.pop()).isZero()) {
@@ -341,13 +340,13 @@ final class RefCountLocal extends SegregatedFreeList
       int sanityRC = RCBaseHeader.getTracingRC(obj);
       RCBaseHeader.clearTracingRC(obj);
       if (rc != sanityRC) {
-	VM.sysWrite("---> ");
-	VM.sysWrite(checked);
-	VM.sysWrite(" roots checked, RC mismatch: ");
-	VM.sysWrite(obj); VM.sysWrite(" -> ");
-	VM.sysWrite(rc); VM.sysWrite(" (rc) != ");
-	VM.sysWrite(sanityRC); VM.sysWrite(" (sanity)\n");
-	if (VM.VerifyAssertions) VM._assert(false);
+	VM_Interface.sysWrite("---> ");
+	VM_Interface.sysWrite(checked);
+	VM_Interface.sysWrite(" roots checked, RC mismatch: ");
+	VM_Interface.sysWrite(obj); VM_Interface.sysWrite(" -> ");
+	VM_Interface.sysWrite(rc); VM_Interface.sysWrite(" (rc) != ");
+	VM_Interface.sysWrite(sanityRC); VM_Interface.sysWrite(" (sanity)\n");
+	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
       }
     }
   }
@@ -380,7 +379,7 @@ final class RefCountLocal extends SegregatedFreeList
    * during a root scan.
    */
   public void rootScan(VM_Address object) {
-    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
     // this object has been explicitly scanned as part of the root scanning
     // process.  Mark it now so that it does not get re-scanned.
     if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
@@ -399,7 +398,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
     tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
 
@@ -422,14 +421,14 @@ final class RefCountLocal extends SegregatedFreeList
    * potential garbage cycles (purple objects).
    */
   public final void printStats() {
-    VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
-    VM.sysWriteInt(incCounter); VM.sysWrite(" incs, ");
-    VM.sysWriteInt(decCounter); VM.sysWrite(" decs, ");
-    VM.sysWriteInt(rootCounter); VM.sysWrite(" roots");
+    VM_Interface.sysWrite("<GC ",Statistics.gcCount); VM_Interface.sysWrite(" "); 
+    VM_Interface.sysWriteInt(incCounter); VM_Interface.sysWrite(" incs, ");
+    VM_Interface.sysWriteInt(decCounter); VM_Interface.sysWrite(" decs, ");
+    VM_Interface.sysWriteInt(rootCounter); VM_Interface.sysWrite(" roots");
     if (Plan.refCountCycleDetection) {
-      VM.sysWrite(", "); 
-      VM.sysWriteInt(purpleCounter); VM.sysWrite(" purple");
+      VM_Interface.sysWrite(", "); 
+      VM_Interface.sysWriteInt(purpleCounter); VM_Interface.sysWrite(" purple");
     }
-    VM.sysWrite(">\n");
+    VM_Interface.sysWrite(">\n");
   }
 }

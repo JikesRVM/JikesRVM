@@ -4,18 +4,16 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
@@ -163,7 +161,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     if (MarkSweepHeader.testAndMark(object, markState)) {
       internalMarkObject(object);
-      MM_Interface.getPlan().enqueue(object);
+      VM_Interface.getPlan().enqueue(object);
     }
     return object;
   }
@@ -190,8 +188,8 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
   private final void internalMarkObject(VM_Address object) 
     throws VM_PragmaInline {
 
-    // VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
-    if (VM.VerifyAssertions) VM._assert(!MarkSweepHeader.isSmallObject(VM_Magic.addressAsObject(object)));
+    // VM_Address ref = VM_Interface.refToAddress(object);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!MarkSweepHeader.isSmallObject(VM_Magic.addressAsObject(object)));
 	
     VM_Address cell = VM_JavaHeader.objectStartRef(object);
     VM_Address node = Treadmill.payloadToNode(cell);

@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -90,8 +90,8 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
   protected final void checkInsert(int arity) throws VM_PragmaInline {
     if (bufferOffset(tail) == 0)
       insertOverflow(arity);
-    else if (VM.VerifyAssertions)
-      VM._assert(bufferOffset(tail) >= (arity<<LOG_BYTES_IN_WORD));
+    else if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(bufferOffset(tail) >= (arity<<LOG_BYTES_IN_WORD));
   }
 
   /**
@@ -102,17 +102,17 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * @param value the value to be inserted.
    */
   protected final void uncheckedInsert(int value) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= BYTES_IN_WORD);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(tail) >= BYTES_IN_WORD);
     tail = tail.sub(BYTES_IN_WORD);
     VM_Magic.setMemoryInt(tail, value);
-    //    if (VM.VerifyAssertions) enqueued++;
+    //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   protected final void uncheckedInsert(VM_Address value) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= BYTES_IN_WORD);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(tail) >= BYTES_IN_WORD);
     tail = tail.sub(BYTES_IN_WORD);
     VM_Magic.setMemoryAddress(tail, value);
-    //    if (VM.VerifyAssertions) enqueued++;
+    //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   /**
@@ -153,7 +153,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void insertOverflow(int arity) {
-    if (VM.VerifyAssertions) VM._assert(arity == queue.getArity());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
     if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }

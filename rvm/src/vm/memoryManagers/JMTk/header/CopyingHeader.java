@@ -6,15 +6,14 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -25,6 +24,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * @author Steve Fink
  * @author Dave Grove
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class CopyingHeader {
 
   /**
@@ -94,9 +94,9 @@ public class CopyingHeader {
   static int attemptToForward(Object base) throws VM_PragmaInline, VM_PragmaUninterruptible {
     int oldValue;
     do {
-      oldValue = VM_ObjectModel.prepareAvailableBits(base);
+      oldValue = VM_Interface.prepareAvailableBits(base);
       if ((oldValue & GC_FORWARDING_MASK) == GC_FORWARDED) return oldValue;
-    } while (!VM_ObjectModel.attemptAvailableBits(base, oldValue, oldValue | GC_BEING_FORWARDED));
+    } while (!VM_Interface.attemptAvailableBits(base,oldValue,oldValue | GC_BEING_FORWARDED));
     return oldValue;
   }
 
@@ -104,7 +104,7 @@ public class CopyingHeader {
    * Non-atomic read of forwarding pointer word
    */
   static int getForwardingWord(Object base) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_ObjectModel.readAvailableBitsWord(base);
+    return VM_Interface.readAvailableBitsWord(base);
   }
 
   /**
@@ -156,11 +156,11 @@ public class CopyingHeader {
    *  and owns the right to copy the object)
    */
   static void setForwardingPointer(Object base, VM_Address ptr) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_ObjectModel.writeAvailableBitsWord(base, ptr.toInt() | GC_FORWARDED);
+    VM_Interface.writeAvailableBitsWord(base,ptr.toInt() | GC_FORWARDED);
   }
 
   static void setBarrierBit(Object ref) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM._assert(false);
+    VM_Interface._assert(false);
   }
 
 }

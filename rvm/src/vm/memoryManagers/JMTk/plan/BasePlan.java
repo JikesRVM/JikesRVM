@@ -4,10 +4,10 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Extent;
@@ -84,7 +84,7 @@ public abstract class BasePlan
 
   // Memory layout constants
   protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
-  public    static final VM_Address      BOOT_START = MM_Interface.bootImageAddress;
+  public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
   protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
   protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromInt(32 * 1024 * 1024);
@@ -143,7 +143,7 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
-    bootTime = MM_Interface.now();
+    bootTime = VM_Interface.now();
   }
 
   /**
@@ -171,10 +171,10 @@ public abstract class BasePlan
   }
 
   protected Allocator getAllocatorFromSpace (byte s) {
-    if (s == BOOT_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given boot space");
-    if (s == META_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given meta space");
+    if (s == BOOT_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given boot space");
+    if (s == META_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given meta space");
     if (s == IMMORTAL_SPACE) return immortal;
-    VM.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
+    VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
     return null;
   }
 
@@ -183,8 +183,8 @@ public abstract class BasePlan
     for (int i=0; i<plans.length && space == UNUSED_SPACE; i++)
       space = plans[i].getSpaceFromAllocator(a);
     if (space == UNUSED_SPACE)
-      VM.sysFail("BasePlan.getOwnAllocator could not obtain space");
-    Plan plan = MM_Interface.getPlan();
+      VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
+    Plan plan = VM_Interface.getPlan();
     return plan.getAllocatorFromSpace(space);
   }
 
@@ -200,7 +200,7 @@ public abstract class BasePlan
    */
   public static final void enqueue(VM_Address obj)
     throws VM_PragmaInline {
-    MM_Interface.getPlan().values.push(obj);
+    VM_Interface.getPlan().values.push(obj);
   }
 
   /**
@@ -249,13 +249,13 @@ public abstract class BasePlan
 							boolean root) {
     VM_Offset offset = interiorRef.diff(obj);
     VM_Address newObj = Plan.traceObject(obj, root);
-    if (VM.VerifyAssertions) {
+    if (VM_Interface.VerifyAssertions) {
       if (offset.toInt() < 0 || offset.toInt() > (1<<24)) {  // There is probably no object this large
-	VM.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
-	VM.sysWriteln("       object base = ", obj);
-	VM.sysWriteln("       interior reference = ", interiorRef);
-	VM.sysWriteln("       delta = ", offset);
-	VM._assert(false);
+	VM_Interface.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
+	VM_Interface.sysWriteln("       object base = ", obj);
+	VM_Interface.sysWriteln("       interior reference = ", interiorRef);
+	VM_Interface.sysWriteln("       delta = ", offset);
+	VM_Interface._assert(false);
       }
     }
     return newObj.add(offset);
@@ -322,7 +322,7 @@ public abstract class BasePlan
    */
   public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
     // putstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   /**
@@ -336,7 +336,7 @@ public abstract class BasePlan
    */
   public final void getFieldReadBarrier(VM_Address tgt, int offset) {
     // getfield barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   /**
@@ -349,7 +349,7 @@ public abstract class BasePlan
    */
   public final void getStaticReadBarrier(VM_Address slot) {
     // getstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -358,12 +358,12 @@ public abstract class BasePlan
   //
 
   static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
-    if (spaceNames[sp] != null) VM.sysFail("addSpace called on already registed space");
+    if (spaceNames[sp] != null) VM_Interface.sysFail("addSpace called on already registed space");
     spaceNames[sp] = name;
   }
 
   static public String getSpaceName (byte sp) {
-    if (spaceNames[sp] == null) VM.sysFail("getSpace called on unregisted space");
+    if (spaceNames[sp] == null) VM_Interface.sysFail("getSpace called on unregisted space");
     return spaceNames[sp];
   }
 
@@ -447,7 +447,7 @@ public abstract class BasePlan
   public void error(String str) {
     MemoryResource.showUsage(PAGES);
     MemoryResource.showUsage(MB);
-    VM.sysFail(str);
+    VM_Interface.sysFail(str);
   }
 
   /**
@@ -486,7 +486,7 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (verbose == 1) {
-      // VM.sysWrite("[End ", (MM_Interface.now() - bootTime));
+      // VM.sysWrite("[End ", (VM_Interface.now() - bootTime));
       // VM.sysWrite(" s]\n");
     }
   }
@@ -513,11 +513,11 @@ public abstract class BasePlan
   public static void writePages(int pages, int mode) {
     double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
     switch (mode) {
-      case PAGES: VM.sysWrite(pages, " pgs"); break; 
-      case MB:    VM.sysWrite(mb, " Mb"); break;
-      case PAGES_MB: VM.sysWrite(pages, " pgs ("); VM.sysWrite(mb, " Mb)"); break;
-      case MB_PAGES: VM.sysWrite(mb, " Mb ("); VM.sysWrite(pages, " pgs)"); break;
-      default: VM.sysFail("writePages passed illegal printing mode");
+      case PAGES: VM_Interface.sysWrite(pages," pgs"); break; 
+      case MB:    VM_Interface.sysWrite(mb," Mb"); break;
+      case PAGES_MB: VM_Interface.sysWrite(pages," pgs ("); VM_Interface.sysWrite(mb," Mb)"); break;
+      case MB_PAGES: VM_Interface.sysWrite(mb," Mb ("); VM_Interface.sysWrite(pages," pgs)"); break;
+      default: VM_Interface.sysFail("writePages passed illegal printing mode");
     }
   }
 

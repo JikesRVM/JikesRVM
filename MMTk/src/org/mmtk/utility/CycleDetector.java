@@ -12,6 +12,7 @@ import com.ibm.JikesRVM.VM_Address;
  * @date $Date$
  */
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 interface CycleDetector {
   public final static String Id = "$Id$"; 
 

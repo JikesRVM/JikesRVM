@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -41,6 +42,19 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
   private static final VM_ProcessorLock outOfMemoryLock = new VM_ProcessorLock();
   private static boolean outOfMemoryReported = false;
 
+  private static Object[] tibForArrayType;
+  private static Object[] tibForClassType;
+  private static Object[] tibForPrimitiveType;
+
+  public static final void boot (VM_BootRecord theBootRecord) throws VM_PragmaInterruptible {
+    // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
+    VM_Type t = VM_Array.getPrimitiveArrayType(10);
+    tibForArrayType = VM_ObjectModel.getTIB(t);
+    tibForPrimitiveType = VM_ObjectModel.getTIB(VM_Type.IntType);
+    t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);
+    tibForClassType = VM_ObjectModel.getTIB(t);
+  }    
+
   // check if an address appears to point to an instance of VM_Type
   public static boolean validType(VM_Address typeAddress) throws VM_PragmaUninterruptible {
     if (!VMResource.refInVM(typeAddress))
@@ -48,9 +62,9 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
-    return ( (typeTib == MM_Interface.tibForClassType) || 
-             (typeTib == MM_Interface.tibForArrayType) ||
-	     (typeTib == MM_Interface.tibForPrimitiveType));
+    return ( (typeTib == tibForClassType) || 
+             (typeTib == tibForArrayType) ||
+	     (typeTib == tibForPrimitiveType));
   }
 
   /**
@@ -168,7 +182,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
 
 
   public static boolean addrInBootImage(VM_Address addr) {
-    return (addr.GE(MM_Interface.bootImageStart())) && (addr.LT(MM_Interface.bootImageEnd()));
+    return (addr.GE(VM_Interface.bootImageStart())) && (addr.LT(VM_Interface.bootImageEnd()));
   }
 
   /**

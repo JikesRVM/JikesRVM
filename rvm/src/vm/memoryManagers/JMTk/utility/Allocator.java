@@ -5,10 +5,10 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -60,7 +60,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    VM.sysFail("Out of Memory after multiple retries");
+    VM_Interface.sysFail("Out of Memory after multiple retries");
     return VM_Address.zero();
   }
 

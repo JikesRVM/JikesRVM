@@ -8,9 +8,9 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Conversions;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -47,33 +47,33 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
 	lock.check(101);
-	int errno = MM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
+	int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
 	lock.check(102);
 	if (errno != 0) {
 	  lock.release();
-	  VM.sysWrite("ensureMapped failed with errno ", errno);
-	  VM.sysWriteln(" on address ", mmapStart);
-	  VM._assert(false);
+	  VM_Interface.sysWrite("ensureMapped failed with errno ",errno);
+	  VM_Interface.sysWriteln(" on address ",mmapStart);
+	  VM_Interface._assert(false);
 	}
 	else {
 	  if (verbose) {
-	    VM.sysWrite("mmap succeeded at chunk ", chunk);  VM.sysWrite("  ", mmapStart);
-	    VM.sysWriteln(" with len = ", MMAP_CHUNK_SIZE);
+	    VM_Interface.sysWrite("mmap succeeded at chunk ",chunk);  VM_Interface.sysWrite("  ",mmapStart);
+	    VM_Interface.sysWriteln(" with len = ",MMAP_CHUNK_SIZE);
 	  }
 	}
 	lock.check(103);
       }
       if (mapped[chunk] == PROTECTED) {
 	lock.check(201);
-	if (!MM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+	if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.check(202);
 	  lock.release();
-	  VM.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
+	  VM_Interface.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
 	}
 	else {
 	  if (verbose) {
-	    VM.sysWrite("munprotect succeeded at chunk ", chunk);  VM.sysWrite("  ", mmapStart);
-	    VM.sysWriteln(" with len = ", MMAP_CHUNK_SIZE);
+	    VM_Interface.sysWrite("munprotect succeeded at chunk ",chunk);  VM_Interface.sysWrite("  ",mmapStart);
+	    VM_Interface.sysWriteln(" with len = ",MMAP_CHUNK_SIZE);
 	  }
 	}
       }
@@ -93,20 +93,20 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
 	VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
-	if (!MM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+	if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.release();
-	  VM.sysFail("LazyMmapper.mprotect failed");
+	  VM_Interface.sysFail("LazyMmapper.mprotect failed");
 	}
 	else {
 	  if (verbose) {
-	    VM.sysWrite("mprotect succeeded at chunk ", chunk);  VM.sysWrite("  ", mmapStart);
-	    VM.sysWriteln(" with len = ", MMAP_CHUNK_SIZE);
+	    VM_Interface.sysWrite("mprotect succeeded at chunk ",chunk);  VM_Interface.sysWrite("  ",mmapStart);
+	    VM_Interface.sysWriteln(" with len = ",MMAP_CHUNK_SIZE);
 	  }
 	}
 	mapped[chunk] = PROTECTED;
       }
       else {
-	if (VM.VerifyAssertions) VM._assert(mapped[chunk] == PROTECTED);
+	if (VM_Interface.VerifyAssertions) VM_Interface._assert(mapped[chunk] == PROTECTED);
       }
     }
     lock.release();

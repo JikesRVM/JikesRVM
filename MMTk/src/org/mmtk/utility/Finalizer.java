@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Magic;
@@ -15,9 +15,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
-
-import com.ibm.JikesRVM.VM_Scheduler;
-
 
 /**
  * This class manages finalization.  When an object is created
@@ -36,6 +33,7 @@ import com.ibm.JikesRVM.VM_Scheduler;
  *
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Finalizer implements VM_Uninterruptible {
 
   //----------------//
@@ -90,8 +88,8 @@ public class Finalizer implements VM_Uninterruptible {
 	rightCursor--;
       if (leftCursor >= rightCursor) // can be greater on first iteration if totally empty
 	break;
-      if (VM.VerifyAssertions) 
-	VM._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
       candidate.set(leftCursor, candidate.get(rightCursor));
       candidate.set(rightCursor, VM_Address.zero());
     }

@@ -8,16 +8,14 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -26,13 +24,14 @@ import com.ibm.JikesRVM.VM_Memory;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-public abstract class RCBaseHeader implements VM_Constants, Constants {
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+public abstract class RCBaseHeader implements Constants {
 
   /**
    * How many bytes are used by all GC header fields?
    */
   public static final int NUM_BYTES_HEADER = 4;
-  protected static final int RC_HEADER_OFFSET = VM_ObjectModel.JAVA_HEADER_END - NUM_BYTES_HEADER;
+  protected static final int RC_HEADER_OFFSET = VM_Interface.JAVA_HEADER_END() - NUM_BYTES_HEADER;
 
   /**
    * How many bits does this GC system require?
@@ -44,7 +43,7 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
 
   public static boolean isSmallObject(Object ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (VM_ObjectModel.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
+    return (VM_Interface.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
   }
 
   /**
@@ -109,12 +108,12 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
   }
   public static int getTracingRC(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
     return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>SANITY_SHIFT;
   }
   public static void clearTracingRC(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
     int old = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
     VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, old & ~SANITY_MASK);
   }
@@ -131,19 +130,19 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
 
   public static void print(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM.sysWrite(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>CYCLE_DETECTION_BITS); 
-    VM.sysWrite(' ');
+    VM_Interface.sysWrite(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>CYCLE_DETECTION_BITS); 
+    VM_Interface.sysWrite(' ');
     switch (getRCColor(object)) {
-    case BLACK: VM.sysWrite('b'); break;
-    case WHITE: VM.sysWrite('w'); break;
-    case PURPLE: VM.sysWrite('p'); break;
-    case GREEN: VM.sysWrite('x'); break;
-    case GREY: VM.sysWrite('g'); break;
+    case BLACK: VM_Interface.sysWrite('b'); break;
+    case WHITE: VM_Interface.sysWrite('w'); break;
+    case PURPLE: VM_Interface.sysWrite('p'); break;
+    case GREEN: VM_Interface.sysWrite('x'); break;
+    case GREY: VM_Interface.sysWrite('g'); break;
     }
     if (isBuffered(object))
-      VM.sysWrite('b');
+      VM_Interface.sysWrite('b');
     else
-      VM.sysWrite('u');
+      VM_Interface.sysWrite('u');
   }
   public static boolean isBuffered(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
@@ -205,12 +204,12 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
   }
   public static void makeBlack(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(getRCColor(object) != GREEN);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(getRCColor(object) != GREEN);
     changeRCColor(object, BLACK);
   }
   public static void makeWhite(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(getRCColor(object) != GREEN);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(getRCColor(object) != GREEN);
     changeRCColor(object, WHITE);
   }
   public static boolean makePurple(Object object)
@@ -229,13 +228,13 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
   }
   public static void makeGrey(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(getRCColor(object) != GREEN);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(getRCColor(object) != GREEN);
     changeRCColor(object, GREY);
   }
   private static void changeRCColor(Object object, int color)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
-    if (VM.VerifyAssertions) VM._assert(color != GREEN);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(color != GREEN);
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = (oldValue & ~COLOR_MASK) | color;

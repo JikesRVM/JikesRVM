@@ -108,7 +108,7 @@ public class ScanObject implements VM_Constants, Constants {
 	if (trace)
 	  MM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
 	else
-	  MM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
+	  VM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
@@ -124,7 +124,7 @@ public class ScanObject implements VM_Constants, Constants {
 	  if (trace)
 	    MM_Interface.processPtrField(location, root);
 	  else
-	    MM_Interface.enumeratePtrLoc(location, plan);
+	    VM_Interface.enumeratePtrLoc(location, plan);
           location = location.add(WORD_SIZE);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);
