@@ -791,13 +791,20 @@ public final class VM_Class extends VM_Type
     if (magic != 0xCAFEBABE) {
       throw new ClassFormatError("bad magic number " + Integer.toHexString(magic));
     }
-    
-    int major = input.readUnsignedShort();
+
+    // Get the class file version number and check to see if it is a version
+    // that we support.
     int minor = input.readUnsignedShort();
-    if ((major != 3 && major != 0) || (minor != 45 && minor != 46 && minor !=47 )) {
+    int major = input.readUnsignedShort();
+    switch (major) {
+    case 45: case 46: case 47:  // we support all variants of these major versions so the minor number doesn't matter.
+      break;
+    case 48: // we only support up to 48.0
+      if (minor == 0) break;
+    default:
       throw new java.lang.UnsupportedClassVersionError("unsupported class file version " + major + "." + minor);
     }
-
+    
     //
     // pass 1: read constant pool
     //

@@ -549,17 +549,40 @@ implements VM_Constants, VM_ClassLoaderConstants {
     VM_Class c = f.getDeclaringClass();
     VM_Atom name = f.getName();
     VM_Atom desc = f.getDescriptor();
+
+    // Search the inheritance hierarchy
     while ((c = c.getSuperClass()) != null) {
-      VM_Field [] df = c.getDeclaredFields();
-      for (int i=0; i<df.length; i++ ) {
-        VM_Field n = df[i];
-        if (name == n.getName() && desc == n.getDescriptor() && n.isLoaded()) {
-          VM_FieldDictionary.setValue(f.getDictionaryId(), n);
-          return n;
-        }
+      VM_Field it = c.findDeclaredField(name, desc);
+      if (it != null) {
+	VM_FieldDictionary.setValue(f.getDictionaryId(), it);
+	return it;
       }
     }
+
+    // Now search the interface hierarchy
+    for (c= f.getDeclaringClass(); c != null; c = c.getSuperClass()) {
+      VM_Class[] interfaces = c.getDeclaredInterfaces();
+      for (int i=0; i<interfaces.length; i++) {
+	VM_Field it = searchInterfaceHierarchy(interfaces[i], name, desc);
+	if (it != null) {
+	  VM_FieldDictionary.setValue(f.getDictionaryId(), it);
+	  return it;
+	}
+      }
+    }
+    
     throw new NoSuchFieldError(f.getDeclaringClass()+": "+name+" "+desc+" no such field found");
+  }
+  
+  private static VM_Field searchInterfaceHierarchy(VM_Class c, VM_Atom name, VM_Atom desc) {
+    VM_Field it = c.findDeclaredField(name, desc);
+    if (it != null) return it;
+    VM_Class[] interfaces = c.getDeclaredInterfaces();
+    for (int i=0; i<interfaces.length; i++) {
+      it = searchInterfaceHierarchy(interfaces[i], name, desc);
+      if (it != null) return it;
+    }
+    return null;
   }
 
   /**
