@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -180,6 +180,8 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
 
+  final static boolean DBG = false;
+
   /**
    * Find the VM_Method that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
@@ -190,25 +192,35 @@ public final class VM_MethodReference extends VM_MemberReference {
       declaringClass.resolve();
     }
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
+      if (DBG)
+        VM.sysWrite("Checking for <" + name + "," + descriptor + "> in class " + c + "...");
+      
       VM_Method it = c.findDeclaredMethod(name, descriptor);
       if (it != null) {
+        if (DBG)
+          VM.sysWriteln("...found <" + name + "," + descriptor
+                      + "> in class " + c);
         resolvedMember = it;
         return resolvedMember;
+      }
+      if (DBG) {
+        VM.sysWriteln("...NOT found <" + name + "," + descriptor
+                      + "> in class " + c);
       }
     }
     if (!VM.fullyBooted) {
         VM.sysWrite("VM_MethodReference.resolveInternal():");
-        VM.sysWrite(" unable to find a method named ");
+        VM.sysWrite(" Unable to find a method named ");
         name.sysWrite();
         VM.sysWrite(" with descriptor ");
         descriptor.sysWrite();
         VM.sysWrite(" in the class ");
         declaringClass.getDescriptor().sysWrite();
-        if (VM.writingImage)
-          VM.sysWriteln(", while writing the boot image");
-        else
+        if (VM.runningVM)
           VM.sysWriteln(", while booting the VM");
-        VM.sysFail("VM_MethodReference.resolveInternal(): unable to resolve a method during VM booting.");
+        else
+          VM.sysWriteln(", while writing the boot image");
+        VM.sysFail("VM_MethodReference.resolveInternal(): Unable to resolve a method during VM booting or boot image writing");
     }
     throw new NoSuchMethodError(this.toString());
   }
