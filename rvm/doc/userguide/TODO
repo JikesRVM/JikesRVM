@@ -1,12 +1,7 @@
-(1) Write Jikes RVM overview section.  Includes discussion of package
-structure. (Mike).
-
-(2) Write section on executing Eclipse on Jikes RVM (Julian).
-
 (5) Write section on HPM (Peter).
 
 (6) Write section on class libraries (includes library support
-package). (Julian)
+package). (Dave)
 
 (8) Rewrite memory management section to describe JMTk.  Either remove
 old watson collector text or create two subsections of memory
