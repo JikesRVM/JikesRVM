@@ -74,9 +74,9 @@ HTTPClient_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 JGF_HOME=//homes/meriadoc/jalapeno/contrib/benchmarks/JavaGrandeForum
 
 #
-# Soot v1.2.3
+# Soot v1.2.5
 #
-Soot_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/soot-1.2.3
+Soot_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/soot-1.2.5
 
 #
 # Xerces 2.0.2
