@@ -46,12 +46,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       argObjs = packageParameterFromJValue(mth, argAddress);
     } else {
       if (isDotDotStyle) {
-        //-#if RVM_FOR_AIX
+        //-#if RVM_WITH_POWEROPEN_ABI
         VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);
         argObjs = packageParameterFromVarArg(mth, varargAddress);
         //-#endif
         
-        //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+        //-#if RVM_WITH_SVR4_ABI
         // pass in the frame pointer of glue stack frames
         // stack frame looks as following:
         //      this method -> 
@@ -66,10 +66,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         //-#endif
       } else {
         // var arg
-        //-#if RVM_FOR_AIX
+        //-#if RVM_WITH_POWEROPEN_ABI
         argObjs = packageParameterFromVarArg(mth, argAddress);
         //-#endif
-        //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+        //-#if RVM_WITH_SVR4_ABI
         argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
         //-#endif
       }
@@ -91,12 +91,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                                               VM_TypeReference expectReturnType)
     throws Exception, VM_PragmaNoInline {
 
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
     //-#endif
@@ -116,12 +116,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                                               VM_TypeReference expectReturnType, boolean skip4Args)
     throws Exception, VM_PragmaNoInline {
 
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
     //-#endif
@@ -311,11 +311,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   public static Object invokeWithVarArg(int methodID, VM_Address argAddress, 
                                         VM_TypeReference expectReturnType) 
     throws Exception {
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
     //-#endif
   }
@@ -334,11 +334,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                                         boolean skip4Args) 
     throws Exception {
 
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, AIX_VARARG);
     //-#endif
 
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
     //-#endif
   }
@@ -421,7 +421,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     Object[] argObjectArray;
     
     switch (argtype) {
-      //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+      //-#if RVM_WITH_SVR4_ABI
     case SVR4_DOTARG:
       // argAddress is the glue frame pointer
       argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
@@ -430,7 +430,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     case JVALUE_ARG:
       argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
       break;
-      //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+      //-#if RVM_WITH_SVR4_ABI
     case SVR4_VARARG:
       argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
       break;
@@ -450,7 +450,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   }
 
 
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#if RVM_WITH_SVR4_ABI
   /* The method reads out parameters from registers saved in native->java glue stack frame (glueFP)
    * and the spill area of native stack frame (caller of glueFP).
    * 
@@ -568,9 +568,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return argObjectArray;
   }
 
-  //-#endif  RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#endif  RVM_WITH_SVR4_ABI
 
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_WITH_SVR4_ABI && RVM_FOR_LINUX
   static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
                                      VM_Address gprarray, VM_Address fprarray,
                                      VM_Address overflowarea, int gpr, int fpr,
@@ -662,8 +662,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       }
     }
   }
-  //-#endif RVM_FOR_LINUX
-  //-#if RVM_FOR_OSX
+  //-#endif RVM_WITH_SVR4_ABI && RVM_FOR_LINUX
+  //-#if RVM_WITH_SVR4_ABI && RVM_FOR_OSX
   static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
                                      VM_Address gprarray, VM_Address fprarray,
                                      VM_Address overflowarea, int gpr, int fpr,
@@ -754,7 +754,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       gpr += regIncrementGpr;
     }
   }
-  //-#endif RVM_FOR_OSX
+  //-#endif RVM_WITH_SVR4_ABI && RVM_FOR_OSX
 
 
   /**

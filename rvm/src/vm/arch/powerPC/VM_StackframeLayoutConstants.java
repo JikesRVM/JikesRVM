@@ -122,12 +122,12 @@ public interface VM_StackframeLayoutConstants  {
   public final static int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   static final int STACKFRAME_HEADER_SIZE             = 3*BYTES_IN_STACKSLOT; // size of frame header, in bytes
-  //-#if RVM_FOR_AIX
+  //-#if RVM_WITH_POWEROPEN_ABI
   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  2*BYTES_IN_STACKSLOT; // spot for this frame's callee to put return address
   static final int STACKFRAME_METHOD_ID_OFFSET        =  BYTES_IN_STACKSLOT; // spot for this frame's method id
   static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame
   //-#endif
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#if RVM_WITH_SVR4_ABI
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID
   static final int STACKFRAME_METHOD_ID_OFFSET        =  2*BYTES_IN_STACKSLOT;
   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  BYTES_IN_STACKSLOT;

@@ -89,10 +89,10 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // so it will be relocated, if necessary
     //
     VM_Address callers_fp = VM_Magic.getMemoryAddress(this.framePtr);
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
     //-#endif
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     // ScanThread calls getReturnAddressLocation() to get this stack frame
     // it is already processed
     jniSavedReturnAddr       = VM_Address.zero();

@@ -920,7 +920,7 @@ public class VM_Runtime implements VM_Constants {
     } while (!MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
-      if (VM.BuildForLinux || VM.BuildForOsx) {
+      if ((VM.BuildForLinux && VM.BuildFor32Addr) || VM.BuildForOsx) {
         // for SVR4 convention, a Java-to-C frame has two mini frames,
         // stop before the mini frame 1 whose ip is in VM (out of line machine
         // code), in the case of sentinel fp, it has to return the callee's fp
@@ -930,6 +930,7 @@ public class VM_Runtime implements VM_Constants {
         } else {
           return callee_fp;
         }
+      // AIX and 64-bit Linux PPC use PowerOpen ABI
       } else {
         return callee_fp;
       }

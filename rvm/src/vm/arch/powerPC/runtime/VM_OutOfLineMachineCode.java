@@ -363,11 +363,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitLAddr (S1, 0, FP);
     asm.emitMFLR  (T0);
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     // save return address of JNI method in mini frame (2)
     asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
     //-#endif
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     // save return address in stack frame
     asm.emitSTAddr(T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S1);
     //-#endif
@@ -405,7 +405,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     int label1 = asm.getMachineCodeIndex();
     asm.emitLAddr (S0, 0, FP);                            // get previous frame
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     // mimi (1) FP -> mimi(2) FP -> java caller
     asm.emitLAddr (S0, 0, S0);
     //-#endif
@@ -437,10 +437,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // return to caller
     //
     asm.emitLAddr  (S0, 0 , FP);                                // get previous frame
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S0);
     //-#endif
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, S0); // get return address from stack frame
     //-#endif
     asm.emitMTLR  (S0);

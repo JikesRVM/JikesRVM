@@ -152,7 +152,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);      
   
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     // buy mini frame (2)
     asm.emitSTAddrU   (FP, -JNI_SAVE_AREA_SIZE, FP);
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id at mini frame (2)
@@ -161,7 +161,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTAddrU   (FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
     //-#endif
         
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_POWEROPEN_ABI
     asm.emitSTAddrU   (FP,  -frameSize, FP);             // get transition frame on stack
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id
     asm.emitSTW   (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
@@ -180,11 +180,11 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     // save current frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
     // to start scanning this stack during GC, if top of stack is still executing in C
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     // for Linux, save mini (2) frame pointer, which has method id
     asm.emitLAddr (PROCESSOR_REGISTER, 0, FP);
     asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNITopJavaFPField.getOffset(), S0);
-    //-#elif RVM_FOR_AIX
+    //-#elif RVM_WITH_POWEROPEN_ABI
     asm.emitSTAddr(FP, VM_Entrypoints.JNITopJavaFPField.getOffset(), S0);           
     //-#endif
         
@@ -425,7 +425,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
   }
   
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#if RVM_WITH_SVR4_ABI
   /**
    * Generates instructions to copy parameters from RVM convention to OS convention.
    * @param asm, the VM_Assembler object
@@ -742,7 +742,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
   }
   //-#endif
 
-  //-#if RVM_FOR_AIX
+  //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * Generates instructions to copy parameters from RVM convention to OS convention.
    * @param asm, the VM_Assembler object
@@ -971,7 +971,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       asm.appendInstructions(codeForArg.getInstructions());
     }
   }
-  //-#endif // RVM_FOR_AIX
+  //-#endif // RVM_WITH_POWEROPEN_ABI
 
 
   //-#if RVM_FOR_OSX
@@ -1013,7 +1013,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if ((mthName.startsWith("Call") && mthName.endsWith("Method")) ||
         mthName.equals("NewObject")) {
 
-      //-#if RVM_FOR_AIX
+      //-#if RVM_WITH_POWEROPEN_ABI
       offset = STACKFRAME_HEADER_SIZE + 3*BYTES_IN_STACKSLOT;   // skip over slots for GPR 3-5
       for (int i = 6; i <= 10; i++ ) {
         asm.emitSTAddr(i, offset, FP);
@@ -1024,7 +1024,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         asm.emitSTFD (i, offset, FP);
         offset+=BYTES_IN_DOUBLE;
       }
-      //-#elif RVM_FOR_LINUX || RVM_FOR_OSX
+      //-#elif RVM_WITH_SVR4_ABI
       // save all parameter registers
       offset = STACKFRAME_HEADER_SIZE + 0;
       for (int i=FIRST_OS_PARAMETER_GPR; i<=LAST_OS_PARAMETER_GPR; i++) {
@@ -1037,7 +1037,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       }
       //-#endif
     } else {
-      //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+      //-#if RVM_WITH_SVR4_ABI
       // adjust register contents (following SVR4 ABI) for normal JNI functions
       // especially dealing with long, spills
       // number of parameters of normal JNI functions should fix in
@@ -1079,7 +1079,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     int retryLoop  = asm.getMachineCodeIndex();
     // acquire Jikes RVM PROCESSOR_REGISTER (and JTOC OSX/Linux only).
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), T0);
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+    //-#if RVM_WITH_SVR4_ABI
     // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
     // Thus, we only need this load on non-AIX platforms
     asm.emitLAddr(JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset(), T0);
@@ -1221,7 +1221,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     frNormalPrologue.resolve(asm);
   } 
 
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#if RVM_WITH_SVR4_ABI
   // SVR4 rounds gprs to odd for longs, but rvm convention uses all
   // we only process JNI functions that uses parameters directly
   // so only handle parameters in gprs now
@@ -1266,5 +1266,5 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       }
     }
   }
-  //-#endif RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#endif RVM_WITH_SVR4_ABI
 }

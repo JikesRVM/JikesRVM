@@ -25,7 +25,7 @@ public final class VM_NativeMethod extends VM_Method {
    */
   private VM_Address nativeIP;                               
 
-  //-#if RVM_WITH_LINKAGE_TRIPLETS
+  //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * the TOC of the native procedure
    */
@@ -71,7 +71,7 @@ public final class VM_NativeMethod extends VM_Method {
    * get the native TOC for this method
    */
   public VM_Address getNativeTOC() { 
-    //-#if RVM_WITH_LINKAGE_TRIPLETS
+    //-#if RVM_WITH_POWEROPEN_ABI
     return nativeTOC;
     //-#else
     return VM_Address.zero();
@@ -151,7 +151,7 @@ public final class VM_NativeMethod extends VM_Method {
       // native procedure not found in library
       return false;
     } else {
-      //-#if RVM_WITH_LINKAGE_TRIPLETS
+      //-#if RVM_WITH_POWEROPEN_ABI
       nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);
       nativeTOC = VM_Magic.getMemoryAddress(symbolAddress.add(BYTES_IN_ADDRESS));
       //-#else

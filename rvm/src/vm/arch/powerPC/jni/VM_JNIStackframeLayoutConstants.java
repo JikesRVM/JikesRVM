@@ -23,14 +23,14 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   // VM_JNICompiler.compile(VM_NativeMethod)
   /////////////////////////////////////////////////////////////
   
-  //-#if RVM_FOR_AIX
+  //-#if RVM_WITH_POWEROPEN_ABI
   static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS; // fp + cr + lr + res + res + toc
   //-#endif
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_WITH_SVR4_ABI && RVM_FOR_LINUX
   // native frame header size, used for java-to-native glue frame header 
   static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr
   //-#endif
-  //-#if RVM_FOR_OSX
+  //-#if RVM_WITH_SVR4_ABI && RVM_FOR_OSX
   // native frame header size, used for java-to-native glue frame header 
   static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS;  // fp + cp + lr???
   //-#endif
@@ -51,13 +51,13 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
     ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
   public static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_ENV_OFFSET + BYTES_IN_ADDRESS;
 
-  //-#if RVM_FOR_AIX
+  //-#if RVM_WITH_POWEROPEN_ABI
   public static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
   public static final int JNI_GC_FLAG_OFFSET                = JNI_PROLOG_RETURN_ADDRESS_OFFSET  + BYTES_IN_ADDRESS;          // 108
   public static final int JNI_SAVE_AREA_SIZE                = JNI_GC_FLAG_OFFSET;
   //-#endif
 
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
+  //-#if RVM_WITH_SVR4_ABI
   // LINUX saves prologue address in lr slot of glue frame (1), see the picture
   // in VM_JNICompiler
   public static final int JNI_GC_FLAG_OFFSET                = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
