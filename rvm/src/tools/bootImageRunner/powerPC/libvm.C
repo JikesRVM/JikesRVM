@@ -169,16 +169,16 @@ extern "C" void processTimerTick() {
    unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
    unsigned  cnt        =  processors[-1];
    cnt = cnt - 1;       // line added here - ndp is now the last processor = and cnt includes it
-   int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
-   *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+   int *epochLoc = (int *) ((char *) VmToc + VM_Processor_epoch_offset);
+   (*epochLoc)++;
 
    int	   i;
    int       sendit = 0;
    int       MISSES = -2;			// tuning parameter
    for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i) {
-     int val = *(int *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
-     if (val <= MISSES) sendit++;
-     *(int *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = val - 1;
+     int *tsrLoc = (int *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
+     if (*tsrLoc <= MISSES) sendit++;
+     (*tsrLoc)--;
    }
    if (sendit != 0) { // some processor "stuck in native"
      if (processors[i] != VM_NULL) {  // Have a NativeDaemon Processor (the last one)
@@ -188,7 +188,7 @@ extern "C" void processTimerTick() {
        exit(-1);
 #else
        int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
-       pthread_t thread = (pthread_t)pthread_id;
+       pthread_t thread = (pthread_t) pthread_id;
        pthread_kill(thread, SIGCONT);
 #endif
      }
@@ -209,7 +209,12 @@ void cSignalHandler(int signum, siginfo_t* siginfo, void* arg3) {
 #endif
 #ifdef RVM_FOR_AIX
 void cSignalHandler(int signum, int zero, sigcontext *context) {
+#ifdef RVM_FOR_32_ADDR
    mstsave *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/mstsave.h"
+#endif
+#ifdef RVM_FOR_64_ADDR
+    __context64 *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/context.h"
+#endif
    unsigned iar  =  save->iar;
 #endif
    unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
@@ -254,7 +259,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
      // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
      // For now, we assume table is fixed in boot image and never moves.
      //
-     int dumpStack = *(int *)((char *)VmToc + DumpStackAndDieOffset);
+     VM_Address dumpStack = *(VM_Address *)((char *)VmToc + DumpStackAndDieOffset);
      save->gpr[VM_Constants_FIRST_VOLATILE_GPR] =
        save->gpr[VM_Constants_FRAME_POINTER];
 #ifdef RVM_FOR_LINUX
@@ -320,7 +325,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    // fetch address of java exception handler
    //
    unsigned jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
-   int javaExceptionHandlerAddress = *(int *)((char *)jtoc + DeliverHardwareExceptionOffset);
+   VM_Address javaExceptionHandler = *(VM_Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
    
    const int TID = VM_Constants_THREAD_ID_REGISTER;
    const int FP  = VM_Constants_FRAME_POINTER;
@@ -338,23 +343,28 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    //               or stack overflow trap
    //
    int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc)) &&
-                      (((unsigned) faultingAddress & 0xffff0000) == 0xffff0000);
+#ifdef RVM_FOR_32_ADDR
+                      ((faultingAddress & 0xffff0000) == 0xffff0000);
+#endif
+#ifdef RVM_FOR_64_ADDR
+                      ((faultingAddress & 0xffffffffffff0000) == 0xffffffffffff0000);
+#endif
    int isTrap = signum == SIGTRAP;
    int isRecoverable = isNullPtrExn | isTrap;
 
    if (lib_verbose || !isRecoverable) {
      fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
-     fprintf(SysTraceFile,"             ip=0x%08x\n", ip);
+     fprintf(SysTraceFile,"             ip=0x%08lx\n", ip);
      fprintf(SysTraceFile,"            mem=0x%08lx\n", faultingAddress);
-#ifdef _aix
-     fprintf(SysTraceFile,"             pr=0x%08x\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
+#ifdef RVM_FOR_AIX
+     fprintf(SysTraceFile,"             pr=0x%08lx\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
 #endif
-     fprintf(SysTraceFile,"             fp=0x%08x\n", save->gpr[FP]);
-     fprintf(SysTraceFile,"            tid=0x%08x\n", save->gpr[TID]);
-     fprintf(SysTraceFile,"             pr=0x%08x\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
-     fprintf(SysTraceFile,"        handler=0x%08x\n", javaExceptionHandlerAddress);
-     fprintf(SysTraceFile,"   pthread_self=0x%08x\n", pthread_self());
-     fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)ip);
+     fprintf(SysTraceFile,"             fp=0x%08lx\n", save->gpr[FP]);
+     fprintf(SysTraceFile,"            tid=0x%08lx\n", save->gpr[TID]);
+     fprintf(SysTraceFile,"             pr=0x%08lx\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
+     fprintf(SysTraceFile,"    exn_handler=0x%08lx\n", javaExceptionHandler);
+     fprintf(SysTraceFile,"   pthread_self=0x%08lx\n", pthread_self());
+     fprintf(SysTraceFile,"          instr=0x%08lx\n", *(unsigned *)ip);
      if (isRecoverable)
        fprintf(SysTraceFile,"vm: normal trap\n");
      else {
@@ -385,7 +395,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
       // of the offending thread.
       // We could try to continue, but sometimes doing so results in cascading failures
       // and it's hard to tell what the real problem was.
-      int dumpStack = *(int *)((char *)jtoc + DumpStackAndDieOffset);
+      VM_Address dumpStack = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
       save->gpr[P0] = save->gpr[FP];
 #ifdef RVM_FOR_LINUX
       save->link = save->nip + 4; // +4 so it looks like a return address
@@ -422,13 +432,13 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    int   oldFp = save->gpr[FP];
    int   newFp = oldFp - VM_Constants_STACKFRAME_HEADER_SIZE;
 #ifdef RVM_FOR_LINUX
-   *(int *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->nip + 4; // +4 so it looks like return address
+   *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->nip + 4; // +4 so it looks like return address
 #endif
 #ifdef RVM_FOR_AIX
-   *(int *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
+   *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
 #endif
-   *(int *)(newFp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET)        = HardwareTrapMethodId;
-   *(int *)(newFp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)    = oldFp;
+   *(VM_Address *)(newFp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET)        = HardwareTrapMethodId;
+   *(VM_Address *)(newFp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)    = oldFp;
    save->gpr[FP] = newFp;
 
    // Set execution to resume in java exception handler rather than re-executing instruction
@@ -523,7 +533,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	      // Things are very badly wrong anyways, so attempt to generate 
 	      // a useful error dump before exiting by returning to VM_Scheduler.dumpStackAndDie
 	      // passing it the fp of the offending thread.
-	      int dumpStack = *(int *)((char *)jtoc + DumpStackAndDieOffset);
+	      VM_Address dumpStack = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
 	      save->gpr[P0] = save->gpr[FP];
 #ifdef RVM_FOR_LINUX
 	      save->link = save->nip + 4; // +4 so it looks like a return address
@@ -573,10 +583,10 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
    // resume execution at java exception handler
    //
 #ifdef RVM_FOR_LINUX
-   save->nip = javaExceptionHandlerAddress;
+   save->nip = javaExceptionHandler;
 #endif
 #ifdef RVM_FOR_AIX
-   save->iar = javaExceptionHandlerAddress;
+   save->iar = javaExceptionHandler;
 #endif
 
 }
@@ -766,17 +776,17 @@ int createJVM(int vmInSeparateThread) {
    
    if (lib_verbose) {
       fprintf(SysTraceFile, "%s: boot record contents:\n", me);
-      fprintf(SysTraceFile, "   bootImageStart:       0x%08x\n",   bootRecord.bootImageStart);
-      fprintf(SysTraceFile, "   bootImageEnd:         0x%08x\n",   bootRecord.bootImageEnd);
-      fprintf(SysTraceFile, "   smallSpaceSize:       0x%08x\n",   bootRecord.smallSpaceSize);
-      fprintf(SysTraceFile, "   largeSpaceSize:       0x%08x\n",   bootRecord.largeSpaceSize);
-      fprintf(SysTraceFile, "   nurserySize:          0x%08x\n",   bootRecord.nurserySize);
-      fprintf(SysTraceFile, "   tiRegister:           0x%08x\n",   bootRecord.tiRegister);
-      fprintf(SysTraceFile, "   spRegister:           0x%08x\n",   bootRecord.spRegister);
-      fprintf(SysTraceFile, "   ipRegister:           0x%08x\n",   bootRecord.ipRegister);
-      fprintf(SysTraceFile, "   tocRegister:          0x%08x\n",   bootRecord.tocRegister);
-      fprintf(SysTraceFile, "   sysTOC:               0x%08x\n",   bootRecord.sysTOC);
-      fprintf(SysTraceFile, "   sysWriteCharIP:       0x%08x\n",   bootRecord.sysWriteCharIP);
+      fprintf(SysTraceFile, "   bootImageStart:       0x%08lx\n",   bootRecord.bootImageStart);
+      fprintf(SysTraceFile, "   bootImageEnd:         0x%08lx\n",   bootRecord.bootImageEnd);
+      fprintf(SysTraceFile, "   smallSpaceSize:       0x%08lx\n",   bootRecord.smallSpaceSize);
+      fprintf(SysTraceFile, "   largeSpaceSize:       0x%08lx\n",   bootRecord.largeSpaceSize);
+      fprintf(SysTraceFile, "   nurserySize:          0x%08lx\n",   bootRecord.nurserySize);
+      fprintf(SysTraceFile, "   tiRegister:           0x%08lx\n",   bootRecord.tiRegister);
+      fprintf(SysTraceFile, "   spRegister:           0x%08lx\n",   bootRecord.spRegister);
+      fprintf(SysTraceFile, "   ipRegister:           0x%08lx\n",   bootRecord.ipRegister);
+      fprintf(SysTraceFile, "   tocRegister:          0x%08lx\n",   bootRecord.tocRegister);
+      fprintf(SysTraceFile, "   sysTOC:               0x%08lx\n",   bootRecord.sysTOC);
+      fprintf(SysTraceFile, "   sysWriteCharIP:       0x%08lx\n",   bootRecord.sysWriteCharIP);
    }
 
    // install a stack for cSignalHandler() and cTrapHandler() to run on
@@ -856,20 +866,20 @@ int createJVM(int vmInSeparateThread) {
       
    // set up initial stack frame
    //
-   int  jtoc = bootRecord.tocRegister;
-   unsigned *processors = *(unsigned **)(bootRecord.tocRegister +
-				         bootRecord.processorsOffset);
-   int pr = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
-   int  tid  = bootRecord.tiRegister;
-   int  ip   = bootRecord.ipRegister;
-   int *sp   = (int *)bootRecord.spRegister;
+   VM_Address  jtoc = bootRecord.tocRegister;
+   VM_Address *processors = *(VM_Address **)(bootRecord.tocRegister +
+					     bootRecord.processorsOffset);
+   VM_Address  pr = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
+   VM_Address tid = bootRecord.tiRegister;
+   VM_Address  ip = bootRecord.ipRegister;
+   VM_Address  sp = bootRecord.spRegister;
 
-   int  fp   = ((int) sp) - VM_Constants_STACKFRAME_HEADER_SIZE;
-        fp   = fp & ~(VM_Constants_STACKFRAME_ALIGNMENT -1);     // align fp
+   VM_Address  fp = sp - VM_Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
+               fp = fp & ~(VM_Constants_STACKFRAME_ALIGNMENT -1);     // align fp
 	
-   *(int *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
-   *(int *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;
-   *(int *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINEL_FP;
+   *(VM_Address *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
+   *(VM_Address *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;
+   *(VM_Address *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINEL_FP;
    
    // force any machine code within image that's still in dcache to be
    // written out to main memory so that it will be seen by icache when
