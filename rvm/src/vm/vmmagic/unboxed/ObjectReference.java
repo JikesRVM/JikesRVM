@@ -31,16 +31,6 @@ public final class ObjectReference implements Uninterruptible, VM_SizeConstants 
   }
 
   /**
-   * Convert from an address to an object. Note: this is a JikesRVM
-   * specific extension to vmmagic.
-   * @param address The object address
-   * @return The corresponding reference
-   */
-  public static ObjectReference fromAddress(Address address) {
-    return null;
-  }
-
-  /**
    * Return a null reference
    */
   public static final ObjectReference nullReference() throws InlinePragma {
