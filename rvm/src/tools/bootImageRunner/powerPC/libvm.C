@@ -391,16 +391,19 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
    // Anything else indicates some sort of unrecoverable vm error.
    //
    int isRecoverable = 0;
-   
+   int continueUnrecoverable = 0;
+
    if (isVmSignal(iar, jtoc))
       {
 #if __linux__
       if (signum == SIGSEGV && (unsigned)(siginfo->si_addr) == 0)
 #else
-      if (signum == SIGSEGV && (save->o_vaddr & 0xffff0000) == 0xffff0000)
+      if (signum == SIGSEGV && ((save->o_vaddr & 0xffff0000) == 0xffff0000))
 #endif
-         isRecoverable = 1;
+	  isRecoverable = 1;
 
+      else if (signum == SIGSEGV)
+	  continueUnrecoverable = 1;
       else if (signum == SIGTRAP)
          isRecoverable = 1;
       }
@@ -766,9 +769,9 @@ int createJVM(int vmInSeparateThread) {
    void    *bootRegion = 0;
    
 #if USE_MMAP
-   bootRegion = mmap(bootImageAddress, roundedImageSize,
-		  PROT_READ | PROT_WRITE | PROT_EXEC, 
-		  MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+   bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
+		     PROT_READ | PROT_WRITE | PROT_EXEC, 
+		     MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
    if (bootRegion == (void *)-1) {
        fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
        return 1;
