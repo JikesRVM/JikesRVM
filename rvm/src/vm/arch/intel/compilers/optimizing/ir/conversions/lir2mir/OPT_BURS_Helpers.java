@@ -887,7 +887,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
                            OPT_RegisterOperand result) {
     OPT_Register highReg = result.register;
     OPT_Register lowReg = burs.ir.regpool.getSecondReg(highReg);
-    burs.append(MIR_Nullary.create(IA32_RDTSC, R(getEAX())));
+    burs.append(MIR_RDTSC.create(IA32_RDTSC, R(getEAX()),R(getEDX())));
     burs.append(MIR_Move.create(IA32_MOV, R(lowReg), R(getEAX())));
     burs.append(MIR_Move.create(IA32_MOV, R(highReg), R(getEDX())));
   }

@@ -1151,7 +1151,7 @@ AF_CF_OF_PF_SF_ZF
 
 ####################
 IA32_RDTSC
-MIR_Nullary
+MIR_RDTSC
 none
 CF_OF
 
