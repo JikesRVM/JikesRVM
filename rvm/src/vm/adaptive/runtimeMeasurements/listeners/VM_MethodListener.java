@@ -90,29 +90,6 @@ abstract class VM_MethodListener extends VM_Listener
    *         EPILOGUE?
    */
   public final void update(int cmid, int callerCmid, int whereFrom) {
-
-    if (callerCmid != -1) {
-      if (VM_ClassLoader.getCompiledMethod(callerCmid) == null) {
-	VM.sysWrite("MethodListener.update: callerCmid (");
-	VM.sysWrite(callerCmid, false);
-	VM.sysWrite(") is null, exiting\n");
-	VM.sysWrite("nextIndex: ");
-	VM.sysWrite(nextIndex, false);
-	VM.sysWrite("\n");
-	throw new RuntimeException();
-      }
-    }
-
-    if (VM_ClassLoader.getCompiledMethod(cmid) == null) {
-      VM.sysWrite("MethodListener.update: cmid (");
-      VM.sysWrite(cmid, false);
-      VM.sysWrite(") is null, exiting\n");
-      VM.sysWrite("numSamples: ");
-      VM.sysWrite(numSamples, false);
-      VM.sysWrite("\n");
-      throw new RuntimeException();
-    }
-    
     int idx;
     int sampleNumber=-1; // the sample number of our insertion
     if (VM.UseEpilogueYieldPoints) {
@@ -163,7 +140,7 @@ abstract class VM_MethodListener extends VM_Listener
 							numSamplesOffset, 1);
 	}
  	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-         if (idx < sampleSize) {
+	if (idx < sampleSize) {
  	  samples[idx] = cmid;
  	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
 							numSamplesOffset, 1);
@@ -171,6 +148,9 @@ abstract class VM_MethodListener extends VM_Listener
       }
     }
 
+    // sampleNumber has the value before we incremented, add one to determine
+    // which sample we were
+    sampleNumber++;
     if (sampleNumber >= sampleSize) { 
       passivate();
       thresholdReached();
@@ -187,15 +167,6 @@ abstract class VM_MethodListener extends VM_Listener
     int numSamples = getNumSamples();
     for (int i=0; i<numSamples; i++) {
       int id = samples[i];
-      if (VM_ClassLoader.getCompiledMethod(id) == null) {
-	VM.sysWrite("MethodListener.thresholdReached: Found a cmid (");
-	VM.sysWrite(id, false);
-	VM.sysWrite(") with a null compiled method, exiting\n");
-	VM.sysWrite("sample index: ");
-	VM.sysWrite(i, false);
-	VM.sysWrite("\n");
-	throw new RuntimeException();
-      }
     }
 
     if (notifyOrganizer) {
