@@ -31,6 +31,6 @@
 
 #DVIPS :=
 
-HYPERLATEX := $(HOME)/Hyperlatex-2.5/hyperlatex
+#HYPERLATEX :=
 
 #PS2GIF :=
