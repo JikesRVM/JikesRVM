@@ -61,6 +61,9 @@ int DumpStackAndDieOffset;
 /* TOC offset of VM_Scheduler.processors[] */
 int ProcessorsOffset;
 
+/* TOC offset of VM_Scheduler.debugRequested */
+int DebugRequestedOffset;
+
 /* name of program that will load and run RVM */
 char *me;
 
@@ -493,7 +496,7 @@ void
 #ifdef __CYGWIN__
 softwareSignalHandler (int signo)
 #else
-softwareSignalHandler (int signo, siginfo_t * si, void *unused)
+softwareSignalHandler (int signo, siginfo_t * si, void *context)
 #endif
 {
 
@@ -564,6 +567,58 @@ softwareSignalHandler (int signo, siginfo_t * si, void *unused)
       ANNOUNCE_TICK ("[tick]\n");
 #endif
     }
+  }
+
+  else if (signo == SIGQUIT)
+      { // asynchronous signal used to awaken internal debugger
+      
+      // Turn on debug-request flag.
+      // Note that "jtoc" is not necessairly valid, because we might have interrupted
+      // C-library code, so we use boot image jtoc address (== VmToc) instead.
+      // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+      // For now, we assume table is fixed in boot image and never moves.
+      //
+      unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
+      if (*flag)
+         {
+         static char *message = "vm: debug request already in progress, please wait\n";
+         write(SysTraceFd, message, strlen(message));
+         }
+      else
+         {
+         static char *message = "vm: debug requested, waiting for a thread switch\n";
+         write(SysTraceFd, message, strlen(message));
+         *flag = 1;
+         }
+      }
+
+  else if (signo == SIGTERM) {
+      unsigned int localJTOC = VmToc;
+      sigcontext *sc = &((ucontext *) context)->uc_mcontext;
+      int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
+   
+      /* get the frame pointer from processor object  */
+      unsigned int localVirtualProcessorAddress	= sc->esi;
+      unsigned int localFrameAddress = 
+	  *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
+
+      /* setup stack frame to contain the frame pointer */
+      long unsigned int *sp = (long unsigned int *) sc->esp;
+
+      /* put fp as a  parameter on the stack  */
+      sc->esp = sc->esp - 4;
+      sp = (long unsigned int *) sc->esp;
+      *sp = localFrameAddress;
+      // must pass localFrameAddress in first param register!
+      sc->eax = localFrameAddress;
+
+      /* put a return address of zero on the stack */
+      sc->esp = sc->esp - 4;
+      sp = (long unsigned int *) sc->esp;
+      *sp = 0;
+
+      /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
+      sc->eip = dumpStack;
   }
 }
 
@@ -699,6 +754,10 @@ createJVM (int vmInSeparateThread)
   /* get and remember JTOC offset of VM_Scheduler.processors[] */
   ProcessorsOffset = bootRecord->processorsOffset;
 
+  // remember JTOC offset of VM_Scheduler.DebugRequested
+  // 
+  DebugRequestedOffset = bootRecord->debugRequestedOffset;
+
   /* write freespace information into boot record */
    bootRecord->verboseGC        = verboseGC;
    bootRecord->nurserySize      = nurserySize;
@@ -775,6 +834,14 @@ createJVM (int vmInSeparateThread)
   /* install software signal handler */
   action.sa_sigaction = &softwareSignalHandler;
   if (sigaction (SIGALRM, &action, 0)) {	/* catch timer ticks (so we can timeslice user level threads) */
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+  if (sigaction (SIGQUIT, &action, 0)) {	/* catch QUIT to invoke debugger thread */
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+  if (sigaction (SIGTERM, &action, 0)) {	/* catch TERM to dump and die */
     fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
     return 1;
   }
