@@ -188,7 +188,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Copy an object to the given raw storage address
+   * Copy a scalar to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
 				  int numBytes, VM_Class type, 
@@ -204,7 +204,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).add(objectEndOffset);
     int copyBytes = numBytes;
     if (VM_AllocatorHeader.STEAL_NURSERY_SCALAR_GC_HEADER)
-      numBytes -= GC_HEADER_BYTES;
+      copyBytes -= GC_HEADER_BYTES;
     VM_Memory.aligned32Copy(toAddress, fromAddress, copyBytes); 
     Object toObj = VM_Magic.addressAsObject(toAddress.sub(objectEndOffset));
     if (hashState == HASH_STATE_HASHED) {
@@ -219,7 +219,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
  }
 
   /**
-   * Copy an object to the given raw storage address
+   * Copy an array to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
 				  int numBytes, VM_Array type,
