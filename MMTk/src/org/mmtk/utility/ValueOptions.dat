@@ -70,3 +70,15 @@ int val2 = Conversions.bytesToPagesUp(1<<val); \
 if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) VM_Interface.sysFail("Unreasonable stress factor, must be at least equal to the log of the plan's poll frequency"); \
 val = val2;
 
+
+V gcspyPort int 0
+Port number for GCSpy server to connect with visualiser
+if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy port " + val);
+
+
+V gcspyTilesize int 131072
+GCSpy tile size in KB
+if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy tilesize " + val); \
+val <<= 10;
+
+

@@ -14,6 +14,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
+//-if RVM_WITH_GCSPY
+import com.ibm.JikesRVM.memoryManagers.JMTk.TreadmillDriver;
+//-endif
+
 /**
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
@@ -95,5 +99,19 @@ final class Treadmill
     fromSpace = toSpace;
     toSpace = tmp;
   }
+
+  //-if RVM_WITH_GCSPY
+  /**
+   * Gather data for GCSpy
+   * @param event the gc event
+   * @param gcspyDriver the GCSpy space driver
+   */
+  void gcspyGatherData(int event, TreadmillDriver tmDriver) {
+    // for now, let's look through both spaces
+    // we might want to return something to help resize the GCSpy space
+    fromSpace.gcspyGatherData(tmDriver);
+    toSpace.gcspyGatherData(tmDriver);
+  }
+  //-endif
 
 }

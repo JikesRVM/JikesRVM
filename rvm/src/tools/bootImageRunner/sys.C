@@ -814,6 +814,7 @@ extern "C" void processTimerTick(void) {
             longest_stuck_ticks = -val;
     }
     
+#if !defined(RVM_WITH_GCSPY)
     /* 
      * After 500 timer intervals (often == 5 seconds), print a message
      * every 50 timer intervals (often == 1/2 second), so we don't
@@ -826,6 +827,7 @@ extern "C" void processTimerTick(void) {
         fprintf(stderr, "This may indicate that a blocking system call"
                 " has occured and the JVM is deadlocked\n");
     }
+#endif
 }
 
 
@@ -3306,3 +3308,309 @@ getArrayLength(void* ptr)
 {
     return *(int*)(((char *)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
 }
+
+#if (defined RVM_WITH_GCSPY)
+// GCspy
+// Richard Jones 12.09.02
+
+extern "C" {
+#include "gcspy_gc_stream.h"
+#include "gcspy_main_server.h"
+#include "gcspy_gc_driver.h"
+#include "gcspy_color_db.h"
+#include "gcspy_utils.h"
+}
+
+typedef void * (*pthread_start_routine_t)(void *);
+
+static gcspy_main_server_t server;
+
+// debugging
+#define GCSPY_TRACE 0
+static int stream_count = 0;
+static int stream_len;
+
+extern "C" gcspy_gc_stream_t *
+gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x, id=%d...", driver, id);
+  gcspy_gc_stream_t *stream = gcspy_driverAddStream(driver, id);
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "stream=%x\n", stream);
+  return stream;
+}
+
+extern "C" void
+gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
+  int len;
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x, len=%d, written=%d\n", 
+	                  driver, stream_len, stream_count);
+    stream_count = 0;
+    /*??*/
+    gcspy_buffered_output_t *output =
+      gcspy_command_stream_get_output(driver->interpreter);
+    len = gcspy_bufferedOutputGetLen(output);
+    fprintf(SysTraceFile, "gcspyDriverEndOutput: interpreter has len=%d\n", len);
+  }
+  gcspy_driverEndOutput(driver);
+}
+
+extern "C" void
+gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driverName,
+                 char *title, char *blockInfo, int tileNum,
+                 char *unused, int mainSpace) {
+               
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, server=%s, driver=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n", 
+                   driver, id, serverName, driverName, 
+                   title, blockInfo, tileNum,
+		   unused, mainSpace);
+  gcspy_driverInit(driver, id, serverName, driverName, 
+                   title, blockInfo, tileNum,
+		   unused, mainSpace);
+}
+
+extern "C" void
+gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x\n", driver);
+  gcspy_driverInitOutput(driver);
+}
+
+extern "C" void
+gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverResize: driver=%x, size %d\n", driver, size);
+  gcspy_driverResize(driver, size);
+}
+
+extern "C" void
+gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, int start, int end) {
+  char name[256];
+  sprintf(name, "   [%08x-%08x)", start, end); 
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x, tile %d %s\n", driver, tile, name);
+  gcspy_driverSetTileName(driver, tile, name);
+}
+
+extern "C" void
+gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
+  if (GCSPY_TRACE) 
+    fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x, spaceInfo = +%s+(%x)\n", driver, spaceInfo, spaceInfo);
+  gcspy_driverSpaceInfo(driver, spaceInfo);
+}
+
+extern "C" void
+gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverStartComm: driver=%x\n", driver);
+  gcspy_driverStartComm(driver);
+}
+
+extern "C" void
+gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStream: driver=%x, id=%d, len=%d\n", driver, id, len);
+    stream_count = 0;
+    stream_len = len;
+  }
+  gcspy_driverStream(driver, id, len);
+}
+
+extern "C" void
+gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverStreamByteValue(driver, val);
+}
+
+extern "C" void
+gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverStreamShortValue(driver, val);
+}
+
+extern "C" void
+gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverStreamIntValue(driver, val);
+}
+
+extern "C" void
+gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x, id=%d, len=%d\n", driver, id, len);
+    stream_count = 0;
+    stream_len = len;
+  }
+  gcspy_driverSummary(driver, id, len);
+}
+
+extern "C" void
+gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverSummaryValue(driver, val);
+}
+
+/* Note: passed driver but uses driver->interpreter */
+extern "C" void
+gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x, interpreter=%x, id=%d, len=%d\n", driver, driver->interpreter, id, len);
+    stream_count = 0;
+    stream_len = len;
+  }
+  gcspy_intWriteControl(driver->interpreter, id, len);
+}
+
+extern "C" gcspy_gc_driver_t *
+gcspyMainServerAddDriver (gcspy_main_server_t *server) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerAddDriver (server address = %x): adding driver...", server);
+  gcspy_gc_driver_t *driver = gcspy_mainServerAddDriver(server);
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "address = %d\n", driver);
+  return driver;
+}
+
+extern "C" void
+gcspyMainServerAddEvent (gcspy_main_server_t *server, int event, const char *name) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerAddEvent (server address = %x): event=%d, name=%s\n", server, event, name);
+  gcspy_mainServerAddEvent(server, event, name);
+}
+
+extern "C" gcspy_main_server_t *
+gcspyMainServerInit (int port, int len, const char *name, int verbose) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
+  gcspy_mainServerInit(&server, port, len, name, verbose);
+  return &server;
+}
+
+extern "C" int
+gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
+  int res = gcspy_mainServerIsConnected(server, event);
+  if (GCSPY_TRACE)
+    if (res)
+      fprintf(SysTraceFile, "connected");
+    else
+      fprintf(SysTraceFile, "not connected");
+  return res;
+}
+
+typedef void gcspyMainServerOuterLoop_t(gcspy_main_server_t *);
+
+extern "C" gcspyMainServerOuterLoop_t *
+gcspyMainServerOuterLoop () {
+  /* return gcspy_mainServerOuterLoop;*/
+  return gcspy_mainServerMainLoop;
+}
+
+extern "C" void
+gcspyMainServerSafepoint (gcspy_main_server_t *server, int event) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
+  gcspy_mainServerSafepoint(server, event);
+}
+
+extern "C" void
+gcspyMainServerSetGeneralInfo (gcspy_main_server_t *server, char *generalInfo) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
+  gcspy_mainServerSetGeneralInfo(server, generalInfo);
+}
+
+extern "C" void
+gcspyMainServerStartCompensationTimer (gcspy_main_server_t *server) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
+  gcspy_mainServerStartCompensationTimer(server);
+}
+
+extern "C" void
+gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
+  gcspy_mainServerStopCompensationTimer(server);
+}
+
+extern "C" void
+gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
+#ifndef __linux__
+  printf("I am not Linux!");
+  exit(-1);
+#endif __linux__
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
+  pthread_t tid;
+  int res = pthread_create(&tid, NULL, 
+		       (pthread_start_routine_t) loop,  server);
+  if (res != 0) {
+    printf("Couldn't create thread.\n");
+    exit(-1);
+  }
+
+  if(wait) {
+    if (GCSPY_TRACE)
+      fprintf(SysTraceFile, "gcspy_mainServerWaitForClient: server=%x\n", server);
+    gcspy_mainServerWaitForClient(server);
+  }
+}
+
+extern "C" void
+gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamName, 
+                 int minValue, int maxValue, int zeroValue, int defaultValue,
+                 char *stringPre, char *stringPost, int presentation, int paintStyle,
+                 int maxStreamIndex, int red, int green, int blue) {
+  gcspy_color_t colour;
+  colour.red = (unsigned char) red;
+  colour.green = (unsigned char) green;
+  colour.blue = (unsigned char) blue;
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, name=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n", 
+                   stream, id, dataType, streamName,
+                   minValue, maxValue, zeroValue, defaultValue,
+		   stringPre, stringPost, presentation, paintStyle,
+		   maxStreamIndex, &colour, colour.red, colour.green, colour.blue);
+  gcspy_streamInit(stream, id, dataType, streamName,
+                   minValue, maxValue, zeroValue,defaultValue,
+		   stringPre, stringPost, presentation, paintStyle,
+		   maxStreamIndex, &colour);
+}
+
+extern "C" void
+gcspyFormatSize (char *buffer, int size) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
+  strcpy(buffer, gcspy_formatSize(size));
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "buffer=%s\n", buffer);
+}
+
+extern "C" int
+gcspySprintf(char *str, const char *format, char *arg) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
+  int res = sprintf(str, format, arg);
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
+  return res;
+}
+
+  
+#endif

@@ -112,6 +112,12 @@ public final class FreeListVMResource extends VMResource implements Constants, V
     pagetotal -= freedPages;
     if (chargeMR)
       mr.release(freedPages);
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY) {
+      int bytes =  Conversions.pagesToBytes(freedPages);
+      Plan.releaseVMResource(addr, bytes);
+    }
+    //-endif
     unlock();
   }
   

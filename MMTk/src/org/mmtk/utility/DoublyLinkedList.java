@@ -15,6 +15,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
+//-if RVM_WITH_GCSPY
+import com.ibm.JikesRVM.memoryManagers.JMTk.TreadmillDriver;
+//-endif
+
 /**
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
@@ -170,5 +174,22 @@ final class DoublyLinkedList
     Log.writeln();
     if (lock != null) lock.release();
   }
+
+
+  //-if RVM_WITH_GCSPY
+  /**
+   * Gather data for GCSpy
+   * @param gcspyDriver the GCSpy space driver
+   */
+  void gcspyGatherData(TreadmillDriver tmDriver) {
+    // GCSpy doesn't need a lock (in its stop the world config)
+    VM_Address cur = head;
+    while (!cur.isZero()) {
+      tmDriver.traceObject(cur);
+      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
+    }
+  }
+  //-endif
+
 
 }

@@ -164,6 +164,16 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   private static PreCopyEnumerator preCopyEnum;
 
+  /**
+   * <code>true</code> if built with GCSpy
+   */
+  public static final boolean GCSPY =
+    //-#if RVM_WITH_GCSPY
+    true;
+    //-#else
+    false;
+    //-#endif
+
   /***********************************************************************
    *
    * Initialization
@@ -927,6 +937,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param cond the condition to be checked
    */
   public static void _assert(boolean cond) throws VM_PragmaInline {
+    VM._assert(cond);
+  }
+
+
+  public static void _assert(boolean cond, String s) throws VM_PragmaInline {
+    if (!cond) VM.sysWriteln(s);
     VM._assert(cond);
   }
 

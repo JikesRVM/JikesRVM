@@ -15,6 +15,10 @@ import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
+//-if RVM_WITH_GCSPY
+import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
+//-endif
+
 /**
  * This class implements a monotone virtual memory resource.  The unit of
  * managment for virtual memory resources is the <code>PAGE</code><p>
@@ -80,6 +84,10 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
       Memory.zero(oldCursor, VM_Extent.fromInt(bytes));
       // Memory.zeroPages(oldCursor, bytes);
+      //-if RVM_WITH_GCSPY
+      if (VM_Interface.GCSPY)
+        Plan.acquireVMResource(start, cursor, bytes);
+      //-endif
       return oldCursor;
     }
   }
@@ -94,7 +102,17 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY)
+      Plan.releaseVMResource(start, bytes);
+    //-endif
   }
+
+  /**
+   * GCSpy needs to know the extent of this resource
+   * @return the cursor
+   */
+ public VM_Address getCursor() { return cursor; }
 
   /**
    * Acquire the appropriate lock depending on whether the context is
@@ -121,6 +139,20 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   public int getUsedPages () {
     return Conversions.bytesToPages(cursor.diff(start).toInt());
   }
+
+  //-if RVM_WITH_GCSPY
+  /**
+   * Gather data for GCSpy
+   * Until we can sweep through this space (either by laying out arrays and
+   * scalars in the same direction, or by segregating scalars and arrays), all
+   * we can report is the range of the space.
+   * @param event The GCSpy event
+   * @param driver the GCSpy driver for this space
+   */
+  void gcspyGatherData(int event, AbstractDriver driver) {
+    driver.setRange(event, getStart(), getCursor());
+  }
+  //-endif
 
   /****************************************************************************
    *

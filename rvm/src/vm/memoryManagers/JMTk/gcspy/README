@@ -1,0 +1,260 @@
+GCSpy interface for Jikes RVM  2.3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Note. 
+In order to run GCSpy, your RVM must interact properly with pthreads. See the
+JikesRVM mailing lists for a discussion of this. Out of the box, Red Hat 7.3
+and upwards seems to work fine, but Debian did not (last time I looked).
+
+I have not tried with other architectures.
+
+1. Download
+-----------
+Download the GCSpy files from http://www.experimentalstuff.com/Technologies/GCspy/.
+You want the C infrastructure (not the C++ one) and the Java visualiser. 
+The C infrastructure provides a GCSpy server to the JikesRVM.
+
+2. JikesRVM Files changed
+-------------------------
+The following files have been changed. The JMTk classes are pure Java, i.e. no
+//-#if's, though I have left //-if's as a convenient marker (note no #). Some VM
+classes still contain //-#if's (as per other mechanisms).
+
+$RVM_ROOT/rvm/bin/jconfigure
+	To include the GCSpy Java files; to provide GCSpy's library and 
+	include files, and to ensure -lpthread.
+$RVM_ROOT/rvm/config/build/gcspy/GCSpy
+	In particular, specify the location of GCSpy's include and lib directories.
+$RVM_ROOT/rvm/config/build/BaseAdaptiveSemiGCSpy
+$RVM_ROOT/rvm/config/build/BaseBaseSemiGCSpy
+$RVM_ROOT/rvm/config/build//FullAdaptiveSemiGCSpy
+	Configurations with GCSpy.
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/BasePlan.java
+	To start the GCSpy server. 
+	To define a GCSPY_SPACE.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/StopTheWorldGC.java
+	To collect data for GCSpy at various points in a collection.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace/Plan.java
+	This is an example of how to interface GCSpy to a collector.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy/TreadmillLocal.java
+	To call the appropriate GCSpy driver to gather data.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/BumpPointer.java
+	To call the appropriate GCSpy driver to gather data.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/DoublyLinkedList.java
+	To call the appropriate GCSpy driver to gather data.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/FreeListVMResource.java
+	To inform Plans of resources that are released.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/MonotoneVMResource.java
+	GCSpy needs to know the extent of VMResources of interest.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/Treadmill.java	
+	To call the appropriate GCSpy driver to gather data.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface/MM_Interface.java
+	To start the GCSpy server.
+	Changed pickAllocator to allocate gcspy classes specially.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface/VM_Interface.java
+	Added a public static final boolean to indicate whether GCSpy is required.
+$RVM_ROOT/rvm/src/vm/runtime/VM_BootRecord.java
+$RVM_ROOT/rvm/src/vm/runtime/VM_SysCall.java
+$RVM_ROOT/rvm/src/tools/bootImageRunner/sys.C
+	To add new sysCalls.
+	To remove the warning about the VP ignoring timer interrupts
+$RVM_ROOT/rvm/src/vm/scheduler/MainThread.java
+	To start the GCSpy server.
+
+3. The GCSpy interface
+----------------------
+The following files comprise the GCSpy interface:
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/AbstractTile.java
+	Abstract notion of a tile.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/GCSpy.java
+	Collector-independent GCSpy functionality to start the GCSpy server.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/README.html
+	This file.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/ServerInterpreter.java
+	The GCSpy server.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/ServerSpace.java
+	The GCspy Space abstraction.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/StreamConstants.java
+	Constants used by the GCspy framework.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/Stream.java
+	A GCSpy stream.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/Subspace.java
+	A convenient abstraction of a sub-Space.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/Color.java 
+	A simple mechanism for specifying colours.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/Util.java
+	Various generally useful methods.
+
+and drivers
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/AbstractDriver.java
+	Parent class for all space drivers
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/ImmortalSpaceDriver.java
+	A space driver for the immortal space.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/SemiSpaceDriver.java
+	A space driver for the SemiSpace collector.
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers/TreadmillDriver.java
+	A space driver for the Treadmill collector.
+
+
+In addition, in order to be able to sweep through a semispace, gathering
+data, we provide a mechanism for keeping track of objects allocated:
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/ObjectMap.java  
+
+And finally, to compile without GCSpy (and to avoid using #if and hence make the
+GCSpy classes standard Java), there are skeleton classes that essentially provide 
+no functionality and whose methods make no further calls.
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/GCSpy.java
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/ServerInterpreter.java
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/drivers/AbstractDriver.java
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/drivers/ImmortalSpaceDriver.java
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/drivers/SemiSpaceDriver.java
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/drivers/TreadmillDriver.java
+
+$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/util/ObjectMap.java
+
+Authors of new driver classes in $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers
+should shadow these classes in $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel/drivers/.
+
+
+4. Installation
+---------------
+
+4.1 Make GCSpy's visualiser.
+
+4.2 Make the C GCSpy libraries.
+Unfortunately, there are a few changes that need to be made (gcspy0.9).
+
+In the GNUmakefile, you may need to modify the line
+	ifeq ($(UNAME), unknown)
+to
+	ifeq ($(UNAME), i686)
+or whatever 'uname -p' reports on your system.
+
+In gcspy_gc_driver.c, remove the 'static' keyword from the following functions:
+	gcspy_driverInitOutput
+	gcspy_driverEndOutput
+and add the following 2 lines to gcspy_gc_driver.h
+	void gcspy_driverInitOutput (gcspy_gc_driver_t *driver);
+	void gcspy_driverEndOutput (gcspy_gc_driver_t *driver);
+
+
+Modify $RVM_ROOT/rvm/config/build/gcspy/GCSpy as necessary to refer to wherever
+you have placed the gcspy c/lib and c/include files.
+
+5.Running
+---------
+You must add $GCSPY_ROOT/src/c/lib to your LD_LIBRARY_PATH.
+
+Additional arguments to rvm:
+
+-X:gc:gcspyPort=port
+	The number of the port on which to connect to the visualiser
+	[default = 0, which means don't connect].
+-X:gc:gcspyWait=[true|false]
+	Whether RVM should wait for a visualiser to connect.
+-X:gc:gcspyTilesize=size
+	How many KB are represented by 1 tile [default: 128K]
+
+6. Testing
+----------
+The easiest way to test is to connect the rvm to the GCSpy trace writing tool.
+For example, to test with rvm and the trace tool running on the same server, 
+communicating on port 3000:
+
+  rvm -Xms80M -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess >application.out 2>&1 &
+  cd $GCSPY_CLASSES
+  java gcspy.tools.TerminalStoreTrace -server localhost 3000 -overwrite -output gcspy.trace >test.out
+
+In case of a GCSpy failure (e.g. something wrong with the protocol),
+. rvm will die with a non-zero exit status and (possibly) a clearly marked
+  GCSpy error;
+. the trace tool will  die with a non-zero exit status and the usual Java
+  exception message and stack dump.
+
+7. Performance
+--------------
+(These are from a couple of months ago, running on a 2.53GHz Pentium 4 with 512Mb
+memory running Red Hat Linux 8, kernel 2.4.18, and using BaseBase. They should not
+be regarded as real performance figures but they give a flavour.)
+
+BaseBaseSemiSpace
+rvm -verbose:gc -Xms80M SpecApplication _202_jess
+i.e. No GCSpy stuff
+
+[Forced GC]
+[GC 1 Start 0.60 s   9004 KB -> 7512 KB   1962.07 ms]
+[GC 2 Start 11.47 s   44520 KB -> 9164 KB   2923.55 ms]
+[GC 3 Start 22.32 s   45068 KB -> 8772 KB   2953.48 ms]
+[GC 4 Start 32.65 s   45892 KB -> 8804 KB   3042.94 ms]
+[GC 5 Start 43.13 s   46916 KB -> 8836 KB   2701.33 ms]
+[GC 6 Start 53.63 s   47940 KB -> 8868 KB   2707.83 ms]
+[GC 7 Start 63.71 s   48964 KB -> 8900 KB   2960.41 ms]
+[GC 8 Start 74.10 s   49988 KB -> 8900 KB   2996.77 ms]
+[Forced GC]
+[GC 9 Start 78.34 s   15752 KB -> 8072 KB   2314.61 ms]
+Allocated: 284288 KB, copied: 77828 KB
+
+BaseBaseSemiSpaceGCSpy
+i.e. GCSpy compiled in but not used (not connected)
+
+rvm -verbose:gc -Xms80M  SpecApplication _202_jess 2>&1 | ~/jikes/bin/alloc.pl
+[Forced GC]
+[GC 1 Start 1.01 s   9072 KB -> 7580 KB   2232.24 ms]
+[GC 2 Start 21.04 s   44520 KB -> 9164 KB   3414.14 ms]
+[GC 3 Start 41.11 s   45068 KB -> 8804 KB   3428.01 ms]
+[GC 4 Start 60.40 s   45892 KB -> 8804 KB   3445.37 ms]
+[GC 5 Start 79.70 s   46916 KB -> 8836 KB   3565.70 ms]
+[GC 6 Start 99.32 s   47940 KB -> 8868 KB   3492.59 ms]
+[GC 7 Start 118.91 s   48964 KB -> 8900 KB   3525.66 ms]
+[GC 8 Start 138.72 s   49988 KB -> 8900 KB   3490.87 ms]
+[Forced GC]
+[GC 9 Start 144.96 s   15784 KB -> 8072 KB   2774.86 ms]
+Allocated: 284288 KB, copied: 77928 KB
+
+
+BaseBaseSemiSpaceGCSpy
+rvm -verbose:gc -Xms80M  -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess
+i.e. GCSpy built in and connected to a client
+
+[Forced GC]
+[GC 1 Start 3.98 s   9408 KB -> 7884 KB   3191.97 ms]
+[GC 2 Start 25.08 s   44568 KB -> 9468 KB   13971.49 ms]
+[GC 3 Start 56.02 s   46620 KB -> 9108 KB   14642.24 ms]
+[GC 4 Start 87.27 s   48500 KB -> 9140 KB   14600.78 ms]
+[GC 5 Start 118.85 s   50548 KB -> 9172 KB   14994.11 ms]
+[GC 6 Start 151.10 s   52084 KB -> 9172 KB   15030.65 ms]
+[GC 7 Start 183.62 s   53620 KB -> 9204 KB   15404.36 ms]
+[Forced GC]
+[GC 8 Start 211.93 s   42424 KB -> 8376 KB   11958.63 ms]
+Allocated: 284624 KB, copied: 71524 KB
+
+BaseBaseSemiSpaceGCSpy with custom pickAllocator
+rvm -verbose:gc -Xms80M  -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true SpecApplication _202_jess
+i.e. GCSpy built in and connected to a client
+
+[Forced GC]
+[GC 1 Start 6.61 s   9392 KB -> 7900 KB   2855.62 ms]
+[GC 2 Start 27.75 s   44680 KB -> 9484 KB   13505.03 ms]
+[GC 3 Start 58.75 s   46764 KB -> 9092 KB   14352.76 ms]
+[GC 4 Start 90.86 s   48612 KB -> 9124 KB   14339.94 ms]
+[GC 5 Start 123.25 s   50148 KB -> 9156 KB   14404.77 ms]
+[GC 6 Start 155.79 s   51684 KB -> 9188 KB   14689.34 ms]
+[GC 7 Start 188.52 s   53220 KB -> 9220 KB   14980.00 ms]
+[Forced GC]
+[GC 8 Start 217.56 s   43240 KB -> 8392 KB   11598.00 ms]
+Allocated: 284576 KB, copied: 71556 KB
+Allocation improvement = 66 KB
+Other allocation (assumed the compiler) = 348 KB
+
+
+Summary (relative to no GCSpy)
+		Allocation	Copying		GCs
+no GCSpy	1.000		1.000		9
+GCSpy built in	1.000		1.001		9
+GCSpy connected	1.001		0.919		8 !!

@@ -49,6 +49,10 @@ import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
+//-if RVM_WITH_GCSPY
+import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.GCSpy;
+//-endif
+
 /**
  * The interface that the JMTk memory manager presents to the Jikes
  * research virtual machine.
@@ -446,6 +450,14 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
+      //-if RVM_WITH_GCSPY
+      if (VM_Interface.GCSPY) {
+        if (isPrefix("Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/",  clsBA) ||
+            isPrefix("[Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/", clsBA)) {
+	  return Plan.GCSPY_SPACE;
+        }
+      }
+      //-endif
       if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA) ||
           isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.IMMORTAL_SPACE;
@@ -456,6 +468,13 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       return t.allocator;
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY) {
+      if (isPrefix("Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/",  typeBA) ||
+	       isPrefix("[Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/", typeBA)) 
+	allocator = Plan.GCSPY_SPACE;
+    }
+    //-endif
     if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
@@ -837,6 +856,14 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     return Plan.gcInProgress();
   }
 
+ //-if RVM_WITH_GCSPY
+  /**
+   * Start the GCSpy server
+   */
+  public static void startGCSpyServer() throws VM_PragmaInterruptible {
+    GCSpy.startGCSpyServer();
+  }
+  //-endif
 
  /***********************************************************************
   *

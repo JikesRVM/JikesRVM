@@ -83,13 +83,23 @@ public abstract class BasePlan
   public static MemoryResource bootMR;
   public static MonotoneVMResource immortalVM;
   protected static MemoryResource immortalMR;
-
+  //-if RVM_WITH_GCSPY
+  public static MonotoneVMResource gcspyVM;
+  protected static MemoryResource gcspyMR;
+  //-endif
+  // 
   // Space constants
   private static final String[] spaceNames = new String[128];
   public static final byte UNUSED_SPACE = 127;
   public static final byte BOOT_SPACE = 126;
   public static final byte META_SPACE = 125;
   public static final byte IMMORTAL_SPACE = 124;
+  //-if RVM_WITH_GCSPY
+  // We might as well use immortal space for GCSpy stuff since there's a
+  // boot-strapping problem: objects are allocated in immortal space before
+  // GCspy is ready.
+  public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
+  //-endif
 
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
@@ -789,4 +799,62 @@ public abstract class BasePlan
   Log getLog() {
     return log;
   }
+
+    //-if RVM_WITH_GCSPY
+  /**
+   * Start the GCSpy server
+   *
+   * @param wait Whether to wait
+   * @param port The port to talk to the GCSpy client (e.g. visualiser)
+   */
+  protected static void startGCSpyServer(int port, boolean wait) {}
+
+  /**
+   * Prepare GCSpy for a collection
+   * Order of operations is guaranteed by StopTheWorld plan
+   *	1. globalPrepare()
+   *	2. threadLocalPrepare()
+   *	3. gcspyPrepare()
+   *	4. gcspyPreRelease()
+   *	5. threadLocalRelease()
+   *	6. gcspyRelease()
+   *	7. globalRelease()
+   *
+   * Typically, zero gcspy's buffers
+   */
+  protected void gcspyPrepare() {}
+
+  /**
+   * Deal with root locations
+   *
+   */
+  protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
+
+  /**
+   * Before thread-local release
+   *
+   */
+  protected void gcspyPreRelease() {}
+
+  /**
+   * After thread-local release
+   *
+   */
+  protected void gcspyPostRelease() {}  
+  
+  /**
+   * After VMResource release
+   * @param start the start of the released resource
+   * @param bytes the number of bytes released
+   */
+  protected static void releaseVMResource(VM_Address start, int bytes) {} 
+  
+  /**
+   * After VMResource acquisition
+   * @param start the start of the acquired resource
+   * @param bytes the number of bytes acquired
+   */
+  protected static void acquireVMResource(VM_Address start, VM_Address end, int bytes) {} 
+  //-endif
+
 }

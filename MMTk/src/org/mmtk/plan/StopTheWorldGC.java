@@ -163,11 +163,19 @@ public abstract class StopTheWorldGC extends BasePlan
 
     boolean designated = (VM_Interface.rendezvous(4210) == 1);
     if (designated) Statistics.initTime.start();
-    prepare();        
+    prepare();
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY)
+      gcspyPrepare();
+    //-endif    
     if (designated) Statistics.initTime.stop();
 
     if (designated) Statistics.rootTime.start();
     VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY)
+      gcspyRoots(rootLocations, interiorRootLocations);
+    //-endif
     if (designated) Statistics.rootTime.stop();
 
     // This should actually occur right before preCopyGC but
@@ -217,7 +225,15 @@ public abstract class StopTheWorldGC extends BasePlan
     }
 
     if (designated) Statistics.finishTime.start();
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY)
+      gcspyPreRelease();
+    //-endif
     release();
+    //-if RVM_WITH_GCSPY
+    if (VM_Interface.GCSPY)
+      gcspyPostRelease();
+    //-endif    
     if (designated) Statistics.finishTime.stop();
     if (designated) printStats();
   }

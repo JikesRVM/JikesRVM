@@ -6,6 +6,10 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+//-#if RVM_WITH_GCSPY
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+//-#endif
+
 /**
  * Thread in which user's "main" program runs.
  *
@@ -41,7 +45,13 @@ class MainThread extends Thread {
   /**
    * Run "main" thread.
    */
-  public void run() {
+  public void run () {
+
+      //-#if RVM_WITH_GCSPY
+      // start the GCSpy interpreter server
+      MM_Interface.startGCSpyServer();
+      //-#endif
+
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl); 

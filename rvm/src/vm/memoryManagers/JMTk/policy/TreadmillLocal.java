@@ -14,6 +14,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
+//-if RVM_WITH_GCSPY
+import com.ibm.JikesRVM.memoryManagers.JMTk.TreadmillDriver;
+//-endif
+
 /**
  * Each instance of this class is intended to provide fast,
  * unsynchronized access to a treadmill.  Therefore instances must not
@@ -155,4 +159,15 @@ final class TreadmillLocal extends LargeObjectAllocator
     throws VM_PragmaInline {
     return 0;
   }
+
+  //-if RVM_WITH_GCSPY
+  /**
+   * Gather data for GCSpy
+   * @param event the gc event
+   * @param gcspyDriver the GCSpy space driver
+   */
+  void gcspyGatherData(int event, TreadmillDriver tmDriver) {
+    treadmill.gcspyGatherData(event, tmDriver);
+  }
+  //-endif
 }

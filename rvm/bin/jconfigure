@@ -520,6 +520,7 @@ declare -i RVM_WITH_GEN_RC=0
 declare -i RVM_WITH_COPY_MS=0
 declare -i RVM_WITH_REF_COUNT=0
 declare -i RVM_WITH_NO_GC=0
+declare -i RVM_WITH_GCSPY=0
 
 
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
@@ -983,6 +984,20 @@ EOF
     elif (( $RVM_WITH_NO_GC )); then
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
     fi
+
+    # GCSpy specific classes
+    if (( $RVM_WITH_GCSPY )); then
+        GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
+    else
+        GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspySkel
+    fi
+    echo $GCSPY_ROOT
+    echo $GCSPY_ROOT/util
+    echo $GCSPY_ROOT/drivers
+        #echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
+        #echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util
+        # TODO Would be better to load only drivers needed rather than all
+        #echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/drivers
 
     # standard library support
     #
@@ -1457,6 +1472,11 @@ function emitExpander () {
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
 	    echo *.* | \$XARGS rm -f
 	EOF
+    #if (( RVM_WITH_GCSPY )); then
+	cat <<- EOF
+            mkdir -p ${SCRATCH_DIRECTORY_STR}/uk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy
+	EOF
+    #fi
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 	    cd ${GENERATED_FILES_DIRECTORY_STR}/instructionFormats
@@ -1938,6 +1958,9 @@ EOF
 	    echo "    \$FIND ./com/ibm/JikesRVM/OSR -name '*.class'"
         fi
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
+	#if (( RVM_WITH_GCSPY )); then
+	    echo "   \$FIND ./uk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy -name '*.class'"
+	#fi
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
     echo ") > ${PRIMORDIAL_CLASSES_STR}.1"
@@ -2713,6 +2736,15 @@ EOF
 	echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
     fi
 
+    # Include GCspy libraries, if requested
+    if (( $RVM_WITH_GCSPY )); then
+        echo "GCSPY_LIBS=\"-L$GCSPY_LIB_DIR -lgcspy\""
+        echo "GCSPY_INCLUDES=\"-I$GCSPY_INCLUDE_DIR\""
+    else
+        echo "GCSPY_LIBS="
+        echo "GCSPY_INCLUDES="
+    fi
+
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
 	cat <<- EOF
 		BOOTER_CXX="run $HOST_CPLUS_STR -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES"
@@ -2763,6 +2795,9 @@ gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $C
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
+	if (( $RVM_WITH_GCSPY )); then
+	    echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
+	fi
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "declare -a gnu_compiler_flags
 gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
@@ -2770,6 +2805,10 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
+	if (( $RVM_WITH_GCSPY )); then
+            echo "BOOTER_CXX=\$BOOTER_CXX -DRVM_WITH_GCSPY"
+	    echo "CCLIBS=\$CCLIBS -lpthread"
+        fi
     else
 	show_mesg_raw >&2 "$ME:$LINENO: I do not know how to interpret the current configuration.  I give up (see line # $LINENO of $ME)"
 	trap '' EXIT
@@ -2887,7 +2926,7 @@ EOF
 	# a warning in g++ 2.96.  So we instead simply extract 
 	# the -Wmissing-noreturn flag.
 	\${BOOTER_CXX//-Wmissing-noreturn/} \
-	  -c -I${SCRATCH_DIRECTORY_STR} \
+	  -c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
 	  -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
 
 	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
@@ -2910,7 +2949,7 @@ EOF
 
 	chdir ${SCRATCH_DIRECTORY_STR}
 	\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-	    sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \${CCLIBS}
+	    sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS}
 	linkedit=1
 EOF
     else

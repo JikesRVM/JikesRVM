@@ -18,6 +18,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
+//-if RVM_WITH_GCSPY
+import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
+//-endif
+
 /**
  * This class implements a simple bump pointer allocator.  The
  * allocator operates in <code>BLOCK</code> sized units.  Intra-block
@@ -107,6 +111,17 @@ final class BumpPointer extends Allocator
     Log.write("cursor = "); Log.write(cursor);
     Log.write(" limit = "); Log.writeln(limit);
   }
+
+  //-if RVM_WITH_GCSPY
+  /**
+   * Gather data for GCSpy
+   * @param event The GCSpy event
+   * @param driver the GCSpy driver for this space
+   */
+  void gcspyGatherData(int event, AbstractDriver driver) {
+    vmResource.gcspyGatherData(event, driver);
+  }
+  //-endif
 
   /****************************************************************************
    *

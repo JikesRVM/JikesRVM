@@ -344,4 +344,41 @@ public class VM_BootRecord {
   public VM_Address sysHPMprintMyGroupIP;
   //-#endif
 
+   //-#if RVM_WITH_GCSPY
+   // GCspy entry points
+   public VM_Address gcspyDriverAddStreamIP;
+   public VM_Address gcspyDriverEndOutputIP;
+   public VM_Address gcspyDriverInitIP;
+   public VM_Address gcspyDriverInitOutputIP;
+   public VM_Address gcspyDriverResizeIP;
+   public VM_Address gcspyDriverSetTileNameIP;
+   public VM_Address gcspyDriverSpaceInfoIP;
+   public VM_Address gcspyDriverStartCommIP;
+   public VM_Address gcspyDriverStreamIP;
+   public VM_Address gcspyDriverStreamByteValueIP;
+   public VM_Address gcspyDriverStreamShortValueIP;
+   public VM_Address gcspyDriverStreamIntValueIP;
+   public VM_Address gcspyDriverSummaryIP;
+   public VM_Address gcspyDriverSummaryValueIP;
+
+   public VM_Address gcspyIntWriteControlIP;
+
+   public VM_Address gcspyMainServerAddDriverIP;
+   public VM_Address gcspyMainServerAddEventIP;
+   public VM_Address gcspyMainServerInitIP;
+   public VM_Address gcspyMainServerIsConnectedIP;
+   public VM_Address gcspyMainServerOuterLoopIP;
+   public VM_Address gcspyMainServerSafepointIP;
+   public VM_Address gcspyMainServerSetGeneralInfoIP;
+   public VM_Address gcspyMainServerStartCompensationTimerIP;
+   public VM_Address gcspyMainServerStopCompensationTimerIP;
+
+   public VM_Address gcspyStartserverIP;
+     
+   public VM_Address gcspyStreamInitIP;
+
+   public VM_Address gcspyFormatSizeIP;
+   public VM_Address gcspySprintfIP;
+   //-#endif
+
 }

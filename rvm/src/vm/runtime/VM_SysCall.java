@@ -274,4 +274,48 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static long sysHPMgetCounterMyGroup(int counter) { return 0; }
   public static int sysHPMprintMyGroup() { return 0; }
   //-#endif
+
+  //-#if RVM_WITH_GCSPY
+  // sysCall entry points to GCSpy
+  public static VM_Address gcspyDriverAddStream (VM_Address driver, int it) { return null; }
+  public static void gcspyDriverEndOutput (VM_Address driver) {}
+  public static void gcspyDriverInit (VM_Address driver, int id, VM_Address serverName, VM_Address driverName,
+                               VM_Address title, VM_Address blockInfo, int tileNum,
+			       VM_Address unused, int mainSpace) {}
+  public static void gcspyDriverInitOutput (VM_Address driver) {}
+  public static void gcspyDriverResize (VM_Address driver, int size) {}
+  public static void gcspyDriverSetTileName (VM_Address driver, int i, int start, int end) {}
+  public static void gcspyDriverSpaceInfo (VM_Address driver, VM_Address info) {}
+  public static void gcspyDriverStartComm (VM_Address driver) {}
+  public static void gcspyDriverStream (VM_Address driver, int id, int len) {}
+  public static void gcspyDriverStreamByteValue (VM_Address driver, byte value) {}
+  public static void gcspyDriverStreamShortValue (VM_Address driver, short value) {}
+  public static void gcspyDriverStreamIntValue (VM_Address driver, int value) {}
+  public static void gcspyDriverSummary (VM_Address driver, int id, int len) {}
+  public static void gcspyDriverSummaryValue (VM_Address driver, int value) {}
+
+  public static void gcspyIntWriteControl (VM_Address driver, int id, int tileNum) {}
+
+  public static VM_Address gcspyMainServerAddDriver(VM_Address addr) { return null; }
+  public static void gcspyMainServerAddEvent (VM_Address server, int event, VM_Address name) {}
+  public static VM_Address gcspyMainServerInit (int port, int len, VM_Address name, int verbose) { return null; }
+  public static int gcspyMainServerIsConnected (VM_Address server, int event) { return 0; }
+  public static VM_Address gcspyMainServerOuterLoop () { return null; }; 
+  public static void gcspyMainServerSafepoint (VM_Address server, int event) {};
+  public static void gcspyMainServerSetGeneralInfo (VM_Address server, VM_Address info) {};
+  public static void gcspyMainServerStartCompensationTimer (VM_Address server) {};
+  public static void gcspyMainServerStopCompensationTimer (VM_Address server) {};
+
+  public static void gcspyStartserver (VM_Address server, int wait, VM_Address serverOuterLoop) {};
+   
+  public static void gcspyStreamInit (VM_Address stream, int id, int dataType, VM_Address name,
+                               int minValue, int maxValue, int zeroValue, int defaultValue,
+			       VM_Address pre, VM_Address post, int presentation, int paintStyle,
+			       int maxStreamIndex, int red, int green, int blue) {}
+
+  public static void gcspyFormatSize (VM_Address buffer, int size) {}
+
+  public static int gcspySprintf (VM_Address str, VM_Address format, VM_Address value) { return 0; }
+  //-#endif
+
 }

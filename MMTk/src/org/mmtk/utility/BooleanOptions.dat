@@ -35,3 +35,5 @@ Should we display detailed breakdown of where GC time is spent?
 variableSizeHeap true
 Should we shrink/grow the heap to adjust to application working set?
 
+gcspyWait false
+Should the VM wait for the visualiser to connect?
