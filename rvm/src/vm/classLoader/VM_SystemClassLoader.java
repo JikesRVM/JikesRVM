@@ -68,6 +68,8 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       DataInputStream dataInputStream = new DataInputStream(is);
       VM_Type type = null;
       try {
+	// Debugging:
+	// VM.sysWriteln("loadVMClass: trying to resolve className " + className);
 	type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
 	loaded.put(className, type);
       } finally {
