@@ -39,7 +39,8 @@ completed whereas the PowerPC 630 reserves event number 3.
 {\tt N} = 12 when both user and kernel code is running.
 \end{itemize}
 
-At least one HPM command line option must be set for HPM counter values to be gathered.  
+At least one HPM event command line option must be set for HPM counter values to be gathered.  
+HPM only works accurately when the number of virtual processors is one, {\tt -X:processors=1}.  
 The output for a PowerPC 604e machine when the command line arguments are
 %
 \begin{verbatim}
