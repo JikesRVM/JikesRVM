@@ -2900,46 +2900,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (!isInterruptible) {
       return;
     } 
-    if (VM.BuildForDeterministicThreadSwitching) {
-      // decrement the deterministic thread switch count field in the
-      // processor object
-      VM_ProcessorLocalState.emitDecrementField(asm, 
-                                                VM_Entrypoints.deterministicThreadSwitchCountField.getOffset());
-      VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);                  // if not, skip
-      
-      // reset the count.
-      VM_ProcessorLocalState.emitMoveImmToField(asm,VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(),
-                                                VM.deterministicThreadSwitchInterval);
 
-      if (whereFrom == VM_Thread.PROLOGUE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
-      } else if (whereFrom == VM_Thread.BACKEDGE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
-      } else { // EPILOGUE
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
-      }
-      fr1.resolve(asm);
-    } else {
-      // thread switch requested ??
-      VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
-                                                     VM_Entrypoints.takeYieldpointField.getOffset(),
-                                                     0);
-      VM_ForwardReference fr1;
-      if (whereFrom == VM_Thread.PROLOGUE) {
-        // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
-        fr1 = asm.forwardJcc(asm.EQ);
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
-      } else if (whereFrom == VM_Thread.BACKEDGE) {
-        // Take yieldpoint if yieldpoint flag is >0
-        fr1 = asm.forwardJcc(asm.LE);
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
-      } else { // EPILOGUE
-        // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
-        fr1 = asm.forwardJcc(asm.EQ);
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
-      }
-      fr1.resolve(asm);
+    // thread switch requested ??
+    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, VM_Entrypoints.takeYieldpointField.getOffset(), 0);
+    VM_ForwardReference fr1;
+    if (whereFrom == VM_Thread.PROLOGUE) {
+      // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+      fr1 = asm.forwardJcc(asm.EQ);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
+    } else if (whereFrom == VM_Thread.BACKEDGE) {
+      // Take yieldpoint if yieldpoint flag is >0
+      fr1 = asm.forwardJcc(asm.LE);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
+    } else { // EPILOGUE
+      // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+      fr1 = asm.forwardJcc(asm.EQ);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
     }
+    fr1.resolve(asm);
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (options.INVOCATION_COUNTERS) {

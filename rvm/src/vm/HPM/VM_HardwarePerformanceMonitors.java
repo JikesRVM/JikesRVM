@@ -1191,7 +1191,7 @@ public class VM_HardwarePerformanceMonitors
   /**
    * Called from VM_Thread.yieldpoint if a timer-interrupt has fired
    */
-  public static void takeHPMTimerSample(boolean threadSwitch) {
+  public static void takeHPMTimerSample(boolean threadSwitch) throws UninterruptiblePragma {
     if (sample || threadSwitch) {
       // sample HPM counter values at every interrupt or a thread switch.
       if (VM.BuildForHPM && safe && !thread_group) {

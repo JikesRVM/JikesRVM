@@ -335,16 +335,14 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
 
     // Start interrupt driven timeslicer to improve threading fairness and responsiveness.
     //
-    if (!VM.BuildForDeterministicThreadSwitching) {
-      schedulingQuantum = VM.interruptQuantum * VM.schedulingMultiplier;
-      if (VM.TraceThreads) {
-        VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
-        VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
-        VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
-        VM.sysWriteln();
-      }
-      VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
+    schedulingQuantum = VM.interruptQuantum * VM.schedulingMultiplier;
+    if (VM.TraceThreads) {
+      VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
+      VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
+      VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
+      VM.sysWriteln();
     }
+    VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
 
     // Allow virtual cpus to commence feeding off the work queues.
     //

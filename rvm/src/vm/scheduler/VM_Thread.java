@@ -388,13 +388,6 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       threadSwitch = true;
     }
     
-    // Reset thread switch count for deterministic thread switching
-    if(VM.BuildForDeterministicThreadSwitching) {
-      VM._assert(false, "Make this work again in new scheme");
-      VM_Processor.getCurrentProcessor().deterministicThreadSwitchCount = 
-        VM.deterministicThreadSwitchInterval;
-    }
-
     //-#if RVM_WITH_OSR
     if (VM_Processor.getCurrentProcessor().yieldToOSRRequested) {
       VM_Processor.getCurrentProcessor().yieldToOSRRequested = false;

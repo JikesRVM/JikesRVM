@@ -3074,19 +3074,18 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param counterIdx index of counter to increment
    */
   private final void incEdgeCounter(int counters, int scratch, int counterIdx) {
-    asm.emitLInt     (scratch, counterIdx<<2, counters);
-    asm.emitADDI    (scratch, 1, scratch);
+    asm.emitLInt   (scratch, counterIdx<<2, counters);
+    asm.emitADDI   (scratch, 1, scratch);
     asm.emitRLWINM (scratch, scratch, 0, 1, 31);
     asm.emitSTW    (scratch, counterIdx<<2, counters);
   }
 
   private final void incEdgeCounterIdx(int counters, int scratch, int base, int counterIdx) {
-    asm.emitADDI     (counters, base<<2, counters);
-    asm.emitLIntX      (scratch, counterIdx, counters);
-    asm.emitADDI     (scratch, 1, scratch);
+    asm.emitADDI    (counters, base<<2, counters);
+    asm.emitLIntX   (scratch, counterIdx, counters);
+    asm.emitADDI    (scratch, 1, scratch);
     asm.emitRLWINM  (scratch, scratch, 0, 1, 31);
-        if (VM.VerifyAssertions) VM._assert(false);
-    asm.emitSTWX     (scratch, counterIdx, counters);
+    asm.emitSTWX    (scratch, counterIdx, counters);
   }    
 
   /**
@@ -3095,19 +3094,9 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genThreadSwitchTest (int whereFrom) {
     if (isInterruptible) {
       VM_ForwardReference fr;
-      // alternate yieldpoint implementations
-      if (VM.BuildForDeterministicThreadSwitching) { // yield every N yieldpoints.
-        // Decrement counter
-        asm.emitLInt(S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
-        asm.emitADDI(S0, -1, S0);  // decrement it
-        asm.emitSTW(S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
-        // If counter greater than 0, branch around call to yield
-        asm.emitCMPI(S0, 0);
-        fr = asm.emitForwardBC(GT);
-      } else { // yield if takeYieldpoint is non-zero.
-        asm.emitLInt(S0, VM_Entrypoints.takeYieldpointField.getOffset(), PROCESSOR_REGISTER);
-        asm.emitCMPI(S0, 0); 
-      }
+      // yield if takeYieldpoint is non-zero.
+      asm.emitLInt(S0, VM_Entrypoints.takeYieldpointField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitCMPI(S0, 0); 
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
         fr = asm.emitForwardBC(EQ);

@@ -100,8 +100,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
 
-  public static final VM_Field deterministicThreadSwitchCountField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "deterministicThreadSwitchCount", "I");
-
   public static final VM_Field scratchStorageField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "scratchStorage", "D");
   public static final VM_Field timeSliceExpiredField      = getField("Lcom/ibm/JikesRVM/VM_Processor;", "timeSliceExpired", "I");
   public static final VM_Field takeYieldpointField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "takeYieldpoint", "I");

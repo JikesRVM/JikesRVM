@@ -59,10 +59,6 @@ implements Uninterruptible, VM_Constants {
     this.isInSelect        = false;
     this.vpStatus = IN_JAVA;
 
-    if (VM.BuildForDeterministicThreadSwitching) { // where we yield every N yieldpoints executed
-      this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
-    }
-
     MM_Interface.setupProcessor(this);
     //-#if RVM_WITH_HPM
     hpm = new VM_HardwarePerformanceMonitor(id);
@@ -536,12 +532,6 @@ implements Uninterruptible, VM_Constants {
   boolean codePatchSyncRequested;
   //-#endif
   
-  /**
-   * For builds where thread switching is deterministic rather than timer driven
-   * Initialized in constructor
-   */
-  public int deterministicThreadSwitchCount;
-
   /**
    * For builds using counter-based sampling.  This field holds a
    * processor-specific counter so that it can be updated efficiently

@@ -151,19 +151,6 @@ public abstract class VM_Configuration {
           false;
         //-#endif
 
-  /** Use count of method prologues executed rather than timer interrupts to
-      drive preemptive thread switching.  Non preemptive thread switching is
-      achieved by setting the number of prologues between thread switches to
-      infinity (-1).  */
-  public static final boolean BuildForDeterministicThreadSwitching =
-        //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-          true;
-        //-#elif RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
-          true;
-        //-#else
-          false;
-        //-#endif
-
   /** Does this build include support for Hardware Performance Monitors? */
   public static final boolean BuildForHPM = 
     //-#if RVM_WITH_HPM

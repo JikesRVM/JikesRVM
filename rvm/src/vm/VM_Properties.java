@@ -59,21 +59,6 @@ public class VM_Properties extends VM_Options {
    */
   public static boolean runningAsSubsystem = false;
 
-  // Use count of method prologues executed rather than timer interrupts to drive
-  // preemptive thread switching.  Non preemptive thread switching is achieved by
-  // setting the number of prologues between thread switches to infinity (-1).
-  //
-  public static int deterministicThreadSwitchInterval =
-    //-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
-    -1;
-    //-#else
-      //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-      1000;
-      //-#else // the normal case (timer-driven preemptive thread switching)
-      0;
-      //-#endif
-    //-#endif
-
   /**
    * The following is set on by -X:verboseBoot= command line arg.
    * When true, it generates messages to the sysWrite stream summarizing
