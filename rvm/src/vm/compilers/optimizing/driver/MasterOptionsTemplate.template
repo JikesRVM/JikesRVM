@@ -186,7 +186,11 @@ $$$$ FOREACH OPTION VDATFILE
                 $$$$ IF TYPE == double
           FULL_NAME = Double.valueOf(value).doubleValue();
                 $$$$ ELSE
+                  $$$$ IF TYPE == float
+            FULL_NAME = Float.valueOf(value).floatValue();
+                  $$$$ ELSE
        Hey! You tried to declare a value option of unrecoginized type...fix it!
+                  $$$$ END IF
                 $$$$ END IF
               $$$$ END IF
             $$$$ END IF
