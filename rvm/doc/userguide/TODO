@@ -18,9 +18,11 @@ DEFERRED (1) In introduction, think about adding pointers to tutorial slides.
 (4) Check all command line options (section 3) and be sure that
     descriptions are up-to-date.
 
-(5) Section 4 (runtime implementation details) needs to be almost
+DONE (5) Section 4 (runtime implementation details) needs to be almost
     completely rewriten, adding object model info
     DAVE G. will do this.
+    More or less.  Still unhappy about Linux/IA32 conventions section,
+    but suspect we can live with it for now.  
 
 DONE (6) Section 5 -- optimizing compiler details.  Exisiting text is
     mostly fine; Think about adding more stuff?  At least include
