@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# (C) Copyright IBM Corp. 2001
+#
 
 DEST_DIR=$1
 

@@ -1,3 +1,6 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
 
 /^RESULT:/ { 
     if ("x$4" != "x") {
