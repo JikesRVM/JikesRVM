@@ -10,6 +10,7 @@ import  instructionFormats.*;
  * This class provides global common sub expression elimination.
  *
  * @author Martin Trapp
+ * @modified Stephen Fink
  */
 class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
@@ -36,13 +37,14 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     verbose = OPT_LICM.verbose;
     this.ir = ir;
     dominator = ir.HIRInfo.dominatorTree;
+    (new OPT_GlobalValueNumber()).perform(ir);
+    valueNumbers = ir.HIRInfo.valueNumbers;
     if (ir.IRStage == ir.LIR) {
       if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
       OPT_DefUse.computeDU(ir);
       OPT_Simple.copyPropagation(ir);
       OPT_DefUse.computeDU(ir);
-      GlobalCSE(ir.firstBasicBlockInCodeOrder(),
-		new OPT_HashedValueNumbers());
+      GlobalCSE(ir.firstBasicBlockInCodeOrder());
       if (VM.VerifyAssertions)
 	VM.assert(avail.size() == 0, avail.toString());
     }
@@ -50,14 +52,14 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
   
   private OPT_IR ir;
   private static java.util.HashMap avail = new java.util.HashMap();
+  private OPT_GlobalValueNumberState valueNumbers;
 
   /**
    * Do a global CSE for all instructions of block b using the given
    * value numbers 
    * @param b
-   * @param valNums
    */
-  private void GlobalCSE (OPT_BasicBlock b, OPT_HashedValueNumbers valNums) {
+  private void GlobalCSE (OPT_BasicBlock b) {
     OPT_Instruction next, inst;
     //VM.sysWrite ("Entering Block "+b+"\n");
     inst = b.firstInstruction();
@@ -72,7 +74,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	inst = next;
 	continue;
       }
-      int vn = valNums.getValueNumber(result);
+      int vn = valueNumbers.getValueNumber(result);
       if (vn < 0) {
 	inst = next;
 	continue;
@@ -104,7 +106,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     Enumeration e = dominator.getChildren(b);
     while (e.hasMoreElements()) {
       OPT_DominatorTreeNode n = (OPT_DominatorTreeNode)e.nextElement();
-      GlobalCSE(n.getBlock(), valNums);
+      GlobalCSE(n.getBlock());
     }
     inst = b.firstInstruction();
     while (!BBend.conforms(inst)) {
@@ -118,7 +120,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	inst = next;
 	continue;
       }
-      int vn = valNums.getValueNumber(result);
+      int vn = valueNumbers.getValueNumber(result);
       if (vn < 0) {
 	inst = next;
 	continue;
