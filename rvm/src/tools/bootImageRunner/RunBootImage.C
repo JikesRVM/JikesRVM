@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2003
  */
 //$Id$
 
@@ -77,6 +77,9 @@ static int DEBUG = 0;			// have to set this from a debugger
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
+static unsigned int parse_heap_size(
+    const char *sizeName, const char *sizeFlag, 
+    const char *token, const char *subtoken, bool *fastExit);
 
 /*
  * What standard command line arguments are supported?
@@ -194,12 +197,12 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	//   while (*argv && **argv == '-')    {
 	if (strequal(token, "-help") || strequal(token, "--help") || strequal(token, "-?") ) {
 	    usage();
-	    *fastExit = 1;
+	    *fastExit = true;
 	    break;
 	}
 	if (strequal(token, nonStandardArgs[HELP_INDEX])) {
 	    nonstandard_usage();
-	    *fastExit = 1; break;
+	    *fastExit = true; break;
 	}
 	if (strequal(token, nonStandardArgs[VERBOSE_INDEX])) {
 	    ++lib_verbose;
@@ -215,26 +218,31 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 
 	    if (vb < 0) {
 		fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
-		*fastExit = 1; break;
+		*fastExit = true; break;
 	    } else if (errno == ERANGE || vb > INT_MAX ) {
 		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
-		*fastExit = 1; break;
+		*fastExit = true; break;
 	    } else if (*endp) {
 		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
-		*fastExit = 1; break;
+		*fastExit = true; break;
 	    }
 	    
 	    verboseBoot = vb;
 	    continue;
 	}
+	/*  Args that don't apply to us (from the Sun JVM); skip 'em. */
+	if (strequal(token, "-server"))
+	    continue;
+	if (strequal(token, "-client")) 
+	    continue;
 	if (strequal(token, "-version")) {
 	    shortVersion();
-	    // *fastExit = 1; break;
+	    // *fastExit = true; break;
 	    exit(0);
 	}
 	if (strequal(token, "-fullversion")) {
 	    fullVersion();
-	    // *fastExit = 1; break;
+	    // *fastExit = true; break;
 	    exit(0);
 	}
 	if (strequal(token, "-showversion")) {
@@ -243,7 +251,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	}
 	if (strequal(token, "-findMappable")) {
 	    findMappable();
-	    // *fastExit = 1; break;
+	    // *fastExit = true; break;
 	    exit(0);		// success, no?
 	}
 	if (strnequal(token, "-verbose:gc", 11)) {
@@ -261,85 +269,59 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 
 		if (level < 0) {
 		    fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
-		    *fastExit = 1; 
+		    *fastExit = true; 
 		} else if (errno == ERANGE || level > INT_MAX ) {
 		    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
-		    *fastExit = 1;
+		    *fastExit = true;
 		} else if (*endp) {
 		    fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
-		    *fastExit = 1;
+		    *fastExit = true;
 		}
 		if (*fastExit) {
 		    fprintf(SysTraceFile, "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
 		    break;
 		}
 	    }
-	    {
-		// canonicalize the argument
-		char *buf = (char *) malloc(20); 
-		sprintf(buf, "-X:gc:verbose=%ld", level);
-		CLAs[n_JCLAs++]=buf;
-	    }
+	    // canonicalize the argument
+	    char *buf = (char *) malloc(20); 
+	    sprintf(buf, "-X:gc:verbose=%ld", level);
+	    CLAs[n_JCLAs++]=buf;
 	    continue;
 	}
+
 	if (strnequal(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
 	    subtoken = token + 5;
 	    fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", Me);
-	    fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s.\n", subtoken, subtoken);
-	    fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
+	    /* Does the arg finish with an M or m?  If so, don't stick on
+	     * another one. */
+	    size_t sublen = strlen(subtoken); // length of subtoken
+	    /* Avoid examining subtoken[-1], not that we actually would care,
+	       but I like the idea of explicitly setting megaChar to '\0'
+	       instead of to '=', which is what we'd get without the
+	       conditional operator here. */
+	    char megaChar = sublen > 0 ? subtoken[sublen - 1] : '\0';
+	    const char *megabytes;
+	    if (megaChar == 'm' || megaChar == 'M')
+		megabytes = "";
+	    else
+		megabytes = "M";
+	    fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s%s.\n", subtoken, subtoken, megabytes);
+	    fprintf(SysTraceFile, "\tTo set a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
 	    goto set_initial_heap_size;
 	}
+
 	if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
 	    subtoken = token + 4;
 	set_initial_heap_size:
-	    long ihsMB;		// initial heap size in MB
-	    errno = 0;
-	    char *endp;
-	    ihsMB = strtol(subtoken, &endp, 0);
-	    if (ihsMB <= 0) {
-		fprintf(SysTraceFile, "%s: You may not specify a %s initial heap size;", Me, ihsMB < 0 ? "negative" : "zero");
-		fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
-		*fastExit = 1;
-	    } else if (ihsMB > (int) (UINT_MAX / (1024U * 1024U ))
-		       || errno == ERANGE) 
-	    {
-		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
-		*fastExit = 1;
-	    } else if (*endp) {
-		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
-		*fastExit = 1;
-	    }
-	    if (*fastExit) {
-		fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n");
-		break;
-	    }
-	    initialHeapSize = ihsMB * 1024U * 1024U;
+	    initialHeapSize 
+		= parse_heap_size("initial", "ms", token, subtoken, fastExit);
 	    continue;
 	}
+
 	if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
 	    subtoken = token + 4;
-	    long mhsMB;		// maximum heap size in MB
-	    errno = 0;
-	    char *endp;
-	    mhsMB = strtol(subtoken, &endp, 0);
-	    if (mhsMB <= 0) {
-		fprintf(SysTraceFile, "%s: You may not specify a %s maximum heap size;", Me, mhsMB < 0 ? "negative" : "zero");
-		fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
-		*fastExit = 1;
-	    } else if (mhsMB > (int) (UINT_MAX / (1024U * 1024U ))
-		       || errno == ERANGE) 
-	    {
-		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
-		*fastExit = 1;
-	    } else if (*endp) {
-		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
-		*fastExit = 1;
-	    }
-	    if (*fastExit) {
-		fprintf(SysTraceFile, "\tPlease specify maximum heap size (in megabytes) using \"-Xms<positive number>\"\n");
-		break;
-	    }
-	    maximumHeapSize = mhsMB * 1024U * 1024U;
+	    maximumHeapSize 
+		= parse_heap_size("maximum", "mx", token, subtoken, fastExit);
 	    continue;
 	}
 
@@ -513,3 +495,78 @@ strnequal(const char *s1, const char *s2, size_t n)
     return strncmp(s1, s2, n) == 0;
 }
 
+
+/* TODO: Import BYTES_IN_PAGE from
+   com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
+static unsigned int
+parse_heap_size(const char *sizeName, const char *sizeFlag, 
+		const char *token, const char *subtoken, bool *fastExit)
+{
+    const unsigned LOG_BYTES_IN_PAGE = 12;
+    const unsigned BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
+    
+    char *endp;
+    unsigned long factor = 1;	// multiplication factor; M for Megabytes, K
+				// for kilobytes, etc.
+
+    errno = 0;
+    long hs = strtol(subtoken, &endp, 0);  // heap size number
+
+    // First, set the factor appropriately, and make sure there aren't extra
+    // characters at the end of the line.
+    if (*endp == '\0') {
+	// no suffix.  Here we differ from the Sun JVM, by assuming
+	// megabytes. (Historical compat.)  The Sun JVM would specify
+	// 1 here. 
+	factor = 1024UL * 1024UL;
+    } else if (endp[1] == '\0') {
+	if (*endp == 'm' || *endp == 'M')
+	    factor = 1024UL * 1024UL; // megabytes
+	else if (*endp == 'k' || *endp == 'K')
+	    factor = 1024UL;	// kilobytes
+	else if (*endp == 'b' || *endp == 'B')
+	    factor = 1UL;	// Bytes.  Not avail. in Sun JVM
+	else {
+	    goto bad_strtol;
+	}
+    } else {
+    bad_strtol:
+	fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a memory size\n", Me, token, subtoken);		
+	*fastExit = true;
+    }
+
+    if (!*fastExit) {
+	if (hs <= 0) {
+	    fprintf(SysTraceFile, 
+		    "%s: You may not specify a %s initial heap size;", 
+		    Me, hs < 0 ? "negative" : "zero");
+	    fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+	    *fastExit = true;
+	}
+    } 
+
+    if (!*fastExit) {
+	if ((unsigned long) hs > (UINT_MAX / factor) || errno == ERANGE)  {
+	// If message not already printed, print it.
+	    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
+	    *fastExit = true;
+	}
+    }
+
+    if (*fastExit) {
+	size_t namelen = strlen(sizeName);
+	fprintf(SysTraceFile, "\tPlease specify %s heap size (in megabytes) using \"-X%s<positive number>M\",\n", sizeName, sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        or (in kilobytes) using \"-X%s<positive number>K\",\n", namelen, namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        or (in bytes) using \"-X%s<positive number>B\"\n", namelen, namelen, " ", sizeFlag);
+	return 0U;		// Dummy.
+    } 
+    unsigned int tot = hs * factor;
+    if (tot % BYTES_IN_PAGE) {
+	fprintf(SysTraceFile, "%s: Rounding up %s heap size from %u to"
+		" a multiple of %u bytes\n", Me, tot, BYTES_IN_PAGE);
+	tot >>= LOG_BYTES_IN_PAGE;
+	++tot;
+	tot <<= LOG_BYTES_IN_PAGE;
+    }
+    return tot;
+}
