@@ -477,6 +477,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     }
   }
 
+  public static boolean fullyInitialized() {
+    return VM_Scheduler.allProcessorsInitialized;
+  }
+
   private static VM_Atom collectorThreadAtom;
   private static VM_Atom runAtom;
 

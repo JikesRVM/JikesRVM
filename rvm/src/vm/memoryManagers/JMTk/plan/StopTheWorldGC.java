@@ -63,6 +63,9 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static boolean progress = true;  // are we making progress?
   protected static int required; // how many pages must this GC yeild? 
 
+  // GC stress test
+  private static int lastStressPagesReserved = 0;  
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
@@ -71,6 +74,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected AddressQueue locations;       // locations containing white objects
   protected AddressQueue rootLocations;   // root locs containing white objects
   protected AddressPairQueue interiorRootLocations; // interior root locations
+
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -122,6 +126,20 @@ public abstract class StopTheWorldGC extends BasePlan
   abstract protected void threadLocalPrepare(int order);
   abstract protected void threadLocalRelease(int order);
   abstract protected void globalRelease();
+
+  /**
+   * Check whether a stress test GC is required
+   */
+  protected static final boolean stressTestGCRequired()
+    throws VM_PragmaInline {
+    int pagesReserved = Plan.getPagesReserved();
+    if (VM_Interface.fullyInitialized() &&
+	((pagesReserved ^ lastStressPagesReserved) > Options.stressTest)) {
+      lastStressPagesReserved = pagesReserved;
+      return true;
+    } else
+      return false;
+  }
 
   /**
    * Perform a collection.

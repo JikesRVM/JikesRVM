@@ -107,7 +107,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private TreadmillThread los;
   private BumpPointer immortal;
 
-
   ////////////////////////////////////////////////////////////////////////////
   //
   // Initialization
@@ -303,6 +302,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
+    mustCollect |= stressTestGCRequired();
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == ssMR)

@@ -316,26 +316,20 @@ public abstract class Generational extends StopTheWorldGC
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
-    if (mustCollect ||
-	getPagesReserved() > getTotalPages() ||
-	nurseryMR.reservedPages() > Options.nurseryPages) {
-      if (VM.VerifyAssertions)	VM._assert(mr != metaDataMR);
+    mustCollect |= stressTestGCRequired();
+    boolean heapFull = getPagesReserved() > getTotalPages();
+    boolean nurseryFull = nurseryMR.reservedPages() > Options.nurseryPages;
+    if (mustCollect || heapFull || nurseryFull) {
+      if (VM.VerifyAssertions)    VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
 	required = required<<1;  // must account for copy reserve
-      fullHeapGC = mustCollect || fullHeapGC;
-      if (Plan.usesLOS && !fullHeapGC) {
-	int nonLOSReserved = nurseryMR.reservedPages() + matureMR.reservedPages() + 
-	                     immortalMR.reservedPages() + metaDataMR.reservedPages();
-	if (losMR.reservedPages() > 0.95 * (getTotalPages() - nonLOSReserved))
-	  fullHeapGC = true;
-      }
+      fullHeapGC = mustCollect || heapFull || fullHeapGC;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
   }
-
 
   ////////////////////////////////////////////////////////////////////////////
   //

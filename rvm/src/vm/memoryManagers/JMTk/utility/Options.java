@@ -22,6 +22,7 @@ public class Options implements VM_Uninterruptible {
   static int heapSize         = 0; // deprecated
   static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = (1<<30);  // default to variable nursery
+  static int stressTest       = (1<<30);  // default to never
 
   public static void process (String arg) throws VM_PragmaInterruptible {
     // VM.sysWriteln("processing arg = ", arg);
@@ -53,6 +54,10 @@ public class Options implements VM_Uninterruptible {
       String tmp = arg.substring(13);
       nurseryPages = Conversions.bytesToPages(Integer.parseInt(tmp)<<20);
       if (nurseryPages <= 0) VM.sysFail("Unreasonable nursery size " + tmp);
+    }
+    else if (arg.startsWith("stress=")) {
+      String tmp = arg.substring(7);
+      stressTest = 1<<Integer.parseInt(tmp);
     }
     else 
       VM.sysWriteln("Ignoring unknown GC option: ", arg);
