@@ -73,7 +73,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int LAST_OS_VOLATILE_FPR           = 13;
   static final int FIRST_OS_NONVOLATILE_FPR       = 14; 
   static final int LAST_OS_VARARG_PARAMETER_FPR   =  6;
-  static final int NATIVE_FRAME_HEADER_SIZE       = 24; // fp + cr + lr + res + res + toc
+  static final int NATIVE_FRAME_HEADER_SIZE       = 6*BYTES_IN_ADDRESS; // fp + cr + lr + res + res + toc
   //-#endif
   //-#if RVM_FOR_LINUX
   static final int FIRST_OS_PARAMETER_GPR         =  3;
@@ -124,12 +124,12 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // AIX   4 (*4 bytes)
   // LINUX 4 (*4 bytes)
   static final int JNI_GLUE_RVM_EXTRA_GPRS = 
-	FIRST_NONVOLATILE_GPR - FIRST_OS_NONVOLATILE_GPR;
+    FIRST_NONVOLATILE_GPR - FIRST_OS_NONVOLATILE_GPR;
   
   // AIX has to save   F14 - F15  2 (*8 bytes)      
   // LINUX has to save F14 - F15  2 (*8 bytes)
   static final int JNI_GLUE_RVM_EXTRA_FPRS =
-	FIRST_NONVOLATILE_FPR - FIRST_OS_NONVOLATILE_FPR;
+    FIRST_NONVOLATILE_FPR - FIRST_OS_NONVOLATILE_FPR;
 
   // no padding is necessary for both AIX and LINUX
   // to be aligned to 8            -- Feng April 29, 2003

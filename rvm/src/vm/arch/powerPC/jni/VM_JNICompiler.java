@@ -137,14 +137,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     asm.emitSTAddr (JTOC, frameSize - JNI_JTOC_OFFSET, FP);    // save RVM JTOC in frame
 
-    asm.emitSTAddr(PROCESSOR_REGISTER, frameSize - JNI_PR_OFFSET, FP);  // save PR in frame  
+    asm.emitSTAddr (PROCESSOR_REGISTER, frameSize - JNI_PR_OFFSET, FP);  // save PR in frame  
 
     // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure      
     asm.emitLAddr(S1, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);
     asm.emitLAddr(S0, VM_Entrypoints.jniEnvField.getOffset(), S1);
 
     // save the TI & PR registers in the JNIEnvironment object for possible calls back into Java
-    asm.emitSTW(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), S0);           
+    asm.emitSTAddr(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), S0);           
     asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0);   
 
     // save current frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
@@ -249,8 +249,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitLAddrX (T0, S1, T0);         // S1 is still the base of the JNIRefs array
     }
 
-    // reload TI ref saved in JNIEnv
-    asm.emitLWZ(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), S0);           
+    // reload TI value saved in JNIEnv
+    asm.emitLAddr(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), S0);           
 
     // pop the glue stack frame, restore the Java caller frame
     asm.emitADDI (FP,  +frameSize, FP);              // remove linkage area
@@ -1332,7 +1332,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     int retryLoop  = asm.getMachineCodeIndex();
     // acquire Jikes RVM PROCESSOR_REGISTER, TI, and JTOC (OSX/Linux only).
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), T0);
-    asm.emitLWZ  (TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), T0);  
+    asm.emitLAddr(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), T0);  
     //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
     // Thus, we only need this load on non-AIX platforms

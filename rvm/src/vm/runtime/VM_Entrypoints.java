@@ -183,7 +183,6 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/classloader/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/classloader/VM_Type;");
 
-  public static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "savedTIreg", "I");
   public static final VM_Field JNIEnvSavedPRField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "savedPRreg", "Lcom/ibm/JikesRVM/VM_Processor;");
   public static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIRefs", "Lcom/ibm/JikesRVM/VM_AddressArray;");
   public static final VM_Field JNIRefsTopField            = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "JNIRefsTop", "I");
@@ -193,6 +192,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   public static final VM_Field JNIExternalFunctionsField  = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lcom/ibm/JikesRVM/VM_Address;");
   //-#if RVM_FOR_POWERPC
+  public static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedTIreg", "Lcom/ibm/JikesRVM/VM_Word;");
   //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOCreg", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif

@@ -108,7 +108,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   }
 
   public final void initializeJNIEnv() throws VM_PragmaInterruptible {
-    jniEnv = VM_JNIEnvironment.allocateEnvironment(threadSlot);
+    jniEnv = VM_JNIEnvironment.allocateEnvironment();
   }
 
   /**
@@ -1264,7 +1264,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // threadSlot determines which jni function pointer is passed to native C
 
     if (VM.runningVM)
-      jniEnv = VM_JNIEnvironment.allocateEnvironment(threadSlot);
+      jniEnv = VM_JNIEnvironment.allocateEnvironment();
 
     //-#if RVM_WITH_OSR
     onStackReplacementEvent = new OSR_OnStackReplacementEvent();
@@ -1515,7 +1515,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */
   public int chosenProcessorId; 
 
-  public VM_JNIEnvironment  jniEnv;
+  public VM_JNIEnvironment jniEnv;
   
   /** 
    * Value returned from {@link VM_Time#cycles()} when this thread 

@@ -44,7 +44,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
-    int compiledMethodId = cm.getId();
     VM_Assembler asm	 = new VM_Assembler(100);   // some size for the instruction array
     VM_Address nativeIP         = method.getNativeIP();
     // recompute some constants
@@ -87,12 +86,12 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // on the stack.  Not needed if we use the thread original stack
 
     // Fill in frame header - similar to normal prolog
-    prepareStackHeader(asm, method, compiledMethodId);
+    prepareStackHeader(asm, method, cm.getId());
 
     // Process the arguments - specific to method being called
     storeParametersForLintel(asm, method);
     
-    // load address of native into S0
+    // load address of native code to invoke into S0
     asm.emitMOV_Reg_Imm (S0, nativeIP.toInt());  
 
     // branch to outofline code in bootimage
@@ -101,12 +100,13 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // return here from VM_OutOfLineMachineCode upon return from native code
     // PR and RVM JTOC restored, T0,T1 contain return from native call
 
-    //If the return type is reference, look up the real value in the JNIref array 
+    // If the return type is reference, look up the real value in the JNIref array 
 
-    // S0 <- VM_Thread
+    // S0 <- threads' VM_JNIEnvironment
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
                                               VM_Entrypoints.activeThreadField.getOffset());
-    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());        // S0 <- jniEnv    
+    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());
+
     if (method.getReturnType().isReferenceType()) {
       asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd (T0, T0);   // get the reference
@@ -114,11 +114,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1  
     }
 
-    // pop frame in JNIRefs array (need to use
-    // S0 <- VM_Thread
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.activeThreadField.getOffset());
-    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());        // S0 <- jniEnv    
+    // pop frame in JNIRefs array (assumes S0 holds VM_JNIEnvironment)
     popJNIrefForEpilog(asm);                                
     
     // then swap order of T0 and T1 for long
@@ -130,9 +126,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
 
     // get pending exception from JNIEnv
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.activeThreadField.getOffset());
-    asm.emitMOV_Reg_RegDisp (S0,  S0, VM_Entrypoints.jniEnvField.getOffset());        	  // S0 <- jniEnv    
     asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIPendingExceptionField.getOffset());  // EBX <- JNIPendingException
     asm.emitMOV_RegDisp_Imm (S0, VM_Entrypoints.JNIPendingExceptionField.getOffset(), 0);    // clear the current pending exception
 
@@ -211,7 +204,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_RegDisp_Imm (SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId); 
 
 
-    // save nonvolatile registrs: JTOC/EDI, EBX, EBP
+    // save nonvolatile registrs: EDI, EBX, EBP
     asm.emitMOV_RegDisp_Reg (SP, EDI_SAVE_OFFSET, JTOC); 
     asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX);
     asm.emitMOV_RegDisp_Reg (SP, EBP_SAVE_OFFSET, EBP);

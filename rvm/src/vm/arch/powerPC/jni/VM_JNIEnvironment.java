@@ -39,10 +39,15 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * when we are making a C => Java transition.
    * Don't have to do this on AIX because it is part of the LinkageTriplet.
    */
-  private static VM_Address savedJTOC;
+  private final static VM_Address savedJTOC = VM_Magic.getTocPointer();
   //-#endif
    
-  
+  /** 
+   * For saving thread index register on entry to native, 
+   * to be restored on JNI call from native
+   */
+  protected VM_Word savedTIreg;         
+
   /**
    * This is the pointer to the shared JNIFunction table.
    * When we invoke a native method, we adjust the pointer we
@@ -59,7 +64,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   private final VM_Address externalJNIFunctions = VM_Magic.objectAsAddress(JNIFunctions);
   //-#endif
   
-
   /**
    * Initialize the array of JNI functions.
    * This function is called during bootimage writing.
@@ -84,17 +88,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
       triplet.set(TOC, VM_Magic.getTocPointer());
       triplet.set(IP, VM_Magic.objectAsAddress(JNIFunctions[i]));
     }
-    //-#endif
-  }
-
-  /**
-   * Create a thread specific JNI environment.
-   * @param threadSlot index of creating thread in Schedule.threads array (thread id)
-   */
-  void initializeState(int threadSlot) {
-    initializeState();
-    //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-    savedJTOC = VM_Magic.getTocPointer();
     //-#endif
   }
 }

@@ -43,12 +43,4 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment {
 
   public static void boot() {
   }
-
-  /**
-   * Create a thread specific JNI environment.
-   * @param threadSlot index of creating thread in Schedule.threads array (thread id)
-   */
-  void initializeState(int threadSlot) {
-    initializeState();
-  }
 }

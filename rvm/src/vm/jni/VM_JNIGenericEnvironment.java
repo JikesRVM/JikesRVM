@@ -35,12 +35,6 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
    */
   protected static final int JNIREFS_FUDGE_LENGTH = 50;
 
-  /** 
-   * For saving thread index register on entry to native, 
-   * to be restored on JNI call from native
-   */
-  protected int savedTIreg;         
-
   /**
    * For saving processor register on entry to native, 
    * to be restored on JNI call from native
@@ -113,9 +107,8 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
 
   /**
    * Create a thread specific JNI environment.
-   * @param threadSlot index of creating thread in Schedule.threads array (thread id)
    */
-  public static synchronized VM_JNIEnvironment allocateEnvironment(int threadSlot) {
+  public static synchronized VM_JNIEnvironment allocateEnvironment() {
     VM_JNIEnvironment env;
     if (pool != null) {
       env = pool;
@@ -123,7 +116,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
     } else {
       env = new VM_JNIEnvironment();
     }
-    env.initializeState(threadSlot);
+    env.initializeState();
     return env;
   }
 
@@ -153,14 +146,6 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
    
   public final int savedRefsFP() throws VM_PragmaUninterruptible  {
     return JNIRefsSavedFP;
-  }
-
-  public final void setTopJavaFP(VM_Address topJavaFP) throws VM_PragmaUninterruptible  {
-    JNITopJavaFP = topJavaFP;
-  }
-
-  public final void setSavedPRreg(VM_Processor vp) throws VM_PragmaUninterruptible  {
-    savedPRreg = vp;
   }
 
   /**
@@ -198,7 +183,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
   }
 
   /**
-   * Get a reference from the JNIRefs stack
+   * Get a reference from the JNIRefs stack.
    * @param offset in JNIRefs stack
    * @return reference at that offset
    */
@@ -218,7 +203,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
   }
 
   /**
-   * Remove a reference from the JNIRefs stack
+   * Remove a reference from the JNIRefs stack.
    * @param offset in JNIRefs stack
    */
   public final void deleteJNIRef(int offset) {
@@ -235,6 +220,9 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
     if (offset == JNIRefsTop) JNIRefsTop -= BYTES_IN_ADDRESS;
   }
 
+  /**
+   * Dump the JNIRefs stack to the sysWrite stream
+   */
   public final void dumpJniRefsStack () throws VM_PragmaUninterruptible {
     int jniRefOffset = JNIRefsTop;
     VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
@@ -263,8 +251,9 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
    */
   public final void recordException(Throwable e) {
     // don't overwrite the first exception except to clear it
-    if (pendingException==null || e==null)
+    if (pendingException==null || e==null) {
       pendingException = e;
+    }
   }
 
   /** 
