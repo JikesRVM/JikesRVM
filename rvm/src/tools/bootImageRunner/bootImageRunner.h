@@ -74,7 +74,7 @@ extern void *getJTOC(void);
 extern int getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
-extern pthread_key_t VmProcessorIdKey;
+extern pthread_key_t VmProcessorKey;
 extern pthread_key_t IsVmProcessorKey;
 
 // Defined in sys.C.; used in libvm.C

@@ -144,7 +144,7 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static void sysPthreadExit() {}
   public static int sysPthreadJoin(int pthread) { return 0; }
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  public static int sysStashVmProcessorIdInPthread(int vmProcessorId) { return 0; }
+  public static int sysStashVmProcessorInPthread(VM_Processor vmProcessor) { return 0; }
   //-#endif
 
   // arithmetic 

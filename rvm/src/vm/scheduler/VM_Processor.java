@@ -336,16 +336,16 @@ implements VM_Uninterruptible, VM_Constants {
 
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   /**
-   * Called during thread startup to stash the ID of the
+   * Called during thread startup to stash the 
    * {@link VM_Processor} in its pthread's thread-specific storage,
    * which will allow us to access the VM_Processor from
    * arbitrary native code.  This is enabled IFF we are intercepting
    * blocking system calls.
    */
   void stashProcessorInPthread() {
-    // Store ID of the VM_Processor in thread-specific storage,
+    // Store address of the VM_Processor in thread-specific storage,
     // so we can access it later on from aribitrary native code.
-    VM_SysCall.sysStashVmProcessorIdInPthread(this.id);
+    VM_SysCall.sysStashVmProcessorInPthread(this);
   }
   //-#endif
 

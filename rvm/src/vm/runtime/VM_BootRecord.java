@@ -267,9 +267,8 @@ public class VM_BootRecord {
   public VM_Address sysPthreadSignalIP;
   public VM_Address sysPthreadExitIP;
   public VM_Address sysPthreadJoinIP;
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
-  public VM_Address sysStashVmProcessorIdInPthreadIP;
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  public VM_Address sysStashVmProcessorInPthreadIP;
   //-#endif
 
   // arithmetic 

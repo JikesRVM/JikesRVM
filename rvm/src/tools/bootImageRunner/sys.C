@@ -1589,7 +1589,7 @@ int VirtualProcessorsLeftToWait;
 // Thread-specific data key in which to stash the id of
 // the pthread's VM_Processor.  This allows the system call library
 // to find the VM_Processor object at runtime.
-pthread_key_t VmProcessorIdKey;
+pthread_key_t VmProcessorKey;
 pthread_key_t IsVmProcessorKey;
 
 // Create keys for thread-specific data.
@@ -1601,9 +1601,9 @@ sysCreateThreadSpecificDataKeys(void)
     // Create a key for thread-specific data so we can associate
     // the id of the VM_Processor object with the pthread it
     // is running on.
-    rc1 = pthread_key_create(&VmProcessorIdKey, 0);
+    rc1 = pthread_key_create(&VmProcessorKey, 0);
     if (rc1 != 0) {
-	fprintf(SysErrorFile, "%s: pthread_key_create(&VMProcessorIdKey,0) failed (err=%d)\n", Me, rc1);
+	fprintf(SysErrorFile, "%s: pthread_key_create(&VMProcessorKey,0) failed (err=%d)\n", Me, rc1);
 	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     rc2 = pthread_key_create(&IsVmProcessorKey, 0);
@@ -1616,7 +1616,7 @@ sysCreateThreadSpecificDataKeys(void)
     // along with the JTOC address and offset of VM_Scheduler.processors.
     // This will enable it to find the VM_Processor object later on.
 #ifdef DEBUG_SYS
-    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmProcessorIdKey);
+    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmProcessorKey);
 #endif
 
     // creation of other keys can go here...
@@ -1772,28 +1772,23 @@ sysVirtualProcessorYield()
 }
 
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-// Stash id of the VM_Processor object in the thread-specific
+// Stash address of the VM_Processor object in the thread-specific
 // data for the current pthread.  This allows us to get a handle
 // on the VM_Processor (and its associated state) from arbitrary
 // native code.
 //
-// Note that simply stashing the address of the VM_Processor is not
-// sufficient, because the garbage collector might move it.
-// (By knowing the id, we can look in the VM_Scheduler.processors
-// array, which is accessible via the JTOC.)
 extern "C" int
-sysStashVmProcessorIdInPthread(int vmProcessorId)
+sysStashVmProcessorInPthread(VM_Address vmProcessor)
 {
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     // We have only a single VM_Processor, so just pass its id
     // directly to the system call wrapper library, along with the
     // JTOC address and the offset of VM_Scheduler.processors.
-    // fprintf(SysErrorFile, "%s: stashing vm_processor id = %d\n", Me, vmProcessorId);
-    //  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), vmProcessorId);
+    // fprintf(SysErrorFile, "%s: stashing vm_processor id = %d\n", Me, vmProcessor);
+    //  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), vmProcessor);
 #else
-    //fprintf(SysErrorFile, "stashing vm processor id = %d, self=%u\n",
-    //  vmProcessorId, pthread_self());
-    int rc = pthread_setspecific(VmProcessorIdKey, (void*) vmProcessorId);
+    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
+    int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
     int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
     if (rc != 0 || rc2 != 0) {
 	fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
