@@ -7,8 +7,8 @@
 # Generate control files necessary to build a particular "configuration"
 # of the Research Virtual Machine.
 #
-# See the usage message below for much more information than we could
-# possibly put in here.
+# See the usage message below, in section 1, the def. of function 
+# help_message.  It gives much more information than is in this header comment.
 #
 # This script is organized into seven sections:
 #    0 - Setup
