@@ -933,7 +933,7 @@ public class PPC_Disassembler implements VM_Constants {
         }
       case 3: /* Trap immediate */
         common_opt = TO_ext(TO);
-        asm_mnemonic = "t"+common_opt+"i";
+        asm_mnemonic = ((opcode == 2) ? "td" : "tw")+common_opt+"i";
         if (common_opt!=null) {
           return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
             "   "+rname(RA)+","+datafield;
