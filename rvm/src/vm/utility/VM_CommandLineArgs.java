@@ -629,8 +629,14 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT)
-	  OPT_Options.printHelp("-X:opt");
+	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT) {
+	//-#if RVM_WITH_OPT_COMPILER
+	    OPT_Options.printHelp("-X:opt");
+	//-#else
+	  VM.sysWrite("vm: This should be unreachable.");
+	  VM.sysExit(1);
+	//-#endif
+	}
 	else {
 	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
 	  VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
