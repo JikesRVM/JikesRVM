@@ -9,23 +9,17 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
- * Emit a header file containing declarations required to access VM data structures from C++.
+ * Emit a header file containing declarations required to access VM 
+ * data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  *
  * @author Derek Lieber
- * @date 20 Apr 1998
  */
 class GenerateInterfaceDeclarations {
 
-  private static int bootImageAddress = 0;
-
-
-  /**
-   * put your documentation comment here
-   * @param args[]
-   * @exception Exception
-   */
   public static void main (String args[]) throws Exception {
+
+    int bootImageAddress = 0;
 
     // Process command line directives.
     //
@@ -38,7 +32,7 @@ class GenerateInterfaceDeclarations {
       System.exit(-1);
     }
 
-    if (0 == bootImageAddress) {
+    if (bootImageAddress == 0) {
       System.err.println("Error: Must specify boot image load address.");
       System.exit(-1);
     }
@@ -54,8 +48,7 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildFor32Addr) {
       System.out.println("#define VM_Address uint32_t");
       System.out.println("#define JavaObject_t uint32_t");
-    }
-    else {
+    } else {
       System.out.println("#define VM_Address uint64_t");
       System.out.println("#define JavaObject_t uint64_t");
     }
@@ -69,7 +62,7 @@ class GenerateInterfaceDeclarations {
     System.out.println();
 
     System.out.println("#ifdef NEED_VIRTUAL_MACHINE_DECLARATIONS");
-    emitVirtualMachineDeclarations();
+    emitVirtualMachineDeclarations(bootImageAddress);
     System.out.println("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     System.out.println();
 
@@ -139,30 +132,24 @@ class GenerateInterfaceDeclarations {
       if (t.isIntType()) {
 	current += 4;
 	System.out.print("   uint32_t " + name + ";\n");
-      }
-      else if (t.isLongType()) {
+      } else if (t.isLongType()) {
 	current += 8;
 	System.out.print("   uint64_t " + name + ";\n");
-      }
-      else if (t.isWordType()) {
+      } else if (t.isWordType()) {
 	System.out.print("   VM_Address " + name + ";\n");
 	current += addrSize;
-      }
-      else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
+      } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
 	System.out.print("   VM_Address * " + name + ";\n");
 	current += addrSize;
-      }
-      else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
+      } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
 	System.out.print("   unsigned int * " + name + ";\n");
 	current += addrSize;
-      }
-      else if (t.isReferenceType()) {
+      } else if (t.isReferenceType()) {
 	System.out.print("   JavaObject_t " + name + ";\n");
 	current += addrSize;
-      }
-      else {
-	  System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
-	  throw new RuntimeException("unexpected field type");
+      } else {
+	System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
+	throw new RuntimeException("unexpected field type");
       }
     }
 
@@ -230,26 +217,28 @@ class GenerateInterfaceDeclarations {
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
-        if (VM.BuildForAix)
+        if (VM.BuildForAix) {
           // e. g.,
           // sysFOOIP = ((AixLinkageLayout *)&sysFOO)->ip;
           System.out.print("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->ip;\n"); 
-        else 
+	} else {
           // e. g.,
           //sysFOOIP = (int) sysFOO; 
           System.out.print("  br->" + fieldName + " = (int) " + functionName + ";\n");
+	}
       }
 
       suffixIndex = fieldName.indexOf("TOC");
       if (suffixIndex > 0) {
         // java field "xxxTOC" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
-        if (VM.BuildForAix)
+        if (VM.BuildForAix) {
           // e. g.,
           // sysTOC = ((AixLinkageLayout *)&sys)->toc;
           System.out.print("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->toc;\n"); 
-        else 
+	} else {
           System.out.print("  br->" + fieldName + " = 0;\n");
+	}
       }
     }
 
@@ -259,12 +248,16 @@ class GenerateInterfaceDeclarations {
 
   // Emit virtual machine class interface information.
   //
-  static void emitVirtualMachineDeclarations () {
+  static void emitVirtualMachineDeclarations (int bootImageAddress) {
 
     // load address for the boot image
     //
     System.out.print("static const int bootImageAddress                        = 0x"
         + Integer.toHexString(bootImageAddress) + ";\n");
+
+    // verion of the classpath library from gnu.classpath.configuration
+    System.out.print("static const char*classpath_version                        = \""
+		     + gnu.classpath.Configuration.CLASSPATH_VERSION +"\";\n");
 
     // values in VM_Constants, from VM_Configuration
     //

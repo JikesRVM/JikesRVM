@@ -126,7 +126,7 @@ nonstandard_usage()
 static void
 shortVersion()
 {
-    fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
+    fprintf(SysTraceFile, "%s %s using GNU Classpath %s\n",rvm_configuration, rvm_version, classpath_version);
 }
 
 static void
