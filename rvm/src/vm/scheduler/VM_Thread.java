@@ -35,11 +35,25 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public final static int BACKEDGE = 1;
   public final static int EPILOGUE = 2;
   
+  //-#if RVM_WITH_HPM
+  /*
+   * Keep counter values for each Java thread.
+   */
+  public HPM_counters hpm_counters;
+  // when thread is scheduled, record real time
+  public long startOfRealTime;
+  //-#endif
+
   /**
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
     this(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
+
+    //-#if RVM_WITH_HPM
+    //    VM.sysWriteln("VM_Thread() call new HPM_counters");
+    hpm_counters = new HPM_counters();
+    //-#endif
   }
 
   /**
@@ -374,7 +388,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().scheduleThread(myThread);
-    morph();
+    morph(true);
   }
 
   /**
@@ -384,7 +398,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().readyQueue.enqueue(myThread);
-    morph();
+    morph(false);
   }
 
   /**
@@ -396,7 +410,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
-    morph();
+    morph(false);
   }
   
   /**
@@ -409,7 +423,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     myThread.beingDispatched = true;
     q.enqueue(myThread);
     l.unlock();
-    morph();
+    morph(false);
   }
 
   /**
@@ -430,7 +444,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     q2.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
     l1.unlock();
     l2.unlock();
-    morph();
+    morph(false);
   }
 
   // Suspend execution of current thread in favor of some other thread.
@@ -461,14 +475,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     p.transferQueue.enqueue(myThread);
     VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.IN_NATIVE;
     p.transferMutex.unlock();
-    morph();
+    morph(false);
   }
 
+  static void morph () {
+    morph(false);
+  }
   /**
    * Current thread has been placed onto some queue. Become another thread.
+   * @param timerTick   timer interrupted if true
    */ 
-  static void morph () {
-    if (trace) VM_Scheduler.trace("VM_Thread", "morph");
+  static void morph (boolean timerTick) {
+    if (trace) VM_Scheduler.trace("VM_Thread", "morph ");
     VM_Thread myThread = getCurrentThread();
 
     if (VM.VerifyAssertions) {
@@ -482,7 +500,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // become another thread
     //
-    VM_Processor.getCurrentProcessor().dispatch();
+    VM_Processor.getCurrentProcessor().dispatch(timerTick);
 
     // respond to interrupt sent to this thread by some other thread
     //
@@ -709,7 +727,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     myThread.beingDispatched = true;
     VM_Scheduler.threadCreationMutex.unlock();
 
-    VM_Processor.getCurrentProcessor().dispatch();
+    VM_Processor.getCurrentProcessor().dispatch(false);
 
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
