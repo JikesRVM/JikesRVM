@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2004
  */
 //$Id$
 /*****************************************************************
@@ -162,6 +162,7 @@ createPipe(int descriptors[2], JNIEnv* env,
 #ifdef DEBUG
     fprintf(stderr, "using %d as %s\n", descriptors[end], fieldName);
 #endif
+    return 0;
 }
 
 /* Close file descriptors returned from pipe().
