@@ -159,7 +159,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
         /* put check in new block */
         s.remove();
         TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s), 
-            TypeCheck.getClearType(s), new OPT_TrueGuardOperand());
+            TypeCheck.getClearType(s), IfCmp.getGuardResult(n));
         newBlock.prependInstruction(s);
         return  true;
       }
