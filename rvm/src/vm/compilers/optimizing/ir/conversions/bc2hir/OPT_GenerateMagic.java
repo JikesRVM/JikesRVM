@@ -121,13 +121,20 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(BYTE_STORE, val, object, offset, 
 					   null));
-    } else if (methodName == VM_MagicNames.getMemoryInt ||
-	       methodName == VM_MagicNames.getMemoryWord) {
+    } else if (methodName == VM_MagicNames.getMemoryInt) {
       OPT_Operand memAddr = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
 					  memAddr, 
 					  new OPT_IntConstantOperand(0), 
+					  null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.getMemoryWord) {
+      OPT_Operand memAddr = bc2ir.popAddress();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, 
+					  memAddr, 
+					  new OPT_IntConstantOperand(0),
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getMemoryAddress) {
@@ -138,11 +145,17 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					  new OPT_IntConstantOperand(0),
 					  null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setMemoryInt ||
-	       methodName == VM_MagicNames.setMemoryWord) {
+    } else if (methodName == VM_MagicNames.setMemoryInt) {
       OPT_Operand val = bc2ir.popInt();
       OPT_Operand memAddr = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, 
+					   memAddr, 
+					   new OPT_IntConstantOperand(0), 
+					   null));
+    } else if (methodName == VM_MagicNames.setMemoryWord) {
+      OPT_Operand val = bc2ir.popRef();
+      OPT_Operand memAddr = bc2ir.popAddress();
+      bc2ir.appendInstruction(Store.create(REF_STORE, val, 
 					   memAddr, 
 					   new OPT_IntConstantOperand(0), 
 					   null));
