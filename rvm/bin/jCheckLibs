@@ -115,7 +115,7 @@ fi
 if [[ -f ${lib_dir}/${jar_file} ]] ; then
   rm -f ${id_file}.id
   # make an attempt for speed:
-  unzip -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
+  $UNZIP -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
   if [ ! -f ${id_file}.id ] ; then
     # fall back
     $HOST_JAR xf ${lib_dir}/${jar_file} ${id_file}.id
