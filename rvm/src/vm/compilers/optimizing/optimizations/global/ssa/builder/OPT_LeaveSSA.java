@@ -57,7 +57,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * @return 
    */
   final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /**
