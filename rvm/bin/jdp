@@ -118,7 +118,6 @@ INTERPRETERMODE=""
 
 BOOTER_ARGS=""
 
-<<<<<<< jdp
 if [[ ! -e $RVM_BUILD/javamath.jar ]]; then
   VM_CLASSES="$RVM_BUILD/RVM.classes/jksvm.jar:$JAZZLIBJAR:$RVM_BUILD/RVM.classes/rvmrt.jar"
 else
@@ -126,10 +125,7 @@ else
 fi
 
 OTHER_ARGS="-X:vmClasses=$VM_CLASSES -classpath `pwd`"
-=======
-OTHER_ARGS="-X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
 OTHER_ARGS="$OTHER_ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
->>>>>>> 1.12
 
 JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $RVM_IMAGE  -classpath $RVM_BUILD/RVM.classes/jksvm.jar:$JAZZLIBJAR:$RVM_BUILD/RVM.classes/rvmrt.jar:. "
 
