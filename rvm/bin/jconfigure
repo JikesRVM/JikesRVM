@@ -821,7 +821,7 @@ function emitEnvironment
    print "export $GNU_MAKE_STR1=$GNU_MAKE"
    print ""
    print "export $HOST_CC_STR1='$CC'"
-   print "export $HOST_CPLUS_STR1='$CC'"
+   print "export $HOST_CPLUS_STR1='$CPLUS'"
    print "export $HOST_CPP_STR1='$CPP'"
    print "export $HOST_SHLD_STR1='$LDSHARED'"
    print ""
@@ -883,7 +883,8 @@ function emitMakefile
    print "TARGET_INSTRUCTION_TYPE = $INSTRUCTION_TYPE"
    print ""
    print "CC = $CC"
-   print "CPLUS = $CC"
+   print "CPLUS = $CPLUS"
+   print "CXX = $CPLUS"
    print "LDSHARED = $LDSHARED"
    print "JNI_NATIVE_LIBS_LD = $JNI_NATIVE_LIBS_LD"
    print ""
@@ -1861,12 +1862,12 @@ function emitBooterLinker
    # build the JNI code for heavyweight networking calls
    print 'cd $JAL_ROOT/rvm/src/tools/bootImageRunner/'
    if (( RVM_FOR_AIX )); then
-      print '$GNU_MAKE -s -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a'
+      print '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a'
    elif (( RVM_FOR_CYGWIN )); then
       # skip this step
       print
    else
-      print '$GNU_MAKE -s -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so'
+      print '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so'
    fi
 
    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
