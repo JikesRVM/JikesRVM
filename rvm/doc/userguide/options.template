@@ -42,7 +42,7 @@ $$$$ END IF
 
 
 $$$$ IF OPTION_TYPE == "JMTK"
-  Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
+Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
 Option                                 Description
   $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
   $$$$ FOREACH OPTION BDATFILE
