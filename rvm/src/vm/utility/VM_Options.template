@@ -1,0 +1,274 @@
+/*
+ * (C) Copyright IBM Corp. 2003
+ */
+package com.ibm.JikesRVM;
+
+/**
+ * Class to handle command-line arguments and options meant
+ * for the core runtime system of the VM.	
+ * <p>
+ * Note: This file is mechanically generated from VM_Options.template.
+ * <p>
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES 
+ *       All other options are defined in VALUE_DAT_FILES 
+ *       (value, enumeration)
+ * <p>
+ * NOTE: This class does not support all of the types of 
+ *       options found in the other Jikes RVM options
+ *       files.  This is intentional and is done to enable
+ *       -X:vm options to be processed very early in the 
+ *       booting process.
+ *
+ * @author Bowen Alpern
+ * @author Stephen Fink
+ * @author Dave Grove
+ **/
+public class VM_Options extends VM_Configuration 
+                        implements VM_Uninterruptible {
+
+   // Begin template-specified options
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET PRETTY_NAME @PAD(FULL_NAME,30," ")
+   public static boolean PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+     $$$$ END LET PRETTY_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
+   public static TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+     $$$$ END LET PRETTY_NAME
+     $$$$ END SPLIT  
+$$$$ END FOREACH
+$$$$ END LOOP
+   // End template-specified options
+
+   // Begin generated support for "Enumeration" options
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+   // FULL_NAME
+          $$$$ LOOP CONSTNAME OPTION.ENUMS
+               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
+   public static final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
+               $$$$ END SPLIT CONSTNAME
+          $$$$ END LOOP
+
+      $$$$ END IF TAG == E
+      $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+   // End generated support for "Enumeration" options
+
+  /**
+   * Take a string (most likely a command-line argument) and try to proccess it
+   * as an option command.  Return true if the string was understood, false 
+   * otherwise.
+   *
+   * @param arg a String to try to process as an option command
+   * @return true if successful, false otherwise
+   */
+  public static boolean process(String arg) throws VM_PragmaNoOptCompile,
+	                                           VM_PragmaInterruptible {
+
+    // First handle the "option commands"
+    if (arg.equals("help")) {
+       printHelp();
+       return true;
+    }
+    if (arg.equals("printOptions")) {
+       printOptions();
+       return true;
+    }
+    if (arg.equals("")) {
+      printHelp();
+      return true;
+    }
+
+    // Required format of arg is 'name=value'
+    // Split into 'name' and 'value' strings
+    int split = arg.indexOf('=');
+    if (split == -1) {
+      VM.sysWrite("  Illegal option specification!\n  \""+arg+
+		  "\" must be specified as a name-value pair in the form of option=value\n");
+      return false;
+    }
+    String name = arg.substring(0,split);
+    String value = arg.substring(split+1);
+
+    // Begin generated command-line processing
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
+    if (name.equals("CMD_NAME")) {
+      if (value.equals("true")) {
+        FULL_NAME = true;
+	return true;
+      } else if (value.equals("false")) {
+  	FULL_NAME = false;
+        return true;
+      } else 
+        return false;
+    }
+     $$$$ END LET
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
+    if (name.equals("CMD_NAME")) {
+     $$$$ IF TAG == V
+       $$$$ IF TYPE == int
+       FULL_NAME = Integer.parseInt(value);
+       $$$$ ELSE
+         $$$$ IF TYPE == byte
+       FULL_NAME = Byte.parseByte(value);
+         $$$$ ELSE
+           $$$$ IF TYPE == String
+       FULL_NAME = value;
+           $$$$ ELSE
+       Hey! You tried to declare a value option of unsupported type...fix it!
+           $$$$ END IF
+         $$$$ END IF
+       $$$$ END IF
+       return true;
+     }
+     $$$$ ELSE 
+       $$$$ IF TAG == E
+            $$$$ LOOP CONSTNAME OPTION.ENUMS
+                 $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+       if (value.equals("CMD_NAME")) {
+         FULL_NAME = ITEM_NAME;
+         return true;
+       }         
+                 $$$$ END SPLIT CONSTNAME
+            $$$$ END LOOP
+       return false;
+     }
+       $$$$ ELSE
+     Whoops! Unsupported tag: TAG.
+       $$$$ END IF TAG == E
+     $$$$ END IF TAG == V
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+       //End generated command-line processing
+
+    // None of the above tests matched, so this wasn't an option
+    return false;
+  }
+
+  // Print a short description of every option
+  // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
+  // boot image writing.
+  public static void printHelp() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+
+    VM.sysWrite("Commands\n");
+    VM.sysWrite("-X:vm[:help]\t\t\tPrint brief description of JMTk's command-line arguments\n");
+    VM.sysWrite("-X:vm:printOptions\t\tPrint the current values of JMTk's options\n");
+    VM.sysWrite("\n");
+
+    //Begin generated help messages
+    VM.sysWrite("Boolean Options (-X:vm:<option>=true or -X:vm:<option>=false)\n");
+    VM.sysWrite("Option                                 Description\n");
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    VM.sysWrite("CMD_NAME OPTION.DESCRIP\n");
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+    VM.sysWrite("\nValue Options (-X:vm:<option>=<value>)\n");
+    VM.sysWrite("Option                         Type    Description\n");
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET TNAME @PAD("TYPE", 7, " ")
+    VM.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
+          $$$$ END LET TYPE_NAME
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+    VM.sysWrite("\nSelection Options (set option to one of an enumeration of possible values)\n");
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+    VM.sysWrite("\t\tOPTION.DESCRIP\n");
+	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    VM.sysWrite("MAIN_CMD_NAME");
+            $$$$ LOOP CONSTNAME OPTION.ENUMS
+                 $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+    VM.sysWrite("CMD_NAME ");
+                 $$$$ END SPLIT CONSTNAME
+            $$$$ END LOOP CONSTNAME
+          $$$$ END LET MAIN_CMD_NAME
+    VM.sysWrite("\n");
+     $$$$ END IF TAG == E
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+
+    VM.sysExit(1);
+  }    
+
+  // print the options values
+  public static void printOptions() throws VM_PragmaNoOptCompile,
+	                                   VM_PragmaInterruptible {
+    VM.sysWrite("Current value of VM options:\n");
+    //Begin generated option value printing 
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    VM.sysWrite("\tCMD_NAME = "+FULL_NAME+"\n");
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    VM.sysWrite("\tCMD_NAME = "+FULL_NAME+"\n");
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+          $$$$ LET PCMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LOOP CONSTNAME OPTION.ENUMS
+               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+    if (FULL_NAME == ITEM_NAME)
+       VM.sysWrite("\tPCMD_NAME = ITEM_NAME\n");
+               $$$$ END LET PCMD
+               $$$$ END SPLIT CONSTNAME
+          $$$$ END LOOP CONSTNAME
+     $$$$ END IF TAG == E
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+    //End generated option value printing 
+  }
+}

@@ -1,0 +1,30 @@
+#
+# (C) Copyright IBM Corp. 2003
+#
+DECL 
+# Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+# TAG: E = Enumeration, V = Value
+# TYPE: byte, int
+DESCRIP  
+ENUMS
+#Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
+
+V maxSystemTroubleRecursionDepth int  3
+If we get deeper than this in one of the System Trouble functions, try to die.
+
+
+V schedulingQuantum int 10
+Thread scheduling quantum in ms
+
+
+V TraceThreadScheduling int 0 traceThreadScheduling
+Trace actions taken by thread scheduling
+
+
+V VerboseStackTracePeriod int 0 verboseStackTrace
+Trace every nth time a stack trace is created
+
+
+V EdgeCounterFile String null edgeCounterFile
+Input file of edge counter profile data
+
