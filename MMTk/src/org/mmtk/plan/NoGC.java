@@ -4,6 +4,7 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
@@ -12,6 +13,7 @@ import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.scan.MMType;
+import org.mmtk.utility.scan.Scan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.ObjectModel;
@@ -345,6 +347,52 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
     return ObjectReference.nullReference();
   }
 
+  /**
+   * Scan an object that was previously forwarded but not scanned.
+   * The separation between forwarding and scanning is necessary for
+   * the "pre-copying" mechanism to function properly.<p>
+   * 
+   * This is only required for copying collectors and should never
+   * be called for NoGC.<p>
+   *
+   * @param object The object to be scanned.
+   */
+  protected final void scanForwardedObject(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
+  }
+
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.<p>
+   * 
+   * This is only required for copying collectors and should never be
+   * called for NoGC.<p>
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  public static void forwardObjectLocation(Address location) 
+    throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);    
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   * 
+   * This is only required for copying collectors and should never be
+   * called for NoGC.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  public static final ObjectReference getForwardedReference(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    return object;
+  }
 
   /**
    * Return true if <code>obj</code> is a live object.
