@@ -703,6 +703,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
 	genParameterRegisterLoad(2);                     // pass 2 parameter
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreOffset); // checkstore(array ref, value)
+        if (VM_Collector.NEEDS_WRITE_BARRIER) 
+          VM_Barriers.compileArrayStoreBarrier(asm);
 	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
 	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -1857,6 +1859,13 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "putstatic " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
+	if (VM_Collector.NEEDS_WRITE_BARRIER && 
+	    !fieldRef.getType().isPrimitiveType()) {
+	  if (fieldRef.needsDynamicLink(method))
+	    VM_Barriers.compileUnresolvedPutstaticBarrier(asm, fieldId);
+	  else
+	    VM_Barriers.compilePutstaticBarrier(asm, fieldRef.getOffset());
+	}
 	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -2002,6 +2011,13 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "putfield " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
+	if (VM_Collector.NEEDS_WRITE_BARRIER 
+	    &&  !fieldRef.getType().isPrimitiveType()) {
+	  if (fieldRef.needsDynamicLink(method))
+	    VM_Barriers.compileUnresolvedPutfieldBarrier(asm, fieldId);
+	  else
+	    VM_Barriers.compilePutfieldBarrier(asm, fieldRef.getOffset());
+	}
 	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
