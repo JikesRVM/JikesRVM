@@ -28,7 +28,8 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public class MonotoneVMResource extends VMResource implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  public final static boolean PROTECT_ON_RELEASE = false; // true;
+  public final static boolean PROTECT_ON_RELEASE = false;
+  public final static boolean ZERO_ON_RELEASE = false;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -82,8 +83,11 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
 
   public void release() {
     // Unmapping is useful for being a "good citizen" and for debugging
-    int pages = Conversions.bytesToPages(cursor.diff(start).toInt());
-    if (PROTECT_ON_RELEASE)
+    int bytes = cursor.diff(start).toInt();
+    int pages = Conversions.bytesToPages(bytes);
+    if (ZERO_ON_RELEASE) 
+	Memory.zero(start, bytes);
+    if (PROTECT_ON_RELEASE) 
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
