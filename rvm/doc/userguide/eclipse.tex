@@ -11,7 +11,7 @@ that production-mode use of Eclipse with Jikes RVM
 is not recommended at this time.  Furthermore:
 \begin{itemize}
 \item We strongly recommend you run a
-recent --- 7.3 or newer --- version of Red Hat\TMweb{} Linux\Rweb for Intel\Rweb IA32;
+recent --- 7.3 or newer --- version of Red Hat\TMweb{} Linux\Rweb for Intel\Rweb{} IA-32/AMD\Rweb{}~x86-32;
 one of us has also had good results with SuSE\Rweb{} Linux 8.1 and 8.2.
 
 \item We would suggest using either the {\tt prototype} or {\tt
@@ -31,10 +31,10 @@ work.  Do not try to use Eclipse 1.x versions.
 \item The Eclipse debugging support for Java programs --- which relies
 on talking \xlink{JDWP}{\JDWPURL} to the VM --- will not work because
 Jikes RVM has yet to implement this protocol.  (\link{It's on our TODO
-  list, though}[--- see section~\Ref]{JDWP}.)
+  list, though}[--- see section~\Ref, page~\Pageref{}]{JDWP}.)
 
 \item Running Eclipse requires that you build Jikes RVM with
-RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR equal to 0. \xlink{The
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} equal to 0. \xlink{The
 select interception mechanism (which is required to run Eclipse on
 Jikes RVM) does not work if this variable is set to 1 }[(see defect \#
 3583)]{http://www-124.ibm.com/developerworks/bugs/?func=detailbug\&bug\_id=3583\&group\_id=95}.
@@ -87,7 +87,7 @@ support for Eclipse to use Jikes RVM.
 Once you have done this, you will be able to run Eclipse on Jikes RVM
 using the {\tt \$RVM\_\-ROOT/\-rvm/\-bin/\-rvmeclipse} command.  This wrapper
 calls the normal Eclipse command, instructing it to use Jikes RVM to
-run Eclipse.  Set RVM\_\-ROOT and RVM\_BUILD before you invoke {\tt
+run Eclipse.  Set \varName{RVM\_\-ROOT} and \varName{RVM\_BUILD} before you invoke {\tt
 rvmeclipse}.
 
 When you run {\tt rvmeclipse}, if you don't already
