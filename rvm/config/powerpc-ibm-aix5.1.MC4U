@@ -34,7 +34,6 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-#export HOST_JAVA_HOME="/usr/java130"
 export HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
@@ -57,7 +56,7 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # sources for classpath 0.06 (current stable version of classpath)
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06
+#export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06
 
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
@@ -71,9 +70,6 @@ export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc"
 
 # how to link a shared C++ library
 export LDSHARED="/usr/gnu/bin/g++ -shared"
-
-#
-export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
 # The configuration for building the user guide.
 # You may have to edit this file.
@@ -97,6 +93,5 @@ export SED="/usr/gnu/bin/sed"
 export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
 
-#export UNZIP_CMD="/usr/contrib/bin/unzip"
 export ZIP_CMD="/usr/bin/zip"
 export UNZIP_CMD="/usr/bin/unzip"

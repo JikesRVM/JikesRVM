@@ -35,7 +35,8 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/opt/j2sdk1.4.1"
+# Root of JDK installation.
+[[ $HOST_JAVA_HOME ]] || export HOST_JAVA_HOME="/opt/j2sdk1.4.1"
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/jre/bin/java"
@@ -44,7 +45,7 @@ export HOST_JAVA="$HOST_JAVA_HOME/jre/bin/java"
 # the JRE's various library paths (otherwise they don't find their .so files 
 # when invoked from shell scripts and make).
 # Here's how to do it to use HotSpot server with Blackdown 1.4.1
-#export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
+export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
 # Here's how to do it to using the IBM 1.4.1 DK 
 #export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
 
@@ -63,10 +64,6 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
-# sources for GNU Classpath 0.06 (current stable version of Classpath)
-# Uncomment this line only if you have the Classpath sources downloaded.
-# export CLASSPATH_ROOT=/opt/classpath-0.06
-
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
@@ -81,9 +78,6 @@ export CPLUS='/usr/bin/g++ -w -g -O'
 
 # how to link a shared C++ library
 export LDSHARED="${CPLUS} -shared"
-
-#
-export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
 # The configuration for building the user guide.
 # You may have to edit this file.

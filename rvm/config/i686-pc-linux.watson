@@ -2,123 +2,17 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003
 #
+# This file contains deltas from i686-pc-linux-gnu
+# to reflect the environment at watson.
 #
-# This file defines a set of environment variables needed to build and
-# run Jikes RVM.  This file is sourced by the installation scripts; you
-# do not need to source this file into your command-prompt shell.
-#
-# IMPORTANT: You need to modify this file to reflect your environment!
-#
-
-#########
-# PART I: Preprocessor directives that hold for every config on this target
-#########
-# target architecture is IA32
-export RVM_FOR_IA32=1
-export RVM_FOR_32_ADDR=1
-
-# target OS is Linux
-export RVM_FOR_LINUX=1
-
-# NOTE: the key requirement for setting this to 0 (ie having SMP support)
-#       is that you have a 2.4 kernel and that glibc is compiled 
-#       to use the GS segment register to access pthread-local storage.  
-#       See discussion in rvm-researchers archive and the userguide FAQ.
-#  This is now quite common. For example, in Red Hat 7 and later.  
-#  So, the default is 0
-# Pthread library will work on our machines so default this to 0 for us too.
-export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
-
-export BOOTIMAGE_LOAD_ADDRESS=0x43000000
-export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
-
-##########
-# PART II: Where to find tools and resources on this target
-########## 
 
 export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
-#export HOST_JAVA_HOME="/opt/IBMJava2-141"
 
-# the JDK java executable
-export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+. $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 
-# 1.4.x JDKs on Linux seem to require that LD_LIBRARY_PATH be set to include
-# the JRE's various library paths (otherwise they don't find their .so files 
-# when invoked from shell scripts and make).
-# Here's how to do it to use HotSpot server with Blackdown 1.4.1
-export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
-# Here's how to do it to using the IBM 1.4.1 DK 
-#export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
-
-# the JDK Javadoc executable
-export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
-
-# the JDK javac executable
-export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
-
-# the JDK jar executable
-export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
-
-# the JDK standard library jar files
-export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
-
-# the JDK tools jar
-export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
-
-# sources for GNU Classpath 0.06 (current stable version of Classpath)
-# Uncomment this line only if you have the Classpath sources downloaded.
 export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06
-
-# path for GNU make
-export GNU_MAKE="/usr/bin/make"
-
-# path for the Jikes java-to-byte-code compiler
 export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.18
-
-# what C compilers should be used?
-export CC='/usr/bin/gcc -w -g -O'
-
-# what C++ compilers should be used?
-export CPLUS='/usr/bin/g++ -w -g -O'
-
-# how to link a shared C++ library
-export LDSHARED="${CPLUS} -shared"
-
-#
-export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
-
-# The configuration for building the user guide.
-# You may have to edit this file.
-export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
-
-#  some Unix commands
-export AWK="/bin/awk"
-export BASH="/bin/bash"
-# You need one of YACC or Bison (one will usually be installed)
-# If you're using Bison, uncomment the line below:
-# BISON="bison"
-export CVS="/usr/bin/cvs"
-export DIFF="/usr/bin/diff"
-export FGREP="/bin/fgrep"
-export FIND="/usr/bin/find"
-export GNU_TAR=/bin/tar
-export GREP="/bin/grep"
-export MD5SUM="/usr/bin/md5sum"
-export PS="/bin/ps"
-export SED="/bin/sed"
-export WGET="/usr/bin/wget"
-export XARGS="/usr/bin/xargs"
-export UNZIP_CMD="/usr/bin/unzip"
-
-##########
-# PART III: Additional variables for running Eclipse on Jikes RVM
-########## 
-# These are used only by the jbuild.plugin build script.
-
 export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
-
-export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
-
 
 # Used for the Emacs spell-checker
 #  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM

@@ -71,9 +71,6 @@ export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc -Wa,-a64 -maix64"
 # how to link a shared C++ library
 export LDSHARED="/usr/gnu/bin/g++ -shared -maix64"
 
-#
-export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
-
 # The configuration for building the user guide.
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"

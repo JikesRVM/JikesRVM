@@ -75,9 +75,6 @@ export LDSHARED="${CPLUS} -shared"
 # used by the jbuild.linkBooter
 export CPP=/usr/bin/cpp
 
-#
-export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
-
 # The configuration for building the user guide.
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"

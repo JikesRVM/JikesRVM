@@ -77,9 +77,6 @@ export CPLUS='/usr/bin/g++ -g'
 # how to link a shared C++ library
 export LDSHARED="/usr/bin/g++ -shared"
 
-#
-export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
-
 # The configuration for building the user guide.
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="$HOME/conf/user_guide_config.mk"
