@@ -102,17 +102,10 @@ hereinafter call the location of the unpacked RVM distribution {\tt
 \index{GNU Classpath: Java class libraries}%
 \index{Classpath, GNU: Java class libraries}%
 \item You will need version \classpathversion{} of the GNU
-Classpath libraries.  
-Jikes RVM (both CVS head and release) does not work with GNU Classpath
-0.11, nor with Classpath CVS head, as of this writing, 04 October
-2004.  Steven Augart is working to remedy that deficiency and expects
-to have it fixed soon. 
-%% The cvs head of Jikes RVM normally also works with the
-%% cvs head of GNU Classpath and with GNU Classpath 0.09 on Linux/IA32.
-%% However, we are currently recommending that users do not upgrade to
-%% Classpath 0.09.  There is a severe performance problem with Classpath
-%% 0.09's I/O layer and Classpath 0.09 does not compile out-of-the-box on
-%% AIX.  We hope that these issues will be resolved for Classpath 0.10.
+Classpath libraries.\footnote{Jikes RVM's CVS head is also buildable with GNU
+Classpath 0.11 and with Classpath's CVS head. 
+However, as of this writing, 08 October 2004, we are not yet
+running regular regression tests on those platforms.}
 The Jikes RVM build process can automatically download, 
 configure, and build the appropriate version of Classpath for you.
 
