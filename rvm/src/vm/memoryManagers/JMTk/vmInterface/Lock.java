@@ -116,12 +116,13 @@ public class Lock implements VM_Uninterruptible {
                 VM.sysWriteln(" at position ",where);
             }
             VM.sysWriteln("*** my start = ", localStart);
-            for (int i=(serving - 10) % 100; i<=(serving % 100); i++) {
-                VM.sysWrite(i, ": index ", servingHistory[i]);
-                VM.sysWrite("   tid ", tidHistory[i]);
-                VM.sysWrite("    start = ", startHistory[i]);
-                VM.sysWrite("    end = ", endHistory[i]);
-                VM.sysWriteln("    start-myStart = ", VM_Time.cyclesToMillis(startHistory[i] - localStart));
+            for (int i=(serving + 90) % 100; i<=(serving % 100); i++) {
+	      if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
+	      VM.sysWrite(i, ": index ", servingHistory[i]);
+	      VM.sysWrite("   tid ", tidHistory[i]);
+	      VM.sysWrite("    start = ", startHistory[i]);
+	      VM.sysWrite("    end = ", endHistory[i]);
+	      VM.sysWriteln("    start-myStart = ", VM_Time.cyclesToMillis(startHistory[i] - localStart));
             }
         }
         if (waitTime > TIME_OUT) {
