@@ -258,12 +258,17 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
    * Clone an array
    */
   public static Object [] cloneArray(Object [] array, int allocator) {
+    VM.sysWriteln("cloneArray unimplemented");
+    if (VM.VerifyAssertions) VM._assert(false); // unimplemented
+    return null;
+    // We don't need this on Jikes RVM and the cast to Object[] is a no-no
+    /*
     VM_Array type = VM_Magic.getObjectType(array).asArray();
     Object [] tib = type.getTypeInformationBlock();
     int size = type.getInstanceSize(array.length);
     return (Object []) allocateArray(array.length, size, tib, allocator);
+    */
   }
-
 
   public static VM_Address allocateCopy(VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM.sysWriteln("allocateCopy unimplmented");
