@@ -522,17 +522,7 @@ public abstract class OPT_Operand {
     if (isType())
       return OPT_ClassLoaderProxy.VM_Type_type;
     if (isIntConstant()) {
-      int value = asIntConstant().value;
-      VM_Type type;
-      if ((value == 0) || (value == 1))
-	type = OPT_ClassLoaderProxy.BooleanType;
-      else if (-128 <= value && value <= 127)
-	type = OPT_ClassLoaderProxy.ByteType;
-      else if (-32768 <= value && value <= 32767)
-	type = OPT_ClassLoaderProxy.ShortType;
-      else
-	type = OPT_ClassLoaderProxy.IntType;
-      return type;
+      return ((OPT_IntConstantOperand) this).type;
     }
     if (isNullConstant())
       return OPT_ClassLoaderProxy.NULL_TYPE;
