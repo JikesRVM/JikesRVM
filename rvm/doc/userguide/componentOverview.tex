@@ -33,8 +33,10 @@ The 2.2.0 release introduced packages into the system.  Prior releases
 did not use packages explicitly, which resulted in all classes being in
 the unnamed package.  
 
-There are currently nine packages in \jrvm.\@  All classes are in
-one of these packages
+%There are currently nine packages in \jrvm.\@  All classes are in
+%one of these packages
+The packages in \jrvm{} include:
+%% XXX TODO Add other packages here.
 \begin{description}
 \item[\texttt{com.ibm.JikesRVM}] Classes for the core runtime, except for library
 support.  This package also contains other classes that are not
@@ -48,24 +50,59 @@ methods, etc.
 
 \item[\texttt{com.ibm.JikesRVM.jni}] Implementation of JNI
 
-\item[\texttt{\MMpackage{}\-.MMTk}] Classes in the newer MMTk
-(Java\TMweb{} Memory Management Toolkit) collection of memory managers
+\item[\texttt{org.mmtk}] Classes in the newer MMTk
+(Memory Management Toolkit) collection of memory managers
+%% TODO: Document:
+%% package org.mmtk.plan;
+%% package org.mmtk.policy;
+%% package org.mmtk.utility.alloc;
+%% package org.mmtk.utility.deque;
+%% package org.mmtk.utility.gcspy.drivers;
+%% package org.mmtk.utility.gcspy;
+%% package org.mmtk.utility.heap;
+%% package org.mmtk.utility.options;
+%% package org.mmtk.utility.scan;
+%% package org.mmtk.utility.statistics;
+%% package org.mmtk.utility;
+%% package org.mmtk.vm.gcspy;
+%% package org.mmtk.vm;
 
-\item[\texttt{\MMpackage\-.\vmInterface{}}] Classes related to
+\item[\texttt{\MMpackage\-.\mmInterface{}}] Classes related to
 memory management that deal with the interface to the VM
 
-\item[\texttt{com.ibm.JikesRVM.opt}] Classes related to the optimizing
-compiler, except for IR-related classes
+\item[\texttt{com.ibm.JikesRVM.opt}] Classes related to
+the \link{optimizing compiler}%
+%[  (See Section~\Ref{} (page~\Pageref) for more details)]%
+{section:optdetails}, except for IR-related classes
 
 \item[\texttt{com.ibm.JikesRVM.opt.ir}] Classes related to the IR
-(intermediate representation) of the optimizing compiler
+(intermediate representation) of the \link{optimizing compiler.}%
+%[ See Section~\Ref{} (page~\Pageref) for more details.]%
+{section:optdetails}
 
 \item[\texttt{com.ibm.JikesRVM.OSR}] Classes related to On-Stack-Replacement. 
+
+\item[\texttt{com.ibm.JikesRVM.quick}] Classes related to
+the \link{Quick Compiler}{section:quick}.
+
+\item[\texttt{com.ibm.JikesRVM.eclipse.jdt.launching}] Classes related
+to launching Jikes RVM as a subsidiary VM under Eclipse. 
+%% XXX Link me!
+
+\item[\texttt{com.ibm.JikesRVM.eclipse.ui}] Classes related
+to the control panel for the Jikes RVM plugin for Eclipse.
+
+\item[\texttt{org.vmmagic.pragma}] Classes for the \link{VM Magic Pragmas (Pragmata)}{uninterruptible_code}
+
+
+\item[\texttt{org.vmmagic.unboxed}] Types for directly representing
+machine addresses and other such concepts in Java.
+
 
 \end{description}
 
 The distributed directory structure
-does not follow the Java convention that the source file directory tree
+does not follow the Java\TMweb{} convention that the source file directory tree
 match the package structure, {\it i.e.},
 there is no {\tt com/ibm/JikesRVM} directory anywhere under \texttt{\$RVM\_ROOT/rvm}.  Instead, the source directory structure follows a more logical 
 structure.  The boot image builder
