@@ -50,7 +50,7 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
 		           420 ISU_FLOW 423 LSU BUSY  425 LSOURCE3  427 ISOURCE3 
 			   433 FXU      434 LSU_LMQ   436 LSU_LOAD1 
 		           455 branch   456 L1 & TLB  457 L2        458 L3
-                   Pentium: 4000
+                   Pentium: 4000 dcache 4001 L1 dcache 4002 L2 dcache
     mode          Mode: 1 IS_GROUP, 2 PROCESS, 4 KERNEL, 8 USER, 16 COUNT, 32 PROCTREE
                    Default is 12 (KERNEL & USER). 
                    Alternatives: 20 list_all_events, 21 list_selected_events, 22 processor.
@@ -380,17 +380,40 @@ elif [[ $setting = 458 ]]; then
 #
 elif [[ $setting = 4000 ]]; then
   # Pentium 4
-  #  1 PAPI_L1_DCM        2 PAPI_L2_DCM       3 PAPI_L1_LDM	   4 PAPI_TOT_CYC
   machine_type="Pentium4"
-  hpm_event1=0
-  hpm_event2=2
-  hpm_event3=23
-  hpm_event4=60
+  hpm_event1=0      # PAPI_L1_DCM
+  hpm_event2=2      # PAPI_L2_DCM
+  hpm_event3=50     # PAPI_TOT_INS
+  hpm_event4=60     # PAPI_TOT_CYC
   hpm_event5=-1
   hpm_event6=-1
   hpm_event7=-1
   hpm_event8=-1
   setting=4000
+elif [[ $setting = 4001 ]]; then
+  # Pentium 4
+  machine_type="Pentium4"
+  hpm_event4=23    # PAPI_L1_LDM
+  hpm_event2=24    # PAPI_L1_STM
+  hpm_event3=50    # PAPI_TOT_INS
+  hpm_event1=60    # PAPI_TOT_CYC
+  hpm_event5=-1
+  hpm_event6=-1
+  hpm_event7=-1
+  hpm_event8=-1
+  setting=4001
+elif [[ $setting = 4002 ]]; then
+  # Pentium 4
+  machine_type="Pentium4"
+  hpm_event4=25    # PAPI_L2_LDM
+  hpm_event2=26    # PAPI_L2_STM
+  hpm_event3=50    # PAPI_TOT_INS
+  hpm_event1=60    # PAPI_TOT_CYC
+  hpm_event5=-1
+  hpm_event6=-1
+  hpm_event7=-1
+  hpm_event8=-1
+  setting=4002
 else 
   echo "setting $setting is invalid"
   exit 3
