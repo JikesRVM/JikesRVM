@@ -6,7 +6,7 @@
 import  java.util.*;
 
 /**
- *  This class implements a graph vertex that holds a
+ * This class implements a graph vertex that holds a
  * Strongly-Connected Component (SCC).  It co-operates with
  * OPT_SCC_Graph to implement a graph of SCCs, but it can also be
  * used independently to represent a free-standing  SCC.  Such
@@ -18,7 +18,6 @@ import  java.util.*;
  *
  * @see OPT_SCC_Graph
  * @see OPT_SCC_Enumeration
- *
  */
 class OPT_SCC extends OPT_EdgelessGraphNode {
   /**
@@ -27,51 +26,39 @@ class OPT_SCC extends OPT_EdgelessGraphNode {
   private OPT_LinkedListObjectElement nodes = null;
 
   /**
-   *  Add a given graph node to this SCC
+   * Add a given graph node to this SCC
    *
    * @param n the node to add
    */
-  public void add (OPT_GraphNode n) {
+  public void add(OPT_GraphNode n) {
     nodes = new OPT_LinkedListObjectElement(n, nodes);
   }
 
   /**
-   *  Generate a human-readable representation of this SCC
+   * Generate a human-readable representation of this SCC
    * @return a human-readable representation of this SCC
    */
-  public String toString () {
+  public String toString() {
     return  "SCC: " + nodes.toString();
   }
 
   /**
-   *  Enumerate all the nodes contained in this SCC
+   * Enumerate all the nodes contained in this SCC
    * @return an enumeration of all the nodes contained in this SCC
    */
-  public OPT_GraphNodeEnumeration enumerateVertices () {
+  public OPT_GraphNodeEnumeration enumerateVertices() {
     final Enumeration e = new OPT_LinkedListObjectEnumerator(nodes);
     return  new OPT_GraphNodeEnumeration() {
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
-      public boolean hasMoreElements () {
+      public boolean hasMoreElements() {
         return  e.hasMoreElements();
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
-      public OPT_GraphNode next () {
+      public OPT_GraphNode next() {
         return  (OPT_GraphNode)e.nextElement();
       }
 
-      /**
-       * put your documentation comment here
-       * @return 
-       */
-      public Object nextElement () {
+      public Object nextElement() {
         return  next();
       }
     };

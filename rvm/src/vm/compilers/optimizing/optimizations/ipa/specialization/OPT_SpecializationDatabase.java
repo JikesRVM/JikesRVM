@@ -26,7 +26,7 @@ public final class OPT_SpecializationDatabase {
    * Drain the queue of methods waiting for specialized code
    * generation.
    */
-  static void doDeferredSpecializations () {
+  static void doDeferredSpecializations() {
     // prevent recursive entry to this method
     if (specializationInProgress)
       return;
@@ -50,7 +50,7 @@ public final class OPT_SpecializationDatabase {
   private static java.util.HashSet deferredMethods = new java.util.HashSet();
 
   // write the new compiled method in the specialized method pool
-  private static void registerCompiledMethod (OPT_SpecializedMethod m) {
+  private static void registerCompiledMethod(OPT_SpecializedMethod m) {
     OPT_SpecializedMethodPool.registerCompiledMethod(m);
   }
 
@@ -59,7 +59,7 @@ public final class OPT_SpecializationDatabase {
    * specialied compiled versions of the method pointed by VM_Method
    * @return null if no specialized versions
    */
-  static java.util.Iterator getSpecialVersions (VM_Method m) {
+  static java.util.Iterator getSpecialVersions(VM_Method m) {
     MethodSet s = (MethodSet)specialVersionsHash.get(m);
     if (s == null) {
       return  null;
@@ -69,12 +69,7 @@ public final class OPT_SpecializationDatabase {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param m
-   * @return 
-   */
-  static int getSpecialVersionCount (VM_Method m) {
+  static int getSpecialVersionCount(VM_Method m) {
     java.util.Iterator versions = getSpecialVersions(m);
     int count = 0;
     if (versions != null) {
@@ -90,7 +85,7 @@ public final class OPT_SpecializationDatabase {
    * Also remember that this method will need to be compiled later,
    * at the next call to <code> doDeferredSpecializations() </code>
    */
-  static void registerSpecialVersion (OPT_SpecializedMethod spMethod) {
+  static void registerSpecialVersion(OPT_SpecializedMethod spMethod) {
     VM_Method source = spMethod.getMethod();
     MethodSet s = findOrCreateMethodSet(specialVersionsHash, source);
     s.add(spMethod);
@@ -102,7 +97,7 @@ public final class OPT_SpecializationDatabase {
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static MethodSet findOrCreateMethodSet (java.util.HashMap hash, Object key) {
+  private static MethodSet findOrCreateMethodSet(java.util.HashMap hash, Object key) {
     MethodSet result = (MethodSet)hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -122,15 +117,15 @@ public final class OPT_SpecializationDatabase {
      */
     java.util.HashSet methods = new java.util.HashSet();
 
-    MethodSet (Object key) {
+    MethodSet(Object key) {
       this.key = key;
     }
 
-    void add (OPT_SpecializedMethod spMethod) {
+    void add(OPT_SpecializedMethod spMethod) {
       methods.add(spMethod);
     }
 
-    public java.util.Iterator iterator () {
+    public java.util.Iterator iterator() {
       return  methods.iterator();
     }
   }

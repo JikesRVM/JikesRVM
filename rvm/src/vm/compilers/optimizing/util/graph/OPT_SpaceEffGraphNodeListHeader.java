@@ -10,31 +10,15 @@ final class OPT_SpaceEffGraphNodeListHeader {
   OPT_SpaceEffGraphNodeList _first;
   OPT_SpaceEffGraphNodeList _last;
 
-  // constructor.
-  /* no need for this, automatically set to null
-   OPT_SpaceEffGraphNodeListHeader()
-   {
-   _first = null;
-   _last = null;
-   }
-   */
-  OPT_SpaceEffGraphNodeList first () {
+  OPT_SpaceEffGraphNodeList first() {
     return  _first;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  OPT_SpaceEffGraphNodeList last () {
+  OPT_SpaceEffGraphNodeList last() {
     return  _last;
   }
 
-  /**
-   * put your documentation comment here
-   * @param node
-   */
-  public void append (OPT_SpaceEffGraphNode node) {
+  public void append(OPT_SpaceEffGraphNode node) {
     OPT_SpaceEffGraphNodeList p = new OPT_SpaceEffGraphNodeList();
     p._node = node;
     OPT_SpaceEffGraphNodeList last = _last;
@@ -51,12 +35,7 @@ final class OPT_SpaceEffGraphNodeListHeader {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param node
-   * @return 
-   */
-  public boolean add (OPT_SpaceEffGraphNode node) {
+  public boolean add(OPT_SpaceEffGraphNode node) {
     OPT_SpaceEffGraphNodeList p = first();
     OPT_SpaceEffGraphNodeList prev = first();
     if (p == null) {
@@ -81,6 +60,3 @@ final class OPT_SpaceEffGraphNodeListHeader {
     return  true;
   }
 }
-
-
-

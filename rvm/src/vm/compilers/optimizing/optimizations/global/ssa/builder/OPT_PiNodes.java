@@ -42,9 +42,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * Only perform this when we are doing an SSA-based optimization
    * that can benefit from PI nodes.
    * @param options controlling compiler options
-   * @return 
    */
-  final boolean shouldPerform (OPT_Options options) {
+  final boolean shouldPerform(OPT_Options options) {
     return options.GLOBAL_BOUNDS_CHECK || typeChecks;
   };
 
@@ -52,7 +51,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * A String representation of this phase
    * @return a string representation
    */
-  final String getName () {
+  final String getName() {
     return  "Pi Nodes " + insertion;
   }
 
@@ -60,9 +59,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * Should we print the IR either before or after this phase?
    * @param options controlling compiler options
    * @param before control for the query
-   * @return 
    */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -71,7 +69,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    *
    * @param insert If true, we insert PI nodes,  If false, we remove them.
    */
-  OPT_PiNodes (boolean insert) {
+  OPT_PiNodes(boolean insert) {
     this.insertion = insert;
     this.typeChecks = false;
   }
@@ -82,7 +80,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * @param insert If true, we insert PI nodes,  If false, we remove them.
    * @param typeChecks If true, we insert PI nodes only for type checks.
    */
-  OPT_PiNodes (boolean insert, boolean typeChecks) {
+  OPT_PiNodes(boolean insert, boolean typeChecks) {
     this.insertion = insert;
     this.typeChecks = typeChecks;
   }
@@ -91,7 +89,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * Perform the transformation.
    * @param ir the IR to optimize 
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     if (insertion) {
       if (!typeChecks) {
 	  insertPiIfNodes(ir);
@@ -114,7 +112,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * 
    *  @param ir the governing IR
    */
-  private void insertPiIfNodes (OPT_IR ir) {
+  private void insertPiIfNodes(OPT_IR ir) {
     for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
         e.hasMoreElements(); /* nothing */
     ) {
@@ -212,7 +210,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    *
    * @param ir the governing IR
    */
-  private void insertPiBcNodes (OPT_IR ir) {
+  private void insertPiBcNodes(OPT_IR ir) {
     OPT_Instruction nextInst = null;
     // for each instruction in the IR
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
@@ -260,7 +258,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    *
    * @param ir the governing IR
    */
-  private void insertPiNullCheckNodes (OPT_IR ir) {
+  private void insertPiNullCheckNodes(OPT_IR ir) {
     if (!CHECK_REF_PI) return;
     OPT_Instruction nextInst = null;
     // for each instruction in the IR
@@ -293,7 +291,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    *
    * @param ir the governing IR
    */
-  private void insertPiCheckCastNodes (OPT_IR ir) {
+  private void insertPiCheckCastNodes(OPT_IR ir) {
     OPT_Instruction nextInst = null;
     // for each instruction in the IR
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
@@ -328,7 +326,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * 
    * @param ir the governing IR
    */
-  static void cleanUp (OPT_IR ir) {
+  static void cleanUp(OPT_IR ir) {
     for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
@@ -357,7 +355,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * Is an instruction a Pi node linked to the <em>not taken</em> edge of
    * a conditional branch instruction?
    */
-  public static boolean isNotTakenPi (OPT_Instruction def) {
+  public static boolean isNotTakenPi(OPT_Instruction def) {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
@@ -370,7 +368,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * Is an instruction a Pi node linked to the <em>taken</em> edge of
    * a conditional branch instruction?
    */
-  public static boolean isTakenPi (OPT_Instruction def) {
+  public static boolean isTakenPi(OPT_Instruction def) {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
@@ -382,7 +380,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   /**
    * Is an instruction a Pi node linked to a bounds-check?
    */
-  public static boolean isBoundsCheckPi (OPT_Instruction def) {
+  public static boolean isBoundsCheckPi(OPT_Instruction def) {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);
@@ -394,7 +392,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   /**
    * Is an instruction a Pi node linked to a null-check?
    */
-  public static boolean isNullCheckPi (OPT_Instruction def) {
+  public static boolean isNullCheckPi(OPT_Instruction def) {
     if (def.operator != PI)
       return false;
     OPT_Operand g = GuardedUnary.getGuard(def);

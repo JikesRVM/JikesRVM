@@ -185,7 +185,7 @@ public class FileSupport {
    *
    * @return		<code>true</code> if this File can be read, <code>false</code> otherwise.
    *
-   * @see			java.lang.SecurityManager#checkRead()
+   * @see			java.lang.SecurityManager#checkRead
    */
   public static boolean canRead(File f) {
     SecurityManager security = System.getSecurityManager();
@@ -201,7 +201,7 @@ public class FileSupport {
    *
    * @return		<code>true</code> if this File can be written, <code>false</code> otherwise.
    *
-   * @see			java.lang.SecurityManager#checkWrite()
+   * @see			java.lang.SecurityManager#checkWrite
    */
   public static boolean canWrite(File f) {
     SecurityManager security = System.getSecurityManager();
@@ -216,7 +216,6 @@ public class FileSupport {
    *
    * @return		<code>true</code> if this File exists, <code>false</code> otherwise.
    *
-   * @see			#getPath
    * @see			java.lang.SecurityManager#checkRead()
    */
   public static boolean exists(File f) {
@@ -232,7 +231,6 @@ public class FileSupport {
    *
    * @return		<code>true</code> if this File is a directory, <code>false</code> otherwise.
    *
-   * @see			#getPath
    * @see			java.lang.SecurityManager#checkRead()
    */
   public static boolean isDirectory(File f) {

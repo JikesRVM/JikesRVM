@@ -14,11 +14,7 @@ class OPT_BCstackTrace {
   VM_Method actualMethod;
   int byteCodeOffset;
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  public String toString () {
+  public String toString() {
     StringBuffer s = new StringBuffer();
     s.append("Method: ");
     s.append(sourceMethod);
@@ -37,12 +33,7 @@ class OPT_BCstackTrace {
     return  s.toString();
   }
 
-  /**
-   * put your documentation comment here
-   * @param o
-   * @return 
-   */
-  public boolean equals (Object o) {
+  public boolean equals(Object o) {
     if (o instanceof OPT_BCstackTrace) {
       OPT_BCstackTrace s = (OPT_BCstackTrace)o;
       return  (sourceMethod == s.sourceMethod && byteCodeOffset == 
@@ -52,12 +43,7 @@ class OPT_BCstackTrace {
       return  false;
   }
 
-  /**
-   * put your documentation comment here
-   * @param trace
-   * @return 
-   */
-  static OPT_BCstackTrace[] reconstituteBCstackTrace (VM_StackTrace[] trace) {
+  static OPT_BCstackTrace[] reconstituteBCstackTrace(VM_StackTrace[] trace) {
     int BCLength = 0;
     for (int i = 0; i < trace.length; i++) {
       VM_CompiledMethod m = trace[i].compiledMethod;

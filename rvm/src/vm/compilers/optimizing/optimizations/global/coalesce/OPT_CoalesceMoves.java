@@ -22,9 +22,8 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Should we perform this phase?
    * @param options controlling compiler options
-   * @return 
    */
-  final boolean shouldPerform (OPT_Options options) {
+  final boolean shouldPerform(OPT_Options options) {
     return  options.COALESCE_AFTER_SSA;
   }
 
@@ -32,7 +31,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
    * Return a string name for this phase.
    * @return "Coalesce Moves"
    */
-  final String getName () {
+  final String getName() {
     return  "Coalesce Moves";
   }
 
@@ -40,9 +39,8 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
    * Should we print the IR before or after performing this phase?
    * @param options controlling compiler options
    * @param before query before if true, after if false.
-   * @return 
    */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   }
 
@@ -50,7 +48,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase implements OPT_Operators {
    * perform the transformation
    * @param ir the governing IR
    */
-  final public void perform (OPT_IR ir) {
+  final public void perform(OPT_IR ir) {
     // Compute liveness.
     OPT_LiveAnalysis live = new OPT_LiveAnalysis(false /* GC Maps */,
                                                  false /* don't skip local

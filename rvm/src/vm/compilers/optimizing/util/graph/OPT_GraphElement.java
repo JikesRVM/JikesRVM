@@ -21,12 +21,10 @@ interface OPT_GraphElement {
 
   /** 
    * read the scratch field of object type
-   * @returns the contents of the Object scratch field
+   * @return the contents of the Object scratch field
    * @deprecated
    */
   Object getScratchObject ();
-
-
 
   /** 
    * set the scratch field of object type
@@ -35,16 +33,12 @@ interface OPT_GraphElement {
    */
   Object setScratchObject (Object obj);
 
-
-
   /** 
    * read the scratch field of int type
-   * @returns the contents of the int scratch field
+   * @return the contents of the int scratch field
    * @deprecated
    */
   int getScratch ();
-
-
 
   /** 
    * set the scratch field of int type
@@ -53,6 +47,3 @@ interface OPT_GraphElement {
    */
   int setScratch (int scratch);
 }
-
-
-

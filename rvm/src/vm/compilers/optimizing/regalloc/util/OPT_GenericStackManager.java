@@ -1390,41 +1390,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return null;
   }
 
-  /**
-   * Is this symbolic register passed allocated and not spilled?
-   * @param symbReg the symbolic register
-   * @return if the passed register is allocated and not spilled
-   */
-  /*
-  final boolean allocated(OPT_Register symbReg) {
-    return !symbReg.isSpilled() &&
-      (OPT_RegisterAllocatorState.getMapping(symbReg) != null);
-  }
-  */
-
-  /**
-   * @param symbReg the symbolic register
-   * @return 
-   */
-  /*
-  final boolean spilledParam(OPT_Register symbReg) {
-    return OPT_RegisterAllocatorState.getSpill(symbReg) < 0;
-  }
-  */
-
-  /**
-   * Marks the passed symbolic register as being spilled at the location
-   *  passed
-   * @param spill a spill location
-   * @param symbReg a symbolic register
-   */
-  /*
-  final void putSpillLocation(int spill, OPT_Register symbReg) {
-    symbReg.spillRegister();
-    symbReg.mapsToRegister = null;
-    OPT_RegisterAllocatorState.setSpill(symbReg, spill);
-  }
-  */
 
   /**
    * Given a symbolic register, return a code that indicates the type

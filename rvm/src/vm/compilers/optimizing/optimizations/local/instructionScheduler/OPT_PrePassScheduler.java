@@ -16,30 +16,15 @@ import  java.util.Enumeration;
  */
 final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 
-  /**
-   * put your documentation comment here
-   * @param options
-   * @return 
-   */
-  final boolean shouldPerform (OPT_Options options) {
+  final boolean shouldPerform(OPT_Options options) {
     return  options.SCHEDULE_PREPASS;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  final String getName () {
+  final String getName() {
     return  "InstrSched (pre-pass)";
   }
 
-  /**
-   * put your documentation comment here
-   * @param options
-   * @param before
-   * @return 
-   */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  final boolean printingEnabled(OPT_Options options, boolean before) {
     return  !before &&          // old interface only printed afterwards
     options.PRINT_SCHEDULE_PRE;
   }
@@ -50,16 +35,13 @@ final class OPT_PrePassScheduler extends OPT_CompilerPhase {
    *
    * @param ir the IR in question 
    */
-  final void perform (OPT_IR ir) {
+  final void perform(OPT_IR ir) {
     new OPT_Scheduler(OPT_Scheduler.PREPASS).perform(ir);
   }
 
   /**
    * Initialize pre-pass scheduler
    */
-  OPT_PrePassScheduler () {
+  OPT_PrePassScheduler() {
   }
 }
-
-
-

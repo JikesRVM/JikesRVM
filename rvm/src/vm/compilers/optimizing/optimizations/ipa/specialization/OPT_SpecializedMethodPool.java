@@ -45,7 +45,6 @@ public class OPT_SpecializedMethodPool {
   /**
    * Is there a compiled version of a particular specialized method?
    * @param smid
-   * @return 
    */
   public static boolean hasCompiledVersion (int smid) {
     if (specializedMethods[smid] != null) {

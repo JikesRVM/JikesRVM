@@ -46,6 +46,9 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    */
   static VM_NullListener[] nullListeners = new VM_NullListener[0];
 
+  private static int activateMethodListeners_count = 0;
+  private static int activateContextListeners_count = 0;
+  private static int activateNullListeners_count = 0;
   /**
    * Install a method listener
    * @param s method listener to be installed
@@ -130,7 +133,6 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *           EPILOGUE?
    */
-  private static int activateMethodListeners_count = 0;
   static void activateMethodListeners(int cmid, int callerCmid, int whereFrom) {
     activateMethodListeners_count++;     
     VM_MethodListener[] tmp = methodListeners; // side-step dangerous race condition
@@ -148,7 +150,6 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  private static int activateContextListeners_count = 0;
   static void activateContextListeners(VM_Address sfp, int whereFrom) {
     activateContextListeners_count++;     
     VM_ContextListener[] tmp = contextListeners; // side-step dangerous race condition
@@ -164,7 +165,6 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  private static int activateNullListeners_count = 0;
   static void activateNullListeners(int whereFrom) {
     activateNullListeners_count++;     
     VM_NullListener[] tmp = nullListeners; // side-step dangerous race condition

@@ -17,23 +17,14 @@
 final class OPT_ResourceMap {
   private static final int verbose = 0;
 
-  /**
-   * put your documentation comment here
-   * @param s
-   */
-  private static final void debug (String s) {
+  private static final void debug(String s) {
     System.out.println(s);
   }
   // Padding
   // For internal use only.
   private static final String ZEROS = dup(32, '0');
 
-  /**
-   * put your documentation comment here
-   * @param value
-   * @return 
-   */
-  private static final String toBinaryPad32 (int value) {
+  private static final String toBinaryPad32(int value) {
     String s = Integer.toBinaryString(value);
     return  ZEROS.substring(s.length()) + s;
   }
@@ -44,7 +35,7 @@ final class OPT_ResourceMap {
 
   // Grows the RU map to a given size.
   // For internal use only.
-  private void grow (int s) {
+  private void grow(int s) {
     if (verbose >= 2)
       debug("Growing from " + size + " to " + s);
     if (size >= s)
@@ -65,7 +56,7 @@ final class OPT_ResourceMap {
   /**
    * Creates new resource map.
    */
-  public OPT_ResourceMap () {
+  public OPT_ResourceMap() {
     this(4);
   }
 
@@ -74,7 +65,7 @@ final class OPT_ResourceMap {
    *
    * @param length desired initial length of the resource map
    */
-  public OPT_ResourceMap (int length) {
+  public OPT_ResourceMap(int length) {
     rumap = new int[length];
     size = 0;
     for (int i = 0; i < length; i++)
@@ -89,7 +80,7 @@ final class OPT_ResourceMap {
    * @return true if succeeded, false if there was a conflict
    * @see #unschedule(OPT_Instruction)
    */
-  public boolean schedule (OPT_Instruction i, int time) {
+  public boolean schedule(OPT_Instruction i, int time) {
     if (OPT_SchedulingInfo.isScheduled(i))
       throw  new InternalError("Already scheduled");
     OPT_OperatorClass opc = i.operator().getOpClass();
@@ -111,7 +102,7 @@ final class OPT_ResourceMap {
    * @param i instruction
    * @see #schedule(OPT_Instruction, int)
    */
-  public void unschedule (OPT_Instruction i) {
+  public void unschedule(OPT_Instruction i) {
     if (!OPT_SchedulingInfo.isScheduled(i))
       throw  new InternalError("Not scheduled");
     OPT_OperatorClass opc = i.operator().getOpClass();
@@ -125,7 +116,7 @@ final class OPT_ResourceMap {
    *
    * @return a string representation of the resource map
    */
-  public String toString () {
+  public String toString() {
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < size; i++) {
       sb.append(toBinaryPad32(rumap[i])).append("\n");
@@ -136,7 +127,7 @@ final class OPT_ResourceMap {
   // Binds resources for given resource usage pattern at given time.
   // Returns false if there is a resource conflict.
   // For internal use only.
-  private boolean schedule (int[] usage, int time) {
+  private boolean schedule(int[] usage, int time) {
     grow(time + usage.length);
     if (verbose >= 1) {
       debug("Pattern (" + usage.length + ")");
@@ -154,14 +145,14 @@ final class OPT_ResourceMap {
 
   // Unbinds resources for given resource usage pattern at given time.
   // For internal use only.
-  private void unschedule (int[] usage, int time) {
+  private void unschedule(int[] usage, int time) {
     for (int i = 0; i < usage.length; i++)
       rumap[time + i] &= ~usage[i];
   }
 
   // Generates a string of a given length filled by a given character.
   // For internal use only.
-  private static final String dup (int len, char c) {
+  private static final String dup(int len, char c) {
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < len; i++)
       sb.append(c);

@@ -68,7 +68,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    * loop unrolling on a given loop structure sub tree
    * @param t
    * @param ir
-   * @return
    */
   static int unrollLoopTree (OPT_LSTNode t, OPT_IR ir) {
     int res = 0;

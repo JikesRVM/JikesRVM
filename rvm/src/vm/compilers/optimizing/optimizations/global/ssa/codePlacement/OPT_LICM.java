@@ -51,7 +51,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
   /**
    * Returns the name of the phase
-   * @return 
    */
   String getName () {
     return  "LICM";
@@ -60,7 +59,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Should this phase be executed?
    * @param options
-   * @return 
    */
   boolean shouldPerform (OPT_Options options) {
     return  options.GCP || options.VERBOSE_GCP;
@@ -266,7 +264,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Find the earliest position that still keeps dep after all its uses.
    * @param dep
    * @param earlyPos
-   * @return 
    */
   private OPT_Instruction scheduleAfter (OPT_Instruction dep, 
 					 OPT_Instruction earlyPos) {
@@ -323,7 +320,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Return the instruction that defines the operand.
    * @param op
-   * @return 
    */
   OPT_Instruction definingInstruction (OPT_Operand op) {
     if (op instanceof OPT_HeapOperand) {
@@ -469,7 +465,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Get the basic block of an instruction
    * @param inst
-   * @return 
    */
   OPT_BasicBlock getBlock (OPT_Instruction inst) {
     return  block[inst.scratch];
@@ -487,7 +482,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Get the block, where the instruction was originally located
    * @param inst
-   * @return 
    */
   OPT_BasicBlock getOrigBlock (OPT_Instruction inst) {
     return  origBlock[inst.scratch];
@@ -505,7 +499,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Behind which instruction should this one be placed?
    * @param inst
-   * @return 
    */
   OPT_Instruction getPosition (OPT_Instruction inst) {
     if (position[inst.scratch] == null)
@@ -526,7 +519,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * In what state (initial, early, late, delete) is this instruction
    * @param inst
-   * @return 
    */
   int getState (OPT_Instruction inst) {
     return  state[inst.scratch];
@@ -544,7 +536,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Is inst on stack?1
    * @param inst
-   * @return 
    */
   boolean onStack (OPT_Instruction inst) {
     return  stack[inst.scratch];
@@ -569,7 +560,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * what is the position of theis instruction in its basic block?
    * @param inst
-   * @return 
    */
   int seqNo (OPT_Instruction inst) {
     return  inst.scratch;

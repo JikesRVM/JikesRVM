@@ -16,7 +16,6 @@ class VM_Services {
    * Utility printing function.
    * @param i
    * @param blank
-   * @return 
    */
   public static String getHexString(int i, boolean blank) {
     StringBuffer buf = new StringBuffer(8);

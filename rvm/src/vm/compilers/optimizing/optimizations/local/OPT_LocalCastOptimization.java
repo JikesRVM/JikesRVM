@@ -26,15 +26,15 @@ import instructionFormats.*;
 public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
     implements OPT_Operators {
 
-  boolean shouldPerform (OPT_Options options) {
+  boolean shouldPerform(OPT_Options options) {
     return  options.SIMPLE_OPT;
   }
 
-  String getName () {
+  String getName() {
     return  "Local Cast Optimizations";
   }
 
-  boolean printingEnabled (OPT_Options options, boolean before) {
+  boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -42,7 +42,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
    * Main routine: perform the transformation.
    * @param ir the IR to transform
    */
-  void perform (OPT_IR ir) {
+  void perform(OPT_IR ir) {
     // loop over all basic blocks ...
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
         e.hasMoreElements();) {
@@ -68,7 +68,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
    * @param s the potential checkcast instruction
    * @return true iff the transformation happened
    */
-  boolean invertNullAndTypeChecks (OPT_Instruction s) {
+  boolean invertNullAndTypeChecks(OPT_Instruction s) {
     if (s.operator() == CHECKCAST) {
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();
@@ -94,9 +94,8 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
    * Where legal, move a type check below an if instruction.
    * @param s the potential typecheck instruction
    * @param ir the governing IR
-   * @return 
    */
-  boolean pushTypeCheckBelowIf (OPT_Instruction s, OPT_IR ir) {
+  boolean pushTypeCheckBelowIf(OPT_Instruction s, OPT_IR ir) {
     if (s.operator() == CHECKCAST) {
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();

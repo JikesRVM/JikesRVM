@@ -29,7 +29,6 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * phase, so always return true.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
-   * @return 
    */
   final boolean shouldPerform(OPT_Options options) {
     return true;

@@ -13,10 +13,6 @@
  */
 public class VM extends VM_Properties implements VM_Constants, 
 						 VM_Uninterruptible { 
-  //-----------//
-  // interface //
-  //-----------//
-
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -319,7 +315,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
    * @param number
-   * @return 
+   * @return a String with the hex representation of the integer
    */
   static String intAsHexString(int number) {
     char[] buf   = new char[10];
@@ -1025,7 +1021,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * getMainMethod
-   * @return 
+   * @return the main method of the main thread
    */
   public static VM_Method getMainMethod()  {
     if(VM.VerifyAssertions) VM.assert(_mainThread != null);

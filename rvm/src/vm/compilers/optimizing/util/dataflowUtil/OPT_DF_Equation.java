@@ -16,7 +16,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    * Evaluate this equation, setting a new value for the
    * left-hand side. 
    * 
-   * @returns true if the lhs value changed. false otherwise
+   * @return true if the lhs value changed. false otherwise
    */
   boolean evaluate () {
     return  operator.evaluate(operands);
@@ -25,7 +25,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
   /** 
    * Return the left-hand side of this equation.
    * 
-   * @returns the lattice cell this equation computes
+   * @return the lattice cell this equation computes
    */
   OPT_DF_LatticeCell getLHS () {
     return  operands[0];
@@ -50,7 +50,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
   /** 
    * Does this equation contain an appearance of a given cell?
    * @param cell the cell in question
-   * @returns true or false
+   * @return true or false
    */
   public boolean hasCell (OPT_DF_LatticeCell cell) {
     for (int i = 0; i < operands.length; i++) {

@@ -17,26 +17,22 @@
 interface OPT_Graph {
 
   /**
-   *  This method lists all of the nodes in a given graph.  This is
+   * This method lists all of the nodes in a given graph.  This is
    * defined in terms of generic OPT_GraphNodes.
    *
    * @see OPT_GraphNode
    *
-   * @returns an enumeration of all nodes in the graph
+   * @return an enumeration of all nodes in the graph
    *
    */
   OPT_GraphNodeEnumeration enumerateNodes ();
 
-
-
   /**
    *  Find out how many nodes are in the graph
    *
-   *  @returns the number of nodes in the graph 
+   *  @return the number of nodes in the graph 
    */
   int numberOfNodes ();
-
-
 
   /**
    *  After this method is called, all nodes in the graph should
@@ -49,16 +45,12 @@ interface OPT_Graph {
    */
   void compactNodeNumbering ();
 
-
-
   /**
    *  Add a new graph node to the graph.
    *
    * @param node the node to add to the graph
    */
   void addGraphNode (OPT_GraphNode node);
-
-
 
   /**
    *  Add a new edge to a graph.  This method is deliberately
@@ -70,6 +62,3 @@ interface OPT_Graph {
    */
   void addGraphEdge (OPT_GraphNode source, OPT_GraphNode target);
 }
-
-
-

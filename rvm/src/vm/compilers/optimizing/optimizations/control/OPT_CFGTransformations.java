@@ -27,7 +27,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * This is the method that actually does the work of the phase.
    */
-  void perform (OPT_IR ir) {
+  void perform(OPT_IR ir) {
     staticPerform(ir);
   }
 
@@ -35,7 +35,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * static version of perform
    * @param ir
    */
-  static void staticPerform (OPT_IR ir) {
+  static void staticPerform(OPT_IR ir) {
 
     if (ir.hasReachableExceptionHandlers()) return;
 
@@ -58,7 +58,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * This method determines if the phase should be run, based on the
    * OPT_Options object it is passed
    */
-  boolean shouldPerform (OPT_Options options) {
+  boolean shouldPerform(OPT_Options options) {
     if (options.getOptLevel() < 2)
       return  false;
     return  options.TURN_WHILES_INTO_UNTILS;
@@ -67,14 +67,14 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * Returns the name of the phase.
    */
-  String getName () {
+  String getName() {
     return  "CFGTransformations";
   }
 
   /**
    * Returns true if the phase wants the IR dumped before and/or after it runs.
    */
-  boolean printingEnabled (OPT_Options options, boolean before) {
+  boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -82,7 +82,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * treat all loops of the ir
    */
-  private static boolean turnWhilesIntoUntils (OPT_IR ir) {
+  private static boolean turnWhilesIntoUntils(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
     if (lstg != null)
       return  turnLoopTreeIntoUntils((OPT_LSTNode)lstg.firstNode(), ir);
@@ -92,7 +92,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * deal with a sub tree of the loop structure tree
    */
-  private static boolean turnLoopTreeIntoUntils (OPT_LSTNode t, OPT_IR ir) {
+  private static boolean turnLoopTreeIntoUntils(OPT_LSTNode t, OPT_IR ir) {
     Enumeration e = t.outNodes();
     while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
@@ -114,7 +114,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * <p> As an effect of this transformation, the old header is now not anymore
    * part of the loop, but guards it.
    */
-  private static boolean turnLoopIntoUntil (OPT_LSTNode n, OPT_IR ir) {
+  private static boolean turnLoopIntoUntil(OPT_LSTNode n, OPT_IR ir) {
     OPT_BitVector nloop = n.loop;
     OPT_BasicBlock header = n.header;
     OPT_BasicBlock newLoopTest = null, pred[] = inLoopPredecessors(n);
@@ -146,7 +146,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * the predecessors of `block' that are part of the loop
    */
-  private static OPT_BasicBlock[] inLoopPredecessors (OPT_LSTNode n) {
+  private static OPT_BasicBlock[] inLoopPredecessors(OPT_LSTNode n) {
     boolean headerExits = false;
     boolean singleNodeLoop = true;
     OPT_BasicBlock header = n.header;
@@ -183,7 +183,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * Add `b' to loop `n' and all enclosing loops.
    */
-  private static void addToLoops (OPT_BasicBlock b, OPT_LSTNode n) {
+  private static void addToLoops(OPT_BasicBlock b, OPT_LSTNode n) {
     while (n.loop != null) {
       if (VM.VerifyAssertions)
         VM.assert(n.hasOneIn());
@@ -195,7 +195,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   /**
    * If the given block has a yield point, remove it.
    */
-  static void removeYieldPoint (OPT_BasicBlock b) {
+  static void removeYieldPoint(OPT_BasicBlock b) {
     OPT_InstructionEnumeration e = b.forwardInstrEnumerator();
     while (e.hasMoreElements()) {
       OPT_Instruction inst = e.next();
@@ -208,7 +208,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     }
   }
 
-  static void killFallThroughs (OPT_IR ir, OPT_BitVector nloop) {
+  static void killFallThroughs(OPT_IR ir, OPT_BitVector nloop) {
     OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (nloop);
     while (bs.hasMoreElements()) {
       OPT_BasicBlock block = bs.next();
@@ -222,7 +222,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     }
   }
 
-  static void killFallThrough (OPT_BasicBlock b) {
+  static void killFallThrough(OPT_BasicBlock b) {
     OPT_BasicBlock fallThrough = b.getFallThroughBlock();
     if (fallThrough != null) {
       b.lastInstruction().insertBefore
@@ -230,7 +230,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     }
   }
 
-  static boolean inLoop (OPT_BasicBlock b, OPT_BitVector nloop) {
+  static boolean inLoop(OPT_BasicBlock b, OPT_BitVector nloop) {
     int idx = b.getNumber();
     if (idx >= nloop.length()) return false;
     return nloop.get(idx);
@@ -244,7 +244,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * <p> We do this to provide landing pads for loop-invariant code motion.
    * So we split only edges, where `a' has a lower loop nesting depth than `b'.
    */
-  static void splitCriticalEdges (OPT_IR ir) {
+  static void splitCriticalEdges(OPT_IR ir) {
     OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
@@ -300,9 +300,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * How often will this block be executed?
    * @param b
    * @param ir
-   * @return
    */
-  static final int frequency (OPT_BasicBlock b, OPT_IR ir) {
+  static final int frequency(OPT_BasicBlock b, OPT_IR ir) {
     //-#if BLOCK_COUNTER_WORKS
     OPT_Instruction inst = b.firstInstruction();
     return  basicBlockCounter.getCount(inst.bcIndex, inst.position);
@@ -311,6 +310,3 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     //-#endif
   }
 }
-
-
-

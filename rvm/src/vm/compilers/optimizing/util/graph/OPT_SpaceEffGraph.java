@@ -146,7 +146,7 @@ public class OPT_SpaceEffGraph
    * Add an edge to the graph.
    * @param from start node
    * @param to end node
-   * @see addGraphEdge(OPT_SpaceEffGraphEdge)
+   * @see #addGraphEdge(OPT_SpaceEffGraphEdge)
    */
   public void addGraphEdge(OPT_GraphNode from, OPT_GraphNode to) {
     ((OPT_SpaceEffGraphNode) from).insertOut((OPT_SpaceEffGraphNode) to);
@@ -155,7 +155,7 @@ public class OPT_SpaceEffGraph
   /**
    * Add an edge to the graph.
    * @param e edge to insert
-   * @see addGraphEdge(OPT_GraphNode,OPT_GraphNode)
+   * @see #addGraphEdge(OPT_GraphNode,OPT_GraphNode)
    */
   void addGraphEdge(OPT_SpaceEffGraphEdge e) {
     e.fromNode().appendOutEdge(e);

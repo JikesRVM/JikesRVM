@@ -128,13 +128,10 @@ class OPT_DFSenumerateByFinish extends OPT_Stack
    * get the out edges of a given node
    *
    * @param n the node of which to get the out edges
-   * @returns the out edges
+   * @return the out edges
    *
    */
-  protected OPT_GraphNodeEnumeration getConnected (OPT_GraphNode n) {
+  protected OPT_GraphNodeEnumeration getConnected(OPT_GraphNode n) {
     return  n.outNodes();
   }
 }
-
-
-

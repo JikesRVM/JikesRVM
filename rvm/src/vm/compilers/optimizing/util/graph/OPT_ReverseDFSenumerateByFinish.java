@@ -39,7 +39,7 @@ class OPT_ReverseDFSenumerateByFinish extends OPT_DFSenumerateByFinish {
    *  Traverse edges from target to source.
    *
    * @param n A node in the DFS
-   * @returns The nodes that have edges leading to n
+   * @return The nodes that have edges leading to n
    */
   protected OPT_GraphNodeEnumeration getConnected (OPT_GraphNode n) {
     return  n.inNodes();

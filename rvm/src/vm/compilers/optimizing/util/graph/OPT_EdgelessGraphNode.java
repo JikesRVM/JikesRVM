@@ -4,9 +4,11 @@
 //$Id$
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
- *  This is a general implementation of graph nodes for graphs without
+ * This is a general implementation of graph nodes for graphs without
  * explicit edges.  It co-operates with OPT_EdgelessGraph to implement
  * a graph for which are recorded with node hash tables in the nodes.
  *
@@ -15,22 +17,21 @@ import java.io.Serializable;
  * @see OPT_EdgelessGraph
  *
  */
-class OPT_EdgelessGraphNode
-    implements OPT_GraphNode, Serializable {
+class OPT_EdgelessGraphNode implements OPT_GraphNode, Serializable {
   /**
-   *  The index of this node in its graph.  These numbers always
+   * The index of this node in its graph.  These numbers always
    * number from 0 to (# of nodes in graph - 1)
    */
   private int index;
   /**
    *  The set of nodes that have edges pointing to this node.
    */
-  private java.util.HashSet inEdges = null;
+  private HashSet inEdges = null;
 
   /**
    *  The set of nodes to which this node has edges.
    */
-  private java.util.HashSet outEdges = null;
+  private HashSet outEdges = null;
 
   /**
    *  A scratch field in int type
@@ -48,7 +49,7 @@ class OPT_EdgelessGraphNode
    * @return the  current value of the int scratch field
    * @deprecated
    */
-  public int getScratch () {
+  public int getScratch() {
     return  scratch;
   }
 
@@ -58,7 +59,7 @@ class OPT_EdgelessGraphNode
    * @return the new value of the int scratch field
    * @deprecated
    */
-  public int setScratch (int scratch) {
+  public int setScratch(int scratch) {
     return  this.scratch = scratch;
   }
 
@@ -67,7 +68,7 @@ class OPT_EdgelessGraphNode
    * @return the current value of the Object scratch field
    * @deprecated
    */
-  public Object getScratchObject () {
+  public Object getScratchObject() {
     return  scratchObject;
   }
 
@@ -77,7 +78,7 @@ class OPT_EdgelessGraphNode
    * @return the new value of the Object scratch field
    * @deprecated
    */
-  public Object setScratchObject (Object scratch) {
+  public Object setScratchObject(Object scratch) {
     return  this.scratchObject = scratch;
   }
 
@@ -88,37 +89,21 @@ class OPT_EdgelessGraphNode
    */
   static class NodeEnumeration
       implements OPT_GraphNodeEnumeration {
-    private java.util.Iterator e;
+    private Iterator e;
 
-    /**
-     * put your documentation comment here
-     * @param     java.util.Iterator e
-     */
-    NodeEnumeration (java.util.Iterator e) {
+    NodeEnumeration(Iterator e) {
       this.e = e;
     }
 
-    /**
-     * put your documentation comment here
-     * @return 
-     */
-    public boolean hasMoreElements () {
+    public boolean hasMoreElements() {
       return  e.hasNext();
     }
 
-    /**
-     * put your documentation comment here
-     * @return 
-     */
-    public OPT_GraphNode next () {
+    public OPT_GraphNode next() {
       return  (OPT_GraphNode)e.next();
     }
 
-    /**
-     * put your documentation comment here
-     * @return 
-     */
-    public Object nextElement () {
+    public Object nextElement() {
       return  next();
     }
   }
@@ -132,7 +117,7 @@ class OPT_EdgelessGraphNode
    *
    * @see OPT_Graph#addGraphNode
    */
-  public void setIndex (int index) {
+  public void setIndex(int index) {
     this.index = index;
   }
 
@@ -141,7 +126,7 @@ class OPT_EdgelessGraphNode
    *
    * @return the index number of the node
    */
-  public int getIndex () {
+  public int getIndex() {
     return  index;
   }
 
@@ -153,8 +138,8 @@ class OPT_EdgelessGraphNode
    *
    * @see OPT_Graph#addGraphEdge
    */
-  void addOutEdgeInternal (OPT_EdgelessGraphNode n) {
-    if (outEdges == null) outEdges = new java.util.HashSet();
+  void addOutEdgeInternal(OPT_EdgelessGraphNode n) {
+    if (outEdges == null) outEdges = new HashSet();
     outEdges.add(n);
   }
 
@@ -166,8 +151,8 @@ class OPT_EdgelessGraphNode
    *
    * @see OPT_Graph#addGraphEdge
    */
-  void addInEdgeInternal (OPT_EdgelessGraphNode n) {
-    if (inEdges == null) inEdges = new java.util.HashSet();
+  void addInEdgeInternal(OPT_EdgelessGraphNode n) {
+    if (inEdges == null) inEdges = new HashSet();
     inEdges.add(n);
   }
 
@@ -177,7 +162,7 @@ class OPT_EdgelessGraphNode
    * @return enumeration of nodes to which this node has an edge
    *
    */
-  public OPT_GraphNodeEnumeration outNodes () {
+  public OPT_GraphNodeEnumeration outNodes() {
     return  new NodeEnumeration(
       outEdges==null? OPT_EmptyIterator.INSTANCE: outEdges.iterator());
   }
@@ -188,7 +173,7 @@ class OPT_EdgelessGraphNode
    * @return enumeration of nodes that have an edge to this node.
    *
    */
-  public OPT_GraphNodeEnumeration inNodes () {
+  public OPT_GraphNodeEnumeration inNodes() {
     return  new NodeEnumeration(
       inEdges==null? OPT_EmptyIterator.INSTANCE: inEdges.iterator());
   }
@@ -199,7 +184,7 @@ class OPT_EdgelessGraphNode
    * @param x the node to check whether this node has an edge to it
    * @return true if there is an edge from this node to x
    */
-  public boolean hasOut (OPT_GraphNode x) {
+  public boolean hasOut(OPT_GraphNode x) {
     return  outEdges!=null && outEdges.contains(x);
   }
 
@@ -209,7 +194,7 @@ class OPT_EdgelessGraphNode
    * @param x the node to check whether it has an edge to this node
    * @return true if there is an edge from x to this node
    */
-  public boolean hasIn (OPT_GraphNode x) {
+  public boolean hasIn(OPT_GraphNode x) {
     return  inEdges!=null && inEdges.contains(x);
   }
 }

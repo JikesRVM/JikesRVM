@@ -1227,7 +1227,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param ir
    * @param obj
    * @param field
-   * @return 
    */
   static OPT_RegisterOperand getField (OPT_Instruction s, OPT_IR ir, 
 				       OPT_RegisterOperand obj, 
@@ -1242,7 +1241,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param obj
    * @param field
    * @param guard
-   * @return 
    */
   static OPT_RegisterOperand getField (OPT_Instruction s, OPT_IR ir, 
 				       OPT_RegisterOperand obj, 
@@ -1257,7 +1255,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param s
    * @param ir
    * @param method
-   * @return 
    */
   static OPT_RegisterOperand getStaticMethod (OPT_Instruction s, OPT_IR ir, 
 					      VM_Method method) {
@@ -1271,7 +1268,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param s
    * @param ir
    * @param methOp
-   * @return 
    */
   static OPT_RegisterOperand getStaticMethod (OPT_Instruction s, OPT_IR ir, 
 					      OPT_MethodOperand methOp) {
@@ -1305,7 +1301,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param s
    * @param ir
    * @param field
-   * @return 
    */
   static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
 					VM_Field field) {

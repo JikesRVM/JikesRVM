@@ -651,7 +651,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   /**
    * Returns the out edges of the node.
    * @return the enumeration that would list the out edges of the node
-   * @see OPT_VCGNode.edges()
+   * @see OPT_VCGNode#edges
    */
   public final Enumeration edges() { return outEdges(); }
 
@@ -659,7 +659,7 @@ class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * Returns a VCG descriptor for the graph which will provide VCG-relevant
    * information for the graph.
    * @return graph descriptor
-   * @see OPT_VCGGraph.getVCGDescriptor()
+   * @see OPT_VCGGraph#getVCGDescriptor
    */
   public NodeDesc getVCGDescriptor() {
     final OPT_SpaceEffGraphNode node = this;

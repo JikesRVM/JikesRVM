@@ -26,16 +26,12 @@ abstract class OPT_DoublyLinkedListElement {
    * Returns a pointer to the next element in the list, or null if this is the
    * last element.
    *
-   * @returns pointer to next element
+   * @return pointer to next element
    */
   final OPT_DoublyLinkedListElement getNext () {
     return  next;
   }
 
-  /**
-   * put your documentation comment here
-   * @param e
-   */
   final void setNext (OPT_DoublyLinkedListElement e) {
     next = e;
   }
@@ -44,7 +40,7 @@ abstract class OPT_DoublyLinkedListElement {
    * Returns a pointer to the previous element in the list, or null if this is
    * the first element.
    *
-   * @returns pointer to previous element
+   * @return pointer to previous element
    */
   final OPT_DoublyLinkedListElement getPrev () {
     return  prev;
@@ -65,7 +61,7 @@ abstract class OPT_DoublyLinkedListElement {
    * Returns the inserted element.
    *
    * @param elem element to insert
-   * @returns inserted element
+   * @return inserted element
    */
   final OPT_DoublyLinkedListElement insertAfter  (
       OPT_DoublyLinkedListElement elem) {
@@ -121,7 +117,7 @@ abstract class OPT_DoublyLinkedListElement {
   /**
    * Removes self from the list. Returns the next element in the list.
    *
-   * @returns next element in the list, after self
+   * @return next element in the list, after self
    */
   final OPT_DoublyLinkedListElement remove () {
     OPT_DoublyLinkedListElement Next = next, Prev = prev;
@@ -135,7 +131,7 @@ abstract class OPT_DoublyLinkedListElement {
   /**
    * Returns the first element of the list that self is contained in.
    *
-   * @returns first element of the list
+   * @return first element of the list
    */
   final OPT_DoublyLinkedListElement findFirst () {
     OPT_DoublyLinkedListElement p = this;
@@ -148,7 +144,7 @@ abstract class OPT_DoublyLinkedListElement {
   /**
    * Returns the last element of the list that self is contained in.
    *
-   * @returns last element of the list
+   * @return last element of the list
    */
   final OPT_DoublyLinkedListElement findLast () {
     OPT_DoublyLinkedListElement p = this;
@@ -161,7 +157,7 @@ abstract class OPT_DoublyLinkedListElement {
   /**
    * Returns the length of the list from here to the end (including this one).
    *
-   * @returns length of remainder of list, inclusive.
+   * @return length of remainder of list, inclusive.
    */
   final int lengthFront () {
     OPT_DoublyLinkedListElement p = this;

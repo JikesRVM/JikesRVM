@@ -1042,8 +1042,8 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * @returns a new query, if the IF instructions "adds" an edge to the PI
-     * @returns node. Null otherwise.
+     * @return a new query, if the IF instructions "adds" an edge to the PI
+     * node. Null otherwise.
      */
     private ABCD_Constraint substituteIf (ABCD_Constraint con, 
         OPT_Instruction ifInstr, 

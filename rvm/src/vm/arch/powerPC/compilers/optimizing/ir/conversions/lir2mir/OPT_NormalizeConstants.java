@@ -278,7 +278,6 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
    * @param addr
    * @param s
    * @param ir
-   * @return 
    */
   static OPT_Operand asReg(OPT_Operand addr,
 			   OPT_Instruction s, 
@@ -297,7 +296,6 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
    * Replace LongConstant uses by materializeConstants
    * @param inst
    * @param ir
-   * @return 
    */
   static void exterminateLongConstants (OPT_Instruction s, OPT_IR ir) {
     

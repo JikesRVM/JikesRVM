@@ -22,17 +22,12 @@ class OPT_Pair {
   }
 
   /**
-   * put your documentation comment here
-   * @return 
    */
   public int hashCode () {
     return  (first.hashCode() | second.hashCode());
   }
 
   /**
-   * put your documentation comment here
-   * @param o
-   * @return 
    */
   public boolean equals (Object o) {
     return  (o instanceof OPT_Pair) && first == ((OPT_Pair)o).first && 

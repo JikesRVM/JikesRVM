@@ -344,7 +344,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * @param ir the governing if
    * @see "Efficient and Precise Modeling of Exceptions for the 
    *      Analysis of Java Programs" by Choi, Grove, Hind, Sarkar
-   *      in ACM PASTE99 workshop (available at www.research.ibm.com/jalapeno)
+   *      in ACM PASTE99 workshop (available at
+   *      www.research.ibm.com/jalapeno)"
    */
   private void computeBlockGenAndKill(OPT_BasicBlock bblock, OPT_IR ir) {
     if (verbose) {
@@ -352,8 +353,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
     
     // Tells whether we've seen the first PEI
-    boolean seenFirstPEI = false;
-
+    boolean seenFirstPEI = false; 
     // Because control flow may emanate from a potentially excepting
     // instruction (PEI) out of the basic block, care must be taken 
     // when computing what can be killed by a basic block.  

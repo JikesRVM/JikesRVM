@@ -18,38 +18,19 @@ import  java.util.Enumeration;
 final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
     implements OPT_IREnumeration {
 
-  /**
-   * put your documentation comment here
-   * @param options
-   * @return 
-   */
-  final boolean shouldPerform (OPT_Options options) {
+  final boolean shouldPerform(OPT_Options options) {
     return  options.DG_CRITICAL_PATH;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  final String getName () {
+  final String getName() {
     return  "Critical Path Computation";
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  final String getPaddedName () {
+  final String getPaddedName() {
     return  "CRITICAL PATH\t";
   }
 
-  /**
-   * put your documentation comment here
-   * @param options
-   * @param before
-   * @return 
-   */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -59,7 +40,7 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
    *
    * @param ir the IR in question 
    */
-  final void perform (OPT_IR ir) {
+  final void perform(OPT_IR ir) {
     if (verbose >= 1)
       debug("Computing CP for " + ir.method);
 
@@ -104,25 +85,16 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
   /**
    * Initialize critical path computation.
    */
-  OPT_ComputeCriticalPath () {
+  OPT_ComputeCriticalPath() {
   }
   private static final int verbose = 0;
 
-  /**
-   * put your documentation comment here
-   * @param s
-   */
-  private static final void debug (String s) {
+  private static final void debug(String s) {
     System.err.println(s);
   }
   private static String SPACES = null;
 
-  /**
-   * put your documentation comment here
-   * @param depth
-   * @param s
-   */
-  private static final void debug (int depth, String s) {
+  private static final void debug(int depth, String s) {
     if (SPACES == null)
       SPACES = dup(7200, ' ');
     debug(SPACES.substring(0, depth*2) + s);
@@ -130,7 +102,7 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
 
   // DFS to compute critical path for all instructions
   // For internal use only.
-  private final void computeCriticalPath (OPT_DepGraphNode n, int depth) {
+  private final void computeCriticalPath(OPT_DepGraphNode n, int depth) {
     if (verbose >= 5)
       debug(depth, "Visiting " + n);
     OPT_Instruction i = n.instruction();
@@ -151,7 +123,7 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
 
   // Generates a string of a given length filled by a given character.
   // For internal use only.
-  private static final String dup (int len, char c) {
+  private static final String dup(int len, char c) {
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < len; i++)
       sb.append(c);

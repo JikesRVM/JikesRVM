@@ -38,7 +38,7 @@ class VM_MachineCode
     * @return an array co-indexed with bytecode array. Each entry is an offset
     * into the array of machine codes giving the first instruction that the
     * bytecode compiled to.
-    * @see getInstructions()
+    * @see getInstructions
     */
    public int[] 
    getBytecodeMap() {

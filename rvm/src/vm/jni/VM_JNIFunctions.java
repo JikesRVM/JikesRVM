@@ -197,7 +197,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param throwableClassJREF a JREF index for the class object of the exception
    * @param exceptionNameAddress an address of the string in C
-   * @return 
+   * @return 0 if successful, -1 otherwise
    */
   private static int ThrowNew (int envJREF, int throwableClassJREF, VM_Address exceptionNameAddress) {
     if (verboseJNI) VM.sysWrite("JNI called: ThrowNew  \n");
@@ -265,8 +265,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * ExceptionDescribe: print the exception description and the stack trace back, 
    *                    then clear the exception
    * @param envJREF a JREF index for the JNI environment object
-   * @return 
-   *
    */
   private static void ExceptionDescribe (int envJREF) {
     if (verboseJNI) VM.sysWrite("JNI called: ExceptionDescribe  \n");
@@ -290,8 +288,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   /**
    * ExceptionClear
    * @param envJREF a JREF index for the JNI environment object
-   * @return 
-   *
    */
   private static void ExceptionClear (int envJREF) {
     if (verboseJNI) VM.sysWrite("JNI called: ExceptionClear  \n");
@@ -440,7 +436,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @return  the new object instance
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static int NewObject (int envJREF, int classJREF, int methodID)
     throws Exception {
@@ -669,7 +666,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the JREF index for the object returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static int CallObjectMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -764,7 +762,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the boolean value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment.pushVarArgToSpillArea
    */
   private static boolean CallBooleanMethod (int envJREF, int objJREF, int methodID) 
     throws Exception {
@@ -862,7 +861,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the byte value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static byte CallByteMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -961,7 +961,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the char value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static char CallCharMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1059,7 +1060,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the short value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static short CallShortMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1158,7 +1160,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the int value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static int CallIntMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1257,7 +1260,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the long value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static long CallLongMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1355,7 +1359,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the float value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static float CallFloatMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1453,7 +1458,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the double value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static double CallDoubleMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1551,7 +1557,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID an index into the VM_MethodDictionary
    * @return the void value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static void CallVoidMethod (int envJREF, int objJREF, int methodID)
     throws Exception {
@@ -1580,7 +1587,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
-   * @return 
    */
   private static void CallVoidMethodV (int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
@@ -1609,7 +1615,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
-   * @return 
    */
   private static void CallVoidMethodA (int envJREF, int objJREF, int methodID, VM_Address argAddress)
     throws Exception {
@@ -1640,8 +1645,9 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    * @return the JREF index for the object returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
    */
   private static int CallNonvirtualObjectMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -1739,7 +1745,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the boolean value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static boolean CallNonvirtualBooleanMethod (int envJREF, int objJREF, int classJREF, int methodID) 
     throws Exception {
@@ -1839,7 +1846,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the byte value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static byte CallNonvirtualByteMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -1944,7 +1952,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the char value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static char CallNonvirtualCharMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2048,7 +2057,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the short value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static short CallNonvirtualShortMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2152,7 +2162,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the int value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static int CallNonvirtualIntMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2257,7 +2268,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the long value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static long CallNonvirtualLongMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2361,7 +2373,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the float value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static float CallNonvirtualFloatMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2464,7 +2477,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the double value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static double CallNonvirtualDoubleMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2567,7 +2581,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID an index into the VM_MethodDictionary
    * @return the void value returned from the method invocation
-   * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
+   * @see VM_Compiler#prologueForNative
+   * @see VM_JNIEnvironment#pushVarArgToSpillArea
    */
   private static void CallNonvirtualVoidMethod (int envJREF, int objJREF, int classJREF, int methodID)
     throws Exception {
@@ -2598,7 +2613,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
-   * @return 
    */
   private static void CallNonvirtualVoidMethodV (int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
@@ -2629,7 +2643,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
-   * @return 
    */
   private static void CallNonvirtualVoidMethodA (int envJREF, int objJREF, int classJREF, int methodID, VM_Address argAddress)
     throws Exception {
@@ -2664,7 +2677,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @exception NoSuchFieldError if the specified field cannot be found
    * @exception ExceptionInInitializerError if the class initializer fails
    * @exception OutOfMemoryError if the system runs out of memory
-   * @see GetIntField()
+   * @see GetIntField
    */
   private static int GetFieldID (int envJREF, int classJREF, 
 				 VM_Address fieldNameAddress, VM_Address descriptorAddress) {
@@ -2754,7 +2767,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param fieldIndex the index for the VM_Field that describes this field, 
    *                   computed and saved earlier
    * @return the value of the boolean field, or 0 if the fieldIndex is incorrect
-   * @see GetFieldID()
+   * @see #GetFieldID
    */
   private static int GetBooleanField (int envJREF, int objJREF, int fieldIndex1) {
     if (verboseJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
@@ -4166,7 +4179,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID an index into the VM_MethodDictionary
-   * @return 
    * @see VM_Compiler.prologueForNative(), VM_JNIEnvironment.pushVarArgToSpillArea()
    */
   private static void CallStaticVoidMethod (int envJREF, int classJREF, int methodID) 
@@ -4193,7 +4205,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
-   * @return 
    */
   private static void CallStaticVoidMethodV (int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
@@ -4219,7 +4230,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
-   * @return 
    */
   private static void CallStaticVoidMethodA (int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
@@ -4593,7 +4603,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticObjectField (int envJREF, int classJREF, int fieldOffset, int objectJREF) {
@@ -4626,7 +4635,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticBooleanField (int envJREF, int classJREF, int fieldOffset, boolean fieldValue) {
@@ -4660,7 +4668,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticByteField (int envJREF, int classJREF, int fieldOffset, byte fieldValue) {
@@ -4692,7 +4699,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticCharField (int envJREF, int classJREF, int fieldOffset, char fieldValue) {
@@ -4723,7 +4729,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticShortField (int envJREF, int classJREF, int fieldOffset, short fieldValue) {
@@ -4754,7 +4759,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticIntField (int envJREF, int classJREF, int fieldOffset, int fieldValue) {
@@ -4785,7 +4789,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticLongField (int envJREF, int classJREF, int fieldOffset, long fieldValue) {
@@ -4816,7 +4819,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticFloatField (int envJREF, int classJREF, int fieldOffset, float fieldValue) {
@@ -4847,7 +4849,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
    * @param value to assign
-   * @return void
    * @see GetStaticFieldID()
    */
   private static void SetStaticDoubleField (int envJREF, int classJREF, int fieldOffset, double fieldValue) {
@@ -5978,7 +5979,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
    */  
   private static void ReleaseBooleanArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 						  int releaseMode) {
@@ -6046,7 +6046,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
    */  
   private static void ReleaseByteArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 					       int releaseMode) {
@@ -6091,8 +6090,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
-   * @throws     
    */  
   private static void ReleaseCharArrayElements(int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 					      int releaseMode) {
@@ -6138,8 +6135,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
-   * @throws     
    */  
   private static void ReleaseShortArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 						int releaseMode) {
@@ -6185,8 +6180,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
-   * @throws     
    */  
   private static void ReleaseIntArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 					       int releaseMode) {
@@ -6231,8 +6224,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
-   * @throws     
    */  
   private static void ReleaseLongArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 					       int releaseMode) {
@@ -6278,8 +6269,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
-   * @throws     
    */  
   private static void ReleaseFloatArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 						int releaseMode) {
@@ -6325,8 +6314,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   * @return 
-   * @throws     
    */  
   private static void ReleaseDoubleArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 						int releaseMode) {
@@ -6370,7 +6357,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetBooleanArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6406,7 +6392,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetByteArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6441,7 +6426,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetCharArrayRegion (int envJREF, int arrayJREF, int startIndex,  
@@ -6477,7 +6461,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetShortArrayRegion (int envJREF, int arrayJREF, int startIndex,  
@@ -6513,7 +6496,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetIntArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6549,7 +6531,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetLongArrayRegion  (int envJREF, int arrayJREF, int startIndex, 
@@ -6585,7 +6566,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetFloatArrayRegion   (int envJREF, int arrayJREF, int startIndex, 
@@ -6621,7 +6601,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetDoubleArrayRegion  (int envJREF, int arrayJREF, int startIndex, 
@@ -6657,7 +6636,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetBooleanArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6693,7 +6671,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetByteArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6729,7 +6706,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetCharArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6765,7 +6741,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetShortArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6801,7 +6776,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetIntArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6837,7 +6811,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetLongArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6873,7 +6846,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetFloatArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6909,7 +6881,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @return 
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetDoubleArrayRegion (int envJREF, int arrayJREF, int startIndex, 
@@ -6961,7 +6932,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to lock
    * @return 0 if the object is locked successfully, -1 if not
-   *
    */
   private static int MonitorEnter (int envJREF, int objJREF) {
     if (verboseJNI) VM.sysWrite("JNI called: MonitorEnter  \n");
@@ -6983,7 +6953,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to unlock
    * @return 0 if the object is unlocked successfully, -1 if not
-   *
    */
   private static int MonitorExit  (int envJREF, int objJREF) {
     if (verboseJNI) VM.sysWrite("JNI called: MonitorExit  \n");
@@ -7139,7 +7108,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
    * @param mode a flag indicating whether to update the Java array with the copy and
    *             whether to free the copy. For this implementation, no copy was made
    *             so this flag has no effect.
-   * @return void
    */
 
   private static void ReleasePrimitiveArrayCritical (int envHandler, int arrayJREF, 

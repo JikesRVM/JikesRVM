@@ -34,10 +34,8 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
    * @param externalEnvAddress_1 the address for the JNIEnv that the external 
    *        pthread has reserved
    * @param affinity the VM_Processor that the JNIStartUp thread is bound to
-   * @return
-   *
    */
-  public VM_JNICreateVMFinishThread (VM_Thread JNIStartUpThread, 
+  public VM_JNICreateVMFinishThread(VM_Thread JNIStartUpThread, 
 				     VM_Address externalEnvAddress_1, 
 				     VM_Processor affinity) {
 

@@ -36,7 +36,6 @@ public class VM_JNIStartUp implements Runnable {
    * it with an external OS thread
    * @param argAddress  address pointing to a struct parms in C defined in libjni.c
    *                    (requestType, JNIEnv ** and pthreadID)
-   * @return
    */
   public VM_JNIStartUp (VM_Address argAddress1) {
     argAddress = argAddress1;
@@ -178,8 +177,6 @@ public class VM_JNIStartUp implements Runnable {
    * @param arg[0] a string "-jni xxxx" where xxxx is the decimal address 
    *               of the JNIEnv pointer
    * @param arg[1] a string "-pid xxxx" where xxxx is the decimal pthread ID
-   * @return
-   * 
    */
   public static void main(String[] args) {
     int externalJNIEnv = 0;

@@ -845,7 +845,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @param src
    * @param tgt
    * @param mi
-   * @return 
    */
   private int resolveBranch(OPT_Instruction src, 
 			    OPT_Instruction tgt, 

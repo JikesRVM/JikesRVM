@@ -25,7 +25,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
   /**
    * Returns the name of the phase
-   * @return 
    */
   String getName () {
     return  "Global CSE";
@@ -138,7 +137,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Get the result operand of the instruction
    * @param inst
-   * @return 
    */
   OPT_RegisterOperand getResult (OPT_Instruction inst) {
     if (ResultCarrier.conforms(inst))
