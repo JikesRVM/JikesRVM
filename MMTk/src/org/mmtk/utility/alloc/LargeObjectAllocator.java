@@ -52,10 +52,8 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   /**
    * Constructor
    *
-   * @param vmr The virtual memory resource from which this free list
-   * allocator will acquire virtual memory.
-   * @param mr The memory resource against which memory consumption
-   * for this free list allocator will be accounted.
+   * @param space The space with which this large object allocator
+   * will be associated.
    */
   public LargeObjectAllocator(LargeObjectSpace space) {
     this.space = space;
@@ -120,8 +118,6 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * superpage.
    *
    * @param cell The address of the first byte of the cell to be freed
-   * @param sp The superpage containing the cell
-   * @param sizeClass The sizeclass of the cell.
    */
   public final void free(Address cell)
     throws InlinePragma {
@@ -144,7 +140,6 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    *
    * @param cell The address of the first word of the cell (exclusive
    * of any sub-class specific metadata).
-   * @param small True if the cell is a small cell (single page superpage).
    * @return The address of the first word of the superpage containing
    * <code>cell</code>.
    */

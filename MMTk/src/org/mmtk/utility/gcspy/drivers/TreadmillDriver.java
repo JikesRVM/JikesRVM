@@ -95,8 +95,7 @@ public class TreadmillDriver extends AbstractDriver
    * 
    * @param name The name of this driver
    * @param lospace the large object space for this allocator
-   * @param blocksize The tile size
-   * @param size The size (in blocks) of the space
+   * @param blockSize The tile size
    * @param threshold the size threshold of the LOS
    * @param mainSpace Is this the main space?
    */

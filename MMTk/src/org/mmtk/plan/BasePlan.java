@@ -597,13 +597,12 @@ public abstract class BasePlan
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
-   * @param src The object being read.
-   * @param src The address being read.
+   * @param src The object reference being read.
    * @param context The context in which the read arose (getfield, for example)
    * @return The reference that was read.
    */
   public final Address readBarrier(ObjectReference src, Address slot,
-                                      int context)
+				   int context)
     throws InlinePragma {
     // read barrier currently unimplemented
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);

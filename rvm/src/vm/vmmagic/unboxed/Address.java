@@ -1,29 +1,35 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 package org.vmmagic.unboxed;
 
-import org.vmmagic.pragma.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_SizeConstants;
 
+import org.vmmagic.pragma.*;
+
 /**
- * The address type is used by the runtime system and collector to denote machine addresses.
- * We use a separate type instead of the Java int type for coding clarity.
- * machine-portability (it can map to 32 bit and 64 bit integral types), 
- * and access to unsigned operations (Java does not have unsigned int types).
- * <p>
- * For efficiency and to avoid meta-circularity, the Address class is intercepted like
- * magic and converted into the base type so no Address object is created run-time.
+ * The address type is used by the runtime system and collector to
+ * denote machine addresses.  We use a separate type instead of the
+ * Java int type for coding clarity,  machine-portability (it can map
+ * to 32 bit and 64 bit integral types), and access to unsigned
+ * operations (Java does not have unsigned int types).<p>
+ *
+ * For efficiency and to avoid meta-circularity, the Address class is
+ * intercepted like magic and converted into the base type so no
+ * Address object is created run-time.
+ *
+ * $Id$
  *
  * @author Perry Cheng
  * @modified Daniel Frampton
+ * @version $Revision$
+ * @date $Date$
  */
 public final class Address implements Uninterruptible, VM_SizeConstants {
 
   // Do not try to create a static field containing special address values.
-  //   Suboptimal code will be generated.
+  // Suboptimal code will be generated.
 
   //-#if RVM_FOR_32_ADDR
   private int value;
@@ -31,37 +37,107 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   private long value;
   //-#endif
 
+  /****************************************************************************
+   *
+   * Constructors
+   */
+
   //-#if RVM_FOR_32_ADDR
+  /**
+   * Create an <code>Address</code> instance from an integer.
+   */
   Address(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     value = address;
   }
   //-#elif RVM_FOR_64_ADDR
+  /**
+   * Create an <code>Address</code> instance from a long.
+   */
   Address(long address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     value = address;
   }
   //-#endif
 
-  public boolean equals(Object o) {
+
+  /****************************************************************************
+   *
+   * Special values
+   */
+
+  /**
+   * Return an <code>Address</code> instance that reflects the value
+   * zero.
+   *
+   * @return An address instance that reflects the value zero.
+   */
+  public static Address zero() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return (o instanceof Address) && ((Address) o).value == value;
+    return new Address(0);
   }
 
   /**
-   * @deprecated
+   * Return <code>true</code> if this instance is zero.
+   * 
+   * @return <code>true</code> if this instance is zero. 
    */
-  public static Address fromInt(int address) throws UninterruptibleNoWarnPragma {
+  public boolean isZero() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return EQ(zero());
+  }
+
+  /**
+   * Return <code>true</code> if this instance is zero.
+   * 
+   * @return <code>true</code> if this instance is zero. 
+   */
+  public static Address max() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return fromIntSignExtend(-1);
+  }
+
+  /**
+   * Return an <code>Address</code> instance that reflects the maximum
+   * allowable <code>Address</code> value.
+   *
+   * @return An <code>Address</code> instance that reflects the
+   * maximum allowable <code>Address</code> value.
+   */
+  public boolean isMax() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return EQ(max());
+  }
+
+  /****************************************************************************
+   *
+   * Conversions
+   */
+
+  /**
+   * Fabricate an <code>Address</code> instance from an integer, after
+   * sign extending the integer.
+   *
+   * @param address the integer from which to create an <code>Address</code>
+   * instance
+   * @return An address instance
+   */
+  public static Address fromIntSignExtend(int address) 
+    throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
   }
 
-  public static Address fromIntSignExtend(int address) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(address);
-  }
-
-  public static Address fromIntZeroExtend(int address) throws UninterruptibleNoWarnPragma {
+  /**
+   * Fabricate an <code>Address</code> instance from an integer, after
+   * zero extending the integer.
+   *
+   * @param address the integer from which to create an <code>Address</code>
+   * instance
+   * @return An address instance
+   */
+  public static Address fromIntZeroExtend(int address) 
+    throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new Address(address);
@@ -72,32 +148,69 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   //-#if RVM_FOR_64_ADDR
-  public static Address fromLong (long address) throws UninterruptibleNoWarnPragma {
+  /**
+   * Fabricate an <code>Address</code> instance from a long.
+   *
+   * @param address the long from which to create an <code>Address</code>
+   * instance
+   * @return An address instance
+   */
+  public static Address fromLong(long address)
+    throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
     return new Address(address);
   }
   //-#endif
 
-  public static Address zero () throws UninterruptibleNoWarnPragma {
+  /**
+   * Fabricate an <code>Address</code> instance from an integer
+   *
+   * @deprecated To support 32 & 64 bits, the user should be explicit
+   * about sign extension
+   *
+   * @param address the integer from which to create an <code>Address</code>
+   * instance
+   * @return An address instance
+   */
+  public static Address fromInt(int address) 
+    throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(0);
+    return new Address(address);
   }
 
-  public static Address max() {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return fromIntSignExtend(-1);
-  }
-
+  /**
+   * Fabricate an <code>ObjectReference</code> instance from an
+   * <code>Address</code> instance.  It is the user's responsibility
+   * to ensure that the <code>Address</code> is suitable (i.e. it
+   * points to the object header, or satisfies any other VM-specific
+   * requirement for such a conversion).
+   *
+   * @return An <code>ObjectReference</code> instance.
+   */
   public ObjectReference toObjectReference() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return null;
   }
 
+  /**
+   * Return an integer that reflects the value of this
+   * <code>Address</code> instance.
+   *
+   * @return An integer that reflects the value of this
+   * <code>Address</code> instance.
+   */
   public int toInt () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (int) value;
   }
 
+  /**
+   * Return an long that reflects the value of this
+   * <code>Address</code> instance.
+   *
+   * @return An long that reflects the value of this
+   * <code>Address</code> instance.
+   */
   public long toLong () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
@@ -107,17 +220,44 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     }
   }
 
+  /**
+   * Return a <code>Word</code> instance that reflects the value of
+   * this <code>Address</code> instance.
+   *
+   * @return A <code>Word</code> instance that reflects the value of
+   * this <code>Address</code> instance.
+   */
   public Word toWord() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value);
   }
 
-  public Address add (int v) throws UninterruptibleNoWarnPragma {
+  /****************************************************************************
+   *
+   * Arithemtic operators
+   */
+
+  /**
+   * Add an integer to this <code>Address</code>, and return the sum.
+   *
+   * @param  v the value to be added to this <code>Address</code>
+   * @return An <code>Address</code> instance that reflects the result
+   * of the addition.
+   */
+  public Address add(int v) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + v);
   }
 
-  public Address add (Offset offset) throws UninterruptibleNoWarnPragma {
+  /**
+   * Add an <code>Offset</code> to this <code>Address</code>, and
+   * return the sum.
+   *
+   * @param offset the <code>Offset</code> to be added to the address
+   * @return An <code>Address</code> instance that reflects the result
+   * of the addition.
+   */
+  public Address add(Offset offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new Address(value + offset.toInt());
@@ -126,7 +266,16 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     //-#endif
   }
 
-  public Address add (Extent extent) throws UninterruptibleNoWarnPragma {
+  /**
+   * Add an <code>Extent</code> to this <code>Address</code>, and
+   * return the sum.
+   *
+   * @param extent the <code>Extent</code> to be added to this
+   * <code>Address</code>
+   * @return An <code>Address</code> instance that reflects the result
+   * of the addition.
+   */
+  public Address add(Extent extent) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new Address(value + extent.toInt());
@@ -135,16 +284,30 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     //-#endif
   }
 
-  public Address sub (Extent extent) throws UninterruptibleNoWarnPragma {
+  /**
+   * Subtract an integer from this <code>Address</code>, and return
+   * the result.
+   *
+   * @param v the integer to be subtracted from this
+   * <code>Address</code>.
+   * @return An <code>Address</code> instance that reflects the result
+   * of the subtraction.
+   */
+  public Address sub(int v) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(value - extent.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return new Address(value - extent.toLong());
-    //-#endif
+    return new Address(value - v);
   }
 
-  public Address sub (Offset offset) throws UninterruptibleNoWarnPragma {
+  /**
+   * Subtract an <code>Offset</code> from this <code>Address</code>, and
+   * return the result.
+   *
+   * @param offset the <code>Offset</code> to be subtracted from this
+   * <code>Address</code>.
+   * @return An <code>Address</code> instance that reflects the result
+   * of the subtraction.
+   */
+  public Address sub(Offset offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new Address(value - offset.toInt());
@@ -153,12 +316,34 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     //-#endif
   }
 
-  public Address sub (int v) throws UninterruptibleNoWarnPragma {
+  /**
+   * Subtract an <code>Extent</code> from this <code>Address</code>, and
+   * return the result.
+   *
+   * @param extent the <code>Extent</code> to be subtracted from this
+   * <code>Address</code>.
+   * @return An <code>Address</code> instance that reflects the result
+   * of the subtraction.
+   */
+  public Address sub(Extent extent) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(value - v);
+    //-#if RVM_FOR_32_ADDR
+    return new Address(value - extent.toInt());
+    //-#elif RVM_FOR_64_ADDR
+    return new Address(value - extent.toLong());
+    //-#endif
   }
 
-  public Offset diff (Address addr2) throws UninterruptibleNoWarnPragma {
+  /**
+   * Compute the difference between two <code>Address</code>es and
+   * return the result.
+   *
+   * @param addr2 the <code>Address</code> to be subtracted from this
+   * <code>Address</code>.
+   * @return An <code>Offset</code> instance that reflects the result
+   * of the subtraction.
+   */
+  public Offset diff(Address addr2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return Offset.fromIntZeroExtend(value - addr2.value);
@@ -167,17 +352,22 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     //-#endif
   }
 
-  public boolean isZero() {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return EQ(zero());
-  }
 
-  public boolean isMax() {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return EQ(max());
-  }
+  /****************************************************************************
+   *
+   * Boolean operators
+   */
 
-  public boolean LT (Address addr2) {
+  /**
+   * Return true if this <code>Address</code> instance is <i>less
+   * than</i> <code>addr2</code>.
+   *
+   * @param addr2 the <code>Address</code> to be compared to this
+   * <code>Address</code>.
+   * @return true if this <code>Address</code> instance is <i>less
+   * than</i> <code>addr2</code>.
+   */
+ public boolean LT(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (value >= 0 && addr2.value >= 0) return value < addr2.value;
     if (value < 0 && addr2.value < 0) return value < addr2.value;
@@ -185,30 +375,86 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     return true;
   }
 
-  public boolean LE (Address addr2) {
+  /**
+   * Return true if this <code>Address</code> instance is <i>less
+   * than or equal to</i> <code>addr2</code>.
+   *
+   * @param addr2 the <code>Address</code> to be compared to this
+   * <code>Address</code>.
+   * @return true if this <code>Address</code> instance is <i>less
+   * than or equal to</i> <code>addr2</code>.
+   */
+  public boolean LE(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (value == addr2.value) || LT(addr2);
   }
 
-  public boolean GT (Address addr2) {
+  /**
+   * Return true if this <code>Address</code> instance is <i>greater
+   * than</i> <code>addr2</code>.
+   *
+   * @param addr2 the <code>Address</code> to be compared to this
+   * <code>Address</code>.
+   * @return true if this <code>Address</code> instance is <i>greater
+   * than</i> <code>addr2</code>.
+   */
+  public boolean GT(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return addr2.LT(this);
   }
 
-  public boolean GE (Address addr2) {
+  /**
+   * Return true if this <code>Address</code> instance is <i>greater
+   * than or equal to</i> <code>addr2</code>.
+   *
+   * @param addr2 the <code>Address</code> to be compared to this
+   * <code>Address</code>.
+   * @return true if this <code>Address</code> instance is <i>greater
+   * than or equal to</i> <code>addr2</code>.
+   */
+  public boolean GE(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return addr2.LE(this);
   }
 
-  public boolean EQ (Address addr2) {
+  /**
+   * Return true if this <code>Address</code> instance is <i>equal
+   * to</i> <code>addr2</code>.
+   *
+   * @param addr2 the <code>Address</code> to be compared to this
+   * <code>Address</code>.
+   * @return true if this <code>Address</code> instance is <i>equal
+   * to</i> <code>addr2</code>.
+   */
+  public boolean EQ(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value == addr2.value;
   }
 
-  public boolean NE (Address addr2) {
+  /**
+   * Return true if this <code>Address</code> instance is <i>not equal
+   * to</i> <code>addr2</code>.
+   *
+   * @param addr2 the <code>Address</code> to be compared to this
+   * <code>Address</code>.
+   * @return true if this <code>Address</code> instance is <i>not
+   * equal to</i> <code>addr2</code>.
+   */
+  public boolean NE(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return !EQ(addr2);
   }
+
+//   public boolean equals(Object o) {
+//     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+//     return (o instanceof Address) && ((Address) o).value == value;
+//   }
+
+
+  /****************************************************************************
+   *
+   * Memory access operators
+   */
 
   /** 
    * Loads a reference from the memory location pointed to by the
@@ -443,213 +689,12 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @return the old value to be passed to an attempt call.
-   */
-  public Word prepareWord() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
-   */
-  public Word prepareWord(Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @return the old value to be passed to an attempt call.
-   */
-  public ObjectReference prepareObjectReference() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
-   */
-  public ObjectReference prepareObjectReference(Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @return the old value to be passed to an attempt call.
-   */
-  public Address prepareAddress() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
-   */
-  public Address prepareAddress(Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @return the old value to be passed to an attempt call.
-   */
-  public int prepareInt() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return 0;
-  }
-
-  /**
-   * Prepare for an atomic store operation. This must be associated with
-   * a related call to attempt.
-   *
-   * @param offset the offset to the value.
-   * @return the old value to be passed to an attempt call.
-   */
-  public int prepareInt(Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return 0;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param word the new value.
-   * @return true if the attempt was successful.
-   */
-  public boolean attempt(int old, int value) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param word the new value.
-   * @param offset the offset to the value.
-   * @return true if the attempt was successful.
-   */
-  public boolean attempt(int old, int value, Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param value the new value.
-   * @return true if the attempt was successful.
-   */ 
-  public boolean attempt(Word old, Word value) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param value the new value.
-   * @param offset the offset to the value.
-   * @return true if the attempt was successful.
-   */
-  public boolean attempt(Word old, Word value, Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param value the new value.
-   * @return true if the attempt was successful.
-   */ 
-  public boolean attempt(ObjectReference old, ObjectReference value) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param value the new value.
-   * @param offset the offset to the value.
-   * @return true if the attempt was successful.
-   */
-  public boolean attempt(ObjectReference old, ObjectReference value, 
-                         Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param value the new value.
-   * @return true if the attempt was successful.
-   */ 
-  public boolean attempt(Address old, Address value) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
-   * Attempt an atomic store operation. This must be associated with a
-   * related call to prepare.
-   *
-   * @param old the old value.
-   * @param value the new value.
-   * @param offset the offset to the value.
-   * @return true if the attempt was successful.
-   */
-  public boolean attempt(Address old, Address value, Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false;
-  }
-
-  /**
    * Stores the address value in the memory location pointed to by the
    * current instance.
    *
    * @param value The address value to store.
    */
-  public void store(ObjectReference ref) {
+  public void store(ObjectReference value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -660,7 +705,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @param value The address value to store.
    * @param offset the offset to the value.
    */
-  public void store(ObjectReference ref, Offset offset) {
+  public void store(ObjectReference value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
  
@@ -670,7 +715,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    *
    * @param value The address value to store.
    */
-  public void store(Address address) {
+  public void store(Address value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -681,7 +726,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @param value The address value to store.
    * @param offset the offset to the value.
    */
-  public void store(Address address, Offset offset) {
+  public void store(Address value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -828,8 +873,8 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Stores a char value in the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
    * @param value the char value to store. 
+   * @param offset the offset to the value.
    */
   public void store(char value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -849,10 +894,217 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Stores a short value in the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
    * @param value the short value to store. 
+   * @param offset the offset to the value.
    */
   public void store(short value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+
+  /****************************************************************************
+   *
+   * Atomic memory access operators (compare and swap)
+   */
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @return the old value to be passed to an attempt call.
+   */
+  public Word prepareWord() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @param offset the offset to the value.
+   * @return the old value to be passed to an attempt call.
+   */
+  public Word prepareWord(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @return the old value to be passed to an attempt call.
+   */
+  public ObjectReference prepareObjectReference() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @param offset the offset to the value.
+   * @return the old value to be passed to an attempt call.
+   */
+  public ObjectReference prepareObjectReference(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @return the old value to be passed to an attempt call.
+   */
+  public Address prepareAddress() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @param offset the offset to the value.
+   * @return the old value to be passed to an attempt call.
+   */
+  public Address prepareAddress(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @return the old value to be passed to an attempt call.
+   */
+  public int prepareInt() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return 0;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @param offset the offset to the value.
+   * @return the old value to be passed to an attempt call.
+   */
+  public int prepareInt(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return 0;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(int old, int value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @param offset the offset to the value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(int old, int value, Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @return true if the attempt was successful.
+   */ 
+  public boolean attempt(Word old, Word value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @param offset the offset to the value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(Word old, Word value, Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @return true if the attempt was successful.
+   */ 
+  public boolean attempt(ObjectReference old, ObjectReference value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @param offset the offset to the value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(ObjectReference old, ObjectReference value, 
+                         Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @return true if the attempt was successful.
+   */ 
+  public boolean attempt(Address old, Address value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @param offset the offset to the value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(Address old, Address value, Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
   }
 }

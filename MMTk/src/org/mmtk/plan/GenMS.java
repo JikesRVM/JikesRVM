@@ -264,7 +264,6 @@ public class GenMS extends Generational implements Uninterruptible {
    * necessary.  The location will be updated if the referent is
    * forwarded.
    * @param object The referent object.
-   * @param space The space in which the referent object resides.
    */
   protected static void forwardMatureObjectLocation(Address location,
                                                     ObjectReference object) {}
@@ -275,7 +274,6 @@ public class GenMS extends Generational implements Uninterruptible {
    * collector, so this method is a no-op.<p>
    *
    * @param object The object which may have been forwarded.
-   * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
   public static final ObjectReference getForwardedMatureReference(ObjectReference object) {

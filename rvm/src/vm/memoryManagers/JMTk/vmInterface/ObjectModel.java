@@ -200,7 +200,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * current value and setting are atomic with respect to other
    * allocators.
    *
-   * @param oject the address of the object
+   * @param object the address of the object
    * @param oldVal the required current value of the bits
    * @param newVal the desired new value of the bits
    * @return <code>true</code> if the bits were set,
@@ -216,7 +216,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * Gets the value of bits available for memory manager use in an
    * object, in preparation for setting those bits.
    *
-   * @param o the address of the object
+   * @param object the address of the object
    * @return the value of the bits
    */
   public static Word prepareAvailableBits(ObjectReference object) {

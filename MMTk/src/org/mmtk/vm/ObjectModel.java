@@ -7,6 +7,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.scan.MMType;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -31,12 +32,11 @@ public class ObjectModel {
    * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public static ObjectReference copy(ObjectReference from)
-    {
+  public static ObjectReference copy(ObjectReference from) {
     return null;
   }
 
-    /**
+  /**
    * Allocate an array object, using the given array as an example of
    * the required type.
    *
@@ -46,8 +46,7 @@ public class ObjectModel {
    * @param length the number of elements in the array to be allocated
    * @return the initialzed array object
    */
-  public static Object cloneArray(Object [] array, int allocator, int length)
-      {
+  public static Object cloneArray(Object [] array, int allocator, int length) {
     return null;
   }
 
@@ -128,7 +127,7 @@ public class ObjectModel {
    * current value and setting are atomic with respect to other
    * allocators.
    *
-   * @param oject the address of the object
+   * @param object the address of the object
    * @param oldVal the required current value of the bits
    * @param newVal the desired new value of the bits
    * @return <code>true</code> if the bits were set,
@@ -136,14 +135,14 @@ public class ObjectModel {
    */
   public static boolean attemptAvailableBits(ObjectReference object,
 					     Word oldVal, Word newVal) {
-return false;
+    return false;
   }
 
   /**
    * Gets the value of bits available for memory manager use in an
    * object, in preparation for setting those bits.
    *
-   * @param o the address of the object
+   * @param object the address of the object
    * @return the value of the bits
    */
   public static Word prepareAvailableBits(ObjectReference object) {
@@ -179,7 +178,7 @@ return false;
    */
   /* AJG: Should this be a variable rather than method? */
   public static int GC_HEADER_OFFSET() {
-return 0;
+    return 0;
   }
 
   /**
@@ -211,9 +210,8 @@ return 0;
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
-  public static boolean isAcyclic(ObjectReference typeRef) 
-    {
- return false;
+  public static boolean isAcyclic(ObjectReference typeRef) {
+      return false;
   }
 
   /**
@@ -222,8 +220,7 @@ return 0;
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */
-  public static MMType getObjectType(ObjectReference object) 
-{
+  public static MMType getObjectType(ObjectReference object) {
     return null;
   }
 }

@@ -190,7 +190,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   /**
    * Set the "next" pointer in a buffer forming the linked buffer chain.
    *
-   * @param bufRef The buffer whose next field is to be set.
+   * @param buf The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
   private static final void setNext(Address buf, Address next) {
@@ -200,7 +200,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
    *
-   * @param bufRef The buffer whose next field is to be returned.
+   * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
   protected final Address getNext(Address buf) {
@@ -210,8 +210,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   /**
    * Set the "prev" pointer in a buffer forming the linked buffer chain.
    *
-   * @param bufRef The buffer whose next field is to be set.
-   * @param next The reference to which next should point.
+   * @param buf The buffer whose next field is to be set.
+   * @param prev The reference to which prev should point.
    */
   private final void setPrev(Address buf, Address prev) {
     buf.store(prev, PREV_OFFSET);
@@ -220,7 +220,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
    *
-   * @param bufRef The buffer whose next field is to be returned.
+   * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
   protected final Address getPrev(Address buf) {

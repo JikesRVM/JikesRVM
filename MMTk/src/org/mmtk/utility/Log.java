@@ -194,7 +194,7 @@ public class Log implements Constants, Uninterruptible {
    * "TooSmall".  If <code>d</code> is NaN is is logged as "NaN".
    *
    * @param d the double to be logged
-   * @param postDecimaldigits the number of digits to be logged after
+   * @param postDecimalDigits the number of digits to be logged after
    * the decimal point.  If less than or equal to zero no digits are
    * logged, but the decimal point is.
    */
@@ -369,7 +369,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an array of characters and a new-line, then flushes the buffer.
    * @see #write(char [])
    *
-   * @param c the array of characters to be logged
+   * @param ca the array of characters to be logged
    */
   public static void writeln(char [] ca) { writeln(ca, true); }
 
@@ -378,7 +378,7 @@ public class Log implements Constants, Uninterruptible {
    * flushes the buffer.
    * @see #write(char [], int)
    *
-   * @param c the array of characters
+   * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
    */
@@ -511,7 +511,7 @@ public class Log implements Constants, Uninterruptible {
    * flushes the buffer.
    * @see #write(char [])
    *
-   * @param c the array of characters to be logged
+   * @param ca the array of characters to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
   public static void writeln(char [] ca, boolean flush) {
@@ -524,7 +524,7 @@ public class Log implements Constants, Uninterruptible {
    * optionally flushes the buffer.
    * @see #write(char [], int)
    *
-   * @param c the array of characters
+   * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
    * @param flush if <code>true</code> then flushes the buffer
@@ -661,7 +661,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a <code>long</code> in hexadecimal
    *
-   * @param l the Word to be logged
+   * @param w the Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
    * of the most significant bytes are ignored.

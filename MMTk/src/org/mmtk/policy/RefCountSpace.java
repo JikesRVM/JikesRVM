@@ -283,7 +283,7 @@ public final class RefCountSpace extends Space
    * of the caller to change the object to <code>LOGGED</code> once
    * the logging is complete.
    *
-   * @see makeLogged
+   * @see #makeLogged(ObjectReference)
    * @param object The object in question
    * @return <code>true</code> if the race to log
    * <code>object</code>was won.
@@ -309,7 +309,7 @@ public final class RefCountSpace extends Space
    *
    * <code>object</code> is left in the <code>LOGGED</code> state.
    *
-   * @see attemptToLog
+   * @see #attemptToLog(ObjectReference)
    * @param object The object whose state is to be changed.
    */
   public static void makeLogged(ObjectReference object)

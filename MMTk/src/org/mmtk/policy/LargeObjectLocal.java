@@ -90,9 +90,6 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   /**
    * Prepare for a collection.  Clear the treadmill to-space head and
    * prepare the collector.  If paranoid, perform a sanity check.
-   *
-   * @param vm Unused
-   * @param mr Unused
    */
   public final void prepare() {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
@@ -100,9 +97,6 @@ public final class LargeObjectLocal extends LargeObjectAllocator
 
   /**
    * Finish up after a collection.
-   *
-   * @param vm Unused
-   * @param mr Unused
    */
   public void release() {
     // sweep the large objects
@@ -134,8 +128,6 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * system.  In this case it is just the underlying superpage header
    * size.
    *
-   * @param sizeClass The size class of the cells contained by this
-   * superpage.
    * @return The size of the per-superpage header required by this
    * system.
    */

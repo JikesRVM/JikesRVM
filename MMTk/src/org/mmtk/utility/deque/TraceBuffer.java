@@ -56,8 +56,8 @@ public class TraceBuffer extends LocalQueue
   /**
    * Constructor
    *
-   * @param queue The shared queue to which this queue will append
-   * its buffers (when full or flushed) and from which it will aquire new
+   * @param pool The shared queue to which this queue will append its
+   * buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
    */
   public TraceBuffer(SharedDeque pool) {

@@ -30,7 +30,7 @@ final public class SortTODSharedDeque extends SortSharedDeque
    * Constructor
    *
    * @param rps The space from which the instance should obtain buffers.
-   * @param airty The arity of the data to be enqueued
+   * @param arity The arity of the data to be enqueued
    */
   public SortTODSharedDeque(RawPageSpace rps, int arity) {
     super(rps, arity);

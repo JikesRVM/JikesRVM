@@ -19,9 +19,6 @@ import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_CodeArray;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
@@ -30,6 +27,8 @@ import com.ibm.JikesRVM.VM_Runtime;
 
 import com.ibm.JikesRVM.VM_Thread;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -184,13 +183,15 @@ public class ScanThread implements VM_Constants, Uninterruptible {
    * Include JNI native frames.
    * <p>
    *
-   * @param t              VM_Thread for the thread whose stack is being scanned
-   * @param top_frame      address of stack frame at which to begin the scan
-   * @param rootLocations  set to store addresses containing roots
-   * @param relocate_code  set to store addresses containing return addresses (if null, skip)
+   * @param rootLocations set in which to store addresses containing roots
+   * @param codeLocations set in which to store addresses containing
+   * return addresses (if null, skip)
+   * @param t VM_Thread for the thread whose stack is being scanned
+   * @param top_frame address of stack frame at which to begin the scan
    */
-  private static void scanThreadInternal (AddressDeque rootLocations, AddressPairDeque codeLocations,
-                                         VM_Thread t, Address top_frame) {
+  private static void scanThreadInternal(AddressDeque rootLocations, 
+					 AddressPairDeque codeLocations,
+					 VM_Thread t, Address top_frame) {
     
     if (DUMP_STACK >= 1) VM.sysWriteln("Scanning thread ", t.getIndex());
 

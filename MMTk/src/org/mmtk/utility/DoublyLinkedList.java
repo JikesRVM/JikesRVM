@@ -30,13 +30,13 @@ import org.vmmagic.unboxed.*;
  * Access to the instances may be synchronized depending on the
  * constructor argument.
  *
+ * $Id$
+ *
  * @author Perry Cheng
  * @version $Revision$
  * @date $Date$
  */
-final class DoublyLinkedList
-  implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+final class DoublyLinkedList implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
@@ -162,11 +162,10 @@ final class DoublyLinkedList
   /**
    * Return true if a cell is on a given treadmill
    *
-   * @param cell The cell being searched for
-   * @param head The head of the treadmill
+   * @param node The cell being searched for
    * @return True if the cell is found on the treadmill
    */
-  public final boolean isMember (Address node) {
+  public final boolean isMember(Address node) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();

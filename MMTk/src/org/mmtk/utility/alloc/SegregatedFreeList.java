@@ -111,10 +111,7 @@ public abstract class SegregatedFreeList extends Allocator
   /**
    * Constructor
    *
-   * @param vmr The virtual memory resource from which this free list
-   * allocator will acquire virtual memory.
-   * @param mr The memory resource against which memory consumption
-   * for this free list allocator will be accounted.
+   * @param space The space with which this allocator will be associated
    */
   public SegregatedFreeList(Space space) {
     blockAllocator = new BlockAllocator(space);
@@ -872,7 +869,7 @@ public abstract class SegregatedFreeList extends Allocator
   /**
    * Return the live word for a region including a given address
    *
-   * @param addr The address for which the live word is required
+   * @param address The address for which the live word is required
    * @return A word containing live bits for the given address.
    */
   protected static final Word getLiveBits(Address address) {

@@ -90,7 +90,7 @@ abstract public class AbstractDriver implements Uninterruptible {
   /**
    * The "typical" number of objects in each tile
    *
-   * @param blocksize The size of a tile
+   * @param blockSize The size of a tile
    * @return The maximum number of objects in a tile
    */
   public int maxObjectsPerBlock (int blockSize) {

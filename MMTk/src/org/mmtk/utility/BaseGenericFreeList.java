@@ -239,7 +239,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    * Coalesce two or three contigious lumps of units, removing start
    * and end lumps from the free list as necessary.
    * @param start The index of the start of the first lump
-   * @param start Index of the start of the last lump
+   * @param end The index of the start of the last lump
    */
   private final void coalesce(int start, int end) {
     if (getFree(end))
