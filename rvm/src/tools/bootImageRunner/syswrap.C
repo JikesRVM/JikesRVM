@@ -5,16 +5,22 @@
 
 /**
  * Wrappers for blocking system calls.
+ *
  * By linking the JikesRVM executable against this shared library,
  * we can define our own versions of blocking system calls (from the
  * platform's C library) which call back into the VM.  That way,
  * we can make native code play more nicely with Java threads.
+ *
  * For example, we can prevent select() calls made from JNI code
  * from blocking the virtual processor.
+ *
+ * This also defines the JNI VM Invocation Interface calls.
  *
  * @author David Hovemeyer
  * @date 10 Jun 2002
  */
+
+#define VERBOSE_WRAPPERS 0
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 # include <pthread.h>
@@ -31,8 +37,8 @@
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"
 
-// Forward declaration of a function defined later on in this file.  Goes into
-// the jni dispatch table.
+/* Forward declaration of a function defined later on in this file.  Goes into
+   the JNI dispatch table. */
 extern jint GetEnv(JavaVM *, void **, jint);
 
 #include "syswrap.h"
@@ -47,8 +53,8 @@ extern jint GetEnv(JavaVM *, void **, jint);
 #define C_LIBRARY_NAME "libc.so.6"
 
 // Pointers to actual syscall functions from C library.
-static SelectFunc libcSelect;
-static PollFunc libcPoll;
+static SelectFunc_t libcSelect;
+static PollFunc_t libcPoll;
 
 // Get a pointer to a symbol from the C library.
 //
@@ -189,7 +195,7 @@ updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
 //
 // Returned:
 // Pointer to select() function in C library.
-SelectFunc 
+SelectFunc_t 
 getLibcSelect(void)
 {
     getRealSymbol("select", (void**) &libcSelect);
@@ -220,6 +226,8 @@ extern "C" int
 select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
        fd_set *exceptFdSet, struct timeval *timeout)
 {
+    if (VERBOSE_WRAPPERS)
+	fprintf(stderr, "Calling select wrapper\n");
     getRealSymbol("select", (void**) &libcSelect);
 
     // If timeout is short, just call real select().
@@ -279,6 +287,8 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 extern "C" int
 poll(struct pollfd *ufds, long unsigned int nfds, int timeout) 
 {
+    if (VERBOSE_WRAPPERS)
+	fprintf(stderr, "Calling poll wrapper\n");
     fd_set readfds, writefds, exceptfds;
     struct timeval tv;
     struct timeval *tv_ptr;
@@ -339,18 +349,19 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 }
 
 //////////////////////////////////////////////////////////////
-// JNI stuff
+// JNI Invocation API functions
 //////////////////////////////////////////////////////////////
 
+/** Destroying the Java VM only makes sense if you can first attach it.  */
 jint 
-DestroyJavaVM(JavaVM __attribute__((unused)) * vm) 
+DestroyJavaVM(JavaVM UNUSED * vm) 
 {
     fprintf(stderr, "unimplemented DestroyJavaVM");
     return 0;
 }
 
 jint 
-AttachCurrentThread(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, void UNUSED *args) 
+AttachCurrentThread(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
 {
     fprintf(stderr, "unimplemented AttachCurrentThread");
     return 0;
@@ -366,9 +377,7 @@ DetachCurrentThread(JavaVM UNUSED *vm)
 jint 
 GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
 { 
-
-    // Java 1.2 is not supported yet
-    if (version == JNI_VERSION_1_2)
+    if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
@@ -395,6 +404,13 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     return JNI_OK;
 }
 
+jint 
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+{
+    fprintf(stderr, "unimplemented AttachCurrentThreadAsDaemon");
+    return 0;
+}
+
 struct JNIInvokeInterface_ externalJNIFunctions = {
     NULL,
     NULL,
@@ -402,8 +418,10 @@ struct JNIInvokeInterface_ externalJNIFunctions = {
     DestroyJavaVM,
     AttachCurrentThread,
     DetachCurrentThread,
-    GetEnv
+    GetEnv,			// JNI 1.2
+    AttachCurrentThreadAsDaemon	// JNI 1.4
 };
+
 
 VM_Address 
 createJavaVM(void)

@@ -3211,7 +3211,7 @@ sysNetSelect(
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
 #if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-        SelectFunc realSelect = getLibcSelect();
+        SelectFunc_t realSelect = getLibcSelect();
         if (realSelect == 0) {
             fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
             sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
