@@ -11,7 +11,7 @@ package com.ibm.JikesRVM;
  * @author Perry Cheng
  */
 
-final public class VM_AddressArray {
+final public class VM_AddressArray implements VM_Uninterruptible {
 
   //-#if RVM_FOR_32_ADDR
   private int [] data;
@@ -27,23 +27,29 @@ final public class VM_AddressArray {
     //-#endif
   }
 
-  public VM_Address get (int index) {
+  public VM_Address get (int index) throws VM_PragmaInline {
     //-#if RVM_FOR_32_ADDR
-    return VM_Address.fromInt(data[index]);
+    if (VM.VerifyAssertions)
+	return VM_Address.fromInt(data[index]);
+    else
+	return VM_Address.fromInt(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(data).add(index << 2)));
     //-#elif RVM_FOR_64_ADDR
     return VM_Address.fromLong(data[index]);
     //-#endif
   }
 
-  public void set (int index, VM_Address v) {
+  public void set (int index, VM_Address v) throws VM_PragmaInline {
     //-#if RVM_FOR_32_ADDR
-    data[index] = v.toInt();
+    if (VM.VerifyAssertions)
+	data[index] = v.toInt();
+    else
+	VM_Magic.setMemoryInt(VM_Magic.objectAsAddress(data).add(index << 2), v.toInt());
     //-#elif RVM_FOR_64_ADDR
     data[index] = v.toLong();
     //-#endif
   }
 
-  public int length() {
+  public int length() throws VM_PragmaInline {
     return data.length;
   }
 
