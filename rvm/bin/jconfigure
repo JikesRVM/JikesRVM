@@ -1704,7 +1704,7 @@ function emitImageLinker
    if (( RVM_WITH_JMTK )); then
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;'                  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/BasePlan;'                  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;'                      >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
