@@ -5,13 +5,17 @@
 package java.lang.reflect;
 
 import com.ibm.JikesRVM.classloader.VM_Field;
-import com.ibm.JikesRVM.classloader.VM_ReflectionSupport;
 import com.ibm.JikesRVM.classloader.VM_TypeReference;
+import com.ibm.JikesRVM.VM_Reflection;
 
 /**
  * Library support interface of Jikes RVM
  *
+ * @author John Barton 
  * @author Julian Dolby
+ * @author Stephen Fink
+ * @author Eugene Gluzberg
+ * @author Dave Grove
  */
 public final class Field extends AccessibleObject implements Member {
 
@@ -126,8 +130,27 @@ public final class Field extends AccessibleObject implements Member {
   public void set(Object object, Object value) 
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);
-	
-    VM_ReflectionSupport.setField(this,object,value);
+
+    VM_TypeReference type = field.getType();
+    if (type.isReferenceType()) {
+      field.setObjectValue(object, value);
+    } else if (type.isCharType()) {
+      field.setCharValue(object, VM_Reflection.unwrapChar(value));
+    } else if (type.isDoubleType()) {
+      field.setDoubleValue(object, VM_Reflection.unwrapDouble(value));
+    } else if (type.isFloatType()) {
+      field.setFloatValue(object, VM_Reflection.unwrapFloat(value));
+    } else if (type.isLongType()) {
+      field.setLongValue(object, VM_Reflection.unwrapLong(value));
+    } else if (type.isIntType()) {
+      field.setIntValue(object, VM_Reflection.unwrapInt(value));
+    } else if (type.isShortType()) {
+      field.setShortValue(object, VM_Reflection.unwrapShort(value));
+    } else if (type.isByteType()) {
+      field.setByteValue(object, VM_Reflection.unwrapByte(value));
+    } else if (type.isBooleanType()) {
+      field.setBooleanValue(object, VM_Reflection.unwrapBoolean(value));
+    }
   }
     
   public void setBoolean(Object object, boolean value) 

@@ -4,13 +4,18 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.classloader.VM_ReflectionSupport;
+import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Library support interface of Jikes RVM
  *
+ * @author John Barton 
  * @author Julian Dolby
+ * @author Stephen Fink
+ * @author Eugene Gluzberg
+ * @author Dave Grove
  */
 public final class Constructor extends AccessibleObject implements Member {
   VM_Method constructor;
@@ -23,6 +28,10 @@ public final class Constructor extends AccessibleObject implements Member {
   // For use by java.lang.Class
   Constructor(VM_Method m) {
     constructor = m;
+  }
+
+  public int hashCode() {
+    return getName().hashCode();
   }
 
   public boolean equals(Object other) {
@@ -38,11 +47,16 @@ public final class Constructor extends AccessibleObject implements Member {
   }
 
   public Class[] getExceptionTypes() {
-    return VM_ReflectionSupport.getExceptionTypes(this);
+    VM_TypeReference[] exceptionTypes = constructor.getExceptionTypes();
+    if (exceptionTypes == null) {
+      return new Class[0];
+    } else {
+      return JikesRVMSupport.typesToClasses(exceptionTypes);
+    }
   }
 
   public int getModifiers() {
-    return VM_ReflectionSupport.getModifiers(this);
+    return constructor.getModifiers();
   }
 
   public String getName() {
@@ -50,21 +64,48 @@ public final class Constructor extends AccessibleObject implements Member {
   }
     
   public Class[] getParameterTypes() {
-    return VM_ReflectionSupport.getParameterTypes(this);
+    return JikesRVMSupport.typesToClasses(constructor.getParameterTypes());
   }
 
   public String getSignature() {
-    return VM_ReflectionSupport.getSignature(this);
+    return constructor.getDescriptor().toString();
   } 
 
-  public int hashCode() {
-    return getName().hashCode();
-  }
+  public Object newInstance(Object args[]) throws InstantiationException, 
+						  IllegalAccessException, 
+						  IllegalArgumentException, 
+						  InvocationTargetException {
 
-  public Object newInstance(Object args[])
-    throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
-  {
-    return VM_ReflectionSupport.newInstance(this,args);
+    // Get a new instance, uninitialized.
+    //
+    VM_Class cls = constructor.getDeclaringClass();
+    if (!cls.isInitialized()) {
+      try {
+	VM_Runtime.initializeClassForDynamicLink(cls);
+      } catch (Throwable e) {
+	InstantiationException ex = new InstantiationException();
+	ex.initCause(e);
+	throw ex;
+      }
+    }
+
+    int      size = cls.getInstanceSize();
+    Object[] tib  = cls.getTypeInformationBlock();
+    boolean  hasFinalizer = cls.hasFinalizer();
+    int allocator = VM_Interface.pickAllocator(cls);
+    Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
+
+    // Run <init> on the instance.
+    //
+    Method m = JikesRVMSupport.createMethod(constructor);
+
+    // Note that <init> is not overloaded but it is
+    // not static either: it is called with a "this"
+    // pointer but not looked up in the TypeInformationBlock.
+    // See VM_Reflection.invoke().
+    //
+    m.invoke(obj, args);
+    return obj;
   }
 
   public String toString() {

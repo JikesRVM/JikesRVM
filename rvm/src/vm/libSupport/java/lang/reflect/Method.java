@@ -10,7 +10,11 @@ import com.ibm.JikesRVM.VM_Reflection;
 /**
  * Library support interface of Jikes RVM
  *
+ * @author John Barton 
  * @author Julian Dolby
+ * @author Stephen Fink
+ * @author Eugene Gluzberg
+ * @author Dave Grove
  */
 public final class Method extends AccessibleObject implements Member {
   VM_Method method;

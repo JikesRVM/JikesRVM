@@ -13,7 +13,7 @@ import java.lang.reflect.*;
 /**
  * This class implements the 211 JNI functions
  * All methods here will be specially compiled with the necessary prolog to
- * perform the transition from native code (AIX convention) to RVM
+ * perform the transition from native code (Linux/AIX convention) to RVM.
  * For this reason, no Java methods (including the JNI methods here) can call 
  * any methods in this class from within Java.  These JNI methods are to 
  * be invoked from native C or C++. <p>
@@ -42,19 +42,19 @@ import java.lang.reflect.*;
  *
  * (3) Because of many of the transformation above, the method signature of the 
  * JNI functions may not match its definition in the jni.h file <p>
-*
-* (4) For exception handling, all JNI functions are wrapped in Try/Catch block
-* to catch all exception generated during JNI call, then these exceptions
-* or the appropriate exception to be thrown according to the spec is recorded
-* in VM_JNIEnvironment.pendingException.  When the native code returns to the
-* the Java caller, the epilogue in the glue code will check for the pending
-* exception and deliver it to the caller as if executing an athrow bytecode
-* in the caller. <p>
-* 
-* @author Ton Ngo 
-* @author Steve Smith  
-* @date 2/1/00
-*/
+ *
+ * (4) For exception handling, all JNI functions are wrapped in Try/Catch block
+ * to catch all exception generated during JNI call, then these exceptions
+ * or the appropriate exception to be thrown according to the spec is recorded
+ * in VM_JNIEnvironment.pendingException.  When the native code returns to the
+ * the Java caller, the epilogue in the glue code will check for the pending
+ * exception and deliver it to the caller as if executing an athrow bytecode
+ * in the caller. <p>
+ * 
+ * @author Ton Ngo 
+ * @author Steve Smith  
+ * @date 2/1/00
+ */
 public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   // one message for each JNI function called from native
   final static boolean traceJNI = false;
@@ -5139,7 +5139,21 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Object initElement = (Object) env.getJNIRef(initElementJREF);
       Class cls = (Class) env.getJNIRef(classJREF);
 
-      Object newArray[] = (Object [])VM_ReflectionSupport.newInstance(cls, length);
+      if(cls == null)
+	throw new NullPointerException();
+      if(length < 0)
+	throw new NegativeArraySizeException();
+
+      VM_Array arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
+      if (!arrayType.isInitialized()) {
+	arrayType.resolve();
+	arrayType.instantiate();
+	arrayType.initialize();
+      }
+
+      Object[] tib = arrayType.getTypeInformationBlock();
+      int allocator = VM_Interface.pickAllocator(arrayType);
+      Object newArray[] = (Object []) VM_Runtime.resolvedNewArray(length, arrayType.getInstanceSize(length), tib, allocator);
 
       if (initElement != null) {
 	for (int i=0; i<length; i++) {
