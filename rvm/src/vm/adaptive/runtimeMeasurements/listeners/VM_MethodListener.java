@@ -20,6 +20,45 @@
 abstract class VM_MethodListener extends VM_Listener 
   implements VM_Uninterruptible {
 
+  /*
+   * Number of samples to be processed before calling thresholdReached
+   */
+  protected int sampleSize;  
+  
+  /*
+   * Next available index in the sample array
+   */
+  protected int nextIndex;
+  
+  /*
+   * Offset of nextIndex field, needed for fetchAndAdd synchronization
+   */
+  static final int nextIndexOffset = 
+    VM.getMember("LVM_MethodListener;", "nextIndex", "I").getOffset();
+  
+  /*
+   * Number of samples taken so far
+   */
+  protected int numSamples;
+  
+  /*
+   * Offset of numSamples field, needed for fetchAndAdd synchronization
+   */
+  static final int numSamplesOffset = 
+    VM.getMember("LVM_MethodListener;", "numSamples", "I").getOffset();
+  
+  /*
+   * The sample buffer
+   * Key Invariant: samples.length >= sampleSize
+   */
+  protected int[] samples;
+  
+  /*
+   * Is this listener supposed to notify its organizer when thresholdReached?
+   */
+  protected boolean notifyOrganizer;
+  
+
   /**
    * @param sampleSize the initial sampleSize for the listener
    * @param notifyOrganizer should the listener notify an organizer
@@ -42,7 +81,7 @@ abstract class VM_MethodListener extends VM_Listener
    *       same time. We attempt to ensure that the resulting race conditions
    *       are safely handled, but make no guarentee that every sample is
    *       actually recorded. We do try to make it somewhat likely that 
-   *       thresholdReached is called exactly once when samplesTaken reaches 
+   *       thresholdReached is called exactly once when numSamples reaches 
    *       sampleSize, but there are still no guarentees.
    *
    * @param cmid the compiled method ID to update
@@ -52,75 +91,87 @@ abstract class VM_MethodListener extends VM_Listener
    */
   public final void update(int cmid, int callerCmid, int whereFrom) {
 
-	if (callerCmid != -1) {
+    if (callerCmid != -1) {
       if (VM_ClassLoader.getCompiledMethod(callerCmid) == null) {
 	VM.sysWrite("MethodListener.update: callerCmid (");
 	VM.sysWrite(callerCmid, false);
 	VM.sysWrite(") is null, exiting\n");
-	VM.sysWrite("samplesTaken: ");
-	VM.sysWrite(samplesTaken, false);
+	VM.sysWrite("nextIndex: ");
+	VM.sysWrite(nextIndex, false);
 	VM.sysWrite("\n");
 	throw new RuntimeException();
       }
-	}
+    }
 
-      if (VM_ClassLoader.getCompiledMethod(cmid) == null) {
-	VM.sysWrite("MethodListener.update: cmid (");
-	VM.sysWrite(cmid, false);
-	VM.sysWrite(") is null, exiting\n");
-	VM.sysWrite("samplesTaken: ");
-	VM.sysWrite(samplesTaken, false);
-	VM.sysWrite("\n");
-	throw new RuntimeException();
-      }
-
-
+    if (VM_ClassLoader.getCompiledMethod(cmid) == null) {
+      VM.sysWrite("MethodListener.update: cmid (");
+      VM.sysWrite(cmid, false);
+      VM.sysWrite(") is null, exiting\n");
+      VM.sysWrite("numSamples: ");
+      VM.sysWrite(numSamples, false);
+      VM.sysWrite("\n");
+      throw new RuntimeException();
+    }
+    
     int idx;
-    if (!VM.UseEpilogueYieldPoints) {
+    int sampleNumber=-1; // the sample number of our insertion
+    if (VM.UseEpilogueYieldPoints) {
+      // New scheme: Use epilogue yieldpoints.  We increment one sample
+      // for every yieldpoint.  On a prologue, we count the caller.
+      // On backedges and epilogues, we count the current method.
+      if (whereFrom == VM_Thread.PROLOGUE) {
+ 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	if (idx < sampleSize && callerCmid != -1) {
+ 	  samples[idx] = callerCmid;
+ 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							numSamplesOffset, 1);
+        }
+      } else { 
+        // loop backedge or epilogue.  
+ 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	if (idx < sampleSize) {
+ 	  samples[idx] = cmid;
+ 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							numSamplesOffset, 1);
+        }
+      }
+    } else {
       // Original scheme: No epilogue yieldpoints.  We increment two samples
       // for every yieldpoint.  On a prologue, we count both the caller
       // and callee.  On backedges, we count the current method twice.
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Increment both for this method and the caller
-        idx = ++samplesTaken; // ++ is important. --dave
-        if (idx <= sampleSize) {
-	  samples[idx-1] = cmid;
-        }
-        idx = ++samplesTaken; // ++ is important. --dave
-        if (idx <= sampleSize && callerCmid != -1) {
-	  samples[idx-1] = callerCmid;
+ 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	if (idx < sampleSize) {
+ 	  samples[idx] = cmid;
+ 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							numSamplesOffset, 1);
+	}
+ 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	if (idx < sampleSize && callerCmid != -1) {
+ 	  samples[idx] = callerCmid;
+ 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							numSamplesOffset, 1);
         }
       } else { 
         // loop backedge.  We're only called once, so need to take
         // two samples to avoid penalizing methods with loops.
-        idx = ++samplesTaken; // ++ is important. --dave
-        if (idx <= sampleSize) {
-	  samples[idx-1] = cmid;
-        }
-        idx = ++samplesTaken; // ++ is important. --dave
-        if (idx <= sampleSize) {
-	  samples[idx-1] = cmid;
-        }
-      }
-    } else {
-      // New scheme: Use epilogue yieldpoints.  We increment one sample
-      // for every yieldpoint.  On a prologue, we count the caller.
-      // On backedges and epilogues, we count the current method.
-      if (whereFrom == VM_Thread.PROLOGUE) {
-        idx = ++samplesTaken; // ++ is important. --dave
-        if (idx <= sampleSize && callerCmid != -1) {
-	  samples[idx-1] = callerCmid;
-        }
-      } else { 
-        // loop backedge or epilogue.  
-        idx = ++samplesTaken; // ++ is important. --dave
-        if (idx <= sampleSize) {
-	  samples[idx-1] = cmid;
+ 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+	if (idx < sampleSize) {
+ 	  samples[idx] = cmid;
+ 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							numSamplesOffset, 1);
+	}
+ 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+         if (idx < sampleSize) {
+ 	  samples[idx] = cmid;
+ 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
+							numSamplesOffset, 1);
         }
       }
     }
 
-    if (idx >= sampleSize) { 
+    if (sampleNumber >= sampleSize) { 
       passivate();
       thresholdReached();
     }
@@ -167,26 +218,29 @@ abstract class VM_MethodListener extends VM_Listener
    * Reset the buffer to prepare to take more samples.
    */
   public void reset() {
-    samplesTaken = 0;
+    nextIndex = 0;
+    numSamples = 0;
   }
 
 
   /**
    * updates the sample size for this listener
+   * doesn't worry about any samples in the current buffer
    * @param newSampleSize the new sample size value to use, 
    */
   public final void setSampleSize(int newSampleSize) {
     sampleSize = newSampleSize; 
     if (sampleSize > samples.length) {
       samples = new int[newSampleSize];
-      samplesTaken = 0;
+      nextIndex = 0;
+      numSamples = 0;
     }
   }
 
   /**
    * @return the current sample size/threshold value
    */
-  public final int getSampleSize() { return sampleSize; }
+  public final int getSampleSize() { return numSamples; }
 
   /**
    * @return the buffer of samples
@@ -196,8 +250,7 @@ abstract class VM_MethodListener extends VM_Listener
   /**
    * @return how many samples have been taken
    */
-  public final int getSamplesTaken() { return samplesTaken; }
- 
+  public final int getSamplesTaken() { return numSamples; }
 
   /**
    * @return how many samples in the array returned by getSamples
@@ -206,18 +259,4 @@ abstract class VM_MethodListener extends VM_Listener
   public final int getNumSamples() {
     return Math.min(getSamplesTaken(), getSampleSize());
   }
-
-
-  // Number of samples to be processed before calling thresholdReached.
-  protected int sampleSize;  
-
-  // Number of samples taken so far
-  protected int samplesTaken;
-
-  // The sample buffer
-  // Key Invariant: samples.length >= sampleSize
-  protected int[] samples;
-
-  // Is this listener supposed to notify its organizer when thresholdReached?
-  protected boolean notifyOrganizer;
 } 
