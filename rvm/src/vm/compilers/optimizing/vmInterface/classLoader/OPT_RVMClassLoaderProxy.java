@@ -265,6 +265,7 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
       //       using ==, != since we're very unlikely to get the aliasing right.
       //       Then again, if you are using ==, != with strings and one of them
       //       isn't <null>, perhaps you deserve what you get.
+      // This is defect 2838.
       val = ("BootImageStringConstant "+slot).intern();
     }
     return new OPT_StringConstantOperand(val, slot);
