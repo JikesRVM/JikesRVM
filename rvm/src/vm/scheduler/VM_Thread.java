@@ -638,12 +638,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     myThread.exit(); 
 
-    // begin critical section
-    //
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-
     synchronized (myThread) { // release anybody waiting on this thread - 
+
+	// begin critical section
+	//
+	VM_Scheduler.threadCreationMutex.lock();
+	VM_Processor.getCurrentProcessor().disableThreadSwitching();
+	
 	// in particular, see java.lang.Thread.join()
 	myThread.isAlive = false;
 	myThread.notifyAll();
