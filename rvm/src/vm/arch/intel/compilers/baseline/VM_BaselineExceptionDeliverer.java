@@ -32,7 +32,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     
     // push exception object as argument to catch block
     //
-    sp = sp.sub(4);
+    sp = sp.sub(BYTES_IN_ADDRESS);
     VM_Magic.setMemoryAddress(sp, VM_Magic.objectAsAddress(exceptionObject));
     registers.gprs.set(SP, sp);
 
