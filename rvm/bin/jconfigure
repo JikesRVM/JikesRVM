@@ -2611,7 +2611,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	cat <<- EOF
 	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
 	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
-	  \${IMAGE} -DRVM_BOOTIMAGE=\"${BOOTIMAGE_STR}\" \
+	  \${IMAGE} -DRVM_BOOTIMAGE=\\"${BOOTIMAGE_STR}\\" \
 	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
 
 	# -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
@@ -2720,7 +2720,7 @@ $(emitBoilerplate)
 	    fi
 	done
 	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
-	[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	
 	run exec $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"
 EOF
