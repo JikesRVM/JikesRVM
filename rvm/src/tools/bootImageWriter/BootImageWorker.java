@@ -10,10 +10,9 @@ public class BootImageWorker extends Thread {
 
   public static int verbose = 1;
   static Enumeration enum;
-  int self;
+  int id;
 
-  public BootImageWorker (int id, Enumeration e) {
-    self = id;
+  public static void startup (Enumeration e) {
     enum = e;
   }
 
@@ -31,7 +30,7 @@ public class BootImageWorker extends Thread {
       if (type == null) 
 	return;
       if (verbose >= 1) 
-	  BootImageWriterMessages.say("Thread " + self + " instantiating type " + count + " " + type);
+	  BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type);
       type.instantiate();
     }
   }
