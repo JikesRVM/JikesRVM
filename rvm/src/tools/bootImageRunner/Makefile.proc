@@ -7,12 +7,19 @@
 #
 include			$(JAL_BUILD)/Make.rules.target
 
-$(JAL_BUILD)/RVM.scratch/VM_0005fProcess.h:	$(JAL_ROOT)/rvm/src/vm/runtime/VM_Process.java
-$(JAL_BUILD)/RVM.scratch/VM_0005fProcess.h:
-	$(HOST_JAVA_HOME)/bin/javah -d $(JAL_BUILD)/RVM.scratch -classpath $(JAL_BUILD)/RVM.classes:$(JAL_ROOT)/support/lib/rvmrt.jar com.ibm.JikesRVM.VM_Process
+SCRATCH:=$(JAL_BUILD)/RVM.scratch
 
-$(JAL_BUILD)/RVM.scratch/VM_0005fProcess.C:	$(JAL_ROOT)/rvm/src/tools/bootImageRunner/VM_0005fProcess.C
-	cp $(JAL_ROOT)/rvm/src/tools/bootImageRunner/VM_0005fProcess.C $(JAL_BUILD)/RVM.scratch
+$(SCRATCH)/VM_0005fProcess.h:	$(JAL_ROOT)/rvm/src/vm/runtime/VM_Process.java
 
-$(DEST):		$(JAL_BUILD)/RVM.scratch/VM_0005fProcess.C $(JAL_BUILD)/RVM.scratch/VM_0005fProcess.h
-	$(LDSHARED) -o $(DEST) -I$(JAL_ROOT)/rvm/src/include -O -g $<
+$(SCRATCH)/VM_0005fProcess.h:
+	$(RM) $@
+	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.JikesRVM.VM_Process
+
+$(SCRATCH)/VM_0005fProcess.C:	$(JAL_ROOT)/rvm/src/tools/bootImageRunner/VM_0005fProcess.C
+	$(RM) $@
+	cp $< $@
+
+# The Jikes RVM build process always invokes this with DEST=$(JAL_BUILD)/libjpnexec.{suffix}
+$(DEST): $(SCRATCH)/VM_0005fProcess.C $(SCRATCH)/VM_0005fProcess.h
+	$(RM) $@
+	$(LDSHARED) -o $@ -I$(JAL_ROOT)/rvm/src/include $<
