@@ -564,7 +564,10 @@ public abstract class SegregatedFreeList extends Allocator
   private final void flushFreeList(VM_Address block, int sizeClass, 
                                    VM_Address cell) 
     throws VM_PragmaInline {
-    setFreeListSizeClassAndInUse(block, cell, sizeClass, cellsInUse[sizeClass]);
+    if (maintainInUse()) 
+      setFreeListSizeClassAndInUse(block, cell, sizeClass, cellsInUse[sizeClass]);
+    else
+      setFreeListAndSizeClass(block, cell, sizeClass);
   }
 
   private final void refreshFreeLists() {
@@ -584,6 +587,21 @@ public abstract class SegregatedFreeList extends Allocator
     
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(inuse == getInUse(block));
+      VM_Interface._assert(cell == getFreeList(block));
+      VM_Interface._assert(sizeClass == getBlockSizeClass(block));
+    }
+  }
+
+  private final void setFreeListAndSizeClass(VM_Address block, VM_Address cell,
+					     int sizeClass) 
+    throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(preserveFreeList() && !maintainInUse());
+
+    VM_Word value = cell.toWord().and(FREE_LIST_MASK).or(VM_Word.fromIntZeroExtend(sizeClass).lsh(SIZE_CLASS_SHIFT));
+    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
+    
+    if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(cell == getFreeList(block));
       VM_Interface._assert(sizeClass == getBlockSizeClass(block));
     }

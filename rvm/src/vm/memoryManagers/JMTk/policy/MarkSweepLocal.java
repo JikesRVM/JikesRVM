@@ -71,6 +71,8 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private static int MS_MUST_COLLECT_THRESHOLD = 1<<30;
   private static long used[];
 
+  private static final boolean LAZY_SWEEP = true;
+
   /****************************************************************************
    *
    * Instance variables
@@ -87,7 +89,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private int allPreUsedCells[];
   private int allPostUsedCells[];
 
-  protected final boolean preserveFreeList() { return false; }
+  protected final boolean preserveFreeList() { return !LAZY_SWEEP; }
   protected final boolean maintainInUse() { return false; }
 
   /****************************************************************************
@@ -207,7 +209,10 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * for this block, or zero if there are no available cells.
    */
   protected final VM_Address advanceToBlock(VM_Address block, int sizeClass) {
-    return makeFreeListFromMarkBits(block, sizeClass);
+    if (LAZY_SWEEP)
+      return makeFreeListFromMarkBits(block, sizeClass);
+    else
+      return getFreeList(block);
   }
 
 
@@ -249,6 +254,8 @@ public final class MarkSweepLocal extends SegregatedFreeList
         VM_Address next = BlockAllocator.getNextBlock(block);
         if (isEmpty(block, sizeClass))
           freeBlock(block, sizeClass);
+	else if (!LAZY_SWEEP)
+	  makeFreeListFromMarkBits(block, sizeClass);
         block = next;
       }
     }
