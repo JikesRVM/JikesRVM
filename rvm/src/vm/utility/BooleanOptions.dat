@@ -14,6 +14,9 @@ Time all compilations and report on exit
 stackTraceVMSysWrite false 
 Exclusively use VM.sysWrite to print stack dumps
 
+stackTraceAtExit false 
+Dump a stack trace (via VM.syswrite) upon exit
+
 stackTraceAlsoToVMSysWrite false
 When printing a stack dump, print a copy via VM.sysWrite (if not doing so already)
 
