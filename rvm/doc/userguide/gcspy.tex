@@ -1,0 +1,94 @@
+\newcommand{\rvmRoot} {\tt \$RVM\_ROOT}
+
+\subsection{The GCspy Heap Visualisation Framework}
+
+GCspy is a visualisation framework that allows developers to observe the behaviour of the heap and related data structures. For details of the GCspy model see GCspy: An adaptable heap visualisation framework by Tony Printezis and Richard Jones, OOPSLA'02. The framework comprises two components that communicate across a socket: a client-side visualiser (written in Java) and a server incorporated into the virtual machine of the system being visualised. GCspy is designed to be independent of the target system. Instead, it requires the GC developer to describe their system in terms of four GCspy abstractions, spaces, streams and tiles. This description in transmitted to the visualiser when it connects to the server.
+
+A space is an abstraction of a component of the system; it may represent a memory region, a free-list, a remembered-set or whatever. Each space is divided into a number of blocks which are represented by the visualiser as tiles. Each space will have a number of attributes --- streams --- such as the amount of space used, the number of objects it contains, the length of a free-list and so on.
+
+In order to instrument a JikesRVM collector with GCspy, it is necessary to
+
+   1. provide a startGCSpyServer method in Plan.java to initialise the GCspy server with the port on which to communicate and a list of event names, instantiate drivers for each space and then start the server;
+   2. gather data from each space for the tiles of each stream (e.g. before and after each collection);
+   3. provide a driver for each space. 
+
+Space drivers handle communication between collectors and the GCspy infrastructure by mapping information collected by the memory manager to the space's streams. Typically, a driver will:
+
+   1. Create a number of streams.
+   2. Label the tiles of its space (e.g. with their address range).
+   3. Update the tile statistics as the memory manager passes it information.
+   4. Send the tile data along with any summary or control information to the visualiser. 
+
+The semiSpace plan gives an example of how to instrument a collector. It provides GCspy spaces, streams and drivers for the semi-spaces, the immortal space and the large object space, and also illustrates how performance may be traded for the gathering of more detailed information.
+System requirements
+
+In order to run GCSpy, your RVM must interact properly with pthreads. See the JikesRVM mailing lists for a discussion of this.
+
+In the discussion below, we have assumed that you will place all the GCSpy code and required libraries in \rvmRoot. If you wish to change this, you'll need to modify these instructions and the {\tt \rvmRoot/rvm/config/build/gcspy/GCSpy} config file appropriately.
+
+   1. Download the GCspy files from http://www.experimentalstuff.com/Technologies/GCspy/
+      You want the C infrastructure (not the C++ one) and the Java visualiser. The C infrastructure provides a GCspy server to the JikesRVM.
+   2. Download the Java Advanced Imaging (JAI) API from http://java.sun.com/products/java-media/jai/
+   3. Unpack the GCSpy and JAI sources into \rvmRoot. You should then have directories {\tt \rvmRoot/gcspy0.9 and \rvmRoot/jai-1\_1\_2}. 
+
+
+
+\subsection{Installation}
+
+   1. First, you must apply a patch to the GCSpy sources:
+\begin{verbatim}
+    % cd $RVM_ROOT
+    % patch -p0 < $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/gcspy.patch
+\end{verbatim}
+   2. Make the GCSpy visualiser and server.
+\begin{verbatim}
+    % cd $RVM_ROOT/gcspy0.9/src/
+    % make install c java
+\end{verbatim}
+
+
+
+\subsection{Running GCspy}
+
+Here's a typical example (probably better executed from 2 windows).
+
+   1. Set up your environment appropriately. We assume
+\begin{verbatim}
+    % export GCSPY_ROOT=$RVM_ROOT/gcspy0.9
+    % export GCSPY_CLASSES=$GCSPY_ROOT/src/java/classes
+\end{verbatim}
+   2. First, build an image:
+
+    [set appropriate Jikes RVM environment variables]
+\begin{verbatim}
+    % export RVM_BUILD=
+    % jconfigure BaseBaseSemiSpaceGCSpy
+    % cd $RVM_BUILD
+    % ./jbuild
+\end{verbatim}
+   3. Next, start rvm, first adding the GCSpy server library to your {\tt LD\_LIBRARY\_PATH}:
+\begin{verbatim}
+    % export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GCSPY_ROOT/src/c/lib
+    % rvm -Xms20m -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true  &
+\end{verbatim}
+   4. Then, start the GCSpy visualiser:
+\begin{verbatim}
+    % cd $GCSPY_CLASSES
+    % java gcspy.Main -server localhost 3000
+\end{verbatim}
+      and click the "Connect" button in thebottom right-hand corner of the visualiser (alternatively, you can give the server and port arguments in the Connect dialogue box). 
+
+
+\subsection{Command line arguments}
+
+Additional GCSpy-related arguments to rvm:
+
+\begin{itemize}
+\item {\tt -X:gc:gcspyPort=port}
+    The number of the port on which to connect to the visualiser.  The default is port value 0 which signifies no connection.
+\item {\tt -X:gc:gcspyWait=\[true|false\]}
+    Whether RVM should wait for a visualiser to connect.
+\item {\tt -X:gc:gcspyTilesize=size}
+    How many KB are represented by 1 tile.  The default is 128K.
+\end{itemize}
+
