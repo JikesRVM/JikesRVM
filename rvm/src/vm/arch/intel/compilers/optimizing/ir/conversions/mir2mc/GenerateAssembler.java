@@ -3,14 +3,68 @@
  */
 //$Id$
 
-/**
- * @author Julian Dolby
- */
-
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
 
+/**
+ *  <P> Generates the assembler that is used by the optimizing compiler,
+ * using a combination of the tables describing the low-level
+ * instruction formats and operators used by the opt compiler, and the
+ * interface of the low-level assembler that understands how to
+ * generate IA32 opcodes given specific operands.  Essentially, the
+ * opt assembler becomes a rather large piece of impedence-matching
+ * code that decodes the OPT_Instructions and OPT_Operators understood
+ * by the opt compiler to determine what is the appropriate IA32
+ * machine code to emit.  </P>
+ *
+ *  <P> In order for this to work, both the optimizing compiler tables and
+ * the VM_Assembler must use stylized formats.  On the optimizing
+ * com[piler side, the major stylization is that the low-level
+ * operators that represent assembly code must correspond directly to
+ * the official IA32 assembler pneumonics; i.e. since there is an ADD
+ * assembler pneumonic in the Intel assembly specification, there must
+ * be a correponding IA32_ADD operator in the opt compiler tables.
+ * The stylization of the VM_Assembler side is more thoroughgoing, and
+ * the reader is referred to the VM_Assembler header comments for a
+ * definition. </P>
+ *
+ *  <P> Given these stylizations, GenerateAssembler reads the set of
+ * assembler pneumonics supported by the VM_Assembler using reflection
+ * to examinme its stylized method signitures.  GenerateAssembler also
+ * reads the set of IA32 operators that the opt compiler defines,
+ * using the helper classes OPT_InstructionFormatTable and
+ * OPT_OperatorFormatTable.  It then, for each operator, generates a
+ * handler method to call the appropriate VM_Assembler emit method
+ * given an OPT_Instruction.  The VM_Assembler will have a family of
+ * emit methods named for each opcode, each such emit method takes a 
+ * specific set of operand addressing modes and sizes.  The handler
+ * methods that the GenerateAssembler emits examine the operands to an
+ * OPT_Instruction, and determine which VM_Assembler method to call
+ * for the operand addressing modes and sizes that it finds.
+ * GenerateAssembler also generates a top-level dispatch method that
+ * examines the operator and calls the appropriate handler. </P>
+ *
+ *  <P> GenerateAssembler generates the opt assembler as part of the
+ * normal build process; this poses a slight problem in that it needs
+ * to examine the VM_Assembler via reflection to generate the
+ * OPT_Assembler, but that is not possible until the VM sources
+ * (including, of course, the OPT_Assembler) have been compiled.  The
+ * current hack to get around this is to compile the VM_Assembler in
+ * advance, and read the resulting class file.  This utilizies some
+ * supporting files to make the VM_Assembler compile in isolation.
+ * This is the purpose of the .fake files in the optimizing compiler's
+ * assembler directory. </P>
+ *
+ * @see OPT_InstructionFormatTables
+ * @see OPT_OperatorFormatTables
+ * @see OPT_AssemblerBase
+ * @see OPT_Instruction
+ * @see OPT_Assembler
+ * @see VM_Assembler
+ *
+ * @author Julian Dolby 
+ */
 class GenerateAssembler {
 
     /** Global flag controlling printing of debugging information */
@@ -42,12 +96,12 @@ class GenerateAssembler {
     }
 
     /**
-     *  Global reference to the OPT_InstructionFormatTable class that 
+     *  Global reference to the OPT_InstructionFormatTables class that 
      * contains descriptions of each optimizing compiler instruction
      * format that sis visible to the assembler (i.e. the MIR_* 
      * instruction formats.
      *
-     * @see OPT_InstructionFormatTable
+     * @see OPT_InstructionFormatTables
      */
     private static Class formats;
 
@@ -76,7 +130,7 @@ class GenerateAssembler {
     /**
      *  Global reference to the table of symbolic names of the arguments
      * to the current MIR_ instruction format.  This information is read
-     * from the OPT_InstructionFormatTable
+     * from the OPT_InstructionFormatTables
      */
     static String[] currentOpcodeSymbolicNames;
 
@@ -133,7 +187,7 @@ class GenerateAssembler {
 	try {
 	    currentOpcode = opcode;
 	    currentOpcodeArgTable = (int[]) opcodeArgTables.get( opcode );
-	    currentFormat = OPT_OperatorFormatTable.getFormat( opcode );
+	    currentFormat = OPT_OperatorFormatTables.getFormat( opcode );
 	    Field f = formats.getDeclaredField(currentFormat+"ParameterNames");
 	    currentOpcodeSymbolicNames = (String[]) f.get( null );
 	} catch (Throwable e) {
@@ -1018,7 +1072,7 @@ class GenerateAssembler {
      * not understand.
      */
     private static Set getErrorOpcodes(Set emittedOpcodes) {
-	Iterator e = OPT_OperatorFormatTable.getOpcodes();
+	Iterator e = OPT_OperatorFormatTables.getOpcodes();
 	Set errorOpcodes = new HashSet();
 	while (e.hasNext()) {
 	    String opcode = (String) e.next();
@@ -1039,7 +1093,7 @@ class GenerateAssembler {
      * ADD IA32 opcode with a byte operand size.  
      */
     private static Set getMatchingOperators(String lowLevelOpcode) {
-	Iterator e = OPT_OperatorFormatTable.getOpcodes();
+	Iterator e = OPT_OperatorFormatTables.getOpcodes();
 	Set matchingOperators = new HashSet();
 	while (e.hasNext()) {
 	    String o = (String) e.next();
