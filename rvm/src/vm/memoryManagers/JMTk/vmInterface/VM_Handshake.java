@@ -220,9 +220,9 @@ public class VM_Handshake {
       VM_Scheduler.collectorMutex.lock();
       int len = VM_Scheduler.collectorQueue.length();
       if (count++ == 100000) {
-	VM.sysWriteln("WAITED LONG TIME FOR PRECEEDING GC TO FINISH");
-	VM.sysWriteln("          len = ", len);
-	VM.sysWriteln("    maxCollTh = ", maxCollectorThreads);
+	VM.sysWriteln("GCWarning: WAITED LONG TIME FOR PRECEEDING GC TO FINISH");
+	VM.sysWriteln("GCWarning:          len = ", len);
+	VM.sysWriteln("GCWarning:    maxCollTh = ", maxCollectorThreads);
 	VM_Scheduler.collectorQueue.dump();
       }
       VM_Scheduler.collectorMutex.unlock();
