@@ -547,7 +547,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 	  System.out.println(e.getMessage());
 	}
       } 
-      mem.printCurrentInstr();      // print the current instruction  	  
+      System.out.println(mem.printCurrentInstr());      // print the current instruction  	  
       break;
     case PRINTSOURCE:
       bmap.printCurrentSourceLine();  // print the current source line
