@@ -1949,48 +1949,44 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
   //-#endif
 
-  protected final void DOUBLE_IFCMP(OPT_Instruction s, OPT_Operator op, 
+  protected final void DOUBLE_IFCMP(OPT_Instruction s, 
                                     OPT_RegisterOperand left, 
                                     OPT_Operand right) {
-    boolean UeqL = (op == DOUBLE_CMPL) || (op == FLOAT_CMPL);
-    boolean UeqG = (op == DOUBLE_CMPG) || (op == FLOAT_CMPG);
-    OPT_ConditionOperand c = IfCmp.getCond(s);
-    OPT_BranchOperand target = IfCmp.getTarget(s);
-    OPT_BranchOperand branch = null;
-    OPT_BasicBlock bb = s.getBasicBlock();
-    if (c.value == OPT_ConditionOperand.EQUAL || 
-        (UeqL && (c.value == OPT_ConditionOperand.GREATER || 
-                  c.value == OPT_ConditionOperand.GREATER_EQUAL)) || 
-        (UeqG && (c.value == OPT_ConditionOperand.LESS || 
-                  c.value == OPT_ConditionOperand.LESS_EQUAL))) {
-      OPT_Instruction lastInstr = bb.lastRealInstruction();
-      if (lastInstr.operator() == GOTO) {
-        // We're in trouble if there is another instruction between 
-        // s and lastInstr!
-        if (VM.VerifyAssertions)
-          VM._assert(s.nextInstructionInCodeOrder() == lastInstr);
-        // Set branch = target of GOTO
-        branch = (OPT_BranchOperand)Goto.getTarget(lastInstr);
-      } else {
-        // Set branch = label of next (fallthrough basic block)
-        branch = bb.nextBasicBlockInCodeOrder().makeJumpTarget();
-      }
-    } else {
-      branch = (OPT_BranchOperand)target.copy();
-    }
+    // Create compare
     OPT_RegisterOperand cr = regpool.makeTempCondition();
     EMIT(MIR_Binary.create(PPC_FCMPU, cr, left, right));
-
-    // Propagate branch probabilities as follows:  assume the
-    // probability of overflow (first condition) is zero, and
-    // propagate the original probability to the second condition.
-    EMIT(MIR_CondBranch2.create(PPC_BCOND2, cr.copyD2U(), 
-                                OPT_PowerPCConditionOperand.UNORDERED(),
-                                branch, 
-                                new OPT_BranchProfileOperand(0f),
-                                new OPT_PowerPCConditionOperand(c), 
-                                target,
-                                IfCmp.getBranchProfile(s)));
+    // Branch depends on condition
+    OPT_ConditionOperand c = IfCmp.getCond(s);
+    OPT_BranchOperand target = IfCmp.getTarget(s);
+    if (!c.branchIfUnordered()) {
+      // If branch doesn't branch when unordered then we need just one
+      // branch destination
+      EMIT(MIR_CondBranch.create(PPC_BCOND, cr.copyD2U(),
+                                 new OPT_PowerPCConditionOperand(c),
+                                 target,
+                                 IfCmp.getBranchProfile(s)));
+    }
+    else {
+      if((c.value != OPT_ConditionOperand.NOT_EQUAL)||(!left.similar(right))) {
+         // Propagate branch probabilities as follows: assume the
+         // probability of unordered (first condition) is zero, and
+         // propagate the original probability to the second condition.
+         EMIT(MIR_CondBranch2.create(PPC_BCOND2, cr.copyD2U(), 
+                                     OPT_PowerPCConditionOperand.UNORDERED(),
+                                     target, 
+                                     new OPT_BranchProfileOperand(0f),
+                                     new OPT_PowerPCConditionOperand(c), 
+                                     (OPT_BranchOperand)target.copy(),
+                                     IfCmp.getBranchProfile(s)));
+      }
+      else {
+         // If branch is effectively a NaN test we just need 1 branch
+         EMIT(MIR_CondBranch.create(PPC_BCOND, cr.copyD2U(),
+              new OPT_PowerPCConditionOperand(c),
+              target,
+              IfCmp.getBranchProfile(s)));
+      }
+    }
   }
 
 

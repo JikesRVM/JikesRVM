@@ -1467,7 +1467,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
 	    setMachineCodes(mi++, (byte) 0xDA);
 	    setMachineCodes(mi++, (byte) (0xD0 + reg2));
 	    break;
-	case U:
+   case PE:
 	    setMachineCodes(mi++, (byte) 0xDA);
 	    setMachineCodes(mi++, (byte) (0xD8 + reg2));
 	    break;
@@ -1483,7 +1483,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
 	    setMachineCodes(mi++, (byte) 0xDB);
 	    setMachineCodes(mi++, (byte) (0xD0 + reg2));
 	    break;
-	case NU:
+   case PO:
 	    setMachineCodes(mi++, (byte) 0xDB);
 	    setMachineCodes(mi++, (byte) (0xD8 + reg2));
 	    break;

@@ -166,10 +166,14 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case DOUBLE_NEG_opcode: s.operator = FP_NEG; break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
-      case INT_COND_MOVE_opcode: s.operator = CMOV; break;
-      case REF_COND_MOVE_opcode: s.operator = CMOV; break;
-      case FLOAT_COND_MOVE_opcode: s.operator = CMOV; break;
-      case DOUBLE_COND_MOVE_opcode: s.operator = CMOV; break;
+      case INT_COND_MOVE_opcode: 
+      case REF_COND_MOVE_opcode:
+        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : CMP_CMOV;
+        break;
+      case FLOAT_COND_MOVE_opcode:
+      case DOUBLE_COND_MOVE_opcode:
+        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV : CMP_FCMOV;
+        break;
       case LONG_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
       case GUARD_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
 

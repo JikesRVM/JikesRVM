@@ -12,24 +12,22 @@ public interface VM_AssemblerConstants {
    "O", "NO", "LLT", "LGE", "EQ", "NE", "LLE", "LGT", "S", "NS", "PE", "PO", "LT", "GE", "LE", "GT" 
   };
 
-  static final byte   O = 0x0; // (overflow)
-  static final byte  NO = 0x1; // (not overflow)
-  static final byte LLT = 0x2; // logically less than (below)
-  static final byte LGE = 0x3; // logically greater than or equal (not below) 
-  static final byte  EQ = 0x4; // equal (zero)
-  static final byte  NE = 0x5; // not equal (not zero)
-  static final byte LLE = 0x6; // logically less than or equal (not above)
-  static final byte LGT = 0x7; // logically greater than (above)
-  static final byte   S = 0x8; // (sign) negative??
-  static final byte  NS = 0x9; // (not sign) positive or zero??
-  static final byte  PE = 0xA; // (even parity)
-  static final byte  PO = 0xB; // (odd parity)
-  static final byte  U  = 0xA; // (unordered floating point #s)
-  static final byte  NU = 0xB; // (ordered floating point #s)
-  static final byte  LT = 0xC; // less than
-  static final byte  GE = 0xD; // greater than or equal (not less than)
-  static final byte  LE = 0xE; // less than or equal (not greater than)
-  static final byte  GT = 0xF; // greater than 
+  static final byte   O = 0x0; // OF == 1 - overflow
+  static final byte  NO = 0x1; // OF == 0 - not overflow
+  static final byte LLT = 0x2; // CF == 1 - logically less than (below)
+  static final byte LGE = 0x3; // CF == 0 - logically greater than or equal (not below)
+  static final byte  EQ = 0x4; // ZF == 1 - equal (zero)
+  static final byte  NE = 0x5; // ZF == 0 - not equal (not zero)
+  static final byte LLE = 0x6; // CF == 1 or ZF == 1 - logically less than or equal (not above)
+  static final byte LGT = 0x7; // CF == 0 and ZF == 0 - logically greater than (above)
+  static final byte   S = 0x8; // SF == 1 - (sign) negative??
+  static final byte  NS = 0x9; // SF == 0 - (not sign) positive or zero??
+  static final byte  PE = 0xA; // PF == 1 - even parity or unordered floating point #s
+  static final byte  PO = 0xB; // PF == 0 - odd parity or ordered floating point #s
+  static final byte  LT = 0xC; // SF != OF - less than
+  static final byte  GE = 0xD; // SF == OF - greater than or equal (not less than)
+  static final byte  LE = 0xE; // ZF == 1 or SF != OF - less than or equal (not greater than)
+  static final byte  GT = 0xF; // ZF == 0 and SF == OF - greater than
 
   // scale factors for SIB bytes
   static final short BYTE  = 0;

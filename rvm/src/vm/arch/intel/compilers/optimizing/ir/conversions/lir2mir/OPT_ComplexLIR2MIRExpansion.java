@@ -49,10 +49,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       case LONG_CMP_opcode:
         nextInstr = threeValueLongCmp(s, ir);
         break;
-      case FLOAT_IFCMPL_opcode:
-      case FLOAT_IFCMPG_opcode:
-      case DOUBLE_IFCMPL_opcode:
-      case DOUBLE_IFCMPG_opcode:
+      case FLOAT_IFCMP_opcode:
+      case DOUBLE_IFCMP_opcode:
         nextInstr = fp_ifcmp(s, ir);
         break;
       case FLOAT_CMPL_opcode:
@@ -492,86 +490,147 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       testFailed = bb.nextBasicBlockInCodeOrder().makeJumpTarget();
     }
 
+    // Translate condition operand respecting IA32 FCOMI
     OPT_ConditionOperand c = IfCmp.getCond(s);
     OPT_BranchOperand target = IfCmp.getTarget(s);
-    boolean UeqL = (op == DOUBLE_IFCMPL) || (op == FLOAT_IFCMPL);
-    boolean UeqG = (op == DOUBLE_IFCMPG) || (op == FLOAT_IFCMPG);
-    OPT_BranchOperand unorderedTarget;
-    if (c.value == OPT_ConditionOperand.EQUAL || 
-        (UeqL && (c.value == OPT_ConditionOperand.GREATER || 
-                  c.value == OPT_ConditionOperand.GREATER_EQUAL)) || 
-        (UeqG && (c.value == OPT_ConditionOperand.LESS || 
-                  c.value == OPT_ConditionOperand.LESS_EQUAL))) {
-      unorderedTarget = (OPT_BranchOperand)testFailed.copy();
-    } else {
-      unorderedTarget = (OPT_BranchOperand)target.copy();
-    }
-    
-    // IMPORTANT: FCOMI only sets 3 of the 6 bits in EFLAGS, so
-    // we can't just translate the condition operand as if it 
-    // were an integer compare.
-    // FCMOI sets ZF, PF, and CF as follows: 
+    OPT_BranchProfileOperand branchProfile = IfCmp.getBranchProfile(s);
+
+    // FCOMI sets ZF, PF, and CF as follows: 
     // Compare Results      ZF     PF      CF
     // left > right          0      0       0
     // left < right          0      0       1
     // left == right         1      0       0
     // UNORDERED             1      1       1
-    if (c.isEQUAL()) {
-      s.insertBefore(MIR_CondBranch2.create(IA32_JCC2, 
-                                            OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                            unorderedTarget,
-                                            new OPT_BranchProfileOperand(),
-                                            OPT_IA32ConditionOperand.EQ(),  // ZF == 1
-                                            target,
-                                            new OPT_BranchProfileOperand()));
+
+    // Propagate branch probabilities as follows: assume the
+    // probability of unordered (first condition) is zero, and
+    // propagate the original probability to the second condition.
+    switch(c.value) {
+      // Branches that WON'T be taken after unordered comparison
+      // (i.e. UNORDERED is a goto to testFailed)
+    case OPT_ConditionOperand.CMPL_EQUAL:
+      if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
+      // Check whether val1 and val2 operands are the same
+      if (!IfCmp.getVal1(s).similar(IfCmp.getVal2(s))) {
+        s.insertBefore(MIR_CondBranch2.create(IA32_JCC2, 
+                                              OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                              testFailed,
+                                              new OPT_BranchProfileOperand(0f),
+                                              OPT_IA32ConditionOperand.EQ(),  // ZF == 1
+                                              target,
+                                              branchProfile));
+        s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      }
+      else {
+        // As val1 == val2 result of compare must be == or UNORDERED
+        s.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                             OPT_IA32ConditionOperand.PO(),  // PF == 0
+                                             target,
+                                             branchProfile));
+        s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      }
+      break;
+    case OPT_ConditionOperand.CMPL_GREATER:
+      if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
+      s.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                           OPT_IA32ConditionOperand.LGT(), // CF == 0 and ZF == 0
+                                           target,
+                                           branchProfile));
       s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
-    } else if (c.isNOT_EQUAL()) {
+      break;
+    case OPT_ConditionOperand.CMPG_LESS:
+      if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
       s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
                                             OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                            unorderedTarget,
-                                            new OPT_BranchProfileOperand(),
-                                            OPT_IA32ConditionOperand.EQ(),  // ZF == 1
                                             testFailed,
-                                            new OPT_BranchProfileOperand()));
-      s.insertBefore(MIR_Branch.create(IA32_JMP, target));
-    } else if (c.isLESS()) {
-      s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                            OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                            unorderedTarget,
-                                            new OPT_BranchProfileOperand(),
+                                            new OPT_BranchProfileOperand(0f),
                                             OPT_IA32ConditionOperand.LLT(), // CF == 1
                                             target,
-                                            new OPT_BranchProfileOperand()));
+                                            branchProfile));
       s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
-    } else if (c.isGREATER()) {
+      break;
+    case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
+      if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
+      s.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                           OPT_IA32ConditionOperand.LGE(), // CF == 0
+                                           target,
+                                           branchProfile));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      break;
+    case OPT_ConditionOperand.CMPG_LESS_EQUAL:
       s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
                                             OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                            unorderedTarget,
-                                            new OPT_BranchProfileOperand(),
+                                            testFailed,
+                                            new OPT_BranchProfileOperand(0f),
+                                            OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
+                                            testFailed,
+                                            branchProfile));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, target));
+      break;
+      // Branches that WILL be taken after unordered comparison
+      // (i.e. UNORDERED is a goto to target)
+    case OPT_ConditionOperand.CMPL_NOT_EQUAL:
+      if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
+      // Check whether val1 and val2 operands are the same
+      if (!IfCmp.getVal1(s).similar(IfCmp.getVal2(s))) {
+        s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
+                                              OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                              target,
+                                              new OPT_BranchProfileOperand(0f),
+                                              OPT_IA32ConditionOperand.NE(),  // ZF == 0
+                                              target,
+                                              branchProfile));
+        s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      }
+      else {
+        // As val1 == val2 result of compare must be == or UNORDERED
+        s.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                             OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                             target,
+                                             branchProfile));
+        s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      }
+      break;
+    case OPT_ConditionOperand.CMPL_LESS:
+      if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
+      s.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                           OPT_IA32ConditionOperand.LLT(),   // CF == 1
+                                           target,
+                                           branchProfile));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      break;
+    case OPT_ConditionOperand.CMPG_GREATER_EQUAL:
+      if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
+      s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
+                                            OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                            target,
+                                            new OPT_BranchProfileOperand(0f),
+                                            OPT_IA32ConditionOperand.LLT(), // CF == 1
+                                            testFailed,
+                                            branchProfile));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, target));
+      break;
+    case OPT_ConditionOperand.CMPG_GREATER:
+      if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
+      s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
+                                            OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                            target,
+                                            new OPT_BranchProfileOperand(0f),
                                             OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
                                             target,
-                                            new OPT_BranchProfileOperand()));
+                                            branchProfile));
       s.insertBefore(MIR_Branch.create(IA32_JMP,testFailed));
-    } else if (c.isLESS_EQUAL()) {
-      s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                            OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                            unorderedTarget,
-                                            new OPT_BranchProfileOperand(),
-                                            OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
-                                            testFailed,
-                                            new OPT_BranchProfileOperand()));
-      s.insertBefore(MIR_Branch.create(IA32_JMP, target));
-    } else if (c.isGREATER_EQUAL()) {
-      s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                            OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                            unorderedTarget,
-                                            new OPT_BranchProfileOperand(),
-                                            OPT_IA32ConditionOperand.LLT(), // CF == 1
-                                            testFailed,
-                                            new OPT_BranchProfileOperand()));
-      s.insertBefore(MIR_Branch.create(IA32_JMP, target));
-    } else {
-      throw new OPT_OptimizingCompilerException("Unexpected fp compare operation" + c.toString());
+      break;
+    case OPT_ConditionOperand.CMPL_LESS_EQUAL:
+      if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
+      s.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                           OPT_IA32ConditionOperand.LLE(), // CF == 1 or ZF == 1
+                                           target,
+                                           branchProfile));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      break;
+    default:
+      OPT_OptimizingCompilerException.UNREACHABLE();
     }
     s.remove();
     return nextInstr;

@@ -1444,36 +1444,20 @@ EMIT_INSTRUCTION
 CMP2(P(p), R(IfCmp2.getVal1(P(p))), IfCmp2.getVal2(P(p)), IfCmp2.getCond1(P(p)), IfCmp2.getCond2(P(p)), true);
 
 #####
-# FLOAT_IFCMPL
+# FLOAT_IFCMP
 #####
-stm:	FLOAT_IFCMPL(r,r)
+stm:   FLOAT_IFCMP(r,r)
 20
 EMIT_INSTRUCTION
-DOUBLE_IFCMP(P(p), FLOAT_CMPL, R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
+DOUBLE_IFCMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
 
 #####
-# FLOAT_IFCMPG
+# DOUBLE_IFCMP
 #####
-stm:	FLOAT_IFCMPG(r,r)
+stm:   DOUBLE_IFCMP(r,r)
 20
 EMIT_INSTRUCTION
-DOUBLE_IFCMP(P(p), FLOAT_CMPG, R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
-
-#####
-# DOUBLE_IFCMPL
-#####
-stm:	DOUBLE_IFCMPL(r,r)
-20
-EMIT_INSTRUCTION
-DOUBLE_IFCMP(P(p), DOUBLE_CMPL, R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
-
-#####
-# DOUBLE_IFCMPG
-#####
-stm:	DOUBLE_IFCMPG(r,r)
-20
-EMIT_INSTRUCTION
-DOUBLE_IFCMP(P(p), DOUBLE_CMPG, R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
+DOUBLE_IFCMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)));
 
 #####
 # FLOAT_CMPL

@@ -3866,16 +3866,20 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_Operator operator = null;
           switch (lastInstr.getOpcode()) {
           case DOUBLE_CMPG_opcode:
-            operator = DOUBLE_IFCMPG;
+            cond.translateCMPG();
+            operator = DOUBLE_IFCMP;
             break;
           case DOUBLE_CMPL_opcode:
-            operator = DOUBLE_IFCMPL;
+            cond.translateCMPL();
+            operator = DOUBLE_IFCMP;
             break;
           case FLOAT_CMPG_opcode:
-            operator = FLOAT_IFCMPG;
+            cond.translateCMPG();
+            operator = FLOAT_IFCMP;
             break;
           case FLOAT_CMPL_opcode:
-            operator = FLOAT_IFCMPL;
+            cond.translateCMPL();
+            operator = FLOAT_IFCMP;
             break;
           case LONG_CMP_opcode:
             operator = LONG_IFCMP;

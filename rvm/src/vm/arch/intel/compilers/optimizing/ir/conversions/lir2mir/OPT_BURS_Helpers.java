@@ -998,30 +998,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                                       IfCmp.getBranchProfile(s)));
   }
 
-
   /**
-   * Generate the compare portion of a conditional move.
-   * 
-   * @param s the instruction to copy position info from
-   * @param val1 the first value to compare
-   * @param val2 the second value to compare
-   */
-  protected final void CMOV_CMP(OPT_Instruction s,
-                                OPT_Operand val1, OPT_Operand val2) {
-    if (val1.isRegister() && val1.asRegister().register.isFloatingPoint()) {
-      if (VM.VerifyAssertions) {
-        VM._assert(val2.isRegister());
-        VM._assert(val2.asRegister().register.isFloatingPoint());
-      }
-      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1)));
-      EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), val2)));
-    } else {
-      EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
-    }
-  }
-
-  /**
-   * Generate the move portion of a conditional move.
+   * Generate an integer move portion of a conditional move.
    *
    * @param s the instruction to copy position info from
    * @param result the result of the conditional move
@@ -1034,37 +1012,69 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                                 OPT_ConditionOperand cond,
                                 OPT_Operand trueValue,
                                 OPT_Operand falseValue) {
-    OPT_Operator movop, cmovop;
-    if (result.type.isDoubleType() || result.type.isFloatType()) {
-      movop = IA32_FMOV;
-      cmovop = IA32_FCMOV;
-    } else {
-      movop = IA32_MOV;
-      cmovop = IA32_CMOV;
-    }
-
     if (result.similar(trueValue)) {
       // in this case, only need a conditional move for the false branch.
-      EMIT(MIR_CondMove.mutate(s, cmovop, result,
-                                      asReg(s, movop, falseValue),
+      EMIT(MIR_CondMove.mutate(s, IA32_CMOV, result,
+                                      asReg(s, IA32_MOV, falseValue),
                                       COND(cond.flipCode())));
     } else if (result.similar(falseValue)) {
       // in this case, only need a conditional move for the true branch.
-      EMIT(MIR_CondMove.mutate(s, cmovop, result, 
-                                      asReg(s, movop, trueValue),
+      EMIT(MIR_CondMove.mutate(s, IA32_CMOV, result, 
+                                      asReg(s, IA32_MOV, trueValue),
                                       COND(cond)));
     } else {
       // need to handle both possible assignments. Unconditionally
       // assign one value then conditionally assign the other.
       if (falseValue.isRegister()) {
-        EMIT(CPOS(s,MIR_Move.create(movop, result, trueValue)));
-        EMIT(MIR_CondMove.mutate(s, cmovop, result.copy(), 
+        EMIT(CPOS(s,MIR_Move.create(IA32_MOV, result, trueValue)));
+        EMIT(MIR_CondMove.mutate(s, IA32_CMOV, result.copy(), 
                                         falseValue,
                                         COND(cond.flipCode())));
       } else {
-        EMIT(CPOS(s,MIR_Move.create(movop, result, falseValue)));
-        EMIT(MIR_CondMove.mutate(s, cmovop, result.copy(), 
-                                        asReg(s, movop, trueValue),
+        EMIT(CPOS(s,MIR_Move.create(IA32_MOV, result, falseValue)));
+        EMIT(MIR_CondMove.mutate(s, IA32_CMOV, result.copy(), 
+                                        asReg(s, IA32_MOV, trueValue),
+                                        COND(cond)));
+      }
+    }
+  }
+
+  /**
+   * Generate a floating point move portion of a conditional move.
+   *
+   * @param s the instruction to copy position info from
+   * @param result the result of the conditional move
+   * @param cond the condition operand
+   * @param trueVal the value to move to result if cond is true
+   * @param falseVal the value to move to result if cond is not true
+   */
+  protected final void CMOV_FMOV(OPT_Instruction s,
+                                OPT_RegisterOperand result,
+                                OPT_ConditionOperand cond,
+                                OPT_Operand trueValue,
+                                OPT_Operand falseValue) {
+    if (result.similar(trueValue)) {
+      // in this case, only need a conditional move for the false branch.
+      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result,
+                                      asReg(s, IA32_FMOV, falseValue),
+                                      COND(cond.flipCode())));
+    } else if (result.similar(falseValue)) {
+      // in this case, only need a conditional move for the true branch.
+      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result, 
+                                      asReg(s, IA32_FMOV, trueValue),
+                                      COND(cond)));
+    } else {
+      // need to handle both possible assignments. Unconditionally
+      // assign one value then conditionally assign the other.
+      if (falseValue.isRegister()) {
+        EMIT(CPOS(s,MIR_Move.create(IA32_FMOV, result, trueValue)));
+        EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result.copy(), 
+                                        falseValue,
+                                        COND(cond.flipCode())));
+      } else {
+        EMIT(CPOS(s,MIR_Move.create(IA32_FMOV, result, falseValue)));
+        EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result.copy(), 
+                                        asReg(s, IA32_FMOV, trueValue),
                                         COND(cond)));
       }
     }

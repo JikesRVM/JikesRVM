@@ -414,28 +414,14 @@ branch | conditional
 
 
 # conditional branch based on value/condition operands
-FLOAT_IFCMPG
+FLOAT_IFCMP
 IfCmp
 branch | conditional
 
 
 
 # conditional branch based on value/condition operands
-FLOAT_IFCMPL
-IfCmp
-branch | conditional
-
-
-
-# conditional branch based on value/condition operands
-DOUBLE_IFCMPG
-IfCmp
-branch | conditional
-
-
-
-# conditional branch based on value/condition operands
-DOUBLE_IFCMPL
+DOUBLE_IFCMP
 IfCmp
 branch | conditional
 
@@ -1230,7 +1216,7 @@ none
 
 
 
-# Compare two int values (int resigter/contant operands) and put boolean result in register
+# Compare two int values (int register/contant operands) and put boolean result in register
 BOOLEAN_CMP_INT
 BooleanCmp
 compare
