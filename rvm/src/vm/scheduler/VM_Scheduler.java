@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.classloader.*;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -123,6 +124,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   final static int EPOCH_MAX = 32 * 1024;
   // ~RC vars
 
+  private static int NUM_EXTRA_PROCS = 0; // How many extra procs (not counting primordial) ?
+
   /**
    * Initialize boot image.
    */
@@ -138,8 +141,10 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // allocate initial processor list
     //
-    processors = new VM_Processor[1 + PRIMORDIAL_PROCESSOR_ID];
+    processors = new VM_Processor[2 + NUM_EXTRA_PROCS];  // first slot unused, then primordial, then extra
     processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID, VM_Processor.RVM);
+    for (int i=1; i<=NUM_EXTRA_PROCS; i++)
+      processors[PRIMORDIAL_PROCESSOR_ID + i] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID + i, VM_Processor.RVM);
 
     // allocate lock structures
     //
@@ -161,26 +166,31 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // was already created in the boot image by init(), above.
     //
     VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
+    VM_Processor [] origProcs = processors;
+    processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
 
     //-#if RVM_WITH_HPM
     // boot primordial virtual processor's HPM producer
     primordialProcessor.hpm.boot();    
     //-#endif
 
-    processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
-
-    processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
-      processors[i] = new VM_Processor(i, VM_Processor.RVM);
+    for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
+	VM_Processor p = (i < origProcs.length) ? origProcs[i] : null;
+	if (p == null) 
+	  processors[i] = new VM_Processor(i, VM_Processor.RVM);
+	else { 
+	  // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
+	  // so reset here...maybe change everything to just use index
+	  processors[i] = p;
+	  p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
+	  p.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(p.vpStatusIndex<<LOG_BYTES_IN_INT);
+	}
       //-#if RVM_WITH_HPM
       // boot virtual processor's HPM producer
       processors[i].hpm.boot();    
       //-#endif
     }
 
-    // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
-    // so reset here...maybe change everything to just use index
-    primordialProcessor.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(primordialProcessor.vpStatusIndex<<LOG_BYTES_IN_INT);
     // Create NativeDaemonProcessor as N+1st processor in the processors array.
     // It is NOT included in "numProcessors" which is the index of the last RVM processor.
     //
@@ -628,7 +638,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
     
-    writeString("\n-- Stack --\n");
+    writeString("-- Stack --\n");
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
 
       // if code is outside of RVM heap, assume it to be native code,
