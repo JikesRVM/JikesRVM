@@ -133,7 +133,12 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public static VMResource resourceForPage(VM_Address addr) {
     if (resourceTable == null)
       VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
-    return resourceTable[Conversions.addressToPagesDown(addr)];
+    int which = Conversions.addressToPagesDown(addr);
+//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_64_ADDR
+    if (which >= resourceTable.length))
+       return null; 
+//-#endif
+    return resourceTable[which];
   }
 
   public static byte getPageStatus(VM_Address addr) {
