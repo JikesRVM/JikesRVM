@@ -16,12 +16,6 @@ class OPT_SplitLiveRanges extends OPT_CompilerPhase
 implements OPT_Operators {
 
   /**
-   * Should we split live ranges for parameters, in order to give the
-   * register allocator more freedom?
-   */
-  private final static boolean SPLIT_PARAMS = true;
-
-  /**
    * Should this phase be performed?
    * @param options controlling compiler options
    * @return true or false
@@ -210,12 +204,6 @@ implements OPT_Operators {
 	    }
 	    break;
 	    
-          case IR_PROLOGUE_opcode: 
-            {
-              if (SPLIT_PARAMS) {
-                splitAllLiveRanges(s, newMap, ir, false);
-              }
-            }
           default:
             {
               for (OPT_OperandEnumeration e = s.getMemoryOperands(); 
