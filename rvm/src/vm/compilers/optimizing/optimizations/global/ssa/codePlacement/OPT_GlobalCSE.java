@@ -173,9 +173,11 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case GET_CLASS_OBJECT_opcode:
     case CHECKCAST_opcode:
     case CHECKCAST_NOTNULL_opcode:
-    case CHECKCAST_INTERFACE_NOTNULL_opcode:
+    case CHECKCAST_UNRESOLVED_opcode:
+    case MUST_IMPLEMENT_INTERFACE_opcode:
     case INSTANCEOF_opcode:
     case INSTANCEOF_NOTNULL_opcode:
+    case INSTANCEOF_UNRESOLVED_opcode:
     case PI_opcode:
     case FLOAT_MOVE_opcode:
     case DOUBLE_MOVE_opcode:
@@ -246,6 +248,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case INT_ZERO_CHECK_opcode:
     case LONG_ZERO_CHECK_opcode:
     case OBJARRAY_STORE_CHECK_opcode:
+    case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
     case BOOLEAN_NOT_opcode:
     case BOOLEAN_CMP_opcode:
     case FLOAT_AS_INT_BITS_opcode:

@@ -177,9 +177,11 @@ public class OPT_ObjectReplacer
         use = (OPT_RegisterOperand)use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case CHECKCAST_opcode:
-        case CHECKCAST_INTERFACE_NOTNULL_opcode:
+        case CHECKCAST_UNRESOLVED_opcode:
+        case MUST_IMPLEMENT_INTERFACE_opcode:
         case CHECKCAST_NOTNULL_opcode:case GET_OBJ_TIB_opcode:
         case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
+        case INSTANCEOF_UNRESOLVED_opcode:
         case REF_IFCMP_opcode:case BOOLEAN_CMP_opcode:
           return  true;
       }
