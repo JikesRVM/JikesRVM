@@ -58,8 +58,9 @@ public class JikesRVMInstallType extends AbstractVMInstallType {
     JikesRVMLaunchingPlugin.getDefault().removeInstall(id);
   }
 
-  public LibraryLocation[] getDefaultLibraryLocations(File installLocation) {
+  private LibraryLocation[] defaultLibraryLocations;
 
+  private void setDefaultLibraryLocations(File installLocation) {
     // libs
     String buildPath = System.getProperty("rvm.build") + "/RVM.classes";
     Path rvmrtLib = new Path(buildPath + "/rvmrt.jar");
@@ -73,15 +74,17 @@ public class JikesRVMInstallType extends AbstractVMInstallType {
     // path within src jars
     IPath thePath = Path.EMPTY;
     
-    System.err.println( rvmrtLib );
-    System.err.println( jksvmLib );
-    System.err.println( rvmrtSrc );
-    System.err.println( jksvmSrc );
-
-    return new LibraryLocation[]{ 
+    defaultLibraryLocations = new LibraryLocation[]{ 
 	new LibraryLocation(rvmrtLib, rvmrtSrc, thePath),
 	new LibraryLocation(jksvmLib, jksvmSrc, thePath) 
     };
+  }
+
+  public LibraryLocation[] getDefaultLibraryLocations(File installLocation) {
+      if (defaultLibraryLocations == null)
+	  setDefaultLibraryLocations( installLocation );
+
+      return defaultLibraryLocations;
   }
 
   /**
