@@ -511,10 +511,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   static final VM_Address getForwardedReference(VM_Address object) {
     if (!object.isZero()) {
       VM_Address addr = VM_Interface.refToAddress(object);
-      if (VMResource.getSpace(addr) == NURSERY_SPACE)
+      if (VMResource.getSpace(addr) == NURSERY_SPACE) {
 	if (VM_Interface.VerifyAssertions) 
 	  VM_Interface._assert(CopyingHeader.isForwarded(object));
-      return CopyingHeader.getForwardingPointer(object);
+	return CopyingHeader.getForwardingPointer(object);
+      }
     }
     return object;
   }

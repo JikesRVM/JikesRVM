@@ -658,8 +658,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
  	ScanObject.enumeratePointers(thread.contextRegisters, preCopyEnum);
  	ScanObject.enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
  	if (thread.jniEnv != null) {
- 	  if (VM.VerifyAssertions)
-	    VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
+	  // Right now, jniEnv are Java-visible objects (not C-visible)
+	  // if (VM.VerifyAssertions)
+	  //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
  	  ScanObject.enumeratePointers(thread.jniEnv, preCopyEnum);
  	}
       }
