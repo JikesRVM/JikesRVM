@@ -104,6 +104,51 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 
     // Compute execution frequency of each basic block
     computeBlockFrequencies();
+
+    // Set infrequent bits on basic blocks
+    // TODO!! SJF: Enabling this currently breaks an OptOptSemispace build
+    // computeInfrequentBlocks(ir);
+  }
+
+  /**
+   * Compute which blocks are infrequent.
+   * Algorithm: let f = INFREQUENT_THRESHOLD.
+   * Start with S = {all basic blocks}.
+   * Sort the blocks by frequency.  Starting with the most frequent
+   * blocks, remove blocks from S until the sum of block frequencies in S
+   * <= f.  Then blocks in S are infrequent.
+   *
+   * @param ir the governing IR.
+   */
+  private void computeInfrequentBlocks(OPT_IR ir) {
+    int i = 0;
+    float[] freq = new float[ir.getMaxBasicBlockNumber()];
+    float total = 0f;
+    // count the total frequency of all blocks
+    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      freq[i]= bb.getExecutionFrequency();  
+      total += freq[i];
+      i++;
+    }
+    // sort the frequencies (ascending);
+    Arrays.sort(freq);
+    float f = ir.options.INFREQUENT_THRESHOLD;
+    float goal = (1f-f)*total;
+    total = 0f;
+    float threshold = 0f;
+    // add up the frequencies (desceding) until we real the goal.
+    for (i = freq.length-1; i>=0 && total<goal; i--) {
+      threshold = freq[i];
+      total += threshold;
+    }
+    // go back and set infrequent bits.
+    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      if (bb.getExecutionFrequency() < threshold) {
+        bb.setInfrequent();
+      }
+    }
   }
 
 

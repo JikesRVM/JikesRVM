@@ -92,8 +92,12 @@ S METHOD_TO_WRITE String
 Write class file from HIR for this method
 
 
+V INFREQUENT_THRESHOLD float 0.01f
+Cumulative threshold which defines the set of infrequent basic blocks
+
+
 V CBS_HOTNESS double 0.98
-Threshold at which a conditional branch is considered to be skewed.
+Threshold at which a conditional branch is considered to be skewed
 
 
 V IR_PRINT_LEVEL int 0
