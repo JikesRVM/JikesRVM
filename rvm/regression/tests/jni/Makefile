@@ -17,8 +17,8 @@ BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=64
 START_NAME=
 EXPECTED=
-BENCH_JDK_ARGS=-Djava.libaray.path=$(BENCH_CLASS_CP)
-BENCH_RVM_ARGS=-Djava.libaray.path=$(BENCH_CLASS_CP)
+BENCH_JDK_ARGS=
+BENCH_RVM_ARGS=
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
