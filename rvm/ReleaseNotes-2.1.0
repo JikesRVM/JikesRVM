@@ -40,6 +40,7 @@ Highlights of this release include:
    including class loaders and some system services.
  - Miscellaneous enhancements to JDP.
  - Support for reading/using Soot-style class file annotations.
+ - Elimination of the classloading lock (VM_ClassLoader.lock).
 
 To see more details on other miscellaneous bug fixes, see
 the developerWorks bug tracking software tool and CVS 
