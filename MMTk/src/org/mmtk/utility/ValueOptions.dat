@@ -41,7 +41,7 @@ Grow the heap by this ratio
 if (val < 1.0) VM_Interface.sysFail("Unreasonable growRatio " + val);
 
 
-V metaDataPages int 128 metaDataLimit
+V metaDataPages int 4096 metaDataLimit
 Trigger a GC if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val); \
@@ -55,7 +55,7 @@ if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + val);
 val = val2;
 
 
-V cycleDetectionPages int 256 cycleTriggerThreshold
+V cycleDetectionPages int 1024 cycleTriggerThreshold
 Trigger cycle detection if the space available falls below this threshold (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + val); \
