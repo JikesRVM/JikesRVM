@@ -27,6 +27,7 @@
  */
 
 #include <stdio.h>
+#include <assert.h>		// assert()
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -490,11 +491,11 @@ main(int argc, char **argv)
 	return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
-    createJVM(0);
+    int ret = createJVM(0);
+    assert(ret == 1);		// must be 1 (error status for this func.)
+    
   
-    // not reached
-    //
-    fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", Me);
+    fprintf(SysErrorFile, "%s: Could not create the Java Virtual Machine; goodbye\n", Me);
     exit(-1);
 }
 
