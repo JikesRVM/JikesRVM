@@ -208,9 +208,9 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
     if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
-	if (VM.VerifyAssertions) VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
-										&& (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
-    int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << 8) | (bytecodes[bcIndex + 2] & 0xFF);
+    if (VM.VerifyAssertions) VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
+					&& (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
+    int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << BITS_IN_BYTE) | (bytecodes[bcIndex + 2] & 0xFF);
     dynamicLink.set(declaringClass.getMethodRef(constantPoolIndex), bytecode);
   }
 
@@ -545,7 +545,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
       case JBC_invokestatic:   
 	// Special case VM_Magic's as being cheaper.
 	VM_MethodReference meth = bcodes.getMethodReference();
-	if (meth.getType().isMagicType() || meth.getType().isWordType()) {
+	if (meth.getType().isMagicType()) {
 	  summary |= HAS_MAGIC;
 	  calleeSize += MAGIC_COST;
 	} else {

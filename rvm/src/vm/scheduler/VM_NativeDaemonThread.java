@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Handshake;
 
 /**
@@ -96,13 +96,13 @@ class VM_NativeDaemonThread extends VM_Thread {
 
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      VM_Address TOC = VM_Address.fromInt(0);
+      VM_Address TOC = VM_Address.zero();
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myProcessor.vpStatusAddress.toInt(),
+		              myProcessor.vpStatusAddress,
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 
@@ -227,7 +227,7 @@ class VM_NativeDaemonThread extends VM_Thread {
       VM_Scheduler.trace("NDT","signalling NIT on processor",stuckProcessor.id);
       VM_Scheduler.trace("NDT","with pthread_id =",stuckProcessor.pthread_id);
      }
-     VM.sysCall1(VM_BootRecord.the_boot_record.sysPthreadSignalIP, stuckProcessor.pthread_id);
+     VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP, stuckProcessor.pthread_id);
 
      // wait for the native processor status to become UNBLOCKED before returning.
      // if we return with it blocked, and GC immediately initiates, GC will find

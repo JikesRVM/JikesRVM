@@ -76,16 +76,9 @@ can be found at
 
 \subsubsection{How do I get RVM?}
 
-You need to download two bundles: the RVM source, and the RVM standard library
-jar file.  Each of these is available for download from DeveloperWorks at
-\xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  
-The RVM source is also available through a 
-public 
-\xlink{CVS server}{\RVMCVSURL}.
-
-You can also download the source to the libraries under
-a separate 
-\xlink{license}{\RVMLibSourceLicenseURL}.
+You can download the RVM source from DeveloperWorks at \xlink{{\tt
+\RVMDownloadURL}}{\RVMDownloadURL}.  The RVM source is also available
+through a public \xlink{CVS server}{\RVMCVSURL}.
 
 \subsubsection{Is there a list of known bugs?}
 
@@ -157,9 +150,7 @@ At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
 to compile the RVM source on both Linux and
 AIX\AIXTMFootnote. Previously we were using version 1.13. Version 1.14
 through 1.17 have been reported to not entirely work with Jikes
-RVM. In order to build the {\tt rvmrt.jar} library with jikes 1.13 ,
-we applied patch 62 to the jikes build to fix a jikes scoping
-problem. For versions of Jikes RVM before 2.2.0, you must use jikes 1.13.
+RVM. For versions of Jikes RVM before 2.2.0, you must use jikes 1.13.
 
 \subsubsection{Has anybody thought about incremental boot image writing?}
 
@@ -364,7 +355,7 @@ libraries support it. The last time we tried it, classpath support was
 very incomplete. 
 
 \subsubsection{Can I run some standard library on RVM that is not included
-in rvmrt.jar?}
+in GNU classpath?}
 
 You can try.  Set your classpath to pick up the library you desire.
 

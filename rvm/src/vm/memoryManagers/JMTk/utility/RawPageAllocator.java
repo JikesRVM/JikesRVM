@@ -6,9 +6,8 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -29,6 +28,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class RawPageAllocator implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
@@ -63,8 +63,8 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     }
     int pageIndex = freeList.alloc(pages);
     if (pageIndex == -1) {
-      VM.sysWriteln("RawPageAllocator: unable to satisfy raw page allocation request");
-      if (VM.VerifyAssertions) VM._assert(false);
+      VM_Interface.sysWriteln("RawPageAllocator: unable to satisfy raw page allocation request");
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
     VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
     VM_Address resultEnd = result.add(Conversions.pagesToBytes(pages));

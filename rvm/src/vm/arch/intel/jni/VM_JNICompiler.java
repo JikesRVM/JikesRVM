@@ -44,7 +44,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
     VM_Assembler asm	 = new VM_Assembler(100);   // some size for the instruction array
-    int nativeIP         = method.getNativeIP();
+    VM_Address nativeIP         = method.getNativeIP();
     // recompute some constants
     int parameterWords   = method.getParameterWords();
 
@@ -91,7 +91,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     storeParametersForLintel(asm, method);
     
     // load address of native into S0
-    asm.emitMOV_Reg_Imm (S0, nativeIP);  
+    asm.emitMOV_Reg_Imm (S0, nativeIP.toInt());  
 
     // branch to outofline code in bootimage
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset());

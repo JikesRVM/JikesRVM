@@ -284,7 +284,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * This method creates a opt-compiler GC Map iterator object that will be
    * used to report the stack GC roots.
    */
-  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(VM_WordArray registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
 
@@ -297,7 +297,7 @@ public class VM_RuntimeOptCompilerInfrastructure
   */
   public static void setNoCacheFlush(OPT_Options options) {
     if (options.DETECT_UNIPROCESSOR) {
-      if (VM.sysCall0(VM_BootRecord.the_boot_record.sysNumProcessorsIP) == 1) {
+      if (VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP) == 1) {
 	options.NO_CACHE_FLUSH = true;
       }
     }

@@ -5,12 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-//-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
-//-#endif
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
-//-#endif
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
@@ -62,15 +57,15 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     VM_Address tibPtr = VM_Magic.objectAsAddress(tib);
-    VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibPtr.toInt());
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(ref).add(TIB_OFFSET), tibPtr);
   }
 
   /**
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-			    int tibAddr, VM_Type type) throws VM_PragmaInterruptible {
-    bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr);
+			    VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+    bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toInt());
   }
 
   /**
@@ -96,7 +91,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) throws VM_PragmaInterruptible {
-    asm.emitL(dest, TIB_OFFSET, object);
+    asm.emitLAddr(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 

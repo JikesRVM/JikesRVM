@@ -16,10 +16,12 @@ import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_WordArray;
 import com.ibm.JikesRVM.VM_RuntimeCompiler;
 import com.ibm.JikesRVM.VM_BootImageCompiler;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_SizeConstants;
 
 /**
  * Maintains a collection of compiler specific VM_GCMapIterators that are used 
@@ -41,10 +43,10 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @modified by Stephen Smith
  * @modified by anyone adding a new iterator
  */
-public final class VM_GCMapIteratorGroup {
+public final class VM_GCMapIteratorGroup implements VM_SizeConstants{
   
   /** current location (memory address) of each gpr register */
-  private int[]                registerLocations;
+  private VM_WordArray         registerLocations;
   
   /** iterator for VM_BootImageCompiler stackframes */
   private VM_GCMapIterator     bootImageCompilerIterator;
@@ -66,7 +68,7 @@ public final class VM_GCMapIteratorGroup {
   
   
   public VM_GCMapIteratorGroup() throws VM_PragmaUninterruptible {
-    registerLocations         = new int[VM_Constants.NUM_GPRS];
+    registerLocations         = VM_WordArray.create(VM_Constants.NUM_GPRS);
     
     bootImageCompilerIterator = VM_BootImageCompiler.createGCMapIterator(registerLocations);
     runtimeCompilerIterator   = VM_RuntimeCompiler.createGCMapIterator(registerLocations);
@@ -98,8 +100,8 @@ public final class VM_GCMapIteratorGroup {
   public void newStackWalk(VM_Thread thread) throws VM_PragmaUninterruptible {
     VM_Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
-      registerLocations[i] = registerLocation.toInt();
-      registerLocation = registerLocation.add(4);
+      registerLocations.set(i, registerLocation);
+      registerLocation = registerLocation.add(BYTES_IN_ADDRESS);
     }
     bootImageCompilerIterator.newStackWalk(thread);
     runtimeCompilerIterator.newStackWalk(thread);

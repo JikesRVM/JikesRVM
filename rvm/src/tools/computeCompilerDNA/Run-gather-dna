@@ -38,8 +38,8 @@ BUILDDIR=$1
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
 
-jvmoptions="	-X:h=400 -X:lh=100 $PROFILE_ARG"
-jvmcompoptions="	-X:h=400 -X:lh=100 -X:measureCompilation=true"
+jvmoptions="	-X:h=400 $PROFILE_ARG"
+jvmcompoptions="	-X:h=400 -X:measureCompilation=true"
 appcompoptions="	-d3000 -g -m1 -M1 -s100"
 appperfoptions="	-d3000 -g -m5 -M5 -s100"
 

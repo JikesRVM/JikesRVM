@@ -24,10 +24,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
   public static VM_TypeReference findCommonSuperclass (VM_TypeReference t1, VM_TypeReference t2) {
     if (t1 == t2)
       return t1;
-    if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
+    if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
-        if (t1.isWordType() || t2.isWordType())
-          return VM_TypeReference.Address;
         if (t1.isIntType() || t2.isIntType())
           return VM_TypeReference.Int;
         if (t1.isCharType() || t2.isCharType())
@@ -36,12 +34,12 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
           return VM_TypeReference.Short;
         if (t1.isByteType() || t2.isByteType())
           return VM_TypeReference.Byte;
+      } else if (t1.isWordType() && t2.isWordType()) {
+	return VM_TypeReference.Word;
       }
       return null;
     }
-    if (!((t1.isReferenceType() || t1.isWordType()) && 
-          (t2.isReferenceType() || t2.isWordType())))
-      return null;
+
     // can these next two cases happen?
     if (t1 == VM_TypeReference.NULL_TYPE)
       return t2;
@@ -59,10 +57,17 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     // at this point, they are not both array types.
     // if one is a primitive, then we want an object array of one less
     // dimensionality
-    if (t1.isPrimitiveType() || t1.isPrimitiveType()) {
-      if (VM.VerifyAssertions)
-        VM._assert(t1 != t2);
+    if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       VM_TypeReference type = VM_TypeReference.JavaLangObject;
+      if (t1 == t2) { 
+	// Kludge around the fact that we have two names for VM_AddressArray
+	if (t1.isWordType()) {
+	  arrayDimensions++;
+	  type = t1;
+	} else {
+	  if (VM.VerifyAssertions) VM._assert(false);
+	}
+      }
       --arrayDimensions;
       while (arrayDimensions-- > 0)
         type = type.getArrayTypeForElementType();
@@ -152,6 +157,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     if (parentType == VM_TypeReference.NULL_TYPE)
       return NO;
     if (parentType == childType)
+      return YES;
+    if (parentType == VM_TypeReference.Word && childType.isWordType())
       return YES;
     if (parentType.isPrimitiveType() || childType.isPrimitiveType())
       return NO;
@@ -270,8 +277,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_IntConstantOperand getIntFromConstantPool (VM_Class klass, 
                                                                int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    int val = VM_Statics.getSlotContentsAsInt(offset);
+    int offset = klass.getLiteralOffset(index) ;
+    int val = VM_Statics.getSlotContentsAsInt(offset >>LOG_BYTES_IN_INT );
     return new OPT_IntConstantOperand(val);
   }
 
@@ -281,10 +288,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_DoubleConstantOperand getDoubleFromConstantPool (VM_Class klass, 
                                                                      int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    long val_raw = VM_Statics.getSlotContentsAsLong(offset);
+    int offset = klass.getLiteralOffset(index) ;
+    long val_raw = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
     double val = Double.longBitsToDouble(val_raw);
-    return new OPT_DoubleConstantOperand(val, offset);
+    return new OPT_DoubleConstantOperand(val, offset >> LOG_BYTES_IN_INT);
   }
 
   /**
@@ -293,10 +300,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_FloatConstantOperand getFloatFromConstantPool (VM_Class klass, 
                                                                    int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    int val_raw = VM_Statics.getSlotContentsAsInt(offset);
+    int offset = klass.getLiteralOffset(index) ;
+    int val_raw = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
     float val = Float.intBitsToFloat(val_raw);
-    return new OPT_FloatConstantOperand(val, offset);
+    return new OPT_FloatConstantOperand(val, offset >> LOG_BYTES_IN_INT);
   }
 
   /**
@@ -305,9 +312,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_LongConstantOperand getLongFromConstantPool (VM_Class klass, 
                                                                  int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    long val = VM_Statics.getSlotContentsAsLong(offset);
-    return new OPT_LongConstantOperand(val, offset);
+    int offset = klass.getLiteralOffset(index) ;
+    long val = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
+    return new OPT_LongConstantOperand(val, offset >> LOG_BYTES_IN_INT);
   }
 
   /**
@@ -315,7 +322,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * pool.
    */
   public static OPT_StringConstantOperand getStringFromConstantPool (VM_Class klass, int index) {
-    int slot = klass.getLiteralOffset(index) >> 2;
+    int slot = klass.getLiteralOffset(index) >> LOG_BYTES_IN_INT;
     String val;
     if (VM.runningVM) {
       val = (String)VM_Statics.getSlotContentsAsObject(slot);

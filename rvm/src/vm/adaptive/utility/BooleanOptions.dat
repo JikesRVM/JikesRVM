@@ -29,3 +29,5 @@ Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
 OSR_PROMOTION -1 true
 Should AOS promote baseline-compiled methods to opt?
 
+BACKGROUND_RECOMPILATION -1 true
+Should recompilation be done on a background thread or on next invocation?

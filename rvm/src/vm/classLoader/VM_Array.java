@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 /**
@@ -63,7 +63,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   /** 
    * @return java Expression stack space requirement. 
-   */
+  */
   public final int getStackWords() throws VM_PragmaUninterruptible {
     return 1;
   }
@@ -88,16 +88,16 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    */
   public final int getLogElementSize() throws VM_PragmaUninterruptible {
     switch (getDescriptor().parseForArrayElementTypeCode()) {
-    case VM_Atom.ClassTypeCode:   return 2;
-    case VM_Atom.ArrayTypeCode:   return 2;
-    case VM_Atom.BooleanTypeCode: return 0;
+    case VM_Atom.ClassTypeCode:   return LOG_BYTES_IN_ADDRESS;
+    case VM_Atom.ArrayTypeCode:   return LOG_BYTES_IN_ADDRESS;
+    case VM_Atom.BooleanTypeCode: return LOG_BYTES_IN_BOOLEAN;
     case VM_Atom.ByteTypeCode:    return 0;
-    case VM_Atom.ShortTypeCode:   return 1;
-    case VM_Atom.IntTypeCode:     return 2;
-    case VM_Atom.LongTypeCode:    return 3;
-    case VM_Atom.FloatTypeCode:   return 2;
-    case VM_Atom.DoubleTypeCode:  return 3;
-    case VM_Atom.CharTypeCode:    return 1;
+    case VM_Atom.ShortTypeCode:   return LOG_BYTES_IN_SHORT;
+    case VM_Atom.IntTypeCode:     return LOG_BYTES_IN_INT;
+    case VM_Atom.LongTypeCode:    return LOG_BYTES_IN_LONG;
+    case VM_Atom.FloatTypeCode:   return LOG_BYTES_IN_FLOAT;
+    case VM_Atom.DoubleTypeCode:  return LOG_BYTES_IN_DOUBLE;
+    case VM_Atom.CharTypeCode:    return LOG_BYTES_IN_CHAR;
     }
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return -1;
@@ -168,10 +168,6 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     super(typeRef);
     depth = 1;
     this.elementType = elementType;
-    if (VM.VerifyAssertions && elementType.isWordType()) {
-      VM.sysWriteln("\nDo not create arrays of VM_Address, VM_Word, VM_Offset, or other special primitive types.\n  Use an int array or long array for now and use casts.");
-      VM._assert(false);
-    }
     if (elementType.isArrayType()) {
       innermostElementType = elementType.asArray().getInnermostElementType();
     } else {
@@ -202,7 +198,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     // virtual method fields and substuting an appropriate type field.
     //
     Object[] javaLangObjectTIB = VM_Type.JavaLangObjectType.getTypeInformationBlock();
-    typeInformationBlock = VM_Interface.newTIB(javaLangObjectTIB.length);
+    typeInformationBlock = MM_Interface.newTIB(javaLangObjectTIB.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[0] = this;
@@ -289,7 +285,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+4)) {
+      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS)) {
 	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -312,7 +308,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+4)) {
+      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS/BYTES_IN_BOOLEAN)) {
 	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -335,7 +331,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+2)) {
+      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS/BYTES_IN_SHORT)) {
 	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -358,7 +354,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+2)) {
+      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS/BYTES_IN_CHAR)) {
 	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -382,10 +378,10 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
-				VM_Magic.objectAsAddress(src).add(srcPos<<2),
-				len<<2);
+      if (src != dst || srcPos >= dstPos) {
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<< LOG_BYTES_IN_INT),
+				VM_Magic.objectAsAddress(src).add(srcPos << LOG_BYTES_IN_INT),
+				len<< LOG_BYTES_IN_INT);
       } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
@@ -408,9 +404,9 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
-				VM_Magic.objectAsAddress(src).add(srcPos<<2),
-				len<<2);
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos << LOG_BYTES_IN_FLOAT),
+				VM_Magic.objectAsAddress(src).add(srcPos << LOG_BYTES_IN_FLOAT),
+				len << LOG_BYTES_IN_FLOAT);
       } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
@@ -433,9 +429,9 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<3),
-				VM_Magic.objectAsAddress(src).add(srcPos<<3),
-				len<<3);
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_LONG),
+				VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_LONG),
+				len<<LOG_BYTES_IN_LONG);
       } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
@@ -458,9 +454,9 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<3),
-				VM_Magic.objectAsAddress(src).add(srcPos<<3),
-				len<<3);
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_DOUBLE),
+				VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_DOUBLE),
+				len<<LOG_BYTES_IN_DOUBLE);
       } else if (srcPos < dstPos) {
 	srcPos += len;
 	dstPos += len;
@@ -521,13 +517,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 				    int dstIdx, int len) {
 
     boolean loToHi = (srcIdx > dstIdx);  // direction of copy
-    int srcOffset = srcIdx << Constants.LOG_WORD_SIZE;
-    int dstOffset = dstIdx << Constants.LOG_WORD_SIZE;
-    int bytes = len << Constants.LOG_WORD_SIZE;
+    int srcOffset = srcIdx << LOG_BYTES_IN_ADDRESS;
+    int dstOffset = dstIdx << LOG_BYTES_IN_ADDRESS;
+    int bytes = len << LOG_BYTES_IN_ADDRESS;
     
-    if (!VM_Interface.NEEDS_WRITE_BARRIER 
+    if (!MM_Interface.NEEDS_WRITE_BARRIER 
 	&& ((src != dst) || loToHi)) {
-      if (VM.VerifyAssertions) VM._assert(!VM_Interface.NEEDS_WRITE_BARRIER);
+      if (VM.VerifyAssertions) VM._assert(!MM_Interface.NEEDS_WRITE_BARRIER);
       VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstOffset),
 			      VM_Magic.objectAsAddress(src).add(srcOffset),
 			      bytes);
@@ -535,18 +531,18 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       // set up things according to the direction of the copy
       int increment;
       if (loToHi)
-	increment = Constants.WORD_SIZE;
+	increment = BYTES_IN_ADDRESS;
       else {
-	srcOffset += (bytes - Constants.WORD_SIZE);
-	dstOffset += (bytes - Constants.WORD_SIZE);
-	increment = -Constants.WORD_SIZE;
+	srcOffset += (bytes - BYTES_IN_ADDRESS);
+	dstOffset += (bytes - BYTES_IN_ADDRESS);
+	increment = -BYTES_IN_ADDRESS;
       } 
 
       // perform the copy
       while (len-- != 0) {
 	Object value = VM_Magic.getObjectAtOffset(src, srcOffset);
-	if (VM_Interface.NEEDS_WRITE_BARRIER)
-	  VM_Interface.arrayStoreWriteBarrier(dst, dstOffset>>Constants.LOG_WORD_SIZE, value);
+	if (MM_Interface.NEEDS_WRITE_BARRIER)
+	  MM_Interface.arrayStoreWriteBarrier(dst, dstOffset>>LOG_BYTES_IN_ADDRESS, value);
 	else
 	  VM_Magic.setObjectAtOffset(dst, dstOffset, value);
 	srcOffset += increment;
@@ -579,7 +575,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     } else {
       // the arrays overlap: must use temp array
       VM_Array ary = VM_Magic.getObjectType(src).asArray();
-      int allocator = VM_Interface.pickAllocator(ary);
+      int allocator = MM_Interface.pickAllocator(ary);
       Object temp[] = (Object[])
 	VM_Runtime.resolvedNewArray(len, ary.getInstanceSize(len), 
 				    ary.getTypeInformationBlock(), allocator);

@@ -86,14 +86,14 @@ public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
       VM_Method target = targets[middle];
       if (target.isStatic()) {
 	// an error case.
-	asm.emitLtoc(S0, target.getOffset());
+	asm.emitLAddrToc(S0, target.getOffset());
       } else {
-	asm.emitL   (S0, target.getOffset(), S0);
+	asm.emitLAddr(S0, target.getOffset(), S0);
       }
       asm.emitMTCTR(S0);
-      asm.emitBCTR ();
+      asm.emitBCCTR ();
     } else {
-      asm.emitCMPI (SP, sigIds[middle]);
+      asm.emitCMPI (S1, sigIds[middle]);
       if (low < middle) {
 	asm.emitShortBC(LT, 0, bcIndices[(low+middle-1)/2]);
       }
@@ -104,12 +104,12 @@ public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
       VM_Method target = targets[middle];
       if (target.isStatic()) {
 	// an error case.
-	asm.emitLtoc(S0, target.getOffset());
+	asm.emitLAddrToc(S0, target.getOffset());
       } else {
-	asm.emitL   (S0, target.getOffset(), S0);
+	asm.emitLAddr(S0, target.getOffset(), S0);
       }
       asm.emitMTCTR(S0);
-      asm.emitBCTR ();
+      asm.emitBCCTR ();
       // Recurse.
       if (low < middle) {
 	insertStubCase(asm, sigIds, targets, bcIndices, low, middle-1);

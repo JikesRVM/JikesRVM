@@ -1294,7 +1294,7 @@ callUses
 # A call instruction.  Used for special system calls.
 # Is marked as a memory model load/store, but does not directly load/store any values itself.
 SYSCALL
-CallSpecial
+Call
 call | memAsLoad | memAsStore
 callDefs
 callUses

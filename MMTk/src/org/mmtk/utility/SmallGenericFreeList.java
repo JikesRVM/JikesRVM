@@ -10,7 +10,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -93,6 +93,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class SmallGenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
@@ -105,7 +106,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * Constructor
    */
   GenericFreeList(int units) {
-    if (VM.VerifyAssertions) VM._assert(units <= MAX_UNITS);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels
     table = new int[units + 2];
@@ -198,8 +199,8 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
-    if (VM.VerifyAssertions) 
-      VM._assert((next >= HEAD) && (next <= MAX_UNITS));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert((next >= HEAD) && (next <= MAX_UNITS));
     if (next == HEAD) 
       setEntry(unit, (getEntry(unit) | NEXT_MASK));
     else
@@ -225,8 +226,8 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * @param prev The value to be set.
    */
   protected void setPrev(int unit, int prev) {
-    if (VM.VerifyAssertions) 
-      VM._assert((prev >= HEAD) && (prev <= MAX_UNITS));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert((prev >= HEAD) && (prev <= MAX_UNITS));
     if (prev == HEAD)
       setEntry(unit, (getEntry(unit) | PREV_MASK));
     else

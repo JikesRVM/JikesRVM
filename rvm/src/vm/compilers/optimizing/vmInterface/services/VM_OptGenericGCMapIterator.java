@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * This class contains its architecture-independent code for iteration
@@ -67,7 +67,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   static final boolean lookForMissedReferencesInSpills = false;
 
   // Constructor 
-  VM_OptGenericGCMapIterator(int[] registerLocations) {
+  VM_OptGenericGCMapIterator(VM_WordArray registerLocations) {
     super();
     this.registerLocations = registerLocations;
   }
@@ -98,7 +98,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // this method and instructionOffset
     compiledMethod = (VM_OptCompiledMethod)cm;
     map = compiledMethod.getMCMap();
-    mapIndex = map.findGCMapIndex(instructionOffset);
+    mapIndex = map.findGCMapIndex(VM_Offset.fromInt(instructionOffset));
     if (mapIndex == VM_OptGCMap.ERROR) {
       if (instructionOffset < 0) {
 	VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
@@ -118,10 +118,10 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
       VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getInstructions()).toInt());
-      int ra = VM_Magic.objectAsAddress(cm.getInstructions()).toInt() + instructionOffset;
+      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getInstructions()));
+      VM_Address ra = VM_Magic.objectAsAddress(cm.getInstructions()).add(instructionOffset);
       VM.sysWriteln("Calculated actual return address is ", ra);
-      VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(VM_Address.fromInt(ra));
+      VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
       if (realCM == null) {
 	VM.sysWriteln("Unable to find compiled method corresponding to this return address");
       } else {
@@ -195,7 +195,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       if (currentRegisterIsValid()) {
         VM_Address regLocation;
         // currentRegister contains a reference, return that location
-        regLocation = VM_Address.fromInt(registerLocations[getCurrentRegister()]);
+        regLocation = registerLocations.get(getCurrentRegister()).toAddress();
 	if (DEBUG) {
           VM.sysWrite(" *** Ref found in reg#");
           VM.sysWrite(getCurrentRegister());
@@ -397,9 +397,9 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
   final void checkRegistersForMissedReferences(int firstReg, int lastReg) {
     for (int i = firstReg; i <= lastReg; i++) {
-      VM_Address regLocation = VM_Address.fromInt(registerLocations[i]);
+      VM_Address regLocation = registerLocations.get(i).toAddress();
       VM_Address regValue = VM_Magic.getMemoryAddress(regLocation);
-      if (VM_Interface.refInVM(regValue)) {
+      if (MM_Interface.refInVM(regValue)) {
         VM.sysWrite("  reg#", getCurrentRegister());
         VM.sysWrite(", location ==>", regLocation);
         VM.sysWriteln(", suspicious value ==>", regValue);
@@ -454,7 +454,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 	VM.sysWrite("\n");
       }
 
-      if (VM_Interface.refInVM(ptr)) {
+      if (MM_Interface.refInVM(ptr)) {
 	VM.sysWrite("  spill location:");
 	VM.sysWrite(i);
 	VM.sysWrite(" contains a suspicious value ==>");

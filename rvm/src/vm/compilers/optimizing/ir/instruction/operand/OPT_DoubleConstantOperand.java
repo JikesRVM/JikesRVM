@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.*;
  * @modified Mauricio Serrano 6/6/98
  */
 
-public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
+public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants{
 
   /**
    * Value of this operand.
@@ -35,9 +35,9 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
   public OPT_DoubleConstantOperand(double v) {
     value = v;
     if (v == 0.) {
-      index = VM_Entrypoints.zeroDoubleField.getOffset() >> 2;
+      index = VM_Entrypoints.zeroDoubleField.getOffset() >> LOG_BYTES_IN_INT;
     } else if (v == 1.) {
-      index = VM_Entrypoints.oneDoubleField.getOffset() >> 2;
+      index = VM_Entrypoints.oneDoubleField.getOffset() >> LOG_BYTES_IN_INT;
     }
   }
 

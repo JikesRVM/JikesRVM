@@ -30,7 +30,21 @@ public abstract class VM_Configuration {
 	  false;
 	//-#endif
 
-  public static final boolean LITTLE_ENDIAN = BuildForIA32;
+  public static final boolean LittleEndian = BuildForIA32;
+
+  public static final boolean BuildFor32Addr = 
+    //-#if RVM_FOR_32_ADDR
+    true;
+    //-#else
+    false;
+    //-#endif
+
+  public static final boolean BuildFor64Addr = 
+    //-#if RVM_FOR_64_ADDR
+    true;
+    //-#else
+    false;
+    //-#endif
 
   public static final boolean BuildForAix =
 	//-#if RVM_FOR_AIX
@@ -58,6 +72,13 @@ public abstract class VM_Configuration {
           false;
         //-#else
           true;
+        //-#endif
+
+  public static final boolean ExtremeAssertions = 
+        //-#if RVM_WITH_EXTREME_ASSERTIONS
+          true;
+        //-#else
+          false;
         //-#endif
 
   // Verify that Uninterruptible methods actually cannot be interrupted.
@@ -142,15 +163,6 @@ public abstract class VM_Configuration {
   //
   public static final boolean LogAOSEvents =
       //-#if RVM_WITHOUT_AOS_LOG 
-        false;
-      //-#else
-        true;
-      //-#endif
-
-  // Lazy vs. eager method compilation during class loading.
-  //
-  public static final boolean BuildForLazyCompilation =
-      //-#if RVM_WITHOUT_LAZY_COMPILATION
         false;
       //-#else
         true;

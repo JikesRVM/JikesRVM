@@ -50,7 +50,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // other types of iterators (ones for the quick and opt compiler built frames)
   // The locations are kept as addresses within the stack.
   //
-  public VM_BaselineGCMapIterator(int registerLocations[]) {
+  public VM_BaselineGCMapIterator(VM_WordArray registerLocations) {
     this.registerLocations = registerLocations; // (in superclass)
     dynamicLink  = new VM_DynamicLink();
   }
@@ -107,7 +107,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       VM_Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
       VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
+      VM_Offset               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
       bridgeTarget                = dynamicLink.methodRef().getResolvedMember();
@@ -165,11 +165,11 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
 	// point registerLocations[] to our callers stackframe
 	//
 	VM_Address location = framePtr.add(VM_Compiler.getFrameSize(currentMethod));
-	location = location.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8); 
+	location = location.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
 	// skip non-volatile and volatile fprs
 	for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
-	  location = location.sub(4);
-	  registerLocations[i] = location.toInt();
+	  location = location.sub(BYTES_IN_ADDRESS);
+	  registerLocations.set(i, location);
 	}
 
 	bridgeRegistersLocationUpdated = true;

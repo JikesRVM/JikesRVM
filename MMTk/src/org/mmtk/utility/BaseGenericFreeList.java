@@ -10,7 +10,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -93,6 +93,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
@@ -184,7 +185,7 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    */
   private final void split(int unit, int size) {
     int basesize = getSize(unit);
-    if (VM.VerifyAssertions) VM._assert(basesize > size);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(basesize > size);
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);
@@ -248,22 +249,22 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    */
   private void dbgPrintFree() {
     if (DEBUG) {
-      VM.sysWrite("FL[");
+      VM_Interface.sysWrite("FL[");
       int i = HEAD;
       while ((i = getNext(i)) != HEAD) {
 	boolean f = getFree(i);
 	int s = getSize(i);
 	if (!f)
-	  VM.sysWrite("->");
-	VM.sysWrite(i);
+	  VM_Interface.sysWrite("->");
+	VM_Interface.sysWrite(i);
 	if (!f)
-	  VM.sysWrite("<-");
-	VM.sysWrite("[");
-	VM.sysWrite(s);
-	VM.sysWrite("]");
-	VM.sysWrite(" ");
+	  VM_Interface.sysWrite("<-");
+	VM_Interface.sysWrite("[");
+	VM_Interface.sysWrite(s);
+	VM_Interface.sysWrite("]");
+	VM_Interface.sysWrite(" ");
       }
-      VM.sysWrite("]FL\n");
+      VM_Interface.sysWrite("]FL\n");
     }
   }
 

@@ -22,7 +22,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
+public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_SizeConstants
 //-#if RVM_WITH_OSR
   , OSR_Constants
 //-#endif
@@ -120,7 +120,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       //-#endif
     bcodes = method.getBytecodes();
     bytecodeMap = new int [bcodes.length()+1];
-    asm = new VM_Assembler(bcodes.length(), shouldPrint);
+    asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler)this);
     isInterruptible = method.isInterruptible();
   }
 
@@ -204,17 +204,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
     boolean edge_counters = options.EDGE_COUNTERS;
     if (method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
-      if (stackHeights != null) {
-	// we already allocatedc enough space for stackHeights, shift it back first
-	System.arraycopy(stackHeights, 0, stackHeights, 
-			 method.getOsrPrologueLength(), 
-			 method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
-
-	// only do this on IA32 where stackHeights is not null
-	// compute stack height for prologue
-	new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
-	//	new OSR_BytecodeTraverser().computeStackHeights(method, method.getOsrSynthesizedBytecodes(), stackHeights, true);
-      }
+      // we already allocated enough space for stackHeights, shift it back first
+      System.arraycopy(stackHeights, 0, stackHeights, 
+		       method.getOsrPrologueLength(), 
+		       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
+      
+      // compute stack height for prologue
+      new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
     } 
     //-#endif
 
@@ -325,6 +321,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       //-#if RVM_WITH_OSR
       asm.patchLoadAddrConst(biStart);
       //-#endif
+      starting_bytecode();
       int code = bcodes.nextInstruction();
       switch (code) {
       case JBC_nop: {
@@ -1540,11 +1537,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + methodRef);
-	if (methodRef.getType().isWordType()) {
+	if (methodRef.getType().isMagicType()) {
 	  if (emit_Magic(methodRef)) {
 	    break;
 	  }
 	} 
+
 	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
@@ -1609,7 +1607,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + methodRef);
-	if (methodRef.getType().isMagicType() || methodRef.getType().isWordType()) {
+	if (methodRef.getType().isMagicType()) {
 	  if (emit_Magic(methodRef))
 	    break;
 	}
@@ -1695,6 +1693,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + arrayRef);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+arrayRef);
 	
+	if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
+	  VM.sysWriteln("During compilation of "+method+" found a anewarray of "+elementTypeRef);
+	  VM.sysWriteln("You must use the 'create' function to create an array of this type");
+	  VM._assert(false);
+	}
+
 	// We can do early resolution of the array type if the element type 
 	// is already initialized.
 	VM_Array array = (VM_Array)arrayRef.peekResolvedType();
@@ -1747,6 +1751,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	      emit_checkcast_final(type);
 	      break;
 	    }
+	  } else {
+	    // checkcast to a primitive. Must be a word type.
+	    if (VM.VerifyAssertions) VM._assert(type.isWordType());
+	    break;
 	  }
 	}
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast "+typeRef);
@@ -1924,7 +1932,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int "+value);
 	  
 	  int slot = VM_Statics.findOrCreateIntLiteral(value);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc(offset);
 	    
@@ -1936,7 +1944,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long "+value);
 	  
 	  int slot = VM_Statics.findOrCreateLongLiteral(value);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc2(offset);
 
@@ -1948,7 +1956,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float "+ibits);
 	  
 	  int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc(offset);
 
@@ -1960,7 +1968,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double "+lbits);
 	  
 	  int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
-	  int offset = slot << 2;
+	  int offset = slot << LOG_BYTES_IN_INT;
 
 	  emit_ldc2(offset);
 
@@ -2111,6 +2119,11 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
   /*
    * Misc routines not directly tied to a particular bytecode
    */
+
+  /**
+   * Notify VM_Compiler that we are starting code gen for the bytecode biStart
+   */
+  protected abstract void starting_bytecode();
 
   /**
    * Emit the prologue for the method

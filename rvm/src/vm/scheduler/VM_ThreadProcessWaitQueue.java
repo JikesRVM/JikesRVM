@@ -161,10 +161,10 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
 
     // Call sysWaitPids() to see which (if any) have finished
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    VM.sysCall3(
+    VM_SysCall.call_I_A_A_I(
       bootRecord.sysWaitPidsIP,
-      VM_Magic.objectAsAddress(pidArray).toInt(),
-      VM_Magic.objectAsAddress(exitStatusArray).toInt(),
+      VM_Magic.objectAsAddress(pidArray),
+      VM_Magic.objectAsAddress(exitStatusArray),
       numPids
     );
 

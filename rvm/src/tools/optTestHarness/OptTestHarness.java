@@ -113,8 +113,7 @@ class OptTestHarness {
 	  System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
 	} else if (argDesc[argNum].isArrayType()) {
           VM_TypeReference element = argDesc[argNum].getArrayElementType();
-          if (element.isClassType() && 
-              element.getName().toString().startsWith("java.lang.String")) {
+          if (element.equals(VM_TypeReference.JavaLangString)) {
 	    String[] array = new String[args.length-i-1];
 	    for (int j = 0; j < array.length; j++) {
 	      array[j] = args[++i];

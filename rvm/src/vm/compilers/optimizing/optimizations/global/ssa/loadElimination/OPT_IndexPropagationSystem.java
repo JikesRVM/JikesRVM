@@ -149,8 +149,6 @@ implements OPT_Operators {
           processAStore(s); 
         else if (Call.conforms(s))
           processCall(s); 
-        else if (CallSpecial.conforms(s))
-          processCall(s); 
         else if (MonitorOp.conforms(s))
           processCall(s); 
         else if (Prepare.conforms(s))

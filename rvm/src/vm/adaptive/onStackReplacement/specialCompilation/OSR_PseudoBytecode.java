@@ -5,6 +5,7 @@
 
 package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.VM_SizeConstants;
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  *
@@ -12,7 +13,7 @@ import com.ibm.JikesRVM.classloader.*;
  */
 
 public abstract class OSR_PseudoBytecode 
-  implements VM_BytecodeConstants, OSR_Constants {
+  implements VM_BytecodeConstants, OSR_Constants , VM_SizeConstants{
 
   public OSR_PseudoBytecode next;
 
@@ -30,14 +31,14 @@ public abstract class OSR_PseudoBytecode
   public static void int2bytes(byte[] to, int p, int value) {
 
     for (int i=3; i>=0; i--) {
-      to[p++] = (byte)((value >>> (i<<3)) & 0x0FF);
+      to[p++] = (byte)((value >>> (i<<LOG_BITS_IN_BYTE)) & 0x0FF);
     }
   }
 
   public static void long2bytes(byte[] to, int p, long value) {
     
     for (int i=7; i>=0; i--) {
-      to[p++] = (byte)((value >>> (i<<3)) & 0x0FF);
+      to[p++] = (byte)((value >>> (i<<LOG_BITS_IN_BYTE)) & 0x0FF);
     }
   }
 

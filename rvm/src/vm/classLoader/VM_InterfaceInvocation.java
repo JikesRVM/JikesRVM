@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.*;
  * @author Stephen Fink
  * @author Dave Grove
  */
-public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
+public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeConstants {
 
   /*
    * PART I: runtime routines to implement the invokeinterface bytecode.
@@ -172,7 +172,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
   public static void initializeDispatchStructures(VM_Class klass) {
     // if klass is abstract, we'll never use the dispatching structures.
     if (klass.isAbstract()) return; 
-    VM_Class[] interfaces = collectInterfaces(klass);
+    VM_Class[] interfaces = klass.getAllImplementedInterfaces();
     if (interfaces.length != 0) {
       if (VM.BuildForIMTInterfaceInvocation) {
 	IMTDict d = buildIMTDict(klass, interfaces);
@@ -185,35 +185,6 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	populateITables(klass, interfaces);
       }
     }
-  }
-  
-  /**
-   * Build up the list of interfaces that a class implements.
-   * 
-   * @param klass the VM_Class to find the interfaces for.
-   */
-  private static VM_Class[] collectInterfaces(VM_Class klass) {
-    int count = 0;
-    int [] doesImplement = klass.getDoesImplement();
-    for (int i=0; i<doesImplement.length; i++) {
-      for (int mask = doesImplement[i]; mask != 0; mask = mask >>> 1) {
-	if ((mask & 0x1) != 0) count++;
-      }
-    }
-    VM_Class[] ans = new VM_Class[count];
-    for (int i =0, idx = 0; i<doesImplement.length; i++) {
-      int mask = doesImplement[i];
-      if (mask != 0) {
-	for (int j=0; j<32; j++) {
-	  if ((mask & (1<<j)) != 0) {
-	    int id = 32 * i + j;
-	    ans[idx++] = VM_Class.getInterface(id);
-	  }
-	}
-      }
-    }
-    
-    return ans;
   }
   
   /**
@@ -342,7 +313,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	vm.compile();
 	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
       } else {
-	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (INSTRUCTION []) tib[vm.getOffset()>>2];
+	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (INSTRUCTION []) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
@@ -431,7 +402,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     // Convert from the internally visible IMTOffset to an index
     // into my internal data structure.
     private int getIndex(VM_InterfaceMethodSignature sig) {
-      int idx = sig.getIMTOffset() >> 2;
+      int idx = sig.getIMTOffset() >> LOG_BYTES_IN_ADDRESS;
       if (VM.BuildForEmbeddedIMT) {
 	idx -= TIB_FIRST_INTERFACE_METHOD_INDEX;
       }
@@ -486,7 +457,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
 	    target.compile();
 	    IMT[extSlot] = target.getCurrentInstructions();
 	  } else {
-	    IMT[extSlot] = (INSTRUCTION []) tib[target.getOffset()>>2];
+	    IMT[extSlot] = (INSTRUCTION []) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
 	    if (klass.noIMTConflictMap == null) {
 	      klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
 	    }

@@ -5,16 +5,14 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
+
 
 /**
  * Chooses the appropriate collector-specific header model.
@@ -25,6 +23,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * @version $Revision$
  * @date $Date$
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Header extends MarkSweepHeader {
   public final static String Id = "$Id$"; 
 
@@ -38,18 +37,18 @@ public class Header extends MarkSweepHeader {
   //
   public static boolean isBeingForwarded(Object base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM._assert(false);
+    VM_Interface._assert(false);
     return false;
   }
 
   public static boolean isForwarded(Object base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM._assert(false);
+    VM_Interface._assert(false);
     return false;
   }
 
   static void setBarrierBit(Object ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM._assert(false);
+    VM_Interface._assert(false);
   }
 }

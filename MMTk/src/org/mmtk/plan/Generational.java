@@ -9,10 +9,10 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -58,7 +58,8 @@ public abstract class Generational extends StopTheWorldGC
   // Class variables
   //
   public static final boolean needsWriteBarrier = true;
-  public static final boolean needsRefCountWriteBarrier = false;
+  public static final boolean needsPutStaticWriteBarrier = false;
+  public static final boolean needsTIBStoreWriteBarrier = false;
   public static final boolean refCountCycleDetection = false;
   public static final boolean movesObjects = true;
 
@@ -75,7 +76,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static TreadmillSpace losSpace;
 
   // GC state
-  protected static boolean fullHeapGC = false;
+  protected static boolean fullHeapGC = false;  // Whether next GC will be full - set at end of last GC
+  protected static boolean lastGCFull = false;  // Whether previous GC was full - set during full GC
 
   // Allocators
   protected static final byte NURSERY_SPACE = 0;
@@ -89,18 +91,18 @@ public abstract class Generational extends StopTheWorldGC
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_MIN_NURSERY = (512*1024)>>LOG_PAGE_SIZE;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final EXTENT LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
+  protected static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final EXTENT    MATURE_SS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3));
-  protected static final EXTENT      NURSERY_SIZE = MATURE_SS_SIZE;
-  protected static final EXTENT          LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3 * 0.3));
-  public    static final int             MAX_SIZE = 2 * MATURE_SS_SIZE;
+  protected static final VM_Extent MATURE_SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3)));
+  protected static final VM_Extent   NURSERY_SIZE = MATURE_SS_SIZE;
+  protected static final VM_Extent       LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 3.3 * 0.3)));
+  public    static final VM_Extent       MAX_SIZE = MATURE_SS_SIZE.add(MATURE_SS_SIZE);
   protected static final VM_Address     LOS_START = PLAN_START;
   protected static final VM_Address       LOS_END = LOS_START.add(LOS_SIZE);
   protected static final VM_Address  MATURE_START = LOS_END;
-  protected static final EXTENT       MATURE_SIZE = MATURE_SS_SIZE<<1;
+  protected static final VM_Extent    MATURE_SIZE = MATURE_SS_SIZE.add(MATURE_SS_SIZE);
   protected static final VM_Address    MATURE_END = MATURE_START.add(MATURE_SIZE);
   protected static final VM_Address NURSERY_START = MATURE_END;
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
@@ -169,8 +171,8 @@ public abstract class Generational extends StopTheWorldGC
   //
   // Allocation
   //
-  abstract VM_Address matureAlloc(boolean isScalar, EXTENT bytes);
-  abstract VM_Address matureCopy(boolean isScalar, EXTENT bytes);
+  abstract VM_Address matureAlloc(boolean isScalar, int bytes);
+  abstract VM_Address matureCopy(boolean isScalar, int bytes);
 
   /**
    * Allocate space (for an object)
@@ -181,36 +183,28 @@ public abstract class Generational extends StopTheWorldGC
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator,
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) 
-      allocator = (Plan.usesLOS) ? LOS_SPACE : MATURE_SPACE;
-    if (VM.VerifyAssertions) VM._assert(Plan.usesLOS || allocator != LOS_SPACE);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
-    switch (allocator) {
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      if (Plan.usesLOS) {
+	region = los.alloc(isScalar, bytes);
+      } else {
+	region = matureAlloc(isScalar, bytes);
+      }
+    } else {
+      switch (allocator) {
       case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
       case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       default:             region = VM_Address.zero();
-	                   VM.sysFail("No such allocator");
+	VM_Interface.sysFail("No such allocator");
+      }
     }
-    if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
-    return region;
-  }
-
-  public final VM_Address alloc2(int allocator, EXTENT bytes, boolean isScalar) throws VM_PragmaNoInline {
-      VM_Address region;
-    switch (allocator) {
-	 case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
-	 case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
-	 case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-	 case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      default:             region = VM_Address.zero();
-	                   VM.sysFail("No such allocator");
-    }
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
     return region;
   }
 
@@ -224,18 +218,23 @@ public abstract class Generational extends StopTheWorldGC
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
+  public final void postAlloc(Object ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
-      allocator = (Plan.usesLOS) ? LOS_SPACE : MATURE_SPACE;
-    if (VM.VerifyAssertions) VM._assert(Plan.usesLOS || allocator != LOS_SPACE);
-    switch (allocator) {
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
+      if (Plan.usesLOS) {
+	Header.initializeLOSHeader(ref, tib, bytes, isScalar);
+      } else {
+	if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar);
+      }
+    } else {
+      switch (allocator) {
       case  NURSERY_SPACE: return;
       case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+      }
     }
   }
 
@@ -248,10 +247,10 @@ public abstract class Generational extends StopTheWorldGC
    * @param isScalar True if the object occupying this space will be a scalar
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
+  public final VM_Address allocCopy(VM_Address original, int bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bytes < LOS_SIZE_THRESHOLD);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes < LOS_SIZE_THRESHOLD);
     return matureCopy(isScalar, bytes);
   }
 
@@ -279,7 +278,7 @@ public abstract class Generational extends StopTheWorldGC
    * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
+  public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
     return (bytes >= LOS_SIZE_THRESHOLD) ? (Plan.usesLOS ? LOS_SPACE : MATURE_SPACE) : NURSERY_SPACE;
   }
@@ -311,7 +310,7 @@ public abstract class Generational extends StopTheWorldGC
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
+  public final AllocAdvice getAllocAdvice(Type type, int bytes,
 					  CallSite callsite,
 					  AllocAdvice hint) {
     return null;
@@ -346,7 +345,7 @@ public abstract class Generational extends StopTheWorldGC
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurseryMR.reservedPages() > Options.nurseryPages;
     if (mustCollect || heapFull || nurseryFull) {
-      if (VM.VerifyAssertions)    VM._assert(mr != metaDataMR);
+      if (VM_Interface.VerifyAssertions)    VM_Interface._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
 	required = required<<1;  // must account for copy reserve
@@ -358,11 +357,26 @@ public abstract class Generational extends StopTheWorldGC
     return false;
   }
 
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Collection
+  //
+  // Important notes:
+  //   . Global actions are executed by only one thread
+  //   . Thread-local actions are executed by all threads
+  //   . The following order is guaranteed by BasePlan, with each
+  //     separated by a synchronization barrier.:
+  //      1. globalPrepare()
+  //      2. threadLocalPrepare()
+  //      3. threadLocalRelease()
+  //      4. globalRelease()
+  //
+
   /**
    * Perform a collection.
    */
   public final void collect () {
-    if ((verbose == 1) && (fullHeapGC)) VM.sysWrite("[Full heap]");
+    if ((verbose >= 1) && (fullHeapGC)) VM_Interface.sysWrite("[Full heap]");
     super.collect();
   }
 
@@ -377,12 +391,13 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void globalPrepare() {
     nurseryMR.reset(); // reset the nursery
+    lastGCFull = fullHeapGC;
     if (fullHeapGC) {
       Statistics.gcMajorCount++;
       // prepare each of the collected regions
       if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
-      Immortal.prepare(immortalVM, null);
+      ImmortalSpace.prepare(immortalVM, null);
     }
   }
 
@@ -397,12 +412,18 @@ public abstract class Generational extends StopTheWorldGC
    * space and LOS.
    */
   protected final void threadLocalPrepare(int count) {
-    remset.flushLocal();
     nursery.rebind(nurseryVM);
     if (fullHeapGC) {
       threadLocalMaturePrepare(count);
       if (Plan.usesLOS) los.prepare();
     }
+  }
+
+  /**
+   * Flush any remembered sets pertaining to the current collection.
+   */
+  protected final void flushRememberedSets() {
+    remset.flushLocal();
   }
 
   /**
@@ -430,9 +451,9 @@ public abstract class Generational extends StopTheWorldGC
       // This is printed independently of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
       // will know---it will have a noticable performance hit...
-      VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
-      VM.sysWrite(wbFastPathCounter); VM.sysWrite(" wb-fast, ");
-      VM.sysWrite(wbSlowPathCounter); VM.sysWrite(" wb-slow>\n");
+      VM_Interface.sysWrite("<GC ",Statistics.gcCount); VM_Interface.sysWrite(" "); 
+      VM_Interface.sysWrite(wbFastPathCounter); VM_Interface.sysWrite(" wb-fast, ");
+      VM_Interface.sysWrite(wbSlowPathCounter); VM_Interface.sysWrite(" wb-slow>\n");
       wbFastPathCounter = wbSlowPathCounter = 0;
     }
     if (fullHeapGC) { 
@@ -459,20 +480,21 @@ public abstract class Generational extends StopTheWorldGC
     if (fullHeapGC) {
       if (Plan.usesLOS) losSpace.release();
       globalMatureRelease();
-      Immortal.release(immortalVM, null);
+      ImmortalSpace.release(immortalVM, null);
     }
     int minNursery = (Options.nurseryPages < MAX_INT) ? Options.nurseryPages : DEFAULT_MIN_NURSERY;
     fullHeapGC = (getPagesAvail() < minNursery);
     if (getPagesReserved() + required >= getTotalPages()) {
-      if (!progress) {
-	VM.sysWrite("getPagesReserved() = ", getPagesReserved());
-	VM.sysWrite("required = ", required);
-	VM.sysWrite("getTotalPages() = ", getTotalPages());
- 	VM.sysFail("Out of memory");
-      }
       progress = false;
     } else
       progress = true;
+  }
+
+  /**
+   * @return Whether last GC is a full GC.
+   */
+  public static boolean isLastGCFull () {
+    return lastGCFull;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -494,13 +516,13 @@ public abstract class Generational extends StopTheWorldGC
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     if (space == NURSERY_SPACE)
-      return Copy.traceObject(obj);
+      return CopySpace.traceObject(obj);
     if (!fullHeapGC)
 	return obj;
     switch (space) {
         case LOS_SPACE:         return losSpace.traceObject(obj);
-        case IMMORTAL_SPACE:    return Immortal.traceObject(obj);
-        case BOOT_SPACE:	return Immortal.traceObject(obj);
+        case IMMORTAL_SPACE:    return ImmortalSpace.traceObject(obj);
+        case BOOT_SPACE:	return ImmortalSpace.traceObject(obj);
         case META_SPACE:	return obj;
         default:                return Plan.traceMatureObject(space, obj, addr);
     }

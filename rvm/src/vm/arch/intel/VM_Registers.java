@@ -15,7 +15,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.
   //
-  public int    gprs[]; // general purpose registers
+  public VM_WordArray gprs; // general purpose registers
   public double fprs[]; // floating point registers
   public VM_Address ip;     // instruction address register
   public VM_Address fp;     // frame pointer
@@ -26,7 +26,7 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
   public boolean inuse; // do exception registers currently contain live values?
   
   public VM_Registers() {
-    gprs = new int[NUM_GPRS];
+    gprs = VM_WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
   }
   

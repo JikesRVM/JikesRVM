@@ -133,13 +133,13 @@ class VM_NativeIdleThread extends VM_IdleThread {
       //
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      VM_Address TOC = VM_Address.fromInt(0);
+      VM_Address TOC = VM_Address.zero();
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myNativeProcessor.vpStatusAddress.toInt(),
+		              myNativeProcessor.vpStatusAddress,
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 
@@ -213,13 +213,13 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      VM_Address TOC = VM_Address.fromInt(0);
+      VM_Address TOC = VM_Address.zero();
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myNativeProcessor.vpStatusAddress.toInt(),
+		              myNativeProcessor.vpStatusAddress,
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 

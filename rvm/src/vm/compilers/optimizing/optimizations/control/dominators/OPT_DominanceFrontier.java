@@ -137,7 +137,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    * @param bits the BitVector representing the set of basic blocks
-   * @returns a BitVector representing the dominance frontier for the set
+   * @return a BitVector representing the dominance frontier for the set
    */
   public static OPT_BitVector getDominanceFrontier(OPT_IR ir, OPT_BitVector bits) {
     OPT_BitVector result = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
@@ -159,7 +159,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    * @param bits the BitVector representing the set of basic blocks
-   * @returns a BitVector representing the dominance frontier for the set
+   * @return a BitVector representing the dominance frontier for the set
    */
   public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir, 
                                                            OPT_BitVector S) {

@@ -55,7 +55,7 @@ public final class OSR_OptExecStateExtractor
 				methFPoff + STACKFRAME_METHOD_ID_OFFSET);
       if (foocmid != cmid) {
 	for (int i=osrFPoff; i>=methFPoff-8; i-=4) {
-	  VM.sysWriteHex(VM_Magic.objectAsAddress(stack).toInt()+i);
+	  VM.sysWriteHex(VM_Magic.objectAsAddress(stack).add(i));
 	  VM.sysWrite(" : "); VM.sysWriteHex(stack[i<<2]); VM.sysWriteln();
 	}
 	
@@ -83,7 +83,7 @@ public final class OSR_OptExecStateExtractor
     VM_Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
     VM_Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
     VM_Address instr_beg  = VM_Magic.objectAsAddress(instructions);
-    int ipOffset   = nextIP.diff(instr_beg).toInt();    
+    VM_Offset ipOffset   = nextIP.diff(instr_beg);    
     VM.enableGC();
 
     VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
@@ -167,7 +167,7 @@ public final class OSR_OptExecStateExtractor
     // stack word width in bytes.
     int SW_WIDTH = 1 << LG_STACKWORD_WIDTH;
     
-    int[] gprs = registers.gprs;
+    VM_WordArray gprs = registers.gprs;
     double[] fprs = registers.fprs;
       
     // temporarialy hold ct, xer, ctr register
@@ -187,8 +187,7 @@ public final class OSR_OptExecStateExtractor
 	 i >= FIRST_VOLATILE_GPR;
 	 i--) {
       lastVoffset -= SW_WIDTH;
-      gprs[i] = 
-	VM_Magic.getIntAtOffset(stack, lastVoffset);
+      gprs.set(i, VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(lastVoffset)));
     }
             
     // recover nonvolatile GPRs
@@ -196,7 +195,7 @@ public final class OSR_OptExecStateExtractor
       for (int i=firstGPR;
 	   i<=LAST_NONVOLATILE_GPR;
 	   i++) {
-	gprs[i] = VM_Magic.getIntAtOffset(stack, nvArea);
+	gprs.set(i, VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(nvArea)));
 	nvArea += SW_WIDTH;
       }
     }
@@ -230,7 +229,7 @@ public final class OSR_OptExecStateExtractor
     for (int i=1; i<NUM_GPRS; i++) {
       if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
 	registers.objs[i] = 
-	  VM_Magic.addressAsObject(VM_Address.fromInt(registers.gprs[i]));
+	  VM_Magic.addressAsObject(registers.gprs.get(i).toAddress());
       }
     }
     
@@ -245,7 +244,7 @@ public final class OSR_OptExecStateExtractor
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
 						  int[] stack,
-						  int   ipOffset,
+						  VM_Offset   ipOffset,
 						  int   fpOffset,
 						  int   cmid,
 						  int   tsFPOffset,
@@ -440,7 +439,7 @@ public final class OSR_OptExecStateExtractor
     // because all registers are saved in threadswitch's stack
     // frame, we get value from it.
     } else if (vtype == PHYREG) {
-      return registers.gprs[value];
+      return registers.gprs.get(value).toInt();
       
     // for spilled locals, the value is the spilled position
     // it is on FOO's stackframe.
@@ -528,10 +527,9 @@ public final class OSR_OptExecStateExtractor
 
   private static void dumpStackContent(int[] stack, int fpOffset) {
     VM.disableGC();
-    int upper = VM_Magic.getIntAtOffset(stack, fpOffset);
-    int stack_beg = VM_Magic.objectAsAddress(stack).toInt();
+    VM_Address upper = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(fpOffset));
+    int upOffset = upper.diff(VM_Magic.objectAsAddress(stack)).toInt();
     VM.enableGC();
-    int upOffset = upper - stack_beg;
 
     int cmid = VM_Magic.getIntAtOffset(stack, 
 		 fpOffset + STACKFRAME_METHOD_ID_OFFSET);
@@ -553,7 +551,7 @@ public final class OSR_OptExecStateExtractor
   /* walk on stack frame, print out methods
    */
   private static void walkOnStack(int[] stack, int fpOffset) {
-    int cmid = STACKFRAME_SENTINAL_FP;
+    int cmid = STACKFRAME_SENTINEL_FP.toInt();
     do {
       cmid = VM_Magic.getIntAtOffset(stack, 
 				       fpOffset+STACKFRAME_METHOD_ID_OFFSET);
@@ -564,10 +562,10 @@ public final class OSR_OptExecStateExtractor
 	VM.sysWriteln(cm.getMethod().toString());
       }
       VM.disableGC();
-      int callerfp = VM_Magic.getIntAtOffset(stack,
-			       fpOffset+STACKFRAME_FRAME_POINTER_OFFSET);
-      fpOffset = callerfp - VM_Magic.objectAsAddress(stack).toInt();
+      VM_Address callerfp = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(
+			       fpOffset+STACKFRAME_FRAME_POINTER_OFFSET));
+      fpOffset = callerfp.diff(VM_Magic.objectAsAddress(stack)).toInt();
       VM.enableGC();
-    } while (cmid != STACKFRAME_SENTINAL_FP);
+    } while (cmid != STACKFRAME_SENTINEL_FP.toInt());
   }
 }

@@ -15,7 +15,7 @@ import com.ibm.JikesRVM.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants {
+public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants, VM_SizeConstants {
 
   /**
    * Used to cannonicalize VM_InterfaceMethodSignatures
@@ -114,6 +114,6 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants 
     if (VM.BuildForEmbeddedIMT) {
       slot += TIB_FIRST_INTERFACE_METHOD_INDEX;
     }
-    return slot << 2;
+    return slot << LOG_BYTES_IN_ADDRESS;
   }
 }

@@ -217,7 +217,7 @@ public final class OPT_BranchOptimizations
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @returns true iff made a transformation
+   * @return true iff made a transformation
    */
   private boolean processConditionalBranch(OPT_IR ir, 
 					   OPT_Instruction cb, 
@@ -315,7 +315,7 @@ public final class OPT_BranchOptimizations
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @returns true iff made a transformation
+   * @return true iff made a transformation
    */
   private boolean processInlineGuard(OPT_IR ir, 
 				     OPT_Instruction cb, 
@@ -384,7 +384,7 @@ public final class OPT_BranchOptimizations
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @returns true iff made a transformation
+   * @return true iff made a transformation
    */
   private boolean processTwoTargetConditionalBranch(OPT_IR ir, 
 						    OPT_Instruction cb, 
@@ -466,7 +466,7 @@ public final class OPT_BranchOptimizations
    * @param cb the conditional branch instruction
    * @param target the target instruction (real instruction) of the conditional
    *		   branch
-   * @returns boolean result
+   * @return boolean result
    */
   private boolean isFlipCandidate (OPT_Instruction cb, 
       OPT_Instruction target) {
@@ -600,7 +600,7 @@ public final class OPT_BranchOptimizations
    * @param ir governing IR
    * @param bb basic block of cb
    * @param cb conditional branch instruction
-   * @returns true if the transformation succeeds, false otherwise
+   * @return true if the transformation succeeds, false otherwise
    */
   private boolean generateCondMove(OPT_IR ir, OPT_BasicBlock bb, 
                                    OPT_Instruction cb) {
@@ -999,7 +999,7 @@ public final class OPT_BranchOptimizations
    * @param ir governing IR
    * @param bb basic block of cb
    * @param cb conditional branch instruction
-   * @returns true if the transformation succeeds, false otherwise
+   * @return true if the transformation succeeds, false otherwise
    */
   private boolean generateBooleanCompare (OPT_IR ir, 
 					  OPT_BasicBlock bb, 

@@ -23,7 +23,7 @@ import java.util.HashMap;
 public final class VM_Atom implements VM_ClassLoaderConstants {
 
   /**
-   * Used to cannonicalize VM_Atoms
+   * Used to cannonicalize VM_Atoms: Key => VM_Atom
    */
   private static HashMap dictionary = new HashMap();
 
@@ -45,12 +45,12 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Cached hash code for this atom.
    */
-  private final int  hash;  
+  private final int hash;  
    
   /**
    * The id of this atom
    */
-  private int id;
+  private final int id;
 
   /**
    *@return the id of this atom.
@@ -64,7 +64,17 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
     byte[] utf8 = VM_UTF8Convert.toUTF8(str);
-    return findOrCreate(utf8);
+    return findOrCreate(utf8, true);
+  }
+
+  /**
+   * Find an atom.
+   * @param str atom value, as string literal whose characters are unicode
+   * @return atom or null if it doesn't already exist
+   */
+  public static VM_Atom findUnicodeAtom(String str) {
+    byte[] utf8 = VM_UTF8Convert.toUTF8(str);
+    return findOrCreate(utf8, false);
   }
 
   /**
@@ -77,7 +87,20 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     int    len   = str.length();
     byte[] ascii = new byte[len];
     str.getBytes(0, len, ascii, 0);
-    return findOrCreate(ascii);
+    return findOrCreate(ascii, true);
+  }
+   
+  /**
+   * Find an atom.
+   * @param str atom value, as string literal whose characters are from 
+   *            ascii subset of unicode (not including null)
+   * @return atom or null if it doesn't already exist
+   */ 
+  public static VM_Atom findAsciiAtom(String str) {
+    int    len   = str.length();
+    byte[] ascii = new byte[len];
+    str.getBytes(0, len, ascii, 0);
+    return findOrCreate(ascii, false);
   }
    
   /**
@@ -86,7 +109,16 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * @return atom
    */
   public static VM_Atom findOrCreateUtf8Atom(byte[] utf8) {
-    return findOrCreate(utf8);
+    return findOrCreate(utf8, true);
+  }
+
+  /**
+   * Find an atom.
+   * @param utf8 atom value, as utf8 encoded bytes
+   * @return atom or null it it doesn't already exisit
+   */
+  public static VM_Atom findUtf8Atom(byte[] utf8) {
+    return findOrCreate(utf8, false);
   }
 
   /**
@@ -101,22 +133,22 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     byte val[] = new byte[len];
     for (int i = 0; i < len; ++i)
       val[i] = utf8[off++];
-    return findOrCreate(val);
+    return findOrCreate(val, true);
   }
 
-  private static synchronized VM_Atom findOrCreate(byte[] bytes) {
-    VM_Atom key = new VM_Atom(bytes);
+  private static synchronized VM_Atom findOrCreate(byte[] bytes, boolean create) {
+    Key key = new Key(bytes);
     VM_Atom val = (VM_Atom)dictionary.get(key);
-    if (val != null)  return val;
-    key.id = nextId++;
-    if (key.id == atoms.length) {
+    if (val != null || !create)  return val;
+    val = new VM_Atom(key, nextId++);
+    if (val.id == atoms.length) {
       VM_Atom[] tmp = new VM_Atom[atoms.length+1000];
       System.arraycopy(atoms, 0, tmp, 0, atoms.length);
       atoms = tmp;
     }
-    atoms[key.id] = key;
-    dictionary.put(key, key);
-    return key;
+    atoms[val.id] = val;
+    dictionary.put(key, val);
+    return val;
   }
 
   //-------------//
@@ -148,7 +180,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     sig[0] = (byte)'[';
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
-    return findOrCreate(sig);
+    return findOrCreate(sig, true);
   }
 
   /**
@@ -163,7 +195,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
     sig[sig.length - 1] = (byte)';';
-    return findOrCreate(sig);
+    return findOrCreate(sig, true);
   }
 
   /**
@@ -393,8 +425,9 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   //-----------//
    
   public final void sysWrite() throws VM_PragmaUninterruptible {
-    for (int i = 0, n = val.length; i < n; ++i)
+    for (int i = 0, n = val.length; i < n; ++i) {
       VM.sysWrite((char)val[i]);
+    }
   }
 
   public final int length() throws VM_PragmaUninterruptible {
@@ -402,32 +435,56 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
-   * Create atom from given utf8 sequence.
+   * Create atom from the key that maps to it.
    */ 
-  private VM_Atom(byte utf8[]) {
-    int tmp = 99989;
-    for (int i = utf8.length; --i >= 0; )
-      tmp = 99991 * tmp + utf8[i];
-    this.val  = utf8;
-    this.hash = tmp;
+  private VM_Atom(Key key, int id) {
+    this.val = key.val;
+    this.hash = key.hashCode();
+    this.id = id;
   }
 
   public final int hashCode() {
     return hash;
   }
 
+  /*
+   * We cannonizalize VM_Atoms, therefore we can use == for equals
+   */
   public final boolean equals(Object other) {
-    if (this == other) return true;
-    if (other instanceof VM_Atom) {
-      VM_Atom that = (VM_Atom)other;
-      if (hash != that.hash) return false;
-      if (val.length != that.val.length) return false;
-      for (int i=0; i<val.length; i++) {
-	if (val[i] != that.val[i]) return false;
+    return this == other;
+  }
+
+  /**
+   * A Key into the atom dictionary.
+   * We do this to enable VM_Atom.equals to be efficient (==).
+   */ 
+  private static class Key {
+    final byte[] val;
+
+    Key(byte utf8[]) {
+      val = utf8;
+    }
+
+    public final int hashCode() {
+      int tmp = 99989;
+      for (int i = val.length; --i >= 0; ) {
+	tmp = 99991 * tmp + val[i];
       }
-      return true;
-    } else {
-      return false;
+      return tmp;
+    }
+
+    public final boolean equals(Object other) {
+      if (this == other) return true;
+      if (other instanceof Key) {
+	Key that = (Key)other;
+	if (val.length != that.val.length) return false;
+	for (int i=0; i<val.length; i++) {
+	  if (val[i] != that.val[i]) return false;
+	}
+	return true;
+      } else {
+	return false;
+      }
     }
   }
 }

@@ -49,9 +49,9 @@ class VM_CallSiteTripleComparator implements java.util.Comparator {
   /** 
    * Compare the string representation of two triples
    *
-   * @returns -1 iff o1 < o2
-   * @returns +1 iff o1 > o2
-   * @returns 0 if o1 and o2 are the same callsites or 
+   * @return -1 iff o1 < o2
+   * @return +1 iff o1 > o2
+   * @return 0 if o1 and o2 are the same callsites or 
    *		if they only differ by their bytecode indices and 
    *		one index is -1.
    */
@@ -65,9 +65,9 @@ class VM_CallSiteTripleComparator implements java.util.Comparator {
   /** 
    * Compare the weight of two triples
    *
-   * @returns -1 iff w(t1) < w(t2)
-   * @returns +1 iff w(t1) > w(t2)
-   * @returns compareByName(t1,t2) otherwise
+   * @return -1 iff w(t1) < w(t2)
+   * @return +1 iff w(t1) > w(t2)
+   * @return compareByName(t1,t2) otherwise
    */
   private int compareByWeight(VM_CallSiteTriple t1, VM_CallSiteTriple t2) 
   {
@@ -80,9 +80,9 @@ class VM_CallSiteTripleComparator implements java.util.Comparator {
   }
   /** 
    * @param o1, o2 two VM_CallSiteTriple to be compared.
-   * @returns -1 iff o1 < o2
-   * @returns +1 iff o1 > o2
-   * @returns 0 if o1 and o2 are the same callsites or 
+   * @return -1 iff o1 < o2
+   * @return +1 iff o1 > o2
+   * @return 0 if o1 and o2 are the same callsites or 
    *		if they only differ by their bytecode indices and 
    *		one index is -1.
    */

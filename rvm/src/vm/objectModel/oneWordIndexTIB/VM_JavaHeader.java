@@ -89,7 +89,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Set the TIB for an object.
    * Note: Beware; this function clears the additional bits.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, int tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, int refOffset, VM_Address tibAddr, VM_Type type) {
     int idx = type.getTibSlot() << TIB_SHIFT;
     if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
     bootImage.setAddressWord(refOffset + TIB_OFFSET, idx);
@@ -139,24 +139,24 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
 	VM._assert(dest != 0);
 	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
-      asm.emitL   (dest, TIB_OFFSET, object);
+      asm.emitAddr  (dest, TIB_OFFSET, object);
       asm.emitANDI(0, dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
       asm.emitBEQ (5);  // if dest & FORWARDING_MASK == 0; then dest has a valid tib index
       asm.emitCMPI(0, VM_AllocatorHeader.GC_FORWARDED);
       asm.emitBNE (3); 
       // It really has been forwarded; chase the forwarding pointer and get the tib word from there.
-      asm.emitRLWINM(dest, dest, 0, 0, 29);    // mask out bottom two bits of forwarding pointer
-      asm.emitL     (dest, TIB_OFFSET, dest); // get TIB word from forwarded object
+      asm.emitRLAddrINM(dest, dest, 0, 0, 29);    // mask out bottom two bits of forwarding pointer
+      asm.emitLAddr    (dest, TIB_OFFSET, dest); // get TIB word from forwarded object
       // The following clears the high and low-order bits. See p.119 of PowerPC book
       // Because TIB_SHIFT is 2 the masked value is a JTOC offset.
-      asm.emitRLWINM(dest, dest, 0, MB, ME);
-      asm.emitLX(dest,JTOC,dest);
+      asm.emitRLAddrINM(dest, dest, 0, MB, ME); 
+      asm.emitLAddrX(dest,JTOC,dest);
     } else {
-      asm.emitL(dest, TIB_OFFSET, object);
+      asm.emitLAddr(dest, TIB_OFFSET, object);
       // The following clears the high and low-order bits. See p.119 of PowerPC book
       // Because TIB_SHIFT is 2 the masked value is a JTOC offset.
-      asm.emitRLWINM(dest, dest, 0, MB, ME);
-      asm.emitLX(dest,JTOC,dest);
+      asm.emitRLAddrINM(dest, dest, 0, MB, ME);
+      asm.emitLAddrX(dest,JTOC,dest);
     }
   }
   //-#elif RVM_FOR_IA32

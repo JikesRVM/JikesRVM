@@ -99,7 +99,6 @@ function showHelp {
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemiSpace image'
-  echo '-old-libraries              use obsolete hybrid libraries'
   echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
 }
@@ -247,10 +246,6 @@ while [ $# != 0 ]; do
    -config-args)
 	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS $2"
 	shift
-   ;;
-
-   -old-libraries)
-	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS -D RVM_WITH_GNU_CLASSPATH=0"
    ;;
 
    ## set up to run a minimal test suite on OptOptSemiSpace

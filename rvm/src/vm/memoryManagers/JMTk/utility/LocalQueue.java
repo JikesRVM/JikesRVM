@@ -5,8 +5,9 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -78,8 +79,8 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
   protected final void checkPush(int arity) throws VM_PragmaInline {
     if (VM_Address.fromInt(bufferOffset(head)).EQ(headSentinel(arity)))
       pushOverflow(arity);
-    else if (VM.VerifyAssertions)
-      VM._assert(bufferOffset(head) <= bufferLastOffset(arity));
+    else if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(arity));
   }
   
   /**
@@ -99,8 +100,8 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
       return popOverflow(arity);
     }
     else {
-      if (VM.VerifyAssertions)
-	VM._assert(bufferOffset(head) >= (arity<<LOG_WORD_SIZE));
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(bufferOffset(head) >= (arity<<LOG_WORD_SIZE));
       return true;
     }
   }
@@ -113,11 +114,26 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
    * @param value the value to be inserted.
    */
   protected final void uncheckedPush(int value) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) 
-      VM._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
     VM_Magic.setMemoryInt(head, value);
     head = head.add(WORD_SIZE);
-    //    if (VM.VerifyAssertions) enqueued++;
+    //    if (VM_Interface.VerifyAssertions) enqueued++;
+  }
+
+  /**
+   * Push a value onto the buffer.  This is <i>unchecked</i>.  The
+   * caller must first call <code>checkPush()</code> to ensure the
+   * buffer can accommodate the insertion.
+   *
+   * @param value the value to be inserted.
+   */
+  protected final void uncheckedPush(VM_Address value) throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
+    VM_Magic.setMemoryAddress(head, value);
+    head = head.add(BYTES_IN_WORD);
+    //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   /**
@@ -125,13 +141,27 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
    * caller must first call <code>checkPop()</code> to ensure the
    * buffer has sufficient values.
    *
-   * @return the next value in the buffer
+   * @return the next int in the buffer
    */
   protected final int uncheckedPop() throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(bufferOffset(head) >= WORD_SIZE);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(head) >= WORD_SIZE);
     head = head.sub(WORD_SIZE);
-    // if (VM.VerifyAssertions) enqueued--;
+    // if (VM_Interface.VerifyAssertions) enqueued--;
     return VM_Magic.getMemoryInt(head);
+  }
+
+  /**
+   * Pop a value from the buffer.  This is <i>unchecked</i>.  The
+   * caller must first call <code>checkPop()</code> to ensure the
+   * buffer has sufficient values.
+   *
+   * @return the next address in the buffer
+   */
+  protected final VM_Address uncheckedPopAddress() throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(head) >= BYTES_IN_WORD);
+    head = head.sub(BYTES_IN_WORD);
+    // if (VM_Interface.VerifyAssertions) enqueued--;
+    return VM_Magic.getMemoryAddress(head);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -203,7 +233,7 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
 	head = queue.alloc(); // no head, so alloc a new one
       VM_Address tmp = head;
       head = normalizeTail(arity).add(WORD_SIZE);// account for pre-decrement
-      if (VM.VerifyAssertions) VM._assert(tmp.EQ(bufferStart(tmp)));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(tmp.EQ(bufferStart(tmp)));
       tail = tmp.add(bufferLastOffset(arity) + WORD_SIZE);
     } else {
       VM_Address tmp = queue.dequeueAndWait(arity);

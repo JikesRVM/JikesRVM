@@ -73,10 +73,8 @@ public final class OSR_BaselineExecStateExtractor
     INSTRUCTION[] instructions = fooCM.getInstructions();
 
     VM.disableGC();
-    int instr_beg = VM_Magic.objectAsAddress(instructions).toInt();
-    int rowIP     = VM_Magic.getIntAtOffset(stack, 
-		       methFPoff + STACKFRAME_NEXT_INSTRUCTION_OFFSET);
-    int ipIndex   = (rowIP - instr_beg) >> LG_INSTRUCTION_WIDTH;
+    VM_Address rowIP     = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(methFPoff + STACKFRAME_NEXT_INSTRUCTION_OFFSET));
+    int ipIndex   = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
     VM.enableGC();
 
     // CAUTION: IP Offset should point to next instruction
@@ -225,13 +223,12 @@ public final class OSR_BaselineExecStateExtractor
       }
       case AddressTypeCode: {
 	VM.disableGC();
-	int rowIP = VM_Magic.getIntAtOffset(stack, vOffset);
-	int instr_beg = VM_Magic.objectAsAddress(instructions).toInt();	
+	VM_Address rowIP = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(vOffset));
+	int ipIndex = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
 	VM.enableGC();
 
-	vOffset -= 4;
+	vOffset -= BYTES_IN_ADDRESS;
 
-	int ipIndex = (rowIP - instr_beg) >> LG_INSTRUCTION_WIDTH;
 
         if (VM.TraceOnStackReplacement) {
 	  VM.sysWrite("baseline addr ip "+ipIndex+" --> ");
@@ -257,7 +254,7 @@ public final class OSR_BaselineExecStateExtractor
 	Object ref = VM_Magic.getObjectAtOffset(stack, vOffset);
 	VM.enableGC();
 
-	vOffset -= 4;
+	vOffset -= BYTES_IN_ADDRESS;
 
 	state.add(new OSR_VariableElement(kind,
 					 i,

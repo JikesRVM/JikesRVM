@@ -4,8 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.librarySupport.SystemSupport;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -188,9 +187,6 @@ public class VM_Runtime implements VM_Constants {
     if (elmType == VM_Type.JavaLangObjectType) 
       return; // array of Object can receive anything
 
-    if (elmType == VM_Type.AddressType)
-      return; // array of Address can receive anything that was verifiable
-      
     VM_Type rhsType = VM_Magic.getObjectType(arrayElement);
      
     if (elmType == rhsType)
@@ -246,7 +242,7 @@ public class VM_Runtime implements VM_Constants {
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
-    int allocator = VM_Interface.pickAllocator(cls);
+    int allocator = MM_Interface.pickAllocator(cls);
     return resolvedNewScalar(cls.getInstanceSize(), 
 			     cls.getTypeInformationBlock(), 
 			     cls.hasFinalizer(),
@@ -272,19 +268,18 @@ public class VM_Runtime implements VM_Constants {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
 	countDownToGC = GCInterval;
-	VM_Interface.gc();
+	MM_Interface.gc();
       }
     }
     
     // Event logging and stat gathering
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logObjectAllocationEvent();
-
     // Allocate the object and initialize its header
-    Object newObj = VM_Interface.allocateScalar(size, tib, allocator);
+    Object newObj = MM_Interface.allocateScalar(size, tib, allocator);
 
     // Deal with finalization
-    if (hasFinalizer) VM_Interface.addFinalizer(newObj);
+    if (hasFinalizer) MM_Interface.addFinalizer(newObj);
 
     return newObj;
   }
@@ -305,7 +300,7 @@ public class VM_Runtime implements VM_Constants {
       array.instantiate();
     }
 
-    int allocator = VM_Interface.pickAllocator(array);
+    int allocator = MM_Interface.pickAllocator(array);
     return resolvedNewArray(numElements, 
 			    array.getInstanceSize(numElements),
 			    array.getTypeInformationBlock(),
@@ -334,7 +329,7 @@ public class VM_Runtime implements VM_Constants {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
 	countDownToGC = GCInterval;
-	VM_Interface.gc();
+	MM_Interface.gc();
       }
     }
 
@@ -343,7 +338,7 @@ public class VM_Runtime implements VM_Constants {
       VM_EventLogger.logObjectAllocationEvent();
 
     // Allocate the array and initialize its header
-    return VM_Interface.allocateArray(numElements, size, tib, allocator);
+    return MM_Interface.allocateArray(numElements, size, tib, allocator);
   }
 
 
@@ -365,14 +360,14 @@ public class VM_Runtime implements VM_Constants {
   public static Object clone (Object obj)
     throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
-    int allocator = VM_Interface.pickAllocator(type);
+    int allocator = MM_Interface.pickAllocator(type);
     if (type.isArrayType()) {
       VM_Array ary   = type.asArray();
       int      nelts = VM_ObjectModel.getArrayLength(obj);
       int      size  = ary.getInstanceSize(nelts);
       Object[] tib   = ary.getTypeInformationBlock();
       Object newObj  = resolvedNewArray(nelts, size, tib, allocator);
-      SystemSupport.arraycopy(obj, 0, newObj, 0, nelts);
+      System.arraycopy(obj, 0, newObj, 0, nelts);
       return newObj;
     } else {
       if (!(obj instanceof Cloneable))
@@ -386,10 +381,10 @@ public class VM_Runtime implements VM_Constants {
 	VM_Field f = instanceFields[i];
 	VM_TypeReference ft = f.getType();
 	if (ft.isReferenceType()) {
-	  // Do via slower "pure" reflection to enable
+	  // Do via slower "VM-internal reflection" to enable
 	  // collectors to do the right thing wrt reference counting
 	  // and write barriers.
-	  f.setObjectValue(newObj, f.getObjectValue(obj));
+	  f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
 	} else if (ft.isLongType() || ft.isDoubleType()) {
 	  int offset = f.getOffset();
 	  long bits = VM_Magic.getLongAtOffset(obj, offset);
@@ -411,7 +406,7 @@ public class VM_Runtime implements VM_Constants {
    * called from java/lang/Runtime
    */ 
   public static void gc () {
-    VM_Interface.gc();
+    MM_Interface.gc();
   }
 
   /**
@@ -419,7 +414,7 @@ public class VM_Runtime implements VM_Constants {
    * called from /java/lang/Runtime
    */
   public static long freeMemory() {
-    return VM_Interface.freeMemory();
+    return MM_Interface.freeMemory();
   }
 
 
@@ -428,7 +423,7 @@ public class VM_Runtime implements VM_Constants {
    * called from /java/lang/Runtime
    */
   public static long totalMemory() {
-    return VM_Interface.totalMemory();
+    return MM_Interface.totalMemory();
   }
 
 
@@ -547,15 +542,15 @@ public class VM_Runtime implements VM_Constants {
     VM_Registers exceptionRegisters = myThread.hardwareExceptionRegisters;
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) && 
-	myThread.stack.length < (STACK_SIZE_MAX >> 2) && 
+	myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) && 
 	!myThread.hasNativeStackFrame()) { 
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> 2), exceptionRegisters);
+	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
       } else {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters);
+	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;
@@ -564,6 +559,12 @@ public class VM_Runtime implements VM_Constants {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
 
+    // GC stress testing
+    if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
+      VM.sysWrite("FORCING GC: in deliverHardwareException\n");
+      MM_Interface.gc();
+    }
+    
     Throwable exceptionObject;
     switch (trapCode) {
     case TRAP_NULL_POINTER:
@@ -725,7 +726,7 @@ public class VM_Runtime implements VM_Constants {
 
     int    nelts     = numElements[dimIndex];
     int    size      = arrayType.getInstanceSize(nelts);
-    int allocator    = VM_Interface.pickAllocator(arrayType);
+    int allocator    = MM_Interface.pickAllocator(arrayType);
     Object newObject = resolvedNewArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
 
     if (++dimIndex == numElements.length)
@@ -768,16 +769,16 @@ public class VM_Runtime implements VM_Constants {
     //
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
     VM_Address fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
 	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	  VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
 	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
 	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	  int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress).toInt(), exceptionType);
+	  VM_Offset catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
 
-	  if (catchBlockOffset >= 0) { 
+	  if (catchBlockOffset.toInt() >= 0  ){ 
 	      // found an appropriate catch block
 	      exceptionDeliverer.deliverException(compiledMethod, 
 						  methodStartAddress.add(catchBlockOffset), 
@@ -822,14 +823,14 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( !VM_Interface.refInVM(ip) && fp.toInt() != STACKFRAME_SENTINAL_FP);
+    } while ( !MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP)) ;
 
 	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
 	// for SVR4 convention, a Java-to-C frame has two mini frames,
 	// stop before the mini frame 1 whose ip is in VM (out of line machine
-	// code), in the case of sentinal fp, it has to return the callee's fp
+	// code), in the case of sentinel fp, it has to return the callee's fp
 	// because GC ScanThread uses it to get return address and so on.
-	if (VM_Interface.refInVM(ip)) {
+	if (MM_Interface.refInVM(ip)) {
       return fp;
 	} else {
 	  return callee_fp;

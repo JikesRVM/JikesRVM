@@ -973,10 +973,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   private int convertOffsetToBitNum(int offset)   {
     if (offset == 0) return 1; // initial call return first map bit
 
-    // determine offset in bit area
-    int diff = local0Offset - offset;
     // convert from offset to bitnumber
-    int bitnum = (diff >>>2) + 1 +1; // 1 for being 1 based +1 for jsr bit
+    int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1 +1; // 1 for being 1 based +1 for jsr bit
 
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertOffsetToBitnum- offset = ", offset, "  bitnum = ", bitnum);
@@ -997,7 +995,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     //               and possibly a parameter spill area
 
     // convert from top of local words
-    int offset = local0Offset - ((bitnum -1 -1) <<2); // minus 1 for being 1 based, minus 1 for jsrbit
+    int offset = local0Offset - ((bitnum -1 -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for being 1 based, minus 1 for jsrbit
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertBitnumToOffset- bitnum = ", bitnum, "  offset = ", offset);
     }
@@ -1010,7 +1008,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    */
   private int convertJsrBitNumToOffset(int bitnum)   {
     // convert from top of local words
-    int jsroffset = local0Offset - ((bitnum -1) <<2); // minus 1 for being 1 based, no jsrbit here
+    int jsroffset = local0Offset - ((bitnum -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for being 1 based, no jsrbit here
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertJsrBitnumToOffset- input bitnum = ", bitnum, "  offset = ", jsroffset);
     }
@@ -1026,9 +1024,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   private int convertJsrOffsetToBitNum(int offset)   {
     if (offset==0) return 1; // initial call return first map bit
 
-    int diff = local0Offset - offset;
-    // convert from offset to bitnumber
-    int bitnum = (diff >>>2) + 1; // 1 for being 1 based; no jsr bit
+    int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1; // 1 for being 1 based; no jsr bit
 
     if (true || VM.TraceStkMaps) {
       VM.sysWrite("convertJsrOffsetToBitnum- local0Offset = ", local0Offset);

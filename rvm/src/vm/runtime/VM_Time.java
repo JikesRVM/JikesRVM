@@ -15,20 +15,36 @@ public class VM_Time implements VM_Uninterruptible {
   /**
    * Number of processor cycles executed since some undefined epoch.
    */ 
-  static long cycles() {
+  static public long cycles() {
     //-#if RVM_FOR_POWERPC
-    //-#if RVM_FOR_AIX
     // 1 tick --> 4 cycles, see VM_Magic.getTimeBase()
     return VM_Magic.getTimeBase() << 2; 
-    //-#else
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return 0;  // currently unimplemented for PPC-Linux
-    //-#endif
     //-#endif
     //-#if RVM_FOR_IA32
     // 1 tick --> 1 cycle on IA32
     return VM_Magic.getTimeBase();
     //-#endif
+  }
+
+  static private double milliPerCycle = 0.0;
+
+  static public double cyclesToMilli (long c) {
+    return c * milliPerCycle;
+  }
+
+  static public void boot() {
+    double start = now();
+    long cycleStart = cycles();
+    double dur = 0.0; // in milliseconds
+    // 0.1 second should be enough to obtain accurate factor but not enough to overflow cycle counter
+    while (dur < 0.1) {  
+      for (int i=0; i<1000; i++)  // busy-spin
+	milliPerCycle += 1.0; 
+      dur = 1000.0 * (VM_Time.now() - start);
+    }
+    long cycles = cycles() - cycleStart;
+    if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
+    milliPerCycle = dur / cycles;
   }
 
   /**
@@ -37,14 +53,14 @@ public class VM_Time implements VM_Uninterruptible {
   public static double now() {
     //-#if RVM_FOR_POWERPC
     //-#if RVM_FOR_LINUX
-    long currentTime = VM.sysCall_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
+    long currentTime = VM_SysCall.call_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
     double time = (double) currentTime / 1000000D;
     //-#else
     double time = VM_Magic.getTime(VM_Processor.getCurrentProcessor());
     //-#endif
     //-#endif
     //-#if RVM_FOR_IA32
-    long currentTime = VM.sysCall_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
+    long currentTime = VM_SysCall.call_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
     double time = (double) currentTime / 1000000D;
     //-#endif
     return time;
@@ -55,7 +71,7 @@ public class VM_Time implements VM_Uninterruptible {
    */ 
   public static long currentTimeMillis() {
     long currentTime;
-    currentTime = VM.sysCall_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
+    currentTime = VM_SysCall.call_L_0(VM_BootRecord.the_boot_record.sysGetTimeOfDayIP );
     currentTime /= 1000;
     return currentTime;
   }

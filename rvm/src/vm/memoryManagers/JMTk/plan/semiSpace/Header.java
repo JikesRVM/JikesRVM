@@ -4,16 +4,14 @@
 //$Id$
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
-import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
+
 /**
  * Chooses the appropriate collector-specific header model.
  *
@@ -21,6 +19,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * 
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Header extends HybridHeader {
 
   // Merges all the headers together.  In this case, we have only one.
@@ -44,6 +43,6 @@ public class Header extends HybridHeader {
 
   static void setBarrierBit(Object ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM._assert(false);
+    VM_Interface._assert(false);
   }
 }

@@ -1180,16 +1180,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     burs.ir.setHasSysCall(true);
 
     // Step 1: Find out how many parameters we're going to have.
-    int numParams = CallSpecial.getNumberOfParams(s);
+    int numParams = Call.getNumberOfParams(s);
     int longParams = 0;
     for (int pNum = 0; pNum < numParams; pNum++) {
-      if (CallSpecial.getParam(s, pNum).getType().isLongType()) {
+      if (Call.getParam(s, pNum).getType().isLongType()) {
         longParams++;
       }
     }
 
     // Step 2: Figure out what the result and result2 values will be.
-    OPT_RegisterOperand result = CallSpecial.getResult(s);
+    OPT_RegisterOperand result = Call.getResult(s);
     OPT_RegisterOperand result2 = null;
     // NOTE: C callee returns longs little endian!
     if (result != null && result.type.isLongType()) {
@@ -1198,15 +1198,15 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
       result = R(regpool.getSecondReg(result.register));
     }
     
-    // Step 3: Mutate the CallSpecial to an MIR_Call.
-    // Note MIR_Call and CallSpecial have a different number of fixed 
+    // Step 3: Mutate the Call to an MIR_Call.
+    // Note MIR_Call and Call have a different number of fixed 
     // arguments, so some amount of copying is required. 
     OPT_Operand[] params = new OPT_Operand[numParams];
     for (int i = 0; i < numParams; i++) {
-      params[i] = CallSpecial.getParam(s, i);
+      params[i] = Call.getParam(s, i);
     }
     MIR_Call.mutate(s, IA32_SYSCALL, result, result2, 
-		    address, (OPT_MethodOperand)CallSpecial.getMethod(s),
+		    address, Call.getMethod(s),
 		    numParams + longParams);
     for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
       OPT_Operand param = params[paramIdx++];

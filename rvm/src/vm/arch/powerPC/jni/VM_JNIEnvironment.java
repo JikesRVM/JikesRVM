@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.lang.reflect.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Ton Ngo 
  * @author Steve Smith
  */
-public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants
+public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants, VM_SizeConstants
 {
   private static boolean initialized = false;
   private static String[] names;
@@ -54,7 +54,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   VM_Processor savedPRreg;         // for saving processor register on entry to native, to be restored on JNI call from native
   boolean      alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
 
-  public int[]       JNIRefs;          // references passed to native code
+  public int[] JNIRefs;          // references passed to native code
   int         JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int         JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int         JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
@@ -116,7 +116,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   VM_Registers savedContextForTermination;
 
   // temporarily use a fixed size array for JNI refs, later grow as needed
-  static final int JNIREFS_ARRAY_LENGTH = 100;
+  static final int JNIREFS_ARRAY_LENGTH = 400;
 
   // allocate the first dimension of the function array in the boot image so that
   // we have an address pointing to it.  This is necessary for thread creation
@@ -151,7 +151,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // fill in the TOC entries for each AIX linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {
       JNIFunctions[i] = new int[3][];
-      JNIFunctions[i][TOC] = VM_Statics.getSlots();   // the JTOC value: address of TOC
+      JNIFunctions[i][TOC] = VM_Statics.getSlotsAsIntArray();   // the JTOC value: address of TOC
     }
     //-#endif
 
@@ -215,7 +215,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     JNIRefs[0] = 0;                                        // 0 entry for bottom of stack
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIRefs.length - 1) * 4;   // byte offset to last entry
+    JNIRefsMax = (JNIRefs.length - 1) * BYTES_IN_ADDRESS;   // byte offset to last entry
 
     // initially TOP and SavedFP -> entry 0 containing 0
 
@@ -229,8 +229,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   // Returned: offset of entry in JNIRefs stack
   // 
   public int pushJNIRef( Object ref ) {
-    JNIRefsTop += 4;
-    JNIRefs[ JNIRefsTop >> 2 ] = VM_Magic.objectAsAddress(ref).toInt();
+    JNIRefsTop += BYTES_IN_ADDRESS;
+    JNIRefs[JNIRefsTop >> LOG_BYTES_IN_ADDRESS] = VM_Magic.objectAsAddress(ref).toInt();
     return JNIRefsTop;
   }
 
@@ -803,9 +803,9 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-    VM_Address fp = VM_Address.fromInt(VM_Magic.getMemoryInt(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
-    fp = VM_Address.fromInt(VM_Magic.getMemoryInt(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
-    VM_Address gluefp = VM_Address.fromInt(VM_Magic.getMemoryInt(fp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));
+    VM_Address gluefp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
 
     // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
     // skipping the args which are not part of the arguments for the target method
@@ -1155,16 +1155,16 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  // round it, bytes are saved from lowest to highest one, regardless endian
 	  overflowoffset = (overflowoffset + 7) & -8;
 	  hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	  loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	} else {
 	  // get value from fpr, increase fpr by 1
-	  hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*8));
-	  loword = VM_Magic.getMemoryInt(fprarray.add(fpr*8 + 4));
+	  hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE));
+	  loword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT));
 	  fpr += 1;
 	}
-	long doubleBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	if (argTypes[i].isFloatType()) {
 	  argObjectArray[i] = VM_Reflection.wrapFloat((float)(Double.longBitsToDouble(doubleBits)));
 	} else { // double type
@@ -1180,9 +1180,9 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  // round overflowoffset, assuming overflowarea is aligned to 8 bytes
 	  overflowoffset = (overflowoffset + 7) & -8;
 	  hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	  loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	  
 	  // va-ppc.h makes last gpr useless
 	  gpr = 11;
@@ -1192,7 +1192,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  loword = VM_Magic.getMemoryInt(gprarray.add((gpr+1)*4));
 	  gpr += 2;
 	}
-	long longBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long longBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longBits);
 	
 	//		VM.sysWriteln("long 0x"+Long.toHexString(longBits));
@@ -1266,19 +1266,19 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	// so we have to extract it as a double and convert it back to a float
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);                       
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
 	
       } else if (argTypes[i].isDoubleType()) {
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
-	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
       } else if (argTypes[i].isBooleanType()) {
@@ -1348,11 +1348,11 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(hiword));
 
       } else if (argTypes[i].isDoubleType()) {
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
-	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
       } else if (argTypes[i].isBooleanType()) {
@@ -1457,7 +1457,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
+      MM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");

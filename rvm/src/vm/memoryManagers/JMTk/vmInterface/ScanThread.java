@@ -85,11 +85,11 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	// copied by the scan.  queued for later scanning.
 	int[] oldstack = t.stack;    
 	ScanObject.rootScan(t);
-	if (t.jniEnv != null) ScanObject.scan(t.jniEnv);
+	if (t.jniEnv != null) ScanObject.rootScan(t.jniEnv);
 	ScanObject.rootScan(t.contextRegisters);
 	ScanObject.rootScan(t.hardwareExceptionRegisters);
 	if (oldstack != t.stack) 
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
+	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
 	
 	if (VM.VerifyAssertions) {
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
@@ -142,7 +142,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   }
 
 
-  static private VM_Address sentinelFP = VM_Address.fromInt(STACKFRAME_SENTINAL_FP);
+  static private VM_Address sentinelFP = STACKFRAME_SENTINEL_FP;
 
   /**
    * Scans a threads stack during collection to find object references.
@@ -236,9 +236,13 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	
 	// following is for normal Java (and JNI Java to C transition) frames
 	compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	compiledMethod.setObsolete( false );
+	compiledMethod.setObsolete(false);
 	int compiledMethodType = compiledMethod.getCompilerType();
-	if (compiledMethodType == VM_CompiledMethod.TRAP) continue;
+	if (compiledMethodType == VM_CompiledMethod.TRAP) {
+	  ip = VM_Magic.getReturnAddress(fp);
+	  fp = VM_Magic.getCallerFramePointer(fp);
+	  continue;
+	}
 	VM_Method method = compiledMethod.getMethod();
 	
 	// initialize MapIterator for this frame
@@ -265,14 +269,14 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	  
 	  if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
 	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
-	    if (!VM_Interface.validRef(ref)) {
+	    if (!MM_Interface.validRef(ref)) {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
 	      VM.sysWriteln(" at offset ", offset);
 	      VM.sysWrite(" fp = ", fp, "   ip = ", ip);
 	      // dump out bad ref
-	      VM.sysWrite(refaddr); VM.sysWrite(":"); VM_Interface.dumpRef(ref);
+	      VM.sysWrite(refaddr); VM.sysWrite(":"); MM_Interface.dumpRef(ref);
 	      // dump out contents of frame
 	      dumpStackFrame( fp, prevFp );
 	      // dump stack starting at current frame
@@ -289,7 +293,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
 	    VM.sysWrite(refaddr); 
 	    if (DUMP_STACK >= 4) {
-		VM.sysWrite(":"); VM_Interface.dumpRef(ref);
+		VM.sysWrite(":"); MM_Interface.dumpRef(ref);
 	    }
 	    else
 		VM.sysWriteln();
@@ -359,7 +363,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
       
       } // end of while != sentinel
       
-    } // end of if (fp != STACKFRAME_SENTINAL_FP)
+    } // end of if (fp != STACKFRAME_SENTINEL_FP)
     
     // if we are scanning the stack of a thread that entered the VM
     // via a createJVM or attachJVM then the "bottom" of the stack had
@@ -414,13 +418,13 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 //-#endif
 
     for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORD_SIZE)) {
-      VM.sysWrite(loc.diff(start).toInt(), " ");
-      VM.sysWrite(loc); VM.sysWrite(" ");
+      VM.sysWrite(loc.diff(start));
+      VM.sysWrite(" ", loc);
       VM_Address value = VM_Magic.getMemoryAddress(loc);
-      VM.sysWrite(value);
+      VM.sysWrite(" ", value);
       VM.sysWrite(" ");
-      if (DUMP_STACK >= 3 && VM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
-	VM_Interface.dumpRef(value);
+      if (DUMP_STACK >= 3 && MM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
+	MM_Interface.dumpRef(value);
       else
 	VM.sysWrite("\n");
     }

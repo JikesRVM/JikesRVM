@@ -8,19 +8,26 @@
 
 /*
  * Description: 
- * This file provides an interface to the hardware performance monitor facilities 
- * on PowerPC architectures and are used by Jikes RVM both through sysCalls and JNI.
+ * This file provides access to the hardware performance monitor (HPM)
+ * facilities on PowerPC architectures, which is used by Jikes RVM both
+ * through sysCalls and JNI.
  * Before the JNI environment is initialized, this functionality must be accessed
  * via sysCalls.
  *
- * The inteface is based on "mythread" which creates a group for the calling
- * kernel thread.  The "mythread" interface does not require superuser privileges.
+ * The PowerPC HPM facilities provide multiple APIs to access the HPM counters.
+ * Here we use only two of them: mythread (thread context) and 
+ * mygroup (thread group context).
+ * The mythread API creates a context for each kernel thread.  
+ * The mygroup API creates a context for a group of kernel threads all created by 
+ * a root thread.
  * The "init" procedure must be invoked before all others.
+ * For each context the following functions are defined 
+ * set_program, get_program, delete_program, stop, reset, and get functions.
  * 
  */
  
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/m_wait.h>
 #include <sys/systemcfg.h>
@@ -38,7 +45,7 @@ int threadapi = 0;
 
 int init_enabled      = 0;	/* 1 after hpm_init is called and MyInfo initialized */
 int get_data_enabled  = 0;	/* 1 after call to get_data */
-int set_event_enabled = 0;	/* 1 after hpm_set_settings is called, 0 after hpm_delete_settings is called */
+int set_event_enabled = 0;	/* 1 after hpm_set_program_mythread is called, 0 after hpm_delete_program_mythread is called */
 
 
 int debug = 0;
@@ -87,7 +94,7 @@ hpm_init(int my_filter)
  * How many counters available?
  */
 int 
-hpm_number_of_counters() 
+hpm_get_number_of_counters() 
 {
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_number_of_counters() called before hpm_init()!***");
@@ -103,7 +110,7 @@ char *
 hpm_get_processor_name()
 {
   if(init_enabled==0) {
-    fprintf(stderr,"***hpm.isPower4() called before hpm_init()!***");
+    fprintf(stderr,"***hpm.hpm_get_processor_name() called before hpm_init()!***");
     exit(-1);
   }
   return Myinfo.proc_name;
@@ -187,7 +194,7 @@ hpm_is604e()
 
 /***********************************************************************************
  * CONSTRAINT: the following functions may be called only after hpm_init 
- * has been called and before hpm_set_settings has been called.
+ * has been called and before hpm_set_program_mythread has been called.
  ************************************************************************************/
 
 /*
@@ -196,7 +203,7 @@ hpm_is604e()
  * This routine is called to set, in local variable setprog, the events to watch.
  * Must be called after hpm_init!
  * The result of calling this routine only takes effect after
- * hpm_set_settings is called.
+ * hpm_set_program_mythread is called.
  * TODO:
  * Arguments correspond to an enumerated type which
  * is mapped into a mnemonic name that is used to 
@@ -261,7 +268,7 @@ hpm_set_event(int e1, int e2, int e3, int e4)
  * This routine is called to set, in local variable setprog, the events to watch.
  * Must be called after hpm_init!
  * The result of calling this routine only takes effect after
- * hpm_set_settings is called.
+ * hpm_set_program_mythread is called.
  * TODO:
  * Arguments correspond to an enumerated type which
  * is mapped into a mnemonic name that is used to 
@@ -323,7 +330,7 @@ hpm_set_event_X(int e5, int e6, int e7, int e8)
 /*
  * Set the mode, in local variable setprog.
  * The result of calling this routine only takes effect after
- * hpm_set_settings is called.
+ * hpm_set_program_mythread is called.
  * The valid values for mode are defined in hpm.h.
  */
 int 
@@ -375,10 +382,14 @@ hpm_set_mode(int mode)
 /*
  * After init is called, and events and modes are set in the local variable setprog, 
  * call this routine to set HPM settings.
- * May call this multiple times only after calling hpm_delete_settings.
+ * May not make two consecutive calls to this routine without an intervening call to
+ * hpm_delete_settings.
+ */
+/*
+ * This supports the mythread API.
  */
 int
-hpm_set_settings()
+hpm_set_program_mythread()
 {
   int rc;
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_setting()\n");fflush(stdout);}
@@ -387,14 +398,38 @@ hpm_set_settings()
     exit(-1);
   }
   if ( (rc = pm_set_program_mythread(&setprog)) != OK_CODE) {
-    pm_error("hpm_set_settings: pm_set_program_mythread ", rc);
+    pm_error("hpm_set_program_mythread: pm_set_program_mythread ", rc);
+    exit(ERROR_CODE);
+  }
+  return (OK_CODE);
+}
+/*
+ * This supports the mygroup API.
+ */
+int 
+hpm_set_program_mygroup() 
+{
+  int rc;
+  if(debug>=1){fprintf(stdout,"hpm.hpm_set_group_setting()\n");fflush(stdout);}
+  if(init_enabled==0) {
+    fprintf(stderr,"***hpm.hpm_set_group_setting() called before hpm_init()!***");
+    exit(-1);
+  }
+  if ( (rc = pm_set_program_mygroup(&setprog)) != OK_CODE) {
+    pm_error("hpm_set_program_mygroup: pm_set_program_mygroup ", rc);
     exit(ERROR_CODE);
   }
   return (OK_CODE);
 }
 
+/***********************************************************************************
+ * CONSTRAINT: the following functions may be called only after 
+ * hpm_set_program_mythread has been called.
+ ************************************************************************************/
+
 /*
- * get counter's event
+ * Get counter's event
+ * Constraint: setprog has been initialized by a call to set_program.
  */
 int
 hpm_get_event_id(int counter) 
@@ -417,6 +452,7 @@ hpm_get_event_id(int counter)
 
 /*
  * Get short description name for the event a counter is set to.
+ * Constraint: setprog has been initialized by a call to set_program and init.
  */
 char *
 hpm_get_event_short_name(int counter) 
@@ -461,22 +497,33 @@ hpm_get_event_short_name(int counter)
   return "";
 }
 
-/***********************************************************************************
- * CONSTRAINT: the following functions may be called only after hpm_set_settings
- * has been called.
- ************************************************************************************/
-
 /*
- * After hpm_set_settings is called, this routine unsets settings
+ * After hpm_set_program_mythread is called, this routine unsets program settings
  * making it possible to call hpm_set_event, hpm_set_eventX, hpm_set_mode and then
- * call hpm_set_settings again.
+ * call set_program again.
+ */
+/*
+ * This supports mythread API.
  */
 int
-hpm_delete_settings()
+hpm_delete_program_mythread()
 {
   int rc;
   if ( (rc = pm_delete_program_mythread()) != OK_CODE) {
-    pm_error("hpm.hpm_delete_settings: pm_delete_program_mythread ", rc);
+    pm_error("hpm.hpm_delete_program_mythread: pm_delete_program_mythread ", rc);
+    exit(ERROR_CODE);
+  }
+  return (OK_CODE);
+}
+/*
+ * This supports mygroup API.
+ */
+int 
+hpm_delete_program_mygroup() 
+{
+  int rc;
+  if ( (rc = pm_delete_program_mygroup()) != OK_CODE) {
+    pm_error("hpm.hpm_delete_program_mygroup: pm_delete_program_mygroup ", rc);
     exit(ERROR_CODE);
   }
   return (OK_CODE);
@@ -484,33 +531,67 @@ hpm_delete_settings()
 
 /*
  * This routine retrieves the HPM settings into the local variable setprog.
- * May be called only after a hpm_set_settings() is called.
+ * May be called only after a hpm_set_program_mythread() is called.
+ */
+/*
+ * This supports mythread API.
  */
 int 
-hpm_get_settings() 
+hpm_get_program_mythread() 
 {
   int rc;
   if ( (rc = pm_get_program_mythread(&setprog)) != OK_CODE) {
-    pm_error("hpm.hpm_get_settings: pm_get_program_mythread ", rc);
+    pm_error("hpm.hpm_get_program_mythread: pm_get_program_mythread ", rc);
+    exit(ERROR_CODE);
+  }
+  return (OK_CODE);
+}
+/*
+ * This supports mygroup API.
+ */
+int 
+hpm_get_program_mygroup() 
+{
+  int rc;
+  if ( (rc = pm_get_program_mygroup(&setprog)) != OK_CODE) {
+    pm_error("hpm.hpm_get_program_mygroup: pm_get_program_mygroup ", rc);
     exit(ERROR_CODE);
   }
   return (OK_CODE);
 }
 
-
 /*
- * Starts hpm counting. 
+ * Starts hpm counting for mythread. 
  * Alternatively, could turn on counting by getting program_mythread, 
  * setprog.mode.b.count = 1, and setting program_mythread.
  */
 int
-hpm_start_counting()
+hpm_start_mythread()
 {
   int rc;
 
-  //  fprintf(stdout,"hpm.hpm_start_counting() pthread id=%d\n",pthread_self());
+  //  fprintf(stdout,"hpm.hpm_start_mythread() pthread id=%d\n",pthread_self());
   if ( (rc = pm_start_mythread()) != OK_CODE) {
-    pm_error("hpm.hpm_start_counting: pm_start_mythread ", rc);
+    pm_error("hpm.hpm_start_mythread: pm_start_mythread ", rc);
+  }
+
+  get_data_enabled = 0;
+  return(OK_CODE);
+}
+/*
+ * Starts hpm counting for mygroup.
+ * The group includes the calling thread and all the decendent kernel threads.
+ * Alternatively, could turn on counting by getting program_mygroup, 
+ * setprog.mode.b.count = 1, and setting program_mygroup.
+ */
+int 
+hpm_start_mygroup() 
+{
+  int rc;
+
+  //  fprintf(stdout,"hpm.hpm_start_mygroup() pthread id=%d\n",pthread_self());
+  if ( (rc = pm_start_mygroup()) != OK_CODE) {
+    pm_error("hpm.hpm_start_mygroup: pm_start_mygroup ", rc);
   }
 
   get_data_enabled = 0;
@@ -518,17 +599,36 @@ hpm_start_counting()
 }
 
 /*
- * Stops hpm counting.
+ * Stops hpm counting for mythread.
  * Assumes that hpm_start completed correctly.
  * After successful completion, counters no longer enabled.
  */
 int 
-hpm_stop_counting() 
+hpm_stop_mythread() 
 {
   int rc;
 
   if ( (rc = pm_stop_mythread()) != OK_CODE) {
-    pm_error("hpm.hpm_stop_counting: pm_stop_mythread ", rc);
+    pm_error("hpm.hpm_stop_mythread: pm_stop_mythread ", rc);
+    exit(ERROR_CODE);
+  }
+  /* counters disabled */
+  get_data_enabled = 0;
+  return(OK_CODE);	
+}
+/*
+ * Stops hpm counting for mygroup.
+ * The group includes the calling thread and all the decendent kernel threads.
+ * After successful completion, counters no longer enabled.
+ * Assumes that counters were started correctly.
+ */
+int 
+hpm_stop_mygroup() 
+{
+  int rc;
+
+  if ( (rc = pm_stop_mygroup()) != OK_CODE) {
+    pm_error("hpm.hpm_stop_mygroup: pm_stop_mygroup ", rc);
     exit(ERROR_CODE);
   }
   /* counters disabled */
@@ -537,16 +637,33 @@ hpm_stop_counting()
 }
 
 /*
- * This routine is called to reset the counters to zero.
+ * This routine resets HPM counters to zero for mythread.
  * Do the counters have to be stopped before they can be reset?
  */
 int
-hpm_reset_counters()
+hpm_reset_mythread()
 {
   int rc;
 
   if ( (rc = pm_reset_data_mythread()) != OK_CODE) {
-    pm_error("hpm.hpm_reset_counters: pm_reset_data_mythread ", rc);
+    pm_error("hpm.hpm_reset_mythread: pm_reset_data_mythread ", rc);
+    exit(ERROR_CODE);
+  }
+  get_data_enabled = 0;
+  return(OK_CODE);
+}
+/*
+ * This routine resets HPM counters to zero for mygroup.
+ * Do the counters have to be stopped before they can be reset?
+ * Brendon notices that this can cause the group to be inconsistent!
+ */
+int
+hpm_reset_mygroup()
+{
+  int rc;
+
+  if ( (rc = pm_reset_data_mygroup()) != OK_CODE) {
+    pm_error("hpm.hpm_reset_mygroup: pm_reset_data_mygroup ", rc);
     exit(ERROR_CODE);
   }
   get_data_enabled = 0;
@@ -558,12 +675,24 @@ hpm_reset_counters()
  * Return the number of counters.
  */
 int
-hpm_get_counters()
+hpm_get_mythread()
 {
   int rc;
 
   if ( (rc = pm_get_data_mythread(&mydata)) != OK_CODE) {
-    pm_error("hpm.hpm_get_counters: pm_get_data_mythread()", rc);
+    pm_error("hpm.hpm_get_data_mythread: pm_get_data_mythread()", rc);
+    exit(ERROR_CODE);
+  }
+  get_data_enabled = 1;
+  return Myinfo.maxpmcs; 
+}
+int
+hpm_get_mygroup()
+{
+  int rc;
+
+  if ( (rc = pm_get_data_mygroup(&mydata)) != OK_CODE) {
+    pm_error("hpm.hpm_get_data_mygroup: pm_get_data_mygroup()", rc);
     exit(ERROR_CODE);
   }
   get_data_enabled = 1;
@@ -575,21 +704,155 @@ hpm_get_counters()
  * Specify counter in range [1..maxCounters].
  */
 long long
-hpm_get_counter(int counter)
+hpm_get_counter_mythread(int counter)
 {
   int rc;
 
   long long value;
   if ( (counter < 0) || (counter > Myinfo.maxpmcs) ) {
-     fprintf(stderr, "hpm.hpm_get_counter(%d): Invalid counter.\n",counter);
+     fprintf(stderr, "hpm.hpm_get_counter_mythread(%d): Invalid counter.\n",counter);
      exit(ERROR_CODE);
   }
   /* eliminate caching for time experiment */
   if (get_data_enabled == 0) { 
-    hpm_get_counters();
+    if ( (rc = pm_get_data_mythread(&mydata)) != OK_CODE) {
+      pm_error("hpm.hpm_get_counter_mythread: pm_get_data_mythread()", rc);
+      exit(ERROR_CODE);
+    }
+    /*
+      hpm_start_mythread();  
+    */
+    get_data_enabled = 1;
   }
   value = mydata.accu[counter-1];
   return value;
+}
+
+/*
+ * Read an HPM counter value.
+ * Specify counter in range [1..maxCounters].
+ */
+long long
+hpm_get_counter_mygroup(int counter)
+{
+  int rc;
+
+  long long value;
+  if ( (counter < 0) || (counter > Myinfo.maxpmcs) ) {
+     fprintf(stderr, "hpm.hpm_get_counter_mygroup(%d): Invalid counter.\n",counter);
+     exit(ERROR_CODE);
+  }
+  /* eliminate caching for time experiment */
+  if (get_data_enabled == 0) { 
+    if ( (rc = pm_get_data_mygroup(&mydata)) != OK_CODE) {
+      pm_error("hpm.hpm_get_counter_mygroup: pm_get_data_mygroup()", rc);
+      exit(ERROR_CODE);
+    }
+    get_data_enabled = 1;
+  }
+  value = mydata.accu[counter-1];
+  return value;
+}
+
+/*
+ * Test interface to HPM.
+ */
+static int test_value = 0;
+int
+hpm_test() 
+{
+  return test_value++;
+}
+
+/**
+ * List all events associated with each counter.
+ */
+void
+hpm_list_all_events()
+{
+  int i,j;
+  int n_counters;
+  int n_events;
+  pm_events_t *events, event;
+
+  if(init_enabled==0) {
+    fprintf(stderr,"***hpm.hpm_list_all_events() called  before hpm_init()!***");
+    exit(-1);
+  }
+
+  n_counters = Myinfo.maxpmcs;
+  fprintf(stdout,"hpm.hpm_list_all_events() list events associated with %d counter\n",
+	  n_counters);
+  for (i=0; i< n_counters; i++) {
+    events = Myinfo.list_events[i];
+    n_events = Myinfo.maxevents[i];
+    fprintf(stdout,  " counter %d, maxevents %d\n",i,n_events);      fflush(stdout);
+    for (j=0; j<n_events; j++) {
+      event = events[j];
+      fprintf(stdout,"  %d: %d %c %s\n",j,event.event_id, event.status, event.short_name);
+    }
+  }
+  fflush(stdout);
+}
+
+/* 
+ * Function to convert filter of character form (entered from command line, 
+ * e.g. -t v,u) to a numeric form.
+ */
+int
+print_data(pm_data_t *data)
+{
+	int j;
+
+	for (j=0; j<Myinfo.maxpmcs; j++) 
+		fprintf(stdout, "%-8lld  ", data->accu[j]); 
+	fprintf(stdout, "\n");
+}
+
+
+/*
+ * Print hardware performance monitors values for mythread.
+ */
+int 
+hpm_print_mythread() 
+{
+  int rc;
+  
+  /* do I need this? */
+  if ( (rc = pm_get_program_mythread(&getprog)) != OK_CODE)
+    pm_error("hpm.hpm_print: pm_get_program_mythread", rc);
+  
+  if ( (rc = pm_get_data_mythread(&mydata)) != OK_CODE) {
+    pm_error("hpm.hpm_print: pm_get_data_mythread", rc);
+    return(ERROR_CODE);
+  }
+
+  hpm_print_events();
+  print_data(&mydata);
+  
+  return(OK_CODE);	
+}
+/*
+ * Print hardware performance monitors values for mygroup.
+ */
+int 
+hpm_print_mygroup() 
+{
+  int rc;
+  
+  /* do I need this? */
+  if ( (rc = pm_get_program_mygroup(&getprog)) != OK_CODE)
+    pm_error("hpm.hpm_print_mygroup: pm_get_program_mygroup", rc);
+  
+  if ( (rc = pm_get_data_mygroup(&mydata)) != OK_CODE) {
+    pm_error("hpm.hpm_print_mygroup: pm_get_data_mygroup", rc);
+    return(ERROR_CODE);
+  }
+
+  hpm_print_events();
+  print_data(&mydata);
+  
+  return(OK_CODE);	
 }
 
 int
@@ -636,6 +899,84 @@ print_header(pm_mode_t mode, int threadapi)
 		fprintf(stdout,"off \n"); 
 }
 
+/*
+ * Return list of event for a group
+ * Required for Power4
+ * @param group_num   group number
+ */
+int*
+hpm_get_group_event_list(int group_num)
+{
+  pm_groups_t group;
+  if (My_group_info.maxgroups < group_num) {
+    fprintf(stderr, "hpm.hpm_get_group_evetn_list(%d) Invalid group number\n",group_num);
+  }
+  group = My_group_info.event_groups[group_num];
+  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
+  return group.events;
+}
+
+/**
+ * List each event that is selected for a counter.
+ */
+void
+hpm_list_selected_events()
+{
+  int i,j, rc;
+  int n_counters;
+  pm_events_t event, *evp;
+  int *event_list, group_num, event_id;
+
+  if(init_enabled==0) {
+    fprintf(stderr,"***hpm.hpm_list_selected_events() called  before hpm_init()!***");
+    exit(-1);
+  }
+
+  if ( (rc = pm_get_program_mythread(&getprog)) != OK_CODE)
+    pm_error("hpm.hpm_list_selected_events: pm_get_program_mythread", rc);
+  
+  n_counters = Myinfo.maxpmcs;
+  fprintf(stdout,"hpm.hpm_list_selected_events() list the event selected for each of the %d counters\n",n_counters); 
+
+  if (getprog.mode.b.is_group) {
+    event_list = hpm_get_group_event_list(getprog.events[0]);
+  } else {
+    event_list = getprog.events;
+  }
+  for (i=0; i< n_counters; i++) {
+    /* get the event id from the list */
+    event_id = event_list[i];
+    if ( (event_id == COUNT_NOTHING) || (Myinfo.maxevents[i] == 0))
+      fprintf(stdout,"  %d: event %2d: No event\n",i+1, event_id);
+    else {
+      /* find pointer to the event */
+      for (j = 0; j < Myinfo.maxevents[i]; j++) {
+	evp = Myinfo.list_events[i]+j;
+	if (event_id == evp->event_id) {
+	  break;
+	}
+      }
+      fprintf(stdout,"  %d: event %2d: %c %s\n",i+1, event_id, evp->status, evp->short_name);
+    }
+  }
+  fflush(stdout);
+}
+
+/*
+ * Required for Power4
+ */
+void 
+hpm_print_group_events(int group_num)
+{
+  pm_groups_t group;
+  if (My_group_info.maxgroups < group_num) {
+    fprintf(stderr, "hpm.hpm_print_group_events(%d) Invalid group number\n", group_num);
+  }
+  group = My_group_info.event_groups[group_num];
+  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
+  print_events(group.events);
+}
+
 int
 print_events(int *ev_list)
 {
@@ -680,21 +1021,6 @@ print_events(int *ev_list)
 }
 
 /*
- * Required for Power4
- */
-void 
-print_group_events(int group_num)
-{
-  pm_groups_t group;
-  if (My_group_info.maxgroups < group_num) {
-    fprintf(stderr, "Invalid group number\n");
-  }
-  group = My_group_info.event_groups[group_num];
-  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
-  print_events(group.events);
-}
-
-/*
  * Print list of events
  */
 int
@@ -703,152 +1029,11 @@ hpm_print_events()
   /* print the results */
   print_header(getprog.mode, 0);
   if (getprog.mode.b.is_group) {
-    print_group_events(getprog.events[0]);
+    hpm_print_group_events(getprog.events[0]);
   } else {
     print_events(getprog.events);
   }
 }
 
-/* 
- * Function to convert filter of character form (entered from command line, 
- * e.g. -t v,u) to a numeric form.
- */
-int
-print_data(pm_data_t *data)
-{
-	int j;
-
-	for (j=0; j<Myinfo.maxpmcs; j++) 
-		fprintf(stdout, "%-8lld  ", data->accu[j]); 
-	fprintf(stdout, "\n");
-}
-
-
-/*
- * Print hardware performance monitors values.
- */
-int 
-hpm_print() 
-{
-  int rc;
-  
-  /* do I need this? */
-  if ( (rc = pm_get_program_mythread(&getprog)) != OK_CODE)
-    pm_error("hpm.hpm_print: pm_get_program_mythread", rc);
-  
-  if ( (rc = pm_get_data_mythread(&mydata)) != OK_CODE) {
-    pm_error("hpm.hpm_print: pm_get_data_mythread", rc);
-    return(ERROR_CODE);
-  }
-
-  hpm_print_events();
-  print_data(&mydata);
-  
-  return(OK_CODE);	
-}
-
-/*
- * Test interface to HPM.
- */
-static int test_value = 0;
-int
-hpm_test() 
-{
-  return test_value++;
-}
-
-/**
- * List all events associated with each counter.
- */
-extern "C" void
-hpm_list_all_events()
-{
-  int i,j;
-  int n_counters;
-  int n_events;
-  pm_events_t *events, event;
-
-  if(init_enabled==0) {
-    fprintf(stderr,"***hpm.hpm_list_all_events() called  before hpm_init()!***");
-    exit(-1);
-  }
-
-  n_counters = Myinfo.maxpmcs;
-  fprintf(stdout,"hpm.hpm_list_all_events() list events associated with %d counter\n",
-	  n_counters);
-  for (i=0; i< n_counters; i++) {
-    events = Myinfo.list_events[i];
-    n_events = Myinfo.maxevents[i];
-    fprintf(stdout,  " counter %d, maxevents %d\n",i,n_events);      fflush(stdout);
-    for (j=0; j<n_events; j++) {
-      event = events[j];
-      fprintf(stdout,"  %d: %d %c %s\n",j,event.event_id, event.status, event.short_name);
-    }
-  }
-  fflush(stdout);
-}
-
-/*
- * Return list of event for a group
- * Required for Power4
- * @param group_num   group number
- */
-int *
-get_group_event_list(int group_num)
-{
-  pm_groups_t group;
-  if (My_group_info.maxgroups < group_num) {
-    fprintf(stderr, "Invalid group number\n");
-  }
-  group = My_group_info.event_groups[group_num];
-  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
-  return group.events;
-}
-
-/**
- * List each event that is selected for a counter.
- */
-void
-hpm_list_selected_events()
-{
-  int i,j, rc;
-  int n_counters;
-  pm_events_t event, *evp;
-  int *event_list, group_num, event_id;
-
-  if(init_enabled==0) {
-    fprintf(stderr,"***hpm.hpm_list_selected_events() called  before hpm_init()!***");
-    exit(-1);
-  }
-
-  if ( (rc = pm_get_program_mythread(&getprog)) != OK_CODE)
-    pm_error("hpm.hpm_list_selected_events: pm_get_program_mythread", rc);
-  
-  n_counters = Myinfo.maxpmcs;
-  fprintf(stdout,"hpm.hpm_list_selected_events() list the event selected for each of the %d counters\n",n_counters); 
-
-  if (getprog.mode.b.is_group) {
-    event_list = get_group_event_list(getprog.events[0]);
-  } else {
-    event_list = getprog.events;
-  }
-  for (i=0; i< n_counters; i++) {
-    /* get the event id from the list */
-    event_id = event_list[i];
-    if ( (event_id == COUNT_NOTHING) || (Myinfo.maxevents[i] == 0))
-      fprintf(stdout,"  %d: event %2d: No event\n",i+1, event_id);
-    else {
-      /* find pointer to the event */
-      for (j = 0; j < Myinfo.maxevents[i]; j++) {
-	evp = Myinfo.list_events[i]+j;
-	if (event_id == evp->event_id) {
-	  break;
-	}
-      }
-      fprintf(stdout,"  %d: event %2d: %c %s\n",i+1, event_id, evp->status, evp->short_name);
-    }
-  }
-  fflush(stdout);
-}
 
 

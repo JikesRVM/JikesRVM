@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -48,23 +48,44 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   //-#endif
   
   //-#if RVM_WITH_HPM
-  /*
-   * Keep counter values for each Java thread.
-   */
-  public HPM_counters hpm_counters;
+  // Keep counter values for each Java thread.
+  public HPM_counters hpm_counters = null;
   // when thread is scheduled, record real time
-  public long startOfRealTime;
+  public long startOfWallTime = -1;
+  // globally unique thread id, needed because thread slots can be reused.
+  static private int GLOBAL_TID_INITIAL_VALUE = -1;
+  private int global_tid = GLOBAL_TID_INITIAL_VALUE;
+  public final int getGlobalIndex() { return global_tid; }
+  // globally unique thread id counter.  Increment ever time a thread is created.
+  static private Integer global_hpm_tid = new Integer(1);
+  // generate a globally unique thread id (only called from constructors)
+  private final void assignGlobalTID() throws VM_PragmaLogicallyUninterruptible
+  {
+    synchronized (global_hpm_tid) {
+      global_tid = global_hpm_tid.intValue();
+      global_hpm_tid = new Integer(global_hpm_tid.intValue()+1);
+    }
+    if(VM_HardwarePerformanceMonitors.verbose>=2) {
+      VM.sysWrite  (" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
+      VM.sysWriteln(global_tid);
+    }
+  }
   //-#endif
 
   /**
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
-    this(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
+    this(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
     //-#if RVM_WITH_HPM
-    //    VM.sysWriteln("VM_Thread() call new HPM_counters");
-    hpm_counters = new HPM_counters();
+    if (hpm_counters == null) hpm_counters = new HPM_counters();
+    if (global_tid == GLOBAL_TID_INITIAL_VALUE) {
+      assignGlobalTID();
+      if (VM_HardwarePerformanceMonitors.hpm_trace) {
+	VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
+      }
+    }
     //-#endif
   }
 
@@ -135,6 +156,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (suspended) { // this thread is not on any queue
       suspended = false;
       suspendLock.unlock();
+      if (trace) VM_Scheduler.trace("VM_Thread", "resume() scheduleThread ", getIndex());
       VM_Processor.getCurrentProcessor().scheduleThread(this);
     } else {         // this thread is queued somewhere
       suspendLock.unlock();
@@ -367,7 +389,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       //    Caller is top-of-stack psuedo-frame
       //    Caller is out-of-line assembly (no VM_Method object)
       //    Caller is a native method
-      if (ypTakenInCallerCMID == STACKFRAME_SENTINAL_FP ||
+      if (ypTakenInCallerCMID == STACKFRAME_SENTINEL_FP.toInt() ||
           ypTakenInCallerCMID == INVISIBLE_METHOD_ID    ||
           ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
         ypTakenInCallerCMIDValid = false;
@@ -398,8 +420,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	  
 	  VM_Address stackbeg = VM_Magic.objectAsAddress(VM_Thread.getCurrentThread().stack);
 	  
-	  int tsFromFPoff = tsFromFP.diff(stackbeg).toInt();
-	  int realFPoff = realFP.diff(stackbeg).toInt();
+	  VM_Offset tsFromFPoff = tsFromFP.diff(stackbeg);
+	  VM_Offset realFPoff = realFP.diff(stackbeg);
 	  
 	  OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, 
 						tsFromFPoff,
@@ -458,6 +480,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void timerTickYield () {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
+    if (trace) VM_Scheduler.trace("VM_Thread", "timerTickYield() scheduleThread ", myThread.getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(myThread);
     morph(true);
   }
@@ -557,9 +580,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param timerTick   timer interrupted if true
    */ 
   static void morph (boolean timerTick) {
+    VM_Magic.sync();  // to ensure beingDispatched flag written out to memory
     if (trace) VM_Scheduler.trace("VM_Thread", "morph ");
     VM_Thread myThread = getCurrentThread();
-
     if (VM.VerifyAssertions) {
       if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
 	VM.sysWrite("no threadswitching on proc ", VM_Processor.getCurrentProcessor().id);
@@ -568,11 +591,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled(), "thread switching not enabled");
       VM._assert(myThread.beingDispatched == true, "morph: not beingDispatched");
     }
-
     // become another thread
     //
     VM_Processor.getCurrentProcessor().dispatch(timerTick);
-
     // respond to interrupt sent to this thread by some other thread
     //
     if (myThread.externalInterrupt != null && myThread.throwInterruptWhenScheduled) {
@@ -616,7 +637,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // ship the thread to the native processor
     p.transferMutex.lock();
     
-    VM.sysCall1(VM_BootRecord.the_boot_record.sysPthreadSignalIP, p.pthread_id);
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP, p.pthread_id);
 
     yield(p.transferQueue, p.transferMutex); // morph to native processor
 
@@ -787,6 +808,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM_Scheduler.deadVPQueue.enqueue(p);                  
       myThread.nativeAffinity    = null;          // clear native processor
       myThread.processorAffinity = null;          // clear processor affinity
+      if (trace) VM_Scheduler.trace("VM_Thread", "terminate ", myThread.getIndex());
 //-#if RVM_WITH_PURPLE_VPS
       VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.RVM_VP_GOING_TO_WAIT;
 //-#endif
@@ -796,6 +818,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // begin critical section
     //
     VM_Scheduler.threadCreationMutex.lock();
+
     myThread.releaseThreadSlot();
     
     myThread.beingDispatched = true;
@@ -832,9 +855,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) throws VM_PragmaInterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
-    if (VM_Interface.gcInProgress())
+    if (MM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
-    int[] newStack = VM_Interface.newStack(newSize);
+    int[] newStack = MM_Interface.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -842,7 +865,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM.sysWrite("VM_Thread: resized stack ");
       VM.sysWrite(getCurrentThread().getIndex());
       VM.sysWrite(" to ");
-      VM.sysWrite(((getCurrentThread().stack.length << 2)/1024));
+      VM.sysWrite(((getCurrentThread().stack.length << LOG_BYTES_IN_ADDRESS)/1024));
       VM.sysWrite("k\n");
     }
   }
@@ -871,8 +894,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //       +-------------------+---------------+
     //        ^newStack           ^newFP          ^newTop
     //
-    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << 2);
-    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << 2);
+    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << LOG_BYTES_IN_ADDRESS);
+    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << LOG_BYTES_IN_ADDRESS);
 
     VM_Address myFP    = VM_Magic.getFramePointer();
     VM_Offset  myDepth = myTop.diff(myFP);
@@ -887,7 +910,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // to force the copy.  A more explicit way would be to up to the 
     // frame pointer
     // and the header for intel.
-    int delta = copyStack(newStack);
+    VM_Offset delta = copyStack(newStack);
 
     // fix up registers and save areas so they refer 
     // to "newStack" rather than "myStack"
@@ -919,7 +942,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Fixup register and memory references to reflect its new position.
    * @param delta displacement to be applied to all interior references
    */ 
-  public final void fixupMovedStack(int delta) {
+  public final void fixupMovedStack(VM_Offset delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: fixupMovedStack\n");
 
     if (!contextRegisters.getInnermostFramePointer().isZero()) 
@@ -940,7 +963,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param regsiters registers to be adjusted
    * @param delta     displacement to be applied
    */
-  private static void adjustRegisters(VM_Registers registers, int delta) {
+  private static void adjustRegisters(VM_Registers registers, VM_Offset delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: adjustRegisters\n");
 
     // adjust FP
@@ -954,32 +977,20 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
 
     // additional architecture specific adjustments
-    //  (1) on PPC baseline frame keeps a pointer to the 
-    //      expression stack in SP.
-    //  (2) on IA32 baseline frame shadows VM_Processor.framePointer
-    //      (ie registers.getInnermostFramePointer()) in EBP
-    //  (3) frames from all compilers on IA32 need to update ESP
+    //  (1) frames from all compilers on IA32 need to update ESP
     int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
-      VM_CompiledMethod compiledMethod = 
-        VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-        //-#if RVM_FOR_POWERPC
-	registers.gprs[VM_BaselineConstants.SP] += delta;
-	if (traceAdjustments) {
-	  VM.sysWrite(" sp=");
-	  VM.sysWrite(registers.gprs[VM_BaselineConstants.SP]);
-	}
-	//-#endif
-      }
       //-#if RVM_FOR_IA32
-      registers.gprs[ESP] += delta;
+      VM_Word old = registers.gprs.get(ESP);
+      registers.gprs.set(ESP, old.add(delta));
       if (traceAdjustments) {
 	VM.sysWrite(" esp =");
-	VM.sysWrite(registers.gprs[ESP]);
+	VM.sysWrite(registers.gprs.get(ESP));
       }
       //-#endif
       if (traceAdjustments) {
+	VM_CompiledMethod compiledMethod = 
+	  VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM.sysWrite(" method=");
 	VM.sysWrite(compiledMethod.getMethod());
 	VM.sysWrite("\n");
@@ -995,40 +1006,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param fp    pointer to its innermost frame
    * @param delta displacement to be applied to all its interior references
    */
-    private static void adjustStack(int[] stack, VM_Address fp, int delta) {
+    private static void adjustStack(int[] stack, VM_Address fp, VM_Offset delta) {
       if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
 
-      while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP)
-      {
-        // adjust FP save area
-        //
-        VM_Magic.setCallerFramePointer(fp, 
-                                       VM_Magic.getCallerFramePointer(fp).add(delta));
-        if (traceAdjustments) 
-          VM.sysWrite(" fp=", fp.toInt());
-
-        // adjust SP save area (baseline frames only)
-        //
-        //-#if RVM_FOR_POWERPC
-        int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-        if (compiledMethodId != INVISIBLE_METHOD_ID) {
-          VM_CompiledMethod compiledMethod = 
-            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-          if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-            int spOffset = VM_Compiler.getSPSaveAreaOffset((VM_NormalMethod)compiledMethod.getMethod());
-            VM_Magic.setMemoryAddress(fp.add(spOffset), 
-				      VM_Magic.getMemoryAddress(fp.add(spOffset)).add(delta));
-            if (traceAdjustments) 
-              VM.sysWrite(" sp=", VM_Magic.getMemoryWord(fp.add(spOffset)));
-          }
-          if (traceAdjustments) {
-            VM.sysWrite(" method=");
-            VM.sysWrite(compiledMethod.getMethod());
-            VM.sysWrite("\n");
-          }
-        }
-        //-#endif
-
+      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+	// adjust FP save area
+	//
+        VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).add(delta));
+        if (traceAdjustments) {
+          VM.sysWrite(" fp=", fp.toWord());
+	}
+	
         // advance to next frame
         //
         fp = VM_Magic.getCallerFramePointer(fp);
@@ -1053,12 +1041,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
      *        ^newStack           ^newFP          ^newTop
      *  </pre>
      */ 
-    private static int copyStack (int[] newStack) {
+    private static VM_Offset copyStack (int[] newStack) {
       VM_Thread myThread = getCurrentThread();
       int[]     myStack  = myThread.stack;
 
-      VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << 2);
-      VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << 2);
+      VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << LOG_BYTES_IN_ADDRESS);
+      VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << LOG_BYTES_IN_ADDRESS);
       VM_Address myFP    = VM_Magic.getFramePointer();
       VM_Offset myDepth  = myTop.diff(myFP);
       VM_Address newFP   = newTop.sub(myDepth);
@@ -1070,7 +1058,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
       VM_Memory.aligned32Copy(newFP, myFP, myDepth.toInt());
 
-      return newFP.diff(myFP).toInt();
+      return newFP.diff(myFP);
     }
 
   /**
@@ -1140,56 +1128,55 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // initialize thread registers
     //
     VM_Address ip = VM_Magic.objectAsAddress(instructions);
-    VM_Address sp = VM_Magic.objectAsAddress(stack).add(stack.length << 2);
-    VM_Address fp = VM_Address.fromInt(STACKFRAME_SENTINAL_FP);
+    VM_Address sp = VM_Magic.objectAsAddress(stack).add(stack.length << LOG_BYTES_IN_ADDRESS);
+    VM_Address fp = STACKFRAME_SENTINEL_FP;
 
 //-#if RVM_FOR_IA32 
 
     // initialize thread stack as if "startoff" method had been called
-    // by an empty baseline-compiled "sentinal" frame with one local variable
+    // by an empty baseline-compiled "sentinel" frame with one local variable
     //
     sp = sp.sub(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.sub(VM_BaselineConstants.WORDSIZE + STACKFRAME_BODY_OFFSET);  
-    VM_Magic.setCallerFramePointer(fp, VM_Address.fromInt(STACKFRAME_SENTINAL_FP));
+    fp = sp.sub(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
+    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp = sp.sub(VM_BaselineConstants.WORDSIZE);                                 // allow for one local
-    contextRegisters.gprs[ESP] = sp.toInt();
-    contextRegisters.gprs[VM_BaselineConstants.JTOC] = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toInt();
+    sp = sp.sub(BYTES_IN_ADDRESS);                                 // allow for one local
+    contextRegisters.gprs.set(ESP, sp);
+    contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
+			      VM_Magic.objectAsAddress(VM_Magic.getJTOC()));
     contextRegisters.fp  = fp;
     contextRegisters.ip  = ip;
 
 //-#else
 
-	// align stack frame
-	int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
-	fp = VM_Address.fromInt(sp.sub(INITIAL_FRAME_SIZE).toInt() & ~STACKFRAME_ALIGNMENT_MASK);
-	VM_Magic.setMemoryInt(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
-	VM_Magic.setMemoryInt(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip.toInt()); // need to fix
-	VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
+    // align stack frame
+    int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
+    fp = VM_Memory.alignDown(sp.sub(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
+    VM_Magic.setMemoryAddress(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINEL_FP);
+    VM_Magic.setMemoryAddress(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip); // need to fix
+    VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
 	
-    // initialize thread stack as if "startoff" method had been called
-    // by an empty "sentinal" frame  (with a single argument ???)
-    //
-	/*
-    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, ip.toInt());          // STACKFRAME_NEXT_INSTRUCTION_OFFSET
-    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
-    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, fp.toInt());          // STACKFRAME_FRAME_POINTER_OFFSET
-    fp = sp;
-    */
-
-    contextRegisters.gprs[FRAME_POINTER]  = fp.toInt();
+    contextRegisters.gprs.set(FRAME_POINTER, fp);
     contextRegisters.ip  = ip;
 //-#endif
 
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
 
+    //-#if RVM_WITH_HPM
+    if (hpm_counters == null) hpm_counters = new HPM_counters();
+    assignGlobalTID();
+    if (VM_HardwarePerformanceMonitors.hpm_trace) {
+      VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
+    }
+    //-#endif
+
     VM_Scheduler.threadCreationMutex.unlock();
 
-//-#if RVM_FOR_IA32 
-//-#else
-    contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
+//-#if !RVM_FOR_IA32 
+    contextRegisters.gprs.set(THREAD_ID_REGISTER, 
+			      VM_Word.fromInt(getLockingId()));
 //-#endif
     VM.enableGC();
 
@@ -1223,7 +1210,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
          //  but can't do "checkstore" without losing control
          //
          threadSlot = index;
-         VM_Magic.setObjectAtOffset(VM_Scheduler.threads,threadSlot << 2, this);
+         VM_Magic.setObjectAtOffset(VM_Scheduler.threads,threadSlot << LOG_BYTES_IN_ADDRESS, this);
          return;
          }
        }
@@ -1246,7 +1233,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //  losing control to a threadswitch, so we must hand code 
     //  the operation via magic.
     //
-    VM_Magic.setObjectAtOffset(VM_Scheduler.threads, threadSlot << 2, null);
+    VM_Magic.setObjectAtOffset(VM_Scheduler.threads, threadSlot << LOG_BYTES_IN_ADDRESS, null);
     VM_Scheduler.threadAllocationIndex = threadSlot;
     // ensure trap if we ever try to "become" this thread again
     if (VM.VerifyAssertions) threadSlot = -1; 
@@ -1381,6 +1368,30 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * (null --> any processor is ok).
    */ 
   public VM_Processor processorAffinity;
+
+  //-#if RVM_WITH_HPM  
+  /**
+   * This call sets the processor affinity of the thread that is
+   * passed as the first parameter to the virtual processor
+   * that is identified as the second parameter.
+   * ASSUMPTION: virtual processors are set up before this is called.
+   * Kludge for IVME'03.  Binds SPECjbb warehouses to virtual processors.
+   * Called from JBBmain.java.
+   *
+   * @param t    thread as an object to fool jikes at compile time.
+   * @param pid  virtual processor to bind thread to
+   */
+  static public void setProcessorAffinity(Object t, int pid) 
+  {
+    if(VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWrite ("VM_Thread.setProcessorAffinity(",pid,")");
+    }
+    VM_Thread thread = (VM_Thread)t;
+    if (pid <= VM_Scheduler.numProcessors && pid > 0) {
+      thread.processorAffinity = VM_Scheduler.processors[pid];
+    }
+  }
+  //-#endif
 
   /**
    * Virtual Processor to run native methods for this thread

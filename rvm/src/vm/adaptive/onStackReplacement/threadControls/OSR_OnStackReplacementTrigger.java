@@ -18,8 +18,8 @@ public class OSR_OnStackReplacementTrigger {
    * Trigger an OSR from a running thread.
    */
   public static void trigger(int ypTakenInCMID,
-			     int tsFromFPoff,
-			     int ypTakenFPoff,
+			     VM_Offset tsFromFPoff,
+			     VM_Offset ypTakenFPoff,
 			     int whereFrom) 
   throws VM_PragmaNoInline, VM_PragmaUninterruptible {
 
@@ -34,8 +34,8 @@ public class OSR_OnStackReplacementTrigger {
     thread.onStackReplacementEvent.suspendedThread = thread;
     thread.onStackReplacementEvent.whereFrom = whereFrom;
     thread.onStackReplacementEvent.CMID = ypTakenInCMID;
-    thread.onStackReplacementEvent.tsFromFPoff = tsFromFPoff;
-    thread.onStackReplacementEvent.ypTakenFPoff = ypTakenFPoff;
+    thread.onStackReplacementEvent.tsFromFPoff = tsFromFPoff.toInt();
+    thread.onStackReplacementEvent.ypTakenFPoff = ypTakenFPoff.toInt();
 
     // consumer:
     thread.requesting_osr = true;

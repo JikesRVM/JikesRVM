@@ -8,5 +8,6 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 /*
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class AllocAdvice {
 }

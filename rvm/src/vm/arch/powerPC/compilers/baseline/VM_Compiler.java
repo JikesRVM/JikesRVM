@@ -4,28 +4,29 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
  *
- * <p> The <code> compile() </code> method translates the bytecodes of a 
- * method to straightforward machine code.
- * 
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
+ * @author Kris Venstermans
  */
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
 	     VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
-  /*private*/ int frameSize;            //!!TODO: make private once VM_MagicCompiler is merged in
-  /*private*/ int spSaveAreaOffset;     //!!TODO: make private once VM_MagicCompiler is merged in
+  private int frameSize;            
   private int emptyStackOffset;
-  private int firstLocalOffset;
+  private int startLocalOffset;
   private int spillOffset;
+
+  // current offset of the sp from fp
+  int spTopOffset;
 
   // If we're doing a short forward jump of less than 
   // this number of bytecodes, then we can always use a short-form
@@ -39,10 +40,10 @@ public class VM_Compiler extends VM_BaselineCompiler
     super(cm);
     if (VM.VerifyAssertions) VM._assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
     if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
-    if (VM.VerifyAssertions) VM._assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
+    if (VM.VerifyAssertions) VM._assert(S0 < S1 && S1 <= LAST_SCRATCH_GPR); // need 2 scratch
+    stackHeights = new int[bcodes.length()];
     frameSize        = getFrameSize(method);
-    spSaveAreaOffset = getSPSaveAreaOffset(method);
-    firstLocalOffset = getFirstLocalOffset(method);
+    startLocalOffset = getStartLocalOffset(method);
     emptyStackOffset = getEmptyStackOffset(method);
   }
 
@@ -53,37 +54,39 @@ public class VM_Compiler extends VM_BaselineCompiler
   
   // position of spill area within method's stackframe.
   public static int getMaxSpillOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
-    int params = m.getOperandWords()<<2; // maximum parameter area
-    int spill  = params - (MIN_PARAM_REGISTERS << 2);
+    int params = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum parameter area
+    int spill  = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
     if (spill < 0) spill = 0;
-    return STACKFRAME_HEADER_SIZE + spill - 4;
+    return STACKFRAME_HEADER_SIZE + spill - BYTES_IN_STACKSLOT;
   }
   
   // position of operand stack within method's stackframe.
   public static int getEmptyStackOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
-    int stack = m.getOperandWords()<<2; // maximum stack size
-    return getMaxSpillOffset(m) + stack + 4; // last local
+    int stack = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum stack size
+    return getMaxSpillOffset(m) + stack + BYTES_IN_STACKSLOT; // last local
   }
   
   // position of locals within method's stackframe.
   public static int getFirstLocalOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
-    int locals = m.getLocalWords()<<2;       // input param words + pure locals
-    return getEmptyStackOffset(m) - 4 + locals; // bottom-most local
+    return getStartLocalOffset(m) - BYTES_IN_STACKSLOT;
   }
   
-  // position of SP save area within method's stackframe.
-  static int getSPSaveAreaOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
-     return getFirstLocalOffset(m) + 4;
+  // start position of locals within method's stackframe.
+  public static int getStartLocalOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+    int locals = m.getLocalWords()<<LOG_BYTES_IN_STACKSLOT;       // input param words + pure locals
+    return getEmptyStackOffset(m) + locals; // bottom-most local
   }
   
   // size of method's stackframe.
   public static int getFrameSize (VM_NormalMethod m) throws VM_PragmaUninterruptible {
-    int size = getSPSaveAreaOffset(m) + 4;
+    int size = getStartLocalOffset(m);
     if (m.getDeclaringClass().isDynamicBridge()) {
-      size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8;
-      size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * 4;
+      size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
+      size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) << LOG_BYTES_IN_ADDRESS;
     }
-    size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
+    if (VM.BuildFor32Addr) {
+      size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
+    }
     return size;
   }
 
@@ -95,12 +98,13 @@ public class VM_Compiler extends VM_BaselineCompiler
     //                           nonvolatile registers + GC flag + 
     //                           affinity (20 words) +
     //                           saved volatile registers
-    int argSpace = 4 * (m.getParameterWords()+ 2);
+    int argSpace = BYTES_IN_STACKSLOT * (m.getParameterWords()+ 2);
     if (argSpace<32)
       argSpace = 32;
     int size = NATIVE_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
-
-    size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
+    if (VM.BuildFor32Addr) {
+      size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
+    }
     return size;
   }
 
@@ -113,9 +117,18 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
 
   /**
+   * About to start generating code for bytecode biStart.
+   * Perform any platform specific setup
+   */
+  protected final void starting_bytecode() {
+    spTopOffset = startLocalOffset - BYTES_IN_STACKSLOT - (stackHeights[biStart] * BYTES_IN_STACKSLOT);
+  }
+
+  /**
    * Emit the prologue for the method
    */
   protected final void emit_prologue() {
+    spTopOffset = emptyStackOffset;
     genPrologue();
   }
 
@@ -132,7 +145,388 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param magicMethod desired magic
    */
   protected final boolean emit_Magic(VM_MethodReference magicMethod) {
-    return VM_MagicCompiler.generateInlineCode(this, magicMethod);
+    return generateInlineCode(magicMethod);
+  }
+
+  /*
+   * Helper functions for expression stack manipulation
+   */
+  private final void discardSlot() {
+    spTopOffset += BYTES_IN_STACKSLOT;
+  }
+
+  private final void discardSlots(int n) {
+    spTopOffset += n * BYTES_IN_STACKSLOT;
+  }
+
+
+  /**
+   * Emit the code to push an intlike (boolean, byte, char, short, int) value 
+   * contained in 'reg' onto the expression stack
+   * @param reg register containing the value to push
+   */
+  private final void pushInt(int reg) {
+    asm.emitSTW (reg, spTopOffset - BYTES_IN_INT, FP);
+    spTopOffset -= BYTES_IN_STACKSLOT;
+  }
+
+  /**
+   * Emit the code to push a float value 
+   * contained in 'reg' onto the expression stack
+   * @param reg register containing the value to push
+   */
+  private final void pushFloat(int reg) {
+    asm.emitSTFS (reg, spTopOffset - BYTES_IN_FLOAT, FP);
+    spTopOffset -= BYTES_IN_STACKSLOT;
+  }
+  
+  /**
+   * Emit the code to push a double value 
+   * contained in 'reg' onto the expression stack
+   * @param reg register containing the value to push
+   */
+  private final void pushDouble(int reg) {
+    asm.emitSTFD (reg, spTopOffset -BYTES_IN_DOUBLE, FP);
+    spTopOffset -= 2*BYTES_IN_STACKSLOT;
+  }
+
+  /**
+   * Emit the code to push a double value 
+   * contained in 'reg' onto the expression stack
+   * @param reg register containing the value to push
+   */
+  private final void pushLowDoubleAsInt(int reg) {
+    asm.emitSTFD (reg, spTopOffset -BYTES_IN_DOUBLE, FP);
+    spTopOffset -= BYTES_IN_STACKSLOT;
+  }
+
+  /**
+   * Emit the code to push a long value 
+   * contained in 'reg1' and 'reg2' onto the expression stack
+   * @param reg1 register containing,  the most significant 32 bits to push on 32bit arch (to lowest address), not used on 64bit
+   * @param reg2 register containing,  the least significant 32 bits on 32bit arch (to highest address), the whole value on 64bit
+   */
+  private final void pushLong(int reg1, int reg2) {
+    if (VM.BuildFor64Addr) {
+      asm.emitSTD (reg2,  spTopOffset -BYTES_IN_LONG, FP);
+    } else {
+      asm.emitSTW (reg2,  spTopOffset -BYTES_IN_STACKSLOT, FP);
+      asm.emitSTW (reg1, spTopOffset -2*BYTES_IN_STACKSLOT, FP);
+    }
+    spTopOffset -= 2 * BYTES_IN_STACKSLOT;
+  }
+
+  /**
+   * Emit the code to push a long value 
+   * contained in 'reg' onto the expression stack.
+   * NOTE: in 32 bit mode, reg is actually a FP register and
+   * we are treating the long value as if it were an FP value to do this in
+   * one instruction!!!
+   * @param reg register containing the value to push
+   */
+  private final void pushLongAsDouble(int reg) {
+    asm.emitSTFD (reg, spTopOffset -BYTES_IN_LONG, FP);
+    spTopOffset -= 2 * BYTES_IN_STACKSLOT;
+  }
+
+  /**
+   * Emit the code to push a reference/address value 
+   * contained in 'reg' onto the expression stack
+   * @param reg register containing the value to push
+   */
+  private final void pushAddr(int reg) {
+    asm.emitSTAddr(reg, spTopOffset -BYTES_IN_ADDRESS, FP);
+    spTopOffset -= BYTES_IN_STACKSLOT;
+  }
+  
+  /**
+   * Emit the code to poke an address 
+   * contained in 'reg' onto the expression stack on position idx.
+   * @param reg register to peek the value into
+   */
+  private final void pokeAddr(int reg, int idx) {
+    asm.emitSTAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
+  /**
+   * Emit the code to poke an int 
+   * contained in 'reg' onto the expression stack on position idx.
+   * @param reg register to peek the value into
+   */
+  private final void pokeInt(int reg, int idx) {
+    asm.emitSTW(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
+  /**
+   * Emit the code to pop a char value from the expression stack into 
+   * the register 'reg' as an int.
+   * @param reg register to pop the value into
+   */
+  private final void popCharAsInt(int reg) {
+    asm.emitLHZ(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_CHAR, FP);
+    discardSlot();
+  }
+
+  /**
+   * Emit the code to pop a short value from the expression stack into 
+   * the register 'reg' as an int.
+   * @param reg register to pop the value into
+   */
+  private final void popShortAsInt(int reg) {
+    asm.emitLHA(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_SHORT, FP);
+    discardSlot();
+  }
+  
+  /**
+   * Emit the code to pop a byte value from the expression stack into 
+   * the register 'reg' as an int.
+   * @param reg register to pop the value into
+   */
+  private final void popByteAsInt(int reg) {
+    asm.emitLWZ(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT, FP);
+    asm.emitEXTSB(reg,reg);
+    discardSlot();
+  }
+
+  /**
+   * Emit the code to pop an intlike (boolean, byte, char, short, int) value 
+   * from the expression stack into the register 'reg'. Sign extend on 64 bit platform.
+   * @param reg register to pop the value into
+   */
+  private final void popInt(int reg) {
+    asm.emitLInt(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT, FP);
+    discardSlot();
+  }
+
+  /**
+   * Emit the code to pop a float value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to pop the value into
+   */
+  private final void popFloat(int reg) {
+    asm.emitLFS (reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_FLOAT, FP);
+    discardSlot();
+  }
+
+  /**
+   * Emit the code to pop a double value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to pop the value into
+   */
+  private final void popDouble(int reg) {
+    asm.emitLFD(reg, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE, FP);
+    discardSlots(2);
+  }
+
+  /**
+   * Emit the code to push a long value 
+   * contained in 'reg1' and 'reg2' onto the expression stack
+   * @param reg1 register to pop,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
+   * @param reg2 register to pop,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
+   */
+  private final void popLong(int reg1, int reg2) {
+    if (VM.BuildFor64Addr) {
+      asm.emitLD (reg2,  spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_LONG, FP);
+    } else {
+      asm.emitLWZ (reg1,  spTopOffset, FP);
+      asm.emitLWZ (reg2,  spTopOffset + BYTES_IN_STACKSLOT, FP);
+    }
+    discardSlots(2);
+  }
+
+  /**
+   * Emit the code to pop a long value
+   * from the expression stack into the register 'reg'.
+   * NOTE: in 32 bit mode, reg is actually a FP register and
+   * we are treating the long value as if it were an FP value to do this in
+   * one instruction!!!
+   * @param reg register to pop the value into
+   */
+  private final void popLongAsDouble(int reg) {
+    asm.emitLFD(reg, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE, FP);
+    discardSlots(2);
+  }
+
+  /**
+   * Emit the code to pop a reference/address value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to pop the value into
+   */
+  private final void popAddr(int reg) {
+    asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS, FP);
+    discardSlot();
+  }
+
+  /**
+   * Emit the code to peek an intlike (boolean, byte, char, short, int) value 
+   * from the expression stack into the register 'reg'.
+   * @param reg register to peek the value into
+   */
+  final void peekInt(int reg, int idx) {
+    asm.emitLInt(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
+  /**
+   * Emit the code to peek a float value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to peek the value into
+   */
+  private final void peekFloat(int reg, int idx) {
+    asm.emitLFS(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_FLOAT + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
+  /**
+   * Emit the code to peek a double value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to peek the value into
+   */
+  private final void peekDouble(int reg, int idx) {
+    asm.emitLFD(reg, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
+  /**
+   * Emit the code to peek a long value 
+   * from the expression stack into 'reg1' and 'reg2'.
+   * @param reg1 register to peek,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
+   * @param reg2 register to peek,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
+   */
+  private final void peekLong(int reg1, int reg2, int idx) {
+    if (VM.BuildFor64Addr) {
+      asm.emitLD (reg2, spTopOffset + 2*BYTES_IN_STACKSLOT - BYTES_IN_LONG + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+    } else {
+      asm.emitLWZ (reg1,  spTopOffset + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+      asm.emitLWZ (reg2,  spTopOffset + BYTES_IN_STACKSLOT + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+    }
+  }
+
+  /**
+   * Emit the code to peek a reference/address value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to peek the value into
+   */
+  final void peekAddr(int reg, int idx) {
+    asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx<<LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
+  
+  /* 
+   * Helper functions for manipulating local variables
+   */
+
+  /**
+   * Emit the code to store an intlike (boolean, byte, char, short, int) value 
+   * from 'reg' into local number 'index'
+   * @param reg the register containing the value to store
+   * @param index the local index in which to store it.
+   */
+  private final void storeIntLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_INT;
+    asm.emitSTW(reg, offset, FP);
+  }    
+
+  /**
+   * Emit the code to store a float value
+   * from 'reg' into local number 'index'
+   * @param reg the register containing the value to store
+   * @param index the local index in which to store it.
+   */
+  private final void storeFloatLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_FLOAT;
+    asm.emitSTFS(reg, offset, FP);
+  }    
+
+  /**
+   * Emit the code to store a double value
+   * from 'reg' into local number 'index'
+   * @param reg the register containing the value to store
+   * @param index the local index in which to store it.
+   */
+  private final void storeDoubleLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_DOUBLE;
+    asm.emitSTFD(reg, offset, FP);
+  }    
+
+  /**
+   * Emit the code to store a long value
+   * from 'reg' into local number 'index'
+   * NOTE: in 32 bit mode, reg is actually a FP register and
+   * we are treating the long value as if it were an FP value to do this in
+   * one instruction!!!
+   * @param reg the register containing the value to store
+   * @param index the local index in which to store it.
+   */
+  private final void storeLongLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_LONG;
+    asm.emitSTFD(reg, offset, FP);
+  }    
+
+  /**
+   * Emit the code to store a reference/address value
+   * from 'reg' into local number 'index'
+   * @param reg the register containing the value to store
+   * @param index the local index in which to store it.
+   */
+  private final void storeAddrLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_ADDRESS;
+    asm.emitSTAddr(reg, offset, FP);
+  }    
+  
+  /**
+   * Emit the code to load an intlike (boolean, byte, char, short, int) value 
+   * from local number 'index' into 'reg'
+   * @param reg the register to load the value into
+   * @param index the local index from which to load it.
+   */
+  private final void loadIntLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_INT;
+    asm.emitLInt(reg, offset, FP);
+  }
+
+  /**
+   * Emit the code to load a float value
+   * from local number 'index' into 'reg'
+   * @param reg the register to load the value into
+   * @param index the local index from which to load it.
+   */
+  private final void loadFloatLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_FLOAT;
+    asm.emitLFS(reg, offset, FP);
+  }
+
+  /**
+   * Emit the code to load an double value
+   * from local number 'index' into 'reg'
+   * @param reg the register to load the value into
+   * @param index the local index from which to load it.
+   */
+  private final void loadDoubleLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_DOUBLE;
+    asm.emitLFD  (reg, offset, FP);
+  }
+
+  /**
+   * Emit the code to load a long value
+   * from local number 'index' into 'reg'
+   * NOTE: in 32 bit mode, reg is actually a FP register and
+   * we are treating the long value as if it were an FP value to do this in
+   * one instruction!!!
+   * @param reg the register to load the value into
+   * @param index the local index from which to load it.
+   */
+  private final void loadLongLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_LONG;
+    asm.emitLFD  (reg, offset, FP);
+  }
+
+  /**
+   * Emit the code to load a reference/address
+   * from local number 'index' into 'reg'
+   * @param reg the register to load the value into
+   * @param index the local index from which to load it.
+   */
+  private final void loadAddrLocal(int reg, int index) {
+    int offset = localOffset(index) - BYTES_IN_ADDRESS;
+    asm.emitLAddr(reg, offset, FP);
   }
 
 
@@ -145,8 +539,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load the null constant.
    */
   protected final void emit_aconst_null() {
-    asm.emitLIL(T0,  0);
-    asm.emitSTU(T0, -4, SP);
+    asm.emitLI(T0,  0);
+    pushAddr(T0);
   }
 
   /**
@@ -154,8 +548,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param val the int constant to load
    */
   protected final void emit_iconst(int val) {
-    asm.emitLIL(T0, val);
-    asm.emitSTU(T0, -4, SP);
+    asm.emitLI(T0, val);
+    pushInt(T0);
   }
 
   /**
@@ -165,11 +559,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_lconst(int val) {
     if (val == 0) {
       asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
-    } else if (val == 1) {
+    } else {
       if (VM.VerifyAssertions) VM._assert(val == 1);
       asm.emitLFDtoc(F0, VM_Entrypoints.longOneField.getOffset(), T0);
     }
-    asm.emitSTFDU (F0, -8, SP);
+    pushLongAsDouble(F0);
   }
 
   /**
@@ -177,7 +571,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_fconst_0() {
     asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
-    asm.emitSTFSU (F0, -4, SP);
+    pushFloat(F0);
   }
 
   /**
@@ -185,7 +579,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_fconst_1() {
     asm.emitLFStoc(F0, VM_Entrypoints.oneFloatField.getOffset(), T0);
-    asm.emitSTFSU (F0, -4, SP);
+    pushFloat(F0);
   }
 
   /**
@@ -193,7 +587,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_fconst_2() {
     asm.emitLFStoc(F0, VM_Entrypoints.twoFloatField.getOffset(), T0);
-    asm.emitSTFSU (F0, -4, SP);
+    pushFloat(F0);
   }
 
   /**
@@ -201,7 +595,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_dconst_0() {
     asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
-    asm.emitSTFDU (F0, -8, SP);
+    pushDouble(F0);
   }
 
   /**
@@ -209,7 +603,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_dconst_1() {
     asm.emitLFStoc(F0, VM_Entrypoints.oneFloatField.getOffset(), T0);
-    asm.emitSTFDU (F0, -8, SP);
+    pushDouble(F0);
   }
 
   /**
@@ -217,8 +611,15 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param offset JTOC offset of the constant 
    */
   protected final void emit_ldc(int offset) {
-    asm.emitLtoc(T0,  offset);
-    asm.emitSTU (T0, -4, SP);
+    if (VM.BuildFor64Addr) {
+      if (VM_Statics.getSlotDescription(offset>>LOG_BYTES_IN_INT) == VM_Statics.STRING_LITERAL){
+        asm.emitLAddrToc(T0,  offset);
+        pushAddr(T0);
+        return;
+      }
+    }
+    asm.emitLIntToc(T0, offset);
+    pushInt(T0);
   }
 
   /**
@@ -227,7 +628,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_ldc2(int offset) {
     asm.emitLFDtoc(F0,  offset, T0);
-    asm.emitSTFDU (F0, -8, SP);
+    pushDouble(F0);
   }
 
 
@@ -241,9 +642,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_iload(int index) {
-    int offset = localOffset(index);
-    asm.emitL(T0, offset, FP);
-    asm.emitSTU(T0, -4, SP);
+    loadIntLocal(T0, index);
+    pushInt(T0);
   }
 
   /**
@@ -251,9 +651,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_lload(int index) {
-    int offset = localOffset(index) - 4;
-    asm.emitLFD  (F0, offset, FP);
-    asm.emitSTFDU(F0, -8, SP);
+    loadLongLocal(F0, index);
+    pushLongAsDouble(F0);
   }
 
   /**
@@ -261,9 +660,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_fload(int index) {
-    int offset = localOffset(index);
-    asm.emitL(T0, offset, FP);
-    asm.emitSTU(T0, -4, SP);
+    loadFloatLocal(F0, index);
+    pushFloat(F0);
   }
 
   /**
@@ -271,9 +669,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_dload(int index) {
-    int offset = localOffset(index) - 4;
-    asm.emitLFD  (F0, offset, FP);
-    asm.emitSTFDU(F0, -8, SP);
+    loadDoubleLocal(F0, index);
+    pushDouble(F0);
   }
 
   /**
@@ -281,9 +678,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_aload(int index) {
-    int offset = localOffset(index);
-    asm.emitL(T0, offset, FP);
-    asm.emitSTU(T0, -4, SP);
+    loadAddrLocal(T0, index);
+    pushAddr(T0);
   }
 
 
@@ -297,10 +693,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_istore(int index) {
-    asm.emitL(T0, 0, SP);
-    asm.emitCAL(SP, 4, SP);
-    int offset = localOffset(index);
-    asm.emitST(T0, offset, FP);
+    popInt(T0);
+    storeIntLocal(T0, index);
   }
 
   /**
@@ -308,10 +702,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_lstore(int index) {
-    asm.emitLFD(F0, 0, SP);
-    asm.emitCAL(SP, 8, SP);
-    int offset = localOffset(index)-4;
-    asm.emitSTFD(F0, offset, FP);
+    popLongAsDouble(F0);
+    storeLongLocal(F0, index);
   }
 
   /**
@@ -319,10 +711,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_fstore(int index) {
-    asm.emitL  (T0, 0, SP);
-    asm.emitCAL(SP, 4, SP);
-    int offset = localOffset(index);
-    asm.emitST(T0, offset, FP);
+    popFloat(F0);
+    storeFloatLocal(F0, index);
   }
 
   /**
@@ -330,10 +720,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_dstore(int index) {
-    asm.emitLFD(F0, 0, SP);
-    asm.emitCAL(SP, 8, SP);
-    int offset = localOffset(index)-4;
-    asm.emitSTFD(F0, offset, FP);
+    popDouble(F0);
+    storeDoubleLocal(F0, index);
   }
 
   /**
@@ -341,10 +729,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index the local index to load
    */
   protected final void emit_astore(int index) {
-    asm.emitL(T0, 0, SP);
-    asm.emitCAL(SP, 4, SP);
-    int offset = localOffset(index);
-    asm.emitST(T0, offset, FP);
+    popAddr(T0);
+    storeAddrLocal(T0, index);
   }
 
 
@@ -357,81 +743,82 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load from an int array
    */
   protected final void emit_iaload() {
-    aloadSetup(2);
-    asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    asm.emitLX  (T2, T0, T1);  // load desired int array element
-    asm.emitSTU (T2,  4, SP);  
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_INT);  // convert index to offset
+    asm.emitLIntX(T2, T0, T1);  // load desired int array element
+    pushInt(T2);
   }
 
   /**
    * Emit code to load from a long array
    */
   protected final void emit_laload() {
-    aloadSetup(3);
-    asm.emitSLI (T0, T0,  3);  // convert two word index to byte index
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_LONG);  // convert index to offset
     asm.emitLFDX(F0, T0, T1);  // load desired (long) array element
-    asm.emitSTFD(F0,  0, SP);  
+    pushLongAsDouble(F0);
   }
 
   /**
    * Emit code to load from a float array
    */
   protected final void emit_faload() {
-    aloadSetup(2);
-    asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    asm.emitLX  (T2, T0, T1);  // load desired (float) array element
-    asm.emitSTU (T2,  4, SP);  
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_FLOAT);  // convert index to offset
+    asm.emitLWZX (T2, T0, T1);  // load desired (float) array element
+    pushInt(T2);  //LFSX not implemented yet
+//    asm.emitLFSX  (F0, T0, T1);  // load desired (float) array element
+//    pushFloat(F0);
   }
 
   /**
    * Emit code to load from a double array
    */
   protected final void emit_daload() {
-    aloadSetup(3);
-    asm.emitSLI (T0, T0,  3);  // convert two word index to byte index
-    asm.emitLFDX(F0, T0, T1);  // load desired (double) array element
-    asm.emitSTFD(F0,  0, SP);  
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_DOUBLE);  // convert index to offset
+    asm.emitLFDX (F0, T0, T1);  // load desired (double) array element
+    pushDouble(F0);  
   }
 
   /**
    * Emit code to load from a reference array
    */
   protected final void emit_aaload() {
-    aloadSetup(2);
-    asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    asm.emitLX  (T2, T0, T1);  // load desired (ref) array element
-    asm.emitSTU (T2,  4, SP);  
+    genBoundsCheck();
+    asm.emitSLWI  (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
+    asm.emitLAddrX(T2, T0, T1);  // load desired (ref) array element
+    pushAddr(T2);
   }
 
   /**
    * Emit code to load from a byte/boolean array
    */
   protected final void emit_baload() {
-    aloadSetup(0);
+    genBoundsCheck();
     asm.emitLBZX(T2, T0, T1);  // no load byte algebraic ...
-    asm.emitSLI (T2, T2, 24);
-    asm.emitSRAI(T2, T2, 24);  // propogate the sign bit
-    asm.emitSTU (T2,  4, SP);  
+    asm.emitEXTSB(T2,T2);
+    pushInt(T2);  
   }
 
   /**
    * Emit code to load from a char array
    */
   protected final void emit_caload() {
-    aloadSetup(1);
-    asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_CHAR);  // convert index to offset
     asm.emitLHZX(T2, T0, T1);  // load desired (char) array element
-    asm.emitSTU (T2,  4, SP);  
+    pushInt(T2);  
   }
 
   /**
    * Emit code to load from a short array
    */
   protected final void emit_saload() {
-    aloadSetup(1);
-    asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_SHORT);  // convert index to offset
     asm.emitLHAX(T2, T0, T1);  // load desired (short) array element
-    asm.emitSTU (T2,  4, SP);  
+    pushInt(T2);  
   }
 
 
@@ -444,58 +831,58 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to store to an int array
    */
   protected final void emit_iastore() {
-    astoreSetup(2);
-    asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    asm.emitSTX (T3, T0, T1);  // store int value in array
-    asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_INT);  // convert index to offset
+    asm.emitSTWX (T2, T0, T1);  // store int value in array
   }
 
   /**
    * Emit code to store to a long array
    */
   protected final void emit_lastore() {
-    astoreLong();
+    popLongAsDouble(F0);                    // F0 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_LONG);  // convert index to offset
+    asm.emitSTFDX(F0, T0, T1);  // store long value in array
   }
 
   /**
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
-    astoreSetup(2);
-    asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    asm.emitSTX (T3, T0, T1);  // store float value in array
-    asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_FLOAT);  // convert index to offset
+    asm.emitSTWX (T2, T0, T1);  // store float value in array
   }
 
   /**
    * Emit code to store to a double array
    */
   protected final void emit_dastore() {
-    astoreLong();
+    popDouble(F0);         // F0 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_DOUBLE);  // convert index to offset
+    asm.emitSTFDX(F0, T0, T1);  // store double value in array
   }
 
   /**
    * Emit code to store to a reference array
    */
   protected final void emit_aastore() {
-    asm.emitLtoc(T0,  VM_Entrypoints.checkstoreMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.checkstoreMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0,  8, SP);  //  T0 := arrayref
-    asm.emitL   (T1,  0, SP);  //  T1 := value
-    asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
-    if (VM_Interface.NEEDS_WRITE_BARRIER) {
-      VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
-      asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    peekAddr(T1, 0);    // T1 is value to store
+    peekAddr(T0, 2);    // T0 is array ref 
+    asm.emitBCCTRL();   // checkstore(arrayref, value)
+    popAddr(T2);        // T2 is value to store
+    genBoundsCheck();
+    if (MM_Interface.NEEDS_WRITE_BARRIER) {
+      VM_Barriers.compileArrayStoreBarrier(this);
     } else {
-      astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTLLE seem redundant and possibly bogus
-      asm.emitL   (T1,  8, SP);                    // T1 is array ref
-      asm.emitL   (T0,  4, SP);                    // T0 is array index
-      asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-      asm.emitL   (T3,  0, SP);                    // T3 is value to store
-      asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-      asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-      asm.emitSTX (T3, T0, T1);  // store ref value in array
-      asm.emitCAL (SP, 12, SP);  // complete 3 pops
+      asm.emitSLWI (T1, T1,  LOG_BYTES_IN_ADDRESS);  // convert index to offset
+      asm.emitSTAddrX (T2, T0, T1);  // store ref value in array
     }
   }
 
@@ -503,29 +890,29 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to store to a byte/boolean array
    */
   protected final void emit_bastore() {
-    astoreSetup(0);
-    asm.emitSTBX(T3, T0, T1);  // store byte value in array
-    asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSTBX(T2, T0, T1);  // store byte value in array
   }
 
   /**
    * Emit code to store to a char array
    */
   protected final void emit_castore() {
-    astoreSetup(1);
-    asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
-    asm.emitSTHX(T3, T0, T1);  // store char value in array
-    asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI(T1, T1,  LOG_BYTES_IN_CHAR);  // convert index to offset
+    asm.emitSTHX(T2, T0, T1);  // store char value in array
   }
 
   /**
    * Emit code to store to a short array
    */
   protected final void emit_sastore() {
-    astoreSetup(1);
-    asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
-    asm.emitSTHX(T3, T0, T1);  // store short value in array
-    asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    popInt(T2);      // T2 is value to store
+    genBoundsCheck();
+    asm.emitSLWI (T1, T1,  LOG_BYTES_IN_SHORT);  // convert index to offset
+    asm.emitSTHX(T2, T0, T1);  // store short value in array
   }
 
 
@@ -538,84 +925,96 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the pop bytecode
    */
   protected final void emit_pop() {
-    asm.emitCAL(SP, 4, SP);
+    discardSlot();
   }
 
   /**
    * Emit code to implement the pop2 bytecode
    */
   protected final void emit_pop2() {
-    asm.emitCAL(SP, 8, SP);
+    discardSlots(2);
   }
 
   /**
    * Emit code to implement the dup bytecode
    */
   protected final void emit_dup() {
-    asm.emitL  (T0,  0, SP);
-    asm.emitSTU(T0, -4, SP);
+    peekAddr(T0, 0);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the dup_x1 bytecode
    */
   protected final void emit_dup_x1() {
-    asm.emitL  (T0,  0, SP);
-    asm.emitL  (T1,  4, SP);
-    asm.emitST (T0,  4, SP);
-    asm.emitST (T1,  0, SP);
-    asm.emitSTU(T0, -4, SP);
+    popAddr(T0);
+    popAddr(T1);
+    pushAddr(T0);
+    pushAddr(T1);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the dup_x2 bytecode
    */
   protected final void emit_dup_x2() {
-    asm.emitL   (T0,  0, SP);
-    asm.emitLFD (F0,  4, SP);
-    asm.emitST  (T0,  8, SP);
-    asm.emitSTFD(F0,  0, SP);
-    asm.emitSTU (T0, -4, SP);
+    popAddr(T0);
+    popAddr(T1);
+    popAddr(T2);
+    pushAddr(T0);
+    pushAddr(T2);
+    pushAddr(T1);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the dup2 bytecode
    */
   protected final void emit_dup2() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitSTFDU(F0, -8, SP);
+    peekAddr(T0, 0);
+    peekAddr(T1, 1);
+    pushAddr(T1);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the dup2_x1 bytecode
    */
   protected final void emit_dup2_x1() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitL    (T0,  8, SP);
-    asm.emitSTFD (F0,  4, SP);
-    asm.emitST   (T0,  0, SP);
-    asm.emitSTFDU(F0, -8, SP);
+    popAddr(T0);
+    popAddr(T1);
+    popAddr(T2);
+    pushAddr(T1);
+    pushAddr(T0);
+    pushAddr(T2);
+    pushAddr(T1);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the dup2_x2 bytecode
    */
   protected final void emit_dup2_x2() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitLFD  (F1,  8, SP);
-    asm.emitSTFD (F0,  8, SP);
-    asm.emitSTFD (F1,  0, SP);
-    asm.emitSTFDU(F0, -8, SP);
+    popAddr(T0);
+    popAddr(T1);
+    popAddr(T2);
+    popAddr(T3);
+    pushAddr(T1);
+    pushAddr(T0);
+    pushAddr(T3);
+    pushAddr(T2);
+    pushAddr(T1);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the swap bytecode
    */
   protected final void emit_swap() {
-    asm.emitL  (T0,  0, SP);
-    asm.emitL  (T1,  4, SP);
-    asm.emitST (T0,  4, SP);
-    asm.emitST (T1,  0, SP);
+    popAddr(T0);
+    popAddr(T1);
+    pushAddr(T0);
+    pushAddr(T1);
   }
 
 
@@ -628,126 +1027,126 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the iadd bytecode
    */
   protected final void emit_iadd() {
-    asm.emitL  (T0,  0, SP);
-    asm.emitL  (T1,  4, SP);
-    asm.emitA  (T2, T1, T0);
-    asm.emitSTU(T2,  4, SP);
+    popInt(T0);
+    popInt(T1);
+    asm.emitADD (T2, T1, T0);
+    pushInt(T2);	    
   }
 
   /**
    * Emit code to implement the isub bytecode
    */
   protected final void emit_isub() {
-    asm.emitL  (T0,  0, SP);
-    asm.emitL  (T1,  4, SP);
-    asm.emitSF (T2, T0, T1);
-    asm.emitSTU(T2,  4, SP);
+    popInt(T0);
+    popInt(T1);
+    asm.emitSUBFC(T2, T0, T1);
+    pushInt(T2);	    
   }
 
   /**
    * Emit code to implement the imul bytecode
    */
   protected final void emit_imul() {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
-    asm.emitMULS(T1,T0, T1);
-    asm.emitSTU(T1, 4, SP);
+    popInt(T1);
+    popInt(T0);
+    asm.emitMULLW(T1,T0, T1);
+    pushInt(T1);	    
   }
 
   /**
    * Emit code to implement the idiv bytecode
    */
   protected final void emit_idiv() {
-    asm.emitL   (T0, 4, SP);
-    asm.emitL   (T1, 0, SP);
-    asm.emitTEQ0(T1);
-    asm.emitDIV (T0, T0, T1);  // T0 := T0/T1
-    asm.emitSTU (T0, 4, SP);
+    popInt(T1);
+    popInt(T0);
+    asm.emitTWEQ0(T1);
+    asm.emitDIVW (T0, T0, T1);  // T0 := T0/T1
+    pushInt(T0);	    
   }
 
   /**
    * Emit code to implement the irem bytecode
    */
   protected final void emit_irem() {
-    asm.emitL   (T0, 4, SP);
-    asm.emitL   (T1, 0, SP);
-    asm.emitTEQ0(T1);
-    asm.emitDIV (T2, T0, T1);   // T2 := T0/T1
-    asm.emitMULS(T2, T2, T1);   // T2 := [T0/T1]*T1
-    asm.emitSF  (T1, T2, T0);   // T1 := T0 - [T0/T1]*T1
-    asm.emitSTU (T1, 4, SP);
+    popInt(T1);
+    popInt(T0);
+    asm.emitTWEQ0(T1);
+    asm.emitDIVW (T2, T0, T1);   // T2 := T0/T1
+    asm.emitMULLW(T2, T2, T1);   // T2 := [T0/T1]*T1
+    asm.emitSUBFC (T1, T2, T0);   // T1 := T0 - [T0/T1]*T1
+    pushInt(T1);	    
   }
 
   /**
    * Emit code to implement the ineg bytecode
    */
   protected final void emit_ineg() {
-    asm.emitL  (T0,  0, SP);
+    popInt(T0);
     asm.emitNEG(T0, T0);
-    asm.emitST (T0,  0, SP);
+    pushInt(T0);	    
   }
 
   /**
    * Emit code to implement the ishl bytecode
    */
   protected final void emit_ishl() {
-    asm.emitL   (T0,  4, SP);
-    asm.emitL   (T1,  0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitANDI(T1, T1, 0x1F);
-    asm.emitSL  (T0, T0, T1);
-    asm.emitSTU (T0,  4, SP);
+    asm.emitSLW  (T0, T0, T1);
+    pushInt(T0);	    
   }
 
   /**
    * Emit code to implement the ishr bytecode
    */
   protected final void emit_ishr() {
-    asm.emitL   (T0,  4, SP);
-    asm.emitL   (T1,  0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitANDI(T1, T1, 0x1F);
-    asm.emitSRA (T0, T0, T1);
-    asm.emitSTU (T0,  4, SP);
+    asm.emitSRAW (T0, T0, T1);
+    pushInt(T0);	    
   }
 
   /**
    * Emit code to implement the iushr bytecode
    */
   protected final void emit_iushr() {
-    asm.emitL   (T0,  4, SP);
-    asm.emitL   (T1,  0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitANDI(T1, T1, 0x1F);
-    asm.emitSR  (T0, T0, T1);
-    asm.emitSTU (T0,  4, SP);
+    asm.emitSRW (T0, T0, T1);
+    pushInt(T0);	    
   }
 
   /**
    * Emit code to implement the iand bytecode
    */
   protected final void emit_iand() {
-    asm.emitL   (T0,  0, SP);
-    asm.emitL   (T1,  4, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitAND (T2, T0, T1);
-    asm.emitSTU (T2,  4, SP);
+    pushInt(T2);	    
   }
 
   /**
    * Emit code to implement the ior bytecode
    */
   protected final void emit_ior() {
-    asm.emitL   (T0,  0,SP);
-    asm.emitL   (T1,  4,SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitOR  (T2, T0,T1);
-    asm.emitSTU (T2,  4,SP);
+    pushInt(T2);	    
   }
 
   /**
    * Emit code to implement the ixor bytecode
    */
   protected final void emit_ixor() {
-    asm.emitL   (T0,  0,SP);
-    asm.emitL   (T1,  4,SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitXOR (T2, T0,T1);
-    asm.emitSTU (T2,  4,SP);
+    pushInt(T2);	    
   }
 
   /**
@@ -756,10 +1155,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param val value to increment it by
    */
   protected final void emit_iinc(int index, int val) {
-    int offset = localOffset(index);
-    asm.emitL  (T0, offset, FP);
-    asm.emitCAL(T0, val, T0);
-    asm.emitST (T0, offset, FP);
+    loadIntLocal(T0, index);
+    asm.emitADDI(T0, val, T0);
+    storeIntLocal(T0, index);
   }
 
 
@@ -772,205 +1170,220 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the ladd bytecode
    */
   protected final void emit_ladd() {
-    asm.emitL  (T0,  4, SP);
-    asm.emitL  (T1, 12, SP);
-    asm.emitL  (T2,  0, SP);
-    asm.emitL  (T3,  8, SP);
-    asm.emitA  (T0, T1, T0);
-    asm.emitAE (T1, T2, T3);
-    asm.emitST (T0, 12, SP);
-    asm.emitSTU(T1,  8, SP);
+    popLong(T2,T0);
+    popLong(T3,T1);
+    asm.emitADD (T0, T1, T0);
+    if (VM.BuildFor32Addr) {
+      asm.emitADDE (T1, T2, T3);
+    }
+    pushLong(T1,T0);
   }
 
   /**
    * Emit code to implement the lsub bytecode
    */
   protected final void emit_lsub() {
-    asm.emitL  (T0,  4, SP);
-    asm.emitL  (T1, 12, SP);
-    asm.emitL  (T2,  0, SP);
-    asm.emitL  (T3,  8, SP);
-    asm.emitSF (T0, T0, T1);
-    asm.emitSFE(T1, T2, T3);
-    asm.emitST (T0, 12, SP);
-    asm.emitSTU(T1,  8, SP);
+    popLong(T2,T0);
+    popLong(T3,T1);
+    asm.emitSUBFC(T0, T0, T1);
+    if (VM.BuildFor32Addr) {
+      asm.emitSUBFE(T1, T2, T3);
+    }
+    pushLong(T1,T0);
   }
 
   /**
    * Emit code to implement the lmul bytecode
    */
   protected final void emit_lmul() {
-    asm.emitL     (T1, 12, SP);
-    asm.emitL     (T3,  4, SP);
-    asm.emitL     (T0,  8, SP);
-    asm.emitL     (T2,  0, SP);
-    asm.emitMULHWU(S0, T1, T3);
-    asm.emitMULS  (T0, T0, T3);
-    asm.emitA     (T0, T0, S0);
-    asm.emitMULS  (S0, T1, T2);
-    asm.emitMULS  (T1, T1, T3);
-    asm.emitA     (T0, T0, S0);
-    asm.emitST    (T1, 12, SP);
-    asm.emitSTU   (T0,  8, SP);
+    popLong(T2,T3);
+    popLong(T0,T1);
+    if (VM.BuildFor64Addr) {
+      asm.emitMULLD (T1, T1, T3);
+    } else {
+      asm.emitMULHWU (S0, T1, T3);
+      asm.emitMULLW  (T0, T0, T3);
+      asm.emitADD    (T0, T0, S0);
+      asm.emitMULLW  (S0, T1, T2);
+      asm.emitMULLW  (T1, T1, T3);
+      asm.emitADD    (T0, T0, S0);
+    }
+    pushLong(T0,T1);
   }
 
   /**
    * Emit code to implement the ldiv bytecode
    */
   protected final void emit_ldiv() {
-    asm.emitL   (T3,  4, SP);
-    asm.emitL   (T2,  0, SP);
-    asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
-    asm.emitTEQ0(T0);         // trap if 0.
-    asm.emitL   (T1, 12, SP);
-    asm.emitL   (T0,  8, SP);
-    VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysLongDivideIPField);
-    asm.emitST  (T1, 12, SP); 
-    asm.emitSTU (T0,  8, SP); 
+    popLong(T2,T3);
+    if (VM.BuildFor64Addr) {
+      popLong(T0,T1);
+      asm.emitTDEQ0(T3);
+      asm.emitDIVD(T1,T1,T3);
+    } else {
+      asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+      asm.emitTWEQ0(T0);         // trap if 0.
+      popLong(T0,T1);
+      generateSysCall(16, VM_Entrypoints.sysLongDivideIPField);
+    }
+    pushLong(T0,T1);
   }
 
   /**
    * Emit code to implement the lrem bytecode
    */
   protected final void emit_lrem() {
-    asm.emitL   (T3,  4, SP);
-    asm.emitL   (T2,  0, SP);
-    asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
-    asm.emitTEQ0(T0);         // trap if 0.
-    asm.emitL   (T1, 12, SP);
-    asm.emitL   (T0,  8, SP);
-    VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysLongRemainderIPField);
-    asm.emitST  (T1, 12, SP); 
-    asm.emitSTU (T0,  8, SP); 
+    popLong(T2,T3);
+    if (VM.BuildFor64Addr) {
+      popLong(T0,T1);
+      asm.emitTDEQ0(T3);
+      asm.emitDIVD(T0,T1,T3);      // T0 := T1/T3
+      asm.emitMULLD(T0, T0, T3);   // T0 := [T1/T3]*T3
+      asm.emitSUBFC (T1, T0, T1);   // T1 := T1 - [T1/T3]*T3
+    } else {
+      asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+      asm.emitTWEQ0(T0);         // trap if 0.
+      popLong(T0,T1);
+      generateSysCall(16, VM_Entrypoints.sysLongRemainderIPField);
+    }
+    pushLong(T0,T1);
   }
 
   /**
    * Emit code to implement the lneg bytecode
    */
   protected final void emit_lneg() {
-    asm.emitL   (T0,  4, SP);
-    asm.emitL   (T1,  0, SP);
-    asm.emitSFI (T0, T0, 0x0);
-    asm.emitSFZE(T1, T1);
-    asm.emitST  (T0,  4, SP);
-    asm.emitSTU (T1,  0, SP);
+    popLong(T1,T0);
+    if (VM.BuildFor64Addr) {
+      asm.emitNEG(T0, T0);
+    } else {
+      asm.emitSUBFIC (T0, T0, 0x0);
+      asm.emitSUBFZE(T1, T1);
+    }
+    pushLong(T1,T0);
   }
 
   /**
    * Emit code to implement the lshsl bytecode
    */
   protected final void emit_lshl() {
-    asm.emitL   (T0,  0, SP);    // T0 is n
-    asm.emitL   (T1,  8, SP);    // T1 is low bits of l
-    asm.emitANDI(T3, T0, 0x20);  // shift more than 31 bits?
-    asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
-    asm.emitSL  (T3, T1, T0);    // low bits of l shifted n or n-32 bits
-    asm.emitL   (T2,  4, SP);    // T2 is high bits of l
-    VM_ForwardReference fr1 = asm.emitForwardBC(EQ); // if shift less than 32, goto
-    asm.emitSTU (T3,  4, SP);    // store high bits of result
-    asm.emitLIL (T0,  0);        // low bits are zero
-    asm.emitST  (T0,  4, SP);    // store 'em
-    VM_ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    asm.emitSL  (T2, T2, T0);    // high bits of l shifted n bits left
-    asm.emitSFI (T0, T0, 0x20);  // T0 := 32 - T0; 
-    asm.emitSR  (T1, T1, T0);    // T1 is middle bits of result
-    asm.emitOR  (T2, T2, T1);    // T2 is high bits of result
-    asm.emitSTU (T2,  4, SP);    // store high bits of result
-    asm.emitST  (T3,  4, SP);    // store low bits of result           
-    fr2.resolve(asm);
+    popInt(T0);                    // T0 is n
+    popLong(T2,T1);
+    if (VM.BuildFor64Addr) {
+      asm.emitANDI(T0, T0, 0x3F);
+      asm.emitSLD  (T1, T1, T0);
+      pushLong(T1,T1);
+    } else {
+      asm.emitANDI(T3, T0, 0x20);  // shift more than 31 bits?
+      asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
+      asm.emitSLW  (T3, T1, T0);    // low bits of l shifted n or n-32 bits
+      VM_ForwardReference fr1 = asm.emitForwardBC(EQ); // if shift less than 32, goto
+      asm.emitLI (T0,  0);        // low bits are zero
+      pushLong(T3,T0);
+      VM_ForwardReference fr2 = asm.emitForwardB();
+      fr1.resolve(asm);
+      asm.emitSLW  (T2, T2, T0);    // high bits of l shifted n bits left
+      asm.emitSUBFIC (T0, T0, 0x20);  // T0 := 32 - T0; 
+      asm.emitSRW (T1, T1, T0);    // T1 is middle bits of result
+      asm.emitOR  (T2, T2, T1);    // T2 is high bits of result
+      pushLong(T2,T3);
+      fr2.resolve(asm);
+    }
   }
 
   /**
    * Emit code to implement the lshr bytecode
    */
   protected final void emit_lshr() {
-    asm.emitL   (T0,  0, SP);    // T0 is n
-    asm.emitL   (T2,  4, SP);    // T2 is high bits of l
-    asm.emitANDI(T3, T0, 0x20);  // shift more than 31 bits?
-    asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
-    asm.emitSRA (T3, T2, T0);    // high bits of l shifted n or n-32 bits
-    asm.emitL   (T1,  8, SP);    // T1 is low bits of l
-    VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
-    asm.emitST  (T3,  8, SP);    // store low bits of result
-    asm.emitSRAI(T0, T3, 0x1F);  // propogate a full work of sign bit
-    asm.emitSTU (T0,  4, SP);    // store high bits of result
-    VM_ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    asm.emitSR  (T1, T1, T0);    // low bits of l shifted n bits right
-    asm.emitSFI (T0, T0, 0x20);  // T0 := 32 - T0;
-    asm.emitSL  (T2, T2, T0);    // T2 is middle bits of result
-    asm.emitOR  (T1, T1, T2);    // T1 is low bits of result
-    asm.emitST  (T1,  8, SP);    // store low bits of result 
-    asm.emitSTU (T3,  4, SP);    // store high bits of result          
-    fr2.resolve(asm);
+    popInt(T0);                    // T0 is n
+    popLong(T2,T1);
+    if (VM.BuildFor64Addr) {
+      asm.emitANDI(T0, T0, 0x3F);
+      asm.emitSRAD (T1, T1, T0);
+      pushLong(T1,T1);
+    } else {
+      asm.emitANDI(T3, T0, 0x20);  // shift more than 31 bits?
+      asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
+      asm.emitSRAW (T3, T2, T0);    // high bits of l shifted n or n-32 bits
+      VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
+      asm.emitSRAWI(T0, T3, 0x1F);  // propogate a full work of sign bit
+      pushLong(T0,T3);
+      VM_ForwardReference fr2 = asm.emitForwardB();
+      fr1.resolve(asm);
+      asm.emitSRW (T1, T1, T0);    // low bits of l shifted n bits right
+      asm.emitSUBFIC (T0, T0, 0x20);  // T0 := 32 - T0;
+      asm.emitSLW  (T2, T2, T0);    // T2 is middle bits of result
+      asm.emitOR  (T1, T1, T2);    // T1 is low bits of result
+      pushLong(T3,T1);
+      fr2.resolve(asm);
+    }
   }
 
   /**
    * Emit code to implement the lushr bytecode
    */
   protected final void emit_lushr() {
-    asm.emitL   (T0,  0, SP);    // T0 is n
-    asm.emitL   (T2,  4, SP);    // T2 is high bits of l
-    asm.emitANDI(T3, T0, 0x20);  // shift more than 31 bits?
-    asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
-    asm.emitSR  (T3, T2, T0);    // high bits of l shifted n or n-32 bits
-    asm.emitL   (T1,  8, SP);    // T1 is low bits of l
-    VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
-    asm.emitST  (T3,  8, SP);    // store low bits of result
-    asm.emitLIL (T0,  0);        // high bits are zero
-    asm.emitSTU (T0,  4, SP);    // store 'em
-    VM_ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    asm.emitSR  (T1, T1, T0);    // low bits of l shifted n bits right
-    asm.emitSFI (T0, T0, 0x20);  // T0 := 32 - T0;
-    asm.emitSL  (T2, T2, T0);    // T2 is middle bits of result
-    asm.emitOR  (T1, T1, T2);    // T1 is low bits of result
-    asm.emitST  (T1,  8, SP);    // store low bits of result 
-    asm.emitSTU (T3,  4, SP);    // store high bits of result          
-    fr2.resolve(asm);
+    popInt(T0);                    // T0 is n
+    popLong(T2,T1);
+    if (VM.BuildFor64Addr) {
+      asm.emitANDI(T0, T0, 0x3F);
+      asm.emitSRD (T1, T1, T0);
+      pushLong(T1,T1);
+    } else {
+      asm.emitANDI(T3, T0, 0x20);  // shift more than 31 bits?
+      asm.emitXOR (T0, T3, T0);    // restrict shift to at most 31 bits
+      asm.emitSRW (T3, T2, T0);    // high bits of l shifted n or n-32 bits
+      VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
+      asm.emitLI (T0,  0);        // high bits are zero
+      pushLong(T0,T3);
+      VM_ForwardReference fr2 = asm.emitForwardB();
+      fr1.resolve(asm);
+      asm.emitSRW (T1, T1, T0);    // low bits of l shifted n bits right
+      asm.emitSUBFIC (T0, T0, 0x20);  // T0 := 32 - T0;
+      asm.emitSLW  (T2, T2, T0);    // T2 is middle bits of result
+      asm.emitOR  (T1, T1, T2);    // T1 is low bits of result
+      pushLong(T3,T1);
+      fr2.resolve(asm);
+    }
   }
 
   /**
    * Emit code to implement the land bytecode
    */
   protected final void emit_land() {
-    asm.emitL  (T0,  4, SP);
-    asm.emitL  (T1, 12, SP);
-    asm.emitL  (T2,  0, SP);
-    asm.emitL  (T3,  8, SP);
-    asm.emitAND(T0, T1, T0);
-    asm.emitAND(T1, T2, T3);
-    asm.emitST (T0, 12, SP);
-    asm.emitSTU(T1,  8, SP);
+    popLong(T2,T0);
+    popLong(T3,T1);
+    asm.emitAND (T0, T1, T0);
+    if (VM.BuildFor32Addr) {
+      asm.emitAND(T1, T2, T3);
+    }
+    pushLong(T1,T0);
   }
 
   /**
    * Emit code to implement the lor bytecode
    */
   protected final void emit_lor() {
-    asm.emitL  (T0,  4, SP);
-    asm.emitL  (T1, 12, SP);
-    asm.emitL  (T2,  0, SP);
-    asm.emitL  (T3,  8, SP);
+    popLong(T2,T0);
+    popLong(T3,T1);
     asm.emitOR (T0, T1, T0);
-    asm.emitOR (T1, T2, T3);
-    asm.emitST (T0, 12, SP);
-    asm.emitSTU(T1,  8, SP);
+    if (VM.BuildFor32Addr) {
+      asm.emitOR(T1, T2, T3);
+    }
+    pushLong(T1,T0);
   }
 
   /**
    * Emit code to implement the lxor bytecode
    */
   protected final void emit_lxor() {
-    asm.emitL  (T0,  4, SP);
-    asm.emitL  (T1, 12, SP);
-    asm.emitL  (T2,  0, SP);
-    asm.emitL  (T3,  8, SP);
-    asm.emitXOR(T0, T1, T0);
-    asm.emitXOR(T1, T2, T3);
-    asm.emitST (T0, 12, SP);
-    asm.emitSTU(T1,  8, SP);
+    popLong(T2,T0);
+    popLong(T3,T1);
+    asm.emitXOR (T0, T1, T0);
+    if (VM.BuildFor32Addr) {
+      asm.emitXOR(T1, T2, T3);
+    }
+    pushLong(T1,T0);
   }
 
 
@@ -983,59 +1396,59 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the fadd bytecode
    */
   protected final void emit_fadd() {
-    asm.emitLFS  (F0,  0, SP);
-    asm.emitLFS  (F1,  4, SP);
-    asm.emitFAs  (F0, F1, F0);
-    asm.emitSTFSU(F0,  4, SP);
+    popFloat(F0);
+    popFloat(F1);
+    asm.emitFADDS  (F0, F1, F0);
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the fsub bytecode
    */
   protected final void emit_fsub() {
-    asm.emitLFS  (F0,  0, SP);
-    asm.emitLFS  (F1,  4, SP);
-    asm.emitFSs  (F0, F1, F0);
-    asm.emitSTFSU(F0,  4, SP);
+    popFloat(F0);
+    popFloat(F1);
+    asm.emitFSUBS  (F0, F1, F0);
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the fmul bytecode
    */
   protected final void emit_fmul() {
-    asm.emitLFS  (F0,  0, SP);
-    asm.emitLFS  (F1,  4, SP);
-    asm.emitFMs  (F0, F1, F0); // single precision multiply
-    asm.emitSTFSU(F0,  4, SP);
+    popFloat(F0);
+    popFloat(F1);
+    asm.emitFMULS  (F0, F1, F0); // single precision multiply
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the fdiv bytecode
    */
   protected final void emit_fdiv() {
-    asm.emitLFS  (F0,  0, SP);
-    asm.emitLFS  (F1,  4, SP);
-    asm.emitFDs  (F0, F1, F0);
-    asm.emitSTFSU(F0,  4, SP);
+    popFloat(F0);
+    popFloat(F1);
+    asm.emitFDIVS  (F0, F1, F0);
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the frem bytecode
    */
   protected final void emit_frem() {
-    asm.emitLFS   (F1,  0, SP);              // F1 is b
-    asm.emitLFS   (F0,  4, SP);              // F0 is a
-    VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysDoubleRemainderIPField);
-    asm.emitSTFSU (F0,  4, SP);
+    popFloat(F1);
+    popFloat(F0);
+    generateSysCall(16, VM_Entrypoints.sysDoubleRemainderIPField);
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the fneg bytecode
    */
   protected final void emit_fneg() {
-    asm.emitLFS (F0,  0, SP);
+    popFloat(F0);
     asm.emitFNEG(F0, F0);
-    asm.emitSTFS(F0,  0, SP);
+    pushFloat(F0);
   }
 
 
@@ -1048,59 +1461,59 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the dadd bytecode
    */
   protected final void emit_dadd() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitLFD  (F1,  8, SP);
-    asm.emitFA   (F0, F1, F0);
-    asm.emitSTFDU(F0,  8, SP);
+    popDouble(F0);
+    popDouble(F1);
+    asm.emitFADD   (F0, F1, F0);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the dsub bytecode
    */
   protected final void emit_dsub() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitLFD  (F1,  8, SP);
-    asm.emitFS   (F0, F1, F0);
-    asm.emitSTFDU(F0,  8, SP);
+    popDouble(F0);
+    popDouble(F1);
+    asm.emitFSUB   (F0, F1, F0);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the dmul bytecode
    */
   protected final void emit_dmul() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitLFD  (F1,  8, SP);
-    asm.emitFM   (F0, F1, F0);
-    asm.emitSTFDU(F0,  8, SP);
+    popDouble(F0);
+    popDouble(F1);
+    asm.emitFMUL   (F0, F1, F0);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the ddiv bytecode
    */
   protected final void emit_ddiv() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitLFD  (F1,  8, SP);
-    asm.emitFD   (F0, F1, F0);
-    asm.emitSTFDU(F0,  8, SP);
+    popDouble(F0);
+    popDouble(F1);
+    asm.emitFDIV   (F0, F1, F0);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the drem bytecode
    */
   protected final void emit_drem() {
-    asm.emitLFD   (F1,  0, SP);              // F1 is b
-    asm.emitLFD   (F0,  8, SP);              // F0 is a
-    VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysDoubleRemainderIPField);
-    asm.emitSTFDU (F0,  8, SP);
+    popDouble(F1);                 //F1 is b
+    popDouble(F0);                 //F0 is a
+    generateSysCall(16, VM_Entrypoints.sysDoubleRemainderIPField);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the dneg bytecode
    */
   protected final void emit_dneg() {
-    asm.emitLFD (F0,  0, SP);
+    popDouble(F0);
     asm.emitFNEG(F0, F0);
-    asm.emitSTFD(F0,  0, SP);
+    pushDouble(F0);
   }
 
 
@@ -1113,91 +1526,116 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the i2l bytecode
    */
   protected final void emit_i2l() {
-    asm.emitL   (T0,  0, SP);
-    asm.emitSRAI(T1, T0, 31);
-    asm.emitSTU (T1, -4, SP);
+    if (VM.BuildFor64Addr) {
+      popInt(T0);
+      pushLong(T0,T0); 
+    } else {
+      peekInt(T0, 0);
+      asm.emitSRAWI(T1, T0, 31);
+      pushInt(T1);
+    }
   }
 
   /**
    * Emit code to implement the i2f bytecode
    */
-  protected final void emit_i2f() {
-    asm.emitL     (T0,  0, SP);               // T0 is X (an int)
-    asm.emitCMPI  (T0,  0);                   // is X < 0
-    asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
-    asm.emitSTFD  (F0, -4, SP);               // MAGIC on stack
-    asm.emitST    (T0,  0, SP);               // if 0 <= X, MAGIC + X 
-    VM_ForwardReference fr = asm.emitForwardBC(GE);
-    asm.emitL     (T0, -4, SP);               // T0 is top of MAGIC
-    asm.emitCAL   (T0, -1, T0);               // decrement top of MAGIC
-    asm.emitST    (T0, -4, SP);               // MAGIC + X is on stack
-    fr.resolve(asm);
-    asm.emitLFD   (F1, -4, SP);               // F1 is MAGIC + X
-    asm.emitFS    (F1, F1, F0);               // F1 is X
-    asm.emitSTFS  (F1,  0, SP);               // float(X) is on stack 
+  protected final void emit_i2f() {  
+    if (VM.BuildFor64Addr) {
+      popInt(T0); 		// TO is X  (an int)
+      pushLong(T0,T0);
+      popDouble(F0);            // load long 
+      asm.emitFCFID(F0, F0);    // convert it
+      pushFloat(F0);            // store the float
+    } else {
+      popInt(T0); 		// TO is X  (an int)
+      asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
+      asm.emitSTFD  (F0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitSTW   (T0, VM_Entrypoints.scratchSecondsField.getOffset()+4, PROCESSOR_REGISTER);
+      asm.emitCMPI  (T0,  0);                // is X < 0
+      VM_ForwardReference fr = asm.emitForwardBC(GE);
+      asm.emitLInt  (T0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitADDI  (T0, -1, T0);            // decrement top of MAGIC
+      asm.emitSTW   (T0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER); // MAGIC + X in scratch field
+      fr.resolve(asm);
+      asm.emitLFD   (F1, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER); // F1 is MAGIC + X
+      asm.emitFSUB  (F1, F1, F0);            // F1 is X
+      pushFloat(F1);                         // float(X) is on stack 
+    }
   }
 
   /**
    * Emit code to implement the i2d bytecode
    */
   protected final void emit_i2d() {
-    asm.emitL     (T0,  0, SP);               // T0 is X (an int)
-    asm.emitCMPI  (T0,  0);                   // is X < 0
-    asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
-    asm.emitSTFD  (F0, -4, SP);               // MAGIC on stack
-    asm.emitST    (T0,  0, SP);               // if 0 <= X, MAGIC + X 
-    VM_ForwardReference fr = asm.emitForwardBC(GE); // ow, handle X < 0
-    asm.emitL     (T0, -4, SP);               // T0 is top of MAGIC
-    asm.emitCAL   (T0, -1, T0);               // decrement top of MAGIC
-    asm.emitST    (T0, -4, SP);               // MAGIC + X is on stack
-    fr.resolve(asm);
-    asm.emitLFD   (F1, -4, SP);               // F1 is MAGIC + X
-    asm.emitFS    (F1, F1, F0);               // F1 is X
-    asm.emitSTFDU (F1, -4, SP);               // float(X) is on stack 
+    if (VM.BuildFor64Addr) {
+      popInt(T0); 		//TO is X  (an int)
+      pushLong(T0,T0);
+      popDouble(F0);              // load long 
+      asm.emitFCFID(F0, F0);      // convert it
+      pushDouble(F0);  // store the float
+    } else {
+      popInt(T0);                               // T0 is X (an int)
+      asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
+      pushDouble(F0);               // MAGIC on stack
+      pokeInt(T0, 1);               // if 0 <= X, MAGIC + X 
+      asm.emitCMPI  (T0,  0);                   // is X < 0
+      VM_ForwardReference fr = asm.emitForwardBC(GE); // ow, handle X < 0
+      popInt (T0);               // T0 is top of MAGIC
+      asm.emitADDI   (T0, -1, T0);               // decrement top of MAGIC
+      pushInt(T0);               // MAGIC + X is on stack
+      fr.resolve(asm);
+      popDouble(F1);               // F1 is MAGIC + X
+      asm.emitFSUB    (F1, F1, F0);               // F1 is X
+      pushDouble(F1);               // float(X) is on stack
+    }
   }
 
   /**
    * Emit code to implement the l2i bytecode
    */
   protected final void emit_l2i() {
-    asm.emitCAL(SP, 4, SP); // throw away top of the long
+    discardSlot();
   }
 
   /**
    * Emit code to implement the l2f bytecode
    */
   protected final void emit_l2f() {
-    asm.emitL   (T1, 4, SP);
-    asm.emitL   (T0, 0, SP);
-    VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysLongToFloatIPField);
-    asm.emitSTFSU(F0,  4, SP);
+    popLong (T0, VM.BuildFor64Addr?T0:T1);
+    generateSysCall(8, VM_Entrypoints.sysLongToFloatIPField);
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the l2d bytecode
    */
   protected final void emit_l2d() {
-    asm.emitL   (T1, 4, SP);
-    asm.emitL   (T0, 0, SP);
-    VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysLongToDoubleIPField);
-    asm.emitSTFD(F0,  0, SP);
+    popLong (T0, VM.BuildFor64Addr?T0:T1);
+    generateSysCall(8, VM_Entrypoints.sysLongToDoubleIPField);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the f2i bytecode
    */
   protected final void emit_f2i() {
-    asm.emitLFS  (F0,  0, SP);
+    popFloat(F0);
     asm.emitFCMPU(F0, F0);
     VM_ForwardReference fr1 = asm.emitForwardBC(NE);
     // Normal case: F0 == F0 therefore not a NaN
-    asm.emitFCTIZ(F0, F0);
-    asm.emitSTFD (F0, -4, SP); 
+    asm.emitFCTIWZ(F0, F0);
+	if (VM.BuildFor64Addr) { 
+      pushLowDoubleAsInt(F0);
+	} else {
+	  asm.emitSTFD  (F0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+	  asm.emitLWZ   (T0, VM_Entrypoints.scratchSecondsField.getOffset() + 4, PROCESSOR_REGISTER);
+	  pushInt       (T0);
+	}
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     // A NaN => 0
-    asm.emitLIL  (T0, 0);
-    asm.emitST   (T0, 0, SP);
+    asm.emitLI  (T0, 0);
+    pushInt(T0);
     fr2.resolve(asm);
   }
 
@@ -1205,71 +1643,67 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the f2l bytecode
    */
   protected final void emit_f2l() {
-    asm.emitLFS (F0,  0, SP);
-    VM_MagicCompiler.generateSysCall(asm, 4, VM_Entrypoints.sysFloatToLongIPField);
-    asm.emitST  (T1,  0, SP);
-    asm.emitSTU (T0, -4, SP);
+    popFloat(F0);
+    generateSysCall(4, VM_Entrypoints.sysFloatToLongIPField);
+    pushLong (T0, VM.BuildFor64Addr?T0:T1);
   }
 
   /**
    * Emit code to implement the f2d bytecode
    */
   protected final void emit_f2d() {
-    asm.emitLFS  (F0,  0, SP);
-    asm.emitSTFDU(F0, -4, SP);
+    popFloat(F0);
+    pushDouble(F0);
   }
 
   /**
    * Emit code to implement the d2i bytecode
    */
   protected final void emit_d2i() {
-    asm.emitLFD  (F0,  0, SP);
-    asm.emitFCTIZ(F0, F0);
-    asm.emitSTFD (F0,  0, SP);
-    asm.emitCAL  (SP,  4, SP);
+    popDouble(F0);
+    asm.emitFCTIWZ(F0, F0);
+    pushLowDoubleAsInt(F0);
   }
 
   /**
    * Emit code to implement the d2l bytecode
    */
   protected final void emit_d2l() {
-    asm.emitLFD (F0,  0, SP);
-    VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysDoubleToLongIPField);
-    asm.emitST  (T1, 4, SP);
-    asm.emitSTU (T0, 0, SP);
+    popDouble(F0);
+    generateSysCall(8, VM_Entrypoints.sysDoubleToLongIPField);
+    pushLong (T0, VM.BuildFor64Addr?T0:T1);
   }
 
   /**
    * Emit code to implement the d2f bytecode
    */
   protected final void emit_d2f() {
-    asm.emitLFD  (F0, 0, SP);
-    asm.emitSTFSU(F0, 4, SP);
+    popDouble(F0);
+    pushFloat(F0);
   }
 
   /**
    * Emit code to implement the i2b bytecode
    */
   protected final void emit_i2b() {
-    asm.emitL   (T0,  3, SP);
-    asm.emitSRAI(T0, T0, 24);
-    asm.emitST  (T0,  0, SP);
+    popByteAsInt(T0);  
+    pushInt(T0);
   }
 
   /**
    * Emit code to implement the i2c bytecode
    */
   protected final void emit_i2c() {
-    asm.emitLHZ(T0, 2, SP);
-    asm.emitST (T0, 0, SP);
+    popCharAsInt(T0);
+    pushInt(T0);
   }
 
   /**
    * Emit code to implement the i2s bytecode
    */
   protected final void emit_i2s() {
-    asm.emitLHA(T0, 2, SP);
-    asm.emitST (T0, 0, SP);
+    popShortAsInt(T0);
+    pushInt(T0);
   }
 
 
@@ -1282,122 +1716,120 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the lcmp bytecode
    */
   protected final void emit_lcmp() {
-    asm.emitL    (T1,  8, SP);  // T1 is ah
-    asm.emitL    (T3,  0, SP);  // T3 is bh
+    popLong(T3, T2);
+    popLong(T1, T0);
+    //-#if RVM_FOR_64_ADDR
+    asm.emitCMPD(T0, T2); 
+    VM_ForwardReference fr1 = asm.emitForwardBC(LT);
+    VM_ForwardReference fr2 = asm.emitForwardBC(GT);
+    //-#else
     asm.emitCMP  (T1, T3);      // ah ? al
     VM_ForwardReference fr1 = asm.emitForwardBC(LT);
     VM_ForwardReference fr2 = asm.emitForwardBC(GT);
-    asm.emitL    (T0, 12, SP);  // (ah == bh), T0 is al
-    asm.emitL    (T2,  4, SP);  // T2 is bl
     asm.emitCMPL (T0, T2);      // al ? bl (logical compare)
     VM_ForwardReference fr3 = asm.emitForwardBC(LT);
     VM_ForwardReference fr4 = asm.emitForwardBC(GT);
-    asm.emitLIL  (T0,  0);      // a == b
-    asm.emitSTU  (T0, 12, SP);  // push  0
+    //-#endif
+    asm.emitLI  (T0,  0);      // a == b
     VM_ForwardReference fr5 = asm.emitForwardB();
     fr1.resolve(asm);
+    //-#if RVM_FOR_32_ADDR
     fr3.resolve(asm);
-    asm.emitLIL  (T0, -1);      // a <  b
-    asm.emitSTU  (T0, 12, SP);  // push -1
+    //-#endif
+    asm.emitLI  (T0, -1);      // a <  b
     VM_ForwardReference fr6 = asm.emitForwardB();
     fr2.resolve(asm);
+    //-#if RVM_FOR_32_ADDR
     fr4.resolve(asm);
-    asm.emitLIL  (T0,  1);      // a >  b
-    asm.emitSTU  (T0, 12, SP);  // push  1
+    //-#endif
+    asm.emitLI  (T0,  1);      // a >  b
     fr5.resolve(asm);
     fr6.resolve(asm);
+    pushInt(T0);
   }
 
   /**
    * Emit code to implement the fcmpl bytecode
    */
   protected final void emit_fcmpl() {
-    asm.emitLFS  (F0,  4, SP);
-    asm.emitLFS  (F1,  0, SP);
+    popFloat(F1);
+    popFloat(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(LE);
-    asm.emitLIL  (T0,  1); // the GT bit of CR0
-    asm.emitSTU  (T0,  4, SP);
+    asm.emitLI  (T0,  1); // the GT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLIL  (T0, -1); // the LT or UO bits of CR0
-    asm.emitSTU  (T0,  4, SP);
+    asm.emitLI  (T0, -1); // the LT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLIL  (T0,  0);
-    asm.emitSTU  (T0,  4, SP); // the EQ bit of CR0
+    asm.emitLI  (T0,  0);
     fr2.resolve(asm);
     fr4.resolve(asm);
+    pushInt(T0);
   }
 
   /**
    * Emit code to implement the fcmpg bytecode
    */
   protected final void emit_fcmpg() {
-    asm.emitLFS  (F0,  4, SP);
-    asm.emitLFS  (F1,  0, SP);
+    popFloat(F1);
+    popFloat(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(GE);
-    asm.emitLIL  (T0, -1);     // the LT bit of CR0
-    asm.emitSTU  (T0,  4, SP);
+    asm.emitLI  (T0, -1);     // the LT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLIL  (T0,  1);     // the GT or UO bits of CR0
-    asm.emitSTU  (T0,  4, SP);
+    asm.emitLI  (T0,  1);     // the GT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLIL  (T0,  0);     // the EQ bit of CR0
-    asm.emitSTU  (T0,  4, SP);
+    asm.emitLI  (T0,  0);     // the EQ bit of CR0
     fr2.resolve(asm);
     fr4.resolve(asm);
+    pushInt(T0);
   }
 
   /**
    * Emit code to implement the dcmpl bytecode
    */
   protected final void emit_dcmpl() {
-    asm.emitLFD  (F0,  8, SP);
-    asm.emitLFD  (F1,  0, SP);
+    popDouble(F1);
+    popDouble(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(LE);
-    asm.emitLIL  (T0,  1); // the GT bit of CR0
-    asm.emitSTU  (T0, 12, SP);
+    asm.emitLI  (T0,  1); // the GT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLIL  (T0, -1); // the LT or UO bits of CR0
-    asm.emitSTU  (T0, 12, SP);
+    asm.emitLI  (T0, -1); // the LT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLIL  (T0,  0);
-    asm.emitSTU  (T0, 12, SP); // the EQ bit of CR0
+    asm.emitLI  (T0,  0);
     fr2.resolve(asm);
     fr4.resolve(asm);
+    pushInt(T0);
   }
 
   /**
    * Emit code to implement the dcmpg bytecode
    */
   protected final void emit_dcmpg() {
-    asm.emitLFD  (F0,  8, SP);
-    asm.emitLFD  (F1,  0, SP);
+    popDouble(F1);
+    popDouble(F0);
     asm.emitFCMPU(F0, F1);
     VM_ForwardReference fr1 = asm.emitForwardBC(GE);
-    asm.emitLIL  (T0, -1); // the LT bit of CR0
-    asm.emitSTU  (T0, 12, SP);
+    asm.emitLI  (T0, -1); // the LT bit of CR0
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     VM_ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLIL  (T0,  1); // the GT or UO bits of CR0
-    asm.emitSTU  (T0, 12, SP);
+    asm.emitLI  (T0,  1); // the GT or UO bits of CR0
     VM_ForwardReference fr4 = asm.emitForwardB();
     fr3.resolve(asm);
-    asm.emitLIL  (T0,  0); // the EQ bit of CR0
-    asm.emitSTU  (T0, 12, SP);
+    asm.emitLI  (T0,  0); // the EQ bit of CR0
     fr2.resolve(asm);
     fr4.resolve(asm);
+    pushInt(T0);
   }
 
 
@@ -1411,9 +1843,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifeq(int bTarget) {
-    asm.emitL  (T0,  0, SP);
-    asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
-    asm.emitCAL(SP,  4, SP); // completes pop
+    popInt(T0);
+    asm.emitADDICr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     genCondBranch(EQ, bTarget);
   }
 
@@ -1422,9 +1853,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifne(int bTarget) {
-    asm.emitL  (T0,  0, SP);
-    asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
-    asm.emitCAL(SP,  4, SP); // completes pop
+    popInt(T0);
+    asm.emitADDICr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     genCondBranch(NE, bTarget);
   }
 
@@ -1433,9 +1863,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_iflt(int bTarget) {
-    asm.emitL  (T0,  0, SP);
-    asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
-    asm.emitCAL(SP,  4, SP); // completes pop
+    popInt(T0);
+    asm.emitADDICr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     genCondBranch(LT, bTarget);
   }
 
@@ -1444,9 +1873,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifge(int bTarget) {
-    asm.emitL  (T0,  0, SP);
-    asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
-    asm.emitCAL(SP,  4, SP); // completes pop
+    popInt(T0);
+    asm.emitADDICr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     genCondBranch(GE, bTarget);
   }
 
@@ -1455,9 +1883,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifgt(int bTarget) {
-    asm.emitL  (T0,  0, SP);
-    asm.emitAIr(T0, T0,  0); // compares T0 to 0 and sets CR0 
-    asm.emitCAL(SP,  4, SP); // completes pop
+    popInt(T0);
+    asm.emitADDICr(T0, T0,  0); // compares T0 to 0 and sets CR0 
     genCondBranch(GT, bTarget);
   }
 
@@ -1466,9 +1893,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifle(int bTarget) {
-    asm.emitL  (T0, 0, SP);
-    asm.emitAIr(0,  T0,  0); // T0 to 0 and sets CR0 
-    asm.emitCAL(SP, 4, SP);  // completes pop
+    popInt(T0);
+    asm.emitADDICr(0,  T0,  0); // T0 to 0 and sets CR0 
     genCondBranch(LE, bTarget);
   }
 
@@ -1477,10 +1903,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpeq(int bTarget) {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
     genCondBranch(EQ, bTarget);
   }
 
@@ -1489,10 +1914,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpne(int bTarget) {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
     genCondBranch(NE, bTarget);
   }
 
@@ -1501,10 +1925,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmplt(int bTarget) {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
     genCondBranch(LT, bTarget);
   }
 
@@ -1513,10 +1936,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpge(int bTarget) {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
     genCondBranch(GE, bTarget);
   }
 
@@ -1525,10 +1947,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpgt(int bTarget) {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
     genCondBranch(GT, bTarget);
   }
 
@@ -1537,10 +1958,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmple(int bTarget) {
-    asm.emitL  (T0, 4, SP);
-    asm.emitL  (T1, 0, SP);
+    popInt(T1);
+    popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
     genCondBranch(LE, bTarget);
   }
 
@@ -1549,10 +1969,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_acmpeq(int bTarget) {
-    asm.emitL (T0, 4, SP);
-    asm.emitL (T1, 0, SP);
-    asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
+    popAddr(T1);
+    popAddr(T0);
+    asm.emitCMPAddr(T0, T1);    // sets CR0  
     genCondBranch(EQ, bTarget);
   }
 
@@ -1561,10 +1980,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_acmpne(int bTarget) {
-    asm.emitL (T0, 4, SP);
-    asm.emitL (T1, 0, SP);
-    asm.emitCMP(T0, T1);    // sets CR0
-    asm.emitCAL(SP, 8, SP); // completes 2 pops
+    popAddr(T1);
+    popAddr(T0);
+    asm.emitCMPAddr(T0, T1);    // sets CR0
     genCondBranch(NE, bTarget);
   }
 
@@ -1573,10 +1991,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifnull(int bTarget) {
-    asm.emitL   (T0,  0, SP);
-    asm.emitLIL (T1,  0);
-    asm.emitCMP (T0, T1);  
-    asm.emitCAL (SP,  4, SP);
+    popAddr(T0);
+    asm.emitLI (T1,  0);
+    asm.emitCMPAddr(T0, T1);  
     genCondBranch(EQ, bTarget);
   }
 
@@ -1585,10 +2002,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifnonnull(int bTarget) {
-    asm.emitL   (T0,  0, SP);
-    asm.emitLIL (T1,  0);
-    asm.emitCMP (T0, T1);  
-    asm.emitCAL (SP,  4, SP);
+    popAddr(T0);
+    asm.emitLI (T1,  0);
+    asm.emitCMPAddr (T0, T1);  
     genCondBranch(NE, bTarget);
   }
 
@@ -1608,10 +2024,14 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_jsr(int bTarget) {
     VM_ForwardReference fr = asm.emitForwardBL();
     fr.resolve(asm); // get PC into LR...
+    int start = asm.getMachineCodeIndex();
+    int delta = 4;
     asm.emitMFLR(T1);           // LR +  0
-    asm.emitCAL (T1, 16, T1);   // LR +  4  (LR + 16 is ret address)
-    asm.emitSTU (T1, -4, SP);   // LR +  8
+    asm.emitADDI (T1, delta*INSTRUCTION_WIDTH, T1);   // LR +  4  
+    pushAddr(T1);   // LR +  8 
     asm.emitBL(bytecodeMap[bTarget], bTarget); // LR + 12
+    int done = asm.getMachineCodeIndex();
+    if (VM.VerifyAssertions) VM._assert((done - start) == delta);
   }
 
   /**
@@ -1619,10 +2039,9 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param index local variable containing the return address
    */
   protected final void emit_ret(int index) {
-    int offset = localOffset(index);
-    asm.emitL(T0, offset, FP);
+    loadAddrLocal(T0, index);
     asm.emitMTLR(T0);
-    asm.emitBLR ();
+    asm.emitBCLR ();
   }
 
   /**
@@ -1637,21 +2056,20 @@ public class VM_Compiler extends VM_BaselineCompiler
     int n = high-low+1;       // n = number of normal cases (0..n-1)
     int firstCounter = edgeCounterIdx; // only used if options.EDGE_COUNTERS;
 
-    asm.emitL   (T0, 0, SP);  // T0 is index
-    asm.emitCAL (SP,  4, SP); // pop index from stack
+    popInt(T0);  // T0 is index
     if (asm.fits(16, -low)) {
-      asm.emitCAL(T0, -low, T0);
+      asm.emitADDI(T0, -low, T0);
     } else {
       asm.emitLVAL(T1, low);
-      asm.emitSF  (T0, T1, T0); 
+      asm.emitSUBFC (T0, T1, T0); 
     }
     asm.emitLVAL(T2, n);
     asm.emitCMPL(T0, T2);
     if (options.EDGE_COUNTERS) {
       edgeCounterIdx += n+1; // allocate n+1 counters
       // Load counter array for this method
-      asm.emitLtoc (T2, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitLoffset(T2, T2, getEdgeCounterOffset());
+      asm.emitLAddrToc (T2, VM_Entrypoints.edgeCountersField.getOffset());
+      asm.emitLWZoffset(T2, T2, getEdgeCounterOffset());
       
       VM_ForwardReference fr = asm.emitForwardBC(LT); // jump around jump to default target
       incEdgeCounter(T2, S0, firstCounter + n);
@@ -1675,14 +2093,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     bcodes.skipTableSwitchOffsets(n);
     fr1.resolve(asm);
     asm.emitMFLR(T1);         // T1 is base of table
-    asm.emitSLI (T0, T0,  2); // convert to bytes
+    asm.emitSLWI (T0, T0,  LOG_BYTES_IN_INT); // convert to bytes
     if (options.EDGE_COUNTERS) {
       incEdgeCounterIdx(T2, S0, firstCounter, T0);
     }
-    asm.emitLX  (T0, T0, T1); // T0 is relative offset of desired case
-    asm.emitA   (T1, T1, T0); // T1 is absolute address of desired case
-    asm.emitMTLR(T1);
-    asm.emitBLR ();
+    asm.emitLIntX  (T0, T0, T1); // T0 is relative offset of desired case
+    asm.emitADD  (T1, T1, T0); // T1 is absolute address of desired case
+    asm.emitMTCTR(T1);
+    asm.emitBCCTR ();
   }
 
   /**
@@ -1693,12 +2111,11 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_lookupswitch(int defaultval, int npairs) {
     if (options.EDGE_COUNTERS) {
       // Load counter array for this method
-      asm.emitLtoc (T2, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitLoffset(T2, T2, getEdgeCounterOffset());
+      asm.emitLAddrToc (T2, VM_Entrypoints.edgeCountersField.getOffset());
+      asm.emitLWZoffset(T2, T2, getEdgeCounterOffset());
     }
 
-    asm.emitL   (T0,  0, SP); // T0 is key
-    asm.emitCAL (SP,  4, SP); // pop key
+    popInt(T0); // T0 is key
     for (int i=0; i<npairs; i++) {
       int match   = bcodes.getLookupSwitchValue(i);
       if (asm.fits(match, 16)) {
@@ -1745,7 +2162,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_ireturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
-    asm.emitL(T0, 0, SP);
+    peekInt(T0, 0);
     genEpilogue();
   }
 
@@ -1754,8 +2171,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_lreturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
-    asm.emitL(T1, 4, SP); // hi register := lo word (which is at higher memory address)
-    asm.emitL(T0, 0, SP); // lo register := hi word (which is at lower  memory address)
+    peekLong(T0, VM.BuildFor64Addr?T0:T1, 0);
     genEpilogue();
   }
 
@@ -1764,7 +2180,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_freturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
-    asm.emitLFS(F0, 0, SP);
+    peekFloat(F0, 0);
     genEpilogue();
   }
 
@@ -1773,7 +2189,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_dreturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
-    asm.emitLFD(F0, 0, SP);
+     peekDouble(F0, 0);
     genEpilogue();
   }
 
@@ -1782,7 +2198,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_areturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
-    asm.emitL(T0, 0, SP);
+    peekAddr(T0, 0);
     genEpilogue();
   }
 
@@ -1806,29 +2222,43 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true); 
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitLX (T0, T1, JTOC);
-      asm.emitSTU (T0, -4, SP);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+      asm.emitLIntX (T0, T1, JTOC);
+      pushInt(T0);
+    } else { // field is two words (double or long ( or address on PPC64))
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+      if (VM.BuildFor64Addr){
+	if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+      	  asm.emitLDX(T0, T1, JTOC);
+	  pushAddr(T0);
+	  return;
+	}
+      }
       asm.emitLFDX (F0, T1, JTOC);
-      asm.emitSTFDU (F0, -8, SP);
+      pushDouble(F0);
     }
   }
-
+  
   /**
    * Emit code to implement a getstatic
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitLtoc(T0, fieldOffset);
-      asm.emitSTU (T0, -4, SP);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+      asm.emitLIntToc(T0, fieldOffset);
+      pushInt(T0);
+    } else { // field is two words (double or long ( or address on PPC64))
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+      if (VM.BuildFor64Addr){
+	if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+      	  asm.emitLDtoc(T0, fieldOffset);
+	  pushAddr(T0);
+	  return;
+	}
+      }
       asm.emitLFDtoc(F0, fieldOffset, T0);
-      asm.emitSTFDU (F0, -8, SP);
+      pushDouble(F0);
     }
   }
 
@@ -1840,18 +2270,23 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-//       VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//       VM_Barriers.compilePutstaticBarrier(this); // NOTE: offset is in T1 from emitDynamicLinkingSequence
 //       emitDynamicLinkingSequence(T1, fieldRef, false);
 //     }
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL    (T0, 0, SP);
-	asm.emitCAL  (SP, 4, SP);
-	asm.emitSTX(T0, T1, JTOC);
-      } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLFD    (F0, 0, SP );
-	asm.emitCAL    (SP, 8, SP);
+      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+	popInt(T0);
+	asm.emitSTWX(T0, T1, JTOC);
+      } else { // field is two words (double or long (or address on PPC64))
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+        if (VM.BuildFor64Addr){
+	  if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+	    popAddr(T0);
+	    asm.emitSTDX(T0, T1, JTOC);
+	    return;
+	  }
+	}
+	popDouble(F0);
 	asm.emitSTFDX(F0, T1, JTOC);
       }
   }
@@ -1863,17 +2298,22 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-//       VM_Barriers.compilePutstaticBarrierImm(asm, spSaveAreaOffset, fieldOffset);
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//       VM_Barriers.compilePutstaticBarrierImm(this, fieldOffset);
 //     }
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitL    (T0, 0, SP);
-      asm.emitCAL  (SP, 4, SP);
-      asm.emitSTtoc(T0, fieldOffset, T1);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      asm.emitLFD    (F0, 0, SP );
-      asm.emitCAL    (SP, 8, SP);
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+      popInt(T0);
+      asm.emitSTWtoc(T0, fieldOffset, T1);
+    } else { // field is two words (double or long (or address on PPC64))
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+        if (VM.BuildFor64Addr){
+	  if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+	    popAddr(T0);
+	    asm.emitSTDtoc(T0, fieldOffset, T1);
+	    return;
+	  }
+	}
+      popDouble(F0);
       asm.emitSTFDtoc(F0, fieldOffset, T0);
     }
   }
@@ -1885,14 +2325,21 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T2, fieldRef, true);
-    asm.emitL (T1, 0, SP); // T1 = object reference
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitLX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
-      asm.emitST(T0, 0, SP);
+    popAddr(T1); 
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+      asm.emitLIntX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
+      pushInt(T0);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+      if (VM.BuildFor64Addr){
+        if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+	  asm.emitLDX(T0, T2, T1);
+	  pushAddr(T0);
+	  return;
+	}
+      }
       asm.emitLFDX (F0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
-      asm.emitSTFDU(F0, -4, SP);
+      pushDouble(F0);
     }
   }
 
@@ -1902,14 +2349,21 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    asm.emitL (T1, 0, SP); // T1 = object reference
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitL (T0, fieldOffset, T1);
-      asm.emitST(T0, 0, SP);
+    popAddr(T1); // T1 = object reference
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+      asm.emitLInt(T0, fieldOffset, T1);
+      pushInt(T0);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+      if (VM.BuildFor64Addr){
+        if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+	  asm.emitLD(T0, fieldOffset, T1);
+	  pushAddr(T0);
+	  return;
+	}
+      }
       asm.emitLFD  (F0, fieldOffset, T1);
-      asm.emitSTFDU(F0, -4, SP);
+      pushDouble(F0);
     }
   }
 
@@ -1920,21 +2374,27 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+      VM_Barriers.compilePutfieldBarrier(this); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);	
-      asm.emitCAL(SP, 8, SP);  
+      discardSlots(2);
     } else {
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL  (T2, 4, SP); // T1 = object reference
-	asm.emitL  (T0, 0, SP); // T0 = value
-	asm.emitCAL(SP, 8, SP);  
-	asm.emitSTX(T0, T2, T1);
+      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+	popInt(T0); // T0 = value
+	popAddr(T2); // T2 = object reference
+	asm.emitSTWX(T0, T2, T1);
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLFD (F0,  0, SP); // F0 = doubleword value
-	asm.emitL   (T2,  8, SP); // T1 = object reference
-	asm.emitCAL (SP, 12, SP);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+        if (VM.BuildFor64Addr){
+          if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+	    popAddr(T0);		//T0 = address value
+	    popAddr(T2); 		// T2 = object reference
+	    asm.emitSTDX(T0, T2, T1);
+	    return;
+	  }
+	}
+	popDouble(F0); // F0 = doubleword value
+	popAddr(T2); // T2 = object reference
 	asm.emitSTFDX(F0, T2, T1);
       }
     }
@@ -1946,20 +2406,26 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutfieldBarrierImm(asm, spSaveAreaOffset, fieldOffset);
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+      VM_Barriers.compilePutfieldBarrierImm(this, fieldOffset);
     }
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitL  (T1, 4, SP); // T1 = object reference
-      asm.emitL  (T0, 0, SP); // T0 = value
-      asm.emitCAL(SP, 8, SP);  
-      asm.emitST (T0, fieldOffset, T1);
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
+	popInt(T0); // T0 = value
+	popAddr(T1); // T1 = object reference
+	asm.emitSTW(T0, fieldOffset, T1);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      asm.emitLFD (F0,  0, SP); // F0 = doubleword value
-      asm.emitL   (T1,  8, SP); // T1 = object reference
-      asm.emitCAL (SP, 12, SP);
-      asm.emitSTFD(F0, fieldOffset, T1);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+        if (VM.BuildFor64Addr){
+          if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
+	    popAddr(T0);		//T0 = address value
+	    popAddr(T1); 		// T1 = object reference
+	    asm.emitSTD(T0, fieldOffset, T1);
+	    return;
+	  }
+	}
+	popDouble(F0); // F0 = doubleword value
+	popAddr(T1); // T1 = object reference
+        asm.emitSTFD(F0, fieldOffset, T1);
     }
   }
 
@@ -1973,15 +2439,14 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param methodRef the referenced method
    */
   protected final void emit_unresolved_invokevirtual(VM_MethodReference methodRef) {
-    int methodRefParameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    int objectOffset = (methodRefParameterWords << 2) - 4;
+    int objectIndex = methodRef.getParameterWords(); // +1 for "this" parameter, -1 to load it
     emitDynamicLinkingSequence(T2, methodRef, true); // leaves method offset in T2
-    asm.emitL   (T0, objectOffset,      SP); // load this
+    peekAddr(T0, objectIndex);
     VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0); // load TIB
-    asm.emitLX  (T2, T2, T1);  
+    asm.emitLAddrX(T2, T2, T1);
     asm.emitMTCTR(T2);
     genMoveParametersToRegisters(true, methodRef);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -1990,15 +2455,14 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param methodRef the referenced method
    */
   protected final void emit_resolved_invokevirtual(VM_MethodReference methodRef) {
-    int methodRefParameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    int objectOffset = (methodRefParameterWords << 2) - 4;
-    asm.emitL   (T0, objectOffset,      SP); // load this
+    int objectIndex = methodRef.getParameterWords(); // +1 for "this" parameter, -1 to load it
+    peekAddr(T0, objectIndex);
     VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0); // load TIB
     int methodOffset = methodRef.peekResolvedMethod().getOffset();
-    asm.emitL   (T2, methodOffset,   T1);
+    asm.emitLAddr(T2, methodOffset, T1);
     asm.emitMTCTR(T2);
     genMoveParametersToRegisters(true, methodRef);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -2010,15 +2474,15 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) { // invoke via method's jtoc slot
-      asm.emitLtoc(T0, target.getOffset());
+      asm.emitLAddrToc(T0, target.getOffset());
     } else { // invoke via class's tib slot
       if (VM.VerifyAssertions) VM._assert(!target.isStatic());
-      asm.emitLtoc(T0, target.getDeclaringClass().getTibOffset());
-      asm.emitL   (T0, target.getOffset(), T0);
+      asm.emitLAddrToc(T0, target.getDeclaringClass().getTibOffset());
+      asm.emitLAddr(T0, target.getOffset(), T0);
     }
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(true, methodRef);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -2029,10 +2493,10 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_invokespecial(VM_MethodReference methodRef) {
     // must be a static method; if it was a super then declaring class _must_ be resolved
     emitDynamicLinkingSequence(T2, methodRef, true); // leaves method offset in T2
-    asm.emitLX    (T0, T2, JTOC); 
+    asm.emitLAddrX(T0, T2, JTOC); 
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(true, methodRef);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
@@ -2043,10 +2507,10 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_invokestatic(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(T2, methodRef, true);		      // leaves method offset in T2
-    asm.emitLX  (T0, T2, JTOC); // method offset left in T2 by emitDynamicLinkingSequence
+    asm.emitLAddrX(T0, T2, JTOC); // method offset left in T2 by emitDynamicLinkingSequence
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(false, methodRef);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(false, methodRef);
   }
 
@@ -2056,13 +2520,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_invokestatic(VM_MethodReference methodRef) {
     int methodOffset = methodRef.peekResolvedMethod().getOffset();
-    asm.emitLtoc(T0, methodOffset);
+    asm.emitLAddrToc(T0, methodOffset);
     asm.emitMTCTR(T0);
     genMoveParametersToRegisters(false, methodRef);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(false, methodRef);
   }
-
 
   /**
    * Emit code to implement the invokeinterface bytecode
@@ -2081,21 +2544,21 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (resolvedMethod == null) {
 	// Can't successfully resolve it at compile time.
 	// Call uncommon case typechecking routine to do the right thing when this code actually executes.
-	asm.emitLtoc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
+	asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitLIL (T0, methodRef.getId());            // id of method reference we are trying to call
-	asm.emitL   (T1, (count-1) << 2, SP);           // the "this" object
+	asm.emitLI (T0, methodRef.getId());            // id of method reference we are trying to call
+	peekAddr(T1, count-1);           // the "this" object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
-	asm.emitCall(spSaveAreaOffset);                 // throw exception, if link error
+	asm.emitBCCTRL();                 // throw exception, if link error
       } else {
 	// normal case.  Not a ghost ref.
-	asm.emitLtoc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
+	asm.emitLAddrToc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitLtoc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
-	asm.emitL   (T0, TIB_TYPE_INDEX << 2, T0);                   // type of the interface method
-	asm.emitL   (T1, (count-1) << 2, SP);                        // the "this" object
+	asm.emitLAddrToc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
+	asm.emitLAddr(T0, TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0);                   // type of the interface method
+	peekAddr(T1, count-1);                        // the "this" object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
-	asm.emitCall(spSaveAreaOffset);                              // throw exception, if link error
+	asm.emitBCCTRL();                              // throw exception, if link error
       }
     }
     // (2) Emit interface invocation sequence.
@@ -2106,23 +2569,24 @@ public class VM_Compiler extends VM_BaselineCompiler
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
       if (VM.BuildForIndirectIMT) {
 	// Load the IMT base into S0
-	asm.emitL(S0, TIB_IMT_TIB_INDEX << 2, S0);
+	asm.emitLAddr(S0, TIB_IMT_TIB_INDEX << LOG_BYTES_IN_ADDRESS, S0);
       }
-      asm.emitL   (S0, offset, S0);                  // the method address
+      asm.emitLAddr(S0, offset, S0);                  // the method address
       asm.emitMTCTR(S0);
-      asm.emitCallWithHiddenParameter(spSaveAreaOffset, sig.getId());
+      asm.emitLVAL(S1, sig.getId());      // pass "hidden" parameter in S1 scratch  register
+      asm.emitBCCTRL();
     } else if (VM.BuildForITableInterfaceInvocation && 
 	       VM.DirectlyIndexedITables && 
 	       resolvedMethod != null) {
       VM_Class I = resolvedMethod.getDeclaringClass();
       genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-      asm.emitL   (S0, TIB_ITABLES_TIB_INDEX << 2, S0); // iTables 
-      asm.emitL   (S0, I.getInterfaceId() << 2, S0);  // iTable
+      asm.emitLAddr (S0, TIB_ITABLES_TIB_INDEX << LOG_BYTES_IN_ADDRESS, S0); // iTables 
+      asm.emitLAddr (S0, I.getInterfaceId() << LOG_BYTES_IN_ADDRESS, S0);  // iTable
       int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
-      asm.emitL   (S0, idx << 2, S0); // the method to call
+      asm.emitLAddr(S0, idx << LOG_BYTES_IN_ADDRESS, S0); // the method to call
       asm.emitMTCTR(S0);
-      asm.emitCall(spSaveAreaOffset);
+      asm.emitBCCTRL();
     } else {
       int itableIndex = -1;
       if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {
@@ -2134,33 +2598,32 @@ public class VM_Compiler extends VM_BaselineCompiler
 	// itable index is not known at compile-time.
 	// call "invokeInterface" to resolve object + method id into method address
 	int methodRefId = methodRef.getId();
-	asm.emitLtoc(T0, VM_Entrypoints.invokeInterfaceMethod.getOffset());
+	asm.emitLAddrToc(T0, VM_Entrypoints.invokeInterfaceMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitL   (T0, (count-1) << 2, SP); // object
+	peekAddr(T0, count-1); // object
 	asm.emitLVAL(T1, methodRefId);        // method id
-	asm.emitCall(spSaveAreaOffset);       // T0 := resolved method address
+	asm.emitBCCTRL();       // T0 := resolved method address
 	asm.emitMTCTR(T0);
 	genMoveParametersToRegisters(true, methodRef);
-	asm.emitCall(spSaveAreaOffset);
+	asm.emitBCCTRL();
       } else {
 	// itable index is known at compile-time.
 	// call "findITable" to resolve object + interface id into 
 	// itable address
-	asm.emitLtoc(T0, VM_Entrypoints.findItableMethod.getOffset());
+	asm.emitLAddrToc(T0, VM_Entrypoints.findItableMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitL   (T0, (count-1) << 2, SP);     // object
+	peekAddr(T0, count-1);     // object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
 	asm.emitLVAL(T1, resolvedMethod.getDeclaringClass().getInterfaceId());    // interface id
-	asm.emitCall(spSaveAreaOffset);   // T0 := itable reference
-	asm.emitL   (T0, itableIndex << 2, T0); // T0 := the method to call
+	asm.emitBCCTRL();   // T0 := itable reference
+	asm.emitLAddr(T0, itableIndex << LOG_BYTES_IN_ADDRESS, T0); // T0 := the method to call
 	asm.emitMTCTR(T0);
 	genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
-	asm.emitCall(spSaveAreaOffset);
+	asm.emitBCCTRL();
       }
     }
     genPopParametersAndPushReturnValue(true, methodRef);
   }
- 
 
   /*
    * other object model functions
@@ -2174,15 +2637,15 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
-    int whichAllocator = VM_Interface.pickAllocator(typeRef);
-    asm.emitLtoc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
+    int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
+    asm.emitLAddrToc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
-    asm.emitLtoc(T1, tibOffset);
+    asm.emitLAddrToc(T1, tibOffset);
     asm.emitLVAL(T2, typeRef.hasFinalizer()?1:0);
     asm.emitLVAL(T3, whichAllocator);
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitSTU (T0, -4, SP);
+    asm.emitBCCTRL();
+    pushAddr(T0);
   }
 
   /**
@@ -2190,11 +2653,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
-    asm.emitLtoc(T0, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
+    asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, typeRef.getId());
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitSTU (T0, -4, SP);
+    asm.emitBCCTRL();
+    pushAddr(T0);
   }
 
   /**
@@ -2205,16 +2668,16 @@ public class VM_Compiler extends VM_BaselineCompiler
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
-    int whichAllocator = VM_Interface.pickAllocator(array);
-    asm.emitLtoc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
+    int whichAllocator = MM_Interface.pickAllocator(array, method);
+    asm.emitLAddrToc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL    (T0,  0, SP);                // T0 := number of elements
-    asm.emitSLI  (T1, T0, width);             // T1 := number of bytes
-    asm.emitCAL  (T1, headerSize, T1);        //    += header bytes
-    asm.emitLtoc (T2, tibOffset);             // T2 := tib
+    peekInt(T0,0);                // T0 := number of elements
+    asm.emitSLWI  (T1, T0, width);             // T1 := number of bytes
+    asm.emitADDI  (T1, headerSize, T1);        //    += header bytes
+    asm.emitLAddrToc(T2, tibOffset);             // T2 := tib
     asm.emitLVAL (T3, whichAllocator);
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitST   (T0, 0, SP);
+    asm.emitBCCTRL();
+    pokeAddr(T0,0);
   }
 
   /**
@@ -2222,12 +2685,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_newarray(VM_TypeReference typeRef) {
-    asm.emitLtoc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
+    asm.emitLAddrToc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL    (T0, 0, SP);                // T0 := number of elements
+    peekInt(T0,0);                // T0 := number of elements
     asm.emitLVAL (T1, typeRef.getId());      // T1 := id of type ref
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitST   (T0, 0, SP);
+    asm.emitBCCTRL();
+    pokeAddr(T0,0);
   }
 
   /**
@@ -2237,34 +2700,34 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param dictionaryId, the dictionaryId of typeRef
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
-    asm.emitLtoc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
+    asm.emitLAddrToc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, dimensions);
     asm.emitLVAL(T1, typeRef.getId());
-    asm.emitSLI (T2, T0,  2); // number of bytes of array dimension args
-    asm.emitA   (T2, SP, T2); // offset of word *above* first...
-    asm.emitSF  (T2, FP, T2); // ...array dimension arg
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitSTU (T0, (dimensions - 1)<<2, SP); // pop array dimension args, push return val
+    asm.emitSLWI (T2, T0,  LOG_BYTES_IN_ADDRESS); // number of bytes of array dimension args
+    asm.emitADDI  (T2, spTopOffset, T2);             // offset from FP to expression stack top
+    asm.emitBCCTRL();
+    discardSlots(dimensions);
+    pushAddr(T0);
   }
 
   /**
    * Emit code to implement the arraylength bytecode
    */
   protected final void emit_arraylength() {
-    asm.emitL (T0, 0, SP);
-    asm.emitL (T1, VM_ObjectModel.getArrayLengthOffset(), T0);
-    asm.emitST(T1, 0, SP);
+    popAddr(T0);
+    asm.emitLInt(T1, VM_ObjectModel.getArrayLengthOffset(), T0);
+    pushInt(T1);
   }
 
   /**
    * Emit code to implement the athrow bytecode
    */
   protected final void emit_athrow() {
-    asm.emitLtoc(T0, VM_Entrypoints.athrowMethod.getOffset());
+    asm.emitLAddrToc(T0, VM_Entrypoints.athrowMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0, 0, SP);
-    asm.emitCall(spSaveAreaOffset);
+    peekAddr(T0, 0);    
+    asm.emitBCCTRL();
   }
 
   /**
@@ -2273,11 +2736,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param target the method to invoke to implement this checkcast
    */
   protected final void emit_checkcast(VM_TypeReference typeRef) {
-    asm.emitLtoc(T0,  VM_Entrypoints.checkcastMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.checkcastMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
+    peekAddr(T0,  0); // checkcast(obj, klass) consumes obj
     asm.emitLVAL(T1, typeRef.getId());
-    asm.emitCall(spSaveAreaOffset);               // but obj remains on stack afterwords
+    asm.emitBCCTRL();               // but obj remains on stack afterwords
   }
 
   /**
@@ -2286,11 +2749,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param target the method to invoke to implement this checkcast
    */
   protected final void emit_checkcast_resolvedClass(VM_Type type) {
-    asm.emitLtoc(T0,  VM_Entrypoints.checkcastResolvedClassMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.checkcastResolvedClassMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
+    peekAddr (T0,  0); // checkcast(obj, klass) consumes obj
     asm.emitLVAL(T1, type.getId());
-    asm.emitCall(spSaveAreaOffset);               // but obj remains on stack afterwords
+    asm.emitBCCTRL();               // but obj remains on stack afterwords
   }
 
   /**
@@ -2299,11 +2762,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param target the method to invoke to implement this checkcast
    */
   protected final void emit_checkcast_final(VM_Type type) {
-    asm.emitLtoc(T0,  VM_Entrypoints.checkcastFinalMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.checkcastFinalMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
+    peekAddr(T0,  0); // checkcast(obj, klass) consumes obj
     asm.emitLVAL(T1, type.getTibOffset());
-    asm.emitCall(spSaveAreaOffset);               // but obj remains on stack afterwords
+    asm.emitBCCTRL();               // but obj remains on stack afterwords
   }
 
   /**
@@ -2312,12 +2775,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param target the method to invoke to implement this instanceof
    */
   protected final void emit_instanceof(VM_TypeReference typeRef) {
-    asm.emitLtoc(T0,  VM_Entrypoints.instanceOfMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.instanceOfMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0, 0, SP);
+    peekAddr(T0, 0);
     asm.emitLVAL(T1, typeRef.getId());
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitST  (T0, 0, SP);
+    asm.emitBCCTRL();
+    pokeInt(T0, 0);
   }
 
   /**
@@ -2326,12 +2789,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param target the method to invoke to implement this instanceof
    */
   protected final void emit_instanceof_resolvedClass(VM_Type type) {
-    asm.emitLtoc(T0,  VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0, 0, SP);
+    peekAddr(T0, 0);
     asm.emitLVAL(T1, type.getId());
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitST  (T0, 0, SP);
+    asm.emitBCCTRL();
+    pokeInt(T0, 0);
   }
 
   /**
@@ -2340,98 +2803,82 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param target the method to invoke to implement this instanceof
    */
   protected final void emit_instanceof_final(VM_Type type) {
-    asm.emitLtoc(T0,  VM_Entrypoints.instanceOfFinalMethod.getOffset());
+    asm.emitLAddrToc(T0,  VM_Entrypoints.instanceOfFinalMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0, 0, SP);
+    peekAddr(T0, 0);
     asm.emitLVAL(T1, type.getTibOffset());
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitST  (T0, 0, SP);
+    asm.emitBCCTRL();
+    pokeInt(T0, 0);
   }
 
   /**
    * Emit code to implement the monitorenter bytecode
    */
   protected final void emit_monitorenter() {
-    asm.emitL   (S0, VM_Entrypoints.lockMethod.getOffset(), JTOC);
+    asm.emitLAddr(S0, VM_Entrypoints.lockMethod.getOffset(), JTOC);
     asm.emitMTCTR(S0);
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitCAL (SP, 4, SP);
+    asm.emitBCCTRL();
+    discardSlot();
   }
 
   /**
    * Emit code to implement the monitorexit bytecode
    */
   protected final void emit_monitorexit() {
-    asm.emitL     (T0, 0, SP);
-    asm.emitL   (S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);
+    peekAddr(T0, 0);
+    asm.emitLAddr(S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);
     asm.emitMTCTR(S0);
-    asm.emitCall(spSaveAreaOffset);
-    asm.emitCAL (SP, 4, SP);
+    asm.emitBCCTRL();
+    discardSlot();
   }
 
   
   // offset of i-th local variable with respect to FP
   private int localOffset (int i) {
-    int offset = firstLocalOffset - (i << 2);
+    int offset = startLocalOffset - (i << LOG_BYTES_IN_STACKSLOT);
     if (VM.VerifyAssertions) VM._assert(offset < 0x8000);
     return offset;
   }
 
   private void emitDynamicLinkingSequence(int reg, VM_MemberReference ref, boolean couldBeZero) {
     int memberId = ref.getId();
-    int memberOffset = memberId << 2;
+    int memberOffset = memberId << LOG_BYTES_IN_INT;
     int tableOffset = VM_Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
       int resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffset();
       int label = asm.getMachineCodeIndex();
 
       // load offset table
-      asm.emitLtoc (reg, tableOffset);
-      asm.emitLoffset(reg, reg, memberOffset);
+      asm.emitLAddrToc (reg, tableOffset);
+      asm.emitLWZoffset(reg, reg, memberOffset);
 
       // test for non-zero offset and branch around call to resolver
       asm.emitCMPI (reg, 0);				      // reg ?= 0, is field's class loaded?
       VM_ForwardReference fr1 = asm.emitForwardBC(NE);
-      asm.emitLtoc (T0, resolverOffset);
+      asm.emitLAddrToc (T0, resolverOffset);
       asm.emitMTCTR (T0);
-      asm.emitLVAL (T0, memberId);                            // id of member we are resolving
-      asm.emitCall (spSaveAreaOffset);			      // link; will throw exception if link error
-      asm.emitB    (label);                       	      // go back and try again
+      asm.emitLVAL (T0, memberId);            // id of member we are resolving
+      asm.emitBCCTRL (); 			      // link; will throw exception if link error
+      asm.emitB    (label);                   // go back and try again
       fr1.resolve(asm);
     } else {
       // load offset table
-      asm.emitLtoc (reg, tableOffset);
-      asm.emitLoffset(reg, reg, memberOffset);
+      asm.emitLAddrToc (reg, tableOffset);
+      asm.emitLWZoffset(reg, reg, memberOffset);
     }
   }
 
-  // Load/Store assist
-  private void aloadSetup (int logSize) {
-    asm.emitL   (T1,  4, SP);                    // T1 is array ref
-    asm.emitL   (T0,  0, SP);                    // T0 is array index
-    asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-    asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+  // Gen bounds check for array load/store bytecodes.
+  // Does null check (implicit) and array bounds check.
+  // Kills S0.
+  // on return: T0 => base, T1 => index. 
+  private void genBoundsCheck () {
+    popInt(T1);      // T1 is array index
+    popAddr(T0);     // T0 is array ref
+    asm.emitLInt (S0,  VM_ObjectModel.getArrayLengthOffset(), T0);  // T2 is array length
+    asm.emitTWLLE(S0, T1);      // trap if index < 0 or index >= length
   }
-
-  private void astoreSetup (int logSize) {
-    asm.emitL   (T1,  8, SP);                    // T1 is array ref
-    asm.emitL   (T0,  4, SP);                    // T0 is array index
-    asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-    asm.emitL   (T3,  0, SP);                    // T3 is value to store
-    asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-  }
-
-  private void astoreLong () {
-    asm.emitL    (T1, 12, SP);                    // T1 is array ref
-    asm.emitL    (T0,  8, SP);                    // T0 is array index
-    asm.emitL    (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-    asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
-    asm.emitTLLE(T2, T0);     // trap if index < 0 or index >= length
-    asm.emitSLI  (T0, T0,  3);  // convert double index to byte index
-    asm.emitSTFDX(F0, T0, T1);  // store double value in array
-    asm.emitCAL  (SP, 16, SP);  // complete 3 pops (1st is 2 words)
-  }
-
+  
   // Emit code to buy a stackframe, store incoming parameters, 
   // and acquire method synchronization lock.
   //
@@ -2448,26 +2895,25 @@ public class VM_Compiler extends VM_BaselineCompiler
 
     // Buy frame.
     //
-    asm.emitSTU (FP, -frameSize, FP); // save old FP & buy new frame (trap if new frame below guard page) !!TODO: handle frames larger than 32k when addressing local variables, etc.
+      asm.emitSTAddrU (FP, -frameSize, FP); // save old FP & buy new frame (trap if new frame below guard page) !!TODO: handle frames larger than 32k when addressing local variables, etc.
     
     // If this is a "dynamic bridge" method, then save all registers except GPR0, FPR0, JTOC, and FP.
     // 
     if (klass.isDynamicBridge()) {
       int offset = frameSize;
       for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
-         asm.emitSTFD (i, offset -= 8, FP);
+         asm.emitSTFD (i, offset -= BYTES_IN_DOUBLE, FP);
       for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
-         asm.emitST (i, offset -= 4, FP);
+         asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
 
       //-#if RVM_WITH_OSR
       // round up first, save scratch FPRs
-      offset = (offset - STACKFRAME_ALIGNMENT_MASK) & 
-	       ~STACKFRAME_ALIGNMENT_MASK;
+      offset = VM_Memory.alignDown(offset - STACKFRAME_ALIGNMENT + 1, STACKFRAME_ALIGNMENT);
 
       for (int i = LAST_SCRATCH_FPR; i >= FIRST_SCRATCH_FPR; --i)
-	asm.emitSTFD(i, offset -= 8, FP);
+	asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);
       for (int i = LAST_SCRATCH_GPR; i >= FIRST_SCRATCH_GPR; --i)
-	asm.emitST(i, offset -= 4, FP);
+	asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
       //-#endif
     }
     
@@ -2475,23 +2921,23 @@ public class VM_Compiler extends VM_BaselineCompiler
     //
     asm.emitLVAL(S0, compiledMethod.getId());
     asm.emitMFLR(0);
-    asm.emitST  (S0, STACKFRAME_METHOD_ID_OFFSET, FP);                   // save compiled method id
-    asm.emitST  (0, frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // save LR !!TODO: handle discontiguous stacks when saving return address
+    asm.emitSTW (S0, STACKFRAME_METHOD_ID_OFFSET, FP);                   // save compiled method id
+    asm.emitSTAddr(0, frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // save LR !!TODO: handle discontiguous stacks when saving return address
     
-    // Setup expression stack and locals.
+    // Setup locals.
     //
-    asm.emitCAL (SP, emptyStackOffset, FP);                              // setup expression stack
-    genMoveParametersToLocals();                                                   // move parameters to locals
+    genMoveParametersToLocals();                  // move parameters to locals
    
     // Perform a thread switch if so requested.
-	//-#if RVM_WITH_OSR
-	/* defer generating prologues which may trigger GC, see emit_deferred_prologue*/
+    //-#if RVM_WITH_OSR
+    /* defer generating prologues which may trigger GC, see emit_deferred_prologue*/
     if (method.isForOsrSpecialization()) {
-	  return;
-	}
-	//-#endif
+      return;
+    }
+    //-#endif
 
     genThreadSwitchTest(VM_Thread.PROLOGUE); //           (VM_BaselineExceptionDeliverer WONT release the lock (for synchronized methods) during prologue code)
+
     // Acquire method syncronization lock.  (VM_BaselineExceptionDeliverer will release the lock (for synchronized methods) after  prologue code)
     //
     if (method.isSynchronized()) 
@@ -2500,14 +2946,13 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   //-#if RVM_WITH_OSR
   protected final void emit_deferred_prologue() {
-	if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
-	
-	genThreadSwitchTest(VM_Thread.PROLOGUE);
+    if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
+    genThreadSwitchTest(VM_Thread.PROLOGUE);
 
-	/* donot generate sync for synced method because we are reenter 
-	 * the method in the middle.
-	 */
-	//	if (method.isSymchronized()) genSynchronizedMethodPrologue();
+    /* donot generate sync for synced method because we are reenter 
+     * the method in the middle.
+     */
+    //	if (method.isSymchronized()) genSynchronizedMethodPrologue();
   }
   //-#endif
   
@@ -2521,16 +2966,16 @@ public class VM_Compiler extends VM_BaselineCompiler
 	klass.getClassForType();
       }
       int tibOffset = klass.getTibOffset();
-      asm.emitLtoc(T0, tibOffset);
-      asm.emitL   (T0, 0, T0);
-      asm.emitL   (T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
+      asm.emitLAddrToc(T0, tibOffset);
+      asm.emitLAddr(T0, 0, T0);
+      asm.emitLAddr(T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
     } else { // first local is "this" pointer
-      asm.emitL(T0, localOffset(0), FP);
+      asm.emitLAddr(T0, startLocalOffset - BYTES_IN_ADDRESS, FP);  
     }
-    asm.emitL     (S0, VM_Entrypoints.lockMethod.getOffset(), JTOC); // call out...
+    asm.emitLAddr(S0, VM_Entrypoints.lockMethod.getOffset(), JTOC); // call out...
     asm.emitMTCTR  (S0);                                  // ...of line lock
-    asm.emitCall(spSaveAreaOffset);
-    lockOffset = 4*(asm.getMachineCodeIndex() - 1); // after this instruction, the method has the monitor
+    asm.emitBCCTRL();
+    lockOffset = BYTES_IN_INT*(asm.getMachineCodeIndex() - 1); // after this instruction, the method has the monitor
   }
 
   // Emit code to release method synchronization lock.
@@ -2538,15 +2983,15 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genSynchronizedMethodEpilogue () {
     if (method.isStatic()) { // put java.lang.Class for VM_Type into T0
       int tibOffset = klass.getTibOffset();
-      asm.emitLtoc(T0, tibOffset);
-      asm.emitL   (T0, 0, T0);
-      asm.emitL   (T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
+      asm.emitLAddrToc(T0, tibOffset);
+      asm.emitLAddr(T0, 0, T0);
+      asm.emitLAddr(T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
     } else { // first local is "this" pointer
-      asm.emitL(T0, localOffset(0), FP); //!!TODO: think about this - can anybody store into local 0 (ie. change the value of "this")?
+      asm.emitLAddr(T0, startLocalOffset - BYTES_IN_ADDRESS, FP); //!!TODO: think about this - can anybody store into local 0 (ie. change the value of "this")?
     }
-    asm.emitL   (S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);  // call out...
+    asm.emitLAddr(S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);  // call out...
     asm.emitMTCTR(S0);                                     // ...of line lock
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
   }
     
   // Emit code to discard stackframe and return to caller.
@@ -2554,16 +2999,16 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genEpilogue () {
     if (klass.isDynamicBridge()) {// Restore non-volatile registers.
       // we never return from a DynamicBridge frame
-      asm.emitTWI(-1);
+      asm.emitTWWI(-1);
     } else {
       if (frameSize <= 0x8000) {
-	asm.emitCAL(FP, frameSize, FP); // discard current frame
+	asm.emitADDI(FP, frameSize, FP); // discard current frame
       } else {
-	asm.emitL(FP, 0, FP);           // discard current frame
+	asm.emitLAddr(FP, 0, FP);           // discard current frame
       }
-      asm.emitL   (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
+      asm.emitLAddr (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
       asm.emitMTLR(S0);
-      asm.emitBLR (); // branch always, through link register
+      asm.emitBCLR (); // branch always, through link register
     }
   }
 
@@ -2580,8 +3025,11 @@ public class VM_Compiler extends VM_BaselineCompiler
       edgeCounterIdx += 2;
 
       // Load counter array for this method
-      asm.emitLtoc (T0, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitLoffset(T0, T0, getEdgeCounterOffset());
+      asm.emitLAddrToc (T0, VM_Entrypoints.edgeCountersField.getOffset());
+      if (VM.BuildFor64Addr) 
+	asm.emitLDoffset(T0, T0, getEdgeCounterOffset());
+      else 
+	asm.emitLWZoffset(T0, T0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
       VM_ForwardReference fr = asm.emitForwardBC(asm.flipCode(cc));
@@ -2609,18 +3057,18 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param counterIdx index of counter to increment
    */
   private final void incEdgeCounter(int counters, int scratch, int counterIdx) {
-    asm.emitL      (scratch, counterIdx<<2, counters);
-    asm.emitCAL    (scratch, 1, scratch);
+    asm.emitLInt     (scratch, counterIdx<<2, counters);
+    asm.emitADDI    (scratch, 1, scratch);
     asm.emitRLWINM (scratch, scratch, 0, 1, 31);
-    asm.emitST     (scratch, counterIdx<<2, counters);
+    asm.emitSTW    (scratch, counterIdx<<2, counters);
   }
 
   private final void incEdgeCounterIdx(int counters, int scratch, int base, int counterIdx) {
-    asm.emitCAL     (counters, base<<2, counters);
-    asm.emitLX      (scratch, counterIdx, counters);
-    asm.emitCAL     (scratch, 1, scratch);
+    asm.emitADDI     (counters, base<<2, counters);
+    asm.emitLIntX      (scratch, counterIdx, counters);
+    asm.emitADDI     (scratch, 1, scratch);
     asm.emitRLWINM  (scratch, scratch, 0, 1, 31);
-    asm.emitSTX     (scratch, counterIdx, counters);
+    asm.emitSTWX     (scratch, counterIdx, counters);
   }    
 
   /**
@@ -2632,42 +3080,42 @@ public class VM_Compiler extends VM_BaselineCompiler
       // alternate yieldpoint implementations
       if (VM.BuildForDeterministicThreadSwitching) { // yield every N yieldpoints.
 	// Decrement counter
-	asm.emitL  (S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
-	asm.emitCAL(S0, -1, S0);  // decrement it
-	asm.emitST (S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
+	asm.emitLInt(S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
+	asm.emitADDI(S0, -1, S0);  // decrement it
+	asm.emitSTW(S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
 	// If counter greater than 0, branch around call to yield
 	asm.emitCMPI(S0, 0);
 	fr = asm.emitForwardBC(GT);
       } else { // yield if threadSwitchRequestedField lt 0.
-	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedField.getOffset(), PROCESSOR_REGISTER);
+	asm.emitLInt(S0, VM_Entrypoints.threadSwitchRequestedField.getOffset(), PROCESSOR_REGISTER);
 	asm.emitCMPI(S0, 0); 
 	fr = asm.emitForwardBC(GE);
       }
       if (whereFrom == VM_Thread.PROLOGUE) {
-	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset(), JTOC);
+	asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset(), JTOC);
       } else if (whereFrom == VM_Thread.BACKEDGE) {
-	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset(), JTOC);
+	asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset(), JTOC);
       } else { // EPILOGUE
-	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset(), JTOC);
+	asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset(), JTOC);
       }
       asm.emitMTCTR(S0);
-      asm.emitCall(spSaveAreaOffset);
+      asm.emitBCCTRL();
       fr.resolve(asm);
 
       //-#if RVM_WITH_ADAPTIVE_SYSTEM
       if (options.INVOCATION_COUNTERS) {
 	int id = compiledMethod.getId();
 	com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
-	asm.emitLtoc (T0, VM_Entrypoints.invocationCountsField.getOffset());
-	asm.emitLVAL (T1, compiledMethod.getId() << 2);
-	asm.emitLX   (T2, T0, T1);
-	asm.emitAIr  (T2, T2, -1);
-	asm.emitSTX  (T2, T0, T1);
+	asm.emitLAddrToc (T0, VM_Entrypoints.invocationCountsField.getOffset());
+	asm.emitLVAL (T1, compiledMethod.getId() << LOG_BYTES_IN_INT);
+	asm.emitLIntX   (T2, T0, T1);                       
+	asm.emitADDICr  (T2, T2, -1);
+	asm.emitSTWX  (T2, T0, T1);
 	VM_ForwardReference fr2 = asm.emitForwardBC(asm.GT);
-	asm.emitLtoc (T0, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
+	asm.emitLAddrToc (T0, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
 	asm.emitMTCTR(T0);
 	asm.emitLVAL (T0, id);
-	asm.emitCall(spSaveAreaOffset);
+	asm.emitBCCTRL();
 	fr2.resolve(asm);
       }
       //-#endif
@@ -2685,29 +3133,40 @@ public class VM_Compiler extends VM_BaselineCompiler
  
     int localIndex = 0;
     if (!method.isStatic()) {
-      if (gp > LAST_VOLATILE_GPR) genUnspillWord(localIndex++);
-      else asm.emitST(gp++, localOffset(localIndex++), FP);
+      if (gp > LAST_VOLATILE_GPR) genUnspillSlot(localIndex++);
+      else asm.emitSTAddr(gp++, localOffset(localIndex++) - BYTES_IN_ADDRESS, FP);
     }
     VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++, localIndex++) {
       VM_TypeReference t = types[i];
       if (t.isLongType()) {
-        if (gp > LAST_VOLATILE_GPR) genUnspillDoubleword(localIndex++);
-	else {
-	  asm.emitST(gp++, localOffset(localIndex + 1), FP); // lo mem := lo register (== hi word)
-	  if (gp > LAST_VOLATILE_GPR) genUnspillWord(localIndex);
-	  else asm.emitST(gp++, localOffset(localIndex), FP);// hi mem := hi register (== lo word)
+        if (gp > LAST_VOLATILE_GPR) {
+	  genUnspillDoubleSlot(localIndex++);
+	} else {
+          if (VM.BuildFor64Addr) { 
+	    asm.emitSTD(gp++, localOffset(localIndex) - BYTES_IN_ADDRESS, FP);
+          } else {
+	    asm.emitSTW(gp++, localOffset(localIndex + 1) - BYTES_IN_INT, FP); // lo mem := lo register (== hi word)
+	    if (gp > LAST_VOLATILE_GPR) {
+	      genUnspillSlot(localIndex);
+	    } else {
+	      asm.emitSTW(gp++, localOffset(localIndex) - BYTES_IN_INT, FP);// hi mem := hi register (== lo word)
+	    }
+          }
 	  localIndex += 1;
 	}
       } else if (t.isFloatType()) {
-        if (fp > LAST_VOLATILE_FPR) genUnspillWord(localIndex);
-	else asm.emitSTFS(fp++, localOffset(localIndex), FP);
+        if (fp > LAST_VOLATILE_FPR) genUnspillSlot(localIndex);
+	else asm.emitSTFS(fp++, localOffset(localIndex) - BYTES_IN_FLOAT, FP);
       } else if (t.isDoubleType()) {
-        if (fp > LAST_VOLATILE_FPR) genUnspillDoubleword(localIndex++);
-	else asm.emitSTFD(fp++, localOffset(localIndex++) - 4, FP);
-      } else { // t is object, int, short, char, byte, or boolean
-        if (gp > LAST_VOLATILE_GPR) genUnspillWord(localIndex);
-	else asm.emitST(gp++, localOffset(localIndex), FP);
+        if (fp > LAST_VOLATILE_FPR) genUnspillDoubleSlot(localIndex++);
+	else asm.emitSTFD(fp++, localOffset(localIndex++) - BYTES_IN_DOUBLE, FP);
+      } else if (t.isIntLikeType()) {
+        if (gp > LAST_VOLATILE_GPR) genUnspillSlot(localIndex);
+	else asm.emitSTW(gp++, localOffset(localIndex) - BYTES_IN_INT, FP);
+      } else { // t is object
+        if (gp > LAST_VOLATILE_GPR) genUnspillSlot(localIndex);
+	else asm.emitSTAddr(gp++, localOffset(localIndex) - BYTES_IN_ADDRESS, FP);
       }
     }
   }
@@ -2718,89 +3177,117 @@ public class VM_Compiler extends VM_BaselineCompiler
     spillOffset = STACKFRAME_HEADER_SIZE;
     int gp = FIRST_VOLATILE_GPR;
     int fp = FIRST_VOLATILE_FPR;
-    int stackOffset = m.getParameterWords()<<2;
+    int stackIndex = m.getParameterWords();
     if (hasImplicitThisArg) {
-      if (gp > LAST_VOLATILE_GPR) genSpillWord(stackOffset);
-      else asm.emitL(gp++, stackOffset, SP);
+      if (gp > LAST_VOLATILE_GPR) {
+	genSpillSlot(stackIndex);
+      } else {
+	peekAddr(gp++, stackIndex);
+      }
     }
     VM_TypeReference [] types = m.getParameterTypes();
     for (int i=0; i<types.length; i++) {
       VM_TypeReference t = types[i];
       if (t.isLongType()) {
-	stackOffset -= 8;
-        if (gp > LAST_VOLATILE_GPR) genSpillDoubleword(stackOffset);
-	else {
-	  asm.emitL(gp++, stackOffset,   SP);       // lo register := lo mem (== hi order word)
-	  if (gp > LAST_VOLATILE_GPR) genSpillWord(stackOffset+4);
-	  else asm.emitL(gp++, stackOffset+4, SP);  // hi register := hi mem (== lo order word)
+	stackIndex -= 2;
+        if (gp > LAST_VOLATILE_GPR) { 
+          genSpillDoubleSlot(stackIndex);
+	} else {
+          if (VM.BuildFor64Addr) {
+            peekLong(gp, gp, stackIndex);
+            gp++;  
+          } else {
+	    peekInt(gp++, stackIndex);       // lo register := lo mem (== hi order word)
+	    if (gp > LAST_VOLATILE_GPR) {
+	      genSpillSlot(stackIndex + 1);
+	    } else {
+	      peekInt(gp++, stackIndex+1);  // hi register := hi mem (== lo order word)
+	    }
+          }
 	}
       } else if (t.isFloatType()) {
-	stackOffset -= 4;
-        if (fp > LAST_VOLATILE_FPR) genSpillWord(stackOffset);
-	else asm.emitLFS(fp++, stackOffset, SP);
+	stackIndex -= 1;
+        if (fp > LAST_VOLATILE_FPR) {
+	  genSpillSlot(stackIndex);
+	} else {
+	  peekFloat(fp++, stackIndex);
+	}
       } else if (t.isDoubleType()) {
-	stackOffset -= 8;
-        if (fp > LAST_VOLATILE_FPR) genSpillDoubleword(stackOffset);
-	else asm.emitLFD(fp++, stackOffset, SP);
-      } else { // t is object, int, short, char, byte, or boolean
-	stackOffset -= 4;
-        if (gp > LAST_VOLATILE_GPR) genSpillWord(stackOffset);
-	else asm.emitL(gp++, stackOffset, SP);
+	stackIndex -= 2;
+        if (fp > LAST_VOLATILE_FPR) {
+	  genSpillDoubleSlot(stackIndex);
+	} else {
+	  peekDouble(fp++, stackIndex);
+	}
+      } else if (t.isIntLikeType()) {
+	stackIndex -= 1;
+        if (gp > LAST_VOLATILE_GPR) {
+	  genSpillSlot(stackIndex);
+	} else {
+	  peekInt(gp++, stackIndex);
+	}
+      } else { // t is object
+	stackIndex -= 1;
+        if (gp > LAST_VOLATILE_GPR) {
+	  genSpillSlot(stackIndex);
+	} else {
+	  peekAddr(gp++, stackIndex);
+	}
       }
     }
-    if (VM.VerifyAssertions) VM._assert(stackOffset == 0);
+    if (VM.VerifyAssertions) VM._assert(stackIndex == 0);
   }
 
   // push return value of method "m" from register to operand stack.
   private void genPopParametersAndPushReturnValue (boolean hasImplicitThisArg, VM_MethodReference m) {
     VM_TypeReference t = m.getReturnType();
-    int parameterSize = 
-      (m.getParameterWords() + (hasImplicitThisArg ? 1 : 0) ) << 2;
-    if (t.isVoidType()) {
-      if (0 < parameterSize) asm.emitCAL(SP, parameterSize, SP);
-    } else if (t.isLongType()) {
-      asm.emitST (FIRST_VOLATILE_GPR+1, parameterSize-4, SP); // hi mem := hi register (== lo word)
-      asm.emitSTU(FIRST_VOLATILE_GPR,   parameterSize-8, SP); // lo mem := lo register (== hi word)
-    } else if (t.isFloatType()) {
-      asm.emitSTFSU(FIRST_VOLATILE_FPR, parameterSize-4, SP);
-    } else if (t.isDoubleType()) {
-      asm.emitSTFDU(FIRST_VOLATILE_FPR, parameterSize-8, SP);
-    } else { // t is object, int, short, char, byte, or boolean
-      asm.emitSTU(FIRST_VOLATILE_GPR, parameterSize-4, SP);
+    discardSlots(m.getParameterWords() + (hasImplicitThisArg?1:0));
+    if (!t.isVoidType()) {
+      if (t.isLongType()) {
+        pushLong(FIRST_VOLATILE_GPR, VM.BuildFor64Addr?FIRST_VOLATILE_GPR: (FIRST_VOLATILE_GPR + 1));
+      } else if (t.isFloatType()) {
+        pushFloat(FIRST_VOLATILE_FPR);
+      } else if (t.isDoubleType()) {
+        pushDouble(FIRST_VOLATILE_FPR);
+      } else if (t.isIntLikeType()) {
+        pushInt(FIRST_VOLATILE_GPR);
+      } else { // t is object
+        pushAddr(FIRST_VOLATILE_GPR);
+      }
     }
   }
 
-  private void genSpillWord (int stackOffset) {
-     asm.emitL (0, stackOffset, SP);
-     asm.emitST(0, spillOffset, FP);
-     spillOffset += 4;
+  private void genSpillSlot (int stackIndex) {
+     peekAddr(0, stackIndex);
+     asm.emitSTAddr(0, spillOffset, FP);
+     spillOffset += BYTES_IN_STACKSLOT;
   }
      
-  private void genSpillDoubleword (int stackOffset) {
-     asm.emitLFD (0, stackOffset, SP);
+  private void genSpillDoubleSlot (int stackIndex) {
+     peekDouble(0, stackIndex);
      asm.emitSTFD(0, spillOffset, FP);
-     spillOffset += 8;
+     spillOffset += 2*BYTES_IN_STACKSLOT;
   }
                
-  private void genUnspillWord (int localIndex) {
-     asm.emitL (0, spillOffset, FP);
-     asm.emitST(0, localOffset(localIndex), FP);
-     spillOffset += 4;
+  private void genUnspillSlot (int localIndex) {
+     asm.emitLAddr(0, spillOffset, FP);
+     asm.emitSTAddr(0, localOffset(localIndex) - BYTES_IN_ADDRESS, FP);
+     spillOffset += BYTES_IN_STACKSLOT;
   }
                       
-  private void genUnspillDoubleword (int localIndex) {
+  private void genUnspillDoubleSlot (int localIndex) {
      asm.emitLFD (0, spillOffset, FP);
-     asm.emitSTFD(0, localOffset(localIndex) - 4, FP);
-     spillOffset += 8;
+     asm.emitSTFD(0, localOffset(localIndex) - BYTES_IN_DOUBLE , FP);
+     spillOffset += 2*BYTES_IN_STACKSLOT;
   }
 
 
   //-#if RVM_WITH_OSR
   protected final void emit_threadSwitch(int whereFrom) {
     if (whereFrom == VM_Thread.OSRBASE) {
-      asm.emitL(S0, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset(), JTOC);
-      asm.emitMTLR(S0);
-      asm.emitCall(spSaveAreaOffset);
+      asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset(), JTOC);
+      asm.emitMTCTR(S0);
+      asm.emitBCCTRL();
     }
   }
 
@@ -2808,8 +3295,8 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitBL(1, 0);
     asm.emitMFLR(T1);                   // LR +  0
     asm.registerLoadAddrConst(bcIndex);
-    asm.emitCAL (T1, bcIndex<<2, T1);   
-    asm.emitSTU (T1, -4, SP);   // LR +  8
+    asm.emitADDI (T1, bcIndex<<LOG_BYTES_IN_INT, T1);   
+    pushAddr(T1);   // LR +  8
   }
 
   /**
@@ -2821,12 +3308,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
     int methOffset = cm.getOsrJTOCoffset();
-    asm.emitLtoc(T0, methOffset);
+    asm.emitLAddrToc(T0, methOffset);
     asm.emitMTCTR(T0);
     boolean takeThis = !cm.method.isStatic();
     VM_MethodReference ref = cm.method.getMemberRef().asMethodReference();
     genMoveParametersToRegisters(takeThis, ref);
-    asm.emitCall(spSaveAreaOffset);
+    asm.emitBCCTRL();
     genPopParametersAndPushReturnValue(takeThis, ref);
   }
 
@@ -2834,4 +3321,763 @@ public class VM_Compiler extends VM_BaselineCompiler
     return asm.generatePendingJMP(bTarget);
   }
   //-#endif
+
+
+  //*************************************************************************
+  //                             MAGIC
+  //*************************************************************************
+
+  /*
+   *  Generate inline machine instructions for special methods that cannot be 
+   *  implemented in java bytecodes. These instructions are generated whenever  
+   *  we encounter an "invokestatic" bytecode that calls a method with a 
+   *  signature of the form "static native VM_Magic.xxx(...)".
+   *  23 Jan 1998 Derek Lieber
+   * 
+   *  NOTE: when adding a new "methodName" to "generate()", be sure to also 
+   * consider how it affects the values on the stack and update 
+   * "checkForActualCall()" accordingly.
+   * If no call is actually generated, the map will reflect the status of the 
+   * locals (including parameters) at the time of the call but nothing on the 
+   * operand stack for the call site will be mapped.
+   *  7 Jul 1998 Janice Shepherd
+   */
+
+  /** Generate inline code sequence for specified method.
+   * @param methodToBeCalled: method whose name indicates semantics of code to be generated
+   * @return true if there was magic defined for the method
+   */
+  private boolean  generateInlineCode(VM_MethodReference methodToBeCalled) {
+    VM_Atom      methodName       = methodToBeCalled.getName();
+      
+    if (methodName == VM_MagicNames.sysCall0) {
+      generateSysCall1(0);
+      generateSysCallRet_I(0);
+    } else if (methodName == VM_MagicNames.sysCall1) {
+      peekInt(T0, 0);
+      generateSysCall1(BYTES_IN_STACKSLOT);
+      generateSysCallRet_I(BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.sysCall2) {
+      peekInt(T0, 1);
+      peekInt(T1, 0);
+      generateSysCall1(2 * BYTES_IN_STACKSLOT);
+      generateSysCallRet_I(2 * BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.sysCall3) {
+      peekInt(T0, 2);
+      peekInt(T1, 1);
+      peekInt(T2, 0);
+      generateSysCall1(3 * BYTES_IN_STACKSLOT);
+      generateSysCallRet_I(3 * BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.sysCall4) {
+      peekInt(T0, 3);
+      peekInt(T1, 2);
+      peekInt(T2, 1);
+      peekInt(T3, 0);
+      generateSysCall1(4 * BYTES_IN_STACKSLOT);
+      generateSysCallRet_I(4 * BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.sysCall_L_0) {
+      generateSysCall1(0);
+      generateSysCallRet_L(0);
+    } else if (methodName == VM_MagicNames.sysCall_L_I) {
+      peekInt(T0, 0);
+      generateSysCall1(BYTES_IN_STACKSLOT);
+      generateSysCallRet_L(BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.sysCallAD) {
+      peekInt(T0, 2);
+      peekDouble(F0, 1);
+      generateSysCall1(3 * BYTES_IN_STACKSLOT);
+      generateSysCallRet_I(3 * BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.sysCallSigWait) {
+      int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+      int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+      popAddr(T0);	// t0 := address of VM_Registers object
+      VM_ForwardReference fr1 = asm.emitForwardBL();
+      fr1.resolve(asm);
+      asm.emitMFLR(0);
+      asm.emitSTAddr(0, ipOffset, T0 ); // store ip into VM_Registers Object
+      asm.emitLAddr(T0, gprsOffset, T0); // TO <- registers.gprs[]
+      asm.emitSTAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T0);  
+      peekInt(T0, 1);
+      peekInt(T1, 0);
+      generateSysCall1(2 * BYTES_IN_STACKSLOT);
+      generateSysCallRet_I(2 * BYTES_IN_STACKSLOT);
+    } else if (methodName == VM_MagicNames.getFramePointer) {
+      pushAddr(FP); 
+    } else if (methodName == VM_MagicNames.getCallerFramePointer) {
+      popAddr(T0);                               // pop  frame pointer of callee frame
+      asm.emitLAddr(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0); // load frame pointer of caller frame
+      pushAddr(T1);                               // push frame pointer of caller frame
+    } else if (methodName == VM_MagicNames.setCallerFramePointer) {
+      popAddr(T1); // value
+      popAddr(T0); // fp
+      asm.emitSTAddr(T1,  STACKFRAME_FRAME_POINTER_OFFSET, T0); // *(address+SFPO) := value
+    } else if (methodName == VM_MagicNames.getCompiledMethodID) {
+      popAddr(T0);                           // pop  frame pointer of callee frame
+      asm.emitLWZ (T1, STACKFRAME_METHOD_ID_OFFSET, T0); // load compiled method id
+      pushInt(T1);                           // push method ID 
+    } else if (methodName == VM_MagicNames.setCompiledMethodID) {
+      popInt(T1); // value
+      popAddr(T0); // fp
+      asm.emitSTW(T1,  STACKFRAME_METHOD_ID_OFFSET, T0); // *(address+SNIO) := value
+    } else if (methodName == VM_MagicNames.getNextInstructionAddress) {
+      popAddr(T0);                                  // pop  frame pointer of callee frame
+      asm.emitLAddr(T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // load frame pointer of caller frame
+      pushAddr(T1);                                  // push frame pointer of caller frame
+    } else if (methodName == VM_MagicNames.setNextInstructionAddress) {
+      popAddr(T1); // value
+      popAddr(T0); // fp
+      asm.emitSTAddr(T1,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // *(address+SNIO) := value
+    } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
+      popAddr(T0);                                  // pop  frame pointer of callee frame
+      asm.emitLAddr(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
+      asm.emitADDI (T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
+      pushAddr(T2);                                  // push frame pointer of caller frame
+    } else if (methodName == VM_MagicNames.getTocPointer ||
+	       methodName == VM_MagicNames.getJTOC) {
+      pushAddr(JTOC); 
+    } else if (methodName == VM_MagicNames.getThreadId) {
+      pushInt(TI); // push TI
+    } else if (methodName == VM_MagicNames.setThreadId) {
+      popInt(TI); // TI := (shifted) thread index
+    } else if (methodName == VM_MagicNames.getProcessorRegister) {
+      pushAddr(PROCESSOR_REGISTER);
+    } else if (methodName == VM_MagicNames.setProcessorRegister) {
+      popAddr(PROCESSOR_REGISTER);
+    } else if (methodName == VM_MagicNames.getTimeBase) {
+      if (VM.BuildFor64Addr) {
+	asm.emitMFTB (T1);      // T1 := time base
+      } else {
+        int label = asm.getMachineCodeIndex();
+        asm.emitMFTBU(T0);                      // T0 := time base, upper
+        asm.emitMFTB (T1);                      // T1 := time base, lower
+        asm.emitMFTBU(T2);                      // T2 := time base, upper
+        asm.emitCMP  (T0, T2);                  // T0 == T2?
+        asm.emitBC   (NE, label);               // lower rolled over, try again
+      }
+      pushLong(T0,T1);              
+    } else if (methodName == VM_MagicNames.getTime) {
+      popAddr(T0); // t0 := address of VM_Processor object
+      asm.emitLAddrToc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
+      asm.emitMTCTR(S0);
+      asm.emitBCCTRL();             // call out of line machine code
+      pushDouble(F0); // push return value
+    } else if (methodName == VM_MagicNames.invokeMain) {
+      popAddr(T0); // t0 := ip
+      asm.emitMTCTR(T0);
+      peekAddr(T0,0); // t0 := parameter
+      asm.emitBCCTRL();          // call
+      discardSlot(); // pop parameter
+    } else if (methodName == VM_MagicNames.invokeClassInitializer) {
+      popAddr(T0); // t0 := address to be called
+      asm.emitMTCTR(T0);
+      asm.emitBCCTRL();          // call
+    } else if (methodName == VM_MagicNames.invokeMethodReturningVoid) {
+      generateMethodInvocation(); // call method
+    } else if (methodName == VM_MagicNames.invokeMethodReturningInt) {
+      generateMethodInvocation(); // call method
+      pushInt(T0);       // push result
+    } else if (methodName == VM_MagicNames.invokeMethodReturningLong) {
+      generateMethodInvocation(); // call method
+      pushLong(T0, VM.BuildFor64Addr?T0:T1);       // push result
+    } else if (methodName == VM_MagicNames.invokeMethodReturningFloat) {
+      generateMethodInvocation(); // call method
+      pushFloat(F0);     // push result
+    } else if (methodName == VM_MagicNames.invokeMethodReturningDouble) {
+      generateMethodInvocation(); // call method
+      pushDouble(F0);     // push result
+    } else if (methodName == VM_MagicNames.invokeMethodReturningObject) {
+      generateMethodInvocation(); // call method
+      pushAddr(T0);       // push result
+    } else if (methodName == VM_MagicNames.addressArrayCreate) {
+      try {
+	VM_Array type = methodToBeCalled.getType().resolve().asArray();
+	emit_resolved_newarray(type);
+      } catch (ClassNotFoundException e) {
+	InternalError ex = new InternalError();
+	e.initCause(ex);
+	throw ex;
+      }
+    } else if (methodName == VM_MagicNames.addressArrayLength) {
+      emit_arraylength();
+    } else if (methodName == VM_MagicNames.addressArrayGet) {
+      if (VM.BuildFor32Addr) {
+	emit_iaload();
+      } else {
+	emit_laload();
+      }
+    } else if (methodName == VM_MagicNames.addressArraySet) {
+      if (VM.BuildFor32Addr) {
+        emit_iastore();  
+      } else {
+	emit_lastore();
+      }
+    } else if (methodName == VM_MagicNames.getIntAtOffset) { 
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitLIntX (T0, T1, T0); // *(object+offset)
+      pushInt(T0); // push *(object+offset)
+    } else if (methodName == VM_MagicNames.getObjectAtOffset ||
+	       methodName == VM_MagicNames.getObjectArrayAtOffset) {
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitLAddrX(T0, T1, T0); // *(object+offset)
+      pushAddr(T0); // push *(object+offset)
+    } else if (methodName == VM_MagicNames.getByteAtOffset) {
+      popInt(T1);   // pop offset
+      popAddr(T0);   // pop object
+      asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
+      pushInt(T0);    // push *(object+offset) 
+    } else if (methodName == VM_MagicNames.setIntAtOffset){
+      popInt(T2); // pop newvalue
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
+    } else if (methodName == VM_MagicNames.setObjectAtOffset) {
+      popAddr(T2); // pop newvalue
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitSTAddrX(T2, T1, T0); // *(object+offset) = newvalue
+    } else if (methodName == VM_MagicNames.setByteAtOffset) {
+      popInt(T2); // pop newvalue
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
+    } else if (methodName == VM_MagicNames.getLongAtOffset) {
+      popInt(T2); // pop offset
+      popAddr(T1); // pop object
+      if (VM.BuildFor32Addr) {
+        asm.emitLWZX (T0, T1, T2); // *(object+offset)
+        asm.emitADDI(T2, BYTES_IN_INT, T2); // offset += 4
+        asm.emitLWZX (T1, T1, T2); // *(object+offset+4)
+      } else {
+        asm.emitLDX(T1, T1, T2);
+      }
+      pushLong(T0,T1);
+    } else if ((methodName == VM_MagicNames.setLongAtOffset) 
+	       || (methodName == VM_MagicNames.setDoubleAtOffset)) {
+      popLong(T3, T2);  
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      if (VM.BuildFor32Addr) {
+        asm.emitSTWX(T3, T1, T0); // *(object+offset) = newvalue low
+        asm.emitADDI(T1, BYTES_IN_INT, T1); // offset += 4
+        asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue high
+      } else {
+        asm.emitSTDX(T2, T1, T0); // *(object+offset) = newvalue 
+      } 
+    } else if (methodName == VM_MagicNames.getMemoryInt){
+      popAddr(T0); // address
+      asm.emitLInt (T0,  0, T0); // *address
+      pushInt(T0); // *sp := *address
+    } else if (methodName == VM_MagicNames.getMemoryWord ||
+	       methodName == VM_MagicNames.getMemoryAddress) {
+      popAddr(T0); // address
+      asm.emitLAddr(T0,  0, T0); // *address
+      pushAddr(T0); // *sp := *address
+    } else if (methodName == VM_MagicNames.setMemoryInt ){
+      popInt(T1); // value
+      popAddr(T0); // address
+      asm.emitSTW(T1,  0, T0); // *address := value
+    } else if (methodName == VM_MagicNames.setMemoryWord ||
+	       methodName == VM_MagicNames.setMemoryAddress) {
+      popAddr(T1); // value
+      popAddr(T0); // address
+      asm.emitSTAddr(T1,  0, T0); // *address := value
+    } else if (methodName == VM_MagicNames.prepareInt){
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      if (VM.BuildForSingleVirtualProcessor) {
+	asm.emitLWZX (T0, T1, T0); // *(object+offset)
+      } else {
+	asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
+      } //this Integer is not sign extended !!
+      pushInt(T0); // push *(object+offset)
+    } else if (methodName == VM_MagicNames.prepareObject ||
+	       methodName == VM_MagicNames.prepareAddress) {
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      if (VM.BuildForSingleVirtualProcessor) {
+	asm.emitLAddrX(T0, T1, T0); // *(object+offset)
+      } else {
+        if (VM.BuildFor32Addr) {
+	  asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
+        } else {
+          asm.emitLDARX(T0, T1, T0);
+        } 
+      }
+      pushAddr(T0); // push *(object+offset)
+    } else if (methodName == VM_MagicNames.attemptInt){
+      popInt(T2);  // pop newValue
+      discardSlot(); // ignore oldValue
+      popInt(T1);  // pop offset
+      popAddr(T0);  // pop object
+      if (VM.BuildForSingleVirtualProcessor) {
+	asm.emitSTWX(T2, T1, T0); // store new value (on one VP this succeeds by definition)
+	asm.emitLI   (T0,  1);   // T0 := true
+	pushInt(T0);  // push success of conditional store
+      } else {
+	asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
+	asm.emitLI   (T0,  0);  // T0 := false
+	VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+	asm.emitLI   (T0,  1);   // T0 := true
+	fr.resolve(asm);
+	pushInt(T0);  // push success of conditional store
+      }
+    } else if (methodName == VM_MagicNames.attemptObject ||
+	       methodName == VM_MagicNames.attemptAddress) {
+      popAddr(T2);  // pop newValue
+      discardSlot(); // ignore oldValue
+      popInt(T1);  // pop offset
+      popAddr(T0);  // pop object
+      if (VM.BuildForSingleVirtualProcessor) {
+	asm.emitSTAddrX(T2,  T1, T0); // store new value (on one VP this succeeds by definition)
+	asm.emitLI   (T0,  1);   // T0 := true
+	pushAddr(T0);  // push success of conditional store
+      } else {
+        if (VM.BuildFor32Addr) {
+	  asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
+        } else {
+	  asm.emitSTDCXr(T2,  T1, T0); // store new value and set CR0
+        }
+	asm.emitLI   (T0,  0);  // T0 := false
+	VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+	asm.emitLI   (T0,  1);   // T0 := true
+	fr.resolve(asm);
+	pushInt(T0);  // push success of conditional store
+      }
+    } else if (methodName == VM_MagicNames.saveThreadState) {
+      peekAddr(T0, 0); // T0 := address of VM_Registers object
+      asm.emitLAddrToc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
+      asm.emitMTCTR(S0);
+      asm.emitBCCTRL(); // call out of line machine code
+      discardSlot();  // pop arg
+    } else if (methodName == VM_MagicNames.threadSwitch) {
+      peekAddr(T1, 0); // T1 := address of VM_Registers of new thread
+      peekAddr(T0, 1); // T0 := address of previous VM_Thread object
+      asm.emitLAddrToc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
+      asm.emitMTCTR(S0);
+      asm.emitBCCTRL();
+      discardSlots(2);  // pop two args
+    } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
+      peekAddr(T0, 0); // T0 := address of VM_Registers object
+      asm.emitLAddrToc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
+      asm.emitMTLR(S0);
+      asm.emitBCLR(); // branch to out of line machine code (does not return)
+    } else if (methodName == VM_MagicNames.returnToNewStack) {
+      peekAddr(FP, 0);                                  // FP := new stackframe
+      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // fetch...
+      asm.emitMTLR(S0);                                         // ...return address
+      asm.emitBCLR ();                                           // return to caller
+    } else if (methodName == VM_MagicNames.dynamicBridgeTo) {
+      if (VM.VerifyAssertions) VM._assert(klass.isDynamicBridge());
+         
+      // fetch parameter (address to branch to) into CT register
+      //
+      peekAddr(T0, 0);
+      asm.emitMTCTR(T0);
+
+      // restore volatile and non-volatile registers
+      // (note that these are only saved for "dynamic bridge" methods)
+      //
+      int offset = frameSize;
+
+      // restore non-volatile and volatile fprs
+      for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
+	asm.emitLFD(i, offset -= BYTES_IN_DOUBLE, FP);
+      
+      // restore non-volatile gprs
+      for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR; --i)
+	asm.emitLAddr(i, offset -= BYTES_IN_ADDRESS, FP);
+            
+      // skip saved thread-id, processor, and scratch registers
+      offset -= (FIRST_NONVOLATILE_GPR - LAST_VOLATILE_GPR - 1) * BYTES_IN_ADDRESS;
+         
+      // restore volatile gprs
+      for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
+	asm.emitLAddr(i, offset -= BYTES_IN_ADDRESS, FP);
+          
+      // pop stackframe
+      asm.emitLAddr(FP, 0, FP);
+         
+      // restore link register
+      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+      asm.emitMTLR(S0);
+
+      asm.emitBCCTR(); // branch always, through count register
+    } else if (methodName == VM_MagicNames.objectAsAddress         ||
+	       methodName == VM_MagicNames.addressAsByteArray      ||
+	       methodName == VM_MagicNames.addressAsIntArray       ||
+	       methodName == VM_MagicNames.addressAsObject         ||
+	       methodName == VM_MagicNames.addressAsObjectArray    ||
+	       methodName == VM_MagicNames.addressAsType           ||
+	       methodName == VM_MagicNames.objectAsType            ||
+	       methodName == VM_MagicNames.objectAsByteArray       ||
+	       methodName == VM_MagicNames.objectAsShortArray      ||
+	       methodName == VM_MagicNames.objectAsIntArray        ||
+	       methodName == VM_MagicNames.addressAsThread         ||
+	       methodName == VM_MagicNames.objectAsThread          ||
+	       methodName == VM_MagicNames.objectAsProcessor       ||
+	       methodName == VM_MagicNames.threadAsCollectorThread ||
+	       methodName == VM_MagicNames.addressAsRegisters      ||
+	       methodName == VM_MagicNames.addressAsStack          ||
+	       methodName == VM_MagicNames.floatAsIntBits          ||
+	       methodName == VM_MagicNames.intBitsAsFloat          ||
+	       methodName == VM_MagicNames.doubleAsLongBits        ||
+	       methodName == VM_MagicNames.longBitsAsDouble) {
+      // no-op (a type change, not a representation change)
+    } else if (methodName == VM_MagicNames.getObjectType) {
+      generateGetObjectType();
+    } else if (methodName == VM_MagicNames.getArrayLength) {
+      generateGetArrayLength();
+    } else if (methodName == VM_MagicNames.sync) {
+      asm.emitSYNC();
+    } else if (methodName == VM_MagicNames.isync) {
+      asm.emitISYNC();
+    } else if (methodName == VM_MagicNames.dcbst) {
+      popAddr(T0);    // address
+      asm.emitDCBST(0, T0);
+    } else if (methodName == VM_MagicNames.icbi) {
+      popAddr(T0);    // address
+      asm.emitICBI(0, T0);
+    } else if (methodName == VM_MagicNames.wordToInt ||
+	       methodName == VM_MagicNames.wordToAddress ||
+	       methodName == VM_MagicNames.wordToWord) {
+      // no-op   
+    } else if (methodName == VM_MagicNames.wordToLong){
+      asm.emitLI(T0,0);
+      pushAddr(T0);
+    } else if (methodName == VM_MagicNames.wordFromInt ||
+	       methodName == VM_MagicNames.wordFromIntSignExtend) {
+      if (VM.BuildFor64Addr) {
+        popInt(T0);
+        pushAddr(T0);
+      } // else no-op
+    } else if (methodName == VM_MagicNames.wordFromIntZeroExtend) {
+      if (VM.BuildFor64Addr) {
+        popInt(T0);
+        pushAddr(T0);
+      } // else no-op
+    } else if (methodName == VM_MagicNames.wordFromLong) {
+      discardSlot();
+    } else if (methodName == VM_MagicNames.wordAdd) {
+      // same as an integer add
+      popAddr(T0);
+      popAddr(T1);
+      asm.emitADD (T2, T1, T0);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordSub ||
+	       methodName == VM_MagicNames.wordDiff) {
+      // same as an integer subtraction
+      popAddr(T0);
+      popAddr(T1);
+      asm.emitSUBFC (T2, T0, T1);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordLT) {
+      // unsigned comparison generating a boolean
+      generateAddrComparison(LT);
+    } else if (methodName == VM_MagicNames.wordLE) {
+      // unsigned comparison generating a boolean
+      generateAddrComparison(LE);
+    } else if (methodName == VM_MagicNames.wordEQ) {
+      // unsigned comparison generating a boolean
+      generateAddrComparison(EQ);
+    } else if (methodName == VM_MagicNames.wordNE) {
+      // unsigned comparison generating a boolean
+      generateAddrComparison(NE);
+    } else if (methodName == VM_MagicNames.wordGT) {
+      // unsigned comparison generating a boolean
+      generateAddrComparison(GT);
+    } else if (methodName == VM_MagicNames.wordGE) {
+      // unsigned comparison generating a boolean
+      generateAddrComparison(GE);
+    } else if (methodName == VM_MagicNames.wordIsZero) {
+      // unsigned comparison generating a boolean
+      asm.emitLI (T0,  0);
+      pushAddr(T0);
+      generateAddrComparison(EQ);
+    } else if (methodName == VM_MagicNames.wordIsMax) {
+      // unsigned comparison generating a boolean
+      asm.emitLI (T0, -1);
+      pushAddr(T0);
+      generateAddrComparison(EQ);
+    } else if (methodName == VM_MagicNames.wordZero) {
+      // unsigned comparison generating a boolean
+      asm.emitLI (T0,  0);
+      pushAddr(T0);
+    } else if (methodName == VM_MagicNames.wordMax) {
+      // unsigned comparison generating a boolean
+      asm.emitLI (T0, -1);
+      pushAddr(T0);
+    } else if (methodName == VM_MagicNames.wordAnd) {
+      popAddr(T0);
+      popAddr(T1);
+      asm.emitAND(T2, T1, T0);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordOr) {
+      popAddr(T0);
+      popAddr(T1);
+      asm.emitOR (T2, T1, T0);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordNot) {
+      popAddr(T0);
+      asm.emitLI(T1, -1);
+      asm.emitXOR(T2, T1, T0);
+      pushAddr(T2);
+    } else if (methodName == VM_MagicNames.wordXor) {
+      popAddr(T0);
+      popAddr(T1);
+      asm.emitXOR(T2, T1, T0);
+      pushAddr(T2);
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /** Emit code to perform an unsigned comparison on 2 address values
+    * @param cc: condition to test
+    */ 
+  private void generateAddrComparison(int cc) {
+    popAddr(T1);
+    popAddr(T0);
+    asm.emitLI(T2,  1);
+    if (VM.BuildFor32Addr) {
+      asm.emitCMPL(T0, T1);    // unsigned comparison
+    } else {
+      asm.emitCMPLD(T0, T1);    // unsigned comparison
+    } 
+    VM_ForwardReference fr = asm.emitForwardBC(cc);
+    asm.emitLI(T2,  0);
+    fr.resolve(asm);
+    pushInt(T2);
+  }
+
+
+  /** 
+   * Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
+   * @param methodToBeCalled:   VM_Method of the magic method being called
+   * @return true if method causes a stackframe to be created
+   */
+  public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
+    VM_Atom methodName = methodToBeCalled.getName();
+    return methodName == VM_MagicNames.invokeMain                  ||
+      methodName == VM_MagicNames.invokeClassInitializer      ||
+      methodName == VM_MagicNames.invokeMethodReturningVoid   ||
+      methodName == VM_MagicNames.invokeMethodReturningInt    ||
+      methodName == VM_MagicNames.invokeMethodReturningLong   ||
+      methodName == VM_MagicNames.invokeMethodReturningFloat  ||
+      methodName == VM_MagicNames.invokeMethodReturningDouble ||
+      methodName == VM_MagicNames.invokeMethodReturningObject ||
+      methodName == VM_MagicNames.addressArrayCreate;
+  }
+
+
+  //----------------//
+  // implementation //
+  //----------------//
+
+  /** 
+   * Generate code to invoke arbitrary method with arbitrary parameters/return value.
+   * We generate inline code that calls "VM_OutOfLineMachineCode.reflectiveMethodInvokerInstructions"
+   * which, at runtime, will create a new stackframe with an appropriately sized spill area
+   * (but no register save area, locals, or operand stack), load up the specified
+   * fpr's and gpr's, call the specified method, pop the stackframe, and return a value.
+   */
+  private void generateMethodInvocation () {
+    // On entry the stack looks like this:
+    //
+    //                       hi-mem
+    //            +-------------------------+    \
+    //            |         code[]          |     |
+    //            +-------------------------+     |
+    //            |         gprs[]          |     |
+    //            +-------------------------+     |- java operand stack
+    //            |         fprs[]          |     |
+    //            +-------------------------+     |
+    //            |         spills[]        |     |
+    //            +-------------------------+    /
+
+    // fetch parameters and generate call to method invoker
+    //
+    asm.emitLAddrToc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
+    peekAddr(T0, 3);        // t0 := code
+    asm.emitMTCTR (S0);
+    peekAddr(T1, 2);        // t1 := gprs
+    peekAddr(T2, 1);        // t2 := fprs
+    peekAddr(T3, 0);        // t3 := spills
+    asm.emitBCCTRL();
+    discardSlots(4);       // pop parameters
+  }
+
+  /** 
+   * Generate code for "VM_Type VM_Magic.getObjectType(Object object)".
+    */
+  private void generateGetObjectType() {
+    // On entry the stack looks like this:
+    //
+    //                     hi-mem
+    //            +-------------------------+    \
+    //            |    (Object object)      |     |- java operand stack
+    //            +-------------------------+    /
+
+    popAddr(T0);                   // get object pointer
+    VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
+    asm.emitLAddr(T0,  TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0); // get "type" field from type information block
+    pushAddr(T0);                   // *sp := type
+  }
+
+  /** 
+   * Generate code for "int VM_Magic.getArrayLength(Object object)".
+   */
+  private void generateGetArrayLength() {
+    // On entry the stack looks like this:
+    //
+    //                     hi-mem
+    //            +-------------------------+    \
+    //            |    (Object object)      |     |- java operand stack
+    //            +-------------------------+    /
+
+    popAddr(T0);                   // get object pointer
+    asm.emitLInt(T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
+    pushInt(T0);                   // *sp := length
+  }
+
+  /** 
+   * Generate code for "int VM_Magic.sysCallN(int ip, int toc, int val0, int val1, ..., valN-1)".
+   * @param rawParameterSize: number of bytes in parameters (not including JTOC, IP)
+   */
+  private void generateSysCall1(int rawParametersSize) {
+    // Create a linkage area that's compatible with RS6000 "C" calling conventions.
+    // Just before the call, the stack looks like this:
+    //
+    //                     hi-mem
+    //            +-------------------------+  . . . . . . . .
+    //            |          ...            |                  \
+    //            +-------------------------+                   |
+    //            |          ...            |    \              |
+    //            +-------------------------+     |             |
+    //            |       (int ip)          |     |             |
+    //            +-------------------------+     |             |
+    //            |       (int val0)        |     |  java       |- java
+    //            +-------------------------+     |-  operand   |   stack
+    //            |       (int val1)        |     |    stack    |    frame
+    //            +-------------------------+     |             |
+    //            |          ...            |     |             |
+    //            +-------------------------+     |             |
+    //            |      (int valN-1)       |     |             |
+    //            +-------------------------+    /              |
+    //            |          ...            |                   |
+    //            +-------------------------+                   |
+    //            |                         | <-- spot for this frame's callee's return address
+    //            +-------------------------+                   |
+    //            |          MI             | <-- this frame's method id
+    //            +-------------------------+                   |
+    //            |       saved FP          | <-- this frame's caller's frame
+    //            +-------------------------+  . . . . . . . . /
+    //            |      saved JTOC         |
+    //            +-------------------------+  . . . . . . . . . . . . . .
+    //            | parameterN-1 save area  | +  \                         \
+    //            +-------------------------+     |                         |
+    //            |          ...            | +   |                         |
+    //            +-------------------------+     |- register save area for |
+    //            |  parameter1 save area   | +   |    use by callee        |
+    //            +-------------------------+     |                         |
+    //            |  parameter0 save area   | +  /                          |  rs6000
+    //            +-------------------------+                               |-  linkage
+    //        +20 |       TOC save area     | +                             |    area
+    //            +-------------------------+                               |
+    //        +16 |       (reserved)        | -    + == used by callee      |
+    //            +-------------------------+      - == ignored by callee   |
+    //        +12 |       (reserved)        | -                             |
+    //            +-------------------------+                               |
+    //         +8 |       LR save area      | +                             |
+    //            +-------------------------+                               |
+    //         +4 |       CR save area      | +                             |
+    //            +-------------------------+                               |
+    //  FP ->  +0 |       (backlink)        | -                             |
+    //            +-------------------------+  . . . . . . . . . . . . . . /
+    //
+    // Notes:
+    // 1. C parameters are passed in registers R3...R10
+    // 2. space is also reserved on the stack for use by callee
+    //    as parameter save area
+    // 3. parameters are pushed on the java operand stack left to right
+    //    java conventions) but if callee saves them, they will
+    //    appear in the parameter save area right to left (C conventions)
+    //
+    // generateSysCall1  set ups the call
+    // generateSysCallRet_<type> fix stack pushes return values
+ 
+    int ipIndex = rawParametersSize >> LOG_BYTES_IN_STACKSLOT; // where to access IP parameter
+    int linkageAreaSize   = rawParametersSize +		// values
+      BYTES_IN_STACKSLOT +		 	        // saveJTOC
+      (6 * BYTES_IN_STACKSLOT);		 		// backlink + cr + lr + res + res + TOC
+
+    peekAddr(0, ipIndex);              // load desired IP. MUST do before we change FP value
+    asm.emitMTCTR(0);                  // send to CTR so we can call it in a few instructions.
+
+    if (VM.BuildFor32Addr) {
+      asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
+    } else {
+      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
+    }
+    asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
+
+    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset()); // load sysTOC into JTOC
+    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+
+    asm.emitBCCTRL();                             // call the desired function
+
+    asm.emitLAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);    // restore JTOC
+    asm.emitADDI (FP, linkageAreaSize, FP);        // remove linkage area
+  }
+
+  /** 
+   * generate call and return sequence to invoke a C arithmetic helper function through the boot record
+   * field specificed by target,  See comments above in sysCall1 about AIX linkage conventions.
+   * Caller deals with expression stack (setting up args, pushing return, adjusting stack height)
+   */
+  private void generateSysCall(int parametersSize, VM_Field target) {
+    int linkageAreaSize   = parametersSize + BYTES_IN_STACKSLOT + (6 * BYTES_IN_STACKSLOT);
+
+    if (VM.BuildFor32Addr) {
+      asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
+    } else {
+      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
+    }
+    asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
+
+    // acquire toc and ip from bootrecord
+    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+    asm.emitLAddr(0, target.getOffset(), S0);
+
+    // call it
+    asm.emitMTCTR(0);
+    asm.emitBCCTRL(); 
+
+    // cleanup
+    asm.emitLAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);    // restore JTOC
+    asm.emitADDI (FP, linkageAreaSize, FP);        // remove linkage area
+  }
+
+
+  private void generateSysCallRet_A(int rawParametersSize) {
+    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
+    pushAddr(T0);                         // deposit C return value (R3) on stacktop
+  }
+
+  private void generateSysCallRet_I(int rawParametersSize) {
+    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
+    pushInt(T0);                         // deposit C return value (R3) on stacktop
+  }
+
+  private void generateSysCallRet_L(int rawParametersSize) {
+    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
+    pushLong(T0, VM.BuildFor64Addr?T0:T1);                        // deposit C return value (R3, R4) on stacktop
+  }
 }
+

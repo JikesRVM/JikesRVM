@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_DynamicLibrary {
+public class VM_DynamicLibrary implements VM_SizeConstants{
   private String libName;
   private int libHandler;
 
@@ -35,14 +35,14 @@ public class VM_DynamicLibrary {
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
       } else {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + (stackNeededInBytes >> 2),
+        VM_Thread.resizeCurrentStack(myThread.stack.length + (stackNeededInBytes >> LOG_BYTES_IN_ADDRESS),
                                      null); 
       }
     }
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    libHandler = VM.sysCall1(bootRecord.sysDlopenIP, 
-                             VM_Magic.objectAsAddress(asciiName).toInt());
+    libHandler = VM_SysCall.call_I_A(bootRecord.sysDlopenIP, 
+                             VM_Magic.objectAsAddress(asciiName));
 
     if (libHandler==0) {
       VM.sysWrite("error loading library: " + libraryName);
@@ -76,9 +76,8 @@ public class VM_DynamicLibrary {
     byte[] asciiName = new byte[symbolName.length() + 1]; // +1 for null terminator
     symbolName.getBytes(0, symbolName.length(), asciiName, 0);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    VM_Address address = VM_Address.fromInt(VM.sysCall2(bootRecord.sysDlsymIP, libHandler, 
-							VM_Magic.objectAsAddress(asciiName).toInt()));
-    return address;
+    return VM_SysCall.call_A_I_A(bootRecord.sysDlsymIP, libHandler, 
+							VM_Magic.objectAsAddress(asciiName));
   }
 
   /**

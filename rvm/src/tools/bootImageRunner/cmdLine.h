@@ -11,38 +11,32 @@
 #define CMDLINE_H
 
 static const int HELP_INDEX                    = 0;
-static const int VERBOSE_INDEX                 = 1;
-static const int SMALL_HEAP_INDEX              = 2;
-static const int MX_INDEX                      = 3;
-static const int LARGE_HEAP_INDEX              = 4;
-static const int NURSERY_HEAP_INDEX            = 5;
-static const int PERM_HEAP_INDEX               = 6;
-static const int SYSLOGFILE_INDEX              = 7;
-static const int BOOTIMAGE_FILE_INDEX          = 8;
-static const int TCL_INDEX                     = 9;
-static const int GC_INDEX                      = 10;
-static const int AOS_INDEX                     = 11;
-static const int IRC_INDEX                     = 12;
-static const int BASE_INDEX                    = 13;
-static const int OPT_INDEX                     = 14;
-static const int PROF_INDEX                    = 15;
-static const int VMCLASSES_INDEX               = 16;
-static const int CPUAFFINITY_INDEX             = 17;
-static const int PROCESSORS_INDEX              = 18;
-static const int WBSIZE_INDEX                  = 19;
-static const int MEASURE_COMPILATION_INDEX     = 20;
-static const int MEASURE_CLASS_LOADING_INDEX   = 21;
-static const int VERIFY_INDEX                  = 22;
-static const int numNonstandardArgs            = 23;
+static const int VERBOSE_INDEX                 = HELP_INDEX+1;
+static const int INITIAL_HEAP_INDEX            = VERBOSE_INDEX+1;
+static const int MS_INDEX                      = INITIAL_HEAP_INDEX+1;
+static const int MX_INDEX                      = MS_INDEX+1;
+static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
+static const int BOOTIMAGE_FILE_INDEX          = SYSLOGFILE_INDEX+1;
+static const int TCL_INDEX                     = BOOTIMAGE_FILE_INDEX+1;
+static const int GC_INDEX                      = TCL_INDEX+1;
+static const int AOS_INDEX                     = GC_INDEX+1;
+static const int IRC_INDEX                     = AOS_INDEX+1;
+static const int BASE_INDEX                    = IRC_INDEX+1;
+static const int OPT_INDEX                     = BASE_INDEX+1;
+static const int PROF_INDEX                    = OPT_INDEX+1;
+static const int VMCLASSES_INDEX               = PROF_INDEX+1;
+static const int CPUAFFINITY_INDEX             = VMCLASSES_INDEX+1;
+static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
+static const int MEASURE_COMPILATION_INDEX     = PROCESSORS_INDEX+1;
+static const int VERIFY_INDEX                  = MEASURE_COMPILATION_INDEX+1;
+static const int numNonstandardArgs            = VERIFY_INDEX+1;
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X", 
    "-X:verbose",
    "-X:h=",
+   "-Xms",
    "-Xmx",
-   "-X:lh=",
-   "-X:nh=",
-   "-X:ph=",
    "-X:sysLogfile=",
    "-X:i=",
    "-X:traceClassLoading=",
@@ -55,23 +49,19 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:vmClasses=",
    "-X:cpuAffinity=",
    "-X:processors=",
-   "-X:wbsize=",
    "-X:measureCompilation=",
-   "-X:measureClassLoading=",
    "-X:verify="
 };
 
-// we currently add seven extra lines due to multi-line messages below
-static const int EXTRA_USAGE_LINES = 7;
+// we currently add seven five lines due to multi-line messages below
+static const int EXTRA_USAGE_LINES = 5;
 static const int numNonStandardUsageLines= numNonstandardArgs + EXTRA_USAGE_LINES;
 static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "    -X                       print usage on nonstandard options", 
    "    -X:verbose               print out additional information for GC",
-   "    -X:h=<number>            megabytes of small object heap",
-   "    -Xmx<number>             megabytes of small object heap",
-   "    -X:lh=<number>           megabytes of large object heap",
-   "    -X:nh=<number>           megabytes of nursery object heap",
-   "    -X:ph=<number>           megabytes of permanent object heap",
+   "    -X:h=<number>            initial size of heap in megabytes",
+   "    -Xms<number>             initial size of heap in megabytes",
+   "    -Xmx<number>             maximum size of heap in megabytes",
    "    -X:sysLogfile=<filename> write standard error message to <filename>",
    "    -X:i=<filename>          read boot image from <filename>",
    "    -X:traceClassLoading     produce a report on class loading activity",
@@ -89,13 +79,8 @@ static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "    -X:vmClasses=<filename>  load classes from <filename>",
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
-   "    -X:wbsize=<number>       deprecated ... should be deleted soon!",
    "    -X:measureCompilation=<boolean> produce a report on compilation time",
-   "    -X:measureClassLoading=<integer> produce a report on class loading time",
-   "                             1 - Dump at the end of run",
-   "                             2 - Dump at every load",
-   "    -X:verify=<true|false>   verify bytecodes?"
+   "    -X:verify=<boolean>   verify bytecodes?"
 };
-
 
 #endif

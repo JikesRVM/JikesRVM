@@ -136,11 +136,11 @@ public class VM_RuntimeCompilerInfrastructure
   }
    
   /**
-   * Return the current estimate of basline-compiler rate, in bcb/sec
+   * Return the current estimate of basline-compiler rate, in bcb/msec
    */
   public static double getBaselineRate() {
     double bytes = (double) total_bcodeLen[BASELINE_COMPILER];
-    double time = VM_Time.toSecs(total_time[BASELINE_COMPILER]);
+    double time = total_time[BASELINE_COMPILER];
     return bytes/time;
   }
 

@@ -4,7 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Information required to start the virtual machine and communicate 
@@ -89,7 +89,7 @@ public class VM_BootRecord {
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
-    heapRanges = new int[2 * (1 + VM_Interface.getMaxHeaps())];
+    heapRanges = new int[2 * (1 + MM_Interface.getMaxHeaps())];
     // Indicate end of array with sentinel value
     heapRanges[heapRanges.length - 1] = -1;
     heapRanges[heapRanges.length - 2] = -1;
@@ -125,11 +125,13 @@ public class VM_BootRecord {
   public VM_Address bootImageEnd;
 
   /**
-   * size of various spaces in bytes
+   * initial size of heap
    */
-  public int smallSpaceSize; 	    // Always present
-  public int largeSpaceSize; 	    // Almost always present
-  public int nurserySize;          // Present in generational collectors
+  public int initialHeapSize;
+  /**
+   * maximum size of heap
+   */
+  public int maximumHeapSize;
 
   // int[] should be VM_Address[] but compiler erroneously emits barriers
   public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
@@ -348,12 +350,19 @@ public class VM_BootRecord {
   public VM_Address sysHPMsetEventIP;
   public VM_Address sysHPMsetEventXIP;
   public VM_Address sysHPMsetModeIP;
-  public VM_Address sysHPMsetSettingsIP;
-  public VM_Address sysHPMstartCountingIP;
-  public VM_Address sysHPMstopCountingIP;
-  public VM_Address sysHPMresetCountersIP;
-  public VM_Address sysHPMgetCountersIP;
-  public VM_Address sysHPMgetCounterIP;
+  public VM_Address sysHPMgetNumberOfCountersIP;
   public VM_Address sysHPMtestIP;
+  public VM_Address sysHPMsetProgramMyThreadIP;
+  public VM_Address sysHPMstartMyThreadIP;
+  public VM_Address sysHPMstopMyThreadIP;
+  public VM_Address sysHPMresetMyThreadIP;
+  public VM_Address sysHPMgetCounterMyThreadIP;
+  public VM_Address sysHPMsetProgramMyGroupIP;
+  public VM_Address sysHPMstartMyGroupIP;
+  public VM_Address sysHPMstopMyGroupIP;
+  public VM_Address sysHPMresetMyGroupIP;
+  public VM_Address sysHPMgetCounterMyGroupIP;
+  public VM_Address sysHPMprintMyGroupIP;
   //-#endif
+
 }

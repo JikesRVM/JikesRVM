@@ -7,9 +7,10 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -82,15 +83,14 @@ public abstract class BasePlan
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
   // Memory layout constants
-  protected static final EXTENT        SEGMENT_SIZE = 0x10000000;
-  protected static final int           SEGMENT_MASK = SEGMENT_SIZE - 1;
-  public    static final VM_Address      BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
-  protected static final EXTENT           BOOT_SIZE = SEGMENT_SIZE;
+  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
+  public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
+  protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
-  protected static final EXTENT       IMMORTAL_SIZE = 32 * 1024 * 1024;
+  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromInt(32 * 1024 * 1024);
   protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
-  protected static final EXTENT     META_DATA_SIZE  = 32 * 1024 * 1024;
+  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromInt(32 * 1024 * 1024);
   protected static final VM_Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
   protected static final VM_Address      PLAN_START = META_DATA_END;
 
@@ -121,7 +121,7 @@ public abstract class BasePlan
     bootVM = new ImmortalVMResource(BOOT_SPACE, "Boot", bootMR, BOOT_START, BOOT_SIZE);
 
     immortalMR = new MemoryResource("imm", DEFAULT_POLL_FREQUENCY);
-    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", bootMR, IMMORTAL_START, IMMORTAL_SIZE);
+    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE);
 
     addSpace(UNUSED_SPACE, "Unused");
     addSpace(BOOT_SPACE, "Boot");
@@ -171,10 +171,10 @@ public abstract class BasePlan
   }
 
   protected Allocator getAllocatorFromSpace (byte s) {
-    if (s == BOOT_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given boot space");
-    if (s == META_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given meta space");
+    if (s == BOOT_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given boot space");
+    if (s == META_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given meta space");
     if (s == IMMORTAL_SPACE) return immortal;
-    VM.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
+    VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
     return null;
   }
 
@@ -183,7 +183,7 @@ public abstract class BasePlan
     for (int i=0; i<plans.length && space == UNUSED_SPACE; i++)
       space = plans[i].getSpaceFromAllocator(a);
     if (space == UNUSED_SPACE)
-      VM.sysFail("BasePlan.getOwnAllocator could not obtain space");
+      VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
     Plan plan = VM_Interface.getPlan();
     return plan.getAllocatorFromSpace(space);
   }
@@ -249,17 +249,27 @@ public abstract class BasePlan
 							boolean root) {
     VM_Offset offset = interiorRef.diff(obj);
     VM_Address newObj = Plan.traceObject(obj, root);
-    if (VM.VerifyAssertions) {
-      if (offset.toInt() > (1<<24)) {  // There is probably no object this large
-	VM.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
-	VM.sysWriteln("       object base = ", obj);
-	VM.sysWriteln("       interior reference = ", interiorRef);
-	VM.sysWriteln("       delta = ", offset.toInt());
-	VM._assert(false);
+    if (VM_Interface.VerifyAssertions) {
+      if (offset.toInt() < 0 || offset.toInt() > (1<<24)) {  // There is probably no object this large
+	VM_Interface.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
+	VM_Interface.sysWriteln("       object base = ", obj);
+	VM_Interface.sysWriteln("       interior reference = ", interiorRef);
+	VM_Interface.sysWriteln("       delta = ", offset);
+	VM_Interface._assert(false);
       }
     }
     return newObj.add(offset);
   }
+
+  /**
+   * A pointer location has been enumerated by ScanObject.  This is
+   * the callback method, allowing the plan to perform an action with
+   * respect to that location.  By default nothing is done.
+   *
+   * @param location An address known to contain a pointer.  The
+   * location is within the object being scanned by ScanObject.
+   */
+  public void enumeratePointerLocation(VM_Address location) {}
 
   public static boolean willNotMove (VM_Address obj) {
       return !VMResource.refIsMovable(obj);
@@ -284,7 +294,11 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void putFieldWriteBarrier(VM_Address src, int offset,
-				   VM_Address tgt){}
+				   VM_Address tgt) {
+    // Either: barriers are used and this is overridden, or 
+    //         barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+  }
 
   /**
    * A new reference is about to be created by a aastore bytecode.
@@ -299,7 +313,11 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void arrayStoreWriteBarrier(VM_Address ref, int index, 
-				     VM_Address value) {}
+				     VM_Address value) {
+    // Either: write barriers are used and this is overridden, or 
+    //         write barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+  }
 
   /**
    * A new reference is about to be created by a putStatic bytecode.
@@ -311,8 +329,9 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
-    // putstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+    // Either: write barriers are used and this is overridden, or 
+    //         write barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   /**
@@ -326,7 +345,7 @@ public abstract class BasePlan
    */
   public final void getFieldReadBarrier(VM_Address tgt, int offset) {
     // getfield barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   /**
@@ -339,7 +358,7 @@ public abstract class BasePlan
    */
   public final void getStaticReadBarrier(VM_Address slot) {
     // getstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -348,12 +367,12 @@ public abstract class BasePlan
   //
 
   static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
-    if (spaceNames[sp] != null) VM.sysFail("addSpace called on already registed space");
+    if (spaceNames[sp] != null) VM_Interface.sysFail("addSpace called on already registed space");
     spaceNames[sp] = name;
   }
 
   static public String getSpaceName (byte sp) {
-    if (spaceNames[sp] == null) VM.sysFail("getSpace called on unregisted space");
+    if (spaceNames[sp] == null) VM_Interface.sysFail("getSpace called on unregisted space");
     return spaceNames[sp];
   }
 
@@ -373,13 +392,25 @@ public abstract class BasePlan
 
   /**
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
-   * this includes unused memory that is held in reserve for copying,
+   * this excludes unused memory that is held in reserve for copying,
    * and therefore unavailable for allocation.
    *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static long usedMemory() throws VM_PragmaUninterruptible {
     return Conversions.pagesToBytes(Plan.getPagesUsed());
+  }
+
+
+  /**
+   * Return the amount of <i>memory in use</i>, in bytes.  Note that
+   * this includes unused memory that is held in reserve for copying,
+   * and therefore unavailable for allocation.
+   *
+   * @return The amount of <i>memory in use</i>, in bytes.
+   */
+  public static long reservedMemory() throws VM_PragmaUninterruptible {
+    return Conversions.pagesToBytes(Plan.getPagesReserved());
   }
 
   /**
@@ -405,6 +436,13 @@ public abstract class BasePlan
     return heapPages; 
   }
 
+  /**
+   * @return Whether last GC is a full GC.
+   */
+  public static boolean isLastGCFull () {
+    return true;
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Miscellaneous
@@ -418,7 +456,7 @@ public abstract class BasePlan
   public void error(String str) {
     MemoryResource.showUsage(PAGES);
     MemoryResource.showUsage(MB);
-    VM.sysFail(str);
+    VM_Interface.sysFail(str);
   }
 
   /**
@@ -457,8 +495,11 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (verbose == 1) {
-      // VM.sysWrite("[End ", (VM_Interface.now() - bootTime));
-      // VM.sysWrite(" s]\n");
+      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime));
+      VM_Interface.sysWrite(" s]\n");
+    } else if (verbose == 2) {
+      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime)*1000);
+      VM_Interface.sysWrite(" ms]\n");
     }
   }
 
@@ -484,11 +525,11 @@ public abstract class BasePlan
   public static void writePages(int pages, int mode) {
     double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
     switch (mode) {
-      case PAGES: VM.sysWrite(pages, " pgs"); break; 
-      case MB:    VM.sysWrite(mb, " Mb"); break;
-      case PAGES_MB: VM.sysWrite(pages, " pgs ("); VM.sysWrite(mb, " Mb)"); break;
-      case MB_PAGES: VM.sysWrite(mb, " Mb ("); VM.sysWrite(pages, " pgs)"); break;
-      default: VM.sysFail("writePages passed illegal printing mode");
+      case PAGES: VM_Interface.sysWrite(pages," pgs"); break; 
+      case MB:    VM_Interface.sysWrite(mb," Mb"); break;
+      case PAGES_MB: VM_Interface.sysWrite(pages," pgs ("); VM_Interface.sysWrite(mb," Mb)"); break;
+      case MB_PAGES: VM_Interface.sysWrite(mb," Mb ("); VM_Interface.sysWrite(pages," pgs)"); break;
+      default: VM_Interface.sysFail("writePages passed illegal printing mode");
     }
   }
 

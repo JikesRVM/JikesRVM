@@ -1,0 +1,55 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2003
+#
+# $Id$
+#
+# Run Jikes RVM on the gdb debugger.
+# The script handles passing command line arguments
+# to the Jikes RVM executable and executing a standard gdb macro 
+# file that does some common setup tasks.
+#
+# @author Dave Grove
+#
+
+# Sanity checks for $HOME and $RVM_ROOT, because these may not be
+# set if we invoke this scripts from someplace other than a shell
+if [[ x$HOME = "x" ]]; then
+   print "$ME: please set your HOME environment variable (eg. /$HOME/me)"
+   exit 1
+fi
+
+if [[ x$RVM_ROOT = "x" ]]; then
+   print "$ME: please set your RVM_ROOT environment variable (eg. $HOME/rvmRoot)"
+   exit 1
+fi
+
+if [[ $RVM_BUILD = "" ]]; then
+   print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
+   exit 1
+fi
+
+. $RVM_BUILD/environment
+
+ARGS="-X:i=$RVM_BUILD/RVM.image -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
+
+for arg in $*; do
+   if   [[ $arg = --   ]]; then
+     print "$ME: the command line option \"--\" is no longer used!"
+   fi
+done
+
+#
+# Need to make some more defines
+#
+ARGS="$ARGS -Drvm.root=$RVM_ROOT"
+ARGS="$ARGS -Drvm.build=$RVM_BUILD"
+ARGS="$ARGS -Djava.home=$RVM_ROOT"
+ARGS="$ARGS -Dgnu.classpath.home.url=file:${RVM_BUILD}"
+ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
+
+ARGS="$ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+
+# Now execute the VM
+echo set args $ARGS "$@" > $RVM_BUILD/gdb.commandlineArgs
+gdb $RVM_BUILD/JikesRVM -x $RVM_BUILD/gdb.commandlineArgs -x $RVM_ROOT/rvm/bin/gdbInit

@@ -519,7 +519,6 @@ extern "C" void processTimerTick() {
    */
   int     i;
 
-#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
   // line added here - ndp is now the last processor - and cnt includes it
   cnt = cnt - 1;
   // check for gc in progress: if so, return
@@ -529,33 +528,30 @@ extern "C" void processTimerTick() {
   int       val;
   int       sendit = 0;
   int       MISSES = -2;     // tuning parameter
-  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
-    {
-      val = *(int *)((char *)processors[i] + 
-		     VM_Processor_threadSwitchRequested_offset);
-      if (val <= MISSES) sendit++;
-      *(int *)((char *)processors[i] + 
-	       VM_Processor_threadSwitchRequested_offset) = val - 1;
-    }
-  if (sendit != 0) // some processor "stuck in native"
-    {
-      if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon 
-	// Processor (the last one)
-	int pthread_id = *(int *)((char *)processors[i] 
-				  + VM_Processor_pthread_id_offset) ;
+  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i) {
+    val = *(int *)((char *)processors[i] + 
+		   VM_Processor_threadSwitchRequested_offset);
+    if (val <= MISSES) sendit++;
+    *(int *)((char *)processors[i] + 
+	     VM_Processor_threadSwitchRequested_offset) = val - 1;
+  }
+  if (sendit != 0) {
+    // some processor "stuck in native"
+    if (processors[i] != 0 /*null*/ ) {  
+      // have a NativeDaemon Processor (the last one) and can use it to recover
+      int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
 #ifdef __linuxsmp__
-	pthread_t thread = (pthread_t)pthread_id;
-	int i_thread = (int)thread;
-	pthread_kill(thread, SIGCONT);
+      pthread_t thread = (pthread_t)pthread_id;
+      int i_thread = (int)thread;
+      pthread_kill(thread, SIGCONT);
 #endif
+    } else {
+      if (val <= -500) {
+	fprintf(stderr, "WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 10 * (-val));
+	fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
       }
     }
-#else
-  for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
-    if (processors[i] != 0 /*null*/)
-      *(int *) ((char *) processors[i] + VM_Processor_threadSwitchRequested_offset) = -1;
-  /* -1: all bits on */
-#endif
+  }
 }
 
 
@@ -633,11 +629,8 @@ void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
 /* startup configuration option with default values */
 char *bootFilename = 0;
 int verboseGC = 0;
-unsigned smallHeapSize = 20 * 1024 * 1024;	/* megs */
-unsigned largeHeapSize = 10 * 1024 * 1024;	/* megs */
-
-unsigned nurserySize = 10 * 1024 * 1024;	/* megs */
-unsigned permanentHeapSize = 0;
+unsigned initialHeapSize = 20*1024*1024; // megs
+unsigned maximumHeapSize = 0;
 
 /* timer tick interval, in milliseconds     (10 <= delay <= 999) */
 static int TimerDelay = 10;
@@ -656,12 +649,12 @@ createJVM (int vmInSeparateThread)
 
   if (lib_verbose)
   {
-  fprintf(SysTraceFile, "IA32 linux build");
-  #if (defined __linuxsmp__)
-    fprintf(SysTraceFile, " for SMP\n");
-  #else
-    fprintf(SysTraceFile, "\n");
-  #endif
+    fprintf(SysTraceFile, "IA32 linux build");
+    #if (defined __linuxsmp__)
+      fprintf(SysTraceFile, " for SMP\n");
+    #else
+      fprintf(SysTraceFile, "\n");
+    #endif
   }
 
   /* open and mmap the image file. 
@@ -752,9 +745,8 @@ createJVM (int vmInSeparateThread)
 
   /* write freespace information into boot record */
    bootRecord->verboseGC        = verboseGC;
-   bootRecord->nurserySize      = nurserySize;
-   bootRecord->smallSpaceSize   = smallHeapSize;
-   bootRecord->largeSpaceSize   = largeHeapSize;
+   bootRecord->initialHeapSize  = initialHeapSize;
+   bootRecord->maximumHeapSize  = maximumHeapSize;
    bootRecord->bootImageStart   = (int) bootRegion;
    bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
   
@@ -766,9 +758,8 @@ createJVM (int vmInSeparateThread)
     fprintf (SysTraceFile, "%s: boot record contents:\n", me);
     fprintf (SysTraceFile, "   bootImageStart:       0x%08x\n", bootRecord->bootImageStart);
     fprintf (SysTraceFile, "   bootImageEnd:         0x%08x\n", bootRecord->bootImageEnd);
-    fprintf (SysTraceFile, "   smallSpaceSize:       0x%08x\n", bootRecord->smallSpaceSize);
-    fprintf (SysTraceFile, "   largeSpaceSize:       0x%08x\n", bootRecord->largeSpaceSize);
-    fprintf (SysTraceFile, "   nurserySize:          0x%08x\n", bootRecord->nurserySize);
+    fprintf (SysTraceFile, "   initialHeapSize:      0x%08x\n", bootRecord->initialHeapSize);
+    fprintf (SysTraceFile, "   maximumHeapSize:      0x%08x\n", bootRecord->maximumHeapSize);
     fprintf (SysTraceFile, "   tiRegister:           0x%08x\n", bootRecord->tiRegister);
     fprintf (SysTraceFile, "   spRegister:           0x%08x\n", bootRecord->spRegister);
     fprintf (SysTraceFile, "   ipRegister:           0x%08x\n", bootRecord->ipRegister);
@@ -870,7 +861,7 @@ createJVM (int vmInSeparateThread)
   } 
 
   *--sp = 0xdeadbabe;		/* STACKFRAME_RETURN_ADDRESS_OFFSET */
-  *--sp = VM_Constants_STACKFRAME_SENTINAL_FP;	/* STACKFRAME_FRAME_POINTER_OFFSET */
+  *--sp = VM_Constants_STACKFRAME_SENTINEL_FP;	/* STACKFRAME_FRAME_POINTER_OFFSET */
   *--sp = VM_Constants_INVISIBLE_METHOD_ID;	/* STACKFRAME_METHOD_ID_OFFSET */
   *--sp = 0;			/* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
 

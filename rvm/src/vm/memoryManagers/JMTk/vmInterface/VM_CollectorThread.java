@@ -22,6 +22,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_SysCall;
 import com.ibm.JikesRVM.VM_Registers;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Thread;
@@ -283,7 +284,7 @@ public class VM_CollectorThread extends VM_Thread {
     
       if (trace > 2) VM_Scheduler.trace("VM_CollectorThread", "starting collection");
       if (getThis().isActive) 
-	VM_Interface.collect();     // gc
+	VM_Interface.getPlan().collect();     // gc
       if (trace > 1) VM_Scheduler.trace("VM_CollectorThread", "finished collection");
       
       // wait for other collector threads to arrive here
@@ -476,7 +477,7 @@ public class VM_CollectorThread extends VM_Thread {
 	// first unblock the processor
 	vp.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_SIGWAIT;
 	// then send signal
-	VM.sysCall1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
+	VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
 	continue;
       }
 
@@ -496,7 +497,7 @@ public class VM_CollectorThread extends VM_Thread {
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
   public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) throws VM_PragmaInterruptible {
-    int[] stack =  VM_Interface.newImmortalStack(STACK_SIZE_COLLECTOR>>2);
+    int[] stack =  MM_Interface.newImmortalStack(STACK_SIZE_COLLECTOR>>2);
     //-#if RVM_WITH_CONCURRENT_GC
     return new VM_RCCollectorThread(stack, true, processorAffinity);
     //-#else
@@ -626,7 +627,7 @@ public class VM_CollectorThread extends VM_Thread {
   //
   public static void boot(int numProcessors) throws VM_PragmaInterruptible {
     VM_Processor proc = VM_Processor.getCurrentProcessor();
-    VM_Interface.setupProcessor(proc);
+    MM_Interface.setupProcessor(proc);
   }
   
   public void incrementWaitTimeTotals() throws VM_PragmaUninterruptible {

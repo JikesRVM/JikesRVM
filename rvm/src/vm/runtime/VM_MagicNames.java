@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
 
 /**
  * Method names that are treated specially by compiler.
- * See also: VM_Magic, various magic compilers (eg VM_MagicCompiler)
+ * See also: VM_Magic, various magic compilers.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -76,8 +76,12 @@ public class VM_MagicNames {
   public static final VM_Atom getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");
   public static final VM_Atom setMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("setMemoryAddress");
 
-  public static final VM_Atom prepare                       = VM_Atom.findOrCreateAsciiAtom("prepare");
-  public static final VM_Atom attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
+  public static final VM_Atom prepareInt                    = VM_Atom.findOrCreateAsciiAtom("prepareInt");
+  public static final VM_Atom prepareObject                 = VM_Atom.findOrCreateAsciiAtom("prepareObject");
+  public static final VM_Atom prepareAddress                = VM_Atom.findOrCreateAsciiAtom("prepareAddress");
+  public static final VM_Atom attemptInt                    = VM_Atom.findOrCreateAsciiAtom("attemptInt");
+  public static final VM_Atom attemptObject                 = VM_Atom.findOrCreateAsciiAtom("attemptObject");
+  public static final VM_Atom attemptAddress                = VM_Atom.findOrCreateAsciiAtom("attemptAddress");
 
   public static final VM_Atom saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
   public static final VM_Atom threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
@@ -99,11 +103,6 @@ public class VM_MagicNames {
   public static final VM_Atom addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
   public static final VM_Atom objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
   public static final VM_Atom objectAsProcessor             = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Atom addressAsBlockControl         = VM_Atom.findOrCreateAsciiAtom("addressAsBlockControl");
-  public static final VM_Atom addressAsSizeControl          = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControl");
-  public static final VM_Atom addressAsSizeControlArray     = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControlArray");
-  //-#endif
   public static final VM_Atom threadAsCollectorThread       = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final VM_Atom addressAsRegisters            = VM_Atom.findOrCreateAsciiAtom("addressAsRegisters");
   public static final VM_Atom addressAsStack                = VM_Atom.findOrCreateAsciiAtom("addressAsStack");
@@ -126,8 +125,13 @@ public class VM_MagicNames {
   public static final VM_Atom clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   //-#endif
 
+  // atoms related to VM_Word, VM_Address, VM_Offset, VM_Extent
   public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
+  public static final VM_Atom wordFromIntZeroExtend         = VM_Atom.findOrCreateAsciiAtom("fromIntZeroExtend");
+  public static final VM_Atom wordFromIntSignExtend         = VM_Atom.findOrCreateAsciiAtom("fromIntSignExtend");
+  public static final VM_Atom wordFromLong                  = VM_Atom.findOrCreateAsciiAtom("fromLong");
   public static final VM_Atom wordToInt                     = VM_Atom.findOrCreateAsciiAtom("toInt");
+  public static final VM_Atom wordToLong                    = VM_Atom.findOrCreateAsciiAtom("toLong");
   public static final VM_Atom wordToWord                    = VM_Atom.findOrCreateAsciiAtom("toWord");
   public static final VM_Atom wordToAddress                 = VM_Atom.findOrCreateAsciiAtom("toAddress");
   public static final VM_Atom wordAdd                       = VM_Atom.findOrCreateAsciiAtom("add");
@@ -147,4 +151,10 @@ public class VM_MagicNames {
   public static final VM_Atom wordOr                        = VM_Atom.findOrCreateAsciiAtom("or");
   public static final VM_Atom wordNot                       = VM_Atom.findOrCreateAsciiAtom("not");
   public static final VM_Atom wordXor                       = VM_Atom.findOrCreateAsciiAtom("xor");
+
+  // atoms related to VM_WordArray, VM_AddressArray, VM_OffsetArray, VM_ExtentArray
+  public static final VM_Atom addressArrayCreate            = VM_Atom.findOrCreateAsciiAtom("create");
+  public static final VM_Atom addressArrayLength            = VM_Atom.findOrCreateAsciiAtom("length");
+  public static final VM_Atom addressArrayGet               = VM_Atom.findOrCreateAsciiAtom("get");
+  public static final VM_Atom addressArraySet               = VM_Atom.findOrCreateAsciiAtom("set");
 }

@@ -6,16 +6,13 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
+
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -71,11 +68,29 @@ public class HybridHeader {
   public static void initializeMarkSweepHeader(Object ref, Object[] tib,
 					       int size, boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions && VM_Interface.gcInProgress())
-      VM._assert(false);
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    if (VM_Interface.VerifyAssertions && MM_Interface.gcInProgress())
+      VM_Interface._assert(false);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
+  }
+
+  /**
+   * Perform any required initialization of the GC portion of the header.
+   * 
+   * @param ref the object ref to the storage to be initialized
+   * @param tib the TIB of the instance being created
+   * @param size the number of bytes allocated by the GC system for this object.
+   * @param isScalar are we initializing a scalar (true) or array (false) object?
+   */
+  public static void initializeLOSHeader(Object ref, Object[] tib,
+					 int size, boolean isScalar)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions && MM_Interface.gcInProgress())
+      VM_Interface._assert(false);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
+    int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
+    VM_Interface.writeAvailableBitsWord(ref, newValue);
   }
 
   /**
@@ -99,13 +114,13 @@ public class HybridHeader {
    * @param ref the object reference whose header should be dumped 
    */
   public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
-//     VM.sysWrite("(");
-//     VM.sysWrite(VM_Magic.objectAsAddress(ref));
-//     VM.sysWrite(" ");
-//     VM.sysWrite((isSmall(ref))  ? "S" : "s");
-//     VM.sysWrite((isArray(ref))  ? "A" : "a");
-//     VM.sysWrite((isMarked(ref)) ? "M" : "m");
-//     VM.sysWrite(")\n");
+//     VM_Interface.sysWrite("(");
+//     VM_Interface.sysWrite(VM_Magic.objectAsAddress(ref));
+//     VM_Interface.sysWrite(" ");
+//     VM_Interface.sysWrite((isSmall(ref))  ? "S" : "s");
+//     VM_Interface.sysWrite((isArray(ref))  ? "A" : "a");
+//     VM_Interface.sysWrite((isMarked(ref)) ? "M" : "m");
+//     VM_Interface.sysWrite(")\n");
     // nothing to do (no bytes of GC header)
   }
 
@@ -118,12 +133,12 @@ public class HybridHeader {
    */
   static public boolean testMarkBit(Object ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (VM_ObjectModel.readAvailableBitsWord(ref)& MARK_BIT_MASK) != value;
+    return (VM_Interface.readAvailableBitsWord(ref)& MARK_BIT_MASK) != value;
   }
 
   static public boolean isSmallObject(Object ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (VM_ObjectModel.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
+    return (VM_Interface.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
   }
 
   /**
@@ -134,9 +149,9 @@ public class HybridHeader {
    */
   public static void writeMarkBit(Object ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~MARK_BIT_MASK) | value;
-    VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
@@ -149,9 +164,9 @@ public class HybridHeader {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
-      oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      oldValue = VM_Interface.prepareAvailableBits(ref);
       newValue = (oldValue & ~MARK_BIT_MASK) | value;
-    } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, newValue));
+    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,newValue));
   }
 
   /**
@@ -165,10 +180,10 @@ public class HybridHeader {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, markBit;
     do {
-      oldValue = VM_ObjectModel.prepareAvailableBits(ref);
+      oldValue = VM_Interface.prepareAvailableBits(ref);
       markBit = oldValue & MARK_BIT_MASK;
       if (markBit == value) return false;
-    } while (!VM_ObjectModel.attemptAvailableBits(ref, oldValue, oldValue ^ MARK_BIT_MASK));
+    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue ^ MARK_BIT_MASK));
     return true;
   }
 }

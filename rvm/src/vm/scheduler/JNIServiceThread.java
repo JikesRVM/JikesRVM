@@ -60,7 +60,7 @@ class JNIServiceThread extends VM_Thread   {
 	VM.sysWrite("JNIServiceThread:  external Thread request detected ");
 	VM.sysWrite(VM_Scheduler.attachThreadRequested);
 	VM.sysWrite(" at 0x");
-	VM.sysWrite(VM.intAsHexString(VM_Magic.getTocPointer().add(VM_BootRecord.the_boot_record.attachThreadRequestedOffset).toInt()));
+	VM.sysWrite(VM.addressAsHexString(VM_Magic.getTocPointer().add(VM_BootRecord.the_boot_record.attachThreadRequestedOffset)));
 
 	VM_Address args = VM_Scheduler.attachThreadRequested;
 	VM.sysWrite("parms = " + 

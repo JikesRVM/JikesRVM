@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import java.util.StringTokenizer;
 import java.io.*;
@@ -96,21 +96,7 @@ public class VM_ClassLoader implements VM_Constants,
     if (VM.VerifyAssertions)
       VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
-    //-#if RVM_WITH_GNU_CLASSPATH    
     String platformLibName = System.mapLibraryName(libname);
-    //-#else
-    // this is ugly, but will go away soon anyway
-    String platformLibName;
-    if (VM.BuildForLinux)
-      platformLibName = "lib" + libname + ".so";
-    else if (VM.BuildForAix)
-      platformLibName = "lib" + libname + ".a";
-    else {
-      platformLibName = null;
-      VM._assert(NOT_REACHED);
-    }
-    //-#endif
-
     StringTokenizer javaLibDirs =
       new StringTokenizer(javaLibPath, File.pathSeparator, false);
 
@@ -142,16 +128,16 @@ public class VM_ClassLoader implements VM_Constants,
 
   // Names of special methods.
   //
-  static VM_Atom StandardClassInitializerMethodName;        // "<clinit>"
-  static VM_Atom StandardClassInitializerMethodDescriptor;  // "()V"
+  public static VM_Atom StandardClassInitializerMethodName;        // "<clinit>"
+  public static VM_Atom StandardClassInitializerMethodDescriptor;  // "()V"
 
   public static VM_Atom StandardObjectInitializerMethodName;       // "<init>"
   public static VM_Atom StandardObjectInitializerMethodDescriptor; // "()V"
 
   public static VM_Atom StandardObjectInitializerHelperMethodName;       // "this"
 
-  static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
-  static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
+  public static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
+  public static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
 
   // Names of .class file attributes.
   //
@@ -214,10 +200,6 @@ public class VM_ClassLoader implements VM_Constants,
     dynamicLibraries = new VM_DynamicLibrary[0];
 
     VM_Type.init();
-
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    com.ibm.oti.vm.AbstractClassLoader.setBootstrapClassLoader(VM_SystemClassLoader.getVMClassLoader());
-    //-#endif
   }
 
   private static String javaLibPath;
@@ -225,11 +207,6 @@ public class VM_ClassLoader implements VM_Constants,
   private static void setJavaLibPath() {
     javaLibPath = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
     if (javaLibPath == null) javaLibPath="";
-
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    // an ugly hack that will go away soon
-    javaLibPath = javaLibPath + File.pathSeparator + VM_CommandLineArgs.getEnvironmentArg("rvm.build");
-    //-#endif
   }
 
   public static String getJavaLibPath() {
@@ -266,7 +243,7 @@ public class VM_ClassLoader implements VM_Constants,
    */ 
   private static VM_DynamicLibrary[] growArray(VM_DynamicLibrary[] array, 
                                                int newLength) {
-    VM_DynamicLibrary[] newarray = VM_Interface.newContiguousDynamicLibraryArray(newLength);
+    VM_DynamicLibrary[] newarray = MM_Interface.newContiguousDynamicLibraryArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i) {
       newarray[i] = array[i];
     }

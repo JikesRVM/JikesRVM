@@ -8,30 +8,31 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Extent;
+
 
 /*
  * Conversions between different units.
  *
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
-  public static int roundDownMB (EXTENT bytes) {
-    return (bytes >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE;
+  public static VM_Extent roundDownMB (VM_Extent bytes) {
+    return VM_Extent.fromInt((bytes.toInt() >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE);
   }
 
   // Round up (if necessary)
   //
-  public static int MBToPages(EXTENT megs) {
+  public static int MBToPages(int megs) {
     if (VMResource.LOG_PAGE_SIZE <= LOG_MBYTE_SIZE)
       return (megs << (LOG_MBYTE_SIZE - VMResource.LOG_PAGE_SIZE));
     else
       return (megs + ((VMResource.PAGE_SIZE >>> LOG_MBYTE_SIZE) - 1)) >>> (VMResource.LOG_PAGE_SIZE - LOG_MBYTE_SIZE);
   }
 
-  public static int bytesToMmapChunksUp(EXTENT bytes) {
+  public static int bytesToMmapChunksUp(int bytes) {
     return (bytes + (LazyMmapper.MMAP_CHUNK_SIZE - 1)) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
   }
 
@@ -49,7 +50,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
 
   public static int addressToPages (VM_Address addr) {
     int page = addressToPagesDown(addr);
-    if (VM.VerifyAssertions) VM._assert(pagesToAddress(page).EQ(addr));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToAddress(page).EQ(addr));
     return page;
   }
 
@@ -71,7 +72,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
 
   public static int bytesToPages (int bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (VM.VerifyAssertions) VM._assert(pagesToBytes(pages) == bytes);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToBytes(pages) == bytes);
     return pages;
   }
 

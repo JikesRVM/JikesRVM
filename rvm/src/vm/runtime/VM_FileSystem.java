@@ -37,8 +37,35 @@ import java.io.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
+public class VM_FileSystem {
 
+  // options for open()
+  public static final int OPEN_READ   = 0; // open for read/only  access
+  public static final int OPEN_WRITE  = 1; // open for read/write access, create if doesn't already exist, 
+  // truncate if already exists
+  public static final int OPEN_MODIFY = 2; // open for read/write access, create if doesn't already exist
+  public static final int OPEN_APPEND = 3; // open for read/write access, create if doesn't already exist, append writes
+
+  // options for seek()
+  public static final int SEEK_SET = 0;    // set i/o position to start of file plus "offset"
+  public static final int SEEK_CUR = 1;    // set i/o position to current position plus "offset"
+  public static final int SEEK_END = 2;    // set i/o position to end of file plus "offset"
+
+  // options for stat()
+  public static final int STAT_EXISTS        = 0;
+  public static final int STAT_IS_FILE       = 1;
+  public static final int STAT_IS_DIRECTORY  = 2;
+  public static final int STAT_IS_READABLE   = 3;
+  public static final int STAT_IS_WRITABLE   = 4;
+  public static final int STAT_LAST_MODIFIED = 5;
+  public static final int STAT_LENGTH        = 6;
+
+  // options for access()
+  public static final int ACCESS_F_OK	= 00;
+  public static final int ACCESS_R_OK	= 04;
+  public static final int ACCESS_W_OK	= 02;
+  public static final int ACCESS_X_OK	= 01;
+  
   /** 
    * Keep track of whether or not we were able to make
    * the stdin, stdout, and stderr file descriptors nonblocking.
@@ -60,8 +87,8 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall2(bootRecord.sysStatIP, 
-                         VM_Magic.objectAsAddress(asciiName).toInt(), kind);
+    int rc = VM_SysCall.call_I_A_I(bootRecord.sysStatIP, 
+                         VM_Magic.objectAsAddress(asciiName), kind);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
@@ -81,8 +108,8 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 
     // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall2(bootRecord.sysAccessIP, 
-                         VM_Magic.objectAsAddress(asciiName).toInt(), kind);
+    int rc = VM_SysCall.call_I_A_I(bootRecord.sysAccessIP, 
+                         VM_Magic.objectAsAddress(asciiName), kind);
     // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
@@ -97,9 +124,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall2(
+    int rc = VM_SysCall.call_I_A_I(
       bootRecord.sysUtimeIP,
-      VM_Magic.objectAsAddress(asciiName).toInt(),
+      VM_Magic.objectAsAddress(asciiName),
       (int) (time / 1000)	// convert milliseconds to seconds
     );
 
@@ -119,8 +146,8 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int fd = VM.sysCall2(bootRecord.sysOpenIP, 
-                         VM_Magic.objectAsAddress(asciiName).toInt(), how);
+    int fd = VM_SysCall.call_I_A_I(bootRecord.sysOpenIP, 
+                         VM_Magic.objectAsAddress(asciiName), how);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
     return fd;
@@ -190,7 +217,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     // See readBytes() method for an explanation of how the read loop works.
 
     for (;;) {
-      int b = VM.sysCall1(bootRecord.sysReadByteIP, fd);
+      int b = VM_SysCall.call1(bootRecord.sysReadByteIP, fd);
       if (b >= -1)
 	// Either a valid read, or we reached EOF
 	return b;
@@ -228,7 +255,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     // See writeBytes() for an explanation of how the write loop works
 
     for (;;) {
-      int rc = VM.sysCall2(bootRecord.sysWriteByteIP, fd, b);
+      int rc = VM_SysCall.call2(bootRecord.sysWriteByteIP, fd, b);
       if (rc == 0)
 	return 0; // success
       else if (rc == -2) {
@@ -304,8 +331,8 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 
     int read = 0;
     for (;;) {
-      int rc = VM.sysCall3(bootRecord.sysReadBytesIP, fd,
-                         VM_Magic.objectAsAddress(buf).add(off).toInt(), cnt);
+      int rc = VM_SysCall.call_I_I_A_I(bootRecord.sysReadBytesIP, fd,
+                         VM_Magic.objectAsAddress(buf).add(off), cnt);
 
       if (rc == 0) {
 	  // EOF
@@ -393,7 +420,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
       return -2;
 
     for (;;) {
-      int rc = VM.sysCall3(bootRecord.sysWriteBytesIP, fd, start.toInt(), cnt);
+      int rc = VM_SysCall.call_I_I_A_I(bootRecord.sysWriteBytesIP, fd, start, cnt);
       if (rc >= 0)
 	// Write succeeded
 	return rc;
@@ -422,7 +449,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
    */ 
   public static int seek(int fd, int offset, int whence) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall3(bootRecord.sysSeekIP, fd, offset, whence);
+    return VM_SysCall.call3(bootRecord.sysSeekIP, fd, offset, whence);
   }
 
   /**
@@ -438,7 +465,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     if (fd == 87 || fd == 88) (new Throwable()).printStackTrace();
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall1(bootRecord.sysCloseIP, fd);
+    return VM_SysCall.call1(bootRecord.sysCloseIP, fd);
   }
 
   /**
@@ -462,9 +489,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     int    len;
     for (int max = 1024;;) {
       asciiList = new byte[max];
-      len = VM.sysCall3(bootRecord.sysListIP, 
-                        VM_Magic.objectAsAddress(asciiName).toInt(), 
-                        VM_Magic.objectAsAddress(asciiList).toInt(), max);
+      len = VM_SysCall.call_I_A_A_I(bootRecord.sysListIP, 
+                        VM_Magic.objectAsAddress(asciiName), 
+                        VM_Magic.objectAsAddress(asciiList), max);
       if (len < max)
         break;
 
@@ -509,8 +536,8 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall1(bootRecord.sysDeleteIP,
-                         VM_Magic.objectAsAddress(asciiName).toInt());
+    int rc = VM_SysCall.call_I_A(bootRecord.sysDeleteIP,
+                         VM_Magic.objectAsAddress(asciiName));
 
     if (rc == 0) return true;
     else return false;
@@ -533,9 +560,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     toName.getBytes(0, toName.length(), toCharStar, 0);
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall2(bootRecord.sysRenameIP,
-                         VM_Magic.objectAsAddress(fromCharStar).toInt(),
-                         VM_Magic.objectAsAddress(toCharStar).toInt());
+    int rc = VM_SysCall.call_I_A_A(bootRecord.sysRenameIP,
+                         VM_Magic.objectAsAddress(fromCharStar),
+                         VM_Magic.objectAsAddress(toCharStar));
 
     if (rc == 0) return true;
     else return false;
@@ -554,34 +581,34 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);      
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall1(bootRecord.sysMkDirIP,
-                         VM_Magic.objectAsAddress(asciiName).toInt());
+    int rc = VM_SysCall.call_I_A(bootRecord.sysMkDirIP,
+                         VM_Magic.objectAsAddress(asciiName));
     return (rc == 0);
   } 
 
   public static boolean sync(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall1(bootRecord.sysSyncFileIP, fd) == 0;
+    return VM_SysCall.call1(bootRecord.sysSyncFileIP, fd) == 0;
   }
 
   public static int bytesAvailable(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall1(bootRecord.sysBytesAvailableIP, fd);
+    return VM_SysCall.call1(bootRecord.sysBytesAvailableIP, fd);
   }	   
 
   public static boolean isValidFD(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall1(bootRecord.sysIsValidFDIP, fd) == 0;
+    return VM_SysCall.call1(bootRecord.sysIsValidFDIP, fd) == 0;
   }	   
 
   public static int length(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall1(bootRecord.sysLengthIP, fd);
+    return VM_SysCall.call1(bootRecord.sysLengthIP, fd);
   }	   
 
   public static int setLength(int fd, int len) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM.sysCall2(bootRecord.sysSetLengthIP, fd, len);
+    return VM_SysCall.call2(bootRecord.sysSetLengthIP, fd, len);
   }	   
 
   /**
@@ -613,7 +640,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 
     // Set the file descriptor to be nonblocking.
-    rc = VM.sysCall2(bootRecord.sysNetSocketNoBlockIP, fd, 1);
+    rc = VM_SysCall.call2(bootRecord.sysNetSocketNoBlockIP, fd, 1);
     if (rc < 0)
       VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
 
@@ -628,7 +655,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 
     // If file descriptor will not be shared, set close-on-exec flag
     if (!shared) {
-      rc = VM.sysCall1(bootRecord.sysSetFdCloseOnExecIP, fd);
+      rc = VM_SysCall.call1(bootRecord.sysSetFdCloseOnExecIP, fd);
       if (rc < 0) {
 	VM.sysWrite("VM: warning: could not set close-on-exec flag " +
 	  "for fd " + fd);
@@ -647,14 +674,14 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   private static void prepareStandardFd(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 
-    int isTTY = VM.sysCall1(bootRecord.sysIsTTYIP, fd);
+    int isTTY = VM_SysCall.call1(bootRecord.sysIsTTYIP, fd);
     if (isTTY == 0) {
       // This file descriptor is not connected to a tty, so we ASSUME
       // that our reference to the actual file is private, and that
       // we can safely set it to be nonblocking without confusing anyone.
       // (Generally, it is only terminals that are shared with other
       // processes.)
-      int rc = VM.sysCall2(bootRecord.sysNetSocketNoBlockIP, fd, 1);
+      int rc = VM_SysCall.call2(bootRecord.sysNetSocketNoBlockIP, fd, 1);
       if (rc == 0) {
 	// Groovy
 	standardFdIsNonblocking[fd] = true;
@@ -673,12 +700,6 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     VM_FileSystem.prepareStandardFd(1);
     VM_FileSystem.prepareStandardFd(2);
     
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    java.io.JikesRVMSupport.setFd(FileDescriptor.in, 0);
-    java.io.JikesRVMSupport.setFd(FileDescriptor.out, 1);
-    java.io.JikesRVMSupport.setFd(FileDescriptor.err, 2);
-    //-#endif
-
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
@@ -697,3 +718,4 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
       });
   }
 }
+

@@ -25,6 +25,7 @@ package com.ibm.JikesRVM;
  * @author Anthony Cocchi
  * @author Derek Lieber
  * @modified Dave Grove
+ * @modified Kris Venstermans
  */
 public final class VM_Assembler implements VM_BaselineConstants,
 				    VM_AssemblerConstants {
@@ -32,15 +33,26 @@ public final class VM_Assembler implements VM_BaselineConstants,
   private VM_MachineCode mc;
   private int mIP; // current machine code instruction
   private boolean shouldPrint;
+  private VM_Compiler compiler; // VM_Baseline compiler instance for this assembler.  May be null.
 
   public VM_Assembler (int length) {
     this(length, false);
+  }
+
+  public VM_Assembler (int length, boolean sp, VM_Compiler comp) {
+    this(length, sp);
+    compiler = comp;
   }
 
   public VM_Assembler (int length, boolean sp) {
     mc = new VM_MachineCode();
     mIP = 0;
     shouldPrint = sp;
+  }
+
+  final static boolean fits (long val, int bits) {
+    val = val >> bits-1;
+    return (val == 0L || val == -1L);
   }
 
   final static boolean fits (int val, int bits) {
@@ -68,7 +80,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     VM_ForwardReference fr = new VM_ForwardReference.UnconditionalBranch(mIP, where);
     forwardRefs = VM_ForwardReference.enqueue(forwardRefs, fr);
   }
-
+ 
   /* call before emiting code for the branch */
   final void reserveForwardConditionalBranch (int where) {
     emitNOP();
@@ -141,29 +153,28 @@ public final class VM_Assembler implements VM_BaselineConstants,
    * CAUTION: the machine code to be patched has following pattern:
    *          BL 4
    *          MFLR T1                   <- address in LR
-   *          CAL  T1, offset, T1       <- toBePatchedMCAddr
+   *          ADDI  T1, offset, T1       <- toBePatchedMCAddr
    *          STU
    *
    * The third instruction should be patched with accurate relative address.
    * It is computed by (mIP - toBePatchedMCAddr + 1)*4;
-   * */
+   */
   final void patchLoadAddrConst(int bIP){
     if (bIP != targetBCpc) return;
  
     int offset = (mIP - toBePatchedMCAddr + 1)*4;
-    INSTRUCTION mi = CAL(T1, offset, T1);
+    INSTRUCTION mi = ADDI(T1, offset, T1);
     mc.putInstruction(toBePatchedMCAddr, mi);
     targetBCpc = -1;
   }
  
-  final INSTRUCTION CAL(int RT, int D, int RA) {
-	return CALtemplate | RT << 21 | RA << 16 | (D&0xFFFF);
+  final INSTRUCTION ADDI(int RT, int D, int RA) {
+    return ADDItemplate | RT << 21 | RA << 16 | (D&0xFFFF);
   }
 
   public final VM_ForwardReference generatePendingJMP(int bTarget) {
     return this.emitForwardB();
   }
-
   //-#endif RVM_WITH_OSR
 
   final void patchSwitchCase(int sourceMachinecodeIndex) {
@@ -177,27 +188,27 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   /* machine instructions */
 
-  static final int Atemplate = 31<<26 | 10<<1;
+  static final int ADDtemplate = 31<<26 | 10<<1;
 
-  final void emitA (int RT, int RA, int RB) {
-    INSTRUCTION mi = Atemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitADD (int RT, int RA, int RB) {
+    INSTRUCTION mi = ADDtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int AEtemplate = 31<<26 | 138<<1;
+  static final int ADDEtemplate = 31<<26 | 138<<1;
 
-  final void emitAE (int RT, int RA, int RB) {
-    INSTRUCTION mi = AEtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitADDE (int RT, int RA, int RB) {
+    INSTRUCTION mi = ADDEtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int AIrtemplate = 13<<26;
+  static final int ADDICrtemplate = 13<<26;
 
-  final void emitAIr (int RT, int RA, int SI) {
+  final void emitADDICr (int RT, int RA, int SI) {
     if (VM.VerifyAssertions) VM._assert(fits(SI, 16));
-    INSTRUCTION mi = AIrtemplate | RT<<21 | RA<<16 | (SI & 0xFFFF);
+    INSTRUCTION mi = ADDICrtemplate | RT<<21 | RA<<16 | (SI & 0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -244,7 +255,12 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final VM_ForwardReference emitForwardB() {
-    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    VM_ForwardReference fr;
+    if (compiler != null) {
+      fr = new ShortBranch(mIP, compiler.spTopOffset);
+    } else {
+      fr = new VM_ForwardReference.ShortBranch(mIP);
+    }
     _emitB(0);
     return fr;
   }
@@ -278,7 +294,12 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
 
   final VM_ForwardReference emitForwardBL() {
-    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    VM_ForwardReference fr;
+    if (compiler != null) { 
+      fr = new ShortBranch(mIP, compiler.spTopOffset);
+    } else {
+      fr = new VM_ForwardReference.ShortBranch(mIP);
+    }
     _emitBL(0);
     return fr;
   }
@@ -334,7 +355,12 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   final VM_ForwardReference emitForwardBC(int cc) {
-    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    VM_ForwardReference fr;
+    if (compiler != null) {
+      fr = new ShortBranch(mIP, compiler.spTopOffset);
+    } else {
+      fr = new VM_ForwardReference.ShortBranch(mIP);
+    }
     _emitBC(cc, 0);
     return fr;
   }
@@ -351,59 +377,59 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(data);
   }
 
-  static final int BLRtemplate = 19<<26 | 0x14<<21 | 16<<1;
+  static final int BCLRtemplate = 19<<26 | 0x14<<21 | 16<<1;
 
-  final void emitBLR () {
-    INSTRUCTION mi = BLRtemplate;
+  final void emitBCLR () {
+    INSTRUCTION mi = BCLRtemplate;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int BLRLtemplate = 19<<26 | 0x14<<21 | 16<<1 | 1;
+  static final int BCLRLtemplate = 19<<26 | 0x14<<21 | 16<<1 | 1;
 
-  final void emitBLRL () {
-    INSTRUCTION mi = BLRLtemplate;
+  final void emitBCLRL () {
+    INSTRUCTION mi = BCLRLtemplate;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int BCTRtemplate = 19<<26 | 0x14<<21 | 528<<1;
+  static final int BCCTRtemplate = 19<<26 | 0x14<<21 | 528<<1;
 
-  public final void emitBCTR () {
-    INSTRUCTION mi = BCTRtemplate;
+  public final void emitBCCTR () {
+    INSTRUCTION mi = BCCTRtemplate;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int BCTRLtemplate = 19<<26 | 0x14<<21 | 528<<1 | 1;
+  static final int BCCTRLtemplate = 19<<26 | 0x14<<21 | 528<<1 | 1;
 
-  final void emitBCTRL () {
-    INSTRUCTION mi = BCTRLtemplate;
+  final void emitBCCTRL () {
+    INSTRUCTION mi = BCCTRLtemplate;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int CALtemplate = 14<<26;
+  static final int ADDItemplate = 14<<26;
 
-  final void emitCAL (int RT, int D, int RA) {
+  final void emitADDI (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    INSTRUCTION mi = CALtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
+    INSTRUCTION mi = ADDItemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int CAUtemplate = 15<<26;
+  static final int ADDIStemplate = 15<<26;
 
-  final void emitCAU (int RT, int RA, int UI) {
+  final void emitADDIS (int RT, int RA, int UI) {
     if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
-    INSTRUCTION mi = CAUtemplate | RT<<21 | RA<<16 | UI;
+    INSTRUCTION mi = ADDIStemplate | RT<<21 | RA<<16 | UI;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  final void emitCAU (int RT, int UI) {
+  final void emitADDIS (int RT, int UI) {
     if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
-    INSTRUCTION mi = CAUtemplate | RT<<21 | UI;
+    INSTRUCTION mi = ADDIStemplate | RT<<21 | UI;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -421,8 +447,14 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int CMPItemplate = 11<<26;
+  static final int CMPDtemplate = CMPtemplate | 1 << 21;
+  final void emitCMPD (int RA, int RB) {
+    INSTRUCTION mi = CMPDtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
 
+  static final int CMPItemplate = 11<<26;
   final void emitCMPI (int BF, int RA, int V) {
     if (VM.VerifyAssertions) VM._assert(fits(V, 16));
     INSTRUCTION mi = CMPItemplate | BF<<23 | RA<<16 | (V&0xFFFF);
@@ -437,8 +469,15 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int CMPLtemplate = 31<<26 | 32<<1;
+  static final int CMPDItemplate = CMPItemplate | 1 << 21;
+  final void emitCMPDI (int RA, int V) {
+    if (VM.VerifyAssertions) VM._assert(fits(V, 16));
+    INSTRUCTION mi = CMPDItemplate | RA<<16 | (V&0xFFFF);
+    mIP++;
+    mc.addInstruction(mi);
+  }
 
+  static final int CMPLtemplate = 31<<26 | 32<<1;
   final void emitCMPL (int BF, int RA, int RB) {
     INSTRUCTION mi = CMPLtemplate | BF<<23 | RA<<16 | RB<<11;
     mIP++;
@@ -447,6 +486,13 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   final void emitCMPL (int RA, int RB) {
     INSTRUCTION mi = CMPLtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int CMPLDtemplate = CMPLtemplate | 1<<21;
+  final void emitCMPLD (int RA, int RB) {
+    INSTRUCTION mi = CMPLDtemplate | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -483,18 +529,18 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int FAtemplate = 63<<26 | 21<<1;
+  static final int FADDtemplate = 63<<26 | 21<<1;
 
-  final void emitFA (int FRT, int FRA,int FRB) {
-    INSTRUCTION mi = FAtemplate | FRT<<21 | FRA<<16 | FRB<<11;
+  final void emitFADD (int FRT, int FRA,int FRB) {
+    INSTRUCTION mi = FADDtemplate | FRT<<21 | FRA<<16 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FAstemplate = 59<<26 | 21<<1; // single-percision add
+  static final int FADDStemplate = 59<<26 | 21<<1; // single-percision add
 
-  final void emitFAs (int FRT, int FRA,int FRB) {
-    INSTRUCTION mi = FAstemplate | FRT<<21 | FRA<<16 | FRB<<11;
+  final void emitFADDS (int FRT, int FRA,int FRB) {
+    INSTRUCTION mi = FADDStemplate | FRT<<21 | FRA<<16 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -515,50 +561,50 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int FDtemplate = 63<<26 | 18<<1;
+  static final int FDIVtemplate = 63<<26 | 18<<1;
 
-  final void emitFD (int FRT, int FRA, int FRB) {
-    INSTRUCTION mi = FDtemplate | FRT<<21 | FRA<<16 | FRB<<11;
+  final void emitFDIV (int FRT, int FRA, int FRB) {
+    INSTRUCTION mi = FDIVtemplate | FRT<<21 | FRA<<16 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FDstemplate = 59<<26 | 18<<1; // single-precision divide
+  static final int FDIVStemplate = 59<<26 | 18<<1; // single-precision divide
 
-  final void emitFDs (int FRT, int FRA, int FRB) {
-    INSTRUCTION mi = FDstemplate | FRT<<21 | FRA<<16 | FRB<<11;
+  final void emitFDIVS (int FRT, int FRA, int FRB) {
+    INSTRUCTION mi = FDIVStemplate | FRT<<21 | FRA<<16 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FMtemplate = 63<<26 | 25<<1;
+  static final int FMULtemplate = 63<<26 | 25<<1;
 
-  final void emitFM (int FRT, int FRA, int FRB) {
-    INSTRUCTION mi = FMtemplate | FRT<<21 | FRA<<16 | FRB<<6;
+  final void emitFMUL (int FRT, int FRA, int FRB) {
+    INSTRUCTION mi = FMULtemplate | FRT<<21 | FRA<<16 | FRB<<6;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FMstemplate = 59<<26 | 25<<1; // single-precision fm
+  static final int FMULStemplate = 59<<26 | 25<<1; // single-precision fm
 
-  final void emitFMs (int FRT, int FRA, int FRB) {
-    INSTRUCTION mi = FMstemplate | FRT<<21 | FRA<<16 | FRB<<6;
+  final void emitFMULS (int FRT, int FRA, int FRB) {
+    INSTRUCTION mi = FMULStemplate | FRT<<21 | FRA<<16 | FRB<<6;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FMAtemplate = 63<<26 | 29<<1;
+  static final int FMADDtemplate = 63<<26 | 29<<1;
 
-  final void emitFMA (int FRT, int FRA, int FRC, int FRB) {
-    INSTRUCTION mi = FMAtemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
+  final void emitFMADD (int FRT, int FRA, int FRC, int FRB) {
+    INSTRUCTION mi = FMADDtemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FNMStemplate = 63<<26 | 30<<1;
+  static final int FNMSUBtemplate = 63<<26 | 30<<1;
 
-  final void emitFNMS (int FRT, int FRA, int FRC, int FRB) {
-    INSTRUCTION mi = FNMStemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
+  final void emitFNMSUB (int FRT, int FRA, int FRC, int FRB) {
+    INSTRUCTION mi = FNMSUBtemplate | FRT<<21 | FRA<<16 | FRB<<11 | FRC<<6;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -571,18 +617,18 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int FStemplate = 63<<26 | 20<<1;
+  static final int FSUBtemplate = 63<<26 | 20<<1;
 
-  final void emitFS (int FRT, int FRA, int FRB) {
-    INSTRUCTION mi = FStemplate | FRT<<21 | FRA<<16 | FRB<<11;
+  final void emitFSUB (int FRT, int FRA, int FRB) {
+    INSTRUCTION mi = FSUBtemplate | FRT<<21 | FRA<<16 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int FSstemplate = 59<<26 | 20<<1;
+  static final int FSUBStemplate = 59<<26 | 20<<1;
 
-  final void emitFSs (int FRT, int FRA, int FRB) {
-    INSTRUCTION mi = FSstemplate | FRT<<21 | FRA<<16 | FRB<<11;
+  final void emitFSUBS (int FRT, int FRA, int FRB) {
+    INSTRUCTION mi = FSUBStemplate | FRT<<21 | FRA<<16 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -600,7 +646,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // TODO!! verify that D is sign extended 
   // (the Assembler Language Reference seems ambiguous) 
   //
-  final void emitLM(int RT, int D, int RA) {
+  final void emitLMW(int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = (46<<26)  | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
@@ -610,7 +656,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // TODO!! verify that D is sign extended 
   // (the Assembler Language Reference seems ambiguous) 
   //
-  final void emitSTM(int RT, int D, int RA) {
+  final void emitSTMW(int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = (47<<26)  | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
@@ -618,11 +664,11 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
 
-  static final int Ltemplate = 32<<26;
+  static final int LWZtemplate = 32<<26;
 
-  public final void emitL (int RT, int D, int RA) {
+  public final void emitLWZ (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    INSTRUCTION mi = Ltemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
+    INSTRUCTION mi = LWZtemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -713,34 +759,34 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  final void emitLIL (int RT, int D) {
+  final void emitLI (int RT, int D) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    INSTRUCTION mi = CALtemplate | RT<<21 | (D&0xFFFF);
+    INSTRUCTION mi = ADDItemplate | RT<<21 | (D&0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int LUtemplate = 33<<26;
+  static final int LWZUtemplate = 33<<26;
 
-  final void emitLU (int RT, int D, int RA) {
+  final void emitLWZU (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    INSTRUCTION mi = LUtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
+    INSTRUCTION mi = LWZUtemplate | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int LXtemplate = 31<<26 | 23<<1;
+  static final int LWZXtemplate = 31<<26 | 23<<1;
 
-  final void emitLX (int RT, int RA, int RB) {
-    INSTRUCTION mi = LXtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitLWZX (int RT, int RA, int RB) {
+    INSTRUCTION mi = LWZXtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int LUXtemplate = 31<<26 | 55<<1;
+  static final int LWZUXtemplate = 31<<26 | 55<<1;
 
-  final void emitLUX (int RT, int RA, int RB) {
-    INSTRUCTION mi = LUXtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitLWZUX (int RT, int RA, int RB) {
+    INSTRUCTION mi = LWZUXtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -794,18 +840,18 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int DIVtemplate = 31<<26 | 491<<1;
+  static final int DIVWtemplate = 31<<26 | 491<<1;
 
-  final void emitDIV (int RT, int RA, int RB) {
-    INSTRUCTION mi = DIVtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitDIVW (int RT, int RA, int RB) {
+    INSTRUCTION mi = DIVWtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int MULStemplate = 31<<26 | 235<<1;
+  static final int MULLWtemplate = 31<<26 | 235<<1;
 
-  final void emitMULS (int RT, int RA, int RB) {
-    INSTRUCTION mi = MULStemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitMULLW (int RT, int RA, int RB) {
+    INSTRUCTION mi = MULLWtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -826,6 +872,24 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
+  static final int ORItemplate = 24<<26;
+
+  final void emitORI (int RA, int RS, int UI) {
+    if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
+    INSTRUCTION mi = ORItemplate | RS<<21 | RA<<16 | (UI&0xFFFF);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int ORIStemplate = 25<<26;
+
+  final void emitORIS (int RA, int RS, int UI) {
+    if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
+    INSTRUCTION mi = ORIStemplate | RS<<21 | RA<<16 | (UI&0xFFFF);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int RLWINM_template = 21<<26;
 
   final void emitRLWINM (int RA, int RS, int SH, int MB, int ME) {
@@ -834,108 +898,108 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int SFrtemplate = 31<<26 | 8<<1 | 1;
+  static final int SUBFCrtemplate = 31<<26 | 8<<1 | 1;
 
-  final void emitSFr (int RT, int RA, int RB) {
-    INSTRUCTION mi = SFrtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitSUBFCr (int RT, int RA, int RB) {
+    INSTRUCTION mi = SUBFCrtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SFtemplate = 31<<26 | 8<<1;
+  static final int SUBFCtemplate = 31<<26 | 8<<1;
 
-  final void emitSF (int RT, int RA, int RB) {
-    INSTRUCTION mi = SFtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitSUBFC (int RT, int RA, int RB) {
+    INSTRUCTION mi = SUBFCtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SFItemplate = 8<<26;
+  static final int SUBFICtemplate = 8<<26;
 
-  final void emitSFI (int RA, int RS, int S) {
+  final void emitSUBFIC (int RA, int RS, int S) {
     if (VM.VerifyAssertions) VM._assert(fits(S,16));
-    INSTRUCTION mi = SFItemplate | RS<<21 | RA<<16 | S;
+    INSTRUCTION mi = SUBFICtemplate | RS<<21 | RA<<16 | S;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SFErtemplate = 31<<26 | 136<<1 | 1;
+  static final int SUBFErtemplate = 31<<26 | 136<<1 | 1;
 
-  final void emitSFEr (int RT, int RA, int RB) {
-    INSTRUCTION mi = SFErtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitSUBFEr (int RT, int RA, int RB) {
+    INSTRUCTION mi = SUBFErtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SFEtemplate = 31<<26 | 136<<1;
+  static final int SUBFEtemplate = 31<<26 | 136<<1;
 
-  final void emitSFE (int RT, int RA, int RB) {
-    INSTRUCTION mi = SFEtemplate | RT<<21 | RA<<16 | RB<<11;
+  final void emitSUBFE (int RT, int RA, int RB) {
+    INSTRUCTION mi = SUBFEtemplate | RT<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SFZEtemplate = 31<<26 | 200<<1;
+  static final int SUBFZEtemplate = 31<<26 | 200<<1;
 
-  final void emitSFZE (int RT, int RA) {
-    INSTRUCTION mi = SFZEtemplate | RT<<21 | RA<<16;
+  final void emitSUBFZE (int RT, int RA) {
+    INSTRUCTION mi = SUBFZEtemplate | RT<<21 | RA<<16;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SLtemplate = 31<<26 | 24<<1;
+  static final int SLWtemplate = 31<<26 | 24<<1;
 
-  final void emitSL (int RA, int RS, int RB) {
-    INSTRUCTION mi = SLtemplate | RS<<21 | RA<<16 | RB<<11;
+  final void emitSLW (int RA, int RS, int RB) {
+    INSTRUCTION mi = SLWtemplate | RS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SLItemplate = 21<<26;
+  static final int SLWItemplate = 21<<26;
 
-  final void emitSLI (int RA, int RS, int N) {
-    INSTRUCTION mi = SLItemplate | RS<<21 | RA<<16 | N<<11 | (31-N)<<1;
+  final void emitSLWI (int RA, int RS, int N) {
+    INSTRUCTION mi = SLWItemplate | RS<<21 | RA<<16 | N<<11 | (31-N)<<1;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SRtemplate = 31<<26 | 536<<1;
+  static final int SRWtemplate = 31<<26 | 536<<1;
 
-  final void emitSR (int RA, int RS, int RB) {
-    INSTRUCTION mi = SRtemplate | RS<<21 | RA<<16 | RB<<11;
+  final void emitSRW (int RA, int RS, int RB) {
+    INSTRUCTION mi = SRWtemplate | RS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SRAtemplate = 31<<26 | 792<<1;
+  static final int SRAWtemplate = 31<<26 | 792<<1;
 
-  final void emitSRA (int RA, int RS, int RB) {
-    INSTRUCTION mi = SRAtemplate | RS<<21 | RA<<16 | RB<<11;
+  final void emitSRAW (int RA, int RS, int RB) {
+    INSTRUCTION mi = SRAWtemplate | RS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SRAItemplate = 31<<26 | 824<<1;
+  static final int SRAWItemplate = 31<<26 | 824<<1;
 
-  final void emitSRAI (int RA, int RS, int SH) {
-    INSTRUCTION mi = SRAItemplate | RS<<21 | RA<<16 | SH<<11;
+  final void emitSRAWI (int RA, int RS, int SH) {
+    INSTRUCTION mi = SRAWItemplate | RS<<21 | RA<<16 | SH<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int SRAIrtemplate = 31<<26 | 824<<1 | 1;
+  static final int SRAWIrtemplate = 31<<26 | 824<<1 | 1;
 
-  final void emitSRAIr (int RA, int RS, int SH) {
-    INSTRUCTION mi = SRAIrtemplate | RS<<21 | RA<<16 | SH<<11;
+  final void emitSRAWIr (int RA, int RS, int SH) {
+    INSTRUCTION mi = SRAWIrtemplate | RS<<21 | RA<<16 | SH<<11;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int STtemplate = 36<<26;
+  static final int STWtemplate = 36<<26;
 
-  final void emitST (int RS, int D, int RA) {
+  final void emitSTW (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    INSTRUCTION mi = STtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
+    INSTRUCTION mi = STWtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -965,10 +1029,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int STXtemplate = 31<<26 | 151<<1;
+  static final int STWXtemplate = 31<<26 | 151<<1;
 
-  final void emitSTX (int RS, int RA, int RB) {
-    INSTRUCTION mi = STXtemplate | RS<<21 | RA<<16 | RB<<11;
+  final void emitSTWX (int RS, int RA, int RB) {
+    INSTRUCTION mi = STWXtemplate | RS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1017,19 +1081,19 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int STUtemplate = 37<<26;
+  static final int STWUtemplate = 37<<26;
 
-  final void emitSTU (int RS, int D, int RA) {
+  final void emitSTWU (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    INSTRUCTION mi = STUtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
+    INSTRUCTION mi = STWUtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int STUXtemplate = 31<<26 | 183<<1;
+  static final int STWUXtemplate = 31<<26 | 183<<1;
 
-  final void emitSTUX (int RS, int RA, int RB) {
-    INSTRUCTION mi = STUXtemplate | RS<<21 | RA<<16 | RB<<11;
+  final void emitSTWUX (int RS, int RA, int RB) {
+    INSTRUCTION mi = STWUXtemplate | RS<<21 | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1042,52 +1106,59 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int Ttemplate = 31<<26 | 4<<1;
+  static final int TWtemplate = 31<<26 | 4<<1;
+  static final int TWLEtemplate = TWtemplate | 0x14<<21 ;
 
-  static final int TItemplate = 3<<26;
+  final void emitTWLE (int RA, int RB) {
+    INSTRUCTION mi = TWLEtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
 
-  final void emitTI (int TO, int RA, int SI) {
-    INSTRUCTION mi = TItemplate | TO<<21 | RA<<16 | SI&0xFFFF;
+  static final int TWLTtemplate = TWtemplate | 0x10<<21;
+
+  final void emitTWLT (int RA, int RB) {
+    INSTRUCTION mi = TWLTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TWNEtemplate = TWtemplate | 0x18<<21;
+
+  final void emitTWNE (int RA, int RB) {
+    INSTRUCTION mi = TWNEtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TWLLEtemplate = TWtemplate | 0x6<<21;
+
+  final void emitTWLLE (int RA, int RB) {
+    INSTRUCTION mi = TWLLEtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TWItemplate = 3<<26;
+
+  final void emitTWI (int TO, int RA, int SI) {
+    INSTRUCTION mi = TWItemplate | TO<<21 | RA<<16 | SI&0xFFFF;
     mIP++;
     mc.addInstruction(mi);
   }
   
-  static final int TLEtemplate = 31<<26 | 0x14<<21 | 4<<1;
+  static final int TWEQItemplate = TWItemplate | 0x4<<21;
 
-  final void emitTLE (int RA, int RB) {
-    INSTRUCTION mi = TLEtemplate | RA<<16 | RB<<11;
+  final void emitTWEQ0 (int RA) {
+    INSTRUCTION mi = TWEQItemplate | RA<<16;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int TLTtemplate = 31<<26 | 0x10<<21 | 4<<1;
+  static final int TWWItemplate = TWItemplate | 0x3EC<<16;	// RA == 12
 
-  final void emitTLT (int RA, int RB) {
-    INSTRUCTION mi = TLTtemplate | RA<<16 | RB<<11;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
-  static final int TLLEtemplate = 31<<26 | 0x6<<21 | 4<<1;
-
-  final void emitTLLE (int RA, int RB) {
-    INSTRUCTION mi = TLLEtemplate | RA<<16 | RB<<11;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
-  static final int TEQItemplate = 3<<26 | 0x4<<21;
-
-  final void emitTEQ0 (int RA) {
-    INSTRUCTION mi = TEQItemplate | RA<<16;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
-  static final int TWItemplate = 3<<26 | 0x3EC<<16;	// RA == 12
-
-  final void emitTWI (int imm) {
-    INSTRUCTION mi = TWItemplate | imm;
+  final void emitTWWI (int imm) {
+    INSTRUCTION mi = TWWItemplate | imm;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1111,52 +1182,93 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   /* macro instructions */
 
-  static final int NOPtemplate = 19<<26 | 449<<1;
-
   final void emitNOP () {
-    INSTRUCTION mi = NOPtemplate;
+    INSTRUCTION mi = 24<<26; //ORI 0,0,0
     mIP++;
     mc.addInstruction(mi);
   }
 
-  final void emitLoffset(int RT, int RA, int offset) {
+  final void emitLDoffset(int RT, int RA, int offset) {
     if (fits(offset, 16)) {
-      emitL  (RT, offset, RA);
+      emitLD(RT, offset, RA);
     } else if ((offset & 0x8000) == 0) {
-      emitCAU(RT, RA, offset>>16);
-      emitL  (RT, offset&0xFFFF, RT);
+      emitADDIS(RT, RA, offset>>16);
+      emitLD (RT, offset&0xFFFF, RT);
     } else {
-      emitCAU(RT, RA, (offset>>16)+1);
-      emitL  (RT, offset|0xFFFF0000, RT);
+      emitADDIS(RT, RA, (offset>>16)+1);
+      emitLD (RT, offset|0xFFFF0000, RT);
+    }
+  }
+  
+  final void emitLWAoffset(int RT, int RA, int offset) {
+    if (fits(offset, 16)) {
+      emitLWA (RT, offset, RA);
+    } else if ((offset & 0x8000) == 0) {
+      emitADDIS(RT, RA, offset>>16);
+      emitLWA (RT, offset&0xFFFF, RT);
+    } else {
+      emitADDIS(RT, RA, (offset>>16)+1);
+      emitLWA (RT, offset|0xFFFF0000, RT);
     }
   }
     
-
-  public final void emitLtoc (int RT, int offset) {
-    emitLoffset(RT, JTOC, offset);
+  final void emitLWZoffset(int RT, int RA, int offset) {
+    if (fits(offset, 16)) {
+      emitLWZ (RT, offset, RA);
+    } else if ((offset & 0x8000) == 0) {
+      emitADDIS(RT, RA, offset>>16);
+      emitLWZ (RT, offset&0xFFFF, RT);
+    } else {
+      emitADDIS(RT, RA, (offset>>16)+1);
+      emitLWZ (RT, offset|0xFFFF0000, RT);
+    }
+  }
+    
+  public final void emitLDtoc (int RT, int offset) {
+    emitLDoffset(RT, JTOC, offset); 
   }
 
-  final void emitSTtoc (int RT, int offset, int Rz) {
+  public final void emitLWAtoc (int RT, int offset) {
+    emitLWAoffset(RT, JTOC, offset);
+  }
+
+  public final void emitLWZtoc (int RT, int offset) {
+    emitLWZoffset(RT, JTOC, offset);
+  }
+
+  final void emitSTDtoc (int RT, int offset, int Rz) {
     if (fits(offset, 16)) {
-      emitST(RT, offset, JTOC);
+      emitSTD(RT, offset, JTOC);
     } else if (0 == (offset&0x8000)) {
-      emitCAU(Rz, JTOC, offset>>16);
-      emitST (RT, offset&0xFFFF, Rz);
+      emitADDIS(Rz, JTOC, offset>>16);
+      emitSTD(RT, offset&0xFFFF, Rz);
     } else {
-      emitCAU(Rz, JTOC, (offset>>16)+1);
-      emitST (RT, offset|0xFFFF0000, Rz);
+      emitADDIS(Rz, JTOC, (offset>>16)+1);
+      emitSTD(RT, offset|0xFFFF0000, Rz);
+    }
+  } 
+
+  final void emitSTWtoc (int RT, int offset, int Rz) {
+    if (fits(offset, 16)) {
+      emitSTW(RT, offset, JTOC);
+    } else if (0 == (offset&0x8000)) {
+      emitADDIS(Rz, JTOC, offset>>16);
+      emitSTW(RT, offset&0xFFFF, Rz);
+    } else {
+      emitADDIS(Rz, JTOC, (offset>>16)+1);
+      emitSTW(RT, offset|0xFFFF0000, Rz);
     }
   }
 
-  final void emitCALtoc (int RT, int offset) {
+  final void emitADDItoc (int RT, int offset) {
     if (fits(offset, 16)) {
-      emitCAL(RT, offset, JTOC);
+      emitADDI(RT, offset, JTOC);
     } else if (0 == (offset&0x8000)) {
-      emitCAU(RT, JTOC, offset>>16);
-      emitCAL(RT, offset&0xFFFF, RT);
+      emitADDIS(RT, JTOC, offset>>16);
+      emitADDI(RT, offset&0xFFFF, RT);
     } else {
-      emitCAU(RT, JTOC, (offset>>16)+1);
-      emitCAL(RT, offset|0xFFFF0000, RT);
+      emitADDIS(RT, JTOC, (offset>>16)+1);
+      emitADDI(RT, offset|0xFFFF0000, RT);
     }
   }
 
@@ -1164,10 +1276,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     if (fits(offset, 16)) {
       emitLFD(FRT, offset, JTOC);
     } else if (0 == (offset&0x8000)) {
-      emitCAU( Rz, JTOC, offset>>16);
+      emitADDIS( Rz, JTOC, offset>>16);
       emitLFD(FRT, offset&0xFFFF, Rz);
     } else {
-      emitCAU( Rz, JTOC, (offset>>16)+1);
+      emitADDIS( Rz, JTOC, (offset>>16)+1);
       emitLFD(FRT, offset|0xFFFF0000, Rz);
     }
   }
@@ -1176,10 +1288,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     if (fits(offset, 16)) {
       emitSTFD(FRT, offset, JTOC);
     } else if (0 == (offset&0x8000)) {
-      emitCAU ( Rz, JTOC, offset>>16);
+      emitADDIS ( Rz, JTOC, offset>>16);
       emitSTFD(FRT, offset&0xFFFF, Rz);
     } else {
-      emitCAU ( Rz, JTOC, (offset>>16)+1);
+      emitADDIS ( Rz, JTOC, (offset>>16)+1);
       emitSTFD(FRT, offset|0xFFFF0000, Rz);
     }
   }
@@ -1188,10 +1300,10 @@ public final class VM_Assembler implements VM_BaselineConstants,
     if (fits(offset, 16)) {
       emitLFS(FRT, offset, JTOC);
     } else if (0 == (offset&0x8000)) {
-      emitCAU( Rz, JTOC, offset>>16);
+      emitADDIS( Rz, JTOC, offset>>16);
       emitLFS(FRT, offset&0xFFFF, Rz);
     } else {
-      emitCAU( Rz, JTOC, (offset>>16)+1);
+      emitADDIS( Rz, JTOC, (offset>>16)+1);
       emitLFS(FRT, offset|0xFFFF0000, Rz);
     }
   }
@@ -1200,24 +1312,56 @@ public final class VM_Assembler implements VM_BaselineConstants,
     if (fits(offset, 16)) {
       emitSTFS(FRT, offset, JTOC);
     } else if (0 == (offset&0x8000)) {
-      emitCAU ( Rz, JTOC, offset>>16);
+      emitADDIS ( Rz, JTOC, offset>>16);
       emitSTFS(FRT, offset&0xFFFF, Rz);
     } else {
-      emitCAU ( Rz, JTOC, (offset>>16)+1);
+      emitADDIS ( Rz, JTOC, (offset>>16)+1);
       emitSTFS(FRT, offset|0xFFFF0000, Rz);
+    }
+  }
+
+  final void emitLVALAddr (int RT, VM_Address addr) {
+//-#if RVM_FOR_64_ADDR
+    long val = addr.toLong();
+    if (!fits(val,48)){
+      emitADDIS(RT, (int)(val>>>48));
+      emitORI(RT, RT, (int)((val>>>32)&0xFFFF));
+      emitSLDI(RT,RT,32);
+      emitORIS(RT, RT, (int)((val>>>16)&0xFFFF));
+      emitORI(RT, RT, (int)(val&0xFFFF));
+    } else if (!fits(val,32)){
+      emitLI(RT, (int)(val>>>32));
+      emitSLDI(RT,RT,32);
+      emitORIS(RT, RT, (int)((val>>>16)&0xFFFF));
+      emitORI(RT, RT, (int)(val&0xFFFF));
+    } else 
+//-#else
+    int val = addr.toInt();
+//-#endif         
+      if (!fits(val,16)){
+      emitADDIS(RT, (int)(val>>>16));
+      emitORI(RT, RT, (int)(val&0xFFFF));
+    } else {
+      emitLI(RT, (int)val);
     }
   }
 
   final void emitLVAL (int RT, int val) {
     if (fits(val, 16)) { 
-      emitLIL(RT, val);
-    } else if ((val&0x8000) == 0) {
-      emitLIL(RT, val&0xFFFF);
-      emitCAU(RT, RT,  val>>>16);
-    } else {// top half of RT is 0xFFFF
-      emitLIL(RT, val|0xFFFF0000);
-      emitCAU(RT, RT, (val>>>16)+1);
+      emitLI(RT, val);
+    } else { 
+      emitADDIS(RT, val>>>16);
+      emitORI(RT, RT, val&0xFFFF);
     }
+    /*if (fits(val, 16)) { 
+      emitLI(RT, val);
+    } else if ((val&0x8000) == 0) {
+      emitLI(RT, val&0xFFFF);
+      emitADDIS(RT, RT,  val>>>16);
+    } else {// top half of RT is 0xFFFF
+      emitLI(RT, val|0xFFFF0000);
+      emitADDIS(RT, RT, (val>>>16)+1);
+    }*/
   }
 
   // Convert generated machine code into final form.
@@ -1261,10 +1405,14 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   // new PowerPC instuctions
-
-  static final int SYNCtemplate = 31<<26 | 598<<1;
+    
+  // The "sync" on Power 4 architectures are expensive and so we use "lwsync" instead to
+  //   implement SYNC.  On older arhictectures, there is no problem but the weaker semantics
+  //   of lwsync means that there are memory consistency bugs we might need to flush out.
+  // static final int SYNCtemplate = 31<<26 | 598<<1;
   // static final int LWSYNCtemplate = 31<<26 | 1 << 21 | 598<<1;
-  
+  static final int SYNCtemplate = 31<<26 | 1 << 21 | 598<<1;
+
   final void emitSYNC () {
     INSTRUCTION mi = SYNCtemplate;
     mIP++;
@@ -1319,18 +1467,401 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int FCTIZtemplate = 63<<26 | 15<<1;
+  static final int FCTIWZtemplate = 63<<26 | 15<<1;
   
-  final void emitFCTIZ (int RA, int RB) {
-    INSTRUCTION mi = FCTIZtemplate | RA<<21 | RB<<11;
+  final void emitFCTIWZ (int FRT, int FRB) {
+    INSTRUCTION mi = FCTIWZtemplate | FRT<<21 | FRB<<11;
     mIP++;
     mc.addInstruction(mi);
+  }
+
+  static final int EXTSBtemplate = 31<<26 | 954<<1;
+
+  final void emitEXTSB (int RA, int RS) {
+    INSTRUCTION mi = EXTSBtemplate | RS<<21 | RA<<16;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+
+  // PowerPC 64-bit instuctions
+  static final int DIVDtemplate = 31<<26 | 489<<1;
+
+  final void emitDIVD (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = DIVDtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int EXTSWtemplate = 31<<26 | 986<<1;
+
+  final void emitEXTSW (int RA, int RS) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = EXTSWtemplate | RS<<21 | RA<<16;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int FCTIDZtemplate = 63<<26 | 815<<1;
+  
+  final void emitFCTIDZ (int FRT, int FRB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = FCTIDZtemplate | FRT<<21 | FRB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int FCFIDtemplate = 63<<26 | 846<<1;
+
+  final void emitFCFID (int FRT, int FRB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = FCFIDtemplate | FRT<<21 | FRB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int LDtemplate = 58<<26;
+
+  public final void emitLD (int RT, int DS, int RA) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    INSTRUCTION mi = LDtemplate  | RT<<21 | RA<<16 | (DS&0xFFFC);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+  
+  static final int LDARXtemplate = 31<<26 | 84<<1;
+
+  final void emitLDARX (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = LDARXtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int LDUtemplate = 58<<26 | 1;
+
+  final void emitLDU (int RT, int DS, int RA) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    INSTRUCTION mi = LDUtemplate | RT<<21 | RA<<16 | (DS&0xFFFC);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int LDUXtemplate = 31<<26 | 53<<1;
+
+  final void emitLDUX (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = LDUXtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int LDXtemplate = 31<<26 | 21<<1;
+
+  final void emitLDX (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = LDXtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int LWAtemplate = 58<<26 | 2;
+
+  final void emitLWA (int RT, int DS, int RA) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    INSTRUCTION mi = LWAtemplate | RT<<21 | RA<<16 | (DS&0xFFFC);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int LWAXtemplate = 31<<26 | 341<<1;
+
+  final void emitLWAX (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = LWAXtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int MULHDUtemplate = 31<<26 | 9<<1;
+
+  final void emitMULHDU (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = MULHDUtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int MULLDtemplate = 31<<26 | 233<<1;
+
+  final void emitMULLD (int RT, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = MULLDtemplate | RT<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int SLDItemplate = 30<<26 | 1<<2;
+
+  final void emitSLDI (int RA, int RS, int N) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = SLDItemplate | RS<<21 | RA<<16 | (N&0x1F)<<11 | ((31-N)&0x1F)<<6 | ((31-N)&0x20) | (N&0x20)>>4 ;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  final void emitRLDINM (int RA, int RS, int SH, int MB, int ME) {
+    VM._assert(false, "PLEASE IMPLEMENT ME");
+  }
+
+  static final int SLDtemplate = 31<<26 | 27<<1;
+
+  final void emitSLD (int RA, int RS, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = SLDtemplate | RS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int SRADtemplate = 31<<26 | 794<<1;
+
+  final void emitSRAD (int RA, int RS, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = SRADtemplate | RS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int SRADItemplate = 31<<26 | 413<<2;
+
+  final void emitSRADI (int RA, int RS, int SH) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = SRADItemplate | RS<<21 | RA<<16 | (SH&0x1F)<<11 | (SH&0x20)>>4;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int SRADIrtemplate = SRADItemplate | 1;
+
+  final void emitSRADIr (int RA, int RS, int SH) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = SRADIrtemplate | RS<<21 | RA<<16 | (SH&0x1F)<<11 | (SH&0x20)>>4;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int SRDtemplate = 31<<26 | 539<<1;
+
+  final void emitSRD (int RA, int RS, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = SRDtemplate | RS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int STDtemplate = 62<<26;
+
+  final void emitSTD (int RS, int DS, int RA) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    INSTRUCTION mi = STDtemplate | RS<<21 | RA<<16 | (DS&0xFFFC);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int STDCXrtemplate = 31<<26 | 214<<1 | 1;
+
+  final void emitSTDCXr (int RS, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = STDCXrtemplate | RS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int STDUtemplate = 62<<26 | 1;
+
+  final void emitSTDU (int RS, int DS, int RA) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    INSTRUCTION mi = STDUtemplate | RS<<21 | RA<<16 | (DS&0xFFFC);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int STDUXtemplate = 31<<26 | 181<<1;
+
+  final void emitSTDUX (int RS, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = STDUXtemplate | RS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int STDXtemplate = 31<<26 | 149<<1;
+
+  final void emitSTDX (int RS, int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = STDXtemplate | RS<<21 | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TDtemplate = 31<<26 | 68<<1;
+  static final int TDLEtemplate = TDtemplate | 0x14<<21;
+
+  final void emitTDLE (int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = TDLEtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TDLTtemplate = TDtemplate | 0x10<<21;
+
+  final void emitTDLT (int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = TDLTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TDLLEtemplate = TDtemplate | 0x6<<21 ;
+
+  final void emitTDLLE (int RA, int RB) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = TDLLEtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TDItemplate = 2<<26;
+
+  final void emitTDI (int TO, int RA, int SI) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = TDItemplate | TO<<21 | RA<<16 | SI&0xFFFF;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+  
+  static final int TDEQItemplate = TDItemplate | 0x4<<21;
+
+  final void emitTDEQ0 (int RA) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = TDEQItemplate | RA<<16;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int TDWItemplate = TDItemplate | 0x1F<<21 | 0xC<<16;	
+
+  final void emitTDWI (int SI) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    INSTRUCTION mi = TDWItemplate | SI&0xFFFF;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  // -------------------------------------------------------------- //
+  // The following section contains macros to handle address values //
+  // -------------------------------------------------------------- //
+  public final void emitCMPAddr(int reg1, int reg2){                    
+    if (VM.BuildFor64Addr)
+      emitCMPLD(reg1, reg2);
+    else
+      emitCMPL(reg1, reg2);
+  }
+
+  public final void emitSTAddr(int src_reg, int offset, int dest_reg){                    
+    if (VM.BuildFor64Addr)
+      emitSTD(src_reg, offset, dest_reg);                   
+    else
+      emitSTW(src_reg, offset, dest_reg);                                    
+  }
+
+  public final void emitSTAddrX(int src_reg, int offset_reg, int dest_reg){           
+    if (VM.BuildFor64Addr) 
+      emitSTDX(src_reg, offset_reg, dest_reg);           
+    else 
+      emitSTWX(src_reg, offset_reg, dest_reg);                            
+  }
+
+  public final void emitSTAddrU(int src_reg, int offset, int dest_reg){            
+    if (VM.BuildFor64Addr) 
+      emitSTDU(src_reg, offset, dest_reg);           
+    else 
+      emitSTWU(src_reg, offset, dest_reg);                            
+  }
+
+  public final void emitLAddr(int dest_reg, int offset, int src_reg){         
+    if (VM.BuildFor64Addr) 
+      emitLD(dest_reg, offset, src_reg);         
+    else 
+      emitLWZ(dest_reg, offset, src_reg);                         
+  }
+
+  public final void emitLAddrX(int dest_reg, int offset_reg, int src_reg){ 
+    if (VM.BuildFor64Addr) 
+      emitLDX(dest_reg, offset_reg, src_reg);
+    else 
+      emitLWZX(dest_reg, offset_reg, src_reg);
+  }
+
+  final void emitLAddrU(int dest_reg, int offset, int src_reg){         
+    if (VM.BuildFor64Addr) 
+      emitLDU(dest_reg, offset, src_reg);         
+    else 
+      emitLWZU(dest_reg, offset, src_reg);                         
+  }
+
+  public final void emitLAddrToc(int dest_reg, int TOCoffset){            
+    if (VM.BuildFor64Addr) 
+      emitLDtoc(dest_reg, TOCoffset);
+    else 
+      emitLWZtoc(dest_reg, TOCoffset);
+  }
+  
+  final void emitRLAddrINM (int RA, int RS, int SH, int MB, int ME) {
+    if (VM.BuildFor64Addr) 
+      emitRLDINM(RA, RS, SH, MB, ME);
+    else 
+      emitRLWINM(RA, RS, SH, MB, ME);
+  }
+
+  public final void emitLInt(int dest_reg, int offset, int src_reg){         
+    if (VM.BuildFor64Addr) 
+      emitLWA(dest_reg, offset, src_reg);         
+    else 
+      emitLWZ(dest_reg, offset, src_reg);                         
+  }
+
+  public final void emitLIntX(int dest_reg, int offset_reg, int src_reg){         
+    if (VM.BuildFor64Addr) 
+      emitLWAX(dest_reg, offset_reg, src_reg);         
+    else 
+      emitLWZX(dest_reg, offset_reg, src_reg);                         
+  }
+
+  public final void emitLIntToc(int dest_reg, int TOCoffset){            
+    if (VM.BuildFor64Addr) 
+      emitLWAtoc(dest_reg, TOCoffset);
+    else 
+      emitLWZtoc(dest_reg, TOCoffset);
+  }
+  
+  final void emitLIntOffset(int RT, int RA, int offset) {
+    if (VM.BuildFor64Addr) 
+      emitLWAoffset(RT, RA, offset);
+    else 
+      emitLWZoffset(RT, RA, offset);
   }
 
   // -----------------------------------------------------------//
   // The following section contains assembler "macros" used by: //
   //    VM_Compiler                                             //
-  //    VM_MagicCompiler                                        //
   //    VM_Barriers                                             //
   // -----------------------------------------------------------//
   
@@ -1340,9 +1871,12 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // After:    R0, S0 destroyed
   //
   void emitStackOverflowCheck (int frameSize) {
-    emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
-    emitCAL (S0, -frameSize, FP);                        // S0 := &new frame
-    emitTLT (S0,  0);                                    // trap if new frame below guard page
+    emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
+    emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
+    if (VM.BuildFor64Addr)
+      emitTDLT (S0,  0);                                    // trap if new frame below guard page
+    else 
+      emitTWLT (S0,  0);                                    // trap if new frame below guard page
   }
 
   // Emit baseline stack overflow instruction sequence for native method prolog.
@@ -1355,57 +1889,44 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // After:    R0, S0 destroyed
   //
   void emitNativeStackOverflowCheck (int frameSize) {
-    emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitL    (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
-    emitL    ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
-    emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitLAddr   (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
+    emitLInt   ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
+//Kris Venstermans :    change to Address?
+    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitCMPI ( 0, 0);                                 	 // check if S0 == 0 -> first native frame on stack
     VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
-    emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
-    emitCAL (S0, -frameSize, FP);                        // S0 := &new frame pointer
-    emitTLT (S0,  0);                                    // trap if new frame below guard page
+    emitLAddr  ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
+    emitADDI(S0, -frameSize, FP);                        // S0 := &new frame pointer
+    emitTWLT (S0,  0);                                    // trap if new frame below guard page
     VM_ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE 
     fr1.resolve(this);
-    emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
-    emitLIL(S0, 1);
-    emitSLI(S0, S0, STACK_LOG_JNINATIVE);
-    emitSF (S0, S0, FP);             // S0 := &new frame pointer
+    emitLAddr (0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
+    emitLVAL  (S0, STACK_SIZE_JNINATIVE);
+    emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
 
-    emitCMP(0, S0);
+    emitCMPAddr(0, S0);
     VM_ForwardReference fr3 = emitForwardBC(LE);
-    emitTWI ( 1 );                                    // trap if new frame pointer below guard page
+    emitTWWI ( 1 );                                    // trap if new frame pointer below guard page
     fr2.resolve(this);
     fr3.resolve(this);
   }
 
-  // Emit baseline call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  static final int CALL_INSTRUCTIONS = 3; // number of instructions generated by emitCall()
-  void emitCall (int spSaveAreaOffset) {
-    emitST(SP, spSaveAreaOffset, FP); // save SP
-    emitBCTRL  ();
-    emitL (SP, spSaveAreaOffset, FP); // restore SP
+  private static class ShortBranch extends VM_ForwardReference.ShortBranch {
+    final int spTopOffset;
+    
+    ShortBranch (int source, int sp) {
+      super(source);
+      spTopOffset = sp;
+    }
+    void resolve (VM_Assembler asm) {
+      super.resolve(asm);
+      if (asm.compiler != null) {
+	asm.compiler.spTopOffset = spTopOffset;
+      }
+    }
   }
-
-  // Emit baseline call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  //           "hidden" parameter (e.g. for fast invokeinterface collision resolution
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  void emitCallWithHiddenParameter (int spSaveAreaOffset, int hiddenParameter) {
-    emitST  (SP, spSaveAreaOffset, FP); // save SP
-    emitLVAL(SP, hiddenParameter);      // pass "hidden" parameter in SP scratch  register
-    emitBCTRL();
-    emitL   (SP, spSaveAreaOffset, FP); // restore SP
-  }
-
 }

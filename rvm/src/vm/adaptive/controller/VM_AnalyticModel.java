@@ -179,12 +179,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     double bytes = (double)m.getBytecodeLength();
     double baselineSecs = bytes / baselineRate;
     if (!hme.isOptCompiled()) {
-      return baselineSecs + VM_Controller.options.FIXED_RECOMPILATION_OVERHEAD;
+      return baselineSecs; // NOTE: do not add brake time here!  It mill be multiplied by the compile time ratio and we don't want that!
     } else {
       // SJF: have to add one to opt-compiled level to get constant that
       // VM_CompilerDNA wants.  TODO: this sucks; clean it all up.
       double multiplier = VM_CompilerDNA.getCompileTimeRatio(VM_CompilerDNA.BASELINE,
-                                                             hme.getOptCompiledLevel()+1);
+							     hme.getOptCompiledLevel()+1);
       return baselineSecs * multiplier;
     }
   }

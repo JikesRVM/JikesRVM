@@ -77,9 +77,6 @@ class VM_ControllerThread extends VM_Thread {
     // Create the compilationThread and schedule it
     createCompilationThread();
 
-    // Initialize the controller "memory"
-    VM_ControllerMemory.init();
-
     // Create our set of standard optimization plans.
     VM_Controller.recompilationStrategy.init();
 

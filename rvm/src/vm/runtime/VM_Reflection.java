@@ -80,7 +80,7 @@ public class VM_Reflection implements VM_Constants {
     if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
       targetMethod = method;
     } else {
-      int tibIndex = method.getOffset() >>> 2;
+      int tibIndex = method.getOffset() >>> LOG_BYTES_IN_ADDRESS;
       targetMethod = VM_Magic.getObjectType(thisArg).asClass().getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
     }
 
@@ -173,16 +173,16 @@ public class VM_Reflection implements VM_Constants {
    
   // Method parameter unwrappers.
   //
-  public static int unwrapBooleanAsInt(Object o) throws VM_PragmaNoInline { if (unwrapBoolean(o)) return 1; else return 0; }
-  public static boolean unwrapBoolean(Object o) throws VM_PragmaNoInline  { return ((Boolean)   o).booleanValue(); }
-  public static byte   unwrapByte(Object o) throws VM_PragmaNoInline   { return ((Byte)      o).byteValue();    }
-  public static char   unwrapChar(Object o) throws VM_PragmaNoInline   { return ((Character) o).charValue();    }
-  public static short  unwrapShort(Object o) throws VM_PragmaNoInline  { return ((Short)     o).shortValue();   }
-  public static int    unwrapInt(Object o) throws VM_PragmaNoInline    { return ((Integer)   o).intValue();     }
-  public static long   unwrapLong(Object o) throws VM_PragmaNoInline   { return ((Long)      o).longValue();    }
-  public static float  unwrapFloat(Object o) throws VM_PragmaNoInline  { return ((Float)     o).floatValue();   }
-  public static double unwrapDouble(Object o) throws VM_PragmaNoInline { return ((Double)    o).doubleValue();  }
-  public static int    unwrapObject(Object o) throws VM_PragmaNoInline { return VM_Magic.objectAsAddress(o).toInt();    }
+  public static int unwrapBooleanAsInt(Object o) throws VM_PragmaNoInline  { if (unwrapBoolean(o)) return 1; else return 0; }
+  public static boolean unwrapBoolean(Object o) throws VM_PragmaNoInline   { return ((Boolean)   o).booleanValue(); }
+  public static byte   unwrapByte(Object o) throws VM_PragmaNoInline       { return ((Byte)      o).byteValue();    }
+  public static char   unwrapChar(Object o) throws VM_PragmaNoInline       { return ((Character) o).charValue();    }
+  public static short  unwrapShort(Object o) throws VM_PragmaNoInline      { return ((Short)     o).shortValue();   }
+  public static int    unwrapInt(Object o) throws VM_PragmaNoInline        { return ((Integer)   o).intValue();     }
+  public static long   unwrapLong(Object o) throws VM_PragmaNoInline       { return ((Long)      o).longValue();    }
+  public static float  unwrapFloat(Object o) throws VM_PragmaNoInline      { return ((Float)     o).floatValue();   }
+  public static double unwrapDouble(Object o) throws VM_PragmaNoInline     { return ((Double)    o).doubleValue();  }
+  public static VM_Address unwrapObject(Object o) throws VM_PragmaNoInline { return VM_Magic.objectAsAddress(o);    }
 
   private static boolean firstUse = true;
 }

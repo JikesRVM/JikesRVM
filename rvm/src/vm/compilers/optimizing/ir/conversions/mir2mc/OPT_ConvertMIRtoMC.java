@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Convert an IR object from MIR to final Machinecode
@@ -54,7 +54,7 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       }
 
       int approxMachinecodeSize = OPT_FinalMIRExpansion.expand(ir);
-      ir.MIRInfo.machinecode = VM_Interface.newInstructions(approxMachinecodeSize);
+      ir.MIRInfo.machinecode = MM_Interface.newInstructions(approxMachinecodeSize);
     }
   }
   /**

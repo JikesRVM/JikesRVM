@@ -5,15 +5,17 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
+ * VM_Compiler is the baseline compiler class for the IA32 architecture.
  * 
  * @author Bowen Alpern
  * @author Maria Butrico
  * @author Anthony Cocchi
+ * @author Dave Grove
  */
-public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants , VM_SizeConstants{
 
   private final int parameterWords;
   private int firstLocalOffset;
@@ -56,6 +58,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
 
   /**
+   * Notify VM_Compiler that we are starting code gen for the bytecode biStart
+   */
+  protected final void starting_bytecode() {}
+
+  /**
    * Emit the prologue for the method
    */
   protected final void emit_prologue() {
@@ -72,6 +79,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit the code to implement the spcified magic.
+   * @param body        method magic occurred in
    * @param magicMethod desired magic
    */
   protected final boolean emit_Magic(VM_MethodReference magicMethod) {
@@ -377,6 +385,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to an int array
    */
   protected final void emit_iastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -389,6 +398,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a long array
    */
   protected final void emit_lastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -403,6 +413,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
@@ -415,6 +426,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a double array
    */
   protected final void emit_dastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
     asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
@@ -429,16 +441,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a reference array
    */
   protected final void emit_aastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
     asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
     genParameterRegisterLoad(2);                     // pass 2 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
-    if (VM_Interface.NEEDS_WRITE_BARRIER) 
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    if (MM_Interface.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm);
     else {
-      asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-      asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
-      genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
       asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
       asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
     }
@@ -449,6 +462,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a byte/boolean array
    */
   protected final void emit_bastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -461,6 +475,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a char array
    */
   protected final void emit_castore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -473,6 +488,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a short array
    */
   protected final void emit_sastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
@@ -1851,10 +1867,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true); 
-    if (fieldRef.getSize() == 4) { 
+    if (fieldRef.getSize() == BYTES_IN_INT) { 
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, WORDSIZE); // get high part
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get low part
     }
@@ -1866,10 +1882,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPUSH_RegDisp(JTOC, fieldOffset+WORDSIZE); // get high part
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);          // get low part
     }
@@ -1883,14 +1899,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrier(asm, T0);
 //       emitDynamicLinkingSequence(T0, fieldRef, false);
 //     }
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);        // store low part
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, WORDSIZE); // store high part
     }
@@ -1903,13 +1919,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
 //     }
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPOP_RegDisp(JTOC, fieldOffset);          // store low part
       asm.emitPOP_RegDisp(JTOC, fieldOffset+WORDSIZE); // store high part
     }
@@ -1922,12 +1938,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
       asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
       asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
       asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
@@ -1937,16 +1953,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement a getfield
+   * @param method   the method this bytecode is in
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
@@ -1961,18 +1978,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, T0);
       emitDynamicLinkingSequence(T0, fieldRef, false);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
     } else {
-      if (fieldRef.getSize() == 4) {// field is one word
+      if (fieldRef.getSize() == BYTES_IN_INT) {// field is one word
 	asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
 	asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
 	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
 	asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
 	asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
@@ -1985,23 +2002,25 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
   }
 
+
   /**
    * Emit code to implement a putfield
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    VM_Barriers.compileModifyCheck(asm, 4);
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else {
-      if (fieldRef.getSize() == 4) { // field is one word
+      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
 	asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
 	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
 	// TODO!! use 8-byte move if possible
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
 	asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
@@ -2215,12 +2234,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to allocate a scalar object
+   * @param method  the method this bytecode is compiled in
    * @param typeRef the VM_Class to instantiate
    */
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
-    int whichAllocator = VM_Interface.pickAllocator(typeRef);
+    int whichAllocator = MM_Interface.pickAllocator(typeRef);
     asm.emitPUSH_Imm(instanceSize);            
     asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
     asm.emitPUSH_Imm(typeRef.hasFinalizer()?1:0); // does the class have a finalizer?
@@ -2249,7 +2269,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
-    int whichAllocator = VM_Interface.pickAllocator(array);
+    int whichAllocator = MM_Interface.pickAllocator(array, method);
     // count is already on stack- nothing required
     asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
     asm.emitSHL_Reg_Imm (T0, width);              // compute array size
@@ -2915,10 +2935,29 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     //-#endif
   }
 
+  // Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
+  // Taken:   VM_Method of the magic method being called
+  // Returned: true if method causes a stackframe to be created
+  //
+  public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
+    VM_Atom methodName = methodToBeCalled.getName();
+    return methodName == VM_MagicNames.invokeMain             ||
+      methodName == VM_MagicNames.invokeClassInitializer      ||
+      methodName == VM_MagicNames.invokeMethodReturningVoid   ||
+      methodName == VM_MagicNames.invokeMethodReturningInt    ||
+      methodName == VM_MagicNames.invokeMethodReturningLong   ||
+      methodName == VM_MagicNames.invokeMethodReturningFloat  ||
+      methodName == VM_MagicNames.invokeMethodReturningDouble ||
+      methodName == VM_MagicNames.invokeMethodReturningObject ||
+      methodName == VM_MagicNames.addressArrayCreate;
+  }
+
   private final boolean genMagic (VM_MethodReference m) {
     VM_Atom methodName = m.getName();
 
-    if (methodName == VM_MagicNames.attempt) {
+    if (methodName == VM_MagicNames.attemptInt ||
+	methodName == VM_MagicNames.attemptObject ||
+	methodName == VM_MagicNames.attemptAddress) {
       // attempt gets called with four arguments
       //   base
       //   offset
@@ -3285,7 +3324,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.getIntAtOffset ||
 	methodName == VM_MagicNames.getObjectAtOffset ||
 	methodName == VM_MagicNames.getObjectArrayAtOffset ||
-	methodName == VM_MagicNames.prepare) {
+	methodName == VM_MagicNames.prepareInt ||
+	methodName == VM_MagicNames.prepareObject ||
+	methodName == VM_MagicNames.prepareAddress) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
       asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
@@ -3336,7 +3377,45 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
       return true;
     }
-    
+
+    if (methodName == VM_MagicNames.addressArrayCreate) {
+      try {
+	emit_resolved_newarray(m.getType().resolve().asArray());
+      } catch (ClassNotFoundException e) {
+	InternalError ex = new InternalError();
+	e.initCause(ex);
+	throw ex;
+      }
+      return true;
+    }
+
+    if (methodName == VM_MagicNames.addressArrayLength) {
+      emit_arraylength();  // argument order already correct
+      return true;
+    }
+
+    if (methodName == VM_MagicNames.addressArrayGet) {
+      if (VM.BuildFor32Addr) {
+	emit_iaload();   
+      } else if (VM.BuildFor64Addr) {
+	emit_laload();
+      } else {
+	VM._assert(NOT_REACHED);
+      }
+      return true;
+    }
+
+    if (methodName == VM_MagicNames.addressArraySet) {
+      if (VM.BuildFor32Addr) {
+	emit_iastore();  
+      } else if (VM.BuildFor64Addr) {
+	VM._assert(false);  // not implemented
+      } else {
+	VM._assert(NOT_REACHED);
+      }
+      return true;
+    }
+
     if (methodName == VM_MagicNames.getMemoryInt ||
 	methodName == VM_MagicNames.getMemoryWord ||
 	methodName == VM_MagicNames.getMemoryAddress) {
@@ -3367,11 +3446,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.addressAsThread         ||
 	methodName == VM_MagicNames.objectAsThread          ||
 	methodName == VM_MagicNames.objectAsProcessor       ||
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-	methodName == VM_MagicNames.addressAsBlockControl   ||
-	methodName == VM_MagicNames.addressAsSizeControl    ||
-	methodName == VM_MagicNames.addressAsSizeControlArray   ||
-//-#endif
 	methodName == VM_MagicNames.threadAsCollectorThread ||
 	methodName == VM_MagicNames.addressAsRegisters      ||
 	methodName == VM_MagicNames.addressAsStack          ||
@@ -3537,6 +3611,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.wordFromInt ||
+	methodName == VM_MagicNames.wordFromIntZeroExtend ||
+	methodName == VM_MagicNames.wordFromIntSignExtend ||
 	methodName == VM_MagicNames.wordToInt ||
 	methodName == VM_MagicNames.wordToAddress ||
 	methodName == VM_MagicNames.wordToWord) {

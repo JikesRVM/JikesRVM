@@ -79,12 +79,6 @@ Pre-existence based inlining
 SSA 2 false
 Should SSA form be constructed on the HIR?
 
-PRUNED_SSA -1 true
-Use liveness information to reduce insert phi nodes?
-
-SEMI_PRUNED_SSA -1 false
-Use local approximation of liveness information to reduce insert phi nodes?
-
 LOAD_ELIMINATION 2 false
 Should we perform redundant load elimination during SSA pass?
 

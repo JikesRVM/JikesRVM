@@ -84,7 +84,7 @@ public final class OSR_OptExecStateExtractor
     VM_Address osrFP = VM_Magic.objectAsAddress(stack).add(osrFPoff);
     VM_Address nextIP = VM_Magic.getReturnAddress(osrFP);
     VM_Address instr_beg  = VM_Magic.objectAsAddress(instructions);
-    int ipOffset   = nextIP.diff(instr_beg).toInt();    
+    VM_Offset ipOffset   = nextIP.diff(instr_beg);    
     VM.enableGC();
 
     VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
@@ -178,7 +178,7 @@ public final class OSR_OptExecStateExtractor
     // stack word width in bytes.
     int SW_WIDTH = 1 << LG_STACKWORD_WIDTH;
     
-    int[] gprs = registers.gprs;
+    VM_WordArray gprs = registers.gprs;
       
     // enter critical section
     // precall methods potientially causing dynamic compilation
@@ -192,7 +192,8 @@ public final class OSR_OptExecStateExtractor
     for (int i = firstNonVolatile + nonVolatiles - 1;
 	     i >= firstNonVolatile; 
 	     i--) {
-      gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getIntAtOffset(stack, osrFPoff - nonVolatileOffset);
+      gprs.set(NONVOLATILE_GPRS[i], 
+	       VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(osrFPoff - nonVolatileOffset)));
       nonVolatileOffset -= SW_WIDTH;
     }
 
@@ -201,7 +202,8 @@ public final class OSR_OptExecStateExtractor
     for (int i = NUM_VOLATILE_GPRS - 1; 
 	     i >= 0;
 	     i --) {
-      gprs[VOLATILE_GPRS[i]] = VM_Magic.getIntAtOffset(stack, osrFPoff - volatileOffset);
+      gprs.set(VOLATILE_GPRS[i], 
+	       VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(osrFPoff - volatileOffset)));
       volatileOffset -= SW_WIDTH;
     }
 
@@ -213,7 +215,7 @@ public final class OSR_OptExecStateExtractor
     for (int i=0; i<NUM_GPRS; i++) {
       if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
 	registers.objs[i] = 
-	  VM_Magic.addressAsObject(VM_Address.fromInt(registers.gprs[i]));
+	  VM_Magic.addressAsObject(registers.gprs.get(i).toAddress());
       }
     }
     
@@ -223,7 +225,7 @@ public final class OSR_OptExecStateExtractor
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
 	VM.sysWrite(" : ");
-	VM.sysWriteHex(registers.gprs[i]);
+	VM.sysWriteHex(registers.gprs.get(i).toAddress());
 	VM.sysWriteln();
       }
     }
@@ -231,7 +233,7 @@ public final class OSR_OptExecStateExtractor
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
 						  int[] stack,
-						  int   ipOffset,
+						  VM_Offset   ipOffset,
 						  int   fpOffset,
 						  int   cmid,
 						  int   tsFPOffset,
@@ -445,7 +447,7 @@ public final class OSR_OptExecStateExtractor
     // because all registers are saved in threadswitch's stack
     // frame, we get value from it.
     } else if (vtype == PHYREG) {
-      return registers.gprs[value];
+      return registers.gprs.get(value).toInt();
       
     // for spilled locals, the value is the spilled position
     // it is on FOO's stackframe.
@@ -529,10 +531,9 @@ public final class OSR_OptExecStateExtractor
 
   private static void dumpStackContent(int[] stack, int fpOffset) {
     VM.disableGC();
-    int upper = VM_Magic.getIntAtOffset(stack, fpOffset);
-    int stack_beg = VM_Magic.objectAsAddress(stack).toInt();
+    VM_Address upper = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(fpOffset));
     VM.enableGC();
-    int upOffset = upper - stack_beg;
+    int upOffset = upper.diff(VM_Magic.objectAsAddress(stack)).toInt();
 
     int cmid = VM_Magic.getIntAtOffset(stack, 
 		 fpOffset + STACKFRAME_METHOD_ID_OFFSET);
@@ -551,16 +552,16 @@ public final class OSR_OptExecStateExtractor
 
     for (int i=nonVolatileOffset; i>=0; i-=SW_WIDTH) {
       int content = VM_Magic.getIntAtOffset(stack, fpOffset-i);
-      VM.sysWriteHex(fpOffset + stack_beg - i);
+      VM.sysWriteHex(VM_Magic.objectAsAddress(stack).add(fpOffset - i));
       VM.sysWrite("  ");
       VM.sysWriteHex(content);
       VM.sysWriteln();
     }
   }
 
-  private static void dumpRegisterContent(int[] gprs) {
-    for (int i=0, n=gprs.length; i<n; i++) {
-      VM.sysWriteln(GPR_NAMES[i] + " = " + Integer.toHexString(gprs[i]));
+  private static void dumpRegisterContent(VM_WordArray gprs) {
+    for (int i=0, n=gprs.length(); i<n; i++) {
+      VM.sysWriteln(GPR_NAMES[i] + " = " + Integer.toHexString(gprs.get(i).toInt()));
     }
   }
 
@@ -571,7 +572,7 @@ public final class OSR_OptExecStateExtractor
     
     VM_Address fp = VM_Magic.objectAsAddress(stack).add(fpOffset);
 	
-    while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);
       
       if (cmid == INVISIBLE_METHOD_ID) {

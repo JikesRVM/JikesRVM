@@ -5,9 +5,6 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-//-#if RVM_WITH_JMTK
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-//-#endif
 
 /**
  * A description of a java object.
@@ -52,7 +49,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public abstract class VM_Type implements VM_ClassLoaderConstants {
+public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstants {
 
   /*
    * We hold on to a number of special types here for easy access.
@@ -76,8 +73,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public static VM_Class JavaIoSerializableType; 
   public static VM_Type MagicType;             
   public static VM_Type WordType;             
+  public static VM_Type WordArrayType;             
   public static VM_Type AddressType;             
+  public static VM_Type AddressArrayType;             
   public static VM_Type OffsetType;             
+  public static VM_Type OffsetArrayType;             
+  public static VM_Type ExtentType;             
+  public static VM_Type ExtentArrayType;             
   public static VM_Type InstructionArrayType;             
   public static VM_Type UninterruptibleType;   
   public static VM_Type SynchronizedObjectType;   
@@ -152,9 +154,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public int bootCount;
   public int bootBytes; 
 
-  //-#if RVM_WITH_JMTK
-  public Type JMTKtype = new Type();
-  //-#endif
+  public com.ibm.JikesRVM.memoryManagers.vmInterface.Type JMTKtype = new com.ibm.JikesRVM.memoryManagers.vmInterface.Type();
 
   /**
    * RCGC: is this type acyclic? 
@@ -217,7 +217,9 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * code to access fields/methods symbolically, via dynamic linking stubs).
    * Primitives are always treated as "resolved".
    */ 
-  public final boolean isResolved() throws VM_PragmaUninterruptible { return state >= CLASS_RESOLVED; }
+  public final boolean isResolved() throws VM_PragmaUninterruptible { 
+    return state >= CLASS_RESOLVED; 
+  }
    
   /**
    * Instantiation status.
@@ -226,7 +228,9 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * and its type information block has been placed in the jtoc.
    * Primitives are always treated as "instantiated".
    */ 
-  public final boolean isInstantiated() throws VM_PragmaUninterruptible { return state >= CLASS_INSTANTIATED; }
+  public final boolean isInstantiated() throws VM_PragmaUninterruptible { 
+    return state >= CLASS_INSTANTIATED; 
+  }
    
   /**
    * Initialization status.
@@ -236,7 +240,9 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * "initialized" immediately upon "instantiation".
    * Primitives are always treated as "initialized".
    */ 
-  public final boolean isInitialized() throws VM_PragmaUninterruptible { return state == CLASS_INITIALIZED; }
+  public final boolean isInitialized() throws VM_PragmaUninterruptible { 
+    return state == CLASS_INITIALIZED; 
+  }
 
   /**
    * Only intended to be used by the BootImageWriter
@@ -257,30 +263,40 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * Note that tib is incomplete (contains a type-slot but no method-slots) 
    * until the class/array has been "instantiated".
    */ 
-  public final int getTibSlot() throws VM_PragmaUninterruptible { return tibSlot; }
+  public final int getTibSlot() throws VM_PragmaUninterruptible { 
+    return tibSlot; 
+  }
 
   /**
    * Get offset of tib slot from start of jtoc, in bytes.
    */ 
-  public final int getTibOffset() throws VM_PragmaUninterruptible { return tibSlot << 2; }
+  public final int getTibOffset() throws VM_PragmaUninterruptible { 
+    return tibSlot << LOG_BYTES_IN_INT; 
+  }
 
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for classes
    */ 
-  public final int getDimensionality() throws VM_PragmaUninterruptible { return dimension; }
+  public final int getDimensionality() throws VM_PragmaUninterruptible { 
+    return dimension; 
+  }
 
   /**
    * get number of superclasses to Object 
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
    */ 
-  public final int getTypeDepth () throws VM_PragmaUninterruptible { return depth; };
+  public final int getTypeDepth () throws VM_PragmaUninterruptible { 
+    return depth; 
+  }
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
    * -1 if instances of this type do not have thin lock words.
    */
-  public final int getThinLockOffset() throws VM_PragmaUninterruptible { return thinLockOffset; }
+  public final int getThinLockOffset() throws VM_PragmaUninterruptible { 
+    return thinLockOffset; 
+  }
 
   public final void setThinLockOffset(int offset) {
     if (VM.VerifyAssertions) VM._assert (thinLockOffset == -1);
@@ -291,26 +307,34 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * RCGC: Is a reference of this type contained 
    * in another object inherently acyclic?
    */ 
-  protected boolean isAcyclicReference() {
+  public boolean isAcyclicReference() throws VM_PragmaUninterruptible {
     return acyclic;
   }
 
   /**
    * @return whether or not this is an instance of VM_Class?
    */
-  public final boolean isClassType() throws VM_PragmaUninterruptible { return dimension == 0; } 
+  public final boolean isClassType() throws VM_PragmaUninterruptible { 
+    return dimension == 0; 
+  } 
   /**
    * @return whether or not this is an instance of VM_Array?
    */
-  public final boolean isArrayType() throws VM_PragmaUninterruptible { return dimension > 0;  }
+  public final boolean isArrayType() throws VM_PragmaUninterruptible { 
+    return dimension > 0; 
+  }
   /**
    * @return whether or not this is a primitive type
    */
-  public final boolean isPrimitiveType() throws VM_PragmaUninterruptible { return (dimension < 0) || isWordType();  }
+  public final boolean isPrimitiveType() throws VM_PragmaUninterruptible { 
+    return dimension < 0;
+  }
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
    */
-  public final boolean isReferenceType() throws VM_PragmaUninterruptible { return !isPrimitiveType(); }
+  public final boolean isReferenceType() throws VM_PragmaUninterruptible { 
+    return !isPrimitiveType(); 
+  }
    
   /**
    * @return this cast to a VM_Class
@@ -345,7 +369,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public abstract int getStackWords() throws VM_PragmaUninterruptible;
 
   /**
-   * Redefine hashCode(), to allow use of consistent hash codes during
+   * Define hashCode(), to allow use of consistent hash codes during
    * bootImage writing and run-time
    */
   public int hashCode() { return typeRef.hashCode(); }
@@ -417,7 +441,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
       // to check it all over the reflection code. 
       if (!isResolved()) {
 	resolve();
-      } synchronized(this) {
+      } 
+      synchronized(this) {
 	if (classForType == null) {
 	  classForType = java.lang.JikesRVMSupport.createClass(this);
 	}
@@ -437,15 +462,22 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public final boolean isFloatType() throws VM_PragmaUninterruptible             { return this == FloatType;          }
   public final boolean isDoubleType() throws VM_PragmaUninterruptible            { return this == DoubleType;         }
   public final boolean isCharType() throws VM_PragmaUninterruptible              { return this == CharType;           }
-  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isWordType(); }
+  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType(); }
 
   public final boolean isJavaLangObjectType() throws VM_PragmaUninterruptible    { return this == JavaLangObjectType;    }
   public final boolean isJavaLangThrowableType() throws VM_PragmaUninterruptible { return this == JavaLangThrowableType; }
   public final boolean isJavaLangStringType() throws VM_PragmaUninterruptible    { return this == JavaLangStringType;    }
-  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return this == MagicType;             }
+
   public final boolean isWordType() throws VM_PragmaUninterruptible              { return (this == WordType) ||
                                                                                           (this == AddressType) ||
+										          (this == ExtentType) || 
 										          (this == OffsetType); }
+  final boolean isWordArrayType() throws VM_PragmaUninterruptible         { return (this == WordArrayType) ||
+                                                                                          (this == AddressArrayType) ||
+										          (this == ExtentArrayType) || 
+										          (this == OffsetArrayType); }
+  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() || isWordArrayType() ||
+										     (this == MagicType); }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -517,8 +549,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
     NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
+    WordArrayType = VM_TypeReference.WordArray.resolve();
     AddressType = VM_TypeReference.Address.resolve();
+    AddressArrayType = VM_TypeReference.AddressArray.resolve();
     OffsetType = VM_TypeReference.Offset.resolve();
+    OffsetArrayType = VM_TypeReference.OffsetArray.resolve();
+    ExtentType = VM_TypeReference.Extent.resolve();
+    ExtentArrayType = VM_TypeReference.ExtentArray.resolve();
     
     VM_Array.init();
   }
@@ -540,17 +577,20 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
    * How many types have been created?
    * Only intended to be used by the bootimage writer!
    */
-  public static final int numTypes() throws VM_PragmaUninterruptible { return nextId-1; }
+  public static final int numTypes() throws VM_PragmaUninterruptible { 
+    return nextId-1; 
+  }
   /**
    * Get all the created types.
    * Only intended to be used by the bootimage writer!
    */
-  public static final VM_Type[] getTypes() throws VM_PragmaUninterruptible { return types; }
+  public static final VM_Type[] getTypes() throws VM_PragmaUninterruptible { 
+    return types; 
+  }
   /**
    * Get the type for the given id
    */
   public static final VM_Type getType(int id) throws VM_PragmaUninterruptible {
     return types[id];
   }
-
 }

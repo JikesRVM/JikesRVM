@@ -6,8 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
-import com.ibm.JikesRVM.VM_Synchronization;
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -23,6 +22,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class SharedQueue extends Queue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -50,7 +50,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   public final int getArity() throws VM_PragmaInline { return arity; }
 
   public final void enqueue(VM_Address buf, int arity, boolean toTail) {
-    if (VM.VerifyAssertions) VM._assert(arity == this.arity);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == this.arity);
 
     lock();
     if (toTail) {
@@ -68,9 +68,9 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
       setNext(buf, head);
       head = buf;
     } 
-    if (VM.VerifyAssertions) {
+    if (VM_Interface.VerifyAssertions) {
       bufsenqueued++;
-      VM._assert(bufsenqueued == debugQueueLength());
+      VM_Interface._assert(bufsenqueued == debugQueueLength());
     }
     unlock();
   }
@@ -84,12 +84,12 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   }
 
   public final VM_Address dequeue(int arity) {
-    if (VM.VerifyAssertions) VM._assert(arity == this.arity);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == this.arity);
     return dequeue(false);
   }
 
   public final VM_Address dequeueAndWait(int arity) {
-    if (VM.VerifyAssertions) VM._assert(arity == this.arity);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == this.arity);
     VM_Address buf = dequeue(false);
     while (buf.isZero() && (completionFlag == 0)) {
       buf = dequeue(true);
@@ -100,7 +100,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   public final void reset() {
     setNumClientsWaiting(0);
     setCompletionFlag(0);
-    if (VM.VerifyAssertions) VM._assert(head.isZero() && tail.isZero());
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero() && tail.isZero());
   }
 
   public final void newClient() {
@@ -109,13 +109,13 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
 
   public final VM_Address alloc() throws VM_PragmaInline {
     VM_Address rtn = rpa.alloc(PAGES_PER_BUFFER);
-    if (VM.VerifyAssertions) VM._assert(rtn.EQ(bufferStart(rtn)));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
   public final void free(VM_Address buf) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) 
-      VM._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rpa.free(buf);
   }
 
@@ -138,7 +138,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
     lock();
     VM_Address rtn = VM_Address.zero();
     if (head.isZero()) {
-      if (VM.VerifyAssertions) VM._assert(tail.isZero());
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(tail.isZero());
       // no buffers available
       if (waiting) {
 	setNumClientsWaiting(numClientsWaiting + 1);
@@ -151,9 +151,9 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
 	setTail(VM_Address.zero());
-	if (VM.VerifyAssertions) VM._assert(head.isZero());
+	if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
       }
-      if (VM.VerifyAssertions)
+      if (VM_Interface.VerifyAssertions)
 	setBufsEnqueued(bufsenqueued - 1);
       if (waiting)
 	setNumClientsWaiting(numClientsWaiting - 1);

@@ -56,7 +56,7 @@ endif
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
 %.class:		%.java $(WORKING)/cp
-	$(HOST_JIKES) -d $(WORKING)/cp -classpath $(ALL_CP) $<
+	$(HOST_JAVAC) -d $(WORKING)/cp -classpath $(ALL_CP) $<
 
 #
 # how to run
@@ -82,9 +82,6 @@ endif
 ifneq (x$(HEAPSIZE),x)
   RVM_ARGS += -X:h=$(HEAPSIZE)
   JDK_ARGS += -Xmx$(HEAPSIZE)M
-endif
-ifneq (x$(LHEAPSIZE),x)
-  RVM_ARGS += -X:lh=$(LHEAPSIZE)
 endif
 RVM_ARGS += $(RC_ARGS)
 

@@ -31,7 +31,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     OPT_RegisterOperand result = InstanceOf.getClearResult(s);
     VM_TypeReference LHStype = InstanceOf.getType(s).getTypeRef();
     OPT_Operand ref = InstanceOf.getClearRef(s);
-    OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
     OPT_Instruction next = s.nextInstructionInCodeOrder();
     if (next.operator() == INT_IFCMP && 
 	IfCmp.getVal1(next) instanceof OPT_RegisterOperand && 
@@ -44,7 +43,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // The way to fix this is to add ifInstanceOf and ifNotInstanceOf
       // operators to the IR and have OPT_Simple transform 
       // instanceof, intIfCmp based on the U/D chains.
-      // See CMVC defect 166860.
+      // See defect 2114.
       OPT_Operand val2 = IfCmp.getVal2(next);
       if (VM.VerifyAssertions) VM._assert(val2.isIntConstant());
       int ival2 = ((OPT_IntConstantOperand)val2).value;
@@ -61,7 +60,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock trueBranch = 
 	branchCondition ? branchBB : fallThroughBB;
       OPT_Instruction nullComp = 
-	IfCmp.create(REF_IFCMP, guard, ref.copy(), 
+	IfCmp.create(REF_IFCMP, oldGuard.copyRO(), ref.copy(), 
 		     new OPT_NullConstantOperand(),
 		     OPT_ConditionOperand.EQUAL(), 
 		     falseBranch.makeJumpTarget(),
@@ -72,11 +71,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       myBlock.insertOut(instanceOfBlock);
       myBlock.insertOut(falseBranch);
       ir.cfg.linkInCodeOrder(myBlock, instanceOfBlock);
-      OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
+      OPT_RegisterOperand RHStib = getTIB(s, ir, ref, oldGuard.copyRO());
       return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
 					trueBranch, falseBranch, oldGuard);
     } else {
       // Not a branching pattern
+      OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
       OPT_BasicBlock instanceOfBlock = 
 	s.getBasicBlock().segregateInstruction(s, ir);
       OPT_BasicBlock prevBB = instanceOfBlock.prevBasicBlockInCodeOrder();

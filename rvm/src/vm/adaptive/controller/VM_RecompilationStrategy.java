@@ -11,7 +11,7 @@ import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * VM_Recompilation Strategy

@@ -5,14 +5,10 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -122,7 +118,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(boolean isScalar, EXTENT bytes) 
+  protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
     return mature.alloc(isScalar, bytes);
   }
@@ -135,7 +131,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(boolean isScalar, EXTENT bytes) 
+  protected final VM_Address matureCopy(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
     return mature.alloc(isScalar, bytes);
   }
@@ -147,7 +143,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(EXTENT bytes)
+  public static final int getInitialHeaderValue(int bytes)
     throws VM_PragmaInline {
     return losSpace.getInitialHeaderValue(bytes);
   }
@@ -228,7 +224,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
 						      VM_Address addr) {
     if ((hi && addr.LT(MATURE_HI_START)) ||
 	(!hi && addr.GE(MATURE_HI_START)))
-      return Copy.traceObject(obj);
+      return CopySpace.traceObject(obj);
     else
       return obj;
   }
@@ -253,19 +249,19 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public static final boolean isLive(VM_Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
+    VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case NURSERY_SPACE:       return Copy.isLive(obj);
-      case LOW_MATURE_SPACE:    return (!fullHeapGC) || Copy.isLive(obj);
-      case HIGH_MATURE_SPACE:   return (!fullHeapGC) || Copy.isLive(obj);
+      case NURSERY_SPACE:       return CopySpace.isLive(obj);
+      case LOW_MATURE_SPACE:    return (!fullHeapGC) || CopySpace.isLive(obj);
+      case HIGH_MATURE_SPACE:   return (!fullHeapGC) || CopySpace.isLive(obj);
       case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
-      default:              if (VM.VerifyAssertions) {
-	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
-			      VM.sysFail("Plan.traceObject: unknown space");
+      default:              if (VM_Interface.VerifyAssertions) {
+	                      VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
+			      VM_Interface.sysFail("Plan.traceObject: unknown space");
                             }
 			    return false;
     }
@@ -285,15 +281,15 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * is returned unmodified.
    *
    * @param fromObj The original (uncopied) object
-   * @param forwardingPtr The forwarding pointer, which is the GC word
+   * @param forwardingWord The integer containing the GC bits, which is the GC word
    * of the original object, and typically encodes some GC state as
    * well as pointing to the copied object.
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingPtr, int bytes) {
-    return forwardingPtr; // a no-op for this collector
+					     int forwardingWord, int bytes) {
+    return forwardingWord; // a no-op for this collector
   }
 
   ////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,94 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# This file defines a set of environment variables needed to build and
+# run Jikes RVM.  This file is sourced by the installation scripts; you
+# do not need to source this file into your command-prompt shell.
+#
+# This particular configuration file describes the environment on the 
+# developerworks cvs server and is used during the automated
+# rebuild of the Jikes RVM javadoc API. 
+# It is not intended to be generally useful, but is included in cvs
+# to facilitate keeping it up-to-date as the set of configuration variables 
+# change.
+
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecutre is IA32
+export RVM_FOR_IA32=1
+export RVM_FOR_32_ADDR=1
+
+# target OS is Linux
+export RVM_FOR_LINUX=1
+
+# Build javadoc assuming multiprocessor
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+export BOOTIMAGE_LOAD_ADDRESS=0x43000000
+export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+export HOME=/www/software10/html/jikesrvm/home
+export HOST_JAVA_HOME="$HOME/install/IBMJava2-13"
+
+# the JDK java executable
+export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+
+# the JDK javadoc executable
+export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
+
+# the JDK jar executable
+export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
+
+# the JDK javac executable
+export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
+
+# the JDK standard library jar files
+export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
+
+# the JDK tools jar
+export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
+
+# where to find classpath distribution
+export CLASSPATH_ROOT="$HOME/install/classpath-0.05"
+
+# path for GNU make
+export GNU_MAKE="/usr/bin/make"
+
+# path for jikes.
+export JIKES=$HOME/install/bin/jikes-1.18
+
+# what C compilers should be used?
+export CC='/usr/bin/gcc -w -O'
+ 
+# what C++ compilers should be used?
+export CPLUS='/usr/bin/g++ -g'   
+
+# how to link a shared C++ library
+export LDSHARED="/usr/bin/g++ -shared"
+
+#
+export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
+
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="$HOME/conf/user_guide_config.mk"
+
+#  some Unix commands
+export AWK="/bin/awk"
+export BASH="/bin/bash"
+export CVS="/usr/bin/cvs"
+export DIFF="/usr/bin/diff"
+export FGREP="/bin/fgrep"
+export FIND="/usr/bin/find"
+export GNU_TAR=/bin/tar
+export GREP="/bin/grep"
+export MD5SUM="/usr/bin/md5sum"
+export PS="/bin/ps"
+export SED="/bin/sed"
+export WGET="$HOME/install/bin/wget"
+export XARGS="/usr/bin/xargs"

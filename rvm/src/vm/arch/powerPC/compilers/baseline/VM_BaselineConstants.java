@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 /**
- * Registers used by virtual machine.
+ * Registers used by baseline compiler code.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -19,7 +19,7 @@ public interface VM_BaselineConstants extends VM_Constants {
 
   // Scratch general purpose registers
   static final int S0   = FIRST_SCRATCH_GPR;
-  static final int SP   = FIRST_SCRATCH_GPR+1;
+  static final int S1   = FIRST_SCRATCH_GPR+1;
 
   // Temporary general purpose registers 
   static final int T0   = FIRST_VOLATILE_GPR;

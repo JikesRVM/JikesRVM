@@ -57,7 +57,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   private VM_Address jniSavedProcessorRegAddr;
   private VM_Address jniSavedReturnAddr;
   
-  public VM_JNIGCMapIterator(int[] registerLocations) {
+  public VM_JNIGCMapIterator(VM_WordArray registerLocations) {
      this.registerLocations = registerLocations;
    }
 
@@ -117,7 +117,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
 
     if ( jniNextRef > jniFramePtr ) {
       ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
-      jniNextRef = jniNextRef - 4;
+      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
       if (verbose > 0) VM.sysWriteln("JNI iterator returning JNI ref: ", ref_address);
       return ref_address;
     }
@@ -136,17 +136,17 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // later scan of those refs.
     //
     if ( jniFramePtr > 0) {
-      jniFramePtr = jniRefs[jniFramePtr >> 2];
-      jniNextRef = jniNextRef - 4 ;
+      jniFramePtr = jniRefs[jniFramePtr >> LOG_BYTES_IN_ADDRESS];
+      jniNextRef = jniNextRef - BYTES_IN_ADDRESS ;
     }
     
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
-    int registerLocation = VM_Magic.getMemoryInt(this.framePtr) - JNI_RVM_NONVOLATILE_OFFSET;
+    VM_Address registerLocation = VM_Magic.getMemoryAddress(this.framePtr).sub(JNI_RVM_NONVOLATILE_OFFSET);
 
     for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR - 1; --i) {
-      registerLocations[i] = registerLocation;
-      registerLocation -= 4;
+      registerLocations.set(i, registerLocation);
+      registerLocation = registerLocation.sub(BYTES_IN_ADDRESS);
     }
 
     if (verbose > 1) VM.sysWriteln("JNI iterator returning 0");

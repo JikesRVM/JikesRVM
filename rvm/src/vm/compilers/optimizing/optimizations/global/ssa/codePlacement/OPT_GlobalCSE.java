@@ -267,7 +267,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
     case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
     case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
-      return !(OPT_GCP.usesOrDefsPhysicalRegister(inst));
+      return !(OPT_GCP.usesOrDefsPhysicalRegisterOrAddressType(inst));
     }
     return false;
   }

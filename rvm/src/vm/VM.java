@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * A virtual machine.
@@ -90,7 +90,7 @@ public class VM extends VM_Properties
     // 
     if (!BuildForSingleVirtualProcessor)
       VM_Processor.getCurrentProcessor().pthread_id = 
-        VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
+        VM_SysCall.call0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
 
     VM.TraceClassLoading = (VM_BootRecord.the_boot_record.traceClassLoading == 1);   
 
@@ -99,17 +99,20 @@ public class VM extends VM_Properties
     // because the buffer is accessed by compiler-generated write barrier code.
     //
     if (verbose >= 1) VM.sysWriteln("Setting up write barrier");
-    VM_Interface.setupProcessor( VM_Processor.getCurrentProcessor() );
+    MM_Interface.setupProcessor( VM_Processor.getCurrentProcessor() );
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
     if (verbose >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
-    VM_Interface.boot(VM_BootRecord.the_boot_record);
+    MM_Interface.boot(VM_BootRecord.the_boot_record);
+
+    VM_Time.boot();
 
     // Reset the options for the baseline compiler to avoid carrying them over from
     // bootimage writing time.
     // 
+    if (verbose >= 1) VM.sysWriteln("Setting up baseline compiler options");
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
@@ -140,37 +143,19 @@ public class VM extends VM_Properties
     //
 
     if (verbose >= 1) VM.sysWriteln("Running various class initializers");
-    //-#if RVM_WITH_GNU_CLASSPATH
     java.lang.ref.JikesRVMSupport.setReferenceLock(new VM_Synchronizer());
-    //-#else
-    runClassInitializer("java.io.FileDescriptor");
-    runClassInitializer("java.io.File");
-    //-#endif
 
     runClassInitializer("java.lang.Runtime");
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
-    //-#else
-    runClassInitializer("java.lang.System");
-    System.boot();
-    //-#endif
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
     runClassInitializer("java.lang.Short");
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.lang.Number");
-    //-#endif
     runClassInitializer("java.lang.Integer");
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
     runClassInitializer("java.lang.Character");
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("com.ibm.oti.io.CharacterConverter");
-    runClassInitializer("java.util.Hashtable");
-    runClassInitializer("java.lang.String");
-    //-#endif
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("gnu.java.io.EncodingManager");
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
@@ -180,12 +165,8 @@ public class VM extends VM_Properties
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
     runClassInitializer("java.util.WeakHashMap");
-    //-#endif
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("java.lang.Math");
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("java.lang.RuntimePermission");
-    //-#endif
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
@@ -196,50 +177,54 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("gnu.java.locale.Calendar");
     runClassInitializer("java.util.Date");
-    //-#endif
     //-#if RVM_WITH_ALL_CLASSES
     runClassInitializer("java.util.jar.Attributes$Name");
     //-#endif
 
     // Process virtual machine directives.
     //
-    if (verbose >= 1) VM.sysWriteln("Processing VM directives");
-    String[] applicationArguments = VM_CommandLineArgs.processCommandLineArguments();
-    if (applicationArguments.length == 0) {  
-      VM.sysWrite("vm: please specify a class to execute\n");
-      VM.sysExit(1);
-    }
-
-    // Allow Baseline compiler to respond to command line arguments
-    // The baseline compiler ignores command line arguments until all are processed
-    // otherwise printing may occur because of compilations ahead of processing the
-    // method_to_print restriction
-    //
-    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
-    VM_BaselineCompiler.postBootOptions();
+    if (verbose >= 1) VM.sysWriteln("Early stage processing of VM directives");
+    VM_CommandLineArgs.earlyProcessCommandLineArguments();
 
     // Allow Collector to respond to command line arguments
     //
     if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
-    VM_Interface.postBoot();
+    MM_Interface.postBoot();
 
+    if (verbose >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
     // set up HPM
     //-#if RVM_WITH_HPM
-    if (verbose>=1) VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
-    if (BuildForHPM) VM_HardwarePerformanceMonitors.boot();
+    if (BuildForHPM) {
+      // assume only one Java thread is executing!
+      if(VM_HardwarePerformanceMonitors.verbose>=1)
+	VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
+      VM_HardwarePerformanceMonitors.boot();
+
+      // set hpm program for current pthread.  Inherited by other, to be created, pthreads.
+      if (VM_HardwarePerformanceMonitors.enabled()) {
+	if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	  if(VM_HardwarePerformanceMonitors.verbose>=1)
+	    VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
+	  VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMsetProgramMyThreadIP);
+	  VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+	}
+	// start tracing
+      }
+    }
     //-#endif
 
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     // 
+    if (verbose >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
     // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
+    if (verbose >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
     //-#if RVM_WITH_HPM
@@ -248,16 +233,31 @@ public class VM extends VM_Properties
     //-#endif
 
     // Run class intializers that require fully booted VM
+    if (verbose >= 1) VM.sysWriteln("Running late class initializers");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("com.ibm.oti.util.Msg");
-    //-#endif
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
+
+    // Process most of the VM's command line arguments.
+    // The VM is fully booted at this point. 
+    if (verbose >= 1) VM.sysWriteln("Late stage processing of VM directives");
+    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
+    if (applicationArguments.length == 0) {  
+      VM.sysWrite("vm: please specify a class to execute\n");
+      VM.sysExit(1);
+    }
+
+    // Allow Baseline compiler to respond to command line arguments.
+    // The baseline compiler ignores command line arguments until all are processed
+    // otherwise printing may occur because of compilations ahead of processing the
+    // method_to_print restriction
+    //
+    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
+    VM_BaselineCompiler.postBootOptions();
 
     // Allow profile information to be read in from a file
     VM_EdgeCounts.boot();
@@ -274,6 +274,7 @@ public class VM extends VM_Properties
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
+    // Rework this when we do feature 3601.
     if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
     Thread      xx         = new MainThread(applicationArguments);
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
@@ -285,6 +286,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Schedule "main" thread for execution.
+    if (verbose >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
     // Create one debugger thread.
@@ -292,11 +294,13 @@ public class VM extends VM_Properties
     t.start(VM_Scheduler.debuggerQueue);
 
     //-#if RVM_WITH_HPM
-    // make sure collector threads have HPM_info initialized!
     if (VM_HardwarePerformanceMonitors.enabled()) {
-      if (verbose>=1)VM.sysWrite(" VM.boot() VM_Processor.hpm_safe = true and call sysHPMresetCounters()\n");
-      VM_Processor.hpm_safe = true;
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
+      // IS THIS NEEDED?
+      if (!VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	if(VM_HardwarePerformanceMonitors.verbose>=1)
+	  VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
+	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+      }
     }
     //-#endif
 
@@ -420,6 +424,36 @@ public class VM extends VM_Properties
     return new String(buf);
   }
 
+
+  /**
+   * Format a 64 bit number as "0x" followed by 16 hex digits.
+   * Do this without referencing Integer or Character classes, 
+   * in order to avoid dynamic linking.
+   * TODO: move this method to VM_Services.
+   * @param number
+   * @return a String with the hex representation of the long
+   */
+  public static String longAsHexString(long number) throws VM_PragmaInterruptible {
+    char[] buf   = new char[18];
+    int    index = 18;
+    while (--index > 1) {
+      int digit = (int) (number & 0x000000000000000f);
+      buf[index] = digit <= 9 ? (char)('0' + digit) : (char)('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index]   = '0';
+    return new String(buf);
+  }
+
+  public static String addressAsHexString(VM_Address addr) throws VM_PragmaInterruptible {
+     //-#if RVM_FOR_64_ADDR
+     return longAsHexString(addr.toLong());
+     //-#else
+     return intAsHexString(addr.toInt());
+     //-#endif
+  }
+
   private static int sysWriteLock = 0;
   private static int sysWriteLockOffset = -1;
 
@@ -483,7 +517,7 @@ public class VM extends VM_Properties
    */
   public static void write(char value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      sysCall1(VM_BootRecord.the_boot_record.sysWriteCharIP, value);
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysWriteCharIP, value);
     else
       System.err.print(value);
   }
@@ -506,9 +540,9 @@ public class VM extends VM_Properties
       while (postDecimalDigits-- > 0)
 	multiplier *= 10;
       int remainder = (int) (multiplier * (value - ones));
-      if (negative) write("-");
+      if (negative) write('-');
       write(ones, false); 
-      write(".");
+      write('.');
       while (multiplier > 1) {
 	multiplier /= 10;
 	write(remainder / multiplier);
@@ -526,12 +560,11 @@ public class VM extends VM_Properties
   public static void write(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
+      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
     } else {
       System.err.print(value);
     }
   }
-
 
   /**
    * Low level print to console.
@@ -539,10 +572,44 @@ public class VM extends VM_Properties
    */
   public static void writeHex(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
+      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
     else {
       System.err.print(Integer.toHexString(value));
     }
+  }
+
+  /**
+   * Low level print to console.
+   * @param value	what is printed, as hex only
+   */
+  public static void writeHex(long value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    if (runningVM){
+      int val1 = (int)(value>>32);
+      int val2 = (int)(value & 0xFFFFFFFF);
+      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, 2);
+    } else {
+      System.err.print(Long.toHexString(value));
+    }
+  }
+
+  /**
+   * Low level print to console.
+   * @param value	what is printed, as hex only
+   */
+  public static void writeHex(VM_Address value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  //-#if RVM_FOR_64_ADDR
+    writeHex(value.toLong()); 
+  //-#else
+    writeHex(value.toInt()); 
+  //-#endif
+  }
+
+  public static void writeHex(VM_Offset value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  //-#if RVM_FOR_64_ADDR
+    writeHex(value.toLong()); 
+  //-#else
+    writeHex(value.toInt()); 
+  //-#endif
   }
 
   /**
@@ -551,7 +618,7 @@ public class VM extends VM_Properties
    */
   public static void writeInt(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0 /*just decimal*/);
+      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0 /*just decimal*/);
     else {
       System.err.print(value);
     }
@@ -565,7 +632,7 @@ public class VM extends VM_Properties
    */
   public static void write(int value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, hexToo?1:0);
+      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, hexToo?1:0);
     else
       System.err.print(value);
   }
@@ -577,7 +644,7 @@ public class VM extends VM_Properties
   public static void write(long value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     write(value, true);
   }
-
+  
   /**
    * Low level print to console.
    * @param value   what is printed
@@ -589,7 +656,7 @@ public class VM extends VM_Properties
       int val1, val2;
       val1 = (int)(value>>32);
       val2 = (int)(value & 0xFFFFFFFF);
-      sysCall3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, hexToo?1:0);
+      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, hexToo?1:0);
     } else
       System.err.print(value);
   }
@@ -611,7 +678,7 @@ public class VM extends VM_Properties
     while (temp >= 10) { len++; temp /= 10; }
     while (fieldWidth > len++) write(" ");
     if (runningVM) 
-      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
     else 
       System.err.print(value);
   }
@@ -635,11 +702,15 @@ public class VM extends VM_Properties
   }
 
   public static void write (VM_Address addr) { 
-    writeHex(addr.toInt());
+    writeHex(addr);
+  }
+
+  public static void write (VM_Offset offset) { 
+    writeHex(offset);
   }
 
   public static void write (VM_Word w) {
-    writeHex(w.toInt());
+    writeHex(w.toAddress());
   }
 
   public static void write (boolean b) {
@@ -650,6 +721,7 @@ public class VM extends VM_Properties
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
   public static void sysWrite(VM_Atom a)               throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
+  public static void sysWriteln(VM_Atom a)             throws VM_PragmaNoInline { swLock(); write(a); write("\n"); swUnlock(); }
   public static void sysWrite(VM_Member m)             throws VM_PragmaNoInline { swLock(); write(m); swUnlock(); }
   public static void sysWrite(VM_MemberReference mr)   throws VM_PragmaNoInline { swLock(); write(mr); swUnlock(); }
   public static void sysWriteln ()                     throws VM_PragmaNoInline { swLock(); write("\n"); swUnlock(); }
@@ -657,6 +729,7 @@ public class VM extends VM_Properties
   public static void sysWriteField (int w, int v)      throws VM_PragmaNoInline { swLock(); writeField(w, v); swUnlock(); }
   public static void sysWriteField (int w, String s)   throws VM_PragmaNoInline { swLock(); writeField(w, s); swUnlock(); }
   public static void sysWriteHex(int v)                throws VM_PragmaNoInline { swLock(); writeHex(v); swUnlock(); }
+  public static void sysWriteHex(VM_Address v)         throws VM_PragmaNoInline { swLock(); writeHex(v); swUnlock(); }
   public static void sysWriteInt(int v)                throws VM_PragmaNoInline { swLock(); writeInt(v); swUnlock(); }
   public static void sysWriteLong(long v)              throws VM_PragmaNoInline { swLock(); write(v,false); swUnlock(); }
   public static void sysWrite   (double d, int p)      throws VM_PragmaNoInline { swLock(); write(d, p); swUnlock(); }
@@ -664,6 +737,8 @@ public class VM extends VM_Properties
   public static void sysWrite   (String s)             throws VM_PragmaNoInline { swLock(); write(s); swUnlock(); }
   public static void sysWrite   (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
   public static void sysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); writeln(); swUnlock(); }
+  public static void sysWrite   (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); swUnlock(); }
+  public static void sysWriteln (VM_Offset o)         throws VM_PragmaNoInline { swLock(); write(o); writeln(); swUnlock(); }
   public static void sysWrite   (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); swUnlock(); }
   public static void sysWrite   (boolean b)            throws VM_PragmaNoInline { swLock(); write(b); swUnlock(); }
   public static void sysWrite   (int i)                throws VM_PragmaNoInline { swLock(); write(i); swUnlock(); }
@@ -688,6 +763,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2)      throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s, VM_Address a)    throws VM_PragmaNoInline { swLock(); write(s);   write(a); swUnlock(); }
   public static void sysWriteln (String s, VM_Address a)    throws VM_PragmaNoInline { swLock(); write(s);   write(a); writeln(); swUnlock(); }
+  public static void sysWrite   (String s, VM_Offset o)    throws VM_PragmaNoInline { swLock(); write(s);   write(o); swUnlock(); }
+  public static void sysWriteln (String s, VM_Offset o)    throws VM_PragmaNoInline { swLock(); write(s);   write(o); writeln(); swUnlock(); }
   public static void sysWrite   (String s, VM_Word w)       throws VM_PragmaNoInline { swLock(); write(s);   write(w); swUnlock(); }
   public static void sysWriteln (String s, VM_Word w)       throws VM_PragmaNoInline { swLock(); write(s);   write(w); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, VM_Address a)  throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(a); swUnlock(); }
@@ -718,6 +795,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); write(s4); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, VM_Address a1, String s2, VM_Address a2) throws VM_PragmaNoInline { swLock(); write(s1);  write(a1); write(s2); write(a2); swUnlock(); }
   public static void sysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2) throws VM_PragmaNoInline { swLock(); write(s1);  write(a1); write(s2); write(a2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, VM_Address a, String s2, int i) throws VM_PragmaNoInline { swLock(); write(s1);  write(a); write(s2); write(i); swUnlock(); }
+  public static void sysWriteln   (String s1, VM_Address a, String s2, int i) throws VM_PragmaNoInline { swLock(); write(s1);  write(a); write(s2); write(i); writeln(); swUnlock(); }
 
   private static void showProc() { 
     VM_Processor p = VM_Processor.getCurrentProcessor();
@@ -734,6 +813,7 @@ public class VM extends VM_Properties
 
   public static void ptsysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
 
+  public static void psysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); showProc(); write(a); writeln(); swUnlock(); }
   public static void psysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); writeln(); swUnlock(); }
   public static void psysWriteln (String s, int i)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
   public static void psysWriteln (String s, VM_Address a)      throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); }
@@ -777,7 +857,7 @@ public class VM extends VM_Properties
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
     } else {
-      sysCall1(VM_BootRecord.the_boot_record.sysExitIP, value);
+      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, value);
     }
   }
 
@@ -790,9 +870,9 @@ public class VM extends VM_Properties
    * @return virtual processor's o/s handle
    */
   static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
-                                       int ti, VM_Address fp) {
-    return sysCall4(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
-                    jtoc.toInt(), pr.toInt(), ti, fp.toInt());
+                                       VM_Address ti, VM_Address fp) {
+    return VM_SysCall.call_I_A_A_A_A(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
+                    jtoc, pr, ti, fp);
   }
 
   /**
@@ -800,7 +880,7 @@ public class VM extends VM_Properties
    * @param cpuId  physical cpu id (0, 1, 2, ...)
    */
   static void sysVirtualProcessorBind(int cpuId) {
-    sysCall1(VM_BootRecord.the_boot_record.sysVirtualProcessorBindIP, cpuId);
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysVirtualProcessorBindIP, cpuId);
   }
 
   /**
@@ -810,7 +890,7 @@ public class VM extends VM_Properties
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     return;
     //-#else
-    sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
     //-#endif
   }
 
@@ -820,7 +900,7 @@ public class VM extends VM_Properties
    * to be running when the timer expires.
    */
   static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {
-    sysCall1(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP, timeSlice);
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP, timeSlice);
   }
 
   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -829,194 +909,20 @@ public class VM extends VM_Properties
   //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   //-#else
   static void sysCreateThreadSpecificDataKeys() {
-      sysCall0(VM_BootRecord.the_boot_record.sysCreateThreadSpecificDataKeysIP);
+      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysCreateThreadSpecificDataKeysIP);
   }
   //-#endif
 
   static void sysWaitForVirtualProcessorInitialization() {
-    sysCall0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
+    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
   }
 
   static void sysWaitForMultithreadingStart() {
-    sysCall0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
+    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
   }
 
   static void sysInitializeStartupLocks(int howMany) {
-    sysCall1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
-  }
-  //-#endif
-
-  //-#if RVM_FOR_POWERPC
-  /**
-   * Make calls to host operating system services.
-   * @param ip address of a function in sys.C 
-   * @return integer value returned by function in sys.C
-   */
-  public static int sysCall0(VM_Address ip) throws VM_PragmaInline {
-    return VM_Magic.sysCall0(ip, VM_BootRecord.the_boot_record.sysTOC);
-  }
-
-  /**
-   * sysCall1
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return integer value returned by function in sys.C
-   */
-  public static int sysCall1(VM_Address ip, int p1) throws VM_PragmaInline {
-    return VM_Magic.sysCall1(ip, VM_BootRecord.the_boot_record.sysTOC, p1);
-  }
-
-  /**
-   * sysCall2
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall2(VM_Address ip, int p1, int p2) throws VM_PragmaInline {
-    return  VM_Magic.sysCall2(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2);
-  }
-
-  /**
-   * sysCall3
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall3(VM_Address ip, int p1, int p2, int p3) throws VM_PragmaInline {
-    return  VM_Magic.sysCall3(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2, p3);
-  }
-
-  /**
-   * sysCall4
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall4(VM_Address ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
-    return VM_Magic.sysCall4(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2, p3, p4);
-  }
-
-  /**
-   * sysCall_L_0
-   * @param ip  address of a function in sys.C 
-   * @return long value returned by function in sys.C
-   */
-  public static long sysCall_L_0(VM_Address ip) throws VM_PragmaInline {
-    return VM_Magic.sysCall_L_0(ip, VM_BootRecord.the_boot_record.sysTOC);
-  }
-
-  /**
-   * sysCall_L_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return long value returned by function in sys.C
-   */
-  public static long sysCall_L_I(VM_Address ip, int p1) throws VM_PragmaInline {
-    return VM_Magic.sysCall_L_I(ip, VM_BootRecord.the_boot_record.sysTOC, p1);
-  }
-
-  /**
-   * sysCallAD
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCallAD(VM_Address ip, int p1, double p2) throws VM_PragmaInline {
-    return  VM_Magic.sysCallAD(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2);
-  }
-
-  //-#endif
-  //-#if RVM_FOR_IA32
-  /**
-   * sysCall0
-   * @param ip  address of a function in sys.C 
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall0(VM_Address ip) throws VM_PragmaInline {
-    return  VM_Magic.sysCall0(ip);
-  }
-
-  /**
-   * sysCall1
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall1(VM_Address ip, int p1) throws VM_PragmaInline {
-    return  VM_Magic.sysCall1(ip, p1);
-  }
-
-  /**
-   * sysCall2
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall2(VM_Address ip, int p1, int p2) throws VM_PragmaInline {
-    return  VM_Magic.sysCall2(ip, p1, p2);
-  }
-
-  /**
-   * sysCall3
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall3(VM_Address ip, int p1, int p2, int p3) throws VM_PragmaInline {
-    return  VM_Magic.sysCall3(ip, p1, p2, p3);
-  }
-
-  /**
-   * sysCall4
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCall4(VM_Address ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
-    return VM_Magic.sysCall4(ip, p1, p2, p3, p4);
-  }
-
-  /**
-   * sysCall_L_0
-   * @param ip  address of a function in sys.C 
-   * @return long value returned by function in sys.C
-   */
-  public static long sysCall_L_0(VM_Address ip) throws VM_PragmaInline {
-    return VM_Magic.sysCall_L_0(ip);
-  }
-
-  /**
-   * sysCall_L_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return long value returned by function in sys.C
-   */
-  public static long sysCall_L_I(VM_Address ip, int p1) throws VM_PragmaInline {
-    return  VM_Magic.sysCall_L_I(ip, p1);
-  }
-
-  /**
-   * sysCallAD
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return  integer value returned by function in sys.C
-   */
-  public static int sysCallAD(VM_Address ip, int p1, double p2) throws VM_PragmaInline {
-    return VM_Magic.sysCallAD(ip, p1, p2);
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
   }
   //-#endif
 
@@ -1051,7 +957,7 @@ public class VM extends VM_Properties
       VM_BootImageCompiler.init(bootCompilerArgs);
     VM_Runtime.init();
     VM_Scheduler.init();
-    VM_Interface.init();
+    MM_Interface.init();
   }
 
   /**
@@ -1083,7 +989,6 @@ public class VM extends VM_Properties
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
-
   public static void disableGC() throws VM_PragmaInline, VM_PragmaInterruptible  { 
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
@@ -1099,8 +1004,6 @@ public class VM extends VM_Properties
     //    (because an allocation attempt might trigger a collection that
     //    would invalidate the addresses we're holding)
     //
-
-      // VM_Scheduler.dumpStack();
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
 

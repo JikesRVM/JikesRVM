@@ -31,10 +31,10 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineLock(Object o, int lockOffset) throws VM_PragmaInline {
-    int old = VM_Magic.prepare(o, lockOffset);
+    int old = VM_Magic.prepareInt(o, lockOffset);
     if ((old >>> TL_THREAD_ID_SHIFT) == 0) { 
       // implies that fatbit == 0 & threadid == 0
-      if (VM_Magic.attempt(o, lockOffset, old, old | VM_Magic.getThreadId())) {
+      if (VM_Magic.attemptInt(o, lockOffset, old, old | VM_Magic.getThreadId())) {
         VM_Magic.isync(); // don't use stale prefetched data in monitor
         if (STATS) fastLocks++;
         return;           // common case: o is now locked
@@ -54,10 +54,10 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineUnlock(Object o, int lockOffset) throws VM_PragmaInline {
-    int old = VM_Magic.prepare(o, lockOffset);
+    int old = VM_Magic.prepareInt(o, lockOffset);
     if (((old ^ VM_Magic.getThreadId()) >>> TL_LOCK_COUNT_SHIFT) == 0) { // implies that fatbit == 0 && count == 0 && lockid == me
       VM_Magic.sync(); // memory barrier: subsequent locker will see previous writes
-      if (VM_Magic.attempt(o, lockOffset, old, old & TL_UNLOCK_MASK)) {
+      if (VM_Magic.attemptInt(o, lockOffset, old, old & TL_UNLOCK_MASK)) {
         return; // common case: o is now unlocked
       }
     }
@@ -77,10 +77,10 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit; 
 minor:  while (0 != retries--) { // repeat if there is contention for thin lock
-          int old = VM_Magic.prepare(o, lockOffset);
+          int old = VM_Magic.prepareInt(o, lockOffset);
           int id = old & (TL_THREAD_ID_MASK | TL_FAT_LOCK_MASK);
           if (id == 0) { // o isn't locked
-            if (VM_Magic.attempt(o, lockOffset, old, old | VM_Magic.getThreadId())) {
+            if (VM_Magic.attemptInt(o, lockOffset, old, old | VM_Magic.getThreadId())) {
               VM_Magic.isync(); // don't use stale prefetched data in monitor
               if (STATS) slowLocks++;
               break major;  // lock succeeds
@@ -96,7 +96,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
               }
               break major;  // lock succeeds (note that lockHeavy has issued an isync)
             }
-            if (VM_Magic.attempt(o, lockOffset, old, changed)) {
+            if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
               VM_Magic.isync(); // don't use stale prefetched data in monitor !!TODO: is this isync required?
               if (STATS) slowLocks++;
               break major;  // lock succeeds
@@ -151,7 +151,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
   static void unlock(Object o, int lockOffset) throws VM_PragmaNoInline {
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
-      int old = VM_Magic.prepare(o, lockOffset);
+      int old = VM_Magic.prepareInt(o, lockOffset);
       int id  = old & (TL_THREAD_ID_MASK | TL_FAT_LOCK_MASK);
       if (id != VM_Magic.getThreadId()) { // not normal case
         if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
@@ -166,7 +166,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
       int countbits = old & TL_LOCK_COUNT_MASK; // get count
       if (countbits == 0) { // this is the last lock
         int changed = old & TL_UNLOCK_MASK;
-        if (VM_Magic.attempt(o, lockOffset, old, changed)) {
+        if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
           return; // unlock succeeds
         } 
         continue;
@@ -174,7 +174,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
       // more than one lock
       // decrement recursion count
       int changed = old - TL_LOCK_COUNT_UNIT; 
-      if (VM_Magic.attempt(o, lockOffset, old, changed)) {
+      if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
         return; // unlock succeeds
       }
     }
@@ -202,7 +202,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     int locked = TL_FAT_LOCK_MASK | (l.index << TL_LOCK_ID_SHIFT);
     l.mutex.lock();
     do {
-      old = VM_Magic.prepare(o, lockOffset);
+      old = VM_Magic.prepareInt(o, lockOffset);
       // check to see if another thread has already created a fat lock
       if ((old & TL_FAT_LOCK_MASK) != 0) { // already a fat lock in place
         int index = (old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
@@ -212,7 +212,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
         return l;
       }
       changed = locked | (old & TL_UNLOCK_MASK);
-      if (VM_Magic.attempt(o, lockOffset, old, changed)) {
+      if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
         l.lockedObject = o;
         l.ownerId      = old & TL_THREAD_ID_MASK;
         if (l.ownerId != 0) 
@@ -233,8 +233,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     int old;
     int changed;
     do {
-      old = VM_Magic.prepare(o, lockOffset);
-    } while (!VM_Magic.attempt(o, lockOffset, old, old & TL_UNLOCK_MASK));
+      old = VM_Magic.prepareInt(o, lockOffset);
+    } while (!VM_Magic.attemptInt(o, lockOffset, old, old & TL_UNLOCK_MASK));
   }
 
 
@@ -256,7 +256,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     int locked = TL_FAT_LOCK_MASK | (l.index << TL_LOCK_ID_SHIFT);
     l.mutex.lock();
     do {
-      old = VM_Magic.prepare(o, lockOffset);
+      old = VM_Magic.prepareInt(o, lockOffset);
       // check to see if another thread has already created a fat lock
       if ((old & TL_FAT_LOCK_MASK) != 0) { // already a fat lock in place
         VM_Lock.free(l);
@@ -269,7 +269,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
         return false;
       }
       changed = locked | (old & TL_UNLOCK_MASK);
-      if (VM_Magic.attempt(o, lockOffset, old, changed)) {
+      if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
         l.lockedObject = o;
         l.ownerId = old & TL_THREAD_ID_MASK;
         if (l.ownerId != 0) 

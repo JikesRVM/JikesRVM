@@ -65,7 +65,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   public final int getParameterWords() throws VM_PragmaUninterruptible {
     int pw = 0;
     for (int i = 0; i<parameterTypes.length; i++)
-      pw += parameterTypes[i].getStackWords();
+	   pw += parameterTypes[i].getStackWords();
     return pw;
   }
 

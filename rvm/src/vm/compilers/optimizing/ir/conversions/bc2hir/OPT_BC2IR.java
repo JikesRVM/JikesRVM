@@ -279,6 +279,41 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     blocks.finalPass();
   }
 
+  // pops the length off the stack
+  //
+  public OPT_Instruction generateAnewarray (VM_TypeReference elementTypeRef) {
+    VM_TypeReference array = elementTypeRef.getArrayTypeForElementType();
+    OPT_RegisterOperand t = gc.temps.makeTemp(array);
+    t.setPreciseType();
+    markGuardlessNonNull(t);
+    // We can do early resolution of the array type if the element type 
+    // is already initialized.
+    VM_Type arrayType = array.peekResolvedType();
+    OPT_Operator op = NEWARRAY_UNRESOLVED;
+    OPT_TypeOperand arrayOp = makeTypeOperand(array);
+    if (arrayType != null) {
+      if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
+	VM_Type elementType = elementTypeRef.peekResolvedType();
+	if (elementType != null) {
+	  if (elementType.isInitialized() || elementType.isInBootImage()) {
+	    arrayType.resolve();
+	    arrayType.instantiate();
+	  }
+	}
+      }
+      if (arrayType.isInitialized()) {
+	op = NEWARRAY;
+	arrayOp = makeTypeOperand(arrayType);
+      }
+    }
+    OPT_Instruction s = NewArray.create(op, t, arrayOp, popInt());
+    push(t.copyD2U()); 
+    rectifyStateWithErrorHandler();
+    rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);      
+    return s;
+  }
+
+
   /**
    * Generate instructions for a basic block.
    * May discover other basic blocks that need to be generated along the way.
@@ -1582,7 +1617,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  // See if this is a magic method (VM_Address, VM_Word, etc.)
 	  // If it is, generate the inline code and we are done.
-	  if (ref.getType().isWordType()) {
+	  if (ref.getType().isMagicType()) {
 	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
 	    if (generated) break; // all done.
 	  }
@@ -1711,7 +1746,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  // See if this is a magic method (VM_Magic, VM_Address, VM_Word, etc.)
 	  // If it is, generate the inline code and we are done.
-	  if (ref.getType().isMagicType() || ref.getType().isWordType()) {
+	  if (ref.getType().isMagicType()) {
 	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
 	    if (generated) break;
 	  }
@@ -1934,34 +1969,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       case JBC_anewarray:
 	{
 	  VM_TypeReference elementTypeRef = bcodes.getTypeReference();
-	  VM_TypeReference array = elementTypeRef.getArrayTypeForElementType();
-	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
-	  t.setPreciseType();
-	  markGuardlessNonNull(t);
-	  // We can do early resolution of the array type if the element type 
-	  // is already initialized.
-	  VM_Type arrayType = array.peekResolvedType();
-	  OPT_Operator op = NEWARRAY_UNRESOLVED;
-	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
-	  if (arrayType != null) {
-	    if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
-	      VM_Type elementType = elementTypeRef.peekResolvedType();
-	      if (elementType != null) {
-		if (elementType.isInitialized() || elementType.isInBootImage()) {
-		  arrayType.resolve();
-		  arrayType.instantiate();
-		}
-	      }
-	    }
-	    if (arrayType.isInitialized()) {
-	      op = NEWARRAY;
-	      arrayOp = makeTypeOperand(arrayType);
-	    }
-	  }
-	  s = NewArray.create(op, t, arrayOp, popInt());
-	  push(t.copyD2U()); 
-	  rectifyStateWithErrorHandler();
-	  rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
+	  s = generateAnewarray(elementTypeRef);
 	}
 	break;
 
@@ -2013,6 +2021,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_TypeReference typeRef = bcodes.getTypeReference();
 	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_Operand op2 = pop();
+	  if (typeRef.isWordType()) {
+	    op2 = op2.copy();
+	    if (op2 instanceof OPT_RegisterOperand) {
+	      ((OPT_RegisterOperand)op2).type = typeRef;
+	    }
+	    push(op2);
+	    if (DBG_CF) db("skipped gen of checkcast to word type "+typeRef);
+	    break;
+	  }
 	  if (VM.VerifyAssertions) VM._assert(op2.isRef());
 	  if (CF_CHECKCAST && !classLoading) {
 	    if (op2.isDefinitelyNull()) {
@@ -2563,7 +2580,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return s;
   }
 
-  private OPT_Instruction _aloadHelper(OPT_Operator operator, 
+  public OPT_Instruction _aloadHelper(OPT_Operator operator, 
 				       OPT_Operand ref, 
 				       OPT_Operand index, 
 				       VM_TypeReference type) {
@@ -3157,7 +3174,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param op operand to get type of
    */
-  private VM_TypeReference getArrayTypeOf(OPT_Operand op) {
+  public VM_TypeReference getArrayTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
     return op.asRegister().type;
   }
@@ -3185,7 +3202,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op operand to check
    * @param type expected type of operand
    */
-  private void assertIsType(OPT_Operand op, VM_TypeReference type) {
+  public void assertIsType(OPT_Operand op, VM_TypeReference type) {
     if (VM.VerifyAssertions) {
       if (op.isDefinitelyNull()) {
         VM._assert(type.isReferenceType());
@@ -3206,9 +3223,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param childType child type
    */
   private void assertIsAssignable(VM_TypeReference parentType, VM_TypeReference childType) {
-    if (VM.VerifyAssertions)
-	if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO)
-	    VM._assert(false, parentType + " not assignable with " + childType);
+    if (VM.VerifyAssertions) {
+      if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO) {
+	VM.sysWriteln("type reference equality "+ (parentType == childType));
+	VM._assert(false, parentType + " not assignable with " + childType);
+      }
+    }
   }
 
   //// DEBUGGING.
@@ -3322,11 +3342,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private void clearCurrentGuard() {
+  public void clearCurrentGuard() {
     currentGuard = null;
   }
 
-  private OPT_Operand getCurrentGuard() {
+  public OPT_Operand getCurrentGuard() {
     // This check is needed for when guards are (unsafely) turned off
     if (currentGuard!=null)
       return currentGuard.copy();
@@ -3337,7 +3357,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Generate a null-check instruction for the given operand.
    * @return true if an unconditional throw is generated, false otherwise
    */
-  private boolean do_NullCheck(OPT_Operand ref) {
+  public boolean do_NullCheck(OPT_Operand ref) {
     if (gc.options.NO_NULL_CHECK)
       return false;
     if (ref.isDefinitelyNull()) {
@@ -3426,7 +3446,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Generate a boundscheck instruction for the given operand and index.
    * @return true if an unconditional throw is generated, false otherwise
    */
-  private boolean do_BoundsCheck(OPT_Operand ref, OPT_Operand index) {
+  public boolean do_BoundsCheck(OPT_Operand ref, OPT_Operand index) {
     // Unsafely eliminate all bounds checks
     if (gc.options.NO_BOUNDS_CHECK)
       return false;
@@ -4071,11 +4091,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_BasicBlock rectifyStateWithErrorHandler() {
     return rectifyStateWithErrorHandler(false);
   }
-  private void rectifyStateWithExceptionHandlers() {
+  public void rectifyStateWithExceptionHandlers() {
     rectifyStateWithExceptionHandlers(false);
   }
 
-  private OPT_BasicBlock rectifyStateWithExceptionHandler(VM_TypeReference exceptionType) {
+  public OPT_BasicBlock rectifyStateWithExceptionHandler(VM_TypeReference exceptionType) {
     return rectifyStateWithExceptionHandler(exceptionType, false);
   }
   private OPT_BasicBlock rectifyStateWithNullPtrExceptionHandler(boolean linkToExitIfUncaught) {

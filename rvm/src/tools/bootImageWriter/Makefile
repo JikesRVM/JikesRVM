@@ -12,15 +12,6 @@ HOST_MEM_MIN=500M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
-JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(RVM_REPOSITORIES)
-
-$SRCS=	BootImage.java \
-	BootImageChecker.java \
-	BootImageMap.java \
-	BootImageWriter.java \
-	BootImageWriterConstants.java \
-	BootImageWriterMessages.java
-
 ZIP_KLUDGE_CLASSES = java/util/zip/ZipConstants.class
 MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map* java/util/AbstractMap*
 TREEMAP_KLUDGE_CLASSES = java/util/TreeMap* java/util/SortedMap* java/util/Iterator* java/util/TreeSet*
@@ -59,7 +50,7 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 #   RVM_BOOTIMAGE_COMPILER_ARGS = command line arguments to pass to boot image compiler
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
 #   VERBOSE_ARG = command-line argument for verbose host jdk options
-$(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter.class $(UTIL_KLUDGE_JAR)
+$(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 	$(HOST_JAVA) -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
 	    -Xbootclasspath/a:$(LIB_JAR) \
 	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
@@ -74,7 +65,4 @@ $(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter.class $(UTIL_KLUDGE_JAR)
 	   $(RVM_BOOTIMAGE_WRITER_ARGS) \
 	   $(IMAGE_ADDRESS_ARG)
 	@print -n "(bootimage linked) "
-
-$(SCRATCH_DIR)/BootImageWriter.class:	$(SRCS)
-	@$(JCOMPILE) -d $(SCRATCH_DIR) BootImageWriter.java
 

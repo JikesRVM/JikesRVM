@@ -9,8 +9,9 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -37,9 +38,9 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   /**
    * Constructor
    */
-  FreeListVMResource(byte space_, String vmName, VM_Address vmStart, EXTENT bytes, byte status) {
+  FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
-    freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
+    freeList = new GenericFreeList(Conversions.bytesToPages(bytes.toInt()));
     gcLock = new Lock("NewFreeListVMResrouce.gcLock");
     mutatorLock = new Lock("NewFreeListVMResrouce.gcLock");
   }
@@ -66,7 +67,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
   public final VM_Address acquire(int pages, MemoryResource mr,
 				  boolean chargeMR) {
-    if (VM.VerifyAssertions) VM._assert(mr != null);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != null);
     if (chargeMR && !mr.acquire(pages))
       return VM_Address.zero();
     lock();
@@ -87,7 +88,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
 
   public VM_Address acquire(int request) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     return VM_Address.zero();
   }
 

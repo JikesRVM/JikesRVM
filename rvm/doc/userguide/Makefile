@@ -56,8 +56,6 @@ INPUT_FILES = 	userguide.tex \
 		JMTk.tex \
 		jni.tex \
 		libraries.tex \
-		mmdetails.tex \
-		mmwatson.tex \
 		optdetails.tex \
 		performance.tex \
 		profiling.tex \

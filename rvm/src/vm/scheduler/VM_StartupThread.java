@@ -37,7 +37,7 @@ class VM_StartupThread extends VM_Thread
       // get pthread_id from AIX and store into vm_processor field
       // 
       VM_Processor.getCurrentProcessor().pthread_id = 
-	VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
+	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
 
       if (VM.TraceThreads) VM_Scheduler.trace("VM_StartupThread", "pthread_id =",
                                VM_Processor.getCurrentProcessor().pthread_id);

@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
@@ -147,8 +148,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   private static void printVerboseOutputLine (int GCType) throws VM_PragmaUninterruptible {
 
     int gcTimeMs = (GCType == MINOR) ? minorGCTime.lastMs() : GCTime.lastMs();
-    int free = (int) VM_Interface.freeMemory();
-    int total = (int) VM_Interface.totalMemory();
+    int free = (int) MM_Interface.freeMemory();
+    int total = (int) MM_Interface.totalMemory();
     double freeFraction = free / (double) total;
     int copiedKb = (int) (((GCType == MINOR) ? minorBytesCopied.last() : bytesCopied.last()) / 1024);
 
@@ -384,11 +385,11 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     if (VERIFY_ALIGNMENT) {
-      if ((size & ~(WORDSIZE - 1)) != size ||
-          VM_Memory.align(addr, WORDSIZE).NE(addr)) {
+      if ((size & ~(BYTES_IN_WORD - 1)) != size ||
+          VM_Memory.alignUp(addr, BYTES_IN_WORD).NE(addr)) {
         VM.sysWrite("Non word size aligned region allocated ");
         VM.sysWrite("size is ", size);
-        VM.sysWriteln(" address is ", addr.toInt());
+        VM.sysWriteln(" address is ", addr);
         VM.sysFail("...exiting VM");
       }
     }
@@ -398,8 +399,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
         int val = VM_Magic.getMemoryInt(addr.add(i));
         if (val != 0) {
           VM.sysWrite("Non-zeroed memory allocated ");
-          VM.sysWriteln("\taddress is ",addr.toInt());
-          VM.sysWriteln("\tnon-zero address is ", addr.add(i).toInt());
+          VM.sysWriteln("\taddress is ",addr);
+          VM.sysWriteln("\tnon-zero address is ", addr.add(i));
           VM.sysWriteln("\tvalue is ", val);
           VM.sysFail("...exiting VM");
         }

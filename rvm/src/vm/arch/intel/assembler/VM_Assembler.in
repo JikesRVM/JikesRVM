@@ -209,6 +209,21 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   }
 
   /**
+   * Create an assembler with a given machine code buffer size and
+   * tell it whether or not to print machine code as it generates it.
+   * The buffer size is merely a heuristic, because the assembler will
+   * expand its buffer if it becomes full. 
+   *
+   * @param bytecodeSize initial machine code buffer size.
+   * @param shouldPrint whether to dump generated machine code.
+   * @param compiler VM_Compiler instance that this assembler is associated with;
+   *	             currently ignored on IA32.
+   */
+  public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler comp) {
+    this(bytecodeSize, shouldPrint);
+  }
+
+  /**
    *  Heuristic constant used to calculate initial size of the machine
    * code buffer.  This is an average of how many bytes of generated
    * code come from a given bytecode in the baseline compiler.

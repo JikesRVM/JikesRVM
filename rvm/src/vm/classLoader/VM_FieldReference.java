@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
@@ -14,7 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_FieldReference extends VM_MemberReference {
+public final class VM_FieldReference extends VM_MemberReference implements VM_SizeConstants {
 
   /** 
    * The VM_Field that this field reference resolved to (null if not yet resolved).
@@ -42,12 +43,19 @@ public final class VM_FieldReference extends VM_MemberReference {
   public final VM_TypeReference getFieldContentsType() throws VM_PragmaUninterruptible {
     return fieldContentsType;
   }
-
+  
+  /**
+   * How many stackslots do value of this type take?
+   */
+  public final int getNumberOfStackSlots() {
+    return getFieldContentsType().getStackWords();  
+  }
+    
   /**
    * Get size of the field's value, in bytes.
    */ 
   public final int getSize() throws VM_PragmaUninterruptible {
-    return fieldContentsType.getStackWords() << 2;
+    return fieldContentsType.getSize();
   }
 
   /**

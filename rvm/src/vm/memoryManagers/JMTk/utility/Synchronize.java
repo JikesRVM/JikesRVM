@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 /*
  * @author Perry Cheng
  */
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Synchronize implements VM_Uninterruptible {
 
 

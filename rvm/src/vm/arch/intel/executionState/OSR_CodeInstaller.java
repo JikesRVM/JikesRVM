@@ -99,10 +99,10 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       VM.sysWriteHex(VM_Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset() >> 2));
       VM.sysWriteln();
       VM.sysWrite("JTOC register ");
-      VM.sysWriteHex(VM_Magic.getTocPointer().toInt());
+      VM.sysWriteHex(VM_Magic.getTocPointer());
       VM.sysWriteln();
       VM.sysWrite("Processor register ");
-      VM.sysWriteHex(VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister()).toInt());
+      VM.sysWriteHex(VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister()));
       VM.sysWriteln();
       
       VM.sysWriteln("tsfromFPOffset "+Integer.toHexString(tsfromFPOffset));

@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.*;
  * @author Feng Qian
  */
 
-public class OSR_ObjectHolder implements VM_Uninterruptible {
+public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
 
   // initialize pool size
   private final static int POOLSIZE = 8;
@@ -75,6 +75,6 @@ public class OSR_ObjectHolder implements VM_Uninterruptible {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }
-    VM_Magic.setObjectAtOffset(refs, i<<2, null); // refs[i] = null;
+    VM_Magic.setObjectAtOffset(refs, i<<LOG_BYTES_IN_ADDRESS, null); // refs[i] = null;
   }
 }

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.opt.*;
  * @author Derek Lieber
  * @author Arvin Shepherd
  */
-public class VM_CompiledMethods {
+public class VM_CompiledMethods implements VM_SizeConstants {
 
   /**
    * Create a VM_CompiledMethod appropriate for the given compilerType
@@ -205,7 +205,7 @@ public class VM_CompiledMethods {
       INSTRUCTION[] code = cm.getInstructions();
       codeCount[ct]++;
       int size = codeArray.getInstanceSize(code.length);
-      codeBytes[ct] += VM_Memory.align(size, 4);
+      codeBytes[ct] += VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }
     VM.sysWriteln("Compiled code space report\n");
@@ -253,7 +253,7 @@ public class VM_CompiledMethods {
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
-    VM_CompiledMethod[] newarray = VM_Interface.newContiguousCompiledMethodArray(newLength);
+    VM_CompiledMethod[] newarray = MM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync();
     return newarray;

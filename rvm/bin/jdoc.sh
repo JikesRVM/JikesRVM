@@ -64,7 +64,6 @@ for f in `$FIND . -name \*.java`; do
   if [ -e `dirname $f`/`basename $f java`class ]; then
     # strip INSTRUCTION typedef (someday, maybe we'll write in Java :)
     $SED s/\\\<INSTRUCTION\\\>/$INSTRUCTION_TYPE/g $f > $f.tmp
-    $SED s/\\\<EXTENT\\\>/$ADDRESS_TYPE/g $f.tmp > $f
   else
     rm $f
   fi
@@ -85,7 +84,7 @@ FILES=`$FIND java -name '*.java'`
 
 #run javadoc
 rm -f $DEST_DIR/javadoc.out
-$FIND . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES $FILES >> $DEST_DIR/javadoc.out 2>&1
+$FIND . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -J-Xmx200M -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES $FILES >> $DEST_DIR/javadoc.out 2>&1
 
 echo -n "(javadoc complete) "
 

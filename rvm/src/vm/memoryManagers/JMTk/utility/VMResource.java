@@ -8,9 +8,10 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -49,11 +50,11 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static void showAll () {
     for (int vmr = 0; vmr < count; vmr++) {
-      VM.sysWrite("VMResource ");
-      VM.sysWrite(vmr); VM.sysWrite(" ");
-      VM.sysWrite(resources[vmr].start); VM.sysWrite(" ");
-      VM.sysWrite(resources[vmr].end); VM.sysWrite(" ");
-      VM.sysWriteln(resources[vmr].name);
+      VM_Interface.sysWrite("VMResource ");
+      VM_Interface.sysWrite(vmr); VM_Interface.sysWrite(" ");
+      VM_Interface.sysWrite(resources[vmr].start); VM_Interface.sysWrite(" ");
+      VM_Interface.sysWrite(resources[vmr].end); VM_Interface.sysWrite(" ");
+      VM_Interface.sysWriteln(resources[vmr].name);
     }
   }
 
@@ -111,16 +112,16 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     VM_Array type = VM_Magic.getObjectType(resources).asArray();
     Object [] tib = type.getTypeInformationBlock();
     int size = type.getInstanceSize(NUM_PAGES);
-    resourceTable = (VMResource []) VM_Interface.allocateArray(NUM_PAGES, size, tib, Plan.IMMORTAL_SPACE);
+    resourceTable = (VMResource []) MM_Interface.allocateArray(NUM_PAGES, size, tib, Plan.IMMORTAL_SPACE);
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];
       if (vm == null) continue;
       int startPage = Conversions.addressToPagesDown(vm.start);
       for (int p = startPage; p < (startPage + vm.pages); p++) {
 	if (resourceTable[p] != null) {
-	  VM.sysWrite("Conflicting VMResource: ", vm.name);
-	  VM.sysWriteln(" and ", resourceTable[p].name);
-	  VM.sysFail("Conflicting VMResource");
+	  VM_Interface.sysWrite("Conflicting VMResource: ",vm.name);
+	  VM_Interface.sysWriteln(" and ",resourceTable[p].name);
+	  VM_Interface.sysFail("Conflicting VMResource");
 	}
 	resourceTable[p] = vm;
       }
@@ -131,7 +132,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static VMResource resourceForPage(VM_Address addr) {
     if (resourceTable == null)
-      VM.sysFail("resourceForBlock called when resourceTable is null");
+      VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
     return resourceTable[addr.toInt() >>> LOG_PAGE_SIZE];
   }
 
@@ -142,9 +143,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   }
 
   final public static byte getSpace(VM_Address addr) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) {
+    if (VM_Interface.VerifyAssertions) {
 	if (spaceTable == null)
-	  VM.sysFail("getSpace called when spaceTable is null");
+	  VM_Interface.sysFail("getSpace called when spaceTable is null");
 	return spaceTable[addr.toInt() >>> LOG_PAGE_SIZE];
     }
     return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
@@ -166,7 +167,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     int start =  addr.toInt() >>> LOG_PAGE_SIZE;
     for (int i=0; i<pages; i++) {
 	if (tagTable[start+i] != v)
-	    VM.sysFail("VMResource.clearTag: current tag does not match expected value");
+	    VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
 	tagTable[start+i] = (byte) 0;
     }
   }
@@ -178,10 +179,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  VMResource(byte space_, String vmName, VM_Address vmStart, EXTENT bytes, byte status_) {
+  VMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status_) {
     space = space_;
     start = vmStart;
-    pages = Conversions.bytesToPages(bytes);
+    pages = Conversions.bytesToPages(bytes.toInt());
     end = start.add(bytes);
     name = vmName;
     index = count++;
@@ -189,10 +190,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     status = status_;
     VM_Interface.setHeapRange(index, start, end);
     if (end.GT(VM_Interface.MAXIMUM_MAPPABLE)) {
-      VM.sysWrite("\nError creating VMResrouce ", vmName);
-      VM.sysWriteln(" with range ", start, " to ", end);
-      VM.sysWriteln("Exceeds the maximum mappable address for this OS of ", VM_Interface.MAXIMUM_MAPPABLE);
-      VM._assert(false);
+      VM_Interface.sysWrite("\nError creating VMResrouce ",vmName);
+      VM_Interface.sysWriteln(" with range ",start," to ",end);
+      VM_Interface.sysWriteln("Exceeds the maximum mappable address for this OS of ",VM_Interface.MAXIMUM_MAPPABLE);
+      VM_Interface._assert(false);
     }
   }
 
@@ -207,30 +208,30 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public abstract VM_Address acquire(int request, MemoryResource mr);
   
   protected void acquireHelp (VM_Address start, int pageRequest) {
-    if (!VM.runningVM) VM.sysFail("VMResource.acquireHelp called before VM is running");
+    if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.acquireHelp called before VM is running");
     if (spaceTable == null) 
-	VM.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
+	VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
     int pageStart = Conversions.addressToPages(start);
     // VM.sysWrite("Acquiring pages ", pageStart);
     // VM.sysWrite(" to ", pageStart + pageRequest - 1);
     // VM.sysWriteln(" for space ", space);
     for (int i=0; i<pageRequest; i++) {
-      if (VM.VerifyAssertions) 
-	  VM._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE ||
+      if (VM_Interface.VerifyAssertions) 
+	  VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE ||
 		     spaceTable[pageStart+i] == space);  // Suspect - FreeListVM
       spaceTable[pageStart+i] = space;
     }
   }
 
   protected void releaseHelp (VM_Address start, int pageRequest) {
-    if (!VM.runningVM) VM.sysFail("VMResource.releaseHelp called before VM is running");
+    if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.releaseHelp called before VM is running");
     int pageStart = Conversions.addressToPages(start);
     // VM.sysWrite("Releasing pages ", pageStart);
     // VM.sysWrite(" to ", pageStart + pageRequest - 1);
     // VM.sysWriteln(" for space ", space);
     for (int i=0; i<pageRequest; i++) {
-      if (VM.VerifyAssertions) 
-	  VM._assert(spaceTable[pageStart+i] == space ||
+      if (VM_Interface.VerifyAssertions) 
+	  VM_Interface._assert(spaceTable[pageStart+i] == space ||
 		     spaceTable[pageStart+i] == Plan.UNUSED_SPACE); // Suspect - FreeListVM
       spaceTable[pageStart+i] = Plan.UNUSED_SPACE;
     }

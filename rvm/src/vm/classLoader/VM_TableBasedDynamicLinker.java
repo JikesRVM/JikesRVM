@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Dynamic linking via indirection tables. <p>
@@ -30,7 +30,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  */
 public class VM_TableBasedDynamicLinker implements VM_Constants {
 
-  private static int[] memberOffsets = VM_Interface.newContiguousIntArray(16000);
+  private static int[] memberOffsets = MM_Interface.newContiguousIntArray(16000);
 
   /**
    * Cause dynamic linking of the VM_Member whose member reference id is given.
@@ -73,7 +73,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    */
   static synchronized void ensureCapacity(int id) {
     if (id == memberOffsets.length) {
-      int[] tmp1 = VM_Interface.newContiguousIntArray(memberOffsets.length*2);
+      int[] tmp1 = MM_Interface.newContiguousIntArray(memberOffsets.length*2);
       System.arraycopy(memberOffsets, 0, tmp1, 0, memberOffsets.length);
       VM_Magic.sync(); // be sure array initialization is visible before we publish the reference!
       memberOffsets = tmp1;

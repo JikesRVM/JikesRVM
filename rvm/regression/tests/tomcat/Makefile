@@ -46,8 +46,7 @@ SERVER_ARGS="-home $(WORKING)"
 SENTINEL="PoolTcpConnector: Starting HttpConnectionHandler"
 STOP_NAME=org.apache.tomcat.startup.Tomcat
 STOP_ARGS="-home $(WORKING) -stop"
-HEAPSIZE=300
-LHEAPSIZE=200
+HEAPSIZE=500
 HTTP_PORT ?= $(shell $(FREEPORT_SH))
 AJP12_PORT ?= $(shell $(FREEPORT_SH) 1)
 

@@ -37,7 +37,6 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * @return The expected cost of exeuting this recompilation choice
    */
   double getCost(int prevCompiler, double prevCompileTime) {
-
     double compileTimeFactor = 
       VM_CompilerDNA.getCompileTimeRatio(prevCompiler, getCompiler());
 

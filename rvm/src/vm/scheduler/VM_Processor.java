@@ -4,17 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
-//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-//-#endif
-
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-import com.ibm.JikesRVM.memoryManagers.watson.VM_ContiguousHeap;
-import com.ibm.JikesRVM.memoryManagers.watson.VM_SizeControl;
-import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
-//-#endif
 
 /**
  * Multiplex execution of large number of VM_Threads on small 
@@ -22,7 +13,7 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
  *
  * @author Bowen Alpern 
  * @author Derek Lieber
- * @author Peter F. Sweeney (add HPM support)
+ * @modified Peter F. Sweeney (added HPM support)
  */
 public final class VM_Processor 
 //-#if RVM_WITH_JMTK_INLINE_PLAN
@@ -60,23 +51,9 @@ implements VM_Uninterruptible, VM_Constants {
 
 
   //-#if RVM_WITH_HPM
-  /*  one per virtual processor  */
-  /*
-   * Keep counter values for each Virtual Processor.
-   */
-  public HPM_counters hpm_counters;
-
-  /* one per Jikes RVM */
-  /*
-   * set true in VM.boot() when we can collect hpm data!  
-   */
-  public  static boolean hpm_safe = false;
-  /*
-   * trace hpm events?
-   */
-  public static boolean hpm_trace = false;  
+  // Keep HPM information for each Virtual Processor.
+  public  VM_HardwarePerformanceMonitor hpm;
   //-#endif
-
 
   /**
    * Create data object to be associated with an o/s kernel thread 
@@ -106,7 +83,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
-    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << 2);
+    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << LOG_BYTES_IN_INT);
     if (VM.VerifyAssertions) VM._assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
 
@@ -114,9 +91,9 @@ implements VM_Uninterruptible, VM_Constants {
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
     }
 
-    VM_Interface.setupProcessor(this);
+    MM_Interface.setupProcessor(this);
     //-#if RVM_WITH_HPM
-    hpm_counters = new HPM_counters();
+    hpm = new VM_HardwarePerformanceMonitor(id);
     //-#endif
   }
 
@@ -134,7 +111,7 @@ implements VM_Uninterruptible, VM_Constants {
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) 
       VM._assert(threadSwitchingEnabledCount <= 1);
-    if (VM.VerifyAssertions && VM_Interface.gcInProgress()) 
+    if (VM.VerifyAssertions && MM_Interface.gcInProgress()) 
       VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
@@ -207,76 +184,18 @@ implements VM_Uninterruptible, VM_Constants {
       newThread.cpuStartTime = now;  // this thread has started running
     }
 
-    if (VM.BuildForHPM) {	      // update HPM counters
-      updateHPMcounters(previousThread, newThread, timerTick);
+    //-#if RVM_WITH_HPM
+    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.hpm_safe && 
+	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+      hpm.updateHPMcounters(previousThread, newThread, timerTick);
     }
+    //-#endif 
 
     //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
     //-#endif
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
-  }
-
-  /**
-   * Update HPM counters.
-   * @param previous_thread     thread that is being switched out
-   * @param current_thread      thread that is being scheduled
-   * @param timerTick   	timer interrupted if true
-   */
-  public void updateHPMcounters(VM_Thread previous_thread, VM_Thread current_thread, boolean timerTick)
-  {
-    //-#if RVM_WITH_HPM
-    // native calls cause stack to be grown and cause an assertion failure.
-    if (hpm_safe) {
-      if (previousThread.hpm_counters == null) {
-	previous_thread.hpm_counters = new HPM_counters();
-	VM.sysWriteln("***VM_Processor.dispatch() Previous thread id ",
-		      previous_thread.getIndex(),"'s hpm_counters was null!***");
-      }
-      int n_counters = VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMgetCountersIP);
-
-      if (hpm_trace) {
-	int processor_id = VM_Processor.getCurrentProcessorId();
-	int thread_id    = previous_thread.getIndex();
-	if (! timerTick) {
-	  thread_id = -thread_id;
-	}
-	VM.sysWrite("VP ", processor_id,", tid ",thread_id);
-      }
-
-      // dump real time and change in real time
-      long real_time       = VM_Magic.getTimeBase();
-      long real_time_delta = real_time - previous_thread.startOfRealTime;
-      if (real_time_delta < 0) {
-	VM.sysWrite("***VM_Processor.updateHPMcounters(");
-	VM.sysWrite(previous_thread.getClass().getName());
-	VM.sysWrite(") real time overflowed: start ",previous_thread.startOfRealTime);
-	VM.sysWrite(" current ",real_time);
-	VM.sysWrite(" delta ",real_time_delta);VM.sysWriteln("!***");
-      } else {
-	previous_thread.hpm_counters.counters[0] += real_time_delta;
-                        hpm_counters.counters[0] += real_time_delta;
-      }
-      if (current_thread != null) 
-	current_thread.startOfRealTime = real_time;
-      if (hpm_trace) {
-	VM.sysWrite(" RT "); VM.sysWriteLong(real_time);
-	VM.sysWrite(" D "); VM.sysWriteLong(real_time_delta);
-      }
-      // dump counters
-      for (int i=1; i<=n_counters; i++) {
-	long value = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,i);
-	if (hpm_trace && value > 0) { 
-	  VM.sysWrite(" ",i,": "); VM.sysWrite(value);
-	}
-                        hpm_counters.counters[i] += value;// update virtual processor HPM counters
-	previous_thread.hpm_counters.counters[i] += value;// update thread HPM counters
-      }
-      if (hpm_trace) VM.sysWriteln();
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
-    }
-    //-#endif
   }
 
   /**
@@ -308,7 +227,7 @@ implements VM_Uninterruptible, VM_Constants {
           // on the RVM	
           i++;
           if (loopcheck++ >= 1000000) break;
-          if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread);
+          if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread,"VM_Processor.getRunnableThread() assert t.isNativeIdleThread");
         }
       } else {
         if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
@@ -569,7 +488,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
+    VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
@@ -588,7 +507,7 @@ implements VM_Uninterruptible, VM_Constants {
     target.registerThread(); // let scheduler know that thread is active.
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                  VM_Magic.objectAsAddress(newProcessor),
-                                 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
+                                 target.contextRegisters.gprs.get(VM.THREAD_ID_REGISTER).toAddress(),
                                  target.contextRegisters.getInnermostFramePointer());
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();
@@ -626,7 +545,7 @@ implements VM_Uninterruptible, VM_Constants {
     VM.sysWrite("stashProcessorInPthread: my address = " +
       Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) + "\n");
 */
-    VM.sysCall1(VM_BootRecord.the_boot_record.sysStashVmProcessorIdInPthreadIP,
+    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysStashVmProcessorIdInPthreadIP,
       this.id);
   }
   //-#endif
@@ -643,7 +562,7 @@ implements VM_Uninterruptible, VM_Constants {
     int newState, oldState;
     boolean result = true;
     do {
-      oldState = VM_Magic.prepare(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
       if (oldState != IN_NATIVE) {
         if (VM.VerifyAssertions) 
@@ -652,7 +571,7 @@ implements VM_Uninterruptible, VM_Constants {
         break;
       }
       newState = BLOCKED_IN_NATIVE;
-    } while (!(VM_Magic.attempt(VM_Magic.addressAsObject(vpStatusAddress), 
+    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
                                 0, oldState, newState)));
     return result;
   }
@@ -664,14 +583,14 @@ implements VM_Uninterruptible, VM_Constants {
     int oldState;
     boolean result = true;
     do {
-      oldState = VM_Magic.prepare(VM_Magic.addressAsObject(vpStatusAddress), 0);
+      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_SIGWAIT) ;
       if (oldState != IN_SIGWAIT) {
         if (VM.VerifyAssertions) VM._assert(oldState==IN_JAVA);
         result = false;
         break;
       }
-    } while (!(VM_Magic.attempt(VM_Magic.addressAsObject(vpStatusAddress), 
+    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
                                 0, oldState, BLOCKED_IN_SIGWAIT)));
     return result;
   }
@@ -743,43 +662,8 @@ implements VM_Uninterruptible, VM_Constants {
   int    arrayIndexTrapParam; 
   //-#endif
 
-  //-#if RVM_WITH_JMTK && !RVM_WITH_JMTK_INLINE_PLAN
-  final public Plan mmPlan = new Plan();
-  //-#endif
-
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  // Chunk 1 -- see VM_Chunk.java
-  // By convention, chunk1 is used for 'normal' allocation 
-  public VM_Address startChunk1;
-  public VM_Address currentChunk1;
-  public VM_Address endChunk1;
-  public VM_ContiguousHeap backingHeapChunk1;
-
-  // Chunk 2 -- see VM_Chunk.java
-  // By convention, chunk2 is used for copying objects during collection.
-  public VM_Address startChunk2;
-  public VM_Address currentChunk2;
-  public VM_Address endChunk2;
-  public VM_ContiguousHeap backingHeapChunk2;
-
-  // For fast path of segmented list allocation -- see VM_SegmentedListFastPath.java
-  // Can either be used for 'normal' allocation in markSeep collector or
-  // copring objects during collection in the hybrid collector.
-  public VM_SizeControl[] sizes;
-  public VM_SizeControl[] GC_INDEX_ARRAY;
-  public VM_SegregatedListHeap backingSLHeap;
-
-  // Writebuffer for generational collectors
-  // contains a "remembered set" of old objects with modified object references.
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //   initial:    |   |   |   |   |lnk|             later:    |obj|obj|   |   |lnk|
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //            ^top            ^max                                ^top    ^max
-  //
-  // See also VM_WriteBuffer.java and VM_WriteBarrier.java
-  public int[]       modifiedOldObjects;          // the buffer
-  public VM_Address  modifiedOldObjectsTop;       // address of most recently filled slot
-  public VM_Address  modifiedOldObjectsMax;       // address of last available slot in buffer
+  //-#if !RVM_WITH_JMTK_INLINE_PLAN
+  public final Plan mmPlan = new Plan();
   //-#endif
 
   // More GC fields
@@ -789,7 +673,6 @@ implements VM_Uninterruptible, VM_Constants {
   public long   totalBytesAllocated;	// used for instrumentation in allocators
   public long   totalObjectsAllocated; // used for instrumentation in allocators
   public long   synchronizedObjectsAllocated; // used for instrumentation in allocators
-
 
   /*
    * END FREQUENTLY ACCESSED INSTANCE FIELDS
@@ -843,13 +726,12 @@ implements VM_Uninterruptible, VM_Constants {
    * threads waiting for a timeslice in which to run
    */
   VM_ThreadQueue   readyQueue;    
+
   /**
    * Threads waiting for a subprocess to exit.
    */
   VM_ThreadProcessWaitQueue processWaitQueue;
 
-  // public VM_ThreadQueue   readyQueue;    
-    
   /**
    * Lock protecting a process wait queue.
    * This is needed because a thread may need to switch
@@ -863,6 +745,7 @@ implements VM_Uninterruptible, VM_Constants {
    * threads waiting for i/o
    */
   public VM_ThreadIOQueue ioQueue;       
+
   /**
    * thread to run when nothing else to do
    */
@@ -918,6 +801,7 @@ implements VM_Uninterruptible, VM_Constants {
    * index of this processor's status word in vpStatus array
    */
   public int   vpStatusIndex;            
+
   /**
    * address of this processors status word in vpStatus array
    */
@@ -984,21 +868,12 @@ implements VM_Uninterruptible, VM_Constants {
     VM_Scheduler.writeString(" threadSwitchRequested: ");
     VM_Scheduler.writeDecimal(threadSwitchRequested); 
     VM_Scheduler.writeString("\n");
-    //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-    VM_Scheduler.writeString("Chunk1: "); 
-    VM_Scheduler.writeHex(startChunk1.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(currentChunk1.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(endChunk1.toInt()); VM_Scheduler.writeString("\n");
-    VM_Scheduler.writeString("Chunk2: "); 
-    VM_Scheduler.writeHex(startChunk2.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(currentChunk2.toInt()); VM_Scheduler.writeString(" < ");
-    VM_Scheduler.writeHex(endChunk2.toInt()); VM_Scheduler.writeString("\n");
-    //-#endif
   }
 
 
   //-#if RVM_FOR_POWERPC
-  /* flag indicating this processor need synchronization.
+  /**
+   * flag indicating this processor need synchronization.
    */
   public boolean needsSync = false;
   //-#endif

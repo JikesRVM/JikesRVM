@@ -9,8 +9,9 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -39,7 +40,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
    * Constructor
    */
   MonotoneVMResource(byte space_, String vmName, MemoryResource mr, 
-		     VM_Address vmStart, EXTENT bytes, byte status) {
+		     VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
     cursor = start;
     sentinel = start.add(bytes);
@@ -62,7 +63,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
 
   public VM_Address acquire(int pageRequest, MemoryResource memoryResource) {
     if ((memoryResource != null) && !memoryResource.acquire(pageRequest)) {
-      if (Plan.verbose >= 5) VM.sysWriteln("polling caused gc - returning gc and retry");
+      if (Plan.verbose >= 5) VM_Interface.sysWriteln("polling caused gc - returning gc and retry");
       return VM_Address.zero();
     }
     lock();

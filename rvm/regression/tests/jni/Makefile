@@ -15,7 +15,6 @@ include		$(RVM_BUILD)/Make.rules
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/jni
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=64
-LHEAPSIZE=32
 START_NAME=
 EXPECTED=
 BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
@@ -27,17 +26,17 @@ ifeq ($(shell uname),Linux)
 # TESTS that currently fail for one reason or another on Linux/IA32
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
-#       MonitorTests            JDK hangs
 #       t3GT3	                tested mechanism not implemented on IA32
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
-        FieldAccess MethodInvocation NativeException StringFunctions \
+        FieldAccess MethodInvocation MonitorTest NativeException StringFunctions \
 	TestGC
 else
 # TESTS that currently fail for one reason or another on AIX/PowerPC
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
+#       MonitorTest             JDK hangs
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
-        FieldAccess MethodInvocation MonitorTest NativeException \
+        FieldAccess MethodInvocation NativeException \
 	StringFunctions TestGC t3GT3
 endif
 

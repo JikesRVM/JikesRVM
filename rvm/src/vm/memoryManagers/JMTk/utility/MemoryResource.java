@@ -6,7 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
@@ -186,18 +186,18 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    * Excludes boot resource.
    */
   public static final void showUsage(int mode) {
-    VM.sysWrite("used = ");
+    VM_Interface.sysWrite("used = ");
     BasePlan.writePages(getPagesUsed(), mode);
     boolean first = true;
     for (int i=0; i<allMRCount; i++) {
       MemoryResource mr = allMR[i];
       if (mr == null || mr == Plan.bootMR) continue;
-      VM.sysWrite(first ? " = " : " + ");
+      VM_Interface.sysWrite(first ? " = " : " + ");
       first = false;
-      VM.sysWrite(mr.name, " ");
+      VM_Interface.sysWrite(mr.name," ");
       BasePlan.writePages(mr.reservedPages(), mode);
     }
-    VM.sysWriteln();
+    VM_Interface.sysWriteln();
   }
 
   ////////////////////////////////////////////////////////////////////////////

@@ -108,7 +108,7 @@ public class JikesRVMInstallType extends AbstractVMInstallType {
     return new Status(IStatus.OK, JikesRVMLaunchingPlugin.getPluginId(), 0, "ok", null);
   }
 
-  JikesRVMInstallType() {
+  public JikesRVMInstallType() {
     super();
   }
 }
