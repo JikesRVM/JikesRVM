@@ -126,7 +126,7 @@ implements OPT_Operators {
             break;
           case IA32_LOWTABLESWITCH_opcode:
             {
-              OPT_RegisterOperand rOp = LowTableSwitch.getIndex(s);
+              OPT_RegisterOperand rOp = MIR_LowTableSwitch.getIndex(s);
               OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
               // NOTE: Index as marked as a DU because LowTableSwitch is 
               //       going to destroy the value in the register.
