@@ -1280,6 +1280,7 @@ int VirtualProcessorsLeftToWait;
 // the pthread's VM_Processor.  This allows the system call library
 // to find the VM_Processor object at runtime.
 pthread_key_t VmProcessorIdKey;
+pthread_key_t IsVmProcessorKey;
 
 // Create keys for thread-specific data.
 extern "C" void sysCreateThreadSpecificDataKeys(void) {
@@ -1289,6 +1290,7 @@ extern "C" void sysCreateThreadSpecificDataKeys(void) {
   // the id of the VM_Processor object with the pthread it
   // is running on.
   rc = pthread_key_create(&VmProcessorIdKey, 0);
+  rc = pthread_key_create(&IsVmProcessorKey, 0);
   if (rc != 0 ) {
     fprintf(SysErrorFile, "sys: pthread_key_create() failed (err=%d)\n", rc);
     sysExit(1);
@@ -1506,8 +1508,9 @@ extern "C" int sysStashVmProcessorIdInPthread(int vmProcessorId)
   //fprintf(SysErrorFile, "stashing vm processor id = %d, self=%u\n",
   //  vmProcessorId, pthread_self());
   int rc = pthread_setspecific(VmProcessorIdKey, (void*) vmProcessorId);
-  if (rc != 0) {
-    fprintf(SysErrorFile, "sys: pthread_setspecific() failed (err=%d)\n", rc);
+  int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
+  if (rc != 0 || rc2 != 0) {
+    fprintf(SysErrorFile, "sys: pthread_setspecific() failed (err=%d,%d)\n", rc, rc2);
     sysExit(1);
   }
 #endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
