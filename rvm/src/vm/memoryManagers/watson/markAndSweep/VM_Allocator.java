@@ -595,6 +595,10 @@ public class VM_Allocator
 
       objaddr += size - OBJECT_ADDR_POSITION;
       VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
+      if (VM_Configuration.BuildWithLazyRedirect ||
+	  VM_Configuration.BuildWithEagerRedirect) {
+	  VM_Magic.setMemoryWord(objaddr + OBJECT_REDIRECT_OFFSET, objaddr);
+      }
       return VM_Magic.addressAsObject(objaddr);
   }
 
@@ -959,6 +963,10 @@ public class VM_Allocator
       objaddr -= OBJECT_HEADER_OFFSET;
       VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
       VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
+      if (VM_Configuration.BuildWithLazyRedirect ||
+	  VM_Configuration.BuildWithEagerRedirect) {
+	  VM_Magic.setMemoryWord(objaddr + OBJECT_REDIRECT_OFFSET, objaddr);
+      }
       return VM_Magic.addressAsObject(objaddr);
   }
 
