@@ -6,11 +6,14 @@
 import  java.util.Stack;
 import  java.util.Enumeration;
 import instructionFormats.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 
  * The result of this analysis is live ranges for each basic block.
- * (See OPT_BasicBlock.java)
+ * (@see OPT_BasicBlock.java)
  * This class can also optionally construct GC maps. These GC maps
  * are later used to create the final gc map (see VM_OptReferenceMap.java). 
  *
@@ -18,6 +21,7 @@ import instructionFormats.*;
  *
  * @author Michael Hind
  * @author Martin Trapp
+ * @author Stephen Fink
  */
 final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators {
 
@@ -57,6 +61,12 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   private OPT_GCIRMap map;
 
+  /**
+   * For each register, the set of live interval elements describing the
+   * register.
+   */
+  private HashMap registerMap = new HashMap(); 
+  
   // Debugging information
   // Live Intervals, GC Maps, and fixed-point results
   private static final boolean dumpFinalLiveIntervals = false;
@@ -103,7 +113,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * 
    * @param createGCMaps should we create GC maps?
    * @param skipLocal should we skip the (final) local propagation phase?
-   * @param storeLiveAtHandlers should we store liveness info at the top of each handler block?
+   * @param storeLiveAtHandlers should we store liveness info at the 
+   * top of each handler block?
    */
   OPT_LiveAnalysis(boolean createGCMaps, 
 		   boolean skipLocal, 
@@ -120,8 +131,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * 
    * @param createGCMaps should we create GC maps?
    * @param skipLocal should we skip the (final) local propagation phase?
-   * @param storeLiveAtHandlers should we store liveness info at the top of ea
- handler block?
+   * @param storeLiveAtHandlers should we store liveness info at the 
+   * top of each handler block?
    * @param skipGuards should we ignore validation registers?
    */
   OPT_LiveAnalysis(boolean createGCMaps, 
@@ -218,6 +229,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       // When we don't perform the local propagation, such as translating
       // out of SSA, then we need to keep bbLiveInfo around
       bbLiveInfo = null;
+   
+      // compute the mapping from registers to live interval elements
+      // computeRegisterMap(ir);
     }
 
     // No longer need currentSet, which is simply a cache of a LiveSet).
@@ -231,6 +245,83 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // inform the IR that handler liveness is now available
     if (storeLiveAtHandlers) {
       ir.setHandlerLivenessComputed();
+    }
+
+  }
+
+  /**
+   * Return an iterator over all the live interval elements for a given
+   * register.
+   */
+  public Iterator iterateLiveIntervals(OPT_Register r) {
+    HashSet set = (HashSet)registerMap.get(r);
+    if (set == null) {
+      return new OPT_EmptyIterator();
+    } else {
+      return set.iterator();
+    }
+  }
+
+  /**
+   * Update the data structures to reflect that all live intervals for r2
+   * are now intervals for r1.
+   */
+  public void merge(OPT_Register r1, OPT_Register r2) {
+    HashSet toRemove = new HashSet(5);
+
+    for (Iterator i = iterateLiveIntervals(r2); i.hasNext(); ) {
+      OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
+      interval.setRegister(r1);
+      addToRegisterMap(r1,interval);
+      // defer removing the interval to avoid concurrent modification of
+      // the iterator's backing set.
+      toRemove.add(interval);
+    }
+    // perform deferred removals
+    for (Iterator i = toRemove.iterator(); i.hasNext(); ) {
+      OPT_LiveIntervalElement interval = (OPT_LiveIntervalElement)i.next();
+      removeFromRegisterMap(r2,interval);
+    }
+  }
+
+  /**
+   * Set up a mapping from each register to the set of live intervals for
+   * the register.
+   * <p>
+   * Side effect: map each live interval element to its basic block.
+   */
+  private void computeRegisterMap(OPT_IR ir) {
+    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      for (Enumeration i = bb.enumerateLiveIntervals(); i.hasMoreElements(); ) {
+        OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)i.nextElement();
+        lie.setBasicBlock(bb);
+        addToRegisterMap(lie.getRegister(),lie);
+      }
+    }
+  }
+
+  /**
+   * Add the live interval element i to the map for register r.
+   */
+  private void addToRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
+    HashSet set = (HashSet)registerMap.get(r);
+    if (set == null) {
+      set = new HashSet(5);
+      registerMap.put(r,set);
+    }
+    set.add(i);
+  }
+
+  /**
+   * Remove the live interval element i from the map for register r.
+   */
+  private void removeFromRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
+    HashSet set = (HashSet)registerMap.get(r);
+    if (set == null) {
+      return;
+    } else {
+      set.remove(i);
     }
   }
 
@@ -878,6 +969,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
     System.out.println("  *+*+*+*+*+ End Final Live Intervals\n");
   }
+
 
   /**
    * REturns the live information for a particular block
