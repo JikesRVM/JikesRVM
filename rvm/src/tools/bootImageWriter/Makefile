@@ -26,7 +26,7 @@ $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/classes.zip
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
-# the hosting jvm to use the same java.util files that jalapeno will use
+# the hosting jvm to use the same java.util files that the rvm will use
 # at run time.  This mechanism is very fragile and only works for a 
 # subset of java.util classes (discovered by trial and error).  
 #
@@ -45,7 +45,7 @@ $(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter2.class $(UTIL_KLUDGE_JAR)
 	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
 	   -classpath `$(HOST_JAVA_PATH_ADJUST) \
 			$(SCRATCH_DIR):$(RVM_REPOSITORIES)` \
-	   -Djava.security.policy=jalapeno.security \
+	   -Djava.security.policy=rvm.security \
 	   $(HOST_JDK_FLAGS) \
 	   BootImageWriter2\
 	   -classpath `$(HOST_JAVA_PATH_ADJUST) $(RVM_REPOSITORIES)`\
