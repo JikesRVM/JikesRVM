@@ -41,13 +41,22 @@ to do something else on your workstation at the same time that you're
 using Jikes RVM.  This closes long-standing defect # 2046.
 
 *Other notes:
+**The memory size options now all take sizes in bytes by default.  (INCOMPATIBLE CHANGE)
+They used to use a mix of default units: Megabytes (Mebibytes),
+Kilobytes (Kibibytes), and "Log 2 of the frequency (in bytes)".  They
+now all default to bytes; please update any scripts you have
+appropriately.  This affects -Xmx, -Xms, and the -X:gc:* options. 
+
 **The MMAP_COPY_ON_WRITE feature now works on PowerPC/Linux and PowerPC/OSX.  
 (This feature was discussed in the 2.3.3 release notes.)
+
 **The AttachCurrentThread JNI function is now partly implemented;
 it now works in the common case where a thread is already attached to the VM.
+
 **RVM_BOOTCLASSPATH_APPEND is a new environment variable that Jikes RVM
 will recognize when booting.  You can use it to add extensions to the
 VM.  Set it as you would set the CLASSPATH environment variable.
+
 **Major re-implementation of AOS's feedback-directed inlining and the opt 
 compiler's default inlining policy. Result is simpler code, lower
 overhead profiling, and more effective inlining decisions. 
