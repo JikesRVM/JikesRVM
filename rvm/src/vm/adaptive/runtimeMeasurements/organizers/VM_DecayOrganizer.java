@@ -11,9 +11,6 @@ package com.ibm.JikesRVM.adaptive;
  **/
 final class VM_DecayOrganizer extends VM_Organizer {
 
-  // Yield point listener: will wake up this organizer periodically
-  private VM_YieldCounterListener listener;
-
   /**
    * @param listener the associated listener
    */
@@ -27,7 +24,7 @@ final class VM_DecayOrganizer extends VM_Organizer {
    * Initialization: install and activate our listener.
    */
   public void initialize() {
-    VM_RuntimeMeasurements.installNullListener(listener);
+    VM_RuntimeMeasurements.installNullListener((VM_YieldCounterListener)listener);
   }
 
   /**
