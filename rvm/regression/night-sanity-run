@@ -158,3 +158,10 @@ if [[ -s $CHECK_DIR/noCopyright.rvm ]] then
 else
   echo " " | mail -s "no files without a Copyright notice" pfs 
 fi
+
+# measure compilation time
+export MEASURE_COMPILATION_LOG=$RVM_ROOT/results/measureCompilation.log
+
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompiliation=true -performance $PERF_LOG" -config night-sanity-performance >> $MEASURE_COMPILATION_LOG 2>> $MEASURE_COMPILATION_LOG
+
+
