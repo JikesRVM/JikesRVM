@@ -7,6 +7,10 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
+/**
+ * A short-term solution to access several classloader methods.
+ * @author Feng Qian
+ */
 public class OSR_ClassLoaderInterface {
   public static VM_Method getMethodById(int id) throws VM_PragmaUninterruptible {
     return VM_MethodDictionary.getValue(id);
