@@ -8,6 +8,19 @@ Jikes RVM.\@  We shall subsequently visit the other programming languages.
 This section also includes coding conventions that we
 use within Jikes RVM.\@  
 
+\subsection{Character Set}
+
+The Java source-to-byte-code compilers are invoked with the argument
+``\texttt{-encoding iso-8859-1}''.  Unless you have a good reason
+for doing so, please use the ISO Latin 1 (iso-8859-1) character set
+when you create source files.  If you do have to write a source file
+with another encoding, please be sure that the Java
+source-to-byte-code compilers are invoked with the proper
+\texttt{-encoding} flag.  They may not break on your platform with the
+wrong -encoding flag, or with a missing -encoding flag, but they might
+break on another platform or when run by someone with a different set of
+locale settings.
+
 \subsection{Exit Codes}
 
 Inside the VM itself, and in any code that can be called by the VM,
