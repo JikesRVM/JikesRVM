@@ -23,6 +23,8 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.Lock;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -56,6 +58,7 @@ public class VM_Handshake {
   
   protected boolean requestFlag;
   protected boolean completionFlag;
+  private Lock lock = new Lock("handshake");
   
   public void reset() {
     requestFlag = false;
@@ -199,21 +202,23 @@ public class VM_Handshake {
    * collection.
    */
   public void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
-    synchronized (this) {
-      if (completionFlag) {
-	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
-	return;
-      }
-      if (requestFlag) {
-	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
-      } else {
-	// first mutator initiates collection by making all gc threads runnable at high priority
-	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
-	VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
-	requestFlag = true;
-	initiateCollection();
-      }
-    }  // end of synchronized block
+
+    lock.acquire();
+    if (completionFlag) {
+      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
+      lock.release();
+      return;
+    }
+    if (requestFlag) {
+      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
+    } else {
+      // first mutator initiates collection by making all gc threads runnable at high priority
+      if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
+      VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
+      requestFlag = true;
+      initiateCollection();
+    }
+    lock.release();  
     
     // allow a gc thread to run
     VM_Thread.getCurrentThread().yield();
@@ -230,10 +235,12 @@ public class VM_Handshake {
    *
    * @see VM_CollectorThread
    */
-  synchronized void notifyCompletion() throws VM_PragmaInterruptible {
+  void notifyCompletion() throws VM_PragmaInterruptible {
+    lock.acquire();
     if (trace) VM_Scheduler.trace("VM_Handshake", "collector: completed");
     //    if (debug_native) VM_Scheduler.dumpVirtualMachine();
     completionFlag = true;
+    lock.release();
   }
 
   /**
