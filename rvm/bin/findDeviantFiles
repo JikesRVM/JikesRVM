@@ -9,6 +9,8 @@
 #   no authorship tag: "@ author", or
 #   no copyright notice: "(C) Copyright", or
 #   no id: "$Id$".
+# And source files (.java files) that have:
+#   embedded TAB characters (some editors don't display them properly)
 #
 # Three parameters:
 #   target directory
@@ -160,6 +162,11 @@ declare -r -a find_optsA=( \
 	-type f -print \
 );
 
+declare -r -a find_javaA=( \
+	-name CVS -prune \
+        -o -name '*.java' \
+);
+
 ## The same bug afflicts the one below:
 
 declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
@@ -174,5 +181,11 @@ find . "${find_optsA[@]}" -exec egrep -c "\([cC]\) Copyright|Copyright ©|Copyrig
 #echo "find all plain files without \$Id: tags"
 find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$out/noId${suffix}"
 
+# echo "Find all .java files with embedded TAB characters"
+## Not currently executed because we may no longer need this.
+if false; then
+    TAB='	'
+    find . "${find_javaA[@]}" -print0 | xargs -0 fgrep --files-with-matches "$TAB" > "$out/tabChars${suffix}"
+fi
 
 trap '' EXIT
