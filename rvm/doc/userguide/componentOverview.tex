@@ -34,29 +34,29 @@ did not use packages explicitly, which resulted in all classes being in
 the unnamed package.  
 
 There are currently nine packages in \jrvm. All classes are in
-one of these packages.
+one of these packages
 \begin{description}
 \item [com.ibm.JikesRVM] Classes for the core runtime, except for library
 support.  This package also contains other classes that are not
 included in one of the other packages, such as the baseline and JNI
 compilers. 
 
-\item [com.ibm.JikesRVm.classloader] Implementation of classloaders
-and associated data structures including VM representation of classes,
+\item [com.ibm.JikesRVM.adaptive] Classes for the adaptive optimization system
+
+\item [com.ibm.JikesRVM.classloader] Implementation of classloaders
+and associated data structures including the VM representation of classes,
 methods, etc. 
 
 \item [com.ibm.JikesRVM.librarySupport] Classes for library support
-
-\item [com.ibm.JikesRVM.adaptive] Classes for the adaptive optimization system
-
-\item [com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
-memory management that deal with the interface to the VM
 
 \item [com.ibm.JikesRVM.memoryManagers.JMTk] Classes in the newer JMTk
 (Java Memory Management Toolkit) collection of memory managers
 
 \item [com.ibm.JikesRVM.memoryManagers.watson] Classes in the older
 Watson collection of memory managers
+
+\item [com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
+memory management that deal with the interface to the VM
 
 \item [com.ibm.JikesRVM.opt] Classes related to the optimizing
 compiler, except for IR-related classes
@@ -69,12 +69,12 @@ compiler, except for IR-related classes
 \end{description}
 
 The distributed directory structure
-does not follow the Java convention that the location of source file
-be correlated with the package structure, i.e.,
+does not follow the Java convention that the source file directory tree
+match the package structure, i.e.,
 there is no {\tt com/ibm/JikesRVM} directory anywhere under {\tt
-rvmRoot}.  Instead, a more logical structure of the source
-files is used.  One step of building a boot image
-is copying the source files from the rvmRoot tree into a build
+rvmRoot}.  Instead, the source directory structure follows a more logical 
+structure.  The boot image builder
+copyies the source files from the rvmRoot tree into a build
 directory.  The scripts that perform this copy create the directory
 structure required by Java semantics and place classes in appropriate
 directories.
