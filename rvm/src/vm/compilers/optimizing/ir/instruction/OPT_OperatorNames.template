@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt.ir;
 
 /**
  * Class to store the string representations of different operators.
- * They are in a seperate class for efficiency.
+ * They are in a separate class for efficiency.
  *
  * @see OPT_Operator
  * @author John Whaley
