@@ -21,9 +21,9 @@ vpath %.jar	$(BENCH_HOME)
 START_NAME=avrora.Main
 
 ifeq ($(MODE),PERFORMANCE)
-  START_ARGS=fibonacci-10.asm
+  START_ARGS="-colors=false" fibonacci-10.asm
 else
-  START_ARGS=fibonacci.asm
+  START_ARGS="-colors=false" fibonacci.asm
 endif
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
