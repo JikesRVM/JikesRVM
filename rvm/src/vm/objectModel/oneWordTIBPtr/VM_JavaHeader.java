@@ -17,18 +17,16 @@ import instructionFormats.*;
  * In this object model, there are NO available bits, and the TIB word is
  * simply a TIB ptr.
  *
- * @see VM_NurseryObjectModel
- *
  * @author David Bacon
  * @author Steve Fink
  * @author Dave Grove
  */
-public final class VM_JavaHeader extends VM_NurseryObjectModel 
-                                            implements VM_Uninterruptible
-					    //-#if RVM_WITH_OPT_COMPILER
-					    ,OPT_Operators
-					    //-#endif
-					    {
+public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
+  implements VM_Uninterruptible
+	     //-#if RVM_WITH_OPT_COMPILER
+	     ,OPT_Operators
+	     //-#endif
+{
 
   /** 
    * How many bits in the header are available for the GC and MISC headers? 

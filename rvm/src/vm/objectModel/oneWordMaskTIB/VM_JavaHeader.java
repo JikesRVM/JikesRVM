@@ -18,13 +18,11 @@ import instructionFormats.*;
  * available bits, and TIBs are aligned. So to acquire the TIB, we mask
  * the bottom N bits.
  *
- * @see VM_NurseryObjectModel
- *
  * @author David Bacon
  * @author Steve Fink
  * @author Dave Grove
  */
-public final class VM_JavaHeader extends VM_NurseryObjectModel 
+public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible
 	     //-#if RVM_WITH_OPT_COMPILER
 	     ,OPT_Operators

@@ -18,13 +18,11 @@ import instructionFormats.*;
  * available bits, and the rest of the TIB word holds the index into the
  * JTOC holding the TIB reference.
  *
- * @see VM_NurseryObjectModel
- *
  * @author David Bacon
  * @author Steve Fink
  * @author Dave Grove
  */
-public final class VM_JavaHeader extends VM_NurseryObjectModel 
+public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible,
 	     VM_BaselineConstants
 	     //-#if RVM_WITH_OPT_COMPILER
