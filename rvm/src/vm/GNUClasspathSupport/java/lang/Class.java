@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp 2002
  */
-//$I: Class.java,v 1.5 2003/01/21 15:35:20 dgrove-oss Exp $
+//$Id$
 package java.lang;
 
 import java.io.InputStream;
