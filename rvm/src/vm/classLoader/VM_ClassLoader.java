@@ -29,7 +29,8 @@ public class VM_ClassLoader implements VM_Constants,
   final private static boolean DBG_APP_CL = false;
   /** The GNU Classloaded failed for us, as of Classpath 0.13 + CVS head.   I
    * have not attempted to debug it. */
-  final public static boolean USE_GNU_CLASSLOADER = false;
+  final public static boolean USE_OLD_APP_CLASSLOADER = false;
+  final public static boolean USE_GNU_APP_CLASSLOADER = false;
   
   private static ClassLoader appCL;
 
@@ -51,6 +52,7 @@ public class VM_ClassLoader implements VM_Constants,
       if (DBG_APP_CL)
         VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: Wiping out my remembered appCL.");
     }
+    VM_ApplicationClassLoader2.setApplicationRepositories(classpath);
     applicationRepositories = classpath;
   }
 
@@ -86,11 +88,23 @@ public class VM_ClassLoader implements VM_Constants,
       
   private static int gettingAppCL = 0;
   
+  /** Is the application class loader ready for use?  Don't leak it out until
+   * it is! */
+  private static boolean appCLReady;
+  public static void declareApplicationClassLoaderIsReady() {
+    appCLReady = true;
+  };
+  
+
   public static ClassLoader getApplicationClassLoader() {
     if (! VM.runningVM)
       return null;              /* trick the boot image writer with null,
                                    which it will use when initializing
                                    java.lang.ClassLoader$StaticData */
+    /* Lie, until we are really ready for everything. */
+    if (!appCLReady)
+      return VM_BootstrapClassLoader.getBootstrapClassLoader(); 
+    
     if (appCL != null)
       return appCL;
 
@@ -110,10 +124,14 @@ public class VM_ClassLoader implements VM_Constants,
                       "Initializing Application ClassLoader, with" +
                       " repositories: `", r, "'...");
 
-      if (USE_GNU_CLASSLOADER)
+      if (USE_GNU_APP_CLASSLOADER)
         appCL = new gnu.java.lang.SystemClassLoader(null);
-      else
+      else if (USE_OLD_APP_CLASSLOADER) {
         appCL = new ApplicationClassLoader(r);
+      } else {
+        VM_ApplicationClassLoader2.setApplicationRepositories(r);
+        appCL = VM_ApplicationClassLoader2.getApplicationClassLoader();
+      }
 
       if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL)
         VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ", appCL.toString());
@@ -162,13 +180,17 @@ public class VM_ClassLoader implements VM_Constants,
   }
 
   /**
-   * Initialize for boot image.
+   * Initialize for boot image writing
    */
   public static void init(String bootstrapClasspath) {
     // specify where the VM's core classes and resources live
     //
     applicationRepositories = "."; // Carried over.
     VM_BootstrapClassLoader.boot(bootstrapClasspath);
+    /* Don't need to initialize VM_ApplicationClassLoader2 when we're writing
+     * the boot image..  Not that it would
+     * hurt, though...*/
+    VM_ApplicationClassLoader2.boot(applicationRepositories);
 
     // create special method- and attribute- names
     //
