@@ -32,24 +32,24 @@ final class DoublyLinkedList
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private       VM_Address head;
   private final Lock lock;
   private final Object owner;
   private final int granularity;  // Each node on the treadmill is guaranteed to be a multiple of this.
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance Methods
-  //
+  /****************************************************************************
+   *
+   * Instance Methods
+   */
 
   /**
    * Constructor
@@ -63,10 +63,10 @@ final class DoublyLinkedList
 
   // Offsets are relative to the node (not the payload)
   //
-  private static int PREV_OFFSET = 0 * WORD_SIZE;
-  private static int NEXT_OFFSET = 1 * WORD_SIZE;
-  private static int LIST_OFFSET = 2 * WORD_SIZE;
-  private static int HEADER_SIZE = 3 * WORD_SIZE;
+  private static int PREV_OFFSET = 0 * BYTES_IN_ADDRESS;
+  private static int NEXT_OFFSET = 1 * BYTES_IN_ADDRESS;
+  private static int LIST_OFFSET = 2 * BYTES_IN_ADDRESS;
+  private static int HEADER_SIZE = 3 * BYTES_IN_ADDRESS;
 
   public final Object getOwner() {
     return owner;

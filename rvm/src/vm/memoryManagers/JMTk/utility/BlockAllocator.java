@@ -32,28 +32,28 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
   // block freelist
   private static final byte MIN_BLOCK_LOG = 9;  // 512 bytes
   public static final byte MAX_BLOCK_LOG = 15; // 32K bytes
   public static final int MAX_BLOCK_SIZE = 1<<MAX_BLOCK_LOG;
-  private static final byte MAX_BLOCK_PAGES = 1<<(MAX_BLOCK_LOG - LOG_PAGE_SIZE);
+  private static final byte MAX_BLOCK_PAGES = 1<<(MAX_BLOCK_LOG - LOG_BYTES_IN_PAGE);
   private static final byte MAX_BLOCK_SIZE_CLASS = MAX_BLOCK_LOG - MIN_BLOCK_LOG;
-  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_PAGE_SIZE - MIN_BLOCK_LOG;
+  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_BYTES_IN_PAGE - MIN_BLOCK_LOG;
   public static final int BLOCK_SIZE_CLASSES = MAX_BLOCK_SIZE_CLASS + 1;
   private static final int FREE_LIST_BITS = 4;
   private static final int FREE_LIST_ENTRIES = 1<<(FREE_LIST_BITS*2);
 
   // Block header and field offsets
-  public static final int BLOCK_HEADER_SIZE = 2 * WORD_SIZE;
-  private static final int NEXT_FIELD_OFFSET = -(WORD_SIZE);
-  private static final int PREV_FIELD_OFFSET = -(2 * WORD_SIZE);
-  private static final int FL_MARKER_OFFSET = -(2 * WORD_SIZE);
-  private static final int FL_NEXT_FIELD_OFFSET = -(WORD_SIZE);
+  public static final int BLOCK_HEADER_SIZE = 2 * BYTES_IN_ADDRESS;
+  private static final int NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
+  private static final int PREV_FIELD_OFFSET = -(2 * BYTES_IN_ADDRESS);
+  private static final int FL_MARKER_OFFSET = -(2 * BYTES_IN_ADDRESS);
+  private static final int FL_NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
   private static final int FL_PREV_FIELD_OFFSET = 0;
   private static final VM_Address BASE_FL_MARKER = VM_Address.fromInt(-1);
   private static final VM_Address MIN_FL_MARKER = BASE_FL_MARKER.sub(FREE_LIST_ENTRIES);
@@ -66,20 +66,20 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
   private static final boolean PARANOID = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private VM_AddressArray freeList;
   private Plan plan;
   private int pagesInUse;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
   BlockAllocator(FreeListVMResource vmr, MemoryResource mr, Plan thePlan) {
     vmResource = vmr;
     memoryResource = mr;
@@ -98,10 +98,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation & freeing
-  //
+  /****************************************************************************
+   *
+   * Allocation & freeing
+   */
   public final VM_Address alloc(byte blockSizeClass) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
@@ -148,7 +148,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
     if (requestedSC == MAX_BLOCK_SIZE_CLASS) {
       // coarsest grain request satisfied by VM resource request
-      rtn = vmResource.acquire(1<<(MAX_BLOCK_LOG-LOG_PAGE_SIZE), 
+      rtn = vmResource.acquire(1<<(MAX_BLOCK_LOG-LOG_BYTES_IN_PAGE), 
 			       memoryResource, originalSC, false);
       if (rtn.isZero())
 	return VM_Address.zero(); // need to GC & retry...
@@ -343,10 +343,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Linked list operations
-  //
+  /****************************************************************************
+   *
+   * Linked list operations
+   */
 
 
   public static final VM_Address getNextBlock(VM_Address block) {
@@ -400,10 +400,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   private final boolean incPageCharge(int pages) {
     boolean rtn = true;

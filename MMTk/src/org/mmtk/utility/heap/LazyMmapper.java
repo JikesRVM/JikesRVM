@@ -25,11 +25,11 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public final class LazyMmapper implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public static methods 
-  //
-  //
+  /****************************************************************************
+   *
+   * Public static methods 
+   *
+   */
 
   public static boolean verbose = false;
   public static Lock lock = new Lock("LazyMapper");
@@ -121,17 +121,17 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     return addrIsMapped(VM_Interface.refToAddress(ref));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private static methods and variables
-  //
+  /****************************************************************************
+   *
+   * Private static methods and variables
+   */
   final public static byte UNMAPPED = 0;
   final public static byte MAPPED = 1;
   final public static byte PROTECTED = 2;   // mapped but not accessible
   private static byte mapped[];
   final public static int LOG_MMAP_CHUNK_SIZE = 20;            
   final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
-  final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
+  final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
   final public  static int MMAP_CHUNK_MASK = ~((1 << LOG_MMAP_CHUNK_SIZE) - 1);
 
   private static String chunkStateToString(byte state) {

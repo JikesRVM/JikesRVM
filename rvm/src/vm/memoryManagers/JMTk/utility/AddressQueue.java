@@ -23,10 +23,10 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class AddressQueue extends LocalQueue implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$"; 
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
   public final String name;
 
   /**

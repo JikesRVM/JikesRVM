@@ -28,7 +28,7 @@ public abstract class RCBaseHeader implements Constants {
   /**
    * How many bytes are used by all GC header fields?
    */
-  public static final int NUM_BYTES_HEADER = BYTES_IN_WORD;
+  public static final int NUM_BYTES_HEADER = BYTES_IN_ADDRESS;
   protected static final int RC_HEADER_OFFSET = VM_Interface.GC_HEADER_OFFSET();
 
   /**
@@ -360,7 +360,7 @@ public abstract class RCBaseHeader implements Constants {
   private static final int CYCLE_DETECTION_BITS = (Plan.REF_COUNT_CYCLE_DETECTION) ? BITS_USED : 0;
   protected static final int INCREMENT_SHIFT = CYCLE_DETECTION_BITS;
   protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
-  protected static final int AVAILABLE_BITS = WORD_BITS - CYCLE_DETECTION_BITS;
+  protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - CYCLE_DETECTION_BITS;
   protected static final int INCREMENT_BITS = (Plan.REF_COUNT_SANITY_TRACING) ? AVAILABLE_BITS>>1 : AVAILABLE_BITS;
   protected static final int INCREMENT_MASK = ((1<<INCREMENT_BITS)-1)<<INCREMENT_SHIFT;
   protected static final int SANITY_SHIFT = INCREMENT_SHIFT + INCREMENT_BITS;

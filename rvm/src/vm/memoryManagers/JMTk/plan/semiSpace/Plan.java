@@ -45,10 +45,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   public static final boolean MOVES_OBJECTS = true;
 
   // virtual memory resources
@@ -91,19 +91,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address       HEAP_END = SS_END;
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   public BumpPointer ss;
   private TreadmillLocal los;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -143,10 +143,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -160,7 +160,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       return los.alloc(isScalar, bytes);
     } else {
@@ -328,10 +328,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return false;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
   // Important notes:
   //   . Global actions are executed by only one thread
   //   . Thread-local actions are executed by all threads
@@ -414,10 +414,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -519,6 +519,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return forwardingWord; // a no-op for this collector
   }
 
+  // XXX Missing Javadoc comment.
   public static boolean willNotMove (VM_Address obj) {
    boolean movable = VMResource.refIsMovable(obj);
    if (!movable) return true;
@@ -526,10 +527,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    return (hi ? ss1VM : ss0VM).inRange(addr);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -574,10 +575,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of each of the allocators.

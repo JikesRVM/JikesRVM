@@ -97,10 +97,10 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Allocate <code>size</code> units.  Return the unit ID
@@ -155,10 +155,10 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
     return getSize(unit);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
 
   /**
    * Initialize a new heap.  Fabricate a free list entry containing

@@ -47,14 +47,14 @@ abstract class SegregatedFreeList extends Allocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0xffffffff);  // 0x5b098008
   protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
-  protected static final int FREE_LIST_HEADER_BYTES = WORD_SIZE;
+  protected static final int FREE_LIST_HEADER_BYTES = BYTES_IN_ADDRESS;
   private static final int FREE_LIST_OFFSET = 0;
   private static final int FREE_LIST_BITS = BlockAllocator.MAX_BLOCK_LOG;
   private static final int SIZE_CLASS_BITS = 6;
@@ -78,10 +78,10 @@ abstract class SegregatedFreeList extends Allocator
   private long[] fragInuseCellBytes;
   private int[] fragUsedPages;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   protected BlockAllocator blockAllocator;
   protected VM_AddressArray freeList; 
   protected VM_AddressArray firstBlock;
@@ -89,10 +89,10 @@ abstract class SegregatedFreeList extends Allocator
   protected VM_AddressArray currentBlock;
   protected int [] cellsInUse;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -112,10 +112,10 @@ abstract class SegregatedFreeList extends Allocator
     if (maintainInUse()) cellsInUse = new int[SIZE_CLASSES];
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
@@ -324,10 +324,10 @@ abstract class SegregatedFreeList extends Allocator
     VM_Magic.setMemoryAddress(cell, next);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Freeing
-  //
+  /****************************************************************************
+   *
+   * Freeing
+   */
 
   /**
    * Free a cell.  The cell is added to the free list for the given
@@ -359,10 +359,10 @@ abstract class SegregatedFreeList extends Allocator
     setFreeList(block, cell);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Block management
-  //
+  /****************************************************************************
+   *
+   * Block management
+   */
 
   /**
    * Install a new block. The block needs to be added to the size
@@ -402,10 +402,10 @@ abstract class SegregatedFreeList extends Allocator
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Size classes
-  //
+  /****************************************************************************
+   *
+   * Size classes
+   */
 
   /**
    * Get the size class for a given number of bytes.<p>
@@ -480,10 +480,10 @@ abstract class SegregatedFreeList extends Allocator
 	                  (sc - 31) << 10);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   public final void flushFreeLists() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
@@ -596,10 +596,10 @@ abstract class SegregatedFreeList extends Allocator
     return count;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
   public void show() {
   }
 }

@@ -58,10 +58,10 @@ final class TrialDeletion extends CycleDetector
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   private static SharedQueue workPool;
   private static SharedQueue blackPool;
   private static SharedQueue unfilteredPurplePool;
@@ -90,10 +90,10 @@ final class TrialDeletion extends CycleDetector
   private static final int GREY_VISIT_GRAIN = 100;
   private static final int FILTER_BOUND = 8192;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private RefCountLocal rc;
   private Plan plan;
 
@@ -116,10 +116,10 @@ final class TrialDeletion extends CycleDetector
   private int visitCount = 0;
   private int objectsProcessed = 0;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
   static {
     workPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
     workPool.newClient();
@@ -284,7 +284,7 @@ final class TrialDeletion extends CycleDetector
   private final int filterPurpleBufs(AddressQueue src, AddressQueue tgt,
 				     double timeCap) {
     int purple = 0;
-    int limit = Options.cycleMetaDataPages<<(LOG_PAGE_SIZE-LOG_WORD_SIZE-1);
+    int limit = Options.cycleMetaDataPages<<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
     VM_Address obj = VM_Address.zero();
     src.flushLocal();
     do {

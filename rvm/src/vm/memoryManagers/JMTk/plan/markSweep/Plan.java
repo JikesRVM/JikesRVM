@@ -40,10 +40,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   public static final boolean MOVES_OBJECTS = false;
 
   // virtual memory resources
@@ -68,9 +68,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final byte DEFAULT_SPACE = MS_SPACE;
 
   // Miscellaneous constants
-  private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_PAGE_SIZE; // 1M
+  // XXX 512<<10 should be a named constant
+  private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE; // 1M
   private static final double MS_RESERVE_FRACTION = 0.1;
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  // XXX Can 8 * 1024 be calculated from other constants?
   private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
@@ -85,19 +87,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address       HEAP_END = MS_END;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private MarkSweepLocal ms;
   private TreadmillLocal los;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -136,10 +138,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -154,7 +156,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+      VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       region = los.alloc(isScalar, bytes);
@@ -307,6 +309,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
+   * XXX No Javadoc params.
+   *
    * @return Whether a collection is triggered
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
@@ -323,20 +327,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return false;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan, with each
-  //     separated by a synchronization barrier.:
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
+  /****************************************************************************
+   *
+   * Collection
+   *
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.:
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
+   */
 
   /**
    * Perform operations with <i>global</i> scope in preparation for a
@@ -357,6 +361,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * will ensure that <i>all threads</i> execute this.<p>
    *
    * In this case, it means resetting mark sweep allocator.
+   * XXX No Javadoc params.
    */
   protected final void threadLocalPrepare(int count) {
     ms.prepare();
@@ -379,6 +384,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * In this case, it means releasing the mark sweep space (which
    * triggers the sweep phase of the mark-sweep collector).
+   * XXX No Javadoc params.
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
@@ -413,10 +419,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -503,10 +509,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -544,10 +550,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of each of the allocators.

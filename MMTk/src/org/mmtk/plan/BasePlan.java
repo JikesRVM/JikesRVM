@@ -44,10 +44,10 @@ public abstract class BasePlan
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   public static final boolean NEEDS_WRITE_BARRIER = false;
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
@@ -88,13 +88,13 @@ public abstract class BasePlan
   public static final byte IMMORTAL_SPACE = 124;
 
   // Miscellaneous constants
-  protected static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_PAGE_SIZE;
+  protected static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   private static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
-  protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_PAGE_SIZE;
+  protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
   protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
   // Memory layout constants
@@ -109,18 +109,18 @@ public abstract class BasePlan
   protected static final VM_Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
   protected static final VM_Address      PLAN_START = META_DATA_END;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private int id = 0;                     // Zero-based id of plan instance
   public BumpPointer immortal;
   Log log;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -181,10 +181,10 @@ public abstract class BasePlan
     exceptionReserve = (int) (getTotalPages() * (1 - VM_Interface.OUT_OF_MEMORY_THRESHOLD));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   protected byte getSpaceFromAllocator (Allocator a) {
     if (a == immortal) return IMMORTAL_SPACE;
@@ -209,10 +209,10 @@ public abstract class BasePlan
     return plan.getAllocatorFromSpace(space);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Add a gray object
@@ -292,15 +292,16 @@ public abstract class BasePlan
    */
   public void enumeratePointerLocation(VM_Address location) {}
 
+  // XXX Javadoc comment missing.
   public static boolean willNotMove (VM_Address obj) {
       return !VMResource.refIsMovable(obj);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Read and write barriers.  By default do nothing, override if
-  // appropriate.
-  //
+  /****************************************************************************
+   *
+   * Read and write barriers.  By default do nothing, override if
+   * appropriate.
+   */
 
   /**
    * A new reference is about to be created by a putfield bytecode.
@@ -382,10 +383,10 @@ public abstract class BasePlan
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
     if (spaceNames[sp] != null) VM_Interface.sysFail("addSpace called on already registed space");
@@ -463,10 +464,10 @@ public abstract class BasePlan
     return true;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Check whether an asynchronous collection is pending.<p>
@@ -519,10 +520,10 @@ public abstract class BasePlan
     return gcInProgress;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * This method should be called whenever an error is encountered.
@@ -583,10 +584,10 @@ public abstract class BasePlan
   protected void planExit(int value) {}
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   final static int PAGES = 0;
   final static int MB = 1;

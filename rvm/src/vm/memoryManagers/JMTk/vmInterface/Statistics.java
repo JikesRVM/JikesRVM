@@ -48,9 +48,10 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   public static int gcMajorCount = 0;      // number of major collections
 
   // accumulated times & counts for sysExit callback printout
-  static final VM_Statistic bytesCopied = new VM_Statistic();
-  static final VM_Statistic minorBytesCopied = new VM_Statistic();     
-  static final VM_Statistic majorBytesCopied = bytesCopied;
+  /* AJG: Not updated. */
+//   static final VM_Statistic bytesCopied = new VM_Statistic();
+//   static final VM_Statistic minorBytesCopied = new VM_Statistic();     
+//   static final VM_Statistic majorBytesCopied = bytesCopied;
 
   // time spend in various phases
   public static final VM_TimeStatistic initTime = new VM_TimeStatistic();
@@ -67,13 +68,15 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   public static final VM_TimeStatistic cdScanTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic cdCollectTime = new VM_TimeStatistic();
   public static final VM_TimeStatistic cdFreeTime = new VM_TimeStatistic();
-  public static final VM_TimeStatistic GCTime = new VM_TimeStatistic();
-  public static final VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
-  public static final VM_TimeStatistic majorGCTime = GCTime;
+  /* AJG: Not updated */
+//   public static final VM_TimeStatistic GCTime = new VM_TimeStatistic();
+//   public static final VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
+//   public static final VM_TimeStatistic majorGCTime = GCTime;
 
   // collisions in obtaining object ownership to copy
-  static final boolean COUNT_COLLISIONS = false;
-  static int collisionCount = 0;
+  /* AJG: Not updated */
+//   static final boolean COUNT_COLLISIONS = false;
+//   static int collisionCount = 0;
 
   // more statistics
   static final boolean COUNT_BY_TYPE     = false;
@@ -85,11 +88,19 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   // verify that all allocations return zero-filled storage.
   static final boolean VERIFY_ZEROED_ALLOCATIONS = false;
 
-  static final int DEFAULT = 0;  // non-generational
-  static final int MINOR = 1;
-  static final int MAJOR = 2;
+  /* AJG: Not used. */
+//   static final int DEFAULT = 0;  // non-generational
+//   static final int MINOR = 1;
+//   static final int MAJOR = 2;
 
   private static final VM_Atom TOTALAtom = VM_Atom.findOrCreateAsciiAtom("TOTAL");
+
+  private static final int ONE_K = 1024;
+  private static final int ONE_MEG = ONE_K * ONE_K;
+  /* When changing these contants, change the message text in the
+   * printCountsByType method. */
+  private static final int FIRST_ALLOC_BYTES_THRESHOLD = 10 * ONE_K;
+  private static final int SECOND_ALLOC_BYTES_THRESHOLD = ONE_MEG;
 
   public static void boot() throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new Statistics());
@@ -113,56 +124,59 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     clearSummaryStatistics();
   }
 
-  static void updateGCStats(int GCType, int copied) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) 
-      VM._assert(copied >= 0);
-    if (GCType == DEFAULT || GCType == MAJOR)
-      bytesCopied.addSample(copied);
-    else if (GCType == MINOR)
-      minorBytesCopied.addSample(copied);
-    else
-      VM.sysFail("Statistics.updateGCStats given unknown GC type");
-  }
+  /* AJG: Not used. */   
+//   static void updateGCStats(int GCType, int copied) throws VM_PragmaUninterruptible {
+//     if (VM.VerifyAssertions) 
+//       VM._assert(copied >= 0);
+//     if (GCType == DEFAULT || GCType == MAJOR)
+//       bytesCopied.addSample(copied);
+//     else if (GCType == MINOR)
+//       minorBytesCopied.addSample(copied);
+//     else
+//       VM.sysFail("Statistics.updateGCStats given unknown GC type");
+//   }
 
-  static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
+/* AJG: Not used. */   
+//   static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
 
-    if (Options.verbose >= 2)
-      printGCPhaseTimes();  	
+//     if (Options.verbose >= 2)
+//       printGCPhaseTimes();  	
 
-    if (Options.verbose >= 1) {
-      printVerboseOutputLine(GCType);
-//       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
-//         VM_CollectorThread.printThreadWaitTimes();
-    }
-  }
+//     if (Options.verbose >= 1) {
+//       printVerboseOutputLine(GCType);
+// //       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
+// //         VM_CollectorThread.printThreadWaitTimes();
+//     }
+//   }
 
-  private static void printGCPhaseTimes () throws VM_PragmaUninterruptible {
+/* AJG: Not used. */   
+//   private static void printGCPhaseTimes () throws VM_PragmaUninterruptible {
 
-    // if invoked with -verbose:gc print output line for this last GC
-    VM.sysWrite("<GC ", gcCount, "> ");
-    VM.sysWrite("init ", (int)(initTime.last()*1000000.0), "(us) ");
-    VM.sysWrite("stacks & statics ", (int)(rootTime.last()*1000000.0), "(us) ");
-    VM.sysWrite("scanning ", (int)(scanTime.last()*1000.0), "(ms) ");
-    VM.sysWrite("finalize ", (int)(finalizeTime.last()*1000000.0), "(us) ");
-    VM.sysWriteln("finish ",  (int)(finishTime.last()*1000000.0), "(us) ");
-  }
+//     // if invoked with -verbose:gc print output line for this last GC
+//     VM.sysWrite("<GC ", gcCount, "> ");
+//     VM.sysWrite("init ", (int)(initTime.last()*1000000.0), "(us) ");
+//     VM.sysWrite("stacks & statics ", (int)(rootTime.last()*1000000.0), "(us) ");
+//     VM.sysWrite("scanning ", (int)(scanTime.last()*1000.0), "(ms) ");
+//     VM.sysWrite("finalize ", (int)(finalizeTime.last()*1000000.0), "(us) ");
+//     VM.sysWriteln("finish ",  (int)(finishTime.last()*1000000.0), "(us) ");
+//   }
 
+/* AJG: Not used. */   
+//   private static void printVerboseOutputLine (int GCType) throws VM_PragmaUninterruptible {
 
-  private static void printVerboseOutputLine (int GCType) throws VM_PragmaUninterruptible {
+//     int gcTimeMs = (GCType == MINOR) ? minorGCTime.lastMs() : GCTime.lastMs();
+//     int free = (int) MM_Interface.freeMemory();
+//     int total = (int) MM_Interface.totalMemory();
+//     double freeFraction = free / (double) total;
+//     int copiedKb = (int) (((GCType == MINOR) ? minorBytesCopied.last() : bytesCopied.last()) / 1024);
 
-    int gcTimeMs = (GCType == MINOR) ? minorGCTime.lastMs() : GCTime.lastMs();
-    int free = (int) MM_Interface.freeMemory();
-    int total = (int) MM_Interface.totalMemory();
-    double freeFraction = free / (double) total;
-    int copiedKb = (int) (((GCType == MINOR) ? minorBytesCopied.last() : bytesCopied.last()) / 1024);
-
-    VM.sysWrite("<GC ", gcCount, ">  ");
-    VM.sysWrite(gcTimeMs, " ms ");
-    VM.sysWrite("   small: ", copiedKb, " Kb copied     ");
-    VM.sysWrite(free / 1024, " Kb free (");
-                VM.sysWrite(freeFraction * 100.0); VM.sysWrite("%)   ");
-    VM.sysWrite("rate = "); VM.sysWrite(((double) copiedKb) / gcTimeMs); VM.sysWriteln("(Mb/s)      ");
-  }
+//     VM.sysWrite("<GC ", gcCount, ">  ");
+//     VM.sysWrite(gcTimeMs, " ms ");
+//     VM.sysWrite("   small: ", copiedKb, " Kb copied     ");
+//     VM.sysWrite(free / 1024, " Kb free (");
+//                 VM.sysWrite(freeFraction * 100.0); VM.sysWrite("%)   ");
+//     VM.sysWrite("rate = "); VM.sysWrite(((double) copiedKb) / gcTimeMs); VM.sysWriteln("(Mb/s)      ");
+//   }
 
   static void clearSummaryStatistics () throws VM_PragmaUninterruptible {
     VM_ObjectModel.hashRequests = 0;
@@ -190,35 +204,36 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     // showParameter();
     if (Options.verbose >= 3) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
-      if (gcCount != 0) {
-        if (minorGCTime.count() > 0) {
-          VM.sysWrite("GC Summary:  Minor Times   ");
-          VM.sysWrite("total ", minorGCTime.sumS(), " (s)    ");
-          VM.sysWrite("avg ", minorGCTime.avgMs(), " (ms)    ");
-          VM.sysWriteln("max ", minorGCTime.maxMs(), " (ms)    ");
-        }
-        if (majorGCTime.count() > 0) {
-          VM.sysWrite("GC Summary:  Major Times   ");
-          VM.sysWrite("total ", majorGCTime.sumS(), " (s)    ");
-          VM.sysWrite("avg ", majorGCTime.avgMs(), " (ms)    ");
-          VM.sysWriteln("max ", majorGCTime.maxMs(), " (ms)    ");
-        }
-        if (minorBytesCopied.count() > 0) {
-          VM.sysWrite("GC Summary:  Minor copied  ");
-          VM.sysWrite("avg ", (int) minorBytesCopied.avg() / 1024, " (Kb)    ");
-          VM.sysWriteln("max ", (int) minorBytesCopied.max() / 1024, " (Kb)");
-        }
-        if (majorBytesCopied.count() > 0) {
-          VM.sysWrite("GC Summary:  Major copied  ");
-          VM.sysWrite("avg ", (int) majorBytesCopied.avg() / 1024, " (Kb)    ");
-          VM.sysWriteln("max ", (int) majorBytesCopied.max() / 1024, " (Kb)");
-        }
-      }
+	/* These counts are not updated. */
+//       if (gcCount != 0) {
+//         if (minorGCTime.count() > 0) {
+//           VM.sysWrite("GC Summary:  Minor Times   ");
+//           VM.sysWrite("total ", minorGCTime.sumS(), " (s)    ");
+//           VM.sysWrite("avg ", minorGCTime.avgMs(), " (ms)    ");
+//           VM.sysWriteln("max ", minorGCTime.maxMs(), " (ms)    ");
+//         }
+//         if (majorGCTime.count() > 0) {
+//           VM.sysWrite("GC Summary:  Major Times   ");
+//           VM.sysWrite("total ", majorGCTime.sumS(), " (s)    ");
+//           VM.sysWrite("avg ", majorGCTime.avgMs(), " (ms)    ");
+//           VM.sysWriteln("max ", majorGCTime.maxMs(), " (ms)    ");
+//         }
+//         if (minorBytesCopied.count() > 0) {
+//           VM.sysWrite("GC Summary:  Minor copied  ");
+//           VM.sysWrite("avg ", (int) minorBytesCopied.avg() / 1024, " (Kb)    ");
+//           VM.sysWriteln("max ", (int) minorBytesCopied.max() / 1024, " (Kb)");
+//         }
+//         if (majorBytesCopied.count() > 0) {
+//           VM.sysWrite("GC Summary:  Major copied  ");
+//           VM.sysWrite("avg ", (int) majorBytesCopied.avg() / 1024, " (Kb)    ");
+//           VM.sysWriteln("max ", (int) majorBytesCopied.max() / 1024, " (Kb)");
+//         }
+//       }
     }
-    if (COUNT_COLLISIONS && (gcCount>0) && (np>1)) {
-      VM.sysWriteln("GC Summary:  avg number of collisions per collection = ",
-                    collisionCount/gcCount);
-    }
+//     if (COUNT_COLLISIONS && (gcCount>0) && (np>1)) {
+//       VM.sysWriteln("GC Summary:  avg number of collisions per collection = ",
+//                     collisionCount/gcCount);
+//     }
 
     if (Options.verbose >= 3 && gcCount>0) {
       VM.sysWrite("GC Summary: Average Phase Time:");
@@ -315,7 +330,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
     for (int i = 1; i < maxId; i++) {
       VM_Type type = VM_Type.getType(i);
-      if (type.allocBytes >= 1024 * 1024)
+      if (type.allocBytes >= SECOND_ALLOC_BYTES_THRESHOLD)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
                         type.copyCount, type.copyBytes,
@@ -323,7 +338,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
     for (int i = 1; i < maxId; i++) {
       VM_Type type = VM_Type.getType(i);
-      if (type.allocBytes >= 10 * 1024 && type.allocBytes < 1024 * 1024)
+      if (type.allocBytes >= FIRST_ALLOC_BYTES_THRESHOLD
+	  && type.allocBytes < SECOND_ALLOC_BYTES_THRESHOLD)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
                         type.copyCount, type.copyBytes,
@@ -331,7 +347,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
     for (int i = 1; i < maxId; i++) {
       VM_Type type = VM_Type.getType(i);
-      if (type.allocBytes < 1024 && type.allocBytes > 0)
+      if (type.allocBytes < FIRST_ALLOC_BYTES_THRESHOLD && type.allocBytes > 0)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
                         type.copyCount, type.copyBytes,
@@ -345,13 +361,14 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   }
 
 
-  public static void printclass(VM_Address ref) throws VM_PragmaUninterruptible {
+  public static void printclass(VM_Address ref)
+    throws VM_PragmaUninterruptible {
     VM_Type  type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
     VM.sysWrite(type.getDescriptor());
   }
 
-
-  public static void profileCopy(Object obj, int size, Object[] tib) throws VM_PragmaInline, VM_PragmaUninterruptible { 
+  public static void profileCopy(Object obj, int size, Object[] tib)
+    throws VM_PragmaInline, VM_PragmaUninterruptible { 
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.copyCount++;
@@ -359,7 +376,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
   }
 
-  public static void profileScan(Object obj, int size, Object[] tib) throws VM_PragmaInline, VM_PragmaUninterruptible {
+  public static void profileScan(Object obj, int size, Object[] tib)
+    throws VM_PragmaInline, VM_PragmaUninterruptible {
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.scanCount++;
@@ -367,7 +385,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
   }
 
-  public static void profileAlloc (VM_Address addr, int size, Object[] tib) throws VM_PragmaUninterruptible {
+  public static void profileAlloc(VM_Address addr, int size, Object[] tib)
+    throws VM_PragmaUninterruptible {
     if (COUNT_BY_TYPE) {
       VM_Type t = VM_Magic.objectAsType(tib[0]);
       t.allocCount++;
@@ -385,8 +404,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     if (VERIFY_ALIGNMENT) {
-      if ((size & ~(BYTES_IN_WORD - 1)) != size ||
-          VM_Memory.alignUp(addr, BYTES_IN_WORD).NE(addr)) {
+      if ((size & ~(BYTES_IN_ADDRESS - 1)) != size ||
+          VM_Memory.alignUp(addr, BYTES_IN_ADDRESS).NE(addr)) {
         VM.sysWrite("Non word size aligned region allocated ");
         VM.sysWrite("size is ", size);
         VM.sysWriteln(" address is ", addr);

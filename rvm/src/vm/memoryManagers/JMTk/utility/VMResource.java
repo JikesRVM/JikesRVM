@@ -37,10 +37,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public static variables and methods
-  //
+  /****************************************************************************
+   *
+   * Public static variables and methods
+   */
   public static final byte NOT_IN_VM = 0;   // 00000000
   public static final byte IN_VM     = 1;   // 00000001
   public static final byte IMMORTAL  = 2;   // 00000010
@@ -83,17 +83,17 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     return MAX_VMRESOURCE;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private static methods and variables
-  //
+  /****************************************************************************
+   *
+   * Private static methods and variables
+   */
   private static VMResource resourceTable[]; // Points to corresponding VM resource.  null if no corresponding VM resource.
   private static byte spaceTable[];          // Status of each page
   private static byte tagTable[];            // Space-specific information of each page
   private static int count;                  // How many VMResources exist now?
   private static VMResource resources[];     // List of all VMResources.
   final private static int MAX_VMRESOURCE = 20;
-  // final private static int NUM_PAGES = 1 << (LOG_ADDRESS_SPACE - LOG_PAGE_SIZE);
+  // final private static int NUM_PAGES = 1 << (LOG_BYTES_IN_ADDRESS_SPACE - LOG_BYTES_IN_PAGE);
   final private static int NUM_PAGES = 1 << 20;
 
   /**
@@ -133,7 +133,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public static VMResource resourceForPage(VM_Address addr) {
     if (resourceTable == null)
       VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
-    return resourceTable[addr.toInt() >>> LOG_PAGE_SIZE];
+    return resourceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
   }
 
   public static byte getPageStatus(VM_Address addr) {
@@ -146,25 +146,25 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions) {
 	if (spaceTable == null)
 	  VM_Interface.sysFail("getSpace called when spaceTable is null");
-	return spaceTable[addr.toInt() >>> LOG_PAGE_SIZE];
+	return spaceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
     }
     return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
-				    addr.toInt() >>> LOG_PAGE_SIZE);
+				    addr.toInt() >>> LOG_BYTES_IN_PAGE);
   }
 
   public static byte getTag (VM_Address addr) {
-    int page =  addr.toInt() >>> LOG_PAGE_SIZE;
+    int page =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     return tagTable[page];
   }
 
   public static void setTag (VM_Address addr, int pages, byte v) {
-    int start =  addr.toInt() >>> LOG_PAGE_SIZE;
+    int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     for (int i=0; i<pages; i++)
 	tagTable[start+i] = v;
   }
 
   public static void clearTag (VM_Address addr, int pages, byte v) {
-    int start =  addr.toInt() >>> LOG_PAGE_SIZE;
+    int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     for (int i=0; i<pages; i++) {
 	if (tagTable[start+i] != v)
 	    VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
@@ -172,10 +172,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
   /**
    * Constructor
    */
@@ -244,10 +244,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public final VM_Address getEnd() { return end; }
   public final boolean inRange(VM_Address s) { return (start.LE(s) && s.LT(end)); }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
   final private int index;
   final private byte space;
   final protected String name;

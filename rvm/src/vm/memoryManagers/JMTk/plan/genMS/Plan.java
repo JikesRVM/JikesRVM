@@ -54,10 +54,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends Generational implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   protected static final boolean usesLOS = true;
   protected static final boolean copyMature = false;
   
@@ -67,18 +67,18 @@ public class Plan extends Generational implements VM_Uninterruptible {
   // mature space collector
   private static MarkSweepSpace matureSpace;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private MarkSweepLocal mature;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -99,10 +99,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     mature = new MarkSweepLocal(matureSpace, this);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object) in the mature space
@@ -154,10 +154,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return super.getAllocatorFromSpace(s);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Perform operations pertaining to the mature space with
@@ -199,10 +199,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     matureSpace.release();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference into the mature space during GC.  This simply
@@ -276,10 +276,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return (forwardingWord & ~HybridHeader.GC_BITS_MASK) | matureSpace.getInitialHeaderValue();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of the mature allocator.

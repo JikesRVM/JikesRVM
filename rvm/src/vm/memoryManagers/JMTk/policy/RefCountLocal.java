@@ -31,20 +31,20 @@ final class RefCountLocal extends SegregatedFreeList
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   private static SharedQueue rootPool;
   private static SharedQueue tracingPool;
 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
   private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private RefCountSpace rcSpace;
   private RefCountLOSLocal los;
   private Plan plan;
@@ -69,10 +69,10 @@ final class RefCountLocal extends SegregatedFreeList
   protected final boolean preserveFreeList() { return true; }
   protected final boolean maintainInUse() { return true; }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -125,17 +125,17 @@ final class RefCountLocal extends SegregatedFreeList
 	blockSizeClass[sc] = blk;
 	cellsInBlock[sc] = cells;
 	blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES;
-	if (((avail < PAGE_SIZE) && (cells*2 > MAX_CELLS)) ||
-	    ((avail > (PAGE_SIZE>>1)) && (cells > MIN_CELLS)))
+	if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
+	    ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
 	  break;
       }
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
 			      int bytes, boolean inGC) throws VM_PragmaInline{}
   protected final void postExpandSizeClass(VM_Address block, int sizeClass){}
@@ -143,10 +143,10 @@ final class RefCountLocal extends SegregatedFreeList
     return getFreeList(block);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a collection.
@@ -244,10 +244,10 @@ final class RefCountLocal extends SegregatedFreeList
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Decrement the reference count of an object.  If the count drops
@@ -312,11 +312,11 @@ final class RefCountLocal extends SegregatedFreeList
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Methods relating to sanity tracing (tracing used to check
-  // reference counts)
-  //
+  /****************************************************************************
+   *
+   * Methods relating to sanity tracing (tracing used to check
+   * reference counts)
+   */
 
   /**
    * Check the reference counts of all objects against those
@@ -397,10 +397,10 @@ final class RefCountLocal extends SegregatedFreeList
     tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   /**
    * Setter method for the purple counter.

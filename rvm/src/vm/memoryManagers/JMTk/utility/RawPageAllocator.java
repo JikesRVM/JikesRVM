@@ -32,10 +32,10 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 final class RawPageAllocator implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -103,10 +103,10 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     return freeList.size(Conversions.bytesToPages(start.diff(base).toInt()));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
   private VM_Address base;       // beginning of available region
   private VM_Address top;        // end of available region
   private int totalPages;       // number of pages in entire VM region

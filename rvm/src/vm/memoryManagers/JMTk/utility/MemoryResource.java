@@ -27,10 +27,10 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -199,18 +199,18 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
     Log.writeln();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   static private final int MAX_MEMORY_RESOURCES = 20;
   static private final MemoryResource [] allMR = new MemoryResource[MAX_MEMORY_RESOURCES];
   static private       int allMRCount = 0;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   public final String name;
   private int reserved;
   private int committed;

@@ -31,7 +31,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @author Stephen Smith
  * @author Perry Cheng
  */  
-public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
+public class ScanThread implements VM_Constants, VM_Uninterruptible {
 
   /**
    * quietly validates each ref reported by map iterators
@@ -445,7 +445,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     VM_Address start,end;
 //-#if RVM_FOR_IA32
     if (prevFp.isZero()) {
-      start = fp.sub(20*WORD_SIZE);
+      start = fp.sub(20*BYTES_IN_ADDRESS);
       VM.sysWriteln("--- 20 words of stack frame with fp = ", fp);
     }
     else {
@@ -460,7 +460,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     end = VM_Magic.getMemoryAddress(fp);   // stop at callers fp
 //-#endif
 
-    for (VM_Address loc = start; loc.LT(end); loc = loc.add(WORD_SIZE)) {
+    for (VM_Address loc = start; loc.LT(end); loc = loc.add(BYTES_IN_ADDRESS)) {
       VM.sysWrite(loc); VM.sysWrite(" (");
       VM.sysWrite(loc.diff(start).toInt(), "):  ");
       VM_Address value = VM_Magic.getMemoryAddress(loc);

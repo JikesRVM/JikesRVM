@@ -28,10 +28,10 @@ public class SharedQueue extends Queue
   public final static String Id = "$Id$"; 
 
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -129,10 +129,10 @@ public class SharedQueue extends Queue
     return bufsenqueued<<LOG_PAGES_PER_BUFFER;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private instance methods and fields
-  //
+  /****************************************************************************
+   *
+   * Private instance methods and fields
+   */
   private RawPageAllocator rpa;
   private int arity;
   private int completionFlag; //

@@ -32,22 +32,22 @@ final class Treadmill
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private DoublyLinkedList fromSpace;
   private DoublyLinkedList toSpace;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance Methods
-  //
+  /****************************************************************************
+   *
+   * Instance Methods
+   */
 
   /**
    * Constructor

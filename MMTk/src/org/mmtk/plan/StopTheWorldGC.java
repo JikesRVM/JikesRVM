@@ -47,10 +47,10 @@ public abstract class StopTheWorldGC extends BasePlan
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   // Global pools for load-balancing queues
   protected static SharedQueue valuePool;
   protected static SharedQueue locationPool;
@@ -68,20 +68,20 @@ public abstract class StopTheWorldGC extends BasePlan
   // GC stress test
   private static int lastStressPagesReserved = 0;  
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   protected AddressQueue values;          // gray objects
   protected AddressQueue locations;       // locations containing white objects
   protected AddressQueue rootLocations;   // root locs containing white objects
   protected AddressPairQueue interiorRootLocations; // interior root locations
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -110,20 +110,20 @@ public abstract class StopTheWorldGC extends BasePlan
     interiorRootPool.newClient();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan, with each
-  //     separated by a synchronization barrier.
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
+  /****************************************************************************
+   *
+   * Collection
+   *
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
+   */
   abstract protected void globalPrepare();
   abstract protected void threadLocalPrepare(int order);
   abstract protected void threadLocalRelease(int order);

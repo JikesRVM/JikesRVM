@@ -25,10 +25,10 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public class ImmortalVMResource extends MonotoneVMResource implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
   /**
    * Constructor
    */

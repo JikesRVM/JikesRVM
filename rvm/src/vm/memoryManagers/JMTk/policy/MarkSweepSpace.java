@@ -31,24 +31,24 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 final class MarkSweepSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private int markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   public boolean inMSCollection = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -63,10 +63,10 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
     memoryResource = mr;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Return the initial value for the header of a new object instance.
@@ -77,10 +77,10 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
     return markState;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a new collection increment.  For the mark-sweep
@@ -116,10 +116,10 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
     return inMSCollection;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference to an object under a mark sweep collection
@@ -130,6 +130,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * marked.
    *
    * @param object The object to be traced.
+   * XXX No param Javadoc for tag.
    * @return The object (there is no object forwarding in this
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
@@ -153,10 +154,10 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
      return MarkSweepHeader.testMarkBit(obj, markState);
    }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
   public final FreeListVMResource getVMResource() { return vmResource;}
   public final MemoryResource getMemoryResource() { return memoryResource;}
 

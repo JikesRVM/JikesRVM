@@ -36,23 +36,23 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 abstract class LargeObjectAllocator extends Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  protected static final VM_Word PAGE_MASK = VM_Word.fromInt(~(PAGE_SIZE - 1));
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  protected static final VM_Word PAGE_MASK = VM_Word.fromInt(~(BYTES_IN_PAGE - 1));
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   protected FreeListVMResource vmResource;
   protected MemoryResource memoryResource;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -67,10 +67,10 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     memoryResource = mr;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space for an object
@@ -104,7 +104,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
   final protected VM_Address allocSlowOnce (boolean isScalar, int bytes,
 					    boolean inGC) {
     int header = superPageHeaderSize() + cellHeaderSize();
-    int pages = (bytes + header + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
+    int pages = (bytes + header + BYTES_IN_PAGE - 1)>>LOG_BYTES_IN_PAGE;
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;
     VM_Address cell = sp.add(header);
@@ -112,10 +112,10 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     return cell;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Freeing
-  //
+  /****************************************************************************
+   *
+   * Freeing
+   */
 
   /**
    * Free a cell.  If the cell is large (own superpage) then release
@@ -132,10 +132,10 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     freeSuperPage(getSuperPage(cell));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Superpages
-  //
+  /****************************************************************************
+   *
+   * Superpages
+   */
 
   abstract protected int superPageHeaderSize();
   abstract protected int cellHeaderSize();
@@ -179,10 +179,10 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     return cell.toWord().and(PAGE_MASK).toAddress();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
   public void show() {
   }
 }

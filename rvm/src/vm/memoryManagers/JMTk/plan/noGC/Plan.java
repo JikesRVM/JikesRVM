@@ -29,10 +29,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final String Id = "$Id$"; 
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   public static final boolean MOVES_OBJECTS = false;
 
   // virtual memory resources
@@ -57,18 +57,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address       HEAP_END = DEFAULT_END;
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private BumpPointer def;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -100,10 +100,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -324,10 +324,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -395,10 +395,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return forwardingWord;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -442,10 +442,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of each of the allocators.

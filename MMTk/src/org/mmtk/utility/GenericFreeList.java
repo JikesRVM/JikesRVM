@@ -99,10 +99,10 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class GenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor

@@ -33,23 +33,23 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   public boolean bootImageMark = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -64,10 +64,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     memoryResource = mr;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
   /**
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit and a small
@@ -80,10 +80,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return 0;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a new collection increment.  Flip the state of the
@@ -101,10 +101,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   public void release() {
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * An object has been encountered in a traversal of the object
@@ -137,10 +137,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return RCBaseHeader.isLiveRC(object);
   }
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Methods for sanity tracing (tracing to check ref counts)
-  //
+  /****************************************************************************
+   *
+   * Methods for sanity tracing (tracing to check ref counts)
+   */
 
   /**
    * An (reference counted) object has been encountered in a sanity
@@ -180,10 +180,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return object;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   /**
    * Increment the reference count for an object.

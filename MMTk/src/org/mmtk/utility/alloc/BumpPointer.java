@@ -106,21 +106,22 @@ final class BumpPointer extends Allocator
     Log.write(" limit = "); Log.writeln(limit);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private VM_Address cursor;
   private VM_Address limit;
   private MonotoneVMResource vmResource;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Final class variables (aka constants)
-  //
-  // Must ensure the bump pointer will go through slow path on (first) alloc of initial value
-  //
-  private static final int LOG_CHUNK_SIZE = VMResource.LOG_PAGE_SIZE + 3;
+  /****************************************************************************
+   *
+   * Final class variables (aka constants)
+   *
+   * Must ensure the bump pointer will go through slow path on (first)
+   * alloc of initial value
+   */
+  private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
   private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
   private static final int TRIGGER = CHUNK_SIZE - 1;
   private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromInt(TRIGGER);

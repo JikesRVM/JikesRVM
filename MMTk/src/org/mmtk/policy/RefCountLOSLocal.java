@@ -27,10 +27,10 @@ final class RefCountLOSLocal extends LargeObjectAllocator
     super(vmr, mr);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    *  This is called each time a cell is alloced (i.e. if a cell is
@@ -42,10 +42,10 @@ final class RefCountLOSLocal extends LargeObjectAllocator
    */
   protected final void postAlloc(VM_Address cell) throws VM_PragmaInline {};
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous size-related methods
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous size-related methods
+   */
   /**
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header

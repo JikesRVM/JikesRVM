@@ -102,7 +102,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     VM_Address tibAddress = ref.add(TIB_OFFSET);
     int tibWord    = VM_Magic.getMemoryWord(tibAddress);
     int savedBits  = tibWord & ~TIB_MASK;
-    int tibNew     = VM_Allocator.processPtrValue(VM_Address.fromInt(tibWord & TIB_MASK)).toInt();
+    int tibNew     = MM_Interface.processPtrValue(VM_Address.fromInt(tibWord & TIB_MASK)).toInt();
     VM_Magic.setMemoryWord(tibAddress, tibNew | savedBits);
   }
 

@@ -30,10 +30,10 @@ public class Header extends HybridHeader {
 
   public final static int GC_BARRIER_BIT_MASK = -1;  // must be defined even though unused
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Empty public methods existing only for compliance
-  //
+  /****************************************************************************
+   *
+   * Empty public methods existing only for compliance
+   */
   public static boolean isBeingForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.isCopyObject(base))

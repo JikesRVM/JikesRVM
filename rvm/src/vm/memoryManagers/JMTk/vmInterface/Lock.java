@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_PragmaInline;
 
-/*
+/**
  * Simple, fair locks with deadlock detection.
  *
  * The implementation mimics a deli-counter and consists of two values: 
@@ -33,6 +33,8 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * This implementation relies on their being less than 1<<32 waiters.
  * 
  * @author Perry Cheng
+ * @version $Revision$
+ * @date $Date$
  */
 public class Lock implements VM_Uninterruptible {
 

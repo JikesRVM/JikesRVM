@@ -63,16 +63,16 @@ class Log implements Constants, VM_Uninterruptible {
   private static final String HEX_PREFIX = "0x";
 
   /**
-   * number of bits represented by a single hexidemimal digit
+   * log2 of number of bits represented by a single hexidemimal digit
    */
-  private static final int BITS_IN_HEX_DIGIT = 4;
+  private static final int LOG_BITS_IN_HEX_DIGIT = 2;
 
   /**
-   * number of digits in the unsigned hexadecimal representation of a
-   * byte
+   * log2 of number of digits in the unsigned hexadecimal
+   * representation of a byte
    */
-  private static final int HEX_DIGITS_IN_BYTE =
-    BYTE_BITS / BITS_IN_HEX_DIGIT;
+  private static final int LOG_HEX_DIGITS_IN_BYTE =
+    LOG_BITS_IN_BYTE - LOG_BITS_IN_HEX_DIGIT;
 
   /**
    * map of hexadecimal digit values to their character representations
@@ -269,7 +269,7 @@ class Log implements Constants, VM_Uninterruptible {
    * @param a the address to be logged
    */
   static void write(VM_Address a) {
-    writeHex(VM_Interface.addressToLong(a), BYTES_IN_WORD);
+    writeHex(VM_Interface.addressToLong(a), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -278,7 +278,7 @@ class Log implements Constants, VM_Uninterruptible {
    * @param o the offset to be logged
    */
   static void write(VM_Offset o) {
-    writeHex(VM_Interface.offsetToLong(o), BYTES_IN_WORD);
+    writeHex(VM_Interface.offsetToLong(o), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -590,14 +590,14 @@ class Log implements Constants, VM_Uninterruptible {
    * of the most significant bytes are ignored.
    */
   private static void writeHex(long l, int bytes) {
-    int hexDigits = bytes * HEX_DIGITS_IN_BYTE;
+    int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
     char [] intBuffer = getIntBuffer();
 
     write(HEX_PREFIX);
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
-      nextDigit = (int)(l >>> (digitNumber * BITS_IN_HEX_DIGIT)) & 0xf;
+      nextDigit = (int)(l >>> (digitNumber << LOG_BITS_IN_HEX_DIGIT)) & 0xf;
       char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
 						     nextDigit);
       add(nextChar);

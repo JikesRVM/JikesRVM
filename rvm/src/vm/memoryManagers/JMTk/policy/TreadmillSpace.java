@@ -33,24 +33,24 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 final class TreadmillSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private int markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private boolean inTreadmillCollection = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -65,10 +65,10 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     memoryResource = mr;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    *  This is called each time a cell is alloced (i.e. if a cell is
@@ -98,10 +98,10 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a new collection increment.  For the mark-sweep
@@ -138,10 +138,10 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference to an object under a mark sweep collection
@@ -196,10 +196,10 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     tm.copy(node);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
   
   /**
    * Return the VMResource associated with this collector

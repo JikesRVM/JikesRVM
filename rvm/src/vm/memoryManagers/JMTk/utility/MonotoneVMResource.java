@@ -32,10 +32,10 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   public final static boolean PROTECT_ON_RELEASE = false;
   public final static boolean ZERO_ON_RELEASE = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
   /**
    * Constructor
    */
@@ -123,10 +123,10 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
     return Conversions.bytesToPages(cursor.diff(start).toInt());
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
 
   protected VM_Address cursor;
   protected VM_Address sentinel;

@@ -31,10 +31,10 @@ public class LocalQueue extends LocalSSB
 
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -62,10 +62,10 @@ public class LocalQueue extends LocalSSB
     head = headSentinel(queue.getArity());
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Protected instance methods
-  //
+  /****************************************************************************
+   *
+   * Protected instance methods
+   */
 
   /**
    * Check whether there is space in the buffer for a pending push.
@@ -99,7 +99,7 @@ public class LocalQueue extends LocalSSB
       return popOverflow(arity);
     } else {
       if (VM_Interface.VerifyAssertions)
-	VM_Interface._assert(bufferOffset(head) >= (arity<<LOG_WORD_SIZE));
+	VM_Interface._assert(bufferOffset(head) >= (arity<<LOG_BYTES_IN_ADDRESS));
       return true;
     }
   }
@@ -115,7 +115,7 @@ public class LocalQueue extends LocalSSB
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
     VM_Magic.setMemoryAddress(head, value);
-    head = head.add(BYTES_IN_WORD);
+    head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
@@ -128,8 +128,8 @@ public class LocalQueue extends LocalSSB
    */
   protected final int uncheckedPop() throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head) >= WORD_SIZE);
-    head = head.sub(WORD_SIZE);
+      VM_Interface._assert(bufferOffset(head) >= BYTES_IN_ADDRESS);
+    head = head.sub(BYTES_IN_ADDRESS);
     // if (VM_Interface.VerifyAssertions) enqueued--;
     return VM_Magic.getMemoryInt(head);
   }
@@ -143,16 +143,16 @@ public class LocalQueue extends LocalSSB
    */
   protected final VM_Address uncheckedPopAddress() throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head) >= BYTES_IN_WORD);
-    head = head.sub(BYTES_IN_WORD);
+      VM_Interface._assert(bufferOffset(head) >= BYTES_IN_ADDRESS);
+    head = head.sub(BYTES_IN_ADDRESS);
     // if (VM_Interface.VerifyAssertions) enqueued--;
     return VM_Magic.getMemoryAddress(head);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private instance methods and fields
-  //
+  /****************************************************************************
+   *
+   * Private instance methods and fields
+   */
   private VM_Address head;   // the head buffer
 
   /**
@@ -213,17 +213,17 @@ public class LocalQueue extends LocalSSB
    * @return True if more entires were aquired.
    */
   private final boolean consumerStarved(int arity) {
-    if (bufferOffset(tail) >= (arity<<LOG_WORD_SIZE)) {
+    if (bufferOffset(tail) >= (arity<<LOG_BYTES_IN_ADDRESS)) {
       // entries in tail, so consume tail
       if (head.EQ(headSentinel(arity))) {
 	head = queue.alloc(); // no head, so alloc a new one
 	Plan.checkForAsyncCollection(); // possible side-effect of alloc()
       }
       VM_Address tmp = head;
-      head = normalizeTail(arity).add(WORD_SIZE);// account for pre-decrement
+      head = normalizeTail(arity).add(BYTES_IN_ADDRESS);// account for pre-decrement
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(tmp.EQ(bufferStart(tmp)));
-      tail = tmp.add(bufferLastOffset(arity) + WORD_SIZE);
+      tail = tmp.add(bufferLastOffset(arity) + BYTES_IN_ADDRESS);
     } else {
       VM_Address tmp = queue.dequeueAndWait(arity);
       head = (tmp.isZero() ? headSentinel(arity) : tmp);
@@ -240,6 +240,6 @@ public class LocalQueue extends LocalSSB
    * whether a head buffer is full.
    */
   private final VM_Address headSentinel(int arity) throws VM_PragmaInline {
-    return VM_Address.fromInt(bufferLastOffset(arity) + WORD_SIZE);
+    return VM_Address.fromInt(bufferLastOffset(arity) + BYTES_IN_ADDRESS);
   }
 }

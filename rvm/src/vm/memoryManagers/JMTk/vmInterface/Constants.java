@@ -17,23 +17,23 @@ import com.ibm.JikesRVM.VM_JavaHeader;
 public interface Constants {
   static final int MAX_INT = 0x7fffffff;
 
-  // Note: that Address and Word are identical in size
+  /* AJG: Contants based on naming conventions of latest
+   * VM_SizeConstants. */
+  static final int LOG_BYTES_IN_ADDRESS = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  static final int BYTES_IN_ADDRESS = VM_SizeConstants.BYTES_IN_ADDRESS;
+  static final int LOG_BITS_IN_ADDRESS = VM_SizeConstants.LOG_BITS_IN_ADDRESS;
+  static final int BITS_IN_ADDRESS = VM_SizeConstants.BITS_IN_ADDRESS;
 
-  static final int LOG_ADDRESS_SPACE = VM_SizeConstants.BITS_IN_ADDRESS;
-  static final int LOG_WORD_SIZE = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-  static final int LOG_BYTE_BITS = VM_SizeConstants.LOG_BITS_IN_BYTE;
-  static final int LOG_WORD_BITS = LOG_BYTE_BITS + LOG_WORD_SIZE;
-  static final int LOG_MBYTE_SIZE = 20;
-  static final int LOG_PAGE_SIZE = 12;
+  static final int LOG_BITS_IN_BYTE = VM_SizeConstants.LOG_BITS_IN_BYTE; 
 
-  static final int LOG_BYTES_IN_WORD = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
-  static final int BYTES_IN_WORD = VM_SizeConstants.BYTES_IN_ADDRESS;
+  static final int LOG_BYTES_IN_MBYTE = 20;
+  static final int BYTES_IN_MBYTE = 1<<LOG_BYTES_IN_MBYTE;
 
-  static final int BYTE_BITS = 1<<LOG_BYTE_BITS;
-  static final int WORD_SIZE = 1<<LOG_WORD_SIZE;
-  static final int WORD_BITS = 1<<LOG_WORD_BITS;
-  static final int MBYTE_SIZE = 1<<LOG_MBYTE_SIZE;
-  static final int PAGE_SIZE = 1<<LOG_PAGE_SIZE;
+  static final int LOG_BYTES_IN_PAGE = 12;
+  static final int BYTES_IN_PAGE = 1<<LOG_BYTES_IN_PAGE;
+
+  // Assume an address refers to a byte
+  static final int LOG_BYTES_IN_ADDRESS_SPACE = BITS_IN_ADDRESS;
 
   /*
    * Data Fields that control the allocation of memory

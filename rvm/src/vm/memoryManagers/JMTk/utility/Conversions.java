@@ -20,16 +20,16 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
   public static VM_Extent roundDownMB (VM_Extent bytes) {
-    return VM_Extent.fromInt((bytes.toInt() >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE);
+    return VM_Extent.fromInt((bytes.toInt() >>> LOG_BYTES_IN_MBYTE) << LOG_BYTES_IN_MBYTE);
   }
 
   // Round up (if necessary)
   //
   public static int MBToPages(int megs) {
-    if (VMResource.LOG_PAGE_SIZE <= LOG_MBYTE_SIZE)
-      return (megs << (LOG_MBYTE_SIZE - VMResource.LOG_PAGE_SIZE));
+    if (VMResource.LOG_BYTES_IN_PAGE <= LOG_BYTES_IN_MBYTE)
+      return (megs << (LOG_BYTES_IN_MBYTE - VMResource.LOG_BYTES_IN_PAGE));
     else
-      return (megs + ((VMResource.PAGE_SIZE >>> LOG_MBYTE_SIZE) - 1)) >>> (VMResource.LOG_PAGE_SIZE - LOG_MBYTE_SIZE);
+      return (megs + ((VMResource.BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (VMResource.LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
   }
 
   public static int bytesToMmapChunksUp(int bytes) {
@@ -45,7 +45,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static int addressToPagesDown (VM_Address addr) {
-    return (addr.toInt()) >>> LOG_PAGE_SIZE;
+    return (addr.toInt()) >>> LOG_BYTES_IN_PAGE;
   }
 
   public static int addressToPages (VM_Address addr) {
@@ -55,7 +55,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static VM_Address pagesToAddress (int pages) {
-    return VM_Address.fromInt(pages << LOG_PAGE_SIZE);
+    return VM_Address.fromInt(pages << LOG_BYTES_IN_PAGE);
   }
 
   public static int addressToMmapChunksUp (VM_Address addr) {
@@ -63,11 +63,11 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static int pagesToBytes(int pages) {
-    return pages << LOG_PAGE_SIZE;
+    return pages << LOG_BYTES_IN_PAGE;
   }
 
   public static int bytesToPagesUp (int bytes) {
-    return (bytes + PAGE_SIZE - 1) >>> LOG_PAGE_SIZE;
+    return (bytes + BYTES_IN_PAGE - 1) >>> LOG_BYTES_IN_PAGE;
   }
 
   public static int bytesToPages (int bytes) {

@@ -15,7 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 
 /**
  * Defines header words used by memory manager.not used for 
- *
+ * XXX Above line is incomplete.
  * @see VM_ObjectModel
  * 
  * @author David Bacon

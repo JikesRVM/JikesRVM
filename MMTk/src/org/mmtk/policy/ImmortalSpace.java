@@ -32,10 +32,10 @@ final class ImmortalSpace extends BasePolicy
   public final static String Id = "$Id$"; 
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object header manipulations
-  //
+  /****************************************************************************
+   *
+   * Object header manipulations
+   */
 
   /**
    * test to see if the mark bit has the given value

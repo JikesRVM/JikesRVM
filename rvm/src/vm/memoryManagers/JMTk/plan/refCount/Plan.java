@@ -30,10 +30,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   final public static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = false;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
@@ -82,10 +82,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
   private static final VM_Address       HEAP_END = LOS_END;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocator
   private RefCountLocal rc;
@@ -102,10 +102,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // enumerators
   RCDecEnumerator decEnum;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -155,10 +155,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     StopTheWorldGC.boot();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -172,7 +172,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc (int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       return los.alloc(isScalar, bytes);
     } else {
@@ -338,20 +338,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan, with each
-  //     separated by a synchronization barrier.:
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
+  /****************************************************************************
+   *
+   * Collection
+   *
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.:
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
+   */
 
   /**
    * Perform operations with <i>global</i> scope in preparation for a
@@ -424,10 +424,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     lastRCPages = rcMR.committedPages();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -510,10 +510,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return true;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Write barriers. 
-  //
+  /****************************************************************************
+   *
+   * Write barriers. 
+   */
 
   /**
    * A new reference is about to be created by a putfield bytecode.
@@ -550,9 +550,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 					   VM_Address tgt)
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
-      writeBarrier(src, src.add(index<<LOG_WORD_SIZE), tgt);
+      writeBarrier(src, src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
     else
-      writeBarrierOOL(src, src.add(index<<LOG_WORD_SIZE), tgt);
+      writeBarrierOOL(src, src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
   }
 
   /**
@@ -606,10 +606,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       incBuffer.push(tgt);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Pointer enumeration
-  //
+  /****************************************************************************
+   *
+   * Pointer enumeration
+   */
 
   /**
    * A field of an object is being enumerated by ScanObject as part of
@@ -629,10 +629,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -679,10 +679,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return getTotalPages() - getPagesUsed();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // RC methods
-  //
+  /****************************************************************************
+   *
+   * RC methods
+   */
 
   /**
    * Add an object to the decrement buffer
@@ -715,10 +715,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of each of the allocators.

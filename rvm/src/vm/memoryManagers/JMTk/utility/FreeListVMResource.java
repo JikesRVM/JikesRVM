@@ -31,10 +31,10 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public final class FreeListVMResource extends VMResource implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
   /**
    * Constructor
    */
@@ -121,10 +121,10 @@ public final class FreeListVMResource extends VMResource implements Constants, V
     return freeList.size(page);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
   /**
    * Acquire the appropriate lock depending on whether the context is
    * GC or mutator.

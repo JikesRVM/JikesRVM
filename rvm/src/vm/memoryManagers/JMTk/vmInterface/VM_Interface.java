@@ -53,11 +53,104 @@ import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Word;
 
-/*
+/**
+ * The interface that the Jikes research virtual machine presents to
+ * the JMTk memory manager.
+ *
  * @author Perry Cheng  
+ * @version $Revision$
+ * @date $Date$
  */  
 
 public class VM_Interface implements VM_Constants, VM_Uninterruptible {
+
+  /***********************************************************************
+   *
+   * Class variables
+   */
+
+  /**
+   * The address of the start of the boot image.
+   */
+  public static final VM_Address bootImageAddress = 
+    //-#if RVM_FOR_32_ADDR
+    VM_Address.fromIntZeroExtend
+    //-#elif RVM_FOR_64_ADDR
+    VM_Address.fromLong
+    //-#endif
+    (
+     //-#value BOOTIMAGE_LOAD_ADDRESS
+     );
+
+  /**
+   * The address in virtual memory that is the highest that can be mapped.
+   */
+  public static VM_Address MAXIMUM_MAPPABLE = 
+    //-#if RVM_FOR_32_ADDR
+    VM_Address.fromIntZeroExtend
+    //-#elif RVM_FOR_64_ADDR
+    VM_Address.fromLong
+    //-#endif
+    (
+     //-#value MAXIMUM_MAPPABLE_ADDRESS
+     );
+
+  /**
+   * Externally triggered garbage collection.  For example, the
+   * application called System.gc().
+   */
+  public static final int EXTERNALLY_TRIGGERED_GC = 0;
+  /**
+   * Resource triggered garbage collection.  For example, an
+   * allocation request would take the number of pages in use beyond
+   * the number available.
+   */
+  public static final int RESOURCE_TRIGGERED_GC = 1;
+  /**
+   * Internally triggered garbage collection.  For example, the memory
+   * manager attempting another collection after the first failed to
+   * free space.
+   */
+  public static final int INTERNALLY_TRIGGERED = 2;
+  /**
+   * The number of garbage collection trigger reasons.
+   */
+  public static final int TRIGGER_REASONS = 3;
+  /**
+   * Short descriptions of the garbage collection trigger reasons.
+   */
+  private static final String[] triggerReasons = {
+    "external request",
+    "resource exhaustion",
+    "internal request"
+  };
+
+  /**
+   * <code>true</code> if assertions should be verified
+   */
+  public static final boolean VerifyAssertions = VM.VerifyAssertions;
+
+  /**
+   * The percentage threshold for throwing an OutOfMemoryError.  If,
+   * after a garbage collection, the amount of memory used as a
+   * percentage of the available heap memory exceeds this percentage
+   * the memory manager will throw an OutOfMemoryError.
+   */
+  public static final double OUT_OF_MEMORY_THRESHOLD = 0.98;
+
+  /**
+   * Counter to track index into thread table for root tracing.
+   */
+  private static SynchronizedCounter threadCounter = new SynchronizedCounter();
+
+  /**
+   * The fully qualified name of the collector thread.
+   */
+  private static VM_Atom collectorThreadAtom;
+  /**
+   * The string "run".
+   */
+  private static VM_Atom runAtom;
 
   /***********************************************************************
    *
@@ -69,8 +162,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * statics at the completion of this routine will be reflected in
    * the boot image.  Any objects referenced by those statics will be
    * transitively included in the boot image.
+   *
+   * This is called from MM_Interface.
    */
-  public static final void init () throws VM_PragmaInterruptible {
+  public static final void init() throws VM_PragmaInterruptible {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
       "Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
@@ -83,41 +178,35 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Basically where the boot image is, and how much memory is available.
    */
 
+  /**
+   * Returns the start of the boot image.
+   *
+   * @return the address of the start of the boot image
+   */
   public static VM_Address bootImageStart() throws VM_PragmaUninterruptible {
     return  VM_BootRecord.the_boot_record.bootImageStart;
   }
 
+  /**
+   * Return the end of the boot image.
+   *
+   * @return the address of the end of the boot image
+   */
   public static VM_Address bootImageEnd() throws VM_PragmaUninterruptible {
     return  VM_BootRecord.the_boot_record.bootImageEnd;
   }
-
-  public static final VM_Address bootImageAddress = 
-    //-#if RVM_FOR_32_ADDR
-    VM_Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    VM_Address.fromLong
-    //-#endif
-    (
-     //-#value BOOTIMAGE_LOAD_ADDRESS
-     );
-
-  public static VM_Address MAXIMUM_MAPPABLE = 
-    //-#if RVM_FOR_32_ADDR
-    VM_Address.fromIntZeroExtend
-    //-#elif RVM_FOR_64_ADDR
-    VM_Address.fromLong
-    //-#endif
-    (
-     //-#value MAXIMUM_MAPPABLE_ADDRESS
-     );
 
   /***********************************************************************
    *
    * Manipulate raw memory
    */
 
-  /** 
-   * @return errno 
+  /**
+   * Maps an area of virtual memory.
+   *
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return 0 if successful, otherwise the system errno
    */
   public static int mmap(VM_Address start, int size) {
     VM_Address result = VM_Memory.mmap(start, VM_Extent.fromInt(size),
@@ -132,10 +221,27 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return result.toInt();
   }
   
+  /**
+   * Protects access to an area of virtual memory.
+   *
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return <code>true</code> if successful, otherwise
+   * <code>false</code>
+   */
   public static boolean mprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, VM_Extent.fromInt(size), VM_Memory.PROT_NONE);
+    return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
+			      VM_Memory.PROT_NONE);
   }
 
+  /**
+   * Allows access to an area of virtual memory.
+   *
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return <code>true</code> if successful, otherwise
+   * <code>false</code>
+   */
   public static boolean munprotect(VM_Address start, int size) {
     return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
 			      VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
@@ -143,8 +249,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   /**
    * Zero a region of memory.
-   * Taken:    start of address range (inclusive)
-   *           length in bytes of range to zero
+   * @param start Start of address range (inclusive)
+   * @param len Length in bytes of range to zero
    * Returned: nothing
    */
   public static void zero(VM_Address start, VM_Extent len) {
@@ -153,15 +259,26 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   /**
    * Zero a range of pages of memory.
-   * Taken:    start address       (must be a page address)
-   *           number of bytes     (must be multiple of page size)
-   * Returned: nothing
+   * @param start Start of address range (must be a page address)
+   * @param len Length in bytes of range (must be multiple of page size)
    */
   public static void zeroPages(VM_Address start, int len) {
+      /* AJG: Add assertions to check conditions documented above. */
     VM_Memory.zeroPages(start,len);
   }
 
-  public static void dumpMemory(VM_Address start, int beforeBytes, int afterBytes) {
+  /**
+   * Logs the contents of an address and the surrounding memory to the
+   * error output.
+   *
+   * @param start the address of the memory to be dumped
+   * @param beforeBytes the number of bytes before the address to be
+   * included
+   * @param afterBytes the number of bytes after the address to be
+   * included
+   */
+  public static void dumpMemory(VM_Address start, int beforeBytes,
+				int afterBytes) {
     VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
   }
 
@@ -170,54 +287,139 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Access to object model
    */
 
-  /**
+  /*
    * Call-throughs to VM_ObjectModel
    */
 
+  /**
+   * Tests a bit available for memory manager use in an object.
+   *
+   * @param o the address of the object
+   * @param idx the index of the bit
+   */
   public static boolean testAvailableBit(VM_Address o, int idx) {
     return VM_ObjectModel.testAvailableBit(VM_Magic.addressAsObject(o),idx);
   }
+
+  /**
+   * Sets a bit available for memory manager use in an object.
+   *
+   * @param o the address of the object
+   * @param idx the index of the bit
+   * @param flag <code>true</code> to set the bit to 1,
+   * <code>false</code> to set it to 0
+   */
   public static void setAvailableBit(VM_Address o, int idx, boolean flag) {
     VM_ObjectModel.setAvailableBit(VM_Magic.addressAsObject(o),idx,flag);
   }
-  public static boolean attemptAvailableBits(VM_Address o, int oldVal, int newVal) {
-      return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),oldVal,newVal);
+
+  /**
+   * Attempts to set the bits available for memory manager use in an
+   * object.  The attempt will only be successful if the current value
+   * of the bits matches <code>oldVal</code>.  The comparison with the
+   * current value and setting are atomic with respect to other
+   * allocators.
+   *
+   * @param o the address of the object
+   * @param oldVal the required current value of the bits
+   * @param newVal the desired new value of the bits
+   * @return <code>true</code> if the bits were set,
+   * <code>false</code> otherwise
+   */
+  public static boolean attemptAvailableBits(VM_Address o,
+					     int oldVal, int newVal) {
+      return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),
+						 oldVal, newVal);
   }
+
+  /**
+   * Gets the value of bits available for memory manager use in an
+   * object, in preparation for setting those bits.
+   *
+   * @param o the address of the object
+   * @return the value of the bits
+   */
   public static int prepareAvailableBits(VM_Address o) {
       return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o));
   }
+
+  /**
+   * Sets the bits available for memory manager use in an object.
+   *
+   * @param o the address of the object
+   * @param val the new value of the bits
+   */
   public static void writeAvailableBitsWord(VM_Address o, int val) {
     VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o), val);
   }
+
+  /**
+   * Read the bits available for memory manager use in an object.
+   *
+   * @param o the address of the object
+   * @return the value of the bits
+   */
   public static int readAvailableBitsWord(VM_Address o) {
-      return VM_ObjectModel.readAvailableBitsWord(o);
+    return VM_ObjectModel.readAvailableBitsWord(o);
   }
+
+  /**
+   * Gets the offset of the memory management header from the object
+   * reference address.  XXX The object model / memory manager
+   * interface should be improved so that the memory manager does not
+   * need to know this.
+   *
+   * @return the offset, relative the object reference address
+   */
+  /* AJG: Should this be a variable rather than method? */
   public static int GC_HEADER_OFFSET() {
     return VM_ObjectModel.GC_HEADER_OFFSET;
   }
-  public static VM_Address objectStartRef(VM_Address object) throws VM_PragmaInline {
+
+  /**
+   * Returns the lowest address of the storage associated with an object.
+   *
+   * @param object the reference address of the object
+   * @return the lowest address of the object
+   */
+  public static VM_Address objectStartRef(VM_Address object)
+    throws VM_PragmaInline {
     return VM_ObjectModel.objectStartRef(object);
   }
+
+  /**
+   * Returns an address guaranteed to be inside the storage assocatied
+   * with and object.
+   *
+   * @param obj the reference address of the object
+   * @return an address inside the object
+   */
   public static VM_Address refToAddress(VM_Address obj) {
     return VM_ObjectModel.getPointerInMemoryRegion(obj);
   }
 
-
+  /**
+   * Checks if a reference of the given type in another object is
+   * inherently acyclic.  The type is given as a TIB.
+   *
+   * @return <code>true</code> if a reference of the type is
+   * inherently acyclic
+   */
+  public static boolean isAcyclic(Object[] tib) {
+    return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
+  }
+ 
   /***********************************************************************
    *
    * Trigger collections
    */
 
-  public static final int EXTERNALLY_TRIGGERED_GC = 0;
-  public static final int RESOURCE_TRIGGERED_GC = 1;
-  public static final int INTERNALLY_TRIGGERED = 2;
-  public static final int TRIGGER_REASONS = 3;
-  private static final String[] triggerReasons = {
-    "external request",
-    "resource exhaustion",
-    "internal request"
-  };
-
+  /**
+   * Triggers a collection.
+   *
+   * @param why the reason why a collection was triggered.  0 to
+   * <code>TRIGGER_REASONS - 1</code>.
+   */
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
     Plan.collectionInitiated(why);
@@ -313,38 +515,18 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   /***********************************************************************
    *
-   * Miscellaneous
+   * Finalizers
    */
-
-  /** throw OutOfMemoryError when the usage after a GC exceeds
-   * <code>OUT_OF_MEMORY_THRESHOLD</code>  */
-  final public static double OUT_OF_MEMORY_THRESHOLD = 0.98; 
-
-  public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
-    VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
-  }
-
+  
   /**
-     Only used within the <code>vmInterface</code> package */
-  static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
-    //-#if RVM_WITH_JMTK_INLINE_PLAN
-    return proc;
-    //-#else
-    return proc.mmPlan;
-    //-#endif
-  }
+   * Schedule the finalizerThread, if there are objects to be
+   * finalized and the finalizerThread is on its queue (ie. currently
+   * idle).  Should be called at the end of GC after moveToFinalizable
+   * has been called, and before mutators are allowed to run.
+   */
+  public static void scheduleFinalizerThread ()
+    throws VM_PragmaUninterruptible {
 
-
-  public static Plan getPlan() throws VM_PragmaInline {
-    return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
-  }
-
-  /** Schedule the finalizerThread, if there are objects to be finalized
-      and the finalizerThread is on its queue (ie. currently idle).
-      Should be called at the end of GC after <code>moveToFinalizable</code> has been
-      called, and before mutators are allowed to run.
-  */
-  public static void scheduleFinalizerThread () throws VM_PragmaUninterruptible {
     int finalizedCount = Finalizer.countToBeFinalized();
     boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();
     if (finalizedCount > 0 && !alreadyScheduled) {
@@ -353,10 +535,100 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     }
   }
 
-  private static SynchronizedCounter threadCounter = new SynchronizedCounter();
+  /***********************************************************************
+   *
+   * Collection
+   */
+
+  /**
+   * Checks if a plan instance is eligible to participate in a
+   * collection.
+   *
+   * @param plan the plan to check
+   * @return <code>true</code> if the plan is not participating,
+   * <code>false</code> otherwise
+   */
+  public static boolean isNonParticipating(Plan plan) {
+    VM_Processor vp = (VM_Processor) plan;
+    int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
+    return  ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) 
+	     || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
+  }
+
+  /**
+   * Prepare a plan that is not participating in a collection.
+   *
+   * @param p the plan to prepare
+   */
+  public static void prepareNonParticipating(Plan p) {
+    /*
+     * The collector threads of processors currently running threads
+     * off in JNI-land cannot run.
+     */
+    VM_Processor vp = (VM_Processor) p;
+    int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
+    if (VM.VerifyAssertions)
+      VM._assert((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
+    if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) { 
+      // processor & its running thread are blocked in C for this GC.  
+      // Its stack needs to be scanned, starting from the "top" java frame, which has
+      // been saved in the running threads JNIEnv.  Put the saved frame pointer
+      // into the threads saved context regs, which is where the stack scan starts.
+      //
+      VM_Thread t = vp.activeThread;
+      t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
+    }
+  }
+
+  /**
+   * Set a collector thread's so that a scan of its stack
+   * will start at VM_CollectorThread.run
+   *
+   * @param p the plan to prepare
+   */
+  public static void prepareParticipating (Plan p) {
+    VM_Processor vp = (VM_Processor) p;
+    if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
+    VM_Thread t = VM_Thread.getCurrentThread();
+    VM_Address fp = VM_Magic.getFramePointer();
+    while (true) {
+      VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
+      VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
+      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
+	VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
+      int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
+      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+      VM_Method method = compiledMethod.getMethod();
+      VM_Atom cls = method.getDeclaringClass().getDescriptor();
+      VM_Atom name = method.getName();
+      if (name == runAtom && cls == collectorThreadAtom) {
+	t.contextRegisters.setInnermost(caller_ip, caller_fp);
+	break;
+      }
+      fp = caller_fp; 
+    }
+
+  }
+
+  /***********************************************************************
+   *
+   * Tracing
+   */
+
+  /**
+   * Prepares for using the <code>computeAllRoots</code> method.
+   */
   public static void resetComputeAllRoots() {
     threadCounter.reset();
   }
+
+  /**
+   * Computes all roots.
+   *
+   * @param rootLocations set to store addresses containing roots
+   * @param interiorRootLocations set to store addresses containing
+   * return adddresses, or <code>null</code> if not required
+   */
   public static void computeAllRoots(AddressQueue rootLocations,
 				     AddressPairQueue interiorRootLocations) {
     AddressPairQueue codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
@@ -388,84 +660,27 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     rendezvous(4200);
   }
 
-  public static boolean isNonParticipating (Plan plan) {
-    VM_Processor vp = (VM_Processor) plan;
-    int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
-    return  ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
-  }
+  /***********************************************************************
+   *
+   * Copying
+   */
 
-
-  // The collector threads of processors currently running threads off in JNI-land cannot run.
-  //
-  public static void prepareNonParticipating (Plan p) {
-    VM_Processor vp = (VM_Processor) p;
-    int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
-    if (VM.VerifyAssertions)
-      VM._assert((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
-    if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) { 
-      // processor & its running thread are blocked in C for this GC.  
-      // Its stack needs to be scanned, starting from the "top" java frame, which has
-      // been saved in the running threads JNIEnv.  Put the saved frame pointer
-      // into the threads saved context regs, which is where the stack scan starts.
-      //
-      VM_Thread t = vp.activeThread;
-      t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
-    }
-  }
-
-  private static VM_Atom collectorThreadAtom;
-  private static VM_Atom runAtom;
-
-  /** Set a collector thread's so that a scan of its stack
-      will start at VM_CollectorThread.run */
-  public static void prepareParticipating (Plan p) {
-    VM_Processor vp = (VM_Processor) p;
-    if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
-    VM_Thread t = VM_Thread.getCurrentThread();
-    VM_Address fp = VM_Magic.getFramePointer();
-    while (true) {
-      VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
-      VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
-	VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
-      int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
-      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      VM_Method method = compiledMethod.getMethod();
-      VM_Atom cls = method.getDeclaringClass().getDescriptor();
-      VM_Atom name = method.getName();
-      if (name == runAtom && cls == collectorThreadAtom) {
-	t.contextRegisters.setInnermost(caller_ip, caller_fp);
-	break;
-      }
-      fp = caller_fp; 
-    }
-
-  }
-
-
-
-  public static double now() {
-    return VM_Time.now();
-  }
-
-
-  public static int getSizeWhenCopied(VM_Address obj) {
-    VM_Type type = VM_Magic.objectAsType(VM_ObjectModel.getTIB(obj)[TIB_TYPE_INDEX]);
-    if (type.isClassType())
-      return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asClass());
-    else
-      return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
-  }
-
-  /** Copy an object using a plan's allocCopy to get space and install the
-      forwarding pointer. 
-      On entry, <code>fromObj</code> must have been reserved for copying by
-      the caller.
-      @param fromObj the object to copy
-      @param forwardingPtr the forwarding pointer to install.
-  */
-  public static VM_Address copy (VM_Address fromObj, int forwardingPtr) throws VM_PragmaInline {
-
+  /**
+   * Copy an object using a plan's allocCopy to get space and install
+   * the forwarding pointer.  On entry, <code>fromObj</code> must have
+   * been reserved for copying by the caller.  This method calls the
+   * plan's <code>PostCopy</code> method after making the copy.
+   *
+   * @param fromObj the address of the object to be copied
+   * @param forwardingPtr the value the forwarding pointer in the copy
+   * is to be set to.  This value is first modified by the plan's
+   * <code>resetGCBitsForCopy</code> method.  AJG: Not sure why this
+   * value passed in, it seems that it could be simply copied from the
+   * old object.
+   * @return the address of the new object
+   */
+  public static VM_Address copy(VM_Address fromObj, int forwardingPtr)
+    throws VM_PragmaInline {
     Object[] tib = VM_ObjectModel.getTIB(fromObj);
 
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
@@ -480,6 +695,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, numBytes, true);
       toRef = VM_Magic.objectAsAddress(toObj);
+      Statistics.profileCopy(fromObj, numBytes, tib);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
@@ -494,46 +710,139 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
 	VM_Memory.sync(toRef, dataSize);
       }
+      Statistics.profileCopy(fromObj, numBytes, tib);
     }
     return toRef;
 
   }
 
+  /***********************************************************************
+   *
+   * References
+   */
+
   /**
-     Determine whether this reference has ever been enqueued.
-     @param r the Reference object
-     @return <code>true</code>if reference has ever been enqueued
+   * Determine whether this reference has ever been enqueued.
+   *
+   * @param r the Reference object
+   * @return <code>true</code> if reference has ever been enqueued
    */
   public static final boolean referenceWasEverEnqueued(Reference r) {
     return r.wasEverEnqueued();
   }
 
   /**
-     Put this Reference object on its ReferenceQueue (if it has one)
-     when its referent is no longer sufficiently reachable. The
-     definition of "reachable" is defined by the semantics of the
-     particular subclass of Reference. The implementation of this
-     routine is determined by the the implementation of
-     java.lang.ref.ReferenceQueue in GNU classpath. It is in this
-     class rather than the public Reference class to ensure that Jikes
-     has a safe way of enqueueing the object, one that cannot be
-     overridden by the application program.
-     
-     @see java.lang.ref.ReferenceQueue
-     @param r the Reference object
-     @return <code>true</code>if the reference was enqueued
+   * Put this Reference object on its ReferenceQueue (if it has one)
+   * when its referent is no longer sufficiently reachable. The
+   * definition of "reachable" is defined by the semantics of the
+   * particular subclass of Reference. The implementation of this
+   * routine is determined by the the implementation of
+   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
+   * class rather than the public Reference class to ensure that Jikes
+   * has a safe way of enqueueing the object, one that cannot be
+   * overridden by the application program.
+   * 
+   * @see java.lang.ref.ReferenceQueue
+   * @param r the Reference object
+   * @return <code>true</code> if the reference was enqueued
    */
   public static final boolean enqueueReference(Reference r) {
     return r.enqueue();
   }
 
+  /***********************************************************************
+   *
+   * Miscellaneous
+   */
+
   /**
+   * Sets the range of addresses associated with a heap.
+   *
+   * @param id the heap identifier
+   * @param start the address of the start of the heap
+   * @param end the address of the end of the heap
+   */
+  public static void setHeapRange(int id, VM_Address start, VM_Address end)
+    throws VM_PragmaUninterruptible {
+    VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
+  }
+
+  /**
+   * Gets the plan associated with a processor.  Only used within the
+   * <code>vmInterface</code> package.
+   *
+   * @param proc the processor
+   * @return the plan for the processor
+   */
+  static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
+    //-#if RVM_WITH_JMTK_INLINE_PLAN
+    return proc;
+    //-#else
+    return proc.mmPlan;
+    //-#endif
+  }
+
+  /**
+   * Gets the plan associated with the current processor.
+   *
+   * @return the plan for the current processor
+   */
+  public static Plan getPlan() throws VM_PragmaInline {
+    return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
+  }
+
+  /**
+   * Get the time.
+   *
+   * @return time in seconds since Jan 1 1970, to nanosecond resolution
+   */
+  public static double now() {
+    return VM_Time.now();
+  }
+
+  /* AJG: Not used. */
+//   public static int getSizeWhenCopied(VM_Address obj) {
+//     VM_Type type = VM_Magic.objectAsType(VM_ObjectModel.getTIB(obj)[TIB_TYPE_INDEX]);
+//     if (type.isClassType())
+//       return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asClass());
+//     else
+//       return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
+//   }
+
+  /*
    * Utilities from the VM class
    */
-  public static final boolean VerifyAssertions = VM.VerifyAssertions;
+
+  /**
+   * Checks that the given condition is true.  If it is not, this
+   * method does a traceback and exits.
+   *
+   * @param cond the condition to be checked
+   */
   public static void _assert(boolean cond) throws VM_PragmaInline {
     VM._assert(cond);
   }
+
+  /**
+   * Checks if the virtual machine is running.  This value changes, so
+   * the call-through to the VM must be a method.  In Jikes RVM, just
+   * returns VM.runningVM.
+   *
+   * @return <code>true</code> if the virtual machine is running
+   */
+  public static boolean runningVM() { return VM.runningVM; }
+
+
+  /***********************************************************************
+   *
+   * Logging
+   */
+
+  /**
+   * Logs a message and traceback, then exits.
+   *
+   * @param message the string to log
+   */
   public static void sysFail(String message) { VM.sysFail(message); }
 
   public static void sysExit(int rc) throws VM_PragmaUninterruptible {
@@ -680,16 +989,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     //-#elif RVM_FOR_64_ADDR
     return offset.toLong();
     //-#endif
-  }
-
-  /**
-   * This value changes, so the call-through to the VM must be a method.  In
-   * Jikes RVM, just returns VM.runningVM
-   */
-  public static boolean runningVM() { return VM.runningVM; }
-
-  public static boolean isAcyclic(Object[] tib) {
-    return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
   }
 
   /* Used in processing weak references etc */

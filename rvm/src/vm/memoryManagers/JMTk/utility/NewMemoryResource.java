@@ -27,10 +27,10 @@ final class NewMemoryResource implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -163,10 +163,10 @@ final class NewMemoryResource implements Constants, VM_Uninterruptible {
       mutatorLock.release();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private int reserved;
   private int committed;
   private int pageBudget;

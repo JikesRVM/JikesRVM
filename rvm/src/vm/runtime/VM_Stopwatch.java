@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 
 /**
  * Primitive accumulating timer that detects if a gc
@@ -24,12 +23,12 @@ public class VM_Stopwatch {
 
   public final void start() {
     startTime = VM_Time.now();
-    gcEpoch = VM_CollectorThread.collectionCount;
+    gcEpoch = MM_Interface.getCollectionCount();
   }
   
   public final void stop() {
     double endTime = VM_Time.now();
-    if (gcEpoch ==  VM_CollectorThread.collectionCount) {
+    if (gcEpoch ==  MM_Interface.getCollectionCount()) {
       count++;
       elapsedTime += (endTime - startTime);
     }

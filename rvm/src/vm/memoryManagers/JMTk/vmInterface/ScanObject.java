@@ -30,7 +30,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
  *
  * @author Stephen Smith
  */  
-public class ScanObject implements VM_Constants, Constants {
+public class ScanObject implements VM_Constants {
 
   /**
    * Scan a object, processing each pointer field encountered.  The
@@ -59,7 +59,8 @@ public class ScanObject implements VM_Constants, Constants {
    * pointer fields are enumerated, not the TIB.
    *
    * @param object The object to be scanned.
-   * @param plan The plan with respect to which the callback should be made.
+   * @param enum the Enumerate object through which the callback
+   * is made
    */
   public static void enumeratePointers(VM_Address object, Enumerate enum) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
@@ -68,9 +69,12 @@ public class ScanObject implements VM_Constants, Constants {
 
   /**
    * Scans an object or array for internal object references and
-   * processes those references (calls processPtrField)
+   * processes those references (calls processPtrLocation)
    *
    * @param objRef  reference for object to be scanned (as int)
+   * @param root XXX missin param description
+   * @param enum the Enumerate object though which the callback is made
+   * @param trace XXX missing param description
    */
   private static void scan(VM_Address objRef, boolean root, Enumerate enum,
 			   boolean trace)
@@ -107,7 +111,7 @@ public class ScanObject implements VM_Constants, Constants {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
 	if (trace)
-	  MM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
+	  MM_Interface.processPtrLocation(objRef.add(referenceOffsets[i]), root);
 	else
 	  enum.enumeratePointerLocation(objRef.add(referenceOffsets[i]));
       }
@@ -118,15 +122,15 @@ public class ScanObject implements VM_Constants, Constants {
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
         int num_elements = VM_Magic.getArrayLength(obj);
-        int numBytes = num_elements * WORD_SIZE;
+        int numBytes = num_elements * BYTES_IN_ADDRESS;
         VM_Address location = objRef;    // for arrays = address of [0] entry
         VM_Address end      = objRef.add(numBytes);
         while ( location.LT(end) ) {
 	  if (trace)
-	    MM_Interface.processPtrField(location, root);
+	    MM_Interface.processPtrLocation(location, root);
 	  else
 	    enum.enumeratePointerLocation(location);
-          location = location.add(WORD_SIZE);  // is this size_of_pointer ?
+          location = location.add(BYTES_IN_ADDRESS);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);
       }
