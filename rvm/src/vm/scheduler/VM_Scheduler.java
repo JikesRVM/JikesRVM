@@ -608,13 +608,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     dumpStack(VM_Magic.getFramePointer());
   }
 
+  static boolean dumpingStack = false;
   /**
    * Dump state of a (stopped) thread's stack.
    * @param fp address of starting frame. first frame output
    *           is the calling frame of passed frame
    */
-  static boolean dumpingStack = false;
-  
   static void dumpStack (VM_Address fp) {
     if (VM.VerifyAssertions)
       VM._assert(VM.runningVM);
