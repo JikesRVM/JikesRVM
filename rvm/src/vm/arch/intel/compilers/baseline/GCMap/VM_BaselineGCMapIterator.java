@@ -173,8 +173,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
           
           // TODO  clean this
           return (framePtr.add(mapOffset - BRIDGE_FRAME_EXTRA_SIZE ));
-        }
-        else {
+        } else {
           if (VM.TraceStkMaps || TRACE_ALL) {
             VM.sysWriteHex ( VM_Magic.getMemoryInt ( framePtr.add(mapOffset) ) );
             VM.sysWrite(".\n");
