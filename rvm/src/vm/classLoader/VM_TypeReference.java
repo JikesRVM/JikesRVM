@@ -20,13 +20,17 @@ import java.util.HashMap;
  * Resolving a VM_TypeReference to a VM_Type can
  * be an expensive operation.  Therefore we canonicalize
  * VM_TypeReference instances and cache the result of resolution.
+ * <p>
+ * It is officially illegal (as of July 31, 2003) 
+ * to create a VM_TypeReference for a string that would not be syntactically
+ * valid in a class file.   --Steven Augart
  * 
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
+ * @modified Steven Augart
  */
-public class VM_TypeReference implements VM_SizeConstants{
-
+public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Used to canonicalize TypeReferences
    */
@@ -121,20 +125,27 @@ public class VM_TypeReference implements VM_SizeConstants{
 
   /**
    * The VM_Type instance that this type reference resolves to.
-   * Null of the reference has not yet been resolved.
+   * Null if the reference has not yet been resolved.
    */
   protected VM_Type resolvedType;
 
   /**
    * Find or create the canonical VM_TypeReference instance for
    * the given pair.
+   *
    * @param cl the classloader (defining/initiating depending on usage)
    * @param tn the name of the type
+   *
+   * @throws IllegalArgumentException Needs to throw some kind of error in
+   *  the case of a VM_Atom that does not represent a type name.
    */
-  public static synchronized VM_TypeReference findOrCreate(ClassLoader cl, VM_Atom tn) {
-    // Primitives, arrays of primitives, system classes and arrays of system classes
-    // must use the system classloader.  Force that here so we don't have to worry
-    // about it anywhere else in the VM.
+  public static synchronized VM_TypeReference findOrCreate(ClassLoader cl, VM_Atom tn) 
+    throws IllegalArgumentException // does not need to be declared
+  {
+    TypeDescriptorParsing.validateAsTypeDescriptor(tn);
+    // Primitives, arrays of primitives, system classes and arrays of system
+    // classes must use the system classloader.  Force that here so we don't
+    // have to worry about it anywhere else in the VM.
     ClassLoader systemCL = VM_SystemClassLoader.getVMClassLoader();
     if (cl != systemCL) {
       if (tn.isClassDescriptor()) {
@@ -173,7 +184,7 @@ public class VM_TypeReference implements VM_SizeConstants{
    * Shorthand for doing a find or create for a type reference that should
    * be created using the system classloader.
    */
-  static VM_TypeReference findOrCreate(String tn) {
+  public static VM_TypeReference findOrCreate(String tn) {
     return findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
 			VM_Atom.findOrCreateAsciiAtom(tn));
   }
@@ -209,7 +220,10 @@ public class VM_TypeReference implements VM_SizeConstants{
    * Get the element type of for this array type
    */
   public final VM_TypeReference getArrayElementType() {
-    if (VM.VerifyAssertions) VM._assert(isArrayType());
+    // if (VM.VerifyAssertions) VM._assert(isArrayType());
+    if (! isArrayType())
+      throw new IllegalArgumentException(name + " is not a valid array type descriptor");
+    
     if (isWordArrayType()) {
       if (this == AddressArray) {
 	return Address;
@@ -418,7 +432,8 @@ public class VM_TypeReference implements VM_SizeConstants{
     return this == Double;
   }
   /**
-   * Is this the type reference for an int-like (8,16, or 32 bit integeral) primitive type?
+   * Is <code>this</code> the type reference for an 
+   * int-like (1, 8, 16, or 32 bit integral) primitive type? 
    */
   public final boolean isIntLikeType() throws VM_PragmaUninterruptible { 
     return isBooleanType() || isByteType() || isCharType() 
@@ -476,15 +491,22 @@ public class VM_TypeReference implements VM_SizeConstants{
    * if a required class file hasn't been loaded before.
    *
    * @return the VM_Type instance that this references resolves to.
+   *
    * @throws NoClassDefFoundError When it cannot resolve a class.  
    *	    we go to the trouble of converting the class loader's
-   *	    <code>ClassNotFoundException </code> into this error, 
-   *	    since we need to be able to throw NoClassDefFoundError for classes
+   *	    <code>ClassNotFoundException</code> into this error, 
+   *	    since we need to be able to throw 
+   *	    <code>NoClassDefFoundError</code> for classes
    *	    that we're loading whose existence was compile-time checked.
+   *
+   * @throws IllegalArgumentException In case of a malformed class name
+   *	    (should never happen, since the right thing to do is probably to
+   *	    validate them as soon as we insert them into a VM_TypeReference.
+   *	    This stinks. XXX)
    */
   public final synchronized VM_Type resolve() 
-    //    throws ClassNotFoundException
-    throws NoClassDefFoundError	// doesn't need declaring.
+    throws NoClassDefFoundError, // doesn't need declaring.
+	   IllegalArgumentException // ditto
   {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {
