@@ -1609,9 +1609,7 @@ function emitCompiler
      print "unzip -U -n -x rvmrt.jar 'java/util/zip/InflateJala*.class' 2> /dev/null"
      print 'unzip -U -n -x rvmrt.jar java/io/PrintStream.class 2> /dev/null'
      print 'unzip -U -n -x rvmrt.jar java/io/FileOutputStream.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/io/OutputStreamField.class 2> /dev/null'
      print 'unzip -U -n -x rvmrt.jar java/lang/Runtime.class 2> /dev/null'
-     print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermissions.class 2> /dev/null'
      print 'unzip -U -n -x rvmrt.jar java/util/Properties.class 2> /dev/null'
      print 'unzip -U -n -x rvmrt.jar java/util/Dictionary.class 2> /dev/null'
      print "unzip -U -n -x rvmrt.jar 'java/util/Hashtable*.class' 2> /dev/null"
