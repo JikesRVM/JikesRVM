@@ -2110,7 +2110,7 @@ cat <<- EOF
 	export WGET='$WGET'
 	export XARGS='$XARGS'
 	export UNZIP_CMD='$UNZIP_CMD'
-	export CLASSPATH_LIBRARIES=YES # XXX We always use Classpath; this should go away.
+	export RVM_CLASSPATH_URL='$RVM_CLASSPATH_URL'
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
 	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
 	export JIKES_WARNING_FLAGS='${JIKES_WARNING_FLAGS}'
@@ -2256,8 +2256,6 @@ EOF
 
 
 	JIKES_WARNING_FLAGS = ${JIKES_WARNING_FLAGS}
-	# XXX CLASSPATH_LIBRARIES should go away; we don't need it any more.
-	CLASSPATH_LIBRARIES = YES
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
     [[ ! ${FASTJAR-} ]] || echo "FASTJAR = '$FASTJAR'"  

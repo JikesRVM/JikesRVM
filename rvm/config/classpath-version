@@ -21,8 +21,10 @@ if (( sum == 0 )); then
     # platform them you must set one of the variables below to override.
     if [[ ${RVM_FOR_OSX-} ]]; then
 	export RVM_WITH_CLASSPATH_0_14=1
+	export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.14.tar.gz
     else 
 	export RVM_WITH_CLASSPATH_0_10=1
+	export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.10.tar.gz
     fi
     # export RVM_WITH_CLASSPATH_0_10=1
     # export RVM_WITH_CLASSPATH_0_11=1
