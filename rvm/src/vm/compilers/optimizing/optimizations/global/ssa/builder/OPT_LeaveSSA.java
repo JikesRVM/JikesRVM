@@ -28,6 +28,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   // control bias between adding blocks or adding temporaries
   private static final boolean SplitBlockToAvoidRenaming = false;
   private static final boolean SplitBlockForLocalLive = true;
+  private static final boolean SplitBlockIntoInfrequent = true;
 
   /**
    * The IR to manipulate
@@ -337,6 +338,11 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           !c.phi.getBasicBlock().isExceptionHandlerBasicBlock() &&
           ((out.contains(r) && SplitBlockToAvoidRenaming) || (rr!=null && usedBelowCopy(bb, rr) && SplitBlockForLocalLive));
 
+        if (SplitBlockIntoInfrequent) {
+          if (!bb.getInfrequent() && c.phi.getBasicBlock().getInfrequent()) 
+            shouldSplitBlock = true;
+        }
+        
         // this check captures cases when the result of a phi
         // in a control successor is live on exit of the current
         // block.  this means it is incorrect to simply insert
@@ -372,6 +378,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
             OPT_BasicBlock criticalBlock = (OPT_BasicBlock)criticalBlocks.get(c.phi.getBasicBlock());
             if (criticalBlock == null) {
               criticalBlock = OPT_IRTools.makeBlockOnEdge(bb, c.phi.getBasicBlock(), ir);
+              if (c.phi.getBasicBlock().getInfrequent()) {
+                criticalBlock.setInfrequent();
+              }
               splitSomeBlock = true;
               criticalBlocks.put(c.phi.getBasicBlock(),criticalBlock);
               HashMap newNames = new HashMap(4);
