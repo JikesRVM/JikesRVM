@@ -23,6 +23,11 @@ export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:/usr/contrib/bin
 # the resulting message
 MSG=$RVM_ROOT/MSG
 
+# Note: The following comment assumes that NightSanityDriver will continue to 
+# look in rvm/regression/config for config files.  If this ever changes, 
+# update this statement.
+CONFIG_DIR=rvm/regression/config
+
 # The directory where the archive lives
 export ARCHIVE=~/archive
 
@@ -58,18 +63,14 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
-# Note: The following comment assumes that NightSanityDriver will continue to look in 
-#   rvm/regression/config for config files.  If this ever changes, update this statement.
-echo "\n\nRunning the sanity tests as specified in $RVM_ROOT/rvm/regression/config/$1 \n" >> $RUN_LOG
+echo "\n\nRunning the sanity tests as specified in $CONFIG_DIR/$1 \n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
 . $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
 
 # performance runs
-# Note: The following comment assumes that NightSanityDriver will continue to look in 
-#   rvm/regression/config for config files.  If this ever changes, update this statement.
-echo "\n\nRunning the performance tests as specified in $RVM_ROOT/rvm/regression/config/$2\n" >> $RUN_LOG
+echo "\n\nRunning the performance tests as specified in $CONFIG_DIR/$2\n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
@@ -124,7 +125,6 @@ if [[ $numfailed -gt 0 ]] then
   echo >> $MSG
   echo Failure Details >> $MSG
   echo --------------- >> $MSG
-  echo >> $MSG
   fgrep "You are NOT sane" $RUN_LOG  \
     | sed -e "s/RunSanityTests://"   \
     | sed -e "s/\/.*tests\///"   \
@@ -138,6 +138,8 @@ if [[ $ARCH = 'Linux' ]] then
 else
   echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
 fi
+echo "  Sanity tests are specified in $CONFIG_DIR/$1" >> $MSG
+echo "  Performance tests are specified in $CONFIG_DIR/$2" >> $MSG
 
 # echo "     run details: $RUN_LOG\n " >> $MSG
 # echo "     build details: $BUILD_LOG\n " >> $MSG
