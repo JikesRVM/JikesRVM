@@ -30,7 +30,7 @@ public final class Barrier implements VM_Uninterruptible {
   private volatile int target = -1;  
   private static final int NUM_COUNTERS = 3;
   SynchronizedCounter [] counters;
-  int currentCounter = 0;
+  SynchronizedCounter currentCounter;
 
   // Debugging constants
   private static final int TIME_CHECK = 1000000;   // Check time every TIME_CHECK-th iteration
@@ -46,6 +46,7 @@ public final class Barrier implements VM_Uninterruptible {
     counters = new SynchronizedCounter[NUM_COUNTERS];
     for (int i=0; i<NUM_COUNTERS; i++)
       counters[i] = new SynchronizedCounter();
+    currentCounter = new SynchronizedCounter();
   }
 
   // Set target to appropriate value
@@ -63,7 +64,8 @@ public final class Barrier implements VM_Uninterruptible {
   // The coding to ensure resetting is delicate.
   //
   public int arrive (int where) {
-    SynchronizedCounter c = counters[currentCounter];
+    int cur = currentCounter.peek();
+    SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
     // Do NOT use the currentCounter variables unless designated thread
     if (verbose >= 1) VM.sysWriteln("", where, ": myValue = ", myValue);
@@ -71,11 +73,14 @@ public final class Barrier implements VM_Uninterruptible {
       VM._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) { 
       // last one to show up
-      int nextCounter = (currentCounter + 1) % NUM_COUNTERS;
-      int prevCounter = (currentCounter - 1 + NUM_COUNTERS) % NUM_COUNTERS; 
-      counters[prevCounter].reset();  // everyone has seen the value so safe to reset now
-      currentCounter = nextCounter;   // everyone has arrived but still waiting
-      c.increment();                  // now safe to let others past barrier
+      int next = (cur + 1) % NUM_COUNTERS;
+      int prev = (cur - 1 + NUM_COUNTERS) % NUM_COUNTERS; 
+      counters[prev].reset();       // everyone has seen the value so safe to reset now
+      if (next == 0)
+	currentCounter.reset();    // everyone has arrived but still waiting
+      else
+	currentCounter.increment();   
+      c.increment();                // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
       return myValue;
     } else {
