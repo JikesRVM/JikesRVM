@@ -853,9 +853,9 @@ declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 
 # Should we use our own version of java.lang.Class, and ignore GNU
-# Classpath's implementation?  The old default is to have this set.
-## We hope to move to the GNU Classpath version of
-# java.lang.Class (which requires a helper implementation, our own
+# Classpath's implementation?  The old default was to have this set;
+# the new default is to use the GNU Classpath version of
+# java.lang.Class (which requires our new helper implementation
 # java.lang.VMClass).  
 declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=0
 
