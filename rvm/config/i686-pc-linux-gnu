@@ -36,7 +36,9 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 ########## 
 
 # Root of JDK installation.
-[[ $HOST_JAVA_HOME ]] || export HOST_JAVA_HOME="/opt/j2sdk1.4.1"
+if [[ ! $HOST_JAVA_HOME ]]; then 
+  export HOST_JAVA_HOME="/opt/j2sdk1.4.1"
+fi
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/jre/bin/java"
