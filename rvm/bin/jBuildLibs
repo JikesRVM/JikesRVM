@@ -115,7 +115,7 @@ cd $RVM_BUILD/RVM.classes
 echo "R-`date -u +"%Y-%m-%d-%H-%M-%S"`" > rvmrt.id
 
 # Create the jar file
-$FIND . -type f | $GREP -v \.class\$ | $GREP -v rvmrt.id | $XARGS rm -f
+$FIND . -type f | $GREP -v \.class\$ | $GREP -v \.properties\$ | $GREP -v rvmrt.id | $XARGS rm -f
 $HOST_JAR -cvf $RVM_BUILD/rvmrt.jar rvmrt.id com java
 
 
