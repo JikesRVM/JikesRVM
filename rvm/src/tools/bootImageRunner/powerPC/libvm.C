@@ -545,31 +545,16 @@ getFaultingAddress(mstsave *save)
     getFaultingAddress(context64 *save)
 #endif
 {
-    if(lib_verbose) {
-  #ifdef RVM_FOR_32_ADDR
+    if (lib_verbose) {
+#ifdef RVM_FOR_32_ADDR
         fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
-  #elif defined RVM_FOR_64_ADDR
+#elif defined RVM_FOR_64_ADDR
         fprintf(SysTraceFile, "save->except[0]=" FMTrvmPTR "\n", 
                 rvmPTR_ARG(save->except[0]));
-  #endif
+#endif
     }
 
-//     if (faultingAddressLocation == -1) {
-//       if (save->o_vaddr == testFaultingAddress) faultingAddressLocation = 0;
-//       else if (save->except[0] == testFaultingAddress) faultingAddressLocation = 1;
-//       else {
-//      fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-//      exit(-1);
-//       }
-//     }
-    
-//     if (faultingAddressLocation == 0)
-//       return save->o_vaddr;
-//     else if (faultingAddressLocation == 1)
-//       return save->except[0];
-//     exit(-1);
-
-   #ifdef RVM_FOR_32_ADDR    
+#if (_AIX43)
     if (faultingAddressLocation == -1) {
         if (save->o_vaddr == testFaultingAddress) {
             faultingAddressLocation = 0;
@@ -580,7 +565,7 @@ getFaultingAddress(mstsave *save)
         }
     }
     return save->o_vaddr;
-  #elif defined RVM_FOR_64_ADDR
+#else
     if (faultingAddressLocation == -1) {
         if (save->except[0] == testFaultingAddress) 
             faultingAddressLocation = 0;
@@ -590,7 +575,7 @@ getFaultingAddress(mstsave *save)
         }
     }
     return save->except[0];
-  #endif
+#endif
 }
 #endif // RVM_FOR_AIX
 
