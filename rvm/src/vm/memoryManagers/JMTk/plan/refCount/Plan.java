@@ -76,7 +76,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
-  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  public  static final long            AVAILABLE = MM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   private static final VM_Extent         RC_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.7)));
   private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.3)));
   public  static final VM_Extent        MAX_SIZE = RC_SIZE;
@@ -331,7 +331,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	 && VM_Interface.fullyInitialized())) {
       if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
+      MM_Interface.triggerCollection(MM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
@@ -462,7 +462,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final VM_Address traceObject(VM_Address obj, boolean root) {
     if (obj.isZero()) return obj;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    VM_Address addr = MM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
       return rcSpace.traceObject(obj, root);

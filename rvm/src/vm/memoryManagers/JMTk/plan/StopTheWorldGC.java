@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
@@ -133,7 +133,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static final boolean stressTestGCRequired()
     throws VM_PragmaInline {
     int pagesReserved = Plan.getPagesReserved();
-    if (VM_Interface.fullyInitialized() &&
+    if (MM_Interface.fullyInitialized() &&
 	((pagesReserved ^ lastStressPagesReserved) > Options.stressTest)) {
       lastStressPagesReserved = pagesReserved;
       return true;
@@ -163,7 +163,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (designated) Statistics.initTime.stop();
 
     if (designated) Statistics.rootTime.start();
-    VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
+    MM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
     if (designated) Statistics.rootTime.stop();
 
     if (designated) Statistics.scanTime.start();
@@ -195,7 +195,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Prepare for a collection.
    */
   protected final void prepare() {
-    double start = VM_Interface.now();
+    double start = MM_Interface.now();
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalPrepare(start);
@@ -203,7 +203,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (order == 1)
       for (int i=0; i<planCount; i++) {
 	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p))
+	if (MM_Interface.isNonParticipating(p))
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
@@ -246,7 +246,7 @@ public abstract class StopTheWorldGC extends BasePlan
       }
     }
     globalPrepare();
-    VM_Interface.resetComputeAllRoots();
+    MM_Interface.resetComputeAllRoots();
   }
 
   /**
@@ -263,9 +263,9 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   public final void baseThreadLocalPrepare(int order) {
     if (order == NON_PARTICIPANT)
-      VM_Interface.prepareNonParticipating((Plan) this);  
+      MM_Interface.prepareNonParticipating((Plan) this);  
     else
-      VM_Interface.prepareParticipating((Plan) this);  
+      MM_Interface.prepareParticipating((Plan) this);  
     VM_CollectorThread.gcBarrier.rendezvous();
     if (verbose >= 4) VM.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
@@ -282,7 +282,7 @@ public abstract class StopTheWorldGC extends BasePlan
       int count = 0;
       for (int i=0; i<planCount; i++) {
 	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p)) {
+	if (MM_Interface.isNonParticipating(p)) {
 	  count++;
 	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
 	}
@@ -307,7 +307,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseGlobalRelease() {
     globalRelease();
     gcInProgress = false;    // GC is in progress until after release!
-    gcStopTime = VM_Interface.now();
+    gcStopTime = MM_Interface.now();
     if ((verbose == 1) || (verbose == 2)) {
       VM.sysWrite("-> ");
       VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB   ");

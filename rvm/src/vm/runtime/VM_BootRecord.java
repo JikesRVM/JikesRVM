@@ -4,7 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Information required to start the virtual machine and communicate 
@@ -89,7 +89,7 @@ public class VM_BootRecord {
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
-    heapRanges = new int[2 * (1 + VM_Interface.getMaxHeaps())];
+    heapRanges = new int[2 * (1 + MM_Interface.getMaxHeaps())];
     // Indicate end of array with sentinel value
     heapRanges[heapRanges.length - 1] = -1;
     heapRanges[heapRanges.length - 2] = -1;

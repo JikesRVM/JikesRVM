@@ -152,10 +152,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field LQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalQueue;", "head","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field SQBEField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SynchronizedCounter;", "count", "I");
-  public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
-  public static final VM_Method modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
+  public static final VM_Method arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
+  public static final VM_Method modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import java.io.DataInputStream;
 import java.io.FileNotFoundException;
@@ -1175,7 +1175,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // create "type information block" and initialize its first four words
     //
-    typeInformationBlock = VM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
+    typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[0] = this;

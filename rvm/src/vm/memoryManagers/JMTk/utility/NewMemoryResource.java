@@ -9,7 +9,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 
 /**
@@ -95,7 +95,7 @@ final class NewMemoryResource implements Constants, VM_Uninterruptible {
     reserved += pages;
     if ((committed + pages) > pageBudget) {
       unlock();   // We cannot hold the lock across a GC point!
-      if (VM_Interface.getPlan().poll(false)) 
+      if (MM_Interface.getPlan().poll(false)) 
 	return false;
       lock();
     }

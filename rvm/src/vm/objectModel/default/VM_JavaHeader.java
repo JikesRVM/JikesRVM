@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -140,10 +140,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Process the TIB field during copyingGC
    */
   public static void gcProcessTIB(VM_Address ref) {
-    VM_Interface.processPtrField(ref.add(TIB_OFFSET));
+    MM_Interface.processPtrField(ref.add(TIB_OFFSET));
   }
   public static void gcProcessTIB(VM_Address ref, boolean root) {
-    VM_Interface.processPtrField(ref.add(TIB_OFFSET), root);
+    MM_Interface.processPtrField(ref.add(TIB_OFFSET), root);
   }
 
   /**
@@ -251,7 +251,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static int getObjectHashCode(Object o) { 
     if (ADDRESS_BASED_HASHING) {
-      if (VM_Interface.MOVES_OBJECTS) {
+      if (MM_Interface.MOVES_OBJECTS) {
 	int hashState = VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_STATE_MASK;
 	if (hashState == HASH_STATE_HASHED) {
 	  return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
@@ -469,7 +469,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int ref = ptr + size + SCALAR_PADDING_BYTES;
     // (TIB set by BootImageWriter2)
 
-    //    if (VM_Interface.NEEDS_WRITE_BARRIER) {
+    //    if (MM_Interface.NEEDS_WRITE_BARRIER) {
     if (false) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
@@ -514,7 +514,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int ref = ptr + ARRAY_HEADER_SIZE_ALIGNED;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
-    //    if (VM_Interface.NEEDS_WRITE_BARRIER) {
+    //    if (MM_Interface.NEEDS_WRITE_BARRIER) {
     if (false) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {

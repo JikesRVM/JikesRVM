@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
@@ -56,7 +56,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   
   // Memory layout constants
-  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  public  static final long            AVAILABLE = MM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   private static final VM_Extent    DEFAULT_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(0.5 * AVAILABLE)));
   public  static final VM_Extent        MAX_SIZE = DEFAULT_SIZE;
 
@@ -375,7 +375,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final boolean isLive(VM_Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    VM_Address addr = MM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case DEFAULT_SPACE:   return true;

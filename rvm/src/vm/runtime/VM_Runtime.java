@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -242,7 +242,7 @@ public class VM_Runtime implements VM_Constants {
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
-    int allocator = VM_Interface.pickAllocator(cls);
+    int allocator = MM_Interface.pickAllocator(cls);
     return resolvedNewScalar(cls.getInstanceSize(), 
 			     cls.getTypeInformationBlock(), 
 			     cls.hasFinalizer(),
@@ -268,7 +268,7 @@ public class VM_Runtime implements VM_Constants {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
 	countDownToGC = GCInterval;
-	VM_Interface.gc();
+	MM_Interface.gc();
       }
     }
     
@@ -277,10 +277,10 @@ public class VM_Runtime implements VM_Constants {
       VM_EventLogger.logObjectAllocationEvent();
 
     // Allocate the object and initialize its header
-    Object newObj = VM_Interface.allocateScalar(size, tib, allocator);
+    Object newObj = MM_Interface.allocateScalar(size, tib, allocator);
 
     // Deal with finalization
-    if (hasFinalizer) VM_Interface.addFinalizer(newObj);
+    if (hasFinalizer) MM_Interface.addFinalizer(newObj);
 
     return newObj;
   }
@@ -301,7 +301,7 @@ public class VM_Runtime implements VM_Constants {
       array.instantiate();
     }
 
-    int allocator = VM_Interface.pickAllocator(array);
+    int allocator = MM_Interface.pickAllocator(array);
     return resolvedNewArray(numElements, 
 			    array.getInstanceSize(numElements),
 			    array.getTypeInformationBlock(),
@@ -330,7 +330,7 @@ public class VM_Runtime implements VM_Constants {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
 	countDownToGC = GCInterval;
-	VM_Interface.gc();
+	MM_Interface.gc();
       }
     }
 
@@ -339,7 +339,7 @@ public class VM_Runtime implements VM_Constants {
       VM_EventLogger.logObjectAllocationEvent();
 
     // Allocate the array and initialize its header
-    return VM_Interface.allocateArray(numElements, size, tib, allocator);
+    return MM_Interface.allocateArray(numElements, size, tib, allocator);
   }
 
 
@@ -361,7 +361,7 @@ public class VM_Runtime implements VM_Constants {
   public static Object clone (Object obj)
     throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
-    int allocator = VM_Interface.pickAllocator(type);
+    int allocator = MM_Interface.pickAllocator(type);
     if (type.isArrayType()) {
       VM_Array ary   = type.asArray();
       int      nelts = VM_ObjectModel.getArrayLength(obj);
@@ -407,7 +407,7 @@ public class VM_Runtime implements VM_Constants {
    * called from java/lang/Runtime
    */ 
   public static void gc () {
-    VM_Interface.gc();
+    MM_Interface.gc();
   }
 
   /**
@@ -415,7 +415,7 @@ public class VM_Runtime implements VM_Constants {
    * called from /java/lang/Runtime
    */
   public static long freeMemory() {
-    return VM_Interface.freeMemory();
+    return MM_Interface.freeMemory();
   }
 
 
@@ -424,7 +424,7 @@ public class VM_Runtime implements VM_Constants {
    * called from /java/lang/Runtime
    */
   public static long totalMemory() {
-    return VM_Interface.totalMemory();
+    return MM_Interface.totalMemory();
   }
 
 
@@ -563,7 +563,7 @@ public class VM_Runtime implements VM_Constants {
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       VM.sysWrite("FORCING GC: in deliverHardwareException\n");
-      VM_Interface.gc();
+      MM_Interface.gc();
     }
     
     Throwable exceptionObject;
@@ -727,7 +727,7 @@ public class VM_Runtime implements VM_Constants {
 
     int    nelts     = numElements[dimIndex];
     int    size      = arrayType.getInstanceSize(nelts);
-    int allocator    = VM_Interface.pickAllocator(arrayType);
+    int allocator    = MM_Interface.pickAllocator(arrayType);
     Object newObject = resolvedNewArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
 
     if (++dimIndex == numElements.length)
@@ -824,14 +824,14 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( !VM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINAL_FP)) ;
+    } while ( !MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINAL_FP)) ;
 
 	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
 	// for SVR4 convention, a Java-to-C frame has two mini frames,
 	// stop before the mini frame 1 whose ip is in VM (out of line machine
 	// code), in the case of sentinal fp, it has to return the callee's fp
 	// because GC ScanThread uses it to get return address and so on.
-	if (VM_Interface.refInVM(ip)) {
+	if (MM_Interface.refInVM(ip)) {
       return fp;
 	} else {
 	  return callee_fp;

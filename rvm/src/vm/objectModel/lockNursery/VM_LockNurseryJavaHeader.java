@@ -6,7 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Defines shared support for one-word headers in the JikesRVM object
@@ -46,7 +46,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
   /**
    * How many bits are used to encode the hash code state?
    */
-  protected static final boolean MOVES_OBJECTS = VM_Interface.MOVES_OBJECTS;
+  protected static final boolean MOVES_OBJECTS = MM_Interface.MOVES_OBJECTS;
   protected static final int HASH_STATE_BITS = MOVES_OBJECTS ? 2 : 0;
   protected static final int HASH_STATE_MASK = MOVES_OBJECTS ? (HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED) : 0;
   protected static final int HASHCODE_BYTES  = MOVES_OBJECTS ? 4 : 0;

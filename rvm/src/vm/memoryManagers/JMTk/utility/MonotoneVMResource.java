@@ -7,7 +7,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -71,7 +71,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
     VM_Address tmpCursor = cursor.add(bytes);
     if (tmpCursor.GT(sentinel)) {
       unlock();
-      VM_Interface.getPlan().poll(true, memoryResource);
+      MM_Interface.getPlan().poll(true, memoryResource);
       return VM_Address.zero();
     } else {
       VM_Address oldCursor = cursor;

@@ -122,7 +122,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
 
     if (root) {
       increment(object);
-      VM_Interface.getPlan().addToRootSet(object);
+      MM_Interface.getPlan().addToRootSet(object);
     } // else we were called via the finalizer mechanism, we need to ignore
 
     return object;
@@ -154,7 +154,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final void incrementTraceCount(VM_Address object) 
     throws VM_PragmaInline {
     if (RCBaseHeader.incTraceRC(object)) {
-      VM_Interface.getPlan().addToTraceBuffer(object); 
+      MM_Interface.getPlan().addToTraceBuffer(object); 
       Plan.enqueue(object);
     }
   }

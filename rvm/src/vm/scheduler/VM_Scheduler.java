@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -283,7 +283,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2)); 
+      VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>2)); 
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
@@ -315,7 +315,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (VM.BuildWithNativeDaemonProcessor) {
 
-      VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
+      VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
@@ -630,7 +630,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
-      if (!VM_Interface.addrInVM(ip)) {
+      if (!MM_Interface.addrInVM(ip)) {
         writeString("   <native frame>\n");
         ip = VM_Magic.getReturnAddress(fp);
         fp = VM_Magic.getCallerFramePointer(fp);

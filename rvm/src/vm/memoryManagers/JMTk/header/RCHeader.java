@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -36,7 +36,7 @@ public class RCHeader extends RCBaseHeader implements VM_Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT
     int initialValue = INCREMENT;
-    if (Plan.refCountCycleDetection && VM_Interface.isAcyclic(tib))
+    if (Plan.refCountCycleDetection && MM_Interface.isAcyclic(tib))
       initialValue |= GREEN;
     
     VM_Magic.setIntAtOffset(ref, RC_HEADER_OFFSET, initialValue);

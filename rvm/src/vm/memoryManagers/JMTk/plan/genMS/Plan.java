@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
@@ -232,7 +232,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return True if the object resides in a copying space.
    */
   public final static boolean isCopyObject(Object obj) {
-    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
+    VM_Address addr = MM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 

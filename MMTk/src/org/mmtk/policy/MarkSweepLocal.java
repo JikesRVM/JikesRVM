@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
@@ -352,7 +352,7 @@ final class MarkSweepLocal extends SegregatedFreeList
   public static final void internalMarkObject(VM_Address object, byte tag) 
     throws VM_PragmaInline {
     if (FRAGMENTATION_CHECK)
-      bytesLive += VM_Interface.getSizeWhenCopied(object);
+      bytesLive += MM_Interface.getSizeWhenCopied(object);
     VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
     VM_Address block = BlockAllocator.getBlockStart(ref, tag);
     int sizeClass = getSizeClass(block);

@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
@@ -85,7 +85,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
   
   // Memory layout constants
-  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  public  static final long            AVAILABLE = MM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   private static final VM_Extent         SS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3)));
   private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3 * 0.3)));
   public  static final VM_Extent        MAX_SIZE = SS_SIZE.add(SS_SIZE);
@@ -328,7 +328,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == ssMR)
 	required = required<<1;  // must account for copy reserve
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
+      MM_Interface.triggerCollection(MM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
@@ -439,7 +439,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final VM_Address traceObject (VM_Address obj) throws VM_PragmaInline {
     if (obj.isZero()) return obj;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    VM_Address addr = MM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case LOW_SS_SPACE:    return   hi  ? CopySpace.traceObject(obj) : obj;
@@ -487,7 +487,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * one of the semi-spaces.
    */
   public static final boolean isSemiSpaceObject(Object ref) {
-    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
+    VM_Address addr = MM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
     return (addr.GE(SS_START) && addr.LE(SS_END));
   }
 
@@ -499,7 +499,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final boolean isLive(VM_Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    VM_Address addr = MM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case LOW_SS_SPACE:    return CopySpace.isLive(obj);
@@ -538,7 +538,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static boolean willNotMove (VM_Address obj) {
    boolean movable = VMResource.refIsMovable(obj);
    if (!movable) return true;
-   VM_Address addr = VM_Interface.refToAddress(obj);
+   VM_Address addr = MM_Interface.refToAddress(obj);
    return (hi ? ss1VM : ss0VM).inRange(addr);
   }
 

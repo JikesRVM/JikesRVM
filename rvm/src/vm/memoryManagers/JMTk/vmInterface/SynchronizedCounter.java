@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -23,7 +23,7 @@ public final class SynchronizedCounter implements VM_Uninterruptible {
   private int count = 0;
 
   public int reset() {
-    int offset = VM_Interface.synchronizedCounterOffset;
+    int offset = MM_Interface.synchronizedCounterOffset;
     int oldValue = count;
     int actualOldValue = VM_Synchronization.fetchAndAdd(this, offset, -oldValue);
     if (actualOldValue != oldValue) {
@@ -35,7 +35,7 @@ public final class SynchronizedCounter implements VM_Uninterruptible {
   }
 
   public int increment() {
-    int offset = VM_Interface.synchronizedCounterOffset;
+    int offset = MM_Interface.synchronizedCounterOffset;
     return VM_Synchronization.fetchAndAdd(this, offset, 1);
   }
 

@@ -7,7 +7,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -76,7 +76,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
       unlock();
       if (chargeMR)
 	mr.release(pages);
-      VM_Interface.getPlan().poll(true, mr);
+      MM_Interface.getPlan().poll(true, mr);
       return VM_Address.zero();
     }
     pagetotal += pages;

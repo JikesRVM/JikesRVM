@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
@@ -102,7 +102,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
    * @param value the exit value
    */
   public void notifyAppRunStart(String app, int value) throws VM_PragmaUninterruptible {
-    if (VM_Interface.verbose() >= 1) VM.sysWrite("Clearing memory management statistics\n");
+    if (MM_Interface.verbose() >= 1) VM.sysWrite("Clearing memory management statistics\n");
     clearSummaryStatistics();
   }
 
@@ -119,10 +119,10 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
   static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
 
-    if (VM_Interface.verbose() >= 2)
+    if (MM_Interface.verbose() >= 2)
       printGCPhaseTimes();  	
 
-    if (VM_Interface.verbose() >= 1) {
+    if (MM_Interface.verbose() >= 1) {
       printVerboseOutputLine(GCType);
       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
         VM_CollectorThread.printThreadWaitTimes();
@@ -147,8 +147,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   private static void printVerboseOutputLine (int GCType) throws VM_PragmaUninterruptible {
 
     int gcTimeMs = (GCType == MINOR) ? minorGCTime.lastMs() : GCTime.lastMs();
-    int free = (int) VM_Interface.freeMemory();
-    int total = (int) VM_Interface.totalMemory();
+    int free = (int) MM_Interface.freeMemory();
+    int total = (int) MM_Interface.totalMemory();
     double freeFraction = free / (double) total;
     int copiedKb = (int) (((GCType == MINOR) ? minorBytesCopied.last() : bytesCopied.last()) / 1024);
 
@@ -184,7 +184,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     int np = VM_Scheduler.numProcessors;
     // showParameter();
-    if (VM_Interface.verbose() >= 1) {
+    if (MM_Interface.verbose() >= 1) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
       if (gcCount != 0) {
         if (minorGCTime.count() > 0) {
@@ -216,7 +216,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                     collisionCount/gcCount);
     }
 
-    if (VM_Interface.verbose() >= 1 && gcCount>0) {
+    if (MM_Interface.verbose() >= 1 && gcCount>0) {
       VM.sysWrite("GC Summary: Average Phase Time:");
       VM.sysWrite("  init ", initTime.avg() * 1000.0, " ms");
       VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");

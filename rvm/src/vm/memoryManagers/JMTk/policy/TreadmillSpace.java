@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
@@ -163,7 +163,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     if (MarkSweepHeader.testAndMark(object, markState)) {
       internalMarkObject(object);
-      VM_Interface.getPlan().enqueue(object);
+      MM_Interface.getPlan().enqueue(object);
     }
     return object;
   }

@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
@@ -48,7 +48,7 @@ public class FinalizerThread extends VM_Thread {
 
        synchronized (marker) {
 	 while (true) {
-	   Object o = VM_Interface.getFinalizedObject();
+	   Object o = MM_Interface.getFinalizedObject();
 	   if (o == null) break;
 	   if (verbose >= 2) {
 	       VM.sysWrite("FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));

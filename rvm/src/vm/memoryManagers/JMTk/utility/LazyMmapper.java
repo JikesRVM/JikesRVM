@@ -8,7 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Conversions;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -47,7 +47,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
 	lock.check(101);
-	int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
+	int errno = MM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
 	lock.check(102);
 	if (errno != 0) {
 	  lock.release();
@@ -65,7 +65,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       }
       if (mapped[chunk] == PROTECTED) {
 	lock.check(201);
-	if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+	if (!MM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.check(202);
 	  lock.release();
 	  VM.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
@@ -93,7 +93,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
 	VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
-	if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+	if (!MM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.release();
 	  VM.sysFail("LazyMmapper.mprotect failed");
 	}

@@ -288,7 +288,7 @@ public final class SynchronizationBarrier {
     if ( ! VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
       // waitABit() to spin when running with fewer VM_Procssors than real processors
-      numRealProcessors = VM_Interface.numProcessors();
+      numRealProcessors = MM_Interface.numProcessors();
     }
     VM_Magic.sync();      // make other threads/processors see the update
   }
@@ -312,7 +312,7 @@ public final class SynchronizationBarrier {
     }
     else {
       // yield executing operating system thread back to the operating system
-      VM_Interface.lowYield();
+      MM_Interface.lowYield();
       return 0;
     }
   }

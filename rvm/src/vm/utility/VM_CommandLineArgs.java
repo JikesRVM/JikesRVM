@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.VM_Controller;
 //-#endif
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -584,19 +584,19 @@ public class VM_CommandLineArgs {
           // -------------------------------------------------------------------
         case GC_HELP_ARG:  // -X:gc passed 'help' as an option
           if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-          VM_Interface.processCommandLineArg("help");
+          MM_Interface.processCommandLineArg("help");
           break;
         case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
-          VM_Interface.processCommandLineArg(arg);
+          MM_Interface.processCommandLineArg(arg);
           break;
         case INITIAL_HEAP_ARG: 
-          VM_Interface.processCommandLineArg("initial=" + arg);
+          MM_Interface.processCommandLineArg("initial=" + arg);
           break;
         case MAX_HEAP_ARG: 
-          VM_Interface.processCommandLineArg("max=" + arg);
+          MM_Interface.processCommandLineArg("max=" + arg);
           break;
         case LARGE_HEAP_ARG: 
-          VM_Interface.processCommandLineArg("los=" + arg);
+          MM_Interface.processCommandLineArg("los=" + arg);
           break;
 
 

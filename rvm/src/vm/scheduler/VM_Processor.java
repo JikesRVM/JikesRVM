@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 
 /**
@@ -91,7 +91,7 @@ implements VM_Uninterruptible, VM_Constants {
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
     }
 
-    VM_Interface.setupProcessor(this);
+    MM_Interface.setupProcessor(this);
     //-#if RVM_WITH_HPM
     hpm = new VM_HardwarePerformanceMonitor(id);
     //-#endif
@@ -111,7 +111,7 @@ implements VM_Uninterruptible, VM_Constants {
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) 
       VM._assert(threadSwitchingEnabledCount <= 1);
-    if (VM.VerifyAssertions && VM_Interface.gcInProgress()) 
+    if (VM.VerifyAssertions && MM_Interface.gcInProgress()) 
       VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
@@ -488,7 +488,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
+    VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 

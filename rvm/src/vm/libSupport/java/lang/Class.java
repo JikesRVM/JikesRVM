@@ -17,7 +17,7 @@ import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_UnimplementedError;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Implementation of java.lang.Class for JikesRVM.
@@ -594,7 +594,7 @@ public final class Class implements java.io.Serializable {
     int      size = cls.getInstanceSize();
     Object[] tib  = cls.getTypeInformationBlock();
     boolean  hasFinalizer = cls.hasFinalizer();
-    int allocator = VM_Interface.pickAllocator(cls);
+    int allocator = MM_Interface.pickAllocator(cls);
     Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
 
     // Run the default constructor on the it.

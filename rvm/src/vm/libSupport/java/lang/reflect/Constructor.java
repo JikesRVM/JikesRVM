@@ -7,7 +7,7 @@ package java.lang.reflect;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Runtime;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Implementation of java.lang.reflect.Constructor for JikesRVM.
@@ -120,7 +120,7 @@ public final class Constructor extends AccessibleObject implements Member {
     int      size = cls.getInstanceSize();
     Object[] tib  = cls.getTypeInformationBlock();
     boolean  hasFinalizer = cls.hasFinalizer();
-    int allocator = VM_Interface.pickAllocator(cls);
+    int allocator = MM_Interface.pickAllocator(cls);
     Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
 
     // Run the constructor on the instance.

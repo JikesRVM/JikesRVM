@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
@@ -84,7 +84,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int LOS_SIZE_THRESHOLD = 8 * 1024;
 
   // Memory layout constants
-  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  public  static final long            AVAILABLE = MM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   private static final VM_Extent    NURSERY_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3)));
   private static final VM_Extent         MS_SIZE = NURSERY_SIZE;
   protected static final VM_Extent      LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3 * 0.3)));
@@ -338,7 +338,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR)
 	required = required<<1;  // must account for copy reserve
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
+      MM_Interface.triggerCollection(MM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
     return false;
@@ -447,7 +447,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final VM_Address traceObject(VM_Address obj) {
     if (obj.isZero()) return obj;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    VM_Address addr = MM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case NURSERY_SPACE:   return CopySpace.traceObject(obj);
@@ -491,7 +491,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * one of the semi-spaces.
    */
   public static final boolean isNurseryObject(Object base) {
-    VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
+    VM_Address addr =MM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 

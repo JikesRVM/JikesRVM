@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
@@ -95,7 +95,7 @@ final class ImmortalSpace extends BasePolicy
 
   public static VM_Address traceObject(VM_Address object) {
     if (testAndMark(object, immortalMarkState)) 
-      VM_Interface.getPlan().enqueue(object);
+      MM_Interface.getPlan().enqueue(object);
     return object;
   }
 

@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * This class contains its architecture-independent code for iteration
@@ -399,7 +399,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     for (int i = firstReg; i <= lastReg; i++) {
       VM_Address regLocation = VM_Address.fromInt(registerLocations[i]);
       VM_Address regValue = VM_Magic.getMemoryAddress(regLocation);
-      if (VM_Interface.refInVM(regValue)) {
+      if (MM_Interface.refInVM(regValue)) {
         VM.sysWrite("  reg#", getCurrentRegister());
         VM.sysWrite(", location ==>", regLocation);
         VM.sysWriteln(", suspicious value ==>", regValue);
@@ -454,7 +454,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 	VM.sysWrite("\n");
       }
 
-      if (VM_Interface.refInVM(ptr)) {
+      if (MM_Interface.refInVM(ptr)) {
 	VM.sysWrite("  spill location:");
 	VM.sysWrite(i);
 	VM.sysWrite(" contains a suspicious value ==>");

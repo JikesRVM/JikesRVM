@@ -7,7 +7,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -59,12 +59,12 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   }
 
   public static boolean refIsMovable (VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
+    VM_Address addr = MM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
     return (getPageStatus(addr) & MOVABLE) == MOVABLE;
   }
 
   public static boolean refInVM(VM_Address ref) throws VM_PragmaUninterruptible {
-    return addrInVM(VM_Interface.refToAddress(ref));
+    return addrInVM(MM_Interface.refToAddress(ref));
   }
 
   public static boolean addrInVM(VM_Address addr) throws VM_PragmaUninterruptible {
@@ -72,7 +72,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   }
 
   public static boolean refIsImmortal(VM_Address ref) throws VM_PragmaUninterruptible {
-    return addrIsImmortal(VM_Interface.refToAddress(ref));
+    return addrIsImmortal(MM_Interface.refToAddress(ref));
   }
 
   public static boolean addrIsImmortal(VM_Address addr) throws VM_PragmaUninterruptible {
@@ -112,7 +112,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     VM_Array type = VM_Magic.getObjectType(resources).asArray();
     Object [] tib = type.getTypeInformationBlock();
     int size = type.getInstanceSize(NUM_PAGES);
-    resourceTable = (VMResource []) VM_Interface.allocateArray(NUM_PAGES, size, tib, Plan.IMMORTAL_SPACE);
+    resourceTable = (VMResource []) MM_Interface.allocateArray(NUM_PAGES, size, tib, Plan.IMMORTAL_SPACE);
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];
       if (vm == null) continue;
@@ -126,7 +126,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 	resourceTable[p] = vm;
       }
     }
-    int bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toInt();
+    int bootSize = MM_Interface.bootImageEnd().diff(MM_Interface.bootImageStart()).toInt();
     Plan.bootVM.acquireHelp(BasePlan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
   }
 
@@ -188,11 +188,11 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     index = count++;
     resources[index] = this;
     status = status_;
-    VM_Interface.setHeapRange(index, start, end);
-    if (end.GT(VM_Interface.MAXIMUM_MAPPABLE)) {
+    MM_Interface.setHeapRange(index, start, end);
+    if (end.GT(MM_Interface.MAXIMUM_MAPPABLE)) {
       VM.sysWrite("\nError creating VMResrouce ", vmName);
       VM.sysWriteln(" with range ", start, " to ", end);
-      VM.sysWriteln("Exceeds the maximum mappable address for this OS of ", VM_Interface.MAXIMUM_MAPPABLE);
+      VM.sysWriteln("Exceeds the maximum mappable address for this OS of ", MM_Interface.MAXIMUM_MAPPABLE);
       VM._assert(false);
     }
   }

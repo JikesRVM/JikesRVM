@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -76,7 +76,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
-    this(VM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
+    this(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
 
     //-#if RVM_WITH_HPM
     if (hpm_counters == null) hpm_counters = new HPM_counters();
@@ -857,9 +857,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) throws VM_PragmaInterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
-    if (VM_Interface.gcInProgress())
+    if (MM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
-    int[] newStack = VM_Interface.newStack(newSize);
+    int[] newStack = MM_Interface.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();

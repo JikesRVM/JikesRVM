@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
@@ -84,7 +84,7 @@ public abstract class BasePlan
 
   // Memory layout constants
   protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
-  public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
+  public    static final VM_Address      BOOT_START = MM_Interface.bootImageAddress;
   protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
   protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromInt(32 * 1024 * 1024);
@@ -143,7 +143,7 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
-    bootTime = VM_Interface.now();
+    bootTime = MM_Interface.now();
   }
 
   /**
@@ -184,7 +184,7 @@ public abstract class BasePlan
       space = plans[i].getSpaceFromAllocator(a);
     if (space == UNUSED_SPACE)
       VM.sysFail("BasePlan.getOwnAllocator could not obtain space");
-    Plan plan = VM_Interface.getPlan();
+    Plan plan = MM_Interface.getPlan();
     return plan.getAllocatorFromSpace(space);
   }
 
@@ -200,7 +200,7 @@ public abstract class BasePlan
    */
   public static final void enqueue(VM_Address obj)
     throws VM_PragmaInline {
-    VM_Interface.getPlan().values.push(obj);
+    MM_Interface.getPlan().values.push(obj);
   }
 
   /**
@@ -486,7 +486,7 @@ public abstract class BasePlan
    */
   public void notifyExit(int value) {
     if (verbose == 1) {
-      // VM.sysWrite("[End ", (VM_Interface.now() - bootTime));
+      // VM.sysWrite("[End ", (MM_Interface.now() - bootTime));
       // VM.sysWrite(" s]\n");
     }
   }

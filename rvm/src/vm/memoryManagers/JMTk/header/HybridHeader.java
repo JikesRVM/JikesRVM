@@ -15,7 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Defines header words used by memory manager.not used for 
@@ -71,7 +71,7 @@ public class HybridHeader {
   public static void initializeMarkSweepHeader(Object ref, Object[] tib,
 					       int size, boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions && VM_Interface.gcInProgress())
+    if (VM.VerifyAssertions && MM_Interface.gcInProgress())
       VM._assert(false);
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
@@ -89,7 +89,7 @@ public class HybridHeader {
   public static void initializeLOSHeader(Object ref, Object[] tib,
 					 int size, boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM.VerifyAssertions && VM_Interface.gcInProgress())
+    if (VM.VerifyAssertions && MM_Interface.gcInProgress())
       VM._assert(false);
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);

@@ -83,7 +83,7 @@ public class ScanObject implements VM_Constants, Constants {
     // Necessary only if the allocator/collector moves objects
     // and the object model is actually storing the TIB as a pointer.
     // 
-    if (VM_Interface.MOVES_OBJECTS) 
+    if (MM_Interface.MOVES_OBJECTS) 
       VM_ObjectModel.gcProcessTIB(objRef, root);
 
     Object obj = VM_Magic.addressAsObject(objRef);
@@ -106,9 +106,9 @@ public class ScanObject implements VM_Constants, Constants {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
 	if (trace)
-	  VM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
+	  MM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
 	else
-	  VM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
+	  MM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
@@ -122,9 +122,9 @@ public class ScanObject implements VM_Constants, Constants {
         VM_Address end      = objRef.add(numBytes);
         while ( location.LT(end) ) {
 	  if (trace)
-	    VM_Interface.processPtrField(location, root);
+	    MM_Interface.processPtrField(location, root);
 	  else
-	    VM_Interface.enumeratePtrLoc(location, plan);
+	    MM_Interface.enumeratePtrLoc(location, plan);
           location = location.add(WORD_SIZE);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);

@@ -75,7 +75,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   //
   public static void scanThread(VM_Thread t, AddressQueue rootLocations, AddressPairQueue codeLocations) {
 	
-    Plan plan = VM_Interface.getPlan();
+    Plan plan = MM_Interface.getPlan();
 
 	// An additional complication is that when a stack is copied,
 	// special adjustments relating to SP values have to be made.
@@ -269,14 +269,14 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	  
 	  if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
 	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
-	    if (!VM_Interface.validRef(ref)) {
+	    if (!MM_Interface.validRef(ref)) {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
 	      VM.sysWriteln(" at offset ", offset);
 	      VM.sysWrite(" fp = ", fp, "   ip = ", ip);
 	      // dump out bad ref
-	      VM.sysWrite(refaddr); VM.sysWrite(":"); VM_Interface.dumpRef(ref);
+	      VM.sysWrite(refaddr); VM.sysWrite(":"); MM_Interface.dumpRef(ref);
 	      // dump out contents of frame
 	      dumpStackFrame( fp, prevFp );
 	      // dump stack starting at current frame
@@ -293,7 +293,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
 	    VM.sysWrite(refaddr); 
 	    if (DUMP_STACK >= 4) {
-		VM.sysWrite(":"); VM_Interface.dumpRef(ref);
+		VM.sysWrite(":"); MM_Interface.dumpRef(ref);
 	    }
 	    else
 		VM.sysWriteln();
@@ -423,8 +423,8 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
       VM_Address value = VM_Magic.getMemoryAddress(loc);
       VM.sysWrite(" ", value);
       VM.sysWrite(" ");
-      if (DUMP_STACK >= 3 && VM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
-	VM_Interface.dumpRef(value);
+      if (DUMP_STACK >= 3 && MM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
+	MM_Interface.dumpRef(value);
       else
 	VM.sysWrite("\n");
     }

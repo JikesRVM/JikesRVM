@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -58,7 +58,7 @@ final class CopySpace extends BasePolicy
 
     // We are the designated copier
     //
-    VM_Address newObject = VM_Interface.copy(object, forwardingPtr);
+    VM_Address newObject = MM_Interface.copy(object, forwardingPtr);
     CopyingHeader.setForwardingPointer(object, newObject);
     Plan.enqueue(newObject);       // Scan it later
 

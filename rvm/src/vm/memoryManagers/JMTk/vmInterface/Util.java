@@ -48,9 +48,9 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
-    return ( (typeTib == VM_Interface.tibForClassType) || 
-             (typeTib == VM_Interface.tibForArrayType) ||
-	     (typeTib == VM_Interface.tibForPrimitiveType));
+    return ( (typeTib == MM_Interface.tibForClassType) || 
+             (typeTib == MM_Interface.tibForArrayType) ||
+	     (typeTib == MM_Interface.tibForPrimitiveType));
   }
 
   /**
@@ -88,7 +88,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
       VMResource.showAll();
       return false;
     }
-    if (VM_Interface.MOVES_OBJECTS) {
+    if (MM_Interface.MOVES_OBJECTS) {
       if (VM_AllocatorHeader.isForwarded(VM_Magic.addressAsObject(ref)) ||
 	  VM_AllocatorHeader.isBeingForwarded(VM_Magic.addressAsObject(ref))) {
 	return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)
@@ -168,7 +168,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
 
 
   public static boolean addrInBootImage(VM_Address addr) {
-    return (addr.GE(VM_Interface.bootImageStart())) && (addr.LT(VM_Interface.bootImageEnd()));
+    return (addr.GE(MM_Interface.bootImageStart())) && (addr.LT(MM_Interface.bootImageEnd()));
   }
 
   /**

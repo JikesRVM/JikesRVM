@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
@@ -253,7 +253,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
-    VM_CompiledMethod[] newarray = VM_Interface.newContiguousCompiledMethodArray(newLength);
+    VM_CompiledMethod[] newarray = MM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync();
     return newarray;
