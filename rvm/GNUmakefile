@@ -5,7 +5,7 @@
 #
 # @author Steven Augart 
 #
-PHONY: all
+.PHONY: all
 all:
 	@echo >&2 "This is not the makefile for building JikesRVM.  It is"
 	@echo >&2 " just for building a TAGS table for GNU Emacs.  Type"
@@ -16,7 +16,7 @@ all:
 
 
 FIND:=find . -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
-FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -type f 
+FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.#*' -o -name '#*' -o -name '*#' -o -type f 
 
 .PHONY: FORCE
 TAGS: FORCE
