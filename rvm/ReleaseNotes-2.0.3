@@ -1,18 +1,26 @@
-This is release 2.0.3 of the Jikes RVM. The main purposes
-of this release are bug fixes, ???
+This is release 2.0.3 of the Jikes RVM. The main purpose
+of this release is bug fixes.
 
 Highlights include:
-  -- Improved jdp on Linux/IA32. Previously several commands
-     with BaseOpt or OptOpt type builds would crash with a message
-     about "Pop wrong type" - that's now been fixed. 
-  -- Other jdp improvements include: requiring hex values to
+  -- Linux/IA32 jdp improvements including: many bug fixes for BaseOpt and 
+     OptOpt bootimages; requiring hex values to
      be prefixed with '0x' or '0X'; clarifications in the help
      messages and userguide; stepline command fixed for BaseBase
-     type builds; and print variable-name command fixed for BaseBase
-     when LoadLocalVariableTable is true; However jdp still works
+     type builds; print variable-name command fixed for BaseBase
+     when LoadLocalVariableTable is true. jdp still works
      better with BaseBase builds. 
   
 
 To see more details on other miscellaneous bug fixes, see
-the developerWorks bug tracking software tool.  
-The following bugs in version 2.0.2 or 2.0.1 are fixed in 2.0.3:
+the developerWorks bug tracking software tool and CVS history.  
+The following bugs in version 2.0.2 are fixed in 2.0.3: 
+   2526: Invalid ref reported while scanning stack (BaseBaseSemispace)
+   2585: IA32 baseline compiler - pragmaInline warnings unreachable
+   2586: VM_EdgeListener.update not thread safe
+   2594: Method.getParameterTypes() doesn't resolve returned classes
+   2616: LINTEL: bad GC map on SPECjbb2000
+   2623: Array index out of bounds in OPT_ShortArrayReplacer
+   2629: Null Ptr exception in adaptive code using a saved cmid
+   2664: Reflective operations on primitive types
+   2665: GC points moving into uninterruptible regions
+   2719: Threads on IO queue can starve
