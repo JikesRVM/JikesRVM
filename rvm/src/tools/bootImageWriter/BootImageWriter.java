@@ -1051,7 +1051,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	      Object o = jdkFieldAcc.get(null);
 	      VM_Address addr = (VM_Address) o;
 	      String msg = " static field " + rvmField.toString();
-	      int value = getAddressValue(addr, msg);
+	      int value = getAddressValue(addr, msg, true);
 	      VM_Statics.setSlotContents(rvmFieldSlot, value);
 	  }
           else if (rvmFieldType.equals(VM_Type.WordType)) {
@@ -1080,12 +1080,12 @@ public class BootImageWriter extends BootImageWriterMessages
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
 
 
-  private static int getAddressValue(VM_Address addr, String msg) {
+  private static int getAddressValue(VM_Address addr, String msg, boolean warn) {
     if (addr == null) return 0;
     int value = addr.toInt();
     int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
     int high = 0x10000000;  // we shouldn't have that many objects
-    if (value > low && value < high && value != 32767 &&
+    if (warn && value > low && value < high && value != 32767 &&
 	(value < 4088 || value > 4096)) {
       say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
 	  " written for " + msg);
@@ -1229,7 +1229,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	    for (int i=0; i<arrayCount; i++) {
 		VM_Address addr = values[i];
 		String msg = "VM_Address array element " + i;
-		int value = getAddressValue(addr, msg);
+		int value = getAddressValue(addr, msg, true);
 		bootImage.setFullWord(arrayImageOffset + (i << 2), value);
 	    }
 	}
@@ -1356,7 +1356,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	      Object o = jdkFieldAcc.get(jdkObject);
 	      VM_Address addr = (VM_Address) o;
 	      String msg = " instance field " + rvmField.toString();
-	      int value = getAddressValue(addr, msg);
+	      int value = getAddressValue(addr, msg, rvmField != VM_Entrypoints.vpStatusAddressField);
 	      bootImage.setFullWord(rvmFieldOffset, value);
           }
           else if (rvmFieldType.equals(VM_Type.WordType)) {
