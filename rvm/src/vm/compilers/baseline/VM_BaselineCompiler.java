@@ -112,7 +112,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
-    if (shouldPrint && !fullyBootedVM) {
+    if (shouldPrint && VM.runningVM && !fullyBootedVM) {
       shouldPrint = false;
       if (options.PRINT_METHOD) {
 	VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
