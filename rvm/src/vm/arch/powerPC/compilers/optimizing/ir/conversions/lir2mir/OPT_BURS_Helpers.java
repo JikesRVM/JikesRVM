@@ -1234,8 +1234,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Move.mutate(s, PPC_MOVE, def, I(srcLow)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    //EMIT(MIR_Move.mutate(s, PPC_MOVE, I(srcHigh), left));
-    EMIT(MIR_Unary.create(PPC64_EXTSW, I(srcHigh), left)); //sign extend to prevent highest bits to be faulty
+    EMIT(MIR_Unary.create(PPC64_EXTSW, def, left)); //sign extend to prevent highest bits to be faulty
     //-#endif
   }
 
