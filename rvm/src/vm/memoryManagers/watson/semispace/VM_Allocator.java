@@ -123,6 +123,8 @@ public class VM_Allocator extends VM_GCStatistics
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
 
+  public static double bootTime;
+
   /**
    * Initialize for execution.
    */
@@ -145,6 +147,7 @@ public class VM_Allocator extends VM_GCStatistics
     largeHeap.attach(largeSize);
 
     fromHeap.reset();
+    bootTime = VM_Time.now();
 
     if (verbose >= 1) showParameter();
   }
@@ -451,7 +454,11 @@ public class VM_Allocator extends VM_GCStatistics
 
     double tempStart = 0.0, tempEnd = 0.0;
  
+    double beginTime = 0.0;
+
     if ( VM_GCLocks.testAndSetInitLock() ) {
+
+      beginTime = VM_Time.now();
 
       // Start timers to measure time since GC requested
       //
@@ -676,7 +683,7 @@ public class VM_Allocator extends VM_GCStatistics
     //
     if (mylocal.getGCOrdinal() == 1) {
 	updateGCStats(DEFAULT, fromHeap.current().diff(fromHeap.start).toInt());
-	printGCStats(DEFAULT);
+	printGCStats(DEFAULT, beginTime - bootTime, VM_Time.now() - bootTime);
     }
 
     return;

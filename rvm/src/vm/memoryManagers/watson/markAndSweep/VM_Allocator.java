@@ -110,6 +110,7 @@ public class VM_Allocator extends VM_GCStatistics
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
 
+public static double bootTime;
 
   public static void boot () throws VM_PragmaInterruptible {
 
@@ -129,6 +130,7 @@ public class VM_Allocator extends VM_GCStatistics
     VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
     smallHeap.boot(st, immortalHeap);
 
+    bootTime = VM_Time.now();
     if (verbose >= 1) showParameter();
   }
 
@@ -266,8 +268,11 @@ public class VM_Allocator extends VM_GCStatistics
     VM_CollectorThread mylocal = 
       VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
+    double beginTime = 0.0;
+
     //   SYNCHRONIZATION CODE for parallel gc
     if (VM_GCLocks.testAndSetInitLock()) {
+       beginTime = VM_Time.now();
       if (flag2nd) {
 	VM_Scheduler.trace(" collectstart:", "flag2nd on");
 	smallHeap.freeSmallSpaceDetails(true);
@@ -352,7 +357,6 @@ public class VM_Allocator extends VM_GCStatistics
 
     // Sweep large space
     if (mylocal.gcOrdinal == 1) {
-      if (verbose >= 1) VM.sysWrite("Sweeping large space");
       largeHeap.endCollect();
     }
 
@@ -380,7 +384,7 @@ public class VM_Allocator extends VM_GCStatistics
       GCTime.stop(finishTime.lastStop);
 
       updateGCStats(DEFAULT, 0);
-      printGCStats(DEFAULT);
+      printGCStats(DEFAULT, beginTime - bootTime, VM_Time.now() - bootTime);
 
       mylocal.printRendezvousTime();
       
@@ -468,7 +472,7 @@ public class VM_Allocator extends VM_GCStatistics
   public static void gc1 (String why, int size) throws VM_PragmaUninterruptible {
     gc_collect_now  = true;
 
-    if (verbose >= 1) VM.sysWriteln(why, size);
+    if (verbose >= 2) VM.sysWriteln(why, size);
 
     //  Tell gc thread to reclaim space, then wait for it to complete its work.
     //  The gc thread will do its work by calling collect(), below.
