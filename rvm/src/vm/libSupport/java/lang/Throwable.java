@@ -8,12 +8,16 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_StackTrace;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 
 /**
- * Library support interface of Jikes RVM
+ * Jikes RVM implementation of java.lang.Throwable.
  *
+ * By convention, order methods in the same order
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * 
  * @author Julian Dolby
- *
+ * @author Dave Grove
  */
 public class Throwable implements java.io.Serializable {
 
@@ -32,7 +36,7 @@ public class Throwable implements java.io.Serializable {
   /**
    * The cause of the throwable
    */
-  private Throwable cause = this;
+  private Throwable cause;
     
   public Throwable () {
     super ();
@@ -59,21 +63,25 @@ public class Throwable implements java.io.Serializable {
   }
 
   public Throwable getCause() {
-    return cause == this ? null : cause;
+    return cause;
   }
 
-  public String getMessage() {
-    return detailMessage;
-  }
-    
   public String getLocalizedMessage() {
     return getMessage();
   }
     
+  public String getMessage() {
+    return detailMessage;
+  }
+    
+  public StackTraceElement[] getStackTrace() {
+    throw new VM_UnimplementedError();
+  }
+
   public Throwable initCause(Throwable cause) {
     if (cause == this)
       throw new IllegalArgumentException();
-    if (this.cause != this)
+    if (this.cause != null)
       throw new IllegalStateException();
     this.cause = cause;
     return this;
@@ -97,12 +105,16 @@ public class Throwable implements java.io.Serializable {
     stackTrace.print(err);
   }
     
+  public void setStackTrace(StackTraceElement[] stackTrace) {
+    throw new VM_UnimplementedError();
+  }
+
   public String toString () {
     String msg = getMessage();
     if (msg == null)
-      return this.getClass().getName();
+      return getClass().getName();
     else
-      return this.getClass().getName() + ": " + msg;
+      return getClass().getName() + ": " + msg;
   }
 
 }

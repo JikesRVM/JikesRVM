@@ -22,10 +22,13 @@ import com.ibm.JikesRVM.VM_Process;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 
 /**
- * Library support interface of Jikes RVM
+ * Jikes RVM implementation of java.lang.Runtime.
  *
+ * By convention, order methods in the same order
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * 
  * @author Julian Dolby
- *
+ * @author Dave Grove
  */
 public class Runtime {
 
@@ -39,9 +42,7 @@ public class Runtime {
   /**
    * Prevent instantiation with private constructor
    */
-  private Runtime() {
-
-  }
+  private Runtime() { }
 
   static Properties defaultProperties;
 
@@ -63,23 +64,46 @@ public class Runtime {
     defaultProperties.put("user.timezone", "America/New_York");
   }
 
-  public Process exec(String[] progArray) throws java.io.IOException{
-    return exec(progArray, null, null);
+  public void addShutdownHook(Thread hook) throws IllegalArgumentException, 
+						  IllegalStateException, 
+						  SecurityException {
+    throw new VM_UnimplementedError();
   }
 
-  public Process exec(String[] progArray, String[] envp) throws java.io.IOException {
-    return exec(progArray, envp, null);
+  public int availableProcessors() {
+    throw new VM_UnimplementedError();
   }
-
-  public Process exec(String command, String[] envp, java.io.File dir) throws java.io.IOException {
-    return exec(new String[]{command}, envp, dir);
-  }
-
-  public Process exec(String prog) throws java.io.IOException{
+    
+  public Process exec(String prog) throws java.io.IOException, 
+					  SecurityException {
     return exec(prog, null);
   }
     
-  public Process exec(String prog, String[] envp) throws java.io.IOException{
+  public Process exec(String[] progArray) throws java.io.IOException,
+						 SecurityException {
+    return exec(progArray, null, null);
+  }
+
+  public Process exec(String[] progArray, String[] envp) throws java.io.IOException,
+								SecurityException {
+    return exec(progArray, envp, null);
+  }
+
+  public Process exec(String[] progArray, String[] envp, java.io.File dir) throws java.io.IOException,
+										  SecurityException {
+    if (progArray != null && progArray.length > 0 && progArray[0] != null) {
+      SecurityManager smngr = System.getSecurityManager();
+      if (smngr != null)
+	smngr.checkExec(progArray[0]);
+      String dirPath = (dir != null) ? dir.getPath() : null;
+      return new VM_Process(progArray[0], progArray, envp, dirPath);
+    } else {
+      throw new java.io.IOException();
+    }
+  }
+
+  public Process exec(String prog, String[] envp) throws java.io.IOException,
+							 SecurityException {
     //use a regular StringTokenizer to break the command_line into
     //small peaces. By convention the first argument is the name of the
     //command.
@@ -97,23 +121,17 @@ public class Runtime {
     return exec(command, envp);
   }
 
-  public Process exec(String[] progArray, String[] envp, java.io.File dir) throws java.io.IOException {
-    if (progArray != null && progArray.length > 0 && progArray[0] != null) {
-      SecurityManager smngr = System.getSecurityManager();
-      if (smngr != null)
-	smngr.checkExec(progArray[0]);
-      String dirPath = (dir != null) ? dir.getPath() : null;
-      return new VM_Process(progArray[0], progArray, envp, dirPath);
-    } else {
-      throw new java.io.IOException();
-    }
+  public Process exec(String command, String[] envp, java.io.File dir) throws java.io.IOException, 
+									      SecurityException {
+    return exec(new String[]{command}, envp, dir);
   }
-
-  public void exit (int code) {
+  
+  public void exit (int code) throws SecurityException {
     SecurityManager smngr = System.getSecurityManager();
     if (smngr != null) {
       smngr.checkExit(code);
     }
+    // TODO: run register shutdown hooks.
     VM.sysExit(code);
   }
 
@@ -125,54 +143,6 @@ public class Runtime {
     VM_Runtime.gc();
   }
 
-  public static Runtime getRuntime() {
-    return runtime;
-  }
-
-  public synchronized void load(String pathName) {
-    VM_ClassLoader.load(pathName);
-  }
-    
-  public void loadLibrary(String libName) {
-    Class[] classes = VMSecurityManager.getClassContext();
-    loadLibraryWithClassLoader(libName, classes[1].getClassLoader());
-  }
-    
-  void loadLibraryWithClassLoader(String libName, ClassLoader loader) {
-    SecurityManager smngr = System.getSecurityManager();
-    if (smngr != null)
-      smngr.checkLink(libName);
-	
-    if (loader == null) loader = VM_SystemClassLoader.getVMClassLoader();
-
-    String libPath = loader.findLibrary( libName );
-    if (libPath != null) {
-      VM_ClassLoader.load( libPath );
-      return;
-    }
-    
-    VM_ClassLoader.loadLibrary(libName);
-  }
-    
-  public void runFinalization() {
-    synchronized (FinalizerThread.marker) {}
-  }
-    
-  public static void runFinalizersOnExit(boolean run) {
-    SecurityManager smngr = System.getSecurityManager();
-    if (smngr != null)
-      smngr.checkExit(0);
-    throw new VM_UnimplementedError("java.lang.Runtime.runFinalizersOnExit: not implemented\n"); //!!TODO
-  }
-    
-  public long totalMemory() {
-    return VM_Runtime.totalMemory();
-  }
-
-  public void traceInstructions(boolean enable) {}
-
-  public void traceMethodCalls(boolean enable) {}
-
   public InputStream getLocalizedInputStream(InputStream stream) {
     return stream;
   }
@@ -181,12 +151,80 @@ public class Runtime {
     return stream;
   }
 
-  private static final String LIB_SUFFIX =
-    //-#if RVM_FOR_LINUX
-    ".so";
-  //-#else
-  ".a";
-  //-#endif
+  public static Runtime getRuntime() {
+    return runtime;
+  }
+
+  public static void halt(int status) throws SecurityException {
+    SecurityManager smngr = System.getSecurityManager();
+    if (smngr != null) {
+      smngr.checkExit(status);
+    }
+    throw new VM_UnimplementedError();
+  }
+
+  public synchronized void load(String pathName) throws SecurityException,
+							UnsatisfiedLinkError {
+    SecurityManager smngr = System.getSecurityManager();
+    if (smngr != null) {
+      smngr.checkLink(pathName);
+    }
+    VM_ClassLoader.load(pathName);
+  }
+    
+  public void loadLibrary(String libName) throws SecurityException, 
+						 UnsatisfiedLinkError {
+    SecurityManager smngr = System.getSecurityManager();
+    if (smngr != null) {
+      smngr.checkLink(libName);
+    }
+    Class[] classes = VMSecurityManager.getClassContext();
+    ClassLoader loader = classes[1].getClassLoader();
+    
+    if (loader == null) loader = VM_SystemClassLoader.getVMClassLoader();
+
+    String libPath = loader.findLibrary(libName);
+    if (libPath != null) {
+      VM_ClassLoader.load(libPath);
+      return;
+    } else {
+      VM_ClassLoader.loadLibrary(libName);
+    }
+  }
+    
+  public long maxMemory() {
+    throw new VM_UnimplementedError();
+  }
+
+  public void removeShutdownHook(Thread hook) throws IllegalStateException,
+						     SecurityException {
+    throw new VM_UnimplementedError();
+  }
+
+  public void runFinalization() {
+    synchronized (FinalizerThread.marker) {}
+  }
+    
+  public static void runFinalizersOnExit(boolean run) throws SecurityException {
+    SecurityManager smngr = System.getSecurityManager();
+    if (smngr != null)
+      smngr.checkExit(0);
+    throw new VM_UnimplementedError();
+  }
+  
+  public long totalMemory() {
+    return VM_Runtime.totalMemory();
+  }
+
+  public void traceInstructions(boolean enable) {
+    // VMs are free to ignore this...
+  }
+
+  public void traceMethodCalls(boolean enable) {
+    // VMs are free to ignore this...
+  }
+
+  private static final String LIB_SUFFIX = VM.BuildForLinux ? ".so" : ".a";
 
   static String nativeGetLibname(String pathname, String libname) {
     if (pathname != null && !("".equals(pathname)))
@@ -194,5 +232,4 @@ public class Runtime {
     else
       return "lib" + libname + LIB_SUFFIX;
   }
-
 }

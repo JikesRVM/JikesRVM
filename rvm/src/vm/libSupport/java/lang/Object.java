@@ -9,8 +9,11 @@ import com.ibm.JikesRVM.VM_Lock;
 import com.ibm.JikesRVM.VM_Runtime;
 
 /**
- * Jikes RVM implementation of Object.
- *
+ * Jikes RVM implementation of java.lang.Object.
+ * 
+ * By convention, order methods in the same order
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * 
  * @author Julian Dolby
  */
 public class Object {
@@ -37,23 +40,32 @@ public class Object {
     return VM_ObjectModel.getObjectHashCode(this);
   }
 
-  public final void notify() {
+  public final void notify() throws IllegalMonitorStateException {
     VM_Lock.notify(this);
   }
 
-  public final void notifyAll() {
+  public final void notifyAll() throws IllegalMonitorStateException {
     VM_Lock.notifyAll(this);
   }
 
-  public final void wait () throws InterruptedException {
+  public String toString () {
+    return getClass().getName() + "@" + Integer.toHexString(hashCode());
+  }
+  
+  public final void wait () throws InterruptedException,
+				   IllegalMonitorStateException {
     VM_Lock.wait(this);
   }
 
-  public final void wait (long time) throws InterruptedException {
+  public final void wait (long time) throws InterruptedException,
+					    IllegalMonitorStateException,
+					    IllegalArgumentException {
     wait(time, 0);
   }
 
-  public final void wait (long time, int frac) throws InterruptedException {
+  public final void wait (long time, int frac)  throws InterruptedException,
+						       IllegalMonitorStateException,
+						       IllegalArgumentException {
     if (time >= 0 && frac >= 0 && frac < 1000000) {
       if (time == 0 && frac > 0) {
 	time = 1;
@@ -69,9 +81,4 @@ public class Object {
       throw new IllegalArgumentException();
     }
   }
-
-  public String toString () {
-    return this.getClass().getName() + "@" + Integer.toHexString(this.hashCode());
-  }
-
 }
