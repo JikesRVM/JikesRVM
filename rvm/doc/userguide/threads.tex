@@ -53,26 +53,36 @@ A while it is still executing in phantom mode, {\tt yield} sets the
 {\tt beingDispatched} field of A, which is only reset by the magic
 that transfers control to B.
 
-Currently, RVM has no priority mechanism, that is, all threads run
-at the same priority.
+Beginning with version 2.0.1, the RVM has a simple load balancing
+mechanism. Every once in a while, a thread will move from one virtual
+processor to the next.  Such movement happens when a thread is
+interrupted by a timer tick (or garbage collection) or when it comes
+off a global queue (such as, the queues waiting for a heavy-weight
+lock, see \xlink{{\tt VM\_Lock}}{\VMLockURL}).  Such migration will be
+inhibited if the thread is the last (non-idle) executable thread on
+its current virtual processor.  
 
-Similarly, it has only the most rudimentary load balancing mechanism.
-Each virtual processor has a (local) idle queue.  Normally, the
-processor's \xlink{{\tt VM\_IdleThread}}{\VMIdleThreadURL} inhabits
-this queue.  When no other thread is executable, this thread is
-executed.  This thread requests work by setting the static {\tt
-idleProcessor} field to its virtual processor.  (When {\tt dispatch}
-is looking for a runnable thread it checks that this field is null.
-If not, and it has an spare runnable thread, it places the spare
-thread on the idle processor's transfer queue.)  The idle thread then
-spins for a short period of time waiting for work to materialize.  If
-it does, the idle thread returns to its processor's idle queue and
-the processor resumes execution of the newly transferred thread.
-Otherwise, the idle thread surrenders the remainder of its virtual
-processor's time slice back to the operating system.
+If a virtual processor has no other executable thread, its idle thread
+runs.  This thread posts a request for work and then busy-waits for a
+short time (currently 0.001 seconds).  If no work arrives in that
+period, the virtual processor surrenders the rest of its time slice
+back to the operating system.  If another virtual processor notices
+that this one needs work, it will tranfer an extra runnable thread (if
+it has one) to this processor.  When work arrives, the idle thread
+yields to an idle queue, and the recently transferred thread begins
+execution.
 
-More sophisticated priority and load-balancing mechanisms are in
-order.
+Currently, RVM has no priority mechanism, that is, all threads run at
+the same priority.
+
+If the RVM detects that a thread is stuck executing native code (JNI)
+for a long time, it temporarily prevents it from returning to Java and
+creates a new pThread (or recycles one previously created for this 
+purpose) and transfers the stuck thread's virtual processor to the
+new pThread.  When the stuck thread returns to Java, the pThread
+executing it is deactivated and added to a pool of available pThreads.
+Currently, this mechanism does not work on Linux (possibly due to a
+bug in the Linux 2.4 pThread library) and is disabled there.
 
 RVM uses a light-weight locking scheme to implement Java monitors (see
 \xlink{{\tt VM\_Lock}}{\VMLockURL}).  Twenty bits of the status word of 
