@@ -4,8 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import java.util.*;
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * Perform local common-subexpression elimination for a factored basic
@@ -41,9 +42,13 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     return "Local CSE";
   }
 
-  public final boolean printingEnabled (OPT_Options options, boolean before) {
-    return false;
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						     container.counter2);
+    VM.sysWrite("% Infrequent BBs");
   }
+
   static final boolean debug = false;
 
   /**
@@ -55,8 +60,13 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     // iterate over each basic block
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 
         bb = bb.nextBasicBlockInCodeOrder()) {
-      if (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent()) continue;
-      if (!bb.isEmpty()) optimizeBasicBlock(ir, bb, ir.options);
+      if (bb.isEmpty()) continue;
+      container.counter2++;
+      if (bb.getInfrequent()) {
+	container.counter1++;
+	if (ir.options.FREQ_FOCUS_EFFORT) continue;
+      }
+      optimizeBasicBlock(ir, bb, ir.options);
     }
     if (debug) OPT_Compiler.printInstructions(ir, "CSE");
   }

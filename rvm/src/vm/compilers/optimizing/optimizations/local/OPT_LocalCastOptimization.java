@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -28,11 +29,18 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
     implements OPT_Operators {
 
   public boolean shouldPerform(OPT_Options options) {
-    return  options.SIMPLE_OPT;
+    return options.SIMPLE_OPT;
   }
 
   public String getName() {
-    return  "Local Cast Optimizations";
+    return "Local Cast Optimizations";
+  }
+
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						     container.counter2);
+    VM.sysWrite("% Infrequent BBs");
   }
 
   /**
@@ -44,8 +52,12 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
         e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
-      if (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent()) continue;
       if (bb.isEmpty()) continue;
+      container.counter2++;
+      if (bb.getInfrequent()) {
+	container.counter1++;
+	if (ir.options.FREQ_FOCUS_EFFORT) continue;
+      }
       // visit each instruction in the basic block
       for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
           ie.hasMoreElements();) {
@@ -65,7 +77,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
    * @param s the potential checkcast instruction
    * @return true iff the transformation happened
    */
-  boolean invertNullAndTypeChecks(OPT_Instruction s) {
+  private boolean invertNullAndTypeChecks(OPT_Instruction s) {
     if (s.operator() == CHECKCAST) {
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();
@@ -92,7 +104,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
    * @param s the potential typecheck instruction
    * @param ir the governing IR
    */
-  boolean pushTypeCheckBelowIf(OPT_Instruction s, OPT_IR ir) {
+  private boolean pushTypeCheckBelowIf(OPT_Instruction s, OPT_IR ir) {
     if (s.operator() == CHECKCAST) {
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();

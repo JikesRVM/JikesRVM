@@ -335,6 +335,13 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
+    public void reportAdditionalStats() {
+      VM.sysWrite("  ");
+      VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						       container.counter2);
+      VM.sysWrite("% Infrequent BBs");
+    }
+
     // IR is inconsistent state between DoBURS and ComplexOperators.
     // It isn't verifiable again until after ComplexOperators completes.
     public void verify(OPT_IR ir) { }
@@ -347,36 +354,40 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
       for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	   bb != null; 
 	   bb = bb.nextBasicBlockInCodeOrder()) {
-	if (!bb.isEmpty()) {
-	  if (options.FREQ_FOCUS_EFFORT && bb.getInfrequent()) {
+	if (bb.isEmpty()) continue;
+	container.counter2++;
+	if (bb.getInfrequent()) {
+	  container.counter1++;
+	  if (options.FREQ_FOCUS_EFFORT) {
 	    // Basic block is infrequent -- use quick and dirty instruction selection
 	    mburs.prepareForBlock(bb);
 	    mburs.invoke(bb);
 	    mburs.finalizeBlock(bb);
-	  } else {
-	    burs.prepareForBlock(bb);
-	    // I. Build Dependence graph for the basic block
-	    OPT_DepGraph dgraph = new OPT_DepGraph(ir, 
-						   bb.firstRealInstruction(), 
-						   bb.lastRealInstruction(),
-						   bb);
-	    if (options.PRINT_DG_BURS) {
-	      // print dependence graph.
-	      OPT_Compiler.header("DepGraph", ir.method);
-	      dgraph.printDepGraph();
-	      OPT_Compiler.bottom("DepGraph", ir.method);
-	    }
-	    if (options.VCG_DG_BURS) {
-	      // output dependence graph in VCG format.
-	      // CAUTION: creates A LOT of files (one per BB)
-	      OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + 
-			       ".vcg", dgraph);
-	    }
-	    // II. Invoke BURS and rewrite block from LIR to MIR
-	    burs.invoke(dgraph);
-	    burs.finalizeBlock(bb);
+	    continue;
 	  }
 	}
+	// Use Normal instruction selection.
+	burs.prepareForBlock(bb);
+	// I. Build Dependence graph for the basic block
+	OPT_DepGraph dgraph = new OPT_DepGraph(ir, 
+					       bb.firstRealInstruction(), 
+					       bb.lastRealInstruction(),
+					       bb);
+	if (options.PRINT_DG_BURS) {
+	  // print dependence graph.
+	  OPT_Compiler.header("DepGraph", ir.method);
+	  dgraph.printDepGraph();
+	  OPT_Compiler.bottom("DepGraph", ir.method);
+	}
+	if (options.VCG_DG_BURS) {
+	  // output dependence graph in VCG format.
+	  // CAUTION: creates A LOT of files (one per BB)
+	  OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + 
+			   ".vcg", dgraph);
+	}
+	// II. Invoke BURS and rewrite block from LIR to MIR
+	burs.invoke(dgraph);
+	burs.finalizeBlock(bb);
       }
     }
   }

@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
@@ -50,6 +51,13 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
   private OPT_BasicBlock[] topOrder;
 
   public String getName() { return  "Estimate Block Frequencies"; }
+
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						     container.counter2);
+    VM.sysWrite("% Infrequent BBs");
+  }
 
   /**
    * Compute relative basic block frequencies for the argument IR based on the
@@ -146,11 +154,12 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
       if (bb.getExecutionFrequency() < threshold) {
         bb.setInfrequent();
+	container.counter1++;
       }
+      container.counter2++;
     }
   }
-
-
+  
   /**
    * Postorder traversal of LST computing loop multiplier and loop exits 
    * for each loop.

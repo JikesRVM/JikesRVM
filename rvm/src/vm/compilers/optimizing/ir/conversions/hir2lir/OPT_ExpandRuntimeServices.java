@@ -34,42 +34,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     return  "Expand Runtime Services";
   }
 
-  class OPT_RedirectResult {
-      OPT_Instruction next;
-      OPT_RegisterOperand newValue;
-      public OPT_RedirectResult(OPT_Instruction i, OPT_RegisterOperand ro) {
-	  next = i;
-	  newValue = ro;
-      }
-  }
-
-  // Insert basic blocks AFTER the given instructions that will check the contents of
-  // the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
-  // of the original register value.  
-  // The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
-  // and returned along with the first instruction after the added code is returned.
-  private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
-	
-      OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
-	                                                : ir.regpool.makeTemp(value);
-      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
-      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
-      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
-      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
-      beforeBB.insertOut(afterBB);   // unusual path
-      OPT_Instruction moveInst = Move.create(REF_MOVE, newValue.copyRO(), value.copy());
-      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value.copy(),
-					    new OPT_IntConstantOperand(0),  // NULL is 0
-					    OPT_ConditionOperand.EQUAL(),
-					    afterBB.makeJumpTarget(),
-					    OPT_BranchProfileOperand.unlikely());
-      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newValue.copyRO(), value.copy(), OPT_IRTools.TG());
-      ifInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
-      beforeBB.appendInstruction(moveInst);
-      beforeBB.appendInstruction(ifInst);
-      redirectBB.appendInstruction(redirectInst);
-      return new OPT_RedirectResult(afterBB.firstInstruction(), newValue);
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
+						     container.counter2);
+    VM.sysWrite("% Infrequent RS calls");
   }
 
   /** 
@@ -80,12 +49,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
    * @param OPT_IR HIR to expand
    */
   public void perform (OPT_IR ir) {
-    
-    // resync gc
+    // resync generation context
     ir.gc.resync();
     
-    // String name = ir.method.getDeclaringClass() + "." + ir.method.getName() + ir.method.getDescriptor();
-
     OPT_Instruction next;
     for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
 	 inst != null; 
@@ -135,6 +101,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  //-#endif
 	  if (ir.options.INLINE_NEW) {
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
               inline(inst, ir);
             }
@@ -225,6 +193,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  //-#endif
 	  if (ir.options.INLINE_NEW) {
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
               inline(inst, ir);
             }
@@ -291,6 +261,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
 			 new OPT_IntConstantOperand(refType.thinLockOffset));
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
               inline(inst, ir);
             }
@@ -315,6 +287,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			     MonitorOp.getClearGuard(inst), 
 			     ref,
 			     new OPT_IntConstantOperand(refType.thinLockOffset));
+		if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+		container.counter2++;
                 if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
                   inline(inst, ir);
                 }
@@ -667,4 +641,43 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
   static private final boolean debug_alloc_advice = false;
   //-#endif
+
+  private static final class OPT_RedirectResult {
+      OPT_Instruction next;
+      OPT_RegisterOperand newValue;
+      public OPT_RedirectResult(OPT_Instruction i, OPT_RegisterOperand ro) {
+	  next = i;
+	  newValue = ro;
+      }
+  }
+
+  // Insert basic blocks AFTER the given instructions that will check the contents of
+  // the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
+  // of the original register value.  
+  // The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
+  // and returned along with the first instruction after the added code is returned.
+  private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
+	
+      OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
+	                                                : ir.regpool.makeTemp(value);
+      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
+      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
+      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+      beforeBB.insertOut(afterBB);   // unusual path
+      OPT_Instruction moveInst = Move.create(REF_MOVE, newValue.copyRO(), value.copy());
+      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value.copy(),
+					    new OPT_IntConstantOperand(0),  // NULL is 0
+					    OPT_ConditionOperand.EQUAL(),
+					    afterBB.makeJumpTarget(),
+					    OPT_BranchProfileOperand.unlikely());
+      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newValue.copyRO(), value.copy(), OPT_IRTools.TG());
+      ifInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+      beforeBB.appendInstruction(moveInst);
+      beforeBB.appendInstruction(ifInst);
+      redirectBB.appendInstruction(redirectInst);
+      return new OPT_RedirectResult(afterBB.firstInstruction(), newValue);
+  }
+
 }
