@@ -189,19 +189,19 @@ public class VM_BootRecord {
   /**
    * jtoc offset of VM_Runtime.deliverHardwareException()
    */
-  int deliverHardwareExceptionOffset; 
+  Offset deliverHardwareExceptionOffset; 
   /**
    * jtoc offset of VM_Scheduler.dumpStackAndDie(I)
    */
-  int dumpStackAndDieOffset;          
+  Offset dumpStackAndDieOffset;          
   /**
    * jtoc offset of VM_Scheduler.processors[]
    */
-  public int processorsOffset;               
+  public Offset processorsOffset;               
   /**
    * jtoc offset of VM_Scheduler.debugRequested
    */
-  int debugRequestedOffset;           
+  Offset debugRequestedOffset;           
   /**
    * an external signal has been sent e.g. kill -signalnumber processid
    */

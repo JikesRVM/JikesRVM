@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.jni.VM_JNICompiler;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * VM_Compiler is the baseline compiler class for the IA32 architecture.
  * 
@@ -22,6 +24,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private final int parameterWords;
   private int firstLocalOffset;
   private boolean hasCounterArray;
+
+  private static final Offset NO_SLOT  = Offset.zero(); 
+  private static final Offset ONE_SLOT = NO_SLOT.add(WORDSIZE); 
+  private static final Offset TWO_SLOTS = ONE_SLOT.add(WORDSIZE);
+  private static final Offset THREE_SLOTS = TWO_SLOTS.add(WORDSIZE);
 
   /**
    * Create a VM_Compiler object for the compilation of method.
@@ -165,7 +172,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param offset JTOC offset of the constant 
    */
   protected final void emit_ldc(int offset) {
-    asm.emitPUSH_RegDisp(JTOC, offset);   
+    asm.emitPUSH_RegDisp(JTOC, Offset.fromIntSignExtend(offset));   
   }
 
   /**
@@ -173,8 +180,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param offset JTOC offset of the constant 
    */
   protected final void emit_ldc2(int offset) {
-    asm.emitPUSH_RegDisp(JTOC, offset+4); // high 32 bits 
-    asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
+    Offset off = Offset.fromIntSignExtend(offset);
+    asm.emitPUSH_RegDisp(JTOC, off.add(4)); // high 32 bits 
+    asm.emitPUSH_RegDisp(JTOC, off);   // low 32 bits
   }
 
 
@@ -188,7 +196,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_iload(int index) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP,offset);
   }
 
@@ -197,7 +205,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_lload(int index) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP, offset); // high part
     asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
   }
@@ -207,7 +215,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_fload(int index) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp (ESP, offset);
   }
 
@@ -216,7 +224,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_dload(int index) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP, offset); // high part
     asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
   }
@@ -226,7 +234,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_aload(int index) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP, offset);
   }
 
@@ -241,7 +249,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_istore(int index) {
-    int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+    Offset offset = localOffset(index).sub(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp (ESP, offset); 
   }
 
@@ -250,7 +258,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_lstore(int index) {
-    int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+    Offset offset = localOffset(index+1).sub(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp(ESP, offset); // high part
     asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
   }
@@ -260,7 +268,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_fstore(int index) {
-    int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+    Offset offset = localOffset(index).sub(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp (ESP, offset);
   }
 
@@ -269,7 +277,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_dstore(int index) {
-    int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+    Offset offset = localOffset(index+1).sub(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp(ESP, offset); // high part
     asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
   }
@@ -279,7 +287,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index the local index to load
    */
   protected final void emit_astore(int index) {
-    int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+    Offset offset = localOffset(index).sub(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp (ESP, offset);
   }
 
@@ -293,68 +301,68 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to load from an int array
    */
   protected final void emit_iaload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);       // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);       // S0 is the array ref
     genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired int array element
+    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, NO_SLOT); // push desired int array element
   }
 
   /**
    * Emit code to load from a long array
    */
   protected final void emit_laload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of desired long array element
-    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of desired long array element
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, ONE_SLOT); // load high part of desired long array element
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, NO_SLOT);        // load low part of desired long array element
   }
 
   /**
    * Emit code to load from a float array
    */
   protected final void emit_faload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);       // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);       // S0 is the array ref
     genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired float array element
+    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, NO_SLOT); // push desired float array element
   }
 
   /**
    * Emit code to load from a double array
    */
   protected final void emit_daload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of double
-    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of double
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, ONE_SLOT); // load high part of double
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, NO_SLOT);        // load low part of double
   }
 
   /**
    * Emit code to load from a reference array
    */
   protected final void emit_aaload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);       // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);       // S0 is the array ref
     genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired object array element
+    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, NO_SLOT); // push desired object array element
   }
 
   /**
    * Emit code to load from a byte/boolean array
    */
   protected final void emit_baload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                     // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);                     // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                     // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);                     // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // complete popping the 2 args
-    asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, asm.BYTE, 0); // load byte and sign extend to a 32 bit word
+    asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, asm.BYTE, NO_SLOT); // load byte and sign extend to a 32 bit word
     asm.emitPUSH_Reg(T1);                                   // push sign extended byte onto stack
   }
 
@@ -362,11 +370,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to load from a char array
    */
   protected final void emit_caload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                      // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);                      // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
-    asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword without sign extend to a 32 bit word
+    asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, NO_SLOT); // load halfword without sign extend to a 32 bit word
     asm.emitPUSH_Reg(T1);                                    // push char onto stack
   }
 
@@ -374,11 +382,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to load from a short array
    */
   protected final void emit_saload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                      // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);                      // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
-    asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword sign extend to a 32 bit word
+    asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, NO_SLOT); // load halfword sign extend to a 32 bit word
     asm.emitPUSH_Reg(T1);                                    // push sign extended short onto stack
   }
 
@@ -393,11 +401,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_iastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the int value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the int value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
   }
 
@@ -406,13 +414,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_lastore() {
     VM_Barriers.compileModifyCheck(asm, 12);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);                     // T0 is the array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);                    // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
     asm.emitPOP_Reg(T1);                                    // low part of long value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, NO_SLOT, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
     asm.emitPOP_Reg(T1);                                    // high part of long value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, ONE_SLOT, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
   }
 
@@ -421,11 +429,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_fastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the float value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the float value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
   }
 
@@ -434,13 +442,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_dastore() {
     VM_Barriers.compileModifyCheck(asm, 12);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);                     // T0 is the array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);                    // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
     asm.emitPOP_Reg(T1);                                    // low part of double value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, NO_SLOT, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
     asm.emitPOP_Reg(T1);                                    // high part of double value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, ONE_SLOT, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
   }
 
@@ -449,18 +457,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_aastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
-    asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
+    asm.emitPUSH_RegDisp(SP, TWO_SLOTS);        // duplicate array ref
+    asm.emitPUSH_RegDisp(SP, ONE_SLOT);        // duplicate object value
     genParameterRegisterLoad(2);                     // pass 2 parameter
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffsetAsInt()); // checkstore(array ref, value)
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
     if (MM_Interface.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm);
     else {
-      asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
-      asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the object value
+      asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
   }
@@ -470,11 +478,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_bastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);                   // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the byte value
-    asm.emitMOV_RegIdx_Reg_Byte(S0, T0, asm.BYTE, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);                   // T1 is the byte value
+    asm.emitMOV_RegIdx_Reg_Byte(S0, T0, asm.BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
   }
 
@@ -483,11 +491,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_castore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);                   // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the char value
-    asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);                   // T1 is the char value
+    asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, NO_SLOT, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
   }
 
@@ -496,11 +504,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_sastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);                   // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                   // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the short value
-    asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);                   // T1 is the short value
+    asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, NO_SLOT, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
   }
 
@@ -561,7 +569,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the dup2 bytecode
    */
   protected final void emit_dup2() {
-    asm.emitMOV_Reg_RegDisp (T0, SP, 4);
+    asm.emitMOV_Reg_RegDisp (T0, SP, ONE_SLOT);
     asm.emitMOV_Reg_RegInd (S0, SP);
     asm.emitPUSH_Reg(T0);
     asm.emitPUSH_Reg(S0);
@@ -596,7 +604,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Reg(S0);
     asm.emitPUSH_Reg(T0);
     // restore JTOC register
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -644,8 +652,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the idiv bytecode
    */
   protected final void emit_idiv() {
-    asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
-    asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+    asm.emitMOV_Reg_RegDisp(ECX, SP, NO_SLOT); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+    asm.emitMOV_Reg_RegDisp(EAX, SP, ONE_SLOT); // EAX is dividend
     asm.emitCDQ ();                      // sign extend EAX into EDX
     asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
@@ -656,8 +664,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the irem bytecode
    */
   protected final void emit_irem() {
-    asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
-    asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+    asm.emitMOV_Reg_RegDisp(ECX, SP, NO_SLOT); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+    asm.emitMOV_Reg_RegDisp(EAX, SP, ONE_SLOT); // EAX is dividend
     asm.emitCDQ ();                      // sign extend EAX into EDX
     asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
     asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
@@ -725,7 +733,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param val value to increment it by
    */
   protected final void emit_iinc(int index, int val) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitADD_RegDisp_Imm(ESP, offset, val);
   }
 
@@ -742,7 +750,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg(T0);                 // the low half of one long
     asm.emitPOP_Reg(S0);                 // the high half
     asm.emitADD_RegInd_Reg(SP, T0);          // add low halves
-    asm.emitADC_RegDisp_Reg(SP, WORDSIZE, S0);   // add high halves with carry
+    asm.emitADC_RegDisp_Reg(SP, ONE_SLOT, S0);   // add high halves with carry
   }
 
   /**
@@ -752,7 +760,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg(T0);                 // the low half of one long
     asm.emitPOP_Reg(S0);                 // the high half
     asm.emitSUB_RegInd_Reg(SP, T0);          // subtract low halves
-    asm.emitSBB_RegDisp_Reg(SP, WORDSIZE, S0);   // subtract high halves with borrow
+    asm.emitSBB_RegDisp_Reg(SP, ONE_SLOT, S0);   // subtract high halves with borrow
   }
 
   /**
@@ -777,21 +785,21 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     // 14: restore JTOC
     if (VM.VerifyAssertions) VM._assert(S0 != EAX);
     if (VM.VerifyAssertions) VM._assert(S0 != EDX);
-    asm.emitMOV_Reg_RegDisp (JTOC, SP, 8);          // step 1: JTOC is temp0
+    asm.emitMOV_Reg_RegDisp (JTOC, SP, TWO_SLOTS);          // step 1: JTOC is temp0
     asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 2
     asm.emitMUL_Reg_RegInd(EAX, SP);    // step 3
-    asm.emitMOV_RegDisp_Reg (SP, 8, EAX);           // step 4
+    asm.emitMOV_RegDisp_Reg (SP, TWO_SLOTS, EAX);           // step 4
     asm.emitMOV_Reg_Reg (S0, EDX);              // step 5: S0 is temp1
     asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 6
     asm.emitPOP_Reg (EAX);                  // step 7: SP changed!
-    asm.emitIMUL1_Reg_RegDisp(EAX, SP, 8);// step 8
+    asm.emitIMUL1_Reg_RegDisp(EAX, SP, TWO_SLOTS);// step 8
     asm.emitADD_Reg_Reg (S0, EAX);      // step 9
     asm.emitPOP_Reg (EAX);                  // step 10: SP changed!
     asm.emitIMUL1_Reg_Reg(EAX, JTOC);    // step 11
     asm.emitADD_Reg_Reg (S0, EAX);      // step 12
-    asm.emitMOV_RegDisp_Reg (SP, 4, S0);            // step 13
+    asm.emitMOV_RegDisp_Reg (SP, ONE_SLOT, S0);            // step 13
     // restore JTOC register
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -799,24 +807,25 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_ldiv() {
     // (1) zero check
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);
-    asm.emitOR_Reg_RegDisp(T0, SP, 4);
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
+    asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
     VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
     asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
     fr1.resolve(asm);
     // (2) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
+    Offset off = Offset.fromIntSignExtend(numNonVols*WORDSIZE);
     for (int i = 0; i<numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (3) Push args to C function (reversed)
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+    asm.emitPUSH_RegDisp(SP, off.add(4));
+    asm.emitPUSH_RegDisp(SP, off.add(4));
+    asm.emitPUSH_RegDisp(SP, off.add(20));
+    asm.emitPUSH_RegDisp(SP, off.add(20));
     // (4) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongDivideIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongDivideIPField.getOffset());
     // (5) pop space for arguments
     asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
     // (6) restore RVM nonvolatiles
@@ -835,24 +844,25 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_lrem() {
     // (1) zero check
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);
-    asm.emitOR_Reg_RegDisp(T0, SP, 4);
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
+    asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
     VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
     asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
     fr1.resolve(asm);
     // (2) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
+    Offset off = Offset.fromIntSignExtend(numNonVols*WORDSIZE);
     for (int i = 0; i<numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (3) Push args to C function (reversed)
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+    asm.emitPUSH_RegDisp(SP, off.add(4));
+    asm.emitPUSH_RegDisp(SP, off.add(4));
+    asm.emitPUSH_RegDisp(SP, off.add(20));
+    asm.emitPUSH_RegDisp(SP, off.add(20));
     // (4) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongRemainderIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongRemainderIPField.getOffset());
     // (5) pop space for arguments
     asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
     // (6) restore RVM nonvolatiles
@@ -870,9 +880,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the lneg bytecode
    */
   protected final void emit_lneg() {
-    asm.emitNEG_RegDisp(SP, 4);    // [SP+4] <- -[SP+4] or high <- -high
+    asm.emitNEG_RegDisp(SP, ONE_SLOT);    // [SP+4] <- -[SP+4] or high <- -high
     asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
-    asm.emitSBB_RegDisp_Imm(SP, 4, 0); // [SP+4] += borrow or high += borrow
+    asm.emitSBB_RegDisp_Imm(SP, ONE_SLOT, 0); // [SP+4] += borrow or high += borrow
   }
 
   /**
@@ -917,7 +927,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Reg(T1);                   // push high half (step 14)
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -964,7 +974,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Reg(T1);                   // push high half (step 15)
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -1010,7 +1020,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Reg(T1);                   // push high half (step 14)
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -1020,7 +1030,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg(T0);        // low
     asm.emitPOP_Reg(S0);        // high
     asm.emitAND_RegInd_Reg(SP, T0);
-    asm.emitAND_RegDisp_Reg(SP, 4, S0);
+    asm.emitAND_RegDisp_Reg(SP, ONE_SLOT, S0);
   }
 
   /**
@@ -1030,7 +1040,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg(T0);        // low
     asm.emitPOP_Reg(S0);        // high
     asm.emitOR_RegInd_Reg(SP, T0);
-    asm.emitOR_RegDisp_Reg(SP, 4, S0);
+    asm.emitOR_RegDisp_Reg(SP, ONE_SLOT, S0);
   }
 
   /**
@@ -1040,7 +1050,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg(T0);        // low
     asm.emitPOP_Reg(S0);        // high
     asm.emitXOR_RegInd_Reg(SP, T0);
-    asm.emitXOR_RegDisp_Reg(SP, 4, S0);
+    asm.emitXOR_RegDisp_Reg(SP, ONE_SLOT, S0);
   }
 
 
@@ -1054,7 +1064,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_fadd() {
     asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
-    asm.emitFADD_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack += value1
+    asm.emitFADD_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack += value1
     asm.emitPOP_Reg   (T0);           // discard 
     asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
   }
@@ -1063,8 +1073,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the fsub bytecode
    */
   protected final void emit_fsub() {
-    asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
-    asm.emitFSUB_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack -= value2
+    asm.emitFLD_Reg_RegDisp (FP0, SP, ONE_SLOT); // FPU reg. stack <- value1
+    asm.emitFSUB_Reg_RegDisp(FP0, SP, NO_SLOT);        // FPU reg. stack -= value2
     asm.emitPOP_Reg   (T0);           // discard 
     asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
   }
@@ -1074,7 +1084,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_fmul() {
     asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
-    asm.emitFMUL_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack *= value1
+    asm.emitFMUL_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack *= value1
     asm.emitPOP_Reg   (T0);           // discard 
     asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
   }
@@ -1083,8 +1093,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the fdiv bytecode
    */
   protected final void emit_fdiv() {
-    asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
-    asm.emitFDIV_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack /= value2
+    asm.emitFLD_Reg_RegDisp (FP0, SP, ONE_SLOT); // FPU reg. stack <- value1
+    asm.emitFDIV_Reg_RegDisp(FP0, SP, NO_SLOT);        // FPU reg. stack /= value2
     asm.emitPOP_Reg   (T0);           // discard 
     asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
   }
@@ -1094,9 +1104,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_frem() {
     asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2, or a
-    asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1, or b
+    asm.emitFLD_Reg_RegDisp (FP0, SP, ONE_SLOT); // FPU reg. stack <- value1, or b
     asm.emitFPREM ();             // FPU reg. stack <- a%b
-    asm.emitFSTP_RegDisp_Reg(SP, WORDSIZE, FP0); // POP FPU reg. stack (results) onto java stack
+    asm.emitFSTP_RegDisp_Reg(SP, ONE_SLOT, FP0); // POP FPU reg. stack (results) onto java stack
     asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto java stack
     asm.emitPOP_Reg   (T0);           // shrink the stack (T0 discarded)
   }
@@ -1121,7 +1131,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_dadd() {
     asm.emitFLD_Reg_RegInd_Quad (FP0, SP);        // FPU reg. stack <- value2
-    asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, 8);        // FPU reg. stack += value1
+    asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // FPU reg. stack += value1
     asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);  // shrink the stack
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);        // POP FPU reg. stack onto stack
   }
@@ -1130,8 +1140,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the dsub bytecode
    */
   protected final void emit_dsub() {
-    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
-    asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, 0);          // FPU reg. stack -= value2
+    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, TWO_SLOTS);          // FPU reg. stack <- value1
+    asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, NO_SLOT);          // FPU reg. stack -= value2
     asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
   }
@@ -1141,7 +1151,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_dmul() {
     asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2
-    asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, 8);          // FPU reg. stack *= value1
+    asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);          // FPU reg. stack *= value1
     asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
   }
@@ -1150,7 +1160,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the ddiv bytecode
    */
   protected final void emit_ddiv() {
-    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
+    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, TWO_SLOTS);          // FPU reg. stack <- value1
     asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack /= value2
     asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
@@ -1161,9 +1171,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_drem() {
     asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2, or a
-    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 2*WORDSIZE); // FPU reg. stack <- value1, or b
+    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, TWO_SLOTS); // FPU reg. stack <- value1, or b
     asm.emitFPREM ();               // FPU reg. stack <- a%b
-    asm.emitFSTP_RegDisp_Reg_Quad(SP, 2*WORDSIZE, FP0); // POP FPU reg. stack (result) onto java stack
+    asm.emitFSTP_RegDisp_Reg_Quad(SP, TWO_SLOTS, FP0); // POP FPU reg. stack (result) onto java stack
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);         // POP FPU reg. stack onto java stack
     asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
   }
@@ -1242,14 +1252,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_f2i() {
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
+    Offset off = Offset.fromIntSignExtend(numNonVols*WORDSIZE);
     for (int i = 0; i<numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (2) Push arg to C function 
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
+    asm.emitPUSH_RegDisp(SP, off);
     // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
     // (4) pop argument;
     asm.emitPOP_Reg(S0);
     // (5) restore RVM nonvolatiles
@@ -1257,7 +1268,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
     }
     // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, 0, T0);
+    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
   }
 
   /**
@@ -1266,14 +1277,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_f2l() {
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
+    Offset off = Offset.fromIntSignExtend(numNonVols*WORDSIZE);
     for (int i = 0; i<numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (2) Push arg to C function 
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
+    asm.emitPUSH_RegDisp(SP, off);
     // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffset());
     // (4) pop argument;
     asm.emitPOP_Reg(S0);
     // (5) restore RVM nonvolatiles
@@ -1281,7 +1293,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
     }
     // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, 0, T1);
+    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);
     asm.emitPUSH_Reg(T0);
   }
 
@@ -1300,15 +1312,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_d2i() {
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
+    Offset off = Offset.fromIntSignExtend(numNonVols*WORDSIZE);
     for (int i = 0; i<numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (2) Push args to C function (reversed)
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, off.add(4));
+    asm.emitPUSH_RegDisp(SP, off.add(4));
     // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffset());
     // (4) pop arguments
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(S0);
@@ -1318,7 +1331,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     // (6) put result on expression stack
     asm.emitPOP_Reg(S0); // shrink stack by 1 word
-    asm.emitMOV_RegDisp_Reg(SP, 0, T0);
+    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
   }
 
   /**
@@ -1327,15 +1340,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_d2l() {
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
+    Offset off = Offset.fromIntSignExtend(numNonVols*WORDSIZE);
     for (int i = 0; i<numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (2) Push args to C function (reversed)
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, off.add(4));
+    asm.emitPUSH_RegDisp(SP, off.add(4));
     // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToLongIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToLongIPField.getOffset());
     // (4) pop arguments
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(S0);
@@ -1344,8 +1358,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
     }
     // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, 4, T1);
-    asm.emitMOV_RegDisp_Reg(SP, 0, T0);
+    asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, T1);
+    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
   }
 
   /**
@@ -1420,7 +1434,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_fcmpl() {
     VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // copy value1 into FPU
     asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
     if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
@@ -1446,7 +1460,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_fcmpg() {
     VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // copy value1 into FPU
     asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
     if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
@@ -1472,7 +1486,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_dcmpl() {
     VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // copy value1 into FPU
     asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
     if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
@@ -1498,7 +1512,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_dcmpg() {
     VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // copy value1 into FPU
     asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
     asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
     if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
@@ -1716,7 +1730,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param index local variable containing the return address
    */
   protected final void emit_ret(int index) {
-    int offset = localOffset(index);
+    Offset offset = localOffset(index);
     asm.emitJMP_RegDisp(ESP, offset); 
   }
 
@@ -1760,7 +1774,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     bcodes.skipTableSwitchOffsets(n);
     asm.emitPOP_Reg (S0);                          // S0 = address of 0th delta 
-    asm.emitADD_Reg_RegIdx (S0, S0, T0, asm.WORD, 0);     // S0 += [S0 + T0<<2]
+    asm.emitADD_Reg_RegIdx (S0, S0, T0, asm.WORD, NO_SLOT);     // S0 += [S0 + T0<<2]
     asm.emitPUSH_Reg(S0);                          // push computed case address
     asm.emitRET ();                            // goto case
   }
@@ -1875,11 +1889,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true); 
     if (fieldRef.getSize() == BYTES_IN_INT) { 
-      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
+      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, NO_SLOT);        // get static field
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, WORDSIZE); // get high part
-      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get low part
+      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, ONE_SLOT); // get high part
+      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, NO_SLOT);        // get low part
     }
   }
 
@@ -1888,12 +1902,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
+    Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitPUSH_RegDisp(JTOC, fieldOffset+WORDSIZE); // get high part
+      asm.emitPUSH_RegDisp(JTOC, fieldOffset.add(WORDSIZE)); // get high part
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);          // get low part
     }
   }
@@ -1911,11 +1925,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 //       emitDynamicLinkingSequence(T0, fieldRef, false);
 //     }
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
+      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, NO_SLOT);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);        // store low part
-      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, WORDSIZE); // store high part
+      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, NO_SLOT);        // store low part
+      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, ONE_SLOT); // store high part
     }
   }
 
@@ -1924,7 +1938,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
+    Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
 // putstatic barrier currently unsupported
 //     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
@@ -1934,7 +1948,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPOP_RegDisp(JTOC, fieldOffset);          // store low part
-      asm.emitPOP_RegDisp(JTOC, fieldOffset+WORDSIZE); // store high part
+      asm.emitPOP_RegDisp(JTOC, fieldOffset.add(WORDSIZE)); // store high part
     }
   }
 
@@ -1946,15 +1960,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-      asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
-      asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);              // S0 is object reference
+      asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, NO_SLOT); // S0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, S0);              // replace reference with value on stack
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
-      asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
-      asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
-      asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);               // push the low part of field value
+      asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);                     // S0 is object reference
+      asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, ONE_SLOT); // T1 is high part of field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);                     // replace reference with value on stack
+      asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, NO_SLOT);               // push the low part of field value
     }
   }
 
@@ -1964,16 +1978,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
+    Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-      asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
+      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);           // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
-      asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);           // replace reference with value on stack
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
-      asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
-      asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
+      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                    // T0 is object reference
+      asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset.add(WORDSIZE)); // T1 is high part of field value
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);                    // replace reference with high part of value on stack
       asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
     }
   }
@@ -1991,20 +2005,20 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
     } else {
       if (fieldRef.getSize() == BYTES_IN_INT) {// field is one word
-        asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
-        asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
+        asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);               // T1 is the value to be stored
+        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);               // S0 is the object reference
+        asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
         asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
       } else { // field is two words (double or long)
         if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-        asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
-        asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
-        asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
+        asm.emitMOV_Reg_RegDisp(JTOC, SP, NO_SLOT);                          // JTOC is low part of the value to be stored
+        asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT);                            // T1 is high part of the value to be stored
+        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                            // S0 is the object reference
+        asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, NO_SLOT, JTOC);            // [S0+T0] <- JTOC
+        asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, ONE_SLOT, T1);       // [S0+T0+4] <- T1
         asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
         // restore JTOC
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
       }
     }
   }
@@ -2015,25 +2029,25 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
+    Offset fieldOffset = fieldRef.peekResolvedField().getOffset();
     VM_Barriers.compileModifyCheck(asm, 4);
     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else {
       if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-        asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
+        asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);           // T0 is the value to be stored
+        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);           // S0 is the object reference
         asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
         asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
       } else { // field is two words (double or long)
         if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
         // TODO!! use 8-byte move if possible
-        asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
-        asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
+        asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                    // T0 is low part of the value to be stored
+        asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT);                    // T1 is high part of the value to be stored
+        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                    // S0 is the object reference
         asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
-        asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
+        asm.emitMOV_RegDisp_Reg(S0, fieldOffset.add(WORDSIZE), T1); // store high part
         asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
       }
     }
@@ -2051,10 +2065,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_invokevirtual(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(T0, methodRef, true);
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    int objectOffset = (methodRefparameterWords << 2) - 4;           // object offset into stack
+    Offset objectOffset = Offset.fromIntZeroExtend(methodRefparameterWords << 2).sub(4);           // object offset into stack
     asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);                  // S0 has "this" parameter
     VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
-    asm.emitMOV_Reg_RegIdx (S0, S0, T0, asm.BYTE, 0);                // S0 has address of virtual method
+    asm.emitMOV_Reg_RegIdx (S0, S0, T0, asm.BYTE, NO_SLOT);                // S0 has address of virtual method
     genParameterRegisterLoad(methodRef, true);
     asm.emitCALL_Reg(S0);                                      // call virtual method
     genResultRegisterUnload(methodRef);                    // push return value, if any
@@ -2066,8 +2080,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_invokevirtual(VM_MethodReference methodRef) {
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    int methodRefOffset = methodRef.peekResolvedMethod().getOffsetAsInt();
-    int objectOffset = (methodRefparameterWords << 2) - WORDSIZE; // object offset into stack
+    Offset methodRefOffset = methodRef.peekResolvedMethod().getOffset();
+    Offset objectOffset = Offset.fromIntZeroExtend(methodRefparameterWords << 2).sub(WORDSIZE); // object offset into stack
     asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);
     VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
     genParameterRegisterLoad(methodRef, true);
@@ -2084,13 +2098,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_resolved_invokespecial(VM_MethodReference methodRef, VM_Method target) {
     if (target.isObjectInitializer()) {
       genParameterRegisterLoad(methodRef, true);
-      asm.emitCALL_RegDisp(JTOC, target.getOffsetAsInt());
+      asm.emitCALL_RegDisp(JTOC, target.getOffset());
       genResultRegisterUnload(target.getMemberRef().asMethodReference());
     } else {
       if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       // invoke via class's tib slot
-      int methodRefOffset = target.getOffsetAsInt();
-      asm.emitMOV_Reg_RegDisp (S0, JTOC, target.getDeclaringClass().getTibOffset().toInt());
+      Offset methodRefOffset = target.getOffset();
+      asm.emitMOV_Reg_RegDisp (S0, JTOC, target.getDeclaringClass().getTibOffset());
       genParameterRegisterLoad(methodRef, true);
       asm.emitCALL_RegDisp(S0, methodRefOffset);
       genResultRegisterUnload(methodRef);
@@ -2104,7 +2118,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_invokespecial(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(S0, methodRef, true);
     genParameterRegisterLoad(methodRef, true);
-    asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);  // call static method
+    asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, NO_SLOT);  // call static method
     genResultRegisterUnload(methodRef);
   }
 
@@ -2116,7 +2130,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_invokestatic(VM_MethodReference methodRef) {
     emitDynamicLinkingSequence(S0, methodRef, true);
     genParameterRegisterLoad(methodRef, false);          
-    asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0); 
+    asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, NO_SLOT); 
     genResultRegisterUnload(methodRef);
   }
 
@@ -2125,7 +2139,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param methodRef the referenced method
    */
   protected final void emit_resolved_invokestatic(VM_MethodReference methodRef) {
-    int methodOffset = methodRef.peekResolvedMethod().getOffsetAsInt();
+    Offset methodOffset = methodRef.peekResolvedMethod().getOffset();
     genParameterRegisterLoad(methodRef, false);
     asm.emitCALL_RegDisp(JTOC, methodOffset);
     genResultRegisterUnload(methodRef);
@@ -2149,52 +2163,51 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       if (resolvedMethod == null) {
         // Can't successfully resolve it at compile time.
         // Call uncommon case typechecking routine to do the right thing when this code actually executes.
-        asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                       // "this" object
+        asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                       // "this" object
         asm.emitPUSH_Imm(methodRef.getId());                                    // dict id of target
         VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
         asm.emitPUSH_Reg(S0);
         genParameterRegisterLoad(2);                                            // pass 2 parameter word
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffsetAsInt());// check that "this" class implements the interface
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
       } else {
-        asm.emitMOV_Reg_RegDisp (T0, JTOC, resolvedMethod.getDeclaringClass().getTibOffset().toInt()); // tib of the interface method
-        asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
-        asm.emitPUSH_RegDisp(T0, TIB_TYPE_INDEX << 2);                                    // type of the interface method
+        asm.emitMOV_Reg_RegDisp (T0, JTOC, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
+        asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                                 // "this" object
+        asm.emitPUSH_RegDisp(T0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << 2));                                    // type of the interface method
         VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
         asm.emitPUSH_Reg(S0);
         genParameterRegisterLoad(2);                                          // pass 2 parameter word
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffsetAsInt());// check that "this" class implements the interface
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
       }
     }
 
     // (2) Emit interface invocation sequence.
     if (VM.BuildForIMTInterfaceInvocation) {
       VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(methodRef);
-      int offset = sig.getIMTOffset().toInt();
           
       // squirrel away signature ID
       VM_ProcessorLocalState.emitMoveImmToField(asm, 
-                                                VM_Entrypoints.hiddenSignatureIdField.getOffsetAsInt(),
+                                                VM_Entrypoints.hiddenSignatureIdField.getOffset(),
                                                 sig.getId());
 
-      asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                  // "this" object
+      asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                                  // "this" object
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
       if (VM.BuildForIndirectIMT) {
         // Load the IMT Base into S0
-        asm.emitMOV_Reg_RegDisp(S0, S0, TIB_IMT_TIB_INDEX << 2);
+        asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_IMT_TIB_INDEX << 2));
       }
       genParameterRegisterLoad(methodRef, true);
-      asm.emitCALL_RegDisp(S0, offset);                                             // the interface call
+      asm.emitCALL_RegDisp(S0, sig.getIMTOffset());                                             // the interface call
     } else if (VM.BuildForITableInterfaceInvocation && 
                VM.DirectlyIndexedITables && 
                resolvedMethod != null) {
       VM_Class I = resolvedMethod.getDeclaringClass();
-      asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
+      asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                                 // "this" object
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
-      asm.emitMOV_Reg_RegDisp (S0, S0, TIB_ITABLES_TIB_INDEX << 2);                     // iTables
-      asm.emitMOV_Reg_RegDisp (S0, S0, I.getInterfaceId() << 2);                        // iTable
+      asm.emitMOV_Reg_RegDisp (S0, S0, Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << 2));                     // iTables
+      asm.emitMOV_Reg_RegDisp (S0, S0, Offset.fromIntZeroExtend(I.getInterfaceId() << 2));                        // iTable
       genParameterRegisterLoad(methodRef, true);
       int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
-      asm.emitCALL_RegDisp(S0, idx << 2); // the interface call
+      asm.emitCALL_RegDisp(S0, Offset.fromIntZeroExtend(idx << 2)); // the interface call
     } else {
       int itableIndex = -1;
       if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {
@@ -2208,10 +2221,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         // call "invokeInterface" to resolve object + method id into 
         // method address
         int methodRefId = methodRef.getId();
-        asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
+        asm.emitPUSH_RegDisp(SP, Offset.fromIntZeroExtend((count-1)<<LG_WORDSIZE));  // "this" parameter is obj
         asm.emitPUSH_Imm(methodRefId);                 // id of method to call
         genParameterRegisterLoad(2);               // pass 2 parameter words
-        asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceMethod.getOffsetAsInt()); // invokeinterface(obj, id) returns address to call
+        asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceMethod.getOffset()); // invokeinterface(obj, id) returns address to call
         asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
         genParameterRegisterLoad(methodRef, true);
         asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
@@ -2219,15 +2232,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         // itable index is known at compile-time.
         // call "findITable" to resolve object + interface id into 
         // itable address
-        asm.emitMOV_Reg_RegDisp (T0, SP, (count-1) << 2);             // "this" object
+        asm.emitMOV_Reg_RegDisp (T0, SP, Offset.fromIntZeroExtend((count-1) << 2));             // "this" object
         VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
         asm.emitPUSH_Reg(S0);
         asm.emitPUSH_Imm        (resolvedMethod.getDeclaringClass().getInterfaceId()); // interface id
         genParameterRegisterLoad(2);                                  // pass 2 parameter words
-        asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableMethod.getOffsetAsInt()); // findItableOffset(tib, id) returns iTable
+        asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableMethod.getOffset()); // findItableOffset(tib, id) returns iTable
         asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
         genParameterRegisterLoad(methodRef, true);
-        asm.emitCALL_RegDisp    (S0, itableIndex << 2);               // the interface call
+        asm.emitCALL_RegDisp    (S0, Offset.fromIntZeroExtend(itableIndex << 2));               // the interface call
       }
     }
     genResultRegisterUnload(methodRef);
@@ -2246,7 +2259,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
-    int tibOffset = typeRef.getTibOffset().toInt();
+    Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = VM_ObjectModel.getAlignment(typeRef);
     int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
@@ -2257,7 +2270,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
     genParameterRegisterLoad(6);                  // pass 6 parameter words
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedNewScalarMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
 
@@ -2268,7 +2281,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
     asm.emitPUSH_Imm(typeRef.getId());
     genParameterRegisterLoad(1);           // pass 1 parameter word
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedNewScalarMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
 
@@ -2278,7 +2291,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_newarray(VM_Array array) {
     int width      = array.getLogElementSize();
-    int tibOffset  = array.getTibOffset().toInt();
+    Offset tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     int align = VM_ObjectModel.getAlignment(array);
@@ -2291,7 +2304,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
     genParameterRegisterLoad(7);             // pass 7 parameter words
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -2303,7 +2316,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(tRef.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedNewArrayMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -2327,7 +2340,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Imm ((dimensions + OFFSET_WORDS)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
     
     genParameterRegisterLoad(PARAMETERS);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayMethod.getOffsetAsInt()); 
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayMethod.getOffset()); 
     for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
     asm.emitPUSH_Reg(T0);                              // push array ref on stack
   }
@@ -2336,9 +2349,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the arraylength bytecode
    */
   protected final void emit_arraylength() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                   // T0 is array reference
-    asm.emitMOV_Reg_RegDisp(T0, T0, VM_ObjectModel.getArrayLengthOffset().toInt()); // T0 is array length
-    asm.emitMOV_RegDisp_Reg(SP, 0, T0);                   // replace reference with length on stack
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                   // T0 is array reference
+    asm.emitMOV_Reg_RegDisp(T0, T0, VM_ObjectModel.getArrayLengthOffset()); // T0 is array length
+    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);                   // replace reference with length on stack
   }
 
   /**
@@ -2346,7 +2359,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_athrow() {
     genParameterRegisterLoad(1);          // pass 1 parameter word
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.athrowMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.athrowMethod.getOffset());
   }
 
   /**
@@ -2357,7 +2370,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(typeRef.getId());               // VM_TypeReference id.
     genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastMethod.getOffsetAsInt()); // checkcast(obj, type reference id);
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastMethod.getOffset()); // checkcast(obj, type reference id);
   }
 
   /**
@@ -2368,7 +2381,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getId());                  // VM_Type id.
     genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastResolvedClassMethod.getOffsetAsInt()); // checkcast(obj, type id)
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastResolvedClassMethod.getOffset()); // checkcast(obj, type id)
   }
 
   /**
@@ -2379,7 +2392,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
     asm.emitPUSH_Imm(type.getTibOffset().toInt());           // JTOC index that identifies klass  
     genParameterRegisterLoad(2);                     // pass 2 parameter words
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastFinalMethod.getOffsetAsInt()); // checkcast(obj, TIB's JTOC offset)
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastFinalMethod.getOffset()); // checkcast(obj, TIB's JTOC offset)
   }
 
   /**
@@ -2389,7 +2402,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_instanceof(VM_TypeReference typeRef) {
     asm.emitPUSH_Imm(typeRef.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -2400,7 +2413,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_instanceof_resolvedClass(VM_Type type) {
     asm.emitPUSH_Imm(type.getId());
     genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfResolvedClassMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfResolvedClassMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -2411,7 +2424,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_instanceof_final(VM_Type type) {
     asm.emitPUSH_Imm(type.getTibOffset().toInt());  
     genParameterRegisterLoad(2);          // pass 2 parameter words
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfFinalMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.instanceOfFinalMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -2420,7 +2433,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_monitorenter() {
     genParameterRegisterLoad(1);          // pass 1 parameter word
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());
   }
 
   /**
@@ -2428,7 +2441,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_monitorexit() {
     genParameterRegisterLoad(1);          // pass 1 parameter word
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffsetAsInt());  
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());  
   }
 
 
@@ -2464,12 +2477,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
        * point of the caller.
        * The third word of the header contains the compiled method id of the called method.
        */
-      asm.emitPUSH_RegDisp   (PR, VM_Entrypoints.framePointerField.getOffsetAsInt());        // store caller's frame pointer
-      VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffsetAsInt(), SP); // establish new frame
+      asm.emitPUSH_RegDisp   (PR, VM_Entrypoints.framePointerField.getOffset());        // store caller's frame pointer
+      VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), SP); // establish new frame
       /*
        * NOTE: until the end of the prologue SP holds the framepointer.
        */
-      asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethod.getId()); // 3rd word of header
+      asm.emitMOV_RegDisp_Imm(SP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET), compiledMethod.getId()); // 3rd word of header
       
       /*
        * save registers
@@ -2478,11 +2491,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX);            // save nonvolatile EBX register
     
       // establish the JTOC register
-      VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffsetAsInt());
+      VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
       if (!VM.runningTool && ((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray()) {
         // use (nonvolatile) EBX to hold base of this methods counter array
-        asm.emitMOV_Reg_RegDisp(EBX, JTOC, VM_Entrypoints.edgeCountersField.getOffsetAsInt());
+        asm.emitMOV_Reg_RegDisp(EBX, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
         asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
       }
 
@@ -2502,8 +2515,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
       // copy registers to callee's stackframe
       firstLocalOffset         = STACKFRAME_BODY_OFFSET - savedRegistersSize;
-      int firstParameterOffset = (parameterWords << LG_WORDSIZE) + WORDSIZE;
-      genParameterCopy(firstParameterOffset, firstLocalOffset);
+      Offset firstParameterOffset = Offset.fromIntSignExtend((parameterWords << LG_WORDSIZE) + WORDSIZE);
+      genParameterCopy(firstParameterOffset, Offset.fromIntSignExtend(firstLocalOffset));
 
       int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
       asm.emitADD_Reg_Imm (SP, emptyStackOffset);               // set aside room for non parameter locals
@@ -2523,7 +2536,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       if (isInterruptible) {
         // S0<-limit
         VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                                  VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt());
+                                                  VM_Entrypoints.activeThreadStackLimitField.getOffset());
 
         asm.emitSUB_Reg_Reg (S0, SP);                                           // space left
         asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE);      // space left after this expression stack
@@ -2548,7 +2561,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (isInterruptible) {
       // S0<-limit
       VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                        VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt());
+                        VM_Entrypoints.activeThreadStackLimitField.getOffset());
       asm.emitSUB_Reg_Reg (S0, SP);                                       // spa
       asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE);  // spa
       VM_ForwardReference fr = asm.forwardJcc(asm.LT);    // Jmp around trap if 
@@ -2577,10 +2590,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitINT_Imm(0xFF);
     } else {
       // normal method
-      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped);     // SP becomes frame pointer
+      asm.emitADD_Reg_Imm     (SP, fp2spOffset(NO_SLOT).toInt() - bytesPopped);     // SP becomes frame pointer
       asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);           // restore nonvolatile JTOC register
       asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);             // restore nonvolatile EBX register
-      asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffsetAsInt()); // discard frame
+      asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffset()); // discard frame
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);    // return to caller- pop parameters from stack
     }
   }
@@ -2592,39 +2605,37 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       } else {
         klass.getClassForType();
       }
-      int tibOffset = klass.getTibOffset().toInt();
-      asm.emitMOV_Reg_RegDisp (T0, JTOC, tibOffset);               // T0 = tib for klass
+      asm.emitMOV_Reg_RegDisp (T0, JTOC, klass.getTibOffset());    // T0 = tib for klass
       asm.emitMOV_Reg_RegInd (T0, T0);                             // T0 = VM_Class for klass
-      asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeField.getOffsetAsInt()); // push java.lang.Class object for klass
+      asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeField.getOffset()); // push java.lang.Class object for klass
     } else {
       asm.emitPUSH_RegDisp(ESP, localOffset(0));                           // push "this" object
     }
     genParameterRegisterLoad(1);                                   // pass 1 parameter
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffsetAsInt());  
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());  
     lockOffset = asm.getMachineCodeIndex();                       // after this instruction, the method has the monitor
   }
   
   private final void genMonitorExit () {
     if (method.isStatic()) {
-      int tibOffset = klass.getTibOffset().toInt();
-      asm.emitMOV_Reg_RegDisp (T0, JTOC, tibOffset);                   // T0 = tib for klass
+      asm.emitMOV_Reg_RegDisp (T0, JTOC, klass.getTibOffset());                   // T0 = tib for klass
       asm.emitMOV_Reg_RegInd (T0, T0);                             // T0 = VM_Class for klass
-      asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeField.getOffsetAsInt()); // push java.lang.Class object for klass
+      asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeField.getOffset()); // push java.lang.Class object for klass
     } else {
       asm.emitPUSH_RegDisp(ESP, localOffset(0));                    // push "this" object
     }
     genParameterRegisterLoad(1); // pass 1 parameter
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffsetAsInt());  
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());  
   }
   
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
     asm.emitCMP_RegDisp_Reg(arrayRefReg,
-                            VM_ObjectModel.getArrayLengthOffset().toInt(), indexReg);  // compare index to array length
+                            VM_ObjectModel.getArrayLengthOffset(), indexReg);  // compare index to array length
     VM_ForwardReference fr = asm.forwardJcc(asm.LGT);                     // Jmp around trap if index is OK
     
     // "pass" index param to C trap handler
     VM_ProcessorLocalState.emitMoveRegToField(asm, 
-                                              VM_Entrypoints.arrayIndexTrapParamField.getOffsetAsInt(),
+                                              VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
                                               indexReg);
 
     asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE );       // trap
@@ -2660,18 +2671,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private final void incEdgeCounter(byte scratch, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
-    asm.emitMOV_Reg_RegDisp(scratch, EBX, counterIdx<<2);
+    asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx<<2));
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
-    asm.emitMOV_RegDisp_Reg(EBX, counterIdx<<2, scratch);
+    asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx<<2), scratch);
   }
 
   private final void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod)compiledMethod).hasCounterArray());
-    asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, asm.WORD, counterIdx<<2);
+    asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, asm.WORD, Offset.fromIntZeroExtend(counterIdx<<2));
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
-    asm.emitMOV_RegIdx_Reg(EBX, idx, asm.WORD, counterIdx<<2, scratch);
+    asm.emitMOV_RegIdx_Reg(EBX, idx, asm.WORD, Offset.fromIntSignExtend(counterIdx<<2), scratch);
   }
 
 
@@ -2700,10 +2711,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private final void genParameterRegisterLoad (int params) {
     if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
-      asm.emitMOV_Reg_RegDisp(T0, SP, (params-1) << LG_WORDSIZE);
+      asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params-1) << LG_WORDSIZE));
     }
     if (1 < params && 1 < NUM_PARAMETER_GPRS) {
-      asm.emitMOV_Reg_RegDisp(T1, SP, (params-2) << LG_WORDSIZE);
+      asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend((params-2) << LG_WORDSIZE));
     }
   }
    
@@ -2722,7 +2733,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int fpr = 0;  // number of floating point  registers filled
     byte  T = T0; // next GPR to get a parameter
     int params = method.getParameterWords() + (hasThisParam ? 1 : 0);
-    int offset = (params-1) << LG_WORDSIZE; // stack offset of first parameter word
+    Offset offset = Offset.fromIntZeroExtend((params-1) << LG_WORDSIZE); // stack offset of first parameter word
     if (hasThisParam) {
       if (gpr < NUM_PARAMETER_GPRS) {
         asm.emitMOV_Reg_RegDisp(T, SP, offset);
@@ -2730,7 +2741,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         gpr++;
         max--;
       }
-      offset -= WORDSIZE;
+      offset=offset.sub(WORDSIZE);
     }
     VM_TypeReference [] types = method.getParameterTypes();
     for (int i=0; i<types.length; i++) {
@@ -2743,26 +2754,26 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           gpr++;
           max--;
           if (gpr < NUM_PARAMETER_GPRS) {
-            asm.emitMOV_Reg_RegDisp(T, SP, offset - WORDSIZE);  // hi register := lo mem (== lo order word)
+            asm.emitMOV_Reg_RegDisp(T, SP, offset.sub(WORDSIZE));  // hi register := lo mem (== lo order word)
             gpr++;
             max--;
           }
         }
-        offset -= 2*WORDSIZE;
+        offset=offset.sub(2*WORDSIZE);
       } else if (t.isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           asm.emitFLD_Reg_RegDisp(FP0, SP, offset);
           fpr++;
           max--;
         }
-        offset -= WORDSIZE;
+        offset=offset.sub(WORDSIZE);
       } else if (t.isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, offset - WORDSIZE);
+          asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, offset.sub(WORDSIZE));
           fpr++;
           max--;
         }
-        offset -= 2*WORDSIZE;
+        offset=offset.sub(2*WORDSIZE);
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
           asm.emitMOV_Reg_RegDisp(T, SP, offset);
@@ -2770,10 +2781,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           gpr++;
           max--;
         }
-        offset -= WORDSIZE;
+        offset=offset.sub(WORDSIZE);
       }
     }
-    if (VM.VerifyAssertions) VM._assert(offset == - WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(offset.EQ(Offset.fromIntSignExtend( - WORDSIZE)));
   }
    
   /** 
@@ -2783,7 +2794,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Assumption: although some parameters may be passed in registers,
    * space for all parameters is layed out in order on the caller's stackframe.
    */
-  private final void genParameterCopy (int srcOffset, int dstOffset) {
+  private final void genParameterCopy (Offset srcOffset, Offset dstOffset) {
     int gpr = 0;  // number of general purpose registers unloaded
     int fpr = 0;  // number of floating point registers unloaded
     byte  T = T0; // next GPR to get a parameter
@@ -2796,11 +2807,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
         asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
       }
-      srcOffset -= WORDSIZE;
-      dstOffset -= WORDSIZE;
+      srcOffset=srcOffset.sub(WORDSIZE);
+      dstOffset=dstOffset.sub(WORDSIZE);
     }
     VM_TypeReference [] types     = method.getParameterTypes();
-    int     [] fprOffset = new     int [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
+    //KV: todo: This seems not to work
+    //OffsetArray fprOffset = OffsetArray.create(NUM_PARAMETER_FPRS); // to handle floating point parameters in registers
+    int [] fprOffset = new int [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     boolean [] is32bit   = new boolean [NUM_PARAMETER_FPRS]; // to handle floating point parameters in registers
     for (int i=0; i<types.length; i++) {
       VM_TypeReference t = types[i];
@@ -2809,8 +2822,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);    // hi mem := lo register (== hi order word)
           T = T1;                                       // at most 2 parameters can be passed in general purpose registers
           gpr++;
-          srcOffset -= WORDSIZE;
-          dstOffset -= WORDSIZE;
+          srcOffset=srcOffset.sub(WORDSIZE);
+          dstOffset=dstOffset.sub(WORDSIZE);
           if (gpr < NUM_PARAMETER_GPRS) {
             asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);  // lo mem := hi register (== lo order word)
             gpr++;
@@ -2821,41 +2834,43 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         } else {
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
-          srcOffset -= WORDSIZE;
-          dstOffset -= WORDSIZE;
+          srcOffset=srcOffset.sub(WORDSIZE);
+          dstOffset=dstOffset.sub(WORDSIZE);
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset -= WORDSIZE;
-        dstOffset -= WORDSIZE;
+        srcOffset=srcOffset.sub(WORDSIZE);
+        dstOffset=dstOffset.sub(WORDSIZE);
       } else if (t.isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          fprOffset[fpr] = dstOffset;
+          //fprOffset.set(fpr, dstOffset);
+          fprOffset[fpr] = dstOffset.toInt();
           is32bit[fpr]   = true;
           fpr++;
         } else {
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset -= WORDSIZE;
-        dstOffset -= WORDSIZE;
+        srcOffset=srcOffset.sub(WORDSIZE);
+        dstOffset=dstOffset.sub(WORDSIZE);
       } else if (t.isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
-          srcOffset -= WORDSIZE;
-          dstOffset -= WORDSIZE;
-          fprOffset[fpr] = dstOffset;
+          srcOffset=srcOffset.sub(WORDSIZE);
+          dstOffset=dstOffset.sub(WORDSIZE);
+          //fprOffset.set(fpr,  dstOffset);
+          fprOffset[fpr] = dstOffset.toInt();
           is32bit[fpr]   = false;
           fpr++;
         } else {
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
-          srcOffset -= WORDSIZE;
-          dstOffset -= WORDSIZE;
+          srcOffset=srcOffset.sub(WORDSIZE);
+          dstOffset=dstOffset.sub(WORDSIZE);
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset -= WORDSIZE;
-        dstOffset -= WORDSIZE;
+        srcOffset=srcOffset.sub(WORDSIZE);
+        dstOffset=dstOffset.sub(WORDSIZE);
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
@@ -2865,15 +2880,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
           asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
         }
-        srcOffset -= WORDSIZE;
-        dstOffset -= WORDSIZE;
+        srcOffset=srcOffset.sub(WORDSIZE);
+        dstOffset=dstOffset.sub(WORDSIZE);
       }
     }
     for (int i=fpr-1; 0<=i; i--) { // unload the floating point register stack (backwards)
       if (is32bit[i]) {
-        asm.emitFSTP_RegDisp_Reg(SP, fprOffset[i], FP0);
+        //asm.emitFSTP_RegDisp_Reg(SP, fprOffset.get(i), FP0);
+        asm.emitFSTP_RegDisp_Reg(SP, Offset.fromIntSignExtend(fprOffset[i]), FP0);
       } else {
-        asm.emitFSTP_RegDisp_Reg_Quad(SP, fprOffset[i], FP0);
+        //asm.emitFSTP_RegDisp_Reg_Quad(SP, fprOffset.get(i), FP0);
+        asm.emitFSTP_RegDisp_Reg_Quad(SP, Offset.fromIntSignExtend(fprOffset[i]), FP0);
       }
     }
   }
@@ -2907,20 +2924,20 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     } 
 
     // thread switch requested ??
-    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, VM_Entrypoints.takeYieldpointField.getOffsetAsInt(), 0);
+    VM_ProcessorLocalState.emitCompareFieldWithImm(asm, VM_Entrypoints.takeYieldpointField.getOffset(), 0);
     VM_ForwardReference fr1;
     if (whereFrom == VM_Thread.PROLOGUE) {
       // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
       fr1 = asm.forwardJcc(asm.EQ);
-      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffsetAsInt()); 
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
     } else if (whereFrom == VM_Thread.BACKEDGE) {
       // Take yieldpoint if yieldpoint flag is >0
       fr1 = asm.forwardJcc(asm.LE);
-      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffsetAsInt()); 
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
     } else { // EPILOGUE
       // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
       fr1 = asm.forwardJcc(asm.EQ);
-      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffsetAsInt()); 
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
     }
     fr1.resolve(asm);
 
@@ -2928,12 +2945,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (options.INVOCATION_COUNTERS) {
       int id = compiledMethod.getId();
       com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
-      asm.emitMOV_Reg_RegDisp(ECX, JTOC, VM_Entrypoints.invocationCountsField.getOffsetAsInt());
-      asm.emitSUB_RegDisp_Imm(ECX, compiledMethod.getId() << 2, 1);
+      asm.emitMOV_Reg_RegDisp(ECX, JTOC, VM_Entrypoints.invocationCountsField.getOffset());
+      asm.emitSUB_RegDisp_Imm(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << 2), 1);
       VM_ForwardReference notTaken = asm.forwardJcc(asm.GT);
       asm.emitPUSH_Imm(id);
       genParameterRegisterLoad(1);
-      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invocationCounterTrippedMethod.getOffsetAsInt());
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
       notTaken.resolve(asm);
     }
     //-#endif
@@ -2985,7 +3002,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           // Load at offset
           asm.emitPOP_Reg (S0);                  // offset
           asm.emitPOP_Reg (T0);                  // object ref
-          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, NO_SLOT); // pushes [T0+S0]
         }
         return true;
       }
@@ -3000,7 +3017,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           // Load at offset
           asm.emitPOP_Reg (S0);                  // offset
           asm.emitPOP_Reg (T0);                  // base 
-          asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
+          asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
           asm.emitPUSH_Reg (T0);
         }
         return true;
@@ -3018,7 +3035,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           // Load at offset
           asm.emitPOP_Reg (S0);                  // offset
           asm.emitPOP_Reg (T0);                  // base 
-          asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, 0); // load and zero extend word [T0+S0]
+          asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, NO_SLOT); // load and zero extend word [T0+S0]
           asm.emitPUSH_Reg (T0);
         }
         return true;
@@ -3034,8 +3051,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           // Load at offset
           asm.emitPOP_Reg (S0);                  // offset
           asm.emitPOP_Reg (T0);                  // base 
-          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 4); // pushes [T0+S0+4]
-          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, ONE_SLOT); // pushes [T0+S0+4]
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, NO_SLOT); // pushes [T0+S0]
         }
         return true;
       }
@@ -3064,7 +3081,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
             asm.emitPOP_Reg(T0);                   // value
             asm.emitPOP_Reg(T1);                   // address 
             asm.emitMOV_RegIdx_Reg(T1, S0,
-                                 asm.BYTE, 0, T0); // [T1+S0] <- T0
+                                 asm.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
           }
           return true;
         }
@@ -3081,7 +3098,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
             asm.emitPOP_Reg(T0);                   // value
             asm.emitPOP_Reg(T1);                   // base 
             asm.emitMOV_RegIdx_Reg_Byte(T1, S0, 
-                                 asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0     
+                                 asm.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0     
           }
           return true;
         }
@@ -3100,7 +3117,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
             asm.emitPOP_Reg(T0);                   // value
             asm.emitPOP_Reg(T1);                   // base      
             asm.emitMOV_RegIdx_Reg_Word(T1, S0, 
-                                 asm.BYTE, 0, T0); // [T1+S0] <- (word) T0     
+                                 asm.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0     
           }
           return true;
         }
@@ -3113,12 +3130,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
             throw new RuntimeException("Magic not implemented");
           } else {
             // Store at offset
-            asm.emitMOV_Reg_RegDisp(T0, SP, +4);          // value high
+            asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);          // value high
             asm.emitMOV_Reg_RegInd (S0, SP);     // offset
-            asm.emitMOV_Reg_RegDisp(T1, SP, +12);     // base 
-            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
-            asm.emitMOV_Reg_RegDisp(T0, SP, +8);     // value low
-            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 4, T0); // [T1+S0+4] <- T0
+            asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // base 
+            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+            asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // value low
+            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
             asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
           }
           return true;
@@ -3180,21 +3197,21 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     
     if (methodName == VM_MagicNames.saveThreadState) {
-      int offset = VM_Entrypoints.saveThreadStateInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.saveThreadStateInstructionsField.getOffset();
       genParameterRegisterLoad(1); // pass 1 parameter word
       asm.emitCALL_RegDisp(JTOC, offset);
       return true;
     }
 
     if (methodName == VM_MagicNames.threadSwitch) {
-      int offset = VM_Entrypoints.threadSwitchInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.threadSwitchInstructionsField.getOffset();
       genParameterRegisterLoad(2); // pass 2 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       return true;
     }         
          
     if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      int offset = VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset();
       genParameterRegisterLoad(1); // pass 1 parameter word
       asm.emitCALL_RegDisp(JTOC, offset);
       return true;
@@ -3209,7 +3226,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (m.getType() == VM_TypeReference.SysCall) {
       VM_TypeReference[] args = m.getParameterTypes();
       VM_TypeReference rtype = m.getReturnType();
-      int offsetToJavaArg = 3*WORDSIZE; // the three regs saved in (2)
+      Offset offsetToJavaArg = THREE_SLOTS; // the three regs saved in (2)
       int paramBytes = 0;
       
       // (1) save three RVM nonvolatile/special registers
@@ -3224,21 +3241,21 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       for (int i=args.length-1; i>=0; i--) {
         VM_TypeReference arg = args[i];
         if (arg.isLongType() || arg.isDoubleType()) {
-          asm.emitPUSH_RegDisp(SP, offsetToJavaArg + 4);
-          asm.emitPUSH_RegDisp(SP, offsetToJavaArg + 4);
-          offsetToJavaArg += 16;
+          asm.emitPUSH_RegDisp(SP, offsetToJavaArg.add(4));
+          asm.emitPUSH_RegDisp(SP, offsetToJavaArg.add(4));
+          offsetToJavaArg = offsetToJavaArg.add(16);
           paramBytes += 8;
         } else {
           asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
-          offsetToJavaArg += 8;
+          offsetToJavaArg = offsetToJavaArg.add(8);
           paramBytes += 4;
         }
       }   
 
       // (3) invoke target function
       VM_Field ip = VM_Entrypoints.getSysCallField(m.getName().toString());
-      asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());
-      asm.emitCALL_RegDisp(S0, ip.getOffsetAsInt());
+      asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+      asm.emitCALL_RegDisp(S0, ip.getOffset());
       
       // (4) pop space for arguments
       asm.emitADD_Reg_Imm(SP, paramBytes);
@@ -3269,34 +3286,34 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }   
     
     if (methodName == VM_MagicNames.getFramePointer) {
-      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));
+      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(NO_SLOT));
       asm.emitPUSH_Reg       (S0);
       return true;
     }
     
     if (methodName == VM_MagicNames.getCallerFramePointer) {
       asm.emitPOP_Reg(T0);                                       // Callee FP
-      asm.emitPUSH_RegDisp(T0, STACKFRAME_FRAME_POINTER_OFFSET); // Caller FP
+      asm.emitPUSH_RegDisp(T0, Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET)); // Caller FP
       return true;
     }
 
     if (methodName == VM_MagicNames.setCallerFramePointer) {
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // fp
-      asm.emitMOV_RegDisp_Reg(S0, STACKFRAME_FRAME_POINTER_OFFSET, T0); // [S0+SFPO] <- T0
+      asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET), T0); // [S0+SFPO] <- T0
       return true;
     }
 
     if (methodName == VM_MagicNames.getCompiledMethodID) {
       asm.emitPOP_Reg(T0);                                   // Callee FP
-      asm.emitPUSH_RegDisp(T0, STACKFRAME_METHOD_ID_OFFSET); // Callee CMID
+      asm.emitPUSH_RegDisp(T0, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)); // Callee CMID
       return true;
     }
 
     if (methodName == VM_MagicNames.setCompiledMethodID) {
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // fp
-      asm.emitMOV_RegDisp_Reg(S0, STACKFRAME_METHOD_ID_OFFSET, T0); // [S0+SMIO] <- T0
+      asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET), T0); // [S0+SMIO] <- T0
       return true;
     }
 
@@ -3347,14 +3364,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         methodName == VM_MagicNames.prepareWord) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
-      asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+      asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, NO_SLOT); // pushes [T0+S0]
       return true;
     }
     
     if (methodName == VM_MagicNames.getByteAtOffset) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
-      asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
+      asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, NO_SLOT); // load and zero extend byte [T0+S0]
       asm.emitPUSH_Reg (T0);
       return true;
     }
@@ -3362,7 +3379,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.getCharAtOffset) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
-      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, 0); // load and zero extend char [T0+S0]
+      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, NO_SLOT); // load and zero extend char [T0+S0]
       asm.emitPUSH_Reg (T0);
       return true;
     }
@@ -3377,7 +3394,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
+      asm.emitMOV_RegIdx_Reg(T1, S0, asm.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
       return true;
     }
     
@@ -3385,7 +3402,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0
+      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, asm.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
       return true;
     }
     
@@ -3393,7 +3410,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Word(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (char) T0
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, asm.BYTE, NO_SLOT, T0); // [T1+S0] <- (char) T0
       return true;
     }
     
@@ -3401,19 +3418,19 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         methodName == VM_MagicNames.getDoubleAtOffset) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
-      asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 4); // pushes [T0+S0+4]
-      asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+      asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, ONE_SLOT); // pushes [T0+S0+4]
+      asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, NO_SLOT); // pushes [T0+S0]
       return true;
     }
     
     if (methodName == VM_MagicNames.setLongAtOffset ||
         methodName == VM_MagicNames.setDoubleAtOffset) {
       asm.emitMOV_Reg_RegInd (T0, SP);          // value high
-      asm.emitMOV_Reg_RegDisp(S0, SP, +8 );     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, +12);     // obj ref
-      asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, +4 );     // value low
-      asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 4, T0); // [T1+S0+4] <- T0
+      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS );     // offset
+      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // obj ref
+      asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT );     // value low
+      asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
       asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
       return true;
     }
@@ -3509,13 +3526,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.getObjectType) {
       asm.emitPOP_Reg (T0);                               // object ref
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-      asm.emitPUSH_RegDisp(S0, TIB_TYPE_INDEX<<LG_WORDSIZE); // push VM_Type slot of TIB
+      asm.emitPUSH_RegDisp(S0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX<<LG_WORDSIZE)); // push VM_Type slot of TIB
       return true;
     }
     
     if (methodName == VM_MagicNames.getArrayLength) {
       asm.emitPOP_Reg(T0);                      // object ref
-      asm.emitPUSH_RegDisp(T0, VM_ObjectModel.getArrayLengthOffset().toInt()); 
+      asm.emitPUSH_RegDisp(T0, VM_ObjectModel.getArrayLengthOffset()); 
       return true;
     }
     
@@ -3535,14 +3552,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     //      Spills
     // low-mem
     if (methodName == VM_MagicNames.invokeMethodReturningVoid) {
-      int offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       genParameterRegisterLoad(4); // pass 4 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       return true;
     }                 
 
     if (methodName == VM_MagicNames.invokeMethodReturningInt) {
-      int offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       genParameterRegisterLoad(4); // pass 4 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       asm.emitPUSH_Reg(T0);
@@ -3550,7 +3567,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }                 
 
     if (methodName == VM_MagicNames.invokeMethodReturningLong) {
-      int offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       genParameterRegisterLoad(4); // pass 4 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       asm.emitPUSH_Reg(T0); // high half
@@ -3559,7 +3576,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }                 
 
     if (methodName == VM_MagicNames.invokeMethodReturningFloat) {
-      int offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       genParameterRegisterLoad(4); // pass 4 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       asm.emitSUB_Reg_Imm  (SP, 4);
@@ -3568,7 +3585,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }                 
 
     if (methodName == VM_MagicNames.invokeMethodReturningDouble) {
-      int offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       genParameterRegisterLoad(4); // pass 4 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       asm.emitSUB_Reg_Imm  (SP, 8);
@@ -3577,7 +3594,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }                 
 
     if (methodName == VM_MagicNames.invokeMethodReturningObject) {
-      int offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffsetAsInt();
+      Offset offset = VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       genParameterRegisterLoad(4); // pass 4 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       asm.emitPUSH_Reg(T0);
@@ -3592,7 +3609,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // save the branch address for later
       asm.emitPOP_Reg (S0);             // S0<-code address
 
-      asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - 4); // just popped 4 bytes above.
+      asm.emitADD_Reg_Imm(SP, fp2spOffset(NO_SLOT).toInt() - 4); // just popped 4 bytes above.
 
       // restore FPU state
       asm.emitFRSTOR_RegDisp(SP, FPU_SAVE_OFFSET);
@@ -3604,7 +3621,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegDisp (JTOC,  SP, JTOC_SAVE_OFFSET); 
 
       // pop frame
-      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerField.getOffsetAsInt()); // FP<-previous FP 
+      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerField.getOffset()); // FP<-previous FP 
 
       // branch
       asm.emitJMP_Reg (S0);
@@ -3620,7 +3637,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);
 
       // discard current stack frame
-      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerField.getOffsetAsInt());
+      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerField.getOffset());
 
       // return to caller- pop parameters from stack
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);    
@@ -3629,13 +3646,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
     if (methodName == VM_MagicNames.roundToZero) {
       // Store the FPU Control Word to a JTOC slot
-      asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordField.getOffsetAsInt());
+      asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordField.getOffset());
       // Set the bits in the status word that control round to zero.
       // Note that we use a 32-bit OR, even though we only care about the
       // low-order 16 bits
-      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordField.getOffsetAsInt(), 0x00000c00);
+      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordField.getOffset(), 0x00000c00);
       // Now store the result back into the FPU Control Word
-      asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordField.getOffsetAsInt());
+      asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordField.getOffset());
       return true;
     }
     if (methodName == VM_MagicNames.clearFloatingPointState) {
@@ -3826,24 +3843,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   // Offset of Java local variable (off stack pointer)
   // assuming ESP is still positioned as it was at the 
   // start of the current bytecode (biStart)
-  private final int localOffset  (int local) {
-    return (stackHeights[biStart] - local)<<LG_WORDSIZE;
+  private final Offset localOffset  (int local) {
+    return Offset.fromIntZeroExtend((stackHeights[biStart] - local)<<LG_WORDSIZE);
   }
 
   // Translate a FP offset into an SP offset 
   // assuming ESP is still positioned as it was at the 
   // start of the current bytecode (biStart)
-  private final int fp2spOffset(int offset) {
+  private final Offset fp2spOffset(Offset offset) {
     int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
-    return offsetToFrameHead + offset;
+    return offset.add(offsetToFrameHead);
   }
 
   private void emitDynamicLinkingSequence(byte reg, VM_MemberReference ref, boolean couldBeZero) {
     int memberId = ref.getId();
-    int memberOffset = memberId << 2;
-    int tableOffset = VM_Entrypoints.memberOffsetsField.getOffsetAsInt();
+    Offset memberOffset = Offset.fromIntZeroExtend(memberId << 2);
+    Offset tableOffset = VM_Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
-      int resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffsetAsInt();
+      Offset resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffset();
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
       asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
       asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
@@ -3873,7 +3890,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * I havenot thought about GCMaps for invoke_compiledmethod 
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
-    int methodOffset = cm.getOsrJTOCoffset();
+    Offset methodOffset = Offset.fromIntSignExtend(cm.getOsrJTOCoffset());
     boolean takeThis = !cm.method.isStatic();
     VM_MethodReference ref = cm.method.getMemberRef().asMethodReference();
     genParameterRegisterLoad(ref, takeThis);

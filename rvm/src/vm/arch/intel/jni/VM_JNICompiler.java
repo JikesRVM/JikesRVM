@@ -30,15 +30,15 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   // EDI (JTOC) and EBX are nonvolatile registers in RVM
   //
   private static final int SAVED_GPRS = 5; 
-  public static final int EDI_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
-  public static final int EBX_SAVE_OFFSET = STACKFRAME_BODY_OFFSET - WORDSIZE;
-  public static final int EBP_SAVE_OFFSET = EBX_SAVE_OFFSET - WORDSIZE;
-  public static final int JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET - WORDSIZE;
-  public static final int JNI_ENV_OFFSET = JNI_RETURN_ADDRESS_OFFSET - WORDSIZE;
+  public static final Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
+  public static final Offset EBX_SAVE_OFFSET = EDI_SAVE_OFFSET.sub(WORDSIZE);
+  public static final Offset EBP_SAVE_OFFSET = EBX_SAVE_OFFSET.sub(WORDSIZE);
+  public static final Offset JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET.sub(WORDSIZE);
+  public static final Offset JNI_ENV_OFFSET = JNI_RETURN_ADDRESS_OFFSET.sub(WORDSIZE);
 
   // following used in prolog & epilog for JNIFunctions
   // offset of saved offset to preceeding java frame
-  public static final int SAVED_JAVA_FP_OFFSET = STACKFRAME_BODY_OFFSET;
+  public static final Offset SAVED_JAVA_FP_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
 
   // following used in VM_Compiler to compute offset to first local:
   // includes 5 words:
@@ -102,7 +102,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_Imm (S0, nativeIP.toInt());  
 
     // branch to outofline code in bootimage
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffsetAsInt());
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset());
 
     // return here from VM_OutOfLineMachineCode upon return from native code
     // PR and RVM JTOC restored, T0,T1 contain return from native call
@@ -111,12 +111,12 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // S0 <- threads' VM_JNIEnvironment
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.activeThreadField.getOffsetAsInt());
-    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffsetAsInt());
+                                              VM_Entrypoints.activeThreadField.getOffset());
+    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());
 
     if (method.getReturnType().isReferenceType()) {
         // XXX TODO: This code is broken. It only handles Local references.
-      asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffsetAsInt());      // T0 <- address of entry (not index)
+      asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd (T0, T0);   // get the reference
     } else if (method.getReturnType().isLongType()) {
       asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1  
@@ -134,8 +134,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
 
     // get pending exception from JNIEnv
-    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIPendingExceptionField.getOffsetAsInt());  // EBX <- JNIPendingException
-    asm.emitMOV_RegDisp_Imm (S0, VM_Entrypoints.JNIPendingExceptionField.getOffsetAsInt(), 0);    // clear the current pending exception
+    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIPendingExceptionField.getOffset());  // EBX <- JNIPendingException
+    asm.emitMOV_RegDisp_Imm (S0, VM_Entrypoints.JNIPendingExceptionField.getOffset(), 0);    // clear the current pending exception
 
     asm.emitCMP_Reg_Imm(EBX, 0);   // check for exception pending:  JNIPendingException = non zero
     VM_ForwardReference fr = asm.forwardJcc(asm.EQ);            // Br if yes
@@ -143,14 +143,14 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // if pending exception, discard the return value and current stack frame
     // then jump to athrow 
     asm.emitMOV_Reg_Reg     (T0, EBX);
-    asm.emitMOV_Reg_RegDisp (T1, JTOC, VM_Entrypoints.athrowMethod.getOffsetAsInt()); // acquire jump addr before restoring nonvolatiles
+    asm.emitMOV_Reg_RegDisp (T1, JTOC, VM_Entrypoints.athrowMethod.getOffset()); // acquire jump addr before restoring nonvolatiles
 
     asm.emitMOV_Reg_Reg     (SP, EBP);                     // discard current stack frame
     asm.emitMOV_Reg_RegDisp (JTOC, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI register
     asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile EBX register
     asm.emitMOV_Reg_RegDisp (EBP, SP, EBP_SAVE_OFFSET);    // restore nonvolatile EBP register
 
-    asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffsetAsInt());
+    asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffset());
 
     // don't use CALL since it will push on the stack frame the return address to here 
     asm.emitJMP_Reg(T1); // jumps to VM_Runtime.athrow
@@ -164,7 +164,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile EBX register
     asm.emitMOV_Reg_RegDisp (EBP, SP, EBP_SAVE_OFFSET);    // restore nonvolatile EBP register
 
-    asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffsetAsInt());
+    asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffset());
 
     // return to caller 
     // pop parameters from stack (Note that parameterWords does not include "this")
@@ -201,15 +201,15 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   static void prepareStackHeader(VM_Assembler asm, VM_Method method, int compiledMethodId) {
 
     // set 2nd word of header = return address already pushed by CALL
-    asm.emitPUSH_RegDisp (PR, VM_Entrypoints.framePointerField.getOffsetAsInt());
+    asm.emitPUSH_RegDisp (PR, VM_Entrypoints.framePointerField.getOffset());
 
     // start new frame:  set FP to point to the new frame
     VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerField.getOffsetAsInt(),
+                                              VM_Entrypoints.framePointerField.getOffset(),
                                               SP);
 
     // set first word of header: method ID
-    asm.emitMOV_RegDisp_Imm (SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId); 
+    asm.emitMOV_RegDisp_Imm (SP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET), compiledMethodId); 
 
     // save nonvolatile registrs: EDI, EBX, EBP
     asm.emitMOV_RegDisp_Reg (SP, EDI_SAVE_OFFSET, JTOC); 
@@ -220,7 +220,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // restore JTOC with the value saved in VM_Processor.jtoc for use in prolog 
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
-                                              VM_Entrypoints.jtocField.getOffsetAsInt());
+                                              VM_Entrypoints.jtocField.getOffset());
   }
 
   /**************************************************************
@@ -264,8 +264,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     int parameterWords       = method.getParameterWords();
     int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;
     int firstLocalOffset     = STACKFRAME_BODY_OFFSET - savedRegistersSize ;
-    int emptyStackOffset     = firstLocalOffset - ((parameterWords+2) << LG_WORDSIZE) + WORDSIZE;
-    int firstParameterOffset = STACKFRAME_BODY_OFFSET + STACKFRAME_HEADER_SIZE + (parameterWords<<LG_WORDSIZE);
+    Offset emptyStackOffset  = Offset.fromIntSignExtend(firstLocalOffset - ((parameterWords+2) << LG_WORDSIZE) + WORDSIZE);
+    Offset firstParameterOffset = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET 
+                                  + STACKFRAME_HEADER_SIZE + (parameterWords<<LG_WORDSIZE));
     int firstActualParameter;
 
 
@@ -290,45 +291,45 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // Their indices are in VM_RegisterConstants.VOLATILE_GPRS[]
     int gpr = 0;
     // note that firstParameterOffset does not include "this"
-    int parameterOffset = firstParameterOffset;   
+    Offset parameterOffset = firstParameterOffset;   
 
     // handle the "this" parameter
     if (!method.isStatic()) {
-      asm.emitMOV_RegDisp_Reg(EBP, firstParameterOffset+WORDSIZE, 
+      asm.emitMOV_RegDisp_Reg(EBP, firstParameterOffset.add(WORDSIZE), 
                               VOLATILE_GPRS[gpr]);
       gpr++;
     }
     
     for (int i=0; i<numArguments && gpr<NUM_PARAMETER_GPRS; i++) {
       if (types[i].isDoubleType()) {
-        parameterOffset -= 2*WORDSIZE;
+        parameterOffset=parameterOffset.sub(2*WORDSIZE);
         continue;
       } else if (types[i].isFloatType()) {
-        parameterOffset -= WORDSIZE;
+        parameterOffset=parameterOffset.sub(WORDSIZE);
         continue;
       } else if (types[i].isLongType()) {
         if (gpr<NUM_PARAMETER_GPRS) {   // get the hi word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
           gpr++;
-          parameterOffset -= WORDSIZE;
+          parameterOffset=parameterOffset.sub(WORDSIZE);
         }
         if (gpr<NUM_PARAMETER_GPRS) {    // get the lo word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
           gpr++;
-          parameterOffset -= WORDSIZE;
+          parameterOffset=parameterOffset.sub(WORDSIZE);
         }
       } else {
         if (gpr<NUM_PARAMETER_GPRS) {   // all other types fit in one word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
           gpr++;
-          parameterOffset -= WORDSIZE;
+          parameterOffset=parameterOffset.sub(WORDSIZE);
         }
       }
     }
 
 
     // bump SP to set aside room for the args + 2 additional JNI args
-    asm.emitADD_Reg_Imm (SP, emptyStackOffset);                       
+    asm.emitADD_Reg_Imm (SP, emptyStackOffset.toInt());                       
 
     // SP should now point to the bottom of the argument stack, 
     // which is arg[n-1]
@@ -336,17 +337,17 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // Prepare the side stack to hold new refs
     // Leave S0 holding the threads' VM_JNIEnvironment
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.activeThreadField.getOffsetAsInt());
-    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffsetAsInt());        // S0 <- jniEnv
+                                              VM_Entrypoints.activeThreadField.getOffset());
+    asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());        // S0 <- jniEnv
 
     // save PR in the jniEnv for JNI call from native
-    VM_ProcessorLocalState.emitStoreProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitStoreProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
     // save VM_JNIEnvironemt in stack frame so we can find it when we return
-    asm.emitMOV_RegDisp_Reg(EBP, VM_JNICompiler.JNI_ENV_OFFSET, S0);
+    asm.emitMOV_RegDisp_Reg(EBP, JNI_ENV_OFFSET, S0);
 
     // save FP for glue frame in JNI env - used by GC when in C
-    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt(), EBP);  // jniEnv.JNITopJavaFP <- FP
+    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), EBP);  // jniEnv.JNITopJavaFP <- FP
 
     //********************************************
     // Between HERE and THERE, S0 and T0 are in use
@@ -366,20 +367,20 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // first reload JTOC,  baseline compiler assumes JTOC register -> jtoc
     // TODO: DAVE: doesn't it already have the JTOC????
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
-                                              VM_Entrypoints.jtocField.getOffsetAsInt());
+                                              VM_Entrypoints.jtocField.getOffset());
     if (method.isStatic()) {
       // For static method, push on arg stack the VM_Class object
       //    jtoc[tibOffset] -> class TIB ptr -> first TIB entry -> class object -> classForType
       klass.getClassForType();     // ensure the Java class object is created
-      int tibOffset = klass.getTibOffset().toInt();
+      Offset tibOffset = klass.getTibOffset();
       asm.emitMOV_Reg_RegDisp (EBX, JTOC, tibOffset);
       asm.emitMOV_Reg_RegInd  (EBX, EBX);
-      asm.emitMOV_Reg_RegDisp (EBX, EBX, VM_Entrypoints.classForTypeField.getOffsetAsInt());
+      asm.emitMOV_Reg_RegDisp (EBX, EBX, VM_Entrypoints.classForTypeField.getOffset());
       firstActualParameter = 0;
     } else {
       // For nonstatic method, "this" pointer should be the first arg in the caller frame,
       // make it the 2nd arg in the glue frame
-      asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset+WORDSIZE);
+      asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.add(WORDSIZE));
       firstActualParameter = 1;
     }
 
@@ -390,7 +391,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // Kill value in ebx
     // On return, ebx contains the JREF index
     pushJNIref(asm);
-    asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + WORDSIZE, EBX);  // store as 2nd arg
+    asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE), EBX);  // store as 2nd arg
 
     // Now fill in the rest:  copy parameters from caller frame into glue frame 
     // in reverse order for C
@@ -400,12 +401,12 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
       // for reference, substitute with a jref index
       if (types[argIndex].isReferenceType()) {
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
         asm.emitCMP_Reg_Imm(EBX, 0);
         VM_ForwardReference beq = asm.forwardJcc(asm.EQ);
         pushJNIref(asm);
         beq.resolve(asm);
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
         i--;
       
       // for float and double, the first NUM_PARAMETER_FPRS args have
@@ -413,38 +414,38 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       } else if (types[argIndex].isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 2-word arg from the FPU stack
-          asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset + (WORDSIZE*(2+ i - 1)), FP0);    
+          asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset.add(WORDSIZE*(2+ i - 1)), FP0);    
         } else {
           // copy this 2-word arg from the caller frame
-          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i -1)), EBX);
-          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - ((i-1)*WORDSIZE));
-          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i)), EBX);      
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i -1)), EBX);
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub((i-1)*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i)), EBX);      
         }
         i-=2;
         fpr--;
       } else if (types[argIndex].isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 1-word arg from the FPU stack
-          asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset + (WORDSIZE*(2+ i)), FP0);
+          asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), FP0);
         } else {
           // copy this 1-word arg from the caller frame
-          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
         }
         i--;
         fpr--;
       } else if (types[argIndex].isLongType()) {
         //  copy other 2-word parameters: observe the high/low order when moving
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i - 1)), EBX);
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - ((i-1)*WORDSIZE));
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i - 1)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub((i-1)*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i)), EBX);
         i-=2;
       } else {
         // copy other 1-word parameters
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
         i--;
       }
     }
@@ -506,29 +507,29 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   static void startJNIrefForProlog(VM_Assembler asm, int numRefsExpected) {
 
     // on entry, S0 contains a pointer to the VM_Thread.jniEnv
-    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffsetAsInt());    // ebx <- JNIRefs base
+    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());    // ebx <- JNIRefs base
 
     // get and check index of top for overflow
-    asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt());  // T0 <- index of top
+    asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());  // T0 <- index of top
     asm.emitADD_Reg_Imm(T0, numRefsExpected * WORDSIZE);                // increment index of top 
-    asm.emitCMP_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsMaxField.getOffsetAsInt());   // check against JNIRefsMax for overflow 
+    asm.emitCMP_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsMaxField.getOffset());   // check against JNIRefsMax for overflow 
     // TODO:  Do something if overflow!!!
 
-    asm.emitADD_RegDisp_Imm (S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), WORDSIZE); // increment index of top
-    asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt());  // T0 <- index of top
+    asm.emitADD_RegDisp_Imm (S0, VM_Entrypoints.JNIRefsTopField.getOffset(), WORDSIZE); // increment index of top
+    asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());  // T0 <- index of top
     asm.emitADD_Reg_Reg(T0, EBX);                                       // T0 <- address of top (not index)
 
     // start new frame:  push current JNIRefsSavedFP onto stack and set it to the new top index    
-    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt()); // ebx <- jniEnv.JNIRefsSavedFP
+    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset()); // ebx <- jniEnv.JNIRefsSavedFP
     asm.emitMOV_RegInd_Reg  (T0, EBX);                                   // push (T0) <- ebx
-    asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt());   // reload T0 <- index of top
-    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt(), T0); // jniEnv.JNIRefsSavedFP <- index of top 
+    asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());   // reload T0 <- index of top
+    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), T0); // jniEnv.JNIRefsSavedFP <- index of top 
 
     // leave T0 with address pointing to the top of the frame for more push later
-    asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffsetAsInt());       // recompute T0 <- address of top (not index)
+    asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());       // recompute T0 <- address of top (not index)
 
     // and go ahead and bump up the Top offset by the amount expected
-    asm.emitADD_RegDisp_Imm(S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), numRefsExpected * WORDSIZE);
+    asm.emitADD_RegDisp_Imm(S0, VM_Entrypoints.JNIRefsTopField.getOffset(), numRefsExpected * WORDSIZE);
   }
 
   /**
@@ -551,7 +552,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitADD_Reg_Imm (T0, WORDSIZE);                            // increment top address
     asm.emitMOV_RegInd_Reg(T0, EBX);                               // store ref at top
     asm.emitMOV_Reg_Reg (EBX, T0);                                 // replace ref in ebx with top address
-    asm.emitSUB_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffsetAsInt());   // subtract base address to get offset
+    asm.emitSUB_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());   // subtract base address to get offset
   }
 
   /**
@@ -570,14 +571,14 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   static void popJNIrefForEpilog(VM_Assembler asm) {
     // on entry, S0 contains a pointer to the VM_Thread.jniEnv
     // set TOP to point to entry below the last frame
-    asm.emitMOV_Reg_RegDisp (T1, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt());    // ebx <- JNIRefsSavedFP
-    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), T1);        // JNIRefsTop <- ebx
-    asm.emitSUB_RegDisp_Imm (S0, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), WORDSIZE);  // JNIRefsTop -= 4
+    asm.emitMOV_Reg_RegDisp (T1, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset());    // ebx <- JNIRefsSavedFP
+    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsTopField.getOffset(), T1);        // JNIRefsTop <- ebx
+    asm.emitSUB_RegDisp_Imm (S0, VM_Entrypoints.JNIRefsTopField.getOffset(), WORDSIZE);  // JNIRefsTop -= 4
 
     // load savedFP with the index to the last frame
-    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffsetAsInt());          // ebx <- JNIRefs base
-    asm.emitMOV_Reg_RegIdx  (EBX, EBX, T1, asm.BYTE, 0);                                 // ebx <- (JNIRefs base + SavedFP index)
-    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt(), EBX);   // JNIRefsSavedFP <- ebx
+    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());          // ebx <- JNIRefs base
+    asm.emitMOV_Reg_RegIdx  (EBX, EBX, T1, asm.BYTE, Offset.zero());                                 // ebx <- (JNIRefs base + SavedFP index)
+    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), EBX);   // JNIRefsSavedFP <- ebx
   }
   
 
@@ -644,25 +645,25 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     VM_ProcessorLocalState.emitPushProcessor(asm);
     
     // Adjust first param from JNIEnv* to VM_JNIEnvironment.
-    asm.emitSUB_RegDisp_Imm(EBP, (2*WORDSIZE), VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt());
+    asm.emitSUB_RegDisp_Imm(EBP, Offset.fromIntSignExtend(2*WORDSIZE), VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt());
 
     // copy the arguments in reverse order
     VM_TypeReference[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
     int numArguments = types.length;                // number of arguments for this method
-    int argOffset = 2;           // add 2 to get to arg area in caller frame
+    Offset argOffset = Offset.fromIntSignExtend(2*WORDSIZE);           // add 2 to get to arg area in caller frame
     for (int i=0; i<numArguments; i++) {
       if (types[i].isLongType() || types[i].isDoubleType()) {
         // handle 2-words case:
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, ((argOffset+1)*WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset.add(WORDSIZE));  
         asm.emitPUSH_Reg(EBX);
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, (argOffset*WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset);  
         asm.emitPUSH_Reg(EBX);
-        argOffset+=2;
+        argOffset=argOffset.add(2*WORDSIZE);
       } else {
         // Handle 1-word case:
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, (argOffset*WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset);  
         asm.emitPUSH_Reg(EBX);
-        argOffset++;
+        argOffset=argOffset.add(WORDSIZE);
       }
     }
     
@@ -671,23 +672,23 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
     // Restore PR from VM_JNIEnvironment 
-    asm.emitMOV_Reg_RegDisp (EBX, EBP, (2*WORDSIZE));   // pick up arg 0 (from callers frame)
-    VM_ProcessorLocalState.emitSetProcessor(asm, EBX, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp (EBX, EBP, Offset.fromIntSignExtend(2*WORDSIZE));   // pick up arg 0 (from callers frame)
+    VM_ProcessorLocalState.emitLoadProcessor(asm, EBX, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
     // reload JTOC from vitual processor 
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
-                                              VM_Entrypoints.jtocField.getOffsetAsInt());
+                                              VM_Entrypoints.jtocField.getOffset());
 
     // T0 gets PR.statusField
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
-                                              VM_Entrypoints.vpStatusField.getOffsetAsInt());
+                                              VM_Entrypoints.vpStatusField.getOffset());
     asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // jmp if still IN_NATIVE
     VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip 3 instructions
 
     // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffsetAsInt());  // T0<-bootrecord addr
-    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffsetAsInt());
+    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
+    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
     asm.emitJMP_Imm (retryLabel);                          // retry from beginning
 
     fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
@@ -696,7 +697,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // S0 contains address of status word to be swapped
     asm.emitMOV_Reg_Imm (T1, VM_Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
     VM_ProcessorLocalState.emitCompareAndExchangeField(asm, 
-                                                       VM_Entrypoints.vpStatusField.getOffsetAsInt(),
+                                                       VM_Entrypoints.vpStatusField.getOffset(),
                                                        T1); // atomic compare-and-exchange
     asm.emitJCC_Cond_Imm(asm.NE,retryLabel);
 
@@ -714,7 +715,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    
     // Retrieve -> preceeding "top" java FP from jniEnv and save in current 
     // frame of JNIFunction
-    asm.emitMOV_Reg_RegDisp (S0, EBX, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt());  
+    asm.emitMOV_Reg_RegDisp (S0, EBX, VM_Entrypoints.JNITopJavaFPField.getOffset());  
     
     // get offset from current FP and save in hdr of current frame
     asm.emitSUB_Reg_Reg (S0, EBP);    
@@ -722,7 +723,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // put framePointer in VP following Jikes RVM conventions.
     VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerField.getOffsetAsInt(),
+                                              VM_Entrypoints.framePointerField.getOffset(),
                                               EBP);
 
     // at this point: JTOC and PR have been restored & 
@@ -751,20 +752,20 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // current processor status is IN_JAVA, so we only GC at yieldpoints
 
     // S0 <- VM_JNIEnvironment
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, VM_Entrypoints.activeThreadField.getOffsetAsInt()); 
-    asm.emitMOV_Reg_RegDisp(S0, S0, VM_Entrypoints.jniEnvField.getOffsetAsInt());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, VM_Entrypoints.activeThreadField.getOffset()); 
+    asm.emitMOV_Reg_RegDisp(S0, S0, VM_Entrypoints.jniEnvField.getOffset());
 
     // set jniEnv TopJavaFP using value saved in frame in prolog
     asm.emitMOV_Reg_RegDisp(EDI, EBP, SAVED_JAVA_FP_OFFSET);      // JTOC<-saved TopJavaFP (offset)
     asm.emitADD_Reg_Reg(EDI, EBP);                                // change offset from FP into address
-    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt(), EDI); // jniEnv.TopJavaFP <- JTOC
+    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), EDI); // jniEnv.TopJavaFP <- JTOC
 
     // in case thread has migrated to different PR, reset saved PRs to current PR
     VM_ProcessorLocalState.emitStoreProcessor(asm, S0,
-                                              VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt());
+                                              VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
     // change current processor status to IN_NATIVE
-    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffsetAsInt(), VM_Processor.IN_NATIVE);
+    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), VM_Processor.IN_NATIVE);
 
     // reload native/C nonvolatile regs - saved in prolog
     // what about FPRs

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Final acts of MIR expansion for the IA32 architecture.
  * Things that are expanded here (immediately before final assembly)
@@ -369,8 +371,8 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // change thread switch instruction into call to thread switch routine
     // NOTE: must make s the call instruction: it is the GC point!
     //       must also inform the GCMap that s has been moved!!!
-    int offset = meth.getOffsetAsInt();
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+    Offset offset = meth.getOffset();
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
     OPT_Operand guard = TG();
     OPT_Operand target = 
       OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(), (byte)4, loc, guard);

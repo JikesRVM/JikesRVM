@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.opt.ir.*;
 //-#endif 
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This class provides a layer of abstraction that the rest of the VM must
@@ -58,7 +59,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param reg number of the register supplying the new value
    */
-  public static void emitMoveRegToField(VM_Assembler asm, int offset, byte reg) {
+  public static void emitMoveRegToField(VM_Assembler asm, Offset offset, byte reg) {
     asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER,offset,reg);
   }
 
@@ -70,7 +71,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param imm immediate value
    */
-  public static void emitMoveImmToField(VM_Assembler asm, int offset, int imm) {
+  public static void emitMoveImmToField(VM_Assembler asm, Offset offset, int imm) {
     asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
   }
 
@@ -82,7 +83,7 @@ extends OPT_IRTools
    * @param dest number of destination register
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  public static void emitMoveFieldToReg(VM_Assembler asm, byte dest, int offset) {
+  public static void emitMoveFieldToReg(VM_Assembler asm, byte dest, Offset offset) {
     asm.emitMOV_Reg_RegDisp(dest,PROCESSOR_REGISTER,offset);
   }
 
@@ -94,7 +95,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param imm immediate value to compare with
    */
-  public static void emitCompareFieldWithImm(VM_Assembler asm, int offset, int imm) {
+  public static void emitCompareFieldWithImm(VM_Assembler asm, Offset offset, int imm) {
     asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
   }
 
@@ -106,7 +107,7 @@ extends OPT_IRTools
    * @param offset of field in the <code>VM_Processor</code> object
    * @param reg register containing value to exchange
    */
-  public static void emitCompareAndExchangeField(VM_Assembler asm, int offset, byte srcReg) {
+  public static void emitCompareAndExchangeField(VM_Assembler asm, Offset offset, byte srcReg) {
     asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
   }
 
@@ -117,7 +118,7 @@ extends OPT_IRTools
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  public static void emitDecrementField(VM_Assembler asm, int offset) {
+  public static void emitDecrementField(VM_Assembler asm, Offset offset) {
     asm.emitDEC_RegDisp(PROCESSOR_REGISTER,offset);
   }
   /**
@@ -127,7 +128,7 @@ extends OPT_IRTools
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  public static void emitPushField(VM_Assembler asm, int offset) {
+  public static void emitPushField(VM_Assembler asm, Offset offset) {
     asm.emitPUSH_RegDisp(PROCESSOR_REGISTER,offset);
   }
   /**
@@ -137,23 +138,8 @@ extends OPT_IRTools
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
-  public static void emitPopField(VM_Assembler asm, int offset) {
-    asm.emitPOP_RegDisp(PROCESSOR_REGISTER,offset);
-  }
-
-  /**
-   * Emit an instruction sequence to set the current VM_Processor 
-   * to be the value at [base] + offset
-   *
-   * <P>TODO: this method is used only by the JNI compiler.  Consider
-   * rewriting the JNI compiler to allow us to deprecate this method.
-   *
-   * @param asm assembler object
-   * @param base number of base register
-   * @param offset offset
-   */
-  public static void emitSetProcessor(VM_Assembler asm, byte base, int offset) {
-    asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
+  public static void emitPopField(VM_Assembler asm, Offset offset) {
+    asm.emitPOP_RegDisp(PROCESSOR_REGISTER, offset);
   }
 
   /**
@@ -184,7 +170,7 @@ extends OPT_IRTools
    * @param base number of base register
    * @param offset offset
    */
-  public static void emitStoreProcessor(VM_Assembler asm, byte base, int offset) {
+  public static void emitStoreProcessor(VM_Assembler asm, byte base, Offset offset) {
     asm.emitMOV_RegDisp_Reg(base,offset,PROCESSOR_REGISTER);
   }
   /**
@@ -195,7 +181,7 @@ extends OPT_IRTools
    * @param base number of base register
    * @param offset offset
    */
-  public static void emitLoadProcessor(VM_Assembler asm, byte base, int offset) {
+  public static void emitLoadProcessor(VM_Assembler asm, byte base, Offset offset) {
     asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER,base,offset);
   }
 

@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Final acts of MIR expansion for the PowerPC architecture.
  * Things that are expanded here (immediately before final assembly)
@@ -125,16 +127,15 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           OPT_Register CTR = phys.getCTR();
           if (VM.VerifyAssertions) 
             VM._assert(p.bcIndex >= 0 && p.position != null);
-          int offset = VM_Entrypoints.optResolveMethod.getOffsetAsInt();
+          Offset offset = VM_Entrypoints.optResolveMethod.getOffset();
           if (OPT_Bits.fits(offset, 16)) {
-            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(offset)));
+            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskLower16(offset))));
           } else {
-            p.insertBefore(MIR_Unary.create(PPC_LDIS, I(zero), 
-                                            IC(offset >>> 16)));
-            p.insertBefore(MIR_Binary.create(PPC_ORI, I(zero), I(zero), 
-                                             IC(offset & 0xffff)));
-            p.insertBefore(MIR_Load.create(PPC_LAddrX, A(zero), A(JTOC), I(zero)));
-            instructionCount += 2;
+            if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset,32)); //not implemented
+            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), 
+                                            IC(OPT_Bits.PPCMaskUpper16(offset))));
+            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(OPT_Bits.PPCMaskLower16(offset))));
+            instructionCount += 1;
           }
           p.insertBefore(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));
           instructionCount += 3;
@@ -165,8 +166,10 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register zero = phys.getGPR(0);
             OPT_Register TSR = phys.getTSR();
             OPT_Register PR = phys.getPR();
+            Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+            if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
             p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), 
-                                           IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt())));
+                                           IC(OPT_Bits.PPCMaskLower16(offset))));
             p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
@@ -185,8 +188,10 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register zero = phys.getGPR(0);
             OPT_Register TSR = phys.getTSR();
             OPT_Register PR = phys.getPR();
+            Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+            if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
             p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), 
-                                           IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt())));
+                                           IC(OPT_Bits.PPCMaskLower16(offset))));
             p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
@@ -293,15 +298,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
     ir.cfg.addLastInCodeOrder(result);
     OPT_Register JTOC = phys.getJTOC();
     OPT_Register CTR = phys.getCTR();
-    int offset = meth.getOffsetAsInt();
+    Offset offset = meth.getOffset();
     if (OPT_Bits.fits(offset, 16)) {
-      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(offset)));
+      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskLower16(offset))));
     } else {
-      result.appendInstruction(MIR_Unary.create(PPC_LDIS, 
-                               I(zero), IC(offset >>> 16)));
-      result.appendInstruction(MIR_Binary.create(PPC_ORI, 
-                               I(zero), I(zero), IC(offset & 0xffff)));
-      result.appendInstruction(MIR_Load.create(PPC_LAddrX, A(zero), A(JTOC), I(zero)));
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 32)); //not implemented
+      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), 
+                               IC(OPT_Bits.PPCMaskUpper16(offset))));
+      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(OPT_Bits.PPCMaskLower16(offset))));
     }
     result.appendInstruction(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));
     result.appendInstruction(MIR_Branch.create(PPC_BCTR));

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Enumeration;
 import java.util.Iterator;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 
  * the stackframe.  This class holds only the architecture-specific
@@ -458,17 +460,20 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                                      A(phys.getLR()))); // 1
  
     if (yp) {
+      Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR),
-                                       IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt()))); // 2
+                                       IC(OPT_Bits.PPCMaskLower16(offset)))); // 2
     }
 
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP),
                                             IC(-frameSize))); // 3
 
     if (stackOverflow) {
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0),
-                                       A(phys.getPR()), 
-                                       IC(VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt()))); // 4
+      Offset offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getPR()), 
+                                       IC(OPT_Bits.PPCMaskLower16(offset)))); // 4
     }
 
     // Now add any instructions to save the volatiles and nonvolatiles (5)
@@ -533,8 +538,10 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       // return address slot of my caller's frame
       ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), 
                                         IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      Offset offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()), 
-                                       IC(VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt())));
+                                       IC(OPT_Bits.PPCMaskLower16(offset)))); 
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), 
                         IC(frameSize)));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), 
@@ -584,8 +591,10 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     
     // Threadswitch
     if (yp) {
+      Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), 
-                                       IC(VM_Entrypoints.takeYieldpointField.getOffsetAsInt())));
+                                       IC(OPT_Bits.PPCMaskLower16(offset)))); 
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
     ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));

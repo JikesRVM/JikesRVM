@@ -6,9 +6,27 @@ package org.vmmagic.unboxed;
 
 /**
  * @author Dave Grove 
+ * @author Kris Venstermans 
  */
 public class Offset {
   public static Offset fromIntSignExtend(int x) {
     return null;
   }
+  
+  public int toInt () {
+    return 0;
+  }
+  
+  public Word toWord () {
+    return null;
+  }
+  
+  public static Offset zero() {
+    return null;
+  }
+
+  public boolean EQ (Offset off2) {
+    return true;
+  }
+
 }

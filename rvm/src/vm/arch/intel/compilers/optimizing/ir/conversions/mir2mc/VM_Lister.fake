@@ -3,6 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+
+import org.vmmagic.unboxed.Offset;
+
 /**
  * @author Julian Dolby
  */
@@ -28,7 +31,7 @@ class VM_Lister {
 
   }
  
-  final void RD (int i, String op, byte R0, int d) {
+  final void RD (int i, String op, byte R0, Offset d) {
 
   }
   
@@ -36,7 +39,7 @@ class VM_Lister {
 
   }
  
-  final void RDI (int i, String op, byte R0, int d, int n) {
+  final void RDI (int i, String op, byte R0, Offset d, int n) {
 
   }
 
@@ -48,15 +51,15 @@ class VM_Lister {
 
   }
   
-  final void RDR (int i, String op, byte R0, int d, byte R1) {
+  final void RDR (int i, String op, byte R0, Offset d, byte R1) {
 
   }
  
-  final void RDRI (int i, String op, byte R0, int d, byte R1, int imm) {
+  final void RDRI (int i, String op, byte R0, Offset d, byte R1, int imm) {
 
   }
  
-  final void RRD (int i, String op, byte R0, byte R1, int d) {
+  final void RRD (int i, String op, byte R0, byte R1, Offset d) {
 
   }
  
@@ -72,27 +75,27 @@ class VM_Lister {
 
   }
  
-  final void RA (int i, String op, int d) {
+  final void RA (int i, String op, Offset d) {
 
   }
 
-  final void RFD (int i, String op, byte X, short s, int d) {
+  final void RFD (int i, String op, byte X, short s, Offset d) {
 
   }
 
-  final void RXD (int i, String op, byte R0, byte X, short s, int d) {
+  final void RXD (int i, String op, byte R0, byte X, short s, Offset d) {
 
   }
 
-  final void RXDI (int i, String op, byte R0, byte X, short s, int d, int n) {
+  final void RXDI (int i, String op, byte R0, byte X, short s, Offset d, int n) {
 
   }
 
-  final void RFDI (int i, String op, byte X, short s, int d, int n) {
+  final void RFDI (int i, String op, byte X, short s, Offset d, int n) {
 
   }
 
-  final void RAI (int i, String op, int d, int n) {
+  final void RAI (int i, String op, Offset d, int n) {
 
   }
 
@@ -108,51 +111,51 @@ class VM_Lister {
 
   }
   
-  final void RRXD (int i, String op, byte R0, byte R1, byte X, short s, int d) {
+  final void RRXD (int i, String op, byte R0, byte R1, byte X, short s, Offset d) {
 
   }
   
-  final void RRFD (int i, String op, byte R0, byte X, short s, int d) {
+  final void RRFD (int i, String op, byte R0, byte X, short s, Offset d) {
 
   }
   
-  final void RRA (int i, String op, byte R0, int d) {
+  final void RRA (int i, String op, byte R0, Offset d) {
 
   }
   
-  final void RXDR (int i, String op, byte R0, byte X, short s, int d, byte R1) {
+  final void RXDR (int i, String op, byte R0, byte X, short s, Offset d, byte R1) {
 
   }
 
-  final void RXDRI (int i, String op, byte R0, byte X, short s, int d, byte R1, int imm) {
+  final void RXDRI (int i, String op, byte R0, byte X, short s, Offset d, byte R1, int imm) {
 
   }
 
-  final void RXDRR (int i, String op, byte R0, byte X, short s, int d, byte R1, byte R2) {
+  final void RXDRR (int i, String op, byte R0, byte X, short s, Offset d, byte R1, byte R2) {
 
   }
 
-  final void RFDR (int i, String op, byte X, short s, int d, byte R0) {
+  final void RFDR (int i, String op, byte X, short s, Offset d, byte R0) {
 
   }
 
-  final void RFDRI (int i, String op, byte X, short s, int d, byte R0, int imm) {
+  final void RFDRI (int i, String op, byte X, short s, Offset d, byte R0, int imm) {
 
   }
 
-  final void RFDRR (int i, String op, byte X, short s, int d, byte R1, byte R2) {
+  final void RFDRR (int i, String op, byte X, short s, Offset d, byte R1, byte R2) {
 
   }
 
-  final void RAR (int i, String op, int d, byte R0) {
+  final void RAR (int i, String op, Offset d, byte R0) {
 
   }
 
-  final void RARI (int i, String op, int d, byte R0, int imm) {
+  final void RARI (int i, String op, Offset d, byte R0, int imm) {
 
   }
 
-  final void RARR (int i, String op, int d, byte R1, byte R2) {
+  final void RARR (int i, String op, Offset d, byte R1, byte R2) {
 
   }
 

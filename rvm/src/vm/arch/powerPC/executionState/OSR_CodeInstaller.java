@@ -86,7 +86,7 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
     }   
     
     // load address of newInstructions from JTOC
-    asm.emitLAddrToc(S0, cm.getOsrJTOCoffset());
+    asm.emitLAddrToc(S0, Offset.fromIntSignExtend(cm.getOsrJTOCoffset()));
     // mov CTR addr
     asm.emitMTCTR(S0);
     // lwz FP, 0(FP)

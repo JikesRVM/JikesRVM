@@ -88,7 +88,7 @@ public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
         // an error case.
         asm.emitLAddrToc(S0, target.getOffset());
       } else {
-        asm.emitLAddr(S0, target.getOffsetAsInt(), S0);
+        asm.emitLAddrOffset(S0, S0, target.getOffset());
       }
       asm.emitMTCTR(S0);
       asm.emitBCCTR ();
@@ -106,7 +106,7 @@ public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
         // an error case.
         asm.emitLAddrToc(S0, target.getOffset());
       } else {
-        asm.emitLAddr(S0, target.getOffsetAsInt(), S0);
+        asm.emitLAddrOffset(S0, S0, target.getOffset());
       }
       asm.emitMTCTR(S0);
       asm.emitBCCTR ();

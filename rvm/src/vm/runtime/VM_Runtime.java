@@ -755,13 +755,13 @@ public class VM_Runtime implements VM_Constants {
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
       VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
-      VM_Entrypoints.deliverHardwareExceptionMethod.getOffsetAsInt();
+      VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
     // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     VM_BootRecord.the_boot_record.debugRequestedOffset = 
-      VM_Entrypoints.debugRequestedField.getOffsetAsInt();
+      VM_Entrypoints.debugRequestedField.getOffset();
   }
 
   /**

@@ -60,7 +60,7 @@ function emitBinaryReg() {
      * @param dstScale the destination shift amount
      * @param dstDisp the destination displacement
      */
-    public final void emit${acronym}_RegOff_Reg${ext}(byte dstIndex, short scale, int dstDisp, byte srcReg) {
+    public final void emit${acronym}_RegOff_Reg${ext}(byte dstIndex, short scale, Offset dstDisp, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
 	emitRegOffRegOperands(dstIndex, scale, dstDisp, srcReg);
@@ -68,7 +68,7 @@ function emitBinaryReg() {
     }
 
     // [dstDisp] ${opStr}= $code srcReg 
-    public final void emit${acronym}_Abs_Reg${ext}(int dstDisp, byte srcReg) {
+    public final void emit${acronym}_Abs_Reg${ext}(Offset dstDisp, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
 	emitAbsRegOperands(dstDisp, srcReg);
@@ -76,7 +76,7 @@ function emitBinaryReg() {
     }
 
     // [dstBase + dstIndex<<scale + dstDisp] ${opStr}= $code srcReg 
-    public final void emit${acronym}_RegIdx_Reg${ext}(byte dstBase, byte dstIndex, short scale, int dstDisp, byte srcReg) {
+    public final void emit${acronym}_RegIdx_Reg${ext}(byte dstBase, byte dstIndex, short scale, Offset dstDisp, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
 	emitSIBRegOperands(dstBase, dstIndex, scale, dstDisp, srcReg);
@@ -84,11 +84,11 @@ function emitBinaryReg() {
     }
 
     // [dstReg + dstDisp] ${opStr}= $code srcReg
-    public final void emit${acronym}_RegDisp_Reg${ext}(byte dstReg, int dstDisp, byte srcReg) {
+    public final void emit${acronym}_RegDisp_Reg${ext}(byte dstReg, Offset disp, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
-	emitRegDispRegOperands(dstReg, dstDisp, srcReg);
-	if (lister != null) lister.RDR(miStart, "${acronym}", dstReg, dstDisp, srcReg);
+	emitRegDispRegOperands(dstReg, disp, srcReg);
+	if (lister != null) lister.RDR(miStart, "${acronym}", dstReg, disp, srcReg);
     }
 
     // dstReg ${opStr}= $code srcReg
@@ -103,15 +103,15 @@ EOF
     if [ x$rrmCode != xnone ]; then
 	cat >> $FILENAME <<EOF
     // dstReg ${opStr}= $code [srcReg + srcDisp]
-    public final void emit${acronym}_Reg_RegDisp${ext}(byte dstReg, byte srcReg, int srcDisp) {
+    public final void emit${acronym}_Reg_RegDisp${ext}(byte dstReg, byte srcReg, Offset disp) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rrmCode});
-	emitRegDispRegOperands(srcReg, srcDisp, dstReg);
-	if (lister != null) lister.RRD(miStart, "${acronym}", dstReg, srcReg, srcDisp);
+	emitRegDispRegOperands(srcReg, disp, dstReg);
+	if (lister != null) lister.RRD(miStart, "${acronym}", dstReg, srcReg, disp);
     }
 
     // dstReg ${opStr}= $code [srcIndex<<scale + srcDisp] 
-    public final void emit${acronym}_Reg_RegOff${ext}(byte dstReg, byte srcIndex, short scale, int srcDisp) {
+    public final void emit${acronym}_Reg_RegOff${ext}(byte dstReg, byte srcIndex, short scale, Offset srcDisp) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rrmCode});
 	emitRegOffRegOperands(srcIndex, scale, srcDisp, dstReg);
@@ -119,7 +119,7 @@ EOF
     }
 
     // dstReg ${opStr}= $code [srcDisp] 
-    public final void emit${acronym}_Reg_Abs${ext}(byte dstReg, int srcDisp) {
+    public final void emit${acronym}_Reg_Abs${ext}(byte dstReg, Offset srcDisp) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rrmCode});
 	emitAbsRegOperands(srcDisp, dstReg);
@@ -127,7 +127,7 @@ EOF
     }
 
     // dstReg ${opStr}= $code [srcBase + srcIndex<<scale + srcDisp] 
-    public final void emit${acronym}_Reg_RegIdx${ext}(byte dstReg, byte srcBase, byte srcIndex, short scale, int srcDisp) {
+    public final void emit${acronym}_Reg_RegIdx${ext}(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset srcDisp) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rrmCode});
 	emitSIBRegOperands(srcBase, srcIndex, scale, srcDisp, dstReg);
@@ -188,24 +188,24 @@ function emitBinaryImmWordOrDouble() {
     }
 
     // [dstReg + dstDisp] ${opStr}= ${code} imm
-    public final void emit${acronym}_RegDisp_Imm${ext}(byte dstReg, int dstDisp, int imm) {
+    public final void emit${acronym}_RegDisp_Imm${ext}(byte dstReg, Offset disp, int imm) {
 	int miStart = mi;$prefix
 	if (fits(imm,8)) {
 	    setMachineCodes(mi++, (byte) ${imm8Code});
 	    // "register ${immExtOp}" is really part of the opcode 
-	    emitRegDispRegOperands(dstReg, dstDisp, (byte) ${immExtOp});
+	    emitRegDispRegOperands(dstReg, disp, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
-	    emitRegDispRegOperands(dstReg, dstDisp, (byte) ${immExtOp});
+	    emitRegDispRegOperands(dstReg, disp, (byte) ${immExtOp});
 	    ${emitImm}(imm);
 	}
-	if (lister != null) lister.RDI(miStart, "${acronym}", dstReg, dstDisp, imm);
+	if (lister != null) lister.RDI(miStart, "${acronym}", dstReg, disp, imm);
     }
 		
     // [dstIndex<<scale + dstDisp] ${opStr}= ${code} imm 
-    public final void emit${acronym}_RegOff_Imm${ext}(byte dstIndex, short scale, int dstDisp, int imm) {
+    public final void emit${acronym}_RegOff_Imm${ext}(byte dstIndex, short scale, Offset dstDisp, int imm) {
 	int miStart = mi;$prefix
 	if (fits(imm,8)) {
 	    setMachineCodes(mi++, (byte) ${imm8Code});
@@ -222,7 +222,7 @@ function emitBinaryImmWordOrDouble() {
     }
 		
     // [dstDisp] ${opStr}= ${code} imm 
-    public final void emit${acronym}_Abs_Imm${ext}(int dstDisp, int imm) {
+    public final void emit${acronym}_Abs_Imm${ext}(Offset dstDisp, int imm) {
 	int miStart = mi;$prefix
 	if (fits(imm,8)) {
 	    setMachineCodes(mi++, (byte) ${imm8Code});
@@ -239,7 +239,7 @@ function emitBinaryImmWordOrDouble() {
     }
 		
     // [dstBase + dstIndex<<scale + dstDisp] ${opStr}= ${code} imm 
-    public final void emit${acronym}_RegIdx_Imm${ext}(byte dstBase, byte dstIndex, short scale, int dstDisp, int imm) {
+    public final void emit${acronym}_RegIdx_Imm${ext}(byte dstBase, byte dstIndex, short scale, Offset dstDisp, int imm) {
 	int miStart = mi;$prefix
 	if (fits(imm,8)) {
 	    setMachineCodes(mi++, (byte) ${imm8Code});
@@ -303,17 +303,17 @@ function emitBinaryImmByte() {
     }
 
     // [dstReg + dstDisp] ${opStr}= (byte) imm
-    public final void emit${acronym}_RegDisp_Imm_Byte(byte dstReg, int dstDisp, int imm) {
-	int miStart = mi;
+    public final void emit${acronym}_RegDisp_Imm_Byte(byte dstReg, Offset disp, int imm) {
+        int miStart = mi;
 	setMachineCodes(mi++, (byte) ${imm32Code});
 	// "register ${immExtOp}" is really part of the opcode 
-	emitRegDispRegOperands(dstReg, dstDisp, (byte) ${immExtOp});
+	emitRegDispRegOperands(dstReg, disp, (byte) ${immExtOp});
 	emitImm8(imm);
-	if (lister != null) lister.RDI(miStart, "${acronym}", dstReg, dstDisp, imm);
+	if (lister != null) lister.RDI(miStart, "${acronym}", dstReg, disp, imm);
     }
 		
     // [dstBase + dstIndex<<scale + dstDisp] ${opStr}= (byte) imm 
-    public final void emit${acronym}_RegIdx_Imm_Byte(byte dstBase, byte dstIndex, short scale, int dstDisp, int imm) {
+    public final void emit${acronym}_RegIdx_Imm_Byte(byte dstBase, byte dstIndex, short scale, Offset dstDisp, int imm) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) ${imm32Code});
 	// "register ${immExtOp}" is really part of the opcode 
@@ -323,7 +323,7 @@ function emitBinaryImmByte() {
     }
 		
     // [dstIndex<<scale + dstDisp] ${opStr}= (byte) imm 
-    public final void emit${acronym}_RegOff_Imm_Byte(byte dstIndex, short scale, int dstDisp, int imm) {
+    public final void emit${acronym}_RegOff_Imm_Byte(byte dstIndex, short scale, Offset dstDisp, int imm) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) ${imm32Code});
 	// "register ${immExtOp}" is really part of the opcode 
@@ -333,7 +333,7 @@ function emitBinaryImmByte() {
     }
 		
     // [dstDisp] ${opStr}= (byte) imm 
-    public final void emit${acronym}_Abs_Imm_Byte(int dstDisp, int imm) {
+    public final void emit${acronym}_Abs_Imm_Byte(Offset dstDisp, int imm) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) ${imm32Code});
 	// "register ${immExtOp}" is really part of the opcode 
@@ -474,12 +474,12 @@ EOF
     }
 
     // pc = [dstReg + destDisp]
-    public final void emit${acronym}_RegDisp(byte dstReg, int dstDisp) {
+    public final void emit${acronym}_RegDisp(byte dstReg, Offset disp) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) $rmCode);
 	// "register $rmExtCode" is really part of the $acronym opcode
-	emitRegDispRegOperands(dstReg, dstDisp, (byte) $rmExtCode);
-        if (lister != null) lister.RD(miStart, "${acronym}", dstReg, dstDisp);
+	emitRegDispRegOperands(dstReg, disp, (byte) $rmExtCode);
+        if (lister != null) lister.RD(miStart, "${acronym}", dstReg, disp);
     }
 
     // pc = [dstReg]
@@ -492,7 +492,7 @@ EOF
     }
 
     // pc = [dstIndex<<scale + dstDisp]
-    public final void emit${acronym}_RegOff(byte dstIndex, short scale, int dstDisp) {
+    public final void emit${acronym}_RegOff(byte dstIndex, short scale, Offset dstDisp) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) $rmCode);
 	// "register $rmExtCode" is really part of the $acronym opcode
@@ -501,7 +501,7 @@ EOF
     }
 
     // pc = [dstDisp]
-    public final void emit${acronym}_Abs(int dstDisp) {
+    public final void emit${acronym}_Abs(Offset dstDisp) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) $rmCode);
 	// "register $rmExtCode" is really part of the $acronym opcode
@@ -510,7 +510,7 @@ EOF
     }
 
     // pc = [dstBase + dstIndex<<scale + dstDisp]
-    public final void emit${acronym}_RegIdx(byte dstBase, byte dstIndex, short scale, int dstDisp) {
+    public final void emit${acronym}_RegIdx(byte dstBase, byte dstIndex, short scale, Offset dstDisp) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) $rmCode);
 	// "register $rmExtCode" is really part of the $acronym opcode
@@ -566,7 +566,7 @@ EOF
     fi
     cat >> $FILENAME <<EOF
     // $opStr ${code} [reg + disp]
-    public final void emit${acronym}_RegDisp${ext}(byte reg, int disp) {
+    public final void emit${acronym}_RegDisp${ext}(byte reg, Offset disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -584,7 +584,7 @@ EOF
     }
 
     // $opStr ${code} [index<<scale + disp]
-    public final void emit${acronym}_RegOff${ext}(byte index, short scale, int disp) {
+    public final void emit${acronym}_RegOff${ext}(byte index, short scale, Offset disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -593,7 +593,7 @@ EOF
     }
 
     // $opStr ${code} [disp]
-    public final void emit${acronym}_Abs${ext}(int disp) {
+    public final void emit${acronym}_Abs${ext}(Offset disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -602,7 +602,7 @@ EOF
     }
 
     // $opStr ${code} [base + index<<scale + disp]
-    public final void emit${acronym}_RegIdx${ext}(byte base, byte index, short scale, int disp) {
+    public final void emit${acronym}_RegIdx${ext}(byte base, byte index, short scale, Offset disp) {
 	int miStart = mi;$prefix
 	setMachineCodes(mi++, (byte) $rmOpCode);
 	// "register $rmOpExt" is really part of the opcode
@@ -644,7 +644,7 @@ cat >> $FILENAME<<EOF
   }
 
   // EAX:EDX = EAX $opStr [srcReg + disp]
-  public final void emit${acronym}_Reg_RegDisp(byte dstReg, byte srcReg, int disp) {
+  public final void emit${acronym}_Reg_RegDisp(byte dstReg, byte srcReg, Offset disp) {
       int miStart = mi;
       if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
       setMachineCodes(mi++, (byte) 0xF7);
@@ -662,7 +662,7 @@ cat >> $FILENAME<<EOF
   }
 
   // EAX:EDX = EAX $opStr [baseReg + idxRef<<scale + disp]
-  public final void emit${acronym}_Reg_RegIdx(byte dstReg, byte baseReg, byte idxReg, short scale, int disp) {
+  public final void emit${acronym}_Reg_RegIdx(byte dstReg, byte baseReg, byte idxReg, short scale, Offset disp) {
       int miStart = mi;
       if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
       setMachineCodes(mi++, (byte) 0xF7);
@@ -671,7 +671,7 @@ cat >> $FILENAME<<EOF
   }
 
   // EAX:EDX = EAX $opStr [idxRef<<scale + disp]
-  public final void emit${acronym}_Reg_RegOff(byte dstReg, byte idxReg, short scale, int disp) {
+  public final void emit${acronym}_Reg_RegOff(byte dstReg, byte idxReg, short scale, Offset disp) {
       int miStart = mi;
       if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
       setMachineCodes(mi++, (byte) 0xF7);
@@ -680,7 +680,7 @@ cat >> $FILENAME<<EOF
   }
 
   // EAX:EDX = EAX $opStr [disp]
-  public final void emit${acronym}_Reg_Abs(byte dstReg, int disp) {
+  public final void emit${acronym}_Reg_Abs(byte dstReg, Offset disp) {
       int miStart = mi;
       if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
       setMachineCodes(mi++, (byte) 0xF7);
@@ -713,7 +713,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (byte) [srcReg + disp] ($desc)
-    public final void emit${acronym}_Reg_RegDisp_Byte(byte dstReg, byte srcReg, int disp) {
+    public final void emit${acronym}_Reg_RegDisp_Byte(byte dstReg, byte srcReg, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm8code);
@@ -731,7 +731,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (byte) [srcIndex<<scale + disp] ($desc)
-    public final void emit${acronym}_Reg_RegOff_Byte(byte dstReg, byte srcIndex, short scale, int disp) {
+    public final void emit${acronym}_Reg_RegOff_Byte(byte dstReg, byte srcIndex, short scale, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm8code);
@@ -740,7 +740,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (byte) [disp] ($desc)
-    public final void emit${acronym}_Reg_Abs_Byte(byte dstReg, int disp) {
+    public final void emit${acronym}_Reg_Abs_Byte(byte dstReg, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm8code);
@@ -749,7 +749,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (byte) [srcBase + srcIndex<<scale + disp] ($desc)
-    public final void emit${acronym}_Reg_RegIdx_Byte(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
+    public final void emit${acronym}_Reg_RegIdx_Byte(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm8code);
@@ -767,7 +767,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (word) [srcReg + disp] ($desc)
-    public final void emit${acronym}_Reg_RegDisp_Word(byte dstReg, byte srcReg, int disp) {
+    public final void emit${acronym}_Reg_RegDisp_Word(byte dstReg, byte srcReg, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm16code);
@@ -785,7 +785,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (word) [srcIndex<<scale + disp] ($desc)
-    public final void emit${acronym}_Reg_RegOff_Word(byte dstReg, byte srcIndex, short scale, int disp) {
+    public final void emit${acronym}_Reg_RegOff_Word(byte dstReg, byte srcIndex, short scale, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm16code);
@@ -794,7 +794,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (word) [disp] ($desc)
-    public final void emit${acronym}_Reg_Abs_Word(byte dstReg, int disp) {
+    public final void emit${acronym}_Reg_Abs_Word(byte dstReg, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm16code);
@@ -803,7 +803,7 @@ cat >> $FILENAME <<EOF
     }
 
     // dstReg := (word) [srcBase + srcIndex<<scale + disp] ($desc)
-    public final void emit${acronym}_Reg_RegIdx_Word(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
+    public final void emit${acronym}_Reg_RegIdx_Word(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset disp) {
         int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) $rm16code);
@@ -869,7 +869,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [reg + disp] by imm
-    public final void emit${acronym}_RegDisp_Imm${ext}(byte reg, int disp, int imm) {
+    public final void emit${acronym}_RegDisp_Imm${ext}(byte reg, Offset disp, int imm) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(fits(imm,8)); ${prefix}
 	if (imm == 1) {
@@ -884,7 +884,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [index<<scale + disp] by imm
-    public final void emit${acronym}_RegOff_Imm${ext}(byte index, short scale, int disp, int imm) {
+    public final void emit${acronym}_RegOff_Imm${ext}(byte index, short scale, Offset disp, int imm) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(fits(imm,8)); ${prefix}
 	if (imm == 1) {
@@ -899,7 +899,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [disp] by imm
-    public final void emit${acronym}_Abs_Imm${ext}(int disp, int imm) {
+    public final void emit${acronym}_Abs_Imm${ext}(Offset disp, int imm) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(fits(imm,8)); ${prefix}
 	if (imm == 1) {
@@ -914,7 +914,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [base + index<<scale + disp] by imm
-    public final void emit${acronym}_RegIdx_Imm${ext}(byte base, byte index, short scale, int disp, int imm) {
+    public final void emit${acronym}_RegIdx_Imm${ext}(byte base, byte index, short scale, Offset disp, int imm) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(fits(imm,8)); ${prefix}
 	if (imm == 1) {
@@ -947,7 +947,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [dataReg + disp] by shiftBy
-    public final void emit${acronym}_RegDisp_Reg${ext}(byte dataReg, int disp, byte shiftBy) {
+    public final void emit${acronym}_RegDisp_Reg${ext}(byte dataReg, Offset disp, byte shiftBy) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX); ${prefix}
 	setMachineCodes(mi++, (byte) $regOp);
@@ -956,7 +956,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [indexReg<<scale + disp] by shiftBy
-    public final void emit${acronym}_RegOff_Reg${ext}(byte indexReg, short scale, int disp, byte shiftBy) {
+    public final void emit${acronym}_RegOff_Reg${ext}(byte indexReg, short scale, Offset disp, byte shiftBy) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX); ${prefix}
 	setMachineCodes(mi++, (byte) $regOp);
@@ -965,7 +965,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [disp] by shiftBy
-    public final void emit${acronym}_Abs_Reg${ext}(int disp, byte shiftBy) {
+    public final void emit${acronym}_Abs_Reg${ext}(Offset disp, byte shiftBy) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX); ${prefix}
 	setMachineCodes(mi++, (byte) $regOp);
@@ -974,7 +974,7 @@ cat >> $FILENAME <<EOF
     }
 
     // $descr of [baseReg + indexReg<<scale + disp] by shiftBy
-    public final void emit${acronym}_RegIdx_Reg${ext}(byte baseReg, byte indexReg, short scale, int disp, byte shiftBy) {
+    public final void emit${acronym}_RegIdx_Reg${ext}(byte baseReg, byte indexReg, short scale, Offset disp, byte shiftBy) {
         int miStart = mi;
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX); ${prefix}
 	setMachineCodes(mi++, (byte) $regOp);
@@ -1044,7 +1044,7 @@ emitShiftDouble() {
     }
     
     // [left + disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_RegDisp_Reg_Imm(byte left, int disp, byte right, int shiftBy) {
+    public final void emit${acronym}_RegDisp_Reg_Imm(byte left, Offset disp, byte right, int shiftBy) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) ${immOp});
@@ -1054,7 +1054,7 @@ emitShiftDouble() {
     }
     
     // [leftBase + leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_RegIdx_Reg_Imm(byte leftBase, byte leftIndex, short scale, int disp, byte right, int shiftBy) {
+    public final void emit${acronym}_RegIdx_Reg_Imm(byte leftBase, byte leftIndex, short scale, Offset disp, byte right, int shiftBy) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) ${immOp});
@@ -1064,7 +1064,7 @@ emitShiftDouble() {
     }
 
     // [leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_RegOff_Reg_Imm(byte leftIndex, short scale, int disp, byte right, int shiftBy) {
+    public final void emit${acronym}_RegOff_Reg_Imm(byte leftIndex, short scale, Offset disp, byte right, int shiftBy) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) ${immOp});
@@ -1074,7 +1074,7 @@ emitShiftDouble() {
     }
     
     // [disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_Abs_Reg_Imm(int disp, byte right, int shiftBy) {
+    public final void emit${acronym}_Abs_Reg_Imm(Offset disp, byte right, int shiftBy) {
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
 	setMachineCodes(mi++, (byte) ${immOp});
@@ -1104,7 +1104,7 @@ emitShiftDouble() {
     }
     
     // [left + disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_RegDisp_Reg_Reg(byte left, int disp, byte right, byte shiftBy) {
+    public final void emit${acronym}_RegDisp_Reg_Reg(byte left, Offset disp, byte right, byte shiftBy) {
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX);
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
@@ -1114,7 +1114,7 @@ emitShiftDouble() {
     }
     
     // [leftBase + leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_RegIdx_Reg_Reg(byte leftBase, byte leftIndex, short scale, int disp, byte right, byte shiftBy) {
+    public final void emit${acronym}_RegIdx_Reg_Reg(byte leftBase, byte leftIndex, short scale, Offset disp, byte right, byte shiftBy) {
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX);
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
@@ -1124,7 +1124,7 @@ emitShiftDouble() {
     }
     
     // [leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_RegOff_Reg_Reg(byte leftIndex, short scale, int disp, byte right, byte shiftBy) {
+    public final void emit${acronym}_RegOff_Reg_Reg(byte leftIndex, short scale, Offset disp, byte right, byte shiftBy) {
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX);
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
@@ -1134,7 +1134,7 @@ emitShiftDouble() {
     }
     
     // [disp] ${opStr}= shiftBy (with bits from right shifted in)
-    public final void emit${acronym}_Abs_Reg_Reg(int disp, byte right, byte shiftBy) {
+    public final void emit${acronym}_Abs_Reg_Reg(Offset disp, byte right, byte shiftBy) {
 	if (VM.VerifyAssertions) VM._assert(shiftBy == ECX);
 	int miStart = mi;
 	setMachineCodes(mi++, (byte) 0x0F);
@@ -1167,11 +1167,11 @@ emitStackOp() {
   }
 
   // $op1 [dstReg + dstDisp], SP $op2 4
-  public final void emit${acronym}_RegDisp (byte dstReg, int dstDisp) {
+  public final void emit${acronym}_RegDisp (byte dstReg, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) ${memCode});
-    emitRegDispRegOperands(dstReg, dstDisp, (byte) ${memExt});
-    if (lister != null) lister.RD(miStart, "${acronym}", dstReg, dstDisp);
+    emitRegDispRegOperands(dstReg, disp, (byte) ${memExt});
+    if (lister != null) lister.RD(miStart, "${acronym}", dstReg, disp);
   }
 
   // $op1 [dstReg], SP $op2 4
@@ -1183,7 +1183,7 @@ emitStackOp() {
   }
 
   // $op1 [dstBase + dstNdx<<scale + dstDisp], SP $op2 4
-  public final void emit${acronym}_RegIdx (byte base, byte index, short scale, int disp) {
+  public final void emit${acronym}_RegIdx (byte base, byte index, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) ${memCode});
     emitSIBRegOperands(base, index, scale, disp, (byte) ${memExt});
@@ -1191,7 +1191,7 @@ emitStackOp() {
   }
 
   // $op1 [dstNdx<<scale + dstDisp], SP $op2 4
-  public final void emit${acronym}_RegOff (byte index, short scale, int disp) {
+  public final void emit${acronym}_RegOff (byte index, short scale, Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) ${memCode});
     emitRegOffRegOperands(index, scale, disp, (byte) ${memExt});
@@ -1199,7 +1199,7 @@ emitStackOp() {
   }
 
   // $op1 [dstDisp], SP $op2 4
-  public final void emit${acronym}_Abs (int disp) {
+  public final void emit${acronym}_Abs (Offset disp) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) ${memCode});
     emitAbsRegOperands(disp, (byte) ${memExt});
@@ -1244,7 +1244,7 @@ emitFloatMemAcc() {
     fi
     cat >> $FILENAME <<EOF
   // dstReg ${op}= (${size}) [srcReg + disp]
-  public final void emit${acronym}_Reg_RegDisp${ext}(byte dstReg, byte srcReg, int disp) {
+  public final void emit${acronym}_Reg_RegDisp${ext}(byte dstReg, byte srcReg, Offset disp) {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == 0);
@@ -1266,7 +1266,7 @@ emitFloatMemAcc() {
   }
 
   // dstReg ${op}= (${size}) [srcBase + srcIndex<<scale + disp]
-  public final void emit${acronym}_Reg_RegIdx${ext}(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
+  public final void emit${acronym}_Reg_RegIdx${ext}(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset disp) {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == 0);
@@ -1277,7 +1277,7 @@ emitFloatMemAcc() {
   }
 
   // dstReg ${op}= (${size}) [srcIndex<<scale + disp]
-  public final void emit${acronym}_Reg_RegOff${ext}(byte dstReg, byte srcIndex, short scale, int disp) {
+  public final void emit${acronym}_Reg_RegOff${ext}(byte dstReg, byte srcIndex, short scale, Offset disp) {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == 0);
@@ -1288,7 +1288,7 @@ emitFloatMemAcc() {
   }
 
   // dstReg ${op}= (${size}) [disp]
-  public final void emit${acronym}_Reg_Abs${ext}(byte dstReg, int disp) {
+  public final void emit${acronym}_Reg_Abs${ext}(byte dstReg, Offset disp) {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == 0);
@@ -1374,7 +1374,7 @@ emitFloatMem() {
     fi
     cat >> $FILENAME <<EOF
   // top of stack ${op} (${size:-double word}) [reg + disp] 
-  public final void emit${acronym}${pre}_RegDisp${ext}(${preArg}byte reg, int disp${postArg}) {
+  public final void emit${acronym}${pre}_RegDisp${ext}(${preArg}byte reg, Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
     setMachineCodes(mi++, (byte) ${opcode});
@@ -1392,7 +1392,7 @@ emitFloatMem() {
   }
 
   // top of stack ${op} (${size:-double word}) [baseReg + idxReg<<scale + disp]
-  public final void emit${acronym}${pre}_RegIdx${ext}(${preArg}byte baseReg, byte idxReg, short scale, int disp${postArg}) {
+  public final void emit${acronym}${pre}_RegIdx${ext}(${preArg}byte baseReg, byte idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
     setMachineCodes(mi++, (byte) ${opcode});
@@ -1401,7 +1401,7 @@ emitFloatMem() {
   }
 
   // top of stack ${op} (${size:-double word}) [idxReg<<scale + disp]
-  public final void emit${acronym}${pre}_RegOff${ext}(${preArg}byte idxReg, short scale, int disp${postArg}) {
+  public final void emit${acronym}${pre}_RegOff${ext}(${preArg}byte idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
     setMachineCodes(mi++, (byte) ${opcode});
@@ -1410,7 +1410,7 @@ emitFloatMem() {
   }
 
   // top of stack ${op} (${size:-double word}) [disp]
-  public final void emit${acronym}${pre}_Abs${ext}(${preArg}int disp${postArg}) {
+  public final void emit${acronym}${pre}_Abs${ext}(${preArg}Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
     setMachineCodes(mi++, (byte) ${opcode});
@@ -1485,7 +1485,7 @@ cat >> $FILENAME <<EOF
       if (lister != null) lister.RNI(miStart, "MOV", dst, imm);
   }
 
-  public final void emitMOV_RegDisp_Imm${ext}(byte dst, int disp, int imm) {
+  public final void emitMOV_RegDisp_Imm${ext}(byte dst, Offset disp, int imm) {
       int miStart = mi;$prefix
       setMachineCodes(mi++, (byte) $opcode);
       emitRegDispRegOperands(dst, disp, (byte) 0x0);
@@ -1493,7 +1493,7 @@ cat >> $FILENAME <<EOF
       if (lister != null) lister.RDI(miStart, "MOV", dst, disp, imm);
   }
 
-  public final void emitMOV_RegIdx_Imm${ext}(byte dst, byte idx, short scale, int disp, int imm) {
+  public final void emitMOV_RegIdx_Imm${ext}(byte dst, byte idx, short scale, Offset disp, int imm) {
       int miStart = mi;$prefix
       setMachineCodes(mi++, (byte) $opcode);
       emitSIBRegOperands(dst, idx, scale, disp, (byte) 0x0);
@@ -1501,7 +1501,7 @@ cat >> $FILENAME <<EOF
       if (lister != null) lister.RXDI(miStart, "MOV", dst, idx, scale, disp, imm);
   }
 
-  public final void emitMOV_RegOff_Imm${ext}(byte idx, short scale, int disp, int imm) {
+  public final void emitMOV_RegOff_Imm${ext}(byte idx, short scale, Offset disp, int imm) {
       int miStart = mi;$prefix
       setMachineCodes(mi++, (byte) $opcode);
       emitRegOffRegOperands(idx, scale, disp, (byte) 0x0);
@@ -1509,7 +1509,7 @@ cat >> $FILENAME <<EOF
       if (lister != null) lister.RFDI(miStart, "MOV", idx, scale, disp, imm);
   }
 
-  public final void emitMOV_Abs_Imm${ext}(int disp, int imm) {
+  public final void emitMOV_Abs_Imm${ext}(Offset disp, int imm) {
       int miStart = mi;$prefix
       setMachineCodes(mi++, (byte) $opcode);
       emitAbsRegOperands(disp, (byte) 0x0);
@@ -1539,11 +1539,11 @@ emitFSTATE() {
 
 cat >> $FILENAME <<EOF
   // ${comment}
-  public final void emit${acronym}_RegDisp (byte dstReg, int dstDisp) {
+  public final void emit${acronym}_RegDisp (byte dstReg, Offset disp) {
     int miStart = mi;$prefix
     setMachineCodes(mi++, (byte) ${opcode});
-    emitRegDispRegOperands(dstReg, dstDisp, (byte) ${opExt});
-    if (lister != null) lister.RD(miStart, "${acronym}", dstReg, dstDisp);
+    emitRegDispRegOperands(dstReg, disp, (byte) ${opExt});
+    if (lister != null) lister.RD(miStart, "${acronym}", dstReg, disp);
   }
 
   // ${comment}
@@ -1555,7 +1555,7 @@ cat >> $FILENAME <<EOF
   }
 
   // ${comment}
-  public final void emit${acronym}_RegIdx (byte baseReg, byte indexReg, short scale, int disp) {
+  public final void emit${acronym}_RegIdx (byte baseReg, byte indexReg, short scale, Offset disp) {
     int miStart = mi;$prefix
     setMachineCodes(mi++, (byte) ${opcode});
     emitSIBRegOperands(baseReg, indexReg, scale, disp, (byte) ${opExt});
@@ -1563,7 +1563,7 @@ cat >> $FILENAME <<EOF
   }
 
   // ${comment}
-  public final void emit${acronym}_RegOff (byte indexReg, short scale, int disp) {
+  public final void emit${acronym}_RegOff (byte indexReg, short scale, Offset disp) {
     int miStart = mi;$prefix
     setMachineCodes(mi++, (byte) ${opcode});
     emitRegOffRegOperands(indexReg, scale, disp, (byte) ${opExt});
@@ -1571,7 +1571,7 @@ cat >> $FILENAME <<EOF
   }
 
   // ${comment}
-  public final void emit${acronym}_Abs (int disp) {
+  public final void emit${acronym}_Abs (Offset disp) {
     int miStart = mi;$prefix
     setMachineCodes(mi++, (byte) ${opcode});
     emitAbsRegOperands(disp, (byte) ${opExt});

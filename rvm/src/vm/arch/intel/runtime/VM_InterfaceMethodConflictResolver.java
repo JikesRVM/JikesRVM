@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to
@@ -86,11 +88,11 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
       // a leaf case; can simply invoke the method directly.
       VM_Method target = targets[middle];
       if (target.isStatic()) { // an error case...
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffsetAsInt());
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
       }
-      asm.emitJMP_RegDisp(ECX, target.getOffsetAsInt());
+      asm.emitJMP_RegDisp(ECX, target.getOffset());
     } else {
-      int disp = VM_Entrypoints.hiddenSignatureIdField.getOffsetAsInt();
+      Offset disp = VM_Entrypoints.hiddenSignatureIdField.getOffset();
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
       if (low < middle) {
         asm.emitJCC_Cond_Label(asm.LT, bcIndices[(low+middle-1)/2]);
@@ -101,9 +103,9 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
       // invoke the method for middle.
       VM_Method target = targets[middle];
       if (target.isStatic()) { // an error case...
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffsetAsInt());
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
       }
-      asm.emitJMP_RegDisp(ECX, target.getOffsetAsInt());
+      asm.emitJMP_RegDisp(ECX, target.getOffset());
       // Recurse.
       if (low < middle) {
         insertStubCase(asm, sigIds, targets, bcIndices, low, middle-1);

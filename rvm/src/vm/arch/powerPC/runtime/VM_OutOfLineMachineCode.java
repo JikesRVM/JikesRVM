@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * A place to put hand written machine code typically invoked by VM_Magic 
  * methods.
@@ -88,7 +90,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
       
     asm.emitSTAddrU  (S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
     asm.emitLVAL (T0, INVISIBLE_METHOD_ID);
-    asm.emitSTW  (T0, STACKFRAME_METHOD_ID_OFFSET, FP); // set method id
+    asm.emitSTWoffset (T0, FP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)); // set method id
 
     //
     // free registers: 0, S0, T0, T3
@@ -166,24 +168,20 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static VM_CodeArray generateSaveThreadStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
-    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
-
     // save return address
     // 
     asm.emitMFLR  (T1);               // T1 = LR (return address)
-    asm.emitSTAddr(T1, ipOffset, T0); // registers.ip = return address
+    asm.emitSTAddrOffset(T1, T0, VM_Entrypoints.registersIPField.getOffset()); // registers.ip = return address
 
     // save non-volatile fprs
     //
-    asm.emitLAddr(T1, fprsOffset, T0); // T1 := registers.fprs[]
+    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
       asm.emitSTFD(i, i << LOG_BYTES_IN_DOUBLE, T1);
 
     // save non-volatile gprs
     //
-    asm.emitLAddr(T1, gprsOffset, T0); // T1 := registers.gprs[]
+    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
 
@@ -217,23 +215,22 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static VM_CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
-    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
-    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffsetAsInt();
+    Offset   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    Offset fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
     // (1) Save nonvolatile hardware state of current thread.
     asm.emitMFLR (T3);                         // T3 gets return address
-    asm.emitLAddr (T2, regsOffset, T0);         // T2 = T0.contextRegisters
-    asm.emitSTAddr (T3, ipOffset, T2);           // T0.contextRegisters.ip = return address
+    asm.emitLAddrOffset (T2, T0, VM_Entrypoints.threadContextRegistersField.getOffset());         // T2 = T0.contextRegisters
+    asm.emitSTAddrOffset (T3, T2, ipOffset);           // T0.contextRegisters.ip = return address
 
     // save non-volatile fprs
-    asm.emitLAddr(T3, fprsOffset, T2); // T3 := T0.contextRegisters.fprs[]
+    asm.emitLAddrOffset(T3, T2, fprsOffset); // T3 := T0.contextRegisters.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
       asm.emitSTFD(i, i<<LOG_BYTES_IN_DOUBLE, T3);
 
     // save non-volatile gprs
-    asm.emitLAddr(T3, gprsOffset, T2); // T3 := registers.gprs[]
+    asm.emitLAddrOffset(T3, T2, gprsOffset); // T3 := registers.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitSTAddr(i, i<<LOG_BYTES_IN_ADDRESS, T3);
 
@@ -242,17 +239,17 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     // (2) Set currentThread.beingDispatched to false
     asm.emitLVAL(0, 0);                                       // R0 := 0
-    asm.emitSTW(0, VM_Entrypoints.beingDispatchedField.getOffsetAsInt(), T0); // T0.beingDispatched := R0
+    asm.emitSTWoffset(0, T0, VM_Entrypoints.beingDispatchedField.getOffset()); // T0.beingDispatched := R0
 
     // (3) Restore nonvolatile hardware state of new thread.
 
     // restore non-volatile fprs
-    asm.emitLAddr(T0, fprsOffset, T1); // T0 := T1.fprs[]
+    asm.emitLAddrOffset(T0, T1, fprsOffset); // T0 := T1.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
       asm.emitLFD(i, i<<LOG_BYTES_IN_DOUBLE, T0);
 
     // restore non-volatile gprs
-    asm.emitLAddr(T0, gprsOffset, T1); // T0 := T1.gprs[]
+    asm.emitLAddrOffset(T0, T1, gprsOffset); // T0 := T1.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitLAddr(i, i<<LOG_BYTES_IN_ADDRESS, T0);
 
@@ -260,7 +257,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitLAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T0);
 
     // resume execution at saved ip (T1.ipOffset)
-    asm.emitLAddr(T0, ipOffset, T1);
+    asm.emitLAddrOffset(T0, T1, ipOffset);
     asm.emitMTLR(T0);
     asm.emitBCLR();
 
@@ -283,30 +280,25 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffsetAsInt();
-    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
-    int lrOffset   = VM_Entrypoints.registersLRField.getOffsetAsInt();
-
     // restore LR
     //
-    asm.emitLAddr(REGISTER_ZERO, lrOffset, T0);
+    asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_Entrypoints.registersLRField.getOffset());
     asm.emitMTLR(REGISTER_ZERO);
 
     // restore IP (hold it in CT register for a moment)
     //
-    asm.emitLAddr(REGISTER_ZERO, ipOffset, T0);
+    asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_Entrypoints.registersIPField.getOffset());
     asm.emitMTCTR(REGISTER_ZERO);
       
     // restore fprs
     //
-    asm.emitLAddr(T1, fprsOffset, T0); // T1 := registers.fprs[]
+    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
     for (int i = 0; i < NUM_FPRS; ++i)
       asm.emitLFD(i, i<<LOG_BYTES_IN_DOUBLE, T1);
 
     // restore gprs
     //
-    asm.emitLAddr(T1, gprsOffset, T0); // T1 := registers.gprs[]
+    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
 
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitLAddr(i, i<<LOG_BYTES_IN_ADDRESS, T1);
@@ -382,9 +374,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     // change the vpstatus of the VP to IN_NATIVE
     //
-    asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), S0);   
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());   
     asm.emitLVAL (S0,  VM_Processor.IN_NATIVE);
-    asm.emitSTW  (S0,  VM_Entrypoints.vpStatusField.getOffsetAsInt(), PROCESSOR_REGISTER); 
+    asm.emitSTWoffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset()); 
 
     // 
     // CALL NATIVE METHOD
@@ -410,18 +402,18 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitLAddr (S0, 0, S0);
     //-#endif
     asm.emitLAddr (PROCESSOR_REGISTER, - JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
-    asm.emitLAddr (JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffsetAsInt(), PROCESSOR_REGISTER);      // load JTOC
-    asm.emitLAddr (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), PROCESSOR_REGISTER); // load PR
-    asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffsetAsInt());
+    asm.emitLAddrOffset (JTOC, PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset());      // load JTOC
+    asm.emitLAddrOffset (PROCESSOR_REGISTER, PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset()); // load PR
+    asm.emitLVALAddr (S1, VM_Entrypoints.vpStatusField.getOffset());
     asm.emitLWARX (S0, S1, PROCESSOR_REGISTER);                 // get status for processor
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);         // are we blocked in native code?
     VM_ForwardReference fr = asm.emitForwardBC(NE);
     //
     // if blocked in native, call C routine to do pthread_yield
     //
-    asm.emitLAddr (T2, VM_Entrypoints.the_boot_recordField.getOffsetAsInt(), JTOC);  // T2 gets boot record address
-    asm.emitLAddr (JTOC, VM_Entrypoints.sysTOCField.getOffsetAsInt(), T2);           // load TOC for syscalls from bootrecord
-    asm.emitLAddr (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffsetAsInt(), T2);  // load addr of function
+    asm.emitLAddrOffset (T2, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T2 gets boot record address
+    asm.emitLAddrOffset (JTOC, T2, VM_Entrypoints.sysTOCField.getOffset());           // load TOC for syscalls from bootrecord
+    asm.emitLAddrOffset (T1, T2,  VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBCLRL ();                                          // call sysVirtualProcessorYield in sys.C
     asm.emitB     (label1);                                    // retest the attempt to change status to IN_JAVAE

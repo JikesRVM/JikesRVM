@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
 //-#endif
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Defines the JavaHeader portion of the object header for the 
@@ -181,11 +182,11 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       fr1.resolve(asm);
       fr2.resolve(asm);
       asm.emitAND_Reg_Imm(dest,TIB_MASK);
-      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, 0);
+      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, Offset.zero());
     } else {
       asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
       asm.emitAND_Reg_Imm(dest,TIB_MASK);
-      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, 0);
+      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, Offset.zero());
     }
   }
   //-#endif

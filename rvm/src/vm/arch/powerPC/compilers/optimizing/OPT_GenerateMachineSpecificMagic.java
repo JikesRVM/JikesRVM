@@ -62,7 +62,7 @@ class OPT_GenerateMachineSpecificMagic
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
                                           fp,
-                                          new OPT_AddressConstantOperand(Offset.fromIntZeroExtend(STACKFRAME_METHOD_ID_OFFSET)),
+                                          new OPT_AddressConstantOperand(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {

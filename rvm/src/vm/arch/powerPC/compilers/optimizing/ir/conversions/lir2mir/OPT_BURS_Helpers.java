@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Contains architecture-specific helper functions for BURS.
  * @author Dave Grove
@@ -228,15 +230,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   private final void emitLFtoc(OPT_Operator operator, 
                                OPT_Register RT, VM_Field field) {
     OPT_Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
-    int offset = field.getOffsetAsInt();
-    int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
+    Offset offset = field.getOffset();
+    int valueLow = OPT_Bits.PPCMaskLower16(offset);
     OPT_Instruction s;
-    if (valueHigh == 0) {
-      s = MIR_Load.create(operator, D(RT), A(JTOC), IC(offset));
+    if (OPT_Bits.fits(offset, 16)) {
+      s = MIR_Load.create(operator, D(RT), A(JTOC), IC(valueLow));
       EMIT(s);
     } else {
+      int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 32));
       OPT_Register reg = regpool.getAddress();
-      int valueLow = OPT_Bits.PPCMaskLower16(offset);
       EMIT(MIR_Binary.create(PPC_ADDIS, A(reg), A(JTOC), IC(valueHigh)));
       s = MIR_Load.create(operator, D(RT), A(reg), IC(valueLow));
       EMIT(s);
@@ -2215,17 +2218,20 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   private final void mutateTrapToCall(OPT_Instruction s, 
                                       VM_Method target) {
-    int offset = target.getOffsetAsInt();
+    Offset offset = target.getOffset();
     OPT_RegisterOperand tmp = regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     OPT_Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     OPT_MethodOperand meth = OPT_MethodOperand.STATIC(target);
     meth.setIsNonReturningCall(true);
-    if (SI16(offset)) {
-      EMIT(MIR_Load.create(PPC_LAddr, tmp, A(JTOC), IC(offset)));
+    int valueLow = OPT_Bits.PPCMaskLower16(offset);
+    if (OPT_Bits.fits(offset, 16)) {
+      EMIT(MIR_Load.create(PPC_LAddr, tmp, A(JTOC), IC(valueLow)));
     } else {
-      OPT_RegisterOperand tmp2 = regpool.makeTempInt();
-      IntConstant(tmp2.register, offset);
-      EMIT(MIR_Load.create(PPC_LAddrX, tmp, A(JTOC), tmp2));
+      int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
+      if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 32));
+      OPT_Register reg = regpool.getAddress();
+      EMIT(MIR_Binary.create(PPC_ADDIS, A(reg), A(JTOC), IC(valueHigh)));
+      EMIT(MIR_Load.create(PPC_LAddr, tmp, A(reg), IC(valueLow)));
     }
     EMIT(MIR_Move.create(PPC_MTSPR, A(CTR), tmp.copyD2U()));
     EMIT(MIR_Call.mutate0(s, PPC_BCTRL, null, null, meth));

@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Contains IA32-specific helper functions for BURS.
  * 
@@ -146,8 +148,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }      
 
   // emit code to load 32 bits form a given jtoc offset
-  private OPT_MemoryOperand loadFromJTOC(int offset) {
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+  private OPT_MemoryOperand loadFromJTOC(Offset offset) {
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
     OPT_Operand guard = TG();
     if (burs.ir.options.FIXED_JTOC) {
       return OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(),
@@ -159,7 +161,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                              (byte)4, null, TG());
       OPT_RegisterOperand regOp = regpool.makeTempInt();
       EMIT(MIR_Move.create(IA32_MOV, regOp, jtoc));
-      return OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, loc, guard);
+      return OPT_MemoryOperand.BD(regOp.copyD2U(), offset.toInt(), (byte)4, loc, guard);
     }
   }
 
@@ -1271,7 +1273,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param s the instruction to expand
    */
   protected final void RESOLVE(OPT_Instruction s) {
-    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod.getOffsetAsInt());
+    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod.getOffset());
     EMIT(CPOS(s, MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, 
                                          null, null,  target, 
                                          OPT_MethodOperand.STATIC(VM_Entrypoints.optResolveMethod))));

@@ -380,6 +380,19 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param bits the number of bits to use.
    * @return true if val can be encoded in bits.
    */
+  protected final static boolean fits (Offset val, int bits) {
+    Word o = val.toWord().rsha(bits-1);
+    return (o.isZero() || o.isMax());
+  }
+
+  /**
+   *  Find out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return true if val can be encoded in bits.
+   */
   protected final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
@@ -521,11 +534,13 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param disp the displacement.
    * @param reg2 the other register or extended opcode.
    */
-  private void emitRegDispRegOperands(byte reg1, int disp, byte reg2) {
+  private void emitRegDispRegOperands(byte reg1, Offset disp, byte reg2) {
       if (fits(disp,8))
-	  emitRegDisp8RegOperands(reg1, (byte)disp, reg2);
-      else
-	  emitRegDisp32RegOperands(reg1, disp, reg2);
+	  emitRegDisp8RegOperands(reg1, (byte)disp.toInt(), reg2);
+      else {
+          if (VM.VerifyAssertions) VM._assert(fits(disp,32));
+	  emitRegDisp32RegOperands(reg1, disp.toInt(), reg2);
+      }
   }
 
   /**
@@ -545,7 +560,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    */
   private void emitRegIndirectRegOperands(byte reg1, byte reg2) {
       if (reg1 == EBP) {
-	  emitRegDispRegOperands(reg1, 0, reg2);
+	  emitRegDispRegOperands(reg1, Offset.zero(), reg2);
       } else {
 	  setMachineCodes(mi++, regIndirectRegModRM(reg1, reg2));
 	  if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
@@ -565,7 +580,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  private void emitRegOffRegOperands(byte index, short scale, int disp, byte reg2) {
+  private void emitRegOffRegOperands(byte index, short scale, Offset disp, byte reg2) {
       setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
       setMachineCodes(mi++, sib(scale, (byte) 0x5, index));
       emitImm32(disp);
@@ -583,7 +598,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  private void emitAbsRegOperands(int disp, byte reg2) {
+  private void emitAbsRegOperands(Offset disp, byte reg2) {
       setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
       // setMachineCodes(mi++, sib((byte) 0x0, (byte) 0x5, (byte) 0x4));
       emitImm32(disp);
@@ -601,15 +616,15 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param disp the displacement for the r/m operand
    * @param reg2 the other operand or the extended opcode
    */
-  private void emitSIBRegOperands(byte base, byte index, short scale, int disp, byte reg2) {
+  private void emitSIBRegOperands(byte base, byte index, short scale, Offset disp, byte reg2) {
       if (VM.VerifyAssertions) VM._assert(index != ESP);
-      if (disp == 0 && base != EBP) {
+      if (disp.EQ(Offset.zero()) && base != EBP) {
 	  setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
 	  setMachineCodes(mi++, sib(scale, base, index));
       } else if (fits(disp,8)) {
 	  setMachineCodes(mi++, regDisp8RegModRM((byte) 0x4, reg2));
 	  setMachineCodes(mi++, sib(scale, base, index));
-	  emitImm8((byte)disp);
+	  emitImm8((byte)disp.toInt());
       } else {
 	  setMachineCodes(mi++, regDisp32RegModRM((byte) 0x4, reg2));
 	  setMachineCodes(mi++, sib(scale, base, index));
@@ -617,6 +632,17 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       }
   }
 
+  /**
+   *  Generate the smallest-byte-first IA32 encoding of 32 bit
+   * immediates into the generated code.
+   *
+   * @param imm the immediate to generate.
+   */
+  private void emitImm32(Offset disp) {
+      if (VM.VerifyAssertions) VM._assert(fits(disp,32));
+      mi = emitImm32(disp.toInt(), mi);
+  }
+    
   /**
    *  Generate the smallest-byte-first IA32 encoding of 32 bit
    * immediates into the generated code.
@@ -1069,7 +1095,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * if (cond) dst = [src + disp]
    * </PRE>
    */
-  public final void emitCMOV_Cond_Reg_RegDisp(byte cond, byte dst, byte src, int disp) {
+  public final void emitCMOV_Cond_Reg_RegDisp(byte cond, byte dst, byte src, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x40, cond);
@@ -1097,7 +1123,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * if (cond) dst = [index2<<scale2 + disp2]
    * </PRE>
    */
-  public final void emitCMOV_Cond_Reg_RegOff(byte cond, byte dst, byte index2, short scale2, int disp2) {
+  public final void emitCMOV_Cond_Reg_RegOff(byte cond, byte dst, byte index2, short scale2, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x40, cond);
@@ -1111,7 +1137,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * if (cond) dst = [disp2]
    * </PRE>
    */
-  public final void emitCMOV_Cond_Reg_Abs(byte cond, byte dst, int disp2) {
+  public final void emitCMOV_Cond_Reg_Abs(byte cond, byte dst, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x40, cond);
@@ -1125,7 +1151,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * if (cond) dst = [base2 + index2<<scale2 + disp2]
    * </PRE>
    */
-  public final void emitCMOV_Cond_Reg_RegIdx(byte cond, byte dst, byte base2, byte index2, short scale2, int disp2) {
+  public final void emitCMOV_Cond_Reg_RegIdx(byte cond, byte dst, byte base2, byte index2, short scale2, Offset disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x40, cond);
@@ -1151,7 +1177,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.R(miStart, "SET" + CONDITION[cond], dst);
   }
 
-  public final void emitSET_Cond_RegDisp_Byte(byte cond, byte dst, int disp) {
+  public final void emitSET_Cond_RegDisp_Byte(byte cond, byte dst, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x90, cond);
@@ -1167,7 +1193,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RN(miStart, "SET" + CONDITION[cond], dst);
   }
 
-  public final void emitSET_Cond_RegIdx_Byte(byte cond, byte base, byte index, short scale, int disp) {
+  public final void emitSET_Cond_RegIdx_Byte(byte cond, byte base, byte index, short scale, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x90, cond);
@@ -1175,7 +1201,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RXD(miStart, "SET" + CONDITION[cond], base, index, scale, disp);
   }
 
-  public final void emitSET_Cond_RegOff_Byte(byte cond, byte index, short scale, int disp) {
+  public final void emitSET_Cond_RegOff_Byte(byte cond, byte index, short scale, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x90, cond);
@@ -1183,7 +1209,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RFD(miStart, "SET" + CONDITION[cond], index, scale, disp);
   }
 
-  public final void emitSET_Cond_Abs_Byte(byte cond, int disp) {
+  public final void emitSET_Cond_Abs_Byte(byte cond, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       emitCondOpByte((byte)0x90, cond);
@@ -1207,7 +1233,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RRN(miStart, "IMUL", dstReg, srcReg);
   }
 
-  public final void emitIMUL2_Reg_RegDisp(byte dstReg, byte srcReg, int srcDisp) {
+  public final void emitIMUL2_Reg_RegDisp(byte dstReg, byte srcReg, Offset srcDisp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       setMachineCodes(mi++, (byte) 0xAF);
@@ -1215,7 +1241,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RRD(miStart, "IMUL", dstReg, srcReg, srcDisp);
   }
 
-  public final void emitIMUL2_Reg_RegOff(byte dstReg, byte srcIndex, short scale, int disp) {
+  public final void emitIMUL2_Reg_RegOff(byte dstReg, byte srcIndex, short scale, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       setMachineCodes(mi++, (byte) 0xAF);
@@ -1223,7 +1249,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RRFD(miStart, "IMUL", dstReg, srcIndex, scale, disp);
   }
 
-  public final void emitIMUL2_Reg_Abs(byte dstReg, int disp) {
+  public final void emitIMUL2_Reg_Abs(byte dstReg, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       setMachineCodes(mi++, (byte) 0xAF);
@@ -1231,7 +1257,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RRA(miStart, "IMUL", dstReg, disp);
   }
 
-  public final void emitIMUL2_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
+  public final void emitIMUL2_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       setMachineCodes(mi++, (byte) 0xAF);
@@ -1355,7 +1381,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     }
   }
 
-  public final void emitLEA_Reg_RegDisp(byte dstReg, byte srcReg, int srcDisp) {
+  public final void emitLEA_Reg_RegDisp(byte dstReg, byte srcReg, Offset srcDisp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x8D);
       emitRegDispRegOperands(srcReg, srcDisp, dstReg);
@@ -1369,21 +1395,21 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       if (lister != null) lister.RRN(miStart, "LEA", dstReg, srcReg);
   }
 
-  public final void emitLEA_Reg_RegOff(byte dstReg, byte idx, short scale, int disp) {
+  public final void emitLEA_Reg_RegOff(byte dstReg, byte idx, short scale, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x8D);
       emitRegOffRegOperands(idx, scale, disp, dstReg);
       if (lister != null) lister.RRFD(miStart, "LEA", dstReg, idx, scale, disp);
   }
 
-  public final void emitLEA_Reg_Abs(byte dstReg, int disp) {
+  public final void emitLEA_Reg_Abs(byte dstReg, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x8D);
       emitAbsRegOperands(disp, dstReg);
       if (lister != null) lister.RRA(miStart, "LEA", dstReg, disp);
   }
 
-  public final void emitLEA_Reg_RegIdx(byte dstReg, byte base, byte idx, short scale, int disp) {
+  public final void emitLEA_Reg_RegIdx(byte dstReg, byte base, byte idx, short scale, Offset disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x8D);
       emitSIBRegOperands(base, idx, scale, disp, dstReg);

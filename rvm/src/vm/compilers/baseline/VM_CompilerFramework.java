@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.OSR.*;
 //-#endif
 import com.ibm.JikesRVM.classloader.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Framework compiler - platform independent code.
  * This compiler provides the structure for a very simple compiler --
@@ -24,6 +26,7 @@ import org.vmmagic.pragma.*;
  * @author Janice Shepherd
  */
 public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants
+  , VM_StackframeLayoutConstants
 //-#if RVM_WITH_OSR
   , OSR_Constants
 //-#endif
@@ -134,7 +137,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       isUnpreemptible = method.isUnpreemptible();
     }
   }
-
 
   final int[] getBytecodeMap () {
     return bytecodeMap;

@@ -170,7 +170,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
     // show up as recursive use of hardware exception registers (eg the long-standing lisp bug)
-    VM_BootRecord.the_boot_record.dumpStackAndDieOffset = VM_Entrypoints.dumpStackAndDieMethod.getOffsetAsInt();
+    VM_BootRecord.the_boot_record.dumpStackAndDieOffset = VM_Entrypoints.dumpStackAndDieMethod.getOffset();
 
     // allocate initial processor list
     //

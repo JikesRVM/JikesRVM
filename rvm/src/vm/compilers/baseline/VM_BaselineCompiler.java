@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
@@ -42,8 +43,8 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
    */
   protected int edgeCounterIdx;
 
-  protected final int getEdgeCounterOffset() {
-    return method.getId() << LOG_BYTES_IN_ADDRESS;
+  protected final Offset getEdgeCounterOffset() {
+    return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
   }
 
 

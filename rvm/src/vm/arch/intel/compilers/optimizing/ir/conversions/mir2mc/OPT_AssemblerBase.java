@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  *  This class provides support functionality used by the generated
  * OPT_Assembler; it handles basic impedance-matching functionality
@@ -210,8 +212,8 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the IA32 ISA encoding of the scale of op
    */
-  static int getDisp(OPT_Operand op) {
-    return ((OPT_MemoryOperand)op).disp;
+  static Offset getDisp(OPT_Operand op) {
+    return Offset.fromIntSignExtend(((OPT_MemoryOperand)op).disp);
   }
 
   /**

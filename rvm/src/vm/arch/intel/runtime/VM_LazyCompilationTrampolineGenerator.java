@@ -22,9 +22,9 @@ public class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstan
     VM_Assembler asm = new VM_Assembler(0); 
     // get JTOC into ECX
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX,
-                                              VM_Entrypoints.jtocField.getOffsetAsInt());
+                                              VM_Entrypoints.jtocField.getOffset());
     // jmp to real lazy mathod invoker
-    asm.emitJMP_RegDisp(ECX, VM_Entrypoints.lazyMethodInvokerMethod.getOffsetAsInt()); 
+    asm.emitJMP_RegDisp(ECX, VM_Entrypoints.lazyMethodInvokerMethod.getOffset()); 
     return asm.getMachineCodes();
   }
 }

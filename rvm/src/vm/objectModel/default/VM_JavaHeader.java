@@ -809,12 +809,12 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) throws InterruptiblePragma {
-    asm.emitLAddr(dest, TIB_OFFSET.toInt(), object);
+    asm.emitLAddrOffset(dest, object, TIB_OFFSET);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
                                          byte object) throws InterruptiblePragma {
-    asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET.toInt());
+    asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
   }
   //-#endif
 

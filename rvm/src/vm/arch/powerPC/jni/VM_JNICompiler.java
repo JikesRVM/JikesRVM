@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * @author Ton Ngo 
@@ -158,7 +159,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // buy mini frame (2)
     asm.emitSTAddrU   (FP, -JNI_SAVE_AREA_SIZE, FP);
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id at mini frame (2)
-    asm.emitSTW   (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
+    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     // buy mini frame (1), the total size equals to frameSize
     asm.emitSTAddrU   (FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
     //-#endif
@@ -166,15 +167,15 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //-#if RVM_WITH_POWEROPEN_ABI
     asm.emitSTAddrU   (FP,  -frameSize, FP);             // get transition frame on stack
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id
-    asm.emitSTW   (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
+    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     //-#endif
 
     // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure      
-    asm.emitLAddr(S1, VM_Entrypoints.activeThreadField.getOffsetAsInt(), PROCESSOR_REGISTER);
-    asm.emitLAddr(S0, VM_Entrypoints.jniEnvField.getOffsetAsInt(), S1);
+    asm.emitLAddrOffset(S1, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());
+    asm.emitLAddrOffset(S0, S1, VM_Entrypoints.jniEnvField.getOffset());
 
     // save the PR register in the JNIEnvironment object for possible calls back into Java
-    asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), S0);   
+    asm.emitSTAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());   
     
     // save the JNIEnvironment in the stack frame so we can use it to acquire the PR
     // when we return from native code.
@@ -185,9 +186,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
     // for Linux, save mini (2) frame pointer, which has method id
     asm.emitLAddr (PROCESSOR_REGISTER, 0, FP);
-    asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt(), S0);
+    asm.emitSTAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNITopJavaFPField.getOffset());
     //-#elif RVM_WITH_POWEROPEN_ABI
-    asm.emitSTAddr(FP, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt(), S0);           
+    asm.emitSTAddrOffset(FP, S0, VM_Entrypoints.JNITopJavaFPField.getOffset());           
     //-#endif
         
     // save the RVM nonvolatile registers, to be scanned by GC stack mapper
@@ -212,7 +213,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     storeParameters(asm, frameSize, method, klass);
         
     // Get address of out_of_line prolog into S1, before setting TOC reg.
-    asm.emitLAddr (S1, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffsetAsInt(), JTOC);
+    asm.emitLAddrOffset(S1, JTOC, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset());
     asm.emitMTCTR (S1);
 
     // set the TOC and IP for branch to out_of_line code
@@ -244,19 +245,19 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitLAddr(i, frameSize - offset, FP);
     }
     fr1.resolve(asm);
-    asm.emitLAddr(S0, VM_Entrypoints.activeThreadField.getOffsetAsInt(), PROCESSOR_REGISTER);  // S0 holds thread pointer
+    asm.emitLAddrOffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());  // S0 holds thread pointer
 
     // reestablish S0 to hold pointer to VM_JNIEnvironment
-    asm.emitLAddr(S0, VM_Entrypoints.jniEnvField.getOffsetAsInt(), S0);       
+    asm.emitLAddrOffset(S0, S0, VM_Entrypoints.jniEnvField.getOffset());       
 
     // pop jrefs frame off the JNIRefs stack, "reopen" the previous top jref frame
     // use S1 as scratch, also use T2, T3 for scratch which are no longer needed
-    asm.emitLAddr(S1, VM_Entrypoints.JNIRefsField.getOffsetAsInt(), S0);          // load base of JNIRefs array
-    asm.emitLInt (T2, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt(), S0);   // get saved offset for JNIRefs frame ptr previously pushed onto JNIRefs array
+    asm.emitLAddrOffset(S1, S0, VM_Entrypoints.JNIRefsField.getOffset());          // load base of JNIRefs array
+    asm.emitLIntOffset (T2, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset());   // get saved offset for JNIRefs frame ptr previously pushed onto JNIRefs array
     asm.emitADDI (T3, -BYTES_IN_STACKSLOT, T2);                                    // compute offset for new TOP
-    asm.emitSTW  (T3, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), S0);       // store new offset for TOP into JNIEnv
+    asm.emitSTWoffset  (T3, S0, VM_Entrypoints.JNIRefsTopField.getOffset());       // store new offset for TOP into JNIEnv
     asm.emitLIntX(T2, S1, T2);                                    // retrieve the previous frame ptr
-    asm.emitSTW  (T2, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt(), S0);   // store new offset for JNIRefs frame ptr into JNIEnv
+    asm.emitSTWoffset  (T2, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset());   // store new offset for JNIRefs frame ptr into JNIEnv
 
     // Restore the return value R3-R4 saved in the glue frame spill area before the migration
     if (VM.BuildFor64Addr) {
@@ -288,9 +289,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
 
-    asm.emitLAddr (T2, VM_Entrypoints.JNIPendingExceptionField.getOffsetAsInt(), S0);   // get pending exception from JNIEnv
+    asm.emitLAddrOffset(T2, S0, VM_Entrypoints.JNIPendingExceptionField.getOffset());   // get pending exception from JNIEnv
     asm.emitLVAL  (T3, 0);                   // get a null value to compare
-    asm.emitSTAddr(T3, VM_Entrypoints.JNIPendingExceptionField.getOffsetAsInt(), S0); // clear the current pending exception
+    asm.emitSTAddrOffset(T3, S0, VM_Entrypoints.JNIPendingExceptionField.getOffset()); // clear the current pending exception
     asm.emitCMPAddr(T2, T3);
     VM_ForwardReference fr3 = asm.emitForwardBC(NE);
     asm.emitBCLR();                             // if no pending exception, proceed to return to caller
@@ -299,7 +300,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // An exception is pending, deliver the exception to the caller
     // as if executing an athrow in the caller
     // at the location of the call to the native method
-    asm.emitLAddrToc(T3, VM_Entrypoints.athrowMethod.getOffsetAsInt());
+    asm.emitLAddrToc(T3, VM_Entrypoints.athrowMethod.getOffset());
     asm.emitMTCTR(T3);                         // point LR to the exception delivery code
     asm.emitMR (T0, T2);                       // copy the saved exception to T0
     asm.emitBCCTR();                           // then branch to the exception delivery code, does not return
@@ -343,9 +344,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     
     // Set up the Reference table for GC
     // PR <- JREFS array base
-    asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIRefsField.getOffsetAsInt(), S0);
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIRefsField.getOffset());
     // TI <- JREFS current top 
-    asm.emitLInt(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), S0);   // JREFS offset for current TOP 
+    asm.emitLIntOffset(KLUDGE_TI_REG, S0, VM_Entrypoints.JNIRefsTopField.getOffset());   // JREFS offset for current TOP 
     asm.emitADD(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);                // convert into address
 
     // TODO - count number of refs
@@ -355,10 +356,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // push current SavedFP ptr onto top of JNIRefs stack (use available S1 reg as a temp)
     // and make current TOP the new savedFP
     //
-    asm.emitLInt  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt(), S0);
+    asm.emitLIntOffset  (S1, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset());
     asm.emitSTWU (S1, BYTES_IN_ADDRESS, KLUDGE_TI_REG);                           // push prev frame ptr onto JNIRefs array     
     asm.emitSUBFC(S1, PROCESSOR_REGISTER, KLUDGE_TI_REG);          // compute offset for new TOP
-    asm.emitSTW  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffsetAsInt(), S0);  // save new TOP as new frame ptr in JNIEnv
+    asm.emitSTWoffset  (S1, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset());  // save new TOP as new frame ptr in JNIEnv
 
 
     // for static methods: caller has placed args in r3,r4,... 
@@ -416,8 +417,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       // used by following emitLAddrToc
       asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klass.getTibOffset());  // r4 <= TIB
       asm.emitLAddr(SECOND_OS_PARAMETER_GPR, TIB_TYPE_INDEX, SECOND_OS_PARAMETER_GPR); // r4 <= VM_Type
-      asm.emitLAddr(SECOND_OS_PARAMETER_GPR, VM_Entrypoints.classForTypeField.getOffsetAsInt(),
-                    SECOND_OS_PARAMETER_GPR); // r4 <- java.lang.Class
+      asm.emitLAddrOffset(SECOND_OS_PARAMETER_GPR, SECOND_OS_PARAMETER_GPR, VM_Entrypoints.classForTypeField.getOffset()); // r4 <- java.lang.Class
       asm.emitSTAddrU (SECOND_OS_PARAMETER_GPR, BYTES_IN_ADDRESS, KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array
       asm.emitSUBFC(SECOND_OS_PARAMETER_GPR, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     } else {
@@ -427,7 +427,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     
     // store the new JNIRefs array TOP back into JNIEnv 
     asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
-    asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffsetAsInt(), S0);
+    asm.emitSTWoffset(KLUDGE_TI_REG, S0, VM_Entrypoints.JNIRefsTopField.getOffset());
   }
   
   //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
@@ -1157,7 +1157,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //
     asm.emitLVAL(S0, INVISIBLE_METHOD_ID);
     asm.emitMFLR(REGISTER_ZERO);
-    asm.emitSTW (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
+    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
@@ -1176,14 +1176,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     int retryLoop  = asm.getMachineCodeIndex();
     // acquire Jikes RVM PROCESSOR_REGISTER (and JTOC OSX/Linux only).
-    asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), T0);
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, T0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
     // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
     // Thus, we only need this load on non-AIX platforms
-    asm.emitLAddr(JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffsetAsInt(), T0);
+    asm.emitLAddrOffset(JTOC, T0, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset());
     //-#endif
 
-    asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffsetAsInt());
+    asm.emitLVALAddr  (S1, VM_Entrypoints.vpStatusField.getOffset());
     asm.emitLWARX (S0, S1, PROCESSOR_REGISTER);               // get status for processor
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);       // check if GC in progress, blocked in native mode
     VM_ForwardReference frBlocked = asm.emitForwardBC(EQ);
@@ -1211,10 +1211,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       offset+=BYTES_IN_DOUBLE;
     }
 
-    asm.emitLAddr(S1, VM_Entrypoints.the_boot_recordField.getOffsetAsInt(), JTOC); // get boot record address
+    asm.emitLAddrToc(S1, VM_Entrypoints.the_boot_recordField.getOffset()); // get boot record address
     asm.emitMR   (PROCESSOR_REGISTER, JTOC);                                  // save JTOC so we can restore below
-    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffsetAsInt(), S1);          // load TOC for syscalls from bootrecord
-    asm.emitLAddr(KLUDGE_TI_REG,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffsetAsInt(), S1);  // load addr of function
+    asm.emitLAddrOffset(JTOC, S1, VM_Entrypoints.sysTOCField.getOffset());          // load TOC for syscalls from bootrecord
+    asm.emitLAddrOffset(KLUDGE_TI_REG, S1, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
     asm.emitMTLR (KLUDGE_TI_REG);
     asm.emitBCLRL();                                                          // call sysVirtualProcessorYield in sys.C
     asm.emitMR   (JTOC, PROCESSOR_REGISTER);                                  // restore JTOC
@@ -1246,7 +1246,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // frame pointer (offset to avoid more interior pointers) and save offset
     // in this glue frame
     //
-    asm.emitLAddr (S0, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt(), T0);       // get addr of top java frame from JNIEnv
+    asm.emitLAddrOffset (S0, T0, VM_Entrypoints.JNITopJavaFPField.getOffset());       // get addr of top java frame from JNIEnv
     asm.emitSUBFC (S0, FP, S0);                                                 // S0 <- offset from current FP
     // AIX -4, LINUX - 8
     asm.emitSTW(S0, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP);  // store offset at end of glue frame
@@ -1268,8 +1268,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     // establish T2 -> current thread's VM_JNIEnvironment, from activeThread field
     // of current processor      
-    asm.emitLAddr(T2, VM_Entrypoints.activeThreadField.getOffsetAsInt(), PROCESSOR_REGISTER);   // T2 <- activeThread of PR
-    asm.emitLAddr(T2, VM_Entrypoints.jniEnvField.getOffsetAsInt(), T2);                         // T2 <- JNIEnvironment 
+    asm.emitLAddrOffset(T2, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // T2 <- activeThread of PR
+    asm.emitLAddrOffset(T2, T2, VM_Entrypoints.jniEnvField.getOffset());                         // T2 <- JNIEnvironment 
 
     // before returning to C, set pointer to top java frame in JNIEnv, using offset
     // saved in this glue frame during transition from C to Java.  GC will use this saved
@@ -1279,7 +1279,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // AIX -4, LINUX -8
     asm.emitLInt (T3, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP); // load offset from FP to top java frame
     asm.emitADD  (T3, FP, T3);                                    // T3 <- address of top java frame
-    asm.emitSTAddr(T3, VM_Entrypoints.JNITopJavaFPField.getOffsetAsInt(), T2);     // store TopJavaFP back into JNIEnv
+    asm.emitSTAddrOffset(T3, T2, VM_Entrypoints.JNITopJavaFPField.getOffset());     // store TopJavaFP back into JNIEnv
 
     // check to see if this frame address is the sentinel since there
     // may be no further Java frame below
@@ -1289,12 +1289,12 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     fr4.resolve(asm);
 
     // store current PR into VM_JNIEnvironment; we may have switched PRs while in Java mode.
-    asm.emitSTAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffsetAsInt(), T2);
+    asm.emitSTAddrOffset(PROCESSOR_REGISTER, T2, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
     // change the state of the VP to IN_NATIVE.
     //
     asm.emitLVAL (S0,  VM_Processor.IN_NATIVE);
-    asm.emitSTW  (S0,  VM_Entrypoints.vpStatusField.getOffsetAsInt(), PROCESSOR_REGISTER);
+    asm.emitSTWoffset  (S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset());
 
     // Restore those AIX nonvolatile registers saved in the prolog above
     // Here we only save & restore ONLY those registers not restored by RVM
