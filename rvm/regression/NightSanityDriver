@@ -70,4 +70,10 @@ done
 
 $succeed_immediately
 
-awk "{ print \"$RVM_ROOT/rvm/regression/RunSanityTests -configurations \" \$0 \" $ADDED || echo >&2 'Running the test $0 died.'\" }" "${DRIVER}" | sh -s
+awk "{ 
+print \"echo 'About to launch RunSanityTests -configurations \" \$0 \" $ADDED'\" ;
+print \"$RVM_ROOT/rvm/regression/RunSanityTests -configurations \" \$0 \" $ADDED || { \n\
+     code=\$? ; \n\
+     echo >&2 'Running the test \" \$0 \" died with error code \$code.' ; \n\
+     echo >&2 'Test run as:   RunSanityTests -configurations \" \$0 \" $ADDED' ;  } \"
+}" "${DRIVER}" | sh -s
