@@ -139,7 +139,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
-  //-#if RVM_WITH_JMTK
   public static final VM_Field dispenserField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "serving","I");
   public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
@@ -157,7 +156,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_Method putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
   public static final VM_Method modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
-  //-#endif
 
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");

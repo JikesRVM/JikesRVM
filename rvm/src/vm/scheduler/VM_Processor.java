@@ -5,10 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
-//-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-//-#endif
 
 /**
  * Multiplex execution of large number of VM_Threads on small 
@@ -665,8 +662,8 @@ implements VM_Uninterruptible, VM_Constants {
   int    arrayIndexTrapParam; 
   //-#endif
 
-  //-#if RVM_WITH_JMTK && !RVM_WITH_JMTK_INLINE_PLAN
-  final public Plan mmPlan = new Plan();
+  //-#if !RVM_WITH_JMTK_INLINE_PLAN
+  public final Plan mmPlan = new Plan();
   //-#endif
 
   // More GC fields

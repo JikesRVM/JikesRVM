@@ -279,10 +279,6 @@ integer RVM_WITH_OPT_COMPILER=0
 integer RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
-# The following must be set if using any of the RVM memory managers
-#
-integer RVM_WITH_JMTK=0
-
 integer RVM_WITH_BOOT_HEAP_ONLY=0
 integer RVM_WITH_HPM=0
 
@@ -626,30 +622,28 @@ function emitSourceList
 
    # common allocator and collector classes for RVM memory managers
    #
-   if (( $RVM_WITH_JMTK )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
-      # collector specific classes
-      #
-      if (( $RVM_WITH_SEMI_SPACE )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace
-      elif (( $RVM_WITH_MARK_SWEEP )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
-      elif (( $RVM_WITH_GEN_COPY )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
-      elif (( $RVM_WITH_GEN_MS )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
-      elif (( $RVM_WITH_COPY_MS )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
-      elif (( $RVM_WITH_REF_COUNT )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
-      elif (( $RVM_WITH_NO_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
-      fi
+   print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
+   print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
+   print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
+   print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
+   print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
+   print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
+   # collector specific classes
+   #
+   if (( $RVM_WITH_SEMI_SPACE )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace
+   elif (( $RVM_WITH_MARK_SWEEP )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
+   elif (( $RVM_WITH_GEN_COPY )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
+   elif (( $RVM_WITH_GEN_MS )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
+   elif (( $RVM_WITH_COPY_MS )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
+   elif (( $RVM_WITH_REF_COUNT )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
+   elif (( $RVM_WITH_NO_GC )); then
+       print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
    fi
 
    # standard library support
@@ -1617,11 +1611,9 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Type;'           >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;'  >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
-   if (( RVM_WITH_JMTK )); then
-     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
-     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;'                  >> $PRIMORDIAL_CLASSES_STR"
-     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;'                      >> $PRIMORDIAL_CLASSES_STR"
-   fi
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;'                  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/String;'              >> $PRIMORDIAL_CLASSES_STR"

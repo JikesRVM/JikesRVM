@@ -46,13 +46,11 @@ class VM_Barriers implements VM_BaselineConstants {
 
   static void compileModifyCheck (VM_Assembler asm, int offset) {
     if (!VM_Configuration.ExtremeAssertions) return;
-    //-#if RVM_WITH_JMTK
     // on entry java stack contains ... [SP+offset] -> target_ref
     // on exit: stack is the same  
     asm.emitPUSH_RegDisp(SP, offset);   // dup
     genParameterRegisterLoad(asm, 1);
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.modifyCheckMethod.getOffset());
-    //-#endif
   }
 
   // currently do not have a "write barrier for putstatic, emit nothing, for now...

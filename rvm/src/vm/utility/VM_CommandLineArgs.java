@@ -590,19 +590,13 @@ public class VM_CommandLineArgs {
           VM_Interface.processCommandLineArg(arg);
           break;
         case INITIAL_HEAP_ARG: 
-          //-#if RVM_WITH_JMTK
           VM_Interface.processCommandLineArg("initial=" + arg);
-          //-#endif
           break;
         case MAX_HEAP_ARG: 
-          //-#if RVM_WITH_JMTK
           VM_Interface.processCommandLineArg("max=" + arg);
-          //-#endif
           break;
         case LARGE_HEAP_ARG: 
-          //-#if RVM_WITH_JMTK
           VM_Interface.processCommandLineArg("los=" + arg);
-          //-#endif
           break;
 
 

@@ -5,9 +5,6 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-//-#if RVM_WITH_JMTK
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-//-#endif
 
 /**
  * A description of a java object.
@@ -157,9 +154,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public int bootCount;
   public int bootBytes; 
 
-  //-#if RVM_WITH_JMTK
-  public Type JMTKtype = new Type();
-  //-#endif
+  public com.ibm.JikesRVM.memoryManagers.vmInterface.Type JMTKtype = new com.ibm.JikesRVM.memoryManagers.vmInterface.Type();
 
   /**
    * RCGC: is this type acyclic? 

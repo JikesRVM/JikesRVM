@@ -22,12 +22,6 @@ class Dummy {
   static VM_Runtime                 d;
   static VM_Reflection              e;
   static VM_Process                 f;
-  //-#if RVM_WITH_JIKES_MEMORY_MANAGERS
-  static VM_WriteBarrier            g;
-  //-#endif
-  //-#if RVM_WITH_JMTK
-  static com.ibm.JikesRVM.memoryManagers.JMTk.Plan h;
-  //-#endif
   static VM_SaveVolatile            i;
   static VM_Interface               l;
   static VM_JNIFunctions            m;
