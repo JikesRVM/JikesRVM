@@ -99,7 +99,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Operand val = bc2ir.popInt();
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();
-      bc2ir.appendInstruction(Store.create(INT_STORE, val, object, offset, 
+      bc2ir.appendInstruction(Store.create(BYTE_STORE, val, object, offset, 
 					   null));
     } else if (methodName == VM_MagicNames.getMemoryWord) {
       OPT_Operand memAddr = bc2ir.popInt();
