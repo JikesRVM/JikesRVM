@@ -253,6 +253,8 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysHPMsetEventX(int e5, int e6, int e7, int e8) {return 0; } 
   public static int sysHPMsetMode(int mode) { return 0; }
   public static int sysHPMgetNumberOfCounters() { return 0; }
+  public static int sysHPMgetNumberOfEvents()   { return 0; }
+  public static int sysHPMisBigEndian()         { return 0; }
   public static int sysHPMtest() { return 0; }
   public static int sysHPMsetProgramMyThread() { return 0; }
   public static int sysHPMstartMyThread() { return 0; }

@@ -38,13 +38,16 @@
 #define COUNT_NOTHING 0
 #endif
 static int default_event = 0x8000003c;	// PAPI_TOT_CYC: total cycles
-static int n_counters = 0;		// number of counters
+static int n_counters = 0;		// number of hardware counters
 static long long *values;
 // local data structure to keep track of event set's contents
 struct program_data{
-	int* events;
-	int n_events;
+  int* events;
+  int n_events;
+  char **short_names;
 };
+
+// Assume only one event set valid at a time
 static int EventSet = PAPI_NULL;
 
 static PAPI_option_t options;
@@ -58,7 +61,7 @@ static int threadapi = 0;
 
 static int init_enabled      = 0;	/* 1 after hpm_init is called and MyInfo initialized */
 static int get_data_enabled  = 0;	/* 1 after call to get_data */
-static int set_event_enabled = 0;	/* 1 after set_program_mythread is called, 0 after hpm_delete_program_mythread is called */
+static int set_event_enabled = 0;	/* 1 after set_program is called, 0 after hpm_delete_program is called */
 
 static char errstring[PAPI_MAX_STR_LEN];
 
@@ -68,7 +71,8 @@ static int debug = 0;
  * must be called before any other API calls can be made.
  * This routine creates an initial PAPI event set and gets the hardware information.
  * Called once per machine.
- * Sets fields of set_program to default values
+ * Sets fields of set_program to default values.
+ * Sets n_counters.
  */
 int
 hpm_init(int my_filter) 
@@ -83,17 +87,6 @@ hpm_init(int my_filter)
     exit(ERROR_CODE);
   }
 
-  /*
-   *should i create the eventset here, or should i wait until 
-   *set_settings?
-   *do we really need set_settings, and delete_settings if we use PAPI???
-   */
-  if ( (rc = PAPI_create_eventset(&EventSet) ) != PAPI_OK ){
-    PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-    fprintf(stderr,"***hpm.hpm_init() PAPI_create_eventset failed: $s!***\n",errstring);
-    exit(ERROR_CODE);
-  }
-  if(debug>=1)printf("hpm.hpm_init() eventSet = %d\n",EventSet);
   if(!memset(&options,0x0,sizeof(options))){
     perror("***hpm.hpm_init() memset failed!***\n");
     exit(ERROR_CODE);
@@ -103,12 +96,28 @@ hpm_init(int my_filter)
     exit(ERROR_CODE);
   }
 
-  n_counters = PAPI_num_counters();
+  if ((n_counters = PAPI_get_opt(PAPI_GET_MAX_HWCTRS,NULL)) <= 0) {
+    fprintf(stderr,"***hpm_int() PAPI_get_opt(PAPI_GET_MAX_HWCTRS) failed!***\n");
+    exit(-1);
+  }
   if(debug>=1)printf("hpm.hpm_init() %d = PAPI_num_counters()\n",n_counters);
+
+
+  // this could be moved to set_program!
+  if ( (rc = PAPI_create_eventset(&EventSet) ) != PAPI_OK ){
+    PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
+    fprintf(stderr,"***hpm.hpm_init() PAPI_create_eventset failed: $s!***\n",errstring);
+    exit(ERROR_CODE);
+  }
+  if(debug>=1)printf("hpm.hpm_init() eventSet = %d\n",EventSet);
 
   values = (long long*) malloc(sizeof(long long)*n_counters);
   if(!(set_program.events =(int *) malloc(sizeof(int)*n_counters))){
     perror("***hpm.hpm_init() malloc set_program.events failed!***\n");
+    exit(ERROR_CODE);
+  }
+  if(!(set_program.short_names = (char **)malloc(sizeof(char *)*n_counters))){
+    perror("***hpm.hpm_init() malloc set_program.short_names failed!***\n");
     exit(ERROR_CODE);
   }
   if(!(mydata =(long long *) malloc(sizeof(long long)*n_counters))){
@@ -119,6 +128,7 @@ hpm_init(int my_filter)
   // Set counter to count nothing
   for (i = 0; i < n_counters; i++) {
     set_program.events[i] = COUNT_NOTHING;
+    set_program.short_names[i] = NULL;
   }
 
   // Domain definition is mode and is handled by command line options
@@ -139,7 +149,6 @@ char *
 hpm_get_processor_name()
 {
 
-  char * rc =(char *) malloc(sizeof(char)*PAPI_MAX_STR_LEN);
   if(debug>1) printf("hpm.hpm_get_processor_name()\n");
   if(init_enabled==0) {
     fprintf(stderr,"***hpm.hpm_get_processor_name() called before hpm_init()!***\n");
@@ -153,10 +162,16 @@ hpm_get_processor_name()
   if (debug>=1) {
     fprintf(stdout,"hardware information:\n\tvendor %d:%s\n\tmodel  %d:%s\n\tCPUs %d, nodes %d, total CPUs %d, mhz %f\n",hwinfo->vendor,hwinfo->vendor_string,hwinfo->model,hwinfo->model_string,hwinfo->ncpu,hwinfo->nnodes,hwinfo->totalcpus,hwinfo->mhz);
   }
-  strcpy(rc,hwinfo->model_string);
-  return rc;
+  return (char *)&hwinfo->model_string;
 }
 
+/*
+ * return little-endian
+ */
+int
+hpm_is_big_endian() {
+  return 1;
+}
 /*
  * Is this a Power PC Power4 machine?
  */
@@ -205,15 +220,32 @@ hpm_is604e()
 
 /*
  * How many counters available?
+ * Must be called after hpm_init!
+ * Expected to be used in C code for correctness.
  */
 int 
 hpm_get_number_of_counters() 
 {
-  if(debug>1)printf("hpm.hpm_number_of_counters()\n");
-  if(set_event_enabled==0) {
-    fprintf(stderr,"***hpm.hpm_number_of_counters() called before hpm_set_event()!***\n");
+  if(debug>1)printf("hpm.hpm_number_of_counters() returns %d\n", n_counters);
+  if(init_enabled==0) {
+    fprintf(stderr,"***hpm.hpm_get_number_of_counters() called before hpm_init()!***\n");
     exit(-1);
   }
+  return n_counters;
+}
+/*
+ * How many counters available?
+ * Must be called after hpm_set_program!
+ * Expected to be used in Java code.
+ */
+int 
+hpm_get_number_of_events() 
+{
+  if(set_event_enabled==0) {
+    fprintf(stderr,"***hpm.hpm_get_number_of_events() called before set_program()!***\n");
+    exit(-1);
+  }
+  if(debug>1)printf("hpm.hpm_number_of_events() returns %d\n", set_program.n_events);
   return set_program.n_events;
 }
 
@@ -222,6 +254,7 @@ hpm_get_number_of_counters()
  * has been called and before hpm_set_program_mythread has been called.
  ************************************************************************************/
 
+static void set_event(int, int);
 /*
  * This routine provides support to set the first four events to be counted.
  * This routine is called to set, in local variable set_program, the events to watch.
@@ -234,64 +267,29 @@ hpm_set_event(int event1, int event2, int event3, int event4)
 {
   int event = 0;
   int rc;
+  char *name = NULL;
 
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_event(%d,%d,%d,%d)\n",event1,event2,event3,event4);}
   if(init_enabled==0) {
-    fprintf(stderr,"***hpm.hpm_set_event() called before hpm_init()!***");
+    fprintf(stderr,"***hpm.hpm_set_event() called before hpm_init()!***\n");
     exit(-1);
   }
   if (n_counters > set_program.n_events && event1 >= 0) {
-    event = event1|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event1(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event1,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      if(debug>=1) printf("hpm.hpm_set_event1 = %x from %d\n",event,event1);
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event1, 1);
   }
   if (n_counters > set_program.n_events && event2 >= 0) {
-    event = event2|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event2(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event2,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      if(debug>=1) printf("hpm.hpm_set_event2 = %x from %d\n",event,event2);
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event2, 2);
   }
 
   if (n_counters > set_program.n_events && event3 >= 0) {
-    event = event3|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event3(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event3,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      if(debug>=1) printf("hpm.hpm_set_event3 = %x from %d\n",event,event3);
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event3, 3);
   }
   if (n_counters > set_program.n_events && event4 >= 0) {
-    event = event4|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event4(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event4,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      if(debug>=1) printf("hpm.hpm_set_event4 = %x from %d\n",event,event4);
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event4, 4);
   }
-  set_event_enabled = 1;
   return(OK_CODE);
 }
+
 /*
  * This routine allows more than 4 counter
  *
@@ -299,61 +297,55 @@ hpm_set_event(int event1, int event2, int event3, int event4)
 int
 hpm_set_event_X(int event5, int event6, int event7, int event8)
 {
-  int default_event = 0x8000003c;	// PAPI_TOT_CYC: total cycles
-  int event = 0;
-  int rc;
  
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_event_X(%d,%d,%d,%d)\n",event5,event6,event7,event8);}
   if(init_enabled==0) {
-    fprintf(stderr,"***hpm.hpm_set_event_X() called before hpm_init()!***");
+    fprintf(stderr,"***hpm.hpm_set_event_X() called before hpm_init()!***\n");
     exit(-1);
   }
   if (n_counters > set_program.n_events && event5 >= 0) {
-    event = event5|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event5_X(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event5,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event5, 5);
   }
   if (n_counters > set_program.n_events && event6 >= 0) {
-    event = event6|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event6_X(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event6,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event6, 6);
   }
   if (n_counters > set_program.n_events && event7 >= 0) {
-    event = event7|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
-      PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event7_X(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event7,event,errstring);
-      //      exit(ERROR_CODE);
-    } else {
-      set_program.events[set_program.n_events++]=event;
-    }
+    set_event(event7, 7);
   }
   if (n_counters > set_program.n_events && event8 >= 0) {
-    event = event8|0x80000000;
-    if(rc = PAPI_query_event(event) != PAPI_OK){
+    set_event(event8, 8);
+  }
+  return(OK_CODE);
+}
+
+/*
+ * Do all the work of setting an event.
+ */
+static void
+set_event(int event_id, int event_number) 
+{
+  int rc;
+  char *name = NULL;
+
+  int event = event_id|0x80000000;
+  if(rc = PAPI_query_event(event) != PAPI_OK){
+    PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
+    fprintf(stderr,"***hpm.hpm_set_event%d(%d) PAPI_query_event(%x) failed: %s!***\n",
+            event_number,event_id,event,errstring);
+    exit(ERROR_CODE);
+  } else {
+    if(debug>=1) printf("hpm.hpm_set_event1 = %x from %d\n",event,event_id);
+    set_program.events[set_program.n_events]=event;
+    name = (char *)malloc(sizeof(char)*PAPI_MAX_STR_LEN);
+    if((rc = PAPI_event_code_to_name(event, name)) != PAPI_OK) {
       PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-      fprintf(stderr,"***hpm.hpm_set_event8_X(%d) PAPI_query_event(%x) failed: %s!***\n",
-              event8,event,errstring);
-      //      exit(ERROR_CODE);
+      fprintf(stderr,
+              "***hpm.set_event(%d, %d) PAPI_event_code_to_name(%x) failed: %s!***\n",
+              event_id, event_number, event, errstring);
     } else {
-      set_program.events[set_program.n_events++]=event;
+      set_program.short_names[set_program.n_events++]=name;
     }
   }
-  set_event_enabled = 1;
-  return(OK_CODE);
 }
 
 /*
@@ -382,15 +374,15 @@ hpm_set_mode(int mode)
     domain |= PAPI_DOM_ALL;
   }
   if ( mode & MODE_IS_GROUP ) {
-    fprintf(stderr,"***hpm.hpm_set_mode(%d) MODE_IS_GROUP %d does not apply!***\n",mode, MODE_IS_GROUP);
+    fprintf(stderr,"\n***hpm.hpm_set_mode(%d) MODE_IS_GROUP %d does not apply!***\n",mode, MODE_IS_GROUP);
     exit(-1);
   }
   if ( mode & MODE_PROCTREE ) {
-    fprintf(stderr,"***hpm.hpm_set_mode(%d) MODE_PROCTREE %d does not apply!***\n",mode, MODE_PROCTREE);
+    fprintf(stderr,"\n***hpm.hpm_set_mode(%d) MODE_PROCTREE %d does not apply!***\n",mode, MODE_PROCTREE);
     exit(-1);
   }
   if ( mode & MODE_COUNT ) {
-    fprintf(stderr,"***hpm.hpm_set_mode(%d) MODE_COUNT %d does not apply!***\n",mode, MODE_PROCTREE);
+    fprintf(stderr,"\n***hpm.hpm_set_mode(%d) MODE_COUNT %d does not apply!***\n",mode, MODE_PROCTREE);
     exit(-1);
   }
   if(debug>=1){ fprintf(stdout," has domain %d\n", domain); fflush(stdout); }
@@ -413,7 +405,7 @@ hpm_set_program_mythread()
  int rc;
   if(debug>=1){fprintf(stdout,"hpm.hpm_set_program_mythread()\n");fflush(stdout);}
   if(init_enabled==0) {
-    fprintf(stderr,"***hpm.hpm_set_program_mythread() called before hpm_init()!***");
+    fprintf(stderr,"***hpm.hpm_set_program_mythread() called before hpm_init()!***\n");
     exit(-1);
   }
   if((rc = PAPI_add_events(&EventSet,set_program.events,set_program.n_events)) != PAPI_OK){
@@ -421,18 +413,10 @@ hpm_set_program_mythread()
     fprintf(stderr,"***hpm.hpm_set_program_mythread() PAPI_add_events failed: %s!***\n",errstring);
     exit(ERROR_CODE);
   }
-  //options.domain.domain = 1;
   if(debug>=1)printf("hpm.hpm_set_program_mythread() print options: event set %d, domain %d\n",
                      options.domain.eventset,options.domain.domain);
 
-  /*
-    // PFS: don't think I need.
-  if((rc = PAPI_set_opt(PAPI_SET_DOMAIN, &options)) != PAPI_OK){
-    PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-    fprintf(stderr,"***hpm.hpm_set_program_mythread() PAPI_set_opt failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
-  }
-  */
+  set_event_enabled = 1;
   return (OK_CODE);
   
 }
@@ -444,6 +428,7 @@ hpm_set_program_mygroup()
 {
   if(debug>0) printf("hpm.hpm_set_program_mygroup() not implemented \n");
   exit(ERROR_CODE);
+  set_event_enabled = 1;
   return (OK_CODE);
 }
 
@@ -461,9 +446,10 @@ hpm_get_event_id(int counter)
 {
   int evid;
   if(debug>=1) printf("hpm.hpm_get_event_id(%d)",counter);
-  if (n_counters <= counter) {
-    fprintf(stderr,"***hpm.hpm_get_event_id(%d) called with counter value %d > max counters %d!***",
-	    counter, counter, n_counters);
+  if (set_program.n_events <= counter) {
+    fprintf(stderr,
+            "\n***hpm.hpm_get_event_id(%d) called with counter value %d > number of events %d!***\n",
+	    counter, counter, set_program.n_events);
     exit(-1);
   }
   evid = set_program.events[counter];  // event number
@@ -488,22 +474,20 @@ hpm_get_event_short_name(int counter)
 {
   int evid, rc;
   char * name = NULL;
-  if (n_counters <= counter) {
-    fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) called with counter value %d > max counters %d!***",
-	    counter, counter, n_counters);
+  if (counter >= set_program.n_events) {
+    fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) called with counter value %d > number of events %d!***\n",
+	    counter, counter, set_program.n_events);
+    exit(-1);
+  }
+  if (counter >= set_program.n_events) {
+    fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) counter value %d > set_program.n_events %d!***\n",
+	    counter, counter, set_program.n_events);
     exit(-1);
   }
 
-  evid = set_program.events[counter];  // event number
-  
-  name = (char *)malloc(sizeof(char)*PAPI_MAX_STR_LEN);
-  if((rc = PAPI_event_code_to_name(evid,name)) != PAPI_OK) {
-    PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
-    fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) PAPI_event_code_to_name(%x) failed: %s!***\n",
-	    counter, evid, errstring);
-  } else {
-    if(debug>=1)fprintf(stdout,"hpm_get_event_short_name(%d) evid %x, name %s\n",counter,evid,name);
-  }
+  name = set_program.short_names[counter]; 
+  if(debug>=1)fprintf(stdout,"hpm_get_event_short_name(%d) evid %x, name %s\n",counter,evid,name);
+
   return name;
 }
 
@@ -525,6 +509,7 @@ hpm_delete_program_mythread()
     fprintf(stderr,"***hpm.hpm_delete_program_mythread() PAPI_cleanup_eventset failed: %s!***\n",errstring);
     exit(ERROR_CODE);
   }
+  set_event_enabled = 0;
   return (OK_CODE);
 }
 /*
@@ -535,6 +520,7 @@ hpm_delete_program_mygroup()
 {
   printf("hpm.hpm_delete_program_mygroup() not implemented\n");
   exit(ERROR_CODE);
+  set_event_enabled = 0;
   return OK_CODE;
 }
 
@@ -612,7 +598,8 @@ hpm_stop_mythread() {
   if ( (rc = PAPI_stop(EventSet,values)) != PAPI_OK) {
     PAPI_perror(rc, errstring, PAPI_MAX_STR_LEN);
     fprintf(stderr,"***hpm.hpm_stop_mythread() PAPI_stop failed: %s!***\n",errstring);
-    exit(ERROR_CODE);
+    //    exit(ERROR_CODE);
+    return(ERROR_CODE);
   }
   return OK_CODE;
 
@@ -712,9 +699,9 @@ hpm_get_counter_mythread(int counter)
 {
   int rc;
 
-  if(debug>=2)fprintf(stdout,"hpm.hpm_get_counter_mythread(%d)",counter);
+  if(debug>=1)fprintf(stdout,"hpm.hpm_get_counter_mythread(%d)\n",counter);
   long long value;
-  if ( (counter < 0) || (counter > n_counters) ) {
+  if ( (counter < 0) || (counter > set_program.n_events) ) {
      fprintf(stderr, "\n***hpm.hpm_get_counter(%d): Invalid counter!***\n",counter);
      exit(ERROR_CODE);
   }
@@ -781,7 +768,7 @@ hpm_print_data(long long *data)
 {
   int j;
   
-  for (j=0; j<n_counters; j++) 
+  for (j=0; j<set_program.n_events; j++) 
     fprintf(stdout, "%-8lld  ", data[j]); 
   fprintf(stdout, "\n");
 }
@@ -881,7 +868,7 @@ print_events(int *ev_list)
   char name[100];
   
   /* go through evs, get sname from table of events, print it */	
-  for (pmcid = 0; pmcid < n_counters; pmcid++) {
+  for (pmcid = 0; pmcid < set_program.n_events; pmcid++) {
     fprintf(stdout,"Counter %2d, ", pmcid+1); 
     /* get the event id from the list */
     evid = set_program.events[pmcid];
@@ -898,7 +885,7 @@ print_events(int *ev_list)
   fprintf(stdout,"\n*** Results :\n");
   
   str[0] = '\0';
-  for (pmcid=0; pmcid<n_counters; pmcid++) {
+  for (pmcid=0; pmcid<set_program.n_events; pmcid++) {
     fprintf(stdout,"PMC%2d     ", pmcid+1);
     len = strlen(str);
     str[len] = ' ';

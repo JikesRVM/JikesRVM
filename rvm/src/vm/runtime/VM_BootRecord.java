@@ -327,6 +327,8 @@ public class VM_BootRecord {
   public VM_Address sysHPMsetEventXIP;
   public VM_Address sysHPMsetModeIP;
   public VM_Address sysHPMgetNumberOfCountersIP;
+  public VM_Address sysHPMgetNumberOfEventsIP;
+  public VM_Address sysHPMisBigEndianIP;
   public VM_Address sysHPMtestIP;
   public VM_Address sysHPMsetProgramMyThreadIP;
   public VM_Address sysHPMstartMyThreadIP;

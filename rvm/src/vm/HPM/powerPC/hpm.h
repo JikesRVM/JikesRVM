@@ -33,7 +33,9 @@ int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
 
 extern "C" int   hpm_init(int my_filter);
 extern "C" int   hpm_get_number_of_counters();
+extern "C" int   hpm_get_number_of_events();
 extern "C" char *hpm_get_processor_name();
+extern "C" int   hpm_is_big_endian();
 extern "C" int   hpm_isPower4();
 extern "C" int   hpm_isPower3II();
 extern "C" int   hpm_isPower3();

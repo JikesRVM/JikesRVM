@@ -100,6 +100,19 @@ hpm_get_number_of_counters()
 }
 
 /*
+ * How many events set?
+ */
+int 
+hpm_get_number_of_events() 
+{
+  if(init_enabled==0) {
+    fprintf(stderr,"***hpm.hpm_number_of_events() called before hpm_init()!***");
+    exit(-1);
+  }
+  return Myinfo.maxpmcs;
+}
+
+/*
  * Return processor name.  Assume that hpm_init is called.
  */
 char *
@@ -112,6 +125,13 @@ hpm_get_processor_name()
   return Myinfo.proc_name;
 }
 
+/*
+ * Return big-endian
+ */
+int
+hpm_is_big_endian() {
+  return 0;
+}
 /*
  * Is this a Power PC Power4 machine?
  */

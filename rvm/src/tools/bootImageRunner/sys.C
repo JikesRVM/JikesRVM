@@ -1032,6 +1032,9 @@ extern "C" int hpm_stop_mythread();
 extern "C" int hpm_reset_mythread();
 extern "C" long long hpm_get_counter_mythread(int);
 extern "C" int hpm_get_number_of_counters();
+extern "C" int hpm_get_number_of_events();
+extern "C" int hpm_get_processor_name();
+extern "C" int hpm_is_big_endian();
 extern "C" int hpm_test();
 
 extern "C" int hpm_set_program_mygroup();
@@ -1354,11 +1357,7 @@ sysHPMgetCounterMyGroup(int counter)
 
 
 /*
- * Set mode(s) to be monitored.
- * Only returns if valid parameters.
- * Possible modes are:
- *   #define PM_USER        // turns user mode counting on
- *   #define PM_KERNEL      // turns kernel mode counting on
+ * Get number of counters available.
  */
 extern "C" int
 sysHPMgetNumberOfCounters()
@@ -1366,12 +1365,51 @@ sysHPMgetNumberOfCounters()
 #ifdef RVM_WITH_HPM
   int rc;
 # ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "%s: sysHPMgetNumberofCounters() called\n", Me);
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfCounters() called\n", Me);
 # endif
   rc = hpm_get_number_of_counters();
   return rc;
 #else
-  fprintf(SysErrorFile, "%s: sysHPMgetNumberofCounters() called: not compiled for HPM\n", Me);
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfCounters() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#endif
+}
+
+
+/*
+ * Get number of counters available.
+ */
+extern "C" int
+sysHPMgetNumberOfEvents()
+{
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfEvents() called\n", Me);
+# endif
+  rc = hpm_get_number_of_events();
+  return rc;
+#else
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfEvents() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#endif
+}
+
+/*
+ * Get number of counters available.
+ */
+extern "C" int
+sysHPMisBigEndian()
+{
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMisBigEndian() called\n", Me);
+# endif
+  rc = hpm_is_big_endian();
+  return rc;
+#else
+  fprintf(SysErrorFile, "%s: sysHPMisBigEndian() called: not compiled for HPM\n", Me);
   exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
