@@ -256,8 +256,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *       At present, only <init> and <clinit> are used.
    */ 
   public final boolean isReservedMemberName() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions)
-      VM._assert(val.length > 0);
+    if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '<';
   }
 
@@ -265,8 +264,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a class descriptor?
    */ 
   public final boolean isClassDescriptor() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions)
-      VM._assert(val.length > 0);
+    if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == 'L';
   }
       
@@ -274,8 +272,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom an array descriptor?
    */ 
   public final boolean isArrayDescriptor() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions)
-      VM._assert(val.length > 0);
+    if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '[';
   }
       
@@ -283,8 +280,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * Is "this" atom a method descriptor?
    */ 
   public final boolean isMethodDescriptor() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions)
-      VM._assert(val.length > 0);
+    if (VM.VerifyAssertions) VM._assert(val.length > 0);
     return val[0] == '(';
   }
       
@@ -298,8 +294,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  public final VM_TypeReference parseForReturnType(ClassLoader cl) 
-  {
+  public final VM_TypeReference parseForReturnType(ClassLoader cl) {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
       VM._assert(val[0] == '(', 
@@ -337,8 +332,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       return VM_TypeReference.Char;
     case ClassTypeCode:   // fall through
     case ArrayTypeCode:
-      return VM_TypeReference.findOrCreate(
-	    cl, findOrCreate(val, i, val.length - i));
+      return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i));
     default:
 	if (VM.VerifyAssertions) {
 	  VM._assert(false,
@@ -352,7 +346,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       
   private String byteToString(byte b) {
     return Character.toString((char) b);
-}
+  }
 
   /**
    * Parse "this" method descriptor to obtain descriptions of method's 
@@ -556,12 +550,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    * (ie a class that must be loaded by the system class loader
    */
   public final boolean isSystemClassDescriptor() {
-    int n=val.length;
   outer:
     for (int i=0; i<systemClasses.length; i++) {
       byte[] test = systemClasses[i];
-      if (test.length != n)
-	continue outer;
+      if (test.length > val.length) continue outer;
       for (int j=0; j<test.length; j++) {
 	if (val[j] != test[j]) 
 	  continue outer;
