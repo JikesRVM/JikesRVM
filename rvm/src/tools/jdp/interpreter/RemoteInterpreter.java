@@ -848,7 +848,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 
     // convert the type string to the VM_ structure in the external world
     VM_Atom fieldDescriptor = VM_Atom.findOrCreateAsciiAtom(mappedFieldType);
-    VM_Type fieldType = VM_ClassLoader.findOrCreateType(fieldDescriptor);
+    VM_Type fieldType = VM_ClassLoader.findOrCreateType(fieldDescriptor,VM_SystemClassLoader.getVMClassLoader());
     
     // Decode the field type to decide what to do, we have three cases:
     int mappedFieldValue, mappedFieldValue1;

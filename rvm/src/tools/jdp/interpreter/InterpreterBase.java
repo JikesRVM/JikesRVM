@@ -2235,7 +2235,7 @@ implements VM_Constants
       // for array, get the descriptor like [I and look up via the class loader
       if (javaClass.isArray()) {
     	VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(javaClass.getName());
-    	return VM_ClassLoader.findOrCreateType(classDescriptor).asArray();
+    	return VM_ClassLoader.findOrCreateType(classDescriptor,VM_SystemClassLoader.getVMClassLoader()).asArray();
       }
   
       // for normal class, look up using the class name via VM_Class
@@ -2523,7 +2523,7 @@ implements VM_Constants
     throws VM_ResolutionException
   {
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
+    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor,VM_SystemClassLoader.getVMClassLoader()).asClass();
 
     cls.load();
     cls.resolve();

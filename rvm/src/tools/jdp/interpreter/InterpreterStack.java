@@ -1136,7 +1136,7 @@ class InterpreterStack
       System.out.println(stack);
 
       VM_Atom typeDescriptor = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;");
-      VM_Type type           = VM_ClassLoader.findOrCreateType(typeDescriptor);
+      VM_Type type           = VM_ClassLoader.findOrCreateType(typeDescriptor,VM_SystemClassLoader.getVMClassLoader());
       VM.sysWrite("inspecting " + type + "\n");
       
       if (type.isClassType() == false)
