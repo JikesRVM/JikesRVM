@@ -39,7 +39,19 @@ public class VM_BootImageCompiler {
    */
   public static VM_CompiledMethod compile(VM_Method method) {
     VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    return VM_BaselineCompiler.compile(method);
+    VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    // Must estimate compilation time by using offline ratios.
+    // It is tempting to time via System.currentTimeMillis()
+    // but 1 millisecond granularity isn't good enough because the 
+    // the baseline compiler is just too fast.
+    if (!method.isNative()) {
+      double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+      cm.setCompilationTime(compileTime);
+    }
+    //-#endif
+    return cm;
   }
   
   /**
