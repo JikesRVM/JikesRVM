@@ -21,4 +21,7 @@ class VM {
 
     }
 
+    public static void sysWrite(String s) {
+
+    }
 }
