@@ -400,8 +400,8 @@ A garbage collector may have any of the following types:
 fixed-size nursery
 \item[CopyGenVariable] a copying generational collector with a
 variable-size nursery
-\item[HybridGC] a hybrid collector, semi-space for the nursery and
-mark-and-sweep for the mature space
+\item[Hybrid] a hybrid generational collector, semi-space for the
+nursery and mark-and-sweep for the mature space
 \item[Concurrent] a concurrent reference counting collector
 \end{description}
 
@@ -482,7 +482,7 @@ understands.
 
 The RVM build process consists of two major phases: the building of a
 RVM {\em boot image}, and the building of a RVM {\em boot loader}.
-The boot image is built using a Java\trademark executed within a host
+The boot image is built using a Java\trademark program executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
 

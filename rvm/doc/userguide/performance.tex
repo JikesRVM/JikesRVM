@@ -27,9 +27,11 @@ baseline compiled and run slowly.
 checking at runtime.
 \index{garbage collection}
 \item Both configurations use the non-generational, copying (semi-space) 
-collector.  This collector has the fastest allocation sequence.  
-Naturally, GC research will need to build configurations with other
-collectors.
+collector.  This collector has the fastest allocation sequence.  For
+applications with a large working set (eg SPECjbb2000), you may get
+better performance from the MarkSweep collector than the Semispace
+collector.  Naturally, GC research will need to build configurations
+with other collectors.
 \end{itemize}
 
 \subsection{What commmand-line arguments should I use?}
@@ -91,10 +93,6 @@ strip-mining and hoisting the yield point out of hot loops.
 virtual processor (ie., pthread) has no work to do, it spins chewing up
 cpu cycles.  Thus, RVM will only perform well if there is no other activity on the machine.
 \item The load balancing in the system is naive and unfair.  This can hurt some styles of codes, including bulk-synchronous parallel programs.
-\index{hash codes}
-\item The default hash codes assigned by the system are currently only 8
-bits.  If you observed this as a problem, let us know in order to motivate
-us to fix this.
 \item The adaptive system may not perform well on SMPs; this may be due to bad
 interaction with the thread load balancer.
 \end{itemize}

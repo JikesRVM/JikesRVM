@@ -585,7 +585,7 @@ The {\tt OptTestHarness} program provides even more control over the
 optimizing compiler.  This driver program allows you to invoke the
 optimizing compiler as an ``application'' running on top of the VM.
 The most useful configuration for this is probably {\tt
-BaseBaseOTHcopyingGC}; this image is a BaseBase image which includes just
+BaseBaseOTHSemispace}; this image is a BaseBase image which includes just
 enough support to invoke the optimizing compiler through {\tt
 OptTestHarness}.  Like the {\tt BaseOpt} images, you can use {\tt jbuild
 -nolink} to skip a time-consuming boot image writing during development.
