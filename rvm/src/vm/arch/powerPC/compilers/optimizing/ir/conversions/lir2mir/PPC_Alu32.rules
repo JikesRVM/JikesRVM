@@ -1,0 +1,179 @@
+#
+# (C) Copyright IBM Corp. 2001,2002
+#
+#//$Id$
+#
+# @author Dave Grove
+# @author Mauricio J. Serrano
+#
+# BURS rules for long ALU operations 
+# that are specific to PPC with 32 bit GPRs
+#
+# See PPC_Common.rules for the format of this file
+##################################
+# Basic Long ALU operations 
+##################################
+#####
+# LONG_ADD
+#####
+r:	LONG_ADD(r,r)
+20
+EMIT_INSTRUCTION
+LONG_ADD(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+#####
+# LONG_SUB
+#####
+r:	LONG_SUB(r,r)
+20
+EMIT_INSTRUCTION
+LONG_SUB(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+#####
+# LONG_MUL
+#####
+r:	LONG_MUL(r,r)
+20
+EMIT_INSTRUCTION
+LONG_MUL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+#####
+# LONG_NEG
+#####
+r:	LONG_NEG(r)
+20
+EMIT_INSTRUCTION
+LONG_NEG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+
+#####
+# LONG_SHL
+#####
+r:	LONG_SHL(r,r)
+20
+EMIT_INSTRUCTION
+LONG_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+r:	LONG_SHL(r,INT_CONSTANT)
+20
+EMIT_INSTRUCTION
+LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+
+#####
+# LONG_SHR
+#####
+r:	LONG_SHR(r,r)
+20
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+
+r:	LONG_SHR(r,INT_CONSTANT)
+20
+EMIT_INSTRUCTION
+LONG_SHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+
+#####
+# LONG_USHR
+#####
+r:	LONG_USHR(r,r)
+20
+EMIT_INSTRUCTION
+LONG_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+r:	LONG_USHR(r,INT_CONSTANT)
+20
+EMIT_INSTRUCTION
+LONG_USHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+
+#####
+# LONG_AND
+#####
+r:	LONG_AND(r,r)
+20
+EMIT_INSTRUCTION
+LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+#####
+# LONG_OR
+#####
+r:	LONG_OR(r,r)
+20
+EMIT_INSTRUCTION
+LONG_LOG(P(p), PPC_OR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+#####
+# LONG_XOR
+#####
+r:	LONG_XOR(r,r)
+20
+EMIT_INSTRUCTION
+LONG_LOG(P(p), PPC_XOR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+
+#####
+# LONG_NOT
+#####
+r:	LONG_NOT(r)
+20
+EMIT_INSTRUCTION
+LONG_NOT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+
+#####
+# INT_2LONG
+#####
+r:	INT_2LONG(r)
+20
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
+
+#####
+# LONG_2INT
+#####
+r:	LONG_2INT(r)
+10
+EMIT_INSTRUCTION
+LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+
+#####
+# DOUBLE_AS_LONG_BITS
+#####
+r:	DOUBLE_AS_LONG_BITS(r)
+40
+EMIT_INSTRUCTION
+FPR2GPR_64(P(p));
+
+#####
+# LONG_BITS_AS_DOUBLE
+#####
+r:	LONG_BITS_AS_DOUBLE(r)
+40
+EMIT_INSTRUCTION
+GPR2FPR_64(P(p));
+
+#####
+# LONG_MOVE
+#####
+r:	LONG_MOVE(LONG_CONSTANT)
+40
+EMIT_INSTRUCTION
+LONG_CONSTANT(P(p), Move.getResult(P(p)), L(Move.getVal(P(p))));
+
+r:	LONG_MOVE(r)
+22
+EMIT_INSTRUCTION
+LONG_MOVE(P(p), Move.getResult(P(p)), R(Move.getVal(P(p))));
+
+#####
+# LONG_CMP
+#####
+stm:	LONG_CMP(r,r)
+40
+EMIT_INSTRUCTION
+EMIT (P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+
+#####
+# LONG_IFCMP
+#####
+stm:	LONG_IFCMP(r,r)
+30
+EMIT_INSTRUCTION
+EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+
