@@ -250,6 +250,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     OPT_Instruction earlyPos = ir.firstInstructionInCodeOrder();
     // dependencies via scalar operands
     earlyPos = scheduleDefEarly(inst.getUses(), earlyPos);
+    
     // memory dependencies
     if (inst.isImplicitLoad() || inst.isImplicitStore() || inst.isPEI())
       earlyPos = scheduleDefEarly(ssad.getHeapUses(inst), earlyPos, inst);
@@ -372,24 +373,32 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       return  earlyPos;
     OPT_BasicBlock origBlock = getOrigBlock(inst);
     OPT_BasicBlock actBlock = origBlock;
-    OPT_BasicBlock bestBlock = actBlock;
+    OPT_BasicBlock bestBlock = origBlock;
     OPT_BasicBlock earlyBlock = getBlock(earlyPos);
     // should not happen. does it still?
-    if (!(dominator.dominates(earlyBlock.getNumber(), 
-			      origBlock.getNumber()))) {
-      if (VM.VerifyAssertions)
-	VM.assert(inst.operator.opcode == GUARD_COMBINE_opcode);
-      return  null;
+    if (VM.VerifyAssertions) {
+      VM.assert (dominator.dominates(earlyBlock.getNumber(), 
+				     origBlock.getNumber()));
     }
     for (;;) {
+      /* don't put memory ops or PEIs on speculative path */
       if ((inst.isPEI() || inst.isImplicitStore()) && 
-	  !postDominates(origBlock, actBlock)) {
+        !postDominates(origBlock, actBlock)) {
 	break;
       }
-      if (frequency(actBlock) < frequency(bestBlock))
+      /* can't insert after a branch op */
+      if (actBlock == earlyBlock && earlyPos.isBranch()) break;
+
+      /* is the actual block better (less frequent)
+	 than the so far best block? */
+      if (frequency (actBlock) < frequency (bestBlock))
 	bestBlock = actBlock;
+
+      /* all candidates checked? */
       if (actBlock == earlyBlock)
 	break;
+
+      /* walk up the dominator tree for next candidate*/
       actBlock = dominator.getParent(actBlock);
     }
     if (bestBlock == getOrigBlock(inst))
