@@ -3065,7 +3065,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popInt() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike(), r.toString());
+    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
     return r;
   }
 

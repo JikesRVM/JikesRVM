@@ -297,20 +297,15 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   public final VM_TypeReference parseForReturnType(ClassLoader cl) {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
-      VM._assert(val[0] == '(', 
-		 "Need a valid method descriptor; got \"" + this + "\"");
+      VM._assert(val[0] == '(', "Method descriptors start with `(`");
     }
     int i = 0;
     while (val[i++] != ')') {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length, 
-		   "The method descriptor \"" + this + "\"" 
-		   + " is missing a closing ')'");
+	VM._assert(i < val.length, "Method descriptor missing closing ')'");
     }
     if (VM.VerifyAssertions)
-      VM._assert(i < val.length, 
-		 "The method descriptor \"" + this + "\"" 
-		 + " is missing a type after the closing ')'");
+      VM._assert(i < val.length, "Method descriptor missing type after closing ')'");
     switch (val[i]) {
     case VoidTypeCode:
       return VM_TypeReference.Void;
@@ -357,16 +352,13 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   public final VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
     if (VM.VerifyAssertions)  {
       VM._assert(val.length > 0);
-      VM._assert(val[0] == '(', 
-		 "The method descriptor \"" + this 
-		 + "\" doesn't start with the character '('" );
+      VM._assert(val[0] == '(', "Method descriptors start with `(`");
     }
     VM_TypeReferenceVector sigs = new VM_TypeReferenceVector();
     int i = 1;
     while (true) {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length,
-		   "\"" + this + "\" is not a valid method descriptor");
+	VM._assert(i < val.length, "Method descriptor missing closing `)`");
       
       switch (val[i++])	{
       case VoidTypeCode:    sigs.addElement(VM_TypeReference.Void);     
@@ -391,8 +383,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 	int off = i - 1;
 	while (val[i++] != ';') {
 	  if (VM.VerifyAssertions)
-	    VM._assert(i < val.length,
-		"class descriptor missing a final ';': \"" + this + "\"");
+	    VM._assert(i < val.length, "class descriptor missing a final ';'");
 	}
 	sigs.addElement(
 	    VM_TypeReference
@@ -404,8 +395,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 	int off = i - 1;
 	while (val[i] == ArrayTypeCode) {
 	  if (VM.VerifyAssertions)
-	    VM._assert(i < val.length, 
-		       "\"" + this + "\" is a malformed array descriptor");
+	    VM._assert(i < val.length, "malformed array descriptor");
 	  ++i;
 	}
 	if (val[i++] == ClassTypeCode) while (val[i++] != ';');
@@ -466,15 +456,12 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   public final int parseForArrayDimensionality() 
   {
     if (VM.VerifyAssertions) {
-      VM._assert(val.length > 1, 
-		 "An array descriptor has at least two characters: " + this.toString());
-      VM._assert(val[0] == '[',
-		 "An array descriptor must start with '['; we got " + this.toString());
+      VM._assert(val.length > 1, "An array descriptor has at least two characters");
+      VM._assert(val[0] == '[', "An array descriptor must start with '['");
     }
     for (int i = 0; ; ++i) {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length,
-		   "Malformed array descriptor: it can't just have [ characters: \"" + this + "\"");
+	VM._assert(i < val.length, "Malformed array descriptor: it can't just have [ characters");
       if (val[i] != '[')
 	return i;
     }
@@ -493,14 +480,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     throws VM_PragmaUninterruptible
   {
     if (VM.VerifyAssertions) {
-      VM._assert(val.length > 1, 
-		 //		 "An array descriptor has at least two characters: ",  this.toString());
-		 "An array descriptor must have at least two characters");
-      
-      VM._assert(val[0] == '[',
-		 "An array descriptor must start with '['" );
-      //		 "An array descriptor must start with '['; we got " );
-		 //, this.toString());
+      VM._assert(val.length > 1, "An array descriptor has at least two characters");
+      VM._assert(val[0] == '[', "An array descriptor must start with '['");
     }
     return val[1];
   }
@@ -510,17 +491,13 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public final VM_Atom parseForInnermostArrayElementDescriptor() {
     if (VM.VerifyAssertions) {
-      VM._assert(val.length > 1, 
-		 "An array descriptor has at least two characters: " + this);
-      VM._assert(val[0] == '[',
-		 "An array descriptor must start with '['; we got " + this);
+      VM._assert(val.length > 1, "An array descriptor has at least two characters");
+      VM._assert(val[0] == '[', "An array descriptor must start with '['");
     }
     int i=0; 
     while (val[i] == '[') {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length,
-		   "An array descriptor can't just have [ characters: " 
-		   + this);
+	VM._assert(i < val.length, "Malformed array descriptor: it can't just have [ characters");
       i++;
     }
     return findOrCreate(val, i, val.length -i);
@@ -534,10 +511,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    */
   public final VM_Atom parseForArrayElementDescriptor() {
     if (VM.VerifyAssertions) {
-      VM._assert(val.length > 1, 
-		 "An array descriptor has at least two characters: " + this);
-      VM._assert(val[0] == '[',
-		 "An array descriptor must start with '['; we got " + this);
+      VM._assert(val.length > 1, "An array descriptor has at least two characters");
+      VM._assert(val[0] == '[', "An array descriptor must start with '['");
     }
     return findOrCreate(val, 1, val.length - 1);
   }
