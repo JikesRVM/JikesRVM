@@ -14,7 +14,7 @@
 import java.util.*;
 import java.io.*;
 /* not needed for build in separate RVM.tools directory */
-/* import BootImageWriter2; */
+/* import BootImageWriter; */
 
 class BootMapExternal extends BootMap {
     
@@ -60,7 +60,7 @@ class BootMapExternal extends BootMap {
    * @param mainClass  the original name of the program
    * @param classesNeededFilename the file name of the list of classes in the boot map
    * @param classpath  class path to ensure the TOC is loaded in the same sequence as
-   *                   done by BootImageWriter2
+   *                   done by BootImageWriter
    * @return
    * @see BootMap
    */
@@ -81,7 +81,7 @@ class BootMapExternal extends BootMap {
     // If we are running under the JDK (and not the mapping interpreter)
     // set up the JVM data structure for lookup later on
     if (first_time) {
-      // The classpath must be identical to the one used by BootImageWriter2
+      // The classpath must be identical to the one used by BootImageWriter
       // so that the TOC will be loaded in the same order;  if not, the
       // offset for the static fields will not match between jdp and the 
       // boot image.
@@ -89,7 +89,7 @@ class BootMapExternal extends BootMap {
       // System.out.println("BootMapExternal: classpath " + classpath);
       VM.initForTool(classpath);
     
-      // load the classes identically to BootImageWriter2
+      // load the classes identically to BootImageWriter
       try {
 	preloadClasses(classesNeededFilename);
 	first_time = false;
@@ -997,7 +997,7 @@ class BootMapExternal extends BootMap {
    * @param testname the name of the boot image file
    * @param classesNeededFilename the file listing the classes included in the boot image
    * @return
-   * @see BootImageWriter2
+   * @see BootImageWriter
    */
   private void preloadClasses(String classesNeededFilename) 
     throws Exception, VM_ResolutionException
@@ -1010,8 +1010,8 @@ class BootMapExternal extends BootMap {
     // new boot image writer -- work in progress [DL]
     try {
       VM.writingBootImage = true;   // disable lazy compilation so preloading can occur
-      Vector typeNames = BootImageWriter2.readTypeNames(classesNeededFilename);
-      BootImageWriter2.createBootImageObjects(typeNames, "dummyName");
+      Vector typeNames = BootImageWriter.readTypeNames(classesNeededFilename);
+      BootImageWriter.createBootImageObjects(typeNames, "dummyName");
     } catch (Exception e) {
       System.out.println("preloadClasses fails");
       e.printStackTrace();
