@@ -669,9 +669,8 @@ public class BootImageWriter2 extends BootImageWriterMessages
         continue; // arrays and primitives have no static fields
 
       Class jdkType = getJdkType(rvmType);
-      if (jdkType == null) {
-        fail("host has no class \"" + rvmType.getName() + "\"");
-        continue;
+      if (jdkType == null && trace) {
+        say("host has no class \"" + rvmType.getName() + "\"");
       }
 
       VM_Field rvmFields[] = rvmType.getStaticFields();
@@ -680,16 +679,21 @@ public class BootImageWriter2 extends BootImageWriterMessages
         VM_Type  rvmFieldType = rvmField.getType();
         int      rvmFieldSlot = (rvmField.getOffset() >>> 2);
         String   rvmFieldName = rvmField.getName().toString();
-        Field    jdkFieldAcc  = getJdkFieldAccessor(jdkType, rvmFieldName);
+        Field    jdkFieldAcc  = null;
+
+	if (jdkType != null) 
+	    jdkFieldAcc = getJdkFieldAccessor(jdkType, rvmFieldName);
 
         if (jdkFieldAcc == null) {
-          if (trace) traceContext.push(rvmFieldType.toString(),
-                                       jdkType.getName(), rvmFieldName);
-          if (trace) traceContext.traceFieldNotInHostJdk();
-          if (trace) traceContext.pop();
-          VM_Statics.setSlotContents(rvmFieldSlot, 0);
-          BootImage.countNulledReference();
-          continue;
+	    if (jdkType != null) {
+		if (trace) traceContext.push(rvmFieldType.toString(),
+					     jdkType.getName(), rvmFieldName);
+		if (trace) traceContext.traceFieldNotInHostJdk();
+		if (trace) traceContext.pop();
+	    }
+	    VM_Statics.setSlotContents(rvmFieldSlot, 0);
+	    BootImage.countNulledReference();
+	    continue;
         }
 
         // if (trace) say("populating jtoc slot ", rvmFieldSlot, " with ",
@@ -1186,9 +1190,10 @@ public class BootImageWriter2 extends BootImageWriterMessages
   private static Class getJdkType(VM_Type rvmType) {
     try {
       return Class.forName(rvmType.getName());
-    } catch (ClassNotFoundException x) {
-      say(x.toString());
-      x.printStackTrace();
+    } catch (Throwable x) {
+      if (trace) {
+	  say(x.toString());
+      }
       return null;
     }
   }

@@ -484,7 +484,11 @@ public class VM_ClassLoader
   static void boot(String vmClasses) {
     if (vmClasses != null) {
       vmRepositories = new String[2];
+      //-#if RVM_WITH_JKSVM_JAR
+      vmRepositories[0] = vmClasses + "/jksvm.jar";
+      //-#else
       vmRepositories[0] = vmClasses;
+      //-#endif
       //-#if RVM_FOR_CYGWIN
       vmRepositories[1] = vmClasses + "\\rvmrt.jar";
       //-#else
