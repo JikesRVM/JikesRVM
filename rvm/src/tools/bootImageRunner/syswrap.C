@@ -22,8 +22,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-#include <stdio.h> // XXX
+#include <stdio.h>
 #include <jni.h>
+
+#include <sys/poll.h>
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include "InterfaceDeclarations.h"
@@ -34,6 +36,7 @@ extern "C" void *getJTOC();
 extern "C" int getProcessorsOffset();
 
 extern pthread_key_t VmProcessorIdKey;
+extern pthread_key_t IsVmProcessorKey;
 
 #include "syswrap.h"
 
@@ -48,6 +51,7 @@ extern pthread_key_t VmProcessorIdKey;
 
 // Pointers to actual syscall functions from C library.
 static SelectFunc libcSelect;
+static PollFunc libcPoll;
 
 // Get a pointer to a symbol from the C library.
 //
@@ -96,7 +100,7 @@ JNIEnv *getJniEnvFromVmProcessor(void *vmProcessorPtr)
 // We may want to adjust this so any non-zero wait is considered long.
 static bool isLongWait(struct timeval *timeout)
 {
-  return timeout == 0 || timeout->tv_sec > 0;
+  return timeout == 0 || timeout->tv_sec > 0 || timeout->tv_usec > 1000;
 }
 
 // Pointer to JTOC.
@@ -241,8 +245,9 @@ extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
   getRealSymbol("select", (void**) &libcSelect);
 
   // If timeout is short, just call real select().
-  if (!isLongWait(timeout))
+  if (!isLongWait(timeout)) {
     return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
+  }
 
   // Get the JNIEnv from the VM_Processor object
   JNIEnv *env;
@@ -281,6 +286,72 @@ extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
   return readyCount;
 }
 
+// Wrapper for the poll() system call, which we re-implement using select
+//
+// Note: we are taking on faith the claim in the select_tut(2) man page 
+// that exceptfds in select is really used for out-of-band data and not
+// for exceptions.  See select_tut(2) for details.
+//
+extern "C" int poll(struct pollfd *ufds, long unsigned int nfds, int timeout) {
+  fd_set readfds, writefds, exceptfds;
+  struct timeval tv;
+  struct timeval *tv_ptr;
+  int max_fd;
+  int ready;
+  int i;
+
+  getRealSymbol("poll", (void**) &libcPoll);
+
+  // If timeout is short, just call real poll().
+  if (timeout == 0 || timeout == 1) {
+    return libcPoll(ufds, nfds, timeout);
+  }
+
+  FD_ZERO( &readfds );
+  FD_ZERO( &writefds );
+  FD_ZERO( &exceptfds );
+
+  if (timeout < 0) 
+    tv_ptr = NULL;
+  else {
+    tv.tv_sec = timeout / 1000;
+    tv.tv_usec = (timeout - (tv.tv_sec*1000)) * 1000;
+    tv_ptr = &tv;
+  }
+
+  max_fd = 0;
+
+  for(i = 0; i < nfds; i++) {
+
+    if (ufds[i].fd+1 > max_fd)
+      max_fd = ufds[i].fd+1;
+
+    if (ufds[i].events&POLLIN)
+      FD_SET( ufds[i].fd, &readfds );
+
+    if (ufds[i].events&POLLOUT)
+      FD_SET( ufds[i].fd, &writefds );
+
+    if (ufds[i].events&POLLPRI)
+      FD_SET( ufds[i].fd, &exceptfds );
+  }
+
+  ready = select(max_fd, &readfds, &writefds, &exceptfds, &tv);
+    
+  for(i = 0; i < nfds; i++) {
+
+    if (ufds[i].events&POLLIN && FD_ISSET( ufds[i].fd, &readfds ))
+      ufds[i].revents |= POLLIN;
+
+    if (ufds[i].events&POLLOUT && FD_ISSET( ufds[i].fd, &writefds ))
+      ufds[i].revents |= POLLOUT;
+
+    if (ufds[i].events&POLLPRI && FD_ISSET( ufds[i].fd, &exceptfds ))
+      ufds[i].revents |= POLLPRI;
+  }
+
+  return ready;
+}
 
 //////////////////////////////////////////////////////////////
 // JNI stuff
@@ -306,7 +377,13 @@ jint GetEnv(JavaVM *vm, void **penv, jint version) {
   // Java 1.2 is not supported yet
   if (version == JNI_VERSION_1_2)
     return JNI_EVERSION;
-  
+
+  // Return NULL if we are not on a VM pthread
+  if (pthread_getspecific(IsVmProcessorKey) == NULL) {
+    *penv = NULL;
+    return -1;
+  }
+
   // Get VM_Processor id.
   int vmProcessorId =
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
@@ -314,8 +391,6 @@ jint GetEnv(JavaVM *vm, void **penv, jint version) {
 #else
     (int) pthread_getspecific(VmProcessorIdKey);
 #endif
-
-  // ** MUST CHECK FOR BOGUS THREADS SOMEHOW **
 
   // Find the VM_Processor object.
   unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
@@ -343,8 +418,6 @@ int createJavaVM() {
   JavaVM *theJikesRVM = (struct JavaVM_ *) malloc (sizeof(struct JavaVM_));
   theJikesRVM->functions = &externalJNIFunctions;
 
-  fprintf(stderr, "vm at %x\n", theJikesRVM);
- 
   return (int) theJikesRVM;
 }
 
