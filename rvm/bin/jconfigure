@@ -279,8 +279,8 @@ function help_message () {
 
 	If you want to see Java warnings, set the values of
 	JAVAC_WARNING_FLAGS and JIKES_WARNING_FLAGS with -D
-	in the arguments to jconfigure.  The default value for both
-	is "-nowarn".
+	in the arguments to jconfigure, or in the config files.  
+	The default value for both is "-nowarn".
 
 	You can invoke this script as "${ME} < /dev/null" in order to
 	suppress interactive questions.
@@ -388,6 +388,8 @@ function setSomeFromPath () {
     done
 }
 
+declare host_jikes_version=""	# empty string means unset.
+
 function rationalize_config_file_settings () {
     ## HOST_VM_TYPE: Valid working values: Sun, Kaffe
     ##			In-progress values: JikesRVM, gij
@@ -471,7 +473,7 @@ function rationalize_config_file_settings () {
     fi
 
     # Path for the Jikes java-to-byte-code compiler.  A necessary part of 
-    # the build process.
+    # the build process.  We only run JIKES on the host.
     if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]	\
 	&& ! [[ ${JIKES-} ]]				\
 	&& ! export JIKES=$(type -p jikes)
@@ -479,6 +481,43 @@ function rationalize_config_file_settings () {
 	## Note: This is quite possibly bogus if we're reading in the target
 	## file instead of the host file, during a cross-build.
 	show_mesg "I can't find the Jikes java-to-byte-code compiler.  Please set the variable JIKES in $CURRENT_CONFIG_FILE or put an executable named \"jikes\" in your command search path"
+	trap '' EXIT
+	exit $Exit_Status_Bad_Args
+    fi
+
+    setSomeFromPath fgrep
+
+    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]] \
+	&& ! [[ $host_jikes_version ]]
+    then
+	## Check the Jikes version for the HOST.  We don't care much
+	## about the version of Jikes for the non-host.
+	# Jikes 1.13 will exit with status 1 in response to "jikes -version".
+	local jikes_msg="$(${JIKES} -version 2>&1)" || :
+
+	case "$jikes_msg" in
+	    *"Version 1.13"*)
+		host_jikes_version=1.13 
+		;;
+
+	    *"Version 1.18"*)
+		host_jikes_version=1.18 ;;
+	    *"Version 1.19"*)
+		host_jikes_version=1.19 ;;
+	    "") show_mesg >&2 "I can not get a version message from the Jikes
+java-to-byte-code compiler; something may be badly wrong.  
+Continuing anyway." 
+		host_jikes_version=UNAVAILABLE
+		;;
+	    *)
+		show_mesg >&2 "You have a version of Jikes that may not be 
+able to compile Jikes RVM -- the known good versions are 
+1.13, 1.18, and 1.19. Your version is:"
+		echo "$jikes_msg" | ${FGREP-fgrep} Version >&2
+		host_jikes_version=BAD
+		;;
+	esac
+    #     echo "JIKES VERSION: $jikes_version"
     fi
 
     ## HOST_JAVAC:
@@ -579,7 +618,7 @@ function rationalize_config_file_settings () {
     setFromPath GNU_TAR tar
     ## [[ ${GNU_TAR-} ]] || export GNU_TAR="/bin/tar"
 
-    setSomeFromPath fgrep find grep md5sum ps sed wget xargs
+    setSomeFromPath find grep md5sum ps sed wget xargs
     
 #    [[ ${FGREP-} ]] || FGREP=$(type -p fgrep 2> /dev/null) || unset FGREP
     ## [[ ${FIND-} ]] || export FIND="/usr/bin/find"
@@ -599,7 +638,8 @@ function rationalize_classpath_version () {
     if     ! (( RVM_WITH_CLASSPATH_0_10 )) \
 	&& ! (( RVM_WITH_CLASSPATH_0_11 )) \
 	&& ! (( RVM_WITH_CLASSPATH_0_12 )) \
-	&& ! (( RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD ))
+	&& ! (( RVM_WITH_CLASSPATH_0_13 )) \
+	&& ! (( RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD ))
     then
 	## Set the default.
 	RVM_WITH_CLASSPATH_0_12=1
@@ -611,10 +651,11 @@ function rationalize_classpath_version () {
 
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
-    let "sum=(RVM_WITH_CLASSPATH_0_10 + RVM_WITH_CLASSPATH_0_11 \
-	+ RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD)"
+    let "sum=(  RVM_WITH_CLASSPATH_0_10 + RVM_WITH_CLASSPATH_0_11 \
+	      + RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_0_13 \
+	      + RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD)"
     if (( sum > 1 )); then
-	show_mesg >&2 "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, and RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD is defined.  Your configuration files are inconsistent."
+	show_mesg >&2 "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, and RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
 	exit 2
     fi
@@ -629,7 +670,8 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_0_10=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_11=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_12=/d'		\
-			-e '/^RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD=/d' \
+			-e '/^RVM_WITH_CLASSPATH_0_13=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
 	show_mesg >&2 "At least one unknown RVM_WITH_CLASSPATH_... variable is set:
@@ -670,6 +712,11 @@ function load_config_file () {
 #---------------------------------------------------------------------------#
 # SECTION 1c -- Get HOST_CLASSPATH_ROOT					    #
 #---------------------------------------------------------------------------#
+
+
+## It may be necessary to set this to 1, but it probably is not!
+## # Set this to 1 if we find that the host is using Jikes 1.13, which has a bug.
+declare -i copy_MMTk_directories_too=0
 
 load_config_file "${RVM_HOST_CONFIG}"
 
@@ -748,6 +795,12 @@ CLASSES_INVALID_STR="${BUILD_DIRECTORY_STR}/RVM.classesInvalid"
 #
 CLASSES_DIRECTORY="${BUILD_DIRECTORY}/RVM.classes"
 CLASSES_DIRECTORY_STR="${BUILD_DIRECTORY_STR}/RVM.classes"
+
+## Place to put the compiled special class or classes that we use
+## in order to build the utility kludge jar file.
+UTIL_KLUDGE_STUBS_DIRECTORY="${BUILD_DIRECTORY}/RVM.utility_kludge_stubs"
+UTIL_KLUDGE_STUBS_DIRECTORY_STR="${BUILD_DIRECTORY_STR}/RVM.utility_kludge_stubs"
+
 
 # Place to put source files that are machine generated.
 #
@@ -837,7 +890,17 @@ SED_STR1="SED"
 SED_STR="\$$SED_STR1"
 
 # Use Java warnings?
-JIKES_WARNING_FLAGS=-nowarn
+## This would need to be set independently for the host and target,
+## if we ever ran Jikes on the target.
+## This default can be overridden by the config file(s) or by -D arguments
+## to jconfigure.
+if [[ $host_jikes_version = 1.13 ]]; then
+    JIKES_WARNING_FLAGS=
+elif [[ $host_jikes_version == 1.1[89] ]]; then
+    JIKES_WARNING_FLAGS=-nowarn
+else
+    JIKES_WARNING_FLAGS=
+fi
 JAVAC_WARNING_FLAGS=-nowarn
 
 # Generate map of bootimage?
@@ -962,7 +1025,12 @@ declare -i RVM_WITH_CLASSPATH_0_11=0
 
 declare -i RVM_WITH_CLASSPATH_0_12=0
 
-declare -i RVM_WITH_CLASSPATH_POST_0_12_CVS_HEAD=0
+## Classpath 0.13 does not work yet -- we crash during boot image writing
+## time with a weird message.
+declare -i RVM_WITH_CLASSPATH_0_13=0
+
+## CVS Head, as of January 13, 2005, does, however.
+declare -i RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
 ## I've surrounded them with this. --Steve Augart
@@ -1481,21 +1549,29 @@ EOF
     #
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
+EOF
+
+    if (( copy_MMTk_directories_too )); then
+	cleanFileList <<- EOF
     ## These MMTk directories aren't preprocessed.
     ## Keep them here as a comment so that you can uncomment this
     ## if we should ever need to generate a more comprehensive source
     ## list.
-# 	$RVM_ROOT/MMTk/src/org/mmtk/plan
-# 	$RVM_ROOT/MMTk/src/org/mmtk/policy
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
-# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
+	$RVM_ROOT/MMTk/src/org/mmtk/plan
+	$RVM_ROOT/MMTk/src/org/mmtk/policy
+	$RVM_ROOT/MMTk/src/org/mmtk/utility
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
+EOF
+    fi
+
+    cleanFileList <<- EOF
     # Local projects (template)
     #
     #    $RVM_ROOT/projects/myproject
@@ -1529,6 +1605,11 @@ EOF
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
     fi
+    ## gnu.classpath.VMSystemProperties is used for Classpath 0.13 and
+    ## Classpath post-0.13-CVS-head.  It is now also used by earlier
+    ## versions, since we implement some functionality there that the
+    ## earlier interfaces call into.
+    echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/classpath"
 
     # Add support for hardware performance monitors on PowerPC
     #
@@ -2426,7 +2507,20 @@ EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    chdir $CLASSES_DIRECTORY_STR
 	    run rm -f $TOP_LEVEL_CLASSES
+	EOF
+
+    if [[ $host_jikes_version = 1.13 ]]; then
+	cat <<- EOF
+	    ## Jikes 1.13 does not have a -sourcepath argument.
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U  -classpath .:${ROOT_DIRECTORY_STR}/MMTk/src:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
+	EOF
+    else
+	cat <<- EOF
 	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U -sourcepath .:${ROOT_DIRECTORY_STR}/MMTk/src -classpath .:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
+	EOF
+    fi
+
+    cat <<- EOF
 	    open_paren 'compiling classes'
 	    if tracing jbuild || tracing make || tracing; then
 	        cleanline
@@ -2790,7 +2884,8 @@ java/lang/VMObject
 java/lang/VMSystem
 java/lang/VMString
 gnu/classpath/Configuration
-
+# Only in Classpath 0.13 and later
+gnu/classpath/SystemProperties
     # reflection support
     #
 java/lang/reflect/Field
@@ -2926,6 +3021,8 @@ java/util/VMTimeZone
 EOF
    fi
 
+## Needed by classpath 0.13+CVS
+echo "java/lang/SecurityManager"
 
     cat <<EOF
     # class loading from zip files
@@ -3310,6 +3407,9 @@ EOF
 	[[ -f \$alt ]] \
 	    && BOOTIMAGE_WRITER_MAKEFILE=\${alt}
 
+	## The utility kludge directory is only needed by classpath 0.13 and 
+	## later, but it does no harm to include it for earlier versions.
+	run mkdir -p ${UTIL_KLUDGE_STUBS_DIRECTORY_STR}
 	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' \
 		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
 		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar \
@@ -3319,6 +3419,7 @@ EOF
 		RVM_BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS" \
 		IMAGE_ADDRESS_ARG="$IMAGE_ADDRESS_ARG" \
 		SCRATCH_DIR=$SCRATCH_DIRECTORY_STR \
+		STUBS_DIR=$UTIL_KLUDGE_STUBS_DIRECTORY_STR \
 		$BOOTIMAGE_STR
 
 	trap '' EXIT
@@ -4250,6 +4351,9 @@ function emitConfigSummary () {
     echo "CVS_TIMESTAMP=${CVS_TIMESTAMP}"
     echo "RVM_HOST_CONFIG=${RVM_HOST_CONFIG}"
     echo "RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG}"
+    echo ""
+    echo "more configuration variables or descriptions:"
+    echo "host_jikes_version=${host_jikes_version:-*never set*}"
 }
 
 #------------------------------------------------#
