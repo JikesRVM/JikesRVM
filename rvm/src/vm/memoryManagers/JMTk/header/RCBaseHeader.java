@@ -249,12 +249,12 @@ public abstract class RCBaseHeader implements VM_Constants, Constants {
   // The following are arranged to try to make the most common tests
   // fastest ("bufferd?", "green?" and "(green | purple)?") 
   private static final int     BUFFERED_MASK = 0x1;  //  .. 00001
-  protected static final int      COLOR_MASK = 0xe;  //  .. 00110 
+  protected static final int      COLOR_MASK = 0xe;  //  .. 01110 
   private static final int             BLACK = 0x0;  //  .. x000x
   private static final int              GREY = 0x2;  //  .. x001x
   private static final int             WHITE = 0x4;  //  .. x010x
   // green & purple *MUST* remain the highest colors in order to
-  // preseve the (green | purple) test's precondition.
+  // preserve the (green | purple) test's precondition.
   private static final int            PURPLE = 0x6;  //  .. x011x
   protected static final int           GREEN = 0x8;  //  .. x100x
   private static final int BITS_USED = 4;
