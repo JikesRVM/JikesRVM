@@ -252,18 +252,6 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  // Each Java thread that uses JNI gets a dedicated pThread to run its Native code
-  //
-  public static final boolean BuildForDedicatedNativeProcessors =
-      //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS     
-        true;
-      //-#else
-        false;
-      //-#endif
-
-  // The following configuration objects are final when disabled, but
-  // non-final when enabled.
-  
   // Capture threads that have gone Native (JNI) and not come back.  Issolate them
   // in Native.  Create a new (Native) virtual processor for them.  And create (or revive)
   // new pThreads to run the old virtual processors.
@@ -273,12 +261,12 @@ public abstract class VM_Configuration {
 	  false;
 	//-#else
 	  !BuildForSingleVirtualProcessor
-	    && !BuildForDedicatedNativeProcessors 
-	    && !BuildForConcurrentGC
-//   && !BuildForLinux // TEMP (SMP Linux builds die an immediate horrible death otherwise, probably due to a bug in the Linux 2.4 pThread implementation.)
-	    ;
+	    && !BuildForConcurrentGC;
 	//-#endif
 
+  // The following configuration objects are final when disabled, but
+  // non-final when enabled.
+  
   //-#if RVM_FOR_STRESSGC
   public static boolean ParanoidGCCheck       = true;
   public static boolean ForceFrequentGC       = true;

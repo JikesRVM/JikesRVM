@@ -654,13 +654,6 @@ public class VM_Allocator
   }
   
   private static void prepareNonParticipatingVPsForGC() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#else
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -704,17 +697,9 @@ public class VM_Allocator
 	}
       }
     }
-    //-#endif
   }
 
   private static void prepareNonParticipatingVPsForAllocation() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#else
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -727,7 +712,6 @@ public class VM_Allocator
         vp.localEndAddress     = VM_Address.zero();
       }
     }
-    //-#endif
   }
 
 
@@ -1609,18 +1593,6 @@ public class VM_Allocator
 	if (verbose >= 2) VM_Scheduler.trace("VM_Allocator","scanning stack for thread",i);
 	VM_ScanStack.scanStack( t, VM_Address.zero(), true /*relocate_code*/ );
 
-	//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-	// alternate implementation of jni
-	// if this thread has an associated native VP, then move its writebuffer entries 
-	// in the workqueue for later scanning
-	//
-	if ( t.nativeAffinity != null ) 
-	  VM_WriteBuffer.moveToWorkQueue(t.nativeAffinity);
-	//-#else
-	// default implementation of jni
-	//  do nothing here, write buffer entries moved in prepare...ForGC()
-	//-#endif
-	
       }  // (if true) we seized got the thread to process
       
       else continue;  // some other gc thread has seized this thread

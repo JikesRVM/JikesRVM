@@ -63,14 +63,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     this.isInSelect        = false;
     this.processorMode     = processorType;
 
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
-    //-#else                                    (default implementation of jni)
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
     this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << 2);
     if (VM.VerifyAssertions) VM.assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
-    //-#endif
 
     if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
@@ -331,20 +328,13 @@ if (loopcheck++ >= 1000000) break;
   //--------------------------//
 
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
-  // Java to native code transitions, in vpState (bit definitions)
-  static final int VP_IN_C_MASK   = 1;         // 1 = C; 0 = in VM (java)
-  static final int VP_BLOCKED     = 2;         // 1 = Blocked in Java or C; 0 = not blocked 
-  static final int GC_IN_PROGRESS = 4;         // 1 = GC running; 0 = not
-//-#else (default implementation of jni)
-  // definitions for VP status for default implementation of jni
+  // definitions for VP status for implementation of jni
   static final int UNASSIGNED_VP_STATUS    = 0;  
   static final int IN_JAVA                 = 1;
   static final int IN_NATIVE               = 2;
   static final int BLOCKED_IN_NATIVE       = 3;
   static final int IN_SIGWAIT              = 4;
   static final int BLOCKED_IN_SIGWAIT      = 5;
-//-#endif
 
   static int generateNativeProcessorId () {
     int r;
@@ -426,110 +416,6 @@ if (loopcheck++ >= 1000000) break;
   }
 
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-  // alternate implementation of jni
-
-  static VM_Processor createNativeProcessor () {
-
-
-    int processId = generateNativeProcessorId();
-    VM_Processor newProcessor = new VM_Processor(processId, NATIVE);
-
-    // create idle thread for processor
-    VM_Thread t = new VM_NativeIdleThread(newProcessor);
-
-    // There is a race between the native pthread which will be started shortly
-    // and will run and intilize its idle thread, and our pthread/thread which
-    // will shortly enqueus the current thread on the native processor transfer
-    // queue.  If we win the race, the the native idle thread will not intialize
-    // properly.  To avoid this we enqueue the idle thread on the transfer queue
-    // of the native processor now, before the native pthread starts.
-    //
-    ////newProcessor.idleQueue.enqueue(t);
-    t.start(newProcessor.transferQueue);
-
-    // create VM_Thread for virtual cpu to execute
-    //
-    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
-    // create virtual cpu and wait for execution to enter target's code/stack.
-    // this is done with gc disabled to ensure that garbage 
-    // collector doesn't move
-    // code or stack before the C startoff function has a chance
-    // to transfer control into vm image.
-    //
-    if (trace) 
-      VM_Scheduler.trace("VM_Processor", 
-                         "starting native virtual cpu pthread ");
-
-    // Acquire global GC lockout field (at fixed address in the boot record).
-    // This field will be released by this thread when it runs on the native 
-    // processor and transfers control to the native code.
-    // get the GC lockout lock .. yield if someone else has it
-    while (true) {
-      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record, 
-					VM_Entrypoints.lockoutProcessorOffset);
-      if ( lockoutVal == 0){
-	lockoutId   = 
-	if(VM_Magic.attempt(VM_BootRecord.the_boot_record, 
-			    VM_Entrypoints.lockoutProcessorOffset,
-			    VM_Magic.objectAsAddress
-                            (VM_ProcessorLocalState.getCurrentProcessor()),
-			    0, lockoutId))
-          break;
-      }else VM_Thread.yield();
-    }
-
-
-    newProcessor.activeThread = target;
-    newProcessor.activeThreadStackLimit = target.stackLimit;
-    target.registerThread(); // let scheduler know that thread is active.
-    //-#if RVM_FOR_POWERPC
-    VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                 VM_Magic.objectAsAddress(newProcessor),
-                                 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
-                                 target.contextRegisters.gprs[VM.FRAME_POINTER]);
-    //-#endif
-    //-#if RVM_FOR_IA32
-    VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                 VM_Magic.objectAsAddress(newProcessor),
-                                 0, 
-                                 target.contextRegisters.gprs[VM.FRAME_POINTER]);
-    //-#endif
-    while (!newProcessor.isInitialized)
-      VM.sysVirtualProcessorYield();
-    ///    VM.enableGC();
-
-    if (trace) 
-      VM_Scheduler.trace("VM_Processor", "started native virtual cpu pthread ");
-
-    return newProcessor;
-  } 
-
-  /***********
-  static VM_Processor getRVMProcessor () {
-
-    // does current thread have a processor affinity
-    //
-    VM_Processor p = VM_Thread.getCurrentThread().processorAffinity;
-    if ( p != null) return p;
-
-    // if a processor is idle, put thread there
-    //
-    p = idleProcessor;
-    if ( p != null) {
-      idleProcessor = null;
-      return p;
-    }
-
-    // otherwise round robin
-    //
-    return getCurrentProcessor().chooseNextProcessor();
-    
-   **************/
-
-//-#else
-  // default implementation of jni
-
   // create a native processor for default implementation of jni
   //
   static VM_Processor createNativeProcessor () {
@@ -607,50 +493,10 @@ if (loopcheck++ >= 1000000) break;
 
   } // createNativeProcessor
 
-//-#endif
-
 
   //---------------------//
   // Garbage Collection  //
   //---------------------//
-
-
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni
-
-  /**
-   * sets the VP state to indicate that VP is part of GC that is starting
-   *  returns the previous value of VPState
-   */ 
-  public int  setGCState () {
-    int newState, oldState;
-    do{
-      oldState = VM_Magic.prepare(this, VM_Entrypoints.vpStateOffset);
-      if (VM.VerifyAssertions) VM.assert((oldState & GC_IN_PROGRESS) == 0) ;
-      newState = oldState | GC_IN_PROGRESS;
-    }while (! (VM_Magic.attempt(this, VM_Entrypoints.vpStateOffset, 
-                                oldState, newState)));
-    return oldState;
-  }
-
-  /**
-   * resets the VP state to indicate that GC is complete
-   *  returns the previous value of VPState
-   */ 
-  public int  resetGCState () {
-    int newState, oldState;
-    do{
-      oldState = VM_Magic.prepare(this, VM_Entrypoints.vpStateOffset);
-      if (VM.VerifyAssertions) 
-        VM.assert((oldState & GC_IN_PROGRESS) ==  GC_IN_PROGRESS) ;
-      newState = oldState & (~GC_IN_PROGRESS);
-    }while (! (VM_Magic.attempt(this, VM_Entrypoints.vpStateOffset, 
-                                oldState, newState)));
-    return oldState;
-  }
-
-//-#else
-// default implementation of jni
 
   /**
    * sets the VP status to BLOCKED_IN_NATIVE if it is currently IN_NATIVE (ie C)
@@ -693,7 +539,6 @@ if (loopcheck++ >= 1000000) break;
     return result;
   }
 
-//-#endif
 
   //----------------//
   // Implementation //
@@ -935,15 +780,6 @@ if (loopcheck++ >= 1000000) break;
   //
   int    processorMode;
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-  // alternate implementation of jni
-  /**
-   * state field in each VM_Processor
-   */
-  int     vpState;                     
-//-#else
-  // default implementation of jni
-
   // processor status fields are in a (large & unmoving!) array of status words
   static final int VP_STATUS_SIZE = 8000;
   static final int VP_STATUS_STRIDE = 101;
@@ -962,7 +798,6 @@ if (loopcheck++ >= 1000000) break;
    * address of this processors status word in vpStatus array
    */
   VM_Address vpStatusAddress;          
-//-#endif
 
   /**
    * pthread_id (AIX's) for use by signal to wakeup
@@ -1013,8 +848,6 @@ if (loopcheck++ >= 1000000) break;
     if ( processorMode == RVM) VM_Scheduler.writeString(" mode: RVM\n");
     else if ( processorMode == NATIVE) VM_Scheduler.writeString(" mode: NATIVE\n");
     else if ( processorMode == NATIVEDAEMON) VM_Scheduler.writeString(" mode: NATIVEDAEMON\n");
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
-//-#else (default implementation of jni)
     VM_Scheduler.writeString(" status: "); 
     int status = vpStatus[vpStatusIndex];
     if (status ==  IN_NATIVE) VM_Scheduler.writeString("IN_NATIVE\n");
@@ -1025,6 +858,5 @@ if (loopcheck++ >= 1000000) break;
     VM_Scheduler.writeString(" threadSwitchRequested: ");
     VM_Scheduler.writeDecimal(threadSwitchRequested); 
     VM_Scheduler.writeString("\n");
-//-#endif
   }
 }

@@ -993,13 +993,6 @@ public class VM_Allocator
 
   private static void
   prepareNonParticipatingVPsForGC() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#else
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -1023,18 +1016,10 @@ public class VM_Allocator
 
       }
     }
-    //-#endif
   }
 
   private static void
   prepareNonParticipatingVPsForAllocation() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#else
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -1053,7 +1038,6 @@ public class VM_Allocator
        setupallocation(vp);
      }
     }
-    //-#endif
   }
 
   private static void  setupallocation(VM_Processor st) {
@@ -1590,27 +1574,7 @@ public class VM_Allocator
 	  //
 	  // So...none of the following getting of a proper fp should be needed
 	  //
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-
-          // find if thread is in native vproc: either it's
-          // the NativeIdleThread in sysWait (if in yield, 
-          // no special processing needed) or it's a mutator
-          // thread running C-code; in both cases, need to
-          // do the scan from the last Java frame to stacktop
-          //
-          if ((t.isNativeIdleThread &&
-           ((VM_NativeIdleThread)t).inSysWait)  ||
-           ((t.nativeAffinity  != null) && 
-            (t.nativeAffinity.activeThread == t)))
-            fp  = t.jniEnv.JNITopJavaFP;
-
-          else fp = t.contextRegisters.getInnermostFramePointer();
-		//-#else
-		// default implementaton of jni
-
 	  fp = t.contextRegisters.getInnermostFramePointer();
-		//-#endif
   
           VM_ScanStack.scanStack( t, VM_Address.zero(), false /*relocate_code*/ );
         }

@@ -77,20 +77,10 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     // Why is INSTRUCTION not working?  getting filled with null
     JNIFunctions = new byte[FUNCTIONCOUNT+1][];
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni (not fully implemented for IA32 - DO NOT USE)
-    // Use two words for each thread: 
-    // First word is a pointer to the JNIFunction table
-    // Second word is a pointer to the JTOC (Unlike in powerPC, the JTOC is not
-    // restored in the Lintel convention during a call from native code)
-    JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-//-#else
-// default implementation of jni
     // First word is a pointer to the JNIFunction table
     // Second word is address of current processors vpStatus word
     // (JTOC is now stored at end of shared JNIFunctions array)
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-//-#endif
   }
 
   /**
@@ -144,22 +134,9 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   //
   public VM_JNIEnvironment (int threadSlot) {
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni (not fully implemented for IA32 - DO NOT USE)
-    // set the jni function pointer for the creating thread, to be used when
-    // it makes native calls
-    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions);
-    JNIFunctionPointers[(threadSlot * 2)+1] = VM_Magic.objectAsAddress(VM_Statics.getSlots());
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers) + threadSlot*8;
-//-#else
-// default implementation of jni
-    // this build uses 2 words for each thread, the first is the function pointer
-    // to be used when making native calls
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
-//-#endif
-
     JNIRefs = new int[JNIREFS_ARRAY_LENGTH];
     JNIRefs[0] = 0;                       // 0 entry for bottom of stack
     JNIRefsTop = 0;

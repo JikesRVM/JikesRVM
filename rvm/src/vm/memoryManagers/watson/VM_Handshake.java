@@ -77,19 +77,12 @@ class VM_Handshake implements VM_Uninterruptible {
 
     // wait for all gc threads to finish preceeding collection cycle
 
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // all RVM Processors participate in all collections
-    // there is no NativeDaemon Processor
-    maxCollectorThreads = VM_Scheduler.numProcessors;
-
-    //-#else
     // include NativeDaemonProcessor collector thread in the count - if it exists
     // check for null to allow builds without a NativeDaemon (see VM_Scheduler)
     if ( !VM.BuildForSingleVirtualProcessor && VM_Scheduler.processors[VM_Scheduler.nativeDPndx] != null )
       maxCollectorThreads = VM_Scheduler.numProcessors + 1;  
     else
       maxCollectorThreads = VM_Scheduler.numProcessors;
-    //-#endif
 
     VM_Scheduler.collectorMutex.lock();
     while (VM_Scheduler.collectorQueue.length() < maxCollectorThreads) {
@@ -129,9 +122,6 @@ class VM_Handshake implements VM_Uninterruptible {
     //
     VM_CollectorThread.gcBarrier.resetRendezvous();
 
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // this is done elsewhere with this version of jni support
-    //-#else
     // scan all the native Virtual Processors and attempt to block those executing
     // native C, to prevent returning to java during collection.  the first collector
     // thread will wait for those not blocked to reach the SIGWAIT state.
@@ -146,7 +136,6 @@ class VM_Handshake implements VM_Uninterruptible {
         VM_Scheduler.trace("                                ", "new vpStatus    ", newStatus);
       }
     }
-    //-#endif
 
     // Dequeue and schedule collector threads on ALL RVM Processors,
     // including those running system daemon threads (ex. NativeDaemonProcessor)

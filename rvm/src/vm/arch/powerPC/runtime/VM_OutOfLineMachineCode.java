@@ -403,96 +403,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return asm.makeMachineCode().getInstructions();
   }
 
-  //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-  // alternate implementation of jni
-
-  // "checked in" non purple version of native processors
-
-  private static INSTRUCTION[] generateInvokeNativeFunctionInstructions() {
-
-    VM_Assembler asm = new VM_Assembler(0);
-    int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
-
-    // storing the return address to the prolog, which is now in LR in the
-    // frame.  T3 and V4 (register 7) are used as scratch
-    asm.emitL     (T3, 0, FP);
-    asm.emitMFLR  (7);
-    asm.emitST    (7, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3);   // save return address in stack frame
-
-
-    asm.emitMTLR  (T0);                                     // set up native code address in link reg
-
-    // release the lock that inhibits garbage collection
-    // NOTE: from this point on GC can occur soooo all references to memory must  be to the fixed areas
-    //
-    asm.emitL     (T3, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);       // get boot record address
-    asm.emitCAL   (T3, VM_Entrypoints.lockoutProcessorField.getOffset(), T3);        // get address of gc lockout word
-    asm.emitCAL   (T0, 0, 0);                               // clear a reg
-    asm.emitST    (T0, 0, T3);                              // and then clear the lock
-
-    // setup the native code TOC register
-    asm.emitCAL   (JTOC, 0, T1);                            // move native code toc register to proper place
-
-    // restore the volatile registers from the spill area since they may not have 
-    // survived the pthread switch
-    for (int i = FIRST_AIX_VOLATILE_GPR, offset = AIX_FRAME_HEADER_SIZE;
-	 i <= LAST_AIX_VOLATILE_GPR; i++, offset+=4) {
-      asm.emitL  (i,  offset, FP);
-    }
-
-    // goto the native code
-    asm.emitBLRL  ();                                       // call native method
-
-    // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
-    // in the call to becomeRVMThreadOffset
-    asm.emitST    (T0, AIX_FRAME_HEADER_SIZE, FP);
-    asm.emitST    (T1, AIX_FRAME_HEADER_SIZE+4, FP);
-
-    // get the GC lockout lock on return from native code
-    //
-    // restore RVM JTOC
-    int label1    = asm.currentInstructionOffset();	      // inst index in the machine code array of the following load instr.
-    asm.emitL     (JTOC, 0, FP);                            // get previous frame
-    asm.emitL     (JTOC, -4, JTOC);                         // get real jtoc address  
-    asm.emitL     (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);       // T2 gets boot record address
-    asm.emitCAL   (T3, VM_Entrypoints.lockoutProcessorField.getOffset(), T2);        // T3 gets address of gc lockout word
-    //
-    asm.emitLWARX (S0, 0, T3);                              // load GC lockput word
-    asm.emitCMPI  (0,  S0,  0);                             // compare loaded word to 0, set CR0
-    int f_branch_length = 6;
-    int label2    = asm.currentInstructionOffset();
-    asm.emitBEQ   (f_branch_length);                        // read 0, jump to try and set to 1
-
-    // not zero, call C routine to do pthread_yield
-    //
-    asm.emitL     (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);  // load TOC for syscalls from bootrecord
-    asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
-    asm.emitMTLR  (T1);
-    asm.emitBLRL  ();                                       // call sysVirtualProcessorYield in sys.C
-    asm.emitB     ( label1 - asm.currentInstructionOffset() ); // try again to acquire lockout lock
-
-    if (VM.VerifyAssertions) VM.assert ( ( asm.currentInstructionOffset() - label2 ) == f_branch_length );
-    // branch to here if lockoutProcessor was 0, try and set to 1
-    //
-    asm.emitCAL   (S0,  1,  0);                             // S0 <- 1, value to store if lock is zero
-    asm.emitSTWCXr(S0,  0, T3);                             // attempt to store new value (1)
-    asm.emitBNE   ( label1 - asm.currentInstructionOffset() ); // retry lwarx
-
-
-    // return to caller
-    //
-    asm.emitL     (T3, 0 , FP);
-    asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3);   // get return address from stack frame
-    asm.emitMTLR  (S0);
-    asm.emitBLR   ();
-
-    return asm.makeMachineCode().getInstructions();
-
-  } // generateInvokeNativeFunctionInstructions - alternate implementation
-
-  //-#else
-  // default implementation of jni
-
   // on entry:
   //   JTOC = TOC for native call
   //   TI - IP address of native function to branch to
@@ -577,8 +487,5 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     //
     return asm.makeMachineCode().getInstructions();
 
-  }  // generateInvokeNativeFunctionInstructions - default implementation
-
-  //-#endif
-
+  }  // generateInvokeNativeFunctionInstructions
 }

@@ -183,33 +183,27 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
 
-    if (VM.BuildForDedicatedNativeProcessors) {
-      processors = new VM_Processor[1 + numProcessors];
-    } else {
-      processors = new VM_Processor[1 + numProcessors + 1];
-    }
+    processors = new VM_Processor[1 + numProcessors + 1];
 
     processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; )
       processors[i] = new VM_Processor(i, VM_Processor.RVM);
 
-    if (!VM.BuildForDedicatedNativeProcessors) {
-      // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
-      // so reset here...maybe change everything to just use index
-      primordialProcessor.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(primordialProcessor.vpStatusIndex<<2);
-      // Create NativeDaemonProcessor as N+1st processor in the processors array.
-      // It is NOT included in "numProcessors" which is the index of the last RVM processor.
-      //
-      nativeDPndx = numProcessors + 1;		// the last entry in processors[]                                          
-      if (VM.BuildWithNativeDaemonProcessor) {
-        processors[nativeDPndx] = new VM_Processor(numProcessors + 1, VM_Processor.NATIVEDAEMON);
-        if (VM.TraceThreads)
-          trace("VM_Scheduler.boot","created nativeDaemonProcessor with id",nativeDPndx);
-      } else {
-        processors[nativeDPndx] = null;
-        if (VM.TraceThreads)
-          trace("VM_Scheduler.boot","NativeDaemonProcessor not created");
-      }
+    // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
+    // so reset here...maybe change everything to just use index
+    primordialProcessor.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(primordialProcessor.vpStatusIndex<<2);
+    // Create NativeDaemonProcessor as N+1st processor in the processors array.
+    // It is NOT included in "numProcessors" which is the index of the last RVM processor.
+    //
+    nativeDPndx = numProcessors + 1;		// the last entry in processors[]                                          
+    if (VM.BuildWithNativeDaemonProcessor) {
+      processors[nativeDPndx] = new VM_Processor(numProcessors + 1, VM_Processor.NATIVEDAEMON);
+      if (VM.TraceThreads)
+	trace("VM_Scheduler.boot","created nativeDaemonProcessor with id",nativeDPndx);
+    } else {
+      processors[nativeDPndx] = null;
+      if (VM.TraceThreads)
+	trace("VM_Scheduler.boot","NativeDaemonProcessor not created");
     }
 
     // Create work queues.

@@ -406,11 +406,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     morph();
   }
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni
-//-#else
-// default implementation of jni
-
   // Suspend execution of current thread in favor of some other thread.
   // Taken: VM_Processor of Native processor.
   //
@@ -441,7 +436,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     p.transferMutex.unlock();
     morph();
   }
-//-#endif
 
   /**
    * Current thread has been placed onto some queue. Become another thread.
@@ -489,58 +483,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
 
     VM_Processor p = VM_Thread.getCurrentThread().nativeAffinity;
-    if ( p == null) {
-      //
-      // BE CAREFUL HERE - this commented out code may be required for what is
-      // now called the "alternate jni implementation" ie. the 
-      // old red/blue implementation
-      // see SteveS before removing
-      //
-      // shouldn't happen since the C caller must have recorded 
-      // nativeAffinity already
-      VM.sysWrite("null nativeAffinity, should have been recorded by C caller\n");
-      VM.assert(VM.NOT_REACHED);
-      // // obtain a native virtual processor
-      // if (debugDeadVP) 
-      // VM.sysWrite(
-      // "  VM_Thread.becomeNativeThread-about to dequeue from dead VP queue \n ");
-      // p = VM_Scheduler.deadVPQueue.dequeue();         // is there a Native VP available?
-      // if (debugDeadVP){
-      //       VM.sysWrite(" VM_Thread.becomeNativeThread- dequeue from dead VP queue returned");
-      //       VM.sysWrite("\n");
-      // }
-      // if (p == null) {
-      //   if (debugDeadVP)
-      //     VM.sysWrite(" VM_Thread.becomeNativeThread- dequeue from dead VP queue returned null, create VP \n ");
-      //   p =  VM_Processor.createNativeProcessor();    // create a Native VP
-      // }
-      // // set up processor affinities
-      // VM_Thread.getCurrentThread().nativeAffinity = p;
-    }
+    if (VM.VerifyAssertions) VM.assert( p != null, "null nativeAffinity, should have been recorded by C caller\n");
     
-    // // Acquire global lockout field (at fixed address in the boot record).
-    // // This field will be released by this thread when it runs on the native 
-    // // processor (after the yield).
-    // int lockoutAddr = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record) + VM_Entrypoints.lockoutProcessorOffset;
-    // //    int lockoutId   = VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister());
-    // 
-    // // get the lockout lock .. yield if someone else has it
-    // 	 while (true) {
-    // 	   int lockoutVal = VM_Magic.prepare(lockoutAddr);
-    // 	   if ( lockoutVal == 0){
-    // 	     lockoutId   = VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister());
-    // 	     if(VM_Magic.attempt(lockoutAddr, 0, lockoutId))
-    // 	       break;
-    // 	   }else yield();
-    // 	 }
-  
-
-    //// VM_Processor p = VM_Thread.getCurrentThread().nativeAffinity;
-    //// if ( p == null) {
-    ////   p =  VM_Processor.createNativeProcessor(); 
-    ////   VM_Thread.getCurrentThread().nativeAffinity = p;
-    //// }
-
     // ship the thread to the native processor
     p.transferMutex.lock();
     

@@ -586,13 +586,6 @@ public class VM_Allocator
 
 
   private static void  prepareNonParticipatingVPsForGC() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#else
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -622,17 +615,9 @@ public class VM_Allocator
 	  vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4);
       }
     }
-    //-#endif
   }
 
   private static void prepareNonParticipatingVPsForAllocation() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#else
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -647,7 +632,6 @@ public class VM_Allocator
         vp.localEndAddress     = VM_Address.zero();
       }
     }
-    //-#endif
   }
 
 

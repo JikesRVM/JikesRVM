@@ -336,11 +336,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return asm.getMachineCodes();
   }
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni - not implemented for IA32
-//-#else
-// default implementation of jni
-
   // Out of line prolog/epilog called from generated prologues for user
   // written native methods (see VM_JNICompiler).  Completes the call
   // into native code from java and handles the return from native back
@@ -449,6 +444,4 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     return asm.getMachineCodes();
   }
-  //-#endif
-
 }

@@ -72,14 +72,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   public static void init() {
     JNIFunctions = new int[FUNCTIONCOUNT][][];
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni
-    JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS];
-//-#else
-// default implementation of jni
-    // this build uses 2 words for each thread
+    // 2 words for each thread
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-//-#endif
   }
 
   /**
@@ -145,20 +139,11 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // as of 8/22 SES - let JNIEnvAddress be the address of the JNIFunctionPtr to be
     // used by the creating thread.  Passed as first arg (JNIEnv) to native C functions.
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni
-    // set the jni function pointer for the creating thread, to be used when
-    // it makes native calls
-    JNIFunctionPointers[threadSlot] = VM_Magic.objectAsAddress(JNIFunctions);
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers) + threadSlot*4;
-//-#else
-// default implementation of jni
-    // this build uses 2 words for each thread, the first is the function pointer
+    // uses 2 words for each thread, the first is the function pointer
     // to be used when making native calls
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
-//-#endif
 
     JNIRefs = new int[JNIREFS_ARRAY_LENGTH];
     JNIRefs[0] = 0;                                        // 0 entry for bottom of stack
@@ -698,13 +683,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    */
   private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) {
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni
-int glueFrameSize = NATIVE_TO_JAVA_GLUE_FRAME_SIZE;
-//-#else
-// default implementation of jni
-int glueFrameSize = JNI_GLUE_FRAME_SIZE;
-//-#endif
+    int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
     VM_Address fp = VM_Address.fromInt(VM_Magic.getMemoryWord(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET)));

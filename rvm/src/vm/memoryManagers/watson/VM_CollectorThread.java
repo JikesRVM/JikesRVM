@@ -194,8 +194,6 @@ class VM_CollectorThread extends VM_Thread
 	VM_Scheduler.trace("VM_CollectorThread", "entering first rendezvous - gcOrdinal =",
 			 gcOrdinal);
 
-      //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-      //-#else
       // the first RVM VP will wait for all the native VPs not blocked in native
       // to reach a SIGWAIT state
       //
@@ -235,7 +233,6 @@ class VM_CollectorThread extends VM_Thread
 	quiesceAttachedProcessors();
 
       }  // gcOrdinal==1
-      //-#endif
 
       // wait for other collector threads to arrive or be made non-participants
       gcBarrier.startupRendezvous();
@@ -294,10 +291,6 @@ class VM_CollectorThread extends VM_Thread
       
       // final cleanup for initial collector thread
       if (gcOrdinal == 1) {
-
-	//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-	//-#else
-
 	// unblock any native processors executing in native that were blocked
 	// in native at the start of GC
 	//
@@ -339,7 +332,6 @@ class VM_CollectorThread extends VM_Thread
 	  //
 	  resumeAttachedProcessors();
 	}
-	//-#endif
 
 	VM_Magic.setIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset(), 0); // clear the GC flag
       }
@@ -360,11 +352,6 @@ class VM_CollectorThread extends VM_Thread
 
   static void
   quiesceAttachedProcessors() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // not invoked in this case
-
-    //-#else
     // if there are any attached processors (for user pthreads that entered the VM
     // via an AttachJVM) we may be briefly IN_JAVA during transitions to a RVM
     // processor. Ususally they are either IN_NATIVE (having returned to the users 
@@ -424,17 +411,11 @@ class VM_CollectorThread extends VM_Thread
 	}
       }  // while (true)
     }  // end loop over attachedProcessors[]
-    //-#endif
   }  // quiesceAttachedProcessors
 
 
   static void
   resumeAttachedProcessors() {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // not invoked in this case
-
-    //-#else
     // any attached processors were quiesced in either BLOCKED_IN_SIGWAIT
     // or BLOCKED_IN_NATIVE.  Unblock them.
 
@@ -468,7 +449,6 @@ class VM_CollectorThread extends VM_Thread
       if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
 
     }  // end loop over attachedProcessors[]
-    //-#endif
   }  // resumeAttachedProcessors
   
   

@@ -73,63 +73,36 @@ interface VM_RegisterConstants {
   static final int LAST_AIX_VOLATILE_FPR          = 13; 
   static final int AIX_FRAME_HEADER_SIZE          = 24;  // fp + cr + lr + res + res + toc = 6 * 4
 
-  //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-  // alternate implementation of jni
-
-  // saved offset to top java frame = 1 word
-  // RVM link area = STACKFRAME_HEADER_SIZE
-  // volatile GPR3-5 save area = 3 words
-  // vararg save area = 11 words      (partially shared for saving volatiles GPR6-10 and FPR1-3)
-  // volatile FPR4-6 save area = 12 words
-  // GPR save area = 19 words
-  // FPR save area = 36 words
-  static final int NATIVE_TO_JAVA_GLUE_FRAME_SIZE = 
-    VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + ((1+3+11+12+19+36) * 4);
-
-   // offset into the vararg save area within the native to Java glue frame
-   // right after the RVM link area and saved volatile R3-R5
-  static final int VARARG_AREA_OFFSET = VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*4);
-
-  // use 3 words in the header
-  // TODO:  change to 4 words later to match normal convention
-  static final int GLUE_FRAME_HEADER_SIZE = 12;
-
-//-#else
-// default implementation of jni
-
-     // Native code to JNI Function (Java) glue frame
-     //
-     //   RVM link area    -  STACKFRAME_HEADER_SIZE
-     //   Volatile GPR 3-10 save area  -  8 words
-     //   Volatile FPR 1-6  save area  - 12 words
-     //   Non-Volatile GPR 13-16 save area  4 words   for AIX non-vol GPR not restored by RVM
-     //   Non-Volatile FPR 14-15 save area  4 words   for AIX non-vol FPR not restored by RVM
-     //   padding                           1 word
-     //   offset to previous to java frame  1 word    the preceeding java to native transition frame
-     //
+  // Native code to JNI Function (Java) glue frame
+  //
+  //   RVM link area    -  STACKFRAME_HEADER_SIZE
+  //   Volatile GPR 3-10 save area  -  8 words
+  //   Volatile FPR 1-6  save area  - 12 words
+  //   Non-Volatile GPR 13-16 save area  4 words   for AIX non-vol GPR not restored by RVM
+  //   Non-Volatile FPR 14-15 save area  4 words   for AIX non-vol FPR not restored by RVM
+  //   padding                           1 word
+  //   offset to previous to java frame  1 word    the preceeding java to native transition frame
+  //
   static final int JNI_GLUE_FRAME_SIZE = 
     VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + ((8+12+4+4+1+1)*4);
 
-     // offset into the vararg save area within the native to Java glue frame
-     // to saved regs GPR 6-10 & FPR 1-6, the volatile regs containing vararg arguments
-     //
+  // offset into the vararg save area within the native to Java glue frame
+  // to saved regs GPR 6-10 & FPR 1-6, the volatile regs containing vararg arguments
+  //
   static final int VARARG_AREA_OFFSET = 
     VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*4);    // the RVM link area and saved GPR 3-5
 
-//-#endif
-
-     // number of volatile registers that may carry parameters and that need to be saved
-     // and restored for the thread reschedule from Java VM_Processor to native VM_Processor
-     // GPR4-10 = 7 words  (does not include R3)
-     // FPR1-6  = 12 words
+  // number of volatile registers that may carry parameters and that need to be saved
+  // and restored for the thread reschedule from Java VM_Processor to native VM_Processor
+  // GPR4-10 = 7 words  (does not include R3)
+  // FPR1-6  = 12 words
   static final int JNI_AIX_VOLATILE_REGISTER_SIZE   =  
     ((LAST_AIX_VOLATILE_GPR - (FIRST_AIX_VOLATILE_GPR + 1) + 1 + 12) * 4) ;   
 
 
-     // offset into the Java to Native glue frame, relative to the Java caller frame
-     // the definitions are chained to the first one, JNI_JTOC_OFFSET
-     // saved R17-R31 + R16 + GCflag + affinity + saved JTOC + saved SP
-
+  // offset into the Java to Native glue frame, relative to the Java caller frame
+  // the definitions are chained to the first one, JNI_JTOC_OFFSET
+  // saved R17-R31 + R16 + GCflag + affinity + saved JTOC + saved SP
   static final int JNI_JTOC_OFFSET                  = 4;
   static final int JNI_SP_OFFSET                    = JNI_JTOC_OFFSET + 4;  // at 8
   static final int JNI_RVM_NONVOLATILE_OFFSET       = JNI_SP_OFFSET + 4;    // at 12

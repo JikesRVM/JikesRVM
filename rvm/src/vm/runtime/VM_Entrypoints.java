@@ -109,22 +109,13 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field activeThreadStackLimitField= getField("LVM_Processor;", "activeThreadStackLimit", "LVM_Address;");
   static final VM_Field pthreadIDField             = getField("LVM_Processor;", "pthread_id", "I");
   static final VM_Field epochField                 = getField("LVM_Processor;", "epoch", "I");
+  static final VM_Field processorModeField         = getField("LVM_Processor;", "processorMode", "I");
+  static final VM_Field vpStatusAddressField       = getField("LVM_Processor;", "vpStatusAddress", "LVM_Address;");
   //-#if RVM_FOR_IA32
   static final VM_Field processorThreadIdField     = getField("LVM_Processor;", "threadId", "I");
   static final VM_Field processorFPField           = getField("LVM_Processor;", "framePointer", "LVM_Address;");
   static final VM_Field processorJTOCField         = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
   static final VM_Field processorTrapParamField    = getField("LVM_Processor;", "arrayIndexTrapParam", "I");
-  //-#endif
-
-
-  //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-  static final VM_Field vpStateField               = getField("LVM_Processor;", "vpState", "I");
-  //-#else
-  // default implementation of jni
-  static final VM_Field processorModeField         = getField("LVM_Processor;", "processorMode", "I");
-  static final VM_Field vpStatusAddressField       = getField("LVM_Processor;", "vpStatusAddress", "LVM_Address;");
-  //-#endif
-  //-#if RVM_FOR_IA32  
   static final VM_Field jtocField               = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
   static final VM_Field threadIdField           = getField("LVM_Processor;", "threadId", "I");
   static final VM_Field framePointerField       = getField("LVM_Processor;", "framePointer", "LVM_Address;");

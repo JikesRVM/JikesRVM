@@ -1815,35 +1815,6 @@ public class VM_Allocator
         continue;
       }
 
-      //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-      // alternate implementation of jni
-
-      // skip other GC threads, on RVM VP, each will do its own
-      if ( t.isGCThread && t.processorAffinity.processorMode == VM_Processor.RVM)
-        continue;
-      
-      // attempt to get control of this thread
-      if ( VM_GCLocks.testAndSetThreadLock(i)) {
-
-	// find if thread is in native vproc: either it's
-	// the NativeIdleThread in sysWait (if in yield, 
-	// no special processing needed) or it's a mutator
-	// thread running C-code; in both cases, need to
-	// do the scan from the last Java frame to stacktop
-	//
-	if ((t.isNativeIdleThread && ((VM_NativeIdleThread)t).inSysWait)  ||
-	    ((t.nativeAffinity  != null) && (t.nativeAffinity.activeThread == t)))
-	  fp  = t.jniEnv.JNITopJavaFP;
-	else
-	  fp = t.contextRegisters.gprs[FRAME_POINTER];  // normal mutator thread
-	
-	gc_scanStackMajor(t, fp);
-      }
-      else continue;  // some other gc thread has seized this thread
-
-      //-#else
-      // default implementation of jni
-
       // skip other collector threads participating (have ordinal number) in this GC
       if ( t.isGCThread && (VM_Magic.threadAsCollectorThread(t).gcOrdinal > 0) )
 	continue;
@@ -1858,7 +1829,6 @@ public class VM_Allocator
 	VM_ScanStack.scanStack(t, VM_Address.zero(), false /*relocate_code*/);
       }
       else continue;  // some other gc thread has seized this thread
-      //-#endif
 
     }
   }  // gc_scanStacksMajor
@@ -2003,13 +1973,6 @@ public class VM_Allocator
 
 
   private static void prepareNonParticipatingVPsForGC(boolean major) {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#endif
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -2057,13 +2020,6 @@ public class VM_Allocator
   }  // prepareNonParticipatingVPsForGC
 
   private static void prepareNonParticipatingVPsForAllocation(boolean major) {
-
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    // all RVM VM_Processors participate in every collection
-    return;
-    //-#endif
-
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -2595,18 +2551,6 @@ public class VM_Allocator
 
 	if (TRACE) VM_Scheduler.trace("VM_Allocator","scanning stack for thread",i);
 	VM_ScanStack.scanStack(t, VM_Address.zero(), true);
-
-	//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-	// alternate implementation of jni
-	// if this thread has an associated native VP, then move its writebuffer entries 
-	// in the workqueue for later scanning
-	//
-	if ( t.nativeAffinity != null ) 
-	  VM_WriteBuffer.moveToWorkQueue(t.nativeAffinity);
-	//-#else
-	// default implementation of jni
-	//  do nothing here, write buffer entries moved in prepare...ForGC()
-	//-#endif
 
       }  // (if true) we seized got the thread to process
 

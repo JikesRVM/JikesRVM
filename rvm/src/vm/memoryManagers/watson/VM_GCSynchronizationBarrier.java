@@ -151,15 +151,10 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
 	  waitABit(1);
       }
 
-      //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-      // alternate implementation of jni
-      //-#else
-      // default implementation of jni:
       // now also wait for native daemon processor to be excluded (done so by
       // ordinal=1 thread in code below) or to arrive.
       while (entryCounts[VM_Scheduler.nativeDPndx] == 0)
 	waitABit(1);
-      //-#endif
 
       VM_Magic.isync();   // so subsequent instructions won't see stale values
       if (trace_startup) VM_Scheduler.trace("startupRendezvous:", "leaving - my count =",
@@ -175,10 +170,6 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
       while (entryCounts[i] == 0) {
 	waitABit(1);     // give missing thread a chance to show up
 
-	//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-	// alternate implementation of jni
-	//-#else
-	// default implementation of jni:
 	// if missing thread/processor is in native, block it there,
 	// and set count to -1 to indicate a non-participant for this GC
 	//
@@ -187,7 +178,6 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
 	  if (trace_unusual) VM_Scheduler.trace("startupRendezvous:","TAKING OUT processor",i);
 	  removeProcessor( i );
 	}
-	//-#endif
       }
       if (trace_startup) {
 	if (entryCounts[i] == 1)
@@ -197,12 +187,6 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
       }
     }
 
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni:
-    // no NativeDaemonProcessor, rendezvous loops are just over normal VM_Processors
-    maxProcessorId = VM_Scheduler.numProcessors;
-    //-#else
-    // default implementation of jni
     if (trace_startup) VM_Scheduler.trace("startupRendezvous","numExcluded =",numExcluded);
     if ( !VM.BuildForSingleVirtualProcessor && VM_Scheduler.processors[VM_Scheduler.nativeDPndx]!=null) {
       // If it is the NativeProcessor (its collector thread) that is executing here
@@ -253,8 +237,6 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
       maxProcessorId = VM_Scheduler.numProcessors;
     }
 
-    //-#endif
-
     // after deciding whos in and whos out, ordinal 1 thread enters barrier by
     // setting its count to 1 (maybe this can be done earlier so others can
     // get through the count loop quicker)
@@ -276,12 +258,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
     for ( int i = 1; i <= VM_Scheduler.numProcessors; i++)
       entryCounts[i] = 0;
 
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // alternate implementation of jni
-    //-#else
-    // default implementation of jni
     entryCounts[VM_Scheduler.nativeDPndx] = 0;
-    //-#endif
 
     if ( ! VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
