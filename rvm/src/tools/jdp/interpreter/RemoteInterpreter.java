@@ -925,7 +925,8 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     
     // checkcast against the lhs using the name for the rhs
     VM_Type rhsType = (VM_Type) forName(realName.substring(1,(realName.length()-1)));
-    return lhsType.isAssignableFrom(rhsType.getClass());
+    VM_Type myLhsType = (VM_Type) forName(lhsType.getName());
+    return myLhsType.getClass().isAssignableFrom(rhsType.getClass());
   }
 
   /**
