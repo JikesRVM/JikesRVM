@@ -83,12 +83,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     VM_BuildBB buildBB = new VM_BuildBB();
     buildBB.determineTheBasicBlocks(method);
 
-    // determine if we are going to insert edge counters for this method
-    if (buildBB.basicBlocks.length > 2 &&
-	VM_BaselineCompiler.options.EDGE_COUNTERS && 
-	!method.getDeclaringClass().isBridgeFromNative()) {
-      cm.setHasCounterArray(); // yes, we will inject counters for this method.
-    }
     VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
     buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
 

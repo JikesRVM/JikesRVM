@@ -410,8 +410,7 @@ class OptTestHarness {
 	   IOException,
 	   IllegalAccessException, 
 	   VM_ResolutionException {
-
-    cl = new ApplicationClassLoader(VM_ClassLoader.getApplicationRepositories());
+    cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);
     baselineMethodVector = new Vector(50);

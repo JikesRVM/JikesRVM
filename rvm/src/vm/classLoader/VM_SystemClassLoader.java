@@ -221,7 +221,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     return t.getClassForType();
   }
 
-  public String toString() { return "System ClassLoader!"; }
+  public String toString() { return "SystemCL"; }
 
   /**
    * Initialize for measuring class loading.

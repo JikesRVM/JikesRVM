@@ -24,6 +24,8 @@ import java.security.ProtectionDomain;
 public class VM_ClassLoader implements VM_Constants, 
 				       VM_ClassLoaderConstants {
 
+  private static ClassLoader appCL;
+
   /**
    * Set list of places to be searched for vm classes and resources.
    * @param classPath path specification in standard "classpath" format
@@ -43,6 +45,7 @@ public class VM_ClassLoader implements VM_Constants,
   public static void setApplicationRepositories(String classPath) {
     System.setProperty("java.class.path", classPath);
     applicationRepositories = classPath;
+    appCL = null;
   }
 
   /**
@@ -54,6 +57,12 @@ public class VM_ClassLoader implements VM_Constants,
     return applicationRepositories;
   }
 
+  public static ClassLoader getApplicationClassLoader() {
+    if (appCL == null) {
+      appCL = new ApplicationClassLoader(getApplicationRepositories());
+    }
+    return appCL;
+  }
   /**
    * Find a type description, or create one if this is a type we haven't 
    * seen before.

@@ -101,7 +101,7 @@ class MainThread extends Thread {
     //-#endif
     
     // Set up application class loader
-    ClassLoader cl = new ApplicationClassLoader(VM_ClassLoader.getApplicationRepositories());
+    ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl); 
 
     // find method to run

@@ -249,6 +249,6 @@ public abstract class VM_MemberReference {
   }
 
   public final String toString() {
-    return "<" + classloader + ", "+ className + ", " + memberName + ", " + descriptor + ">";
+    return "< " + classloader + ", "+ className + ", " + memberName + ", " + descriptor + " >";
   }
 }

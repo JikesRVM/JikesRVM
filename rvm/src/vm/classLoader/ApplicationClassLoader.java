@@ -46,6 +46,9 @@ public class ApplicationClassLoader extends URLClassLoader {
       VM.sysExit(-1);
     }
   }
+
+  public String toString() { return "AppCL"; }
+
 }
 
 		    

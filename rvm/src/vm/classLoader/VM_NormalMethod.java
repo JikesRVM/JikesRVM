@@ -79,6 +79,8 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   private static final int HAS_ARRAY_READ = 0x01000000;
   private static final int HAS_ARRAY_WRITE= 0x00800000;
   private static final int HAS_JSR        = 0x00400000;
+  private static final int HAS_COND_BRANCH= 0x00200000;
+  private static final int HAS_SWITCH     = 0x00100000;
   
   /**
    * storage for bytecode summary
@@ -403,6 +405,20 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
   }
 
   /**
+   * @return true if the method contains a conditional branch
+   */
+  public final boolean hasCondBranch() {
+    return (summary & HAS_COND_BRANCH) != 0;
+  }
+
+  /**
+   * @return true if the method contains a switch
+   */
+  public final boolean hasSwitch() {
+    return (summary & HAS_SWITCH) != 0;
+  }
+
+  /**
    * @return true if the method may write to a given field
    */
   public final boolean mayWrite(VM_Field field) {
@@ -498,6 +514,9 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
       case JBC_if_icmplt:case JBC_if_icmpge:case JBC_if_icmpgt:
       case JBC_if_icmple:case JBC_if_acmpeq:case JBC_if_acmpne:
       case JBC_ifnull:case JBC_ifnonnull:
+	summary |= HAS_COND_BRANCH;
+	calleeSize += SIMPLE_OPERATION_COST;
+	break;
       case JBC_goto:case JBC_goto_w:
 	calleeSize += SIMPLE_OPERATION_COST;
 	break;
@@ -507,6 +526,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
 	break;
 
       case JBC_tableswitch:case JBC_lookupswitch:
+	summary |= HAS_SWITCH;
 	calleeSize += SWITCH_COST;
 	break;
 

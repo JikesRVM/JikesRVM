@@ -74,11 +74,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
   protected int edgeCounterIdx;
 
   /**
-   * Edge counter dictionary id
-   */
-  private int edgeCounterId;
-
-  /**
    * The compiledMethod assigned to this compilation of method
    */
   protected VM_BaselineCompiledMethod compiledMethod;
@@ -128,7 +123,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
     asm = new VM_Assembler(bcodes.length(), shouldPrint);
     isInterruptible = method.isInterruptible();
   }
-
 
   /**
    * Clear out crud from bootimage writing
@@ -316,6 +310,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    * Main code generation loop.
    */
   protected final VM_MachineCode genCode () {
+    // determine if we are going to insert edge counters for this method
+    if (options.EDGE_COUNTERS && 
+	!method.getDeclaringClass().isBridgeFromNative() &&
+	(method.hasCondBranch() || method.hasSwitch())) {
+      compiledMethod.setHasCounterArray(); // yes, we will inject counters for this method.
+    }
 
     emit_prologue();
     while (bcodes.hasMoreBytecodes()) {

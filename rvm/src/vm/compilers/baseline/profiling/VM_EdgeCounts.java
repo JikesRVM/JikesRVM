@@ -42,7 +42,10 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       registered = true;
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
     }
-    int id = m.getId();
+    allocateCounters(m.getId(), numEntries);
+  }
+
+  private static synchronized void allocateCounters(int id, int numEntries) {
     if (data == null) {
       data = new int[id+500][];
     }
@@ -94,10 +97,6 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   }
 
   public static void readCounts(String fn) {
-    VM.sysFail("Temporarily do not support reading counts from file due to classloader work");
-    // The TODO item is to encode the classloader in the file as well (system, application,)
-    // and then use that to correctly create the VM_MethodReference
-    /*
     LineNumberReader in = null;
     try {
       in = new LineNumberReader(new FileReader(fn));
@@ -113,12 +112,25 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 	String firstToken = parser.nextToken();
 	if (firstToken.equals("M")) {
 	  int numCounts = Integer.parseInt(parser.nextToken());
+	  parser.nextToken(); // discard '<'
+	  String clName = parser.nextToken();
 	  VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  VM_MethodReference key = new VM_MemberReference(dc, mn, md);
-	  int id = VM_EdgeCounterDictionary.findOrCreateId(key, new int[numCounts]);
-	  cur = VM_EdgeCounterDictionary.getValue(id);
+	  parser.nextToken(); // discard '>'
+	  ClassLoader cl;
+	  if (clName.equals("SystemCL")) {
+	    cl = VM_SystemClassLoader.getVMClassLoader();
+	  } else if (clName.equals("AppCL")) {
+	    cl = VM_ClassLoader.getApplicationClassLoader();
+	  } else {
+	    VM.sysFail("Unable to match classloader "+clName);
+	    cl = null;
+	  }
+	  VM_MemberReference key = VM_MemberReference.findOrCreate(cl, dc, mn, md);
+	  int id = key.getId();
+	  allocateCounters(id, numCounts);
+	  cur = data[id];
 	  curIdx = 0;
 	} else {
 	  String type = parser.nextToken(); // discard bytecode index, we don't care.
@@ -147,7 +159,6 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
       VM_BaselineCompiler.processCommandLineArg("-X:base:", "edge_counter_file=DebugEdgeCounters");
     }
-    */
   }
 
 }
