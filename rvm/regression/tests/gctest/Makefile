@@ -7,8 +7,8 @@
 # @author Perry Cheng
 #
 
-ALL_TESTS = LargeAlloc FixedLive Node2I2A
-TESTS =LargeAlloc FixedLive Node2I2A
+SUPPORT =Node2I2A
+TESTS =FixedLive LargeAlloc
 
 include		$(RVM_BUILD)/Make.rules
 
@@ -18,7 +18,7 @@ ifeq ($(MODE),PERFORMANCE)
   HEAPSIZE   = 300
   START_ARGS = perf
 else
-  HEAPSIZE   = 150
+  HEAPSIZE   = 90
   START_ARGS = base
 endif
 EXPECTED=
@@ -33,6 +33,8 @@ $(TESTS): %:
 	$(MAKE) START_NAME=$@ sanity-check-rule
 
 check:
+	@$(FGREP) -q "Overall:" < $(OUT)
+
 
 
 
