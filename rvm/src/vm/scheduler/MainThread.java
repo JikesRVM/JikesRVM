@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002,2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -15,12 +15,16 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  *
  * @author Bowen Alpern
  * @author Derek Lieber
+ * @modified Steven Augart
  */
 class MainThread extends Thread {
   private String[] args;
   private VM_Method mainMethod;
   protected boolean launched = false;
    
+  private final static boolean dbg = false;
+  
+
   /**
    * Create "main" thread.
    * Taken: args[0]    = name of class containing "main" method
@@ -29,9 +33,13 @@ class MainThread extends Thread {
   MainThread(String args[]) {
     super(args); // special constructor to create thread that has no parent
     this.args = args;
+    this.vmdata.isMainThread = true;
     //-#if RVM_WITH_OSR
     super.isSystemThread = false;
     //-#endif
+    if (dbg) VM.sysWriteln("MainThread(args.length == ", args.length,
+                         "): constructor done");
+    
   }
       
   public String toString() {
@@ -47,6 +55,7 @@ class MainThread extends Thread {
    */
   public void run () {
 
+    if (dbg) VM.sysWriteln("MainThread.run() starting ");
       //-#if RVM_WITH_GCSPY
       // start the GCSpy interpreter server
       MM_Interface.startGCSpyServer();
@@ -56,6 +65,7 @@ class MainThread extends Thread {
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl); 
 
+    if (dbg) VM.sysWrite("[MainThread.run() loading class to run... ");
     // find method to run
     // load class specified by args[0]
     VM_Class cls = null;
@@ -67,10 +77,12 @@ class MainThread extends Thread {
       cls.instantiate();
       cls.initialize();
     } catch (NoClassDefFoundError e) { 
+      if (dbg) VM.sysWrite("failed.]");
       // no such class
       VM.sysWrite(e+"\n");
       return;
     }
+    if (dbg) VM.sysWriteln("loaded.]");
 
     // find "main" method
     //
@@ -81,13 +93,17 @@ class MainThread extends Thread {
       return;
     }
 
+    if (dbg) VM.sysWrite("[MainThread.run() making arg list... ");
     // create "main" argument list
     //
     String[] mainArgs = new String[args.length - 1];
     for (int i = 0, n = mainArgs.length; i < n; ++i)
       mainArgs[i] = args[i + 1];
+    if (dbg) VM.sysWriteln("made.]");
     
+    if (dbg) VM.sysWrite("[MainThread.run() compiling main(String[])... ");
     mainMethod.compile();
+    if (dbg) VM.sysWriteln("compiled.]");
     
     // Notify other clients that the startup is complete.
     //
@@ -98,7 +114,9 @@ class MainThread extends Thread {
     VM.debugBreakpoint();
 
     launched = true;
+    if (dbg) VM.sysWriteln("[MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
     VM_Magic.invokeMain(mainArgs, mainMethod.getCurrentCompiledMethod().getInstructions());
+    if (dbg) VM.sysWriteln("  MainThread.run(): \"main\" method completed.]");
   }
 }
