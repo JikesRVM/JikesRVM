@@ -37,6 +37,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    *
    * Class variables
    */
+  public static final boolean INC_DEC_ROOT = false;
   
   /****************************************************************************
    *
@@ -116,9 +117,15 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
-    increment(object);
-    if (root)
-      VM_Interface.getPlan().addToRootSet(object);
+    if (root) {
+      if (INC_DEC_ROOT) {
+	RCBaseHeader.incRC(object);
+	VM_Interface.getPlan().addToRootSet(object);
+      } else if (RCBaseHeader.setRoot(object)) {
+	VM_Interface.getPlan().addToRootSet(object);
+      }
+    } else
+       RCBaseHeader.incRC(object);
 
     return object;
   }
@@ -138,16 +145,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    *
    * Misc
    */
-
-  /**
-   * Increment the reference count for an object.
-   *
-   * @param object  The object whose reference count is to be incremented
-   */
-  public final void increment(VM_Address object) 
-    throws VM_PragmaInline {
-    RCBaseHeader.incRC(object, true);
-  }
 
   public final FreeListVMResource getVMResource() { return vmResource;}
   public final MemoryResource getMemoryResource() { return memoryResource;}

@@ -97,8 +97,8 @@ final class TrialDeletion extends CycleDetector
   private RefCountLocal rc;
   private Plan plan;
 
-  private AddressDeque workDeque;
-  private AddressDeque blackDeque;
+  private AddressDeque workQueue;
+  private AddressDeque blackQueue;
   private AddressDeque unfilteredPurpleBuffer;
   private AddressDeque maturePurpleBuffer;
   private AddressDeque filteredPurpleBuffer;
@@ -142,8 +142,8 @@ final class TrialDeletion extends CycleDetector
   TrialDeletion(RefCountLocal rc_, Plan plan_) {
     rc = rc_;
     plan = plan_;
-    workDeque = new AddressDeque("cycle workqueue", workPool);
-    blackDeque = new AddressDeque("cycle black workqueue", blackPool);
+    workQueue = new AddressDeque("cycle workqueue", workPool);
+    blackQueue = new AddressDeque("cycle black workqueue", blackPool);
     unfilteredPurpleBuffer = new AddressDeque("unfiltered purple buf", unfilteredPurplePool);
     maturePurpleBuffer = new AddressDeque("mature purple buf", maturePurplePool);
     filteredPurpleBuffer = new AddressDeque("filtered purple buf", filteredPurplePool);
@@ -159,6 +159,9 @@ final class TrialDeletion extends CycleDetector
 
   final void possibleCycleRoot(VM_Address object)
     throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!RCBaseHeader.isGreen(object));
+    //    Log.write("p[");Log.write(object);RCBaseHeader.print(object);Log.writeln("]");
     unfilteredPurpleBuffer.insert(object);
   }
 
@@ -307,6 +310,7 @@ final class TrialDeletion extends CycleDetector
   }
 
   private final void filter(VM_Address obj, AddressDeque tgt) {
+    //    Log.write("f[");Log.write(obj);RCBaseHeader.print(obj);Log.writeln("]");
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RCBaseHeader.isGreen(obj));
     if (VM_Interface.VerifyAssertions)
@@ -374,9 +378,10 @@ final class TrialDeletion extends CycleDetector
   private final boolean processGreyObject(VM_Address object, AddressDeque tgt,
 					  long timeCap)
     throws VM_PragmaInline {
+    //    Log.write("pg[");Log.write(object);RCBaseHeader.print(object);Log.writeln("]");
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RCBaseHeader.isGreen(object));
-    if (RCBaseHeader.isPurple(object)) {
+    if (RCBaseHeader.isPurpleNotGrey(object)) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(RCBaseHeader.isLiveRC(object));
       if (!markGrey(object, timeCap)) {
@@ -401,7 +406,7 @@ final class TrialDeletion extends CycleDetector
     throws VM_PragmaInline {
     boolean abort = false;
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(workDeque.pop().isZero());
+      VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -414,7 +419,7 @@ final class TrialDeletion extends CycleDetector
 	RCBaseHeader.makeGrey(object);
 	ScanObject.enumeratePointers(object, greyEnum);
       }
-      object = workDeque.pop();
+      object = workQueue.pop();
     }
     return !abort;
   }
@@ -423,8 +428,8 @@ final class TrialDeletion extends CycleDetector
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(RCBaseHeader.isLiveRC(object));
-      RCBaseHeader.decRC(object, false);
-      workDeque.push(object);
+      RCBaseHeader.unsyncDecRC(object);
+      workQueue.push(object);
     }
   }
 
@@ -443,7 +448,7 @@ final class TrialDeletion extends CycleDetector
   private final void scan(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(workDeque.pop().isZero());
+      VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -457,18 +462,18 @@ final class TrialDeletion extends CycleDetector
 	  ScanObject.enumeratePointers(object, scanEnum);
 	}
       } 
-      object = workDeque.pop();
+      object = workQueue.pop();
     }
   }
   final void enumerateScan(VM_Address object) 
     throws VM_PragmaInline {
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object))
-      workDeque.push(object);
+      workQueue.push(object);
   }
   private final void scanBlack(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(blackDeque.pop().isZero());
+      VM_Interface._assert(blackQueue.pop().isZero());
     while (!object.isZero()) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -476,15 +481,15 @@ final class TrialDeletion extends CycleDetector
 	RCBaseHeader.makeBlack(object);
 	ScanObject.enumeratePointers(object, scanBlackEnum);
       }
-      object = blackDeque.pop();
+      object = blackQueue.pop();
     }
   }
   final void enumerateScanBlack(VM_Address object)
     throws VM_PragmaInline {
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
-      RCBaseHeader.incRC(object, false);
+      RCBaseHeader.unsyncIncRC(object);
       if (!RCBaseHeader.isBlack(object))
-	blackDeque.push(object);
+	blackQueue.push(object);
     }
   }
 
@@ -502,14 +507,14 @@ final class TrialDeletion extends CycleDetector
   private final void collectWhite(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(workDeque.pop().isZero());
+      VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
 	RCBaseHeader.makeBlack(object);
 	ScanObject.enumeratePointers(object, collectEnum);
 	freeBuffer.push(object);
       }
-      object = workDeque.pop();
+      object = workQueue.pop();
     }
   }
   final void enumerateCollect(VM_Address object) 
@@ -518,7 +523,7 @@ final class TrialDeletion extends CycleDetector
       if (RCBaseHeader.isGreen(object))
 	plan.addToDecBuf(object); 
       else
-	workDeque.push(object);
+	workQueue.push(object);
     }
   }
 

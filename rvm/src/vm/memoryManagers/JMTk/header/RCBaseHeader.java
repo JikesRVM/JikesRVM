@@ -44,26 +44,6 @@ public abstract class RCBaseHeader implements Constants {
   static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd
   static final int DEC_BUFFER = -1; // dec to non-zero RC, need to bufr
 
-  static boolean attemptBarrierBitSet(VM_Address ref)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int old = VM_Interface.readAvailableBitsWord(ref);
-    boolean rtn = ((old & BARRIER_BIT_MASK) == 0);
-    if (rtn) {
-      do {
-	old = VM_Interface.prepareAvailableBits(ref);
-	rtn = ((old & BARRIER_BIT_MASK) == 0);
-      } while(!VM_Interface.attemptAvailableBits(ref, old, 
-						 old | BARRIER_BIT_MASK)
-	      && rtn);
-    }
-    return rtn;
-  }
-
-  static void clearBarrierBit(VM_Address ref) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Interface.setAvailableBit(ref, BARRIER_BIT, false);
-  }
-
   /**
    * Perform any required initialization of the GC portion of the header.
    * Called for objects allocated at boot time.
@@ -89,6 +69,12 @@ public abstract class RCBaseHeader implements Constants {
     // nothing to do (no bytes of GC header)
   }
 
+
+  /****************************************************************************
+   * 
+   * Core ref counting support
+   */
+
   /**
    * Return true if given object is live
    *
@@ -97,9 +83,13 @@ public abstract class RCBaseHeader implements Constants {
    */
   static boolean isLiveRC(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) >= INCREMENT;
+    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
   }
 
+  static void incRCOOL(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaNoInline {
+    incRC(object);
+  }
   /**
    * Increment the reference count of an object, clearing the "purple"
    * status of the object (if it were already purple).  An object is
@@ -110,15 +100,16 @@ public abstract class RCBaseHeader implements Constants {
    *
    * @param object The object whose RC is to be incremented.
    */
-  static void incRC(VM_Address object, boolean makeBlack)
+  static void incRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
+    //    Log.write("si[");Log.write(object);RCBaseHeader.print(object);
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
-      if (Plan.REF_COUNT_CYCLE_DETECTION && makeBlack)
-	newValue = (newValue & ~PURPLE);
+      if (Plan.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
   }
 
   /**
@@ -137,49 +128,147 @@ public abstract class RCBaseHeader implements Constants {
    * <code>DEC_PURPLE</code> if the count did not go to zero and the
    * object was already in the purple buffer.
    */
-  static int decRC(VM_Address object, boolean makePurple)
+  static int decRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     int rtn;
+    //    Log.write("sd[");Log.write(object);RCBaseHeader.print(object);
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue - INCREMENT;
-      if (newValue < INCREMENT)
+      if (newValue < LIVE_THRESHOLD)
 	rtn = DEC_KILL;
-      else if (Plan.REF_COUNT_CYCLE_DETECTION && makePurple &&
-	       ((newValue & COLOR_MASK) < PURPLE)) {
+      else if (Plan.REF_COUNT_CYCLE_DETECTION && 
+	       ((newValue & COLOR_MASK) < PURPLE)) { // if not purple or green
 	rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
 	newValue = (newValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
       } else
 	rtn = DEC_PURPLE;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
     return rtn;
   }
   
-  static int getRC(VM_Address object)
+  static boolean isBuffered(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>INCREMENT_SHIFT;
+    return getRCbits(object, BUFFERED_MASK) != 0;
   }
 
-  private static int changeRC(VM_Address object, int delta)
+  /****************************************************************************
+   * 
+   * Coalescing support
+   */
+
+  static boolean attemptBarrierBitSet(VM_Address ref)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int old = VM_Interface.readAvailableBitsWord(ref);
+    boolean rtn = ((old & BARRIER_BIT_MASK) == 0);
+    if (rtn) {
+      do {
+	old = VM_Interface.prepareAvailableBits(ref);
+	rtn = ((old & BARRIER_BIT_MASK) == 0);
+      } while(!VM_Interface.attemptAvailableBits(ref, old, 
+						 old | BARRIER_BIT_MASK)
+	      && rtn);
+    }
+    return rtn;
+  }
+
+  static void clearBarrierBit(VM_Address ref) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    VM_Interface.setAvailableBit(ref, BARRIER_BIT, false);
+  }
+
+  private static int getRCbits(VM_Address object, int mask)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & mask;
+  }
+
+  /**
+   * Set the <code>ROOT_REACHABLE</code> bit for an object if it is
+   * not already set.  Return true if it was not already set, false
+   * otherwise.
+   *
+   * @param object The object whose <code>ROOT_REACHABLE</code> bit is
+   * to be set.
+   * @return <code>true</code> if it was set by this call,
+   * <code>false</code> if the bit was already set.
+   */
+  static boolean setRoot(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
-      newValue = oldValue + delta;
+      if ((oldValue & ROOT_REACHABLE) == ROOT_REACHABLE)
+	return false;
+      newValue = oldValue | ROOT_REACHABLE;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
-    return newValue;
+    return true;
   }
 
-  public static void print(VM_Address object)
+  /**
+   * Clear the <code>ROOT_REACHABLE</code> bit for an object.
+   *
+   * @param object The object whose <code>ROOT_REACHABLE</code> bit is
+   * to be cleared.
+   */
+  static void unsetRoot(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    Log.write(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>CYCLE_DETECTION_BITS); 
+    int oldValue, newValue;
+    do {
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
+      newValue = oldValue & ~ROOT_REACHABLE;
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+  }
+
+  /****************************************************************************
+   * 
+   * Trial deletion support
+   */
+
+  /**
+   * Decrement the reference count of an object. This is unsychronized.
+   *
+   * @param object The object whose RC is to be decremented.
+   */
+  static void unsyncDecRC(VM_Address object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue, newValue;
+    int rtn;
+    oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+    newValue = oldValue - INCREMENT;
+    //    Log.write("ud[");Log.write(object);RCBaseHeader.print(object);
+    VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
+    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
+  }
+
+  /**
+   * Increment the reference count of an object. This is unsychronized.
+   *
+   * @param object The object whose RC is to be incremented.
+   */
+  static void unsyncIncRC(VM_Address object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue, newValue;
+    oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+    newValue = oldValue + INCREMENT;
+    //    Log.write("ui[");Log.write(object);RCBaseHeader.print(object);
+    VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
+    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
+  }
+
+  static void print(VM_Address object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
     Log.write(' ');
-    switch (getRCColor(object)) {
+    Log.write(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>INCREMENT_SHIFT); 
+    Log.write(' ');
+    switch (getHiRCColor(object)) {
+    case PURPLE: Log.write('p'); break;
+    case GREEN: Log.write('g'); break;
+    }
+    switch (getLoRCColor(object)) {
     case BLACK: Log.write('b'); break;
     case WHITE: Log.write('w'); break;
-    case PURPLE: Log.write('p'); break;
-    case GREEN: Log.write('x'); break;
     case GREY: Log.write('g'); break;
     }
     if (isBuffered(object))
@@ -187,103 +276,67 @@ public abstract class RCBaseHeader implements Constants {
     else
       Log.write('u');
   }
-
-  static boolean isBuffered(VM_Address object)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCbits(object, BUFFERED_MASK) != 0;
-  }
-  static void setBufferedBit(VM_Address object) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    setOrClearRCBit(object, BUFFERED_MASK, true);
-  }
   static void clearBufferedBit(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    setOrClearRCBit(object, BUFFERED_MASK, false);
+    int oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+    int newValue = oldValue & ~BUFFERED_MASK;
+    VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
   }
-
-  private static int getRCbits(VM_Address object, int mask)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & mask;
-  }
-  private static void setOrClearRCBit(VM_Address object, int mask, boolean set)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue, newValue;
-    do {
-      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
-      newValue = (set) ? oldValue | mask : oldValue & ~mask;
-    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
-  }
-
   static boolean isBlack(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCColor(object) == BLACK;
+    return getLoRCColor(object) == BLACK;
   }
   static boolean isWhite(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCColor(object) == WHITE;
+    return getLoRCColor(object) == WHITE;
   }
   static boolean isGreen(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCColor(object) >= GREEN;
+    return getHiRCColor(object) == GREEN;
   }
   static boolean isPurple(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCColor(object) == PURPLE;
+    return getHiRCColor(object) == PURPLE;
   }
-  static boolean isGreenOrPurple(VM_Address object) 
+  static boolean isPurpleNotGrey(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCColor(object) >= PURPLE;
+    return (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & (PURPLE | GREY)) == PURPLE;
   }
   static boolean isGrey(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCColor(object) == GREY;
-  }
-  static boolean isGreyOrGreen(VM_Address object) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int color = getRCColor(object);
-    return (color == GREY) || (color == GREEN);
+    return getLoRCColor(object) == GREY;
   }
   private static int getRCColor(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return COLOR_MASK & VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
   }
+  private static int getLoRCColor(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return LO_COLOR_MASK & VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+  }
+  private static int getHiRCColor(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return HI_COLOR_MASK & VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+  }
   static void makeBlack(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(getRCColor(object) != GREEN);
-    changeRCColor(object, BLACK);
+    changeRCLoColor(object, BLACK);
   }
   static void makeWhite(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(getRCColor(object) != GREEN);
-    changeRCColor(object, WHITE);
-  }
-  static boolean makePurple(VM_Address object)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (isGreenOrPurple(object))
-      return false;  // inherently acyclic or already purple, so do nothing
-    
-    int oldValue, newValue;
-    boolean rtn;
-    do {
-      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
-      newValue = (oldValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
-    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
-    
-    return ((oldValue & BUFFERED_MASK) == 0);
+    changeRCLoColor(object, WHITE);
   }
   static void makeGrey(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(getRCColor(object) != GREEN);
-    changeRCColor(object, GREY);
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(getHiRCColor(object) != GREEN);
+    changeRCLoColor(object, GREY);
   }
-  private static void changeRCColor(VM_Address object, int color)
+  private static void changeRCLoColor(VM_Address object, int color)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue, newValue;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(color != GREEN);
-    do {
-      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
-      newValue = (oldValue & ~COLOR_MASK) | color;
-    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    int oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+    int newValue = (oldValue & ~LO_COLOR_MASK) | color;
+    VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
   }
 
   // See Bacon & Rajan ECOOP 2001 for notion of colors (purple, grey,
@@ -292,24 +345,27 @@ public abstract class RCBaseHeader implements Constants {
 
   // The following are arranged to try to make the most common tests
   // fastest ("bufferd?", "green?" and "(green | purple)?") 
-  private static final int     BUFFERED_MASK = 0x1;  //  .. 00001
-  protected static final int      COLOR_MASK = 0xe;  //  .. 01110 
-  private static final int             BLACK = 0x0;  //  .. x000x
-  private static final int              GREY = 0x2;  //  .. x001x
-  private static final int             WHITE = 0x4;  //  .. x010x
+  private static final int     BUFFERED_MASK = 0x1;  //  .. xx0001
+  private static final int        COLOR_MASK = 0x1e;  //  .. x11110 
+  private static final int     LO_COLOR_MASK = 0x6;  //  .. x00110 
+  private static final int     HI_COLOR_MASK = 0x18; //  .. x11000 
+  private static final int             BLACK = 0x0;  //  .. xxxx0x
+  private static final int              GREY = 0x2;  //  .. xxxx1x
+  private static final int             WHITE = 0x4;  //  .. xx010x
   // green & purple *MUST* remain the highest colors in order to
   // preserve the (green | purple) test's precondition.
-  private static final int            PURPLE = 0x6;  //  .. x011x
-  protected static final int           GREEN = 0x8;  //  .. x100x
-  private static final int BITS_USED = 5;
+  private static final int            PURPLE = 0x8;  //  .. x01xxx
+  protected static final int           GREEN = 0x10;  // .. x10xxx
 
-  private static final int CYCLE_DETECTION_BITS = (Plan.REF_COUNT_CYCLE_DETECTION) ? BITS_USED : 0;
-  protected static final int INCREMENT_SHIFT = CYCLE_DETECTION_BITS;
+  // bits used to ensure retention of objects with zero RC
+  private static final int    ROOT_REACHABLE = 0x20; //  .. x10000
+  private static final int       FINALIZABLE = 0x40; //  .. 100000
+  private static final int    LIVE_THRESHOLD = ROOT_REACHABLE;
+  private static final int         BITS_USED = 7;
+
+  protected static final int INCREMENT_SHIFT = BITS_USED;
   protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
-  protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - CYCLE_DETECTION_BITS;
-  protected static final int INCREMENT_BITS = (Plan.REF_COUNT_SANITY_TRACING) ? AVAILABLE_BITS>>1 : AVAILABLE_BITS;
+  protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
+  protected static final int INCREMENT_BITS = AVAILABLE_BITS;
   protected static final int INCREMENT_MASK = ((1<<INCREMENT_BITS)-1)<<INCREMENT_SHIFT;
-  protected static final int SANITY_SHIFT = INCREMENT_SHIFT + INCREMENT_BITS;
-  protected static final int SANITY_INCREMENT = 1<<SANITY_SHIFT;
-  protected static final int SANITY_MASK = ((1<<INCREMENT_BITS)-1)<<SANITY_SHIFT;
 }

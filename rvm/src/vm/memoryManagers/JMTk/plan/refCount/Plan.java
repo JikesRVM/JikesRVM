@@ -52,9 +52,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MemoryResource rcMR;
 
   // shared queues
-  private static SharedDeque incPool;
   private static SharedDeque decPool;
-  private static SharedDeque rootPool;
+  private static SharedDeque newRootPool;
 
   // GC state
   private static int required;  // how many pages must this GC yeild?
@@ -94,9 +93,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private int wbFastPathCounter;
 
   // queues (buffers)
-  private AddressDeque incBuffer;
   private AddressDeque decBuffer;
-  private AddressDeque rootSet;
+  private AddressDeque newRootSet;
 
   // enumerators
   RCDecEnumerator decEnum;
@@ -125,23 +123,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     addSpace(RC_SPACE, "RC Space");
 
     // instantiate shared queues
-    incPool = new SharedDeque(metaDataRPA, 1);
-    incPool.newClient();
     decPool = new SharedDeque(metaDataRPA, 1);
     decPool.newClient();
-    rootPool = new SharedDeque(metaDataRPA, 1);
-    rootPool.newClient();
+    newRootPool = new SharedDeque(metaDataRPA, 1);
+    newRootPool.newClient();
   }
 
   /**
    * Constructor
    */
   public Plan() {
-    incBuffer = new AddressDeque("inc buf", incPool);
     decBuffer = new AddressDeque("dec buf", decPool);
-    rootSet = new AddressDeque("root set", rootPool);
+    newRootSet = new AddressDeque("new root set", newRootPool);
     los = new RefCountLOSLocal(losVM, rcMR);
-    rc = new RefCountLocal(rcSpace, this, los, incBuffer, decBuffer, rootSet);
+    rc = new RefCountLocal(rcSpace, this, los, decBuffer, newRootSet);
     decEnum = new RCDecEnumerator(this);
   }
 
@@ -576,7 +571,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (old.GE(RC_START))
       decBuffer.pushOOL(old);
     if (tgt.GE(RC_START))
-      incBuffer.pushOOL(tgt);
+      RCBaseHeader.incRCOOL(tgt);
   }
 
   /**
@@ -599,7 +594,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (old.GE(RC_START))
       decBuffer.push(old);
     if (tgt.GE(RC_START))
-      incBuffer.push(tgt);
+      RCBaseHeader.incRC(tgt);
   }
 
   /****************************************************************************
@@ -621,7 +616,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (isRCObject(object))
       decBuffer.push(object);
-    //      rc.decrement(object);
   }
 
 
@@ -697,7 +691,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void addToRootSet(VM_Address root) 
     throws VM_PragmaInline {
-    rootSet.push(root);
+    newRootSet.push(root);
   }
 
 

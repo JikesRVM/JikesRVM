@@ -35,7 +35,7 @@ final class RefCountLocal extends SegregatedFreeList
    *
    * Class variables
    */
-  private static SharedDeque rootPool;
+  private static SharedDeque oldRootPool;
   private static SharedDeque tracingPool;
 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
@@ -51,7 +51,8 @@ final class RefCountLocal extends SegregatedFreeList
 
   private AddressDeque incBuffer;
   private AddressDeque decBuffer;
-  private AddressDeque rootSet;
+  private AddressDeque newRootSet;
+  private AddressDeque oldRootSet;
   private AddressDeque tracingBuffer;
 
   private boolean decrementPhase = false;
@@ -74,7 +75,7 @@ final class RefCountLocal extends SegregatedFreeList
    * Initialization
    */
 
-  /**
+ /**
    * Constructor
    *
    * @param space The ref count space with which this local thread is
@@ -82,15 +83,15 @@ final class RefCountLocal extends SegregatedFreeList
    * @param plan The plan with which this local thread is associated.
    */
   RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
-		AddressDeque inc, AddressDeque dec, AddressDeque root) {
+		AddressDeque dec, AddressDeque root) {
     super(space.getVMResource(), space.getMemoryResource(), plan_);
     rcSpace = space;
     plan = plan_;
     los = los_;
 
-    incBuffer = inc;
     decBuffer = dec;
-    rootSet = root;
+    newRootSet = root;
+    oldRootSet = new AddressDeque("old root set", oldRootPool);
     if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this, plan_);
   }
@@ -102,8 +103,8 @@ final class RefCountLocal extends SegregatedFreeList
    * into the boot image by the build process.
    */
   static {
-    rootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
-    rootPool.newClient();
+    oldRootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    oldRootPool.newClient();
 
     cellSize = new int[SIZE_CLASSES];
     blockSizeClass = new byte[SIZE_CLASSES];
@@ -146,7 +147,9 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void prepare(boolean time) { 
     flushFreeLists();
-    if (Options.verbose > 2) processRootBufsAndCount(); else processRootBufs();
+    if (RefCountSpace.INC_DEC_ROOT) {
+      if (Options.verbose > 2) processRootBufsAndCount(); else processRootBufs();
+    }
   }
 
   /**
@@ -154,10 +157,10 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void release(boolean time) {
     flushFreeLists();
-    if (time) Statistics.rcIncTime.start();
-    if (Options.verbose > 2) processIncBufsAndCount(); else processIncBufs();
-    if (time) Statistics.rcIncTime.stop();
     VM_Interface.rendezvous(4400);
+    if (!RefCountSpace.INC_DEC_ROOT) {
+      processOldRootBufs();
+    }
     if (time) Statistics.rcDecTime.start();
     processDecBufs();
     if (time) Statistics.rcDecTime.stop();
@@ -167,30 +170,10 @@ final class RefCountLocal extends SegregatedFreeList
 	processDecBufs();
       if (time) Statistics.cdTime.stop();
     }
+    if (!RefCountSpace.INC_DEC_ROOT) {
+      if (Options.verbose > 2) processRootBufsAndCount(); else processRootBufs();
+    }
     restoreFreeLists();
-    
-  }
-
-  /**
-   * Process the increment buffers
-   */
-  private final void processIncBufs() {
-    VM_Address tgt;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-      rcSpace.increment(tgt);
-    }
-  }
-
-  /**
-   * Process the increment buffers and maintain statistics
-   */
-  private final void processIncBufsAndCount() {
-    VM_Address tgt;
-    incCounter = 0;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-      rcSpace.increment(tgt);
-      incCounter++;
-    }
   }
 
   /**
@@ -215,23 +198,45 @@ final class RefCountLocal extends SegregatedFreeList
   }
 
   /**
+   * Process the root buffers from the previous GC, if the object is
+   * no longer live release it.
+   */
+  private final void processOldRootBufs() {
+    VM_Address object;
+    while (!(object = oldRootSet.pop()).isZero()) {
+      if (!RCBaseHeader.isLiveRC(object)) {
+	release(object);
+      }
+    }
+  }
+
+  /**
    * Process the root buffers, moving entries over to the decrement
-   * buffers for the next GC.  FIXME this is inefficient
+   * buffers for the next GC. 
    */
   private final void processRootBufs() {
-    VM_Address tgt;
-    while (!(tgt = rootSet.pop()).isZero())
-      decBuffer.push(tgt);
+    VM_Address object;
+    while (!(object = newRootSet.pop()).isZero()) {
+      if (RefCountSpace.INC_DEC_ROOT)
+	decBuffer.push(object);
+      else {
+	RCBaseHeader.unsetRoot(object);
+	oldRootSet.push(object);
+      }
+    }
   }
 
   /**
    * Process the root buffers and maintain statistics.
    */
   private final void processRootBufsAndCount() {
-    VM_Address tgt;
+    VM_Address object;
     rootCounter = 0;
-    while (!(tgt = rootSet.pop()).isZero()) {
-      decBuffer.push(tgt);
+    while (!(object = newRootSet.pop()).isZero()) {
+      if (RefCountSpace.INC_DEC_ROOT)
+	decBuffer.push(object);
+      else 
+	RCBaseHeader.unsetRoot(object);
       rootCounter++;
     }
   }
@@ -253,7 +258,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
-    int state = RCBaseHeader.decRC(object, true);
+    int state = RCBaseHeader.decRC(object);
     if (state == RCBaseHeader.DEC_KILL)
       release(object);
     else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RCBaseHeader.DEC_BUFFER)
