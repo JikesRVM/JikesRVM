@@ -6,7 +6,6 @@
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
-import com.ibm.JikesRVM.*;
 
 /**
  *  <P> Generates the assembler that is used by the optimizing compiler,
