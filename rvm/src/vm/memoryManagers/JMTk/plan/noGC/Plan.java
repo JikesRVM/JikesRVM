@@ -49,7 +49,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent    DEFAULT_SIZE = AVAILABLE;
+  private static final VM_Extent    DEFAULT_SIZE = VM_Extent.fromIntZeroExtend((int)(AVAILABLE));
   public  static final VM_Extent        MAX_SIZE = DEFAULT_SIZE;
 
   private static final VM_Address  DEFAULT_START = PLAN_START;
