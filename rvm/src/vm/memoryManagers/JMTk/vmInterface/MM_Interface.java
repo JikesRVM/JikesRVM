@@ -544,14 +544,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align > BYTES_IN_INT) {
-      // This code is based on some fancy modulo artihmetic.
-      // It ensures the property (region + offset) % alignment == 0
-      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-      region = region.add(delta);
-    }
+    if (align > BYTES_IN_INT) region = alignAllocation(region, align, offset);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, true,
                    allocator);
@@ -591,19 +584,53 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align > BYTES_IN_INT) {
-      // This code is based on some fancy modulo artihmetic.
-      // It ensures the property (region + offset) % alignment == 0
-      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-      region = region.add(delta);
-    }
+    if (align > BYTES_IN_INT) region = alignAllocation(region, align, offset);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, false,
                    allocator);
     return result;
+  }
+
+  /**
+   * Align an allocation using some modulo arithmetic to guarantee the
+   * following property:<br>
+   * <code>(region + offset) % alignment == 0</code>
+   *
+   * @param region The initial (unaligned) start value of the
+   * allocated region of memory.
+   * @param align The alignment requested, must be a power of two
+   * @param offset The offset at which the alignment is desired
+   * @return <code>region</code> plus some delta (possibly 0) such
+   * that the return value is aligned according to the above
+   * constraints.
+   */
+  public static final int alignAllocation(int initialOffset, int align,
+                                          int offset)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return alignAllocation(VM_Address.fromInt(initialOffset), align, offset).toInt();
+  }
+
+  /**
+   * Align an allocation using some modulo arithmetic to guarantee the
+   * following property:<br>
+   * <code>(region + offset) % alignment == 0</code>
+   *
+   * @param region The initial (unaligned) start value of the
+   * allocated region of memory.
+   * @param align The alignment requested, must be a power of two
+   * @param offset The offset at which the alignment is desired
+   * @return <code>region</code> plus some delta (possibly 0) such
+   * that the return value is aligned according to the above
+   * constraints.
+   */
+  private static final VM_Address alignAllocation(VM_Address region, int align,
+                                                  int offset)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+    VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+    VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+    return region.add(delta);
   }
 
   /**

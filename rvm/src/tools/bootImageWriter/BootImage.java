@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Memory image of virtual machine that will be written to disk file and later
@@ -36,7 +37,7 @@ public class BootImage extends BootImageWriterMessages
   /**
    * Offset of next free word, in bytes
    */
-  private int freeOffset;
+  private int freeOffset = 0;
 
   /**
    * Offset of last free word + 1, in bytes
@@ -134,22 +135,27 @@ public class BootImage extends BootImageWriterMessages
    * @param offset the offset at which the alignment is desired.
    */
   public int allocateStorage(int size, int align, int offset) {
-    int originalBP = freeOffset;
-    // establish (freeOffset + offset) % align == 0
-    int mod = (freeOffset + offset) & (align-1);
-    int delta = (align - mod) & (align-1);
-    freeOffset += delta;
+    freeOffset = MM_Interface.alignAllocation(freeOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(delta >=0);
       VM._assert(((freeOffset + offset) & (align -1)) == 0); 
       VM._assert((freeOffset & ~3) == freeOffset);
     }
     int lowAddr = freeOffset;
     freeOffset += size;
     if (freeOffset > endOffset)
-      fail("bootimage full (need " + size + " more bytes)");
-
+      fail("bootimage full (need at least " + size + " more bytes)");
+    
     return lowAddr;
+  }
+
+  /**
+   * Reset the allocator as if no allocation had occured.  This is
+   * useful to allow a "trial run", as is done to establish the offset
+   * of the JTOC for the entry in the boot image record---so its
+   * actual address can be computed early in the build process.
+   */
+  public void resetAllocator() {
+    freeOffset = 0;
   }
 
   /**

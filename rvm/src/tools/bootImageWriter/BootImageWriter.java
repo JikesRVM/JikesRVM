@@ -882,17 +882,23 @@ public class BootImageWriter extends BootImageWriterMessages
 
       // Set tocRegister early so opt compiler can access it to
       //   perform fixed_jtoc optimization (compile static addresses into code).
-      // In the boot image, the bootrecord comes first followed by a VM_Address array and then the TOC.
-      // To do this, we must fully simulate the alignment logic in the allocation code!
+
+      // In the boot image, the bootrecord comes first followed by a
+      // VM_Address array and then the TOC.  To do this, we must fully
+      // simulate the alignment logic in the allocation code!  Rather
+      // than replicate the allocation code here, we perform dummy
+      // allocations and then reset the boot image allocator.
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      VM_Address bp = bootImageAddress.add(rvmBRType.getInstanceSize());
-      int align = VM_ObjectModel.getAlignment(intArrayType);
-      int offset = VM_ObjectModel.getOffsetForAlignment(intArrayType);
-      int mod = bp.add(offset).toInt() & (align-1);
-      int delta = (align - mod) & (align-1);
-      bootRecord.tocRegister = bp.add(delta).add(intArrayType.getInstanceSize(0));
+      int brOffset = bootImage.allocateStorage(rvmBRType.getInstanceSize(), 
+                                               VM_ObjectModel.getAlignment(rvmBRType), 
+                                               0);
+      int jtocOffset = bootImage.allocateStorage(intArrayType.getInstanceSize(0),
+                                                 VM_ObjectModel.getAlignment(intArrayType),
+                                                 0);
+      bootImage.resetAllocator();
+      bootRecord.tocRegister = bootImageAddress.add(jtocOffset).add(intArrayType.getInstanceSize(0));
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
