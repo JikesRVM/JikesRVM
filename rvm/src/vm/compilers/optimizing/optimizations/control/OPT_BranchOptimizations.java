@@ -22,10 +22,6 @@ public final class OPT_BranchOptimizations
 
   private OPT_BranchOptimizations () { }
 
-  public boolean printingEnabled(OPT_Options options, boolean before) {
-    return false;
-  }
-
   /** 
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
@@ -791,10 +787,10 @@ public final class OPT_BranchOptimizations
     // the diamond.  If they're not defined in the diamond, copy prop
     // should clean these moves up.
     OPT_RegisterOperand tempVal1 = ir.regpool.makeTemp(val1);
-    OPT_Operator op = OPT_IRTools.getMoveOp(tempVal1.type, false);
+    OPT_Operator op = OPT_IRTools.getMoveOp(tempVal1.type, ir.IRStage == OPT_IR.LIR);
     cb.insertBefore(Move.create(op,tempVal1.copyRO(),val1.copy()));
     OPT_RegisterOperand tempVal2 = ir.regpool.makeTemp(val2);
-    op = OPT_IRTools.getMoveOp(tempVal2.type, false);
+    op = OPT_IRTools.getMoveOp(tempVal2.type,  ir.IRStage == OPT_IR.LIR);
     cb.insertBefore(Move.create(op,tempVal2.copyRO(),val2.copy()));
 
     // For each instruction in each temporary set, rewrite it to def a new
@@ -823,7 +819,7 @@ public final class OPT_BranchOptimizations
           OPT_RegisterOperand temp = (OPT_RegisterOperand)
             tempS.getDefs().nextElement();
           op = OPT_IRTools.getCondMoveOp(def.asRegister().type,
-                                         false);
+                                         ir.IRStage == OPT_IR.LIR);
           OPT_Instruction cmov = CondMove.create(op,def.asRegister() ,
                                                  tempVal1.copy(),
                                                  tempVal2.copy(),
@@ -862,7 +858,8 @@ public final class OPT_BranchOptimizations
             notTakenMap.put(def.asRegister().register,prevCmov);
           } else {
             // create a new cmov instruction
-            op = OPT_IRTools.getCondMoveOp(def.asRegister().type, false);
+            op = OPT_IRTools.getCondMoveOp(def.asRegister().type, 
+					   ir.IRStage == OPT_IR.LIR);
             OPT_Instruction cmov = CondMove.create(op,def.asRegister(),
                                                    tempVal1.copy(),
                                                    tempVal2.copy(),
