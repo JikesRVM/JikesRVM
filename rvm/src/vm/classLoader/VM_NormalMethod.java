@@ -84,6 +84,7 @@ public final class VM_NormalMethod
   private static final int HAS_JSR        = 0x00400000;
   private static final int HAS_COND_BRANCH= 0x00200000;
   private static final int HAS_SWITCH     = 0x00100000;
+  private static final int HAS_BACK_BRANCH= 0x00080000;
   
   /**
    * storage for bytecode summary
@@ -160,19 +161,10 @@ public final class VM_NormalMethod
   /**
    * Generate the code for this method
    */
-  protected VM_CompiledMethod genCode() 
-    throws VerifyError
-  {
+  protected VM_CompiledMethod genCode() throws VerifyError {
     if (VM.VerifyBytecode) {
       VM_Verifier verifier = new VM_Verifier();
-//       try {
-	verifier.verifyMethod(this);
-//       } catch (VerifyError v) {
-//       	VerifyError ve = new VerifyError("Method " + this.toString() +
-//       	" fails bytecode verification.\n");
-// 	ve.initCause(v);
-// 	throw ve;
-//       }
+      verifier.verifyMethod(this);
     }
 
     if (VM.writingBootImage) {
@@ -425,6 +417,13 @@ public final class VM_NormalMethod
   }
 
   /**
+   * @return true if the method contains a backwards branch
+   */
+  public final boolean hasBackwardsBranch() {
+    return (summary & HAS_BACK_BRANCH) != 0;
+  }
+
+  /**
    * @return true if the method may write to a given field
    */
   public final boolean mayWrite(VM_Field field) {
@@ -521,11 +520,17 @@ public final class VM_NormalMethod
       case JBC_if_icmple:case JBC_if_acmpeq:case JBC_if_acmpne:
       case JBC_ifnull:case JBC_ifnonnull:
 	summary |= HAS_COND_BRANCH;
+	if (bcodes.getBranchOffset() < 0) summary |= HAS_BACK_BRANCH;
 	calleeSize += SIMPLE_OPERATION_COST;
-	break;
-      case JBC_goto:case JBC_goto_w:
+	continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+      case JBC_goto:
+	if (bcodes.getBranchOffset() < 0) summary |= HAS_BACK_BRANCH;
 	calleeSize += SIMPLE_OPERATION_COST;
-	break;
+	continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+      case JBC_goto_w:
+	if (bcodes.getWideBranchOffset() < 0) summary |= HAS_BACK_BRANCH;
+	calleeSize += SIMPLE_OPERATION_COST;
+	continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
       case JBC_jsr:case JBC_jsr_w:
 	summary |= HAS_JSR;
 	calleeSize += JSR_COST;

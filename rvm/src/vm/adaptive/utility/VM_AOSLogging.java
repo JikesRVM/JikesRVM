@@ -732,11 +732,16 @@ public class VM_AOSLogging {
 
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
+	boolean backBranch = false;
+	if (method instanceof VM_NormalMethod) {
+	  backBranch = ((VM_NormalMethod)method).hasBackwardsBranch();
+	}
 	log.println(VM_Controller.controllerClock 
 		    +"  Updated compilation rates for "+ VM_RuntimeCompiler.getCompilerName(compiler) +"compiler");
 	log.println("\tmethod compiled: "+ method);
 	log.println("\tbyte code length: "+ BCLength +", Total: "+ totalBCLength);
 	log.println("\tmachine code length: "+ MCLength +", Total: "+ totalMCLength);
+	log.println("\tbackwards branch: " + (backBranch ? "yes" : "no"));
 	log.println("\tcompilation time: "+ compTime +", Total: "+ totalCompTime);
 	log.println("\tRate for this method: "+ BCLength / compTime
 		    +", Total of Logs: "+ totalLogOfRates);
