@@ -602,7 +602,9 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   /**
    * Dump stack of calling thread, starting at callers frame
    */
-  public static void dumpStack () {
+  public static void dumpStack () 
+    throws LogicallyUninterruptiblePragma
+  {
     if (VM.runningVM)
       dumpStack(VM_Magic.getFramePointer());
     else
