@@ -12,6 +12,7 @@ RVM effort.  Because no existing debugger satisfactorily meets the
 needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
 name primitive.  {\tt jdp} uses a technique called Remote
 Reflection (see the related paper on the RVM 
+\remark{TODO: update the URL}
 \xlink{web page}{http://www.research.ibm.com/jalapeno}.  This
 allows {\tt jdp} to run out-of-process, yet it uses reflection extensively to
 access the internal data structures as if it resides inside the RVM.
@@ -369,9 +370,9 @@ This should be convenient for:
 
 \item Interrupting a hung RVM:  If the RVM is running under the debugger
   and appears to be hung, you can interrupt it by going to a different
-  window and killing the Jalapeno process.  This will send a signal to the
-  Jalapeno process and {\tt jdp} will catch the signal before it gets to
-  the Jalapeno process.  Hitting control-c in the jdp window will kill 
+  window and killing the RVM process.  This will send a signal to the
+  RVM process and {\tt jdp} will catch the signal before it gets to
+  the RVM process.  Hitting control-c in the jdp window will kill 
   {\tt jdp} itself.
 
 

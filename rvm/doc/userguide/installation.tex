@@ -8,15 +8,12 @@ To build on any platform you will need the following:
 \xlink{{\tt http://www.gnu.org/software/make/make.html}}
            {http://www.gnu.org/software/make/make.html}.
 
-\item The Jikes\trademark Java\trademark compiler (there is no longer a dependence on
-version 0.47). A recent binary version for AIX is located in the
-{\tt contrib} directory of the distribution.
-
-You can also download this from
+\item The Jikes\trademark Java\trademark compiler 
+You can download this from
 \xlink{{\tt http://oss.software.ibm.com/developerworks/opensource/jikes}}
            {http://oss.software.ibm.com/developerworks/opensource/jikes}.
 You can use any of the pre-compiled binaries, or build it yourself from the
-source.
+source. 
 
 \item GNU tar is needed to extract the distribution tar file.  We have
 experienced problems with the AIX tar program truncating file names.
@@ -42,8 +39,7 @@ run RVM on a Linux Intel environment, you will need
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
 \item Linux  (we have run on RedHat 6.0 and 7.0)
-\item The system has run in 386MB. No work has been done to determine 
-an optimum size of memory, especially since the system has not been fully developed.
+\item The system has run in 386MB; we have not established a lower bound.
 \item the IBM Developer Kit (at least version 2.1.3).  You can download this from
 \xlink{{\tt http://www.ibm.com/java/jdk/Linux}}
            {http://www.ibm.com/java/jdk/Linux}.
@@ -59,9 +55,8 @@ run RVM on a Win32/Cygwin Intel environment, you will need
 \item Cygwin. You can download this from 
 \xlink{{\tt http://www.cygwin.com}}
            {http://www.cygwin.com}. (I used dll version 1.1.8).
-\item The system has run in 256MB on Windows 2000. No work has been
-done to determine an optimum size of memory or if it will run on other
-Cygwin/Win32 combinations.
+\item The system has run in 256MB on Windows 2000; we have not established
+a lower bound.
 \item the IBM Developer Kit (at least version 2.1.3).  You can download this from
 \xlink{{\tt http://www.ibm.com/java/jdk/}}
            {http://www.ibm.com/java/jdk/}.
@@ -72,7 +67,8 @@ installed.
        {http://www.cs.mun.ca/\~{}michael/pdksh}.
 \end{itemize}
 Currently this option for running RVM is even less functional than
-the Linux/IA32 configuration. In particular,
+the Linux/IA32 configuration. It is not currently being maintained or
+tested.  Some problems include:
 \begin{itemize}
 \item We haven't managed to successfully install a handler for hardware traps,
 so the first hardware exception (eg a {\tt NullPointerException}) will cause
@@ -85,7 +81,7 @@ still confusing RVM.  Therefore, your build directories and all class
 files for the programs you want to run must be on your local file
 system. Failure to do this will result in a class-not-found error.
 \item Spaces in directory names aren't handled by jconfigure and the
-other jalapeno scripts.  Use cygwin's mount command to avoid them (in
+other scripts.  Use cygwin's mount command to avoid them (in
 particular the config file assumes that
 C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 \end{itemize}

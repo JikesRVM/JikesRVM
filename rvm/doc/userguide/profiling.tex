@@ -1,5 +1,5 @@
 This section contains information on how an adaptive configuration of
-Jalapeno can be used to profile an application and the VM.  The first
+RVM can be used to profile an application and the VM.  The first
 mechanism provides a coarse-grain profile, giving the percentage of
 execution time spent in the hottest methods.  The second method
 provides a mechansim to insert counters to count the frequency of 
@@ -19,14 +19,14 @@ Here's how
 {\tt FastAdaptivecopyingGC}.  See Section~\ref{section:installation}
 \begin{verbatim}
 % jconfigure FastAdaptivecopyingGC
-% cd $JVM_BUILD
+% cd $RVM_BUILD
 % jbuild
 \end{verbatim}
 
 \item Run the application using the opt compiler as the runtime compiler and
 instructing RVM to gather profile data.
 \begin{verbatim}
-% jalapeno -X:aos:primary_strategy=optonly -X:aos:gather_profile_data=true <classfile>
+% rvm -X:aos:primary_strategy=optonly -X:aos:gather_profile_data=true <classfile>
 \end{verbatim}
 \end{enumerate}
 
