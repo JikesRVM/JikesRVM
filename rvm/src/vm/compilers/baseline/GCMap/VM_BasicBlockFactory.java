@@ -7,7 +7,7 @@ package com.ibm.JikesRVM;
 /**
  * @author Perry Cheng
  */
-final class VM_BasicBlockFactory {
+public final class VM_BasicBlockFactory {
 
   private int nextBlockNumber = VM_BasicBlock.STARTBBNUMBER;
 
@@ -18,7 +18,7 @@ final class VM_BasicBlockFactory {
    return new VM_BasicBlock(startval, blockNumber);
  }
 
- int getNumberofBlocks() {
+ public int getNumberofBlocks() {
    return (nextBlockNumber -1);
  }
 

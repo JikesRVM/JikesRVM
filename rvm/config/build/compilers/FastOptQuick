@@ -1,0 +1,2 @@
+   . $1/compilers/FullOptQuick
+   export RVM_WITHOUT_ASSERTIONS=1 

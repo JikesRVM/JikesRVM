@@ -11,6 +11,9 @@ import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
 //-#endif
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.VM_QuickGCMapIterator;
+//-#endif
 import com.ibm.JikesRVM.jni.VM_JNIGCMapIterator;
 import com.ibm.JikesRVM.VM_HardwareTrapGCMapIterator;
 import com.ibm.JikesRVM.VM_Thread;
@@ -57,6 +60,9 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   private final VM_GCMapIterator optIterator = null;
   //-#endif
   
+  /** iterator for quick compiled frames */
+  private VM_GCMapIterator     quickIterator;
+  
   /** iterator for VM_HardwareTrap stackframes */
   private final VM_HardwareTrapGCMapIterator hardwareTrapIterator;
   
@@ -70,6 +76,9 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
     //-#if RVM_WITH_OPT_COMPILER
     optIterator = new VM_OptGCMapIterator(registerLocations);
+    //-#endif
+    //-#if RVM_WITH_QUICK_COMPILER
+    quickIterator = new VM_QuickGCMapIterator(registerLocations);
     //-#endif
     jniIterator = new VM_JNIGCMapIterator(registerLocations);
     hardwareTrapIterator      = new VM_HardwareTrapGCMapIterator(registerLocations);
@@ -96,6 +105,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
     }
     baselineIterator.newStackWalk(thread);
     if (optIterator != null) optIterator.newStackWalk(thread);
+    if (quickIterator != null) quickIterator.newStackWalk(thread);
     hardwareTrapIterator.newStackWalk(thread);
     jniIterator.newStackWalk(thread);
   }
@@ -114,6 +124,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
     case VM_CompiledMethod.TRAP: return hardwareTrapIterator;
     case VM_CompiledMethod.BASELINE: return baselineIterator;
     case VM_CompiledMethod.OPT: return optIterator;
+    case VM_CompiledMethod.QUICK: return quickIterator;
     case VM_CompiledMethod.JNI: return jniIterator;
     }
     if (VM.VerifyAssertions) {

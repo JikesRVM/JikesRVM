@@ -9,6 +9,9 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import java.lang.ref.Reference;
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.*;
+//-#endif
 
 /**
  * A virtual machine.
@@ -143,6 +146,14 @@ public class VM extends VM_Properties
     // 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     VM_BaselineCompiler.initOptions();
+
+    //-#if RVM_WITH_QUICK_COMPILER
+    // Reset the options for the quick compiler to avoid carrying 
+    // them over from bootimage writing time.
+    // 
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing quick compiler options to defaults");
+    VM_QuickCompiler.initOptions();
+    //-#endif
 
     // Create class objects for static synchronized methods in the bootimage.
     // This must happen before any static synchronized methods of bootimage 
@@ -309,6 +320,10 @@ public class VM extends VM_Properties
     VM.fullyBooted = true;
     MM_Interface.fullyBootedVM();
     VM_BaselineCompiler.fullyBootedVM();
+
+    //-#if RVM_WITH_QUICK_COMPILER
+    VM_QuickCompiler.fullyBootedVM();
+    //-#endif
 
     // Allow profile information to be read in from a file
     // 
@@ -536,6 +551,28 @@ public class VM extends VM_Properties
     int    index = 10;
     while (--index > 1) {
       int digit = number & 0x0000000f;
+      buf[index] = digit <= 9 ? (char)('0' + digit) : (char)('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index]   = '0';
+    return new String(buf);
+  }
+
+
+  /**
+   * Format a 64 bit number as "0x" followed by 16 hex digits.
+   * Do this without referencing Long or Character classes, 
+   * in order to avoid dynamic linking.
+   * TODO: move this method to VM_Services.
+   * @param number
+   * @return a String with the hex representation of the long
+   */
+  public static String longAsHexString(long number) throws InterruptiblePragma {
+    char[] buf   = new char[18];
+    int    index = 18;
+    while (--index > 1) {
+      int digit = (int)(number & 0x000000000000000fL);
       buf[index] = digit <= 9 ? (char)('0' + digit) : (char)('a' + digit - 10);
       number >>= 4;
     }
@@ -999,6 +1036,7 @@ public class VM extends VM_Properties
   /** Trouble with the Hardware Performance Monitors */
   public static int exitStatusHPMTrouble = 110;
   public static int exitStatusOptCompilerFailed = 101;
+  public static int exitStatusQuickCompilerFailed = 102;
   /* See EXIT_STATUS_BOGUS_COMMAND_LINE_ARG in RunBootImage.C.  If you change
    * this value, change it there too. */
   public static int exitStatusBogusCommandLineArg = 100;

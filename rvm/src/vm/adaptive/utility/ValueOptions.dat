@@ -16,6 +16,7 @@ How many timer ticks of method samples to take before reporting method hotness t
 E INITIAL_COMPILER byte IRC_BASE
 Selection of initial compiler 
 "IRC_BASE baseIRC base" \
+"IRC_QUICK quickIRC quick" \
 "IRC_OPT optIRC opt"
 
 E RECOMPILATION_STRATEGY byte RS_SAMPLING

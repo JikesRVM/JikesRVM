@@ -9,6 +9,9 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.*;
+//-#endif
 
 import org.vmmagic.pragma.*; 
 import org.vmmagic.unboxed.*; 
@@ -37,6 +40,10 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     } else if (compilerType == VM_CompiledMethod.OPT) {
       //-#if RVM_WITH_OPT_COMPILER
       cm = new VM_OptCompiledMethod(id, m);
+      //-#endif
+    } else if (compilerType == VM_CompiledMethod.QUICK) {
+      //-#if RVM_WITH_QUICK_COMPILER
+      cm = new VM_QuickCompiledMethod(id, m);
       //-#endif
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
@@ -197,9 +204,9 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * Report on the space used by compiled code and associated mapping information
    */
   public static void spaceReport() {
-    int[] codeCount = new int[5];
-    int[] codeBytes = new int[5];
-    int[] mapBytes = new int[5];
+    int[] codeCount = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
+    int[] codeBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
+    int[] mapBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
     for (int i=0; i<compiledMethods.length; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
@@ -223,6 +230,13 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.OPT]);
       VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.OPT]);
       VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.OPT]);
+    }
+
+    if (codeCount[VM_CompiledMethod.QUICK] > 0) {
+      VM.sysWriteln("  Quick Compiler");
+      VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.QUICK]);
+      VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.QUICK]);
+      VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.QUICK]);
     }
 
     if (codeCount[VM_CompiledMethod.JNI] > 0) {

@@ -26,6 +26,8 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   public final static int BASELINE  = 1; // baseline code
   public final static int OPT       = 3; // opt code
   public final static int JNI       = 4; // java to Native C transition frame
+  public final static int QUICK     = 5; // quick-compiled code
+  public final static int NUM_COMPILER_TYPES = 5;
 
   /*
    * constants for bitField1
@@ -244,9 +246,11 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
       case BASELINE: return "BASELINE";
       case OPT: return "OPT";
       case JNI: return "JNI";
+      case QUICK: return "QUICK";
       default: if (VM.VerifyAssertions) VM._assert(false); return null;
     }
   }
+
 
   /**
    * @return Name of the compiler that produced this compiled method.

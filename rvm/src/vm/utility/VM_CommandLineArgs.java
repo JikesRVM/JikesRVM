@@ -8,6 +8,10 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.adaptive.VM_Controller;
 import com.ibm.JikesRVM.opt.*;
 //-#endif
+//-#if RVM_WITH_QUICK_COMPILER
+import com.ibm.JikesRVM.quick.*;
+//-#endif
+
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
@@ -78,6 +82,8 @@ public class VM_CommandLineArgs {
   public static final int GC_ARG               = 24;
   public static final int HPM_HELP_ARG         = 25;
   public static final int HPM_ARG              = 26;
+  public static final int QUICK_ARG            = 27;
+  public static final int QUICK_HELP_ARG       = 28;
 
   /**
    * A catch-all prefix to find application name.
@@ -129,6 +135,9 @@ public class VM_CommandLineArgs {
     new Prefix("-X:opt:help$",          OPT_HELP_ARG),
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
+    new Prefix("-X:quick:help$",        QUICK_HELP_ARG),
+    new Prefix("-X:quick$",             QUICK_HELP_ARG),
+    new Prefix("-X:quick:",             QUICK_ARG),
     new Prefix("-X:hpm:help$",          HPM_HELP_ARG),
     new Prefix("-X:hpm$",               HPM_HELP_ARG),
     new Prefix("-X:hpm:",               HPM_ARG),
@@ -525,6 +534,28 @@ public class VM_CommandLineArgs {
         //-#else
         VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
         VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
+        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        //-#endif
+        break;
+
+        // ----------------------------------------------------
+        // Access quick compiler
+        // ----------------------------------------------------
+      case QUICK_HELP_ARG:
+        //-#if RVM_WITH_QUICK_COMPILER
+        VM_RuntimeCompiler.processQuickCommandLineArg("-X:quick:","help");
+        //-#else
+        VM.sysWrite("vm: You are not using a system that includes the quick compiler.");
+        VM.sysWrite(" Illegal command line argument prefix '-X:quick'\n");
+        VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        //-#endif
+        break;
+      case QUICK_ARG: // "-X:quick:arg"; pass 'arg' as an quickion
+        //-#if RVM_WITH_QUICK_COMPILER
+        VM_RuntimeCompiler.processQuickCommandLineArg("-X:quick:", arg);
+        //-#else
+        VM.sysWrite("vm: You are not using a system that includes the quick compiler.");
+        VM.sysWrite(" Illegal command line argument prefix '-X:quick'\n");
         VM.sysExit(VM.exitStatusBogusCommandLineArg);
         //-#endif
         break;

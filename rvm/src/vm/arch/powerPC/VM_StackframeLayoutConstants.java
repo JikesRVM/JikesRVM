@@ -151,7 +151,11 @@ public interface VM_StackframeLayoutConstants  {
   static final int STACK_SIZE_DLOPEN         =  30*1024; // max space needed for dlopen sys call 
   static final int STACK_SIZE_JNINATIVE_GROW = 184*1024; // size to grow once for native on first entry via JNI
   static final int STACK_SIZE_GCDISABLED     =   4*1024; // max space needed while running with gc disabled
+  //-#if RVM_WITH_QUICK_COMPILER
+  static final int STACK_SIZE_MAX            = 1024*1024; // upper limit on stack size (includes guard region)
+  //-#else
   static final int STACK_SIZE_MAX            = 512*1024; // upper limit on stack size (includes guard region)
+  //-#endif
    
   // Complications:
   // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED

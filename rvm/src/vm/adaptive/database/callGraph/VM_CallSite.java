@@ -28,6 +28,7 @@ public final class VM_CallSite {
    * @param bci the bytecode index of the callsite within m
    */
   public VM_CallSite(VM_Method m, int bci) {
+    if (com.ibm.JikesRVM.VM.VerifyAssertions) com.ibm.JikesRVM.VM._assert(m != null);
     method = m;
     bcIndex = bci;
   }

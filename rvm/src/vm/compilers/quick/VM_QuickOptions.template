@@ -1,0 +1,45 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+package com.ibm.JikesRVM.quick;
+import com.ibm.JikesRVM.*;
+
+/**
+ * Class to handle command-line arguments and options for the 
+ * quick compiler.
+ * <p>
+ * Note: This file is mechanically generated from VM_QuickOptions.template
+ *       and MasterOptions.template
+ * <p>
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES 
+ *       All other options are defined in VALUE_DAT_FILES 
+ *       (value, enumeration, bitmask)
+ *
+ * @author Chris Hoffmann
+ **/
+public final class VM_QuickOptions implements Cloneable {
+
+  private void printOptionsHeader() {
+    VM.sysWriteln("Current value of options for Quick compiler:");
+  }
+
+$$$$ LET USE_OPT_LEVELS "NO"
+// BEGIN CODE GENERATED FROM MasterOptions.template
+    $$$$ INCLUDE ../utility/MasterOptions.template
+// END CODE GENERATED FROM MasterOptions.template
+$$$$ END LET USE_OPT_LEVELS
+
+  private boolean instanceProcessAsOption(String arg) {
+    return false;
+  }    
+
+  private static void instancePrintHelpHeader(String prefix) {
+    VM.sysWrite("Commands\n");
+    VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of quick compiler's command-line arguments\n");
+    VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the active quick compiler options\n");
+    VM.sysWrite("\n");
+  }
+
+  private static void instancePrintHelpFooter(String prefix) {
+  }	
+}

@@ -824,6 +824,7 @@ declare -i RVM_FOR_64_ADDR=0
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
 #
 declare -i RVM_WITH_OPT_COMPILER=0
+declare -i RVM_WITH_QUICK_COMPILER=0
 declare -i RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
@@ -845,6 +846,7 @@ declare -i RVM_WITH_GCTRACE=0
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
 declare -i RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
+declare -i RVM_WITH_QUICK_BOOTIMAGE_COMPILER=0
 declare -i RVM_WITH_OPT_BOOTIMAGE_COMPILER=0
 
 # Here are the choices for the object model
@@ -864,6 +866,7 @@ declare -i RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
 declare -i RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
+declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
 # Should we use our own version of java.lang.Class, and ignore GNU
 # Classpath's implementation?  The old default was to have this set;
@@ -1332,6 +1335,25 @@ EOF
 EOF
     fi
 
+    if (( RVM_WITH_QUICK_COMPILER )); then
+      # core components
+      #
+	echo $RVM_ROOT/rvm/src/vm/compilers/quick
+	echo $RVM_ROOT/rvm/src/vm/compilers/quick/util
+	echo $RVM_ROOT/rvm/src/vm/compilers/quick/GCMap
+      # The inliner
+	if (( RVM_WITH_QUICK_COMPILER_INLINING )); then
+	    echo $RVM_ROOT/rvm/src/vm/compilers/quick/inline
+	fi
+
+      # architecture-specific components
+      #
+	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick
+	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick/GCMap
+	echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/quick/writeBarrier
+
+    fi
+
     # On stack replacement components.
     #
     if (( RVM_WITH_OSR )); then
@@ -1355,6 +1377,8 @@ EOF
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/baseline
     elif (( ${RVM_WITH_OPT_BOOTIMAGE_COMPILER} )); then
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/optimizing
+    elif (( $RVM_WITH_QUICK_BOOTIMAGE_COMPILER )); then
+	echo $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/quick
     fi
     cleanFileList <<- EOF
     # Runtime compiler components.
@@ -2037,6 +2061,13 @@ run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rv
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
+    if (( RVM_WITH_QUICK_COMPILER )); then
+	cat <<- EOF
+		# (QUICK Compiler only:)
+		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/quick MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+EOF
+
+    fi
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 		# (OPT Compiler only:)
@@ -2935,6 +2966,22 @@ com/ibm/JikesRVM/opt/OPT_MethodSummary
 EOF
 	fi
 
+    fi
+
+    if (( RVM_WITH_QUICK_COMPILER )); then
+	# data structures that need to carry over from boot image writing
+	# and/or classes that quick wants to be in the bootimage to 
+	# generate decent code (avoid dynamic linking, get them quick compiled)
+	if (( RVM_WITH_QUICK_BOOTIMAGE_COMPILER )); then
+	cat <<- EOF
+java/util/Enumeration
+java/util/Dictionary
+java/util/TreeMap
+java/util/TreeSet
+java/util/Stack
+com/ibm/JikesRVM/VM_QuickCompilerException
+EOF
+        fi
     fi
 
     if (( RVM_WITH_HPM )) ; then
