@@ -118,19 +118,19 @@ public class Util implements Uninterruptible, Constants {
       int offset = w << LOG_BYTES_IN_WORD;
       int shift = 0;
       for (int b = 0; b < BYTES_IN_WORD; b++) {
-	byte byteVal = 0;
-	if (offset + b < len) {
-	  swLock(); 
-	    byteVal = (byte) str.charAt(offset + b);    // dodgy conversion!
-	  swUnlock();
-	}
-	//-#if RVM_FOR_IA32
-	// Endianism matters
-	value = (byteVal << shift) | value;
-	//-#else
-	value = (value << shift) | byteVal; // not tested
-	//-#endif
-	shift += BITS_IN_BYTE;
+        byte byteVal = 0;
+        if (offset + b < len) {
+          swLock(); 
+            byteVal = (byte) str.charAt(offset + b);    // dodgy conversion!
+          swUnlock();
+        }
+        //-#if RVM_FOR_IA32
+        // Endianism matters
+        value = (byteVal << shift) | value;
+        //-#else
+        value = (value << shift) | byteVal; // not tested
+        //-#endif
+        shift += BITS_IN_BYTE;
       }
       rtn.store(value, Offset.fromInt(offset));
     }
@@ -164,7 +164,7 @@ public class Util implements Uninterruptible, Constants {
    * @param size The size in bytes
    */
   public static final Address formatSize(String format, int bufsize, int size) {
-    //	  - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
+    //    - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
     Address tmp = Util.malloc(bufsize);
     Address formattedSize = Util.malloc(bufsize);
     Address currentSize = Util.getBytes(format); 

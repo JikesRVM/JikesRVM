@@ -301,7 +301,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           inst = PPC64_TDI.instTemplate;
           //-#else
           inst = PPC_TWI.instTemplate;
-			 //-#endif
+                         //-#endif
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }

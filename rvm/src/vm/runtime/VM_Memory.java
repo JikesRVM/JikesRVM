@@ -179,7 +179,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         
         Address endPtr = srcPtr.add(wordLen);
         while (srcPtr.LT(endPtr)) {
-	  dstPtr.store(srcPtr.loadWord());
+          dstPtr.store(srcPtr.loadWord());
           srcPtr = srcPtr.add(BYTES_IN_ADDRESS);
           dstPtr = dstPtr.add(BYTES_IN_ADDRESS);
         }

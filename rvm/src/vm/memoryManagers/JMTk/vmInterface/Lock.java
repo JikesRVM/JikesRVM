@@ -125,16 +125,16 @@ public class Lock implements Uninterruptible {
             }
             Log.write("GC Warning: my start = ");
             Log.writeln(localStart, false);
-	    // Print the last 10 entries preceding serving
+            // Print the last 10 entries preceding serving
             for (int i=(serving + 90) % 100; i != serving; i = (i+1)%100) {
-	      if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
-	      Log.write("GC Warning: ");
-	      Log.write(i); 
+              if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
+              Log.write("GC Warning: ");
+              Log.write(i); 
               Log.write(": index "); Log.write(servingHistory[i]);
-	      Log.write("   tid "); Log.write(tidHistory[i]);
-	      Log.write("    start = "); Log.write(startHistory[i]);
-	      Log.write("    end = "); Log.write(endHistory[i]);
-	      Log.write("    start-myStart = ");
+              Log.write("   tid "); Log.write(tidHistory[i]);
+              Log.write("    start = "); Log.write(startHistory[i]);
+              Log.write("    end = "); Log.write(endHistory[i]);
+              Log.write("    start-myStart = ");
               Log.write(VM_Time.cyclesToMillis(startHistory[i] - localStart));
               Log.writelnNoFlush();
             }

@@ -862,7 +862,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       }
     } else 
     //-#endif
-	 if (val2 instanceof OPT_IntConstantOperand) {
+         if (val2 instanceof OPT_IntConstantOperand) {
       op = cc.isUNSIGNED() ? PPC_CMPLI : PPC_CMPI;
     } else { 
       op = cc.isUNSIGNED() ? PPC_CMPL : PPC_CMP;
@@ -901,23 +901,23 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       if (value == 0) {
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
         EMIT(MIR_Binary.create(PPC_ADDIC, A(t), A(t1), IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t), A(t1)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_ADDIC, A(t), one, IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t), one.copyRO()));
-		  //-#endif
+                  //-#endif
       } else {
         t1 = regpool.getAddress();
-		  //-#if RVM_FOR_64_ADDR
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
+                  //-#if RVM_FOR_64_ADDR
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(t1), A(t1), IC(value)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(t1), one, IC(value)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Binary.create(PPC_ADDIC, A(t), A(t1), IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t), A(t1)));
       }
@@ -927,40 +927,40 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         EMIT(MIR_Binary.create(PPC_SRWI, def, one, IC(BITS_IN_INT - 1)));
       } else if (value > 0) {
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), A(t1), 
                                IC(value - 1)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, 
                                IC(value - 1)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else if (value != 0xFFFF8000) {
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), A(t1), 
                                IC(value - 1)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), 
                                IC(value - 1)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
       } else {                  // value = 0xFFFF8000
         t1 = regpool.getAddress();
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
         EMIT(MIR_Unary.create(PPC_LDI, A(t1), IC(0xFFFF8000)));
         EMIT(MIR_Binary.create(PPC_ADDI, A(t1), A(t1), IC(-1))); //constructing 0xFFFF7FFF
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         OPT_Register t2 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFC, I(zero), A(t2), I(t1)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFC, I(zero), one.copyRO(), I(t1)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
       }
       break;
@@ -971,27 +971,27 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(BITS_IN_INT - 1)));
       } else if (value >= 0) {
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), A(t1), 
                                IC(-value - 1)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), 
                                IC(-value - 1)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else {
         t1 = regpool.getInteger();
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  //-#if RVM_FOR_64_ADDR
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), A(t1), 
                                IC(-value - 1)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), 
                                IC(-value - 1)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
         EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
       }
@@ -1003,23 +1003,23 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(BITS_IN_INT - 1)));
       } else if (value >= 0) {
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), A(t1), IC(value)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), IC(value)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else {
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), A(t1), IC(value)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), IC(value)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
       }
       break;
@@ -1029,38 +1029,38 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         EMIT(MIR_Binary.create(PPC_XORI, def, I(t), IC(1)));
       } else if (value >= 0) {
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), A(t1), IC(-value)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), IC(-value)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else if (value != 0xFFFF8000) {
         t1 = regpool.getInteger();
         EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), A(t1), IC(-value)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), IC(-value)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
       } else { //value 0xFFFF8000
         t1 = regpool.getInteger();
         EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
         EMIT(MIR_Binary.create(PPC_SLWI, I(zero), I(t1), IC(15))); //constructing 0x00008000
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         OPT_Register t2 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_ADDC, I(zero), A(t2), I(zero)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_ADDC, I(zero), one.copyRO(), I(zero)));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
       }
       break;
@@ -1075,13 +1075,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       break;
     case OPT_ConditionOperand.LOWER_EQUAL:
       EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
-		//-#if RVM_FOR_64_ADDR
+                //-#if RVM_FOR_64_ADDR
       t1 = regpool.getAddress();
-		EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
+                EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
       EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), A(t1), IC(value)));
-		//-#else
+                //-#else
       EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, IC(value)));
-		//-#endif
+                //-#endif
       EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
       break;
 
@@ -1234,9 +1234,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         t1 = regpool.getAddress();
         EMIT(MIR_Binary.create(PPC_SUBF, I(t), one, two));
-		  //-#if RVM_FOR_64_ADDR
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t), I(t))); 
-		  //-#endif
+                  //-#if RVM_FOR_64_ADDR
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t), I(t))); 
+                  //-#endif
         EMIT(MIR_Binary.create(PPC_ADDIC, A(t1), A(t), IC(-1)));
         EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t1), A(t)));
       }
@@ -1245,17 +1245,17 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       {
         t1 = regpool.getInteger();
         zero = regpool.getPhysicalRegisterSet().getTemp();
-		  EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+                  EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t1), two, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         OPT_Register t2 = regpool.getAddress();
         OPT_Register t3 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t3), two.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t3), two.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFC, A(zero), A(t2), A(t3)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFC, A(zero), one.copyRO(), two.copyRO()));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Binary.create(PPC_ADDE, def, I(t1), I(t)));
       }
       break;
@@ -1265,15 +1265,15 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         zero = regpool.getPhysicalRegisterSet().getTemp();
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), two, IC(BITS_IN_INT - 1)));
         EMIT(MIR_Binary.create(PPC_SRAWI, I(t1), one, IC(BITS_IN_INT - 1)));
-		  //-#if RVM_FOR_64_ADDR
+                  //-#if RVM_FOR_64_ADDR
         OPT_Register t2 = regpool.getAddress();
         OPT_Register t3 = regpool.getAddress();
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
-		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t3), two.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t2), one.copyRO())); 
+                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t3), two.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFC, A(zero), A(t3), A(t2)));
-		  //-#else
+                  //-#else
         EMIT(MIR_Binary.create(PPC_SUBFC, I(zero), two.copyRO(), one.copyRO()));
-		  //-#endif
+                  //-#endif
         EMIT(MIR_Binary.create(PPC_ADDE, def, I(t1), I(t)));
       }
       break;

@@ -50,7 +50,7 @@ import org.vmmagic.unboxed.*;
  * (complete rewrite of John Barton's original, this time using java2
  * reflection)
  *
- * @modified Steven Augart 16 Mar 2004	Fixes to bootstrap under Kaffe
+ * @modified Steven Augart 16 Mar 2004  Fixes to bootstrap under Kaffe
 
  */
 public class BootImageWriter extends BootImageWriterMessages
@@ -631,10 +631,10 @@ public class BootImageWriter extends BootImageWriterMessages
     /* Set the values in fields updated during the build process */
     int prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
     bootImage.setAddressWord(jtocImageOffset + prevAddrOffset, 
-			     VM_MiscHeader.getBootImageLink().toWord());
+                             VM_MiscHeader.getBootImageLink().toWord());
     int oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
     bootImage.setAddressWord(jtocImageOffset + oIDOffset, 
-			     VM_MiscHeader.getOID());
+                             VM_MiscHeader.getOID());
     //-#endif
 
     //

@@ -331,7 +331,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     } else if (VM.BuildForSVR4ABI) {
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE;
     } else {
-	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
     
 
@@ -501,11 +501,11 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           srcVMArg = FIRST_SCRATCH_FPR;
           // VM float reg is in spill area
           if (is32bits) {
-	    spillOffsetVM += BYTES_IN_STACKSLOT;
-	    asmArg.emitLFS(srcVMArg, spillOffsetVM - BYTES_IN_FLOAT, FP);
+            spillOffsetVM += BYTES_IN_STACKSLOT;
+            asmArg.emitLFS(srcVMArg, spillOffsetVM - BYTES_IN_FLOAT, FP);
           } else {
             asmArg.emitLFD(srcVMArg, spillOffsetVM, FP);
-	    spillOffsetVM += BYTES_IN_DOUBLE;
+            spillOffsetVM += BYTES_IN_DOUBLE;
           }
         }  
                 
@@ -558,7 +558,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           // do alignment and compute spilling offset
           spillOffsetOS = (spillOffsetOS + 7) & -8;
           regOrSpilling = spillOffsetOS;
-	  spillOffsetOS += BYTES_IN_LONG;
+          spillOffsetOS += BYTES_IN_LONG;
 
           //-#elif RVM_FOR_OSX
           
@@ -612,7 +612,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           }
           // advance spillOffsetVM and nextVMArgReg
           nextVMArgReg ++;
-	  spillOffsetVM += BYTES_IN_STACKSLOT;
+          spillOffsetVM += BYTES_IN_STACKSLOT;
         } else if (nextVMArgReg > LAST_VOLATILE_GPR) {
           if (dstSpilling) {
             asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
@@ -622,7 +622,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM+4, FP);
             asmArg.emitLWZ(regOrSpilling, spillOffsetVM, FP);
           }     
-	  spillOffsetVM += BYTES_IN_LONG;
+          spillOffsetVM += BYTES_IN_LONG;
         }
       } else if (types[arg].isLongType() && VM.BuildFor64Addr) {
         
@@ -643,8 +643,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           // do alignment and compute spilling offset
           spillOffsetOS = (spillOffsetOS + 7) & -8;
           regOrSpilling = spillOffsetOS;
-	  spillOffsetOS += BYTES_IN_LONG;
-	  
+          spillOffsetOS += BYTES_IN_LONG;
+          
         } else {
           // use registers
           dstSpilling = false;
@@ -739,14 +739,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         }
         // (1b) spill OS register, but still fit in VM register
         else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-	  asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS, FP);
+          asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS, FP);
           //-#if RVM_FOR_LINUX
           spillOffsetOS += BYTES_IN_ADDRESS;
           //-#endif
         } else {
           // (1c) spill VM register
-	  spillOffsetVM+=BYTES_IN_STACKSLOT;
-	  asmArg.emitLInt(REGISTER_ZERO, spillOffsetVM - BYTES_IN_INT, FP);        // retrieve arg from VM spill area
+          spillOffsetVM+=BYTES_IN_STACKSLOT;
+          asmArg.emitLInt(REGISTER_ZERO, spillOffsetVM - BYTES_IN_INT, FP);        // retrieve arg from VM spill area
           asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS, FP);
 
           //-#if RVM_FOR_LINUX

@@ -281,9 +281,9 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     //-#endif
 
     shouldPrint  = (!VM.runningTool &&
-		    (options.PRINT_MACHINECODE) &&
-		    (!options.hasMETHOD_TO_PRINT() ||
-		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
+                    (options.PRINT_MACHINECODE) &&
+                    (!options.hasMETHOD_TO_PRINT() ||
+                     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
 
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
@@ -477,8 +477,8 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       options.EDGE_COUNTERS = false;
       // we already allocated enough space for stackHeights, shift it back first
       System.arraycopy(stackHeights, 0, stackHeights, 
-		       method.getOsrPrologueLength(), 
-		       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
+                       method.getOsrPrologueLength(), 
+                       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
       
       // compute stack height for prologue
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
@@ -487,8 +487,8 @@ public class VM_QuickCompiler extends VM_CompilerFramework
 
     // determine if we are going to insert edge counters for this method
     if (options.EDGE_COUNTERS && 
-	!method.getDeclaringClass().isBridgeFromNative() &&
-	(method.hasCondBranch() || method.hasSwitch())) {
+        !method.getDeclaringClass().isBridgeFromNative() &&
+        (method.hasCondBranch() || method.hasSwitch())) {
       ((VM_QuickCompiledMethod)compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
     }
 
@@ -580,10 +580,10 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     if (method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap,
-		       method.getOsrPrologueLength(),
-		       newmap,
-		       0,
-		       newmap.length);
+                       method.getOsrPrologueLength(),
+                       newmap,
+                       0,
+                       newmap.length);
       machineCode.setBytecodeMap(newmap);
       bcMap = newmap;
       // switch back to original state
@@ -592,7 +592,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       options.EDGE_COUNTERS = edge_counters;     
     }
     //-#endif
-	
+        
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {
       ((VM_QuickCompiledMethod)compiledMethod).setLockAcquisitionOffset(lockOffset);
@@ -2969,9 +2969,9 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       offset = VM_Memory.alignDown(offset - STACKFRAME_ALIGNMENT + 1, STACKFRAME_ALIGNMENT);
 
       for (int i = LAST_SCRATCH_FPR; i >= FIRST_SCRATCH_FPR; --i)
-	asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);
+        asm.emitSTFD(i, offset -= BYTES_IN_DOUBLE, FP);
       for (int i = LAST_SCRATCH_GPR; i >= FIRST_SCRATCH_GPR; --i)
-	asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
+        asm.emitSTAddr(i, offset -= BYTES_IN_ADDRESS, FP);
       //-#endif
     }
     
@@ -3458,7 +3458,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       if (methodName == VM_MagicNames.store) {
 
         if(types[0] == VM_TypeReference.Word ||
-	   types[0] == VM_TypeReference.ObjectReference ||
+           types[0] == VM_TypeReference.ObjectReference ||
            types[0] == VM_TypeReference.Address) {
           if (types.length == 1) {
             popToRegister(OBJECT_TYPE, T1);                 // pop newvalue
@@ -4187,9 +4187,9 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    */
   private void generateSysCall1(int rawParametersSize) {
     int ipIndex = rawParametersSize >> LOG_BYTES_IN_STACKSLOT; // where to access IP parameter
-    int linkageAreaSize   = rawParametersSize +		// values
-      BYTES_IN_STACKSLOT +		 	        // saveJTOC
-      (6 * BYTES_IN_STACKSLOT);		 		// backlink + cr + lr + res + res + TOC
+    int linkageAreaSize   = rawParametersSize +         // values
+      BYTES_IN_STACKSLOT +                              // saveJTOC
+      (6 * BYTES_IN_STACKSLOT);                         // backlink + cr + lr + res + res + TOC
 
     peekToRegister(RETURN_ADDRESS_TYPE, 0, ipIndex);              // load desired IP. MUST do before we change FP value
     asm.emitMTCTR(0);                  // send to CTR so we can call it in a few instructions.
@@ -7672,7 +7672,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     if (unreachableBytecode) return;
     int offsetRegister = getTempRegister(WORD_TYPE);
     
-    emitDynamicLinkingSequence(offsetRegister, methodRef, true);		      // leaves method offset in offsetRegister
+    emitDynamicLinkingSequence(offsetRegister, methodRef, true);                      // leaves method offset in offsetRegister
     asm.emitLAddrX(offsetRegister, offsetRegister, JTOC); // method offset left in offsetRegister by emitDynamicLinkingSequence
     asm.emitMTCTR(offsetRegister);
     genMoveParametersToRegisters(false, false, methodRef);
@@ -8081,7 +8081,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    * @return corresponding VM_Member object
    */
   private static VM_Member getMember(String classDescriptor, String memberName, 
-				     String memberDescriptor) {
+                                     String memberDescriptor) {
     VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
@@ -8105,7 +8105,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     } catch (Exception e) {
       e.printStackTrace();
       VM.sysWrite("VM_QuickCompiler.getMember: can't resolve class=" + classDescriptor+
-		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
+                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
       VM._assert(NOT_REACHED);
     }
     return null; // placate jikes

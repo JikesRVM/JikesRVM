@@ -127,14 +127,14 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
    * machine instructions.
    *
    * Note: This method expects the instructionIndex to refer to the machine
-   * 	     instruction immediately FOLLOWING the bytecode in question.
-   *	     just like findLineNumberForInstruction. See VM_CompiledMethod
-   * 	     for rationale
+   *         instruction immediately FOLLOWING the bytecode in question.
+   *         just like findLineNumberForInstruction. See VM_CompiledMethod
+   *         for rationale
    * NOTE: instructionIndex is in units of instructions, not bytes (different from
    *       all the other methods in this interface!!)
    *
    * @return the bytecode index for the machine instruction, -1 if
-   *		not available or not found.
+   *            not available or not found.
    */
   public final int findBytecodeIndexForInstruction (int instructionIndex) throws UninterruptiblePragma {
     // since "instructionIndex" points just beyond the desired instruction,
@@ -170,10 +170,10 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr>>>LG_INSTRUCTION_WIDTH));
 
     if (VM.TraceStackTrace) {
-	VM.sysWrite("setting stack to frame (base): ");
-	VM.sysWrite( browser.getMethod() );
-	VM.sysWrite( browser.getBytecodeIndex() );
-	VM.sysWrite("\n");
+        VM.sysWrite("setting stack to frame (base): ");
+        VM.sysWrite( browser.getMethod() );
+        VM.sysWrite( browser.getBytecodeIndex() );
+        VM.sysWrite("\n");
     }
   }
 
@@ -188,7 +188,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   // Taken:   offset of machine instruction from start of method
   //          the PrintLN to print the stack trace to.
   public final void printStackTrace(int instructionOffset, 
-				    PrintLN out) 
+                                    PrintLN out) 
   {
     out.print("\tat ");
     out.print(method.getDeclaringClass()); // VM_Class
@@ -244,7 +244,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   //        number of instructions for method
   //
   public void encodeMappingInfo(VM_QuickReferenceMaps referenceMaps, 
-				int[] bytecodeMap, int numInstructions) {
+                                int[] bytecodeMap, int numInstructions) {
     _bytecodeMap = bytecodeMap;
     referenceMaps.translateByte2Machine(bytecodeMap);
     this.referenceMaps = referenceMaps;
@@ -255,7 +255,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickCompiledMethod;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickCompiledMethod;"));
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (_bytecodeMap != null) size += VM_Array.IntArray.getInstanceSize(_bytecodeMap.length);

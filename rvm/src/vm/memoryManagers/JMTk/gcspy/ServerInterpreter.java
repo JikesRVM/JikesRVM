@@ -26,8 +26,8 @@ import org.vmmagic.pragma.*;
  */
 public class ServerInterpreter 
   implements Uninterruptible, VM_JavaHeaderConstants {
-  private static final int MAX_LEN = 64 * 1024;	// Buffer size
-  private static Address server_;		// address of the c server, gcspy_main_server_t server
+  private static final int MAX_LEN = 64 * 1024; // Buffer size
+  private static Address server_;               // address of the c server, gcspy_main_server_t server
 
   private static final boolean DEBUG_ = false;
   
@@ -40,10 +40,10 @@ public class ServerInterpreter
    * @param generalInfo General info describing the server
    */
   public static void init (String name,
-  		           int port,
-		           String[] eventNames,
-		           boolean verbose,
-		           String generalInfo) {
+                           int port,
+                           String[] eventNames,
+                           boolean verbose,
+                           String generalInfo) {
 
     // Initialise the server
     if (DEBUG_) {

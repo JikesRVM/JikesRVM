@@ -268,7 +268,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Get the next object after this scalar under contiguous allocation. 
    */
   public static ObjectReference getNextObject(ObjectReference obj,
-					      VM_Class type) {
+                                              VM_Class type) {
     return VM_JavaHeader.getNextObject(obj, type);
   }
 
@@ -276,7 +276,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Get the next object after this array under contiguous allocation. 
   */
   public static ObjectReference getNextObject(ObjectReference obj,
-					      VM_Array type, int numElements) {
+                                              VM_Array type, int numElements) {
     return VM_JavaHeader.getNextObject(obj, type, numElements);
   }
  

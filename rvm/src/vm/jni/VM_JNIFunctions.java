@@ -115,12 +115,12 @@ class VM_JNIFunctions implements VM_NativeBridge,
     try {
       String classString = null;
       if (!classNameAddress.isZero())
-	VM_JNIHelpers.createStringFromC(classNameAddress);
+        VM_JNIHelpers.createStringFromC(classNameAddress);
       ClassLoader cl;
       if (classLoader == 0)
-	cl = VM_Class.getClassLoaderFromStackFrame(1);
+        cl = VM_Class.getClassLoaderFromStackFrame(1);
       else
-	cl = (ClassLoader) env.getJNIRef(classLoader);
+        cl = (ClassLoader) env.getJNIRef(classLoader);
 
       byte[]  bytecode = new byte[dataLen];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
@@ -5394,21 +5394,21 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       Address curMethod = methodsAddress;
       for (int i = 0; i < nmethods; i++) {
-	String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
-	VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
-	String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS)));
-	VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
-	
-	// Find the target method
-	VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
+        String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
+        VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
+        String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS)));
+        VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
+        
+        // Find the target method
+        VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
 
-	if (meth == null || !meth.isNative()) {
-	  env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
-	  return -1;
-	} 
-	methods[i] = (VM_NativeMethod)meth;
-	symbols.set(i, curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS * 2)));
-	curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
+        if (meth == null || !meth.isNative()) {
+          env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
+          return -1;
+        } 
+        methods[i] = (VM_NativeMethod)meth;
+        symbols.set(i, curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS * 2)));
+        curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
       }
 
       // Register methods
@@ -5446,7 +5446,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       VM_Class klass = type.asClass();
       if (!klass.isInitialized()) {
-	return 0;
+        return 0;
       }
 
       klass.unregisterNativeMethods();

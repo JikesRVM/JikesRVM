@@ -115,7 +115,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvField.getOffset());
 
     if (method.getReturnType().isReferenceType()) {
-	// XXX TODO: This code is broken. It only handles Local references.
+        // XXX TODO: This code is broken. It only handles Local references.
       asm.emitADD_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd (T0, T0);   // get the reference
     } else if (method.getReturnType().isLongType()) {

@@ -68,20 +68,20 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         OPT_IntConstantOperand allocator = IC(MM_Interface.pickAllocator(cls, callSite));
         OPT_IntConstantOperand align = IC(VM_ObjectModel.getAlignment(cls));
         OPT_IntConstantOperand offset = IC(VM_ObjectModel.getOffsetForAlignment(cls));
-	OPT_Operand tib = OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type);
-	if (VM.BuildForIA32 && VM.runningVM) {
+        OPT_Operand tib = OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type);
+        if (VM.BuildForIA32 && VM.runningVM) {
           // shield BC2IR from address constants
           OPT_RegisterOperand tmp = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
           inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
           tib = tmp;
-	}
-	VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
+        }
+        VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
         Call.mutate6(inst, CALL, New.getClearResult(inst), 
                      IC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
                      IC(cls.getInstanceSize()),
-		     tib,
-		     hasFinalizer,
+                     tib,
+                     hasFinalizer,
                      allocator,
                      align,
                      offset);
@@ -116,13 +116,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         OPT_IntConstantOperand allocator = IC(MM_Interface.pickAllocator(array, callSite));
         OPT_IntConstantOperand align = IC(VM_ObjectModel.getAlignment(array));
         OPT_IntConstantOperand offset = IC(VM_ObjectModel.getOffsetForAlignment(array));
-	OPT_Operand tib = OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array);
-	if (VM.BuildForIA32 && VM.runningVM) {
+        OPT_Operand tib = OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array);
+        if (VM.BuildForIA32 && VM.runningVM) {
           // shield BC2IR from address constants
           OPT_RegisterOperand tmp = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
           inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
           tib = tmp;
-	}
+        }
         VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
         Call.mutate7(inst, CALL, NewArray.getClearResult(inst),  
                      IC(target.getOffset()),
@@ -130,8 +130,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
                      numberElements, 
                      width,
                      headerSize,
-		     tib,
-		     allocator,
+                     tib,
+                     allocator,
                      align,
                      offset);
         if (inline && ir.options.INLINE_NEW) {

@@ -531,14 +531,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   private static final byte[][] systemClassPrefixes 
     = { "Ljava/".getBytes(), 
-	"Lcom/ibm/JikesRVM/".getBytes(),
-	"Lorg/vmmagic/".getBytes(),
-	"Lorg/mmtk/".getBytes()};
+        "Lcom/ibm/JikesRVM/".getBytes(),
+        "Lorg/vmmagic/".getBytes(),
+        "Lorg/mmtk/".getBytes()};
 
   private static final byte[][] rvmClassPrefixes 
     = { "Lcom/ibm/JikesRVM/".getBytes(),
-	"Lorg/vmmagic/".getBytes(),
-	"Lorg/mmtk/".getBytes()};
+        "Lorg/vmmagic/".getBytes(),
+        "Lorg/mmtk/".getBytes()};
 
   /**
    * @return true if this is a class descriptor of a system class

@@ -3665,7 +3665,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (methodName == VM_MagicNames.store) {
 
         if(types[0] == VM_TypeReference.Word ||
-	   types[0] == VM_TypeReference.ObjectReference ||
+           types[0] == VM_TypeReference.ObjectReference ||
            types[0] == VM_TypeReference.Address) {
           if (types.length == 1) {
             popAddr(T1);                 // pop newvalue
@@ -4158,7 +4158,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       pushAddr(T0);
       generateAddrComparison(false, EQ);
     } else if (methodName == VM_MagicNames.wordZero ||
-	       methodName == VM_MagicNames.wordNull) {
+               methodName == VM_MagicNames.wordNull) {
       asm.emitLVAL (T0,  0);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordOne) {

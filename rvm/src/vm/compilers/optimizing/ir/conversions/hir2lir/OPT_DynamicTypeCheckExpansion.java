@@ -141,11 +141,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       if (branchCondition) {
         return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, branchBB, 
                                           fallThroughBB, oldGuard,
-					  IfCmp.getClearBranchProfile(next).flip());
+                                          IfCmp.getClearBranchProfile(next).flip());
       } else {
         return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
                                           fallThroughBB, branchBB, oldGuard,
-					  IfCmp.getClearBranchProfile(next));
+                                          IfCmp.getClearBranchProfile(next));
       }
     } else {
       // Not a branching pattern
@@ -518,7 +518,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                              TG());
           OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int,
                                                  entry, IC(interfaceMask));
-			 //save to use the cheaper ADDR version of BOOLEAN_CMP
+                         //save to use the cheaper ADDR version of BOOLEAN_CMP
           s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, result, 
                                            bit,
                                            AC(Address.zero()),
@@ -529,7 +529,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             OPT_RegisterOperand doesImplLength = 
               InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copy(), TG());
             OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-			   //save to use the cheaper ADDR version of BOOLEAN_CMP
+                           //save to use the cheaper ADDR version of BOOLEAN_CMP
             s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, boundscheck, 
                                              doesImplLength,
                                              AC(Address.fromIntSignExtend(interfaceIndex)),
@@ -563,7 +563,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                superclassIds, LHSDepth << 1, 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
-			   //save to use the cheaper ADDR version of BOOLEAN_CMP
+                           //save to use the cheaper ADDR version of BOOLEAN_CMP
             s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, result, 
                                              refCandidate, 
                                              AC(Address.fromIntZeroExtend(LHSId)), 
@@ -574,7 +574,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                 InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, 
                                    superclassIds.copyD2U(), TG());
               OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-			     //save to use the cheaper ADDR version of BOOLEAN_CMP
+                             //save to use the cheaper ADDR version of BOOLEAN_CMP
               s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, boundscheck, 
                                                superclassIdsLength, 
                                                AC(Address.fromIntSignExtend(LHSDepth)), 
@@ -691,7 +691,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                             OPT_BasicBlock trueBlock, 
                                                             OPT_BasicBlock falseBlock,
                                                             OPT_RegisterOperand oldGuard,
-							    OPT_BranchProfileOperand falseProb) {
+                                                            OPT_BranchProfileOperand falseProb) {
     OPT_Instruction continueAt = Goto.create(GOTO, trueBlock.makeJumpTarget());
     continueAt.copyPosition(s);
     s.insertBefore(continueAt);
@@ -824,7 +824,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                falseProb));
           return continueAt;
         }
-	// TODO: branch probability calculation is somewhat bogus for this case.
+        // TODO: branch probability calculation is somewhat bogus for this case.
         OPT_Instruction shortcircuit = 
           IfCmp.create(REF_IFCMP, oldGuard, RHStib, classTIB,
                        OPT_ConditionOperand.EQUAL(), 

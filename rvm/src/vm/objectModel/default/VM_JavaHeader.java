@@ -313,7 +313,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * allocation. Handles alignment issues
    */
   public static ObjectReference getNextObject(ObjectReference obj,
-					      VM_Class type) {
+                                              VM_Class type) {
     return getNextObject(obj, bytesUsed(obj, type));
   }
 
@@ -322,7 +322,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * allocation. Handles alignment issues
    */
   public static ObjectReference getNextObject(ObjectReference obj,
-					      VM_Array type, int numElements) {
+                                              VM_Array type, int numElements) {
     return getNextObject(obj, bytesUsed(obj, type, numElements));
   }
 
@@ -331,7 +331,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static Object moveObject(Address toAddress, Object fromObj, 
                                   int numBytes, boolean noGCHeader,
-				  VM_Class type)
+                                  VM_Class type)
     throws InlinePragma {
 
     // We copy arrays and scalars the same way
@@ -343,7 +343,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static Object moveObject(Address toAddress, Object fromObj,
                                   int numBytes, boolean noGCHeader, 
-				  VM_Array type)
+                                  VM_Array type)
     throws InlinePragma {
 
     // We copy arrays and scalars the same way
@@ -423,11 +423,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static int getObjectHashCode(Object o) { 
     if (ADDRESS_BASED_HASHING) {
       if (MM_Interface.MOVES_OBJECTS) {
-	Word hashState = VM_Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
-	if (hashState.EQ(HASH_STATE_HASHED)) {
+        Word hashState = VM_Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
+        if (hashState.EQ(HASH_STATE_HASHED)) {
           // HASHED, NOT MOVED
-	  return VM_Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
-	} else if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
+          return VM_Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
+        } else if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
           // HASHED AND MOVED
           if (DYNAMIC_HASH_OFFSET) {
             // Read the size of this object.
@@ -441,15 +441,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
           }
         } else {
           // UNHASHED
-	  Word tmp;
+          Word tmp;
           do {
-	    tmp = VM_Magic.prepareWord(o, STATUS_OFFSET);
-	  } while (!VM_Magic.attemptWord(o, STATUS_OFFSET, tmp, tmp.or(HASH_STATE_HASHED)));
+            tmp = VM_Magic.prepareWord(o, STATUS_OFFSET);
+          } while (!VM_Magic.attemptWord(o, STATUS_OFFSET, tmp, tmp.or(HASH_STATE_HASHED)));
           if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition1++;
           return getObjectHashCode(o);
         }
       } else {
-	return VM_Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
+        return VM_Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
       }
     } else { // 10 bit hash code in status word
       int hashCode = VM_Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
@@ -469,9 +469,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     while (true) {
       Word statusWord = VM_Magic.prepareWord(o, STATUS_OFFSET);
       if (!(statusWord.and(HASH_CODE_MASK).isZero())) // some other thread installed a hashcode
-	return statusWord.and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
+        return statusWord.and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
       if (VM_Magic.attemptWord(o, STATUS_OFFSET, statusWord, statusWord.or(hashCode)))
-	return hashCode.rshl(HASH_CODE_SHIFT).toInt();  // we installed the hash code
+        return hashCode.rshl(HASH_CODE_SHIFT).toInt();  // we installed the hash code
     }
   }
 
@@ -737,7 +737,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static Object initializeScalarHeader(Address ptr, Object[] tib, 
-					      int size) {
+                                              int size) {
     // (TIB set by VM_ObjectModel)
     Object ref = VM_Magic.addressAsObject(ptr.add(OBJECT_REF_OFFSET));
     return ref;

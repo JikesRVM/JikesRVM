@@ -60,7 +60,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     if (shouldPrint && VM.runningVM && !fullyBootedVM) {
       shouldPrint = false;
       if (options.PRINT_METHOD) {
-	VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
+        VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
       }
     }
     asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler)this);
@@ -188,8 +188,8 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       options.EDGE_COUNTERS = false;
       // we already allocated enough space for stackHeights, shift it back first
       System.arraycopy(stackHeights, 0, stackHeights, 
-		       method.getOsrPrologueLength(), 
-		       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
+                       method.getOsrPrologueLength(), 
+                       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
       
       // compute stack height for prologue
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
@@ -227,10 +227,10 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
     if (method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap,
-		       method.getOsrPrologueLength(),
-		       newmap,
-		       0,
-		       newmap.length);
+                       method.getOsrPrologueLength(),
+                       newmap,
+                       0,
+                       newmap.length);
       machineCode.setBytecodeMap(newmap);
       bcMap = newmap;
       // switch back to original state
@@ -243,7 +243,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework
       osrSetupCycles += end - start;
     }
     //-#endif
-	
+        
     // Phase 5: Encode machine code maps
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {

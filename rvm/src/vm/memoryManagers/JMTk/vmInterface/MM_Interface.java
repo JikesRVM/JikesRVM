@@ -210,8 +210,8 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static void processCommandLineArg(String arg)
     throws InterruptiblePragma {
       if (!Options.process(arg)) {
-	VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
-	VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
      } 
   }
 
@@ -297,13 +297,13 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * left to the caller (always false in this case).
    */
   public static boolean arrayCopyWriteBarrier(Object src, int srcOffset,
-					      Object tgt, int tgtOffset,
-					      int bytes) 
+                                              Object tgt, int tgtOffset,
+                                              int bytes) 
     throws InlinePragma {
     return Plan.getInstance().writeBarrier(ObjectReference.fromObject(src),
-					       srcOffset,
+                                               srcOffset,
                                            ObjectReference.fromObject(tgt),
-					       tgtOffset, bytes);
+                                               tgtOffset, bytes);
   }
 
   /**
@@ -496,9 +496,9 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
       byte[] clsBA = cls.getDescriptor().toByteArray();
       byte[] mthBA = method.getName().toByteArray();
       return ((isPrefix("Lcom/ibm/JikesRVM/VM_Assembler", clsBA) && 
-	       isPrefix("getMachineCodes", mthBA)) ||
-	      (isPrefix("Lcom/ibm/JikesRVM/VM_MachineCode", clsBA) && 
-	       isPrefix("finish", mthBA)));
+               isPrefix("getMachineCodes", mthBA)) ||
+              (isPrefix("Lcom/ibm/JikesRVM/VM_MachineCode", clsBA) && 
+               isPrefix("finish", mthBA)));
     } else
       return false;
   }
@@ -516,7 +516,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
       byte[] clsBA = cls.getDescriptor().toByteArray();
       byte[] mthBA = method.getName().toByteArray();
       return (isPrefix("Lcom/ibm/JikesRVM/opt/OPT_ConvertMIRtoMC", clsBA) &&
-	      isPrefix("perform", mthBA));
+              isPrefix("perform", mthBA));
     } else
       return false;
   }
@@ -538,9 +538,9 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
      */
     if (type.isArrayType()) {
       if (isBaseCodeArrayAllocSite(method))
-	return Plan.ALLOC_COLD_CODE;
+        return Plan.ALLOC_COLD_CODE;
       else if (isOptCodeArrayAllocSite(method))
-	return Plan.ALLOC_HOT_CODE;
+        return Plan.ALLOC_HOT_CODE;
     }
 
     if (method != null) {
@@ -551,11 +551,11 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
       if (Plan.WITH_GCSPY) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
-	  return Plan.ALLOC_GCSPY;
+          return Plan.ALLOC_GCSPY;
         }
       }
       if (isPrefix("Lorg/mmtk/", clsBA) 
-	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
+          || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
@@ -576,11 +576,11 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (Plan.WITH_GCSPY) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
-	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
-	allocator = Plan.ALLOC_GCSPY;
+               isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
+        allocator = Plan.ALLOC_GCSPY;
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
-	isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
+        isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;
@@ -664,7 +664,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static Address allocateSpace(Plan plan, int bytes, int align,
-					  int offset, int allocator)
+                                          int offset, int allocator)
     throws UninterruptiblePragma, InlinePragma {
     return allocateSpace(plan, bytes, align, offset, false, allocator, null);
   }
@@ -698,9 +698,9 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static Address allocateSpace(Plan plan, int bytes, int align,
-					  int offset, boolean copy,
+                                          int offset, boolean copy,
                                        int allocator, ObjectReference from)
-					  
+                                          
     throws UninterruptiblePragma, InlinePragma {
     // MMTk requests must be in multiples of BYTES_IN_PARTICLE
     bytes = VM_Memory.alignUp(bytes, BYTES_IN_PARTICLE);

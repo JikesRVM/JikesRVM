@@ -85,7 +85,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(Object obj, Object[] tib, int size, 
-				      boolean isScalar) 
+                                      boolean isScalar) 
     throws UninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
@@ -93,7 +93,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
       oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
- 				    >> LOG_BYTES_IN_ADDRESS));
+                                    >> LOG_BYTES_IN_ADDRESS));
     }
   }
 
@@ -115,7 +115,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
       bootImage.setFullWord(ref + OBJECT_LINK_OFFSET.toInt(), prevAddress);
       prevAddress = ref;
       oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
- 				    >> LOG_BYTES_IN_ADDRESS));
+                                    >> LOG_BYTES_IN_ADDRESS));
     }
   }
 
@@ -162,7 +162,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
       return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(ref,
-							       OBJECT_LINK_OFFSET.toInt()));
+                                                               OBJECT_LINK_OFFSET.toInt()));
     else
       return ObjectReference.nullReference();
   }

@@ -283,7 +283,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     // test for end of map
     if (bitnum == NOMORE) {
       if ( VM.TraceStkMaps) 
-	      VM.sysWrite("  NOMORE \n");
+              VM.sysWrite("  NOMORE \n");
       return NOMORE;
     }
 
@@ -490,7 +490,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickReferenceMaps;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickReferenceMaps;"));
   int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
@@ -594,7 +594,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
           int start = mapNum * bytesPerMap;  // get starting byte in map
           for ( int i = start; i < start + bytesPerMap; i++) {
             referenceMaps[i] = 0;
-	  }
+          }
           if (VM.TraceStkMaps) {
             VM.sysWrite(" VM_QuickReferenceMaps-recordStkMap replacing map number = ", mapNum);
             VM.sysWriteln("  for machinecode index = ", MCSites[mapNum]);
@@ -713,14 +713,14 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
             for (unusualMapIndex = JSR_INDEX_MASK; unusualMapIndex < numberUnusualMaps; unusualMapIndex++) {
               if (unusualMaps[unusualMapIndex].getReturnAddressLocation() == returnLocation) {
                 jsrSiteMap = unusualMaps[unusualMapIndex];
-		break findJSRSiteMap;
-	      }
+                break findJSRSiteMap;
+              }
             }
             VM.sysFail(" can't find unusual map !!!!!!! - should never occur");
           } else {
             jsrSiteMap = unusualMaps[unusualMapIndex];
             break findJSRSiteMap;
-	  }
+          }
         }
       }
     } else {
@@ -763,7 +763,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
         VM.sysWrite( referenceMaps[mapNum*bytesPerMap]);
         VM.sysWrite( "\n");
       }
-    }	 // end else clause - add new map
+    }    // end else clause - add new map
 
     // for new maps, setup maps in UnusualMap, for existing map replace them
 
@@ -914,7 +914,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
 
     VM_QuickUnusualMaps unusualMap = unusualMaps[unusualMapid];
 //    unusualMapcopy(unusualMap, -mapid); // deep copy unusual map into the extra map
-    unusualMapcopy(unusualMap);	// deep copy unusual map into the extra map
+    unusualMapcopy(unusualMap); // deep copy unusual map into the extra map
 
 
     // from the unusual map and the frame - get the location of the jsr invoker
@@ -1500,8 +1500,8 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
       byte res = (byte)((finalBase | newRef) & (~newNonRef));
       unusualReferenceMaps[mergedReferenceMap+i] = res;
       unusualReferenceMaps[mergedReturnAddressMap+i] 
-	= (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] 
-		 | unusualReferenceMaps[returnAddressMapIndex + i]);
+        = (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] 
+                 | unusualReferenceMaps[returnAddressMapIndex + i]);
       /*
          VM.sysWrite("   **** base = "); VM.sysWrite(base);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
@@ -1675,7 +1675,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     for (int i=0; i<mapCount; i++) {
       byte mapindex  = referenceMaps[i * bytesPerMap];
       if (mapindex < 0) {
-	// check for non jsr map
+        // check for non jsr map
         VM.sysWrite("  -----skipping jsr map------- \n ");
         continue;
       }
@@ -1714,7 +1714,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
   public boolean isLocalRefType(VM_Method method, int mcoff, int lidx) {
     int bytenum, bitnum;
     byte[] maps;
-	
+        
     if (bytesPerMap == 0) return false;           // no map ie no refs
     int mapid = locateGCPoint(mcoff, method);
 

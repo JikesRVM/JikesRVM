@@ -75,7 +75,7 @@ public final class Options {
     int split = arg.indexOf('=');
     if (split == -1) {
       VM.sysWriteln("  Illegal option specification!\n  \""+arg+
-		  "\" must be specified as a name-value pair in the form of option=value");
+                  "\" must be specified as a name-value pair in the form of option=value");
       return false;
     }
 

@@ -485,13 +485,13 @@ class TraceFileReader
         tcr.start_wall_time   = Utilities.getLongFromDataInputStream(input_file);
         // translate end wall time to relative wall time.
         long end_wall_time    = Utilities.getLongFromDataInputStream(input_file);
-	  tcr.values[0]         = end_wall_time - tcr.start_wall_time;
-          //	}
+          tcr.values[0]         = end_wall_time - tcr.start_wall_time;
+          //    }
 
-	if(options.debug>=5){System.out.print(" EWT "+end_wall_time+" duration "+tcr.values[0]);}
+        if(options.debug>=5){System.out.print(" EWT "+end_wall_time+" duration "+tcr.values[0]);}
         tcr.callee_MID        = Utilities.getIntFromDataInputStream(input_file);
         tcr.caller_MID        = Utilities.getIntFromDataInputStream(input_file);
-	if(options.debug>=5){System.out.print(" mids: callee "+tcr.callee_MID+", caller "+tcr.caller_MID);}
+        if(options.debug>=5){System.out.print(" mids: callee "+tcr.callee_MID+", caller "+tcr.caller_MID);}
 
         for (int i=1; i<tcr.n_values; i++) {
           tcr.values[i] = Utilities.getLongFromDataInputStream(input_file);

@@ -3125,11 +3125,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         }
       } else if (methodName == VM_MagicNames.attempt) {
         // All attempts are similar 32 bit values.
-	if (types.length == 3) {
+        if (types.length == 3) {
           // Offset passed
           asm.emitPOP_Reg (S0);        // S0 = offset
         }
-	asm.emitPOP_Reg (T1);          // newVal
+        asm.emitPOP_Reg (T1);          // newVal
         asm.emitPOP_Reg (EAX);         // oldVal (EAX is implicit arg to LCMPX
         if (types.length == 3) {
           asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base

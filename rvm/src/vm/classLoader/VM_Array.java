@@ -670,11 +670,11 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     
     if ((src != dst) || loToHi) {
       if (!MM_Interface.NEEDS_WRITE_BARRIER ||
-	  !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, 
-					      bytes)) {
-	VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).add(dstOffset),
-				  VM_Magic.objectAsAddress(src).add(srcOffset),
-				  bytes);
+          !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, 
+                                              bytes)) {
+        VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).add(dstOffset),
+                                  VM_Magic.objectAsAddress(src).add(srcOffset),
+                                  bytes);
       }
     } else {
       // set up things according to the direction of the copy

@@ -97,7 +97,7 @@ public class VM_SysCall implements Uninterruptible {
     return null; 
   }
   public static Address sysMMapErrno(Address start, Extent length, int protection,
-					int flags, int fd, long offset) { 
+                                        int flags, int fd, long offset) { 
     return null; 
   }
   public static int sysMUnmap(Address start, Extent length) {
@@ -306,7 +306,7 @@ public class VM_SysCall implements Uninterruptible {
   public static void gcspyDriverEndOutput (Address driver) {}
   public static void gcspyDriverInit (Address driver, int id, Address serverName, Address driverName,
                                Address title, Address blockInfo, int tileNum,
-			       Address unused, int mainSpace) {}
+                               Address unused, int mainSpace) {}
   public static void gcspyDriverInitOutput (Address driver) {}
   public static void gcspyDriverResize (Address driver, int size) {}
   public static void gcspyDriverSetTileName (Address driver, int i, Address start, Address end) {}
@@ -335,8 +335,8 @@ public class VM_SysCall implements Uninterruptible {
    
   public static void gcspyStreamInit (Address stream, int id, int dataType, Address name,
                                int minValue, int maxValue, int zeroValue, int defaultValue,
-			       Address pre, Address post, int presentation, int paintStyle,
-			       int maxStreamIndex, int red, int green, int blue) {}
+                               Address pre, Address post, int presentation, int paintStyle,
+                               int maxStreamIndex, int red, int green, int blue) {}
 
   public static void gcspyFormatSize (Address buffer, int size) {}
 

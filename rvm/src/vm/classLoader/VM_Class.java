@@ -1468,7 +1468,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i=0; i<declaredMethods.length; i++) {
       VM_Method m = declaredMethods[i];
       if (m.isNative()) {
-	  VM_NativeMethod nm = (VM_NativeMethod)m;
+          VM_NativeMethod nm = (VM_NativeMethod)m;
           nm.unregisterNativeSymbol(); 
           m.replaceCompiledMethod(null); 
       }

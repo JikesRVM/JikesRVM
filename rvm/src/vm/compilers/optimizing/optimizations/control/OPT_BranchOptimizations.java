@@ -544,7 +544,7 @@ public final class OPT_BranchOptimizations
       }
     } 
     BooleanCmp.mutate(cb, (cb.operator() == REF_IFCMP )? BOOLEAN_CMP_ADDR : BOOLEAN_CMP_INT, res,
-		     val1, val2, cond, new OPT_BranchProfileOperand());
+                     val1, val2, cond, new OPT_BranchProfileOperand());
   }
 
   /**

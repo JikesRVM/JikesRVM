@@ -732,7 +732,7 @@ class OPT_GenerateMagic implements OPT_Operators,
       bc2ir.appendInstruction(Unary.create(REF_NOT, op0, o1));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordZero ||
-	       methodName == VM_MagicNames.wordNull) {
+               methodName == VM_MagicNames.wordNull) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.zero())));
       bc2ir.push(op0.copyD2U());

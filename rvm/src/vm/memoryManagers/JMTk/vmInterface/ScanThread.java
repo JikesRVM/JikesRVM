@@ -169,7 +169,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
     if (compiledMethod.isCompiled()) {
         ObjectReference codeBase = ObjectReference.fromObject(compiledMethod.getInstructions());
         VM.sysWrite("     code base = ", codeBase);
-	VM.sysWriteln("     code offset = ", ip.diff(codeBase.toAddress()));
+        VM.sysWriteln("     code offset = ", ip.diff(codeBase.toAddress()));
     }
     else
       VM.sysWriteln("   Method is uncompiled - ip = ", ip);
@@ -190,8 +190,8 @@ public class ScanThread implements VM_Constants, Uninterruptible {
    * @param top_frame address of stack frame at which to begin the scan
    */
   private static void scanThreadInternal(AddressDeque rootLocations, 
-					 AddressPairDeque codeLocations,
-					 VM_Thread t, Address top_frame) {
+                                         AddressPairDeque codeLocations,
+                                         VM_Thread t, Address top_frame) {
     
     if (DUMP_STACK >= 1) VM.sysWriteln("Scanning thread ", t.getIndex());
 
@@ -284,17 +284,17 @@ public class ScanThread implements VM_Constants, Uninterruptible {
 
         // initialize MapIterator for this frame
         VM_CodeArray codeArray = compiledMethod.getInstructions();
-	Offset offset = ip.diff(VM_Magic.objectAsAddress(codeArray));
+        Offset offset = ip.diff(VM_Magic.objectAsAddress(codeArray));
         if (compiledMethodType != VM_CompiledMethod.JNI) {
-	  Offset possibleLen = Offset.fromIntZeroExtend(codeArray.length() << LG_INSTRUCTION_WIDTH);
-	  if (offset.sLT(Offset.zero()) || possibleLen.sLT(offset)) {
+          Offset possibleLen = Offset.fromIntZeroExtend(codeArray.length() << LG_INSTRUCTION_WIDTH);
+          if (offset.sLT(Offset.zero()) || possibleLen.sLT(offset)) {
             // We have an invalid offset
-	    if (offset.sLT(Offset.zero())) {
+            if (offset.sLT(Offset.zero())) {
               VM.sysWriteln("ScanThread: computed instruction offset is negative ", offset);
             } else {
               VM.sysWriteln("ScanThread: computed instruction offset is too big");
-	      VM.sysWrite("\toffset is", offset);
-	      VM.sysWriteln(" bytes of machine code for method ",possibleLen);
+              VM.sysWrite("\toffset is", offset);
+              VM.sysWriteln(" bytes of machine code for method ",possibleLen);
             }
             VM.sysWrite("\tSupposed method: ");
             VM.sysWrite(method);
@@ -314,7 +314,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
           }
         }
         VM_GCMapIterator iterator = iteratorGroup.selectIterator(compiledMethod);
-	iterator.setupIterator(compiledMethod, offset.toInt(), fp);
+        iterator.setupIterator(compiledMethod, offset.toInt(), fp);
         
         if (DUMP_STACK >= 2) dumpStackFrame( fp, prevFp );
         

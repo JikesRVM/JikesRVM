@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  */
 public final class VM_QuickGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants, VM_QuickConstants,
-	     Uninterruptible  {
+             Uninterruptible  {
 
   // Iterator state for mapping any stackframe.
   //
@@ -141,7 +141,7 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
       bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
       bridgeRegisterLocation = framePtr.loadAddress();
       bridgeRegisterLocation = bridgeRegisterLocation.sub(8 * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
-							  4 * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
+                                                          4 * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
     }
   }
 
@@ -226,54 +226,54 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
              bridgeParameterMappingRequired) {
 
       if (VM.TraceStkMaps) {
-	VM.sysWrite("VM_QuickGCMapIterator.getNextReferenceAddress: bridgeTarget="); VM.sysWrite(bridgeTarget); VM.sysWrite("\n");
+        VM.sysWrite("VM_QuickGCMapIterator.getNextReferenceAddress: bridgeTarget="); VM.sysWrite(bridgeTarget); VM.sysWrite("\n");
       }
       if (!bridgeRegistersLocationUpdated) {
-	// point registerLocations[] to our callers stackframe
-	//
-	Address addr = framePtr.add(VM_Compiler.getFrameSize(currentMethod));
-	addr = addr.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
-	// skip non-volatile and volatile fprs
-	for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
-	  addr = addr.sub(BYTES_IN_ADDRESS);
-	  registerLocations.set(i, addr);
-	}
+        // point registerLocations[] to our callers stackframe
+        //
+        Address addr = framePtr.add(VM_Compiler.getFrameSize(currentMethod));
+        addr = addr.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
+        // skip non-volatile and volatile fprs
+        for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
+          addr = addr.sub(BYTES_IN_ADDRESS);
+          registerLocations.set(i, addr);
+        }
 
-	bridgeRegistersLocationUpdated = true;
+        bridgeRegistersLocationUpdated = true;
       }
 
       // handle implicit "this" parameter, if any
       //
       if (bridgeParameterIndex == -1) {
-	bridgeParameterIndex   += 1;
-	bridgeRegisterIndex    += 1;
-	bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-	return bridgeRegisterLocation.sub(4);
+        bridgeParameterIndex   += 1;
+        bridgeRegisterIndex    += 1;
+        bridgeRegisterLocation = bridgeRegisterLocation.add(4);
+        return bridgeRegisterLocation.sub(4);
       }
          
       // now the remaining parameters
       //
       while (true) {
-	if (bridgeParameterIndex == bridgeParameterTypes.length || bridgeRegisterIndex > LAST_VOLATILE_GPR) {
-	  bridgeParameterMappingRequired = false;
+        if (bridgeParameterIndex == bridgeParameterTypes.length || bridgeRegisterIndex > LAST_VOLATILE_GPR) {
+          bridgeParameterMappingRequired = false;
     state += 1;
-	  break;
-	}
-	VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
-	if (bridgeParameterType.isReferenceType()) {
-	  bridgeRegisterIndex    += 1;
-	  bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-	  return bridgeRegisterLocation.sub(4);
-	} else if (bridgeParameterType.isLongType()) {
-	  bridgeRegisterIndex    += 2;
-	  bridgeRegisterLocation = bridgeRegisterLocation.add(8);
-	} else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
-	  // no gpr's used
-	} else {
-	  // boolean, byte, char, short, int
-	  bridgeRegisterIndex    += 1;
-	  bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-	}
+          break;
+        }
+        VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
+        if (bridgeParameterType.isReferenceType()) {
+          bridgeRegisterIndex    += 1;
+          bridgeRegisterLocation = bridgeRegisterLocation.add(4);
+          return bridgeRegisterLocation.sub(4);
+        } else if (bridgeParameterType.isLongType()) {
+          bridgeRegisterIndex    += 2;
+          bridgeRegisterLocation = bridgeRegisterLocation.add(8);
+        } else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
+          // no gpr's used
+        } else {
+          // boolean, byte, char, short, int
+          bridgeRegisterIndex    += 1;
+          bridgeRegisterLocation = bridgeRegisterLocation.add(4);
+        }
       }
     }
       

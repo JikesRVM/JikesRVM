@@ -64,10 +64,10 @@ public class Java2HPM
     if (VM.BuildForHPM) {
       if(debug>=1)VM.sysWrite("Java2HPM static initializer calling System.loadLibrary(\"Java2HPM\")\n");
       try {
-	System.loadLibrary("Java2HPM");
+        System.loadLibrary("Java2HPM");
       } catch (Exception e) {
-	VM.sysWriteln("\nJava2HPM.<init>() Exception with System.loadLibrary(Java2HPM)\n");
-	VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);
+        VM.sysWriteln("\nJava2HPM.<init>() Exception with System.loadLibrary(Java2HPM)\n");
+        VM.shutdown(VM.EXIT_STATUS_HPM_TROUBLE);
       }
       if(debug>=1)VM.sysWrite("Java2HPM static initializer called System.loadLibrary(\"Java2HPM\")\n");
     }
@@ -93,9 +93,9 @@ public class Java2HPM
       /*
       String lib_path = System.getProperty("java.library.path");
       if (lib_path != null) {
-	VM.sysWrite(lib_path);VM.sysWrite("!\n");
+        VM.sysWrite(lib_path);VM.sysWrite("!\n");
       } else {
-	VM.sysWrite(" System.getProperty(\"java.library.path\") returned null!\n");
+        VM.sysWrite(" System.getProperty(\"java.library.path\") returned null!\n");
       }
       */
       // dump selected events
@@ -143,11 +143,11 @@ public class Java2HPM
       VM_SysCall.sysHPMstartMyThread();
     }
 
-    for (int i = 0; i < iterations; i++) {	
+    for (int i = 0; i < iterations; i++) {      
       if (jni == JNI) {
-	Java2HPM.test();
+        Java2HPM.test();
       } else {
-	VM_SysCall.sysHPMtest();
+        VM_SysCall.sysHPMtest();
       }
     }
 
@@ -187,7 +187,7 @@ public class Java2HPM
    * @param jni           use JNI call if true.
    */
   private static void accessGetCounter(int iterations, int cycle_counter, int counter, 
-				       boolean jni) 
+                                       boolean jni) 
   {
     //-#if RVM_WITH_HPM
     // time in seconds
@@ -201,11 +201,11 @@ public class Java2HPM
     }
 
     long count;
-    for (int i = 0; i < iterations; i++) {	
+    for (int i = 0; i < iterations; i++) {      
       if (jni == JNI) {
-	count = Java2HPM.getCounterMyThread(counter);
+        count = Java2HPM.getCounterMyThread(counter);
       } else {
-	count = VM_SysCall.sysHPMgetCounterMyThread(counter);
+        count = VM_SysCall.sysHPMgetCounterMyThread(counter);
       }
     }
 

@@ -92,13 +92,13 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
       byte[] funcName = Barriers.getArrayNoBarrier(allocCallMethods, i);
       if (VM_Magic.getArrayLength(name) == VM_Magic.getArrayLength(funcName)) {
         /* Compare the letters in the allocCallMethod */
-	int j = VM_Magic.getArrayLength(funcName) - 1;
+        int j = VM_Magic.getArrayLength(funcName) - 1;
         while (j >= 0) {
-	  if (Barriers.getArrayNoBarrier(name, j) != 
-	      Barriers.getArrayNoBarrier(funcName, j))
-	    break;
-	  j--;
-	}
+          if (Barriers.getArrayNoBarrier(name, j) != 
+              Barriers.getArrayNoBarrier(funcName, j))
+            break;
+          j--;
+        }
         if (j == -1)
           return true;
       }
@@ -118,7 +118,7 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
    * @return The easy to understand offset of the slot
    */
   public static final Offset adjustSlotOffset(boolean isScalar, 
-					      ObjectReference src,
+                                              ObjectReference src,
                                                  Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
        of the object. */
@@ -152,54 +152,54 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       compiledMethodID = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodID != INVISIBLE_METHOD_ID) {
-	// normal java frame(s)
+        // normal java frame(s)
         VM_CompiledMethod compiledMethod = 
-	  VM_CompiledMethods.getCompiledMethod(compiledMethodID);
-	if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
-	  ipOffset = (ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())));
-	  m = compiledMethod.getMethod();
-	  //-#if RVM_WITH_OPT_COMPILER
-	  if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-	    VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
-	    /* Opt stack frames may contain multiple inlined methods. */
-	    VM_OptMachineCodeMap map = optInfo.getMCMap();
-	    int iei = map.getInlineEncodingForMCOffset(ipOffset.toInt());
-	    if (iei >= 0) {
-	      int[] inlineEncoding = map.inlineEncoding;
-	      boolean allocCall = true;
-	      bci = map.getBytecodeIndexForMCOffset(ipOffset.toInt());
-	      for (int j = iei; j >= 0 && allocCall; 
-		   j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-		int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-		m = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
- 		if (!isAllocCall(m.getName().getBytes()))
-		  allocCall = false;
-		if (j > 0)
-		  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, 
-								 inlineEncoding);
-	      }
-	      if (!allocCall)
-		break;
-	    }
-	  } else 
-	  //-#endif
-	  {
-	    if (!isAllocCall(m.getName().getBytes())) {
-	      VM_BaselineCompiledMethod baseInfo = 
-		(VM_BaselineCompiledMethod)compiledMethod;
-	      bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toInt());
-	      break;
-	    }
-	  }
-	}
+          VM_CompiledMethods.getCompiledMethod(compiledMethodID);
+        if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+          ipOffset = (ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())));
+          m = compiledMethod.getMethod();
+          //-#if RVM_WITH_OPT_COMPILER
+          if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+            /* Opt stack frames may contain multiple inlined methods. */
+            VM_OptMachineCodeMap map = optInfo.getMCMap();
+            int iei = map.getInlineEncodingForMCOffset(ipOffset.toInt());
+            if (iei >= 0) {
+              int[] inlineEncoding = map.inlineEncoding;
+              boolean allocCall = true;
+              bci = map.getBytecodeIndexForMCOffset(ipOffset.toInt());
+              for (int j = iei; j >= 0 && allocCall; 
+                   j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
+                int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
+                m = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                if (!isAllocCall(m.getName().getBytes()))
+                  allocCall = false;
+                if (j > 0)
+                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, 
+                                                                 inlineEncoding);
+              }
+              if (!allocCall)
+                break;
+            }
+          } else 
+          //-#endif
+          {
+            if (!isAllocCall(m.getName().getBytes())) {
+              VM_BaselineCompiledMethod baseInfo = 
+                (VM_BaselineCompiledMethod)compiledMethod;
+              bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toInt());
+              break;
+            }
+          }
+        }
       }
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
     }
     if (m != null) {
       int allocid = (((compiledMethodID & 0x0000ffff) << 15) ^
-		     ((compiledMethodID & 0xffff0000) >> 16) ^ 
-		     ipOffset.toInt()) & ~0x80000000;
+                     ((compiledMethodID & 0xffff0000) >> 16) ^ 
+                     ipOffset.toInt()) & ~0x80000000;
     
       /* Now print the location string. */
       VM.write('\n');

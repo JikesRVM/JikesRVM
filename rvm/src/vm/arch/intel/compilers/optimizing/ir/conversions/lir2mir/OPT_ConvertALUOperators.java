@@ -148,7 +148,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case LONG_NEG_opcode: unary(s, LONG_NEG_ACC, ir); break;
       case LONG_NOT_opcode: unary(s, LONG_NOT_ACC, ir); break;
       
-		// BURS doesn't really care, so consolidate to reduce rule space
+                // BURS doesn't really care, so consolidate to reduce rule space
       case BOOLEAN_CMP_ADDR_opcode: s.operator = BOOLEAN_CMP_INT; break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
@@ -196,7 +196,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case INT_2ADDRZerExt_opcode: s.operator = INT_MOVE; break;
       case ADDR_2INT_opcode: s.operator = INT_MOVE; break;
       case ADDR_2LONG_opcode: s.operator = INT_2LONG; break;
-		}
+                }
 
       if (OPTIMIZE) {
         // update liveness 

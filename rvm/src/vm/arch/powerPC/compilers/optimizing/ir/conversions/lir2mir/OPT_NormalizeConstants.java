@@ -345,10 +345,10 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       case ADDR_2INT_opcode:
         s.operator = (VM.BuildFor32Addr? REF_MOVE : LONG_2INT);
         break;
-		case ADDR_2LONG_opcode:
+                case ADDR_2LONG_opcode:
         s.operator = (VM.BuildFor32Addr? INT_2LONG : REF_MOVE);
         break;
-		case INT_2ADDRSigExt_opcode:
+                case INT_2ADDRSigExt_opcode:
         s.operator = (VM.BuildFor32Addr? REF_MOVE : INT_2LONG);
         break;
       //-#if RVM_FOR_32_ADDR

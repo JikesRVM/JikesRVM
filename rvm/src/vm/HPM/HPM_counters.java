@@ -59,9 +59,9 @@ public final class HPM_counters
     boolean notZero = false;
     for (int i=0; i<HPM_info.getNumberOfValues(); i++) {
       if (counters[i] > 0) {
-	notZero = true;
-        //	System.out.println(i+": "+HPM_info.short_name(i)+":"+format_long(counters[i]));
-	VM.sysWrite  (i,": ");
+        notZero = true;
+        //      System.out.println(i+": "+HPM_info.short_name(i)+":"+format_long(counters[i]));
+        VM.sysWrite  (i,": ");
         VM.sysWrite  (HPM_info.short_name(i));
         VM.sysWrite  (":");
         VM.sysWrite  (format_long(counters[i]),MAX_LONG_FORMAT_LENGTH);

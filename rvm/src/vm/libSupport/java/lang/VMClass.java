@@ -305,7 +305,7 @@ final class VMClass
   }
 
   static Class loadArrayClass(String name, ClassLoader classLoader)
-	throws ClassNotFoundException
+        throws ClassNotFoundException
   {
     return forNameInternal(name, true /* initialize */, classLoader);
   }

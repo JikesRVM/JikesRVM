@@ -35,18 +35,18 @@ public abstract class VM_Configuration {
   public static final boolean LittleEndian = BuildForIA32;
   
   public static final boolean BuildFor32Addr = 
-	//-#if RVM_FOR_32_ADDR
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_32_ADDR
+          true;
+        //-#else
+          false;
+        //-#endif
 
   public static final boolean BuildFor64Addr = 
-	//-#if RVM_FOR_64_ADDR
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_64_ADDR
+          true;
+        //-#else
+          false;
+        //-#endif
 
   public static final boolean BuildForAix =
         //-#if RVM_FOR_AIX
@@ -70,23 +70,23 @@ public abstract class VM_Configuration {
         //-#endif
 
   public static final boolean BuildForPowerOpenABI =
-	//-#if RVM_WITH_POWEROPEN_ABI
-	  true;
+        //-#if RVM_WITH_POWEROPEN_ABI
+          true;
         //-#else
           false;
         //-#endif
   
   public static final boolean BuildForSVR4ABI =
-	//-#if RVM_WITH_SVR4_ABI
-	  true;
+        //-#if RVM_WITH_SVR4_ABI
+          true;
         //-#else
           false;
         //-#endif
   
   /** Used for OS/X (Darwin) */
   public static final boolean BuildForMachOABI =
-	//-#if RVM_WITH_MACH_O_ABI
-	  true;
+        //-#if RVM_WITH_MACH_O_ABI
+          true;
         //-#else
           false;
         //-#endif

@@ -91,9 +91,9 @@ public final class OPT_StackManager extends OPT_GenericStackManager
             if (one instanceof OPT_IntConstantOperand) {
               int offset = ((OPT_IntConstantOperand) one).value;
               if (offset <= -256) {
-					 if ( frameIsRequired())
+                                         if ( frameIsRequired())
                   MIR_Load.setOffset(inst, IC(frameSize - offset - 256));
-					 else
+                                         else
                   MIR_Load.setOffset(inst, IC(-offset - 256));
               }
             }
