@@ -1495,8 +1495,8 @@ function emitMakefile () {
 	    ${BUILD_DIRECTORY_STR1}:=${RVM_BUILD}
 	endif
 	
+	HOST_JIKES = $JIKES	# Deprecated
 	$JIKES_STR1 = $JIKES
-	HOST_JIKES = $JIKES
 EOF
 	
     [[ ${HOST_JAVA_HOME-} ]] && echo "HOST_JAVA_HOME = $HOST_JAVA_HOME"
