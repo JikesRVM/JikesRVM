@@ -188,11 +188,6 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of VM directives");
     VM_CommandLineArgs.earlyProcessCommandLineArguments();
 
-    // Allow Collector to respond to command line arguments
-    //
-    if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
-    MM_Interface.postBoot();
-
     if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
@@ -247,6 +242,11 @@ public class VM extends VM_Properties implements VM_Constants,
     MM_Interface.fullyBootedVM();
     if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of VM directives");
     String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
+
+    // Allow Collector to respond to command line arguments
+    //
+    if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
+    MM_Interface.postBoot();
 
     // Allow Baseline compiler to respond to command line arguments.
     // The baseline compiler ignores command line arguments until all are processed
