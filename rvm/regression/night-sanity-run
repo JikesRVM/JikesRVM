@@ -133,8 +133,11 @@ if [[ $numfailed -gt 0 ]] then
 fi
 
 # Describe where the information can be found
-# Describe where the information can be found
-echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
+if [[ $ARCH = 'Linux' ]] then
+  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/Linux.tar.gz" >> $MSG
+else
+  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
+fi
 
 # echo "     run details: $RUN_LOG\n " >> $MSG
 # echo "     build details: $BUILD_LOG\n " >> $MSG
