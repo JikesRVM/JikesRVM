@@ -28,11 +28,11 @@ ulimit -c 0
 
 # intitialization
 #
-total_tests=0
-passed_tests=0
+declare -i total_tests=0
+declare -i passed_tests=0
 
 # How often to look to see if the builds are done
-SLEEP_DURATION="120"
+declare -i SLEEP_DURATION=120
 
 # Who am I?
 #
@@ -94,6 +94,7 @@ function showHelp {
   echo '-configuration[s] "<configs>" test all boot images in list'
   echo '-configuration-list <file>  file listing boot images to test'
   echo '-wait <file>                sync build and run using file'
+  echo '				(file says if build failed)'
   echo '-performance <file>         record performance results to file'
   echo '-measureCompilation         run benchmarks in measure-compilation mode'
   echo '-rc-args "args"             supply args to all runs'
@@ -297,33 +298,76 @@ function setConfiguration {
 # Build a virtual machine.
 #
 function doBuild {
-   if [[ $BUILD = "Yes" ]]; then
-     say "creating $NAME $EXTRA_CONFIG_ARGS"
-     $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null
+    local -i failed=0;
 
-     if [[ $CLEAN = "Yes" ]]; then
-        say "cleaning build directory"
-        cd $RVM_BUILD && ./jbuild -clean
-     fi
+    if [[ $BUILD = "Yes" ]]; then
+	say "creating $NAME $EXTRA_CONFIG_ARGS"
+	$GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null
+	cd $RVM_BUILD 
 
-     say "building $NAME"
-     cd $RVM_BUILD && ./jbuild -trace -demographics >RVM.trace 2>&1
+	if [[ $CLEAN = "Yes" ]]; then
+	    say "cleaning build directory"
+	    ./jbuild -clean
+	fi
 
-     if [[ x$WAIT != x ]]; then
-       # Leave a marker to signify the building is done.
-       echo "You may remove this file" > $RVM_BUILD/$WAIT
-     fi
-   else 
-     if [[ x$WAIT != x ]]; then
-       while [[ ! -a $RVM_BUILD/$WAIT ]]; do
-         sleep $SLEEP_DURATION;
-       done
-     fi
-     if [[ (! -e $RVM_BUILD/JikesRVM) && (-e $RVM_BUILD/RVM.image)]]; then
-       say "linking $NAME"
-       cd $RVM_BUILD && ./jbuild -trace -booter >> RVM.trace 2>&1
-     fi
-   fi
+	say "Building $NAME."
+	say "Output from the build will go into ${RVM_BUILD}/RVM.trace"
+	./jbuild -trace -demographics &> RVM.trace
+	failed=$?
+	if (( failed )); then
+	    say "Failed while building $NAME."
+	    say "  See $RVM_BUILD/RVM.trace for details"
+	fi
+
+	if [[ $WAIT ]]; then
+	    # Leave a marker to signify the building is done.
+	    if (( failed )); then
+		echo "FAILED to build $NAME at $(date) on $(hostname)"
+		say "  See $RVM_BUILD/RVM.trace for details"
+	    else
+		echo "SUCCESS Built $NAME."
+		echo "You may remove this file" 
+	    fi > $RVM_BUILD/$WAIT
+	fi
+    else 
+	if [[ $WAIT ]]; then
+	    echo -n "$ME: Waiting for $RVM_BUILD/$WAIT"
+	    while [[ ! -a $RVM_BUILD/$WAIT ]]; do
+		echo -n "."
+		sleep $SLEEP_DURATION;
+	    done
+	    cd $RVM_BUILD || return 1
+	    if fgrep FAILED $WAIT; then
+		failed=2
+		echo "FAILED build."
+	    elif fgrep SUCCESS $WAIT; then
+		failed=0
+		echo "successful build."
+	    else
+		failed=-1
+		echo "$WAIT is not in a recognized format!"
+		say "Internal error."
+	    fi
+	fi
+	(( failed )) && return $failed;
+
+	cd $RVM_BUILD
+
+	if [[ ! -e JikesRVM && -e RVM.image ]]; then
+	    say "Linking $NAME"
+	    say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
+	    ./jbuild -trace -booter >>  RVM.trace 2>&1
+	    failed=$?
+	    if (( failed )); then
+		say "FAILED to build $NAME at $(date) on $(hostname)"
+		say "  See $RVM_BUILD/RVM.trace for details"
+	    else
+		say "Linked successfully"
+	    fi
+	fi
+    fi
+
+    return $failed;
 }
 
 # Run a test.
@@ -364,7 +408,7 @@ function doRun {
     echo Results to $RESULT/$TEST_RESULT_DIR
 
     # gather performance data, if appropriate
-    if [ x$PERFORMANCE != x ]; then
+    if [[ $PERFORMANCE  ]]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
 	LIMIT_RAW=$(<TimeLimit.performance)
 	echo "Performance mode: results to $PERFORMANCE"
@@ -374,7 +418,7 @@ function doRun {
     fi
 
     # run in measure compilation mode
-    if [ x$MEASURE_COMPILATION != x ]; then
+    if [[ $MEASURE_COMPILATION ]]; then
 	PERFORMANCE_STR="MODE=MEASURE_COMPILATION"
 	echo "Measure compilation mode"
     fi
@@ -386,7 +430,7 @@ function doRun {
     LIMIT=$LIMIT_RAW
 
     # pass on opt. level information, if given
-    if [ x$OPT_LEVEL != x ]; then
+    if [[ $OPT_LEVEL ]]; then
 	OPT_STR=".OPT_LEVEL=$OPT_LEVEL"
     else
 	OPT_STR=
@@ -397,7 +441,7 @@ function doRun {
     [ "$OPT_LEVEL" ] && SUFFIX=".${OPT_LEVEL}"
     [ "$NUM_PROCS" ] && SUFFIX="${SUFFIX}.${NUM_PROCS}proc"
 
-    if [ x$VERBOSE = xYES ]; then
+    if [[ $VERBOSE = YES ]]; then
 	FLAGS="-k"
     else
 	FLAGS="-ks"
@@ -458,7 +502,15 @@ function doOptLevelTests {
 
 function runTests {
     doBuild
-    if [ "x$OPT_LEVELS" != x ]; then
+
+    local failed=$?
+
+    if (( failed )) ; then
+	say "Building $NAME failed with status $failed; won't run any tests."
+	return $failed
+    fi
+
+    if [[ $OPT_LEVELS ]]; then
 	doOptLevelTests
     else
 	doTests
@@ -467,32 +519,37 @@ function runTests {
 
 # Build and test a series of configurations.
 #
-function main {
+function main () {
   if [[ $CONFIG_LIST = "NIGHT_SANITY" ]]; then
-     exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity
-     exit
+      # We used to EXEC this for efficiency.  Has the defect that it
+      # wipes out our traps against SIGINT, SIGHUP, and SIGTERM
+      $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity
+      exit
   fi
 
   for config in $CONFIG_LIST; do
-    setConfiguration $config; time runTests
+      setConfiguration $config; time runTests
   done
 
-  if [ total_tests != 0 ]; then
-     say "$total_tests tests run"
-     say "$passed_tests tests passed"
+  if (( total_tests >  0 )); then
+      say "$total_tests tests run"
+      say "$passed_tests tests passed"
   fi
 
-  if [ x$PERFORMANCE != x ]; then
-    say "Performance Summary"
-    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk < $PERFORMANCE
+  if (( passed_tests > 0 )) && [[ $PERFORMANCE ]]; then
+      say "Performance Summary"
+      $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk < $PERFORMANCE
   fi
 
   say "done"
 }
 
-# Kill entire process group if someone types a ctl-c.
+# Kill entire process group if we get SIGINT, SIGHUP, or SIGTERM
 # This ensures that subshells spawned by make die quickly.
 #
-trap "say bye!; /bin/kill -KILL -$$ 2>/dev/null" INT
+## The "exit" should not be here, but probably is.
+trap "say exiting due to SIGINT'!'; trap - INT ; /bin/kill -INT 0; exit 130" INT
+trap "say exiting due to a SIGTERM'!'; trap - TERM; /bin/kill -TERM 0; exit 143" TERM
+trap "say exiting due to a SIGHUP'!'; trap - HUP; /bin/kill -HUP 0; exit 129" HUP
 
 time main $*
