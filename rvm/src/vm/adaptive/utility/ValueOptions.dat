@@ -87,39 +87,3 @@ V EARLY_EXIT_TIME int 1000
 Value of controller clock at which AOS should exit if EARLY_EXIT is true
 
 
-V HPM_EVENT_1 String \"0\" hpm_event1
-Encode event of counter 1 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_2 String \"0\" hpm_event2
-Encode event of counter 2 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_3 String \"0\" hpm_event3
-Encode event of counter 3 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_4 String \"0\" hpm_event4
-Encode event of counter 4 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_5 String \"0\" hpm_event5
-Encode event of counter 5 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_6 String \"0\" hpm_event6
-Encode event of counter 6 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_7 String \"0\" hpm_event7
-Encode event of counter 7 of Hardware Performance Monitor 
-
-
-V HPM_EVENT_8 String \"0\" hpm_event8
-Encode event of counter 8 of Hardware Performance Monitor 
-
-
-V HPM_MODE String \"4\" hpm_mode
-Encode Hardware Performance Monitor mode
-
-

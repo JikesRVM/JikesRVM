@@ -227,6 +227,10 @@ public class VM extends VM_Properties
       VM.sysExit(1);
     }
 
+    // Now that we've processed the command line arguments, 
+    // enable HPM if the command lines indicate that we should
+    VM_HardwarePerformanceMonitors.boot();
+
     // Allow Baseline compiler to respond to command line arguments
     // The baseline compiler ignores command line arguments until all are processed
     // otherwise printing may occur because of compilations ahead of processing the
@@ -235,14 +239,13 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
     VM_BaselineCompiler.postBootOptions();
 
-
     // Allow Collector to respond to command line arguments
     //
     if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
     VM_Interface.postBoot();
 
     VM_Lock.boot();
-
+    
     // Begin multiprocessing.
     //
     VM_Scheduler.boot(applicationArguments);

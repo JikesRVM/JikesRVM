@@ -120,6 +120,14 @@ public abstract class VM_Configuration {
           false;
 	//-#endif
 
+  // Does this build include support for Hardware Performance Monitors
+  public static final boolean BuildForHPM = 
+    //-#if RVM_WITH_HPM
+      true;
+    //-#else 
+      false;
+    //-#endif
+
   // Is this an adaptive build?
   public static final boolean BuildForAdaptiveSystem =
       //-#if RVM_WITH_ADAPTIVE_SYSTEM

@@ -90,6 +90,8 @@ public class VM_CommandLineArgs {
   public static final int INITIAL_HEAP_ARG     = 32;
   public static final int MAX_HEAP_ARG         = 33;
   public static final int LARGE_HEAP_ARG       = 34;
+  public static final int HPM_ARG              = 35;
+  public static final int HPM_HELP_ARG         = 36;
 
   /**
    * A catch-all prefix to find application name.
@@ -157,6 +159,9 @@ public class VM_CommandLineArgs {
     new Prefix("-X:prof:",              PROF_ARG),
     new Prefix("-X:verify=",            VERIFY_ARG),
     new Prefix("-X:scheduler:",         SCHEDULER_ARG),
+    new Prefix("-X:hpm:",               HPM_ARG),
+    new Prefix("-X:hpm:help",           HPM_HELP_ARG),
+    new Prefix("-X:hpm$",               HPM_HELP_ARG),
     app_prefix
   };
 
@@ -712,6 +717,13 @@ public class VM_CommandLineArgs {
       case SCHEDULER_ARG: // "-X:scheduler:<option>"
 	VM_Scheduler.processArg(arg);
 	break;
+      case HPM_ARG: // "-X:hpm:<option>"
+	VM_HardwarePerformanceMonitors.processArg(arg);
+	break;
+      case HPM_HELP_ARG:
+	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
+	VM_HardwarePerformanceMonitors.printHelp();
+	break;
       }
     }
 
@@ -742,10 +754,8 @@ public class VM_CommandLineArgs {
    *         for argument to fit)
    */
   static private int sysArg(int argno, byte buf[]) {
-    // PIN(buf);
     int rc = VM.sysCall3(VM_BootRecord.the_boot_record.sysArgIP, 
 			 argno, VM_Magic.objectAsAddress(buf).toInt(), buf.length);
-    // UNPIN(buf);
     return rc;
   }
 }

@@ -9,9 +9,7 @@ import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_EdgeCounts;
-//-#if RVM_WITH_HPM
-import com.ibm.JikesRVM.VM_HardwarePerformanceMonitors;
-//-#endif
+
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -137,12 +135,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     // Initialize subsystems, if being used
     VM_AdaptiveInlining.boot(options);
     
-    //-#if RVM_WITH_HPM
-    if (options.HARDWARE_PERFORMANCE_MONITORS) {
-      VM_HardwarePerformanceMonitors.init(options);
-    }
-    //-#endif
-
     // boot any instrumentation options
     VM_Instrumentation.boot(options);
 
@@ -170,11 +162,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public void notifyAppRunStart(String app, int run) {
     if (VM.LogAOSEvents) VM_AOSLogging.appRunStart(app, run);
-    //-#if RVM_WITH_HPM
-    if (options.HARDWARE_PERFORMANCE_MONITORS) {
-      VM_HardwarePerformanceMonitors.reset();
-    }
-    //-#endif
   }
 
   /**
@@ -182,11 +169,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public void notifyAppRunComplete(String app, int run) {
     if (VM.LogAOSEvents) VM_AOSLogging.appRunComplete(app, run);
-    //-#if RVM_WITH_HPM
-    if (options.HARDWARE_PERFORMANCE_MONITORS) {
-      VM_HardwarePerformanceMonitors.reportResetAndStart();
-    }
-    //-#endif
   }
 
   // Create the ControllerThread
@@ -259,12 +241,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     }
 
     if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();
-
-    //-#if RVM_WITH_HPM
-    if (options.HARDWARE_PERFORMANCE_MONITORS) {
-      VM_HardwarePerformanceMonitors.report(options);
-    }
-    //-#endif
   }
 
 
