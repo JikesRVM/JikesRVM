@@ -14,6 +14,8 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeaderConstants;
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
 
 /**
  * Defines utility routines for manipulating the various GC header bits.  

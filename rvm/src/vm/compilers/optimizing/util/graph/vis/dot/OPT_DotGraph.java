@@ -100,7 +100,7 @@ public interface OPT_DotGraph extends OPT_VisGraph {
     /**
      * Returns the color of the background or cluster outline.
      * Should be one of color constants or an RGB color.
-     * @see OPT_DotUtils.RGB()
+     * @see OPT_DotUtils#RGB
      * @return outline or background color
      */
     public String getColor() { return null; }

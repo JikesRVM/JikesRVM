@@ -4,8 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
-import com.ibm.JikesRVM.opt.OPT_Tree;
-import com.ibm.JikesRVM.opt.OPT_TreeNode;
+import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 
 /**

@@ -101,7 +101,7 @@ public interface OPT_VCGNode extends OPT_VisNode {
       _backEdge = backEdge;
     }
     public boolean backEdge() { return _backEdge; }
-    public EdgeDesc getVCGDescriptor() { return OPT_VCGEdge.defaultVCGDesc; }
+    public OPT_VCGEdge.EdgeDesc getVCGDescriptor() { return OPT_VCGEdge.defaultVCGDesc; }
   }
 }
 

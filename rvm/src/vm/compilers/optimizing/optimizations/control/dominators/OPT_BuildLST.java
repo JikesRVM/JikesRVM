@@ -10,7 +10,7 @@ import com.ibm.JikesRVM.opt.ir.OPT_IR;
  * The steps are (1) construct approximate dominators (ie blocks are 
  * not unfactored) and (2) build the LST.
  * 
- * @see OPT_LSTDominators
+ * @see OPT_LTDominators
  * @see OPT_LSTGraph
  *
  * @author Dave Grove

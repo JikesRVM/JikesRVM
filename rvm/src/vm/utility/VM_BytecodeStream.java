@@ -1,19 +1,19 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//VM_BytecodeStream.java
 //$Id$
+
 package com.ibm.JikesRVM;
+
 /**
  * VM_BytecodeStream.java
  *
  * This class provides a stream of bytecodes
  * 
  * @author Igor Pechtchanski
- * @see OPT_BC2IR
+ * @see com.ibm.JikesRVM.opt.ir.OPT_BC2IR
  * @see VM_ModifiableBytecodeStream
  */
-
 public class VM_BytecodeStream implements VM_BytecodeConstants {
   private VM_Method method;
   private VM_Class declaringClass;
@@ -72,7 +72,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
 
   /**
    * Resets the stream to the beginning
-   * @see reset(int)
+   * @see #reset(int)
    */
   public final void reset() {
     reset(0);
@@ -82,7 +82,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Resets the stream to a given position
    * Use with caution
    * @param index the position to reset the stream to
-   * @see reset()
+   * @see #reset()
    */
   public final void reset(int index) {
     bcIndex = index;
@@ -92,7 +92,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Resets the stream to a given position
    * @deprecated reset(int)
    * @param index the position to reset the stream to
-   * @see reset(int)
+   * @see #reset(int)
    */
   public final void setPosition(int index) {
     reset(index);
@@ -110,7 +110,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the opcode of the next instruction in the sequence
    * without advancing to it
    * @return the opcode of the next instruction
-   * @see nextInstruction()
+   * @see #nextInstruction()
    */
   public final int peekNextOpcode() {
     if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
@@ -120,7 +120,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   /**
    * Sets up the next instruction in the sequence
    * @return the opcode of the next instruction
-   * @see peekNextOpcode()
+   * @see #peekNextOpcode()
    */
   public final int nextInstruction() {
     if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
@@ -134,8 +134,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Note: if skipInstruction has been called, but nextInstruction has not,
    *       this method will return the opcode of the skipped instruction!
    * @return the opcode of the current instruction
-   * @see nextInstruction()
-   * @see isWide()
+   * @see #nextInstruction()
+   * @see #isWide()
    */
   public final int getOpcode() {
     return opcode;
@@ -144,8 +144,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   /**
    * Are we currently processing a wide instruction?
    * @return true if current instruction is wide
-   * @see nextInstruction()
-   * @see getOpcode()
+   * @see #nextInstruction()
+   * @see #getOpcode()
    */
   public final boolean isWide() {
     return wide;
@@ -153,7 +153,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
 
   /**
    * Skips the current instruction
-   * @see skipInstruction(int)
+   * @see #skipInstruction(int,boolean)
    */
   public final void skipInstruction() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
@@ -168,7 +168,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * A slightly optimized version of skipInstruction()
    * @param opcode current opcode
    * @param wide whether current instruction follows wide
-   * @see skipInstruction()
+   * @see #skipInstruction()
    */
   public final void skipInstruction(int opcode, boolean wide) {
     if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
@@ -204,7 +204,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    *          istore, lstore, fstore, dstore, astore,
    *          iinc, ret
    * @return local number
-   * @see getWideLocalNumber()
+   * @see #getWideLocalNumber()
    */
   public final int getLocalNumber() {
     if (VM.VerifyAssertions)
@@ -220,7 +220,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    *          istore, lstore, fstore, dstore, astore,
    *          iinc prefixed by wide
    * @return wide local number
-   * @see getLocalNumber()
+   * @see #getLocalNumber()
    */
   public final int getWideLocalNumber() {
     if (VM.VerifyAssertions)
@@ -235,7 +235,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns an increment value (as a signed byte)
    * Used for iinc
    * @return increment
-   * @see getWideIncrement()
+   * @see #getWideIncrement()
    */
   public final int getIncrement() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_iinc);
@@ -246,7 +246,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns an increment value (as a signed short)
    * Used for iinc prefixed by wide
    * @return wide increment
-   * @see getIncrement()
+   * @see #getIncrement()
    */
   public final int getWideIncrement() {
     if (VM.VerifyAssertions) VM._assert(wide && opcode == JBC_iinc);
@@ -257,7 +257,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the offset of the branch (as a signed short)
    * Used for if<cond>, ificmp<cond>, ifacmp<cond>, goto, jsr
    * @return branch offset
-   * @see getWideBranchOffset()
+   * @see #getWideBranchOffset()
    */
   public final int getBranchOffset() {
     if (VM.VerifyAssertions)
@@ -273,7 +273,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the wide offset of the branch (as a signed int)
    * Used for goto_w, jsr_w
    * @return wide branch offset
-   * @see getBranchOffset()
+   * @see #getBranchOffset()
    */
   public final int getWideBranchOffset() {
     if (VM.VerifyAssertions)
@@ -307,7 +307,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the lowest value of the tableswitch (as a signed int)
    * Used for tableswitch
    * @return lowest switch value
-   * @see getHighSwitchValue()
+   * @see #getHighSwitchValue()
    */
   public final int getLowSwitchValue() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
@@ -318,7 +318,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the highest value of the tableswitch (as a signed int)
    * Used for tableswitch
    * @return highest switch value
-   * @see getLowSwitchValue()
+   * @see #getLowSwitchValue()
    */
   public final int getHighSwitchValue() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
@@ -329,7 +329,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Skips the offsets of a tableswitch instruction
    * Used for tableswitch
    * @param num the number of offsets to skip
-   * @see getTableSwitchOffset(int)
+   * @see #getTableSwitchOffset(int)
    */
   public final void skipTableSwitchOffsets(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_tableswitch);
@@ -381,8 +381,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Skips the match-offset pairs of a lookupswitch instruction
    * Used for lookupswitch
    * @param num the number of match-offset pairs to skip
-   * @see getLookupSwitchValue(int)
-   * @see getLookupSwitchOffset(int)
+   * @see #getLookupSwitchValue(int)
+   * @see #getLookupSwitchOffset(int)
    */
   public final void skipLookupSwitchPairs(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
@@ -396,7 +396,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * NOTE: Will NOT advance cursor
    * @param num the number of the offset to retrieve
    * @return switch offset
-   * @see getLookupSwitchValue(int)
+   * @see #getLookupSwitchValue(int)
    */
   public final int getLookupSwitchOffset(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
@@ -410,7 +410,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * NOTE: Will NOT advance cursor
    * @param num the number of the value to retrieve
    * @return switch value
-   * @see getLookupSwitchOffset(int)
+   * @see #getLookupSwitchOffset(int)
    */
   public final int getLookupSwitchValue(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
@@ -442,8 +442,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    *         (as an unsigned short)
    * Used for getstatic, putstatic, getfield, putfield
    * @return field reference index
-   * @see getFieldReference(int)
-   * @see getFieldReference()
+   * @see #getFieldReference(int)
+   * @see #getFieldReference()
    */
   public final int getFieldReferenceIndex() {
     if (VM.VerifyAssertions)
@@ -457,8 +457,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Used for getstatic, putstatic, getfield, putfield
    * @param index constant pool index of a field reference
    * @return field reference
-   * @see getFieldReferenceIndex()
-   * @see getFieldReference()
+   * @see #getFieldReferenceIndex()
+   * @see #getFieldReference()
    */
   public final VM_Field getFieldReference(int index) {
     if (VM.VerifyAssertions)
@@ -471,8 +471,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the field reference (as a VM_Field)
    * Used for getstatic, putstatic, getfield, putfield
    * @return field reference
-   * @see getFieldReferenceIndex()
-   * @see getFieldReference(int)
+   * @see #getFieldReferenceIndex()
+   * @see #getFieldReference(int)
    */
   public final VM_Field getFieldReference() {
     if (VM.VerifyAssertions)
@@ -487,8 +487,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    *         (as an unsigned short)
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference index
-   * @see getMethodReference(int)
-   * @see getMethodReference()
+   * @see #getMethodReference(int)
+   * @see #getMethodReference()
    */
   final int getMethodReferenceIndex() {
     if (VM.VerifyAssertions)
@@ -502,8 +502,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @param index constant pool index of a method reference
    * @return method reference
-   * @see getMethodReferenceIndex()
-   * @see getMethodReference()
+   * @see #getMethodReferenceIndex()
+   * @see #getMethodReference()
    */
   final VM_Method getMethodReference(int index) {
     if (VM.VerifyAssertions)
@@ -516,8 +516,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the method reference (as a VM_Method)
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference
-   * @see getMethodReferenceIndex()
-   * @see getMethodReference(int)
+   * @see #getMethodReferenceIndex()
+   * @see #getMethodReference(int)
    */
   final VM_Method getMethodReference() {
     if (VM.VerifyAssertions)
@@ -541,8 +541,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    *         (as an unsigned short)
    * Used for new, anewarray, checkcast, instanceof, multianewarray
    * @return type reference index
-   * @see getTypeReference(int)
-   * @see getTypeReference()
+   * @see #getTypeReference(int)
+   * @see #getTypeReference()
    */
   public final int getTypeReferenceIndex() {
     if (VM.VerifyAssertions)
@@ -557,8 +557,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Used for new, anewarray, checkcast, instanceof, multianewarray
    * @param index constant pool index of a type reference
    * @return type reference
-   * @see getTypeReferenceIndex()
-   * @see getTypeReference()
+   * @see #getTypeReferenceIndex()
+   * @see #getTypeReference()
    */
   public final VM_Type getTypeReference(int index) {
     if (VM.VerifyAssertions)
@@ -572,8 +572,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the type reference (as a VM_Type)
    * Used for new, anewarray, checkcast, instanceof, multianewarray
    * @return type reference
-   * @see getTypeReferenceIndex()
-   * @see getTypeReference(int)
+   * @see #getTypeReferenceIndex()
+   * @see #getTypeReference(int)
    */
   public final VM_Type getTypeReference() {
     if (VM.VerifyAssertions)
@@ -588,8 +588,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the element type (primitive) of the array (as an unsigned byte)
    * Used for newarray
    * @return array element type
-   * @see getPrimitiveArrayType()
-   * @see getPrimitiveArrayType(int)
+   * @see #getPrimitiveArrayType()
+   * @see #getPrimitiveArrayType(int)
    */
   public final int getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
@@ -601,8 +601,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Used for newarray
    * @param etype element type
    * @return array type
-   * @see getArrayElementType()
-   * @see getPrimitiveArrayType()
+   * @see #getArrayElementType()
+   * @see #getPrimitiveArrayType()
    */
   public final VM_Type getPrimitiveArrayType(int etype) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
@@ -613,8 +613,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the type of the primitive array (as a VM_Type)
    * Used for newarray
    * @return array type
-   * @see getArrayElementType()
-   * @see getPrimitiveArrayType(int)
+   * @see #getArrayElementType()
+   * @see #getPrimitiveArrayType(int)
    */
   public final VM_Type getPrimitiveArrayType() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_newarray);
@@ -627,9 +627,9 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Used for anewarray
    * @param klass element type
    * @return array type
-   * @see getTypeReference()
-   * @see getTypeReference(int)
-   * @see getObjectArrayType()
+   * @see #getTypeReference()
+   * @see #getTypeReference(int)
+   * @see #getObjectArrayType()
    */
   public final VM_Type getObjectArrayType(VM_Type klass) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
@@ -640,7 +640,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the type of the object array (as a VM_Type)
    * Used for anewarray
    * @return array type
-   * @see getObjectArrayType(VM_Type)
+   * @see #getObjectArrayType(VM_Type)
    */
   public final VM_Type getObjectArrayType() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_anewarray);
@@ -679,13 +679,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the constant pool index of a constant (as an unsigned byte)
    * Used for ldc
    * @return constant index
-   * @see getWideConstantIndex()
-   * @see getConstantType(int)
-   * @see getIntConstant(int)
-   * @see getLongConstant(int)
-   * @see getFloatConstant(int)
-   * @see getDoubleConstant(int)
-   * @see getStringConstant(int)
+   * @see #getWideConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getIntConstant(int)
+   * @see #getLongConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getDoubleConstant(int)
+   * @see #getStringConstant(int)
    */
   public final int getConstantIndex() {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_ldc);
@@ -696,13 +696,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the wide constant pool index of a constant (as an unsigned short)
    * Used for ldc_w, ldc2_w
    * @return wide constant index
-   * @see getConstantIndex()
-   * @see getConstantType(int)
-   * @see getIntConstant(int)
-   * @see getLongConstant(int)
-   * @see getFloatConstant(int)
-   * @see getDoubleConstant(int)
-   * @see getStringConstant(int)
+   * @see #getConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getIntConstant(int)
+   * @see #getLongConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getDoubleConstant(int)
+   * @see #getStringConstant(int)
    */
   public final int getWideConstantIndex() {
     if (VM.VerifyAssertions)
@@ -714,13 +714,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the type of a constant at a given constant pool index (as a byte)
    * Used for ldc, ldc_w, ldc2_w
    * @return constant type
-   * @see getConstantIndex()
-   * @see getWideConstantIndex()
-   * @see getIntConstant(int)
-   * @see getLongConstant(int)
-   * @see getFloatConstant(int)
-   * @see getDoubleConstant(int)
-   * @see getStringConstant(int)
+   * @see #getConstantIndex()
+   * @see #getWideConstantIndex()
+   * @see #getIntConstant(int)
+   * @see #getLongConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getDoubleConstant(int)
+   * @see #getStringConstant(int)
    */
   public final byte getConstantType(int index) {
     if (VM.VerifyAssertions)
@@ -734,13 +734,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the constant at a given constant pool index (as an int)
    * Used for ldc, ldc_w
    * @return int constant
-   * @see getConstantIndex()
-   * @see getWideConstantIndex()
-   * @see getConstantType(int)
-   * @see getLongConstant(int)
-   * @see getFloatConstant(int)
-   * @see getDoubleConstant(int)
-   * @see getStringConstant(int)
+   * @see #getConstantIndex()
+   * @see #getWideConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getLongConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getDoubleConstant(int)
+   * @see #getStringConstant(int)
    */
   public final int getIntConstant(int index) {
     if (VM.VerifyAssertions)
@@ -756,13 +756,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the constant at a given constant pool index (as a long)
    * Used for ldc2_w
    * @return long constant
-   * @see getConstantIndex()
-   * @see getWideConstantIndex()
-   * @see getConstantType(int)
-   * @see getIntConstant(int)
-   * @see getFloatConstant(int)
-   * @see getDoubleConstant(int)
-   * @see getStringConstant(int)
+   * @see #getConstantIndex()
+   * @see #getWideConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getIntConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getDoubleConstant(int)
+   * @see #getStringConstant(int)
    */
   public final long getLongConstant(int index) {
     if (VM.VerifyAssertions)
@@ -778,13 +778,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the constant at a given constant pool index (as a float)
    * Used for ldc, ldc_w
    * @return float constant
-   * @see getConstantIndex()
-   * @see getWideConstantIndex()
-   * @see getConstantType(int)
-   * @see getIntConstant(int)
-   * @see getLongConstant(int)
-   * @see getDoubleConstant(int)
-   * @see getStringConstant(int)
+   * @see #getConstantIndex()
+   * @see #getWideConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getIntConstant(int)
+   * @see #getLongConstant(int)
+   * @see #getDoubleConstant(int)
+   * @see #getStringConstant(int)
    */
   public final float getFloatConstant(int index) {
     if (VM.VerifyAssertions)
@@ -801,13 +801,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the constant at a given constant pool index (as a double)
    * Used for ldc2_w
    * @return double constant
-   * @see getConstantIndex()
-   * @see getWideConstantIndex()
-   * @see getConstantType(int)
-   * @see getIntConstant(int)
-   * @see getLongConstant(int)
-   * @see getFloatConstant(int)
-   * @see getStringConstant(int)
+   * @see #getConstantIndex()
+   * @see #getWideConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getIntConstant(int)
+   * @see #getLongConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getStringConstant(int)
    */
   public final double getDoubleConstant(int index) {
     if (VM.VerifyAssertions)
@@ -824,13 +824,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the constant at a given constant pool index (as a String)
    * Used for ldc, ldc_w
    * @return String constant
-   * @see getConstantIndex()
-   * @see getWideConstantIndex()
-   * @see getConstantType(int)
-   * @see getIntConstant(int)
-   * @see getLongConstant(int)
-   * @see getFloatConstant(int)
-   * @see getDoubleConstant(int)
+   * @see #getConstantIndex()
+   * @see #getWideConstantIndex()
+   * @see #getConstantType(int)
+   * @see #getIntConstant(int)
+   * @see #getLongConstant(int)
+   * @see #getFloatConstant(int)
+   * @see #getDoubleConstant(int)
    */
   public final String getStringConstant(int index) {
     if (VM.VerifyAssertions)

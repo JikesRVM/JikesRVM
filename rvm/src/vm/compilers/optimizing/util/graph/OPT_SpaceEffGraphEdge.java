@@ -173,8 +173,8 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * @return edge descriptor
    * @see OPT_VCGEdge#getVCGDescriptor
    */
-  public EdgeDesc getVCGDescriptor() {
-    return new EdgeDesc() {
+  public OPT_VCGEdge.EdgeDesc getVCGDescriptor() {
+    return new OPT_VCGEdge.EdgeDesc() {
       public String getStyle() { return backEdge()?"dotted":null; }
       public String getColor() { return backEdge()?"red":null; }
       public int getThickness() { return dominatorEdge()?3:1; }

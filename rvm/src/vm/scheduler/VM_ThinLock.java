@@ -26,7 +26,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    *
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see OPT_ExpandRuntimeServices
+   * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineLock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepare(o, lockOffset);
@@ -49,7 +49,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    *
    * @param o the object to be unlocked 
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see  OPT_ExpandRuntimeServices
+   * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineUnlock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepare(o, lockOffset);

@@ -676,9 +676,9 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
    * @return graph descriptor
    * @see OPT_VCGGraph#getVCGDescriptor
    */
-  public NodeDesc getVCGDescriptor() {
+  public OPT_VCGNode.NodeDesc getVCGDescriptor() {
     final OPT_SpaceEffGraphNode node = this;
-    return new NodeDesc() {
+    return new OPT_VCGNode.NodeDesc() {
       public String getLabel() { return node.toString(); }
       public String getShape() { return isLoopHeader()?"triangle":null; }
       public int getBorderWidth() { return isLoopHeader()?2:1; }

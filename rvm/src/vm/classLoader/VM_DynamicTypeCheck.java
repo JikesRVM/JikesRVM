@@ -61,7 +61,7 @@ package com.ibm.JikesRVM;
  * (6) Otherwise.  If the LHS depth component of the RHS's superclassIds
  *    array is the LHS class ID, the test succeeds.  Else, it fails.
  *
- * @see OPT_DynamicTypeCheckExpansion
+ * @see com.ibm.JikesRVM.opt.OPT_DynamicTypeCheckExpansion
  * @see VM_Type
  * @see VM_Class
  * @see VM_Array

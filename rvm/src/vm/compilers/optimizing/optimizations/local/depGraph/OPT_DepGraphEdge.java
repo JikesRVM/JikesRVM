@@ -241,8 +241,8 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * information for the edge.
    * @return edge descriptor
    */
-  public EdgeDesc getVCGDescriptor() {
-    return new EdgeDesc() {
+  public OPT_VCGEdge.EdgeDesc getVCGDescriptor() {
+    return new OPT_VCGEdge.EdgeDesc() {
       public String getLabel() { return getTypeString(); }
       };
   }

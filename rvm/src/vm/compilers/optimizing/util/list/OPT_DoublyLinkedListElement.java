@@ -8,7 +8,7 @@ package com.ibm.JikesRVM.opt;
  * An element in a doubly-linked list. It contains no fields. Subclass this
  * to add fields.
  *
- * @see DoublyLinkedList
+ * @see OPT_DoublyLinkedList
  *
  * @author Mauricio J. Serrano
  * @author John Whaley
@@ -92,7 +92,7 @@ abstract class OPT_DoublyLinkedListElement {
   /**
    * Inserts the given element immediately after self in the list.
    *
-   * @see insertAfter 
+   * @see #insertAfter 
    * @param elem element to insert
    */
   final void insert (OPT_DoublyLinkedListElement elem) {

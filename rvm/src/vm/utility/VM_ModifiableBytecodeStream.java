@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//VM_ModifiableBytecodeStream.java
 //$Id$
+
 package com.ibm.JikesRVM;
+
 /**
  * VM_ModifiableBytecodeStream.java
  *
@@ -11,9 +12,8 @@ package com.ibm.JikesRVM;
  * 
  * @author Igor Pechtchanski
  * @see VM_BytecodeStream
- * @see OPT_BC2IR
+ * @see com.ibm.JikesRVM.opt.ir.OPT_BC2IR
  */
-
 public final class VM_ModifiableBytecodeStream extends VM_BytecodeStream {
   /**
    * Constructor
@@ -136,7 +136,7 @@ public final class VM_ModifiableBytecodeStream extends VM_BytecodeStream {
    * Removes the current instruction from the stream.
    * Adjusts the exception tables, line number maps, etc. as necessary.
    * Assumes that it's called right after nextInstruction()
-   * @see nextInstruction()
+   * @see #nextInstruction()
    */
   public void deleteInstruction() {
     int start = index() - 1;

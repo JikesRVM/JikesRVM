@@ -3,7 +3,6 @@
  */
 //$Id$
 
-
 package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.VM_Address;
@@ -19,7 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @author Perry Cheng
  * 
  * @see VM_Chunk
- * @see VM_Processor
+ * @see com.ibm.JikesRVM.VM_Processor
  */
 final class VM_AppelHeap extends VM_Heap
   implements VM_GCConstants {

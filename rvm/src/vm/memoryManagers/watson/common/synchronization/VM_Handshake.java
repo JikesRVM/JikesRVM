@@ -226,7 +226,7 @@ public class VM_Handshake {
    * since they are in VM_Processor thread queues, waiting
    * for the collector thread to re-enable thread switching.
    *
-   * @see VM_CollectorThread
+   * @see com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread
    */
   synchronized void notifyCompletion() throws VM_PragmaInterruptible {
     if (trace) VM_Scheduler.trace("VM_Handshake", "collector: completed");

@@ -17,8 +17,7 @@ import  java.util.Enumeration;
  *
  * @author Igor Pechtchanski
  */
-final class OPT_ComputeCriticalPath extends OPT_CompilerPhase
-    implements OPT_IREnumeration {
+final class OPT_ComputeCriticalPath extends OPT_CompilerPhase {
 
   public final boolean shouldPerform(OPT_Options options) {
     return  options.DG_CRITICAL_PATH;

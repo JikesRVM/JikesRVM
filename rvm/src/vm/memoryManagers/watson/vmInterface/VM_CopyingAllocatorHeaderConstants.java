@@ -18,9 +18,9 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
  * used to indicate whether the forwarding is still in progress
  * or completed. 
  *
- * @see VM_ObjectModel
- * @see VM_AllocatorHeader
- * @see VM_CommonAllocatorHeader
+ * @see com.ibm.JikesRVM.VM_ObjectModel
+ * @see com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader
+ * @see com.ibm.JikesRVM.memoryManagers.watson.VM_CommonAllocatorHeader
  * 
  * @author David Bacon
  * @author Steve Fink

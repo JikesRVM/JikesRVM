@@ -14,9 +14,8 @@ package com.ibm.JikesRVM;
  *   magic and converted into the base type so no VM_Offset object is created run-time.
  *
  * @author Perry Cheng
- * @see VM_Address, VM_Word
+ * @see VM_Address VM_Word
  */
-
 final public class VM_Offset {
 
   // Do not try to create a static field containing special offset values.

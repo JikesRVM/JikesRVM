@@ -24,7 +24,7 @@ public abstract class VM_ThreadEventWaitData
 
   /**
    * Flags describing state and outcome of wait.
-   * See {@link VM_EventConstants}.
+   * See {@link VM_ThreadEventConstants}.
    */
   int waitFlags;
 

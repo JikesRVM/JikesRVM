@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2002
  */
-
 //$Id$
 package com.ibm.JikesRVM;
+
+import java.lang.UnsupportedOperationException;
 
 /**
  * Base class for dummy unchecked exceptions that will be used in method
@@ -37,9 +38,7 @@ public abstract class VM_PragmaException extends java.lang.RuntimeException {
    * throws clause of the method represented by <CODE>method</CODE>.
    */
   protected final static boolean declaredBy(VM_Class eclass, VM_Method method) {
-
     VM_Type[] exceptions = method.getExceptionTypes();
-
     if (exceptions != null) {
       for (int i = 0 ; i < exceptions.length ; ++ i) {
         if (exceptions [ i ] == eclass) {
@@ -49,6 +48,7 @@ public abstract class VM_PragmaException extends java.lang.RuntimeException {
     }
     return false;
   }
+
   /**
    * Get the {@link VM_Class} object corresponding to a
    * {@link java.lang.Class Class} object. Cannot use the <CODE>getVMType</CODE>
@@ -93,23 +93,24 @@ public abstract class VM_PragmaException extends java.lang.RuntimeException {
    * @param eclass a {@link java.lang.Class Class} object
    * @return The corresponding {@link VM_Class} object
    */
-    protected final static VM_Class getVMClass(java.lang.Class eclass) {
-      VM_Atom classDescriptor = VM_Atom.findOrCreateUnicodeAtom(eclass.getName().replace( '.', '/')).descriptorFromClassName();
-      return VM_ClassLoader.findOrCreateType(classDescriptor,VM_SystemClassLoader.getVMClassLoader()).asClass();
-    }
+  protected final static VM_Class getVMClass(java.lang.Class eclass) {
+    VM_Atom classDescriptor = VM_Atom.findOrCreateUnicodeAtom(eclass.getName().replace( '.', '/')).descriptorFromClassName();
+    return VM_ClassLoader.findOrCreateType(classDescriptor,VM_SystemClassLoader.getVMClassLoader()).asClass();
+  }
+
   /**
    * Is this class declared in the throws clause of <CODE>method</CODE>?
    * <P>
    * Every extending class must override this, simply as a stub that calls
    * {@link #declaredBy(VM_Class,VM_Method)} passing its own VM_Class
    * static. If this method is called directly, or on a subclass that has
-   * neglected to override it, {@link java.lang.UnsupportedOperationException}
+   * neglected to override it, {@link UnsupportedOperationException}
    * is thrown (all because the JLS prohibited abstract static methods).
    * @param method VM_Method object representing any method.
    * @return true iff this class is declared in the
    * throws clause of the method represented by <CODE>method</CODE>.
    */
-  public static boolean declaredBy( VM_Method method) {
-    throw new java.lang.UnsupportedOperationException("Subclass of VM_PragmaException must implement declaredBy()");
+  public static boolean declaredBy(VM_Method method) {
+    throw new UnsupportedOperationException("Subclass of VM_PragmaException must implement declaredBy()");
   }
 }

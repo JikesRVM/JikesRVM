@@ -25,7 +25,7 @@ import com.ibm.JikesRVM.VM_Address;
  *
  * @author Dave Grove
  * 
- * @see OPT_ExpandRuntimeServices (logic to inline this code)
+ * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices (logic to inline this code)
  */
 public class VM_WriteBarrier implements VM_Constants {
 
@@ -154,7 +154,7 @@ public class VM_WriteBarrier implements VM_Constants {
    * @param start The first "natural" index into the array (e.g. for
    * <code>a[1]</code>, index = 1).
    * @param end The last "natural" index into the array
-   * @see VM_Array
+   * @see com.ibm.JikesRVM.VM_Array
    */
   public static final void arrayCopyWriteBarrier(Object ref, int start, int end) 
       throws VM_PragmaUninterruptible {

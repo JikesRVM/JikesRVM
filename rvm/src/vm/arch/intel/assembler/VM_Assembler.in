@@ -53,8 +53,7 @@ package com.ibm.JikesRVM;
  * that can be used to compute the target of a tableswitch.  This
  * support assumes a particular code sequence for tableswitches
  * (followed by baseline and optimizing compilers).  See {@link
- * #emitOFFSET_Imm_ImmOrLabel} and {@link #patchCaseLabel} for
- * details. </P>
+ * #emitOFFSET_Imm_ImmOrLabel} for details. </P>
  *
  *  <P> The automatically-generated emit methods of this assembler
  * exploit regularities in the IA32 binary encoding; for example,
@@ -71,10 +70,12 @@ package com.ibm.JikesRVM;
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an {@link OPT_Assembler} that is built on
- * top of this one to match {@link OPT_Instruction}s and {@link
- * OPT_Operator}s to the emit methods this assembler provides.  The
- * {@link OPT_Assembler} is entirely machine-generated, and this
+ * optimizing compiler has an {@link com.ibm.JikesRVM.opt.OPT_Assembler} 
+ * that is built on top of this one to match 
+ * {@link com.ibm.JikesRVM.opt.ir.OPT_Instruction}s and 
+ * {@link com.ibm.JikesRVM.opt.ir.OPT_Operator}s to the emit methods 
+ * this assembler provides.  The {@link com.ibm.JikesRVM.opt.OPT_Assembler} 
+ * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
  * naming and signiture convention that is designed to make the method
  * signiture computable from the opcode and the operand types.  The
@@ -156,7 +157,7 @@ package com.ibm.JikesRVM;
  *  </DL>
  * </DL>
  *
- * @see OPT_Assembler
+ * @see com.ibm.JikesRVM.opt.OPT_Assembler
  * @see VM_Lister
  * @see VM_ForwardReference
  *

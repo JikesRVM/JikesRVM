@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
-import  java.util.*;
+import com.ibm.JikesRVM.opt.*;
+import java.util.*;
 
 /**
  * The nodes of an OPT_CallSiteTree.  They represent inlined call
@@ -21,7 +22,7 @@ import  java.util.*;
  * @see VM_OptEncodedCallSiteTree
  *
  */
-public class OPT_CallSiteTreeNode extends com.ibm.JikesRVM.opt.OPT_TreeNode {
+public class OPT_CallSiteTreeNode extends OPT_TreeNode {
   /**
    * The call site represented by this tree node
    */

@@ -33,7 +33,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @author Stephen Smith
  * 
  * @see VM_Chunk
- * @see VM_Processor
+ * @see com.ibm.JikesRVM.VM_Processor
  */
 public final class VM_ContiguousHeap extends VM_Heap
   implements VM_GCConstants {

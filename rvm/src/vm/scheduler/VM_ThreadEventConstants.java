@@ -7,8 +7,7 @@ package com.ibm.JikesRVM;
 
 /**
  * Constants specifying the state of a {@link VM_Thread} waiting
- * on a {@link VM_ThreadEventWaitQueue}.  These flags are stored in
- * the {@link VM_Thread#waitFlags} field.
+ * on a {@link VM_ThreadEventWaitQueue}. 
  *
  * @author David Hovemeyer
  *

@@ -230,7 +230,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   /**
    * Version of <code>readBytes()</code> which does not support timeouts.
    * Will block indefinitely until data can be read.
-   * @see {@link #readBytes(int,byte[],int,int,double)}
+   * @see #readBytes(int,byte[],int,int,double)
    */
   public static int readBytes(int fd, byte buf[], int off, int cnt) {
     try {

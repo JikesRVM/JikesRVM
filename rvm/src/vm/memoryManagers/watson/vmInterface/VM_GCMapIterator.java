@@ -16,10 +16,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * held in stackframes produced by each of our compilers (baseline, opt, etc.).
  * All compiler specific GCMapIterators extend this abstract class.
  *
- * @see VM_BaselineGCMapIterator
- * @see VM_OptGCMapIterator
- * @see VM_GCMapIteratorGroup
- *
  * @author Janice Shepherd
  */
 public abstract class VM_GCMapIterator {

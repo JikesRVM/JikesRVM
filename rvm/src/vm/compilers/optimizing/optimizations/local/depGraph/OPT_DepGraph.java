@@ -38,7 +38,9 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Harini Srinivasan
  */
 final class OPT_DepGraph extends OPT_SpaceEffGraph 
-  implements OPT_Operators, OPT_DepGraphConstants {
+  implements OPT_Operators, 
+	     OPT_DepGraphConstants {
+
   /**
    * Set of variables that are live on entry to at least one catch block that
    * is reachable via a PEI in currentBlock.
@@ -583,7 +585,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * @return graph descriptor
    * @see OPT_VCGGraph#getVCGDescriptor
    */
-  public GraphDesc getVCGDescriptor() {
+  public OPT_VCGGraph.GraphDesc getVCGDescriptor() {
     return new GraphDesc() {
       public String getTitle() { return "Dependence Graph"; }
     };

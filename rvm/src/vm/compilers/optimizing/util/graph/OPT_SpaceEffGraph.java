@@ -417,6 +417,6 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * @return graph descriptor
    * @see OPT_VCGGraph#getVCGDescriptor
    */
-  public GraphDesc getVCGDescriptor() { return defaultVCGDesc; }
+  public OPT_VCGGraph.GraphDesc getVCGDescriptor() { return defaultVCGDesc; }
 }
 

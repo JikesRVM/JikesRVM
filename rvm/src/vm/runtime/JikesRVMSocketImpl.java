@@ -446,7 +446,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
      *
      * @param		optID		the socket option to set
      * @param		val			the option value
-     * @exception	IOException	thrown if an error occurs while setting the option
+     * @exception	SocketException	thrown if an error occurs while setting the option
      */
     public void setOption(int optID, Object val) throws SocketException {
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -499,7 +499,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
      *
      * @param		optID		the socket option to retrieve
      * @return		Object		the option value
-     * @exception	IOException	thrown if an error occurs while accessing the option
+     * @exception	SocketException	thrown if an error occurs while accessing the option
      */
     public Object getOption(int optID) throws SocketException {
 	if (optID == SocketOptions.SO_TIMEOUT) 
