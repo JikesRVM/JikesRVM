@@ -299,6 +299,10 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
       VM.sysWrite((char)val[i]);
   }
 
+  final int length() {
+      return val.length;
+  }
+
   /**
    * Access internal representation.
    * (Note: this is intended for the debugger only)
