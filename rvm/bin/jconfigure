@@ -857,7 +857,7 @@ declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 ## We hope to move to the GNU Classpath version of
 # java.lang.Class (which requires a helper implementation, our own
 # java.lang.VMClass).  
-declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=0
+declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 
 # Our support for classpath 0.11 isn't up and running yet.  For now, 
 # we're using Classpath 0.10.
