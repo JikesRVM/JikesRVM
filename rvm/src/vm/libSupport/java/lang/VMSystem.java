@@ -4,11 +4,13 @@
 //$Id$
 package java.lang;
 
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_Statics;
+import com.ibm.JikesRVM.VM_SysCall; // for VM_SysCall.sysGetenv
 import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM;
+
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Class;
@@ -115,13 +117,25 @@ final class VMSystem {
     }
   }
 
-  /** Get the value of an environment variable.
-   * XXX This is a stub implementation to get Classpath 0.11 working.
-   * It needs to be improved -- returning null is valid,
-   * but not so useful. */
+  /** Get the value of an environment variable.  
+   */
   static String getenv(String envarName) {
-    return null;
+    
+    byte[] buf = new byte[128]; // Modest amount of space for starters.  
+
+    byte[] nameBytes = envarName.getBytes();
+
+    int len = VM_SysCall.sysGetenv(nameBytes, buf, buf.length);
+
+    if (len < 0)                // not set.
+      return null;
+
+    if (len > buf.length ) {
+      buf = new byte[len];
+      VM_SysCall.sysGetenv(nameBytes, buf, len);
+    }
+
+    return new String(buf, 0, len);
   }
-  
 
 }
