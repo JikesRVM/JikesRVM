@@ -418,7 +418,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
-    VM_Barriers.compileModifyCheck(asm, 12);
+    VM_Barriers.compileModifyCheck(asm, 8);
     asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
     asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
     genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
