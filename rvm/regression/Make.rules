@@ -164,6 +164,9 @@ server-sanity-check-rules:
 	@$(MAKE) do-server-run
 	@$(MAKE) do-sanity-finish
 
+server-sanity-self-checking:
+	@$(MAKE) do-server-run
+
 #
 # sanity tests
 #

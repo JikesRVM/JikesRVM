@@ -52,5 +52,5 @@ InterClient_JARS=$(wildcard $(InterClient_HOME)/*.jar)
 # rules
 #
 BENCH_HOME=$($(BENCH_NAME)_HOME)
-BENCH_JARS=$($(BENCH_NAME)_JARS)
+BENCH_JARS=$($(BENCH_NAME)_JARS) $(foreach I, $(BENCH_INCLUDE), $($(I)_JARS))
 
