@@ -161,8 +161,8 @@ JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkUR
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
 \hline \multicolumn{3}{|c|}{\em Mac OS X}                     \\ \hline
 
-\multicolumn{3}{|c|}{\hrulefill
-         No Special Requirements Known \hrulefill
+\multicolumn{3}{|c|}{\texonly{\hrulefill}
+         No Special Requirements Known \texonly{\hrulefill}
 } \\
 \hline\hline 
 \end{tabular}
@@ -504,6 +504,14 @@ Note: The jbuild process may produce warning messages; these should not
 affect system viability.
 
 \end{enumerate}
+
+\subsubsection{Mac OS X}
+
+If your Mac OS~X build complains about a missing file  \texttt{dlfcn.h}, then 
+you need to have the \texttt{dlcompat} library installed, available from 
+\xlink{\texttt{http://www.opendarwin.org/projects/dlcompat/}}{http://www.opendarwin.org/projects/dlcompat/}
+--- the 2003-06-29 release of \texttt{dlcompat} works, according to a posting to
+the \texttt{jikesrvm-researchers} mailing list dated October~26, 2003.
 
 \subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
