@@ -204,26 +204,30 @@ function archiveResults() {
 	    return $status;
 	fi
     fi >> $VERBOSE_LOG 2>&1
-    
-    echo "sending tar to dW" >> $VERBOSE_LOG 2>&1
-    if ! cd $RVM_ROOT/sanityResults; then
-	echo  "No directory or trouble with $RVM_ROOT/sanityResults; won't send tar to dW." | tee -a $RUN_LOG $VERBOSE_LOG >> $MSG;
-	return
-    fi
-    local -i trouble=0
-    TRANSFER_FILE_NAME=$filename || trouble=1
-    cp $tarfile $TRANSFER_FILE_NAME || trouble=1
-    $CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
-    $CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
-    rm -f $TRANSFER_FILE_NAME || trouble=1
-    grep -v $TRANSFER_FILE_NAME < CVS/Entries > CVS/Entries.tmp || trouble=1
-    mv -f CVS/Entries.tmp CVS/Entries || trouble=1
-    if (( trouble )); then
-	echo "$ME: Sending the tar to DeveloperWorks failed; trouble!" \
-	    | tee -a $RUN_LOG $VERBOSE_LOG $MSG >&2
-    fi
-    cd $RVM_ROOT
-    return $trouble;
+
+    # NOTE: this sequence won't work on sourceforge.
+    #       Explore hosting night sanity archives on an academic partner's
+    #       machine and using utility id scp/ssh to push it there.
+#     echo "sending tar to dW" >> $VERBOSE_LOG 2>&1
+#     if ! cd $RVM_ROOT/sanityResults; then
+# 	echo  "No directory or trouble with $RVM_ROOT/sanityResults; won't send tar to dW." | tee -a $RUN_LOG $VERBOSE_LOG >> $MSG;
+# 	return
+#     fi
+#     local -i trouble=0
+#     TRANSFER_FILE_NAME=$filename || trouble=1
+#     cp $tarfile $TRANSFER_FILE_NAME || trouble=1
+#     $CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
+#     $CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
+#     rm -f $TRANSFER_FILE_NAME || trouble=1
+#     grep -v $TRANSFER_FILE_NAME < CVS/Entries > CVS/Entries.tmp || trouble=1
+#     mv -f CVS/Entries.tmp CVS/Entries || trouble=1
+#     if (( trouble )); then
+# 	echo "$ME: Sending the tar to DeveloperWorks failed; trouble!" \
+# 	    | tee -a $RUN_LOG $VERBOSE_LOG $MSG >&2
+#     fi
+#     cd $RVM_ROOT
+#     return $trouble;
+    return 1;
 }
 
 declare -i archived=0

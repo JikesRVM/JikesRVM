@@ -97,6 +97,8 @@ if (( do_javadoc == 1 )); then
 	je="$fass_dir/environment.host"
 	. $je || croak "Unable to load $je"
 	"$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
+	# NOTE: this sequence won't work on sourceforge;  need to rework
+	#       most likely by using an scp/ssh combination and a utility id.
 	if [[ -d $RVM_ROOT/pushAPI ]]; then
 	    echo "Publishing Javadoc to dW webspace via cvs commit"
 	    cd $RVM_ROOT/doc/api || croak "$RVM_ROOT/doc/api directory missing!?  jdoc.sh should have reported this problem already, but it didn't."
