@@ -175,7 +175,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
     TraceGenerator.addTraceObject(object, allocator);
     switch (allocator) {
     case  ALLOC_DEFAULT: break;
-    case ALLOC_IMMORTAL: immortalSpace.postAlloc(object); break;
+    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(object); break;
     case      ALLOC_LOS: loSpace.initializeHeader(object); break;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
@@ -375,6 +375,29 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
   public static final ObjectReference traceObject(ObjectReference object,
 						  boolean root) {
     return traceObject(object);  // root or non-root is of no consequence here
+  }
+
+  /**
+   * Promote a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * interior pointer.
+   * @return The possibly moved reference.
+   */
+  public static final ObjectReference followObject(ObjectReference object)
+    throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(!traceInducedGC);
+    if (object.isNull())
+      return object;
+    else if (Space.isInSpace(SS0, object))
+      return hi ? copySpace0.traceObject(object) : object;
+    else if (Space.isInSpace(SS1, object))
+      return hi ? object: copySpace1.traceObject(object);
+    else
+      return Space.getSpaceForObject(object).traceObject(object);
   }
 
   /**

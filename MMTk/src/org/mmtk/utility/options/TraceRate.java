@@ -31,6 +31,6 @@ public class TraceRate extends IntOption implements org.mmtk.vm.Constants {
   public int getValue() throws UninterruptiblePragma {
     return (this.value < LOG_BYTES_IN_ADDRESS) 
       ? 0 
-      : this.value - LOG_BYTES_IN_ADDRESS;
+      : 1 << (this.value - LOG_BYTES_IN_ADDRESS);
   }
 }
