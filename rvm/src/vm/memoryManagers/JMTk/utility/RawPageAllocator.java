@@ -17,12 +17,13 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * for untyped memory manager meta-data (eg sequential store buffers,
  * work queues etc) and live outside the normal heap.<p>
  *
- * Raw pages are accounted for via a memoryResource and are allocated
- * within the context of a VMResource.<p>
+ * Raw pages are accounted for via a memoryResource and are lazily allocated
+ * but never deallocated within the context of a VMResource.<p>
  *
  * This implmentation uses the GenericFreeList to manage pages on an
  * alloc-free basis.<p>
  *
+ * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
@@ -42,8 +43,8 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
   RawPageAllocator(MonotoneVMResource vmr, MemoryResource mr) {
     memoryResource = mr;
     vmResource = vmr;
-    blocks = vmResource.getBlocks();
-    freeList = new GenericFreeList(Conversions.blocksToPages(blocks));
+    totalBlocks = vmResource.getBlocks();
+    freeList = new GenericFreeList(Conversions.blocksToPages(totalBlocks));
   }
   
   /**
@@ -57,15 +58,24 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     memoryResource.acquire(pages);
     lock.acquire();
     if (base.isZero()) {
-      base = vmResource.acquire(blocks, null);
+      int neededBlocks = Conversions.pagesToBlocks(pages);
+      base = vmResource.acquire(neededBlocks, null);
+      top = base.add(Conversions.blocksToBytes(neededBlocks));
     }
     int pageIndex = freeList.alloc(pages);
-    lock.release();
     if (pageIndex == -1) {
       VM.sysWriteln("RawPageAllocator: unable to satisfy raw page allocation request");
       if (VM.VerifyAssertions) VM._assert(false);
     }
-    return base.add(Conversions.pagesToBytes(pageIndex));
+    VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
+    VM_Address resultEnd = result.add(Conversions.pagesToBytes(pages));
+    if (resultEnd.GT(top)) {
+      int blocksNeeded = Conversions.bytesToBlocks(resultEnd.diff(result).toInt()); // rounded up
+      VM_Address tmp = vmResource.acquire(blocksNeeded, null);
+      top = tmp.add(Conversions.blocksToBytes(blocksNeeded));
+    }
+    lock.release();
+    return result;
   }
 
   /**
@@ -98,8 +108,9 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
   //
   // Private fields and methods
   //
-  private VM_Address base;
-  private int blocks;
+  private VM_Address base;       // beginning of available region
+  private VM_Address top;        // end of available region
+  private int totalBlocks;       // number of blocks in entire VM region
   private MemoryResource memoryResource;
   private MonotoneVMResource vmResource;
   private GenericFreeList freeList;
