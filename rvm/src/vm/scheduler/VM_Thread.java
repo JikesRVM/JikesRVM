@@ -410,11 +410,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
 
       // Check for one of the following:
-      //    Caller is top-of-stack psuedo-frame
-      //    Caller is out-of-line assembly (no VM_Method object)
+      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
       //    Caller is a native method
-      if (ypTakenInCallerCMID == STACKFRAME_SENTINEL_FP.toInt() ||
-          ypTakenInCallerCMID == INVISIBLE_METHOD_ID    ||
+      if (ypTakenInCallerCMID == INVISIBLE_METHOD_ID    ||
           ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
         ypTakenInCallerCMIDValid = false;
       } 
@@ -422,7 +420,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       //-#if RVM_WITH_OSR   
       // check if there are pending osr request
       if ((VM_Controller.osrOrganizer != null) 
-		&& (VM_Controller.osrOrganizer.osr_flag)) {
+	  && (VM_Controller.osrOrganizer.osr_flag)) {
 	VM_Controller.osrOrganizer.activate(); 
       }
      
