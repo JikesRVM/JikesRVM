@@ -9,7 +9,8 @@ import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
- * A class to represent the reference in a class file to a field.
+ * A class to represent the reference in a class file to a method of
+ * that class or interface. 
  * 
  * @author Bowen Alpern
  * @author Dave Grove
