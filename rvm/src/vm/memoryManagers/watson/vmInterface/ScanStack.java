@@ -209,7 +209,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 	     refaddr = iterator.getNextReferenceAddress()) {
 	  
 	  if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
-	    VM_Address ref = VM_Address.fromInt(VM_Magic.getMemoryWord(refaddr));
+	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
 	    if (!VM_GCUtil.validRef(ref)) {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
@@ -342,7 +342,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
       VM.sysWrite(" ");
       VM.sysWrite(loc);
       VM.sysWrite(" ");
-      VM_Address value = VM_Address.fromInt(VM_Magic.getMemoryWord(loc));
+      VM_Address value = VM_Magic.getMemoryAddress(loc);
       VM.sysWrite(value);
       VM.sysWrite(" ");
       if ( VM_GCUtil.refInVM(value) && loc.NE(start) && loc.NE(end) )

@@ -337,7 +337,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     // Zero out the old next pointer 
     // NOTE: Possible MP bug on machines with relaxed memory models....
     //       technically we need a store barrier after we zero this word!
-    VM_Magic.setMemoryWord(objaddr, 0);
+    VM_Magic.setMemoryInt(objaddr, 0);
 
     // Return zero-filled storage
     return objaddr;
@@ -496,7 +496,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
     if (i == the_mark.length) {    
       // this block has only 1 free slot, so..
-      VM_Magic.setMemoryWord(current, 0);  // null pointer to next
+      VM_Magic.setMemoryInt(current, 0);  // null pointer to next
 
       if (DEBUG_LINK) {
 	VM_Scheduler.trace("build_list: ", "found blk w 1 free slot", the_block.slotsize);
@@ -525,7 +525,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       }
     }
 
-    VM_Magic.setMemoryWord(current,0);    // set the end of the list
+    VM_Magic.setMemoryInt(current,0);    // set the end of the list
     if (DEBUG_LINK) do_check(the_block, the_size);
     // Reset control info for this block, for next collection 
     VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
@@ -769,7 +769,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     int value = 0xdeaddead;
     int i;
     for (i = 0; i + 3 < length; i = i+4) 
-      VM_Magic.setMemoryWord(addr.add(i), value);
+      VM_Magic.setMemoryInt(addr.add(i), value);
   }
 
 

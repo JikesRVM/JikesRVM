@@ -234,7 +234,7 @@ public class VM_GCWorkQueue {
 
     if (bufferHead.EQ(VM_Address.zero())) return bufferHead;
     VM_Address temp = bufferHead;
-    bufferHead = VM_Address.fromInt(VM_Magic.getMemoryWord(temp));
+    bufferHead = VM_Magic.getMemoryAddress(temp);
     return temp; 
   }
 
@@ -264,7 +264,7 @@ public class VM_GCWorkQueue {
       // see if any work to do, if so, return next work buffer
       if (!bufferHead.isZero()) {
 	temp = bufferHead;
-	bufferHead = VM_Address.fromInt(VM_Magic.getMemoryWord(temp));
+	bufferHead = VM_Magic.getMemoryAddress(temp);
 	return temp; 
       }
 

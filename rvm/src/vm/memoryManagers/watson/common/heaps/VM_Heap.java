@@ -123,7 +123,7 @@ public abstract class VM_Heap
     for (int i=0; i<size; i+=4) {
       int pattern = 0xff0000ff;
       pattern |= i & 0x00ffff00;
-      VM_Magic.setMemoryWord(start.add(i), pattern);
+      VM_Magic.setMemoryInt(start.add(i), pattern);
     }
   }
 
@@ -308,7 +308,7 @@ public abstract class VM_Heap
   public void touchPages() throws VM_PragmaUninterruptible {
     int ps = VM_Memory.getPagesize();
     for (int i = size - ps; i >= 0; i -= ps)
-      VM_Magic.setMemoryWord(start.add(i), 0);
+      VM_Magic.setMemoryInt(start.add(i), 0);
   }
 
   public final void clobber() throws VM_PragmaUninterruptible { clobber(start, end); }
@@ -327,7 +327,7 @@ public abstract class VM_Heap
       if (((value2 & 3) == 0) && target.refInHeap(value)) {
 	count++;
 	if (show) {
-	  int oldVal = VM_Magic.getMemoryWord(value.sub(12));
+	  int oldVal = VM_Magic.getMemoryInt(value.sub(12));
 	  VM.sysWrite("Warning:  GC ", VM_Allocator.gcCount);
 	  VM.sysWrite(" # ", count);
 	  VM.sysWrite("  loc ", loc); 

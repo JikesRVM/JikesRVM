@@ -135,7 +135,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
         int location = 0;    // for arrays = offset of [0] entry
         int end      = num_elements * 4;
         for ( location = 0; location < end; location += 4 ) {
-          VM_Address iref = VM_Address.fromInt(VM_Magic.getMemoryWord(ref.add(location)));
+          VM_Address iref = VM_Magic.getMemoryAddress(ref.add(location));
           if ( ! validateRefs( iref, depth-1 ) ) {
             VM.sysWrite("Referenced from Array: Ref = ");
             VM_GCUtil.dumpRef( ref );
