@@ -110,6 +110,19 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
   }
 
   /**
+   * Returns true if the phase wants the IR dumped before and/or after it runs.
+   * By default, printing is not enabled.
+   * Subclasses should overide this method if they want to provide IR dumping.
+   * 
+   * @param options the compiler options for the compilation
+   * @param before true when invoked before perform, false otherwise.
+   * @return true if the IR should be printed, false otherwise.
+   */
+  public boolean printingEnabled (OPT_Options options, boolean before) {
+    return false;
+  }
+
+  /**
    * Do the work represented by this element in the optimization plan.
    * The assumption is that the work will modify the IR in some way.
    * 
@@ -184,6 +197,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
       curCol++;
     }
     prettyPrintTime(myTime, totalTime);
+    VM.sysWriteln();
   }
 
   /**

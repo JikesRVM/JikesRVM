@@ -37,8 +37,15 @@ import com.ibm.JikesRVM.opt.ir.OPT_IR;
  * @author Dave Grove
  * @author Michael Hind
  */
-public abstract class OPT_CompilerPhase
-    implements Cloneable {
+public abstract class OPT_CompilerPhase implements Cloneable {
+
+  /**
+   * The plan element that contains this phase.
+   * Only useful if the phase wants to gather additional statistics
+   * for a measure compilation report.
+   */
+  OPT_OptimizationPlanAtomicElement container;
+
 
   /**
    * @return a String which is the name of the phase.
@@ -63,7 +70,7 @@ public abstract class OPT_CompilerPhase
    * @return true if the phase should be performed
    */
   public boolean shouldPerform (OPT_Options options) {
-    return  true;
+    return true;
   }
 
   /**
@@ -76,8 +83,14 @@ public abstract class OPT_CompilerPhase
    * @return true if the IR should be printed, false otherwise.
    */
   public boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
+
+  /**
+   * Called when printing a measure compilation report to enable a phase
+   * to report additional phase-specific statistics.
+   */
+  public void reportAdditionalStats() {}
 
   /**
    * This method is called immediately before performPhase.
@@ -89,10 +102,10 @@ public abstract class OPT_CompilerPhase
    */
   public OPT_CompilerPhase newExecution (OPT_IR ir) {
     try {
-      return  (OPT_CompilerPhase)this.clone();
+      return (OPT_CompilerPhase)this.clone();
     } catch (CloneNotSupportedException e) {
       // we implement Cloneable, so of course we can't reach here.
-      return  null;
+      return null;
     }
   }
 
@@ -102,37 +115,31 @@ public abstract class OPT_CompilerPhase
    * @param ir the OPT_IR object on which to do the work of the phase.
    */
   public final void performPhase (OPT_IR ir) {
-
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
 	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-
 	// only print above centain opt level.
 	if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
 	  dumpIR(ir, "Before " + getName());
 	}
       }
     }
-    if (ir.options.PRINT_PHASES)
-      VM.sysWrite(getName());
+    if (ir.options.PRINT_PHASES) VM.sysWrite(getName());
 
     perform(ir);                // DOIT!!
 
-    if (ir.options.PRINT_PHASES)
-      VM.sysWrite(" done\n");
+    if (ir.options.PRINT_PHASES) VM.sysWrite(" done\n");
     if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
 	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-	
 	// only print when above certain opt level
 	if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
 	  dumpIR(ir, "After " + getName());
 	}
       }
     }
-    if (OPT_IR.PARANOID) {
-      verify(ir);
-    }
+
+    if (OPT_IR.PARANOID) verify(ir);
   }
 
   /**
@@ -143,13 +150,13 @@ public abstract class OPT_CompilerPhase
    */
   public static void dumpIR (OPT_IR ir, String tag) {
     System.out.println("********* START OF IR DUMP  " + tag + "   FOR "
-        + ir.method);
+		       + ir.method);
     ir.printInstructions();
     if (ir.options.PRINT_CFG) {
       ir.cfg.printDepthFirst();
     }
     System.out.println("*********   END OF IR DUMP  " + tag + "   FOR "
-        + ir.method);
+		       + ir.method);
   }
 
   /**

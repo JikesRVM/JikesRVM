@@ -32,13 +32,18 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * Accumulated time spent in the element.
    */
   protected VM_Stopwatch mySW;
+  /**
+   * Counters to be used by myPhase to gather phase specific stats.
+   */
+  double counter1, counter2;
 
   /**
    * Create a plan element corresponding to a particular compiler phase.
    * @param   p
    */
-  public OPT_OptimizationPlanAtomicElement (OPT_CompilerPhase p) {
+  public OPT_OptimizationPlanAtomicElement(OPT_CompilerPhase p) {
     myPhase = p;
+    myPhase.container = this;
   }
 
   /**
@@ -46,6 +51,8 @@ public final class OPT_OptimizationPlanAtomicElement extends
    */
   public void initializeForMeasureCompilation() {
     mySW = new VM_Stopwatch();
+    counter1 = 0;
+    counter2 = 0;
   }
 
   /**
@@ -55,8 +62,8 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @param options The OPT_Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  public boolean shouldPerform (OPT_Options options) {
-    return  myPhase.shouldPerform(options);
+  public boolean shouldPerform(OPT_Options options) {
+    return myPhase.shouldPerform(options);
   }
 
   /**
@@ -65,13 +72,10 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * 
    * @param ir The OPT_IR object to work with.
    */
-  public void perform (OPT_IR ir) {
-    if (VM.MeasureCompilation && VM.runningVM) {
-      mySW.start();
-    }
+  public void perform(OPT_IR ir) {
+    if (VM.MeasureCompilation && VM.runningVM) mySW.start();
     myPhase.newExecution(ir).performPhase(ir);
-    if (VM.MeasureCompilation && VM.runningVM)
-      mySW.stop();
+    if (VM.MeasureCompilation && VM.runningVM) mySW.stop();
   }
 
   /**
@@ -82,7 +86,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.
    */
-  public void reportStats (int indent, int timeCol, double totalTime) {
+  public void reportStats(int indent, int timeCol, double totalTime) {
     if (mySW == null || mySW.count == 0)
       return;
     int curCol = 0;
@@ -101,16 +105,15 @@ public final class OPT_OptimizationPlanAtomicElement extends
       curCol++;
     }
     prettyPrintTime(mySW.elapsedTime, totalTime);
+    myPhase.reportAdditionalStats();
+    VM.sysWriteln();
   }
 
   /**
    * Report the total time spent executing the PlanElement
    * @return time spend in the plan (in seconds)
    */
-  public double elapsedTime () {
-    if (mySW == null)
-      return  0.0; 
-    else 
-      return  mySW.elapsedTime;
+  public double elapsedTime() {
+    return mySW == null ? 0 : mySW.elapsedTime;
   }
 }
