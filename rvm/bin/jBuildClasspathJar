@@ -7,6 +7,9 @@
 # @modified Steven Augart
 #   (Bash conversion)
 #
+trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR
+set -e
+
 
 ##
 ## constants
@@ -85,7 +88,9 @@ fi
 ##
 if [[ $CHECK = 1 ]] && [[ -e $DEST_DIR/classpath/config.guess ]]; then
     system_type="$($DEST_DIR/classpath/config.guess)"
-    [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]] && exit 0
+    if [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
+	exit 0
+    fi
 fi
 
 ##
