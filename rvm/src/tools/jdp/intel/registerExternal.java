@@ -141,7 +141,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 
       // for other time, check if the code is within the JVM space
       int currentIP = read("IP");
-      if (!owner.bmap.isInJVMspace(currentIP)) {
+      if (!owner.bmap.isInRVMspace(currentIP)) {
 	// System.out.println("cacheJTOC: cached " + VM.intAsHexString(currentJTOC));
 	int currentPROC = read("PR");
 	cachedJTOC = owner.mem.read(currentPROC + VM_Entrypoints.jtocOffset);
@@ -179,8 +179,13 @@ class registerExternal extends register implements VM_BaselineConstants, registe
    */
   public int currentFP(){
     try {
-      // Use VirtualProcessor register to get FP
-      return Platform.currentFP();
+      // for native code, use ebp as FP
+      // for RVM code, use VirtualProcessor register to get FP
+      if (owner.bmap.isInRVMspace(currentIP()))
+        return Platform.currentFP();
+      else
+	return getContextRegister("ebp");
+
       /*
       int data = getContextRegister("esi");
       return getContextRegister("FP");
