@@ -143,7 +143,7 @@ enough to allow new users to write new instrumentation phases.
 \paragraph{Counter Managers:}  Counters are created and inserted into
 the code using the 
 \xlink{{\tt
-OPT\_InstrumentedEventCounterArrayManager}}{\OPTInstrumentedEventCounterArrayManagerURL} 
+OPT\_InstrumentedEventCounterManager}}{\OPTInstrumentedEventCounterManagerURL} 
 interface.
 The purpose of the counter manager interface is to abstract away the
 implementation details of the counters, making instrumentation
@@ -153,12 +153,11 @@ instrumentation phases).  Currently there exists only one counter
 manager, 
 \xlink{{\tt VM\_CounterArrayManager}}{\VMCounterArrayManagerURL}
 , which implements unsynchronized
-counters using 
-\xlink{{\tt VM\_CounterArray.java}}{\VMCounterArrayURL}.  
+counters.
 When instrumentation options
 are turned on in the adaptive system, 
 \xlink{{\tt VM\_Instrumentation.boot()}}{\VMInstrumentationURL}
-creates an instance of a {\tt VM\_CounterArrayManager}.
+creates an instance of a \xlink{{\tt VM\_CounterArrayManager}}{\VMCounterArrayManagerURL}.
 
 \paragraph{Managed Data:} The class 
 \xlink{{\tt VM\_ManagedCounterData}}{\VMManagedCounterDataURL} 
@@ -183,7 +182,7 @@ the whole program (such as
 VM\_MethodInvocationCounterData}}{\VMMethodInvocationCounterDataURL}), 
 or one per method.  There is also a
 generic data object called 
-\xlink{{\tt VM\_StringCounterData}}{\VMStringCounterDataURL} 
+\xlink{{\tt VM\_StringCounterEventData}}{\VMStringCounterEventDataURL} 
 that
 allows events to be give string names (see Debugging Counters above).
 
