@@ -3,6 +3,7 @@ import com.ibm.oti.vm.AppClassLoader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.File;
 import java.net.URL;
 
 class VM_ApplicationClassLoader extends AppClassLoader {
@@ -18,11 +19,19 @@ class VM_ApplicationClassLoader extends AppClassLoader {
        String[] repositories = VM_ClassLoader.getApplicationRepositories();
 
        if (repositories != null)
-	   for (int i = 0, n = repositories.length; i < n; ++i)
+	   for (int i = 0, n = repositories.length; i < n; ++i) {
+	       String name = repositories[i];
+	       if (name.startsWith("."))
+		   name =
+		       System.getProperty("user.dir") +
+		       File.separator +
+		       name.substring(1);
+ 
 	       if (classpath == null)
-		   classpath = repositories[i];
+		   classpath = name;
 	       else
-		   classpath += ":" + repositories[i];
+		   classpath += File.pathSeparator + name;
+	   }
 
        if (classpath == null)
 	   classpath = System.getProperty("user.dir");
