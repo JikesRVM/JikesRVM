@@ -13,11 +13,18 @@ package com.ibm.JikesRVM;
  */
 public class VM_Time implements VM_Uninterruptible {
 
+  /**
+   * Conversion factor from realTimeClock to time in milliseconds
+   */
   private static double milliPerCycle = 0.0;
 
+  /**
+   * Set milliPerCycle, the conversion factor between a tick of the realTimeClock
+   * and time in milliseconds. 
+   */
   static public void boot() {
     double start = now();
-    long cycleStart = cycles();
+    long clockTickStart = realTimeClock();
     double dur = 0.0; // in milliseconds
     // 0.1 second should be enough to obtain accurate factor but not enough to overflow cycle counter
     while (dur < 0.1) {  
@@ -25,31 +32,32 @@ public class VM_Time implements VM_Uninterruptible {
 	milliPerCycle += 1.0; 
       dur = 1000.0 * (VM_Time.now() - start);
     }
-    long cycles = cycles() - cycleStart;
-    if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
-    milliPerCycle = dur / cycles;
+    long clockTicks = realTimeClock() - clockTickStart;
+    if (clockTicks < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
+    milliPerCycle = dur / (double)clockTicks;
   }
 
   /**
-   * Number of processor cycles executed since some undefined epoch.
+   * Read value of cycle counter or real time clock.
+   * The semantics of this value are platform dependent.
+   * @return the value read from the real time clock.
    */ 
-  static public long cycles() {
-    // On IA32 we are reading a cycle counter
-    // On PPC we are reading the time base register and 
-    // the relationship between ticks of the time base register and
-    // cycle count is undefined.  
-    // Empirically, on some machines, it appears to be 4x.  
-    int shift = VM.BuildForPowerPC ? 2 : 0;
-    return VM_Magic.getTimeBase() << shift;
+  public static long realTimeClock() {
+    // On IA32 we are reading a cycle counter.
+    // On PowerPC we are reading the time base register.
+    // The relationship between ticks of the time base register and
+    // cycle count is architecturally undefined.  
+    // See PPC architecture book for more details.
+    return VM_Magic.getTimeBase();
   }
 
   /**
-   * Convert a value obtained from VM_Time.cycles to
-   * milliSeconds
-   * @param c a cycle value obtained via cycles
+   * Convert a value in the units of used by realTimeClock
+   * to time in milliSeconds.
+   * @param c a real time clock value
    * @return c converted to milli seconds
    */
-  static public double cyclesToMilli (long c) {
+  public static double realTimeClockToMilliseconds(long c) {
     return c * milliPerCycle;
   }
 
