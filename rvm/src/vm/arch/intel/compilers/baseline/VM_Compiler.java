@@ -649,9 +649,11 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iastore");
 	asm.emitPOP_Reg(T1);                      // T1 is the value
 	asm.emitPOP_Reg(T0);                      // T0 is array index
-	asm.emitPOP_Reg(S0);                      // S0 is array ref
+	//asm.emitPOP_Reg(S0);                    // S0 is array ref
+	asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is the array ref
 	genBoundsCheck(asm, T0,S0);         // T0 is index, S0 is address of array
 	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+        asm.emitADD_Reg_Imm(SP, 4);
 	break;
       }
       case 0x50: /* lastore */ { 
