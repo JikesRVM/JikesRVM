@@ -174,9 +174,7 @@ implements VM_Uninterruptible, VM_Constants {
     newThread.startOfWallTime = VM_Magic.getTimeBase();
     //-#endif
 
-    //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
-    //-#endif
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
@@ -425,6 +423,12 @@ implements VM_Uninterruptible, VM_Constants {
    */
   public VM_Address activeThreadStackLimit;
 
+  /**
+   * Cache the results of activeThread.getLockingId()
+   * for use in monitor operations.
+   */
+  public int threadId;
+
   //-#if RVM_FOR_IA32
   // On powerpc, these values are in dedicated registers,
   // we don't have registers to burn on IA32, so we indirect
@@ -433,10 +437,6 @@ implements VM_Uninterruptible, VM_Constants {
    * Base pointer of JTOC (VM_Statics.slots)
    */
   Object jtoc;
-  /**
-   * Thread id of VM_Thread currently executing on the processor
-   */
-  public int threadId;
   /**
    * FP for current frame
    */

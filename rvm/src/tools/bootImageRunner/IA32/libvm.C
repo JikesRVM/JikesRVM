@@ -422,21 +422,14 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
-    /* get the thread id */
-    int threadID = *(int *) (localVirtualProcessorAddress + VM_Processor_threadId_offset);
-    /* get the index of the thread in the threads array multiplied by the array element
-       size (4) */
-    int threadIndex = threadID >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT - 2);
-
-    /* get the address of the threads array  */
-    unsigned int threadsArrayAddress =
-	*(unsigned int *) (localJTOC + bootRecord->threadsOffset);
-    /* the thread object itself */
+    /* get the active thread id */
     unsigned int threadObjectAddress = 
-	*(unsigned int *) (threadsArrayAddress + threadIndex);
+        *(unsigned int*) (localVirtualProcessorAddress + VM_Processor_activeThread_offset);
+
+    /* then get its hardware exception registers */
     unsigned int registers = 
-	*(unsigned int *) (threadObjectAddress +
-			   VM_Thread_hardwareExceptionRegisters_offset);
+        *(unsigned int *) (threadObjectAddress +
+                           VM_Thread_hardwareExceptionRegisters_offset);
 
     /* get the addresses of the gps and other fields in the VM_Registers object */
     unsigned *vmr_gprs  = *(unsigned **) ((char *) registers + VM_Registers_gprs_offset);

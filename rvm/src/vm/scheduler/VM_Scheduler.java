@@ -292,7 +292,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	VM_Address toc = VM_Magic.getTocPointer();
         VM_SysCall.sysVirtualProcessorCreate(toc,
 					     VM_Magic.objectAsAddress(processors[i]),
-					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
+					     target.contextRegisters.ip, 
 					     target.contextRegisters.getInnermostFramePointer());
 	if (cpuAffinity != NO_CPU_AFFINITY)
 	  VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu

@@ -15,7 +15,6 @@ public interface VM_BaselineConstants extends VM_Constants {
   // Dedicated registers
   static final int FP   = FRAME_POINTER; 
   static final int JTOC = JTOC_POINTER;
-  static final int TI   = THREAD_ID_REGISTER;
 
   // Scratch general purpose registers
   static final int S0   = FIRST_SCRATCH_GPR;

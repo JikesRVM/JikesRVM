@@ -34,7 +34,8 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
     int old = VM_Magic.prepareInt(o, lockOffset);
     if ((old >>> TL_THREAD_ID_SHIFT) == 0) { 
       // implies that fatbit == 0 & threadid == 0
-      if (VM_Magic.attemptInt(o, lockOffset, old, old | VM_Magic.getThreadId())) {
+      int threadId = VM_Processor.getCurrentProcessor().threadId;
+      if (VM_Magic.attemptInt(o, lockOffset, old, old | threadId)) {
         VM_Magic.isync(); // don't use stale prefetched data in monitor
         if (STATS) fastLocks++;
         return;           // common case: o is now locked
@@ -55,7 +56,8 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    */
   static void inlineUnlock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepareInt(o, lockOffset);
-    if (((old ^ VM_Magic.getThreadId()) >>> TL_LOCK_COUNT_SHIFT) == 0) { // implies that fatbit == 0 && count == 0 && lockid == me
+    int threadId = VM_Processor.getCurrentProcessor().threadId;
+    if (((old ^ threadId) >>> TL_LOCK_COUNT_SHIFT) == 0) { // implies that fatbit == 0 && count == 0 && lockid == me
       VM_Magic.sync(); // memory barrier: subsequent locker will see previous writes
       if (VM_Magic.attemptInt(o, lockOffset, old, old & TL_UNLOCK_MASK)) {
         return; // common case: o is now unlocked
@@ -75,18 +77,19 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
   static void lock(Object o, int lockOffset) throws VM_PragmaNoInline {
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit; 
+         int threadId = VM_Processor.getCurrentProcessor().threadId;
 minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           int old = VM_Magic.prepareInt(o, lockOffset);
           int id = old & (TL_THREAD_ID_MASK | TL_FAT_LOCK_MASK);
           if (id == 0) { // o isn't locked
-            if (VM_Magic.attemptInt(o, lockOffset, old, old | VM_Magic.getThreadId())) {
+            if (VM_Magic.attemptInt(o, lockOffset, old, old | threadId)) {
               VM_Magic.isync(); // don't use stale prefetched data in monitor
               if (STATS) slowLocks++;
               break major;  // lock succeeds
             }
             continue minor; // contention, possibly spurious, try again
           }
-          if (id == VM_Magic.getThreadId()) { // this thread has o locked already
+          if (id == threadId) { // this thread has o locked already
             int changed = old + TL_LOCK_COUNT_UNIT; // update count
             if ((changed & TL_LOCK_COUNT_MASK) == 0) { // count wrapped around (most unlikely), make heavy lock
               while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
@@ -152,7 +155,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     while (true) { // spurious contention detected
       int old = VM_Magic.prepareInt(o, lockOffset);
       int id  = old & (TL_THREAD_ID_MASK | TL_FAT_LOCK_MASK);
-      if (id != VM_Magic.getThreadId()) { // not normal case
+      int threadId = VM_Processor.getCurrentProcessor().threadId;
+      if (id != threadId) { // not normal case
         if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
           int index = (old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
           VM_Scheduler.locks[index].unlockHeavy(o); 
@@ -277,10 +281,11 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
       } 
       // contention detected, try again
     } while (true);
+    int threadId = VM_Processor.getCurrentProcessor().threadId; 
     if (l.ownerId == 0) {
-      l.ownerId = VM_Magic.getThreadId();
+      l.ownerId = threadId;
       l.recursionCount = 1;
-    } else if (l.ownerId == VM_Magic.getThreadId()) {
+    } else if (l.ownerId == threadId) {
       l.recursionCount++;
     } else if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
       VM_Thread.yield(l.entering, l.mutex); // thread-switching benign

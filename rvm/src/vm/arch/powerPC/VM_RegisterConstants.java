@@ -11,14 +11,10 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  */
 public interface VM_RegisterConstants extends VM_SizeConstants {
-  //--------------------------------------------------------------------------------------------//
-  //                              Register usage conventions.                                   //
-  //--------------------------------------------------------------------------------------------//
-
-   // Machine instructions.
-   //
-  static final int    LG_INSTRUCTION_WIDTH = 2;           // log2 of instruction width in bytes, powerPC
-  static final int    INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;           // log2 of instruction width in bytes, powerPC
+  // Machine instructions.
+  //
+  static final int LG_INSTRUCTION_WIDTH = 2;           // log2 of instruction width in bytes, powerPC
+  static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;           // log2 of instruction width in bytes, powerPC
 
   // General purpose register usage. (GPR's are 32 bits wide).
   //
@@ -30,7 +26,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int LAST_VOLATILE_GPR          = 12; // AIX is 10
   static final int FIRST_SCRATCH_GPR          = 13; // AIX is 11
   static final int LAST_SCRATCH_GPR           = 14; // AIX is 12
-  static final int THREAD_ID_REGISTER         = 15;
+  static final int KLUDGE_TI_REG              = 15; // migration aid while getting rid of TI register
   static final int PROCESSOR_REGISTER         = 16;
   static final int FIRST_NONVOLATILE_GPR      = 17; // AIX is 14
   //                                            ...
@@ -56,9 +52,8 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // TODO: fill table
   static final int NUM_CRS                    = 8;
    
-   // special   registers (user visible)
+  // special   registers (user visible)
   static final int NUM_SPECIALS               = 8;
-
 
   // AIX register convention (for mapping parameters in JNI calls)
   //-#if RVM_FOR_AIX

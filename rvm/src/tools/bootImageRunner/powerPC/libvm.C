@@ -349,7 +349,6 @@ int HardwareTrapMethodId;
 int DeliverHardwareExceptionOffset; 
 int DumpStackAndDieOffset;	// TOC offset of VM_Scheduler.dumpStackAndDie
 static int ProcessorsOffset;	// TOC offset of VM_Scheduler.processors[]
-int ThreadsOffset;		// TOC offset of VM_Scheduler.threads[]
 int DebugRequestedOffset;	// TOC offset of VM_Scheduler.debugRequested
 
 typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
@@ -664,7 +663,6 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     VM_Address javaExceptionHandler 
         = *(VM_Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
     
-    const int TID = VM_Constants_THREAD_ID_REGISTER;
     const int FP  = VM_Constants_FRAME_POINTER;
     const int P0  = VM_Constants_FIRST_VOLATILE_GPR;
     const int P1  = VM_Constants_FIRST_VOLATILE_GPR+1;
@@ -696,8 +694,6 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
                 rvmPTR_ARG(faultingAddress));
         fprintf(SysTraceFile,"             fp=" FMTrvmPTR "\n", 
                 rvmPTR_ARG(GET_GPR(save,FP)));
-       fprintf(SysTraceFile,"            tid=" FMTrvmPTR "\n",
-               rvmPTR_ARG(GET_GPR(save,TID)));
        fprintf(SysTraceFile,"             pr=" FMTrvmPTR "\n", 
                rvmPTR_ARG(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER)));
        fprintf(SysTraceFile,"trap/exception: type=%s\n", strsignal(signum));
@@ -724,16 +720,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     
    /* Copy the trapped register set into the current thread's "hardware
       exception registers" save area. */
-    
-    int       threadID = GET_GPR(save,TID) >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT );
-#ifdef RVM_FOR_32_ADDR
-    int       threadOffset = threadID << 2;
-#elif defined RVM_FOR_64_ADDR
-    int       threadOffset = threadID << 3;
-#endif
-    VM_Address  threads      = *(VM_Address  *)((char *)jtoc + ThreadsOffset);
-    VM_Address *thread
-        = *(VM_Address **)((char *)threads + threadOffset);
+    VM_Address thread =
+      *(VM_Address *)(GET_GPR(save,VM_Constants_PROCESSOR_REGISTER) +
+                      VM_Processor_activeThread_offset);
     VM_Address *registers = *(VM_Address **)
         ((char *)thread + VM_Thread_hardwareExceptionRegisters_offset);
     
@@ -1196,7 +1185,6 @@ createJVM(int vmInSeparateThread)
     //
     DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
     ProcessorsOffset = bootRecord.processorsOffset;
-    ThreadsOffset = bootRecord.threadsOffset;
     DebugRequestedOffset = bootRecord.debugRequestedOffset;
    
     if (lib_verbose) {
@@ -1336,18 +1324,24 @@ createJVM(int vmInSeparateThread)
     VM_Address  ip = bootRecord.ipRegister;
     VM_Address  sp = bootRecord.spRegister;
 
+    // initialize the thread id in the primordial processor object.
+    // 
+    *(unsigned int *) (pr + VM_Processor_threadId_offset) 
+      = VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
+
+    // Set up thread stack
     VM_Address  fp = sp - VM_Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
     fp = fp & ~(VM_Constants_STACKFRAME_ALIGNMENT -1);     // align fp
 	
     *(VM_Address *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
     *(int *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;
     *(VM_Address *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINEL_FP;
-   
+
     // force any machine code within image that's still in dcache to be
     // written out to main memory so that it will be seen by icache when
     // instructions are fetched back
     //
-    sysSyncCache( bootRegion, roundedImageSize);
+    sysSyncCache(bootRegion, roundedImageSize);
 
 #ifdef RVM_FOR_AIX
     if (lib_verbose) 

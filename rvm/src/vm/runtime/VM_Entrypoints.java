@@ -101,13 +101,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field pthreadIDField             = getField("Lcom/ibm/JikesRVM/VM_Processor;", "pthread_id", "I");
   public static final VM_Field epochField                 = getField("Lcom/ibm/JikesRVM/VM_Processor;", "epoch", "I");
   public static final VM_Field vpStatusField              = getField("Lcom/ibm/JikesRVM/VM_Processor;", "vpStatus", "I");
+  public static final VM_Field threadIdField              = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
   //-#if RVM_FOR_IA32
-  public static final VM_Field processorThreadIdField     = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
-  public static final VM_Field processorFPField           = getField("Lcom/ibm/JikesRVM/VM_Processor;", "framePointer", "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field processorJTOCField         = getField("Lcom/ibm/JikesRVM/VM_Processor;", "jtoc", "Ljava/lang/Object;");
-  public static final VM_Field processorTrapParamField    = getField("Lcom/ibm/JikesRVM/VM_Processor;", "arrayIndexTrapParam", "I");
   public static final VM_Field jtocField               = getField("Lcom/ibm/JikesRVM/VM_Processor;", "jtoc", "Ljava/lang/Object;");
-  public static final VM_Field threadIdField           = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
   public static final VM_Field framePointerField       = getField("Lcom/ibm/JikesRVM/VM_Processor;", "framePointer", "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field hiddenSignatureIdField  = getField("Lcom/ibm/JikesRVM/VM_Processor;", "hiddenSignatureId", "I");
   public static final VM_Field arrayIndexTrapParamField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "arrayIndexTrapParam", "I");
@@ -168,7 +164,6 @@ public class VM_Entrypoints implements VM_Constants {
   static final VM_Field outputLockField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "outputLock", "I");
 
   public static final VM_Field processorsField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "processors", "[Lcom/ibm/JikesRVM/VM_Processor;");
-  public static final VM_Field threadsField                   = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "threads", "[Lcom/ibm/JikesRVM/VM_Thread;");
   public static final VM_Field debugRequestedField            = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "debugRequested", "Z");
   public static final VM_Method dumpStackAndDieMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Scheduler;", "dumpStackAndDie", "(Lcom/ibm/JikesRVM/VM_Address;)V");
 
@@ -192,19 +187,12 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   public static final VM_Field JNIExternalFunctionsField  = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lcom/ibm/JikesRVM/VM_Address;");
   //-#if RVM_FOR_POWERPC
-  public static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedTIreg", "Lcom/ibm/JikesRVM/VM_Word;");
   //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOC", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
   //-#endif
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");
-  static final VM_Field tiRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tiRegister", "I");
-  static final VM_Field spRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "spRegister",  "Lcom/ibm/JikesRVM/VM_Address;");
-  static final VM_Field ipRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "ipRegister",  "Lcom/ibm/JikesRVM/VM_Address;");
-  static final VM_Field tocRegisterField                = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tocRegister",  "Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field processorsOffsetField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "processorsOffset", "I");
-  public static final VM_Field threadsOffsetField              = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "threadsOffset", "I");
   public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field externalSignalFlagField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "externalSignalFlag", "I");
   public static final VM_Field sysLongDivideIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongDivideIP",  "Lcom/ibm/JikesRVM/VM_Address;");
@@ -221,7 +209,6 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounts;", "data", "[[I");
-
 
   public static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");
   public static final VM_Field inetAddressFamilyField  = getField("Ljava/net/InetAddress;", "family", "I");

@@ -108,7 +108,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     t.proxy = new VM_Proxy(t); // cache the proxy before obtaining lock
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
-    if (l.ownerId != VM_Magic.getThreadId())
+    if (l.ownerId != t.getLockingId())
       raiseIllegalMonitorStateException("waiting on", o);
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
@@ -154,7 +154,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     // Get monitor lock
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
-    if (l.ownerId != VM_Magic.getThreadId())
+    if (l.ownerId != t.getLockingId())
       raiseIllegalMonitorStateException("waiting on", o);
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
@@ -193,7 +193,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (STATS) notifyOperations++;
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
-    if (l.ownerId != VM_Magic.getThreadId())
+    if (l.ownerId != VM_Processor.getCurrentProcessor().threadId)
       raiseIllegalMonitorStateException("notifying ", o);
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread t = l.waiting.dequeue();
@@ -218,7 +218,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (STATS) notifyAllOperations++;
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
-    if (l.ownerId != VM_Magic.getThreadId())
+    if (l.ownerId != VM_Processor.getCurrentProcessor().threadId)
       raiseIllegalMonitorStateException("notifying ", o);
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread t = l.waiting.dequeue();
@@ -276,10 +276,11 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       return false;
     }
     if (STATS) lockOperations++;
-    if (ownerId == VM_Magic.getThreadId()) {
+    int threadId = VM_Processor.getCurrentProcessor().threadId;
+    if (ownerId == threadId) {
       recursionCount ++;
     } else if (ownerId == 0) {
-      ownerId = VM_Magic.getThreadId();
+      ownerId = threadId;
       recursionCount = 1;
     } else if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
       VM_Thread.yield(entering, mutex); // thread-switching benign
@@ -304,7 +305,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   void unlockHeavy (Object o) {
     boolean deflated = false;
     mutex.lock(); // Note: thread switching is not allowed while mutex is held.
-    if (ownerId != VM_Magic.getThreadId()) {
+    if (ownerId != VM_Processor.getCurrentProcessor().threadId) {
       mutex.unlock(); // thread-switching benign
       raiseIllegalMonitorStateException("heavy unlocking", o);
     }
@@ -606,13 +607,13 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @return true if the currently executing thread owns obj, false otherwise
    */
   public static boolean owns(Object o) {
-    return owns(o, VM_Magic.getThreadId());
+    return owns(o, VM_Processor.getCurrentProcessor().threadId);
   }
 
   /**
    * Does the given thread own the lock on obj?
    * @param obj the object to check
-   * @param tid shifted thread id (result of VM_Magic.getThreadId())
+   * @param tid thread locking id
    * @return true if the currently executing thread owns obj, false otherwise
    */
   static boolean owns(Object o, int tid) {

@@ -42,12 +42,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   private final VM_Address savedJTOC = VM_Magic.getTocPointer();
   //-#endif
    
-  /** 
-   * For saving thread index register on entry to native, 
-   * to be restored on JNI call from native
-   */
-  protected VM_Word savedTIreg;         
-
   /**
    * This is the pointer to the shared JNIFunction table.
    * When we invoke a native method, we adjust the pointer we

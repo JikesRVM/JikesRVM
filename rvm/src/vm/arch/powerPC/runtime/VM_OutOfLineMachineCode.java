@@ -194,10 +194,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
 
-    // save fp and ti
+    // save fp
     //
     asm.emitSTAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T1);
-    asm.emitSTAddr(TI, TI<<LOG_BYTES_IN_ADDRESS, T1);
       
     // return to caller
     //
@@ -245,9 +244,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitSTAddr(i, i<<LOG_BYTES_IN_ADDRESS, T3);
 
-    // save other 'nonvol' gprs: fp and ti
+    // save fp
     asm.emitSTAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T3);
-    asm.emitSTAddr(TI, TI<<LOG_BYTES_IN_ADDRESS, T3);
 
     // (2) Set currentThread.beingDispatched to false
     asm.emitLVAL(0, 0);                                       // R0 := 0
@@ -265,9 +263,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
       asm.emitLAddr(i, i<<LOG_BYTES_IN_ADDRESS, T0);
 
-    // restore fp, and ti
+    // restore fp
     asm.emitLAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T0);
-    asm.emitLAddr(TI, TI<<LOG_BYTES_IN_ADDRESS, T0);
 
     // resume execution at saved ip (T1.ipOffset)
     asm.emitLAddr(T0, ipOffset, T1);
@@ -332,7 +329,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     asm.emitLAddr(REGISTER_ZERO, REGISTER_ZERO<<LOG_BYTES_IN_ADDRESS, T1);
     asm.emitLAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T1);
-    asm.emitLAddr(TI, TI<<LOG_BYTES_IN_ADDRESS, T1);
       
     // restore last gpr
     //
@@ -349,12 +345,12 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
    * Generate innermost transition from Java => C code used by native method.
    * on entry:
    *   JTOC = TOC for native call
-   *   TI - IP address of native function to branch to
-   *   S0 -> threads JNIEnvironment, which contains saved PR & TI regs
+   *   S0 = threads JNIEnvironment, which contains saved PR reg
+   *   S1 = IP address of native function to branch to
    *   Parameter regs R4-R10, FP1-FP6 loaded for call to native
    *   (R3 will be set here before branching to the native function)
    * 
-   *   GPR3 (T0), S1, PR regs are available for scratch regs on entry
+   *   GPR3 (T0), PR regs are available for scratch regs on entry
    *
    * on exit:
    *  RVM JTOC and PR restored
@@ -368,7 +364,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // into transition frame. If GC occurs, the JNIGCMapIterator will cause
     // this ip address to be relocated if the generated glue code is moved.
     //
-    asm.emitLAddr(S1, 0, FP);
+    asm.emitLAddr (S1, 0, FP);
     asm.emitMFLR  (T0);
     //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // save return address of JNI method in mini frame (2)
@@ -393,7 +389,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitSTW  (S0,  VM_Entrypoints.vpStatusField.getOffset(), PROCESSOR_REGISTER); 
     
     // move native code address to link reg and call it.
-    asm.emitMTLR (TI); 
+    asm.emitMTLR (KLUDGE_TI_REG); 
     asm.emitBCLRL();                                       // call native method
 
     // save the return value in R3-R4 in the glue frame spill area since they may be overwritten

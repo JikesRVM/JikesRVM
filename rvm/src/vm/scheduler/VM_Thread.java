@@ -1252,10 +1252,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     VM_Scheduler.threadCreationMutex.unlock();
 
-    //-#if !RVM_FOR_IA32 
-    contextRegisters.gprs.set(THREAD_ID_REGISTER, 
-			      VM_Word.fromInt(getLockingId()));
-    //-#endif
     VM.enableGC();
 
     // only do this at runtime because it will call VM_Magic;

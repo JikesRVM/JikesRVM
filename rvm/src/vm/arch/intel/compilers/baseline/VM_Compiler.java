@@ -3131,17 +3131,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.getThreadId) {
-      VM_ProcessorLocalState.emitPushField(asm,VM_Entrypoints.threadIdField.getOffset());
-      return true;
-    }
-       
-    // set the Thread id register (not really a register)
-    if (methodName == VM_MagicNames.setThreadId) {
-      VM_ProcessorLocalState.emitPopField(asm,VM_Entrypoints.threadIdField.getOffset()); 
-      return true;
-    }
-    
     // get the processor register (PR)
     if (methodName == VM_MagicNames.getProcessorRegister) {
       asm.emitPUSH_Reg(PR);

@@ -52,7 +52,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      VM_Field f = VM_Entrypoints.processorFPField;
+      VM_Field f = VM_Entrypoints.framePointerField;
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
         pr = OPT_IRTools.R(phys.getESI());
@@ -87,20 +87,6 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       // nothing required on Intel
     } else if (methodName == VM_MagicNames.sync) {
       // nothing required on Intel
-    } else if (methodName == VM_MagicNames.getThreadId) {
-      OPT_RegisterOperand val = gc.temps.makeTempInt();
-      OPT_RegisterOperand pr = null;
-      if (VM.dedicatedESI) {
-        pr = OPT_IRTools.R(phys.getESI());
-      } else {
-        pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
-        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
-      }
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val, pr.copy(),
-					  new
-                                          OPT_IntConstantOperand(VM_Entrypoints.threadIdField.getOffset()),
-					  null));
-      bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);

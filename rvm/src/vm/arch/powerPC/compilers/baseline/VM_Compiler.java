@@ -610,18 +610,17 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to load a 32 bit constant
+   * (which may be a String and thus really 64 bits on 64 bit platform!)
    * @param offset JTOC offset of the constant 
    */
   protected final void emit_ldc(int offset) {
-    if (VM.BuildFor64Addr) {
-      if (VM_Statics.getSlotDescription(offset>>LOG_BYTES_IN_INT) == VM_Statics.STRING_LITERAL){
-        asm.emitLAddrToc(T0,  offset);
-        pushAddr(T0);
-        return;
-      }
+    if (VM_Statics.getSlotDescription(offset>>LOG_BYTES_IN_INT) == VM_Statics.STRING_LITERAL){
+      asm.emitLAddrToc(T0,  offset);
+      pushAddr(T0);
+    } else {
+      asm.emitLIntToc(T0, offset);
+      pushInt(T0);
     }
-    asm.emitLIntToc(T0, offset);
-    pushInt(T0);
   }
 
   /**
@@ -3462,10 +3461,6 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.getTocPointer ||
 	       methodName == VM_MagicNames.getJTOC) {
       pushAddr(JTOC); 
-    } else if (methodName == VM_MagicNames.getThreadId) {
-      pushInt(TI); // push TI
-    } else if (methodName == VM_MagicNames.setThreadId) {
-      popInt(TI); // TI := (shifted) thread index
     } else if (methodName == VM_MagicNames.getProcessorRegister) {
       pushAddr(PROCESSOR_REGISTER);
     } else if (methodName == VM_MagicNames.setProcessorRegister) {

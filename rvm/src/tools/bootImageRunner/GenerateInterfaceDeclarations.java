@@ -344,8 +344,6 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildForPowerPC) {
       p("static const int VM_Constants_JTOC_POINTER               = "
           + VM_Constants.JTOC_POINTER + ";\n");
-      p("static const int VM_Constants_THREAD_ID_REGISTER         = "
-          + VM_Constants.THREAD_ID_REGISTER + ";\n");
       p("static const int VM_Constants_FRAME_POINTER              = "
           + VM_Constants.FRAME_POINTER + ";\n");
       p("static const int VM_Constants_PROCESSOR_REGISTER         = "
@@ -575,17 +573,17 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.activeThreadField.getOffset();
     p("static const int VM_Processor_activeThread_offset = "
 		     + offset + ";\n");
-    //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.processorThreadIdField.getOffset();
+    offset = VM_Entrypoints.threadIdField.getOffset();
     p("static const int VM_Processor_threadId_offset = "
 		     + offset + ";\n");
-    offset = VM_Entrypoints.processorFPField.getOffset();
+    //-#if RVM_FOR_IA32
+    offset = VM_Entrypoints.framePointerField.getOffset();
     p("static const int VM_Processor_framePointer_offset = "
 		     + offset + ";\n");
-    offset = VM_Entrypoints.processorJTOCField.getOffset();
+    offset = VM_Entrypoints.jtocField.getOffset();
     p("static const int VM_Processor_jtoc_offset = "
 		     + offset + ";\n");
-    offset = VM_Entrypoints.processorTrapParamField.getOffset();
+    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
     p("static const int VM_Processor_arrayIndexTrapParam_offset = "
 		     + offset + ";\n");
     //-#endif
@@ -663,7 +661,6 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildForPowerPC) {
       pln("#define FP r"   + VM_BaselineConstants.FP);
       pln("#define JTOC r" + VM_BaselineConstants.JTOC);
-      pln("#define TI r"   + VM_BaselineConstants.TI);
       pln("#define PROCESSOR_REGISTER r"    + VM_BaselineConstants.PROCESSOR_REGISTER);
       pln("#define S0 r"   + VM_BaselineConstants.S0);
       pln("#define T0 r"   + VM_BaselineConstants.T0);
@@ -676,7 +673,6 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildForPowerPC) {
       pln(".set FP,"   + VM_BaselineConstants.FP);
       pln(".set JTOC," + VM_BaselineConstants.JTOC);
-      pln(".set TI,"   + VM_BaselineConstants.TI);
       pln(".set PROCESSOR_REGISTER,"    
 	  + VM_BaselineConstants.PROCESSOR_REGISTER);
       pln(".set S0,"   + VM_BaselineConstants.S0);

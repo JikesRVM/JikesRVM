@@ -49,23 +49,6 @@ public class VM_Magic {
     return null;
   }
 
-  /** 
-   * Get "thread id" pseduo register for currently executing thread.
-   * @return shifted thread index of currently executing thread
-   */
-  public static int getThreadId() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
-  }
-
-  /** 
-   * Set contents of "thread id" pseduo register.
-   * @param ti shifted thread index
-   */
-  public static void setThreadId(int ti) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
   /** Get contents of "processor" register. */
   public static VM_Processor getProcessorRegister() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler

@@ -117,13 +117,13 @@ public class VM_SysCall implements VM_Uninterruptible {
    * Create a virtual processor (aka "unix kernel thread", "pthread").
    * @param jtoc  register values to use for thread startup
    * @param pr
-   * @param ti
+   * @param ip
    * @param fp
    * @return virtual processor's o/s handle
    */
   public static int sysVirtualProcessorCreate(VM_Address jtoc, 
 					      VM_Address pr, 
-					      VM_Address ti_or_ip,
+					      VM_Address ip,
 					      VM_Address fp) { 
     return 0;
   }

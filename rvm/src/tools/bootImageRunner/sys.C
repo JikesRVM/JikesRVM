@@ -1489,7 +1489,7 @@ sysHPMprintMyGroup()
 // Returned: virtual processor's o/s handle
 //
 extern "C" int
-sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP ti_or_ip, int UNUSED_SVP fp)
+sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP ip, int UNUSED_SVP fp)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
@@ -1505,7 +1505,7 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
     sysVirtualProcessorArguments = new int[4];
     sysVirtualProcessorArguments[0] = jtoc;
     sysVirtualProcessorArguments[1] = pr;
-    sysVirtualProcessorArguments[2] = ti_or_ip;
+    sysVirtualProcessorArguments[2] = ip;
     sysVirtualProcessorArguments[3] = fp;
 
     // create attributes
@@ -1544,14 +1544,14 @@ sysVirtualProcessorStartup(void *args)
 {
     VM_Address jtoc	= ((VM_Address *)args)[0];
     VM_Address pr	= ((VM_Address *)args)[1];
-    VM_Address ti_or_ip	= ((VM_Address *)args)[2];
+    VM_Address ip	= ((VM_Address *)args)[2];
     VM_Address fp	= ((VM_Address *)args)[3];
 
     if (VERBOSE_PTHREAD)
 #ifdef RVM_FOR_64_ADDR
-	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ti_or_ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ti_or_ip, fp);
+	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ip, fp);
 #else
-	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ti_or_ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ti_or_ip, fp);
+	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ip, fp);
 #endif
     // branch to vm code
     //
@@ -1559,10 +1559,10 @@ sysVirtualProcessorStartup(void *args)
     {
 	*(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
 	VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
-	bootThread(ti_or_ip, jtoc, pr, sp);
+	bootThread(ip, jtoc, pr, sp);
     }
 #else
-    bootThread(jtoc, pr, ti_or_ip, fp);
+    bootThread(jtoc, pr, ip, fp);
 #endif
 
     // not reached

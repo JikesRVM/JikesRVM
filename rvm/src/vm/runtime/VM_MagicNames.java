@@ -28,8 +28,6 @@ public class VM_MagicNames {
   public static final VM_Atom getTocPointer                 = VM_Atom.findOrCreateAsciiAtom("getTocPointer");
   public static final VM_Atom setTocPointer                 = VM_Atom.findOrCreateAsciiAtom("setTocPointer");
   public static final VM_Atom getJTOC                       = VM_Atom.findOrCreateAsciiAtom("getJTOC");
-  public static final VM_Atom getThreadId                   = VM_Atom.findOrCreateAsciiAtom("getThreadId");
-  public static final VM_Atom setThreadId                   = VM_Atom.findOrCreateAsciiAtom("setThreadId");
   public static final VM_Atom getProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("getProcessorRegister");
   public static final VM_Atom setProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("setProcessorRegister");
   //-#if RVM_FOR_IA32

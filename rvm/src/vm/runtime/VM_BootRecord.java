@@ -174,10 +174,6 @@ public class VM_BootRecord {
    */
   public int processorsOffset;               
   /**
-   * jtoc offset of VM_Scheduler.threads[]
-   */
-  public int threadsOffset;                  
-  /**
    * jtoc offset of VM_Scheduler.debugRequested
    */
   int debugRequestedOffset;           
