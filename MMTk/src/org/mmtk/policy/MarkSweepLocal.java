@@ -57,8 +57,15 @@ final class MarkSweepLocal extends SegregatedFreeList
   //
   private MarkSweepSpace msSpace;
 
-  private int utilization[];        // measure fragmentation
+  // fragmentation measurement
+  private int utilization[];  
+  private int allPreUtilization[][];
+  private int allPostUtilization[][];
   private int totUtilization[];
+  private int allPreBlocks[];
+  private int allPostBlocks[];
+  private int allPreUsedCells[];
+  private int allPostUsedCells[];
 
   protected final boolean preserveFreeList() { return !MARK_BITS_ONLY; }
   protected final boolean maintainInUse() { return !MARK_BITS_ONLY; }
@@ -79,7 +86,13 @@ final class MarkSweepLocal extends SegregatedFreeList
     super(space.getVMResource(), space.getMemoryResource(), plan);
     msSpace = space;
     utilization = new int[FRAG_PERCENTILES];
-    totUtilization = new int[FRAG_PERCENTILES]; 
+    totUtilization = new int[FRAG_PERCENTILES];
+    allPreUtilization = new int[SIZE_CLASSES][FRAG_PERCENTILES]; 
+    allPostUtilization = new int[SIZE_CLASSES][FRAG_PERCENTILES]; 
+    allPreBlocks = new int[SIZE_CLASSES]; 
+    allPostBlocks = new int[SIZE_CLASSES]; 
+    allPreUsedCells = new int[SIZE_CLASSES]; 
+    allPostUsedCells = new int[SIZE_CLASSES]; 
   }
   
   /**
@@ -511,7 +524,7 @@ final class MarkSweepLocal extends SegregatedFreeList
     int totCellBytes = 0;          // bytes consumed by cells
     int totBytes = 0;              // bytes consumed (incl header etc)
     int totBlocks = 0;
-    printFragHeader(prepare);
+    printFragHeader(prepare, false);
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
       VM_Address block = firstBlock.get(sizeClass);
       int sets =  bitmapSets[sizeClass];
@@ -526,13 +539,52 @@ final class MarkSweepLocal extends SegregatedFreeList
 	  int pctl = (FRAG_PERCENTILES * marked)/(cellsInBlock[sizeClass]+1);
 	  utilization[pctl]++;
 	  usedCells += marked;
+	  if (prepare) {
+	    allPreUtilization[sizeClass][pctl]++;
+	    allPreUsedCells[sizeClass] += marked;
+	  } else {
+	    allPostUtilization[sizeClass][pctl]++;
+	    allPostUsedCells[sizeClass] += marked;
+	  }
 	} else {
 	  usedCells += cellsInBlock[sizeClass];
 	  utilization[FRAG_PERCENTILES - 1]++;
+	  if (prepare) {
+	    allPreUtilization[sizeClass][FRAG_PERCENTILES - 1]++;
+	    allPreUsedCells[sizeClass] += cellsInBlock[sizeClass];
+	  } else {
+	    allPostUtilization[sizeClass][FRAG_PERCENTILES - 1]++;
+	    allPostUsedCells[sizeClass] += cellsInBlock[sizeClass];
+	  }
 	  getUsed = block.EQ(current);
 	}
 	block = BlockAllocator.getNextBlock(block);
       }
+      totBlocks += blocks;
+      if (prepare)
+	allPreBlocks[sizeClass] += blocks;
+      else
+	allPostBlocks[sizeClass] += blocks;
+      int usedCellBytes = usedCells * cellSize[sizeClass];
+      totUsedCellBytes += usedCellBytes;
+      int cellBytes = (blocks * cellsInBlock[sizeClass]) * cellSize[sizeClass];
+      totCellBytes += cellBytes;
+      int bytes = blocks * BlockAllocator.blockSize(blockSizeClass[sizeClass]);
+      totBytes += bytes;
+      printFragRow(prepare, false, false, sizeClass, usedCellBytes, cellBytes - usedCellBytes, cellBytes, bytes, blocks);
+    }
+    printFragRow(prepare, false, true, 0, totUsedCellBytes, totCellBytes - totUsedCellBytes, totCellBytes, totBytes, totBlocks);
+  }
+
+  private final void finalVerboseFragmentationStatistics(boolean prepare) {
+    int totUsedCellBytes = 0;      // bytes for cells actually in use
+    int totCellBytes = 0;          // bytes consumed by cells
+    int totBytes = 0;              // bytes consumed (incl header etc)
+    int totBlocks = 0;
+    printFragHeader(prepare, true);
+    for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
+      int blocks = (prepare) ? allPreBlocks[sizeClass] : allPostBlocks[sizeClass];
+      int usedCells = (prepare) ? allPreUsedCells[sizeClass] : allPostUsedCells[sizeClass];
       totBlocks += blocks;
       int usedCellBytes = usedCells * cellSize[sizeClass];
       totUsedCellBytes += usedCellBytes;
@@ -540,13 +592,21 @@ final class MarkSweepLocal extends SegregatedFreeList
       totCellBytes += cellBytes;
       int bytes = blocks * BlockAllocator.blockSize(blockSizeClass[sizeClass]);
       totBytes += bytes;
-      printFragRow(prepare, false, sizeClass, usedCellBytes, cellBytes - usedCellBytes, cellBytes, bytes, blocks);
+      printFragRow(prepare, true, false, sizeClass, usedCellBytes, cellBytes - usedCellBytes, cellBytes, bytes, blocks);
     }
-    printFragRow(prepare, true, 0, totUsedCellBytes, totCellBytes - totUsedCellBytes, totCellBytes, totBytes, totBlocks);
+    printFragRow(prepare, true, true, 0, totUsedCellBytes, totCellBytes - totUsedCellBytes, totCellBytes, totBytes, totBlocks);
   }
 
-  private final void printFragHeader(boolean prepare) {
-    VM_Interface.sysWrite("\n"); 
+  private final void printFragHeader(boolean prepare, boolean all) {
+    if (all) {
+      VM_Interface.sysWrite(prepare ? "\n=> " : "\n=< ");
+      VM_Interface.sysWrite("TOTAL FRAGMENTATION ");
+      VM_Interface.sysWrite(prepare ? "BEFORE " : "AFTER ");
+      VM_Interface.sysWrite("GC INVOCATION");
+      VM_Interface.sysWrite(prepare ? "\n=> " : "\n=< ");
+    }
+    VM_Interface.sysWrite("\n");
+    if (all) VM_Interface.sysWrite("=");
     VM_Interface.sysWrite((prepare) ? "> " : "< "); 
     VM_Interface.sysWrite("szcls size    live free used net  util | ");
     for (int pctl = 0; pctl < FRAG_PERCENTILES; pctl++) {
@@ -554,13 +614,14 @@ final class MarkSweepLocal extends SegregatedFreeList
       VM_Interface.sysWrite((100*(pctl+1))/FRAG_PERCENTILES);
       VM_Interface.sysWrite((pctl < (FRAG_PERCENTILES-1)) ? "% " : "%\n");
     }
-    printFragDivider(prepare);
+    printFragDivider(prepare, all);
   }
 
-  private final void printFragRow(boolean prepare, boolean totals,
+  private final void printFragRow(boolean prepare, boolean all, boolean totals,
 				  int sizeClass, int usedCellBytes,
 				  int freeBytes, int cellBytes, int totBytes,
 				  int blocks) {
+    if (all) VM_Interface.sysWrite("=");
     VM_Interface.sysWrite((prepare) ? "> " : "< "); 
     if (totals)
       VM_Interface.sysWrite("totals\t");
@@ -579,9 +640,18 @@ final class MarkSweepLocal extends SegregatedFreeList
 	printRatio(totUtilization[pctl], blocks, str);
 	totUtilization[pctl] = 0;
       } else {
-	printRatio(utilization[pctl], blocks, str);
-	totUtilization[pctl] += utilization[pctl];
-	utilization[pctl] = 0;
+	int util;
+	if (all) {
+	  if (prepare)
+	    util = allPreUtilization[sizeClass][pctl];
+	  else
+	    util = allPostUtilization[sizeClass][pctl];
+	} else {
+	  util = utilization[pctl];
+	  utilization[pctl] = 0;
+	}
+	printRatio(util, blocks, str);
+	totUtilization[pctl] += util;
       }
     }
   }
@@ -594,9 +664,13 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Interface.sysWrite(numerator/(double)denominator); 
     VM_Interface.sysWrite(str);
   }
-  private final void printFragDivider(boolean prepare) {
+  private final void printFragDivider(boolean prepare, boolean all) {
+    if (all) VM_Interface.sysWrite("=");
     VM_Interface.sysWrite((prepare) ? "> " : "< "); 
-    VM_Interface.sysWrite("------------------------------------------------------------------------------------------\n");
+    VM_Interface.sysWrite("----------------------------------------");
+    for (int i = 0; i < FRAG_PERCENTILES; i++) 
+      VM_Interface.sysWrite("-----");
+    VM_Interface.sysWrite("\n");
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -739,8 +813,10 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   public final void exit() {
-//     if (FRAGMENTATION_CHECK)
-//       fragmentationTotals();
+    if (Options.verboseFragmentationStats) {
+      finalVerboseFragmentationStatistics(true);
+      finalVerboseFragmentationStatistics(false);
+    }
   }
 //   private final void fragmentationTotals() {
 //     fragmentationCheck(true, true);
