@@ -1,13 +1,41 @@
 -*-outline-*-
 These are the release notes for Jikes RVM 2.3.4.
 
+This file will go away as of the next full release of Jikes RVM,
+in favor of the file "rvm/NEWS".
 
 *Sections of this document:
- *Highlights
- *Other Notes
- *Bug Fixes
+**Highlights
+**Other Notes
+**Bug Fixes
+**Internal Changes
 
 *Highlights of this release include:
+**Quick Compiler (missing from the original 2.3.4 release notes)
+Release 2.3.4 marked the first public appearance 
+of the "Quick" compiler for the PowerPC architecture targets.
+
+The Quick compiler is supposed to be rather smarter than the Base 
+compiler about register use without being nearly as complex as the Opt 
+compiler.
+
+Rather smarter means that stack and local variables are kept in 
+registers if possible, not in memory.
+
+Not nearly as complex means, for instance, that the Quick compiler code 
+generator works in a single pass, with no intermediate representations. 
+Right now the only additional optimizations are to remember if stack or 
+local variable values are already in a temporary or work register and 
+hence don't need to be loaded, and to postpone local variable stores 
+until it becomes obvious that the value really needs to be written.
+
+One purpose of the Quick compiler is to explore how close to the 
+performance of the Opt compiler we can come by using just the most 
+beneficial optimizations. Also, we hope to use it as a starting point 
+for experimenting with other optimizations without having to deal with 
+the implementation details of the Opt compiler and the complex 
+interactions among the many optimizations performed by the Opt compiler.
+
 **We now run Eclipse 3.0
 You can use Jikes RVM to run Eclipse 3.0; this lets you run a free
 IDE with a free VM.
