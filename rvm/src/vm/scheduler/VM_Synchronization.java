@@ -76,6 +76,7 @@ class VM_Synchronization implements VM_Uninterruptible {
   static final VM_Address fetchAndAddAddressWithBound(VM_Address addr, int increment, VM_Address bound) {
     VM_Magic.pragmaInline();
     VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(increment > 0);
     do {
       oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
       newValue = oldValue.add(increment);
@@ -84,13 +85,38 @@ class VM_Synchronization implements VM_Uninterruptible {
     return oldValue;
   }
 
+  static final VM_Address fetchAndSubAddressWithBound(VM_Address addr, int decrement, VM_Address bound) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(decrement > 0);
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
+      newValue = oldValue.sub(decrement);
+      if (newValue.LT(bound)) return VM_Address.max();
+    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(addr), 0, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
+
   static final VM_Address fetchAndAddAddressWithBound(Object base, int offset, int increment, VM_Address bound) {
     VM_Magic.pragmaInline();
     VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(increment > 0);
     do {
       oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
       newValue = oldValue.add(increment);
       if (newValue.GT(bound)) return VM_Address.max();
+    } while (!VM_Magic.attempt(base, offset, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
+
+  static final VM_Address fetchAndSubAddressWithBound(Object base, int offset, int decrement, VM_Address bound) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(decrement > 0);
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
+      newValue = oldValue.sub(decrement);
+      if (newValue.LT(bound)) return VM_Address.max();
     } while (!VM_Magic.attempt(base, offset, oldValue.toInt(), newValue.toInt()));
     return oldValue;
   }
