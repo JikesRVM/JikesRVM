@@ -110,7 +110,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     //     VM_Interface.getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
 
-  public static void arrayStoreWriteBarrier(Object ref, int index,Object value)
+  public static void arrayStoreWriteBarrier(Object ref, int index, Object value)
     throws VM_PragmaInline {
     VM_Interface.getPlan().arrayStoreWriteBarrier(
 				     VM_Magic.objectAsAddress(ref), index,
