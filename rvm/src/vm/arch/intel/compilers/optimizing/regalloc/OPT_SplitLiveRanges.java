@@ -101,7 +101,7 @@ implements OPT_Operators {
               rOp.register = temp.register;
             }
             break;
-          case IA32_FCOMI_opcode:
+          case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
             {
               OPT_RegisterOperand rOp = MIR_Compare.getVal2(s).asRegister();
               OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);

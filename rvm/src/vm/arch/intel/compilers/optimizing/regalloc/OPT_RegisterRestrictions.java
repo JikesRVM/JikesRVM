@@ -118,7 +118,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case IA32_FCOMI_opcode:
+      case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
 	{
 	  OPT_RegisterOperand op = MIR_Compare.getVal2(s).asRegister();
 	  noteMustNotSpill(op.register);
@@ -136,13 +136,13 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case IA32_CMOV_opcode: case  IA32_FCMOV_opcode:
+      case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
 	{
 	  OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case IA32_MOVZX$B_opcode: case  IA32_MOVSX$B_opcode:
+      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
 	{
 	  OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
 	  noteMustNotSpill(op.register);
