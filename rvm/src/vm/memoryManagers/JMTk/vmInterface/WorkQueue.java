@@ -50,7 +50,6 @@ import com.ibm.JikesRVM.VM_Thread;
  * The default size of each buffer is specified by <b>WORK_BUFFER_SIZE</b>,
  * which can be overridden by the command line argument -wbnnn
  *
- * @see VM_Allocator
  * @see VM_CollectorThread
  *
  * @author Tony Cocchi

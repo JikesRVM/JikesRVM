@@ -10,7 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Header;
 /**
  * Chooses the appropriate collector-specific header model.
  *
- * @see VM_ObjectModel
+ * @see com.ibm.JikesRVM.VM_ObjectModel
  * 
  * @author Perry Cheng
  */

@@ -36,7 +36,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @see VM_GCMapIterator
  * @see VM_CompiledMethod
  * @see VM_CollectorThread
- * @see VM_Allocator
  * 
  * @author Janice Shepherd
  * @modified by Stephen Smith
