@@ -9,7 +9,10 @@ import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
- * Library support interface of Jikes RVM
+ * Implementation of java.lang.reflect.Constructor for JikesRVM.
+ *
+ * By convention, order methods in the same order
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
  *
  * @author John Barton 
  * @author Julian Dolby
@@ -28,10 +31,6 @@ public final class Constructor extends AccessibleObject implements Member {
   // For use by java.lang.Class
   Constructor(VM_Method m) {
     constructor = m;
-  }
-
-  public int hashCode() {
-    return getName().hashCode();
   }
 
   public boolean equals(Object other) {
@@ -67,10 +66,12 @@ public final class Constructor extends AccessibleObject implements Member {
     return JikesRVMSupport.typesToClasses(constructor.getParameterTypes());
   }
 
-  public String getSignature() {
-    return constructor.getDescriptor().toString();
-  } 
+  public int hashCode() {
+    return getName().hashCode();
+  }
 
+  // TODO: This is wrong in a number of ways.  
+  // Must do all of the error and accessibility checking.
   public Object newInstance(Object args[]) throws InstantiationException, 
 						  IllegalAccessException, 
 						  IllegalArgumentException, 
@@ -147,7 +148,6 @@ public final class Constructor extends AccessibleObject implements Member {
 	  buf.append(",");
       }
     }
-
     return buf.toString();
   }
 }

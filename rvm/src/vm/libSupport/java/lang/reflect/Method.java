@@ -8,7 +8,10 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM_Reflection;
 
 /**
- * Library support interface of Jikes RVM
+ * Implementation of java.lang.reflect.Field for JikesRVM.
+ *
+ * By convention, order methods in the same order
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
  *
  * @author John Barton 
  * @author Julian Dolby
@@ -28,10 +31,6 @@ public final class Method extends AccessibleObject implements Member {
   //
   Method(VM_Method m) {
     method = m;
-  }
-
-  public int hashCode() {
-    return getName().hashCode();
   }
 
   public boolean equals(Object other) { 
@@ -75,10 +74,13 @@ public final class Method extends AccessibleObject implements Member {
     }
   }
 
-  public String getSignature() {
-    return method.getDescriptor().toString();
+  public int hashCode() {
+    int code1 = getName().hashCode();
+    int code2 = method.getDeclaringClass().toString().hashCode();
+    return code1 ^ code2;
   }
 
+  // TODO: This diverges from the spec in a number of way.
   public Object invoke(Object receiver, Object args[])
     throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
@@ -119,21 +121,17 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public String toString() {
-    StringBuffer buf;
-    String mods;
-    Class[] types;
     Class current;
-    int i, arity;
 	
-    buf = new StringBuffer();
-    mods = Modifier.toString(getModifiers());
+    StringBuffer buf = new StringBuffer();
+    String mods = Modifier.toString(getModifiers());
     if(mods.length() != 0) {
       buf.append(mods);
       buf.append(" ");
     }
 	
     current = getReturnType();
-    arity = 0;
+    int arity = 0;
     while(current.isArray()) {
       current = current.getComponentType();
       arity++;
@@ -146,8 +144,8 @@ public final class Method extends AccessibleObject implements Member {
     buf.append(".");
     buf.append(getName());
     buf.append("(");
-    types = getParameterTypes();
-    for(i = 0; i < types.length; i++) {
+    Class[] types = getParameterTypes();
+    for(int i = 0; i < types.length; i++) {
       current = types[i];
       arity = 0;
       while(current.isArray()) {
@@ -163,7 +161,7 @@ public final class Method extends AccessibleObject implements Member {
     types = getExceptionTypes();
     if(types.length > 0) {
       buf.append(" throws ");
-      for(i = 0; i < types.length; i++) {
+      for(int i = 0; i < types.length; i++) {
 	current = types[i];
 	buf.append(current.getName());
 	if(i != (types.length - 1))

@@ -20,6 +20,9 @@ import com.ibm.JikesRVM.VM_UnimplementedError;
 /**
  * Implementation of java.lang.Class for JikesRVM.
  *
+ * By convention, order methods in the same order
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * 
  * @author John Barton 
  * @author Julian Dolby
  * @author Stephen Fink
@@ -46,62 +49,82 @@ public final class Class implements java.io.Serializable {
   ProtectionDomain pd;
 
   /**
-   * Create a java.lang.Class corresponding to a given VM_Type
+   * The signers of this class
    */
-  static Class create(VM_Type type) {
-    Class c = new Class();
-    c.type = type;
-    return c;
-  }
+  Object[] signers;
 
-  void setSigners(Object[] signers) {
-    throw new VM_UnimplementedError("Class.setSigners");
+  public boolean desiredAssertionStatus() {
+    throw new VM_UnimplementedError();
   }
-   
+  
   public static Class forName(String typeName) throws ClassNotFoundException {
-    return forName(typeName, true, VM_Class.getClassLoaderFromStackFrame(1));
+    return forNameInternal(typeName, true, VM_Class.getClassLoaderFromStackFrame(1));
   }
-    
-  public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
-    SecurityManager security = System.getSecurityManager();
 
-    if (className.startsWith("[")) {
-      if (!validArrayDescriptor(className)) throw new ClassNotFoundException();
+  public static Class forName(String className, 
+			      boolean initialize, 
+			      ClassLoader classLoader) throws ClassNotFoundException,
+							      LinkageError,
+							      ExceptionInInitializerError,
+							      SecurityException {
+    if (classLoader == null) {
+      SecurityManager security = System.getSecurityManager();
+      if (security != null) {
+	ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+	if (parentCL != null) {
+	  security.checkPermission(new RuntimePermission("getClassLoader"));
+	}
+      }
+      classLoader = VM_SystemClassLoader.getVMClassLoader();
     }
-    VM_Atom descriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
-    VM_Type ans = tRef.resolve();
-    VM_Callbacks.notifyForName(ans);
-    if (initialize && !ans.isInitialized()) {
-      ans.resolve();
-      ans.instantiate();
-      ans.initialize();
+    return forNameInternal(className, initialize, classLoader);
+  }
+
+  public Class[] getClasses() throws SecurityException {
+    checkMemberAccess(Member.PUBLIC);
+    if (!type.isClassType()) return new Class[0];
+    
+    Vector publicClasses = new Vector();
+    for (Class c = this; c != null; c = c.getSuperclass()) {
+      c.checkMemberAccess(Member.PUBLIC);
+      VM_TypeReference[] declaredClasses = c.type.asClass().getDeclaredClasses();
+      if (declaredClasses != null) {
+	for (int i=0; i<declaredClasses.length; i++) {
+	  if (declaredClasses[i] != null) {
+	    try {
+	      VM_Class dc = declaredClasses[i].resolve().asClass();
+	      if (dc.isPublic()) {
+		publicClasses.add(dc.getClassForType());
+	      }
+	    } catch (ClassNotFoundException e) {
+	      InternalError e2 = new InternalError();
+	      e2.initCause(e);
+	      throw e2;
+	    }
+	  }
+	}
+      }
     }
-    return ans.getClassForType();
+    
+    Class[] ans = new Class[publicClasses.size()];
+    publicClasses.copyInto(ans);
+    return ans;
   }
 
   public ClassLoader getClassLoader() {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+      ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+      if (parentCL != null) {
+	security.checkPermission(new RuntimePermission("getClassLoader"));
+      }
+    }
     ClassLoader cl = type.getClassLoader();
     return cl == VM_SystemClassLoader.getVMClassLoader() ? null : cl;
   }
 
   public Class getComponentType() {
     return type.isArrayType() ? type.asArray().getElementType().getClassForType() : null;
-  }
-
-  public Class[] getClasses() {
-    Vector publicClasses = new Vector();
-
-    for (Class c = this; c != null; c = c.getSuperclass()) {
-      Class[] declaredClasses = c.getDeclaredClasses();
-      for (int i = 0; i < declaredClasses.length; i++)
-	if (Modifier.isPublic(declaredClasses[i].getModifiers()))
-	  publicClasses.addElement(declaredClasses[i]);
-    }
-
-    Class[] allDeclaredClasses = new Class[publicClasses.size()];
-    publicClasses.copyInto(allDeclaredClasses);
-    return allDeclaredClasses;
   }
 
   public Constructor getConstructor(Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
@@ -285,6 +308,10 @@ public final class Class implements java.io.Serializable {
     }
   }
 
+  // TODO: Search algorithm is wrong.  Must search in the following order.
+  //         (1) declared fields of this
+  //         (2) superinterfaces of this (recursively)
+  //         (3) superclass of this
   public Field getField(String name) throws NoSuchFieldException, SecurityException {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchFieldException();
@@ -347,6 +374,10 @@ public final class Class implements java.io.Serializable {
     }
   }
 
+  // TODO: Search algorithm is wrong.
+  //        (1) declared methods of this
+  //        (2) this's superclass (recursively)
+  //        (3) superinterfaces of this.
   public Method getMethod(String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.PUBLIC);
 
@@ -426,35 +457,41 @@ public final class Class implements java.io.Serializable {
     return type.toString();
   }
 
+  // TODO: This seems bogus.
+  public Package getPackage() {
+    return new Package(getPackageName(), "", "", "", "", "", "", null);
+  }
+
   public ProtectionDomain getProtectionDomain() {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+      security.checkPermission(new RuntimePermission("getProtectionDomain"));
+    }
     return pd;
   }
 
-  public String getPackageName() {
-    String name = getName();
-    int index = name.lastIndexOf('.');
-    if (index >= 0) return name.substring(0, index);
-    return "";
-  }
-
   public URL getResource(String resName) {
-    ClassLoader loader = this.getClassLoader();
+    ClassLoader loader = getClassLoader();
     if (loader == VM_SystemClassLoader.getVMClassLoader())
-      return ClassLoader.getSystemResource(this.toResourceName(resName));
+      return ClassLoader.getSystemResource(toResourceName(resName));
     else
-      return loader.getResource(this.toResourceName(resName));
+      return loader.getResource(toResourceName(resName));
   }
 
   public InputStream getResourceAsStream(String resName) {
-    ClassLoader loader = this.getClassLoader();
+    ClassLoader loader = getClassLoader();
     if (loader == VM_SystemClassLoader.getVMClassLoader())
-      return ClassLoader.getSystemResourceAsStream(this.toResourceName(resName));
+      return ClassLoader.getSystemResourceAsStream(toResourceName(resName));
     else
-      return loader.getResourceAsStream(this.toResourceName(resName));
+      return loader.getResourceAsStream(toResourceName(resName));
   }
 
   public Object[] getSigners() {
-    return null;
+    if (signers == null) {
+      return null;
+    } else {
+      return (Object[])signers.clone();
+    }
   }
 
   public Class getSuperclass () {
@@ -492,7 +529,10 @@ public final class Class implements java.io.Serializable {
     return type.isPrimitiveType();
   }
 
-  public Object newInstance() throws IllegalAccessException, InstantiationException {
+  // TODO: LOTS of things wrong here.
+  public Object newInstance() throws IllegalAccessException, 
+				     InstantiationException,
+				     SecurityException {
     checkMemberAccess(Member.PUBLIC);
     Constructor cons;
     try {
@@ -509,6 +549,70 @@ public final class Class implements java.io.Serializable {
     }
   }
 
+  public String toString() {
+    String name = getName();
+    if (isPrimitive()) {
+      return name;
+    } else if (isInterface()) {
+      return "interface "+name;
+    } else {
+      return "class "+name;
+    }
+  }
+
+  /*
+   * Implementation below
+   */
+
+  /**
+   * Create a java.lang.Class corresponding to a given VM_Type
+   */
+  static Class create(VM_Type type) {
+    Class c = new Class();
+    c.type = type;
+    return c;
+  }
+
+  void setSigners(Object[] signers) {
+    signers = signers;
+    throw new VM_UnimplementedError("Class.setSigners");
+  }
+   
+  // TODO: (1) If className denotes a primitive type or void, then
+  //           we need to look for a user-defined class in the unnamed package
+  //           of that name.  This method should not return the Class objects
+  //           for primitive types of void.
+  private static Class forNameInternal(String className, 
+				       boolean initialize, 
+				       ClassLoader classLoader) throws ClassNotFoundException,
+								       LinkageError,
+								       ExceptionInInitializerError {
+    if (className.startsWith("[")) {
+      if (!validArrayDescriptor(className)) throw new ClassNotFoundException();
+    }
+    VM_Atom descriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
+    VM_Type ans = tRef.resolve();
+    VM_Callbacks.notifyForName(ans);
+    if (initialize && !ans.isInitialized()) {
+      ans.resolve();
+      ans.instantiate();
+      try {
+	ans.initialize();
+      } catch (Exception e) {
+	throw new ExceptionInInitializerError(e);
+      }
+    }
+    return ans.getClassForType();
+  }
+
+  private String getPackageName() {
+    String name = getName();
+    int index = name.lastIndexOf('.');
+    if (index >= 0) return name.substring(0, index);
+    return "";
+  }
+
   private String toResourceName(String resName) {
     // Turn package name into a directory path
     if (resName.charAt(0) == '/') return resName.substring(1);
@@ -518,26 +622,7 @@ public final class Class implements java.io.Serializable {
     if (classIndex == -1) return resName; // from a default package
     return qualifiedClassName.substring(0, classIndex + 1).replace('.', '/') + resName;
   }
-
-  public String toString() {
-    String name = type.toString();
-    if (isPrimitive()) {
-      return name;
-    } else if (type.isArrayType()) {
-      return "class " + name;
-    } else {
-      if (isInterface()) {
-	return "interface " + name;
-      } else  {
-	return "class "     + name;
-      }
-    }
-  }
-
-  public Package getPackage() {
-    return new Package(getPackageName(), "", "", "", "", "", "", null);
-  }
-
+  
   private static boolean validArrayDescriptor (String name) {
     int i;
     int length = name.length();
@@ -634,3 +719,4 @@ public final class Class implements java.io.Serializable {
     }
   }
 }
+
