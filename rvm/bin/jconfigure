@@ -1225,7 +1225,7 @@ function emitCopier
    print 'fi'
    print ''
 
-   if test $RVM_WITH_GNU_CLASSPATH -eq 1 -a -d $CLASSPATH_SRC; then
+   if test $RVM_WITH_GNU_CLASSPATH -eq 1 -a -d $CLASSPATH_SRC/; then
      print "cp -f $CLASSPATH_SRC/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
      print "\nprint -n '(classpath native libraries copied) '"
      print "cp -f $CLASSPATH_SRC/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
