@@ -216,7 +216,7 @@ public abstract class Generational extends StopTheWorldGC
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case  NURSERY_SPACE: if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
+    case  NURSERY_SPACE: if (Stats.GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
                          return nursery.alloc(bytes, align, offset);
     case   MATURE_SPACE: return matureAlloc(bytes, align, offset);
     case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
