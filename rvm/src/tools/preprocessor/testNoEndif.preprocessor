@@ -2,4 +2,13 @@
 something
 //-#elif B
 more
+//-#if A
+more text
+blah blah
+//-#if E
+more text
+blah blah
+
+// Three missing #endifs here!
+// Two missing #endifs here!
 // No #endif statement here!
