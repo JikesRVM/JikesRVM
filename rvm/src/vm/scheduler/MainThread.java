@@ -49,11 +49,6 @@ class MainThread extends Thread {
    * Run "main" thread.
    */
   public void run() {
-    // VM_Scheduler.trace("MainThread", "run");
-      
-    // class intializers that require fully booted VM
-    VM.runClassInitializer("java.lang.Double");
-
     // Create file descriptors for stdin, stdout, stderr
     java.io.JikesRVMSupport.setFd(FileDescriptor.in, VM_FileSystem.getStdinFileDescriptor());
     java.io.JikesRVMSupport.setFd(FileDescriptor.out, VM_FileSystem.getStdoutFileDescriptor());
@@ -66,17 +61,16 @@ class MainThread extends Thread {
     System.setIn(new BufferedInputStream(fdIn));
     System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
     System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
-
     VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
-	    public void notifyExit(int value) {
-		try {
-		    System.err.flush();
-		    System.out.flush();
-		} catch (Throwable e) {
-		    VM.sysWrite("vm: error flushing stdout, stderr");
-		}
-	    }
-	});
+	public void notifyExit(int value) {
+	  try {
+	    System.err.flush();
+	    System.out.flush();
+	  } catch (Throwable e) {
+	    VM.sysWrite("vm: error flushing stdout, stderr");
+	  }
+	}
+      });
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // initialize the controller and runtime measurement subsystems

@@ -77,15 +77,13 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Setting up current VM_Processor");
     VM_ProcessorLocalState.boot();
 
-
     // Finish thread initialization that couldn't be done in boot image.
-    // The "stackLimit" must be set before any method calls, 
+    // The "stackLimit" must be set before any interruptible methods are called
     // because it's accessed by compiler-generated stack overflow checks.
     //
     if (verbose >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
-
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
     // get pthread_id from OS and store into vm_processor field
@@ -115,7 +113,7 @@ public class VM extends VM_Properties
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
-    // This must happen before any bootimage static synchronized methods 
+    // This must happen before any static synchronized methods of bootimage classes
     // can be invoked.
     if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
@@ -132,17 +130,9 @@ public class VM extends VM_Properties
     VM_ClassLoader.boot(vmClasses);
     VM_SystemClassLoader.boot();
 
-    //
-    // At this point the virtual machine is running as a single thread 
-    // that can perform dynamic compilation and linking (by compiler/linker 
-    // that's part of boot image).  All that remains is to initialize the 
-    // java class libraries, start up the thread subsystem, and launch
-    // the user level "main" thread.
-    //
-
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 
-    // appear in fields that are unique to RVM implementation of 
+    // appear in fields that are unique to Jikes RVM implementation of 
     // standard class library (not part of standard jdk).
     // We discover the latter by observing "host has no field" and 
     // "object not part of bootimage" messages printed out by bootimage 
@@ -151,7 +141,7 @@ public class VM extends VM_Properties
 
     if (verbose >= 1) VM.sysWriteln("Running various class initializers");
     //-#if RVM_WITH_GNU_CLASSPATH
-    java.lang.ref.JikesRVMSupport.setReferenceLock( new Object() );
+    java.lang.ref.JikesRVMSupport.setReferenceLock(new VM_Synchronizer());
     //-#else
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.io.File");
@@ -175,11 +165,8 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Integer");
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
-    // needs jni with classpath, so done later
-    // runClassInitializer("java.lang.Double");
     runClassInitializer("java.lang.Character");
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
+    //-#if !RVM_WITH_GNU_CLASSPATH
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
     runClassInitializer("java.util.Hashtable");
     runClassInitializer("java.lang.String");
@@ -197,8 +184,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
     runClassInitializer("java.lang.Math");
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
+    //-#if !RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.lang.RuntimePermission");
     //-#endif
     runClassInitializer("java.util.TimeZone");
@@ -246,12 +232,49 @@ public class VM extends VM_Properties
 
     VM_Lock.boot();
     
-    // Begin multiprocessing.
-    //
-    VM_Scheduler.boot(applicationArguments);
+    // Enable multiprocessing.
+    // Among other things, after this returns, GC and dynamic class loading are enabled.
+    // 
+    VM_Scheduler.boot();
 
-    if (VM.VerifyAssertions) 
-      VM._assert(VM.NOT_REACHED);
+    // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
+    VM_Thread.getCurrentThread().initializeJNIEnv();
+
+    // Run class intializers that require fully booted VM
+    runClassInitializer("java.lang.Double");
+    //-#if !RVM_WITH_GNU_CLASSPATH
+    runClassInitializer("com.ibm.oti.util.Msg");
+    //-#endif
+
+    // Initialize compiler that compiles dynamically loaded classes.
+    //
+    if (VM.verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
+    VM_RuntimeCompiler.boot();
+
+    // At this point, all of the virtual processors should be running,
+    // and thread switching should be enabled.
+    if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
+
+    // Create main thread.
+    // Work around class incompatibilities in boot image writer
+    // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
+    if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
+    Thread      xx         = new MainThread(applicationArguments);
+    VM_Address  yy         = VM_Magic.objectAsAddress(xx);
+    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
+
+    // Schedule "main" thread for execution.
+    mainThread.start();
+
+    // Create one debugger thread.
+    VM_Thread t = new DebuggerThread();
+    t.start(VM_Scheduler.debuggerQueue);
+
+    // End of boot thread. Relinquish control to next job on work queue.
+    //
+    if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
+    VM_Thread.terminate();
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   private static VM_Class[] classObjects = new VM_Class[0];

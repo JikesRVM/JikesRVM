@@ -160,11 +160,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   }
 
   // Begin multi-threaded vm operation.
-  // Taken:    arguments to pass to application's main() method
-  //           VM_Scheduler.numProcessors == number of virtual processors desired
-  // Returned: never returns (virtual processors begin running)
   //
-  static void boot (String[] applicationArguments) throws VM_PragmaInterruptible {
+  static void boot () throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)
@@ -268,8 +265,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (cpuAffinity != NO_CPU_AFFINITY)
       VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
-
-    // VM.disableGC();
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
@@ -377,58 +372,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     tt.makeDaemon(true);
     tt.start();
 
-    // start user-level and debugging stuff
-    finishBoot(applicationArguments);
-  }
-
-  private static void finishBoot(String[] applicationArguments) throws VM_PragmaInterruptible {
-
-    VM_Thread.getCurrentThread().initializeJNIEnv();
-
     //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
     //-#else
     // Store VM_Processor in pthread
     VM_Processor.getCurrentProcessor().stashProcessorInPthread();
     //-#endif
-
-    // Initialize compiler that compiles dynamically loaded classes.
-    //
-    if (VM.verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
-    VM_RuntimeCompiler.boot();
-
-    // At this point, all of the virtual processors should be running,
-    // and thread switching should be enabled.
-
-    if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
-
-    // Create main and debugger threads.
-    // We wait until this point to create them because these threads
-    // trigger class loading, and our IO system is happier if
-    // IO happens when thread switching is enabled (and it can thus
-    // make use of the IO queue).
-
-    // Create main thread.
-    // Work around class incompatibilities in boot image writer
-    // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
-    Thread      xx         = new MainThread(applicationArguments);
-    VM_Address  yy         = VM_Magic.objectAsAddress(xx);
-    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
-
-    // Schedule "main" thread for execution.
-    mainThread.start();
-
-    // Create one debugger thread.
-    VM_Thread t = new DebuggerThread();
-    t.start(debuggerQueue);
-
-    // End of boot thread. Relinquish control to next job on work queue.
-    //
-    if (VM.TraceThreads)
-      trace("VM_Scheduler.boot", "completed - terminating");
-
-    VM_Thread.terminate();
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   //
