@@ -5,7 +5,7 @@ include		$(RVM_BUILD)/Make.rules
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/bytecodeTests
 BENCH_SOURCE_PATH=$(BENCH_HOME)
-HEAPSIZE=90
+HEAPSIZE=100
 START_NAME=TestAll
 EXPECTED=TestAll.expected
 
