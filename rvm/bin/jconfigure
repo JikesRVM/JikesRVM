@@ -2887,7 +2887,7 @@ function emitPluginBuilder () {
 	fi
 
 	if (( \$# != 0 )); then
-	    echo >&2 "$ME: Too many arguments."
+	    echo >&2 "\$ME: Too many arguments."
 	    usage >&2
 	    exit $Exit_Status_Bad_Args;
 	fi
