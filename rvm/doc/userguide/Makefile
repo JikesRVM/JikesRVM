@@ -74,6 +74,8 @@ INPUT_FILES = 	userguide.tex \
 		trademark-macros.tex \
 		vmdetails.tex
 
+INCLUSIONS_FILE:=inclusions.filenames
+
 GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex \
                 jmtk_options.tex vm_options.tex
 
@@ -122,6 +124,12 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 .INTERMEDIATE:	${GENERATOR}.java
 
 clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} userguide.dvi
+
+## Use inclusions.filenames so that we get the namss in order.
+TAGS tags: ${INCLUSIONS_FILE}
+	etags $$(cat $<)
+
+.PHONY: tags dist-clean distrib html all ps TAGS
 
 dist-clean:	clean
 		rm -f userguide.ps
