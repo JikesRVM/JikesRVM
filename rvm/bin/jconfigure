@@ -2400,37 +2400,42 @@ function emitBooterLinker () {
     # copy native libraries
     CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
     echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
-    ## AIX requires that dynamically loaded libraries end in .a, 
-    ## so that dlopen() will find them.  Also, the classpath builder, on AIX,
-    ## generates the files with the suffix ".so.0".  We transform one to the other.
     if (( RVM_FOR_AIX )); then
-	echo 'for _library in "'$CPS/'$SYSTEM_TYPE/native/jni/"*/.libs/*.so.0'
-	echo 'do'
-	echo '    oldbase="$(basename ${_library} .so.0)"'
-	echo '    dest_lib="'${BUILD_DIRECTORY_STR}'/${oldbase}.a"'
-	echo '    copyIfNewer "$_library" "$dest_lib"'
-	echo 'done'
-	echo 'unset oldbase dest_lib _library || :'
+cat <<- EOF
+	## AIX requires that dynamically loaded libraries end in .a, 
+	## so that dlopen() will find them.  Also, the classpath builder, 
+	## on AIX, generates the files with the suffix ".so.0".  
+	## We transform one to the other.
+	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so.0
+	do
+	    oldbase="\$(basename \${_library} .so.0)"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}.a"
+	    copyIfNewer "\$_library" "\$dest_lib"
+	done
+	unset oldbase dest_lib _library || :
+EOF
     else
+cat <<- EOF
 	## On Linux, on the other hand, dynamically loaded libraries end in 
 	## .so.  The classpath builder conveniently generates them 
 	## with this suffix.
-	echo 'for _library in "'$CPS'/$SYSTEM_TYPE/native/jni/"*/.libs/*.so'
-	echo 'do'
-	echo '    copyIfNewer "$_library" "'"${BUILD_DIRECTORY_STR}"'"'
-	echo 'done'
+	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so
+	do
+	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
+	done
+EOF
     fi
-    echo ""
-    echo "echo -n '(classpath native libraries copied) '"
+    cat <<- EOF
+	echo >&2  -n '(classpath native libraries copied) '
 
-    # Make a target platform preprocessor for use in gctest
-    echo "run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
-    echo "copyIfNewer \"${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles\" \"${BUILD_DIRECTORY_STR}/jbuild.prep.target\"  -n '(set up jbuild.prep.target) '"
-
-    # Create RunBootImage.h file.
+	# Make a target platform preprocessor for use in gctest
+	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	copyIfNewer "${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles" "${BUILD_DIRECTORY_STR}/jbuild.prep.target"  -n '(set up jbuild.prep.target) '
+	## Create RunBootImage.h file.
+EOF
     local tgt=RunBootImage.h
     local tmp=${tgt},tmp
-    cat <<- EOF2
+    cat <<- EOF
     	cat << EOF_RUNBOOTIMAGE_H > ${tmp}
 	// RunBootImage.C boot-time constants
 	const unsigned heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;
@@ -2445,14 +2450,14 @@ EOF_RUNBOOTIMAGE_H
 
 	# build the JNI library for creating processes
 	cd ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
-EOF2
+EOF
     if (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
     else
 	local -r shlib_suffix=.so
     fi
     DEST="${BUILD_DIRECTORY_STR}/libjpnexec${shlib_suffix}"
-    echo 'run $GNU_MAKE CFLAGS='' CXXFLAGS='' $MFLAGS -f Makefile.proc DEST='$DEST $DEST 
+    echo "run \$GNU_MAKE CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
 
     if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
@@ -2472,7 +2477,7 @@ EOF2
     else
 	# Build the blocking system call wrapper library, if requested
 	DEST="$BUILD_DIRECTORY_STR/libsyswrap"${shlib_suffix}
-	echo 'run $GNU_MAKE CFLAGS='' CXXFLAGS='' $MFLAGS -f Makefile.syswrap DEST="'$DEST'" CXXFLAGS+="'"$CC_DEFINES"\" "$DEST"
+	echo "run \$GNU_MAKE CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
     fi
 
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
