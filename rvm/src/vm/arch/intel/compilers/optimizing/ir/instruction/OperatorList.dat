@@ -394,9 +394,9 @@ none
 
 
 ########################################
-# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
+# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence, index is DU)
 ########################################
-IA32_LOWTABLESWITCH
+MIR_LOWTABLESWITCH
 MIR_LowTableSwitch
 branch
 

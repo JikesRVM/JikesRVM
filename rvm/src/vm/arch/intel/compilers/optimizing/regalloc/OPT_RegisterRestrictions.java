@@ -102,7 +102,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 
       // handle special cases for IA32
       switch (s.getOpcode()) {
-        case IA32_LOWTABLESWITCH_opcode:
+        case MIR_LOWTABLESWITCH_opcode:
           {
             OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
             noteMustNotSpill(op.register);
@@ -210,7 +210,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           if (op.asRegister().register == r) return true;
         }
         break;
-      case IA32_LOWTABLESWITCH_opcode:
+      case MIR_LOWTABLESWITCH_opcode:
         {
           OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
           if (op.asRegister().register == r) return true;

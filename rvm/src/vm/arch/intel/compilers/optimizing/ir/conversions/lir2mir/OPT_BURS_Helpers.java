@@ -1611,19 +1611,20 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    */
   final void LOWTABLESWITCH(OPT_BURS burs, OPT_Instruction s) {
-    OPT_RegisterOperand index = LowTableSwitch.getIndex(s);
+    // (1) We're changing index from a U to a DU.
+    //     Inject a fresh copy instruction to make sure we aren't
+    //     going to get into trouble (if someone else was also using index).
+    OPT_RegisterOperand newIndex = burs.ir.regpool.makeTempInt(); 
+    burs.append(Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))); 
     int number = LowTableSwitch.getNumberOfTargets(s);
-
-    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(IA32_LOWTABLESWITCH,
-                                                          index, number*2));
+    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex, number*2));
     for (int i=0; i<number; i++) {
-      OPT_BranchOperand target = LowTableSwitch.getTarget(s,i);
-      OPT_BranchProfileOperand profile = LowTableSwitch.getBranchProfile(s,i);
-      MIR_LowTableSwitch.setTarget(s2,i,target);
-      MIR_LowTableSwitch.setBranchProfile(s2,i,profile);
+      MIR_LowTableSwitch.setTarget(s2,i,LowTableSwitch.getTarget(s,i));
+      MIR_LowTableSwitch.setBranchProfile(s2,i,LowTableSwitch.getBranchProfile(s,i));
     }
     burs.append(s2);
   }
+
   /**
    * Expansion of RESOLVE.  Dynamic link point.
    * Build up MIR instructions for Resolve.

@@ -134,6 +134,16 @@ none
 
 -1
 
+########################################
+# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence, index is DU)
+########################################
+MIR_LOWTABLESWITCH
+MIR_LowTableSwitch
+branch
+
+
+-1
+
 ####################
 PPC_DATA_INT
 MIR_DataInt

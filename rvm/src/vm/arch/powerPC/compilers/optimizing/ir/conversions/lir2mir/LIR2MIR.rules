@@ -1606,11 +1606,13 @@ EMIT(MIR_Move.create(PPC_MTSPR, R(getCTR()),                \
                      R(ComputedGoto.getTarget(P(p)))));                       \
 EMIT(MIR_Branch.mutate(P(p), PPC_BCTR));
 
-#
+##################################
+# One operator is passed through nearly unchanged
+##################################
 r:	LOWTABLESWITCH(r)
-11
+10
 EMIT_INSTRUCTION
-EMIT(P(p)); // Leave for OPT_ComplexLIR2MIRExpansion
+LOWTABLESWITCH(burs, P(p));
 
 ###########
 # things that on ppc are just load/stores from the stack

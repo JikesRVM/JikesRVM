@@ -37,15 +37,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
       p.setmcOffset(-1);
       p.scratchObject = null;
       switch (p.getOpcode()) {
-      case LOWTABLESWITCH_opcode:
+      case MIR_LOWTABLESWITCH_opcode:
 	{
 	  
 	  OPT_BasicBlock tableBlock = p.getBasicBlock();
 	  OPT_BasicBlock nextBlock = 
 	    tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
 	  nextBlock.firstInstruction().setmcOffset(-1);
-	  OPT_Register regT = phys.getGPR(LAST_SCRATCH_GPR);
-	  OPT_Register regS = LowTableSwitch.getIndex(p).register;
+	  OPT_Register regI = LowTableSwitch.getIndex(p).register;
 	  int NumTargets = LowTableSwitch.getNumberOfTargets(p);
 	  tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, 
 							nextBlock.makeJumpTarget()));
@@ -56,10 +55,10 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
 	  }
 	  OPT_Register temp = phys.getGPR(0);
 	  p.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getLR())));
-	  p.insertBack(MIR_Binary.create(PPC_SLWI, R(regT), R(regS), I(2)));
-	  p.insertBack(nonPEIGC(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regT), R(temp))));
-	  p.insertBack(MIR_Binary.create(PPC_ADD, R(regT), R(regT), R(temp)));
-	  p.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getCTR()), R(regT)));
+	  p.insertBack(MIR_Binary.create(PPC_SLWI, R(regI), R(regI), I(2)));
+	  p.insertBack(nonPEIGC(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regI), R(temp))));
+	  p.insertBack(MIR_Binary.create(PPC_ADD, R(regI), R(regI), R(temp)));
+	  p.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getCTR()), R(regI)));
 	  MIR_Branch.mutate(p, PPC_BCTR);
 	  instructionCount += NumTargets + 7;
 	}

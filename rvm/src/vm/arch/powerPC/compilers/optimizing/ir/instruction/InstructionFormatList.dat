@@ -173,6 +173,12 @@ MIR_Ternary
 "U Value2 OPT_RegisterOperand" "U Value3 OPT_RegisterOperand"
 
 
+# backend support for tableswitch (index is a DU)
+MIR_LowTableSwitch
+0 1 0 2 U -1
+"DU Index OPT_RegisterOperand" 
+"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
+
 # Rotate-and-mask ALU operation
 # For PPC_RLWINM PPC_RLWIMI PPC_RLWNM
 # Very PowerPC-specific

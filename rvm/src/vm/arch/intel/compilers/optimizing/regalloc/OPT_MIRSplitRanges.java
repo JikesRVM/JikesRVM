@@ -81,7 +81,7 @@ implements OPT_Operators {
         // handle special cases for IA32
         //  (1) Some operands must be in registers
         switch (s.getOpcode()) {
-          case IA32_LOWTABLESWITCH_opcode:
+          case MIR_LOWTABLESWITCH_opcode:
             {
               OPT_RegisterOperand rOp = MIR_LowTableSwitch.getIndex(s);
               OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);

@@ -41,7 +41,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
       p.scratchObject = null; 
 
       switch (p.getOpcode()) {
-      case IA32_LOWTABLESWITCH_opcode:
+      case MIR_LOWTABLESWITCH_opcode:
 	{
 	  // split the basic block after the MIR_LOWTABLESWITCH
 	  OPT_BasicBlock thisBlock = p.getBasicBlock();

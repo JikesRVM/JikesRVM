@@ -365,12 +365,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 			   defaultLabel,TableSwitch.getClearDefaultBranchProfile(s)));
 
     /********** second Basic Block ******/
-    // Insert silly looking move of t to new temporary to 
-    // accomodate IA32 definition of LowTableSwitch 
-    // where Index is a DU operand.
-    OPT_RegisterOperand temp = ir.regpool.makeTempInt();
-    BB2.appendInstruction(Move.create(INT_MOVE, temp, t.copyD2U()));
-    s2 = LowTableSwitch.create(LOWTABLESWITCH, temp.copyD2U(), number*2);
+    s2 = LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number*2);
     boolean containsDefault = false;
     for (int i = 0; i < number; i++) {
       OPT_BranchOperand b = TableSwitch.getClearTarget(s, i);
@@ -388,7 +383,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       BB2.deleteOut(defaultBB);
     // Simplify a fringe case...
     // if all targets of the LOWTABLESWITCH are the same,
-    // then just use a GOTO instead of the LOWTABLESWITCH/COMPUTED_GOTO pair.
+    // then just use a GOTO instead of the LOWTABLESWITCH.
     // This actually happens (very occasionally), and is easy to test for.
     if (BB2.getNumberOfNormalOut() == 1) {
       BB2.appendInstruction(Goto.create(GOTO, 

@@ -1554,6 +1554,30 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
 
+  /**
+   * Expansion of LOWTABLESWITCH.  
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   */
+  final void LOWTABLESWITCH(OPT_BURS burs, OPT_Instruction s) {
+    // (1) We're changing index from a U to a DU.
+    //     Inject a fresh copy instruction to make sure we aren't
+    //     going to get into trouble (if someone else was also using index).
+    OPT_RegisterOperand newIndex = burs.ir.regpool.makeTempInt(); 
+    burs.append(Move.create(PPC_MOVE, newIndex, LowTableSwitch.getIndex(s))); 
+    int number = LowTableSwitch.getNumberOfTargets(s);
+    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex, number*2));
+    for (int i=0; i<number; i++) {
+      MIR_LowTableSwitch.setTarget(s2,i,LowTableSwitch.getTarget(s,i));
+      MIR_LowTableSwitch.setBranchProfile(s2,i,LowTableSwitch.getBranchProfile(s,i));
+    }
+    burs.append(s2);
+  }
+
+
+
+
   // Take the generic LIR trap_if and coerce into the limited vocabulary
   // understand by C trap handler on PPC.  See VM_TrapConstants.java.
   // Also see OPT_ConvertToLowLevelIR.java which generates most of these TRAP_IFs.
