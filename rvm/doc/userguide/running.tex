@@ -69,6 +69,9 @@ print usage on nonstandard options
 \item[{\tt -X:verbose}]
 print out additional information for GC and hardware trap handling
 
+\item[{\tt -X:verboseBoot=<number>}]
+print out additional information while VM is booting
+
 \item[{\tt -Xms<number>}]
 set the initial heap size to {\tt <number>} megabytes
 
@@ -81,9 +84,11 @@ writes standard error message to {\tt <filename>}
 \item[{\tt -X:i=<filename>}]
 read boot image from {\tt <filename>}
 
-\item[{\tt -X:traceClassLoading}]
-produce a report on class loading activity. More details than 
-{\tt -verbose:class}. 
+\item[{\tt -X:vm[:help]}]
+print options supported by core virtual machine
+
+\item[{\tt -X:gc:<option>}]
+pass {\tt <option>} to the core vitual machine
 
 \item[{\tt -X:gc[:help]}]
 print options supported by memory management system
@@ -134,10 +139,6 @@ physical cpu to which first virtual processor is bound
 \item[{\tt -X:processors=<int|``all''>}]
 number of processors to use on a multiprocessor
 
-\item[{\tt -X:measureCompilation=<boolean>}]
-produce a report on compilation time
-
-\item[{\tt -X:verify=<boolean>}] verify bytecodes
 \end{description}
 
 See Appendix~\ref{appendix:nonadaptive:cmdline} for more details on 
