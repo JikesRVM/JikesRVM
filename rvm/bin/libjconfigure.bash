@@ -449,7 +449,7 @@ function check_bash_version() {
     ## The checks against Bash 2.03 and earlier are now redundant with a
     ## similar check in jconfigure itself.  They do no harm.
     if [[ ! ${BASH_VERSINFO-} ]]; then
-	show_mesg "You are using a very old version of Bash, one that even lacks the BASH_VERSINFO variable.  Expect trouble.  ${recommend_bash}."
+	show_mesg "You are probably using a very old version of Bash, one that even lacks the BASH_VERSINFO variable.  (You may even not be using Bash at all.)  Expect trouble.  ${recommend_bash}."
 	show_your_bad_bash_version;
 	return 0;
     fi >&2
