@@ -59,6 +59,10 @@ public abstract class VM_Configuration {
           true;
         //-#endif
 
+  // Verify that Uninterruptible methods actually cannot be interrupted.
+  // Disabled for just a little longer since we get too many false positives
+  public static final boolean VerifyUnint = false && VerifyAssertions;
+
   // Multiprocessor operation.
   //  false --> vm will use multiple processors (requires operatying system that
   //            supports posix pthread, e.g., AIX)

@@ -77,15 +77,19 @@ abstract class VM_BaselineCompiler {
   protected int[] stackHeights;
 
   /**
+   * machine code offset at which the lock is acquired in the prologue of a synchronized method.
+   */
+  protected int lockOffset;
+
+  /**
    * Should we print the machine code we generate?
    */
   protected boolean shouldPrint = false;
 
   /**
-   * machine code offset at which the lock is acquired in the prologue of a synchronized method.
+   * Is the method currently being compiled interruptible?
    */
-  protected int lockOffset;
-
+  protected final boolean isInterruptible;
 
   /**
    * Construct a VM_Compiler
@@ -101,6 +105,7 @@ abstract class VM_BaselineCompiler {
     bytecodes = method.getBytecodes();
     bytecodeMap = new int [bytecodes.length];
     asm = new VM_Assembler(bytecodes.length, shouldPrint);
+    isInterruptible = method.isInterruptible();
   }
 
 
@@ -809,6 +814,7 @@ abstract class VM_BaselineCompiler {
 
       case 0x53: /* aastore */ {
 	if (shouldPrint) asm.noteBytecode(biStart, "aastore");
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore");
 	emit_aastore();
 	break;
       }
@@ -1459,11 +1465,13 @@ abstract class VM_BaselineCompiler {
 	    !fieldRefClass.isInitialized() &&
 	    !(fieldRefClass == klass) &&
 	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)) { 
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
 	  emit_initializeClassIfNeccessary(fieldRefClass.getDictionaryId());
 	  classPreresolved = true;
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
 	  emit_unresolved_getstatic(fieldRef);
 	} else {
 	  emit_resolved_getstatic(fieldRef.resolve());
@@ -1491,11 +1499,13 @@ abstract class VM_BaselineCompiler {
 	    !fieldRefClass.isInitialized() &&
 	    !(fieldRefClass == klass) &&
 	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)) { 
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
 	  emit_initializeClassIfNeccessary(fieldRefClass.getDictionaryId());
 	  classPreresolved = true;
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
 	  emit_unresolved_putstatic(fieldRef);
 	} else {
 	  emit_resolved_putstatic(fieldRef.resolve());
@@ -1513,6 +1523,7 @@ abstract class VM_BaselineCompiler {
 	  try {
 	    fieldRefClass.load();
 	    fieldRefClass.resolve();
+	    if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	    classPreresolved = true;
 	  } catch (Exception e) { 
 	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
@@ -1520,6 +1531,7 @@ abstract class VM_BaselineCompiler {
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	  emit_unresolved_getfield(fieldRef);
 	} else {
 	  emit_resolved_getfield(fieldRef.resolve());
@@ -1545,6 +1557,7 @@ abstract class VM_BaselineCompiler {
 	}
 	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
 	  if (VM.VerifyAssertions) VM.assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield "+fieldRef);
 	  emit_unresolved_putfield(fieldRef);
 	} else {
 	  emit_resolved_putfield(fieldRef.resolve());
@@ -1572,9 +1585,12 @@ abstract class VM_BaselineCompiler {
 	  } // report the exception at runtime
 	}
 	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
 	} else {
-	  emit_resolved_invokevirtual(methodRef.resolve());
+	  methodRef = methodRef.resolve();
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
+	  emit_resolved_invokevirtual(methodRef);
 	}
 	break;
       }
@@ -1594,6 +1610,7 @@ abstract class VM_BaselineCompiler {
 	  } // report the exception at runtime
 	}
 	if (methodRef.getDeclaringClass().isResolved() && (target = VM_Class.findSpecialMethod(methodRef)) != null) {
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
 	  emit_resolved_invokespecial(methodRef, target);
 	} else {
 	  emit_unresolved_invokespecial(methodRef);
@@ -1625,13 +1642,17 @@ abstract class VM_BaselineCompiler {
 	    !methodRefClass.isInitialized() &&
 	    !(methodRefClass == klass) &&
 	    !(methodRefClass.isInBootImage() && VM.writingBootImage)) {
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
 	  emit_initializeClassIfNeccessary(methodRefClass.getDictionaryId());
 	  classPreresolved = true;
 	}
 	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
+	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
 	  emit_unresolved_invokestatic(methodRef);
 	} else {
-	  emit_resolved_invokestatic(methodRef.resolve());
+	  methodRef = methodRef.resolve();
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef);
+	  emit_resolved_invokestatic(methodRef);
 	}
 	break;
       }
@@ -1642,6 +1663,7 @@ abstract class VM_BaselineCompiler {
 	int count = fetch1ByteUnsigned();
 	fetch1ByteSigned(); // eat superfluous 0
 	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + constantPoolIndex + " (" + methodRef + ") " + count + " 0");
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface "+methodRef);
 	emit_invokeinterface(methodRef, count); 
 	break;
       }
@@ -1656,6 +1678,7 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Class typeRef = klass.getTypeRef(constantPoolIndex).asClass();
 	if (shouldPrint) asm.noteBytecode(biStart, "new " + constantPoolIndex + " (" + typeRef + ")");
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+typeRef);
 	if (typeRef.isInitialized() || typeRef.isInBootImage()) { 
 	  emit_resolved_new(typeRef);
 	} else { 
@@ -1670,6 +1693,7 @@ abstract class VM_BaselineCompiler {
 	array.resolve();
 	array.instantiate();
 	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + atype + "(" + array + ")");
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
 	emit_newarray(array);
 	break;
       }
@@ -1683,6 +1707,7 @@ abstract class VM_BaselineCompiler {
 	array.resolve();
 	array.instantiate();
 	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + constantPoolIndex + " (" + array + ")");
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
 	emit_newarray(array);
 	break;
       }
@@ -1696,6 +1721,7 @@ abstract class VM_BaselineCompiler {
       case 0xbf: /* athrow */ {
 	if (shouldPrint) asm.noteBytecode(biStart, "athrow");  
  	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow");
 	emit_athrow();
 	break;
       }
@@ -1704,7 +1730,18 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + constantPoolIndex + " (" + typeRef + ")");
-	emit_checkcast(typeRef, VM_Entrypoints.checkcastMethod);
+	VM_Method target = VM_Entrypoints.checkcastMethod;
+	if (typeRef.isClassType() && typeRef.isLoaded() && typeRef.asClass().isFinal()) {
+	  target = VM_Entrypoints.checkcastFinalMethod;
+	} else if (typeRef.isArrayType()) {
+	  VM_Type elemType = typeRef.asArray().getElementType();
+	  if (elemType.isPrimitiveType() || 
+	      (elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
+	    target = VM_Entrypoints.checkcastFinalMethod;
+	  }
+	}
+	if (VM.VerifyUnint && !isInterruptible && target != VM_Entrypoints.checkcastFinalMethod) forbiddenBytecode("checkcast "+typeRef);
+	emit_checkcast(typeRef, target);
 	break;
       }
 
@@ -1712,26 +1749,31 @@ abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + constantPoolIndex  + " (" + typeRef + ")");
-	VM_Method target;
-	if (typeRef.isClassType() && typeRef.asClass().isLoaded() && typeRef.asClass().isFinal()) {
+	VM_Method target = VM_Entrypoints.instanceOfMethod;
+	if (typeRef.isClassType() && typeRef.isLoaded() && typeRef.asClass().isFinal()) {
 	  target = VM_Entrypoints.instanceOfFinalMethod;
-	} else if (typeRef.isArrayType() && typeRef.asArray().getElementType().isPrimitiveType()) {
-	  target = VM_Entrypoints.instanceOfFinalMethod;
-	} else {
-	  target = VM_Entrypoints.instanceOfMethod;
+	} else if (typeRef.isArrayType()) {
+	  VM_Type elemType = typeRef.asArray().getElementType();
+	  if (elemType.isPrimitiveType() || 
+	      (elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
+	    target = VM_Entrypoints.instanceOfFinalMethod;
+	  }
 	}
+	if (VM.VerifyUnint && !isInterruptible && target != VM_Entrypoints.instanceOfFinalMethod) forbiddenBytecode("checkcast "+typeRef);
 	emit_instanceof(typeRef, target);
 	break;
       }
 
       case 0xc2: /* monitorenter  */ {
 	if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");  
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter");
 	emit_monitorenter();
 	break;
       }
 
       case 0xc3: /* monitorexit */ {
 	if (shouldPrint) asm.noteBytecode(biStart, "monitorexit"); 
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit");
 	emit_monitorexit();
 	break;
       }
@@ -1813,6 +1855,7 @@ abstract class VM_BaselineCompiler {
 	VM_Array typeRef      = klass.getTypeRef(constantPoolIndex).asArray();
 	int dictionaryId      = klass.getTypeRefId(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray " + constantPoolIndex + " (" + typeRef + ") " + dimensions);
+	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray");
 	emit_multianewarray(typeRef, dimensions, dictionaryId);
 	break;
       }
@@ -1858,6 +1901,30 @@ abstract class VM_BaselineCompiler {
       }
     }
     return asm.finalizeMachineCode(bytecodeMap);
+  }
+
+
+  /**
+   * Print a warning message whan we compile a bytecode that is forbidden in
+   * Uninterruptible code.
+   * 
+   * @param msg description of bytecode that is violating the invariant
+   */
+  protected final void forbiddenBytecode(String msg) {
+    if (method == VM_Entrypoints.bootMethod) return; // Special case: VM.boot is logically interruptible, but thread state isn't setup on entry so prologue would crash and burn.
+    VM.sysWriteln("WARNING "+ method + ": contains forbidden bytecode "+msg);
+  }
+
+  /**
+   * Ensure that the callee method is safe to invoke from uninterruptible code
+   * 
+   * @param target the target methodRef
+   */
+  protected final void checkTarget(VM_Method target) {
+    if (method == VM_Entrypoints.bootMethod) return; // Special case: VM.boot is logically interruptible, but thread state isn't setup on entry so prologue would crash and burn.
+    if (target.isInterruptible()) {
+      VM.sysWriteln("WARNING "+ method + ": contains call to interruptible method "+target);
+    }
   }
 
 
