@@ -25,5 +25,5 @@ do
    jconfigure $image
    cd $BUILDDIR/$image
    echo "Building $image"
-   jbuild
+   jbuild -trace >RVM.trace 2>&1
 done
