@@ -1421,8 +1421,8 @@ final class VM_BuildQuickReferenceMaps implements VM_BytecodeConstants {
         }  // case JBC_wide:
         
         default: {
-          VM.sysWriteln("Unknown opcode:" + opcode);
-          VM.sysExit(-1);
+          VM.sysFail("Unknown opcode:",  opcode);
+          System.exit(VM.EXIT_STATUS_QUICK_COMPILER_FAILED);
         }
 
         }  // end switch (opcode)

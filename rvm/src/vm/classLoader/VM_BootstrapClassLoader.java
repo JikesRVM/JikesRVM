@@ -87,8 +87,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         //      }
 
       } catch (Exception e) {
-        VM.sysWriteln("Failed to setup bootstrap class loader");
-        VM.sysExit(-1);
+        VM.sysFail("Failed to setup bootstrap class loader");
       }
     }
   }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2004
+ * (C) Copyright IBM Corp 2001,2002, 2004, 2005
  */
 //VM_BuildReferenceMaps.java
 //$Id$
@@ -1418,8 +1418,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
         }  // case JBC_wide:
         
         default: {
-          VM.sysWriteln("Unknown opcode:" + opcode);
-          VM.sysExit(-1);
+          VM.sysFail("Unknown opcode:" + opcode);
         }
 
         }  // end switch (opcode)

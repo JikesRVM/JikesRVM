@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -341,6 +341,7 @@ class VM_TraceWriter extends VM_Thread
    * Assumed called once.
    * Actions:
    *  Open trace file. 
+   * Verified Constraint: Assume trace file is not already open!
    */
   public void notifyStartup()
   {
@@ -348,7 +349,10 @@ class VM_TraceWriter extends VM_Thread
       if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWriteln("VM_TraceWriter.notifyStartup() PID ",pid); }
       if (trace_file != null) {
         VM.sysWriteln("***VM_TraceWriter.notifyStartup() pid ",pid," trace_file != null!***");
-        VM.sysExit(-1);
+        // NOTE: This is called during the boot sequence, so we use
+        // VM.sysExit, since we do not need System.exit to run shutdown hooks.
+        
+        VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
       }
       int n_processors = VM_Scheduler.numProcessors;
       String file_name = HPM_info.filenamePrefix+"."+pid+".startup";
@@ -365,6 +369,9 @@ class VM_TraceWriter extends VM_Thread
    * The thread that executes this method is not necessarily the thread that
    * produces the trace records.
    *
+   * <B>NB:</b> Called late in the shutdown sequence, so we should not call
+   *   System.exit, since we could get into a recursive calling loop.
+   *    
    * @param value the exit value
    */
   public void notifyExit(int value)
@@ -375,7 +382,7 @@ class VM_TraceWriter extends VM_Thread
       }
       if (trace_file == null) {
         VM.sysWriteln("\n***VM_TraceWriter.notifyExit() PID ",pid," trace_file == null! notifyStartup never called!***\n");
-        VM.sysExit(-1);
+        VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
       }
       // Only called once from producer when notify exit occurs.
       // Flush current buffer
@@ -418,7 +425,7 @@ class VM_TraceWriter extends VM_Thread
       if (trace_file == null) {
         VM.sysWriteln("\n***VM_TraceWriter.notifyAppStart() pid ",pid," trace_file == null!***\n");
         return;
-        //      VM.sysExit(-1);
+        //      VM.sysexit(1);
       }
       hpm.notifyAppStart(app);
     }
@@ -438,7 +445,7 @@ class VM_TraceWriter extends VM_Thread
         VM.sysWrite(  "\n***VM_TraceWriter.notifyAppComplete(",app,") PID ",pid);
         VM.sysWriteln(" trace_file == null! notifyAppStart() never called!***\n");
         return;
-        //      VM.sysExit(-1);
+        //      VM.sysexit(1);
       }
       hpm.notifyAppComplete(app);
     }
@@ -463,7 +470,7 @@ class VM_TraceWriter extends VM_Thread
         VM.sysWrite  (") PID ",pid);
         VM.sysWriteln(" trace_file == null!***");
         return;
-        // VM.sysExit(-1);
+        // VM.sysexit(1);
       }
       hpm.notifyAppRunStart(app,run);
     } 
@@ -484,7 +491,7 @@ class VM_TraceWriter extends VM_Thread
         VM.sysWrite(  "\n***VM_TraceWriter.notifyAppRunComplete(",app,",",run);
         VM.sysWriteln(") PID ",pid," trace_file == null!***\n");
         return;
-        //      VM.sysExit(-1);
+        //      VM.sysexit(1);
       }
       hpm.notifyAppRunComplete(app,run);
     }

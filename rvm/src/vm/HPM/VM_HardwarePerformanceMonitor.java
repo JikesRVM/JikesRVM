@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -293,20 +293,17 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
     if (cmidAvailable) {
       if (callee_CMID<1 || callee_CMID>=VM_CompiledMethods.numCompiledMethods()) {
         callee_MID = CMID_OUT_OF_BOUNDS_MID;
-        VM.sysWriteln("***VM_HPM.tracing() CALLEE_CMID_OUT_OF_BOUNDS_MID*** ",callee_CMID);
-        VM.sysExit(-1);
+        VM.sysFail("***VM_HPM.tracing() CALLEE_CMID_OUT_OF_BOUNDS_MID*** ",callee_CMID);
       } else {
         final VM_CompiledMethod cm1 = VM_CompiledMethods.getCompiledMethod(callee_CMID);
         if (cm1==null) {
           callee_MID = CMID_WITHOUT_COMPILED_METHOD_MID;
-          VM.sysWriteln("***VM_HPM.tracing() CALLEE_CMID_WITHOUT_COMPILED_METHOD_MID*** ",callee_CMID);
-          VM.sysExit(-1);
+          VM.sysFail("***VM_HPM.tracing() CALLEE_CMID_WITHOUT_COMPILED_METHOD_MID*** ",callee_CMID);
         } else {
           final VM_Method m1 = cm1.getMethod();
           if (m1==null) {
             callee_MID = COMPILED_METHOD_WITHOUT_METHOD_MID;
-            VM.sysWriteln("***VM_HPM.tracing() CALLEE_CMID_WITHOUT_METHOD_MID*** ",callee_CMID);
-            VM.sysExit(-1);
+            VM.sysFail("***VM_HPM.tracing() CALLEE_CMID_WITHOUT_METHOD_MID*** ",callee_CMID);
           } else {
             callee_MID = m1.getId();
             /**
@@ -319,20 +316,17 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
       }
       if (caller_CMID<1 || caller_CMID>=VM_CompiledMethods.numCompiledMethods()) {
         caller_MID = CMID_OUT_OF_BOUNDS_MID;
-        VM.sysWriteln("***VM_HPM.tracing() CALLER_CMID_OUT_OF_BOUNDS_MID*** ",caller_CMID);
-        VM.sysExit(-1);
+        VM.sysFail("***VM_HPM.tracing() CALLER_CMID_OUT_OF_BOUNDS_MID*** ",caller_CMID);
       } else {
         final VM_CompiledMethod cm2 = VM_CompiledMethods.getCompiledMethod(caller_CMID);
         if (cm2==null) {
           caller_MID = CMID_WITHOUT_COMPILED_METHOD_MID;
-          VM.sysWriteln("***VM_HPM.tracing() CALLER_CMID_WITHOUT_COMPILED_METHOD_MID*** ",caller_CMID);
-          VM.sysExit(-1);
+          VM.sysFail("***VM_HPM.tracing() CALLER_CMID_WITHOUT_COMPILED_METHOD_MID*** ",caller_CMID);
         } else {
           final VM_Method m2 = cm2.getMethod();
           if (m2==null) {
             caller_MID = COMPILED_METHOD_WITHOUT_METHOD_MID;
-            VM.sysWriteln("***VM_HPM.tracing() CALLER_CMID_WITHOUT_METHOD_MID*** ",caller_CMID);
-            VM.sysExit(-1);
+            VM.sysFail("***VM_HPM.tracing() CALLER_CMID_WITHOUT_METHOD_MID*** ",caller_CMID);
           } else {
             caller_MID = m2.getId();
             /**
@@ -343,7 +337,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
           }
         }
       }
-      //VM_Thread.dumpCallStack();
+      //VM_Scheduler.dumpStack();
       cmidAvailableCount++;
       cmidAvailable = false;
     } else {
@@ -354,7 +348,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
       VM.sysWrite("cmidUnavailableCount:   ");
       VM.sysWriteln(cmidUnavailableCount);
       //VM.sysWriteln("cmid NOT available");
-      VM_Thread.dumpCallStack();
+      VM_Scheduler.dumpStack();
       callee_MID = UNAVAILABLE_MID;
       caller_MID = UNAVAILABLE_MID;
     }

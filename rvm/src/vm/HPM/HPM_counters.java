@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -36,9 +36,7 @@ public final class HPM_counters
    */
   HPM_counters() {
     if (!VM_HardwarePerformanceMonitors.booted()) {
-      VM.sysWrite("***HPM_counters() called before VM_HPM.booted()!***\n");
-      new Exception().printStackTrace();
-      VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
+      VM.sysFail("***HPM_counters() called before VM_HPM.booted()!***\n");
     }
     // TEMPORARY
     counters = new long[HPM_info.getNumberOfValues()];

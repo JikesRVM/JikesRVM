@@ -90,8 +90,7 @@ public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
         //      }
 
       } catch (Exception e) {
-        VM.sysWriteln("Failed to setup application class loader");
-        VM.sysExit(-1);
+        VM.sysFail("Failed to setup application class loader");
       }
     }
   }
