@@ -149,8 +149,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Thread t = VM_Thread.getCurrentThread();
     if (STATS) timedWaitOperations++;
     // Get proxy and set wakeup time
-    t.wakeupTime = VM_Time.now() + millis * .001;
-    t.proxy = new VM_Proxy(t, t.wakeupTime); // cache the proxy before obtaining locks
+    t.wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
+    t.proxy = new VM_Proxy(t, t.wakeupCycle); // cache the proxy before obtaining locks
     // Get monitor lock
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o

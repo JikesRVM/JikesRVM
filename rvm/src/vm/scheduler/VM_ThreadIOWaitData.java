@@ -27,10 +27,10 @@ public class VM_ThreadIOWaitData
 
   /**
    * Constructor.
-   * @param maxWaitTime the timestamp when the wait should end
+   * @param maxWaitCycle the timestamp when the wait should end
    */
-  public VM_ThreadIOWaitData(double maxWaitTime) {
-    super(maxWaitTime);
+  public VM_ThreadIOWaitData(long maxWaitCycle) {
+    super(maxWaitCycle);
   }
 
   /**

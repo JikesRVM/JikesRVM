@@ -13,6 +13,7 @@ import java.lang.ref.PhantomReference;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
 import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
@@ -186,6 +187,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static void fullyBootedVM() throws VM_PragmaInterruptible {
     Plan.fullyBooted();
     Lock.fullyBooted();
+    Barrier.fullyBooted();
   }
 
   /** 

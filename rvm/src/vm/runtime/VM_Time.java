@@ -18,6 +18,11 @@ public class VM_Time implements VM_Uninterruptible {
    */
   private static double milliPerCycle = 0;
 
+  /**
+   * Conversion factor from cycles to time in seconds
+   */
+  private static double secPerCycle = 0;
+
   private static long bootNow;
   private static long bootCycles;
 
@@ -40,6 +45,7 @@ public class VM_Time implements VM_Uninterruptible {
     long cycles = endCycles - bootCycles;
     if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
     milliPerCycle = (((double)dur) / ((double)cycles)) / 1000;
+    secPerCycle = milliPerCycle / 1000;
   }
 
   /**
@@ -68,6 +74,17 @@ public class VM_Time implements VM_Uninterruptible {
   }
 
   /**
+   * Convert a value in the units of used by {@link #cycles()}
+   * to time in seconds.
+   * @param c a real time clock value
+   * @return c converted to milli seconds
+   */
+  public static double cyclesToSecs(long c) {
+    if (VM.VerifyAssertions) VM._assert(secPerCycle != 0);
+    return c * secPerCycle;
+  }
+
+  /**
    * Convert a time value in milliSeconds to cycles.
    * @param t a time in milliseconds
    * @return the corresponding number of cycles
@@ -75,6 +92,16 @@ public class VM_Time implements VM_Uninterruptible {
   public static long millisToCycles(double t) {
     if (VM.VerifyAssertions) VM._assert(milliPerCycle != 0);
     return (long)(t / milliPerCycle);
+  }
+
+  /**
+   * Convert a time value in seconds to cycles.
+   * @param t a time in seconds
+   * @return the corresponding number of cycles
+   */
+  public static long secsToCycles(double t) {
+    if (VM.VerifyAssertions) VM._assert(secPerCycle != 0);
+    return (long)(t / secPerCycle);
   }
 
   /**
@@ -125,18 +152,5 @@ public class VM_Time implements VM_Uninterruptible {
    */
   public static int toMilliSecs(double time) {
     return (int)(time*1000.0);
-  }
-
-  // A little silly, but fills out the interface....
-  public static int toSecs(double time) {
-    return (int)time;
-  }
-
-  /**
-   * Scale a double (presumably representing the deltas/sums of VM.now values)
-   * to a time in minutes.
-   */
-  public static int toMins(double time) {
-    return (int)(time/60.0);
   }
 }

@@ -49,5 +49,5 @@ public interface VM_ThreadEventConstants {
    * Used to specify that a wait should block indefinitely
    * (i.e., no timeout).
    */
-  public static final double WAIT_INFINITE = -1.0d;
+  public static final long WAIT_INFINITE = -1;
 }

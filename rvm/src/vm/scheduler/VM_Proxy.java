@@ -25,7 +25,7 @@ final class VM_Proxy implements VM_Uninterruptible {
   VM_Thread        patron;
   VM_Proxy         waitingNext;
   VM_Proxy         wakeupNext;
-  double           wakeupTime;
+  long             wakeupCycle;
   VM_ProcessorLock lock = new VM_ProcessorLock();
  
   // Create a proxy for a thread on a waiting queue
@@ -37,9 +37,9 @@ final class VM_Proxy implements VM_Uninterruptible {
   // Create a proxy for a thread on a wakeup queue 
   // (may be on a waiting queue also)
   //
-  VM_Proxy (VM_Thread t, double time) {
+  VM_Proxy (VM_Thread t, long cycles) {
     patron = t;
-    wakeupTime = time;
+    wakeupCycle = cycles;
   }
   
   // Remove the thread from the queue

@@ -34,7 +34,7 @@ public class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible
 
   public void stop (long x) {
     if (begin != -1) accumulated += (x - begin);
-    addSample(VM_Time.cyclesToMillis(accumulated)/1000);
+    addSample(VM_Time.cyclesToSecs(accumulated));
     reset();
   }
 

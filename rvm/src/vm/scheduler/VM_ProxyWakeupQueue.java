@@ -20,7 +20,7 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uni
 
   boolean isReady () {
     VM_Proxy temp = head;
-    return ((temp != null) && (VM_Time.now() >= temp.wakeupTime));
+    return ((temp != null) && (VM_Time.cycles() >= temp.wakeupCycle));
   }
 
   void enqueue (VM_Thread t) {
@@ -30,7 +30,7 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uni
   void enqueue (VM_Proxy p) {
     VM_Proxy previous = null;
     VM_Proxy current  = head;
-    while (current != null && current.wakeupTime <= p.wakeupTime) { // skip proxies with earlier wakeupTimes
+    while (current != null && current.wakeupCycle <= p.wakeupCycle) { // skip proxies with earlier wakeupCycles
       previous = current;
       current = current.wakeupNext;
       }
@@ -47,9 +47,9 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue implements VM_Uni
   // Returned: the thread (null --> nobody ready to wake up)
   //
   VM_Thread dequeue () {
-    double currentTime = VM_Time.now();
+    long currentCycle = VM_Time.cycles();
     while (head != null) {
-      if (currentTime < head.wakeupTime) return null;
+      if (currentCycle < head.wakeupCycle) return null;
       VM_Proxy p = head;
       head = head.wakeupNext;
       p.wakeupNext = null;

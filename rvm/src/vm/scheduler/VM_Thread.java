@@ -1545,7 +1545,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * If this thread is sleeping, when should it be awakened?
    */ 
-  double wakeupTime;
+  long wakeupCycle;
 
   /**
    * Object specifying the event the thread is waiting for.
@@ -1668,7 +1668,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
    * Accumulate the interval from startCycles to the result
-   * of calling {@link VM_Time#cycles() into {@link #totalCycles}
+   * of calling {@link VM_Time#cycles()} into {@link #totalCycles}
    * returning the new value of totalCycles.
    * @return totalCycles
    */

@@ -807,10 +807,31 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Convert cycles to milliSecs
+   * Convert cycles to milliseconds
    */
   public static double cyclesToMillis(long c) {
     return VM_Time.cyclesToMillis(c);
+  }
+
+  /**
+   * Convert cycles to seconds
+   */
+  public static double cyclesToSecs(long c) {
+    return VM_Time.cyclesToSecs(c);
+  }
+
+  /**
+   * Convert milliseconds to cycles
+   */
+  public static long millisToCycles(double t) {
+    return VM_Time.millisToCycles(t);
+  }
+
+  /**
+   * Convert seconds to cycles
+   */
+  public static long secsToCycles(double t) {
+    return VM_Time.secsToCycles(t);
   }
 
   /* AJG: Not used. */
