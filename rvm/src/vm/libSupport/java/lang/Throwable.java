@@ -99,9 +99,9 @@ public class Throwable implements java.io.Serializable {
     /* We collect the whole stack trace, and we strip out the cause of the
        exception later on at printing time, in printStackTrace(). */
     try {
-      tallyOutOfMemoryError();
       stackTrace = new VM_StackTrace(0);
     } catch (OutOfMemoryError t) {
+      tallyOutOfMemoryError();
       stackTrace = null;
       VM.sysWriteln("Throwable.fillInStackTrace(): Cannot fill in a stack trace; out of memory!");
     } catch (Throwable t) {
