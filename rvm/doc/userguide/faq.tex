@@ -14,9 +14,9 @@ The Jikes Research Virtual Machine (RVM) is a software project
 designed to provide the academic and research communities with a
 flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
-choices. It executes Java\trademark programs useful for research on
+choices. It executes Java\JavaTMFootnote programs useful for research on
 fundamental virtual machine design issues.
-It runs on the AIX\trademark/PowerPC\trademark,
+It runs on the AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote,
 Linux\copyright/PowerPC and Linux/IA-32, 
 and exhibits industry-strength performance for many benchmark programs
 on the first two of these platforms.  The RVM includes the latest VM
@@ -69,9 +69,13 @@ contribute code, let us know.
 contributions that infringe on anyone's intellectual property rights or
 copyrights.
 
-\JikesTMFooter
-
 \JavaTMFooter
+
+\AIXTMFooter
+
+\PowerPCTMFooter
+
+\JikesTMFooter
 
 \subsection{Getting RVM and Documentation}
 
@@ -117,15 +121,18 @@ There are separate, more restrictive licenses
 for the 
 \xlink{binary}{\RVMLibBinaryLicenseURL} and 
 \xlink{source}{\RVMLibSourceLicenseURL} 
-to the Java standard libraries for RVM.  See the DeveloperWorks
+to the Java\JavaTMFootnote standard libraries for RVM.  See the DeveloperWorks
 web pages for more details. 
+
+\JavaTMFooter
 
 \subsection{Building RVM}
 
 \subsubsection{Which jikes should I use?}
 At Watson, we're currently using 
 \xlink{{\tt jikes}}{\jikesURL} v1.13 to compile the RVM source on
-both Linux and AIX.  We've had reports from users that v1.14 has problems
+both Linux and AIX\AIXTMFootnote.  We've had reports from users that
+v1.14 has problems 
 on Linux.  In order to build the {\tt rvmrt.jar} library, we applied 
 patch 62
 to the jikes build to fix a jikes scoping problem.
@@ -166,6 +173,8 @@ this is to edit {\tt jconfigure}; look at the function {\tt
 emitImageLinker}.  You will see that the script already puts certain other
 non-VM classes in the primordial list (eg. {\tt java.lang.Object}).
 
+\AIXTMFooter
+
 \subsection{Runtime implementation}
 
 \subsubsection{Does RVM have an interpreter?}
@@ -175,7 +184,7 @@ No.  RVM relies on two compilers, and compiles all methods to native code.
 \subsubsection{Does RVM support JNI?}
 
 Most JNI functionality is supported. A few functions are not. 
-Some functions are supported on AIX
+Some functions are supported on AIX\AIXTMFootnote,
 but not Linux.
 
 \subsubsection{Does RVM support user-defined class loaders?}
@@ -183,7 +192,12 @@ but not Linux.
 No. Some class loader functionality is hacked around, delegating all
 function to the system class loader.  
 
-\subsubsection{Does RVM support the Java 2 security model?}
+%% We can't put footnotes in section headings, so we specialize
+\html{\subsubsection{Does RVM support the Java\trademark 2
+security model?}} 
+
+\texonly{\subsubsection{Does RVM support the Java
+security model?}} 
 
 No. 
 
@@ -201,7 +215,8 @@ understanding.
 
 Known issues include:
 \begin{itemize}
-\item on PowerPC, the system does not enforce sequential consistency for
+\item on PowerPC\PowerPCTMFootnote, the system does not enforce
+sequential consistency for 
 volatile variables
 \item the system does not enforce atomicity of memory accesses for
 doubleword values
@@ -397,6 +412,12 @@ sequence.
 
 No. There is nothing in RVM that remotely resembles HPI.
 
+\JavaTMFooter
+
+\AIXTMFooter
+
+\PowerPCTMFooter
+
 \subsection{Libraries}
 
 \subsubsection{Does RVM run awt?}
@@ -426,7 +447,8 @@ Yes.  Every thread switch point is a GC safe point, but every GC safe point
 need not be a thread switch point.
 
 A thread switch point is an instruction where the RVM thread scheduler may
-intervene and cause a different Java thread (VM\_Thread) to run on the current
+intervene and cause a different Java\JavaTMFootnote thread (VM\_Thread) to
+run on the current 
 pthread (VM\_Processor), even if no exception is thrown.  
 Thread switch points include yield points inserted in prologues, epilogues, 
 and back edges, monitorenter and exits.
@@ -499,3 +521,5 @@ program to run the optimizing compiler even on a BaseBase boot image.
 This driver is useful for optimizing compiler development, since you
 can use the driver to selectively compile individual methods with
 certain options.
+
+\JavaTMFooter
