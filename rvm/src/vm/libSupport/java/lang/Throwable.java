@@ -142,12 +142,18 @@ public class Throwable implements java.io.Serializable {
   }
     
   public void sysWriteStackTrace() {
-    printStackTrace(PrintContainer.readyPrinter);
+    sysWriteStackTrace((Throwable) null);
+  }
+  public void sysWriteStackTrace(Throwable effect) {
+    printStackTrace(PrintContainer.readyPrinter, effect);
   }
 
   public void printStackTrace () {
     // boolean useSysWrite = false;
-    boolean useSysWrite = true || VM.stackTraceVMSysWrite;
+    // My intent here in overriding this WAS to avoid stack trace hell, but
+    // it only seems to have gotten worse.
+    // boolean useSysWrite = true || VM.stackTraceVMSysWrite;
+    boolean useSysWrite = VM.stackTraceVMSysWrite;
 
     if (!useSysWrite) {
       if (this instanceof OutOfMemoryError) {
@@ -164,34 +170,84 @@ public class Throwable implements java.io.Serializable {
     }
 
     if (useSysWrite) {
-      // an instance of PrintContainer.WithSysWriteLn
-      PrintLN pln = PrintContainer.readyPrinter;
-      // We will catch any other exceptions deeper down the call stack.
-      printStackTrace(pln);
+      sysWriteStackTrace();
     } else { // Not using sysWrite
+      VM._assert(System.err != null);
       // We will catch other exceptions deeper down the call stack.
       printStackTrace(System.err);
     }
   }
     
-  public synchronized void printStackTrace(PrintLN err) {
+  // Synchronized around the class Throwable.
+  static int depth = 0;		/* How deep into trace printing are we?
+				   Includes cascaded exceptions; the other
+				   tests (above) were broken. */
+  final static int maxDepth = 7;
+  
+  public static synchronized int getDepth() {
+    return depth;
+  }
+  public static synchronized int getMaxDepth() {
+    return maxDepth;
+  }
+
+  public void printStackTrace(PrintLN err) {
+    printStackTrace(err, (Throwable) null);
+  }
+
+  /** Just wraps around <code>doPrintStackTrace()</code>.  Checks for depth;
+   * will give up if we go deeper than maxDepth.
+   * @param err the output sink (stream) to write to.
+   * @param effect <code>null</code> if this Throwable was not the
+   *	<code>cause</code> of another throwable.  Any non-<code>null</code>
+   *	value indicates that we have the opportunity (though not the
+   *	obligation) to do some elision, just as the Sun HotSpot JVM does. 
+   */
+  public void printStackTrace(PrintLN err, Throwable effect) {
+    // So, we will not let multiple stack traces get printed at the same
+    // time, just in case!
+    synchronized (Throwable.class) {
+      try {
+	if (++depth == maxDepth)
+	  VM.sysWriteln("We got ", depth, " deep in printing stack traces; trouble.  Aborting.");
+	if (depth >= maxDepth)
+	  VM.sysExit(VM.exitStatusTooManyThrowableErrors);
+	doPrintStackTrace(err, effect);
+	VM._assert(depth >= 1);
+      } finally {
+	--depth;			// clean up
+      }
+    }
+  }
+
+  /** Do the work of printing the stack trace for this <code>Throwable</code>.
+   * Does not do any depth checking.
+   * 
+   * @param err the output sink (stream) to write to.
+   * @param effect <code>null</code> if this Throwable was not the
+   *	<code>cause</code> of another throwable.  Any non-<code>null</code>
+   *	value indicates that we have the opportunity (though not the
+   *	obligation) to do some elision, just as the Sun HotSpot JVM does. 
+   */
+  private void doPrintStackTrace(PrintLN err, Throwable effect) {
     //    err.println("This is a call to printStackTrace()"); // DEBUG
     int step = 0;
     try {
       /* A routine to avoid OutOfMemoryErrors, which I think we will never see
 	 anyway.  But let's encapsulate potentially memory-allocating
 	 operations. */ 
-      printlnJustThisThrowableNoStackTrace(err);
+      printlnMyClassAndMessage(err);
       ++step;
       if (stackTrace == null) {
 	err.println("{ Throwable.printStackTrace(): No stack trace available to display; sorry! }");
       } else {
-	stackTrace.print(err, this);
+	stackTrace.print(err, this, effect);
       }
       ++step;
       if (cause != null) {
 	err.print("Caused by: ");
-	cause.printStackTrace(err);
+	Throwable subEffect = this;
+	cause.doPrintStackTrace(err, subEffect);
       }
       ++step;
     } catch (OutOfMemoryError dummy) {
@@ -234,7 +290,7 @@ public class Throwable implements java.io.Serializable {
       }
     }
 
-    // Any out-of-memory is caught deeper down the call stack.
+    // Any errors are caught deeper down the call stack.
     printStackTrace(pln);
   }
 
@@ -259,7 +315,7 @@ public class Throwable implements java.io.Serializable {
 	pln = PrintContainer.readyPrinter;
       }
     }
-    // Any out-of-memory is caught deeper down the call stack.
+    // Any errors are caught deeper down the call stack.
     printStackTrace(pln);
   }
     
@@ -267,22 +323,20 @@ public class Throwable implements java.io.Serializable {
     throw new VM_UnimplementedError(); // if we run out of memory, so be it. 
   }
 
-  void printlnJustThisThrowableNoStackTrace(PrintLN err) {
-      /** We have carefully crafted toString, at least for this exception, to
-       * dump the errors properly.  But someone below us could override it.
-       * If so, we'll throw a recursive OutOfMemoryException. */ 
-      err.println(this.toString());
+  void printlnMyClassAndMessage(PrintLN out) {
+    out.print(classNameAsVM_Atom(this));
+    /* Avoid diving into the contents of detailMessage since a subclass MIGHT
+     * override getMessage(). */
+    String msg = getMessage();
+    if (msg != null) {
+      out.print(": ");
+      out.print(msg);
+    }
+    out.println();
   }
   
   public void sysWrite() {
-    if (false) {
-      VM.sysWrite(this.toString()); // avoid toString(); no concat or funny
-				    // stuff this way!
-    } else {
-      sysWriteClassName();
-      VM.sysWrite(": ");
-      VM.sysWriteln(detailMessage);
-    }
+    printlnMyClassAndMessage(PrintContainer.readyPrinter);
   }
 
   public void sysWriteln() {
@@ -290,60 +344,70 @@ public class Throwable implements java.io.Serializable {
     VM.sysWriteln();
   }
 
-  public void sysWriteClassName() {
-    VM_Type me_type = VM_ObjectModel.getObjectType(this);
+  public static VM_Atom classNameAsVM_Atom(Object o) {
+    VM_Type me_type = VM_ObjectModel.getObjectType(o);
     VM_TypeReference me_tRef = me_type.getTypeRef();
     VM_Atom me_name = me_tRef.getName();
-    me_name.sysWrite();
+    return me_name;
   }
 
-  /* We could make this more functional in the face of running out of memory,
-   * but probably not worth the hassle. */
+//   public void sysWriteClassName() {
+//     VM_Atom me_name = classNameAsVM_Atom(this);
+//     me_name.sysWrite();
+//   }
+
   public String toString() {
-    String msg;
-    final String messageIfOutOfMemory 
-      = "<getMessage() ran out of memory; no text available>";
-    String classname;
-    final String classnameIfOutOfMemory
-      = "<getClass.getName() ran out of memory; no text available>";
-
-    try {
-      msg = getMessage();
-    } catch (OutOfMemoryError oom) {
-      tallyOutOfMemoryError();
-      /* This will only happen if a subclass overrides getMessage(). */
-      msg = messageIfOutOfMemory;
-    }
-    try {
-      classname = getClass().getName();
-    } catch (OutOfMemoryError oom) {
-      tallyOutOfMemoryError();
-      /* We could certainly do more to recover from this, such as dumping the
-	 info via VM.sysWrite() or by getting the class's
-	 name via some means that does not involve memory allocation.   But we
-	 won't.  */
-      classname = classnameIfOutOfMemory;
-    }
-      
-    if (msg == null || msg == messageIfOutOfMemory) {
-      return classname;
-    } else {
-      // msg, at least, must contain useful information.
-      try {
-	return classname + ": " + msg;
-      } catch (OutOfMemoryError oom) {
-	tallyOutOfMemoryError();
-	/* We could be more clever about this recovery, but it seems like too
-	 * much hassle for too little gain. */
-	VM.sysWriteln("Throwable.toString(): No memory to concatenate two strings");
-	VM.sysWrite("Throwable.toString(): Will return just the message from this exception \"");
-	VM.sysWrite(msg);
-	VM.sysWriteln("\"");
-	VM.sysWrite("Throwable.toString(): without the associated classname \"");
-	VM.sysWrite(classname);
-	VM.sysWriteln("\".");
-	return msg;
-      }
-    }
+    return getClass().getName() 
+      + (getMessage() == null ? "" : (": " + getMessage()) );
   }
+
+//   /* We could make this more functional in the face of running out of memory,
+//    * but probably not worth the hassle. */
+//   public String toString() {
+//     String msg;
+//     final String messageIfOutOfMemory 
+//       = "<getMessage() ran out of memory; no text available>";
+//     String classname;
+//     final String classnameIfOutOfMemory
+//       = "<getClass.getName() ran out of memory; no text available>";
+
+//     try {
+//       msg = getMessage();
+//     } catch (OutOfMemoryError oom) {
+//       tallyOutOfMemoryError();
+//       /* This will only happen if a subclass overrides getMessage(). */
+//       msg = messageIfOutOfMemory;
+//     }
+//     try {
+//       classname = getClass().getName();
+//     } catch (OutOfMemoryError oom) {
+//       tallyOutOfMemoryError();
+//       /* We could certainly do more to recover from this, such as dumping the
+// 	 info via VM.sysWrite() or by getting the class's
+// 	 name via some means that does not involve memory allocation.   But we
+// 	 won't.  */
+//       classname = classnameIfOutOfMemory;
+//     }
+      
+//     if (msg == null || msg == messageIfOutOfMemory) {
+//       return classname;
+//     } else {
+//       // msg, at least, must contain useful information.
+//       try {
+// 	return classname + ": " + msg;
+//       } catch (OutOfMemoryError oom) {
+// 	tallyOutOfMemoryError();
+// 	/* We could be more clever about this recovery, but it seems like too
+// 	 * much hassle for too little gain. */
+// 	VM.sysWriteln("Throwable.toString(): No memory to concatenate two strings");
+// 	VM.sysWrite("Throwable.toString(): Will return just the message from this exception \"");
+// 	VM.sysWrite(msg);
+// 	VM.sysWriteln("\"");
+// 	VM.sysWrite("Throwable.toString(): without the associated classname \"");
+// 	VM.sysWrite(classname);
+// 	VM.sysWriteln("\".");
+// 	return msg;
+//       }
+//     }
+//   }
 }
