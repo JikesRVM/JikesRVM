@@ -150,8 +150,9 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     createControllerThread();
 
-    VM_Callbacks.addExitMonitor(new VM_Controller());
-    VM_Callbacks.addAppRunCompleteMonitor(new VM_Controller());
+    VM_Controller controller = new VM_Controller();
+    VM_Callbacks.addExitMonitor(controller);
+    VM_Callbacks.addAppRunCompleteMonitor(controller);
 
     booted=true;
   }
