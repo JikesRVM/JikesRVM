@@ -1,10 +1,10 @@
-BaseBasecopyingGC -test-list nightly-tests
-BaseBasenoncopyingGC -test-list nightly-tests
-BaseBasecopyGCgen -test-list nightly-tests 
-BaseAdaptivecopyingGC -test-list nightly-tests-short
-FullOptnoncopyingGC -use-opt-levels "O0 O1 O2" -test-list nightly-tests
-FullOptcopyGCgen -test-list nightly-tests
-FullAdaptivecopyingGC -test-list nightly-tests
+BaseBaseSemispace -test-list nightly-tests
+BaseBaseMarkSweep -test-list nightly-tests
+BaseBaseCopyGenVariable -test-list nightly-tests 
+BaseAdaptiveSemispace -test-list nightly-tests-short
+FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
+FullOptCopyGenVariable -test-list nightly-tests
+FullAdaptiveSemispace -test-list nightly-tests
 Fast -test-list nightly-tests
-FastAdaptivecopyingGC -test-list nightly-tests
-ExtremeAssertionsOptOptcopyingGC -test-list nightly-tests-short
+FastAdaptiveSemispace -test-list nightly-tests
+ExtremeAssertionsOptOptSemispace -test-list nightly-tests-short

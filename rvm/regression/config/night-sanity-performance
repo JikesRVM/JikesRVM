@@ -1,2 +1,2 @@
 Fast -test-list nightly-tests-performance
-FastAdaptivecopyingGC -test-list nightly-tests-performance
+FastAdaptiveSemispace -test-list nightly-tests-performance

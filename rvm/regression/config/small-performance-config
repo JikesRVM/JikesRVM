@@ -1,2 +1,2 @@
-BaseBasecopyingGC -test-list small-performance-tests
-BaseOptcopyingGC -test-list small-performance-tests -use-opt-levels "O0 O1 O2"
+BaseBaseSemispace -test-list small-performance-tests
+BaseOptSemispace -test-list small-performance-tests -use-opt-levels "O0 O1 O2"

@@ -1,3 +1,3 @@
-BaseBasecopyingGC -test-list small-sanity-tests
-BaseAdaptivecopyingGC -test-list small-sanity-tests
-BaseOptcopyingGC -use-opt-levels "O0 O1 O2" -test-list small-sanity-tests
+BaseBaseSemispace -test-list small-sanity-tests
+BaseAdaptiveSemispace -test-list small-sanity-tests
+BaseOptSemispace -use-opt-levels "O0 O1 O2" -test-list small-sanity-tests
