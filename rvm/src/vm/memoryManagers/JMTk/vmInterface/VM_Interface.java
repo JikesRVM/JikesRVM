@@ -147,7 +147,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    *           length in bytes of range to zero
    * Returned: nothing
    */
-  // temporary different name
   public static void zero(VM_Address start, VM_Extent len) {
     VM_Memory.zero(start,len);
   }
@@ -194,13 +193,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       return VM_ObjectModel.readAvailableBitsWord(o);
   }
   public static int JAVA_HEADER_END() {
-	  return VM_ObjectModel.JAVA_HEADER_END;
+    return VM_ObjectModel.JAVA_HEADER_END;
+  }
+  public static VM_Address objectStartRef(VM_Address object) throws VM_PragmaInline {
+    return VM_ObjectModel.objectStartRef(object);
+  }
+  public static VM_Address refToAddress(VM_Address obj) {
+    return VM_ObjectModel.getPointerInMemoryRegion(obj);
   }
 
-  /* Hooks into VM_JavaHeader */
-  public static VM_Address objectStartRef(VM_Address object) throws VM_PragmaInline {
-    return VM_JavaHeader.objectStartRef(object);
-  }
 
   /***********************************************************************
    *
@@ -234,16 +235,16 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (Plan.isLastGCFull()) {
       double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
       if (usage > OUT_OF_MEMORY_THRESHOLD) {
-	  if (why == INTERNALLY_TRIGGERED) {
-	      if (Plan.verbose >= 2) {
-		  VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
-		  VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
-		  VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
-	      }
-	      throw (new OutOfMemoryError());
+	if (why == INTERNALLY_TRIGGERED) {
+	  if (Plan.verbose >= 2) {
+	    VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
+	    VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
+	    VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
 	  }
-	  ReferenceProcessor.setClearSoftReferences(true); // clear all possible reference objects
-	  triggerCollection(INTERNALLY_TRIGGERED);
+	  throw (new OutOfMemoryError());
+	}
+	ReferenceProcessor.setClearSoftReferences(true); // clear all possible reference objects
+	triggerCollection(INTERNALLY_TRIGGERED);
       }
     }
   }
@@ -390,10 +391,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   }
 
-
-  public static VM_Address refToAddress(VM_Address obj) {
-    return VM_ObjectModel.getPointerInMemoryRegion(obj);
-  }
 
 
   public static double now() {
