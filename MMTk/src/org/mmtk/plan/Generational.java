@@ -72,7 +72,7 @@ public abstract class Generational extends StopTheWorldGC
   protected static MemoryResource losMR;
 
   // large object space (LOS) collector
-  protected static MarkSweepCollector losCollector;
+  protected static TreadmillSpace losCollector;
 
   // GC state
   protected static boolean fullHeapGC = false;
@@ -113,7 +113,7 @@ public abstract class Generational extends StopTheWorldGC
 
   // allocators
   protected BumpPointer nursery;
-  protected MarkSweepAllocator los;
+  protected TreadmillThread los;
 
   // write buffer (remembered set)
   protected WriteBuffer remset;
@@ -136,10 +136,14 @@ public abstract class Generational extends StopTheWorldGC
     nurseryMR = new MemoryResource("nur", POLL_FREQUENCY);
     matureMR = new MemoryResource("mat", POLL_FREQUENCY);
     nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
+    addSpace(NURSERY_SPACE, "Nursery");
+    addSpace(MATURE_SPACE, "Mature Space");
+
     if (Plan.usesLOS) {
       losMR = new MemoryResource("los", POLL_FREQUENCY);
       losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-      losCollector = new MarkSweepCollector(losVM, losMR);
+      losCollector = new TreadmillSpace(losVM, losMR);
+      addSpace(LOS_SPACE, "LOS Space");
     }
   }
 
@@ -148,7 +152,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   public Generational() {
     nursery = new BumpPointer(nurseryVM);
-    if (Plan.usesLOS) los = new MarkSweepAllocator(losCollector);
+    if (Plan.usesLOS) los = new TreadmillThread(losCollector);
     remset = new WriteBuffer(locationPool);
   }
 
@@ -190,10 +194,23 @@ public abstract class Generational extends StopTheWorldGC
       case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      default:                 region = VM_Address.zero();
-	                       VM.sysFail("No such allocator");
+      default:             region = VM_Address.zero();
+	                   VM.sysFail("No such allocator");
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
+    return region;
+  }
+
+  public final VM_Address alloc2(int allocator, EXTENT bytes, boolean isScalar) throws VM_PragmaNoInline {
+      VM_Address region;
+    switch (allocator) {
+	 case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
+	 case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
+	 case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
+	 case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
+      default:             region = VM_Address.zero();
+	                   VM.sysFail("No such allocator");
+    }
     return region;
   }
 
@@ -218,7 +235,7 @@ public abstract class Generational extends StopTheWorldGC
       case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      default:                 VM.sysFail("No such allocator");
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
   }
 
