@@ -151,7 +151,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // fill in the TOC entries for each AIX linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {
       JNIFunctions[i] = new int[3][];
-      JNIFunctions[i][TOC] = VM_Statics.getSlots();   // the JTOC value: address of TOC
+      JNIFunctions[i][TOC] = VM_Statics.getSlotsAsIntArray();   // the JTOC value: address of TOC
     }
     //-#endif
 

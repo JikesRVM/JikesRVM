@@ -1187,7 +1187,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // (to be filled in by instantiate)
     for (int i = 0, n = virtualMethods.length; i < n; ++i) {
       VM_Method method = virtualMethods[i];
-      method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_INT;
+      method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_ADDRESS;
     }
 
     // RCGC: Determine if class is inherently acyclic

@@ -92,6 +92,9 @@ public class VM_Statics implements VM_Constants {
   public static final byte METHOD               = 0x09 | REFERENCE_TAG;
   public static final byte TIB                  = 0x0a | REFERENCE_TAG;
 
+  public static final byte CONTINUATION         = 0x0f;  // the upper half of a wide-field
+
+
   /**
    * static data values (pointed to by jtoc register)
    */
@@ -105,17 +108,9 @@ public class VM_Statics implements VM_Constants {
   /**
    * next available slot number
    */
-//-#if RVM_FOR_32_ADDR
-  private static int nextSlot = 1; // don't use slot 0.
 
-//-#elif RVM_FOR_64_ADDR
-  private static int nextSlot = 2; // check allocation every 2 slots
-    
-  /**
-   * available slot due to alignment
-   */
-  private static int  slotAvailableDueToAlignment = 1;  //don't use slot 1      
-//-#endif
+  // don't use slot 0.
+  private static int nextSlot = VM.BuildFor32Addr ? 1 : (VM.BuildFor64Addr ? 2 : -1);
 
   /**
    * Mapping from int literals to the jtoc slot that contains them.
@@ -225,37 +220,36 @@ public class VM_Statics implements VM_Constants {
    * (two slots are allocated for longs and doubles)
    */ 
   public static synchronized int allocateSlot(byte description) {
-    int slot = nextSlot;
 
-    if (slot > slots.length - 2) {
+    if (nextSlot + 2 > slots.length) {
       // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
       // point to newly enlarged slots[]
       // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
       VM.sysFail("VM_Statics.allocateSlot: jtoc is full");
     }
 
-    // allocate two slots for long or double
+    // Allocate two slots for wide items after possibly blowing another slot for alignment.
+    // Wide things include long or double and addresses on 64-bit architecture.
     //
-//-#if RVM_FOR_64_ADDR
-    if ((description & WIDE_TAG) == 0 && slotAvailableDueToAlignment != 0) {
-      slot = slotAvailableDueToAlignment;
-      slotAvailableDueToAlignment = 0;
-    } else 
-//-#endif
-      if ((description & WIDE_TAG) != 0) {
-      	nextSlot += 2;
-      } else {
-//-#if RVM_FOR_64_ADDR
-      slotAvailableDueToAlignment = nextSlot + 1;
-      descriptions[slotAvailableDueToAlignment] = EMPTY;
+    boolean isWide = (description & WIDE_TAG) == WIDE_TAG;
+
+    if (isWide && (nextSlot & 1) == 1) {
+      descriptions[nextSlot] = EMPTY;
+      nextSlot++;
+    }
+
+    int slot = nextSlot;
+
+    if (isWide) {
+      descriptions[slot] = description;
+      descriptions[slot+1] = CONTINUATION;
       nextSlot += 2;
-//-#else				
-      nextSlot += 1;
-//-#endif
-      }
+    } else {
+      descriptions[slot] = description;
+      nextSlot++;
+    } 
 	 
-    descriptions[slot] = description;
-    if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
+    if ((slot > 2000 && slot < 2100 && false) || VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
     return slot;
   }
 
@@ -279,7 +273,9 @@ public class VM_Statics implements VM_Constants {
    * @return true --> slot contains a reference
    */ 
   public static boolean isReference(int slot) throws VM_PragmaUninterruptible {
-    return (descriptions[slot] & VM_Statics.REFERENCE_TAG) != 0;
+    byte type = descriptions[slot];
+    // if (type == CONTINUATION) VM.sysFail("Asked about type of a JTOC continuation slot");
+    return (descriptions[slot] & VM_Statics.REFERENCE_TAG) == VM_Statics.REFERENCE_TAG;
   }
 
   /**
@@ -289,6 +285,10 @@ public class VM_Statics implements VM_Constants {
    */
   public static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
     return descriptions[slot];
+  }
+
+  public static int getSlotSize (int slot) throws VM_PragmaUninterruptible {
+      return ((descriptions[slot] & WIDE_TAG) == WIDE_TAG) ? 2 : 1;
   }
 
   /**
@@ -310,14 +310,22 @@ public class VM_Statics implements VM_Constants {
       case METHOD             : kind = "METHOD";             break;
       case TIB                : kind = "TIB";                break;
       case EMPTY              : kind = "EMPTY SLOT";         break;
+      case CONTINUATION       : kind = "CONTINUATION";       break;
     }
     return kind;
   }
 
   /**
-   * Fetch jtoc object (for JNI environment).
+   * Fetch jtoc object (for JNI environment and GC).
    */ 
-  public static int[] getSlots() throws VM_PragmaUninterruptible {
+  public static VM_Address getSlots() throws VM_PragmaUninterruptible {
+    return VM_Magic.objectAsAddress(slots);
+  }
+
+  /**
+   * Fetch jtoc object (for JNI environment and GC).
+   */ 
+  public static int [] getSlotsAsIntArray() throws VM_PragmaUninterruptible {
     return slots;
   }
 
@@ -325,6 +333,8 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot, as an integer
    */ 
   public static int getSlotContentsAsInt(int slot) throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions)
+      VM._assert((descriptions[slot] & WIDE_TAG) != WIDE_TAG);
     return slots[slot];
   }
 
@@ -332,15 +342,18 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot-pair, as a long integer.
    */ 
   public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {	
+    //Kris Venstermans : future optimaliation
+    //if (VM.runningVM)
+    //  return VM_Magic.getLongAtOffset(slots, slot << LOG_BYTES_IN_INT); 
+    long result;
     if (VM.LittleEndian) {
-      long result = (((long) slots[slot+1]) << BITS_IN_INT); // hi
+      result = (((long) slots[slot+1]) << BITS_IN_INT); // hi
       result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
-      return result;
     } else {
-      long result = (((long) slots[slot]) << BITS_IN_INT);     // hi
+      result = (((long) slots[slot]) << BITS_IN_INT);     // hi
       result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
-      return result;
     }
+    return result;
   }
 
   /**
@@ -348,7 +361,7 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static Object getSlotContentsAsObject(int slot) throws VM_PragmaUninterruptible {
     //-#if RVM_FOR_64_ADDR
-    return VM_Magic.addressAsObject(VM_Address.fromLong(getSlotContentAsLong(slot)));
+    return VM_Magic.addressAsObject(VM_Address.fromLong(getSlotContentsAsLong(slot)));
     //-#else
     return VM_Magic.addressAsObject(VM_Address.fromInt(slots[slot]));
     //-#endif
@@ -359,7 +372,7 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static Object[] getSlotContentsAsObjectArray(int slot) throws VM_PragmaUninterruptible {
     //-#if RVM_FOR_64_ADDR
-    return VM_Magic.addressAsObjectArray(VM_Address.fromLong(getSlotContentAsLong(slot)));
+    return VM_Magic.addressAsObjectArray(VM_Address.fromLong(getSlotContentsAsLong(slot)));
     //-#else
     return VM_Magic.addressAsObjectArray(VM_Address.fromInt(slots[slot]));
     //-#endif
@@ -376,6 +389,10 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as a long integer.
    */
   public static void setSlotContents(int slot, long value) throws VM_PragmaUninterruptible {
+    //Kris Venstermans : future optimaliation
+    //if (VM.runningVM)
+    //  VM_Magic.setLongAtOffset(slots, slot << LOG_BYTES_IN_INT , value);
+    //else
     if (VM.LittleEndian) {
       slots[slot + 1] = (int)(value >>> BITS_IN_INT); // hi
       slots[slot    ] = (int)(value       ); // lo
@@ -389,7 +406,14 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as an object.
    */ 
   public static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
-    VM_Address newContent = VM_Magic.objectAsAddress(object);
-    slots[slot] = newContent.toInt();
+    //Kris Venstermans : future optimaliation
+    //if (VM.runningVM)
+    //  VM_Magic.setObjectAtOffset(slots, slot << LOG_BYTES_IN_INT , object); 
+    //else  
+    //-#if RVM_FOR_64_ADDR
+    setSlotContents(slot, VM_Magic.objectAsAddress(object).toLong());
+    //-#else
+    slots[slot] = VM_Magic.objectAsAddress(object).toInt();
+    //-#endif
   }
 }

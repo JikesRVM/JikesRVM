@@ -300,14 +300,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         //-#if RVM_FOR_POWERPC
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[i]),
-                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toInt(),
+                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
                                      target.contextRegisters.getInnermostFramePointer());
         //-#endif
       } else if (VM.BuildForIA32) {
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[i]),
-				     // This is really supposed to be different.
-                                     target.contextRegisters.ip.toInt(), 
+                                     target.contextRegisters.ip, 
                                      target.contextRegisters.getInnermostFramePointer());
       }
 
@@ -326,13 +325,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         //-#if RVM_FOR_POWERPC
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[nativeDPndx]),
-                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toInt(),
+                                     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
                                      target.contextRegisters.getInnermostFramePointer());
         //-#endif
       } else if (VM.BuildForIA32) {
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[nativeDPndx]),
-                                     target.contextRegisters.ip.toInt(),
+                                     target.contextRegisters.ip,
                                      target.contextRegisters.getInnermostFramePointer());
       }
       if (VM.TraceThreads)

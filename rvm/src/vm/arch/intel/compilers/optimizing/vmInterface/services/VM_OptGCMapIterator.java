@@ -16,11 +16,11 @@ import com.ibm.JikesRVM.*;
  * @author Michael Hind
  */
 public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
-  implements VM_Uninterruptible {
+  implements VM_Uninterruptible , VM_SizeConstants{
 
   private static final boolean DEBUG = false;
  
-  public VM_OptGCMapIterator(int[] registerLocations) {
+  public VM_OptGCMapIterator(VM_WordArray registerLocations) {
     super(registerLocations);
   }
 
@@ -71,7 +71,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 	for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
 	  // determine what register index corresponds to this location
 	  int registerIndex = NONVOLATILE_GPRS[i];
-	  registerLocations[registerIndex] = location.toInt();
+	  registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -79,7 +79,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite(location);
             VM.sysWrite("\n");
           }
-	  location = location.sub(4);
+	  location = location.sub(BYTES_IN_ADDRESS);
 	}
       }
       
@@ -91,7 +91,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 	for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
 	  // determine what register index corresponds to this location
 	  int registerIndex = VOLATILE_GPRS[i];
-	  registerLocations[registerIndex] = location.toInt();
+	  registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -99,7 +99,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite(location);
             VM.sysWrite("\n");
           }
-	  location = location.sub(4);
+	  location = location.sub(BYTES_IN_ADDRESS);
 	}
       }
     }

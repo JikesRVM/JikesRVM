@@ -327,8 +327,11 @@ public class VM_TypeReference implements VM_SizeConstants{
   /**
    * How many bytes of memory words do value of this type take?
    */
-  public final int getSize() {
-    return getStackWords() << LOG_BYTES_IN_ADDRESS;
+  public final int getSize() throws VM_PragmaUninterruptible {
+    if (isReferenceType() || isWordType()) return BYTES_IN_ADDRESS; 
+    if (this == Long || this == Double) return BYTES_IN_LONG;
+    if (this == Void) return 0;
+    return BYTES_IN_INT; //all int like types 
   }
     
   /**

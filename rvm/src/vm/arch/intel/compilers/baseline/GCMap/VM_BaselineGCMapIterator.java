@@ -36,7 +36,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // The locations are kept as addresses within the stack.
   //
   
-  public VM_BaselineGCMapIterator(int registerLocations[]) {
+  public VM_BaselineGCMapIterator(VM_WordArray registerLocations) {
     this.registerLocations = registerLocations; // (in superclass)
     dynamicLink  = new VM_DynamicLink();
   }
@@ -143,7 +143,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   public VM_Address getNextReferenceAddress() {
     if (counterArrayBase) {
       counterArrayBase = false;
-      return VM_Address.fromInt(registerLocations[EBX]);
+      return registerLocations.get(EBX).toAddress();
     }
     if (mapId < 0) {
       mapOffset = maps.getNextJSRRef(mapOffset);
@@ -175,10 +175,10 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       if (!bridgeRegistersLocationUpdated) {
 	// point registerLocations[] to our callers stackframe
 	//
-	registerLocations[JTOC] = framePtr.add(JTOC_SAVE_OFFSET).toInt();
-	registerLocations[T0]   = framePtr.add(T0_SAVE_OFFSET).toInt();
-	registerLocations[T1]   = framePtr.add(T1_SAVE_OFFSET).toInt();
-	registerLocations[EBX]  = framePtr.add(EBX_SAVE_OFFSET).toInt();
+	registerLocations.set(JTOC, framePtr.add(JTOC_SAVE_OFFSET));
+	registerLocations.set(T0, framePtr.add(T0_SAVE_OFFSET));
+	registerLocations.set(T1, framePtr.add(T1_SAVE_OFFSET));
+	registerLocations.set(EBX, framePtr.add(EBX_SAVE_OFFSET));
 	
 	bridgeRegistersLocationUpdated = true;
       }
@@ -247,8 +247,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     } else {
       // point registerLocations[] to our callers stackframe
       //
-      registerLocations[JTOC] = framePtr.add(JTOC_SAVE_OFFSET).toInt();
-      registerLocations[EBX] = framePtr.add(EBX_SAVE_OFFSET).toInt();
+      registerLocations.set(JTOC, framePtr.add(JTOC_SAVE_OFFSET));
+      registerLocations.set(EBX, framePtr.add(EBX_SAVE_OFFSET));
     }
     
     return VM_Address.zero();

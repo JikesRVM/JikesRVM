@@ -558,7 +558,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) throws VM_PragmaInterruptible {
-    asm.emitLWZ(dest, TIB_OFFSET, object);
+    asm.emitLAddr(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 

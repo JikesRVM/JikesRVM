@@ -47,6 +47,10 @@
          * At this point we've abandoned the C stack and are running on a VM_Thread's stack.
          */
         
+#ifdef RVM_FOR_32_ADDR 
         lwz     S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   # fetch method entrypoint address
+#else
+        ld      S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   # fetch method entrypoint address
+#endif
         mtlr    S0
         blr                       # branch to it

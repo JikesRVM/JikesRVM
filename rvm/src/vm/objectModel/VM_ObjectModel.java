@@ -142,10 +142,10 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
       if (!field.isStatic()) {
 	int fieldSize = field.getType().getSize();
 //-#if RVM_FOR_64_ADDR
-	if (VM.runningVM && fieldSize == BYTES_IN_INT ) { //TODO: remove VM_runningVM 
+	if (fieldSize == BYTES_IN_INT ) { 
 		if (klass.getAlignOffset() == 0) { //create a new unused slot of 4 bytes
 			field.setOffset(fieldOffset - BYTES_IN_INT);
-			fieldOffset -= /BYTES_IN_ADDRESS; 
+			fieldOffset -= BYTES_IN_ADDRESS; 
 			klass.increaseInstanceSizeAndSetAlignOffset(BYTES_IN_ADDRESS);
 		} else { //use an unused slot of 4 bytes
 			field.setOffset(klass.getAlignOffset());

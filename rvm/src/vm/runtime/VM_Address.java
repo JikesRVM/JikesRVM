@@ -40,6 +40,11 @@ final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(address);  //TODO: implement in magic
   }
+
+  public long toLong () {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return value;
+  }
 //-#endif
 
   public boolean equals(Object o) {
@@ -77,7 +82,7 @@ final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
 
   public int toInt () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return value;
+    return (int) value;
   }
 
   public VM_Address add (int v) throws VM_PragmaLogicallyUninterruptible {
@@ -112,7 +117,12 @@ final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
 
   public VM_Offset diff (VM_Address addr2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+//-#if RVM_FOR_32_ADDR
     return VM_Offset.fromInt(value - addr2.value);
+//-#endif
+//-#if RVM_FOR_64_ADDR
+    return VM_Offset.fromLong(value - addr2.value);
+//-#endif
   }
 
   public boolean isZero() {
@@ -160,7 +170,12 @@ final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
 
   public VM_Word toWord() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+//-#if RVM_FOR_32_ADDR
     return VM_Word.fromInt(value);
+//-#endif
+//-#if RVM_FOR_64_ADDR
+    return VM_Word.fromLong(value);
+//-#endif
   }
 }
 

@@ -22,14 +22,18 @@ final public class VM_Word implements VM_Uninterruptible {
   // Do not try to create a static field containing special values.
   //   Suboptimal code will be generated.
 
+//-#if RVM_FOR_32_ADDR
   private int value;  
+  private VM_Word (int val) { value = val; }
+//-#endif
+
+//-#if RVM_FOR_64_ADDR
+  private long value;  
+  private VM_Word (long val) { value = val; }
+//-#endif
 
   public boolean equals(Object o) {
       return (o instanceof VM_Word) && ((VM_Word) o).value == value;
-  }
-
-  private VM_Word (int val) {
-    value = val;
   }
 
   /**
@@ -40,6 +44,13 @@ final public class VM_Word implements VM_Uninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(val);
   }
+
+//-#if RVM_FOR_64_ADDR
+  static public VM_Word fromLong (long val) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Word(val);
+  }
+//-#endif
 
   static public VM_Word fromIntSignExtend (int val) throws VM_PragmaLogicallyUninterruptible {
     return VM_Address.fromIntSignExtend(val).toWord(); // TODO
@@ -56,12 +67,26 @@ final public class VM_Word implements VM_Uninterruptible {
 
   static public VM_Word max() throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+//-#if RVM_FOR_32_ADDR
     return new VM_Word(-1);
+//-#endif
+//-#if RVM_FOR_64_ADDR
+    return new VM_Word(-1L);
+//-#endif
   }
 
   public int toInt () throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return value;
+    return (int) value;
+  }
+
+  public long toLong () throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.BuildFor32Addr) {
+      return 0x00000000ffffffffL & ((long) value);
+    } else {
+      return (long)value;
+    }
   }
 
   public VM_Word add (VM_Word w2) throws VM_PragmaLogicallyUninterruptible {

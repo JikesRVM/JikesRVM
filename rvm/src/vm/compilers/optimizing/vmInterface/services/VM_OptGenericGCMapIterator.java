@@ -67,7 +67,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   static final boolean lookForMissedReferencesInSpills = false;
 
   // Constructor 
-  VM_OptGenericGCMapIterator(int[] registerLocations) {
+  VM_OptGenericGCMapIterator(VM_WordArray registerLocations) {
     super();
     this.registerLocations = registerLocations;
   }
@@ -195,7 +195,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       if (currentRegisterIsValid()) {
         VM_Address regLocation;
         // currentRegister contains a reference, return that location
-        regLocation = VM_Address.fromInt(registerLocations[getCurrentRegister()]);
+        regLocation = registerLocations.get(getCurrentRegister()).toAddress();
 	if (DEBUG) {
           VM.sysWrite(" *** Ref found in reg#");
           VM.sysWrite(getCurrentRegister());
@@ -397,7 +397,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
   final void checkRegistersForMissedReferences(int firstReg, int lastReg) {
     for (int i = firstReg; i <= lastReg; i++) {
-      VM_Address regLocation = VM_Address.fromInt(registerLocations[i]);
+      VM_Address regLocation = registerLocations.get(i).toAddress();
       VM_Address regValue = VM_Magic.getMemoryAddress(regLocation);
       if (MM_Interface.refInVM(regValue)) {
         VM.sysWrite("  reg#", getCurrentRegister());

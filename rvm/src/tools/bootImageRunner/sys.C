@@ -170,6 +170,10 @@ extern "C" void
 sysExit(int value)
    {
 
+#ifdef RVM_FOR_64_ADDR
+   fprintf(stderr, "\nWHEEE....I got back to C code with value = %d or 0x%lx\n", value, value);
+#endif
+
 // fprintf(SysTraceFile, "sys: exit %d\n", value);
    if (value != 0)
       fprintf(SysErrorFile, "vm: exit %d\n", value);

@@ -113,7 +113,7 @@ public class BootImage extends BootImageWriterMessages
   }
 
   /**
-   * Allocate an array object.
+   * Allocate an array object.  Unconditionally 8-byte align for 64-bit.
    *
    * @param array VM_Array object of array being allocated.
    * @param numElements number of elements
@@ -132,6 +132,8 @@ public class BootImage extends BootImageWriterMessages
   /**
    * Allocate space in bootimage. Moral equivalent of 
    * memory managers allocating raw storage at runtime.
+   *
+   * Unconditionally 8-byte align for 64-bit.
    * @param size the number of bytes to allocate
    */
   public int allocateStorage(int size) {
@@ -190,15 +192,23 @@ public class BootImage extends BootImageWriterMessages
   }
 
   /**
-   * Fill in 4 bytes of bootimage, as object reference.
+   * Fill in 4/8 bytes of bootimage, as object reference.
    *
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
+//-#if RVM_FOR_32_ADDR
   public void setAddressWord(int offset, int value) {
     setFullWord(offset, value);
-    numAddresses += 1;
+   numAddresses++;
   }
+//-#endif
+//-#if RVM_FOR_64_ADDR
+  public void setAddressWord(int offset, long value) {
+    setDoubleWord(offset, value);
+    numAddresses++;
+  }
+//-#endif
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.

@@ -36,7 +36,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   public static void detailedCompilationReport(boolean explain) {
   }
   
-  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(VM_WordArray registerLocations) {
     return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

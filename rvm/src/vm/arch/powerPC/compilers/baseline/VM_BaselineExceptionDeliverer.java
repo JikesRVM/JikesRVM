@@ -33,7 +33,6 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     //
     sp = sp.sub(4);
     VM_Magic.setMemoryAddress(sp, VM_Magic.objectAsAddress(exceptionObject));
-    registers.gprs.set(SP, sp);
 
     // set address at which to resume executing frame
     //

@@ -1600,7 +1600,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     boolean popParams = true;
 
     if (target.getType().isMagicType()) {
-      boolean producesCall = VM_MagicCompiler.checkForActualCall(target);
+      boolean producesCall = VM_Compiler.checkForActualCall(target);
       if (producesCall) {
 	// register a map, but do NOT include any of the parameters to the call. 
 	// Chances are what appear to be parameters are not parameters to

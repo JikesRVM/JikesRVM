@@ -64,7 +64,7 @@ public class VM_BootImageCompiler {
   /**
    * Create stackframe mapper appropriate for this compiler.
    */
-  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(VM_WordArray registerLocations) {
     return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

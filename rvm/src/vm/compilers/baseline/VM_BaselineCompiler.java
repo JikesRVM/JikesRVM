@@ -120,7 +120,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
       //-#endif
     bcodes = method.getBytecodes();
     bytecodeMap = new int [bcodes.length()+1];
-    asm = new VM_Assembler(bcodes.length(), shouldPrint);
+    asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler)this);
     isInterruptible = method.isInterruptible();
   }
 
@@ -204,17 +204,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     boolean edge_counters = options.EDGE_COUNTERS;
     if (method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
-      if (stackHeights != null) {
-	// we already allocatedc enough space for stackHeights, shift it back first
-	System.arraycopy(stackHeights, 0, stackHeights, 
-			 method.getOsrPrologueLength(), 
-			 method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
-
-	// only do this on IA32 where stackHeights is not null
-	// compute stack height for prologue
-	new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
-	//	new OSR_BytecodeTraverser().computeStackHeights(method, method.getOsrSynthesizedBytecodes(), stackHeights, true);
-      }
+      // we already allocated enough space for stackHeights, shift it back first
+      System.arraycopy(stackHeights, 0, stackHeights, 
+		       method.getOsrPrologueLength(), 
+		       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
+      
+      // compute stack height for prologue
+      new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
     } 
     //-#endif
 
@@ -325,6 +321,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
       //-#if RVM_WITH_OSR
       asm.patchLoadAddrConst(biStart);
       //-#endif
+      starting_bytecode();
       int code = bcodes.nextInstruction();
       switch (code) {
       case JBC_nop: {
@@ -2122,6 +2119,11 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
   /*
    * Misc routines not directly tied to a particular bytecode
    */
+
+  /**
+   * Notify VM_Compiler that we are starting code gen for the bytecode biStart
+   */
+  protected abstract void starting_bytecode();
 
   /**
    * Emit the prologue for the method

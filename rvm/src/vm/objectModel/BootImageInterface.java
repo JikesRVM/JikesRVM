@@ -44,12 +44,17 @@ public interface BootImageInterface {
   public void setFullWord(int offset, int value);
 
   /**
-   * Fill in 4 bytes of bootimage, as object reference.
+   * Fill in 4/8 bytes of bootimage, as object reference.
    *
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
+//-#if RVM_FOR_32_ADDR
   public void setAddressWord(int offset, int value);
+//-#endif
+//-#if RVM_FOR_64_ADDR
+  public void setAddressWord(int offset, long value);
+//-#endif
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.

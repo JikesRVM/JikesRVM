@@ -8,12 +8,14 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
+ * VM_Compiler is the baseline compiler class for the IA32 architecture.
  * 
  * @author Bowen Alpern
  * @author Maria Butrico
  * @author Anthony Cocchi
+ * @author Dave Grove
  */
-public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants , VM_SizeConstants{
 
   private final int parameterWords;
   private int firstLocalOffset;
@@ -54,6 +56,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /*
    * Misc routines not directly tied to a particular bytecode
    */
+
+  /**
+   * Notify VM_Compiler that we are starting code gen for the bytecode biStart
+   */
+  protected final void starting_bytecode() {}
 
   /**
    * Emit the prologue for the method
@@ -1860,10 +1867,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_getstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true); 
-    if (fieldRef.getSize() == 4) { 
+    if (fieldRef.getSize() == BYTES_IN_INT) { 
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, WORDSIZE); // get high part
       asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get low part
     }
@@ -1875,10 +1882,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPUSH_RegDisp(JTOC, fieldOffset+WORDSIZE); // get high part
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);          // get low part
     }
@@ -1896,10 +1903,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 //       VM_Barriers.compilePutstaticBarrier(asm, T0);
 //       emitDynamicLinkingSequence(T0, fieldRef, false);
 //     }
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);        // store low part
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, WORDSIZE); // store high part
     }
@@ -1915,10 +1922,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 //     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
 //     }
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitPOP_RegDisp(JTOC, fieldOffset);          // store low part
       asm.emitPOP_RegDisp(JTOC, fieldOffset+WORDSIZE); // store high part
     }
@@ -1931,12 +1938,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
       asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
       asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
       asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
@@ -1951,12 +1958,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (fieldRef.getSize() == 4) { // field is one word
+    if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
     } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
@@ -1976,13 +1983,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       emitDynamicLinkingSequence(T0, fieldRef, false);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
     } else {
-      if (fieldRef.getSize() == 4) {// field is one word
+      if (fieldRef.getSize() == BYTES_IN_INT) {// field is one word
 	asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
 	asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
 	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
 	asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
 	asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
 	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
@@ -2007,13 +2014,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else {
-      if (fieldRef.getSize() == 4) { // field is one word
+      if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
 	asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
 	asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
 	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
       } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
 	// TODO!! use 8-byte move if possible
 	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
 	asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
@@ -2926,6 +2933,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       notTaken.resolve(asm);
     }
     //-#endif
+  }
+
+  // Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
+  // Taken:   VM_Method of the magic method being called
+  // Returned: true if method causes a stackframe to be created
+  //
+  public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
+    VM_Atom methodName = methodToBeCalled.getName();
+    return methodName == VM_MagicNames.invokeMain             ||
+      methodName == VM_MagicNames.invokeClassInitializer      ||
+      methodName == VM_MagicNames.invokeMethodReturningVoid   ||
+      methodName == VM_MagicNames.invokeMethodReturningInt    ||
+      methodName == VM_MagicNames.invokeMethodReturningLong   ||
+      methodName == VM_MagicNames.invokeMethodReturningFloat  ||
+      methodName == VM_MagicNames.invokeMethodReturningDouble ||
+      methodName == VM_MagicNames.invokeMethodReturningObject ||
+      methodName == VM_MagicNames.addressArrayCreate;
   }
 
   private final boolean genMagic (VM_MethodReference m) {

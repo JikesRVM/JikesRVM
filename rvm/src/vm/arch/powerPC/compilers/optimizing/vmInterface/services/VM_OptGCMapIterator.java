@@ -21,7 +21,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 
   private final static boolean DEBUG = false;
 
-  public VM_OptGCMapIterator(int[] registerLocations) {
+  public VM_OptGCMapIterator(VM_WordArray registerLocations) {
     super(registerLocations);
   }
 
@@ -64,8 +64,8 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 	// move to the beginning of the save area for nonvolatiles
 	VM_Address location = nonVolArea;
 	for (int i = first; i <= LAST_GCMAP_REG; i++) {
-	  registerLocations[i] = location.toInt();
-	  location = location.add(4);
+	  registerLocations.set(i, location);
+	  location = location.add(BYTES_IN_ADDRESS);
 	}
       }
       
@@ -73,18 +73,18 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
       if (compiledMethod.isSaveVolatile()) {
 	// move to the beginning of the save area for volatiles
 	int numSlotsToSkip = FIRST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR;
-	VM_Address location = nonVolArea.sub(4 * numSlotsToSkip);
+	VM_Address location = nonVolArea.sub(BYTES_IN_ADDRESS * numSlotsToSkip);
 	
 	// Walk the saved volatiles, updating registerLocations array
 	for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
-	  registerLocations[i] = location.toInt();
-	  location = location.add(4);
+	  registerLocations.set(i, location);
+	  location = location.add(BYTES_IN_ADDRESS);
 	}
 	
 	// Walk the saved scratch, updating registerLocations array
 	for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; i++) {
-	  registerLocations[i] = location.toInt();
-	  location = location.add(4);
+	  registerLocations.set(i, location);
+	  location = location.add(BYTES_IN_ADDRESS);
 	}
       }
     }

@@ -14,6 +14,8 @@ package com.ibm.JikesRVM;
  */
 public interface VM_SizeConstants {
 
+  static final int LOG_BYTES_IN_BYTE = 0;
+  static final int BYTES_IN_BYTE = 1;
   static final int LOG_BITS_IN_BYTE = 3;
   static final int BITS_IN_BYTE = 1<<LOG_BITS_IN_BYTE;
     

@@ -52,8 +52,6 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       }
 	
       int offset = fooOpt.getUnsignedNonVolatileOffset();
-      // stack word width in bytes.
-      int SW_WIDTH = 4;
 
       // recover nonvolatile GPRs
       int firstGPR = fooOpt.getFirstNonVolatileGPR();
@@ -61,13 +59,13 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
 	for (int i=firstGPR;
 	     i<=LAST_NONVOLATILE_GPR;
 	     i++) {
-	  asm.emitLWZ(i, offset, FP);
-	  offset += SW_WIDTH;
+	  asm.emitLAddr(i, offset, FP);
+	  offset += BYTES_IN_STACKSLOT;
 	}
       }
 
       // it may have a padding before FPRs.
-      offset = (offset + SW_WIDTH) & ~SW_WIDTH;
+      offset = VM_Memory.alignUp(offset,  BYTES_IN_STACKSLOT) ;
 	
       // recover nonvolatile FPRs
       int firstFPR = fooOpt.getFirstNonVolatileFPR();
@@ -76,7 +74,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
 	     i <= LAST_NONVOLATILE_FPR;
 	     i++) {
 	  asm.emitLFD(i, offset, FP);
-	  offset += 2*SW_WIDTH;
+	  offset += 2*BYTES_IN_STACKSLOT;
 	}
       }
     }
@@ -87,13 +85,13 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     }	
     
     // load address of newInstructions from JTOC
-    asm.emitLWZtoc(S0, cm.getOsrJTOCoffset());
+    asm.emitLAddrToc(S0, cm.getOsrJTOCoffset());
     // mov CTR addr
     asm.emitMTCTR(S0);
     // lwz FP, 0(FP)
-    asm.emitLWZ(FP, 0, FP);
+    asm.emitLAddr(FP, 0, FP);
     // lwz T0, NEXT_INSTR(FP)
-    asm.emitLWZ(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
     // mov LR, addr
     asm.emitMTLR(S0);
     // bctr

@@ -140,20 +140,20 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
 	VM._assert(dest != 0);
 	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
-      asm.emitLWZ  (dest, TIB_OFFSET, object);
+      asm.emitLAddr  (dest, TIB_OFFSET, object);
       asm.emitANDI(0, dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
       asm.emitBEQ (5);  // if dest & FORWARDING_MASK == 0; then dest has a valid tib index
       asm.emitCMPI(0, VM_AllocatorHeader.GC_FORWARDED);
       asm.emitBNE (3); 
       // It really has been forwarded; chase the forwarding pointer and get the tib word from there.
-      asm.emitRLWINM(dest, dest, 0, 0, 29);    // mask out bottom two bits of forwarding pointer
-      asm.emitLWZ    (dest, TIB_OFFSET, dest); // get TIB word from forwarded object
+      asm.emitRLAddrINM(dest, dest, 0, 0, 29);    // mask out bottom two bits of forwarding pointer
+      asm.emitLAddr    (dest, TIB_OFFSET, dest); // get TIB word from forwarded object
       // The following clears the high and low-order bits. See p.119 of PowerPC book
       // Because TIB_SHIFT is 2 the masked value is a JTOC offset.
-      asm.emitRLWINM(dest, dest, 0, 0, ME);
+      asm.emitRLAddrINM(dest, dest, 0, 0, ME);
     } else {
-      asm.emitLWZ(dest, TIB_OFFSET, object);
-      asm.emitRLWINM(dest, dest, 0, 0, ME);
+      asm.emitLAddr(dest, TIB_OFFSET, object);
+      asm.emitRLAddrINM(dest, dest, 0, 0, ME);
     }
   }
   //-#elif RVM_FOR_IA32

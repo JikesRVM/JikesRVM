@@ -172,9 +172,9 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	    VM_ThreadIOQueue.selectInProgressMutex.lock();
 	    
 	    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	    connectionFd = VM_SysCall.call2(bootRecord.sysNetSocketAcceptIP,
+	    connectionFd = VM_SysCall.call_I_I_A(bootRecord.sysNetSocketAcceptIP,
 				       native_fd,
-				       VM_Magic.objectAsAddress(newSocket).toInt());
+				       VM_Magic.objectAsAddress(newSocket));
 	    VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
 	    if (connectionFd >= 0)

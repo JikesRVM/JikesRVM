@@ -4,6 +4,7 @@
 //$Id$
 
 import  java.io.*;
+import  java.util.*;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
@@ -45,9 +46,17 @@ class GenerateInterfaceDeclarations {
     VM.initForTool();
 
     System.out.print("/*------ MACHINE GENERATED: DO NOT EDIT ------*/\n\n");
-    System.out.println("#define VM_Address unsigned int");
 
     System.out.println("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
+    System.out.println("#include <inttypes.h>");
+    if (VM.BuildFor32Addr) {
+      System.out.println("#define VM_Address uint32_t");
+      System.out.println("#define JavaObject_t uint32_t");
+    }
+    else {
+      System.out.println("#define VM_Address uint64_t");
+      System.out.println("#define JavaObject_t uint64_t");
+    }
     emitBootRecordDeclarations();
     System.out.println("#endif /* NEED_BOOT_RECORD_DECLARATIONS */");
     System.out.println();
@@ -67,9 +76,98 @@ class GenerateInterfaceDeclarations {
     System.out.println("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
   }
 
+  private static class SortableField implements Comparable {
+    final VM_Field f;
+    final int offset;
+    SortableField (VM_Field ff) { f = ff; offset = f.getOffset(); }
+    public int compareTo (Object y) {
+      if (y instanceof SortableField) {
+	int offset2 = ((SortableField) y).offset;
+	if (offset > offset2) return 1;
+	if (offset < offset2) return -1;
+	return 0;
+      }
+      return 1;
+    }
+  }
 
-  // Emit declarations for VM_BootRecord object.
-  //
+  static void emitCDeclarationsForJavaType (String Cname, VM_Class cls) {
+
+    // How many instance fields are there?
+    //
+    VM_Field[] allFields = cls.getDeclaredFields();
+    int fieldCount = 0;
+    for (int i=0; i<allFields.length; i++)
+      if (!allFields[i].isStatic())
+	fieldCount++;
+
+    // Sort them in ascending offset order
+    //
+    SortableField [] fields = new SortableField[fieldCount];
+    for (int i=0, j=0; i<allFields.length; i++)
+      if (!allFields[i].isStatic())
+	fields[j++] = new SortableField(allFields[i]);
+    Arrays.sort(fields);
+
+    // Set up cursor - scalars will waste 4 bytes on 64-bit arch
+    //
+    boolean needsAlign = VM.BuildFor64Addr;
+    int addrSize = VM.BuildFor32Addr ? 4 : 8;
+    int current = fields[0].offset;
+    if (needsAlign && ((current & 7) != 0))
+	current -= 4;
+    if (current >= 0) 
+	System.out.println("Are scalars no longer backwards?  If so, check this code.");
+
+    // Emit field declarations
+    //
+    System.out.print("struct " + Cname + " {\n");
+    for (int i = 0; i<fields.length; i++) {
+      VM_Field field = fields[i].f;
+      VM_TypeReference t = field.getType();
+      int offset = field.getOffset();
+      String name = field.getName().toString();
+      // Align by blowing 4 bytes if needed
+      if (needsAlign && current + 4 == offset) {
+	  System.out.println("  uint32_t    padding" + i + ";");
+	  current += 4;
+      }
+      if (current != offset) 
+	System.out.println("current = " + current + " and offset = " + offset + " are neither identical not differ by 4");
+      if (t.isIntType()) {
+	current += 4;
+	System.out.print("   uint32_t " + name + ";\n");
+      }
+      else if (t.isLongType()) {
+	current += 8;
+	System.out.print("   uint64_t " + name + ";\n");
+      }
+      else if (t.isWordType()) {
+	System.out.print("   VM_Address " + name + ";\n");
+	current += addrSize;
+      }
+      else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
+	System.out.print("   VM_Address * " + name + ";\n");
+	current += addrSize;
+      }
+      else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
+	System.out.print("   unsigned int * " + name + ";\n");
+	current += addrSize;
+      }
+      else if (t.isReferenceType()) {
+	System.out.print("   JavaObject_t " + name + ";\n");
+	current += addrSize;
+      }
+      else {
+	  System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
+	  throw new RuntimeException("unexpected field type");
+      }
+    }
+
+    System.out.print("};\n");
+  }
+
+
   static void emitBootRecordDeclarations () {
     VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
@@ -80,36 +178,10 @@ class GenerateInterfaceDeclarations {
       System.err.println("Failed to load VM_BootRecord!");
       System.exit(-1);
     }
-    VM_Field[] fields = bootRecord.getDeclaredFields();
-
-    System.out.print("struct VM_BootRecord {\n");
-
-    // emit field declarations
-    // note that fields are layed out "backwards" in memory
-    //
-    for (int i = fields.length; --i >= 0;) {
-      VM_Field field = fields[i];
-      if (field.isStatic())
-        continue;
-      else if (field.getType().isIntType())
-	  System.out.print("   int " + field.getName() + ";\n");
-      else if (field.getType().isWordType())
-	  System.out.print("   VM_Address " + field.getName() + ";\n");
-      else if (field.getType().isArrayType() &&
-	       field.getType().getArrayElementType().isWordType())
-	  System.out.print("   VM_Address * " + field.getName() + ";\n");
-      else if (field.getName().toString().equals("heapRanges") &&
-	       field.getType().isArrayType() &&
-	       field.getType().getArrayElementType().isIntType())
-	  System.out.print("   unsigned int * " + field.getName() + ";\n");
-      else {
-	  System.err.print("Unexpected field " + field.getName().toString() + " with type " + field.getType() + "\n");
-	  throw new RuntimeException("unexpected field type");
-      }
-    }
-
-    System.out.print("};\n");
+    emitCDeclarationsForJavaType("VM_BootRecord", bootRecord);
   }
+
+
 
 
   // Emit declarations for VM_BootRecord object.

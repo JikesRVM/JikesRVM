@@ -211,7 +211,6 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ForwardReference;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_HardwareTrapCompiledMethod;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JSRSubroutineInfo;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MagicCompiler;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_PendingRETInfo;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"),

@@ -949,11 +949,12 @@ public class PPC_Disassembler implements VM_Constants {
 	    "   "+TO+","+rname(RA)+","+datafield;
 	}
       case 4:
+        int L = inst & 0x00200000;
 	if (opcode == 11) {
-	  return "        ".substring(mnemonic.length()) + mnemonic +
+	  return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
 	    "   cr"+BF+","+rname(RA)+","+datafield;
 	} else {
-	  return "        ".substring(mnemonic.length()) + mnemonic +
+	  return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
 	    "   cr"+BF+","+rname(RA)+","+ufield;
 	}
       case 5:
@@ -1360,7 +1361,8 @@ public class PPC_Disassembler implements VM_Constants {
 	return "        ".substring(mnemonic.length()) + mnemonic +
 	  "   fr"+FRT+",fr"+FRB;
       case 22:
-	return "        ".substring(mnemonic.length()) + mnemonic +
+        int L = inst & 0x00200000;
+	return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
 	  "   cr"+BF+","+rname(RA)+","+rname(RB);
       case 23:
 	return "        ".substring(mnemonic.length()) + mnemonic +

@@ -1076,7 +1076,7 @@ function emitCopier
    print '     FILES=`/bin/ls $d/*.java`'
    print '   fi'
    print '   set +e'
-   print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR '$FILES $FILES2'
+   print     $BUILD_DIRECTORY_STR/jbuild.prep '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR '$FILES $FILES2'
    print '   RC=$?'
    print '   if [[ $RC = 1 ]]; then'
    print '      FILES_HAVE_CHANGED=1'
@@ -1101,7 +1101,7 @@ function emitCopier
    print 'fi'
    print 'FILES=`$FIND '$GENERATED_FILES_DIRECTORY_STR' -name "*.java"`'
    print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
+   print $BUILD_DIRECTORY_STR/jbuild.prep '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
    print 'RC=$?'
    print 'if [[ $RC = 1 ]]; then'
    print '   FILES_HAVE_CHANGED=1'
@@ -1112,20 +1112,6 @@ function emitCopier
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '  print ""'
    print 'fi'
-
-   # script to preprocess GenerateInterfaceDeclarations.java
-   #
-   print ''
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$BOOTIMAGE_RUNNER_DIR_STR'"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $BOOTIMAGE_RUNNER_DIR_STR'/GenerateInterfaceDeclarations.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '  print ""'
-   print 'fi'
-   print ''
 
    # copy classpath jar file
    if [[ x$CLASSPATH_ROOT = x ]]; then
@@ -1261,16 +1247,18 @@ function emitImageLinker
    print 'if [[ $1 = -clean ]]; then'
    print "   rm -f $PRIMORDIAL_CLASSES_STR $EXCLUDED_CLASSES_STR $BOOTIMAGE_STR $BOOTIMAGE_MAP_STR"
    print '   print -n "(primordials cleaned) "'
-   print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.java"
-   print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.class"
+   print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*"
    print "   rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h"
+   print "   rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java"
+   print "   rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class"
    print '   print -n "(bootimage cleaned) "'
    print '   exit 0'
    print 'fi'
    print ''
-   print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.java"
-   print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.class"
+   print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*"
    print "   rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h"
+   print "   rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java"
+   print "   rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class"
    print '   print -n "(bootimage cleaned) "'
 
    # Generate list of classes to include in the bootimage.
@@ -1716,14 +1704,49 @@ function emitImageLinker
    print 'fi'
    print ""
 
-   # script to compile GenerateInterfaceDeclaration.java
+   # copy and preprocess BootImageWriter sources
+   #
+   print ''
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$BOOTIMAGE_WRITER_DIR_STR'"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $BOOTIMAGE_WRITER_DIR_STR'/*.java`'
+   print 'set +e'
+   print $BUILD_DIRECTORY_STR/jbuild.prep '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
+   print ''
+
+   # compile BootImageWriter.java
+   #
+   print "cd $SCRATCH_DIRECTORY_STR &&\
+          $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
+	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
+	  BootImageWriter.java"
+
+   # copy and preprocess GenerateInterfaceDeclarations.java
+   #
+   print ''
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$BOOTIMAGE_RUNNER_DIR_STR'"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $BOOTIMAGE_RUNNER_DIR_STR'/GenerateInterfaceDeclarations.java`'
+   print 'set +e'
+   print $BUILD_DIRECTORY_STR/jbuild.prep '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
+   print ''
+
+   # compile GenerateInterfaceDeclaration.java
    #
    print "cd $SCRATCH_DIRECTORY_STR &&\
           $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
-   # script to generate InterfaceDeclaration.h
+   # generate InterfaceDeclaration.h
    #
    print "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
    print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
@@ -1735,7 +1758,6 @@ function emitImageLinker
    print "cd $BOOTIMAGE_WRITER_DIR_STR"
 
    print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
-          RVM_INSTRUCTION_TYPE=$INSTRUCTION_TYPE\
           RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
           RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
           RVM_BOOTIMAGE=$BOOTIMAGE_STR\
@@ -1865,63 +1887,70 @@ function emitBooterLinker
    fi
 
    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-    SMP_STR="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
+    CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
    else 
-    SMP_STR="-URVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
+    CC_DEFINES="-URVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
    fi
 
+   if (( RVM_FOR_32_ADDR )); then
+     CC_DEFINES="$CC_DEFINES -DRVM_FOR_32_ADDR -URVM_FOR_64_ADDR"
+   fi
+   if (( RVM_FOR_64_ADDR )); then
+     CC_DEFINES="$CC_DEFINES -DRVM_FOR_64_ADDR -URVM_FOR_32_ADDR"
+   fi
+  
    if (( RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
-     SMP_STR="$SMP_STR -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
+     CC_DEFINES="$CC_DEFINES -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
    fi
 
    # Build the blocking system call wrapper library, if requested
    if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
       if (( RVM_FOR_AIX )); then
-        print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.a CXXFLAGS="'"$SMP_STR"'" $JAL_BUILD/libsyswrap.a'
+        print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.a CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap.a'
       else
-        print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.so CXXFLAGS="'"$SMP_STR"'" $JAL_BUILD/libsyswrap.so'
+        print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.so CXXFLAGS="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap.so'
       fi
    fi
 
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_AIX -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
          print 'BOOTER_CCM="$BOOTER_CC -M"'
-	 print "CPP=\"$HOST_CC_STR -E\""
+	 print "CPP=\"$HOST_CC_STR -E $CC_DEFINES\""
 
 	 print 'CCLIBS="-lpthread -lm"'
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
-	 print "CPP=\"$HOST_CPP_STR\""
+	 print "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
 
 	 print 'CCLIBS="$EXTRA_CCLIBS -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
-	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
+	 print "CPP=\"$HOST_CPP_STR $CC_DEFINES -D__linuxsmp__\""
 
 	 print 'CCLIBS="-lpthread -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES\""
 
 	 print 'CCLIBS="-lpthread -ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_IA32 $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES\""
 
 	 print 'CCLIBS="-ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_CYGWIN -DRVM_FOR_IA32 $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_CYGWIN -DRVM_FOR_IA32 $CC_DEFINES\""
 
 	 print 'CCLIBS=""'
          print 'IMAGE='

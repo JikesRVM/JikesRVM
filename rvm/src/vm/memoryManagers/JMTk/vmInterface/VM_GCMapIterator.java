@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_WordArray;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
@@ -30,7 +31,7 @@ public abstract class VM_GCMapIterator implements VM_Uninterruptible {
   public VM_Address  framePtr;
   
   /** address where each gpr register was saved by previously scanned stackframe(s) */
-  public int[]     registerLocations;
+  public VM_WordArray   registerLocations;
   
   /**
    * Prepare to scan a thread's stack and saved registers for object references.

@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
 
 /**
  * Method names that are treated specially by compiler.
- * See also: VM_Magic, various magic compilers (eg VM_MagicCompiler)
+ * See also: VM_Magic, various magic compilers.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -129,7 +129,9 @@ public class VM_MagicNames {
   public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
   public static final VM_Atom wordFromIntZeroExtend         = VM_Atom.findOrCreateAsciiAtom("fromIntZeroExtend");
   public static final VM_Atom wordFromIntSignExtend         = VM_Atom.findOrCreateAsciiAtom("fromIntSignExtend");
+  public static final VM_Atom wordFromLong                  = VM_Atom.findOrCreateAsciiAtom("fromLong");
   public static final VM_Atom wordToInt                     = VM_Atom.findOrCreateAsciiAtom("toInt");
+  public static final VM_Atom wordToLong                    = VM_Atom.findOrCreateAsciiAtom("toLong");
   public static final VM_Atom wordToWord                    = VM_Atom.findOrCreateAsciiAtom("toWord");
   public static final VM_Atom wordToAddress                 = VM_Atom.findOrCreateAsciiAtom("toAddress");
   public static final VM_Atom wordAdd                       = VM_Atom.findOrCreateAsciiAtom("add");

@@ -62,6 +62,17 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int call2(VM_Address ip, int p1, int p2) throws VM_PragmaInline {
     return  VM_Magic.sysCall2(ip, p1, p2);
   }
+  
+  /**
+   * call_I_I_A
+   * @param ip  address of a function in sys.C 
+   * @param p1
+   * @param p2
+   * @return  integer value returned by function in sys.C
+   */
+  public static int call_I_I_A(VM_Address ip, int p1, VM_Address p2) throws VM_PragmaInline {
+    return  call2(ip, p1, p2.toInt());
+  }
 
   /**
    * call_I_A_I
@@ -205,7 +216,7 @@ public class VM_SysCall implements VM_Uninterruptible {
   }
 
   /**
-   * call_I_A_A_I_A
+   * call_I_A_A_A_A
    * @param ip  address of a function in sys.C 
    * @param p1
    * @param p2
@@ -213,8 +224,8 @@ public class VM_SysCall implements VM_Uninterruptible {
    * @param p4
    * @return  address value returned by function in sys.C
    */
-  public static int call_I_A_A_I_A(VM_Address ip, VM_Address p1, VM_Address p2, int p3, VM_Address p4) throws VM_PragmaInline {
-    return call4(ip, p1.toInt(), p2.toInt(), p3, p4.toInt());
+  public static int call_I_A_A_A_A(VM_Address ip, VM_Address p1, VM_Address p2, VM_Address p3, VM_Address p4) throws VM_PragmaInline {
+    return call4(ip, p1.toInt(), p2.toInt(), p3.toInt(), p4.toInt());
   }
 
   /**

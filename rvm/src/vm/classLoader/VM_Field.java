@@ -59,12 +59,19 @@ public final class VM_Field extends VM_Member {
   public final VM_TypeReference getType() throws VM_PragmaUninterruptible {
     return memRef.asFieldReference().getFieldContentsType();
   }
-
+  
+  /**
+   * How many stackslots do value of this type take?
+   */
+  public final int getNumberOfStackSlots() {
+    return getType().getStackWords();  
+  }
+    
   /**
    * How many bytes of memory words do value of this type take?
    */
   public final int getSize() {
-    return getType().getStackWords() << LOG_BYTES_IN_ADDRESS;
+    return getType().getSize();  
   }
     
   /**

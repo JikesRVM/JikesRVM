@@ -805,8 +805,8 @@ public class VM_Magic {
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 
-   public static int sysCallSigWait(VM_Address ip, VM_Address toc, int p0, 
-                                     int p1, VM_Registers r){ //TODO: type of p1 to VM_Address 
+   public static int sysCallSigWait(VM_Address ip, VM_Address toc, VM_Address p0, 
+                                     int p1, VM_Registers r){  
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 

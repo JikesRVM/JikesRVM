@@ -284,7 +284,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * This method creates a opt-compiler GC Map iterator object that will be
    * used to report the stack GC roots.
    */
-  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(VM_WordArray registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
 

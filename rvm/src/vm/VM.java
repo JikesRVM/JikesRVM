@@ -112,6 +112,7 @@ public class VM extends VM_Properties
     // Reset the options for the baseline compiler to avoid carrying them over from
     // bootimage writing time.
     // 
+    if (verbose >= 1) VM.sysWriteln("Setting up baseline compiler options");
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
@@ -534,9 +535,9 @@ public class VM extends VM_Properties
       while (postDecimalDigits-- > 0)
 	multiplier *= 10;
       int remainder = (int) (multiplier * (value - ones));
-      if (negative) write("-");
+      if (negative) write('-');
       write(ones, false); 
-      write(".");
+      write('.');
       while (multiplier > 1) {
 	multiplier /= 10;
 	write(remainder / multiplier);
@@ -577,9 +578,11 @@ public class VM extends VM_Properties
    * @param value	what is printed, as hex only
    */
   public static void writeHex(long value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    if (runningVM)
-      VM_SysCall.call_I_L_I(VM_BootRecord.the_boot_record.sysWriteLongIP, value, 2 /*just hex*/);
-    else {
+    if (runningVM){
+      int val1 = (int)(value>>32);
+      int val2 = (int)(value & 0xFFFFFFFF);
+      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, 2);
+    } else {
       System.err.print(Long.toHexString(value));
     }
   }
@@ -862,8 +865,8 @@ public class VM extends VM_Properties
    * @return virtual processor's o/s handle
    */
   static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
-                                       int ti, VM_Address fp) {
-    return VM_SysCall.call_I_A_A_I_A(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
+                                       VM_Address ti, VM_Address fp) {
+    return VM_SysCall.call_I_A_A_A_A(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
                     jtoc, pr, ti, fp);
   }
 

@@ -977,25 +977,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
 
     // additional architecture specific adjustments
-    //  (1) on PPC baseline frame keeps a pointer to the 
-    //      expression stack in SP.
-    //  (2) on IA32 baseline frame shadows VM_Processor.framePointer
-    //      (ie registers.getInnermostFramePointer()) in EBP
-    //  (3) frames from all compilers on IA32 need to update ESP
+    //  (1) frames from all compilers on IA32 need to update ESP
     int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
-      VM_CompiledMethod compiledMethod = 
-        VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-        //-#if RVM_FOR_POWERPC
-	VM_Word old = registers.gprs.get(VM_BaselineConstants.SP);
-	registers.gprs.set(VM_BaselineConstants.SP, old.add(delta));
-	if (traceAdjustments) {
-	  VM.sysWrite(" sp=");
-	  VM.sysWrite(registers.gprs.get(VM_BaselineConstants.SP));
-	}
-	//-#endif
-      }
       //-#if RVM_FOR_IA32
       VM_Word old = registers.gprs.get(ESP);
       registers.gprs.set(ESP, old.add(delta));
@@ -1005,6 +989,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       }
       //-#endif
       if (traceAdjustments) {
+	VM_CompiledMethod compiledMethod = 
+	  VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM.sysWrite(" method=");
 	VM.sysWrite(compiledMethod.getMethod());
 	VM.sysWrite("\n");
@@ -1023,37 +1009,14 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     private static void adjustStack(int[] stack, VM_Address fp, VM_Offset delta) {
       if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
 
-      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP))
-      {
-	 // adjust FP save area
+      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+	// adjust FP save area
 	//
-        VM_Magic.setCallerFramePointer(fp, 
-                                       VM_Magic.getCallerFramePointer(fp).add(delta));
-        if (traceAdjustments) 
+        VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).add(delta));
+        if (traceAdjustments) {
           VM.sysWrite(" fp=", fp.toWord());
-
-        // adjust SP save area (baseline frames only)
-        //
-        //-#if RVM_FOR_POWERPC
-        int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-        if (compiledMethodId != INVISIBLE_METHOD_ID) {
-          VM_CompiledMethod compiledMethod = 
-            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-          if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-            int spOffset = VM_Compiler.getSPSaveAreaOffset((VM_NormalMethod)compiledMethod.getMethod());
-            VM_Magic.setMemoryAddress(fp.add(spOffset), 
-				      VM_Magic.getMemoryAddress(fp.add(spOffset)).add(delta));
-            if (traceAdjustments) 
-              VM.sysWrite(" sp=", VM_Magic.getMemoryWord(fp.add(spOffset)));
-          }
-          if (traceAdjustments) {
-            VM.sysWrite(" method=");
-            VM.sysWrite(compiledMethod.getMethod());
-            VM.sysWrite("\n");
-          }
-        }
-        //-#endif
-
+	}
+	
         // advance to next frame
         //
         fp = VM_Magic.getCallerFramePointer(fp);

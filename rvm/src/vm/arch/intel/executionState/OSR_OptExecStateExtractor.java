@@ -225,7 +225,7 @@ public final class OSR_OptExecStateExtractor
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
 	VM.sysWrite(" : ");
-	VM.sysWriteHex(registers.gprs.get(i).toInt());
+	VM.sysWriteHex(registers.gprs.get(i).toAddress());
 	VM.sysWriteln();
       }
     }

@@ -102,7 +102,7 @@ class VM_NativeDaemonThread extends VM_Thread {
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myProcessor.vpStatusAddress.toInt(),
+		              myProcessor.vpStatusAddress,
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 

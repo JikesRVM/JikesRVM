@@ -57,7 +57,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     VM_Address tibPtr = VM_Magic.objectAsAddress(tib);
-    VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibPtr.toInt());
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(ref).add(TIB_OFFSET), tibPtr);
   }
 
   /**
@@ -91,7 +91,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) throws VM_PragmaInterruptible {
-    asm.emitLWZ(dest, TIB_OFFSET, object);
+    asm.emitLAddr(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 

@@ -747,6 +747,7 @@ int createJVM(int vmInSeparateThread) {
 
    // set host o/s linkage information into boot record
    //
+   if (lib_verbose) fprintf(SysTraceFile, "%s: setting linkage\n", me);
    setLinkage(&bootRecord);
 
    // remember location of java exception handler
@@ -917,6 +918,10 @@ int createJVM(int vmInSeparateThread) {
    } 
 
    else {
+
+     if (lib_verbose) 
+       fprintf(SysTraceFile, "%s: calling boot thread: jtoc = 0x%x   pr = 0x%x   tid = %d   fp = 0x%x\n", 
+	       me, jtoc, pr, tid, fp);
      bootThread(jtoc, pr, tid, fp);
      fprintf(SysErrorFile, "Unexpected return from bootThread\n");
      return 1;

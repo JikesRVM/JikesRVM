@@ -43,12 +43,19 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   public final VM_TypeReference getFieldContentsType() throws VM_PragmaUninterruptible {
     return fieldContentsType;
   }
-
+  
+  /**
+   * How many stackslots do value of this type take?
+   */
+  public final int getNumberOfStackSlots() {
+    return getFieldContentsType().getStackWords();  
+  }
+    
   /**
    * Get size of the field's value, in bytes.
    */ 
   public final int getSize() throws VM_PragmaUninterruptible {
-    return fieldContentsType.getStackWords() << LOG_BYTES_IN_ADDRESS;
+    return fieldContentsType.getSize();
   }
 
   /**

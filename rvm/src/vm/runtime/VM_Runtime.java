@@ -275,7 +275,6 @@ public class VM_Runtime implements VM_Constants {
     // Event logging and stat gathering
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logObjectAllocationEvent();
-
     // Allocate the object and initialize its header
     Object newObj = MM_Interface.allocateScalar(size, tib, allocator);
 

@@ -29,7 +29,7 @@ public class ScanStatics
   public static void scanStatics (AddressQueue rootLocations) throws VM_PragmaUninterruptible {
 
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
+    VM_Address slots = VM_Statics.getSlots();
     int chunkSize = 512;
     int slot, start, end, stride, slotAddress;
     VM_CollectorThread ct;
@@ -63,7 +63,7 @@ public class ScanStatics
   /*
   static boolean validateRefs () throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
+    VM_Address slots = VM_Statics.getSlots();
     boolean result = true;
     for ( int slot=0; slot<numSlots; slot++ ) {
       if ( ! VM_Statics.isReference(slot) ) continue;
@@ -81,7 +81,7 @@ public class ScanStatics
 
   static boolean validateRefs ( int depth ) throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
+    VM_Address slots = VM_Statics.getSlots();
     boolean result = true;
     for ( int slot=0; slot<numSlots; slot++ ) {
       if ( ! VM_Statics.isReference(slot) ) continue;
@@ -98,7 +98,7 @@ public class ScanStatics
 
   static void dumpRefs ( int start, int count ) throws VM_PragmaUninterruptible {
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots    = VM_Magic.objectAsAddress(VM_Statics.getSlots());
+    VM_Address slots = VM_Statics.getSlots();
     int last     = start + count;
     if (last > numSlots) last = numSlots;
     VM.sysWrite("Dumping Static References...\n");

@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public interface VM_RegisterConstants {
+public interface VM_RegisterConstants extends VM_SizeConstants {
   //--------------------------------------------------------------------------------------------//
   //                              Register usage conventions.                                   //
   //--------------------------------------------------------------------------------------------//
@@ -18,6 +18,7 @@ public interface VM_RegisterConstants {
    // Machine instructions.
    //
   static final int    LG_INSTRUCTION_WIDTH = 2;           // log2 of instruction width in bytes, powerPC
+  static final int    INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;           // log2 of instruction width in bytes, powerPC
   static final String INSTRUCTION_ARRAY_SIGNATURE = "[I"; // for powerPC
 
   // General purpose register usage. (GPR's are 32 bits wide).
@@ -86,7 +87,7 @@ public interface VM_RegisterConstants {
   static final int FIRST_OS_NONVOLATILE_FPR       = 14;
   static final int LAST_OS_VARARG_PARAMETER_FPR   =  8;
   // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  8;  // fp + lr 
+  static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr 
   //-#endif
 
   /////////////////////////////////////////////////////////
@@ -104,8 +105,8 @@ public interface VM_RegisterConstants {
   // AIX   8*4 + 6*8 = 80 bytes  
   // LINUX 8*4 + 8*8 = 96 bytes
   static final int JNI_GLUE_SAVED_VOL_SIZE  = 
-	(LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1)* 4
-   +(LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * 8;
+	(LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1)* BYTES_IN_ADDRESS
+   +(LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * BYTES_IN_DOUBLE;
 
   // both AIX and LINUX have to save R13 - R16,
   // AIX   4 (*4 bytes)
@@ -127,21 +128,21 @@ public interface VM_RegisterConstants {
   
   static final int JNI_GLUE_FRAME_SIZE =                   // AIX    LINUX
     VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE    // 12     12
-	+ JNI_GLUE_SAVED_VOL_SIZE                              // 80     96
-	+ JNI_GLUE_RVM_EXTRA_GPRS*4                            // 16     16
-	+ JNI_GLUE_RVM_EXTRA_FPRS*8                            // 16     16
-	+ JNI_GLUE_FRAME_PADDING*4                             //  0      0
-	+ JNI_GLUE_FRAME_OTHERS*4;                             //  4      4
+	+ JNI_GLUE_SAVED_VOL_SIZE                          // 80     96
+	+ JNI_GLUE_RVM_EXTRA_GPRS*BYTES_IN_ADDRESS         // 16     16
+	+ JNI_GLUE_RVM_EXTRA_FPRS*BYTES_IN_DOUBLE          // 16     16
+	+ JNI_GLUE_FRAME_PADDING*BYTES_IN_ADDRESS          //  0      0
+	+ JNI_GLUE_FRAME_OTHERS*BYTES_IN_ADDRESS;          //  4      4
                                                     // total 128    144
   
   // offset to caller, where to store offset to previous java frame 
-  static final int JNI_GLUE_OFFSET_TO_PREV_JFRAME = - JNI_GLUE_FRAME_OTHERS*4;
+  static final int JNI_GLUE_OFFSET_TO_PREV_JFRAME = - JNI_GLUE_FRAME_OTHERS*BYTES_IN_ADDRESS;
 	
   // offset into the vararg save area within the native to Java glue frame
   // to saved regs GPR 6-10 & FPR 1-6, the volatile regs containing vararg arguments
   //
   static final int VARARG_AREA_OFFSET = 
-    VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*4);    // the RVM link area and saved GPR 3-5
+    VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*BYTES_IN_ADDRESS);    // the RVM link area and saved GPR 3-5
 
 
   /////////////////////////////////////////////////////////////
@@ -153,34 +154,32 @@ public interface VM_RegisterConstants {
   // GPR4-10 = 7 words  (does not include R3)
   // FPR1-6  = 12 words
   static final int JNI_OS_PARAMETER_REGISTER_SIZE   =  
-    (LAST_OS_PARAMETER_GPR - (FIRST_OS_PARAMETER_GPR + 1) + 1)*4
-	+ (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1)*8 ;   
+    (LAST_OS_PARAMETER_GPR - (FIRST_OS_PARAMETER_GPR + 1) + 1)*BYTES_IN_ADDRESS
+	+ (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1)*BYTES_IN_DOUBLE ;   
   
   // offset into the Java to Native glue frame, relative to the Java caller frame
   // the definitions are chained to the first one, JNI_JTOC_OFFSET
-  // saved R17-R31 + R16 + GCflag + affinity + saved JTOC + saved SP
+  // saved R17-R31 + R16 + GCflag + affinity + saved JTOC
 
   static final int JNI_JTOC_OFFSET                  = 4;
-  static final int JNI_SP_OFFSET                    = JNI_JTOC_OFFSET + 4;  // at 8
-  static final int JNI_RVM_NONVOLATILE_OFFSET       = JNI_SP_OFFSET + 4;    // at 12
+  static final int JNI_RVM_NONVOLATILE_OFFSET       = JNI_JTOC_OFFSET + 4;    // at 8
   static final int JNI_PR_OFFSET                    = JNI_RVM_NONVOLATILE_OFFSET + 
-    ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * 4);             // at 72
-  static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_PR_OFFSET + 4;    // at 76: save 7 register 4-10
-  static final int JNI_AFFINITY_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE; // at 104
+    ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * 4);             // at 68
+  static final int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_PR_OFFSET + 4;    // at 72: save 7 register 4-10
+  static final int JNI_AFFINITY_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE; // at 100
 
-
-//-#if RVM_FOR_AIX
-  static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  = JNI_AFFINITY_OFFSET + 4;          // 108
-  static final int JNI_GC_FLAG_OFFSET                = JNI_PROLOG_RETURN_ADDRESS_OFFSET  + 4;          // 112
+  //-#if RVM_FOR_AIX
+  static final int JNI_PROLOG_RETURN_ADDRESS_OFFSET  = JNI_AFFINITY_OFFSET + 4;          // 104
+  static final int JNI_GC_FLAG_OFFSET                = JNI_PROLOG_RETURN_ADDRESS_OFFSET  + 4;          // 108
   static final int JNI_SAVE_AREA_SIZE                = JNI_GC_FLAG_OFFSET;
-//-#endif
+  //-#endif
 
-//-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX
   // LINUX saves prologue address in lr slot of glue frame (1), see picture blow
   static final int JNI_GC_FLAG_OFFSET                = JNI_AFFINITY_OFFSET + 4;
-  static final int JNI_MINI_FRAME_POINTER_OFFSET     = VM_Memory.alignUp(
-	 JNI_GC_FLAG_OFFSET + VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE,
-	 VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT);
+  static final int JNI_MINI_FRAME_POINTER_OFFSET     = 
+    VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE,
+		      VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT);
 
   static final int JNI_SAVE_AREA_SIZE = JNI_MINI_FRAME_POINTER_OFFSET;
   // Linux uses different transition scheme, in Java-to-Native transition
@@ -209,13 +208,13 @@ public interface VM_RegisterConstants {
   // lr slot of frame (2) holds out of line machine code which should be in 
   // bootimage, I believe GC won't move that part. JNIGCIterator would 
   // return lr or frame (2) as the result of getReturnAddressAddress
-//-#endif
+  //-#endif
   
   // Register mnemonics (for use by debugger).
   //
   static final String [] GPR_NAMES = {
     "R0", "FP", "JT", "R3", "R4", "R5", "R6", "R7",
-    "R8", "R9", "R10", "R11", "R12", "R13", "SP", "TI",
+    "R8", "R9", "R10", "R11", "R12", "R13", "R14", "TI",
     "PR", "R17", "R18", "R19", "R20", "R21", "R22", "R23",
     "R24", "R25", "R26", "R27", "R28", "R29", "R30", "R31"
   };
@@ -226,6 +225,5 @@ public interface VM_RegisterConstants {
     "F16",  "F17",  "F18",  "F19",  "F20",  "F21",  "F22",  "F23",
     "F24",  "F25",  "F26",  "F27",  "F28",  "F29",  "F30",  "F31"
   };
-
 }
 

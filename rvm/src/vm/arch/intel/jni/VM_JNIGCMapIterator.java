@@ -45,7 +45,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   VM_Address    jniSavedProcessorRegAddr;     // -> saved PR reg
   VM_Address    jniSavedReturnAddr;           // -> return addr in generated transition prolog
   
-  public VM_JNIGCMapIterator(int[] registerLocations) {
+  public VM_JNIGCMapIterator(VM_WordArray registerLocations) {
     this.registerLocations = registerLocations;
   }
   
@@ -98,7 +98,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     //
     if ( jniNextRef > jniFramePtr ) {
       ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
-      jniNextRef = jniNextRef - 4;
+      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
       return ref_address;
     }
 
@@ -118,17 +118,17 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // later scan of those refs.
     //
     if ( jniFramePtr > 0 ) {
-      jniFramePtr = jniRefs[jniFramePtr >> 2];
-      jniNextRef = jniNextRef - 4;
+      jniFramePtr = jniRefs[jniFramePtr >> LOG_BYTES_IN_ADDRESS];
+      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
     }
 
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
     // the save non-volatiles are EBX, EBP,  and EDI (JTOC)
     //
-    registerLocations[JTOC] = framePtr.add(VM_JNICompiler.EDI_SAVE_OFFSET).toInt();
-    registerLocations[EBX]  = framePtr.add(VM_JNICompiler.EBX_SAVE_OFFSET).toInt();
-    registerLocations[EBP]  = framePtr.add(VM_JNICompiler.EBP_SAVE_OFFSET).toInt();
+    registerLocations.set(JTOC, framePtr.add(VM_JNICompiler.EDI_SAVE_OFFSET));
+    registerLocations.set(EBX, framePtr.add(VM_JNICompiler.EBX_SAVE_OFFSET));
+    registerLocations.set(EBP, framePtr.add(VM_JNICompiler.EBP_SAVE_OFFSET));
 
     return VM_Address.zero();  // no more refs to report
   } //- implements VM_GCMapIterator
