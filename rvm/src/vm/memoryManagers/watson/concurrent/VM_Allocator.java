@@ -95,14 +95,14 @@ public class VM_Allocator
 
     // Statistics
 
-    static final boolean GC_COUNT_ALLOC = true;
+    static final boolean GC_COUNT_ALLOC = false;
 
     static int allocCount;			    // updated every entry to allocate<x>
     static int fastAllocCount;			    // updated every entry to allocate<x>
     static int allocBytes;			    // total bytes allocated
     static int freedCount;			    // number of objects freed
 
-    static final boolean RC_COUNT_EVENTS = true;
+    static final boolean RC_COUNT_EVENTS = false;
 
     static int green;				    // green allocated since last cycle collect (see VM_RootBuffer)
     static int black;				    // black allocated since last cycle collect (see VM_RootBuffer)
@@ -144,7 +144,7 @@ public class VM_Allocator
     static final boolean GC_STATISTICS = false;	    // for timing parallel GC
     static final boolean GC_TIMING = true;	    // for timing parallel GC
     static final boolean TIMING_DETAILS = false;    // break down components of pause times
-    static final boolean TIME_ALLOCATES = true;     // time each allocateScalar() or allocateArray() operation
+    static final boolean TIME_ALLOCATES = false;     // time each allocateScalar() or allocateArray() operation
     static final boolean TIME_FREEBLOCKS = false;   // time each freeBlock call
     static final boolean PRINT_SLOW_ALLOCATES = false;
 
@@ -174,6 +174,8 @@ public class VM_Allocator
     static final boolean DebugLink = false;	    // debug small object free chains
     static final boolean GC_CLOBBERFREE = false;	
     static final boolean TRACE_LARGE = false;        // trace large object alloc/dealloc
+    static final boolean SHOW_ALLOCATION_DELAY = false;
+    static final boolean SHOW_HASH_STATS = false;
 
     static final boolean Report = false;
 
@@ -486,7 +488,7 @@ public class VM_Allocator
 	for (double d = VM_Time.now(); d-s < 1.0; d = VM_Time.now()) {}
 	long ticksPerSecond = VM_Time.cycles() - ts;
 	ticksPerUS = ticksPerSecond/1000000;
-	println("Ticks/us: ", (int) ticksPerUS);
+	// println("Ticks/us: ", (int) ticksPerUS);
 
 	if (GC_ON_EXIT) {
 	    println("HEAP BEFORE CLEANUP");  heapInfo();
@@ -506,9 +508,16 @@ public class VM_Allocator
 	// println("\nForcing final root buffer processing");
 	// VM_RootBuffer.buffer.processCycles();
 
-	print("\n\nRCGC SUMMARY\n\n");
-	println("Epochs: ", VM_Scheduler.globalEpoch);
-	println();
+	boolean showAny = (GC_COUNT_ALLOC ||
+			   TRACK_MEMORY_USAGE ||
+			   RC_COUNT_EVENTS || 
+			   TIME_ALLOCATES);
+
+	if (showAny) {
+	    print("\n\nRCGC SUMMARY\n\n");
+	    println("Epochs: ", VM_Scheduler.globalEpoch);
+	    println();
+	}
 
 	if (GC_COUNT_ALLOC) {
 	    println("Objects allocated: ", allocCount);  
@@ -567,15 +576,18 @@ public class VM_Allocator
 
 	}
 
-	dumpHashStats();
+	if (SHOW_HASH_STATS) 
+	    dumpHashStats();
 
-	if (VM_RCCollectorThread.TIME_PAUSES)
+	if (VM_RCCollectorThread.TIME_PAUSES) {
 	    VM_RCCollectorThread.printRCStatistics(freedCount);
+	}
 
 	if (RC_COUNT_EVENTS) 
 	    println("\n * Comparative only; not a true percentage");
 
-	println("\nRUN TIME: ", (int) runTime);
+	if (showAny) 
+	    println("\nRUN TIME: ", (int) runTime);
     }
 
 
@@ -1254,10 +1266,12 @@ public class VM_Allocator
 	    // heapInfo();	// and after
 
 	    double pauseTime = VM_Time.now() - startTime;
-	    VM.sysWrite("$$$$ Processor "); VM.sysWrite(pid, false);
-	    VM.sysWrite(" suspended from ");  VM.sysWrite(originator);
-	    VM.sysWrite(" for ");  VM.sysWrite((int)(pauseTime*1000000.0), false);
-	    VM.sysWrite(" usec\n");
+	    if (SHOW_ALLOCATION_DELAY) {
+		VM.sysWrite("$$$$ Processor "); VM.sysWrite(pid, false);
+		VM.sysWrite(" suspended from ");  VM.sysWrite(originator);
+		VM.sysWrite(" for ");  VM.sysWrite((int)(pauseTime*1000000.0), false);
+		VM.sysWrite(" usec\n");
+	    }
 	} else {
 	    // VM.sysWrite("+");
 	    gc1();
