@@ -68,9 +68,9 @@ the {\tt CLASSPATH\_ROOT} variable to be the directory that contains the
 classpath directory you just created.  
 
 \item Edit a configuration file so that it fits your machine.  One of
-the i686-pc-linux files in {\tt \$RVM\_ROOT/rvm/config} will probably be
+the {\tt i686-pc-linux} files in {\tt \$RVM\_ROOT/rvm/config} will probably be
 more-or-less right to begin with.  On Linux, most standard commands
-(and Jikes) are in /usr/bin.  Hereinafter, we will call your edited
+(and Jikes) are in {\tt /usr/bin}.  Hereinafter, we will call your edited
 file {\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}
 
 \index{environment variables}
@@ -80,7 +80,7 @@ There are four of these that you must use; in addition,
 \begin{description}
 
 \item[RVM\_ROOT] is the location of the Jikes RVM distribution.  It
-must be RVM\_ROOT as given above.
+must be {\bf RVM\_ROOT} as given above.
 
 \item[RVM\_HOST\_CONFIG] is the configuration file of the machine
 building Jikes RVM.  It must be
@@ -119,6 +119,8 @@ have those.
 
 \subsubsection{System Prerequisites}
 
+\begin{Label}{prereqs}
+
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{|l|l|l|} \hline\hline
@@ -145,8 +147,8 @@ JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} 
 \end{tabular}
 \end{center}
 \caption{System prerequisites for Jikes RVM}
-\label{prereqs}
 \end{table}
+\end{Label}
 
 \begin{itemize}
 \item {\tt automake} and {\tt autoconf} are only required to build the
@@ -321,12 +323,12 @@ to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR to 0 (SMP supported) or 1 (SMP not
 supported).  The following are the typical settings for
-RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR 
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR:
 \begin{description}
-\item {\tt AIX/PowerPC} 0 
-\item {\tt Linux/PowerPC} 1 
-\item {\tt Linux/IA32} 0\footnote{You must use 1 here if you do not
-have 2.4 kernel and glibc compiled to use the GS segment register to
+\item[AIX/PowerPC] {\tt 0 }
+\item[Linux/PowerPC] {\tt 1}
+\item[Linux/IA32] {\tt 0}\footnote{You must use 1 here if you do not
+have a 2.4 kernel and {\tt glibc} compiled to use the GS segment register to
 access pthread-specific state.  We do not recommend such a setup.}
 \end{description}                
 The second section in the configuration file is used to define how to
