@@ -70,8 +70,16 @@ class VM_TraceWriter extends VM_Thread
     while (true) {
       passivate(); // wait until externally scheduled to run
       if (notifyExit == true) {
-	// do nothing 
-	return;
+	// Only called once from producer when notify exit occurs.
+	// Flush current buffer
+	if(VM_HardwarePerformanceMonitors.verbose>=1)
+	  VM.sysWriteln("VM_TraceWriter.thresholdReached() notifyExit flush current buffer ",
+			hpm.getNameOfCurrentBuffer());
+	byte[] buffer = hpm.getCurrentBuffer();
+	int    index  = hpm.getCurrentIndex();
+	writeFileOutputStream(buffer, index);
+	closeFileOutputStream();
+
       } else {
 	try {
 	  thresholdReached();       // we've been scheduled; do our job!
@@ -305,7 +313,8 @@ class VM_TraceWriter extends VM_Thread
   /**
    * If tracing, set up call backs to manipulate files
    * Manages tracing functionality.
-   * Because anyone can place a call back anywhere, these methods can be interruptible.
+   * Because anyone can place a call back anywhere, these
+   * methods must be robust.
    */
   private void setupCallbacks()
   {
@@ -359,30 +368,8 @@ class VM_TraceWriter extends VM_Thread
 	VM.sysWriteln("\n***VM_TraceWriter.notifyExit() PID ",pid," trace_file == null! notifyStartup never called!***\n");
 	VM.sysExit(-1);
       }
-      // Only called once from producer when notify exit occurs.
-      // Flush current buffer
-      hpm.passivate();
 
-      byte[] buffer = hpm.getCurrentBuffer();
-      int    index  = hpm.getCurrentIndex();
-      writeFileOutputStream(buffer, index);
-
-      // write Exit record
-      index = 0;
-      byte[] buffer2 = new byte[10];
-      VM_Magic.setIntAtOffset( buffer2, index, VM_HardwarePerformanceMonitor.EXIT_FORMAT);// format
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-      VM_Magic.setIntAtOffset( buffer2, index, value);					// value
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-      writeFileOutputStream(buffer2, index);
-
-      if (VM_HardwarePerformanceMonitors.verbose>=3) {
-	VM.sysWrite  ("VM_TraceWriter.notifyExit(");
-	VM.sysWrite  (") n_records ",hpm.numberOfRecords()+1);
-	VM.sysWriteln(", missed ",hpm.missedRecords());
-      }
-
-      closeFileOutputStream();
+      hpm.notifyExit(value);
     }
   }
 
