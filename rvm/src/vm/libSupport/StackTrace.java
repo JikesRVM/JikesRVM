@@ -5,6 +5,7 @@
 
 package com.ibm.JikesRVM.librarySupport;
 import VM_StackTrace;
+import VM_PragmaNoInline;
 import java.io.*;
 
 /**
@@ -32,7 +33,7 @@ public class StackTrace {
    * an object.
    * @return a reference to the object
    */
-  public static StackTrace create() {
+  public static StackTrace create() throws VM_PragmaNoInline {
     VM_StackTrace[] s = VM_StackTrace.create();
     return new StackTrace(s);
   }
