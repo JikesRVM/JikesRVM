@@ -742,19 +742,23 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     ir.cfg.addLastInCodeOrder(yieldpoint);
     
     int offset = meth.getOffset();
-    // get the jtoc
-    OPT_Operand jtoc = 
-      OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-			   VM_Entrypoints.jtocOffset, 
-			   (byte)4, null, TG());
-    // load jtoc into temporary register
-    OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
-    yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
-    // load the address of thread switch from jtoc
-    OPT_Operand target =
-      OPT_MemoryOperand.BD(regOp.copyD2U(), 
-			   offset, (byte)4, new OPT_LocationOperand(offset),
-			   TG());
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+    OPT_Operand guard = TG();
+    OPT_Operand target;
+    if (ir.options.FIXED_JTOC) {
+      target = OPT_MemoryOperand.D(offset + VM_Magic.objectAsAddress(VM_Magic.getJTOC()),
+				   (byte)4, loc, guard);
+    } else {
+      OPT_Operand jtoc = 
+	OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
+			     VM_Entrypoints.jtocOffset, 
+			     (byte)4, null, TG());
+      OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
+      yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
+      target =
+	OPT_MemoryOperand.BD(regOp.copyD2U(), 
+			     offset, (byte)4, loc, guard);
+    }
     // call thread switch
     OPT_Instruction call = 
       MIR_Call.create0(CALL_SAVE_VOLATILE, null, null, target, 
@@ -765,7 +769,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
 						   nextBlock.makeJumpTarget())); 
     
-    // Check for the threadSwitch bit
+    // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
     int tsr = VM_Entrypoints.threadSwitchRequestedOffset;
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
