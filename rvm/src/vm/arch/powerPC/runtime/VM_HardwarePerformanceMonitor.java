@@ -187,7 +187,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     //      VM._assert(active,"***VM_HPM.updateHPMcounters() called with active = false!***");
 
     VM_SysCall.sysHPMstopMyThread();
-    long endOfWallTime   = VM_Magic.getTimeBase();
+    long endOfWallTime   = VM_Time.realTimeClock();
     long startOfWallTime = 0;
     long wallTime        = 0;
     n_threadSwitches++;
@@ -224,7 +224,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     }
 
     if (current_thread != null) {			// set up real time for current thread!
-      current_thread.startOfWallTime = VM_Magic.getTimeBase();
+      current_thread.startOfWallTime = VM_Time.realTimeClock();
     } else { 						// don't expect this to happen
       if(VM_HardwarePerformanceMonitors.verbose>=3)
 	VM.sysWriteln("***VM_HPM.updateHPMcounters() current_thread == null!***");
