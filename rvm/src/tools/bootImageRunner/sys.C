@@ -11,9 +11,6 @@
  * @date 20 Apr 1998
  */
 
-// Work around AIX headerfile differences: AIX 4.3 vs earlier releases
-//
-
 // Aix and Linux version.  PowerPC and IA32.
 
 // Only called externally from Java programs.
@@ -22,10 +19,12 @@ extern "C" void sysExit(int) __attribute__((noreturn));
 // AIX needs this to get errno right. JTD
 #define _THREAD_SAFE_ERRNO
 
+// Work around AIX headerfile differences: AIX 4.3 vs earlier releases
+//
 #ifdef _AIX43
 #include </usr/include/unistd.h>
-extern "C" void profil(void*, uint, ulong, uint);
-extern "C" int sched_yield();
+extern "C" void profil(void *, uint, ulong, uint);
+extern "C" int sched_yield(void);
 #endif
 
 #include <stdio.h>
@@ -124,6 +123,8 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 
 //!!TEMP - dummy function
 //!!TODO: remove this when boot record has single "sysTOC" instead of multiple "sysXXXTOC" values
+extern "C" void sys(void) __attribute__((noreturn));
+
 extern "C" void
 sys()
 {
@@ -923,7 +924,7 @@ extern "C" long long hpm_get_counter_mygroup(int);
  * Only returns if successful.
  */
 extern "C" int
-sysHPMinit()
+sysHPMinit(void)
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "sys: sysHPMinit() called: no support for linux\n");
