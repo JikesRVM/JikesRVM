@@ -134,7 +134,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    */
   public static boolean considerHeapSize() {
     int oldSize = currentHeapSize;
-    double liveRatio = Plan.reservedMemory() / ((double) Plan.totalMemory());
+    double liveRatio = Plan.reservedMemory() / ((double) currentHeapSize);
     double ratio = computeHeapChangeRatio(liveRatio);
     int newSize = (int)(ratio * (double)oldSize);
     if (newSize > 10 * (1<<20)) {
@@ -161,6 +161,12 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
     // (1) compute GC load.
     double totalTime = VM_Interface.now() - endLastMajorGC;
     double gcLoad = accumulatedGCTime / totalTime;
+
+    // Can happen....I can't explain why --dave
+    if (liveRatio > 1) liveRatio = 1;
+    if (gcLoad > 1) gcLoad = 1;
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(gcLoad >= 0);
     
     if (Options.verbose > 2) {
       VM_Interface.sysWriteln("Live ratio ",liveRatio);
