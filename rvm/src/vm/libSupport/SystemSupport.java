@@ -31,6 +31,15 @@ public class SystemSupport {
   }
 
   /**
+   * An entrypoint for debugging messages at runtime
+   */
+  public static void debugPrint(String s) {
+    if (VM.runningVM) {
+      VM.sysWriteln(s);
+    }
+  }
+
+  /**
    * Answers the unique instance of java.lang.Class which
    * represents the class of an object. 
    *
