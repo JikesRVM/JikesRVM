@@ -341,9 +341,9 @@ public class OPT_Compiler {
   private static void printMethodMessage (VM_Method method, 
                                           OPT_Options options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT)
-      VM.sysWrite("-method " + method.getDeclaringClass() + ' ' 
-                    + method.getName()
-          + ' ' + method.getDescriptor() + " \\\n");
+      VM.sysWrite("-methodOpt "+ method.getDeclaringClass() + ' ' 
+		  + method.getName() + ' ' 
+		  + method.getDescriptor() + " \n");
   }
 
   /**

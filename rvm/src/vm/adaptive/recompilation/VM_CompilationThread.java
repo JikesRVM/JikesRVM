@@ -51,6 +51,11 @@ class VM_CompilationThread extends VM_Thread {
 
     double compileTime; // compile time in milliseconds 
     int newCMID;
+
+    if (cp.options.PRINT_METHOD) {
+      VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
+    }
+    
     synchronized (VM_ClassLoader.lock) { 
       // must hold classloader lock while compiling.
       // Update compilation thread timing information to prepare for new run.

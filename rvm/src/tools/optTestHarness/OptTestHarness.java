@@ -25,6 +25,7 @@ import java.io.*;
  * can be given to the optimizing compiler by OptTestHarness via -oc:<cmd>.
  * In addition, the OptTestHarness supports the following commands:
  * -longcommandline <filename>    Read commands (one per line) from a file
+ * -inlineplan <filename>         Read an inline plan from a file
  * +baseline                      Switch default compiler to baseline
  * -baseline                      Switch default compiler to optimizing
  * -load  <class    >             Load a class
@@ -217,6 +218,13 @@ class OptTestHarness {
 	    av[j] = t.nextToken();
 	  }
 	  processOptionString(av);
+	} else if (arg.equals("-inlineplan")) {
+	  // -inlineplan is used to read an inline plan from a file
+	  i++;
+	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
+	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
+	  System.out.println(plan.toString());
+	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
 	  BASELINE = true;
 	} else if (arg.equals("-baseline")) {

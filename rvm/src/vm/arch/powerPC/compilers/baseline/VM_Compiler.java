@@ -3310,13 +3310,13 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
    * @param method
    */
   private static void printMethodMessage (VM_Method method) {
-      VM.sysWrite("base compiling -method ");
+      VM.sysWrite("-methodBase ");
       VM.sysWrite(method.getDeclaringClass().toString());
       VM.sysWrite(" "); 
       VM.sysWrite(method.getName());
       VM.sysWrite(" ");
       VM.sysWrite(method.getDescriptor());
-      VM.sysWrite(" \\\n");
+      VM.sysWrite(" \n");
   }
 
   /**

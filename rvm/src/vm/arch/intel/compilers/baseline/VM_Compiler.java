@@ -3729,13 +3729,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param method
    */
   private static void printMethodMessage (VM_Method method) {
-      VM.sysWrite("baseline compiling -method ");
+      VM.sysWrite("-methodBase ");
       VM.sysWrite(method.getDeclaringClass().toString());
       VM.sysWrite(" "); 
       VM.sysWrite(method.getName());
       VM.sysWrite(" ");
       VM.sysWrite(method.getDescriptor());
-      VM.sysWrite(" \\\n");
+      VM.sysWrite(" \n");
   }
 
   /**
