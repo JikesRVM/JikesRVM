@@ -8,8 +8,9 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Implementation of java.lang.ref.WeakReference for JikesRVM.
+ * 
  * @author Chris Hoffmann
- * @see java.util.WeakHashtable 
+ * @see java.util.WeakHashMap
  */
 public class WeakReference extends Reference {
 
