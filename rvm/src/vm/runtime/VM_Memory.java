@@ -26,22 +26,22 @@ class VM_Memory implements VM_Uninterruptible {
 
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
-   * Assumption: src != dst || (scrPos >= dstPos + 4).
-   * 
+   * Assumptions: src != dst || (scrPos >= dstPos + 4) and
+   *              src and dst are 8Bit arrays.
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
    * @param dst     the destination array
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy(byte[] src, int srcPos, byte[] dst, int dstPos, int len) {
+  static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
     VM_Magic.pragmaInline();
     if (len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst) + dstPos, 
 	      VM_Magic.objectAsAddress(src) + srcPos, 
 	      len);
     } else {
-      if ((srcPos & 0x3) == (dstPos & 0x3)) {
+      if (len >= 4 && (srcPos & 0x3) == (dstPos & 0x3)) {
 	// alignment is the same
 	int byteStart = srcPos;
 	int wordStart = (srcPos + 3) & ~0x3;
@@ -51,14 +51,14 @@ class VM_Memory implements VM_Uninterruptible {
 	int endDiff = byteEnd - wordEnd;
 	int wordLen = wordEnd - wordStart;
 	if (startDiff == 3) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	} else if (startDiff == 2) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	} else if (startDiff == 1) {
-	  dst[dstPos++] = src[srcPos++];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	}
 	internalAligned32Copy(VM_Magic.objectAsAddress(dst) + dstPos,
 			      VM_Magic.objectAsAddress(src) + srcPos,
@@ -66,82 +66,22 @@ class VM_Memory implements VM_Uninterruptible {
 	srcPos += wordLen;
 	dstPos += wordLen;
 	if (endDiff == 3) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	} else if (endDiff == 2) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	} else if (endDiff == 1) {
-	  dst[dstPos++] = src[srcPos++];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	}	  
       } else {
 	for (int i=0; i<len; i++) {
-	  dst[dstPos+i] = src[srcPos+i];
+	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
 	}
       }
     }
   }    
-
-  /**
-   * Low level copy of len elements from src[srcPos] to dst[dstPos].
-   * Assumption src != dst || (scrPos >= dstPos + 4).
-   * 
-   * @param src     the source array
-   * @param srcPos  index in the source array to begin copy
-   * @param dst     the destination array
-   * @param dstPos  index in the destination array to being copy
-   * @param len     number of array elements to copy
-   */
-  static void arraycopy(boolean[] src, int srcPos, boolean[] dst, int dstPos, int len) {
-    VM_Magic.pragmaInline();
-    if (len > NATIVE_THRESHOLD) {
-      memcopy(VM_Magic.objectAsAddress(dst) + dstPos, 
-	      VM_Magic.objectAsAddress(src) + srcPos, 
-	      len);
-    } else {
-      if ((srcPos & 0x3) == (dstPos & 0x3)) {
-	// alignment is the same
-	int byteStart = srcPos;
-	int wordStart = (srcPos + 3) & ~0x3;
-	int wordEnd = (srcPos + len) & ~0x3;
-	int byteEnd = srcPos + len;
-	int startDiff = wordStart - byteStart;
-	int endDiff = byteEnd - wordEnd;
-	int wordLen = wordEnd - wordStart;
-	if (startDiff == 3) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	} else if (startDiff == 2) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	} else if (startDiff == 1) {
-	  dst[dstPos++] = src[srcPos++];
-	}
-	internalAligned32Copy(VM_Magic.objectAsAddress(dst) + dstPos,
-			      VM_Magic.objectAsAddress(src) + srcPos,
-			      wordLen);
-	srcPos += wordLen;
-	dstPos += wordLen;
-	if (endDiff == 3) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	} else if (endDiff == 2) {
-	  dst[dstPos++] = src[srcPos++];
-	  dst[dstPos++] = src[srcPos++];
-	} else if (endDiff == 1) {
-	  dst[dstPos++] = src[srcPos++];
-	}	  
-      } else {
-	for (int i=0; i<len; i++) {
-	  dst[dstPos+i] = src[srcPos+i];
-	}
-      }
-    }
-  }    
-
 
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
