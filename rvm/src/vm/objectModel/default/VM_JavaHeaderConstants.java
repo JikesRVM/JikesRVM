@@ -28,7 +28,7 @@ public interface VM_JavaHeaderConstants {
   static final boolean ADDRESS_BASED_HASHING = true;
 
   /** How many bits in the header are available for the GC and MISC headers? */
-  static final int NUM_AVAILABLE_BITS = ADDRESS_BASED_HASHING ? 6 : 2;
+  static final int NUM_AVAILABLE_BITS = ADDRESS_BASED_HASHING ? 8 : 2;
 
   /**
    * Does this object model use the same header word to contain

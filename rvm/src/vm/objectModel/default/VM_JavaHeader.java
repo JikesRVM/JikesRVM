@@ -71,8 +71,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Stuff for address based hashing
    */
   private static final int HASH_STATE_UNHASHED         = 0x00000000;
-  private static final int HASH_STATE_HASHED           = 0x00000004;
-  private static final int HASH_STATE_HASHED_AND_MOVED = 0x0000000c;
+  private static final int HASH_STATE_HASHED           = 0x00000010;
+  private static final int HASH_STATE_HASHED_AND_MOVED = 0x00000030;
   private static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
   private static final int HASHCODE_SCALAR_OFFSET      = -4; // in "phantom word"
   private static final int HASHCODE_ARRAY_OFFSET       = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
@@ -80,9 +80,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
   
   /** How many bits are allocated to a thin lock? */
-  public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 24 : 20;
+  public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 22 : 20;
   /** How many bits to shift to get the thin lock? */
-  public static final int THIN_LOCK_SHIFT    = ADDRESS_BASED_HASHING ? 8 : 12;
+  public static final int THIN_LOCK_SHIFT    = ADDRESS_BASED_HASHING ? 10 : 12;
 
   /**
    * How small is the minimum object header size? 
@@ -411,7 +411,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * so that it is safe to update them using setAvailableBits.
    */
   public static void initializeAvailableByte(Object o) {
-    if (VM_Collector.MOVES_OBJECTS) getObjectHashCode(o);
+    if (!ADDRESS_BASED_HASHING) getObjectHashCode(o);
   }
 
   /**
@@ -484,12 +484,12 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       // must set barrier bit for bootimage objects
-      // Also, since the write barrier accesses the available bits bytes 
-      // non-atomically we also need to initialize the hash code state
-      // such that the rest of the bits in the byte are frozen.
       if (ADDRESS_BASED_HASHING) {
-	bootImage.setFullWord(ref + STATUS_OFFSET, HASH_STATE_HASHED | VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
+	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
       } else {
+	// Since the write barrier accesses the available bits bytes 
+	// non-atomically we also need to initialize the hash code
+	// to freeze the rest of the bits in the byte.
 	int hashCode;
 	do {
 	  hashCodeGenerator += (1 << HASH_CODE_SHIFT);
@@ -522,18 +522,18 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeArrayHeader(BootImageInterface bootImage, int ptr, 
-					   Object[] tib, int size) {
+					  Object[] tib, int size) {
     int ref = ptr + ARRAY_HEADER_SIZE;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       // must set barrier bit for bootimage objects
-      // Also, since the write barrier accesses the available bits bytes 
-      // non-atomically we also need to initialize the hash code state
-      // such that the rest of the bits in the byte are frozen.
       if (ADDRESS_BASED_HASHING) {
-	bootImage.setFullWord(ref + STATUS_OFFSET, HASH_STATE_HASHED | VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
+	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
       } else {
+	// Since the write barrier accesses the available bits bytes 
+	// non-atomically we also need to initialize the hash code
+	// to freeze the rest of the bits in the byte.
 	int hashCode;
 	do {
 	  hashCodeGenerator += (1 << HASH_CODE_SHIFT);
