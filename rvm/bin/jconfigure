@@ -852,6 +852,22 @@ declare -i RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking
 declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 
+# Should we use our own version of java.lang.Class, and ignore GNU
+# Classpath's implementation?  The old default is to have this set.
+## We hope to move to the GNU Classpath version of
+# java.lang.Class (which requires a helper implementation, our own
+# java.lang.VMClass).  
+declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
+
+# Our support for classpath 0.11 isn't up and running yet.  For now, 
+# we're using Classpath 0.10.
+declare -i RVM_WITH_CLASSPATH_0_11_OR_LATER=0
+
+## We actually already require Classpath 0.10 -- this config variable should go
+## away Real Soon Now.  
+declare -i RVM_WITH_CLASSPATH_0_10_OR_LATER=1
+
+
 #
 # intercept blocking system calls (currently Linux-only)
 #
@@ -2152,6 +2168,9 @@ EOF
 	fi
 EOF
 
+    if (( ! RVM_WITH_OWN_JAVA_LANG_CLASS )); then
+	echo "rm -f ${CLASSES_DIRECTORY_STR}/java/lang/Class.java"
+    fi
 
     cat <<- EOF
 	# Remember if any new (or modified) source files were discovered.
@@ -2715,7 +2734,19 @@ java/io/FileDescriptor
 gnu/java/nio/channels/FileChannelImpl
 EOF
 
-	cat <<EOF
+    if (( RVM_WITH_CLASSPATH_0_11_OR_LATER )); then
+        # Boot classes we need to work with Classpath 0.11, but don't 
+	# need to work with Classpath 0.10
+
+        cat <<EOF
+gnu/java/security/action/GetPropertyAction
+java/security/VMAccessController
+java/lang/ThreadLocal
+EOF
+   fi
+
+
+    cat <<EOF
     # class loading from zip files
     #
 java/util/zip/ZipFile
@@ -2754,6 +2785,13 @@ java/security/AllPermissionCollection
 java/lang/RuntimePermission
 EOF
     
+    if (( ! RVM_WITH_OWN_JAVA_LANG_CLASS )); then
+	cat <<- EOF
+	java/lang/reflect/Modifier
+EOF
+    fi
+
+
     # the application class loader uses jar classes (which can be loaded or not)
 
     if (( RVM_WITH_ALL_CLASSES )); then
