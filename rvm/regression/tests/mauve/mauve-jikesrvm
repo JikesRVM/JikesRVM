@@ -9,6 +9,7 @@ JDK1.4
 !java.lang.Character.unicode
 
 # exclusions due to defects in Jikes RVM
+!java.lang.Object.clone      # Jikes RVM defect 2905
 !java.net.Socket.setSocketImplFactory # avoid bashing our sockets
 !java.net.DatagramSocket     # hangs Jikes RVM
 !java.net.MulticastSocket    # hangs Jikes RVM
