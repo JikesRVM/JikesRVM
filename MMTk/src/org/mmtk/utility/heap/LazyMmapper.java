@@ -34,12 +34,16 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
   public static boolean verbose = false;
   public static Lock lock = new Lock("LazyMapper");
 
+  // There is a monotonicity assmption so that only updates require lock acquisition.
+  //
   public static void ensureMapped(VM_Address start, int blocks) {
     int startChunk = Conversions.addressToMmapChunks(start);       // round down
     int endChunk = Conversions.addressToMmapChunks(start.add(Conversions.blocksToBytes(blocks)));       // round down
-    lock.acquire();
     for (int chunk=startChunk; chunk <= endChunk; chunk++) {
+      if (mapped[chunk] == MAPPED) continue;
       VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
+      lock.acquire();
+      // might have become MAPPED here
       if (mapped[chunk] == UNMAPPED) {
 	int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
 	if (errno != 0) {
@@ -58,7 +62,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       if (mapped[chunk] == PROTECTED) {
 	if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
 	  lock.release();
- 	  VM.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
+	  VM.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
 	}
 	else {
 	  if (verbose) {
@@ -68,8 +72,9 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	}
       }
       mapped[chunk] = MAPPED;
+      lock.release();
     }
-    lock.release();
+
   }
 
   public static void protect(VM_Address start, int blocks) {
