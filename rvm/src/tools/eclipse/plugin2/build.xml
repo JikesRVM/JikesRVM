@@ -32,12 +32,7 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <!-- property name="package"
-  value="org.eclipse.jdt.launching.jikesrvm_Post2.2.2"/ --> <!-- I.E., the CVS Head. -->
-  <!-- Don't break this next entry across two lines; a sed script
-	emitted in jbuild.plugin expects it to stay on one
-	line. -Steve Augart  -->
-  <property name="package" value="com.ibm.JikesRVM.eclipse.jdt.launching_post2.2.2" />
+  <property name="package" value="com.ibm.JikesRVM.eclipse.jdt.launching_${jikesrvm.version}" />
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
