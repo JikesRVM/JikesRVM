@@ -36,6 +36,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;");
 
 
+  public static final VM_Field sysWriteLockField        = getField("Lcom/ibm/JikesRVM/VM;", "sysWriteLock", "I");  
+
   public static final VM_Method unimplementedBytecodeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unimplementedBytecode", "(I)V");
   public static final VM_Method unexpectedAbstractMethodCallMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
   public static final VM_Method raiseNullPointerException= getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "raiseNullPointerException", "()V");
