@@ -3,14 +3,37 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.RefCountSpace;
+import org.mmtk.policy.RefCountLocal;
+import org.mmtk.policy.RefCountLOSLocal;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.RCDecEnumerator;
+import org.mmtk.utility.RCModifiedEnumerator;
+import org.mmtk.utility.RCSanityEnumerator;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -66,6 +89,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // GC state
   private static int required;  // how many pages must this GC yeild?
   private static int previousMetaDataPages;  // meta-data pages after last GC
+  private static long timeCap = 0; // time within which this GC should finish
 
   // Allocators
   public static final byte NURSERY_SPACE = 0;
@@ -108,14 +132,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private AddressDeque newRootSet;
 
   // enumerators
-  RCDecEnumerator decEnum;
+  public RCDecEnumerator decEnum;
   private RCModifiedEnumerator modEnum;
   private RCSanityEnumerator sanityEnum;
 
   // counters
-  private int wbFastPathCounter;
-  private int wbSlowPathCounter;
-  private int rcSlowPathCounter;
+  private static EventCounter wbFast;
+  private static EventCounter wbSlow;
   private int incCounter;
   private int decCounter;
   private int modCounter;
@@ -152,6 +175,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     decPool.newClient();
     rootPool = new SharedDeque(metaDataRPA, 1);
     rootPool.newClient();
+
+    if (GATHER_WRITE_BARRIER_STATS) {
+      wbFast = new EventCounter("wbFast");
+      wbSlow = new EventCounter("wbSlow");
+    }
   }
 
   /**
@@ -294,24 +322,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     }
   }
 
-  /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(Type type, int bytes, CallSite callsite,
-                                AllocAdvice hint) {
-    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : NURSERY_SPACE;
-  }
-
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == nursery) return DEFAULT_SPACE;
     if (a == rc) return RC_SPACE;
@@ -339,7 +349,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
@@ -352,7 +362,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static int getInitialHeaderValue(int size) {
+  public static VM_Word getInitialHeaderValue(int size) {
     return rcSpace.getInitialHeaderValue(size);
   }
 
@@ -423,6 +433,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
+    timeCap = VM_Interface.cycles() + VM_Interface.millisToCycles(Options.gcTimeCap);
     nurseryMR.reset();
     rcSpace.prepare();
     ImmortalSpace.prepare(immortalVM, null);
@@ -453,16 +464,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     rc.release(count, Options.verboseTiming && count==1);
-    if (GATHER_WRITE_BARRIER_STATS) { 
-      // This is printed independantly of the verbosity so that any
-      // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
-      // will know---it will have a noticable performance hit...
-      Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
-      Log.write(wbFastPathCounter); Log.write(" wb-fast, ");
-      Log.write(wbSlowPathCounter); Log.write(" wb-slow, ");
-      Log.write(rcSlowPathCounter); Log.write(" rc-slow>\n");
-      wbFastPathCounter = wbSlowPathCounter = rcSlowPathCounter = 0;
-    }
   }
 
   /**
@@ -562,8 +563,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  final void incSanityTrace(VM_Address object, VM_Address location,
-                            boolean root) {
+  public final void incSanityTrace(VM_Address object, VM_Address location,
+                                   boolean root) {
     VM_Address addr = VM_Interface.refToAddress(object);
     VM_Address oldObject = object;
 
@@ -579,11 +580,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (RCBaseHeader.incSanityRC(object, root)) {
         if (VM_Interface.VerifyAssertions)
           VM_Interface._assert(addr.LT(NURSERY_START));
-        ScanObject.enumeratePointers(object, sanityEnum);
+        Scan.enumeratePointers(object, sanityEnum);
       }
     } else if (RCBaseHeader.markSanityRC(object)) {
-      ScanObject.enumeratePointers(object, sanityEnum);
-    } else if (object.EQ(VM_Address.fromInt(0x43080334))) {
+      Scan.enumeratePointers(object, sanityEnum);
+    } else if (object.EQ(VM_Address.fromIntZeroExtend(0x43080334))) {
       Log.writeln("scanned by marked already!");
     }
   }
@@ -601,7 +602,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  final void checkSanityTrace(VM_Address object, VM_Address location) {
+  public final void checkSanityTrace(VM_Address object, VM_Address location) {
     VM_Address addr = VM_Interface.refToAddress(object);
     VM_Address oldObject = object;
 
@@ -615,11 +616,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
    if (addr.GE(RC_START)) {
      if (RCBaseHeader.checkAndClearSanityRC(object)) {
-       ScanObject.enumeratePointers(object, sanityEnum);
+       Scan.enumeratePointers(object, sanityEnum);
        rc.addLiveSanityObject(object);
      }
    } else if (RCBaseHeader.unmarkSanityRC(object)) {
-     ScanObject.enumeratePointers(object, sanityEnum);
+     Scan.enumeratePointers(object, sanityEnum);
    }
   }
   
@@ -633,7 +634,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  static void forwardObjectLocation(VM_Address location) 
+  public static void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(location);
     VM_Address addr = VM_Interface.refToAddress(object);
@@ -652,7 +653,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object to be scanned.
    */
   protected final void scanForwardedObject(VM_Address object) {
-    ScanObject.scan(object);
+    Scan.scanObject(object);
     if (RefCountSpace.INC_DEC_ROOT) {
       RCBaseHeader.incRC(object);
       addToRootSet(object);
@@ -668,7 +669,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  static final VM_Address getForwardedReference(VM_Address object) {
+  public static final VM_Address getForwardedReference(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
       if (VM_Interface.VerifyAssertions) 
@@ -684,7 +685,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object in question
    * @return True if <code>object</code> is a live object.
    */
-  static final boolean isLive(VM_Address object) {
+  public static final boolean isLive(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -705,7 +706,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  static final boolean isFinalizable(VM_Address object) {
+  public static final boolean isFinalizable(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -728,7 +729,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object being queried.
    * @return The object (no copying is performed).
    */
-  static VM_Address retainFinalizable(VM_Address object) {
+  public static VM_Address retainFinalizable(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -752,9 +753,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
-  public static final int resetGCBitsForCopy(VM_Address fromObj,
-                                             int forwardingWord, int bytes) {
-    return (forwardingWord & ~RCHybridHeader.GC_BITS_MASK) | rcSpace.getInitialHeaderValue(bytes);
+  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
+					     VM_Word forwardingWord, int bytes) {
+    return forwardingWord.and(RCHybridHeader.GC_BITS_MASK.not()).or(rcSpace.getInitialHeaderValue(bytes));
   }
 
   public static boolean willNotMove (VM_Address object) {
@@ -773,40 +774,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
 
   /**
-   * A new reference is about to be created by a putfield bytecode.
-   * Take appropriate write barrier actions.
-   *
-   * @param src The address of the object containing the source of a
-   * new reference.
-   * @param offset The offset into the source object where the new
-   * reference resides (the offset is in bytes and with respect to the
-   * object address).
-   * @param tgt The target of the new reference
-   */
-  public final void putFieldWriteBarrier(VM_Address src, int offset,
-                                         VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src, src.add(offset), tgt);
-  }
-
-  /**
-   * A new reference is about to be created by a aastore bytecode.
-   * Take appropriate write barrier actions.
-   *
-   * @param src The address of the array containing the source of a
-   * new reference.
-   * @param index The index into the array where the new reference
-   * resides (the index is the "natural" index into the array,
-   * i.e. a[index]).
-   * @param tgt The target of the new reference
-   */
-  public final void arrayStoreWriteBarrier(VM_Address src, int index,
-                                           VM_Address tgt)
-    throws VM_PragmaInline {
-    writeBarrier(src, src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
-  }
-
-  /**
    * A new reference is about to be created.  Perform appropriate
    * write barrier action.<p>
    *
@@ -814,28 +781,29 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * pointer if the new reference points into the nursery from
    * non-nursery space.
    *
-   * @param src The address of the word (slot) containing the new
-   * reference.
-   * @param tgt The target of the new reference (about to become the
-   * contents of src).
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  private final void writeBarrier(VM_Address srcObj,
-                                  VM_Address src, VM_Address tgt) 
+  public final void writeBarrier(VM_Address src, VM_Address slot, 
+                                 VM_Address tgt, int mode) 
     throws VM_PragmaInline {
-    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
-      if (Header.needsToBeLogged(srcObj))
-        writeBarrierSlow(srcObj, src, tgt);
-      VM_Magic.setMemoryAddress(src, tgt);
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
+    if (Header.needsToBeLogged(src))
+      writeBarrierSlow(src);
+    VM_Magic.setMemoryAddress(slot, tgt);
   }
-  private final void writeBarrierSlow(VM_Address srcObj,
-                                      VM_Address src, VM_Address tgt) 
+  private final void writeBarrierSlow(VM_Address src) 
     throws VM_PragmaNoInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!isNurseryObject(srcObj));
-    if (Header.attemptToLog(srcObj)) {
-      modBuffer.push(srcObj);
-      ScanObject.enumeratePointers(srcObj, decEnum);
-      Header.makeLogged(srcObj);
+      VM_Interface._assert(!isNurseryObject(src));
+    if (Header.attemptToLog(src)) {
+      if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
+      modBuffer.push(src);
+      Scan.enumeratePointers(src, decEnum);
+      Header.makeLogged(src);
     }
   }
   
@@ -902,7 +870,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address obj = VM_Address.zero();
     while (!(obj = modBuffer.pop()).isZero()) {
       Header.makeUnlogged(obj);
-      ScanObject.enumeratePointers(obj, modEnum);
+      Scan.enumeratePointers(obj, modEnum);
     }
   }
 
@@ -920,7 +888,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param objLoc The address of a reference field with an object
    * being enumerated.
    */
-  final void enumerateDecrementPointerLocation(VM_Address objLoc)
+  public final void enumerateDecrementPointerLocation(VM_Address objLoc)
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (isRCObject(object)) {
@@ -938,7 +906,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param objLoc The address of a reference field with an object
    * being enumerated.
    */
-  final void enumerateModifiedPointerLocation(VM_Address objLoc)
+  public final void enumerateModifiedPointerLocation(VM_Address objLoc)
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (!object.isZero()) {
@@ -946,7 +914,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (addr.GE(NURSERY_START)) {
         if (VM_Interface.VerifyAssertions)
           VM_Interface._assert(addr.LE(NURSERY_END));
-        locations.push(objLoc);
+        remset.push(objLoc);
       } else if (addr.GE(RC_START))
         RCBaseHeader.incRC(object);
     }
@@ -1000,17 +968,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * should complete).
    */
   public static final long getTimeCap() {
-    long limit = VM_Interface.millisToCycles(Options.gcTimeCap);
-    return gcStartTime + limit;
-  }
-
-  /**
-   * Print out plan-specific timing info
-   */
-  protected final void printPlanTimes(boolean totals) {
-    double time = (totals) ? Statistics.remsetTime.sum() : Statistics.remsetTime.lastMs();
-    Log.write(" r/s: "); Log.write(time);
-    rc.printTimes(totals);
+    return timeCap;
   }
 
   /**
@@ -1019,7 +977,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object An object reference
    * @return True if the object resides within the RC space
    */
-  static final boolean isRCObject(VM_Address object)
+  public static final boolean isRCObject(VM_Address object)
     throws VM_PragmaInline {
     VM_Address addr = VM_Interface.refToAddress(object);
     return addr.GE(RC_START) && addr.LT(NURSERY_START);

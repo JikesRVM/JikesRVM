@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 import java.io.DataInputStream;
 import java.io.FileNotFoundException;
@@ -971,11 +971,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     if (isInterface()) {
+      if (VM.VerifyAssertions) VM._assert(superClass == null);
       depth = 1; 
     } else if (isJavaLangObjectType()) {
+      if (VM.VerifyAssertions) VM._assert(superClass == null);
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
     } else {
+      if (VM.VerifyAssertions) VM._assert(superClass != null);
       depth = superClass.depth + 1;
       thinLockOffset = superClass.thinLockOffset;
       instanceSize = superClass.instanceSize;
@@ -1214,6 +1217,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
     
     VM_Callbacks.notifyClassResolved(this);
+    MM_Interface.notifyClassResolved(this);
 
     // check for a "finalize" method that overrides the one in java.lang.Object
     //

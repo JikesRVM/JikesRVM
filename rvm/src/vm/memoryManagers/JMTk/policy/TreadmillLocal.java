@@ -2,17 +2,20 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
-
+import org.mmtk.utility.LargeObjectAllocator;
+import org.mmtk.utility.Treadmill;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.utility.gcspy.TreadmillDriver;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
+
 
 /**
  * Each instance of this class is intended to provide fast,
@@ -30,7 +33,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class TreadmillLocal extends LargeObjectAllocator
+public final class TreadmillLocal extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -57,7 +60,7 @@ final class TreadmillLocal extends LargeObjectAllocator
    * @param space The treadmill space to which this thread instance is
    * bound.  The space's VMResource and MemoryResource are used.
    */
-  TreadmillLocal(TreadmillSpace space_) {
+  public TreadmillLocal(TreadmillSpace space_) {
     super(space_.getVMResource(), space_.getMemoryResource());
     space = space_;
     treadmill = new Treadmill(VMResource.BYTES_IN_PAGE, true);
@@ -154,5 +157,15 @@ final class TreadmillLocal extends LargeObjectAllocator
   protected final int cellHeaderSize()
     throws VM_PragmaInline {
     return 0;
+  }
+
+  /**
+   * Gather data for GCSpy
+   * @param event the gc event
+   * @param gcspyDriver the GCSpy space driver
+   * @param tospace gather from tospace?
+   */
+  public void gcspyGatherData(int event, TreadmillDriver tmDriver, boolean tospace) {
+    treadmill.gcspyGatherData(event, tmDriver, tospace);
   }
 }

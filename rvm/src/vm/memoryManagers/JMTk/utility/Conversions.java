@@ -3,9 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -17,7 +17,7 @@ import com.ibm.JikesRVM.VM_Extent;
  *
  * @author Perry Cheng
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
   public static VM_Extent roundDownMB (VM_Extent bytes) {
@@ -34,8 +34,8 @@ public class Conversions implements Constants, VM_Uninterruptible {
       return (megs + ((VMResource.BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (VMResource.LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
   }
 
-  public static int bytesToMmapChunksUp(int bytes) {
-    return (bytes + (LazyMmapper.MMAP_CHUNK_SIZE - 1)) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
+  public static int bytesToMmapChunksUp(VM_Extent bytes) {
+    return bytes.add(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
   }
 
   public static int pagesToMmapChunksUp(int pages) {
@@ -63,20 +63,35 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static int addressToMmapChunksUp (VM_Address addr) {
-    return ((addr.toInt()) + (LazyMmapper.MMAP_CHUNK_SIZE - 1)) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
+    VM_Word chunk = addr.add(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+    return chunk.toInt();
   }
 
-  public static int pagesToBytes(int pages) {
-    return pages << LOG_BYTES_IN_PAGE;
+  public static VM_Extent pagesToBytes(int pages) {
+    return VM_Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
   }
 
-  public static int bytesToPagesUp (int bytes) {
-    return (bytes + BYTES_IN_PAGE - 1) >>> LOG_BYTES_IN_PAGE;
+  /**
+    @deprecated : use int bytesToPagesUp(VM_Extent bytes) if possible
+  */
+  public static int bytesToPagesUp(int bytes) {
+    return bytesToPagesUp(VM_Extent.fromIntZeroExtend(bytes));
   }
-
-  public static int bytesToPages (int bytes) {
+  
+  /**
+    @deprecated : use int bytesToPagesUp(VM_Extent bytes) if possible
+  */
+  public static int bytesToPages(int bytes) {
+    return bytesToPages(VM_Extent.fromIntZeroExtend(bytes));
+  }
+  
+  public static int bytesToPagesUp(VM_Extent bytes) {
+    return bytes.add(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+  }
+  
+  public static int bytesToPages(VM_Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToBytes(pages) == bytes);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
     return pages;
   }
 

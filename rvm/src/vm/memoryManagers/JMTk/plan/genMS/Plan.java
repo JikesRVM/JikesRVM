@@ -2,12 +2,19 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.MarkSweepLocal;
+import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -58,7 +65,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean usesLOS = true;
   protected static final boolean copyMature = false;
   
   // virtual memory resources
@@ -136,7 +142,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public final static int getInitialHeaderValue(int bytes)
+  public final static VM_Word getInitialHeaderValue(int bytes)
     throws VM_PragmaInline {
     if (bytes > LOS_SIZE_THRESHOLD)
       return losSpace.getInitialHeaderValue(bytes);
@@ -302,9 +308,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
-  public final static int resetGCBitsForCopy(VM_Address fromObj,
-                                             int forwardingWord, int bytes) {
-    return (forwardingWord & ~HybridHeader.GC_BITS_MASK) | matureSpace.getInitialHeaderValue();
+  public final static VM_Word resetGCBitsForCopy(VM_Address fromObj,
+					     VM_Word forwardingWord, int bytes) {
+    return forwardingWord.and(HybridHeader.GC_BITS_MASK.not()).or(matureSpace.getInitialHeaderValue());
   }
 
   /****************************************************************************

@@ -9,7 +9,7 @@
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import java.lang.System;        // unneeded
 import java.io.PrintStream;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 class Exhaust {
 

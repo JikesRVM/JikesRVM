@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.classloader.VM_Type;
 
 /**
@@ -235,6 +235,15 @@ public class VM_Magic {
    * Use getlongAtOffset(obj, ofs) instead of two getIntAtOffset
    */
   public static long getLongAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return -1;
+  }
+
+  /**
+   * Get double at arbitrary (byte) offset from object.
+   * Use getDoubleAtOffset(obj, ofs) instead of two getIntAtOffset
+   */
+  public static double getDoubleAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -673,8 +682,16 @@ public class VM_Magic {
   //---------------------------------------//
    
   /**
-   * Save current thread state.
+   * Save current thread state.  Stores the values in the hardware registers
+   * into a VM_Registers object, @param registers
+   *
+   * We used to use this to implement thread switching, but we have a
+   * threadSwitch magic now that does both of these in a single step as that
+   * is less error-prone.  saveThreadState is now only used in the
+   * implementation of athrow (VM_Runtime.athrow). 
+   * 
    * Note that #args to this method must match #args to VM_Processor.dispatch()
+   *
    * The following registers are saved:
    *        - nonvolatile fpr registers
    *        - nonvolatile gpr registers

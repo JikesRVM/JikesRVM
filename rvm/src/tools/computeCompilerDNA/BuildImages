@@ -21,7 +21,7 @@ fi
 
 BUILDDIR=$1
  
-IMAGES='FastBaseAdaptiveCopyMS FastOpt0CopyMS FastOpt1CopyMS FastAdaptiveCopyMS'
+IMAGES='FastBaseAdaptiveGenMS FastOpt0GenMS FastOpt1GenMS FastAdaptiveGenMS'
 
 for image in $IMAGES
 do
@@ -31,5 +31,5 @@ do
    $RVM_ROOT/rvm/bin/jconfigure $image
    cd $BUILDDIR/$image
    echo "Building $image"
-   ./jbuild -trace >RVM.trace 2>&1
+   ./jbuild >RVM.trace 2>&1
 done

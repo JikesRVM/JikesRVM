@@ -1,11 +1,12 @@
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.utility.gcspy.TreadmillDriver;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -14,6 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
+
 
 /**
  * Each instance of this class is a doubly-linked list, in which
@@ -46,7 +48,7 @@ final class DoublyLinkedList
   private final Lock lock;
   private final Object owner;
   private final int granularity;  // Each node on the treadmill is guaranteed to be a multiple of this.
-
+  
   /****************************************************************************
    *
    * Instance Methods
@@ -59,7 +61,12 @@ final class DoublyLinkedList
     owner = owner_;
     head = VM_Address.zero();   
     lock = shared ? new Lock("DoublyLinkedList") : null;
-    granularity = granularity_; 
+    granularity = granularity_;
+
+    // ensure that granularity is big enough for midPayloadToNode to work
+    VM_Word tmp = VM_Word.fromIntZeroExtend(granularity);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
@@ -68,6 +75,13 @@ final class DoublyLinkedList
   private static int NEXT_OFFSET = 1 * BYTES_IN_ADDRESS;
   private static int LIST_OFFSET = 2 * BYTES_IN_ADDRESS;
   private static int HEADER_SIZE = 3 * BYTES_IN_ADDRESS;
+
+  private static final VM_Word nodeMask;
+  static {
+    int mask = 1;
+    while (mask < HEADER_SIZE+MAX_BYTES_PADDING) mask <<= 1;
+    nodeMask = VM_Word.fromIntZeroExtend(mask-1).not();
+  }
 
   public final Object getOwner() {
     return owner;
@@ -82,9 +96,11 @@ final class DoublyLinkedList
   }
 
   public final boolean isNode (VM_Address node) {
-    VM_Word n = node.toWord();
-    return (n.toInt() / granularity * granularity) == n.toInt();
-  } 
+    if (BITS_IN_ADDRESS == 64)
+      return (node.toLong() / granularity * granularity) == node.toLong();
+    else
+      return (node.toInt() / granularity * granularity) == node.toInt();
+  }
 
   static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {
     return node.add(HEADER_SIZE);
@@ -92,6 +108,11 @@ final class DoublyLinkedList
 
   static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
     return payload.sub(HEADER_SIZE);
+  }
+
+  static public final VM_Address midPayloadToNode(VM_Address payload) throws VM_PragmaInline {
+    // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
+    return payload.toWord().and(nodeMask).toAddress();
   }
 
   public final void add (VM_Address node) throws VM_PragmaInline {
@@ -170,5 +191,20 @@ final class DoublyLinkedList
     Log.writeln();
     if (lock != null) lock.release();
   }
+
+
+  /**
+   * Gather data for GCSpy
+   * @param gcspyDriver the GCSpy space driver
+   */
+  void gcspyGatherData(TreadmillDriver tmDriver) {
+    // GCSpy doesn't need a lock (in its stop the world config)
+    VM_Address cur = head;
+    while (!cur.isZero()) {
+      tmDriver.traceObject(cur);
+      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
+    }
+  }
+
 
 }

@@ -85,6 +85,7 @@ public final class VM_NormalMethod
   private static final int HAS_COND_BRANCH= 0x00200000;
   private static final int HAS_SWITCH     = 0x00100000;
   private static final int HAS_BACK_BRANCH= 0x00080000;
+  private static final int IS_RS_METHOD   = 0x00040000;
   
   /**
    * storage for bytecode summary
@@ -423,6 +424,32 @@ public final class VM_NormalMethod
     return (summary & HAS_BACK_BRANCH) != 0;
   }
 
+  /**
+   * @return true if the method is the implementation of a runtime service
+   * that is called "under the covers" from the generated code and thus is not subject to
+   * inlining via the normal mechanisms.
+   */
+  public final boolean isRuntimeServiceMethod() {
+    return (summary & IS_RS_METHOD) != 0;
+  }
+
+  /**
+   * Set the value of the 'runtime service method' flag to the argument
+   * value.  A method is considered to be a runtime service method if it
+   * is only/primarialy invoked "under the covers" from the generated code
+   * and thus is not subject to inlining via the normal mechanisms.
+   * For example, the implementations of bytecodes such as new or checkcast
+   * or the implementation of yieldpoints.
+   * @param value true if this is a runtime service method, false it is not.
+   */
+  public final void setRuntimeServiceMethod(boolean value) {
+    if (value) {
+      summary |= IS_RS_METHOD;
+    } else {
+      summary &= ~IS_RS_METHOD;
+    }
+  }
+  
   /**
    * @return true if the method may write to a given field
    */

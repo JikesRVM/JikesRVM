@@ -3,11 +3,12 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
+import org.mmtk.plan.*;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -34,8 +35,8 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 
-abstract class Allocator implements Constants, VM_Uninterruptible {
-  public final static String Id = "$Id$"; 
+public abstract class Allocator implements Constants, VM_Uninterruptible {
+  public final static String Id = "$Id$";
 
   /**
    * Maximum number of retries on consecutive allocation failure.
@@ -64,7 +65,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
   private VM_Address allocSlowBody(boolean isScalar, int bytes, boolean inGC) 
     throws VM_PragmaInline { 
 
-    int gcCountStart = Statistics.gcCount;
+    int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i=0; i<MAX_RETRY; i++) {
       VM_Address result = current.allocSlowOnce(isScalar, bytes, inGC);
@@ -76,7 +77,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
     Log.write(bytes);
     Log.write(" on space "); Log.writeln(Plan.getSpaceFromAllocatorAnyPlan(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
-    Log.write("gcCount (now) = "); Log.writeln(Statistics.gcCount);
+    Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
     MemoryResource.showUsage(BasePlan.MB);
     VM_Interface.dumpStack(); 
     VM_Interface.failWithOutOfMemoryError();

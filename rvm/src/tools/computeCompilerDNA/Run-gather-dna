@@ -14,10 +14,10 @@
 #
 # Preconditions
 #   1) You must first build the following images
-#        FastAdaptiveCopyMS (for compilation rates and O2 performance)
-#        FastBaseAdaptiveCopyMS (for baseline compiler performance)
-#        FastOpt0CopyMS (for Opt 0 performance)
-#        FastOpt1CopyMS (for Opt 1 performance)
+#        FastAdaptiveGenMS (for compilation rates and O2 performance)
+#        FastBaseAdaptiveGenMS (for baseline compiler performance)
+#        FastOpt0GenMS (for Opt 0 performance)
+#        FastOpt1GenMS (for Opt 1 performance)
 #     The script BuildImages (in this directory) does this step
 #  
 #   2) Run this script in the SPECjvm98 directory redirecting the output 
@@ -41,10 +41,10 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
 
  Preconditions
    1) You must first build the following images
-        FastAdaptiveCopyMS (for compilation rates and O2 performance)
-        FastBaseAdaptiveCopyMS (for baseline compiler performance)
-        FastOpt0CopyMS (for Opt 0 performance)
-       FastOpt1CopyMS (for Opt 1 performance)
+        FastAdaptiveGenMS (for compilation rates and O2 performance)
+        FastBaseAdaptiveGenMS (for baseline compiler performance)
+        FastOpt0GenMS (for Opt 0 performance)
+       FastOpt1GenMS (for Opt 1 performance)
      The script BuildImages (in this directory) does this step
   
    2) Run this script in the SPECjvm98 directory redirecting the output 
@@ -100,12 +100,12 @@ for benchmark in $all
 do
 
 # Compilation rates first
-  export RVM_BUILD=$BUILDDIR/FastAdaptiveCopyMS
+  export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
   $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appcompoptions -a $benchmark
 
   for optLevel in $OPTLEVELS
   do
-    $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:$optLevel $cp SpecApplication $appcompoptions  -a $benchmark
+    $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:$optLevel $cp SpecApplication $appcompoptions  -a $benchmark
   done
 
 done
@@ -113,16 +113,16 @@ done
 for benchmark in $all
 do
 # Performance next
-   export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveCopyMS
+   export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveGenMS
     $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RVM_BUILD=$BUILDDIR/FastOpt0CopyMS
-   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O0 $cp SpecApplication $appperfoptions  -a $benchmark
+   export RVM_BUILD=$BUILDDIR/FastOpt0GenMS
+   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O0 $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RVM_BUILD=$BUILDDIR/FastOpt1CopyMS
-   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O1 $cp SpecApplication $appperfoptions  -a $benchmark
+   export RVM_BUILD=$BUILDDIR/FastOpt1GenMS
+   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O1 $cp SpecApplication $appperfoptions  -a $benchmark
 
-   export RVM_BUILD=$BUILDDIR/FastAdaptiveCopyMS
-   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O2 $cp SpecApplication $appperfoptions  -a $benchmark
+   export RVM_BUILD=$BUILDDIR/FastAdaptiveGenMS
+   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:O2 $cp SpecApplication $appperfoptions  -a $benchmark
 
 done

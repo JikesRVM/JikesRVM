@@ -2,13 +2,34 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
+import org.mmtk.vm.VM_Interface;
 
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.MarkSweepLocal;
+import org.mmtk.policy.TreadmillSpace;
+import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -155,6 +176,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
                                 AllocAdvice advice)
     throws VM_PragmaInline {
+    if (GATHER_MARK_CONS_STATS) cons.inc(bytes);
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
@@ -230,24 +252,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                              boolean isScalar) {} // do nothing
 
   /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(Type type, int bytes, CallSite callsite,
-                                AllocAdvice hint) {
-    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
-  }
-
-  /**
    * Give the compiler/runtime statically generated alloction advice
    * which will be passed to the allocation routine at runtime.
    *
@@ -260,7 +264,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) { 
     return null;
@@ -272,7 +276,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int size) 
+  public static final VM_Word getInitialHeaderValue(int size) 
     throws VM_PragmaInline {
     if (size > LOS_SIZE_THRESHOLD)
       return losSpace.getInitialHeaderValue(size);
@@ -496,8 +500,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
-  public static final int resetGCBitsForCopy(VM_Address fromObj, 
-                                             int forwardingWord, int bytes) {
+  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj, 
+					     VM_Word forwardingWord, int bytes) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);  // not a copying collector!
     return forwardingWord;
   }

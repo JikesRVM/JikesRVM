@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
@@ -90,8 +90,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Note: Beware; this function clears the additional bits.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, VM_Address tibAddr, VM_Type type) {
-    int idx = type.getTibSlot() << TIB_SHIFT;
-    if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
+    VM_Word idx = VM_Word.fromIntZeroExtend(type.getTibSlot()).lsh(TIB_SHIFT);
+    if (VM.VerifyAssertions) VM._assert((idx.toInt() & TIB_MASK) == idx);
     bootImage.setAddressWord(refOffset + TIB_OFFSET, idx);
   }
 

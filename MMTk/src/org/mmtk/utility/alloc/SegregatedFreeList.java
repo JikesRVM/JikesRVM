@@ -2,11 +2,11 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
@@ -43,7 +43,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class SegregatedFreeList extends Allocator 
+public abstract class SegregatedFreeList extends Allocator 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -63,9 +63,9 @@ abstract class SegregatedFreeList extends Allocator
   private static final int INUSE_SHIFT = FREE_LIST_BITS + SIZE_CLASS_BITS;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; //(1<<(INUSE_BITS-1))-1;
-  private static final int FREE_LIST_MASK = (1<<FREE_LIST_BITS)-1;
-  private static final int SIZE_CLASS_MASK = ((1<<SIZE_CLASS_BITS)-1)<<SIZE_CLASS_SHIFT;
-  private static final int INUSE_MASK = ((1<<INUSE_BITS)-1)<<INUSE_SHIFT;
+  private static final VM_Word FREE_LIST_MASK = VM_Word.one().lsh(FREE_LIST_BITS).sub(VM_Word.one());
+  private static final VM_Word SIZE_CLASS_MASK = VM_Word.one().lsh(SIZE_CLASS_BITS).sub(VM_Word.one()).lsh(SIZE_CLASS_SHIFT);
+  private static final VM_Word INUSE_MASK = VM_Word.one().lsh(INUSE_BITS).sub(VM_Word.one()).lsh(INUSE_SHIFT);
 
   protected static int[] cellSize;
   protected static byte[] blockSizeClass;
@@ -103,7 +103,8 @@ abstract class SegregatedFreeList extends Allocator
    * for this free list allocator will be accounted.
    * @param plan The plan with which this instance is associated.
    */
-  SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, Plan plan) {
+  public SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, 
+			    Plan plan) {
     blockAllocator = new BlockAllocator(vmr, mr, plan);
     freeList = VM_AddressArray.create(SIZE_CLASSES);
     firstBlock = VM_AddressArray.create(SIZE_CLASSES);
@@ -132,6 +133,7 @@ abstract class SegregatedFreeList extends Allocator
    */
   public final VM_Address alloc(boolean isScalar, int bytes, boolean inGC) 
     throws VM_PragmaInline {
+    if (Plan.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
     VM_Address cell = allocFast(isScalar, bytes, inGC);
@@ -173,8 +175,8 @@ abstract class SegregatedFreeList extends Allocator
 
   }
 
-  abstract void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-                          int bytes, boolean inGC);
+  abstract public void postAlloc(VM_Address cell, VM_Address block, 
+				 int sizeClass, int bytes, boolean inGC);
 
   /**
    * Allocate <code>bytes</code> contigious bytes of non-zeroed
@@ -242,7 +244,7 @@ abstract class SegregatedFreeList extends Allocator
     if (maintainInUse()) cellsInUse[sizeClass]++;
     freeList.set(sizeClass, getNextCell(cell));
     postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-    Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
+    Memory.zeroSmall(cell, VM_Extent.fromIntZeroExtend(bytes));
     return cell;
   }
 
@@ -281,7 +283,7 @@ abstract class SegregatedFreeList extends Allocator
     int cellCount = 0;
 
     // pre-zero the block
-    Memory.zero(cursor, VM_Extent.fromInt(useableBlockSize));
+    Memory.zero(cursor, VM_Extent.fromIntZeroExtend(useableBlockSize));
 
     // construct the free list
     while (cursor.add(cellExtent).LE(sentinel)) {
@@ -299,7 +301,7 @@ abstract class SegregatedFreeList extends Allocator
     return lastCell;
   }
 
-  abstract void postExpandSizeClass(VM_Address block, int sizeClass);
+  abstract public void postExpandSizeClass(VM_Address block, int sizeClass);
 
   /**
    * Return the next cell in a free list chain.
@@ -340,7 +342,7 @@ abstract class SegregatedFreeList extends Allocator
    */
   protected final void free(VM_Address cell, VM_Address block, int sizeClass)
     throws VM_PragmaInline {
-    Memory.zeroSmall(cell, VM_Extent.fromInt(cellSize[sizeClass]));
+    Memory.zeroSmall(cell, VM_Extent.fromIntZeroExtend(cellSize[sizeClass]));
     addToFreeList(cell, block);
     if (maintainInUse() && (decInUse(block) == 0))
       freeBlock(block, sizeClass);
@@ -529,7 +531,7 @@ abstract class SegregatedFreeList extends Allocator
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(preserveFreeList() && maintainInUse());
 
-    VM_Word value = VM_Word.fromInt((cell.toInt() & FREE_LIST_MASK) | (sizeClass << SIZE_CLASS_SHIFT) | (inuse << INUSE_SHIFT));
+    VM_Word value = cell.toWord().and(FREE_LIST_MASK).or(VM_Word.fromIntZeroExtend(sizeClass).lsh(SIZE_CLASS_SHIFT)).or(VM_Word.fromIntZeroExtend(inuse).lsh(INUSE_SHIFT));
     VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
     
     if (VM_Interface.VerifyAssertions) {
@@ -541,55 +543,54 @@ abstract class SegregatedFreeList extends Allocator
 
   protected static final VM_Address getFreeList(VM_Address block) 
     throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
-    value = value.and(VM_Word.fromInt(FREE_LIST_MASK));
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET)).and(FREE_LIST_MASK);
     if (value.isZero())
       return VM_Address.zero();
     else
-      return value.or(block.toWord().and(VM_Word.fromInt(~FREE_LIST_MASK))).toAddress();
+      return value.or(block.toWord().and(FREE_LIST_MASK.not())).toAddress();
   }
 
   protected static final void setFreeList(VM_Address block, VM_Address cell)
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    value = (cell.toInt() & FREE_LIST_MASK) | (value & ~FREE_LIST_MASK);
-    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET)).and(FREE_LIST_MASK.not());
+    value = value.or(cell.toWord().and(FREE_LIST_MASK));
+    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
   }
 
   protected static final int getBlockSizeClass(VM_Address block) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    value = (value & SIZE_CLASS_MASK)>>SIZE_CLASS_SHIFT;
-    return value;
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    value = value.and(SIZE_CLASS_MASK).rshl(SIZE_CLASS_SHIFT);
+    return value.toInt();
   }
 
   private static final void setBlockSizeClass(VM_Address block, int sizeClass)
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    value = (value & ~SIZE_CLASS_MASK) | (sizeClass<<SIZE_CLASS_SHIFT);
-    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    value = value.and(SIZE_CLASS_MASK.not()).or(VM_Word.fromIntZeroExtend(sizeClass).lsh(SIZE_CLASS_SHIFT));
+    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
   }
 
   protected static final int getInUse(VM_Address block) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    return value >> INUSE_SHIFT;
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET)).rshl(INUSE_SHIFT);
+    return value.toInt();
   }
 
   private static final void setInUse(VM_Address block, int inuse) 
     throws VM_PragmaInline {
-    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    value = (value & ~INUSE_MASK) | (inuse << INUSE_SHIFT);
-    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    value = value.and(INUSE_MASK.not()).or(VM_Word.fromIntZeroExtend(inuse).lsh(INUSE_SHIFT));
+    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
   }
 
   private static final int decInUse(VM_Address block) 
     throws VM_PragmaInline {
     
-    int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    value -= (1<<INUSE_SHIFT);
-    VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
-    int count = value>>INUSE_SHIFT;
+    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
+    value = value.sub(VM_Word.one().lsh(INUSE_SHIFT));
+    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
+    int count = value.rshl(INUSE_SHIFT).toInt();
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(count >= 0 && count < (1<<INUSE_BITS));
     }

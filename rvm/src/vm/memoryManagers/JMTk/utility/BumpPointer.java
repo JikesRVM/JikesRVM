@@ -3,10 +3,10 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -17,6 +17,8 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.mmtk.vm.gcspy.AbstractDriver;
 
 /**
  * This class implements a simple bump pointer allocator.  The
@@ -29,7 +31,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class BumpPointer extends Allocator 
+public final class BumpPointer extends Allocator 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -41,7 +43,7 @@ final class BumpPointer extends Allocator
    * @param mr The memory resource from which this bump pointer will
    * acquire memory.
    */
-  BumpPointer(MonotoneVMResource vmr) {
+  public BumpPointer(MonotoneVMResource vmr) {
     vmResource = vmr;
     reset();
   }
@@ -82,7 +84,7 @@ final class BumpPointer extends Allocator
         return allocSlow(isScalar, bytes);
     } else {
       VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
-      if (tmp.GT(VM_Word.fromIntZeroExtend(TRIGGER)))
+      if (tmp.GT(TRIGGER))
         return allocSlow(isScalar, bytes);
     }
     cursor = newCursor;
@@ -91,11 +93,11 @@ final class BumpPointer extends Allocator
 
   final protected VM_Address allocSlowOnce(boolean isScalar, int bytes, 
                                            boolean inGC) {
-    int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
+    VM_Extent chunkSize = VM_Word.fromIntZeroExtend(bytes).add(CHUNK_MASK).and(CHUNK_MASK.not()).toExtent();
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
-    Memory.zero(start, VM_Extent.fromInt(chunkSize));
+    Memory.zero(start, chunkSize);
 
     // check for (dis)contiguity with previous chunk
     if (limit.NE(start)) cursor = start;
@@ -106,6 +108,15 @@ final class BumpPointer extends Allocator
   public void show() {
     Log.write("cursor = "); Log.write(cursor);
     Log.write(" limit = "); Log.writeln(limit);
+  }
+
+  /**
+   * Gather data for GCSpy
+   * @param event The GCSpy event
+   * @param driver the GCSpy driver for this space
+   */
+  public void gcspyGatherData(int event, AbstractDriver driver) {
+    vmResource.gcspyGatherData(event, driver);
   }
 
   /****************************************************************************
@@ -124,9 +135,9 @@ final class BumpPointer extends Allocator
    * alloc of initial value
    */
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
-  private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
-  private static final int TRIGGER = CHUNK_SIZE - 1;
-  private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromIntZeroExtend(TRIGGER);
+  private static final VM_Word CHUNK_MASK = VM_Word.one().lsh(LOG_CHUNK_SIZE).sub(VM_Word.one());
+  private static final VM_Word TRIGGER = CHUNK_MASK;  //should this be kept beside CHUNK_MASK ?
+  private static final VM_Address INITIAL_CURSOR_VALUE = TRIGGER.toAddress();
   private static final VM_Address INITIAL_LIMIT_VALUE = INITIAL_CURSOR_VALUE;
   private static final boolean useLimit = true;
 }

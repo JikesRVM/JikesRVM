@@ -2,11 +2,11 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -29,7 +29,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-final class RawPageAllocator implements Constants, VM_Uninterruptible {
+public final class RawPageAllocator implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
   /****************************************************************************
@@ -40,7 +40,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  RawPageAllocator(MonotoneVMResource vmr, MemoryResource mr) {
+  public RawPageAllocator(MonotoneVMResource vmr, MemoryResource mr) {
     memoryResource = mr;
     vmResource = vmr;
     totalPages = vmResource.getPages();
@@ -69,7 +69,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
     VM_Address resultEnd = result.add(Conversions.pagesToBytes(pages));
     if (resultEnd.GT(top)) {
-      int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toInt()); // rounded up
+      int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toWord().toExtent()); // rounded up
       VM_Address tmp = vmResource.acquire(pagesNeeded, null);
       top = tmp.add(Conversions.pagesToBytes(pagesNeeded));
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(resultEnd.LE(top));
@@ -87,7 +87,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
    */
   public int free(VM_Address start) {
     lock.acquire();
-    int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toInt()));
+    int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toWord().toExtent()));
     lock.release();
     memoryResource.release(freed);
     return freed;
@@ -101,7 +101,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
    * @return The number of pages in the allocated region.
    */
   public int pages (VM_Address start) {
-    return freeList.size(Conversions.bytesToPages(start.diff(base).toInt()));
+    return freeList.size(Conversions.bytesToPages(start.diff(base).toWord().toExtent()));
   }
 
   /****************************************************************************

@@ -286,6 +286,15 @@ public abstract class VM_Method extends VM_Member {
     return true; // be conservative.  native methods can write to anything
   }
 
+  /**
+   * @return true if the method is the implementation of a runtime service
+   * that is called "under the covers" from the generated code and thus is not subject to
+   * inlining via the normal mechanisms.
+   */
+  public boolean isRuntimeServiceMethod() {
+    return false; // only VM_NormalMethods can be runtime service impls in Jikes RVM and they override this method
+  }
+
   //------------------------------------------------------------------//
   //                        Section 2.                                //
   // The following are available after the declaring class has been   //

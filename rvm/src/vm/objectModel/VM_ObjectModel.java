@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.ir.*;
 //-#endif
@@ -258,7 +258,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
                                   int numBytes, VM_Class type, 
-                                  int availBitsWord) {
+                                  VM_Word availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type,
                                     availBitsWord);
   }
@@ -268,7 +268,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
                                   int numBytes, VM_Array type,
-                                  int availBitsWord) {
+                                  VM_Word availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
   }
 
@@ -471,8 +471,16 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument VM_Class.
+   * For a reference to an object, what is the offset in bytes to the 
+   * bottom word of the header?
+   */
+  public static int getHeaderEndOffset() {
+    return JAVA_HEADER_OFFSET;
+  }
+
+  /**
+   * Return the desired aligment of the alignment point in the object returned
+   * by getScalarOffsetForAlignment.
    * @param t VM_Class instance being created
    */
   public static int getAlignment(VM_Class t) {

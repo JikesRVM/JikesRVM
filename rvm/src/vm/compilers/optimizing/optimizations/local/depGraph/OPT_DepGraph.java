@@ -304,7 +304,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
         lastAcquire.insertOutEdge(pnode, CONTROL);
       }
       OPT_Operator pop = p.operator();
-      if (p.isYieldPoint() || pop == IR_PROLOGUE || pop == UNINT_BEGIN) {
+      if (p.isYieldPoint() || pop == IR_PROLOGUE ||
+          pop == UNINT_BEGIN || pop == GET_TIME_BASE) {
         lastTotalBarrier = pnode;
       }
       if (pop == UNINT_END) {
@@ -337,7 +338,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
         pnode.insertOutEdge(lastRelease, CONTROL);
       }
       OPT_Operator pop = p.operator();
-      if (p.isBranch() || p.isReturn() || p.isYieldPoint() || pop == UNINT_END){
+      if (p.isBranch() || p.isReturn() || p.isYieldPoint() ||
+          pop == UNINT_END || pop == GET_TIME_BASE){
         lastTotalBarrier = pnode;
       }
       if (pop == UNINT_BEGIN) {

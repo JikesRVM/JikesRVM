@@ -2,14 +2,30 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.TreadmillSpace;
+import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -18,6 +34,13 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+
+import org.mmtk.utility.gcspy.ObjectMap;
+import org.mmtk.utility.gcspy.SemiSpaceDriver;
+import org.mmtk.utility.gcspy.ImmortalSpaceDriver;
+import org.mmtk.utility.gcspy.TreadmillDriver;
+import org.mmtk.vm.gcspy.GCSpy;
+import org.mmtk.vm.gcspy.ServerInterpreter;
 
 /**
  * This class implements a simple semi-space collector. See the Jones
@@ -39,6 +62,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Perry Cheng
+ * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  *
  * @version $Revision$
  * @date $Date$
@@ -92,6 +116,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address       HEAP_END = SS_END;
 
 
+  // The event, BEFORE_COLLECTION or AFTER_COLLECTION
+  private static final int BEFORE_COLLECTION = 0;
+  private static final int SEMISPACE_COPIED = BEFORE_COLLECTION + 1;
+  private static final int AFTER_COLLECTION = SEMISPACE_COPIED + 1;
+  private static int gcspyEvent_ = BEFORE_COLLECTION;
+
+  // The specific drivers for this collector
+  private static SemiSpaceDriver gcspyDriver;
+  private static ImmortalSpaceDriver immortalDriver;
+  private static TreadmillDriver tmDriver;
+
+  private static int nextServerSpaceId = 0;	// ServerSpace IDs must be unique
+
+
   /****************************************************************************
    *
    * Instance variables
@@ -101,6 +139,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public BumpPointer ss;
   private TreadmillLocal los;
 
+  // Largely for didactic reasons, we keep track of object allocation
+  // with an ObjectMap and then use it to sweep through the heap.
+  // However, for a semispace collector it would be better to measure
+  // space used by measuring the size of the VMResource used (in constant
+  // time).
+  private static ObjectMap objectMap;
+  
   /****************************************************************************
    *
    * Initialization
@@ -130,6 +175,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Constructor
    */
   public Plan() {
+    if (VM_Interface.GCSPY) 
+      objectMap = new ObjectMap();
+    
     ss = new BumpPointer(ss0VM);
     los = new TreadmillLocal(losSpace);
   }
@@ -140,8 +188,228 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final void boot()
     throws VM_PragmaInterruptible {
+    if (VM_Interface.GCSPY) 
+      objectMap.boot();
+    
     StopTheWorldGC.boot();
   }
+
+  /****************************************************************************
+   *
+   * GCSPY
+   */
+
+  /**
+   * Start the server and wait if necessary
+   * 
+   * WARNING: allocates memory
+   * @param wait Whether to wait
+   * @param port The port to talk to the GCSpy client (e.g. visualiser)
+   */
+  public static final void startGCSpyServer(int port, boolean wait)
+    throws VM_PragmaInterruptible {
+    String eventNames[] = {"Before collection", 
+			   "Semispace copied",
+                           "After collection"};
+    String generalInfo = "SemiSpace Server Interpreter\n\nGeneral Info";
+    
+    // The Server
+    ServerInterpreter.init("SemiSpaceServerInterpreter",
+			    port,
+			    eventNames,
+			    true /* verbose*/,
+			    generalInfo);
+
+    // Initialise each driver
+    int tilesize = Options.gcspyTilesize; 
+    int maxTiles = HeapGrowthManager.getMaxHeapSize() / tilesize;
+    int tmMaxTiles = (int) (maxTiles * 0.3);
+    int immortalMaxTiles = IMMORTAL_SIZE.toInt() / tilesize;
+    gcspyDriver = new SemiSpaceDriver
+                        ("Semispace Space", 
+			 tilesize, LOW_SS_START, HIGH_SS_START, HIGH_SS_START, SS_END,
+			 maxTiles,
+			 true);
+    immortalDriver = new ImmortalSpaceDriver
+                        ("Immortal Space", 
+			 immortalVM,
+			 tilesize, IMMORTAL_START, IMMORTAL_END, 
+			 immortalMaxTiles,
+			 false);
+    tmDriver = new TreadmillDriver
+                        ("Treadmill Space", 
+			 losVM,
+			 tilesize, LOS_START, LOS_END,
+			 tmMaxTiles,
+			 LOS_SIZE_THRESHOLD,
+			 false);
+    
+
+    //Log.write("SemiServerInterpreter initialised\n");
+    
+    gcspyEvent_ = BEFORE_COLLECTION;
+
+    // Start the server
+    ServerInterpreter.startServer(wait);
+  }
+
+
+  /**
+   * Prepare GCSpy for a collection
+   * Order of operations is guaranteed by StopTheWorld plan
+   *	1. globalPrepare()
+   *	2. threadLocalPrepare()
+   *	3. gcspyPrepare()
+   *	4. gcspyPreRelease()
+   *	5. threadLocalRelease()
+   *	6. gcspyRelease()
+   *	7. globalRelease()
+   */
+  protected final void gcspyPrepare() {
+    //reportSpaces();
+    gcspyGatherData(BEFORE_COLLECTION);
+  }
+
+  /**
+   * This is performed before thread local releases
+   */
+  protected final void gcspyPreRelease() { 
+    gcspyGatherData(SEMISPACE_COPIED);
+  }
+
+  /**
+   * This is performed after thread local releases
+   */
+  protected final void gcspyPostRelease() {
+    gcspyGatherData(AFTER_COLLECTION);
+  }
+
+  /**
+   * After VMResource release
+   * We use this to release fromspace from the object map
+   *
+   * @param start the start of the resource
+   * @param end the end of the resource
+   * @param bytes the number of bytes released
+   */
+  public static final void releaseVMResource(VM_Address start, VM_Extent bytes) {
+    //Log.write("Plan.releaseVMResource:", start);
+    //Log.write("-", start.add(bytes));
+    //Log.writeln(", bytes released: ", bytes);
+    //reportSpaces();
+    objectMap.release(start, bytes.toInt());  
+  }
+  
+  /**
+   * After VMResource acquisition
+   * @param start the start of the resource
+   * @param end the end of the resource
+   * @param bytes the number of byted acquired
+   */
+  public static final void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {
+  }
+  
+  /**
+   * Gather data for GCSpy
+   * This method sweeps the semispace under consideration to gather data.
+   * This can obviously be discovered in constant time simply by comparing
+   * the start and the end addresses of the semispace. However, we demonstrate
+   * here how data can be gathered for the more general case (when objects are
+   * not compacted).
+   * The LOS is handled better.
+   * 
+   * @param event The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or AFTER_COLLECTION
+   */
+  private void gcspyGatherData(int event) {
+    // Port = 0 means no gcspy
+    if (GCSpy.getGCSpyPort() == 0)
+      return;
+    
+    // We should not allocate anything while transmitting
+    //if (VM_Interface.VerifyAssertions)
+    //  objectMap.trapAllocation(true);
+
+    if (ServerInterpreter.shouldTransmit(event)) {		
+      ServerInterpreter.startCompensationTimer();
+      
+      // -- Handle the semispace collector --
+      // iterate through toSpace
+      // at this point, hi has been flipped by globalPrepare()
+      gcspyDriver.zero();
+      boolean useLowSpace = hi ^ (event != BEFORE_COLLECTION);
+      switch (event) {
+      case BEFORE_COLLECTION:
+      case AFTER_COLLECTION:
+	/*
+	if (useLowSpace) 
+	  Log.write("\nExamining Lowspace (", event);
+	else
+	  Log.write("\nExamining Highspace (", event);
+	Log.write(")";
+	reportSpaces();
+        */
+	if (useLowSpace) 
+          gcspyGatherSemispacedata(0, ss0VM, true);
+        else 
+          gcspyGatherSemispacedata(1, ss1VM, true);
+	break;
+      case SEMISPACE_COPIED:
+	/*
+	if (hi) 
+	  Log.write("\nExamining Highspace (", event);
+	else
+	  Log.write("\nExamining Lowspace (", event);
+	Log.write(")";
+	reportSpaces();
+        */
+	gcspyGatherSemispacedata(0, ss0VM, !hi);
+	gcspyGatherSemispacedata(1, ss1VM,  hi);
+        break;
+      }
+      
+      // -- Handle the Treadmill space --
+      tmDriver.zero();
+      los.gcspyGatherData(event, tmDriver, false);
+      los.gcspyGatherData(event, tmDriver, true);
+      
+      // -- Handle the immortal space --
+      immortalDriver.zero(); 
+      immortal.gcspyGatherData(event, immortalDriver);
+
+      ServerInterpreter.stopCompensationTimer();	
+      gcspyDriver.finish(event, useLowSpace ? 0 : 1);
+      immortalDriver.finish(event);
+      tmDriver.finish(event);
+
+    } else {
+      //Log.write("not transmitting...");
+    }
+    ServerInterpreter.serverSafepoint(event);		
+    //if (VM_Interface.VerifyAssertions)
+    //  objectMap.trapAllocation(false); 
+  }
+
+  private void gcspyGatherSemispacedata(int semi, MonotoneVMResource ssVM, boolean total) {
+    objectMap.iterator(ssVM.getStart(), ssVM.getCursor());	
+    gcspyDriver.setRange(semi, ssVM.getStart(), ssVM.getCursor());
+    
+    VM_Address addr = VM_Address.zero();
+    while (objectMap.hasNext()) {
+      addr = objectMap.next();
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(VMResource.refInVM(addr));
+      gcspyDriver.traceObject(addr, total);
+    }
+  }
+
+  private static void reportSpaces() {
+    Log.write("  Low semispace:  ", ss0VM.getStart());
+    Log.writeln("-", ss0VM.getCursor());
+    Log.write("  High semispace: ", ss1VM.getStart());
+    Log.writeln("-", ss1VM.getCursor());
+  }
+
+  public static int getNextServerSpaceId() { return nextServerSpaceId++; }
 
 
   /****************************************************************************
@@ -161,6 +429,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
                                 AllocAdvice advice)
     throws VM_PragmaInline {
+    if (GATHER_MARK_CONS_STATS) cons.inc(bytes);
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       return los.alloc(isScalar, bytes);
@@ -194,7 +463,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       Header.initializeLOSHeader(ref, tib, bytes, isScalar);
     } else {
       switch (allocator) {
-      case  DEFAULT_SPACE: return;
+      case  DEFAULT_SPACE:
+			   // In principle, taxing the allocator is undesirable
+			   // and only necessary because it is not possible to
+			   // sweep through the heap.
+                           if (VM_Interface.GCSPY) 
+                             if (GCSpy.getGCSpyPort() != 0)
+			       objectMap.alloc(VM_Magic.objectAsAddress(ref));
+                           return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); return;
       default:
@@ -217,6 +493,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                     boolean isScalar) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (GATHER_MARK_CONS_STATS) {
+      cons.inc(bytes);
+      mark.inc(bytes);
+    }
+    // Knock copied objects out of the object map so we can see what's left
+    // (i.e. garbage) in fromspace after the collection.
+    if (VM_Interface.GCSPY) 
+      if (GCSpy.getGCSpyPort() != 0) {
+        objectMap.dealloc(VM_Magic.objectAsAddress(original));
+      }
     VM_Address result = ss.alloc(isScalar, bytes);
     return result;
   }
@@ -230,24 +516,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-                             boolean isScalar) {} // do nothing
-
-  /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(Type type, int bytes, CallSite callsite, 
-                                AllocAdvice hint) {
-    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
+                             boolean isScalar)
+         throws VM_PragmaInline {
+    if (VM_Interface.GCSPY) 
+      if (GCSpy.getGCSpyPort() != 0)
+	objectMap.alloc(VM_Magic.objectAsAddress(ref));
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
@@ -276,7 +549,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
@@ -289,7 +562,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int bytes)
+  public static final VM_Word getInitialHeaderValue(int bytes)
     throws VM_PragmaInline {
     return losSpace.getInitialHeaderValue(bytes);
   }
@@ -465,7 +738,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object to be scanned.
    */
   protected final void scanForwardedObject(VM_Address object) {
-    ScanObject.scan(object);
+    Scan.scanObject(object);
   }
 
   /**
@@ -478,7 +751,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  static void forwardObjectLocation(VM_Address location) 
+  public static void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
     VM_Address obj = VM_Magic.getMemoryAddress(location);
     if (!obj.isZero()) {
@@ -496,7 +769,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  static final VM_Address getForwardedReference(VM_Address object) {
+  public static final VM_Address getForwardedReference(VM_Address object) {
     if (!object.isZero()) {
       VM_Address addr = VM_Interface.refToAddress(object);
       byte space = VMResource.getSpace(addr);
@@ -560,8 +833,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
-  public static final int resetGCBitsForCopy(VM_Address fromObj,
-                                             int forwardingWord, int bytes) {
+  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
+					     VM_Word forwardingWord, int bytes) {
     return forwardingWord; // a no-op for this collector
   }
 

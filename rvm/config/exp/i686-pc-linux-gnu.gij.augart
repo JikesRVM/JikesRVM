@@ -1,0 +1,13 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003, 2004
+#
+# This is the config file that Steven Augart uses to build Kaffe on his
+# laptop computer.
+
+CLASSPATH_ROOT=/usr/local/classpath-0.08
+export FASTJAR=/usr/bin/jar
+# export JIKES=jikes-1.13	# jikes-1.13 sometimes gives more useful diagnostic messages than Jikes 1.19 or Jikes 1.18.
+# export JIKES=jikes	# Default.
+
+. $RVM_ROOT/rvm/config/i686-pc-linux-gnu.gij

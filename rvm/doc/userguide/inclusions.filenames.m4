@@ -20,6 +20,7 @@ installation.tex
 running.tex
 regression.tex
 eclipse.tex
+gcspy.tex
 componentOverview.tex
 vmdetails.tex
 threads.tex

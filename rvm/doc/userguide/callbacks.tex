@@ -72,12 +72,12 @@ specified below:
 
 	\item before the call to {\tt runOnce} add the following:
         \begin{example}
-        VM\_Callbacks.notifyAppRunStart(run);
+        VM\_Callbacks.notifyAppRunStart(className, run);
         \end{example}
 
 	\item after the call to {\tt runOnce} add the following:
         \begin{example}
-        VM\_Callbacks.notifyAppRunComplete(run);
+        VM\_Callbacks.notifyAppRunComplete(className, run);
         \end{example}
 
 	\end{enumerate}

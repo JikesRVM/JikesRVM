@@ -31,6 +31,8 @@ all:
 	@echo >&2 ' all files in the source tree, skipping only Emacs backups and CVS files.)'
 
 
+## If RVM_BUILD is in the environment, then we have a real Jikes RVM build that
+## we can search for the generated sources (the ones that don't appear here).
 ifdef RVM_BUILD
    GENSRC:=$(RVM_BUILD)/RVM.generatedSources
 else
@@ -52,8 +54,10 @@ FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs
 EFLAGS:=--members --declarations
 
 # A forced target.
-.PHONY: FORCE
+.PHONY: FORCE tags
 FORCE:
+
+tags: TAGS			# Convenient alias.
 
 TAGS: FORCE
 	$(RM) $@

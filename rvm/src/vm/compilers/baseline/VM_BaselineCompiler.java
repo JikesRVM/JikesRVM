@@ -374,7 +374,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
   }
 
   protected final int getEdgeCounterOffset() {
-    return method.getId() << 2;
+    return method.getId() << LOG_BYTES_IN_ADDRESS;
   }
 
 

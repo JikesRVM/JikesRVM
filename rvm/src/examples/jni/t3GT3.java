@@ -132,7 +132,7 @@ class t3GT3 {
 
         long endtime = System.currentTimeMillis();
         if (sanity) 
-            System.out.println("DONE\n");
+            System.out.println("PASS:\n");
         else 
             System.out.println(" Execution Time = " + (endtime - starttime) + " ms.");
         

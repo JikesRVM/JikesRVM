@@ -49,9 +49,9 @@ extern "C" int sched_yield(void);
 #include <sys/ioctl.h>
 #include <asm/ioctls.h>
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-#include <sched.h>
-#endif
+# ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+# include <sched.h>
+# endif
 
 /* OSX/Darwin */
 #elif (defined __MACH__)
@@ -71,13 +71,13 @@ extern "C" int sched_yield(void);
 #include <sys/types.h>
 #include <sys/sysctl.h>
 extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
-#if (defined HAS_DLCOMPAT)
-#include <dlfcn.h>
-#endif
+# if (defined HAS_DLCOMPAT)
+# include <dlfcn.h>
+# endif
 #define MAP_ANONYMOUS MAP_ANON 
-#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-#include <sched.h>
-#endif
+# if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+# include <sched.h>
+# endif
 
 
 /* AIX/PowerPC */
@@ -94,20 +94,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <dlfcn.h>
 #include <inttypes.h>           // uintptr_t
 
-// These exit status codes are defined here and in VM.java.
-// If you change one of them here, or add any, add it there too.
-// See VM.java; vm.exitStatusSyscallTrouble
-const int EXIT_STATUS_SYSCALL_TROUBLE = 121;
-// See VM.java; vm.exitStatusTimerTrouble
-const int EXIT_STATUS_TIMER_TROUBLE = EXIT_STATUS_SYSCALL_TROUBLE;
-
-const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 120;
-
-// see VM.exitStatusUnexpectedCallToSys:
-const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS
-            = EXIT_STATUS_UNSUPPORTED_INTERNAL_OP;
-
-
+#include "sys.h"
 #ifdef _AIX
 extern "C" timer_t gettimerid(int timer_type, int notify_type);
 extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
@@ -814,18 +801,32 @@ extern "C" void processTimerTick(void) {
             longest_stuck_ticks = -val;
     }
     
+#if !defined(RVM_WITH_GCSPY)
     /* 
      * After 500 timer intervals (often == 5 seconds), print a message
      * every 50 timer intervals (often == 1/2 second), so we don't
      * just appear to be hung. 
      */
     if (longest_stuck_ticks >= 500 && (longest_stuck_ticks % 50) == 0) {
+      /* When performing tracing, delays will often last more than 5
+       * seconds and can take much, much longer (on a fairly fast
+       * machine I've seen delays above 1 minute).  This is due to a
+       * GC possibly needing to include additional processing and
+       * outputting a large amount of information which will
+       * presumably be saved.  Unfortunately, these warnings will appear
+       * in the midst of the trace and cause them to be very difficult to
+       * parse.  As this is a normal condition during tracing, and causes
+       * a lot of problems to tracing, we elide the warning.
+       */
+#if (!defined RVM_FOR_GCTRACE)
         fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
                 " timer interrupt for %d ms.\n", 
                 Me, getTimeSlice_msec() * longest_stuck_ticks);
         fprintf(stderr, "This may indicate that a blocking system call"
                 " has occured and the JVM is deadlocked\n");
+#endif
     }
+#endif
 }
 
 
@@ -1020,7 +1021,15 @@ sysNumProcessors()
 //  Called from VM_HardwarePerformanceMonitors.boot().
 //-----------------------------------------------------------
 #ifdef RVM_WITH_HPM
-#include "pmapi.h"
+# ifdef RVM_FOR_LINUX
+# include "papi.h"
+# include "papiStdEventDefs.h"
+# define PM_CAVEAT     0
+# define PM_UNVERIFIED 0
+# define PM_VERIFIED   0
+#else
+# include "pmapi.h"
+# endif
 #endif
 
 #ifdef RVM_WITH_HPM
@@ -1035,6 +1044,9 @@ extern "C" int hpm_stop_mythread();
 extern "C" int hpm_reset_mythread();
 extern "C" long long hpm_get_counter_mythread(int);
 extern "C" int hpm_get_number_of_counters();
+extern "C" int hpm_get_number_of_events();
+extern "C" int hpm_get_processor_name();
+extern "C" int hpm_is_big_endian();
 extern "C" int hpm_test();
 
 extern "C" int hpm_set_program_mygroup();
@@ -1054,22 +1066,18 @@ extern "C" long long hpm_get_counter_mygroup(int);
 extern "C" int
 sysHPMinit(void)
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMinit() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    /* NOTREACHED */
-#elif defined RVM_WITH_HPM
-    int rc;
-#  ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "%s: sysHPMinit() called:\n", Me);
-#  endif
-    int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
-    rc = hpm_init(filter);
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMinit() called:\n", Me);
+# endif
+  int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
+  rc = hpm_init(filter);
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMinit() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    /* NOTREACHED */
+  fprintf(SysErrorFile, "%s: sysHPMinit() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  /* NOTREACHED */
 #endif
 }
 
@@ -1082,24 +1090,19 @@ sysHPMinit(void)
 extern "C" int
 sysHPMsetEvent(int e1, int e2, int e3, int e4)
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, 
-            "%s: sysHPMsetEvent(%d,%d,%d,%d) called: no support for Linux\n", 
-            Me, e1,e2,e3,e4);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#  ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "%s: sysHPMsetEvent(%d,%d,%d,%d) called\n",
-            Me, e1,e2,e3,e4);
-#  endif
-    rc = hpm_set_event(e1, e2, e3, e4);
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMsetEvent(%d,%d,%d,%d) called\n",
+          Me, e1,e2,e3,e4);
+# endif
+  rc = hpm_set_event(e1, e2, e3, e4);
+  return rc;
 #else
-    fprintf(SysErrorFile, 
-            "%s: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
-            Me, e1,e2,e3,e4);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, 
+          "%s: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
+          Me, e1,e2,e3,e4);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1112,24 +1115,19 @@ sysHPMsetEvent(int e1, int e2, int e3, int e4)
 extern "C" int
 sysHPMsetEventX(int e5, int e6, int e7, int e8)
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, 
-            "%s: sysHPMsetEventX(%d,%d,%d,%d) called: no support for Linux\n", 
-            Me, e5,e6,e7,e8);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#  ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "%s: sysHPMsetEventX(%d,%d,%d,%d) called\n", Me,
-            e5,e6,e7,e8);
-#  endif
-    rc = hpm_set_event_X(e5, e6, e7, e8);
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMsetEventX(%d,%d,%d,%d) called\n", Me,
+          e5,e6,e7,e8);
+# endif
+  rc = hpm_set_event_X(e5, e6, e7, e8);
+  return rc;
 #else
-    fprintf(SysErrorFile,
-            "%s: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
-            Me, e5,e6,e7,e8);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile,
+          "%s: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
+          Me, e5,e6,e7,e8);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1144,22 +1142,18 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
 extern "C" int
 sysHPMsetMode(int mode)
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMsetMode(%d) called: no support for Linux\n",
-            Me, mode);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#  ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "%s: sysHPMsetMode(%d) called\n", Me,mode);
-#  endif
-    rc = hpm_set_mode(mode);
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMsetMode(%d) called\n", Me,mode);
+# endif
+  rc = hpm_set_mode(mode);
+  return rc;
 #else
-    fprintf(SysErrorFile, 
-            "%s: sysHPMsetMode(%d) called: not compiled for HPM\n",
-            Me, mode);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, 
+          "%s: sysHPMsetMode(%d) called: not compiled for HPM\n",
+          Me, mode);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1175,23 +1169,18 @@ sysHPMsetMode(int mode)
 extern "C" int
 sysHPMsetProgramMyThread()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, 
-            "%s: sysHPMsetProgramMyThread() called: no support for Linux\n", 
-            Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#  if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    fprintf(SysTraceFile, "%s: sysHPMsetProgramMyThread() called from pthread id %d\n", Me,pthread_self());
-#  endif
-    rc = hpm_set_program_mythread();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  fprintf(SysTraceFile, "%s: sysHPMsetProgramMyThread() called from pthread id %d\n", Me,pthread_self());
+# endif
+  rc = hpm_set_program_mythread();
+  return rc;
 #else
-    fprintf(SysTraceFile, 
-            "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
-            Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysTraceFile, 
+          "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
+          Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1205,21 +1194,16 @@ sysHPMsetProgramMyThread()
 extern "C" int
 sysHPMsetProgramMyGroup()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, 
-            "%s: sysHPMsetProgramMyGroup() called: no support for Linux\n", 
-            Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#  ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called\n", Me);
-#  endif
-    rc = hpm_set_program_mygroup();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called\n", Me);
+# endif
+  rc = hpm_set_program_mygroup();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1232,19 +1216,16 @@ sysHPMsetProgramMyGroup()
 extern "C" int
 sysHPMstartMyThread()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMstartMyThread() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-#  if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    fprintf(SysTraceFile, "%s: sysHPMstartMyThread() called from pthread id %d\n", Me,pthread_self());
-#  endif
-    int rc = hpm_start_mythread();
-    return rc;
+#ifdef RVM_WITH_HPM
+# if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  fprintf(SysTraceFile, "%s: sysHPMstartMyThread() called from pthread id %d\n", Me,pthread_self());
+# endif
+  int rc = hpm_start_mythread();
+  return rc;
 #else
-    fprintf(SysTraceFile, 
-            "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysTraceFile, 
+          "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1257,20 +1238,16 @@ sysHPMstartMyThread()
 extern "C" int
 sysHPMstartMyGroup()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, 
-            "%s: sysHPMstartMyGroup() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#  if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    fprintf(SysTraceFile, "%s: sysHPMstartMyGroup() called from pthread id %d\n", Me,pthread_self());
-#  endif
-    rc = hpm_start_mygroup();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# if defined DEBUG_SYS && ! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  fprintf(SysTraceFile, "%s: sysHPMstartMyGroup() called from pthread id %d\n", Me,pthread_self());
+# endif
+  rc = hpm_start_mygroup();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMstartMyGroup() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMstartMyGroup() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1283,17 +1260,13 @@ sysHPMstartMyGroup()
 extern "C" int
 sysHPMstopMyThread()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMstopMyThread() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-    // fprintf(SysErrorFile, "%s: sysHPMstopMyThread() called\n", Me);
-    rc = hpm_stop_mythread();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_stop_mythread();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMstopMyThread() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMstopMyThread() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1306,16 +1279,13 @@ sysHPMstopMyThread()
 extern "C" int
 sysHPMstopMyGroup()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMstopMyGroup() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-    rc = hpm_stop_mygroup();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_stop_mygroup();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMstopMyGroup() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMstopMyGroup() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1328,16 +1298,13 @@ sysHPMstopMyGroup()
 extern "C" int
 sysHPMresetMyThread()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMresetMyThread() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-    rc = hpm_reset_mythread();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_reset_mythread();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMresetMyThread() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMresetMyThread() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1350,16 +1317,13 @@ sysHPMresetMyThread()
 extern "C" int
 sysHPMresetMyGroup()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMresetMyGroup() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-    rc = hpm_reset_mygroup();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_reset_mygroup();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMresetMyGroup() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMresetMyGroup() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1375,15 +1339,11 @@ sysHPMresetMyGroup()
 extern "C" long long
 sysHPMgetCounterMyThread(int counter)
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMgetCounterMyThread(%d) called: no support for Linux\n", Me,
-            counter);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    return hpm_get_counter_mythread(counter);
+#ifdef RVM_WITH_HPM
+  return hpm_get_counter_mythread(counter);
 #else
-    fprintf(SysErrorFile, "%s: sysHPMgetCounterMyThread(%d) called: not compiled for HPM\n", Me,counter);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMgetCounterMyThread(%d) called: not compiled for HPM\n", Me,counter);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1399,42 +1359,70 @@ sysHPMgetCounterMyThread(int counter)
 extern "C" long long
 sysHPMgetCounterMyGroup(int counter)
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMgetCounterMyGroup(%d) called: no support for Linux\n", Me,
-            counter);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    return hpm_get_counter_mygroup(counter);
+#ifdef RVM_WITH_HPM
+  return hpm_get_counter_mygroup(counter);
 #else
-    fprintf(SysErrorFile, "%s: sysHPMgetCounterMyGroup(%d) called: not compiled for HPM\n", Me,counter);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMgetCounterMyGroup(%d) called: not compiled for HPM\n", Me,counter);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
 
 /*
- * Set mode(s) to be monitored.
- * Only returns if valid parameters.
- * Possible modes are:
- *   #define PM_USER            4       // turns user mode counting on
- *   #define PM_KERNEL          8       // turns kernel mode counting on
+ * Get number of counters available.
  */
 extern "C" int
 sysHPMgetNumberOfCounters()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMgetNumberofCounters() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-#ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "%s: sysHPMgetNumberofCounters() called\n", Me);
-#endif
-    rc = hpm_get_number_of_counters();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfCounters() called\n", Me);
+# endif
+  rc = hpm_get_number_of_counters();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMgetNumberofCounters() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfCounters() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#endif
+}
+
+
+/*
+ * Get number of counters available.
+ */
+extern "C" int
+sysHPMgetNumberOfEvents()
+{
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfEvents() called\n", Me);
+# endif
+  rc = hpm_get_number_of_events();
+  return rc;
+#else
+  fprintf(SysErrorFile, "%s: sysHPMgetNumberOfEvents() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#endif
+}
+
+/*
+ * Get number of counters available.
+ */
+extern "C" int
+sysHPMisBigEndian()
+{
+#ifdef RVM_WITH_HPM
+  int rc;
+# ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "%s: sysHPMisBigEndian() called\n", Me);
+# endif
+  rc = hpm_is_big_endian();
+  return rc;
+#else
+  fprintf(SysErrorFile, "%s: sysHPMisBigEndian() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1446,16 +1434,13 @@ sysHPMgetNumberOfCounters()
 extern "C" int
 sysHPMtest()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMtest() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-    rc = hpm_test();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_test();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMtest() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMtest() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1466,16 +1451,13 @@ sysHPMtest()
 extern "C" int
 sysHPMprintMyGroup()
 {
-#ifdef RVM_FOR_LINUX
-    fprintf(stderr, "%s: sysHPMprintMyGroup() called: no support for Linux\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#elif defined RVM_WITH_HPM
-    int rc;
-    rc = hpm_print_mygroup();
-    return rc;
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_print_mygroup();
+  return rc;
 #else
-    fprintf(SysErrorFile, "%s: sysHPMprintMyGroup() called: not compiled for HPM\n", Me);
-    exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+  fprintf(SysErrorFile, "%s: sysHPMprintMyGroup() called: not compiled for HPM\n", Me);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
 
@@ -1483,21 +1465,21 @@ sysHPMprintMyGroup()
 // Taken:    register values to use for pthread startup
 // Returned: virtual processor's o/s handle
 //
-extern "C" int
-sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP ip, int UNUSED_SVP fp)
+extern "C" VM_Address
+sysVirtualProcessorCreate(VM_Address UNUSED_SVP jtoc, VM_Address UNUSED_SVP pr, VM_Address UNUSED_SVP ip, VM_Address UNUSED_SVP fp)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
-    int           *sysVirtualProcessorArguments;
+    VM_Address    *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
     pthread_t      sysVirtualProcessorHandle;
     int            rc;
 
     // create arguments
     //
-    sysVirtualProcessorArguments = new int[4];
+    sysVirtualProcessorArguments = new VM_Address[4];
     sysVirtualProcessorArguments[0] = jtoc;
     sysVirtualProcessorArguments[1] = pr;
     sysVirtualProcessorArguments[2] = ip;
@@ -1527,9 +1509,9 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
     }
 
     if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (unsigned) sysVirtualProcessorHandle);
+        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (VM_Address) sysVirtualProcessorHandle);
 
-    return (int)sysVirtualProcessorHandle;
+    return (VM_Address)sysVirtualProcessorHandle;
 #endif
 }
 
@@ -1686,6 +1668,23 @@ sysWaitForMultithreadingStart()
 // CRA, Maria
 // 09/14/00
 //
+/*
+  I have filed defect report # 3925 about this function, with the following
+  description of the defect: --Steve Augart:
+
+  sysPthreadSelf(), in sys.C, logically, should just return the thread ID of
+  the current thread. It does not. It also does some initialization related to
+  per-thread signal handling for that thread. (Block SIGCONT, set up a special
+  signal handling stack for the thread.)
+
+  We have been getting away with this because we in fact only call
+  sysPthreadSelf() once, at thread startup time. However, we probably should
+  either break out the initialization code separately or rename sysPthreadSelf
+  to something more accurate, like
+  sysPthreadSetupSignalHandlingAndReturnPthreadSelf(). (I like the idea of
+  breaking out the logically-unrelated initialization code.)
+
+*/
 extern "C" int
 sysPthreadSelf()
 {
@@ -1694,7 +1693,6 @@ sysPthreadSelf()
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
     int thread;
-    sigset_t input_set, output_set;
     int rc;
 
     thread = (int)pthread_self();
@@ -1702,12 +1700,6 @@ sysPthreadSelf()
     if (VERBOSE_PTHREAD)
         fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
 
-    /*
-     * block the CONT signal.  This makes the signal reach this
-     * pthread only when then pthread does a sigwai().  Maria
-     */
-    sigemptyset(&input_set);
-    sigaddset(&input_set, SIGCONT);
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     /*
@@ -1728,6 +1720,15 @@ sysPthreadSelf()
         return 1;
     }
 #endif
+
+    /*
+     * Block the CONT signal.  This makes SIGCONT reach this
+     * pthread only when this pthread performs a sigwait().
+     * --Maria
+     */
+    sigset_t input_set, output_set;
+    sigemptyset(&input_set);
+    sigaddset(&input_set, SIGCONT);
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
@@ -2193,86 +2194,38 @@ sysShmctl(int shmid, int command)
 //        offset (Java long)  [to cover 64 bit file systems]
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 
-extern "C" void *sysMMap(char *start, size_t length, int protection, 
-                         int flags, int fd, long long offset) 
-    __attribute__((noreturn));
-
-
 extern "C" void *
-sysMMap(char UNUSED *start , size_t UNUSED length ,
-        int UNUSED protection , int UNUSED flags ,
-        int UNUSED fd , long long UNUSED offset )
+sysMMap(char *start , size_t length ,
+        int protection , int flags ,
+        int fd , long long offset)
 {
-    fprintf(SysErrorFile, "%s: sysMMap called, but it's unimplemented\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    // return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
+   return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
 }
 
-// mmap - non-file general case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        desired protection (Java int)
-//        flags (Java int)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
+// Same as mmap, but with more debugging support.
+// Returned: address of region if successful; errno (1 to 127) otherwise
+
 extern "C" void *
-sysMMapNonFile(char *start, char *length, int protection, int flags)
+sysMMapErrno(char *start , size_t length ,
+	     int protection , int flags ,
+	     int fd , long long offset)
 {
-    void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
-    if (res == (void *) -1) {
+  void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
+  if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
-        fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
-                (VM_Address) start, (unsigned) length, protection, flags, errno);
+    fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
+	    (VM_Address) start, (unsigned) length, protection, flags, errno);
 #else
-        fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
-                (VM_Address) start, (unsigned) length, protection, flags, errno);
+    fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
+	    (VM_Address) start, (unsigned) length, protection, flags, errno);
 #endif          
-        perror(NULL);
-        return (void *) errno;
-    }
+    return (void *) errno;
+  }else{
 #ifdef DEBUG_SYS
     printf("mmap worked - region = [0x%x ... 0x%x]    size = %d\n", res, ((int)res) + length, length);
 #endif
     return res;
-}
-
-// mmap - demand zero fixed address case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
-extern "C" char *
-sysMMapGeneralFile(char *start, size_t length, int fd, int prot)
-{
-    int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
-    char *foo = (char *) mmap(start, length, prot, flag, fd, 0);
-
-    return foo;
-}
-
-// mmap - demand zero fixed address case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
-extern "C" char *
-sysMMapDemandZeroFixed(char *start, size_t length)
-{
-    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-    return (char *) mmap(start, length, prot, flag, -1, 0);
-}
-
-// mmap - demand zero any address case
-// Taken: length of region (Java EXTENT)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
-extern "C" char *
-sysMMapDemandZeroAny(size_t length)
-{
-    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    int flag = MAP_ANONYMOUS | MAP_PRIVATE;
-    return (char *) mmap(0, length, prot, flag, -1, 0);
+  }
 }
 
 // munmap
@@ -3306,3 +3259,313 @@ getArrayLength(void* ptr)
 {
     return *(int*)(((char *)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
 }
+
+#if (defined RVM_WITH_GCSPY)
+// GCspy
+// Richard Jones 12.09.02
+
+extern "C" {
+#include "gcspy_gc_stream.h"
+#include "gcspy_main_server.h"
+#include "gcspy_gc_driver.h"
+#include "gcspy_color_db.h"
+#include "gcspy_utils.h"
+}
+
+typedef void * (*pthread_start_routine_t)(void *);
+
+static gcspy_main_server_t server;
+
+// debugging
+#define GCSPY_TRACE 0
+static int stream_count = 0;
+static int stream_len;
+
+extern "C" gcspy_gc_stream_t *
+gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x, id=%d...", driver, id);
+  gcspy_gc_stream_t *stream = gcspy_driverAddStream(driver, id);
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "stream=%x\n", stream);
+  return stream;
+}
+
+extern "C" void
+gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
+  int len;
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x, len=%d, written=%d\n", 
+	                  driver, stream_len, stream_count);
+    stream_count = 0;
+    /*??*/
+    gcspy_buffered_output_t *output =
+      gcspy_command_stream_get_output(driver->interpreter);
+    len = gcspy_bufferedOutputGetLen(output);
+    fprintf(SysTraceFile, "gcspyDriverEndOutput: interpreter has len=%d\n", len);
+  }
+  gcspy_driverEndOutput(driver);
+}
+
+extern "C" void
+gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driverName,
+                 char *title, char *blockInfo, int tileNum,
+                 char *unused, int mainSpace) {
+               
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, server=%s, driver=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n", 
+                   driver, id, serverName, driverName, 
+                   title, blockInfo, tileNum,
+		   unused, mainSpace);
+  gcspy_driverInit(driver, id, serverName, driverName, 
+                   title, blockInfo, tileNum,
+		   unused, mainSpace);
+}
+
+extern "C" void
+gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x\n", driver);
+  gcspy_driverInitOutput(driver);
+}
+
+extern "C" void
+gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverResize: driver=%x, size %d\n", driver, size);
+  gcspy_driverResize(driver, size);
+}
+
+extern "C" void
+gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, VM_Address start, VM_Address end) {
+  char name[256];
+#ifdef RVM_FOR_64_ADDR
+  sprintf(name, "   [%016llx-%016llx)", start, end);
+#else
+  sprintf(name, "   [%08x-%08x)", start, end); 
+#endif
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x, tile %d %s\n", driver, tile, name);
+  gcspy_driverSetTileName(driver, tile, name);
+}
+
+extern "C" void
+gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
+  if (GCSPY_TRACE) 
+    fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x, spaceInfo = +%s+(%x)\n", driver, spaceInfo, spaceInfo);
+  gcspy_driverSpaceInfo(driver, spaceInfo);
+}
+
+extern "C" void
+gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyDriverStartComm: driver=%x\n", driver);
+  gcspy_driverStartComm(driver);
+}
+
+extern "C" void
+gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStream: driver=%x, id=%d, len=%d\n", driver, id, len);
+    stream_count = 0;
+    stream_len = len;
+  }
+  gcspy_driverStream(driver, id, len);
+}
+
+extern "C" void
+gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverStreamByteValue(driver, val);
+}
+
+extern "C" void
+gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverStreamShortValue(driver, val);
+}
+
+extern "C" void
+gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverStreamIntValue(driver, val);
+}
+
+extern "C" void
+gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x, id=%d, len=%d\n", driver, id, len);
+    stream_count = 0;
+    stream_len = len;
+  }
+  gcspy_driverSummary(driver, id, len);
+}
+
+extern "C" void
+gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
+    stream_count++;
+  }
+  gcspy_driverSummaryValue(driver, val);
+}
+
+/* Note: passed driver but uses driver->interpreter */
+extern "C" void
+gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
+  if (GCSPY_TRACE) {
+    fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x, interpreter=%x, id=%d, len=%d\n", driver, driver->interpreter, id, len);
+    stream_count = 0;
+    stream_len = len;
+  }
+  gcspy_intWriteControl(driver->interpreter, id, len);
+}
+
+extern "C" gcspy_gc_driver_t *
+gcspyMainServerAddDriver (gcspy_main_server_t *server) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerAddDriver (server address = %x): adding driver...", server);
+  gcspy_gc_driver_t *driver = gcspy_mainServerAddDriver(server);
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "address = %d\n", driver);
+  return driver;
+}
+
+extern "C" void
+gcspyMainServerAddEvent (gcspy_main_server_t *server, int event, const char *name) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerAddEvent (server address = %x): event=%d, name=%s\n", server, event, name);
+  gcspy_mainServerAddEvent(server, event, name);
+}
+
+extern "C" gcspy_main_server_t *
+gcspyMainServerInit (int port, int len, const char *name, int verbose) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
+  gcspy_mainServerInit(&server, port, len, name, verbose);
+  return &server;
+}
+
+extern "C" int
+gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
+  int res = gcspy_mainServerIsConnected(server, event);
+  if (GCSPY_TRACE)
+    if (res)
+      fprintf(SysTraceFile, "connected");
+    else
+      fprintf(SysTraceFile, "not connected");
+  return res;
+}
+
+typedef void gcspyMainServerOuterLoop_t(gcspy_main_server_t *);
+
+extern "C" gcspyMainServerOuterLoop_t *
+gcspyMainServerOuterLoop () {
+  /* return gcspy_mainServerOuterLoop;*/
+  return gcspy_mainServerMainLoop;
+}
+
+extern "C" void
+gcspyMainServerSafepoint (gcspy_main_server_t *server, int event) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
+  gcspy_mainServerSafepoint(server, event);
+}
+
+extern "C" void
+gcspyMainServerSetGeneralInfo (gcspy_main_server_t *server, char *generalInfo) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
+  gcspy_mainServerSetGeneralInfo(server, generalInfo);
+}
+
+extern "C" void
+gcspyMainServerStartCompensationTimer (gcspy_main_server_t *server) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
+  gcspy_mainServerStartCompensationTimer(server);
+}
+
+extern "C" void
+gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
+  gcspy_mainServerStopCompensationTimer(server);
+}
+
+extern "C" void
+gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
+//#ifndef __linux__
+//  printf("I am not Linux!");
+//  exit(-1);
+//#endif __linux__
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
+  pthread_t tid;
+  int res = pthread_create(&tid, NULL, 
+		       (pthread_start_routine_t) loop,  server);
+  if (res != 0) {
+    printf("Couldn't create thread.\n");
+    exit(-1);
+  }
+
+  if(wait) {
+    if (GCSPY_TRACE)
+      fprintf(SysTraceFile, "gcspy_mainServerWaitForClient: server=%x\n", server);
+    gcspy_mainServerWaitForClient(server);
+  }
+}
+
+extern "C" void
+gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamName, 
+                 int minValue, int maxValue, int zeroValue, int defaultValue,
+                 char *stringPre, char *stringPost, int presentation, int paintStyle,
+                 int maxStreamIndex, int red, int green, int blue) {
+  gcspy_color_t colour;
+  colour.red = (unsigned char) red;
+  colour.green = (unsigned char) green;
+  colour.blue = (unsigned char) blue;
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, name=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n", 
+                   stream, id, dataType, streamName,
+                   minValue, maxValue, zeroValue, defaultValue,
+		   stringPre, stringPost, presentation, paintStyle,
+		   maxStreamIndex, &colour, colour.red, colour.green, colour.blue);
+  gcspy_streamInit(stream, id, dataType, streamName,
+                   minValue, maxValue, zeroValue,defaultValue,
+		   stringPre, stringPost, presentation, paintStyle,
+		   maxStreamIndex, &colour);
+}
+
+extern "C" void
+gcspyFormatSize (char *buffer, int size) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
+  strcpy(buffer, gcspy_formatSize(size));
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "buffer=%s\n", buffer);
+}
+
+extern "C" int
+gcspySprintf(char *str, const char *format, char *arg) {
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
+  int res = sprintf(str, format, arg);
+  if (GCSPY_TRACE)
+    fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
+  return res;
+}
+
+  
+#endif

@@ -137,18 +137,12 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    */
   protected int thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
 
-  // Allocation and GC Statistics counters.
-  // TODO: Think about moving these into JMTKtype?
-  public int allocCount;
-  public int allocBytes;
-  public int copyCount;                 
-  public int copyBytes;                 
-  public int scanCount;                 
-  public int scanBytes;
+  /** The memory manager's notion of this type */
+  private Object mmType;
+
+  /** Counters for boot image per-type statistics */
   public int bootCount;
   public int bootBytes; 
-
-  public com.ibm.JikesRVM.memoryManagers.vmInterface.Type JMTKtype = new com.ibm.JikesRVM.memoryManagers.vmInterface.Type();
 
   /**
    * RCGC: is this type acyclic? 
@@ -445,6 +439,14 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     return classForType;
   }
 
+  public final void setMMType(Object mmt) {
+    mmType = mmt;
+  }
+
+  public final Object getMMType() throws VM_PragmaUninterruptible {
+    return mmType;
+  }
+  
   // Convenience methods.
   //
   public final boolean isVoidType() throws VM_PragmaUninterruptible              { return this == VoidType;           }

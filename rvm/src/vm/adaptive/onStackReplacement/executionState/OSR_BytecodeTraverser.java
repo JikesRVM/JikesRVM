@@ -44,7 +44,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
-   * seperate array to track that.
+   * separate array to track that.
    */
   private int[] retaddr;
   private int   addr;

@@ -15,23 +15,25 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @author Kris Venstermans
  */
-public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
+public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
   ////////////////////////
+
   /** 
    * How many bytes is considered large enough to justify the transition to
    * C code to use memcpy?
    */
-  private static final int NATIVE_THRESHOLD = 256; 
+  private static final int NATIVE_THRESHOLD = 512; 
 
   private static final boolean USE_NATIVE = true;
   
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
-   * Assumptions: src != dst || (scrPos >= dstPos + 4) and
-   *              src and dst are 8Bit arrays.
+   *
+   * Assumptions: <code> src != dst || (scrPos >= dstPos + 4) </code>
+   *              and src and dst are 8Bit arrays.
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
    * @param dst     the destination array
@@ -45,101 +47,93 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
               len);
     } else {
       if (len >= BYTES_IN_ADDRESS && (srcPos & (BYTES_IN_ADDRESS - 1)) == (dstPos & (BYTES_IN_ADDRESS - 1))) {
-        // alignment is the same
+        // relative alignment is the same
         int byteStart = srcPos;
         int wordStart = alignUp(srcPos, BYTES_IN_ADDRESS);
-        int wordEnd = alignDown(srcPos + len , BYTES_IN_ADDRESS);
+        int wordEnd = alignDown(srcPos + len, BYTES_IN_ADDRESS);
         int byteEnd = srcPos + len;
         int startDiff = wordStart - byteStart;
         int endDiff = byteEnd - wordEnd;
         int wordLen = wordEnd - wordStart;
-        if (startDiff == 1) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (startDiff == 2) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (startDiff == 3) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (startDiff == 4) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (startDiff == 5) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (startDiff == 6) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (startDiff == 7) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        VM_Address srcPtr = VM_Magic.objectAsAddress(src).add(srcPos+startDiff);
+        VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstPos+startDiff);
+
+        switch(startDiff) {
+        //-#if RVM_FOR_64_ADDR
+        case 7:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -7,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -7));
+        case 6:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -6,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -6));
+        case 5:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -5,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -5));
+        case 4:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -4,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -4));
+        //-#endif
+        case 3:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -3,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -3));
+        case 2:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -2,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -2));
+        case 1:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -1,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -1));
         }
-        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos),
-                              VM_Magic.objectAsAddress(src).add(srcPos),
-                              wordLen);
-        srcPos += wordLen;
-        dstPos += wordLen;
-        if (endDiff == 1) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (endDiff == 2) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (endDiff == 3) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (endDiff == 4) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (endDiff == 5) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (endDiff == 6) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        } else if (endDiff == 7) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        }         
+        
+        VM_Address endPtr = srcPtr.add(wordLen);
+        while (srcPtr.LT(endPtr)) {
+          VM_Magic.setMemoryWord(dstPtr, VM_Magic.getMemoryWord(srcPtr));
+          srcPtr = srcPtr.add(BYTES_IN_ADDRESS);
+          dstPtr = dstPtr.add(BYTES_IN_ADDRESS);
+        }
+
+        switch(endDiff) {
+        //-#if RVM_FOR_64_ADDR
+        case 7:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 6,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 6));
+        case 6:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 5,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 5));
+        case 5:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+        case 4:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 3,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 3));
+        //-#endif
+        case 3:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 2,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 2));
+        case 2:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 1,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 1));
+        case 1:
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+        }
+
       } else {
-        for (int i=0; i<len; i++) {
-          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        VM_Address srcPtr = VM_Magic.objectAsAddress(src).add(srcPos);
+        VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstPos);
+        VM_Address endPtr = srcPtr.add(len);
+        while (srcPtr.LT(endPtr)) {
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          srcPtr = srcPtr.add(1);
+          dstPtr = dstPtr.add(1);
         }
       }
     }
-  }    
+  }
 
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   *
    * Assumption src != dst || (srcPos >= dstPos + 2).
    * 
    * @param src     the source array
@@ -148,36 +142,68 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  public static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) throws VM_PragmaInline {
+  public static void arraycopy16Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws VM_PragmaInline {
     if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_SHORT), 
               VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_SHORT),
               len<<LOG_BYTES_IN_SHORT);
     } else {
       if (len >= (BYTES_IN_ADDRESS >>> LOG_BYTES_IN_SHORT) && (srcPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_SHORT)) == (dstPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_SHORT))) {
-        // alignment is the same
+        // relative alignment is the same
         int byteStart = srcPos<<LOG_BYTES_IN_SHORT;
-        int wordStart = alignUp(byteStart , BYTES_IN_ADDRESS );
+        int wordStart = alignUp(byteStart , BYTES_IN_ADDRESS);
         int wordEnd = alignDown(byteStart + (len<<LOG_BYTES_IN_SHORT),BYTES_IN_ADDRESS ) ;
         int byteEnd = byteStart + (len<<LOG_BYTES_IN_SHORT);
         int startDiff = wordStart - byteStart;
         int endDiff = byteEnd - wordEnd;
         int wordLen = wordEnd - wordStart;
-        for (;startDiff > 0; startDiff-=BYTES_IN_SHORT) {
-          dst[dstPos++] = src[srcPos++];
+        VM_Address srcPtr = VM_Magic.objectAsAddress(src).add((srcPos<<LOG_BYTES_IN_SHORT)+startDiff);
+        VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add((dstPos<<LOG_BYTES_IN_SHORT)+startDiff);
+
+        switch(startDiff) {
+        //-#if RVM_FOR_64_ADDR
+        case 6:
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), -6,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), -6));
+        case 4:
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), -4,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), -4));
+        //-#endif
+        case 2:
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), -2,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), -2));
         }
-        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_SHORT),
-                              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_SHORT),
-                              wordLen);
-        wordLen = wordLen >>> LOG_BYTES_IN_SHORT;
-        srcPos += wordLen;
-        dstPos += wordLen;
-        for (;endDiff > 0; endDiff -=BYTES_IN_SHORT) {
-          dst[dstPos++] = src[srcPos++];
-        }         
+        
+        VM_Address endPtr = srcPtr.add(wordLen);
+        while (srcPtr.LT(endPtr)) {
+          VM_Magic.setMemoryWord(dstPtr, VM_Magic.getMemoryWord(srcPtr));
+          srcPtr = srcPtr.add(BYTES_IN_ADDRESS);
+          dstPtr = dstPtr.add(BYTES_IN_ADDRESS);
+        }
+
+        switch(endDiff) {
+        //-#if RVM_FOR_64_ADDR
+        case 6:
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+        case 4:
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 2,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 2));
+        //-#endif
+        case 2:
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+        }
+
       } else {
-        for (int i=0; i<len; i++) {
-          dst[dstPos+i] = src[srcPos+i];
+        VM_Address srcPtr = VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_CHAR);
+        VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR);
+        VM_Address endPtr = srcPtr.add(len<<LOG_BYTES_IN_CHAR);
+        while (srcPtr.LT(endPtr)) {
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          srcPtr = srcPtr.add(2);
+          dstPtr = dstPtr.add(2);
         }
       }
     }
@@ -185,7 +211,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
-   * Assumption src != dst || (srcPos >= dstPos + 2).
+   *
+   * Assumption src != dst || (srcPos >= dstPos) and element size is 4 bytes.
    * 
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -193,41 +220,67 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  public static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) throws VM_PragmaInline {
-    if (USE_NATIVE && len > (NATIVE_THRESHOLD>>LOG_BYTES_IN_CHAR)) {
-      memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR), 
-              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_CHAR), 
-              len<<LOG_BYTES_IN_CHAR);
+  public static void arraycopy32Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws VM_PragmaInline {
+    VM_Address srcPtr = VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_INT);
+    VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_INT);
+    int copyBytes = len<<LOG_BYTES_IN_INT;
+    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_INT)) {
+      memcopy(dstPtr, srcPtr, copyBytes);
     } else {
-      if (len >= (BYTES_IN_ADDRESS >>> LOG_BYTES_IN_CHAR) && (srcPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_CHAR)) == (dstPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_CHAR))) {
-        // alignment is the same
-        int byteStart = srcPos<<LOG_BYTES_IN_CHAR;
-        int wordStart = alignUp(byteStart , BYTES_IN_ADDRESS );
-        int wordEnd = alignDown(byteStart + (len<<LOG_BYTES_IN_CHAR), BYTES_IN_ADDRESS );
-        int byteEnd = byteStart + (len<<LOG_BYTES_IN_CHAR);
-        int startDiff = wordStart - byteStart;
-        int endDiff = byteEnd - wordEnd;
-        int wordLen = wordEnd - wordStart;
-        for (;startDiff > 0; startDiff -= BYTES_IN_CHAR) {
-          dst[dstPos++] = src[srcPos++];
-        }
-        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR),
-                              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_CHAR),
-                              wordLen);
-        wordLen = wordLen >>> LOG_BYTES_IN_CHAR;
-        srcPos += wordLen;
-        dstPos += wordLen;
-        for (;endDiff > 0; endDiff -= BYTES_IN_CHAR) {
-          dst[dstPos++] = src[srcPos++];
-        }         
-      } else {
-        for (int i=0; i<len; i++) {
-          dst[dstPos+i] = src[srcPos+i];
-        }
+      // The elements of int[] and float[] are always 32 bit aligned
+      // therefore we can do 32 bit load/stores without worrying about alignment.
+      // TODO: do measurements to determine if on PPC it is a good idea to check
+      //       for compatible doubleword alignment and handle that case via the FPRs in 64 bit chunks.
+      //       Unclear if this will be a big enough win to justify checking because for big copies
+      //       we are going into memcopy anyways and that will be faster than anything we do here.
+      VM_Address endPtr = srcPtr.add(copyBytes);
+      while (srcPtr.LT(endPtr)) {
+        VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+        srcPtr = srcPtr.add(4);
+        dstPtr = dstPtr.add(4);
       }
     }
   }    
-
+  
+  /**
+   * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   *
+   * Assumption src != dst || (srcPos >= dstPos) and element size is 8 bytes.
+   * 
+   * @param src     the source array
+   * @param srcPos  index in the source array to begin copy
+   * @param dst     the destination array
+   * @param dstPos  index in the destination array to being copy
+   * @param len     number of array elements to copy
+   */
+  public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) throws VM_PragmaInline {
+    VM_Address srcPtr = VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_DOUBLE);
+    VM_Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_DOUBLE);
+    int copyBytes = len<<LOG_BYTES_IN_DOUBLE;
+    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_DOUBLE)) {
+      memcopy(dstPtr, srcPtr, copyBytes);
+    } else {
+      // The elements of long[] and double[] are always doubleword aligned
+      // therefore we can do 64 bit load/stores without worrying about alignment.
+      VM_Address endPtr = srcPtr.add(copyBytes);
+      while (srcPtr.LT(endPtr)) {
+        // We generate abysmal code on IA32 if we try to use the FP registers,
+        // so use the gprs instead even though it results in more instructions.
+        if (VM.BuildForIA32) {
+          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
+                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+        } else {          
+          VM_Magic.setDoubleAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
+                                     VM_Magic.getDoubleAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+        }
+        srcPtr = srcPtr.add(8);
+        dstPtr = dstPtr.add(8);
+      }
+    }
+  }    
 
   /**
    * Copy numbytes from src to dst.
@@ -241,7 +294,30 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
     if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
     } else {
-      internalAligned32Copy(dst, src, numBytes);
+      if (VM.BuildFor64Addr) {
+        VM_Word wordMask = VM_Word.one().lsh(LOG_BYTES_IN_ADDRESS).sub(VM_Word.one());
+        int srcAlignment = src.toWord().and(wordMask).toInt();
+        if (srcAlignment == dst.toWord().and(wordMask).toInt()) {
+          int i = 0;
+          if (srcAlignment == BYTES_IN_INT) { 
+            VM_Magic.setMemoryInt(dst.add(i), VM_Magic.getMemoryInt(src.add(i)));
+            i += BYTES_IN_INT;
+          }
+          int endAlignment =( numBytes + srcAlignment) % BYTES_IN_ADDRESS;
+          numBytes -= endAlignment;
+          for (; i<numBytes; i+= BYTES_IN_ADDRESS) {
+            VM_Magic.setMemoryWord(dst.add(i), VM_Magic.getMemoryWord(src.add(i)));
+          }
+          if (endAlignment != 0) { 
+            VM_Magic.setMemoryInt(dst.add(i), VM_Magic.getMemoryInt(src.add(i)));
+          }
+        return;
+        }
+      } 
+      //normal case: 32 bit or (64 bit not aligned)
+      for (int i=0; i<numBytes; i+= BYTES_IN_INT) {
+        VM_Magic.setMemoryInt(dst.add(i), VM_Magic.getMemoryInt(src.add(i)));
+      }
     }
   }
 
@@ -251,24 +327,45 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Copy numbytes from src to dst.
-   * Assumption either the ranges are non overlapping, or src >= dst + 4.
+   * Assumption either the ranges are non overlapping, or src >= dst + BYTES_IN_ADDRESS.
+   * Also, src and dst are word aligned and numBytes is a multiple of BYTES_IN_ADDRESS.
    * @param dst the destination addr
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  private static void internalAligned32Copy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
-    for (int i=0; i<numBytes; i+= 4) {
-      VM_Magic.setMemoryInt(dst.add(i), VM_Magic.getMemoryInt(src.add(i)));
+  public static void alignedWordCopy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
+    if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
+      memcopy(dst, src, numBytes);
+    } else {
+      internalAlignedWordCopy(dst, src, numBytes);
     }
   }
 
+  public static void alignedWordCopy(VM_Address dst, VM_Address src, VM_Offset numBytes) throws VM_PragmaInline {
+    alignedWordCopy(dst, src, numBytes.toInt());
+  }
+
+  /**
+   * Copy numbytes from src to dst.
+   * Assumption either the ranges are non overlapping, or src >= dst + BYTES_IN_ADDRESS.
+   * @param dst the destination addr
+   * @param src the source addr
+   * @param numBytes the number of bytes top copy
+   */
+  private static void internalAlignedWordCopy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
+    VM_Address end = src.add(numBytes);
+    while (src.LT(end)) {
+      VM_Magic.setMemoryWord(dst, VM_Magic.getMemoryWord(src));
+      src = src.add(BYTES_IN_ADDRESS);
+      dst = dst.add(BYTES_IN_ADDRESS);
+    }
+  }
 
   /**
    * Copy a region of memory.
-   * Taken:    destination address
-   *           source address
-   *           number of bytes to copy
-   * Returned: nothing
+   * @param destination address
+   * @param source address
+   * @param number of bytes to copy
    * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(VM_Address dst, VM_Address src, int cnt) {
@@ -277,10 +374,9 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Fill a region of memory.
-   * Taken:    destination address
-   *           pattern
-   *           number of bytes to fill with pattern
-   * Returned: nothing
+   * @param destination address
+   * @param pattern
+   * @param number of bytes to fill with pattern
    */
   public static void fill(VM_Address dst, byte pattern, int cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
@@ -288,9 +384,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Zero a region of memory.
-   * Taken:    start of address range (inclusive)
-   *           end of address range   (exclusive)
-   * Returned: nothing
+   * @param start of address range (inclusive)
+   * @param end of address range   (exclusive)
    */
   public static void zero(VM_Address start, VM_Address end) {
     VM_SysCall.sysZero(start, end.diff(start).toInt());
@@ -307,9 +402,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Zero a range of pages of memory.
-   * Taken:    start address       (must be a page address)
-   *           number of bytes     (must be multiple of page size)
-   * Returned: nothing
+   * @param start address       (must be a page address)
+   * @param number of bytes     (must be multiple of page size)
    */
   public static void zeroPages(VM_Address start, int len) {
     if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
@@ -323,9 +417,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   /**
    * Synchronize a region of memory: force data in dcache to be written out to main 
    * memory so that it will be seen by icache when instructions are fetched back.
-   * Taken:    start of address range
-   *           size of address range (bytes)
-   * Returned: nothing
+   * @param start of address range
+   * @param size of address range (bytes)
    */
   public static void sync(VM_Address address, int size) {
     VM_SysCall.sysSyncCache(address, size);
@@ -343,6 +436,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
+  public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = 0x0010;
@@ -358,6 +452,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
+  public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = 16;
@@ -373,6 +468,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
+  public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = 256;
@@ -396,11 +492,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   }
 
   public static boolean isPageMultiple(VM_Extent val) {
-    //-#if RVM_FOR_32_ADDR
-    return isPageMultiple(val.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return isPageMultiple(val.toLong());
-    //-#endif
+    VM_Word pagesizeMask = VM_Word.fromIntZeroExtend(getPagesize() - 1);
+    return val.toWord().and(pagesizeMask).isZero();
   }
 
   public static boolean isPageAligned(VM_Address addr) {
@@ -427,77 +520,82 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   }
 
   /**
-   * Do mmap general memory mapping call (not implemented)
-   * Taken:    start of address range (VM_Address)
-   *           size of address range
-   *           protection (int)
-   *           flags (int)
-   *           fd (int)
-   *           offset (long)
-   * Returned: VM_Address (of region)
+   * Do mmap general memory mapping call.
+   * Please consult your system's mmap system call documentation for semantics.
+   * @param start of address range (VM_Address)
+   * @param size of address range
+   * @param protection 
+   * @param flags
+   * @param fd 
+   * @param offset
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmap(VM_Address address, int size, 
                                 int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
-    return VM_Address.max();  // not implemented: requires new magic for 6 args, etc.
-    // return VM_SysCall.sysMMap(address, size, prot, flags, fd, offset);
+    return VM_SysCall.sysMMapErrno(address,VM_Extent.fromInt(size), prot, flags, fd, offset);
   }
 
   /**
    * Do mmap file memory mapping call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range
-   *           file name (char *)
-   * Returned: VM_Address (of region)
+   * @param start of address range (VM_Address)
+   * @param size of address range
+   * @param fd file desciptor of file to be mapped
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmapFile(VM_Address address, VM_Extent size, int fd, int prot) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapGeneralFile(address, size, fd, prot);
+    int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
+    return VM_SysCall.sysMMapErrno(address,size,prot,flag,fd,0);
   }
 
   /**
    * Do mmap non-file memory mapping call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           protection (int)
-   *           flags (int)
-   * Returned: VM_Address (of region) if successful; errno (1 to 127) otherwise
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @param protection (int)
+   * @param flags (int)
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmap(VM_Address address, VM_Extent size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapNonFile(address, size, prot, flags);
+    return VM_SysCall.sysMMapErrno(address,size,prot,flags,-1,0);
   }
 
   /**
    * Do mmap demand zero fixed address memory mapping call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   * Returned: VM_Address (of region)
+   * @param start of address range
+   * @param size of address range 
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmap(VM_Address address, VM_Extent size) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapDemandZeroFixed(address, size);
+    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+    int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
+    return VM_SysCall.sysMMapErrno(address, size, prot, flag, -1, 0);
   }
 
   /**
    * Do mmap demand zero any address memory mapping call
-   * Taken:    size of address range (VM_Address)
-   * Returned: VM_Address (of region)
+   * @param size of address range (VM_Address)
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise 
    */
   public static VM_Address mmap(VM_Extent size) {
     if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
-    return VM_SysCall.sysMMapDemandZeroAny(size);
+    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+    int flag = MAP_ANONYMOUS | MAP_PRIVATE;
+    return VM_SysCall.sysMMapErrno(VM_Address.zero(), size, prot, flag, -1, 0);
   }
 
   /**
    * Do munmap system call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   * Returned: 0 if successfull; errno otherwise
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @return 0 if successfull; errno otherwise
    */
   public static int munmap(VM_Address address, VM_Extent size) {
     if (VM.VerifyAssertions)
@@ -507,10 +605,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do mprotect system call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           protection (int)
-   * Returned: true if success
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @param protection (int)
+   * @return true iff success
    */
   public static boolean mprotect(VM_Address address, VM_Extent size, int prot) {
     if (VM.VerifyAssertions)
@@ -520,10 +618,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do msync system call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           flags (int)
-   * Returned: true if success
+   * @param of address range (VM_Address)
+   * @param size of address range 
+   * @param flags (int)
+   * @return true iff success
    */
   public static boolean msync(VM_Address address, VM_Extent size, int flags) {
     if (VM.VerifyAssertions)
@@ -533,10 +631,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do madvise system call (UNIMPLEMENTED IN LINUX)
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           advice (int)
-   * Returned: true if success
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @param advice (int)
+   * @return true iff success
    */
   public static boolean madvise(VM_Address address, VM_Extent size, int advice) {
     if (VM.VerifyAssertions)
@@ -591,10 +689,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmget call
-   * Taken:    secret key or IPC_PRIVATE
-   *           size of address range
-   *           segment attributes
-   * Returned: shared memory segment id 
+   * @param secret key or IPC_PRIVATE
+   * @param size of address range
+   * @param segment attributes
+   * @return shared memory segment id 
    */
   public static int shmget(int key, int size, int flags) {
     return VM_SysCall.sysShmget(key, size, flags);
@@ -602,10 +700,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmat call
-   * Taken:    shmid obtained from shmget
-   *           size of address range
-   *           access attributes
-   * Returned: address of attached shared memory segment 
+   * @param shmid obtained from shmget
+   * @param size of address range
+   * @param access attributes
+   * @return address of attached shared memory segment 
    */
   public static VM_Address shmat(int shmid, VM_Address addr, int flags) {
     return VM_SysCall.sysShmat(shmid, addr, flags);
@@ -613,8 +711,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmdt call
-   * Taken:    address of mapped region
-   * Returned: shared memory segment id 
+   * @param address of mapped region
+   * @return shared memory segment id 
    */
   public static int shmdt(VM_Address addr) {
     return VM_SysCall.sysShmdt(addr);
@@ -622,24 +720,23 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmctl call
-   * Taken:    shmid obtained from shmget
-   *           command
-   *           missing buffer argument
-   * Returned: shared memory segment id 
+   * @param shmid obtained from shmget
+   * @param command
+   * @param missing buffer argument
+   * @return shared memory segment id 
    */
   public int shmctl(int shmid, int command) {
     return VM_SysCall.sysShmctl(shmid, command);
   }
 
 
-  /**
-   * Do getpagesize call
-   * Taken:    none
-   * Returned: page size
-   */
   private static int pagesize = -1;
   private static int pagesizeLog = -1;
 
+  /**
+   * Do getpagesize call
+   * @return page size
+   */
   public static int getPagesize() {
     if (pagesize == -1) {
       pagesize = VM_SysCall.sysGetPageSize();

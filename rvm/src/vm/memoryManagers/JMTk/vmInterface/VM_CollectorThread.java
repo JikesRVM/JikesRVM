@@ -3,11 +3,12 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -129,7 +130,7 @@ public class VM_CollectorThread extends VM_Thread {
   private int       gcOrdinal;
 
   /** used by each CollectorThread when scanning stacks for references */
-  VM_GCMapIteratorGroup iteratorGroup;
+  public VM_GCMapIteratorGroup iteratorGroup;
   
   /** time waiting in rendezvous (milliseconds) */
   int timeInRendezvous;
@@ -373,7 +374,7 @@ public class VM_CollectorThread extends VM_Thread {
       } 
       
       /* wait for other collector threads to arrive here */
-      gcBarrier.rendezvous(5210);
+      rendezvous(5210);
       if (verbose > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
 
       /* final cleanup for initial collector thread */
@@ -394,7 +395,8 @@ public class VM_CollectorThread extends VM_Thread {
         /* clear the GC flags */
         Plan.collectionComplete();
         gcThreadRunning = false;
-      }
+      } // if designated thread
+      rendezvous(9999);
     }  // end of while(true) loop
     
   }  // run
@@ -404,7 +406,7 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return <code>true</code> if no threads are still in GC.
    */
-  static boolean noThreadsInGC() throws VM_PragmaUninterruptible {
+  public static boolean noThreadsInGC() throws VM_PragmaUninterruptible {
     return !gcThreadRunning;
   }
 

@@ -65,6 +65,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
   private void transform (OPT_RegisterOperand rop) {
     OPT_Instruction inst = rop.instruction;
     switch (inst.getOpcode()) {
+      case SYSCALL_opcode:
       case CALL_opcode:
         OPT_RegisterOperand invokee = Call.getParam(inst, 0).asRegister();
         if (invokee == rop) {

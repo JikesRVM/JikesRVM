@@ -3,7 +3,9 @@
  * Australian National University. 2003
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
+
+import org.mmtk.plan.Plan;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -17,7 +19,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $date: $
  */
-class RCDecEnumerator extends Enumerate implements VM_Uninterruptible {
+public class RCDecEnumerator extends Enumerate implements VM_Uninterruptible {
   private Plan plan;
 
   /**
@@ -26,7 +28,7 @@ class RCDecEnumerator extends Enumerate implements VM_Uninterruptible {
    * @param plan The plan instance with respect to which the
    * enumeration will occur.
    */
-  RCDecEnumerator(Plan plan) {
+  public RCDecEnumerator(Plan plan) {
     this.plan = plan;
   }
 

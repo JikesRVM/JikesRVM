@@ -1,3 +1,0 @@
-   . $1/FastAdaptiveCopyMS
-   export OPT_ARGS=" -X:bc:O1"
-

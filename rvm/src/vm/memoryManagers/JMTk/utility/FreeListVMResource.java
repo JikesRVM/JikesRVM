@@ -4,11 +4,13 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -38,9 +40,9 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   /**
    * Constructor
    */
-  FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
+  public FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
-    freeList = new GenericFreeList(Conversions.bytesToPages(bytes.toInt()));
+    freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
     gcLock = new Lock("NewFreeListVMResrouce.gcLock");
     mutatorLock = new Lock("NewFreeListVMResrouce.gcLock");
   }
@@ -106,18 +108,20 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   public final void release(VM_Address addr, MemoryResource mr, 
                             boolean chargeMR) {
     lock();
-    int offset = addr.diff(start).toInt();
-    int startPage = Conversions.bytesToPages(offset);
+    int startPage = Conversions.bytesToPages(addr.diff(start).toWord().toExtent());
     int freedPages = freeList.free(startPage);
     pagetotal -= freedPages;
     if (chargeMR)
       mr.release(freedPages);
+    if (VM_Interface.GCSPY) {
+      VM_Extent bytes =  Conversions.pagesToBytes(freedPages);
+      Plan.releaseVMResource(addr, bytes);
+    }
     unlock();
   }
   
   public final int getSize(VM_Address addr) {
-    int offset = addr.diff(start).toInt();
-    int page = Conversions.bytesToPages(offset);
+    int page = Conversions.bytesToPages(addr.diff(start).toWord().toExtent());
     return freeList.size(page);
   }
 

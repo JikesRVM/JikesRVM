@@ -54,6 +54,11 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
   }
 
   /**
+   * @return the true name of the dynamic library
+   */
+  public String getLibName() { return libName; }
+  
+  /**
    * look up this dynamic library for a symbol
    * @param symbolName symbol name
    * @return The <code>VM_Address</code> of the symbol system handler

@@ -62,10 +62,27 @@ mkdir -p $RVM_ROOT/results
 touch $RUN_LOG
 chmod u=rw,g=r,o=r $RUN_LOG
 
+# Determine OS and machine architecture 
+NS_OS=$(uname)
+if [[ $NS_OS = 'AIX' ]]; then
+  NS_ARCH=`uname -p`
+else
+  NS_ARCH=`uname -m`
+fi
+if [[ $RVM_FOR_64_ADDR ]]; then
+  NS_BITS=64
+else
+  NS_BITS=32
+fi
 
-# Determine architecture and set number of processors accordingly
-ARCH=$(uname)
-if [[ $ARCH = 'Linux' ]]; then
+# Remove spaces from values such as "Power Macintosh"
+
+NS_OS=$( echo $NS_OS | sed "s/ //;" )
+NS_ARCH=$( echo $NS_ARCH | sed "s/ //;" )
+
+
+# Set number of processors based on OS
+if [[ $NS_OS = 'Linux' ]]; then
   NUM_PROCS=4
 else
   NUM_PROCS=2
@@ -75,18 +92,30 @@ fi
 cd $RVM_ROOT
 
 dry_run=""
+do_mail=1
+do_archive=1
+do_measure_compilation=1
 declare -i trouble=0
 while (( $# > 0 )); do
     case "$1" in
-#	-clean )
-#	    rm -rf $MSG $RVM_ROOT/results
-#	    shift;
-#	    ;;
-	-dry-run )
+	 -dry-run )
 	    dry_run="-succeed-immediately";
+	    do_mail=0;
 	    shift;
 	    echo "$ME: A dry run, so we won't actually send any mail." \
 		| tee -a $RUN_LOG $MSG >&2
+	    ;;
+	-no-mail )
+	    do_mail=0;
+	    shift;
+	    ;;
+	-no-archive )
+	    do_archive=0;
+	    shift;
+	    ;;
+	-no-measure-compilation )
+	    do_measure_compilation=0;
+	    shift;
 	    ;;
 	-* )
 	    echo "$ME: Got unknown flag \"$1\"; can't go on." \
@@ -140,12 +169,14 @@ else
 fi
 
 # measure compilation time
-echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
+if [[ $do_measure_compilation == 1 ]]; then
+  echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 
-export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
-mkdir -p $MEASURE_COMPILATION_DIR
+  export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
+  mkdir -p $MEASURE_COMPILATION_DIR
 
-$RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
+   $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
+fi
 
 # Archive result files and performance results
 
@@ -158,7 +189,8 @@ function archiveResults() {
     fi
 
     echo -e "Archiving results into $ARCHIVE\n" | tee -a $RUN_LOG >> $VERBOSE_LOG
-    local tarfile=$ARCHIVE/archive.`date +"%A"`.${ARCH}.tar.gz
+    local filename=`date +"%A"`.${NS_OS}.${NS_ARCH}.${NS_BITS}.tar.gz
+    local tarfile=$ARCHIVE/$filename
     if :; then
 	$RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results
 	local -i status=$?
@@ -171,7 +203,7 @@ function archiveResults() {
 	## the tar archive instead.  So we keep them online for 
 	## almost 24 hours. --Steve Augart, July 28 2003 
 	# find $RVM_ROOT/results -name cp -exec rm -rf {} \;
-	$GNU_TAR -C$RVM_ROOT --exclude 'cp' -czv -f $tarfile results
+	$GNU_TAR -C$RVM_ROOT --exclude 'cp' --exclude verbose.log -czv -f $tarfile results
 	status=$?
 	if (( status )); then
 	    echo "$ME: GNU_TAR of $RVM_ROOT/results into $tarfile failed.  Could not archive."
@@ -185,7 +217,7 @@ function archiveResults() {
 	return
     fi
     local -i trouble=0
-    TRANSFER_FILE_NAME=$(date +"%A").${ARCH}.tar.gz || trouble=1
+    TRANSFER_FILE_NAME=$filename || trouble=1
     cp $tarfile $TRANSFER_FILE_NAME || trouble=1
     $CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
     $CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
@@ -201,7 +233,10 @@ function archiveResults() {
 }
 
 declare -i archived=0
-archiveResults && archived=1
+
+if (( do_archive == 1 )); then
+  archiveResults && archived=1
+fi
 
 # determine how many ran, failed, and passed, then build a summary line
 declare -i numran=`grep "sane" $RUN_LOG | wc -l`
@@ -256,7 +291,7 @@ fi >> $MSG
 
 if (( archived )); then
     # Describe where the archive information can be found
-    echo -e "\nOutput of this run is normally available (for 24 hours) at:" 
+    echo -e "\nOutput of this run is normally available (for one week) at:" 
     echo "http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME"
 fi >> $MSG
 echo "  Sanity tests are specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
@@ -318,9 +353,11 @@ function compResults () {
 ## Without boot images, it's unlikely we'll have compilation results either
 ## However, I suppose three extra tests for a file's existence won't hurt.
 # if (( have_boot_images )); then
-for opt in 0 1 2; do
-    compResults $opt >> $MSG
-done
+if [[ $do_measure_compilation == 1 ]]; then
+  for opt in 0 1 2; do
+      compResults $opt >> $MSG
+  done
+fi
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
@@ -337,13 +374,13 @@ elif (( numfailed == 0 )); then
 else
     subject="Failed $numfailed tests"
 fi
-subject="[$ARCH] regression $subject"
+subject="[$NS_OS/$NS_ARCH/$NS_BITS] regression $subject"
 if [[ ! $RESULT_MAILING_LIST ]]; then
     echo "$ME: RESULT_MAILING_LIST is unset, so I'm assuming"
     echo "$ME: this is a dry run.  Won't actually mail."
 fi | tee -a $RUN_LOG $MSG >&2
 
-if [[ ! $RESULT_MAILING_LIST ]] || [[ $dry_run ]]; then
+if [[ ! $RESULT_MAILING_LIST ]] || [[ $do_mail != 1 ]]; then
     function mail () {
 	echo >&2 "$ME: dry run: Pretending to invoke \"mail $*\"";
 	echo >&2 "**************************************"
@@ -364,7 +401,7 @@ fi
 ## and a Copyright notice. 
 ##
 # Only run on one machine: currently the AIX nightly run machine.
-if [[ $ARCH = 'AIX' ]]; then
+if [[ ${NS_OS}.${NS_BITS} = 'AIX.32' ]]; then
     export CHECK_DIR=$RVM_ROOT/results
 
     # Check files

@@ -1,0 +1,24 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003, 2004
+#
+
+# This is the config file that Steven Augart uses to build Jikes RVM
+# on his laptop computer, for Jikes RVM builds that include the
+# optimizing compiler.  For such builds, I use a previously built
+# Jikes RVM to do the template expansion.
+#
+# This is for the second stage of the two-stage build process for optimizing
+# Jikes RVM builds.
+
+CLASSPATH_INSTALLATION=/usr/local/classpath
+export FASTJAR=/usr/local/bin/jar # implicit
+# export JIKES=jikes-1.13
+export JIKES=jikes		# Implicit
+
+. $RVM_ROOT/rvm/config/i686-pc-linux-gnu.kaffe
+
+export DONOR_RVM_ROOT=$RVM_ROOT
+export DONOR_RVM_BUILD=/home/augart/JikesRVM/Images/prototype
+
+export TemplateExpander_HOST_VM_RT="${DONOR_RVM_ROOT}/rvm/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"

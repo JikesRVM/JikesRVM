@@ -73,7 +73,8 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define NGPRS 32
 // Linux on PPC does not save FPRs - is this true still?
 #define NFPRS  0
-#define GETCONTEXT_IMPLEMENTED 0
+// Third argument to signal handler is of type ucontext_t
+#define SIGNAL_ARG3_IS_UCONTEXT
 
 #endif
 
@@ -384,13 +385,17 @@ static int isVmSignal(VM_Address iar, VM_Address jtoc)
 /* The following code is factored out while getcontext() remains
    unimplemented for PPC Linux. 
 */
-sigcontext* 
-getLinuxSavedContext(int signum, void* arg3) 
+
+
+pt_regs* 
+getLinuxSavedRegisters(int signum, void* arg3) 
 {
-#if GETCONTEXT_IMPLEMENTED
+#if defined(GETCONTEXT_IMPLEMENTED)
    ucontext_t uc;
    getcontext(&uc);
-   return &(uc.uc_mcontext);
+   return uc.uc_mcontext.regs;
+#elif defined(SIGNAL_ARG3_IS_UCONTEXT)
+   return ((ucontext_t*)arg3)->uc_mcontext.regs;
 #else
    /* Unfortunately, getcontext() (/usr/include/ucontext.h) is not implemented
       in Linux at the time of this writing (Linux/PPC Kernel <= 2.4.3), but
@@ -400,7 +405,7 @@ getLinuxSavedContext(int signum, void* arg3)
    */
 #warning Linux does not support getcontext()
 #define SIGCONTEXT_MAGIC 5
-   sigcontext* context = (sigcontext *) (((void **) arg3) + SIGCONTEXT_MAGIC);
+   mcontext_t* context = (mcontext_t *) (((void **) arg3) + SIGCONTEXT_MAGIC);
    if (context->signal != signum) {
      // We're in trouble.  Try to produce some useful debugging info
      fprintf(stderr, "%s:%d Failed to grab context from signal stack frame!\n", __FILE__, __LINE__);
@@ -411,11 +416,10 @@ getLinuxSavedContext(int signum, void* arg3)
      exit(-1);
    }
 
-   return context;
+   return context->regs;
 #endif
 }
 #endif
-
 
 /* Handle software signals.
 
@@ -428,8 +432,7 @@ getLinuxSavedContext(int signum, void* arg3)
 void 
 cSignalHandler(int signum, siginfo_t* siginfo, void* arg3) 
 {
-    sigcontext* context = getLinuxSavedContext(signum, arg3);
-    pt_regs *save = context->regs;
+    pt_regs *save = getLinuxSavedRegisters(signum, arg3);
     VM_Word iar  =  save->nip;
 #endif
 #if 0
@@ -462,6 +465,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     
     if (signum == SIGALRM) {     
         processTimerTick();
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*) context);
+#endif
         return;
     }
     
@@ -470,6 +476,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
         if (lib_verbose)
             fprintf(SysTraceFile, "%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
                     Me, rvmPTR_ARG(iar));
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*)context);
+#endif
         return;
     }
    
@@ -490,6 +499,9 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
                     " a thread switch\n", Me);
             *flag = 1;
         }
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*)context);
+#endif
         return;
     }
 
@@ -520,8 +532,14 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
 #endif
         SET_GPR(save, VM_Constants_FIRST_VOLATILE_GPR,
                 GET_GPR(save, VM_Constants_FRAME_POINTER));
+#if defined RVM_FOR_OSX
+        sigreturn((struct sigcontext*)context);
+#endif
         return;
     }
+#if defined RVM_FOR_OSX
+    sigreturn((struct sigcontext*)context);
+#endif
 }
  
 
@@ -545,31 +563,26 @@ getFaultingAddress(mstsave *save)
     getFaultingAddress(context64 *save)
 #endif
 {
-    if(lib_verbose) {
-  #ifdef RVM_FOR_32_ADDR
-        fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
-  #elif defined RVM_FOR_64_ADDR
+    if (lib_verbose) {
+#if (_AIX51)
         fprintf(SysTraceFile, "save->except[0]=" FMTrvmPTR "\n", 
                 rvmPTR_ARG(save->except[0]));
-  #endif
+#else
+        fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
+#endif
     }
 
-//     if (faultingAddressLocation == -1) {
-//       if (save->o_vaddr == testFaultingAddress) faultingAddressLocation = 0;
-//       else if (save->except[0] == testFaultingAddress) faultingAddressLocation = 1;
-//       else {
-//      fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-//      exit(-1);
-//       }
-//     }
-    
-//     if (faultingAddressLocation == 0)
-//       return save->o_vaddr;
-//     else if (faultingAddressLocation == 1)
-//       return save->except[0];
-//     exit(-1);
-
-   #ifdef RVM_FOR_32_ADDR    
+#if (_AIX51)
+    if (faultingAddressLocation == -1) {
+        if (save->except[0] == testFaultingAddress) 
+            faultingAddressLocation = 0;
+        else {
+            fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
+            exit(-1);
+        }
+    }
+    return save->except[0];
+#else
     if (faultingAddressLocation == -1) {
         if (save->o_vaddr == testFaultingAddress) {
             faultingAddressLocation = 0;
@@ -580,17 +593,7 @@ getFaultingAddress(mstsave *save)
         }
     }
     return save->o_vaddr;
-  #elif defined RVM_FOR_64_ADDR
-    if (faultingAddressLocation == -1) {
-        if (save->except[0] == testFaultingAddress) 
-            faultingAddressLocation = 0;
-        else {
-            fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-            exit(-1);
-        }
-    }
-    return save->except[0];
-  #endif
+#endif
 }
 #endif // RVM_FOR_AIX
 
@@ -604,9 +607,8 @@ getFaultingAddress(mstsave *save)
 void 
 cTrapHandler(int signum, siginfo_t *siginfo, void* arg3) 
 {
-    sigcontext* context = getLinuxSavedContext(signum, arg3);
     uintptr_t faultingAddress = (uintptr_t) siginfo->si_addr;
-    pt_regs *save = context->regs;
+    pt_regs *save = getLinuxSavedRegisters(signum, arg3);
     uintptr_t ip = save->nip;
     uintptr_t lr = save->link;
     VM_Address jtoc =  save->gpr[VM_Constants_JTOC_POINTER];
@@ -1012,6 +1014,10 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     save->srr0 = javaExceptionHandler;
 #elif defined RVM_FOR_AIX
     save->iar = javaExceptionHandler;
+#endif
+    
+#if defined RVM_FOR_OSX
+    sigreturn((struct sigcontext*)context);
 #endif
 }
 

@@ -2,13 +2,18 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import org.mmtk.plan.MarkSweepHeader;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -28,7 +33,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class MarkSweepSpace implements Constants, VM_Uninterruptible {
+public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -40,7 +45,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    *
    * Instance variables
    */
-  private int markState;
+  private VM_Word markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   public boolean inMSCollection = false;
@@ -58,7 +63,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param mr The memory resource against which allocations
    * associated with this collector will be accounted.
    */
-  MarkSweepSpace(FreeListVMResource vmr, MemoryResource mr) {
+  public MarkSweepSpace(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
   }
@@ -72,7 +77,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit.
    */
-  public final int getInitialHeaderValue() 
+  public final VM_Word getInitialHeaderValue() 
     throws VM_PragmaInline {
     return markState;
   }
@@ -91,7 +96,7 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param mr (unused)
    */
   public void prepare(VMResource vm, MemoryResource mr) { 
-    markState = MarkSweepHeader.MARK_BIT_MASK - markState;
+    markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
     inMSCollection = true;
   }
 
@@ -138,6 +143,8 @@ final class MarkSweepSpace implements Constants, VM_Uninterruptible {
   public final VM_Address traceObject(VM_Address object, byte tag)
     throws VM_PragmaInline {
     if (MarkSweepHeader.testAndMark(object, markState)) {
+      if (Plan.GATHER_MARK_CONS_STATS)
+	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
       MarkSweepLocal.internalMarkObject(object, tag);
       VM_Interface.getPlan().enqueue(object);
     }

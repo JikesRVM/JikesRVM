@@ -1,0 +1,16 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003, 2004
+#
+# This file reflects Steve Augart's standalone laptop environment.
+export RVM_FOR_IA32=1
+export RVM_FOR_32_ADDR=1
+export RVM_FOR_LINUX=1
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+export BOOTIMAGE_LOAD_ADDRESS=0x43000000
+export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
+
+HOST_VM_TYPE=Sun      # The default.
+CLASSPATH_INSTALLATION=/usr/local/classpath
+HOST_JAVA_HOME=/usr/local/j2sdk1.4.1

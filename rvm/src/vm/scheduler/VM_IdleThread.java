@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 /**
  * Low priority thread to run when there's nothing else to do.
+ * This thread also handles initializing the virtual processor
+ * for execution.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -18,22 +20,24 @@ class VM_IdleThread extends VM_Thread {
    * an runnable thread to arrive.  If none does, or if this variable
    * is false, the remaining time-slice is returned to the operating
    * system.
-   *
-   * @see "preprocessor directive RVM_WITHOUT_LOAD_BALANCING"
    */
-  //-#if RVM_WITHOUT_LOAD_BALANCING
-  static final boolean loadBalancing = false;
-  //-#else
   static final boolean loadBalancing = !VM.BuildForSingleVirtualProcessor;
-  //-#endif
 
+  /**
+   * Should we call VM_Processor.initializeProcessor as the first action
+   * of run?  True for every idle thread except the one that runs on the
+   * primordial processor.
+   */
+  private boolean runInitProc;
+  
   /**
    * A thread to run if there is no other work for a virtual processor.
    */
-  VM_IdleThread(VM_Processor processorAffinity) {
+  VM_IdleThread(VM_Processor processorAffinity, boolean runInitProcessor) {
     makeDaemon(true);
     super.isIdleThread = true;
     super.processorAffinity = processorAffinity;
+    runInitProc = runInitProcessor;
   }
 
   public String toString() { // overrides VM_Thread
@@ -42,6 +46,7 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
+    if (runInitProc) myProcessor.initializeProcessor();
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
     main: while (true) {
       if (VM_Scheduler.terminated) VM_Thread.terminate();

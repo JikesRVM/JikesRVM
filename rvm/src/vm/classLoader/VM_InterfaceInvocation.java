@@ -376,7 +376,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
             VM_Class I = (VM_Class)iTable[0];
             VM_Method [] interfaceMethods = I.getDeclaredMethods();
             for (int j=0; j<interfaceMethods.length; j++) {
-              VM_Method im = interfaceMethods[i];
+              VM_Method im = interfaceMethods[j];
               if (im.getName() == name && im.getDescriptor() == desc) {
                 iTable[getITableIndex(I, name, desc)] = m.getCurrentInstructions();
               }

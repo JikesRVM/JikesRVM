@@ -53,13 +53,11 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:opt",
    "-X:vmClasses=",
    "-X:cpuAffinity=",
-   "-X:processors="
+   "-X:processors=",
 };
 
-// we add some lines due to multi-line messages below
-static const int EXTRA_USAGE_LINES = 7;
-static const int numNonStandardUsageLines= numNonstandardArgs + EXTRA_USAGE_LINES;
-static const char* nonStandardUsage[numNonStandardUsageLines] = {
+// a NULL-terminated list.
+static const char* nonStandardUsage[] = {
    "    -X                       print usage on nonstandard options", 
    "    -X:verbose               print out additional lowlevel information",
    "    -X:verboseBoot=<number>  print out messages while booting VM",
@@ -81,9 +79,12 @@ static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "          :help              print usage choices for -X:base",
    "    -X:opt:<option>          pass <option> on to the optimizing compiler",
    "          :help              print usage choices for -X:opt",
-   "    -X:vmClasses=<filename>  load classes from <filename>",
+   "    -X:vmClasses=<path>      load the com.ibm.JikesRVM.* and java.* classes",
+   "                             from <path>, a list like one would give to the",
+   "                             -classpath argument."
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
-   "    -X:processors=<number|\"all\">  no. of virtual processors"
+   "    -X:processors=<number|\"all\">  no. of virtual processors",
+   NULL                         /* End of messages */
 };
 
 #endif

@@ -2,12 +2,18 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
+import org.mmtk.policy.CopySpace;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -57,7 +63,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean usesLOS = true;
   protected static final boolean copyMature = true;
 
   // virtual memory resources
@@ -143,7 +148,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int bytes)
+  public static final VM_Word getInitialHeaderValue(int bytes)
     throws VM_PragmaInline {
     return losSpace.getInitialHeaderValue(bytes);
   }
@@ -329,8 +334,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */
-  public static final int resetGCBitsForCopy(VM_Address fromObj,
-                                             int forwardingWord, int bytes) {
+  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
+						 VM_Word forwardingWord,
+						 int bytes) {
     return forwardingWord; // a no-op for this collector
   }
 

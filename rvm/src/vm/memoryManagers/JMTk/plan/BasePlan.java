@@ -2,11 +2,26 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AddressPairDeque;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.ImmortalVMResource;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.RawPageAllocator;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.TraceGenerator;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -56,6 +71,7 @@ public abstract class BasePlan
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+  public static final boolean GENERATE_GC_TRACE = false;
 
   private static final int MAX_PLANS = 100;
   protected static Plan [] plans = new Plan[MAX_PLANS];
@@ -73,7 +89,7 @@ public abstract class BasePlan
   protected static int exceptionReserve = 0;
 
   // Timing variables
-  protected static long bootTime;
+  protected static boolean insideHarness = false;
 
   // Meta data resources
   private static MonotoneVMResource metaDataVM;
@@ -83,23 +99,32 @@ public abstract class BasePlan
   public static MemoryResource bootMR;
   public static MonotoneVMResource immortalVM;
   protected static MemoryResource immortalMR;
-
+  public static MonotoneVMResource gcspyVM;
+  protected static MemoryResource gcspyMR;
+  // 
   // Space constants
   private static final String[] spaceNames = new String[128];
   public static final byte UNUSED_SPACE = 127;
   public static final byte BOOT_SPACE = 126;
   public static final byte META_SPACE = 125;
   public static final byte IMMORTAL_SPACE = 124;
+  public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
+
+  // Statistics
+  public static Timer totalTime;
+  public static SizeCounter mark;
+  public static SizeCounter cons;
 
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
-  private static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  protected static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
+  public static final boolean GATHER_MARK_CONS_STATS = false;
 
-  protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
-  protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
+  public static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
   // Memory layout constants
   protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromIntZeroExtend(0x10000000);
@@ -147,6 +172,13 @@ public abstract class BasePlan
     addSpace(BOOT_SPACE, "Boot");
     addSpace(META_SPACE, "Meta");
     addSpace(IMMORTAL_SPACE, "Immortal");
+
+    totalTime = new Timer("time");
+    if (GATHER_MARK_CONS_STATS) {
+      mark = new SizeCounter("mark", true, true);
+      cons = new SizeCounter("cons", true, true);
+    }
+    
   }
 
   /**
@@ -164,7 +196,8 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
-    bootTime = VM_Interface.cycles();
+    if (Plan.GENERATE_GC_TRACE)
+      TraceGenerator.boot(BOOT_START);
   }
 
   /**
@@ -178,6 +211,7 @@ public abstract class BasePlan
    */
   public static void postBoot() {
     if (Options.verbose > 2) VMResource.showAll();
+    if (Options.verbose > 0) Stats.startAll();
   }
 
   public static void fullyBooted() {
@@ -190,12 +224,12 @@ public abstract class BasePlan
    * Allocation
    */
 
-  protected byte getSpaceFromAllocator (Allocator a) {
+  protected byte getSpaceFromAllocator(Allocator a) {
     if (a == immortal) return IMMORTAL_SPACE;
     return UNUSED_SPACE;
   }
 
-  static byte getSpaceFromAllocatorAnyPlan (Allocator a) {
+  public static byte getSpaceFromAllocatorAnyPlan(Allocator a) {
     for (int i=0; i<plans.length; i++) {
       byte space = plans[i].getSpaceFromAllocator(a);
       if (space != UNUSED_SPACE)
@@ -212,7 +246,7 @@ public abstract class BasePlan
     return null;
   }
 
-  static Allocator getOwnAllocator (Allocator a) {
+  public static Allocator getOwnAllocator (Allocator a) {
     byte space = getSpaceFromAllocatorAnyPlan(a);
     if (space == UNUSED_SPACE)
       VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
@@ -313,7 +347,6 @@ public abstract class BasePlan
    * location is within the object being scanned by ScanObject.
    */
   public void enumeratePointerLocation(VM_Address location) {}
-
   // XXX Javadoc comment missing.
   public static boolean willNotMove(VM_Address obj) {
     return !VMResource.refIsMovable(obj);
@@ -332,7 +365,7 @@ public abstract class BasePlan
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  static void forwardObjectLocation(VM_Address location) {
+  public static void forwardObjectLocation(VM_Address location) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!Plan.MOVES_OBJECTS);
   }
@@ -349,7 +382,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  static VM_Address getForwardedReference(VM_Address object) {
+  public static VM_Address getForwardedReference(VM_Address object) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!Plan.MOVES_OBJECTS);
     return object;
@@ -361,7 +394,7 @@ public abstract class BasePlan
    *
    * @param object The object which is to be made alive.
    */
-  static void makeAlive(VM_Address object) {
+  public static void makeAlive(VM_Address object) {
     Plan.traceObject(object);
   }
  
@@ -381,7 +414,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  static VM_Address retainFinalizable(VM_Address object) {
+  public static VM_Address retainFinalizable(VM_Address object) {
     return Plan.traceObject(object);
   }
 
@@ -394,7 +427,7 @@ public abstract class BasePlan
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  static boolean isFinalizable(VM_Address object) {
+  public static boolean isFinalizable(VM_Address object) {
     return !Plan.isLive(object);
   }
 
@@ -405,85 +438,92 @@ public abstract class BasePlan
    */
 
   /**
-   * A new reference is about to be created by a putfield bytecode.
-   * Take appropriate write barrier actions.<p>
+   * A new reference is about to be created. Take appropriate write
+   * barrier actions.<p> 
+   *
    * <b>By default do nothing, override if appropriate.</b>
    *
-   * @param src The address of the object containing the source of a
-   * new reference.
-   * @param offset The offset into the source object where the new
-   * reference resides (the offset is in bytes and with respect to the
-   * object address).
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
    * @param tgt The target of the new reference
+   * @param context The context in which the store occured
    */
-  public void putFieldWriteBarrier(VM_Address src, int offset,
-                                   VM_Address tgt) {
-    // Either: barriers are used and this is overridden, or 
-    //         barriers are not used and this is never called
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-  }
-
-  /**
-   * A new reference is about to be created by a aastore bytecode.
-   * Take appropriate write barrier actions.<p>
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The address of the array containing the source of a
-   * new reference.
-   * @param index The index into the array where the new reference
-   * resides (the index is the "natural" index into the array,
-   * i.e. a[index]).
-   * @param tgt The target of the new reference
-   */
-  public void arrayStoreWriteBarrier(VM_Address ref, int index, 
-                                     VM_Address value) {
+  public void writeBarrier(VM_Address src, VM_Address slot,
+                           VM_Address tgt, int context) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
   /**
-   * A new reference is about to be created by a putStatic bytecode.
-   * Take appropriate write barrier actions.<p>
-   * <b>By default do nothing, override if appropriate.</b>
+   * Read a reference. Take appropriate read barrier action, and
+   * return the value that was read.<p> This is a <b>substituting<b>
+   * barrier.  The call to this barrier takes the place of a load.<p>
    *
-   * @param slot The location into which the new reference will be
-   * stored (the address of the static field being stored into).
-   * @param tgt The target of the new reference
+   * @param src The object being read.
+   * @param src The address being read.
+   * @param context The context in which the read arose (getfield, for example)
+   * @return The reference that was read.
    */
-  public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
-    // Either: write barriers are used and this is overridden, or 
-    //         write barriers are not used and this is never called
+  public final VM_Address readBarrier(VM_Address src, VM_Address slot,
+                                      int context)
+    throws VM_PragmaInline {
+    // read barrier currently unimplemented
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    return VM_Address.max();
+  }
+
+  /****************************************************************************
+   *
+   * GC trace generation support methods
+   */
+
+  /**
+   * Return true if <code>obj</code> is in a space known to the class and
+   * is reachable.
+   *  
+   * <i> For this method to be accurate, collectors must override this method
+   * to define results for the spaces they create.</i>
+   *
+   * @param obj The object in question
+   * @return True if <code>obj</code> is a reachable object in a space known by
+   *         the class; unreachable objects may still be live, however.  False 
+   *         will be returned if it cannot be determined if the object is 
+   *         reachable (e.g., resides in a space unknown to the class).
+   */
+  public boolean isReachable(VM_Address obj) {
+    if (obj.isZero()) return false;
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+    case IMMORTAL_SPACE:  return ImmortalSpace.isReachable(obj);
+    case BOOT_SPACE:      return ImmortalSpace.isReachable(obj);
+    default:
+      if (VM_Interface.VerifyAssertions) {
+	VM_Interface.sysFail("BasePlan.isReachable given object from unknown space");
+      }
+      return false;
+    }
   }
 
   /**
-   * A reference is about to be read by a getField bytecode.  Take
-   * appropriate read barrier action.<p>
-   * <b>By default do nothing, override if appropriate.</b>
+   * Follow a reference during GC.  This involves determining which
+   * collection policy applies and getting the final location of the object
    *
-   * @param tgt The address of the object containing the pointer
-   * about to be read
-   * @param offset The offset from tgt of the field to be read from
-   */
-  public final void getFieldReadBarrier(VM_Address tgt, int offset) {
-    // getfield barrier currently unimplemented
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-  }
-
-  /**
-   * A reference is about to be read by a getStatic bytecode. Take
-   * appropriate read barrier action.<p>
-   * <b>By default do nothing, override if appropriate.</b>
+   * <i> For this method to be accurate, collectors must override this method
+   * to define results for the spaces they create.</i>   
    *
-   * @param slot The location from which the reference will be read
-   * (the address of the static field being read).
+   * @param obj The object reference to be followed.  This is <i>NOT</i> an
+   * interior pointer.
+   * @return The possibly moved reference.
    */
-  public final void getStaticReadBarrier(VM_Address slot) {
-    // getstatic barrier currently unimplemented
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+  public static VM_Address followObject(VM_Address obj) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    return VM_Address.zero();
   }
-
+  
   /****************************************************************************
    *
    * Space management
@@ -521,7 +561,7 @@ public abstract class BasePlan
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static long usedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(Plan.getPagesUsed());
+    return Conversions.pagesToBytes(Plan.getPagesUsed()).toLong();
   }
 
 
@@ -533,7 +573,7 @@ public abstract class BasePlan
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static long reservedMemory() throws VM_PragmaUninterruptible {
-    return Conversions.pagesToBytes(Plan.getPagesReserved());
+    return Conversions.pagesToBytes(Plan.getPagesReserved()).toLong();
   }
 
   /**
@@ -604,7 +644,9 @@ public abstract class BasePlan
   public static void collectionComplete() throws VM_PragmaUninterruptible {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(collectionsInitiated > 0);
-    collectionsInitiated--;
+    // FIXME The following will probably break async GC.  A better fix
+    // is needed
+    collectionsInitiated = 0;
   }
 
   /**
@@ -655,7 +697,13 @@ public abstract class BasePlan
    * instrumentation, etc.  By default do nothing.  Subclasses may
    * override.
    */
-  public static void harnessBegin() {
+  public static void harnessBegin() throws VM_PragmaInterruptible {
+    Options.fullHeapSystemGC = true;
+    System.gc();
+    Options.fullHeapSystemGC = false;
+ 
+    insideHarness = true;
+    Stats.startAll();
   }
 
   /**
@@ -666,6 +714,9 @@ public abstract class BasePlan
    * override.
    */
   public static void harnessEnd() {
+    Stats.stopAll();
+    Stats.printStats();
+    insideHarness = false;
   }
 
   /**
@@ -687,7 +738,7 @@ public abstract class BasePlan
    * each GC).
    */
   public static int gcCount() { 
-    return Statistics.gcCount;
+    return Stats.gcCount();
   }
 
   /**
@@ -707,15 +758,17 @@ public abstract class BasePlan
   public void notifyExit(int value) {
     if (Options.verbose == 1) {
       Log.write("[End "); 
-      Log.write(VM_Interface.cyclesToSecs(VM_Interface.cycles() - bootTime));
+      totalTime.printTotalSecs();
       Log.writeln(" s]");
     } else if (Options.verbose == 2) {
-      Log.write("[End "); 
-      Log.write(VM_Interface.cyclesToMillis(VM_Interface.cycles() - bootTime));
+      Log.write("[End ");
+      totalTime.printTotalMillis();
       Log.writeln(" ms]");
     }
     if (Options.verboseTiming) printDetailedTiming(true);
     planExit(value);
+    if (Plan.GENERATE_GC_TRACE)
+      TraceGenerator.notifyExit(value);
   }
 
   protected void printDetailedTiming(boolean totals) {}
@@ -728,6 +781,14 @@ public abstract class BasePlan
    */
   protected void planExit(int value) {}
 
+  /**
+   * Specify if the plan has been fully initialized
+   *
+   * @return True if the plan has been initialized
+   */
+  public static boolean initialized() {
+    return initialized;
+  }
 
   /****************************************************************************
    *
@@ -735,7 +796,7 @@ public abstract class BasePlan
    */
 
   final static int PAGES = 0;
-  final static int MB = 1;
+  public final static int MB = 1;
   final static int PAGES_MB = 2;
   final static int MB_PAGES = 3;
 
@@ -747,7 +808,7 @@ public abstract class BasePlan
    * @param pages The number of pages
    */
   public static void writePages(int pages, int mode) {
-    double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
+    double mb = Conversions.pagesToBytes(pages).toWord().rshl(20).toInt();
     switch (mode) {
       case PAGES: Log.write(pages); Log.write(" pgs"); break; 
       case MB:    Log.write(mb); Log.write(" Mb"); break;
@@ -786,7 +847,63 @@ public abstract class BasePlan
    *
    * @return the <code>Log</code> instance
    */
-  Log getLog() {
+  public Log getLog() {
     return log;
   }
+
+  /**
+   * Start the GCSpy server
+   *
+   * @param wait Whether to wait
+   * @param port The port to talk to the GCSpy client (e.g. visualiser)
+   */
+  protected static void startGCSpyServer(int port, boolean wait) {}
+
+  /**
+   * Prepare GCSpy for a collection
+   * Order of operations is guaranteed by StopTheWorld plan
+   *	1. globalPrepare()
+   *	2. threadLocalPrepare()
+   *	3. gcspyPrepare()
+   *	4. gcspyPreRelease()
+   *	5. threadLocalRelease()
+   *	6. gcspyRelease()
+   *	7. globalRelease()
+   *
+   * Typically, zero gcspy's buffers
+   */
+  protected void gcspyPrepare() {}
+
+  /**
+   * Deal with root locations
+   *
+   */
+  protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
+
+  /**
+   * Before thread-local release
+   *
+   */
+  protected void gcspyPreRelease() {}
+
+  /**
+   * After thread-local release
+   *
+   */
+  protected void gcspyPostRelease() {}  
+  
+  /**
+   * After VMResource release
+   * @param start the start of the released resource
+   * @param bytes the number of bytes released
+   */
+  public static void releaseVMResource(VM_Address start, VM_Extent bytes) {} 
+  
+  /**
+   * After VMResource acquisition
+   * @param start the start of the acquired resource
+   * @param bytes the number of bytes acquired
+   */
+  public static void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {} 
+
 }

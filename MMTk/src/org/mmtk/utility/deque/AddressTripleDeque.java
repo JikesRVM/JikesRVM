@@ -2,9 +2,9 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class AddressTripleDeque extends LocalDeque implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
  
@@ -51,10 +51,10 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());
-    checkInsert(3);
-    uncheckedInsert(addr1);
-    uncheckedInsert(addr2);
-    uncheckedInsert(addr3);
+    checkTailInsert(3);
+    uncheckedTailInsert(addr1);
+    uncheckedTailInsert(addr2);
+    uncheckedTailInsert(addr3);
   }
   /**
    * Push an address pair onto the address queue.
@@ -67,10 +67,10 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());
-    checkPush(3);
-    uncheckedPush(addr3);
-    uncheckedPush(addr2);
-    uncheckedPush(addr1);
+    checkHeadInsert(3);
+    uncheckedHeadInsert(addr3);
+    uncheckedHeadInsert(addr2);
+    uncheckedHeadInsert(addr1);
   }
 
   /**
@@ -81,8 +81,8 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * queue is empty
    */
   public final VM_Address pop1() {
-     if (checkPop(3))
-      return uncheckedPop();
+     if (checkDequeue(3))
+      return uncheckedDequeue();
     else
       return VM_Address.zero();
   }
@@ -93,7 +93,7 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * @return The next address in the address queue
    */
   public final VM_Address pop2() {
-    return uncheckedPop();
+    return uncheckedDequeue();
   }
 
   
@@ -103,6 +103,6 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * @return The next address in the address queue
    */
   public final VM_Address pop3() {
-    return uncheckedPop();
+    return uncheckedDequeue();
   }
 }

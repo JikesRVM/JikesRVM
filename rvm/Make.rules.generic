@@ -18,7 +18,7 @@
 SHELL=/bin/bash
 
 # Java compiler.
-HOST_JAVAC = $(HOST_JIKES) +E -g
+HOST_JAVAC = $(JIKES) +E -g
 HOST_JAVAC_CLASSPATH = -classpath $(HOST_REPOSITORIES):.:
 
 # This is the name to use to compile "normal" (non-RVM) java files.

@@ -28,7 +28,7 @@ class InlineAllocation {
 
   // We allow some pork for assertion checking in the inline allocation sequence,
   // However, we can't allow this to get out of hand...otherwise builds take way too long.
-  static int assertionSpace = VM.VerifyAssertions ? (VM.BuildForIA32 ? 40 : 15) : 0;
+  static int assertionSpace = VM.VerifyAssertions ? (VM.BuildForIA32 ? 40 : 20) : 0;
 
   // Limits on sizes of allocation sequences.
   // Make them specific to the allocator so we can make them reasonably tight.

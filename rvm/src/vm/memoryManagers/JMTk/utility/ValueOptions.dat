@@ -70,3 +70,27 @@ int val2 = Conversions.bytesToPagesUp(1<<val); \
 if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) VM_Interface.sysFail("Unreasonable stress factor, must be at least equal to the log of the plan's poll frequency"); \
 val = val2;
 
+
+V traceFrequencyLog int 0x3fffffff traceRate
+The granularity of the trace being produced.  By default, the trace has the maximum possible granularity.
+int val2 = (val < LOG_BYTES_IN_ADDRESS)? 0 : val - LOG_BYTES_IN_ADDRESS; \
+val = 1<<val2;
+
+
+V gcspyPort int 0
+Port number for GCSpy server to connect with visualiser
+if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy port " + val);
+
+
+V gcspyTilesize int 131072
+GCSpy tile size in KB
+if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy tilesize " + val); \
+val <<= 10;
+
+
+E sampleEnum byte SAMPLE_FOO
+A dummy example of enumerations in JMTk
+// This line is the filter method body; unused for enums!
+"SAMPLE_FOO sampFoo foo" \
+"SAMPLE_BAR sampBar bar" \
+"SAMPLE_BAZ sampBaz baz"

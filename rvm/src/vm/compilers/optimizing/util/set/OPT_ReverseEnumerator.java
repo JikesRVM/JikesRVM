@@ -10,12 +10,12 @@ package com.ibm.JikesRVM.opt;
  * @author Stephen Fink
  */
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 public final class OPT_ReverseEnumerator implements Enumeration {
 
-  private Vector vec = new Vector();
+  private ArrayList vec = new ArrayList();
   private int index;
 
   public boolean hasMoreElements () {
@@ -25,15 +25,15 @@ public final class OPT_ReverseEnumerator implements Enumeration {
   public Object nextElement () {
     index--;
     if (index >= 0) {
-      return vec.elementAt(index);
+      return vec.get(index);
     } else {
-      throw  new NoSuchElementException();
+      throw new NoSuchElementException();
     }
   }
 
   public OPT_ReverseEnumerator(Enumeration e) {
-    for ( ; e.hasMoreElements(); ) {
-      vec.addElement(e.nextElement());
+    while(e.hasMoreElements()) {
+      vec.add(e.nextElement());
     }
     index = vec.size();
   }

@@ -4,14 +4,14 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Conversions;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -34,7 +34,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
   public static boolean verbose = false;
   public static Lock lock = new Lock("LazyMapper");
 
-  // There is a monotonicity assmption so that only updates require lock acquisition.
+  // There is a monotonicity assumption so that only updates require lock acquisition.
   //
   public static void ensureMapped(VM_Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start);
@@ -131,8 +131,8 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
   private static byte mapped[];
   final public static int LOG_MMAP_CHUNK_SIZE = 20;            
   final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
+  //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
   final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
-  final public  static int MMAP_CHUNK_MASK = ~((1 << LOG_MMAP_CHUNK_SIZE) - 1);
 
   private static String chunkStateToString(byte state) {
     switch (state) {
@@ -154,7 +154,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     }
   }
 
-  public static void boot (VM_Address bootStart, int bootSize) {
+  public static void boot (VM_Address bootStart, VM_Extent bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
     int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
     for (int i=startChunk; i<=endChunk; i++)

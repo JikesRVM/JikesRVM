@@ -4,7 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Information required to start the virtual machine and communicate 
@@ -17,7 +17,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  * loader, by the virtual machine's initializer methods, and by the virtual
  * machine's operating system call interface methods.
  *
- * <p> See also: BootImageWriter.main(), VM_Magic.sysCall(), RunBootImage.C
+ * <p> See also: BootImageWriter.main(), RunBootImage.C
  *
  * <p>The boot record looks like this 
  * (note that fields are layed out "backwards"):
@@ -243,10 +243,7 @@ public class VM_BootRecord {
 
   // mmap - memory mapping
   public VM_Address sysMMapIP;
-  public VM_Address sysMMapNonFileIP;
-  public VM_Address sysMMapGeneralFileIP;
-  public VM_Address sysMMapDemandZeroFixedIP;
-  public VM_Address sysMMapDemandZeroAnyIP;
+  public VM_Address sysMMapErrnoIP;
   public VM_Address sysMUnmapIP;
   public VM_Address sysMProtectIP;
   public VM_Address sysMSyncIP;
@@ -330,6 +327,8 @@ public class VM_BootRecord {
   public VM_Address sysHPMsetEventXIP;
   public VM_Address sysHPMsetModeIP;
   public VM_Address sysHPMgetNumberOfCountersIP;
+  public VM_Address sysHPMgetNumberOfEventsIP;
+  public VM_Address sysHPMisBigEndianIP;
   public VM_Address sysHPMtestIP;
   public VM_Address sysHPMsetProgramMyThreadIP;
   public VM_Address sysHPMstartMyThreadIP;
@@ -343,5 +342,42 @@ public class VM_BootRecord {
   public VM_Address sysHPMgetCounterMyGroupIP;
   public VM_Address sysHPMprintMyGroupIP;
   //-#endif
+
+   //-#if RVM_WITH_GCSPY
+   // GCspy entry points
+   public VM_Address gcspyDriverAddStreamIP;
+   public VM_Address gcspyDriverEndOutputIP;
+   public VM_Address gcspyDriverInitIP;
+   public VM_Address gcspyDriverInitOutputIP;
+   public VM_Address gcspyDriverResizeIP;
+   public VM_Address gcspyDriverSetTileNameIP;
+   public VM_Address gcspyDriverSpaceInfoIP;
+   public VM_Address gcspyDriverStartCommIP;
+   public VM_Address gcspyDriverStreamIP;
+   public VM_Address gcspyDriverStreamByteValueIP;
+   public VM_Address gcspyDriverStreamShortValueIP;
+   public VM_Address gcspyDriverStreamIntValueIP;
+   public VM_Address gcspyDriverSummaryIP;
+   public VM_Address gcspyDriverSummaryValueIP;
+
+   public VM_Address gcspyIntWriteControlIP;
+
+   public VM_Address gcspyMainServerAddDriverIP;
+   public VM_Address gcspyMainServerAddEventIP;
+   public VM_Address gcspyMainServerInitIP;
+   public VM_Address gcspyMainServerIsConnectedIP;
+   public VM_Address gcspyMainServerOuterLoopIP;
+   public VM_Address gcspyMainServerSafepointIP;
+   public VM_Address gcspyMainServerSetGeneralInfoIP;
+   public VM_Address gcspyMainServerStartCompensationTimerIP;
+   public VM_Address gcspyMainServerStopCompensationTimerIP;
+
+   public VM_Address gcspyStartserverIP;
+     
+   public VM_Address gcspyStreamInitIP;
+
+   public VM_Address gcspyFormatSizeIP;
+   public VM_Address gcspySprintfIP;
+   //-#endif
 
 }

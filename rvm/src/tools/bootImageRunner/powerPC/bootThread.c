@@ -25,9 +25,16 @@
  
        .file    "bootThread.s"
 #if (defined __linux__)
+#ifdef RVM_FOR_32_ADDR
        .text    0   // function name
        .globl   bootThread   /* external visibility */
        bootThread:
+#endif
+#ifdef RVM_FOR_64_ADDR
+       .text
+       .globl  .bootThread
+       .bootThread:
+#endif
 #elif (defined __MACH__)
        .text
        .globl   _bootThread   /* external visibility */

@@ -630,7 +630,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
         break;
       case UBYTE_LOAD_opcode: case BYTE_LOAD_opcode: 
       case USHORT_LOAD_opcode: case SHORT_LOAD_opcode: 
-      case INT_LOAD_opcode: case LONG_LOAD_opcode: case REF_LOAD_opcode:
+      case INT_LOAD_opcode: case LONG_LOAD_opcode: case DOUBLE_LOAD_opcode:case REF_LOAD_opcode:
         // !!TODO: how to handle this special case?
         break;
       case BYTE_STORE_opcode: case SHORT_STORE_opcode: case REF_STORE_opcode:

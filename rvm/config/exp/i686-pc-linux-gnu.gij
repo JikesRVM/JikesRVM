@@ -1,0 +1,92 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003
+#
+#
+# This file defines a set of environment variables needed to build and
+# run Jikes RVM.  This file is sourced by the installation scripts; you
+# do not need to source this file into your command-prompt shell.
+#
+# This is the default file for writing the boot image with the Kaffe VM.
+#
+# IMPORTANT: You might need to modify this file to reflect your environment!
+#	To see how we do that at IBM Watson, take a look at
+#	 i686-pc-linux-gnu.kaffe.watson
+#
+#    To learn about more of the fancy configuration options, read
+#		config/i686-pc-linux-gnu
+
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#
+# You will probably not need to change anything in this section.
+#########
+# target architecture is Intel x86 (IA32)
+export RVM_FOR_IA32=1
+export RVM_FOR_32_ADDR=1
+
+# The target OS kernel is Linux
+export RVM_FOR_LINUX=1
+
+# NOTE: the key requirement for setting this to 0 (ie having SMP support)
+#       is that you have a 2.4 kernel and that glibc is compiled 
+#       to use the GS segment register to access pthread-local storage.  
+#       See discussion in rvm-researchers archive and the userguide FAQ.
+#  This is now quite common. For example, in Red Hat 7 and later.  
+#  So, the default is 0
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+export BOOTIMAGE_LOAD_ADDRESS=0x43000000
+export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
+
+##########
+# PART II: Where to find tools and resources on this target
+#
+# This configuration makes use of auto-guessing features in the 
+# RVM_ROOT/rvm/bin/jconfigure program.  You can see the results of its 
+# guesses in "RVM_BUILD/environment.host".    
+########## 
+
+HOST_VM_TYPE=gij
+
+# HOST_VM_TYPE=Kaffe
+# HOST_VM_TYPE=Sun
+# HOST_VM_TYPE=JikesRVM
+
+# If you have Kaffe anywhere other than in /usr/local/kaffe, please
+# uncomment the line below and set it appropriately.
+# export KAFFE_HOME="/usr/local/kaffe"
+
+## You can learn about other configuration options by reading the
+## i686-pc-linux-gnu file, which documents all of them.  You probably won't
+## need to set most of them.
+
+##########
+# PART III: Additional variables for running Eclipse on Jikes RVM
+#
+# Unless you want to run Eclipse, ignore this section.
+########## 
+# These are used only by the jbuild.plugin build script.
+
+export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+
+export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+
+##########
+# PART IV: Miscellaneous variables.
+#
+# If you add any variables to this section, please document them.  Please.
+##########
+
+# BENCHMARK_ROOT is used in running some of the Jikes RVM regression
+# tests.  It doesn't need to be set unless you are running those tests.
+#
+
+# NOTE: The regression test infrastructure still hasn't been adapted
+# to Kaffe.  There may be some glitches as you do this.
+
+export BENCHMARK_ROOT=""
+
+# Used for the Emacs spell-checker
+#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
+#  LocalWords:  bnoentry SRE lc bE

@@ -2,12 +2,16 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.RCBaseHeader;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -30,7 +34,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */
-final class RefCountSpace implements Constants, VM_Uninterruptible {
+public final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -61,7 +65,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @param mr The memory resource against which allocations
    * associated with this collector will be accounted.
    */
-  RefCountSpace(FreeListVMResource vmr, MemoryResource mr) {
+  public RefCountSpace(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
   }
@@ -77,9 +81,9 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    *
    * @param size The size of the newly allocated object
    */
-  public final int getInitialHeaderValue(int size) 
+  public final VM_Word getInitialHeaderValue(int size) 
     throws VM_PragmaInline {
-    return 0;
+    return VM_Word.zero();
   }
 
   /****************************************************************************

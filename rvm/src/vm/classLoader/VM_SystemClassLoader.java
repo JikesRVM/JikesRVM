@@ -18,8 +18,16 @@ import java.net.URL;
 import java.io.*;
 
 /** 
- * Implements an object that functions as a system class loader.
+ * Implements an object that functions as the bootstrap class loader.
  * This class is a Singleton pattern.
+ *
+ * TODO: Perhaps this should be renamed one day to VM_BootstrapClassLoader.
+ * HOWEVER, under our current source code control system (CVS), it is a major
+ * hassle to rename files, especially if you want to preserve their history.
+ * Moreover, at least one of the core team members uses "rdist" to copy files
+ * among machines; leaving behind a class named VM_SystemClassLoader would
+ * be confusing at best.  (rdist is good at adding files and changing modified
+ * files, but not so good at deleting them.)   --Steve Augart, 24 March 2004
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -149,7 +157,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     }
   }
   
-  public String toString() { return "SystemCL"; }
+  public String toString() { return "BootstrapCL"; }
 
   private static HashMap zipFileCache;
     
@@ -184,7 +192,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
         public Object getResult() { return url; }
 
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
-          url = new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name);
+          url = new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name);
         }
 
         public void process(File file) throws Exception {
@@ -199,13 +207,18 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     Handler findURL = new Handler() {
         Vector urls;
 
-        public Object getResult() { return urls.elements(); }
+        public Object getResult() { 
+          if (urls == null) urls = new Vector();
+          return urls.elements(); 
+        }
         
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
-          urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name));
+          if (urls == null) urls = new Vector();
+          urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name));
         }
 
         public void process(File file) throws Exception {
+          if (urls == null) urls = new Vector();
           urls.addElement(new URL("file", null, -1, file.getName()));
         }
       };
@@ -262,12 +275,5 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     }
 
     return (multiple)? h.getResult() : null;
-  }
-
-  protected String findLibrary(String libName) {
-    String platformLibName = System.mapLibraryName(libName);
-    String path = VM_ClassLoader.getSystemNativePath();
-    String lib = path + File.separator + platformLibName;
-    return VM_FileSystem.access(lib, VM_FileSystem.ACCESS_R_OK) == 0 ? lib : null;
   }
 }

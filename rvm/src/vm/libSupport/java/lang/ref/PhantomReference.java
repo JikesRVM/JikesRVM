@@ -4,7 +4,7 @@
 //$Id$
 package java.lang.ref;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Implementation of java.lang.ref.PhantomReference for JikesRVM.

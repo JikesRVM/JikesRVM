@@ -3,10 +3,11 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -23,13 +24,13 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class Header extends MarkSweepHeader {
   public final static String Id = "$Id$"; 
 
   // Merges all the headers together.  In this case, we have only one.
 
-  public final static int GC_BARRIER_BIT_MASK = -1;  // must be defined even though unused
+  public final static VM_Word GC_BARRIER_BIT_MASK = VM_Word.fromIntSignExtend(-1);  // must be defined even though unused
 
   /****************************************************************************
    *

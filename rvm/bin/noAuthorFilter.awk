@@ -28,7 +28,7 @@
 
 /\/src\/examples\/opttests\/Linpack.java/ { next }
 
-/\/src\/tools\/bootImageRunner\/VM_0005fInetAddress.h/ { next }
+/\/tools\/bootImageRunner\/com_ibm_JikesRVM_VM_0005fProcess.h/ { next }
 /\/src\/tools\/bootImageWriter\/rvm.security/ { next }
 /\/src\/tools\/jburg\/COPYRIGHT/ { next }
 /\/src\/tools\/jburg/ { next }

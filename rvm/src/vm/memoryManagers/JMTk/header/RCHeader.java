@@ -3,11 +3,12 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -20,7 +21,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class RCHeader extends RCBaseHeader {
   /**
    * Perform any required initialization of the GC portion of the header.
@@ -51,8 +52,9 @@ public class RCHeader extends RCBaseHeader {
    * @param isScalar are we initializing a scalar (true) or array
    * (false) object?
    */
-  public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-                                             boolean isScalar, int status)
+  public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
+                                                 int size, boolean isScalar,
+                                                 VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status;  // do nothing
   }

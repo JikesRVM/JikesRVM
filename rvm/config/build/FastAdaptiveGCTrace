@@ -1,0 +1,2 @@
+. $1/gc/GCTrace
+. $1/compilers/FastAdaptive

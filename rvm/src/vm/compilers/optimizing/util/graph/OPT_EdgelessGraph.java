@@ -23,17 +23,17 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
     /**
      * an array of all nodes in the graph
      */
-    protected Vector nodes = new Vector();
+    protected ArrayList nodes = new ArrayList();
 
     /** 
      * Enumerate all the nodes in the graph
      * @return an enumeration of all the nodes in the graph
      */
     public OPT_GraphNodeEnumeration enumerateNodes() {
-        final Enumeration e = nodes.elements();
+        final Iterator it = nodes.iterator();
         return new OPT_GraphNodeEnumeration() {
-          public boolean hasMoreElements() { return e.hasMoreElements(); }
-          public OPT_GraphNode next() { return (OPT_GraphNode)e.nextElement();}
+          public boolean hasMoreElements() { return it.hasNext(); }
+          public OPT_GraphNode next() { return (OPT_GraphNode)it.next();}
           public Object nextElement() { return next(); }
         };
     }
@@ -64,8 +64,8 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      */
     public void addGraphNode(OPT_GraphNode node) {
         OPT_EdgelessGraphNode n = (OPT_EdgelessGraphNode) node;
-        nodes.addElement( n );
-        n.setIndex( nodes.size() - 1 );
+        nodes.add(n);
+        n.setIndex(nodes.size() - 1);
     }
     
     /**
@@ -88,6 +88,6 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      * @return the node with the given index.
      */
     public OPT_EdgelessGraphNode getNode(int index) {
-        return (OPT_EdgelessGraphNode) nodes.elementAt(index);
+        return (OPT_EdgelessGraphNode) nodes.get(index);
     }
 }

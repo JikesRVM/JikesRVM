@@ -1,0 +1,127 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003
+#
+#
+# This file defines a set of environment variables needed to build and
+# run Jikes RVM.  This file is sourced by the installation scripts; you
+# do not need to source this file into your command-prompt shell.
+#
+# This is the default file for writing the boot image with the Kaffe VM.
+#
+# IMPORTANT: You need to modify this file to reflect your environment!
+#		To see how we do that at watson, take a look at i686-pc-linux-gnu.kaffe.watson
+
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecture is Intel x86 (IA32)
+export RVM_FOR_IA32=1
+export RVM_FOR_32_ADDR=1
+
+# target OS is Linux
+export RVM_FOR_LINUX=1
+
+# NOTE: the key requirement for setting this to 0 (ie having SMP support)
+#       is that you have a 2.4 kernel and that glibc is compiled 
+#       to use the GS segment register to access pthread-local storage.  
+#       See discussion in rvm-researchers archive and the userguide FAQ.
+#  This is now quite common. For example, in Red Hat 7 and later.  
+#  So, the default is 0
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+export BOOTIMAGE_LOAD_ADDRESS=0x43000000
+export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+
+HOST_VM_TYPE=Kaffe
+# HOST_VM_TYPE=Sun
+# HOST_VM_TYPE=JikesRVM
+
+# The javah that comes with Kaffe balks at some of Jikes RVM's different versions of 
+# java.* classes.
+[[ $KAFFE_HOME ]] || export KAFFE_HOME=/usr/local/kaffe
+export DO_NOT_RUN_JAVAH=true
+export HOST_JAVA_HOME=${KAFFE_HOME}
+
+# the JDK java executable
+export HOST_VM_RT="$KAFFE_HOME/bin/kaffe"
+
+# The Java source-to-byte-code compiler you use for most things.
+export HOST_JAVAC="/usr/bin/jikes"
+
+export HOST_JAR=${KAFFE_HOME}/bin/jar
+# GNU Fastjar.  Comment this out if you don't have Fastjar.
+export FASTJAR=/usr/bin/jar
+
+# sources for GNU Classpath 0.08 (current stable version of Classpath)
+# Uncomment this line only if you manually downloaded the Classpath sources.
+# export CLASSPATH_ROOT=/opt/classpath-0.08
+
+# Path for GNU make
+export GNU_MAKE="/usr/bin/make"
+
+# Path for the Jikes java-to-byte-code compiler.
+# Try Jikes 1.13 if you have trouble figuring out the error messages
+# from Jikes 1.18 or 1.19.
+# The default value should be OK.
+export JIKES=/usr/bin/jikes
+
+# What C compilers should be used?
+export CC='/usr/bin/gcc -w -g -O'
+
+# what C++ compilers should be used?
+export CPLUS='/usr/bin/g++ -w -g -O'
+
+# how to link a shared C++ library (possibly also recompile one 
+# or more source files in it)
+export LDSHARED="${CPLUS} -shared"
+
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
+
+#  some Unix commands
+export AWK="/usr/bin/awk"
+export BASH="/bin/bash"
+# You need one of Yacc or Bison (one will usually be installed)
+# If you're using Bison, uncomment the line below:
+BISON="bison"
+export CVS="/usr/bin/cvs"
+export DIFF="/usr/bin/diff"
+export FGREP="/bin/fgrep"
+export FIND="/usr/bin/find"
+export GNU_TAR="/bin/tar"
+export GREP="/bin/grep"
+export MD5SUM="/usr/bin/md5sum"
+export PS="/bin/ps"
+export SED="/bin/sed"
+export WGET="/usr/bin/wget"
+export XARGS="/usr/bin/xargs"
+export UNZIP_CMD="/usr/bin/unzip"
+
+##########
+# PART III: Additional variables for running Eclipse on Jikes RVM
+########## 
+# These are used only by the jbuild.plugin build script.
+
+export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+
+export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+
+##########
+# PART IV: Miscellaneous variables.
+#
+# If you add any variables to this section, please document them.  Please.
+##########
+
+# BENCHMARK_ROOT is used in running some of the Jikes RVM regression
+# tests.  It doesn't need to be set unless you are running those tests.
+export BENCHMARK_ROOT=""
+
+# Used for the Emacs spell-checker
+#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
+#  LocalWords:  bnoentry SRE lc bE

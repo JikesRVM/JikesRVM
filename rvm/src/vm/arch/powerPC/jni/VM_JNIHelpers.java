@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.jni;
 
 import java.lang.reflect.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
@@ -480,11 +480,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // spill area offset
     VM_Address overflowarea = nativeFP.add(NATIVE_FRAME_HEADER_SIZE);
     
-    // -#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
     if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
     
-    // -#endif
+    //-#endif
     
     //adjust gpr and fpr to normal numbering, make life easier
     int gpr = (skip4Args) ? 7:6;       // r3 - env, r4 - cls, r5 - method id
@@ -550,11 +550,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     va_list_addr = va_list_addr.add(BYTES_IN_ADDRESS);
     VM_Address regsavearea = VM_Magic.getMemoryAddress(va_list_addr);
     
-    // -#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
     if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
     
-    // -#endif
+    //-#endif
     
     //adjust gpr and fpr to normal numbering, make life easier
     gpr += 3;
@@ -926,9 +926,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         }
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
-          argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
+        argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
       } else if (argTypes[i].isIntType()) {
+        if (VM.BuildFor32Addr) {
           argObjectArray[i] = VM_Reflection.wrapInt(hiword.toInt());
+        } else {
+          argObjectArray[i] = VM_Reflection.wrapInt((int) ((hiword.toLong() & 0xFFFFFFFF00000000L) >>> 32));
+        }
       } else {
         return null;
       }

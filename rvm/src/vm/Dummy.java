@@ -4,7 +4,7 @@
 //$Id$
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -19,7 +19,6 @@ class Dummy {
   static VM                         a;
   static com.ibm.JikesRVM.classloader.VM_TableBasedDynamicLinker b;
   static VM_DynamicLinker           c;
-  static VM_Runtime                 d;
   static VM_Reflection              e;
   static VM_Process                 f;
   static com.ibm.JikesRVM.jni.BuildJNIFunctionTable g;

@@ -63,7 +63,7 @@ V AI_METHOD_HOTNESS_THRESHOLD double 0.0025
 What fraction (0.0 to 1.0) of total method samples makes a callee hot enough to consider for recompilation to inline a hot non-inlined call edge?
 
 
-V MAX_EXPECTED_AI_BOOST double 3.0
+V MAX_EXPECTED_AI_BOOST double 0.2
 How much more effective do we expected an optimization level to be if boosted by adaptive inlining?
 
 

@@ -1,25 +1,32 @@
+# -*-makefile-*-
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2004
 #
 #$Id$
 #
 # @author Julian Dolby
+# @modified Steven Augart March, 2004	For Self-booting
 #
 include			$(JAL_BUILD)/Make.rules.target
 
 SCRATCH:=$(JAL_BUILD)/RVM.scratch
 
-$(SCRATCH)/VM_0005fProcess.h:	$(JAL_ROOT)/rvm/src/vm/runtime/VM_Process.java
-
-$(SCRATCH)/VM_0005fProcess.h:
+ifdef DO_NOT_RUN_JAVAH
+$(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h: 	$(JAL_ROOT)/rvm/src/tools/bootImageRunner/com_ibm_JikesRVM_VM_0005fProcess.h
+	$(RM) $@
+	cp $< $@
+else
+$(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h:	$(JAL_ROOT)/rvm/src/vm/runtime/VM_Process.java
 	$(RM) $@
 	$(HOST_JAVA_HOME)/bin/javah -d $(SCRATCH) -classpath $(JAL_BUILD)/RVM.classes com.ibm.JikesRVM.VM_Process
+endif
 
 $(SCRATCH)/VM_0005fProcess.C:	$(JAL_ROOT)/rvm/src/tools/bootImageRunner/VM_0005fProcess.C
 	$(RM) $@
 	cp $< $@
 
 # The Jikes RVM build process always invokes this with DEST=$(JAL_BUILD)/libjpnexec.{suffix}
-$(DEST): $(SCRATCH)/VM_0005fProcess.C $(SCRATCH)/VM_0005fProcess.h
+$(DEST): $(SCRATCH)/VM_0005fProcess.C $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h
 	$(RM) $@
 	$(LDSHARED) -o $@ -I$(JAL_ROOT)/rvm/src/include $<
+

@@ -542,6 +542,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
       case PPC_BL_opcode:
+      case PPC_BL_SYS_opcode:
         {                     // CALL
           OPT_BranchOperand o = (OPT_BranchOperand)MIR_Call.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi);
@@ -553,6 +554,8 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_BLRL_opcode:
         /* p 39, == bclrl  0x14,BI */
       case PPC_BCTRL_opcode:
+        /* p   , == bcctrl 0x14,BI */
+      case PPC_BCTRL_SYS_opcode:
         /* p   , == bcctrl 0x14,BI */
         {                     // INDIRECT CALL (Target == null)
           machinecodes.set(mi++, inst);

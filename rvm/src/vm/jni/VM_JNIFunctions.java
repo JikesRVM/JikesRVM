@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.jni;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 import java.io.UTFDataFormatException;
@@ -17,41 +17,42 @@ import java.lang.reflect.*;
  * perform the transition from native code (Linux/AIX/OSX convention) to RVM.
  * For this reason, no Java methods (including the JNI methods here) can call 
  * any methods in this class from within Java.  These JNI methods are to 
- * be invoked from native C or C++. <p>
+ * be invoked from native C or C++. <br>
  *
  * The first argument for all the functions is the VM_JNIEnvironment object 
- * of the thread. <p>
+ * of the thread. <br>
  * 
  * The second argument is a JREF index for either the VM_Class object
  * or the object instance itself.  To get the actual object, we use 
  * the access method in VM_JNIEnvironment and cast the reference as
- * needed. <p>
+ * needed. <br>
  * 
  * NOTE:  
- * (1) JREF index refers to the index into the side table of references
+ * <ol>
+ * <li> JREF index refers to the index into the side table of references
  * maintained by the VM_JNIEnvironment for each thread. Except for some cases
  * of array access, no references are passed directly to the native code; 
  * rather, the references are kept in the table and the index is passed to the 
  * native procedure.  The JREF index are used by the JNI code to retrieve the 
- * corresponding reference. <p>
+ * corresponding reference. </li>
  *
- * (2) Strings from C are seen as raw address (int) and need to be cloned as 
- * Java Strings <p>
+ * <li> Strings from C are seen as raw address (int) and need to be cloned as 
+ * Java Strings </li>
  *
- * (3) Because of many of the transformation above, the method signature of the 
- * JNI functions may not match its definition in the jni.h file <p>
+ * <li> Because of many of the transformation above, the method signature of the 
+ * JNI functions may not match its definition in the jni.h file </li>
  *
- * (4) For exception handling, all JNI functions are wrapped in Try/Catch block
+ * <li> For exception handling, all JNI functions are wrapped in Try/Catch block
  * to catch all exception generated during JNI call, then these exceptions
  * or the appropriate exception to be thrown according to the spec is recorded
  * in VM_JNIEnvironment.pendingException.  When the native code returns to the
  * the Java caller, the epilogue in the glue code will check for the pending
  * exception and deliver it to the caller as if executing an athrow bytecode
- * in the caller. <p>
- * 
+ * in the caller. </li>
+ * </ol>
  * @author Ton Ngo 
  * @author Steve Smith  
- * @date 2/1/00
+ * @date 1 February 2000
  */
 class VM_JNIFunctions implements VM_NativeBridge, 
                                  VM_SizeConstants {
@@ -3767,21 +3768,9 @@ class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
 
     try {
-      String returnString = null;
       byte[] utf8array = VM_JNIHelpers.createByteArrayFromC(utf8bytes);
-
-      try {
-        returnString = VM_UTF8Convert.fromUTF8(utf8array);
-      } catch (UTFDataFormatException e) {
-        VM.sysWrite("UTFDataFormatException caught in VM_JNIFunctions.NewStringUTF\n");
-      }
-
-      if (returnString!=null) {
-        return env.pushJNIRef(returnString);
-      } else {
-        env.recordException(new OutOfMemoryError());
-        return 0;
-      }
+      String returnString = VM_UTF8Convert.fromUTF8(utf8array);
+      return env.pushJNIRef(returnString);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);

@@ -26,6 +26,7 @@ package com.ibm.JikesRVM;
  * @author Stephen Fink
  * @author Dave Grove
  * @author Derek Lieber
+ * @modified to VM_Word Kris Venstermans
  */
 public interface VM_ThinLockConstants  extends VM_SizeConstants {
 
@@ -38,10 +39,10 @@ public interface VM_ThinLockConstants  extends VM_SizeConstants {
 
   static final int TL_LOCK_COUNT_UNIT  = 1 << TL_LOCK_COUNT_SHIFT;
 
-  static final int TL_LOCK_COUNT_MASK  = (-1 >>> (BITS_IN_INT - NUM_BITS_RC))  << TL_LOCK_COUNT_SHIFT;
-  static final int TL_THREAD_ID_MASK   = (-1 >>> (BITS_IN_INT - NUM_BITS_TID)) << TL_THREAD_ID_SHIFT;
-  static final int TL_LOCK_ID_MASK     = (-1 >>> (BITS_IN_INT - (NUM_BITS_RC + NUM_BITS_TID - 1))) << TL_LOCK_ID_SHIFT;
-  static final int TL_FAT_LOCK_MASK    = 1 << (VM_JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID -1);
-  static final int TL_UNLOCK_MASK      = ~((-1 >>> (BITS_IN_INT - VM_JavaHeader.NUM_THIN_LOCK_BITS)) << VM_JavaHeader.THIN_LOCK_SHIFT);
+  static final VM_Word TL_LOCK_COUNT_MASK  = VM_Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_RC).lsh(TL_LOCK_COUNT_SHIFT);
+  static final VM_Word TL_THREAD_ID_MASK   = VM_Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_TID).lsh(TL_THREAD_ID_SHIFT);
+  static final VM_Word TL_LOCK_ID_MASK     = VM_Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - (NUM_BITS_RC + NUM_BITS_TID - 1)).lsh(TL_LOCK_ID_SHIFT);
+  static final VM_Word TL_FAT_LOCK_MASK    = VM_Word.one().lsh(VM_JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID -1);
+  static final VM_Word TL_UNLOCK_MASK      = VM_Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - VM_JavaHeader.NUM_THIN_LOCK_BITS).lsh(VM_JavaHeader.THIN_LOCK_SHIFT).not();
 }
 

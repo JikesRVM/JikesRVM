@@ -5,7 +5,11 @@
  *     Australian National University. 2003
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
+
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -15,8 +19,6 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Word;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Error and trace logging.
@@ -109,7 +111,7 @@ public class Log implements Constants, VM_Uninterruptible {
   private char [] tempBuffer = new char[TEMP_BUFFER_SIZE];
 
   /** constructor */
-  Log() {
+  public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
       VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
                                      OVERFLOW_MESSAGE.charAt(i));
@@ -120,7 +122,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param b boolean value to be logged.
    */
-  static void write(boolean b) {
+  public static void write(boolean b) {
     write(b ? "true" : "false");
   }
 
@@ -129,7 +131,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param c character to be logged
    */
-  static void write(char c) {
+  public static void write(char c) {
     add(c);
   }
 
@@ -140,7 +142,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param l long value to be logged
    */
-  static void write(long l) {
+  public static void write(long l) {
     boolean negative = l < 0;
     int nextDigit;
     char nextChar;
@@ -181,25 +183,25 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param d the double to be logged
    */
-  static void write(double d) { write(d, 2); }
+  public static void write(double d) { write(d, 2); }
 
   /**
    * writes a <code>double</code>.  The number of digits after the
    * decimal point is determined by <code>postDecimalDigits</code>.
    * The value is not padded and not thousands seperator is used. If
-   * the value is negative a leading hyphen-minus (-) is lgoged.  The
+   * the value is negative a leading hyphen-minus (-) is logged.  The
    * decimal point is a full stop (.) and is logged even if
    * <postDecimcalDigits</code> is zero. If <code>d</code> is greater
    * than the largest representable value of type <code>int</code>, it
    * is logged as that largest value.  Similarly, if it is less than
-   * the smallest resentable value, it is logged as that value.
+   * the smallest representable value, it is logged as that value.
    *
    * @param d the double to be logged
    * @param postDecimaldigits the number of digits to be logged after
    * the decimal point.  If less than or equal to zero no digits are
    * logged, but the decimal point is.
    */
-  static void write(double d, int postDecimalDigits) {
+  public static void write(double d, int postDecimalDigits) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE);
     boolean negative = (d < 0.0);
@@ -224,7 +226,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param c the array of characters to be logged
    */
-  static void write(char [] c) {
+  public static void write(char [] c) {
     write(c, c.length);
   }
 
@@ -235,7 +237,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param len the number of characters to be logged, starting with
    * the first character
    */
-  static void write(char [] c, int len) {
+  public static void write(char [] c, int len) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(len <= c.length);
     for (int i = 0; i < len; i++)
       add(VM_Interface.getArrayNoBarrier(c, i));
@@ -247,7 +249,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param b the array of bytes to be logged
    */
-  static void write(byte [] b) {
+  public static void write(byte [] b) {
     for (int i = 0; i < b.length; i++)
       add((char)VM_Interface.getArrayNoBarrier(b, i));
   }
@@ -257,7 +259,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param s the string to be logged
    */
-  static void write(String s) {
+  public static void write(String s) {
     add(s);
   }
 
@@ -267,8 +269,8 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param w the word to be logged
    */
-  static void write(VM_Word w) {
-    write(w.toAddress());
+  public static void write(VM_Word w) {
+    writeHex(w, BYTES_IN_ADDRESS);
   }
 
   /**
@@ -276,8 +278,8 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param a the address to be logged
    */
-  static void write(VM_Address a) {
-    writeHex(VM_Interface.addressToLong(a), BYTES_IN_ADDRESS);
+  public static void write(VM_Address a) {
+    writeHex(a.toWord(), BYTES_IN_ADDRESS);
   }
 
   /**
@@ -285,14 +287,14 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param o the offset to be logged
    */
-  static void write(VM_Offset o) {
-    writeHex(VM_Interface.offsetToLong(o), BYTES_IN_ADDRESS);
+  public static void write(VM_Offset o) {
+    writeHex(o.toWord(), BYTES_IN_ADDRESS);
   }
 
   /**
    * write a new-line and flushes the buffer
    */
-  static void writeln() {
+  public static void writeln() {
     writelnWithFlush(true);
   }
 
@@ -302,7 +304,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param b boolean value to be logged.
    */
-  static void writeln(boolean b) { writeln(b, true); }
+  public static void writeln(boolean b) { writeln(b, true); }
 
   /**
    * writes a character and a new-line, then flushes the buffer.
@@ -310,7 +312,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param c character to be logged
    */
-  static void writeln(char c)    { writeln(c, true); }
+  public static void writeln(char c)    { writeln(c, true); }
 
   /**
    * writes a long, in decimal, and a new-line, then flushes the buffer.
@@ -318,7 +320,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param l long value to be logged
    */
-  static void writeln(long l)    { writeln(l, true); }
+  public static void writeln(long l)    { writeln(l, true); }
 
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
@@ -326,7 +328,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param d the double to be logged
    */
-  static void writeln(double d)  { writeln(d, true); }
+  public static void writeln(double d)  { writeln(d, true); }
 
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
@@ -334,7 +336,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param d the double to be logged
    */
-  static void writeln(double d, int postDecimalDigits) {
+  public static void writeln(double d, int postDecimalDigits) {
     writeln(d, postDecimalDigits, true); }
 
   /**
@@ -343,7 +345,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param c the array of characters to be logged
    */
-  static void writeln(char [] ca) { writeln(ca, true); }
+  public static void writeln(char [] ca) { writeln(ca, true); }
 
   /**
    * writes the start of an array of characters and a new-line, then
@@ -354,7 +356,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param len the number of characters to be logged, starting with
    * the first character
    */
-  static void writeln(char [] ca, int len) { writeln(ca, len, true); }
+  public static void writeln(char [] ca, int len) { writeln(ca, len, true); }
 
   /**
    * writes an array of bytes and a new-line, then
@@ -363,14 +365,14 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param b the array of bytes to be logged
    */
-  static void writeln(byte [] b) { writeln(b, true); }
+  public static void writeln(byte [] b) { writeln(b, true); }
 
   /**
    * writes a string and a new-line, then flushes the buffer.
    *
    * @param s the string to be logged
    */
-  static void writeln(String s)  { writeln(s, true); }
+  public static void writeln(String s)  { writeln(s, true); }
 
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
@@ -378,7 +380,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param w the word to be logged
    */
-  static void writeln(VM_Word w) { writeln(w, true); }
+  public static void writeln(VM_Word w) { writeln(w, true); }
 
   /**
    * writes an address, in hexademical, and a new-line, then flushes the buffer.
@@ -386,7 +388,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param a the address to be logged
    */
-  static void writeln(VM_Address a) { writeln(a, true); }
+  public static void writeln(VM_Address a) { writeln(a, true); }
 
   /**
    * writes an offset, in hexademical, and a new-line, then flushes the buffer.
@@ -394,12 +396,12 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param o the offset to be logged
    */
-  static void writeln(VM_Offset o) { writeln(o, true); }
+  public static void writeln(VM_Offset o) { writeln(o, true); }
 
   /**
    * writes a new-line without flushing the buffer
    */
-  static void writelnNoFlush() {
+  public static void writelnNoFlush() {
     writelnWithFlush(false);
   }
 
@@ -410,7 +412,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param b boolean value to be logged.
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(boolean b, boolean flush) {
+  public static void writeln(boolean b, boolean flush) {
     write(b);
     writelnWithFlush(flush);
   }
@@ -423,7 +425,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param c character to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(char c, boolean flush) {
+  public static void writeln(char c, boolean flush) {
     write(c);
     writelnWithFlush(flush);
   }
@@ -436,7 +438,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param l long value to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(long l, boolean flush) {
+  public static void writeln(long l, boolean flush) {
     write(l);
     writelnWithFlush(flush);
   }
@@ -449,7 +451,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param d the double to be logged
    * @param flush if <code>true</code> then flush the buffer
    */
-  static void writeln(double d, boolean flush) {
+  public static void writeln(double d, boolean flush) {
     write(d);
     writelnWithFlush(flush);
   }
@@ -462,7 +464,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param d the double to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(double d, int postDecimalDigits, boolean flush) {
+  public static void writeln(double d, int postDecimalDigits, boolean flush) {
     write(d, postDecimalDigits);
     writelnWithFlush(flush);
   }
@@ -476,7 +478,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param c the array of characters to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(char [] ca, boolean flush) {
+  public static void writeln(char [] ca, boolean flush) {
     write(ca);
     writelnWithFlush(flush);
   }
@@ -491,7 +493,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * the first character
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(char [] ca, int len, boolean flush) {
+  public static void writeln(char [] ca, int len, boolean flush) {
     write(ca, len);
     writelnWithFlush(flush);
   }
@@ -504,7 +506,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param b the array of bytes to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(byte [] b, boolean flush) {
+  public static void writeln(byte [] b, boolean flush) {
     write(b);
     writelnWithFlush(flush);
   }
@@ -515,9 +517,14 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param s the string to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(String s, boolean flush) {
+  public static void writeln(String s, boolean flush) {
     write(s);
     writelnWithFlush(flush);
+  }
+
+  public static void writeln(String s, long l) {
+    write(s);
+    writeln(l);
   }
 
 
@@ -529,7 +536,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param w the word to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(VM_Word w, boolean flush) {
+  public static void writeln(VM_Word w, boolean flush) {
     write(w);
     writelnWithFlush(flush);
   }
@@ -543,7 +550,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param a the address to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(VM_Address a, boolean flush) {
+  public static void writeln(VM_Address a, boolean flush) {
     write(a);
     writelnWithFlush(flush);
   }
@@ -556,15 +563,46 @@ public class Log implements Constants, VM_Uninterruptible {
    * @param o the offset to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  static void writeln(VM_Offset o, boolean flush) {
+  public static void writeln(VM_Offset o, boolean flush) {
     write(o);
     writelnWithFlush(flush);
   }
 
   /**
+   * writes a string followed by a VM_Address
+   * @see #write(String)
+   * @see #write(VM_Address)
+   *
+   * @param s the string to be logged
+   * @param a the VM_Address to be logged
+   */
+  public static void write (String s, VM_Address a) {
+    write(s);
+    write(a);
+  }
+
+  public static void write (String s, long l) {
+    write(s);
+    write(l);
+  }
+
+  /**
+   * writes a string followed by a VM_Address
+   * @see #write(String)
+   * @see #write(VM_Address)
+   *
+   * @param s the string to be logged
+   * @param a the VM_Address to be logged
+   */
+  public static void writeln (String s, VM_Address a) {
+    write(s);
+    writeln(a);
+  }
+
+  /**
    * Log a thread identifier at the start of the next message flushed.
    */
-  static void prependThreadId()
+  public static void prependThreadId()
   {
     getLog().setThreadIdFlag();
   }
@@ -574,7 +612,7 @@ public class Log implements Constants, VM_Uninterruptible {
    * flush will be logged in one block without output from other
    * thread's logging interleaving.
    */
-  static void flush() {
+  public static void flush() {
     getLog().flushBuffer();
   }
 
@@ -592,12 +630,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes a <code>long</code> in hexadecimal
    *
-   * @param l the long to be logged
+   * @param l the VM_Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
    * of the most significant bytes are ignored.
    */
-  private static void writeHex(long l, int bytes) {
+  private static void writeHex(VM_Word w, int bytes) {
     int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
     char [] intBuffer = getIntBuffer();
@@ -605,7 +643,7 @@ public class Log implements Constants, VM_Uninterruptible {
     write(HEX_PREFIX);
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
-      nextDigit = (int)(l >>> (digitNumber << LOG_BITS_IN_HEX_DIGIT)) & 0xf;
+      nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
       char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
                                                      nextDigit);
       add(nextChar);

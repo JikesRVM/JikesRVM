@@ -106,9 +106,6 @@ Store liveness for handlers to improve dependence graph at PEIs
 SCHEDULE_PREPASS -1 false
 Perform prepass instruction scheduling
 
-ERRORS_FATAL -1 false
-Should an unexpected failure during compilation be treated as fatal?
-
 NO_CHECKCAST -1 false
 Should all checkcast operations be (unsafely) eliminated?
 

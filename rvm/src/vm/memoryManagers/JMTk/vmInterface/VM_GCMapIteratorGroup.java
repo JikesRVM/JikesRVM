@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_CompiledMethod;

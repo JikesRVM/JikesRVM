@@ -4,8 +4,8 @@
 //$Id$ 
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 
 /**
  * Constants for the JavaHeader. 
@@ -40,7 +40,12 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    *     In a copying collector, this forces us to add a word
    *     to copied objects that have had their hashcode taken.
    */
-  static final boolean ADDRESS_BASED_HASHING = true;
+  static final boolean ADDRESS_BASED_HASHING = 
+    //-#if RVM_WITH_GCTRACE
+    false;
+    //-#else
+    true;
+    //-#endif
 
   /** How many bits in the header are available for the GC and MISC headers? */
   static final int NUM_AVAILABLE_BITS = ADDRESS_BASED_HASHING ? 8 : 2;
@@ -55,10 +60,10 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   /*
    * Stuff for address based hashing
    */
-  static final int HASH_STATE_UNHASHED         = 0x00000000;
-  static final int HASH_STATE_HASHED           = 0x00000100;
-  static final int HASH_STATE_HASHED_AND_MOVED = 0x00000300;
-  static final int HASH_STATE_MASK             = HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED;
+  static final VM_Word HASH_STATE_UNHASHED         = VM_Word.zero();
+  static final VM_Word HASH_STATE_HASHED           = VM_Word.one().lsh(8); //0x00000100
+  static final VM_Word HASH_STATE_HASHED_AND_MOVED = VM_Word.fromIntZeroExtend(3).lsh(8); //0x0000300
+  static final VM_Word HASH_STATE_MASK             = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
   static final int HASHCODE_SCALAR_OFFSET      = 0; // to right of objref
   static final int HASHCODE_BYTES              = BYTES_IN_INT;
   static final int HASHCODE_ARRAY_OFFSET       = ARRAY_LENGTH_OFFSET - HASHCODE_BYTES; // to left of header

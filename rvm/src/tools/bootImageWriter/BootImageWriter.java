@@ -1,6 +1,7 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
+
 //$Id$
 
 import java.util.Hashtable;
@@ -15,9 +16,10 @@ import java.io.*;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.Thread;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.jni.*;
 import com.ibm.JikesRVM.classloader.*;
@@ -37,12 +39,16 @@ import com.ibm.JikesRVM.classloader.*;
  *    -ia <addr>               address where boot image starts
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
+ *    -profile                 time major phases of bootimage writing
  *    -xclasspath <path>       OBSOLETE compatibility aid
  * </pre>
  * @author Derek Lieber
  * @version 03 Jan 2000
  * (complete rewrite of John Barton's original, this time using java2
  * reflection)
+ *
+ * @modified Steven Augart 16 Mar 2004	Fixes to bootstrap under Kaffe
+
  */
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
@@ -157,10 +163,10 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * The absolute address at which the bootImage is going to be loaded.
    */
-  public static int bootImageAddress = 0;
+  public static VM_Address bootImageAddress = VM_Address.zero();
 
-  public static int getBootImageAddress()  {
-    if (bootImageAddress == 0) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+  public static VM_Address getBootImageAddress()  {
+    if (bootImageAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageAddress;
   }
 
@@ -175,13 +181,32 @@ public class BootImageWriter extends BootImageWriterMessages
   private static boolean demographics = false;
 
   /**
+   * Report time costs of each stage in bootimage writing and
+   * report any methods that take 'too long' to compile.
+   */
+  private static boolean profile = false;
+
+  /**
+   * What is the threshold (in ms) for compilation of a single class
+   * to be reported as excessively long (when profiling is true)
+   */
+  private static final int classCompileThreshold = 5000;
+  
+  /**
    * A wrapper around the calling context to aid in tracing.
    */
   private static class TraceContext extends Stack {
     /**
-     * Report a field that is part of the OTI but not host JDK implementation.
+     * Report a field that is part of our library's (GNU Classpath's)
+     implementation, but not the host JDK's implementation.
      */
     public void traceFieldNotInHostJdk() {
+      traceNulledWord(": field not in host jdk");
+    }
+
+    /* Report a field that is an instance field in the host JDK but a static
+       field in ours.  */
+    public void traceFieldNotStaticInHostJdk() {
       traceNulledWord(": field not in host jdk");
     }
 
@@ -264,7 +289,9 @@ public class BootImageWriter extends BootImageWriterMessages
    * Main.
    * @param args command line arguments
    */
-  public static void main(String args[]) {
+  public static void main(String args[]) 
+    throws Exception
+  {
     String   bootImageName         = null;
     String   bootImageMapName      = null;
     Vector   bootImageTypeNames    = null;
@@ -303,7 +330,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (args[i].equals("-ia")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -ia flag without a following image address");
-        bootImageAddress = Integer.decode(args[i]).intValue();
+        bootImageAddress = VM_Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
         continue;
       }
       // file containing names of types to be placed into bootimage
@@ -340,7 +367,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // places where rvm components live, at execution time
       if (args[i].equals("-xclasspath")) {
         if (++i >= args.length)
-          fail("argument syntax error: Got an -classpath flag without a following execution-time classpath for RVM components");
+          fail("argument syntax error: Got an -xclasspath flag without a following execution-time classpath for RVM components");
         bootImageRepositoriesAtExecutionTime = args[i];
         continue;
       }
@@ -357,6 +384,11 @@ public class BootImageWriter extends BootImageWriterMessages
       // parallelize
       if (args[i].equals("-parallelize=")) {
         PARALLELIZE = Integer.parseInt(args[i].substring(13));
+        continue;
+      }
+      // profile
+      if (args[i].equals("-profile")) {
+        profile = true;
         continue;
       }
       // generate detailed information about traversed objects (for debugging)
@@ -390,9 +422,9 @@ public class BootImageWriter extends BootImageWriterMessages
     if (bootImageRepositoriesAtExecutionTime == null)
       bootImageRepositoriesAtExecutionTime = bootImageRepositoriesAtBuildTime;
 
-    if (bootImageAddress == 0)
+    if (bootImageAddress.isZero())
       fail("please specify boot-image address with \"-ia <addr>\"");
-    if (bootImageAddress % 0xff000000 != 0)
+    if (!(bootImageAddress.toWord().and(VM_Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
       fail("please specify a boot-image address that is a multiple of 0x01000000");
     // MM_Interface.checkBootImageAddress(bootImageAddress);
 
@@ -421,30 +453,42 @@ public class BootImageWriter extends BootImageWriterMessages
     //   - they are used later, by target rvm, to execute the bootimage
     //
     if (verbose >= 1) say("starting up");
-    try {
+    //    try {
       VM.initForBootImageWriter(bootImageRepositoriesAtBuildTime,
                                 bootImageCompilerArgs);
-    } catch (Exception e) {
-      fail("unable to initialize VM: "+e);
-    }
+      //    } catch (Exception e) {
+      //      fail("unable to initialize VM: "+e);
+      //    }
 
     //
     // Create (in host jdk address space) the rvm objects that will be
     // needed at run time to execute enough of the virtual machine
     // to dynamically load and compile the remainder of itself.
     //
+    long startTime = 0;
+    long stopTime = 0;
+    if (profile) startTime = System.currentTimeMillis();
     try {
       bootImageTypeNames = readTypeNames(bootImageTypeNamesFile);
     } catch (IOException e) {
       fail("unable to read the type names from "+ bootImageTypeNamesFile 
            +": "+e);
     }
-
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: readingTypeNames "+(stopTime-startTime)+" ms");
+    }
+      
+    if (profile) startTime = System.currentTimeMillis();
     try {
       createBootImageObjects(bootImageTypeNames, bootImageTypeNamesFile);
     } catch (Exception e) {
       e.printStackTrace();
       fail("unable to create objects: "+e);
+    }
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: createBootImageObjects "+(stopTime-startTime)+" ms");
     }
 
     //
@@ -466,6 +510,8 @@ public class BootImageWriter extends BootImageWriterMessages
                           " bytes out of ",
                           String.valueOf(Runtime.getRuntime().totalMemory()),
                           " bytes");
+
+    if (profile) startTime = System.currentTimeMillis();
 
     //
     // First object in image must be boot record (so boot loader will know
@@ -497,8 +543,8 @@ public class BootImageWriter extends BootImageWriterMessages
       fail("can't copy jtoc: "+e);
     }
 
-    if ((jtocImageOffset + bootImageAddress) != bootRecord.tocRegister.toInt())
-      fail("mismatch in JTOC placement "+(jtocImageOffset + bootImageAddress)+" != "+bootRecord.tocRegister);
+    if (bootImageAddress.add(jtocImageOffset).NE(bootRecord.tocRegister))
+      fail("mismatch in JTOC placement "+(jtocImageOffset + bootImageAddress.toInt())+" != "+bootRecord.tocRegister);
 
     //
     // Now, copy all objects reachable from jtoc, replacing each object id
@@ -536,7 +582,7 @@ public class BootImageWriter extends BootImageWriterMessages
           bootImage.setNullAddressWord(jtocImageOffset + (i << LOG_BYTES_IN_INT)); // jtoc is int[]!
         } else
           bootImage.setAddressWord(jtocImageOffset + (i << LOG_BYTES_IN_INT), // jtoc is int[]!
-                                   bootImageAddress + imageOffset);
+                                   bootImageAddress.add(imageOffset).toWord());
         if (verbose >= 2) traceContext.pop();
       }
     } catch (IllegalAccessException e) {
@@ -544,6 +590,10 @@ public class BootImageWriter extends BootImageWriterMessages
     }
     jtocCount = -1;
 
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: filling bootimage byte[] "+(stopTime-startTime)+" ms");
+    }
     //
     // Record startup context in boot record.
     //
@@ -555,16 +605,14 @@ public class BootImageWriter extends BootImageWriterMessages
     VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
-    bootRecord.spRegister  = VM_Address.fromIntZeroExtend(bootImageAddress +
-                                                          BootImageMap.getImageOffset(startupStack) +
+    bootRecord.spRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupStack) +
                                                           startupStack.length);
-    bootRecord.ipRegister  = VM_Address.fromIntZeroExtend(bootImageAddress +
-                                                          BootImageMap.getImageOffset(startupCode.getBacking()));
+    bootRecord.ipRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupCode.getBacking()));
 
     bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
 
-    bootRecord.bootImageStart = VM_Address.fromIntZeroExtend(bootImageAddress);
-    bootRecord.bootImageEnd   = VM_Address.fromIntZeroExtend(bootImageAddress + bootImage.getSize());
+    bootRecord.bootImageStart = bootImageAddress;
+    bootRecord.bootImageEnd   = bootImageAddress.add(bootImage.getSize());
 
     // Update field of boot record now by re-copying
     //
@@ -580,13 +628,29 @@ public class BootImageWriter extends BootImageWriterMessages
       fail("unable to update boot record: "+e);
     }
 
+    //-#if RVM_WITH_GCTRACE
+    /* Set the values in fields updated during the build process */
+    int prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
+    bootImage.setAddressWord(jtocImageOffset + prevAddrOffset, 
+			     VM_MiscHeader.getBootImageLink().toWord());
+    int oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
+    bootImage.setAddressWord(jtocImageOffset + oIDOffset, 
+			     VM_MiscHeader.getOID());
+    //-#endif
+
     //
     // Write image to disk.
     //
+    if (profile) startTime = System.currentTimeMillis();
     try {
       bootImage.write(bootImageName);
     } catch (IOException e) {
       fail("unable to write bootImage: "+e);
+    }
+
+    if (profile) {
+      stopTime = System.currentTimeMillis();
+      System.out.println("PROF: writing RVM.map "+(stopTime-startTime)+" ms");
     }
 
     //
@@ -729,13 +793,16 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static void createBootImageObjects(Vector typeNames,
                                             String bootImageTypeNamesFile) 
-    throws IllegalAccessException, ClassNotFoundException {
+    throws IllegalAccessException, ClassNotFoundException {    
       VM_Callbacks.notifyBootImage(typeNames.elements());
-
+      long startTime = 0;
+      long stopTime = 0;
+      
       //
       // Create types.
       //
       if (verbose >= 1) say("loading");
+      if (profile) startTime = System.currentTimeMillis();
       
       for (Enumeration e = typeNames.elements(); e.hasMoreElements(); ) {
         //
@@ -749,8 +816,7 @@ public class BootImageWriter extends BootImageWriterMessages
         //
         // create corresponding rvm type
         //
-        VM_Type type;
-        
+        VM_Type type;        
         try {
           VM_TypeReference tRef = VM_TypeReference.findOrCreate(typeName);
           type = tRef.resolve();
@@ -791,11 +857,17 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImageTypes.put(typeName, type);
       }
 
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tloading types "+(stopTime-startTime)+" ms");
+      }
+        
       if (verbose >= 1) say(String.valueOf(bootImageTypes.size()), " types");
 
       //
       // Lay out fields and method tables.
       //
+      if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("resolving");
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type type = (VM_Type) e.nextElement();
@@ -803,27 +875,35 @@ public class BootImageWriter extends BootImageWriterMessages
         // The resolution is supposed to be cached already.
         type.resolve();
       }
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tresolving types "+(stopTime-startTime)+" ms");
+      }
 
       // Set tocRegister early so opt compiler can access it to
       //   perform fixed_jtoc optimization (compile static addresses into code).
-      // In the boot image, the bootrecord comes first followed by a VM_Address array and then the TOC.
-      // To do this, we must fully simulate the alignment logic in the allocation code!
+
+      // In the boot image, the bootrecord comes first followed by a
+      // VM_Address array and then the TOC.  To do this, we must fully
+      // simulate the alignment logic in the allocation code!  Rather
+      // than replicate the allocation code here, we perform dummy
+      // allocations and then reset the boot image allocator.
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      int bp = bootImageAddress;
-      bp += rvmBRType.getInstanceSize();
-      int align = VM_ObjectModel.getAlignment(intArrayType);
-      int offset = VM_ObjectModel.getOffsetForAlignment(intArrayType);
-      int mod = (bp + offset) & (align-1);
-      int delta = (align - mod) & (align-1);
-      bp += delta;
-      bp += intArrayType.getInstanceSize(0);
-      bootRecord.tocRegister = VM_Address.fromIntZeroExtend(bp);
+      int brOffset = bootImage.allocateStorage(rvmBRType.getInstanceSize(), 
+                                               VM_ObjectModel.getAlignment(rvmBRType), 
+                                               VM_ObjectModel.getOffsetForAlignment(rvmBRType));
+      int jtocOffset = bootImage.allocateStorage(intArrayType.getInstanceSize(0),
+                                                 VM_ObjectModel.getAlignment(intArrayType),
+                                                 VM_ObjectModel.getOffsetForAlignment(intArrayType));
+      bootImage.resetAllocator();
+      bootRecord.tocRegister = bootImageAddress.add(jtocOffset).add(intArrayType.getInstanceSize(0));
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
       //
+      if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("instantiating");
       if (PARALLELIZE < 1) {
         int count = 0;
@@ -831,7 +911,11 @@ public class BootImageWriter extends BootImageWriterMessages
             VM_Type type = (VM_Type) e.nextElement();
             count++;
             if (verbose >= 1) say(count + " instantiating " + type);
+            long start2 = System.currentTimeMillis();
             type.instantiate();
+            long stop2 = System.currentTimeMillis();
+            if (profile && stop2 - start2 > classCompileThreshold)
+              System.out.println("PROF:\t\t"+type+" took "+((stop2 - start2+500)/1000)+" seconds to instantiate");
         }
       } else {
         if (verbose >= 1) say("parallelizing with " + PARALLELIZE + " threads");
@@ -848,6 +932,10 @@ public class BootImageWriter extends BootImageWriterMessages
           say("InterruptedException while instantiating");
         }
       }
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tinstantiating types "+(stopTime-startTime)+" ms");
+      }
 
       // Do the portion of JNIEnvironment initialization that can be done
       // at bootimage writing time.
@@ -860,6 +948,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // and for processing the static fields of the boot image classes
       //
       if (verbose >= 1) say("field info gathering");
+      if (profile) startTime = System.currentTimeMillis();
       bootImageTypeFields = new HashMap(bootImageTypes.size());
 
       // First retrieve the jdk Field table for each class of interest
@@ -956,6 +1045,11 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       }
 
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tcreating type mapping "+(stopTime-startTime)+" ms");
+      }
+      
       //
       // Create stack, thread, and processor context in which rvm will begin
       // execution.
@@ -983,7 +1077,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // moved to another machine with different directory structure.
       //
       VM_ClassLoader.setVmRepositories(bootImageRepositoriesAtExecutionTime);
-
+      
       //
       // Finally, populate jtoc with static field values.
       // This is equivalent to the VM_Class.initialize() phase that would have
@@ -992,6 +1086,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // slots of the jtoc.
       //
       if (verbose >= 1) say("populating jtoc with static fields");
+      if (profile) startTime = System.currentTimeMillis();
       for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
         VM_Type rvmType = (VM_Type) e.nextElement();
         if (verbose >= 1) say("  jtoc for ", rvmType.toString());
@@ -1022,6 +1117,17 @@ public class BootImageWriter extends BootImageWriterMessages
               if (verbose >= 2) traceContext.pop();
             }
             VM_Statics.setSlotContents(rvmFieldSlot, 0);
+            if (!VM.runningTool)
+              bootImage.countNulledReference();
+            continue;
+          }
+
+          if (! Modifier.isStatic(jdkFieldAcc.getModifiers())) {
+              if (verbose >= 2) traceContext.push(rvmFieldType.toString(),
+                                                  jdkType.getName(), rvmFieldName);
+              if (verbose >= 2) traceContext.traceFieldNotStaticInHostJdk();
+              if (verbose >= 2) traceContext.pop();
+              VM_Statics.setSlotContents(rvmFieldSlot, 0);
             if (!VM.runningTool)
               bootImage.countNulledReference();
             continue;
@@ -1062,43 +1168,52 @@ public class BootImageWriter extends BootImageWriterMessages
               // note: Endian issues handled in setSlotContents.
               VM_Statics.setSlotContents(rvmFieldSlot,
                                          Double.doubleToLongBits(d));
-            } else if (rvmFieldType.equals(VM_TypeReference.Address)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Address) ||
+                       rvmFieldType.equals(VM_TypeReference.Word) ||
+                       rvmFieldType.equals(VM_TypeReference.Extent) ||
+                       rvmFieldType.equals(VM_TypeReference.Offset)){
               Object o = jdkFieldAcc.get(null);
-              VM_Address addr = (VM_Address) o;
               String msg = " static field " + rvmField.toString();
-              VM_Statics.setSlotContents(rvmFieldSlot, getAddressValue(addr, msg, true));  // int or long
-            } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
-              VM_Word w = (VM_Word) jdkFieldAcc.get(null);
-              int val = w == null ? 0 : w.toInt();
-              VM_Statics.setSlotContents(rvmFieldSlot, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
-              VM_Offset o = (VM_Offset) jdkFieldAcc.get(null);
-              int val = o == null ? 0 : o.toInt();
-              VM_Statics.setSlotContents(rvmFieldSlot, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
-              VM_Extent ex = (VM_Extent) jdkFieldAcc.get(null);
-              int val = ex == null ? 0 : ex.toInt();
-              VM_Statics.setSlotContents(rvmFieldSlot, val);
+              boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
+            //-#if RVM_FOR_32_ADDR
+              VM_Statics.setSlotContents(rvmFieldSlot, getWordValue(o, msg, warn).toInt());
+            //-#endif
+            //-#if RVM_FOR_64_ADDR
+              VM_Statics.setSlotContents(rvmFieldSlot, getWordValue(o, msg, warn).toLong());
+            //-#endif
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
           } else {
             // field is reference type
-            Object o = jdkFieldAcc.get(null);
+
+            /* Consistency check. */
+            if (jdkFieldAcc == null)
+              fail("internal inconistency: jdkFieldAcc == null");
+
+            int modifs = jdkFieldAcc.getModifiers();
+
+            /* This crash, realistically, should never occur. */
+            if (! Modifier.isStatic(modifs)) 
+              fail("Consistency failure: About to try to access an instance field (via jdkFieldAcc) as if it were a static one!  The culprit is the field " + jdkFieldAcc.toString());
+            Object o;
+            try {
+              o = jdkFieldAcc.get(null);
+            } catch (NullPointerException npe) {
+              fail("Got a NullPointerException while using reflection to retrieve the value of the field " + jdkFieldAcc.toString() + ": " + npe.toString());
+              o = null;         // Unreached
+            }
             if (verbose >= 3)
               say("       setting with ", String.valueOf(VM_Magic.objectAsAddress(o).toInt()));
-            //-#if RVM_FOR_32_ADDR
-            VM_Statics.setSlotContents(rvmFieldSlot,
-                                       VM_Magic.objectAsAddress(o).toInt());
-            //-#endif
-            //-#if RVM_FOR_64_ADDR
-            VM_Statics.setSlotContents(rvmFieldSlot,
-                                       VM_Magic.objectAsAddress(o).toLong());
-            //-#endif
+            VM_Statics.setSlotContents(rvmFieldSlot, o);
           }
         }
       }
-    }
+      if (profile) {
+        stopTime = System.currentTimeMillis();
+        System.out.println("PROF: \tinitializing jtoc "+(stopTime-startTime)+" ms");
+      }
+  }
 
   private static final int LARGE_ARRAY_SIZE = 16*1024;
   private static final int LARGE_SCALAR_SIZE = 1024;
@@ -1116,26 +1231,24 @@ public class BootImageWriter extends BootImageWriterMessages
     }
   }
 
-
-
-
-//-#if RVM_FOR_32_ADDR
-  private static int getAddressValue(VM_Address addr, String msg, boolean warn) {
-    if (addr == null) return 0;
-    int value = addr.toInt();
-    if (warn) check(value, msg);
+  private static VM_Word getWordValue(Object addr, String msg, boolean warn) {
+    if (addr == null) return VM_Word.zero();
+    VM_Word value = VM_Word.zero();
+    if (addr instanceof VM_Address) {
+      value = ((VM_Address)addr).toWord();
+    } else if (addr instanceof VM_Word) {
+      value = (VM_Word)addr;
+    } else if (addr instanceof VM_Extent) {
+      value = ((VM_Extent)addr).toWord();
+    } else if (addr instanceof VM_Offset) {
+      value = ((VM_Offset)addr).toWord();
+    } else {
+      VM.sysWriteln("Unhandled supposed address value: " + addr);
+      VM.sysFail("incomplete boot image support");
+    }
+    if (warn) check(value.toInt(), msg);
     return value;
   }
-//-#endif
-
-//-#if RVM_FOR_64_ADDR
-  private static long getAddressValue(VM_Address addr, String msg, boolean warn) {
-    if (addr == null) return 0L;
-    long value = addr.toLong();
-    if (warn) check((int) value, msg);
-    return value;
-  }
-//-#endif
 
   /**
    * Copy an object (and, recursively, any of its fields or elements that
@@ -1281,7 +1394,7 @@ public class BootImageWriter extends BootImageWriterMessages
                   bootImage.setNullAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS));
                 } else {
                   bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                           bootImageAddress + imageOffset);
+                                           bootImageAddress.add(imageOffset).toWord());
                 }
                 if (verbose >= 2) traceContext.pop();
               }
@@ -1411,23 +1524,14 @@ public class BootImageWriter extends BootImageWriterMessages
               double d = jdkFieldAcc.getDouble(jdkObject);
               bootImage.setDoubleWord(rvmFieldOffset,
                                       Double.doubleToLongBits(d));
-            } else if (rvmFieldType.equals(VM_TypeReference.Address)) {
+            } else if (rvmFieldType.equals(VM_TypeReference.Address) ||
+                       rvmFieldType.equals(VM_TypeReference.Word) ||
+                       rvmFieldType.equals(VM_TypeReference.Extent) ||
+                       rvmFieldType.equals(VM_TypeReference.Offset)) {
               Object o = jdkFieldAcc.get(jdkObject);
-              VM_Address addr = (VM_Address) o;
               String msg = " instance field " + rvmField.toString();
-              bootImage.setAddressWord(rvmFieldOffset, getAddressValue(addr, msg, true));
-            } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
-              VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
-              int val = w == null ? 0 : w.toInt();
-              VM_Statics.setSlotContents(rvmFieldOffset, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Offset)) {
-              VM_Offset o = (VM_Offset) jdkFieldAcc.get(jdkObject);
-              int val = o == null ? 0 : o.toInt();
-              VM_Statics.setSlotContents(rvmFieldOffset, val);
-            } else if (rvmFieldType.equals(VM_TypeReference.Extent)) {
-              VM_Extent e = (VM_Extent) jdkFieldAcc.get(jdkObject);
-              int val = e == null ? 0 : e.toInt();
-              VM_Statics.setSlotContents(rvmFieldOffset, val);
+              boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
+              bootImage.setAddressWord(rvmFieldOffset, getWordValue(o, msg, warn));
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
@@ -1446,7 +1550,7 @@ public class BootImageWriter extends BootImageWriterMessages
                 bootImage.setNullAddressWord(rvmFieldOffset);
               } else
                 bootImage.setAddressWord(rvmFieldOffset,
-                                         bootImageAddress + imageOffset);
+                                         bootImageAddress.add(imageOffset).toWord());
               if (verbose >= 2) traceContext.pop();
             }
           }
@@ -1464,8 +1568,8 @@ public class BootImageWriter extends BootImageWriterMessages
         if (verbose >= 2) traceContext.pop();
         if (tibImageOffset == OBJECT_NOT_ALLOCATED)
           fail("can't copy tib for " + jdkObject);
-        int tibAddress = bootImageAddress + tibImageOffset;
-        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromIntZeroExtend(tibAddress), rvmType);
+        VM_Address tibAddress = bootImageAddress.add(tibImageOffset);
+        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, tibAddress, rvmType);
       }
 
       if (verbose >= 2) depth--;
@@ -1526,31 +1630,31 @@ public class BootImageWriter extends BootImageWriterMessages
         VM_Address addr = values[i];
         String msg = "VM_Address array element";
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
-                                 getAddressValue(addr, msg, true));
+                                 getWordValue(addr, msg, true));
       }
     } else if (rvmElementType.equals(VM_Type.WordType)) {
       VM_Word values[] = (VM_Word[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "VM_Word array element ";
-        VM_Address addr = values[i].toAddress();
+        VM_Word addr = values[i];
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                 getAddressValue(addr, msg, true));
+                                 getWordValue(addr, msg, false));
       }
     } else if (rvmElementType.equals(VM_Type.OffsetType)) {
       VM_Offset values[] = (VM_Offset[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "VM_Offset array element " + i;
-        VM_Address addr = values[i].toWord().toAddress();
+        VM_Offset addr = values[i];
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                 getAddressValue(addr, msg, true));
+                                 getWordValue(addr, msg, false));
       }
     } else if (rvmElementType.equals(VM_Type.ExtentType)) {
       VM_Extent values[] = (VM_Extent[]) jdkObject;
       for (int i = 0; i < arrayCount; i++) {
         String msg = "VM_Extent array element ";
-        VM_Address addr = values[i].toWord().toAddress();
+        VM_Extent addr = values[i];
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
-                                 getAddressValue(addr, msg, true));
+                                 getWordValue(addr, msg, false));
       }
     } else {
       fail("unexpected magic array type: " + rvmArrayType);
@@ -1563,8 +1667,8 @@ public class BootImageWriter extends BootImageWriterMessages
       if (verbose >= 2) traceContext.pop();
       if (tibImageOffset == OBJECT_NOT_ALLOCATED)
         fail("can't copy tib for " + jdkObject);
-      int tibAddress = bootImageAddress + tibImageOffset;
-      VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromIntZeroExtend(tibAddress), rvmArrayType);
+      VM_Address tibAddress = bootImageAddress.add(tibImageOffset);
+      VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, tibAddress, rvmArrayType);
     }
 
     if (verbose >= 2) depth--;
@@ -1961,25 +2065,25 @@ public class BootImageWriter extends BootImageWriterMessages
 
         case VM_Statics.STRING_LITERAL: 
           category = "literal";
-          contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocSlot)) + pad;
           details  = "\"" + ((String) BootImageMap.getObject(getIVal(jtocSlot))).replace('\n', ' ') +"\"";
           break;
           
         case VM_Statics.REFERENCE_FIELD:
           category = "field  ";
-          contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocSlot)) + pad;
           details  = getRvmStaticFieldName(jtocSlot);
           break;
 
         case VM_Statics.METHOD:
           category = "code   ";
-          contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocSlot)) + pad;
           VM_CompiledMethod m = findMethodOfCode(BootImageMap.getObject(getIVal(jtocSlot)));
           details = m == null ? "<?>" : m.getMethod().toString();
           break;
 
         case VM_Statics.TIB:
-          contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocSlot)) + pad;
           category = "tib    ";
           VM_Type type = findTypeOfTIBSlot(jtocSlot);
           details = (type == null) ? "?" : type.toString();
@@ -2010,8 +2114,8 @@ public class BootImageWriter extends BootImageWriterMessages
         VM_Method m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {
           VM_CodeArray instructions = compiledMethod.getInstructions();
-          int code = BootImageMap.getImageAddress(bootImageAddress, instructions.getBacking());
-          out.println(".     .          code     " + VM.intAsHexString(code) +
+          VM_Address code = BootImageMap.getImageAddress(bootImageAddress, instructions.getBacking());
+          out.println(".     .          code     " + VM.addressAsHexString(code) +
                       "          " + compiledMethod.getMethod());
         }
       }
@@ -2033,9 +2137,9 @@ public class BootImageWriter extends BootImageWriterMessages
     return ival;
   }
 
-  private static int getReferenceAddr(int jtocSlot) {
+  private static VM_Address getReferenceAddr(int jtocSlot) {
     int ival = getIVal(jtocSlot);
-    int addr = ival;
+    VM_Address addr = VM_Address.fromIntZeroExtend(ival);
     if (ival != 0) {
       Object jdkObject = BootImageMap.getObject(ival);
       if (jdkObject instanceof VM_CodeArray) {

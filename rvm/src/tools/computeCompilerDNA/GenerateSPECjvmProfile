@@ -21,4 +21,4 @@ if [[ $RVM_ROOT = "" ]]; then
    exit 1
 fi
 
-$RVM_ROOT/rvm/bin/RunSanityTests -measureCompilation -configuration FastBaseAdaptiveCopyMS -images $BUILDDIR -test SPECjvm98 -nobuild -rc-args "-X:aos:final_report_level=2 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base -X:base:edge_counter_file=$FILE"
+$RVM_ROOT/rvm/bin/RunSanityTests -measureCompilation -configuration FastBaseAdaptiveGenMS -images $BUILDDIR -test SPECjvm98 -nobuild -rc-args "-X:aos:final_report_level=2 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base -X:base:edge_counter_file=$FILE"

@@ -98,9 +98,9 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
         VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken4);
         VM_TypeReference tref;
-        if (nextToken1.equals("SystemCL")) {
+        if (nextToken1.equals("BootstrapCL")) {
           tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), callerClass);
-        } else if (nextToken1.equals("AppCL")) {
+        } else if (nextToken1.equals("SystemAppCL")) {
           tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), callerClass);
         } else {
           VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
@@ -119,9 +119,9 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
         VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken4);
         VM_TypeReference tref;
-        if (nextToken1.equals("SystemCL")) {
+        if (nextToken1.equals("BootstrapCL")) {
           tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), calleeClass);
-        } else if (nextToken1.equals("AppCL")) {
+        } else if (nextToken1.equals("SystemAppCL")) {
           tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), calleeClass);
         } else {
           VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");

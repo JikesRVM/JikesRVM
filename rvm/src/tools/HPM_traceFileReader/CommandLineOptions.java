@@ -198,8 +198,8 @@ class CommandLineOptions
     System.out.println("\nreadTraceFile usage\n"+
                        " Boolean options: option\n"+
                        "  Option               description\n"+
-                       "  -aggregate           aggregate hpm counter values\n"+
-                       "  -aggregate_by_thread aggregate hpm counter values where threads counters broken out by VP ID\n"+
+                       "  -aggregate           aggregate values\n"+
+                       "  -aggregate_by_thread aggregate values where threads values broken out by VP ID\n"+
                        "  -events              tell hpm events collected\n"+
                        //                      "  -generate_statistics generate average, min, max, var, and std dev.\n"+
                        //                      "                       thread specified in -tid and events specified in -event_mask\n"+
@@ -246,8 +246,8 @@ class CommandLineOptions
   /**
    * reset statistics
    */
-  static private final int NUM_COUNTERS = 9;
-  static private final int NUM_VALUES = NUM_COUNTERS+2;
+  static private final int NUM_VALUES = 9;
+  static private final int NUM_EXTENDED_VALUES = NUM_VALUES+2;
 
   static public  final int P4_SLICE0              =  0; // ** group completed
   static public  final int P4_BASIC               =  2; // L1 dcache misses
@@ -290,16 +290,16 @@ class CommandLineOptions
 
   public void allocateStatistics() 
   {
-    average        = new double[NUM_VALUES];
-    minimum        = new long[NUM_VALUES];
-    minimum_d      = new double[NUM_VALUES];
-    minimum_x      = new int[NUM_VALUES];
-    maximum        = new long[NUM_VALUES];
-    maximum_d      = new double[NUM_VALUES];
-    maximum_x      = new int[NUM_VALUES];
-    sumOfX         = new double[NUM_VALUES];
-    sumOfSquareOfX = new double[NUM_VALUES];
-    variance       = new double[NUM_VALUES];
+    average        = new double[NUM_EXTENDED_VALUES];
+    minimum        = new long[NUM_EXTENDED_VALUES];
+    minimum_d      = new double[NUM_EXTENDED_VALUES];
+    minimum_x      = new int[NUM_EXTENDED_VALUES];
+    maximum        = new long[NUM_EXTENDED_VALUES];
+    maximum_d      = new double[NUM_EXTENDED_VALUES];
+    maximum_x      = new int[NUM_EXTENDED_VALUES];
+    sumOfX         = new double[NUM_EXTENDED_VALUES];
+    sumOfSquareOfX = new double[NUM_EXTENDED_VALUES];
+    variance       = new double[NUM_EXTENDED_VALUES];
   }
   /**
    * reset statistics
@@ -307,7 +307,7 @@ class CommandLineOptions
   public void resetStatistics() 
   {
     n_values  = 0;
-    for (int i=0; i<NUM_VALUES; i++) {
+    for (int i=0; i<NUM_EXTENDED_VALUES; i++) {
       minimum[  i]      = Long.MAX_VALUE;       
       minimum_d[i]      = Double.MAX_VALUE;     
       minimum_x[i]      = Integer.MAX_VALUE;
@@ -333,10 +333,10 @@ class CommandLineOptions
       n_values++;
       if (group_index ==      P4_LSU_BUSY) loadLatency(tr, index);
       if (group_index == P4_LSU_LMQ) loadMissLatency(tr, index);
-      for (int i=0; i<NUM_COUNTERS; i++) {
+      for (int i=0; i<NUM_VALUES; i++) {
         int mask_index = event_mask_array[i];
         if ((event_mask & mask_index) == mask_index) {
-          long value = tr.counters[i];
+          long value = tr.values[i];
           if (value > maximum[i]) { maximum[i] = value; maximum_x[i] = index; }
           if (value < minimum[i]) { minimum[i] = value; minimum_x[i] = index; }
           sumOfX[i]           += value;
@@ -358,7 +358,7 @@ class CommandLineOptions
   private void loadLatency(TraceCounterRecord tcr, int index) 
   {
     // LRQ slot 0 valid / LRQ slot 0 allocated
-    double value = tcr.counters[5] / tcr.counters[6];
+    double value = tcr.values[5] / tcr.values[6];
     if (value > maximum_d[P4_LSU_BUSY_INDEX]) { 
       maximum_d[P4_LSU_BUSY_INDEX] = value; maximum_x[P4_LSU_BUSY_INDEX] = index; 
     }
@@ -381,7 +381,7 @@ class CommandLineOptions
   private void loadMissLatency(TraceCounterRecord tcr, int index) 
   {
     // LMQ slot 0 valid / LMQ slot 0 allocated
-    double value = tcr.counters[3] / tcr.counters[4];
+    double value = tcr.values[3] / tcr.values[4];
     if (value > maximum_d[P4_LSU_LMQ_INDEX]) { maximum_d[P4_LSU_LMQ_INDEX] = value; maximum_x[P4_LSU_LMQ_INDEX] = index; }
     if (value < minimum_d[P4_LSU_LMQ_INDEX]) { minimum_d[P4_LSU_LMQ_INDEX] = value; minimum_x[P4_LSU_LMQ_INDEX] = index; }
     sumOfX[P4_LSU_LMQ_INDEX]           += value;
@@ -400,7 +400,7 @@ class CommandLineOptions
     int tid_abs = (tid < 0?-tid:tid);
     System.out.println("statistics: thread "+tid_abs+": "+
                      header.threadName(tid_abs)+", n_values "+n_values);
-    for (int i=0; i<NUM_COUNTERS; i++) {
+    for (int i=0; i<NUM_VALUES; i++) {
       int index = event_mask_array[i];
       if ((event_mask & index) == index) {
         System.out.print(i+": "+header.short_event_names[i]);

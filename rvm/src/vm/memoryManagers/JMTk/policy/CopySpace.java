@@ -3,13 +3,19 @@
  *     Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.plan.CopyingHeader;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.VMResource;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
+
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 
 
@@ -23,7 +29,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @version $Revision$
  * @date $Date$
  */
-final class CopySpace extends BasePolicy 
+public final class CopySpace extends BasePolicy 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -66,7 +72,7 @@ final class CopySpace extends BasePolicy
    */
   private static VM_Address forwardObject(VM_Address object, boolean scan) 
     throws VM_PragmaInline {
-    int forwardingPtr = CopyingHeader.attemptToForward(object);
+    VM_Word forwardingPtr = CopyingHeader.attemptToForward(object);
     // prevent instructions moving infront of attemptToForward
     VM_Magic.isync();   
 
@@ -77,7 +83,7 @@ final class CopySpace extends BasePolicy
         forwardingPtr = CopyingHeader.getForwardingWord(object);
       // prevent following instructions from being moved in front of waitloop
       VM_Magic.isync();  
-      VM_Address newObject = VM_Address.fromInt(forwardingPtr & ~CopyingHeader.GC_FORWARDING_MASK);
+      VM_Address newObject = forwardingPtr.and(CopyingHeader.GC_FORWARDING_MASK.not()).toAddress();
       return newObject;
     }
 

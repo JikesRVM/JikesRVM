@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * An organizer of call graph edge information that is used for 
  * adaptive inlining.
- *
+ * <p>
  * VM_AIByEdgeOrganizer communicates with an edge listener through a 
  * integer array, denoted buffer.  When this organizer is woken up
  * via threshold reached, it processes the sequence of triples 
@@ -23,12 +23,17 @@ import java.util.*;
  * After the buffer is processed, the organizer checks to see
  * if any methods compiled at VM_Controller.options.MAX_OPT_LEVEL
  * should be recompiled due to inlining opportunities.
- * 
+ * <p>
+ * Note: Since this information is intended to drive feedback-directed inlining,
+ *       the organizer drops edges that are not relevant.  For example, one of
+ *       the methods is a native method, or the callee is a runtime service
+ *       routine and thus can't be inlined into its caller even if it is reported
+ *       as hot.  Thus, the call graph may not contain some hot edges since they
+ *       aren't viable inlining candidates. One may argue that this is not the right
+ *       design.  Perhaps instead the edges should be present for profiling purposes,
+ *       but not reported as inlining candidates to the 
+ * <p>
  * EXPECTATION: buffer is filled all the way up with triples.
- * 
- * Potential problems: The system does not retain new edges between
- * organizer runs.  There could be a race condition where a
- * ??? where what?? --dave
  * 
  * @author Peter Sweeney 
  * @author Dave Grove
@@ -118,6 +123,10 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       VM_CompiledMethod compiledMethod   = VM_CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
       VM_Method callee = compiledMethod.getMethod();
+      if (callee.isRuntimeServiceMethod()) {
+        if (DEBUG) VM.sysWrite("Skipping sample with runtime service callee");
+        continue;
+      }
       int callerCMID = buffer[i+1];
       compiledMethod   = VM_CompiledMethods.getCompiledMethod(callerCMID);
       if (compiledMethod == null) continue;
@@ -165,12 +174,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
               VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
               VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-              e.printStackTrace(); caller = stackFrameCaller;
+              e.printStackTrace();
+              if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
+              caller = stackFrameCaller;
               continue;  // skip sample
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
                         stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
-                 VM.sysWrite("!\n");
+            VM.sysWrite("!\n");
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
           
@@ -179,12 +191,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
             VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
                  VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-            e.printStackTrace(); caller = stackFrameCaller;
+            e.printStackTrace();
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
+            caller = stackFrameCaller;
             continue;
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
                         stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
-                 VM.sysWrite("!\n");
+            VM.sysWrite("!\n");
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
 
@@ -295,8 +310,9 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
              VM.sysWrite("ERROR in adaptive system! Exception caught!\n");
              VM.sysWrite(" AI Organizer considering edge "+triple+
                          " to be inlined into "
-                           +hotMethod.getMethod()+"\n");
+                         +hotMethod.getMethod()+"\n");
              e.printStackTrace();
+             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
            }
          }
        }

@@ -58,7 +58,6 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    *  with a register bit mask and is followed by a list of spills.
    *  The most significant bit of the spill location is used to chain
    *  the list.  
-   *  Note: We could definitely be smarter in our representation of spills!
    */
   private int[] gcMapInformation;
 
@@ -315,20 +314,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * @param spillArray an array of spills
    */
   private final void addAllSpills(int spillArray[]) throws VM_PragmaInterruptible {
-    // 1) sort all the spills we saved to allow for checking for missed refs
-    //  at GC time, if the flag is on in VM_OptGenericGCMapIterator.java
-    if (VM_OptGenericGCMapIterator.lookForMissedReferencesInSpills) {
-      int length = spillArray.length;
-      for (int i = 0; i < length - 1; i++) {
-        for (int j = i+1; j < length; j++) {
-          if (spillArray[i] > spillArray[j]) {
-            int tmp = spillArray[i];
-            spillArray[i] = spillArray[j];
-            spillArray[j] = tmp;
-          }
-        }
-      }
-    }
+    // 1) sort the spills to increase the odds of reusing the GC map
+    java.util.Arrays.sort(spillArray);
 
     // 2) add them to the map using addSpillLocation
     for (int i = 0; i < spillArray.length; i++) {

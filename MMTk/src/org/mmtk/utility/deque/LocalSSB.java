@@ -2,13 +2,15 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -41,6 +43,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * when then cursor is buffer-size aligned.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
  */ 
@@ -60,32 +63,41 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    */
   LocalSSB(SharedDeque queue) {
     this.queue = queue;
-    tail = Deque.TAIL_INITIAL_VALUE;
+    resetLocal();
   }
 
   /**
-   * Flush the buffer to the shared queue (this will make any entries
-   * in the buffer visible to any consumer associated with the shared
-   * queue).
+   * Flush the buffer and add it to the shared queue (this will
+   * make any entries in the buffer visible to any consumer associated
+   * with the shared queue).
    */
   public void flushLocal() {
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(queue.getArity());
       tail = Deque.TAIL_INITIAL_VALUE;
+      tailBufferEnd = Deque.TAIL_INITIAL_VALUE;
     }
   }
  
-  /**
-   * Reset the local buffer (throwing away any local entries).
-   */
-  void resetLocal() {
-    tail = Deque.TAIL_INITIAL_VALUE;
+  public void reset() {
+    resetLocal();
   }
 
  /****************************************************************************
    *
-   * Protected instance methods
+   * Protected instance methods and fields
    */
+  protected VM_Address tail;            // the location in the buffer
+  protected VM_Address tailBufferEnd;   // the end of the buffer
+  protected SharedDeque queue;          // the shared queue
+
+  /**
+   * Reset the local buffer (throwing away any local entries).
+   */
+  public void resetLocal() {
+    tail = Deque.TAIL_INITIAL_VALUE;
+    tailBufferEnd = Deque.TAIL_INITIAL_VALUE;
+  }
 
   /**
    * Check whether there is space in the buffer for a pending insert.
@@ -95,11 +107,11 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    * @param arity The arity of the values stored in this SSB: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkInsert(int arity) throws VM_PragmaInline {
+  protected final void checkTailInsert(int arity) throws VM_PragmaInline {
     if (bufferOffset(tail).isZero())
-      insertOverflow(arity);
+      tailOverflow(arity);
     else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(tail).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
   }
 
   /**
@@ -109,16 +121,16 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedInsert(VM_Address value) throws VM_PragmaInline {
+  protected final void uncheckedTailInsert(VM_Address value) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromInt(BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.sub(BYTES_IN_ADDRESS);
     VM_Magic.setMemoryAddress(tail, value);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   /**
-   * In the case where a tail buffer must be flushed before being
+   * In the case where a buffer must be flushed before being
    * filled (either to the queue or to the head), the entries must be
    * slid to the base of the buffer in order to preserve the invariant
    * that all non-tail buffers will have entries starting at the base
@@ -141,12 +153,21 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
     return last;
   }
 
+  /**
+   * Return the sentinel offset for a buffer of a given arity.  This is used
+   * both to compute the address at the end of the buffer.
+   *
+   * @param arity The arity of this buffer
+   * @return The sentinel offset value for a buffer of the given arity.
+   */
+  protected final VM_Offset bufferSentinel(int arity) throws VM_PragmaInline {
+    return bufferLastOffset(arity).add(BYTES_IN_ADDRESS);
+  }
+
   /****************************************************************************
    *
-   * Private instance methods and fields
+   * Private instance methods
    */
-  protected VM_Address tail;   // the buffer
-  protected SharedDeque queue; // the shared queue
 
   /**
    * Buffer space has been exhausted, allocate a new buffer and enqueue
@@ -154,12 +175,13 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    *
    * @param arity The arity of this buffer (used for sanity test only).
    */
-  private final void insertOverflow(int arity) {
+  private final void tailOverflow(int arity) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
-    tail = queue.alloc().add(bufferLastOffset(arity)).add(BYTES_IN_ADDRESS);
+    tail = queue.alloc().add(bufferSentinel(arity));
+    tailBufferEnd = tail;
     Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
@@ -180,5 +202,4 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
     }
     queue.enqueue(last.add(BYTES_IN_ADDRESS), arity, true);
   }
-
 }

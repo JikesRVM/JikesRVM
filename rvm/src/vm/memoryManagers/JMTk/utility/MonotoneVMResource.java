@@ -4,11 +4,13 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.gcspy.AbstractDriver;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -38,7 +40,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   /**
    * Constructor
    */
-  MonotoneVMResource(byte space_, String vmName, MemoryResource mr, 
+  public MonotoneVMResource(byte space_, String vmName, MemoryResource mr, 
                      VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
     cursor = start;
@@ -66,7 +68,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       return VM_Address.zero();
     }
     lock();
-    int bytes = Conversions.pagesToBytes(pageRequest);
+    VM_Extent bytes = Conversions.pagesToBytes(pageRequest);
     VM_Address tmpCursor = cursor.add(bytes);
     if (tmpCursor.GT(sentinel)) {
       unlock();
@@ -78,23 +80,33 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       unlock();
       acquireHelp(oldCursor, pageRequest);
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
-      Memory.zero(oldCursor, VM_Extent.fromInt(bytes));
+      Memory.zero(oldCursor, bytes);
       // Memory.zeroPages(oldCursor, bytes);
+      if (VM_Interface.GCSPY)
+        Plan.acquireVMResource(start, cursor, bytes);
       return oldCursor;
     }
   }
 
   public void release() {
     // Unmapping is useful for being a "good citizen" and for debugging
-    int bytes = cursor.diff(start).toInt();
+    VM_Extent bytes = cursor.diff(start).toWord().toExtent();
     int pages = Conversions.bytesToPages(bytes);
     if (ZERO_ON_RELEASE) 
-        Memory.zero(start, VM_Extent.fromInt(bytes));
+        Memory.zero(start, bytes);
     if (Options.protectOnRelease)
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
+    if (VM_Interface.GCSPY)
+      Plan.releaseVMResource(start, bytes);
   }
+
+  /**
+   * GCSpy needs to know the extent of this resource
+   * @return the cursor
+   */
+ public VM_Address getCursor() { return cursor; }
 
   /**
    * Acquire the appropriate lock depending on whether the context is
@@ -119,7 +131,19 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   }
 
   public int getUsedPages () {
-    return Conversions.bytesToPages(cursor.diff(start).toInt());
+    return Conversions.bytesToPages(cursor.diff(start).toWord().toExtent());
+  }
+
+  /**
+   * Gather data for GCSpy
+   * Until we can sweep through this space (either by laying out arrays and
+   * scalars in the same direction, or by segregating scalars and arrays), all
+   * we can report is the range of the space.
+   * @param event The GCSpy event
+   * @param driver the GCSpy driver for this space
+   */
+  void gcspyGatherData(int event, AbstractDriver driver) {
+    driver.setRange(event, getStart(), getCursor());
   }
 
   /****************************************************************************

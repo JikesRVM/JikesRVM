@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-# (C) Copyright IBM Corp. 2001, 2002, 2003
+# (C) Copyright IBM Corp. 2001, 2002, 2003, 2004
 #
 #$Id$
 #
@@ -23,6 +23,15 @@
 # @date   19 Jan 2000
 # @author Steven Augart (Bash version)
 # @date 17 May 2003
+
+## We can first do some simple version tests to keep from getting slipped Bash
+## version 2.03 or earlier.
+if ! echo D | read -n 1 > /dev/null 2>&1 ; then
+    echo >&2 "$0: We are somehow running under a version of the shell that does not recognize the '-n' argument to the 'read' builtin.  This program absolutely requires Bash version 2.05 or better to run, and we recommend 2.05a or better.  Aborting execution."
+    exit 1
+fi
+
+
 
 ## Exit statuses:
 
@@ -47,44 +56,99 @@ declare -r -i Exit_Status_Run_Linker=111
 # Bash internal shorthand that works like the "basename" command.
 ME="${0##*/}"
 
-# Where are we?
-# Bash internal shorthand that works like the "dirname" command.
-mydir="${0%/*}"			# temporary; directory we were run from
+## get_bin_dir():
+## Find what directory our aux. files are in.  Also confirms that
+## RVM_ROOT is set to something reasonable.
+## We print out the value of bin_dir at the end, or exit abnormally.
+##
+## This is horribly convoluted, and probably to no good purpose.
+## I'm ashamed to admit that I wrote it. --Steve Augart
+function get_bin_dir() {
+    # Where are we?
+    # Bash internal shorthand that works like the "dirname" command:
+    local mydir="${0%/*}"			# temporary; directory we were run from
 
-if [[ $mydir && $mydir != $ME ]]; then
-    # Where to find auxiliary programs:
-    bin_dir="${mydir}"
-    # Scratch space:
-    suffix=libjconfigure.bash
-    f=$bin_dir/$suffix
-    if [[ ! -f $f ]]; then
+    ## The sole purpose of this next "if" statement is to set the
+    ## variable bin_dir, and to verify that it is set to something
+    ## reasonable that will allow us to load in "libjconfigure.bash".
+    if [[ $mydir && $mydir != $ME ]]; then
+	# Where to find library files and auxiliary programs:
+	local bin_dir="${mydir}"
+	local suffix=libjconfigure.bash
+	local f=$bin_dir/$suffix
+	if [[ ! -f $f ]]; then
+	    echo >&2 "\
+    $ME: Something is weird here.  I can't find a file named
+	\"${f##*/}\" in \"$f\",
+	but I was apparently run from the directory \"$bin_dir\".  
+	Please use a version of jconfigure in the same source tree that 
+	your sources are located in."
+	    trap '' EXIT
+	    exit 2
+	fi
+    else
+	bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
+	suffix=libjconfigure.bash
+	f=$bin_dir/$suffix
+	if [[ ! -f $f ]]; then
+	    echo >&2 "\
+    $ME: I can't find a file named \"${f##*/}\" at 
+       RVM_ROOT/$suffix (that's 
+       $f).
+       You probably have RVM_ROOT set incorrectly.  Reset RVM_ROOT and try again."
+	    trap '' EXIT
+	    exit 2
+	fi
+    fi
+
+    if [[ ${RVM_ROOT-UNSET} = UNSET ]]; then
+	echo >&2 "$ME: RVM_ROOT is not set.  Set it and try again."
+	trap '' EXIT
+	exit 2
+    fi
+
+    if [[ ${RVM_ROOT} = "" ]]; then
+	echo >&2 "$ME: RVM_ROOT set to the empty string.  Set it properly and try again."
+	trap '' EXIT
+	exit 2
+    fi
+
+    if [[ ${RVM_ROOT} != /* ]]; then
 	echo >&2 "\
-$ME: Something is weird here.  I can't find a file named
-    \"${f##*/}\" in \"$f\",
-    but I was apparently run from the directory \"$bin_dir\".  
-    Please use a version of jconfigure in the same source tree that 
-    your sources are located in."
+    $ME: RVM_ROOT must be set to an absolute path 
+	(one starting with a /), not to
+	\"$RVM_ROOT\".  Please set it properly and try again."
 	trap '' EXIT
 	exit 2
     fi
-else
-    bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
-    # Scratch space:
-    suffix=rvm/bin/libjconfigure.bash
-    f=$bin_dir/$suffix
-    if [[ ! -f $f ]]; then
-	show_mesg >&2 "\
-$ME: I can't find a file named \"${f##*/}\" at 
-   RVM_ROOT/$suffix (that's 
-   $f).
-   You probably have RVM_ROOT set incorrectly.  Reset RVM_ROOT and try again."
-	trap '' EXIT
-	exit 2
-    fi
-fi
 
+    suffix="rvm/bin/libjconfigure.bash"
+    f="$RVM_ROOT/$suffix"
+    if [[ ! -f $f  ]]; then
+	echo >&2 "\
+    $ME: Can't find a file named \"${f##*/}\" in 
+	RVM_ROOT/$suffix (that's 
+	\"$f\").  
+	RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
+	if [[ $bin_dir != $RVM_ROOT ]]; then
+	    maybe_root=$bin_dir
+	    if [[ $maybe_root != /* ]]; then
+		$maybe_root=${PWD}/$maybe_root
+	    fi
+	    if [[ -d $maybe_root/rvm/_timestamp ]]; then
+		echo >&2 "$ME: Try setting RVM_ROOT to \"$maybe_root\""
+	    fi
+	fi
+	trap '' EXIT
+	exit 2
+    fi
+
+    echo ${bin_dir}
+}
 
 function croak_nonusage () {
+    ## If we have not loaded show_mesg() yet, substitute.
+    [[ $(type -t show_mesg) = function ]] || function show_mesg () { echo "$ME: $@" ; }
     show_mesg "$*"  >&2;
     trap '' EXIT
     exit 2
@@ -102,49 +166,7 @@ function load () {
     . "${fname}";
 }
 
-
-if [[ ${RVM_ROOT-UNSET} = UNSET ]]; then
-    echo >&2 "$ME: RVM_ROOT is not set.  Set it and try again."
-    trap '' EXIT
-    exit 2
-fi
-
-if [[ ${RVM_ROOT} = "" ]]; then
-    echo >&2 "$ME: RVM_ROOT set to the empty string.  Set it properly and try again."
-    trap '' EXIT
-    exit 2
-fi
-
-if [[ ${RVM_ROOT} != /* ]]; then
-    echo >&2 "\
-$ME: RVM_ROOT must be set to an absolute path 
-    (one starting with a /), not to
-    \"$RVM_ROOT\".  Please set it properly and try again."
-    trap '' EXIT
-    exit 2
-fi
-
-suffix="rvm/bin/libjconfigure.bash"
-f="$RVM_ROOT/$suffix"
-if [[ ! -f $f  ]]; then
-    echo >&2 "\
-$ME: Can't find a file named \"${f##*/}\" in 
-    RVM_ROOT/$suffix (that's 
-    \"$f\").  
-    RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
-    if [[ $bin_dir != $RVM_ROOT ]]; then
-	maybe_root=$bin_dir
-	if [[ $maybe_root != /* ]]; then
-	    $maybe_root=${PWD}/$maybe_root
-	fi
-	if [[ -d $maybe_root/rvm/_timestamp ]]; then
-	    echo >&2 "$ME: Try setting RVM_ROOT to \"$maybe_root\""
-	fi
-    fi
-    trap '' EXIT
-    exit 2
-fi
-
+bin_dir="$(get_bin_dir)"
 load "${bin_dir}/sanity-envars.bash" ;  		# Defines checkenv()
 load "${bin_dir}/libjconfigure.bash" ;
 
@@ -178,13 +200,14 @@ load "${bin_dir}/libjconfigure.bash" ;
 
 ## WORKAROUND:
 ## This should be a no-op.  However, this works around the Bash 2.05b bug where
-## it thinks midline was unset.
-echo ${midline-UNSET} > /dev/null
-# Also problems with this one :(
-echo ${have_function_relative_LINENO-UNSET} > /dev/null
+## it thinks midline is unset.
+# echo ${midline-UNSET} > /dev/null		# "echo" fails miserably.
+builtin echo ${midline-UNSET} > /dev/null
+# Also problems with this one.  This one, too, breaks in bad places.
+builtin echo ${have_function_relative_LINENO-UNSET} > /dev/null
 
 ## POSSIBLE FUTURE WORKAROUND:
-## # Do the same thing for the other global variable that are set inside 
+## # Do the same thing for the other global variables that are set inside 
 ## # libjconfigure.bash, just in case the Bash bug should manifest
 ## # itself again:  
 
@@ -193,23 +216,45 @@ checkenv RVM_ROOT
 
 ## Place where RVM bootimage, booter, and runtime support files will be placed.
 checkenv --may-not-exist RVM_BUILD
+
 ## What configuration will host the build process?
 checkenv RVM_HOST_CONFIG
+
 ## What configuration will run the system?
+[[ ${RVM_TARGET_CONFIG-} ]] || export RVM_TARGET_CONFIG="${RVM_HOST_CONFIG}"
 checkenv RVM_TARGET_CONFIG
 
 #---------------------------#
-# SECTION 1 - DOCUMENTATION #
+# SECTION 1a - DOCUMENTATION #
 #---------------------------#
 
 function help_message () {
 
     # If PAGER is not set, set it to "more".
     ${PAGER=more} <<- EOF
-	Usage: ${ME} [-nocleanse | -cleanse ] [-quiet]
-	         [-D <variable>=<value>]... <configuration-name>
+	Usage: ${ME} [flags]... <configuration-name>
 	Usage: ${ME} -help
 
+	Flags: 
+	-nocleanse | -cleanse :
+	  (Do not) throw away intermediate files in the build directory that 
+          were generated during a previous run of ${ME}.  "-cleanse" is the 
+	  default.  Has no effect if run on a build directory that has never
+	  been used for building.  This is only useful if you know that you
+	  haven't changed the build configuration.
+	  
+	-quiet :
+	  Do not spit out (most of) the informative messages that go out during
+	  a run of ${ME}.  This includes possible complaints if you're
+	  running an old version of Bash.
+
+	[-D <variable>=<value>]... :
+	  This flag may be repeated an arbitrary number of times.  Sets configuration
+	  variables that describe the kind of Jikes RVM you are trying to build.
+	  Provides an alternative to writing configuration files just 
+	  to change one or two variables.
+
+	About ${ME}:
 	This script generates control files necessary to build a
 	particular "configuration" of the Research Virtual Machine.
 	
@@ -315,12 +360,265 @@ function help_message () {
 }
    
 
-#---------------------------------------#
-# SECTION 1b -- Get HOST_CLASSPATH_ROOT #
-#---------------------------------------#
+#--------------------------------------#
+# SECTION 1b - Loading Config Files    #
+#--------------------------------------#
 
-. "${RVM_HOST_CONFIG}"
+## setFromPath()
+## Sample usage: setFromPath diff
+## Usage: set [ <var> ] <cmd>
+function setFromPath () {
+    local var cmd
+    if (( $# > 1 )); then
+	var="$1"
+	shift
+    else
+	var=$(echo $1 | tr a-z A-Z)
+    fi
+    cmd=$1
+    [[ \${!var-} ]] || eval ${var}=$(type -p g${cmd} 2> /dev/null) 
+    [[ ${!var-} ]] || eval ${var}=$(type -p ${cmd} 2> /dev/null) 
+    [[ ${!var-} ]] || unset ${var}
+}
+
+function setSomeFromPath () {
+    local c
+    for c; do
+	setFromPath $c
+    done
+}
+
+function rationalize_config_file_settings () {
+    ## HOST_VM_TYPE: Valid working values: Sun, Kaffe
+    ##			In-progress values: JikesRVM, gij
+    : ${HOST_VM_TYPE=Sun}	# the default
+
+    case $HOST_VM_TYPE in
+	gij)
+	    if [[ ! ${JAVAH-} ]]; then
+		setFromPath JAVAH gcjh
+		[[ ${JAVAH} ]] && JAVAH="${JAVAH} -jni"
+	    fi
+	    ;;
+
+	Kaffe)
+	    [[ ${KAFFE_HOME-} ]] || export KAFFE_HOME=/usr/local/kaffe
+	    [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME=${KAFFE_HOME}
+	    # The javah that comes with Kaffe balks at some of Jikes RVM's 
+	    # different versions of the java.* classes.
+	    export DO_NOT_RUN_JAVAH=true
+	    ;;
+
+	JikesRVM)
+	    : ${DONOR_RVM_ROOT?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=JikesRVM, so you need to set DONOR_RVM_ROOT too}
+	    : ${DONOR_RVM_BUILD?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=JikesRVM, so you need to set DONOR_RVM_BUILD too}
+	    ## Doesn't ship with a "javah"
+
+	    export DO_NOT_RUN_JAVAH=true
+	    ;;
+
+	Sun)
+	    : ${HOST_JAVA_HOME?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=Sun, so you need to set HOST_JAVA_HOME too}
+	    export JAVAH=${HOST_JAVA_HOME}/bin/javah
+	    ;;
+
+	*)
+	    echo >&2 "$ME: Config file ${CURRENT_CONFIG_FILE}: Unknown HOST_VM_TYPE: $HOST_VM_TYPE"
+	    trap '' EXIT
+	    exit $Exit_Status_Bad_Args
+	    ;;
+    esac
+
+    if ! [[ ${HOST_VM_RT-} ]]; then
+	## HOST_JAVA is deprecated; the free virtual machines haven't passed
+	## the Java Compatibility Tests, so legally aren't "Java".
+	! [[ ${HOST_JAVA-} ]] || export HOST_VM_RT=${HOST_JAVA}
+    fi
+
+    if ! [[ ${HOST_VM_RT-} ]]; then
+	if [[ $HOST_VM_TYPE = gij ]]; then
+	    setFromPath HOST_VM_RT gij
+	    setFromPath FASTJAR jar
+	elif [[ $HOST_VM_TYPE = Kaffe ]]; then
+	    HOST_VM_RT=${KAFFE_HOME}/bin/kaffe
+	elif [[ $HOST_VM_TYPE = Sun ]]; then
+	    HOST_VM_RT=${HOST_JAVA_HOME}/bin/java
+	    # the JDK java executable
+	    export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+
+	    # 1.4.x JDKs on Linux seem to require that LD_LIBRARY_PATH be set to include
+	    # the JRE's various library paths (otherwise they don't find their .so files 
+	    # when invoked from shell scripts and make).
+	    # Here's how to do it to use HotSpot server with Blackdown 1.4.1
+	    export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
+	    # Here's how to do it to using the IBM 1.4.1 DK 
+	    #export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
+	elif [[ $HOST_VM_TYPE = JikesRVM ]]; then
+	    ## This blows up if either of the variables 
+	    ## DONOR_RVM_ROOT or DONOR_RVM_BUILD contain spaces in their values.
+	    HOST_VM_RT="${DONOR_RVM_ROOT}/rvm/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"
+	fi
+    fi
+    
+    if ! [[ ${TemplateExpander_HOST_VM_RT-} ]]; then
+	TemplateExpander_HOST_VM_RT="${HOST_VM_RT}"
+    fi
+
+    if ! [[ ${HOST_JAVADOC-} ]] && [[ ${HOST_JAVA_HOME-} ]]; then
+	# The JDK Javadoc executable
+	# Might be replaceable with Doxygen, but I'm not holding my breath.
+	export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
+    fi
+
+    # Path for the Jikes java-to-byte-code compiler.  A necessary part of 
+    # the build process.
+    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]	\
+	&& ! [[ ${JIKES-} ]]				\
+	&& ! export JIKES=$(type -p jikes)
+    then
+	## Note: This is quite possibly bogus if we're reading in the target
+	## file instead of the host file, during a cross-build.
+	show_mesg "I can't find the Jikes java-to-byte-code compiler.  Please set the variable JIKES in $CURRENT_CONFIG_FILE or put an executable named \"jikes\" in your command search path"
+    fi
+
+    ## HOST_JAVAC:
+    ## The Java compiler.
+    if [[ ! ${HOST_JAVAC-} ]]; then
+	if [[ $HOST_VM_TYPE = gij ]]; then
+	    ## -fjni isn't compatible with generating class files, so we will
+	    ## leave it out.
+	    export HOST_JAVAC="gcj -C"
+	elif [[ $HOST_VM_TYPE = Sun ]]; then
+	    ## Use the Sun compiler.
+	    export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
+	elif [[ ${JIKES-} ]]; then	# always true
+	    # JIKES_WARNING_FLAGS won't be set the first time we read 
+	    # RVM_HOST_CONFIG; that is OK.  It will be set the second time,
+	    #  before we generate the output.
+	    export HOST_JAVAC="CLASSPATH=${RVM_BUILD}/RVM.classes:${RVM_BUILD}/RVM.classes/rvmrt.jar $JIKES ${JIKES_WARNING_FLAGS-}"
+#	    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]; then
+#		export HOST_JAVAC=$bin_dir/fake-javac
+#	    else
+#		export HOST_JAVAC=$JIKES # pray
+#	    fi
+	fi
+    fi
+
+    # HOST_REPOSITORIES:
+    # the JDK standard library jar files
+    # This should be renamed to DONOR_VM_REPOSITORIES
+    if [[ ! ${HOST_REPOSITORIES-} ]]; then
+	if [[ $HOST_VM_TYPE = Sun ]] && [[ ${HOST_JAVA_HOME-} ]]; then
+	    # For some reason, Kaffe's jre/lib/rt.jar makes the 
+	    # Jikes 1.19 compiler dump core when it compiles 
+	    # GenerateFromTemplate.java.  So we limit this to the Sun compiler.
+	    export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
+	else
+	    export HOST_REPOSITORIES=${RVM_BUILD}/RVM.classes/rvmrt.jar
+	fi
+    fi
+
+    # HOST_TOOLS: 
+    # The Sun-derived JDKs have this, which we only use for doing 
+    # regression tests: 
+    if [[ ! ${HOST_TOOLS-} ]] && [[ $HOST_VM_TYPE = Sun ]]; then
+	export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
+    fi
+
+    # The "jar" executable program.
+    # This has a convenient OSS replacement, fastjar
+    # (Except that fastjar doesn't support -u)
+    # Kaffe also comes with a "jar".
+    if [[ ! ${JAR-} ]]; then
+	if [[ ${HOST_JAR-} ]]; then
+	    # obsolete name
+	    export JAR=${HOST_JAR}
+	elif [[ ${FASTJAR-} ]]; then
+	    export JAR=${FASTJAR}
+	elif [[ ${HOST_JAVA_HOME-} ]]; then
+	    export JAR=${HOST_JAVA_HOME}/bin/jar
+	fi
+    fi
+
+    # CC: What C compilers should be used?
+    # This must be GCC.
+    [[ ${CC-} ]] || export CC='gcc -w -g -O'
+
+    # CPLUS: what C++ compilers should be used?
+    [[ ${CPLUS-} ]] || export CPLUS="${CXX-g++ -w -g -O}"
+
+    # LDSHARED:
+    # how to link a shared C++ library (possibly also recompile one 
+    # or more source files in it)
+    [[ ${LDSHARED-} ]] || export LDSHARED="${CPLUS} -shared"
+
+    # The configuration for building the user guide.
+    # You may have to edit this file.
+    [[ ${USER_GUIDE_CONFIG-} ]] || export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
+
+    ## Special GNU commands:
+    setFromPath GNU_MAKE make
+    # [[ ${GNU_MAKE-} ]] || export GNU_MAKE="/usr/bin/make"
+
+    #  some Unix commands
+    setFromPath awk
+    # [[ ${AWK-} ]] || export AWK="/usr/bin/awk"
+
+    setFromPath bash
+    # [[ ${BASH} ]] || export BASH="/bin/bash"
+
+    # You need one of Yacc or Bison (one will usually be installed)
+    setFromPath bison
+#     if ! [[ ${BISON-} ]]; then
+# 	BISON=$(type -p bison 2> /dev/null) || unset BISON
+#     fi
+
+    setFromPath diff
+    # [[ ${DIFF-} ]] || DIFF=$(type -p diff 2> /dev/null) || unset DIFF
+
+    setFromPath GNU_TAR tar
+    ## [[ ${GNU_TAR-} ]] || export GNU_TAR="/bin/tar"
+
+    setSomeFromPath fgrep find grep md5sum ps sed wget xargs
+    
+#    [[ ${FGREP-} ]] || FGREP=$(type -p fgrep 2> /dev/null) || unset FGREP
+    ## [[ ${FIND-} ]] || export FIND="/usr/bin/find"
+    # [[ ${GREP-} ]] || export GREP="/bin/grep"
+#     export MD5SUM="/usr/bin/md5sum"
+#     export PS="/bin/ps"
+#     export SED="/bin/sed"
+#     export WGET="/usr/bin/wget"
+#     export XARGS="/usr/bin/xargs"
+
+    setFromPath UNZIP_CMD unzip
+#     export UNZIP_CMD="/usr/bin/unzip"
+
+}
+
+function load_config_file () {
+    . "$1"
+    export CURRENT_CONFIG_FILE="$1"
+    rationalize_config_file_settings
+}
+
+
+
+#---------------------------------------------------------------------------#
+# SECTION 1c -- Get HOST_CLASSPATH_ROOT					    #
+#---------------------------------------------------------------------------#
+
+load_config_file "${RVM_HOST_CONFIG}"
+
+## We normally check for a variable named CLASSPATH_ROOT in the config file.
+## An EXPERIMENTAL alternative is to set
+## CLASSPATH_INSTALLATION in your config file.  If you've run "make install"
+## in the default configuration, then CLASSPATH_INSTALLATION will be
+## "/usr/local/classpath".
+##
+## This does not have the checks in it that we normally get
+
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
+[[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r HOST_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION} # XXX Experimental
 
 
 
@@ -427,19 +725,24 @@ CONF_SPECIFIC_TOP_LEVEL_SOURCES=""
 #
 # These could be overridden by someone with -D on the command line, or 
 # in the config file.
-HOST_JIKES_STR1="HOST_JIKES"
-HOST_JIKES_STR="\$$HOST_JIKES_STR1"
+JIKES_STR1="JIKES"
+JIKES_STR="\$$JIKES_STR1"
+# HOST_JAVA is a deprecated alias for HOST_VM_RT
 HOST_JAVA_STR1="HOST_JAVA_RT"
 HOST_JAVA_STR="\$$HOST_JAVA_STR1"
+HOST_VM_RT_STR1="HOST_VM_RT"
+HOST_VM_RT_STR="\$$HOST_VM_RT_STR1"
+HOST_VM_TYPE_STR1="HOST_VM_TYPE"
+HOST_VM_TYPE_STR="\$$HOST_VM_TYPE_STR1"
 HOST_JAVAC_STR1="HOST_JAVAC"
 HOST_JAVAC_STR="\$$HOST_JAVAC_STR1"
 HOST_JAVA_HOME_STR1="HOST_JAVA_HOME"
 HOST_JAVA_HOME_STR="\$$HOST_JAVA_HOME_STR1"
 HOST_JAVADOC_STR1="HOST_JAVADOC"
 HOST_JAVADOC_STR="\$$HOST_JAVADOC_STR1"
-HOST_JAR_STR1="HOST_JAR"
-HOST_JAR_STR="\$$HOST_JAR_STR1"
-HOST_REPOSITORIES_STR1="HOST_JAVA_REPOSITORIES"
+JAR_STR1="JAR"
+JAR_STR="\$$JAR_STR1"
+HOST_REPOSITORIES_STR1="HOST_REPOSITORIES"
 HOST_REPOSITORIES_STR="\$$HOST_REPOSITORIES_STR1"
 HOST_TOOLS_STR1="HOST_JAVA_TOOLS"
 HOST_TOOLS_STR="\$$HOST_TOOLS_STR1"
@@ -466,14 +769,15 @@ declare -x -i GENERATE_MAP=1
 
 f=$RVM_ROOT/rvm/_timestamp/timestamp
 if [[ ! -f  $f ]]; then
-    echo >&2 "$ME: RVM_ROOT is not set properly; I can't find a file named
+    echo >&2 "$ME: RVM_ROOT is not set properly or the directory is
+   corrupt; I can't find a file named
     \"$f\" (RVM_ROOT/rvm/_timestamp/timestamp)."
     trap ''
     exit 3
 fi
 # Current version of RVM
 CVS_TIMESTAMP=$(cat $f)
-JIKESRVM_VERSION="Jikes RVM 2.3.1"
+JIKESRVM_VERSION="Jikes RVM 2.3.2"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -520,7 +824,8 @@ declare -i RVM_WITH_GEN_RC=0
 declare -i RVM_WITH_COPY_MS=0
 declare -i RVM_WITH_REF_COUNT=0
 declare -i RVM_WITH_NO_GC=0
-
+declare -i RVM_WITH_GCSPY=0
+declare -i RVM_WITH_GCTRACE=0
 
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
@@ -561,7 +866,6 @@ declare -i RVM_WITH_OSR=0
 # complains about any tests against undefined conditionals.
 # Search for "BUILD_WITH_PARANOID_PREPROCESSOR" below and way below.
 
-declare -i RVM_WITHOUT_LOAD_BALANCING=0	# default in VM_IdleThread.java
 declare -i RVM_WITH_FREE_LOCK_BALANCING=0	# In VM_Lock.java
 declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0	
 declare -i RVM_FOR_MCS_PROCESSOR_LOCKS=0
@@ -585,21 +889,30 @@ declare -i HAS_DLCOMPAT=0
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
 #---------------------------------------#
 
+## Turn off all of the environment variables that might be set by
+## sourcing a configuration file, but that might not be set if we were
+## to source a different such configuration file.  
 function unsetEnvironment() {
     local flags="$-"
     set +e
-    # disable ERR Trap.  This only affects this function, not the 
-    # global environment.
-    trap '' ERR
-    ## Turn off all of the environment variables that we get when we 
-    ## source config files but that might not be set if we were to source
-    ## a different such config file.
-    unset HOST_JIKES $HOST_JIKES_STR1
-    unset HOST_JAVA $HOST_JAVA_STR1 
+    # Disable ERR Trap.  This only affects this function, not the 
+    # global environment.  We do this (disable the ERR trap) in order to avoid
+    # any errors that may arise from unsetting variables that are not already
+    # set.
+    #
+    # As before, we redirect error messages to /dev/null.  This is because
+    # some older Bash versions do not support the ERR trap.
+    trap '' ERR 2> /dev/null || :
+
+    unset JIKES $JIKES_STR1
+    unset HOST_JAVA $HOST_JAVA_STR1 # Deprecated.
+    unset HOST_VM_RT $HOST_VM_RT_STR1
+    unset HOST_VM_TYPE $HOST_VM_TYPE_STR1
     unset HOST_JAVAC $HOST_JAVAC_STR1
     unset HOST_JAVA_HOME $HOST_JAVA_HOME_STR1 
     unset HOST_JAVADOC $HOST_JAVADOC_STR1 
-    unset HOST_JAR $HOST_JAR_STR1 
+    unset JAR $JAR_STR1 
+    unset FASTJAR
     unset HOST_REPOSITORIES $HOST_REPOSITORIES_STR1 
     unset HOST_TOOLS $HOST_TOOLS_STR1 
     unset GNU_MAKE $GNU_MAKE_STR1 
@@ -610,6 +923,7 @@ function unsetEnvironment() {
     unset WGET XARGS UNZIP 
     unset HOST_JAVA_LD_LIBRARY_PATH
     unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
+    unset CLASSPATH_INSTALLATION # XXX Experimental
     unset PS MD5SUM GREP GNU_TAR FIND FGREP DIFF CVS BASH AWK
     unset BENCHMARK_ROOT
     set $flags;			# turn back on -e, if it was off.
@@ -623,8 +937,9 @@ function unsetEnvironment() {
 # or in a build-config file.
 
 unsetEnvironment;
-. "${RVM_TARGET_CONFIG}"
+load_config_file "${RVM_TARGET_CONFIG}"
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r TARGET_CLASSPATH_ROOT=${CLASSPATH_ROOT}
+[[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r TARGET_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION}
 
 # echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
@@ -677,6 +992,12 @@ do
     shift
 done
 
+# This is where we would want to do the check.  However, we get into
+# trouble too fast (i.e., early on) with Bash 2.03, so we use a
+# grosser kludge at the start of jconfigure in order to quickly throw
+# out Bash 2.03 and earlier.
+(( quiet )) || check_bash_version
+
 (( $# >= 1 )) || croak_usage "Please specify <configuration-name>"
 CONFIGURATION_NAME="$1"
 shift
@@ -706,6 +1027,13 @@ fi
 if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
+
+if (( (( RVM_FOR_AIX )) || (( (( RVM_FOR_LINUX )) && (( RVM_FOR_POWERPC )) && (( RVM_FOR_64_ADDR )))) )); then
+    RVM_WITH_LINKAGE_TRIPLETS=1
+else
+    RVM_WITH_LINKAGE_TRIPLETS=0
+fi
+
 
 ## Setting PREPROCESSOR_DEFINITIONS:
 ## We keep this variable with a newline-separated list of definitions.
@@ -744,6 +1072,11 @@ CLEANUP=":"
 PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
 ${from_vars}"
 unset from_vars
+## We keep PREPROCESSOR_DEFINITIONS as a newline-separated list rather than
+## turning it into a space-separated list.  That is because it is 
+## convenient for us to be able to print out the definitions
+## in the configuration summary.
+
 
 if (( BUILD_WITH_PARANOID_PREPROCESSOR )); then
     PARANOID_PREPROCESSOR_FLAG=" --no-undefined-constants-in-conditions"
@@ -963,6 +1296,11 @@ EOF
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/statistics
+
+    # Local projects (template)
+    #
+    #    $RVM_ROOT/projects/myproject
 EOF
     # collector specific classes
     #
@@ -980,9 +1318,18 @@ EOF
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
     elif (( $RVM_WITH_REF_COUNT )); then
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
+    elif (( $RVM_WITH_GCTRACE )); then
+        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/gcTrace
     elif (( $RVM_WITH_NO_GC )); then
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
     fi
+
+    # GCSpy specific classes
+    GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
+    echo $GCSPY_ROOT
+    echo $GCSPY_ROOT/util
+    # TODO Would be better to load only drivers needed rather than all
+    echo $GCSPY_ROOT/drivers
 
     # standard library support
     #
@@ -999,6 +1346,12 @@ EOF
     #
     if (( $RVM_WITH_HPM )); then
 	echo $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
+ 	echo $RVM_ROOT/rvm/src/vm/HPM
+	if (( RVM_FOR_LINUX )); then
+	    echo $RVM_ROOT/rvm/src/vm/HPM/intel
+	elif (( RVM_FOR_POWERPC )); then
+	    echo $RVM_ROOT/rvm/src/vm/HPM/powerPC
+	fi
     fi
 
     # Add the configuration specific directories
@@ -1014,14 +1367,14 @@ EOF
 
 ## We only emit the boilerplate inline.
 function emitBoilerplate () {
+## NEW version:
     cat <<- 'EOF'
 	## BEGIN inline Bash boilerplate.
-	# What is our name?
-	# Bash internal shorthand that works like the "basename" command.
-	ME="${0##*/}"
-	EOF
-    cat "${bin_dir}/libjconfigure.bash";
-    echo '## END inline Bash boilerplate.'
+	ME="${0##*/}"			# What is our name?
+	set -e
+	. ${JAL_ROOT?}/rvm/bin/libjconfigure.bash
+	## END inline Bash boilerplate.
+EOF
 }
 
 function emit_disable_exit_on_error () {
@@ -1078,14 +1431,26 @@ function emitEnvironmentBash () {
 	fi
 
 	
-	export $HOST_JIKES_STR1='$JIKES'
-	export $HOST_JAVA_STR1='$HOST_JAVA'
+	export HOST_JIKES='$JIKES'		# Deprecated
+	export $JIKES_STR1='$JIKES'
+	export $HOST_JAVA_STR1='${HOST_VM_RT}'	# Deprecated
+	export $HOST_VM_RT_STR1='${HOST_VM_RT}'
 	export $HOST_JAVAC_STR1='$HOST_JAVAC'
-	export $HOST_JAVA_HOME_STR1='$HOST_JAVA_HOME'
-	export $HOST_JAVADOC_STR1='$HOST_JAVADOC'
-	export $HOST_JAR_STR1='$HOST_JAR'
-	export $HOST_REPOSITORIES_STR1='$HOST_REPOSITORIES'
-	export $HOST_TOOLS_STR1='$HOST_TOOLS'
+EOF
+    # Javadoc is optional; we won't always have free alternatives installed
+    if [[ ${HOST_JAVADOC-} ]]; then
+	echo "export $HOST_JAVADOC_STR1='$HOST_JAVADOC'"
+    fi
+    if [[ ${HOST_TOOLS-} ]]; then
+	echo "export $HOST_TOOLS_STR1='$HOST_TOOLS'"
+    fi
+    if [[ ${HOST_REPOSITORIES-} ]]; then
+	echo "export HOST_JAVA_REPOSITORIES='$HOST_REPOSITORIES' #Deprecated"
+	echo "export $HOST_REPOSITORIES_STR1='$HOST_REPOSITORIES'"
+    fi
+    cat <<-EOF
+	export HOST_JAR='$JAR'	# Deprecated
+	export $JAR_STR1='$JAR'
 	export $GNU_MAKE_STR1='$GNU_MAKE'
 	
 	export $HOST_CC_STR1='$CC'
@@ -1094,7 +1459,10 @@ function emitEnvironmentBash () {
 	
 	export AWK='$AWK'
 	export BASH='$BASH'
-	export CVS='$CVS'
+EOF
+    # We do not need CVS any more; we don't use it any more to check out GNU Classpath.
+    [[ ! ${CVS-} ]] || export CVS='$CVS'
+cat <<- EOF
 	export DIFF='$DIFF'
 	export FGREP='$FGREP'
 	export FIND='$FIND'
@@ -1107,7 +1475,12 @@ function emitEnvironmentBash () {
 	export XARGS='$XARGS'
 	export UNZIP_CMD='$UNZIP_CMD'
 	export CLASSPATH_LIBRARIES=YES
+	export HOST_VM_TYPE='${HOST_VM_TYPE}'
+	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
+	export JIKES_WARNING_FLAGS='${JIKES_WARNING_FLAGS}'
+
 EOF
+    [[ ${HOST_JAVA_HOME-} ]] && echo "export $HOST_JAVA_HOME_STR1='$HOST_JAVA_HOME'"
     if [ "${HOST_JAVA_LD_LIBRARY_PATH-}" ]; then
 	cat <<- EOF
 	[[ \${LD_LIBRARY_PATH-} ]] && LD_LIBRARY_PATH=:\${LD_LIBRARY_PATH}
@@ -1116,12 +1489,18 @@ EOF
     fi
 
     [[ ! ${CPP-} ]] || echo "export $HOST_CPP_STR1='$CPP'"
+    [[ ! ${FASTJAR-} ]] || echo "export FASTJAR='$FASTJAR'"
     [[ ! ${BISON-} ]] || echo "export BISON='$BISON'"  
     [[ ! ${ANT_CMD-} ]] || echo "export ANT_CMD='$ANT_CMD'"
     echo ""
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
     echo ""
     [[ ! ${CLASSPATH_ROOT-} ]] || echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
+    [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"	# XXX Experimental
+    echo ""
+    # For self-booting with Jikes RVM (work in progress)
+    [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
+    [[ ! ${DONOR_RVM_BUILD-} ]] || echo "export DONOR_RVM_BUILD=$DONOR_RVM_BUILD"
     echo ""
 }
 
@@ -1154,25 +1533,45 @@ function emitMakefile () {
 	    ${BUILD_DIRECTORY_STR1}:=${RVM_BUILD}
 	endif
 	
-	$HOST_JIKES_STR1 = $JIKES
+	HOST_JIKES = $JIKES	# Deprecated
+	$JIKES_STR1 = $JIKES
+EOF
 	
-	HOST_JAVA_HOME = $HOST_JAVA_HOME
-	HOST_JAVA = $HOST_JAVA
+    # The configuration for building the user guide.
+    # You may have to edit this file.
+    [[ ! ${USER_GUIDE_CONFIG-} ]] || echo "USER_GUIDE_CONFIG := ${RVM_ROOT}/rvm/doc/userguide/config.mk"
+
+    [[ ! ${HOST_JAVA_HOME-} ]] || echo "HOST_JAVA_HOME = $HOST_JAVA_HOME"
+    [[ ! ${DO_NOT_RUN_JAVAH-} ]] || echo "DO_NOT_RUN_JAVAH = $DO_NOT_RUN_JAVAH"
+    [[ ! ${HOST_TOOLS-} ]] || echo "HOST_TOOLS = $HOST_TOOLS"
+    [[ ! ${HOST_JAVADOC-} ]] || echo "HOST_JAVADOC := $HOST_JAVADOC"
+
+    if [[ ${TemplateExpander_HOST_VM_RT-} ]]; then
+	echo "# Experimental!"
+	echo "TemplateExpander_HOST_VM_RT := ${TemplateExpander_HOST_VM_RT-}"
+    fi
+
+    cat <<- EOF
+	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
+	HOST_VM_RT = ${HOST_VM_RT}
+	HOST_VM_TYPE := ${HOST_VM_TYPE}
 	HOST_JAVAC = $HOST_JAVAC
-	HOST_JAVADOC = $HOST_JAVADOC
-	HOST_JAR = $HOST_JAR
+	HOST_JAR := ${JAR}	# Deprecated
+	JAR = $JAR
+	HOST_JAVA_REPOSITORIES = $HOST_REPOSITORIES # Deprecated
 	HOST_REPOSITORIES = $HOST_REPOSITORIES
-	HOST_TOOLS = $HOST_TOOLS
 	
 	CC = $CC
 	CPLUS = $CPLUS
 	CXX = $CPLUS
 	LDSHARED = $LDSHARED
 	
-	AWK= $AWK
+	AWK = $AWK
 	BASH = $BASH
-	CVS = $CVS
-	DIFF= $DIFF
+EOF
+    [[ ! ${CVS-} ]] || echo "CVS = ${CVS}"
+    cat <<- EOF
+	DIFF = $DIFF
 	FGREP = $FGREP
 	FIND = $FIND
 	GNU_TAR = $GNU_TAR
@@ -1185,10 +1584,14 @@ function emitMakefile () {
 	UNZIP_CMD = $UNZIP_CMD
 
 
+	JIKES_WARNING_FLAGS = ${JIKES_WARNING_FLAGS}
 	CLASSPATH_LIBRARIES = YES
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
+    [[ ! ${FASTJAR-} ]] || echo "FASTJAR = '$FASTJAR'"  
     [[ ! ${BENCHMARK_ROOT-} ]] || echo "BENCHMARK_ROOT = $BENCHMARK_ROOT"
+    [[ ! ${DONOR_RVM_ROOT-} ]] || echo "DONOR_RVM_ROOT = $DONOR_RVM_ROOT"
+    [[ ! ${DONOR_RVM_BUILD-} ]] || echo "DONOR_RVM_BUILD = $DONOR_RVM_BUILD"
 }
 
 
@@ -1198,9 +1601,14 @@ function emitController () {
     cat <<- EOF
 	#! ${HOST_BASH}
 
-	# Run all phases of vm builder.
 
-	$(emitBoilerplate)
+	if [[ \${RVM_ROOT-UNSET} = UNSET ]]; then
+	    export ${ROOT_DIRECTORY_STR1}=${RVM_ROOT}
+	else
+	    export ${ROOT_DIRECTORY_STR1}=\${RVM_ROOT}
+	fi
+    $(emitBoilerplate)
+	# Run all phases of vm builder.
 
 	# timeit() \$1: The command to run
 	#	   \$2: That command's arguments.
@@ -1332,23 +1740,52 @@ function emitController () {
 	    shift
 	done
 
-	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	[[ ! \${RVM_BUILD-} ]] || cd \$RVM_BUILD
 	
 	if [[ \$BOOTER_FLAG = -booter ]]; then
 	  . ./environment.target
 	else
 	  . ./environment.host
 	fi
+
 	
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
+
+	# Copy the GNU Classpath JAR file:
+	#
+	# Copy over rvmrt.jar; we need that to get a working compiler
+	# (at least when we're operating in open-source mode, under the 
+	# Jikes compiler, which doesn't have a default bootclasspath)
+EOF
+    if [[ ${CLASSPATH_INSTALLATION-} ]]; then
+	cat <<- EOF
+	# Experimental; use a built GNU Classpath that was installed
+	# with "make install".
+	SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
+EOF
+    else
+	## The classic, stable, documented, and recommended way
+	cat <<- EOF
 	# Ensure that we have the right version of the class libraries
 	$ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
+
+	CPS="${HOST_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+	SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
+	SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
+EOF
+    fi
+    cat <<- EOF
+	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
+	copyIfNewer "\$SRC" "\$DEST" -n "(classpath.jar copied) "
+EOF
 	
+    cat <<- EOF
 	if [[ \$CLEAN_FLAG = -clean ]]; then
 	    rm -rf $TOOL_DIRECTORY_STR
 	    timeit ./jbuild.expand      -clean
 	    timeit ./jbuild.copy        -clean
 	    timeit ./jbuild.compile     -clean
+	    timeit ./jbuild.interfaceDeclarations     -clean
 	    timeit ./jbuild.linkImage   \$DEMOGRAPHICS_FLAG -clean
 	    timeit ./jbuild.linkBooter  -clean
 	    trap '' EXIT
@@ -1364,10 +1801,12 @@ function emitController () {
 	    timeit ./jbuild.expand     -clean
 	    timeit ./jbuild.copy       -clean
 	    timeit ./jbuild.compile    -clean
+	    timeit ./jbuild.interfaceDeclarations    -clean
 	    timeit ./jbuild.linkImage  \$DEMOGRAPHICS_FLAG -clean
 	    timeit ./jbuild.linkBooter -clean
 	    rm -f $CLEANSE_STATUS_STR
 	elif [[ \$NOLINK_FLAG != -nolink ]]; then
+	    timeit ./jbuild.interfaceDeclarations    -clean
 	    timeit ./jbuild.linkImage  \$DEMOGRAPHICS_FLAG -clean
 	    timeit ./jbuild.linkBooter -clean
 	fi
@@ -1389,6 +1828,7 @@ function emitController () {
 	    timeit ./jbuild.copy   
 	    timeit ./jbuild.compile
 	    if [[ \$NOLINK_FLAG != -nolink ]]; then
+		timeit ./jbuild.interfaceDeclarations
 	        timeit ./jbuild.linkImage  \$DEMOGRAPHICS_FLAG
 	        if [[ \$NOBOOTER_FLAG != -nobooter ]]; then
 		    if [[ \${RUN_BUILD_COPY-} ]]; then
@@ -1404,7 +1844,7 @@ function emitController () {
 	    show_mesg "To execute the $CONFIGURATION_NAME RVM (from any directory) type:"
 	    echo "\${ME}:    rvm <vm-args> classname <application-args>"
 	    if ! type -p rvm > /dev/null; then
-	        show_mesg "You will also need to add ${RVM_ROOT}/bin to your path"
+	        show_mesg "You will also need to add ${RVM_ROOT}/rvm/bin to your path"
 	    fi
 	fi
 	trap '' EXIT
@@ -1421,8 +1861,11 @@ function emitExpander () {
     cat <<- EOF
 	#! ${HOST_BASH}
 	# Generate VM sources that derive from templates.
-	$(emitBoilerplate)
+
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	
 	. ./environment.host
+    $(emitBoilerplate)
 
 
 	# Process command-line args   
@@ -1457,6 +1900,11 @@ function emitExpander () {
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
 	    echo *.* | \$XARGS rm -f
 	EOF
+    #if (( RVM_WITH_GCSPY )); then
+	cat <<- EOF
+            mkdir -p ${SCRATCH_DIRECTORY_STR}/org/mmtk/vm/gcspy
+	EOF
+    #fi
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 	    cd ${GENERATED_FILES_DIRECTORY_STR}/instructionFormats
@@ -1470,25 +1918,30 @@ function emitExpander () {
 	    trap '' EXIT
 	    exit 0
 	fi
+
 	# Make the tools that we need to do template expansion
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
+
+	# Opt compiler only:
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool
 	EOF
     fi
     cat <<- EOF
-	# build command line options for core VM
+
+	# Build the command line options for the core VM
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
-	# build command line options for JMTk
+	# Build the command line options for JMTk
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_FOR_IA32 )); then
 	cat <<- EOF
-        # build VM_Assembler on Intel
+
+	# Build VM_Assembler on Intel
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_OPT_COMPILER )); then
@@ -1497,6 +1950,7 @@ run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rv
 	fi
     fi
     cat <<- EOF
+
 	# Do the expansion
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/classLoader MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
@@ -1504,16 +1958,19 @@ EOF
 
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
+		# (OPT Compiler only:)
 		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_EXTREME_ASSERTIONS )); then
 	    cat <<- EOF
+		# (OPT Compiler with extreme assertions only:)
 		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing/ir/instruction fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	fi
     fi
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
+		# (Adaptive system only)
 		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
     fi
@@ -1539,8 +1996,10 @@ function emitCopier () {
 	# Taken:    .java files in the source tree
 	# Returned: .java files in the build directory
 
-	$(emitBoilerplate)
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
 	. ./environment.host
+	
+    $(emitBoilerplate)
 	
 
 	# Process command-line args   
@@ -1668,14 +2127,8 @@ EOF
 	fi
 EOF
 
-    # copy classpath jar file
-    CPS="${HOST_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
-    cat <<EOF
-	SYSTEM_TYPE=\$($CPS/classpath/config.guess)
-	SRC=$CPS/\$SYSTEM_TYPE/lib/glibj.zip
-	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
-	copyIfNewer "\$SRC" "\$DEST" -n "(classpath.jar copied) "
 
+    cat <<- EOF
 	# Remember if any new (or modified) source files were discovered.
 	#
 	if [[ \${FILES_HAVE_CHANGED} = 1 ]]; then
@@ -1702,11 +2155,10 @@ function emitCompiler () {
 	# Taken:    .java files in build directory 
 	#            CLASSES_INVALID
 	# Returned: .class files in build directory
-EOF
-    emitBoilerplate;
-    cat <<- EOF
-	. ./environment.host
 
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	. ./environment.host
+    $(emitBoilerplate)
 
 	while (( \$# > 0 )); do
 	    arg="\$1"
@@ -1763,10 +2215,10 @@ EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    chdir $CLASSES_DIRECTORY_STR
 	    run rm -f $TOP_LEVEL_CLASSES
-	    jikes_invocation="$HOST_JIKES_STR $JIKES_WARNING_FLAGS -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
 	    open_paren 'compiling classes'
 	    if tracing jbuild || tracing make || tracing; then
-		cleanline
+	        cleanline
 	        echo "  "\${jikes_invocation}
 	    fi
 	    if \${jikes_invocation}; then
@@ -1779,32 +2231,172 @@ EOF
 	        echo >&2 "\$ME: With the command-line: \$jikes_invocation"
 	        exit \$status
 	    fi
+
 	    open_paren 'building jksvm.jar'
 	    rm -f jksvm.jar
-	    ## The Sun JAR manual page claims that '-O' (the letter Oh) is the
-	    ## flag for no-compression.  It is actually '0' (the number zero),
-	    ## not the letter 'O'.
-	    $HOST_JAR_STR -c0f jksvm.jar Dummy.class
-
-	    \$FIND . -name '*.class' | \$XARGS $HOST_JAR_STR -u0f jksvm.jar
+	    ## NB: "fastjar", the open-source program, has a broken -u flag,
+	    ## at least temporarily.  However, it DOES have a very nice @ flag,
+	    ## which the Sun-derived JDKs lack.
+	    if [[ \${FASTJAR-} ]]; then
+ 	        \$FIND . -name '*.class' | \$FASTJAR -c0@f jksvm.jar
+	    else
+	        ## The Sun JAR manual page claims that '-O' (the letter Oh) 
+	        ## is the flag for no-compression.  It is actually
+	        ## '0' (the number zero), not the letter 'O'.
+	        $JAR_STR -c0f jksvm.jar Dummy.class
+	        \$FIND . -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+	    fi
 	    close_paren 'jksvm.jar built'
 
 	    open_paren 'building jksvmsrc.jar'
 	    run rm -f jksvmsrc.jar
-	    run $HOST_JAR_STR -c0f jksvmsrc.jar Dummy.java
-	    ## -r is XARGS's no-run-if-empty flag.
-	    \$FIND . -name '*.java' | run \$XARGS $HOST_JAR_STR -u0f jksvmsrc.jar
+	    if [[ \${FASTJAR-} ]]; then
+ 	        \$FIND . -name '*.java' | \$FASTJAR -c0@f jksvmsrc.jar
+	    else
+	        run $JAR_STR -c0f jksvmsrc.jar Dummy.java
+	        ## -r is XARGS's no-run-if-empty flag.
+	        \$FIND . -name '*.java' | run \$XARGS $JAR_STR -u0f jksvmsrc.jar
+	    fi
 	    close_paren 'jksvmsrc.jar built'
 
 	else
 	    if tracing jbuild; then
-	         echo -n "(nothing needed to be compiled) "
+	        echo -n "(nothing needed to be compiled) "
 	    fi
 	fi
 	rm -f $CLASSES_INVALID_STR
 
 	trap '' EXIT
 	EOF
+}
+
+function emitInterfaceDeclarationsWriter () {
+    cat <<- EOF
+	#! ${HOST_BASH}
+	# Taken:    .class files in build directory
+	# Returned:  InterfaceDeclarations.h in build directory
+	#
+
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	
+	. ./environment.host
+    $(emitBoilerplate)
+
+	while (( \$# > 0 )); do
+	    arg="\$1"
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
+	    if [[ \$arg == -trace* ]]; then
+	        TRACE_FLAG="\$arg"
+	    elif [[ \$arg = -v ]]; then
+	       VFLAG=-v
+	    elif [[ \$arg = -x ]]; then
+	       XFLAG=-x
+	    elif [[ \$arg = -clean ]]; then
+	        CLEAN_FLAG=-clean
+	    else
+	        show_mesg >&2 "Unknown argument: \$arg"
+	        trap '' EXIT
+	        exit $Exit_Status_Bad_Args
+	    fi
+	    shift
+	done
+
+	echo -n "\${ME}: "
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
+	if tracing make; then
+	    MFLAGS=-w
+	fi
+EOF
+    ## List of the classes that make 
+    ## up the program GenerateInterfaceDeclarations.  
+    ## Keep these in brace-expansion-format 
+
+    ## Brace expansion precedes variable expansion, so we'll have to
+    ## expand this variable at the time of emitting the script, rather
+    ## than at run time.
+    generator_classes="{GenerateInterfaceDeclarations,AlternateRealityClassLoader,Emitters,IntEmitter,DoubleEmitter,FieldReader,OffsetEmitter,OffsetReader,Shared,Util}"
+    cat <<-EOF
+	declare -r interface=$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h
+
+	function clean_InterfaceDeclarations() {
+	    eval rm -f $SCRATCH_DIRECTORY_STR/${generator_classes}.java
+	    eval rm -f $SCRATCH_DIRECTORY_STR/${generator_classes}.class
+	    rm -f \$interface
+	    echo >&2 -n "(interface cleaned) " 
+	    
+	}
+
+	if [[ \$CLEAN_FLAG ]]; then
+	    clean_InterfaceDeclarations;
+	    trap "" EXIT
+	    exit 0
+	fi
+
+	# copy and preprocess $generator_classes.java
+	#
+
+	PREPROC_FLAGS="--only-boolean-constants-in-conditions ${PARANOID_PREPROCESSOR_FLAG}"
+	if tracing preprocessor; then
+	    cleanline >&2
+	    echo >&2 -n "\$ME: $BOOTIMAGE_RUNNER_DIR_STR"/
+	fi
+	
+	cd ${BOOTIMAGE_RUNNER_DIR_STR}
+	generator_sources=\$(for file in ${generator_classes}.java; do [[ ! -e \$file ]] || echo \$file; done)
+ 	run $BUILD_DIRECTORY_STR/jbuild.prep.host \
+ 		--disable-modification-exit-status \$PREPROC_FLAGS \
+ 		$(echo $PREPROCESSOR_DEFINITIONS) \
+ 		$SCRATCH_DIRECTORY_STR  \
+		\${generator_sources}
+
+	#
+	# compile GenerateInterfaceDeclarations.java and its support files.
+	#
+
+	## We don't put it into its own package because right now
+	## the VM thinks that it owns all of
+	## the com.ibm.JikesRVM namespace, and gets upset if someone wants
+	## to load applications using any other class loader.
+
+	# generator_class="com.ibm.JikesRVM.GenerateInterfaceDeclarations.GenerateInterfaceDeclarations"
+	# generator_source_file=com/ibm/JikesRVM/GenerateInterfaceDeclarations/GenerateInterfaceDeclarations.java
+	generator_class="GenerateInterfaceDeclarations"
+# 	generator_source_file="\${generator_class//./'/'}.java"
+# 	# generator_source_file="GenerateInterfaceDeclarations.java"
+# 	generator_prefix="\$(dirname \$generator_source_file)"
+
+	chdir $SCRATCH_DIRECTORY_STR
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
+
+	eval run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
+	  -classpath \$cp \
+	  -bootclasspath \$cp \
+	   \${generator_sources}
+
+# 	eval run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
+# 	  -classpath \$cp \
+# 	  -bootclasspath \$cp \
+# 	   \$generator_prefix/${generator_classes}.java
+
+	#
+	# generate InterfaceDeclarations.h
+	#
+	rm -f \$interface
+	declare -a args=( -Xmx200M \
+	   -classpath \$cp		\
+	   \${generator_class} \
+	   -ia $BOOTIMAGE_LOAD_ADDRESS \
+	   -out \$interface )
+	if [[ \$HOST_VM_TYPE == "JikesRVM" ]]; then
+#	    args=("-X:vmClasses=.:\$DONOR_RVM_BUILD/RVM.classes/jksvm.jar:\$DONOR_RVM_BUILD/RVM.classes/rvmrt.jar" "\${args[@]}")
+	    args=("\${args[@]}" -alternateRealityClasspath  "\$cp" )
+	    args=("\${args[@]}" -alternateRealityNativeLibDir  \
+					"$BUILD_DIRECTORY_STR" )
+	fi
+	run $HOST_VM_RT_STR "\${args[@]}"
+	echo -n '(wrote interface) '
+	trap '' EXIT
+EOF
 }
 
 # echo >&2  "HERE I AM! emitImageLinker" # DBG
@@ -1814,11 +2406,10 @@ function emitImageLinker () {
 	# Generate the VM bootimage.
 	# Taken:    .class files in build directory
 	# Returned: PRIMORDIAL_CLASSES and bootimage in build directory
-	#            InterfaceDeclarations.h in bootImageRunner directory
 	#
-	$(emitBoilerplate)
-
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
 	. ./environment.host
+    $(emitBoilerplate)
 
 	# Process command-line args
 	DEMOGRAPHICS_FLAG=""
@@ -1856,18 +2447,11 @@ function emitImageLinker () {
 	    
 	}
 	function clean_bootimage() {
-	    rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.*
-	    rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h
 	    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.java
 	    rm -f $SCRATCH_DIRECTORY_STR/BootImage*.class
 	    echo >&2 -n "(bootimage cleaned) " 
 	}
 
-EOF
-    
-    BOOTIMAGE_WRITER_MAKEFILE=Makefile
-
-    cat <<- EOF
 	if [[ \$CLEAN_FLAG ]]; then
 	    clean_primordials;
 	    clean_bootimage;
@@ -1920,7 +2504,7 @@ EOF
     
     declare -i save_temps=0	# You might set save_temps=1 when debugging.
     if (( ! save_temps )); then
-	CLEANUP='rm -f $PRIMORDIAL_CLASSES_STR.1 $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3'
+	echo "CLEANUP='rm -f $PRIMORDIAL_CLASSES_STR.want-these $PRIMORDIAL_CLASSES_STR.want-minus-exclusions $PRIMORDIAL_CLASSES_STR.in-gnu-classpath'"
     fi
 
     # Start a subshell where the output from a series of commands will go to
@@ -1938,11 +2522,12 @@ EOF
 	    echo "    \$FIND ./com/ibm/JikesRVM/OSR -name '*.class'"
         fi
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
+	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
-    echo ") > ${PRIMORDIAL_CLASSES_STR}.1"
+    echo ") > ${PRIMORDIAL_CLASSES_STR}.want-these"
     cat <<- EOF
-cleanFileList >> ${PRIMORDIAL_CLASSES_STR}.1 << EOF_PRIMORDIAL_CLASSES_STR_1
+cleanFileList >> ${PRIMORDIAL_CLASSES_STR}.want-these << EOF_PRIMORDIAL_CLASSES_STR_1
 # VM daemon threads that do not start with VM for historical reasons
 com/ibm/JikesRVM/FinalizerThread
 com/ibm/JikesRVM/MainThread
@@ -2007,6 +2592,7 @@ java/lang/StringIndexOutOfBoundsException
 java/lang/UnsatisfiedLinkError
 java/lang/InternalError
 java/lang/IllegalMonitorStateException
+java/lang/ExceptionInInitializerError
 
     # primitive wrapper types
     #
@@ -2215,7 +2801,9 @@ EOF
 	cat << EOF
 com/ibm/JikesRVM/HPM_counters
 com/ibm/JikesRVM/HPM_info
-Lcom/ibm/JikesRVM/Java2HPM;
+com/ibm/JikesRVM/Java2HPM
+com/ibm/JikesRVM/VM_HardwarePerformanceMonitor
+com/ibm/JikesRVM/VM_HardwarePerformanceMonitors
 EOF
     fi
     cat <<- EOF
@@ -2230,17 +2818,17 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	    # At this line, get rid of any lines containing a literal '$'
 	    #		delete any initial './' (from find's output)
 	    #		delete any trailing .class (also from find)
-	    \$FGREP -v -f $EXCLUDED_CLASSES_STR ${PRIMORDIAL_CLASSES_STR}.1 | ${SED_STR} -e'/\\\$/d' -e 's@^\\./@@' -e 's@\.class\$@@' -e 's@^\\(.*\\)\$@\\1.class\\
-\\1\$@' > ${PRIMORDIAL_CLASSES_STR}.2
-	    $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.3
+	    \$FGREP -v -f $EXCLUDED_CLASSES_STR ${PRIMORDIAL_CLASSES_STR}.want-these | ${SED_STR} -e'/\\\$/d' -e 's@^\\./@@' -e 's@\.class\$@@' -e 's@^\\(.*\\)\$@\\1.class\\
+\\1\$@' > ${PRIMORDIAL_CLASSES_STR}.want-minus-exclusions
+	    $JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	# Nuke leading "./" from the strings "find" prints out.
-	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.3
+	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	    > $PRIMORDIAL_CLASSES_STR # Create it clean
 #	DEBUGGING -- lets us test for junk in the RVM.primordials file:
 #	    echo fi > $PRIMORDIAL_CLASSES_STR
 	# Convert from file names ending in .class "java/lang/String.class"
 	# into internal form "Ljava/lang/String;"
-	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | $SED_STR 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
+	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.want-minus-exclusions $PRIMORDIAL_CLASSES_STR.in-gnu-classpath | $SED_STR 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
 	eval \$CLEANUP		# Remove temp files.
 	# 
 	# (4) Add Array types.  NOTE: These must be in internal form.
@@ -2261,11 +2849,19 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/classloader/VM_MemberReference;
 	[Lcom/ibm/JikesRVM/classloader/VM_Type;
 	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
-	[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/SynchronizedCounter;
-	[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;
-	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;
-	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;
-	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;
+	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
+	[Lorg/mmtk/vm/SynchronizedCounter;
+	[Lorg/mmtk/plan/Plan;
+	[Lorg/mmtk/utility/VMResource;
+	[Lorg/mmtk/utility/MemoryResource;
+	[Lorg/mmtk/utility/statistics/Stats;
+	[Lorg/mmtk/utility/statistics/Counter;
+	[Lorg/mmtk/utility/statistics/EventCounter;
+	[Lorg/mmtk/utility/statistics/LongCounter;
+	[Lorg/mmtk/utility/statistics/SizeCounter;
+	[Lorg/mmtk/utility/statistics/Timer;
+	[Lorg/mmtk/utility/MMType;
+	[Lorg/mmtk/utility/Scan;
 	[Ljava/lang/Object;
 	[[Ljava/lang/Object;
 	[Ljava/lang/String;
@@ -2416,52 +3012,23 @@ EOF
 	#
 	chdir $SCRATCH_DIRECTORY_STR
 
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
 	run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
-	   -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-	   -bootclasspath $CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
-
-	# copy and preprocess GenerateInterfaceDeclarations.java
-	#
-
-	if tracing preprocessor; then
-	    cleanline >&2
-	    echo >&2 -n "\$ME: $BOOTIMAGE_RUNNER_DIR_STR"/
-	fi
-	FILE=$BOOTIMAGE_RUNNER_DIR_STR/GenerateInterfaceDeclarations.java
-	if ! [[ -f \$FILE ]]; then
-	    show_mesg >&2 "Trouble: Cannot find \$FILE!"
-	    trap '' EXIT
-	    exit 2
-	fi
-	$BUILD_DIRECTORY_STR/jbuild.prep.host \
-		--disable-modification-exit-status \$PREPROC_FLAGS \
-		$(echo $PREPROCESSOR_DEFINITIONS) \
-		$SCRATCH_DIRECTORY_STR  \$FILE
-	#
-	# compile GenerateInterfaceDeclarations.java
-	#
-	chdir $SCRATCH_DIRECTORY_STR
-	run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
-	  -classpath $CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar \
-	  -bootclasspath $CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-	  GenerateInterfaceDeclarations.java
-
-	#
-	# generate InterfaceDeclarations.h
-	#
-	rm -f InterfaceDeclarations.h
-	run $HOST_JAVA_STR -Xmx200M \
-		-classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar \
-		GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS \
-		-out $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h
-	
 
 	# "cd", not "chdir", since GNU Make will output the directory it is 
 	# in, if the user wants directory-changing information.
 	cd $BOOTIMAGE_WRITER_DIR_STR
+    
+	# Pick a specialized boot image writer Makefile, if available.
+	BOOTIMAGE_WRITER_MAKEFILE=Makefile
+	alt=Makefile.\${HOST_VM_TYPE}
+	[[ -f \$alt ]] \
+	    && BOOTIMAGE_WRITER_MAKEFILE=\${alt}
 
-	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' -f $BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
+	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' \
+		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
 		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar \
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
 		RVM_BOOTIMAGE=$BOOTIMAGE_STR \
@@ -2501,8 +3068,14 @@ function emitCheckIfIAmTheTarget () {
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
 
-	if (( RVM_FOR_POWERPC )); then
-	    echo "if [[ \$(uname -m) != ppc ]]; then"
+        if (( RVM_FOR_POWERPC && RVM_FOR_64_ADDR )); then
+            echo "if [[ \$(uname -m) != ppc64 ]]; then"
+            echo '    echo "please run me on 64-bit Linux PowerPC"'
+            echo '    trap "" EXIT'
+            echo "    exit $Exit_Status_Run_Linker"
+            echo 'fi'
+	elif (( RVM_FOR_POWERPC )); then
+	    echo "if [[ (\$(uname -m) != ppc) && (\$(uname -m) != ppc64)]]; then"
 	    echo '    echo "please run me on Linux PowerPC"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
@@ -2533,34 +3106,16 @@ function emitBooterLinker () {
 	## clean) and on the target (when we build the booter.)
 	# Generate vm booter.
 	
-	# Taken:    InterfaceDeclarations.h in bootImageRunner directory
+	# Taken:    InterfaceDeclarations.h in RVM.scratch directory
 	# Returned: booter in build directory
 	
 	# Allow the build directory to be different between
 	# the host/boot image
 	# writing system and the target system.
 	
-$(emitBoilerplate)
-	ROOT_DIR="\${0%/*}"
-	# If a relative path, go over to a fully-qualified path.
-	if [[ "\$ROOT_DIR" = "." ]]; then
-	    ROOT_DIR="\$PWD"
-	fi
-
-	##  XXX TODO I do not understand the point behind this code.
-	##  The strange part for me is that CURRENT_DIR is not
-	##  defined anywhere else in this build process.  --Steve Augart
-
-	if [[ "\$ROOT_DIR" != "\${CURRENT_DIR=}" ]]; then
-	    if [[ -f "\$CURRENT_DIR"/"\$ROOT_DIR"/"\$ME" ]]; then
-	      ROOT_DIR=\$CURRENT_DIR/\$ROOT_DIR
-	    fi
-	fi
-	
-	. \$ROOT_DIR/environment.target
-	
-	$BUILD_DIRECTORY_STR1=\$ROOT_DIR
-	
+	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
+	. ./environment.target
+    $(emitBoilerplate)
 
 	while (( \$# > 0 )); do
 	    arg="\$1"
@@ -2607,13 +3162,22 @@ $(emitBoilerplate)
     emitCheckIfIAmTheTarget
     echo ""
 
-    if [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]]; then
+    if	   [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]] \
+	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]]
+    then
 	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
     fi
 
-    # copy native libraries
-    CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
-    echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
+    if [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
+	if (( ! RVM_FOR_LINUX )); then
+	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_INSTALLATION for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_INSTALLATION in your config file."
+	fi
+    else
+	# copy native libraries
+	CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
+	echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
+    fi
+
     if (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
 
@@ -2646,6 +3210,17 @@ cat <<- EOF
 	done
 	unset oldbase dest_lib _library || :
 EOF
+    elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
+	local -r shlib_suffix=.so
+cat <<- EOF
+	## On Linux, dynamically loaded libraries end in .so.
+	## The classpath builder conveniently generates them with that suffix.
+	for _library in ${TARGET_CLASSPATH_INSTALLATION}/lib/classpath/*.so
+	do
+	    copyIfNewer "\$_library" ${BUILD_DIRECTORY_STR}
+	done
+	unset oldbase dest_lib _library || :
+EOF
     elif (( RVM_FOR_LINUX )); then
 	local -r shlib_suffix=.so
 cat <<- EOF
@@ -2655,6 +3230,7 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
+	unset oldbase dest_lib _library || :
 EOF
     else
 	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
@@ -2713,6 +3289,24 @@ EOF
 	echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
     fi
 
+    if (( RVM_WITH_GCTRACE )); then
+        CC_DEFINES="$CC_DEFINES -DRVM_FOR_GCTRACE"
+    else
+        CC_DEFINES="$CC_DEFINES -URVM_FOR_GCTRACE"
+    fi
+
+    # Include GCspy libraries, if requested
+    if (( $RVM_WITH_GCSPY )); then
+	if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR  )); then
+	    show_mesg >&2 "Warning: RVM_FOR_SINGLE_VIRTUAL_PROCESSOR is set, as is RVM_WITH_GCSPY.  Those two options are not compatible, since the GCspy server's C runtime support code spawns a pthread.  If you use the GCspy support in this build, Jikes RVM may freeze up or crash."
+	fi 
+        echo "GCSPY_LIBS=\"-L$GCSPY_LIB_DIR -lgcspy\""
+        echo "GCSPY_INCLUDES=\"-I$GCSPY_INCLUDE_DIR\""
+    else
+        echo "GCSPY_LIBS="
+        echo "GCSPY_INCLUDES="
+    fi
+
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
 	cat <<- EOF
 		BOOTER_CXX="run $HOST_CPLUS_STR -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES"
@@ -2723,6 +3317,9 @@ EOF
 		CCLIBS="-lpthread -lm"
 		IMAGE=
 EOF
+	if (( $RVM_WITH_GCSPY )); then
+	    echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
+	fi
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR -O2 -DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES\""
@@ -2763,6 +3360,9 @@ gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $C
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
+	if (( $RVM_WITH_GCSPY )); then
+	    echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
+	fi
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	echo "declare -a gnu_compiler_flags
 gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
@@ -2770,13 +3370,17 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
+	if (( $RVM_WITH_GCSPY )); then
+            echo "BOOTER_CXX=\"\$BOOTER_CXX -DRVM_WITH_GCSPY\""
+	    echo "CCLIBS=\$CCLIBS -lpthread"
+        fi
     else
 	show_mesg_raw >&2 "$ME:$LINENO: I do not know how to interpret the current configuration.  I give up (see line # $LINENO of $ME)"
 	trap '' EXIT
 	exit 2
     fi
     echo ""
-
+    
     if (( HAS_DLCOMPAT )); then
 	DLCOMPAT_DEFINE_FLAG=-DHAS_DLCOMPAT
     else
@@ -2786,76 +3390,70 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
     if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX || RVM_FOR_OSX ) ))
     then
 	cat <<- EOF
-	chdir $BOOTIMAGE_RUNNER_DIR_STR
-
+	chdir $BOOTIMAGE_RUNNER_DIR_STR && \
 	\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -I\${CONFIG_H_DIR}	\
-		-I$BOOTIMAGE_RUNNER_SUBDIR_STR\
+		-I$BOOTIMAGE_RUNNER_SUBDIR_STR                          \
 		\$IMAGE -DRVM_BOOTIMAGE=\\"$BOOTIMAGE_STR\\"		\
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C
 
 	chdir $BOOTIMAGE_RUNNER_SUBDIR_STR
-
-	\$BOOTER_CXX -c -O -I. -I$SCRATCH_DIRECTORY_STR		\
+	\$BOOTER_CXX -c -O -I. -I$SCRATCH_DIRECTORY_STR		        \
 		-o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C
-	
-	\$CPP -I$SCRATCH_DIRECTORY_STR -P \
+	\$CPP -I$SCRATCH_DIRECTORY_STR -P                               \
 		bootThread.c > $SCRATCH_DIRECTORY_STR/bootThread.s
-
 	\$BOOTER_CXX -c -o $SCRATCH_DIRECTORY_STR/bootThread.o		\
 		$SCRATCH_DIRECTORY_STR/bootThread.s
-
-	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR \
+	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR                    \
 		\$IMAGE -DRVM_BOOTIMAGE=\\"$BUILD_DIRECTORY_STR/RVM.image\\" \
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C
 EOF
 
 	if (( $RVM_WITH_HPM )); then
 	    cat <<- EOF
-		chdir $BOOTIMAGE_RUNNER_DIR_STR
-		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1 \
-		$DLCOMPAT_DEFINE_FLAG \
-		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
-
 		echo >&2 -n "(build libhpm.a library) "
-
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime
-
+		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/powerPC
 		\$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
 
-		chdir $SCRATCH_DIRECTORY_STR
-
+		chdir $SCRATCH_DIRECTORY_STR && \
 		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
 		  -L"$RVM_HPM_DIR" -lpmapi
 
-		\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS \
-		  -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm
-
+		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
 		echo >&2 -n "(build libJava2HPM.a JNI library) "
-
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime
-
 		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \
 		  -I$ROOT_DIRECTORY_STR/rvm/src/include \
+		  -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
+		  -I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
 		  -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
 
 		chdir $SCRATCH_DIRECTORY_STR 
-
 		\$LDSHARED -o $BUILD_DIRECTORY_STR/libJava2HPM.a  Java2HPM.o \
 		   -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm \
 		   &> /dev/null
 
+		echo >&2 -n "(build RunBootImage.o) "		
+		chdir $BOOTIMAGE_RUNNER_DIR_STR &&\
+		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \$GCSPY_INCLUDES -DRVM_WITH_HPM=1 \
+		$DLCOMPAT_DEFINE_FLAG \
+		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
+
+		chdir ${SCRATCH_DIRECTORY_STR} &&\
+		\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
+		    libvm.o sys.o bootThread.o \$GCSPY_LIBS \$CCLIBS \
+		    -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm
 EOF
 	else
 	    cat <<- EOF
-	chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
-	  \${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \
-	  ${DLCOMPAT_DEFINE_FLAG} \
-	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-
-	chdir ${SCRATCH_DIRECTORY_STR} &&\
-	  \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-	    libvm.o sys.o bootThread.o \${CCLIBS}
-	EOF
+	    echo >&2 -n "(build RunBootImage.o) "		
+	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} &&\
+		\${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
+		${DLCOMPAT_DEFINE_FLAG} \
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	    
+	    chdir ${SCRATCH_DIRECTORY_STR} &&\
+		\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+		libvm.o sys.o bootThread.o \$GCSPY_LIBS \${CCLIBS}
+EOF
 	fi
 	echo 'linkedit=1'
 
@@ -2878,41 +3476,81 @@ EOF
 
 	cat <<- EOF
 	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
-
 	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}  -I\${CONFIG_H_DIR} \
-	  \${IMAGE} -DRVM_BOOTIMAGE=\\"${BOOTIMAGE_STR}\\" \
-	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
+	    \${IMAGE} -DRVM_BOOTIMAGE=\\"${BOOTIMAGE_STR}\\"             \
+	    -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
+
+	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
+	\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR}                 \
+	    -o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
+	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}                      \
+	    -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
+	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}                     \
+	    -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler   \
+	    -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
+	
+	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
+	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
+	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
+	\${BOOTER_CXX} \
+	    -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}           \
+	    -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
+EOF
+	if (( $RVM_WITH_HPM )); then
+	    cat <<- EOF
+	    echo >&2 -n "(build libhpm.a library) "
+	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/intel && \
+		\$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
+	    
+	    chdir $SCRATCH_DIRECTORY_STR && \
+	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
+		-L"$RVM_HPM_DIR" -lpapi
+	    
+	    echo >&2 -n "(build libJava2HPM.a JNI library) "
+	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM && \
+	    \$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \
+		-I$ROOT_DIRECTORY_STR/rvm/src/include \
+		-I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
+		-I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
+		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
+	    
+	    chdir $SCRATCH_DIRECTORY_STR && \
+	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libJava2HPM.so  Java2HPM.o \
+		-L"$RVM_HPM_DIR" -lpapi -L"$BUILD_DIRECTORY_STR" -lhpm \
+		&> /dev/null
+	    
+	    echo >&2 -n "(build RunBootImage) "
+	    # -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
+	    # a warning in g++ 2.96.  So we instead simply extract 
+	    # the -Wmissing-noreturn flag.
+	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	    \${BOOTER_CXX//-Wmissing-noreturn/} \
+		-c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES -DRVM_WITH_HPM=1\
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	    
+	    chdir $SCRATCH_DIRECTORY_STR && \
+	    \$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
+		sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS} \
+		-L"$RVM_HPM_DIR" -lpapi -L"$BUILD_DIRECTORY_STR" -lhpm
+	    
+EOF
+	else
+	    cat <<- EOF
 
 	# -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
 	# a warning in g++ 2.96.  So we instead simply extract 
 	# the -Wmissing-noreturn flag.
-	\${BOOTER_CXX//-Wmissing-noreturn/} \
-	  -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-
-	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
-	\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
-	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
-	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
-	  -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler \
-	  -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
-
-	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
-
-	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
-
-	\${BOOTER_CXX} \
-	  -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
-	   -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
-
-	chdir ${SCRATCH_DIRECTORY_STR}
-	\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-	    sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \${CCLIBS}
-	linkedit=1
+	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	    \${BOOTER_CXX//-Wmissing-noreturn/} \
+		-c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	    
+	    chdir ${SCRATCH_DIRECTORY_STR} && \
+	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+		sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS}
 EOF
+        fi
+	echo 'linkedit=1'
     else
 	cat <<EOF
 	show_mesg >&2 "I do not know how to link the booter"
@@ -2939,39 +3577,43 @@ EOF
 #
 # echo >&2  "HERE I AM! emitToolCompiler" # DBG
 function emitToolCompiler () {
-    cat <<EOF
+    cat <<- EOF
 	#! ${HOST_BASH}
 	# Generate class files for vm tools that are not part of the build.
 	# This runs the host's Java compiler with the
 	# classpath and command-line flags set up so that we can just
 	# make .class files for Jikes RVM to run.
-$(emitBoilerplate)
-	. \${RVM_BUILD}/environment.target
 
+	ME="\${0##*/}"			# What is my name?
+	if [[ \${RVM_BUILD-UNSET} = UNSET ]]; then
+	    echo >&2 "$ME: Please set your RVM_BUILD environment variable (for example, to \${HOME}/rvmBuild)"
+	    exit $Exit_Status_Bad_Args
+	fi
+	set -e
+	. \${RVM_BUILD}/environment.target
+	. \${JAL_ROOT?}/rvm/bin/libjconfigure.bash
+
+	declare -r usage_msg="Usage: \${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ]\n     [ -- ] java-file [ java-file... ]"
 	function usage () {
-	    echo -e 2>&1 "usage: ${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ]\n     [ -- ] java-file [ java-file... ]"
+	    echo -e >&2 "\$usage_msg"
 	    trap "" EXIT
 	    exit $Exit_Status_Bad_Args
 	}
 
-	if [[ ${BUILD_DIRECTORY_STR} = "" ]]; then
-	    show_mesg >&2 "please set your ${BUILD_DIRECTORY_STR1} environment variable (eg. \${HOME}/rvmBuild)"
-	    trap "" EXIT
-	    exit $Exit_Status_Bad_Args
-	fi
-
-	if [[ ${HOST_JAVAC_STR} = "" ]]; then
-	    show_mesg >&2 "please set your ${HOST_JAVAC_STR1} environment variable"
-	    trap "" EXIT
-	    exit $Exit_Status_Bad_Args
-	fi
-
 	EXTRA_CPATH=""
 	while :; do
+	    if (( \$# == 0 )); then
+		echo >&2 "\$ME: Not enough arguments" 
+		usage;
+	    fi
 	    arg="\$1"
 	    [[ \$arg != -- ]] || { shift ; break; }
 	    [[ \$arg != --?* ]] || arg="\${arg#-}"
-	    if [[ \$arg = -classpath ]]; then
+	    if [[ \$arg = -help ]]; then
+	        echo -e >&2 \$usage_msg
+	        trap "" EXIT
+	        exit 0
+	    elif [[ \$arg = -classpath ]]; then
 	        (( \$# > 1 )) || usage
 	        EXTRA_CPATH=\$2\${EXTRA_CPATH+:}\${EXTRA_CPATH}
 	        shift
@@ -3009,8 +3651,9 @@ cat <<EOF
 	# the target environment.  Sticks the pure .java files that are the output
 	# into the <output-directory> specified as the first non-flag
 	# command-line argument.
-	$(emitBoilerplate);
-	. "$RVM_BUILD/environment.target"
+
+	. "${RVM_BUILD?}/environment.target"
+    $(emitBoilerplate)
 
 	if (( \$# == 0 )); then
 	    show_mesg_raw >&2 "usage: \$ME [ extra-preprocessor-flags...] output-directory java-file [ java-file... ]"
@@ -3028,10 +3671,12 @@ function emitPluginBuilder () {
     cat <<- EOF
 	#! /usr/bin/env bash
 	# Build and install Jikes RVM launching plugin for Eclipse 2.x
-EOF
 
-    emitBoilerplate;
-    cat <<- EOF
+	# Pick up the configuration to learn where Ant is
+	# and to get the value Ant needs for JAVA_HOME
+	. "\${RVM_BUILD?}/environment.target"
+    $(emitBoilerplate)
+
 	function emitPluginVersionNumber () {
 	    # Put any non-numeric prefix or tail to the Jikes RVM Version Number 
 	    # into some sort of numeric form.  The best I can think of to do 
@@ -3112,9 +3757,6 @@ EOF
 	    echo "build.dir=\${build_dir}"
 	}
 
-	# Pick up the configuration to learn where Ant is
-	# and to get the value Ant needs for JAVA_HOME
-	. "\${RVM_BUILD}/environment.target"
 
 	export JAVA_HOME=\${HOST_JAVA_HOME}
 
@@ -3256,21 +3898,24 @@ EOF
 emitInstaller() {
     cat <<- EOF
 	#! /usr/bin/env bash
-	# An auxiliary program that makes a binary Jikes RVM distribution.
-	$(emitBoilerplate)
-	# $BUILD_DIRECTORY_STR1=\$ROOT_DIR
+	#
 	# jbuild.install
-	# An auxiliary program that installs Jikes RVM wherever we want it to be.
+	# An auxiliary program that installs Jikes RVM wherever we want it 
+	# to be.
+	# This is not run as a part of the normal build process; it has
+	# special applications
+
+	# $BUILD_DIRECTORY_STR1=\$ROOT_DIR
 	function usage() {
 	    show_mesg >&2 "Usage: \$ME <destination-directory>"
 	    exit $Exit_Status_Bad_Args
 	}
 
 	(( \$# == 1 )) || usage;
-	. ${BUILD_DIRECTORY_STR}/environment.host
+	. ./environment.host
+    $(emitBoilerplate)
 	dest="\$1"
 	run mkdir -p \$dest
-	# OK, it is Linux-specific (.so)
 	shopt -s  nullglob
 	run cp *.a *.so environment.target $BOOTIMAGE_STR $BOOTER_STR \$dest
 	shopt -u nullglob
@@ -3287,6 +3932,13 @@ function emitConfigSummary () {
     echo "configuration name: ${CONFIGURATION_NAME}" 
     echo "preprocessor definitions:"
     echo "${PREPROCESSOR_DEFINITIONS}"
+    echo "other definitions set in RVM.scratch/RunBootImage.h:"
+    echo "JIKESRVM_VERSION=$JIKESRVM_VERSION"
+    echo "DEFAULT_INITIAL_HEAP_SIZE=${DEFAULT_INITIAL_HEAP_SIZE}"
+    echo "DEFAULT_MAXIMUM_HEAP_SIZE=${DEFAULT_MAXIMUM_HEAP_SIZE}"
+    echo "CVS_TIMESTAMP=${CVS_TIMESTAMP}"
+    echo "RVM_HOST_CONFIG=${RVM_HOST_CONFIG}"
+    echo "RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG}"
 }
 
 #------------------------------------------------#
@@ -3351,8 +4003,8 @@ s=${CONFIGURATION_SUMMARY}
 emitConfigSummary > ${s}
 chmod ${PERM} ${s}
 
-TARGET_BASH="${BASH}"
 HOST_BASH="/usr/bin/env bash"
+TARGET_BASH="${BASH-${HOST_BASH}}"
 
 f=$SOURCE_LIST
 rm -f			$f
@@ -3378,6 +4030,12 @@ f=${BUILD_DIRECTORY}/jbuild.compile
 rm -f			$f
 emitCompiler	      > $f
 chmod +x${PERM}		$f
+
+f=${BUILD_DIRECTORY}/jbuild.interfaceDeclarations
+rm -f			$f
+emitInterfaceDeclarationsWriter	  > $f  
+chmod +x${PERM}         $f
+
 
 f=${BUILD_DIRECTORY}/jbuild.linkImage
 rm -f			$f
@@ -3420,11 +4078,10 @@ chmod -x${PERM} $f
 
 # Write the environment-specific configuration files
 #
+
 # We've already read in the target environment file.
-# . ${RVM_TARGET_CONFIG}
-# Generate the config files that need information specifically from it.
-# echo >&2 "Just read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-export CURRENT_CONFIG_FILE=${RVM_TARGET_CONFIG}
+# load_config_file ${RVM_TARGET_CONFIG}
+# Now, generate the config files for the target.
 
 f=${BUILD_DIRECTORY}/Make.rules.target
 rm -f $f
@@ -3438,9 +4095,8 @@ chmod -x${PERM}	$f
 
 ## read the host environment file
 unsetEnvironment;		# throw out leftovers
-. ${RVM_HOST_CONFIG}
+load_config_file ${RVM_HOST_CONFIG}
 # echo >&2 "Just read RVM_HOST_CONFIG=${RVM_HOST_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-export CURRENT_CONFIG_FILE=${RVM_HOST_CONFIG}
 
 f=${BUILD_DIRECTORY}/Make.rules.host
 rm -f			$f

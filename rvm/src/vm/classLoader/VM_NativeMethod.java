@@ -31,11 +31,13 @@ public final class VM_NativeMethod extends VM_Method {
    */
   private VM_Address nativeIP;                               
 
+  //-#if RVM_WITH_LINKAGE_TRIPLETS
   /**
    * the TOC of the native procedure
    */
   private VM_Address nativeTOC;                              
-
+  //-#endif
+  
   /**
    * @param declaringClass the VM_Class object of the class that declared this method.
    * @param memRef the canonical memberReference for this member.
@@ -75,7 +77,11 @@ public final class VM_NativeMethod extends VM_Method {
    * get the native TOC for this method
    */
   public VM_Address getNativeTOC() { 
+    //-#if RVM_WITH_LINKAGE_TRIPLETS
     return nativeTOC;
+    //-#else
+    return VM_Address.zero();
+    //-#endif
   }
 
   /**
@@ -173,13 +179,11 @@ public final class VM_NativeMethod extends VM_Method {
       // native procedure not found in library
       return false;
     } else {
-      //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-      // both intel and linux use direct address
-      nativeIP = symbolAddress;         // Intel use direct branch address
-      nativeTOC = VM_Address.zero();                    // not used
-      //-#else
-      nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);     // AIX use a triplet linkage
+      //-#if RVM_WITH_LINKAGE_TRIPLETS
+      nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);
       nativeTOC = VM_Magic.getMemoryAddress(symbolAddress.add(BYTES_IN_ADDRESS));
+      //-#else
+      nativeIP = symbolAddress;
       //-#endif
       // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
       return true;

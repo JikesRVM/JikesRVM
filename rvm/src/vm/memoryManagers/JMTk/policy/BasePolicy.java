@@ -4,8 +4,10 @@
  *     Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.VMResource;
 
 import com.ibm.JikesRVM.VM_Address;
 
@@ -13,7 +15,7 @@ import com.ibm.JikesRVM.VM_Address;
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 abstract public class BasePolicy { // implements HeaderConstants {
   
   public final static String Id = "$Id$"; 

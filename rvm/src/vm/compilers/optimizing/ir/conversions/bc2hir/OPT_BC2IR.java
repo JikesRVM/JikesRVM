@@ -1871,43 +1871,45 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           // This is independent of whether or not the static type of the receiver is 
           // known to implement the interface and it is not that case that being able
           // to prove one implies the other.
+          VM_Method vmeth = null;
           if (receiverType != null && receiverType.isInitialized() && !receiverType.isInterface()) {
-            VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(receiverType, ref);
-            if (vmeth != null) {
-              VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
-              // We're going to virtualize the call.  Must inject the
-              // DTC to ensure the receiver implements the interface if
-              // requiresImplementsTest is still true.
-              // Note that at this point requiresImplementsTest => resolvedMethod != null 
-              if (requiresImplementsTest) {
-                appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                                                   receiver.copyU2U(),
-                                                   makeTypeOperand(resolvedMethod.getDeclaringClass()),
-                                                   getCurrentGuard()));
-                rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
-              }
-              OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
-              if (receiver.isPreciseType()) {
-                mop.refine(vmeth, true);
-              }
-              Call.setMethod(s, mop);
-              boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
-              if (unresolved) {
-                OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
-                appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
-                Call.setAddress(s, offsetrop);
-                rectifyStateWithErrorHandler();
-              } else {
-                Call.setAddress(s, new OPT_IntConstantOperand(vmeth.getOffset()));
-              }
+            vmeth = OPT_ClassLoaderProxy.lookupMethod(receiverType, ref);
+          }
+          if (vmeth != null) {
+            VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
+            // We're going to virtualize the call.  Must inject the
+            // DTC to ensure the receiver implements the interface if
+            // requiresImplementsTest is still true.
+            // Note that at this point requiresImplementsTest => resolvedMethod != null 
+            if (requiresImplementsTest) {
+              appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
+                                                 receiver.copyU2U(),
+                                                 makeTypeOperand(resolvedMethod.getDeclaringClass()),
+                                                 getCurrentGuard()));
+              rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
+            }
+            OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
+            if (receiver.isPreciseType()) {
+              mop.refine(vmeth, true);
+            }
+            Call.setMethod(s, mop);
+            boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
+            if (unresolved) {
+              OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+              appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+              Call.setAddress(s, offsetrop);
+              rectifyStateWithErrorHandler();
+            } else {
+              Call.setAddress(s, new OPT_IntConstantOperand(vmeth.getOffset()));
+            }
 
-
-              // Attempt to inline virtualized call.
-              if (maybeInlineMethod(shouldInline(s, receiver.isExtant()), s)) {
-                return;
-              }
+            
+            // Attempt to inline virtualized call.
+            if (maybeInlineMethod(shouldInline(s, receiver.isExtant()), s)) {
+              return;
             }
           } else {
+            // We can't virtualize the call; 
             // try to inline a predicted target for the interface invocation
             // inline code will include DTC to ensure receiver implements the interface.
             if (resolvedMethod != null && maybeInlineMethod(shouldInline(s, false), s)) {

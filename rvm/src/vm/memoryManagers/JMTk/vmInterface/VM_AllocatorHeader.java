@@ -3,10 +3,11 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Header;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import org.mmtk.plan.Header;
+import org.mmtk.plan.Plan;
+
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM_Magic;
@@ -34,9 +35,8 @@ public final class VM_AllocatorHeader extends Header {
                                       Object[] tib, int size, boolean isScalar)
     throws VM_PragmaInterruptible {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    int status = getBootTimeAvailableBits(ref, tib, size, isScalar, 0);
-    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref,
-                                         VM_Word.fromInt(status));
+    VM_Word status = getBootTimeAvailableBits(ref, tib, size, isScalar, VM_Word.zero());
+    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
   /**

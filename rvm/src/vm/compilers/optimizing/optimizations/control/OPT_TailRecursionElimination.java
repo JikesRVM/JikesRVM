@@ -57,6 +57,7 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
       case IR_PROLOGUE_opcode:
         prologue = instr;
         break;
+      case SYSCALL_opcode:
       case CALL_opcode:
         if (isTailRecursion(instr, ir)) {
           if (target == null) {

@@ -169,7 +169,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   /**
    * The lister object is used to print generated machine code.
    */
-  private VM_Lister	 lister;
+  protected VM_Lister lister;
 
   /**
    * The array holding the generated binary code.  
@@ -372,7 +372,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param bits the number of bits to use.
    * @return true if val can be encoded in bits.
    */
-  private final static boolean fits (int val, int bits) {
+  protected final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }
@@ -844,7 +844,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * given label immediately before emitting the target instruction.
    * See the header comments of VM_ForwardReference for more details.
    */
-  VM_ForwardReference forwardRefs;
+  protected VM_ForwardReference forwardRefs;
 
   /**
    *  Resolve all forward branches that have the given target, and

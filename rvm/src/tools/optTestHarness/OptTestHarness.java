@@ -342,7 +342,7 @@ class OptTestHarness {
         cm = OPT_Compiler.compile(cp);
         method.replaceCompiledMethod(cm);
       } catch (OPT_OptimizingCompilerException e) {
-        if (e.isFatal && opts.ERRORS_FATAL) {
+        if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
           VM.sysFail("Internal vm error: "+e.toString());
         } else {

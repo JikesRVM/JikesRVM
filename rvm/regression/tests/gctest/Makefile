@@ -19,7 +19,6 @@ ifeq ($(MODE),PERFORMANCE)
   HEAPSIZE   = 300
   START_ARGS = perf
 else
-  HEAPSIZE   = 90
   START_ARGS = base
 endif
 EXPECTED=
@@ -27,12 +26,16 @@ BENCH_RVM_ARGS=
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
-sanity: 	InlineAllocation $(TESTS)
+sanity:
+	$(MAKE) InlineAllocation HEAPSIZE=60
+	$(MAKE) ReferenceTest HEAPSIZE=60
+	$(MAKE) FixedLive     HEAPSIZE=120
+	$(MAKE) LargeAlloc    HEAPSIZE=60
+	$(MAKE) Exhaust       HEAPSIZE=50
 	echo DONE
 
 $(TESTS): %:
 	$(MAKE) START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "Overall:"'
-
 
 $(WORKING)/cp/InlineAllocation.class: $(BENCH_HOME)/InlineAllocation.java
 	$(RVM_BUILD)/jbuild.toolPrep --disable-modification-exit-status /tmp $(BENCH_HOME)/InlineAllocation.java 

@@ -3,24 +3,28 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import java.util.Date;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
-import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
-import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
-import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
-import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Barrier;
+import org.mmtk.utility.Finalizer;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.ReferenceProcessor;
+import org.mmtk.utility.TraceGenerator;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.SynchronizedCounter;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -48,6 +52,8 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.mmtk.vm.gcspy.GCSpy;
 
 /**
  * The interface that the JMTk memory manager presents to the Jikes
@@ -109,6 +115,15 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
 
+  /**
+   * <code>true</code> if the memory manager will generate a garbage
+   * collection trace of the run.
+   */
+  public static final boolean GENERATE_GC_TRACE = Plan.GENERATE_GC_TRACE;
+
+  /** Used by mmtypes for arrays */
+  private static final int [] zeroLengthIntArray = new int [0];
+  
   /* AJG: Not used */
 //   public static final boolean RC_CYCLE_DETECTION = Plan.REF_COUNT_CYCLE_DETECTION;
 
@@ -146,10 +161,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaInterruptible {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
-    Util.boot(theBootRecord);
+    DebugUtil.boot(theBootRecord);
     Plan.boot();
     VMResource.boot();
-    Statistics.boot();
     SynchronizedCounter.boot();
     Monitor.boot();
   }
@@ -212,9 +226,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   public static void putfieldWriteBarrier(Object ref, int offset, Object value)
     throws VM_PragmaInline {
-    VM_Interface.getPlan().putFieldWriteBarrier(
-                                   VM_Magic.objectAsAddress(ref), offset,
-                                   VM_Magic.objectAsAddress(value));
+    VM_Address src = VM_Magic.objectAsAddress(ref);
+    VM_Interface.getPlan().writeBarrier(src,
+                                        src.add(offset),
+                                        VM_Magic.objectAsAddress(value),
+                                        PUTFIELD_WRITE_BARRIER);
   }
   
   /**
@@ -228,8 +244,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline { 
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
-    //     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
-    //     VM_Interface.getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
+//     VM_Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+//     VM_Interface.getPlan().writeBarrier(jtoc,
+//                                         jtoc.add(offset),
+//                                         VM_Magic.objectAsAddress(value),
+//                                         PUTSTATIC_WRITE_BARRIER);
   }
 
   /**
@@ -245,9 +264,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static void arrayStoreWriteBarrier(Object ref, int index,
                                             Object value)
     throws VM_PragmaInline {
-    VM_Interface.getPlan().arrayStoreWriteBarrier(
-                                     VM_Magic.objectAsAddress(ref), index,
-                                     VM_Magic.objectAsAddress(value));
+    VM_Address array = VM_Magic.objectAsAddress(ref);
+    VM_Interface.getPlan().writeBarrier(array,
+                                        array.add(index<<LOG_BYTES_IN_ADDRESS),
+                                        VM_Magic.objectAsAddress(value),
+                                        AASTORE_WRITE_BARRIER);
   }
 
   /**
@@ -325,9 +346,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {
-    Statistics.gcExternalCount++;
     if (!Options.ignoreSystemGC)
-        VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
+      VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
   }
 
   /****************************************************************************
@@ -341,7 +361,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param ref the address to log information about
    */
   public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
-    Util.dumpRef(ref);
+    DebugUtil.dumpRef(ref);
   }
 
   /**
@@ -352,7 +372,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   public static boolean validRef(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return Util.validRef(ref);
+    return DebugUtil.validRef(ref);
   }
 
   /**
@@ -437,31 +457,50 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static int pickAllocator(VM_Type type, VM_Method method)
     throws VM_PragmaInterruptible {
     /*
-     * First we chcek the calling method so GC-data can go into
-     * special places.  Then we cache the result of the allocator
-     * assuming that it is type-based only.  A better implementation
-     * would be call-site specific which is strictly more refined.
+     * We check the calling method so GC-data can go into special
+     * places.  A better implementation would be call-site specific
+     * which is strictly more refined.
      */
     if (method != null) {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA) ||
-          isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_GCMapIteratorGroup", clsBA)) {
+      if (VM_Interface.GCSPY) {
+        if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
+            isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
+	  return Plan.GCSPY_SPACE;
+        }
+      }
+      if (isPrefix("Lorg/mmtk/", clsBA) 
+	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.IMMORTAL_SPACE;
       }
     }
-    Type t = type.JMTKtype;
-    if (t.initialized)
-      return t.allocator;
+    MMType t = (MMType) type.getMMType();
+    return t.getAllocator();
+  }
+
+  /**
+   * Determine the default allocator to be used for a given type.
+   *
+   * @param type The type in question
+   * @return The allocator to use for allocating instances of type
+   * <code>type</code>.
+   */
+  private static int pickAllocatorForType(VM_Type type)
+    throws VM_PragmaInterruptible {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
-    if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
+    if (VM_Interface.GCSPY) {
+      if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
+	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
+	allocator = Plan.GCSPY_SPACE;
+    }
+    if (isPrefix("Lorg/mmtk/", typeBA) ||
+	isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.IMMORTAL_SPACE;
-    t.initialized = true;
-    t.allocator = allocator;
     return allocator;
   }
 
@@ -488,23 +527,18 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
     Plan plan = VM_Interface.getPlan();
-    // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
-    // Jikes RVM currently forces scalars to be multiples of
-    // BYTES_IN_INT. So in 64 bit mode have to do something extra here.
-    if (BYTES_IN_ADDRESS != BYTES_IN_INT)
-      size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
-    int rawSize = (align != BYTES_IN_ADDRESS) ? (size + align) : size;
+    // JMTk requires sizes to be multiples of BYTES_IN_PARTICLE.
+    // Jikes RVM currently already forces scalar sizes to be multiples
+    // of BYTES_IN_INT. But, if BYTES_IN_PARTICLE > BYTES_IN_INT
+    // then we have to do round up the allocation request.
+    int alignedSize = size;
+    if (BYTES_IN_PARTICLE > BYTES_IN_INT)
+      alignedSize = VM_Memory.alignUp(size, BYTES_IN_PARTICLE);
+    int rawSize = (align > BYTES_IN_INT) ? (alignedSize + align) : alignedSize;
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align != BYTES_IN_ADDRESS) {
-      // This code is based on some fancy modulo artihmetic.
-      // It ensures the property (region + offset) % alignment == 0
-      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-      region = region.add(delta);
-    }
+    if (align > BYTES_IN_INT) region = alignAllocation(region, align, offset);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, true,
                    allocator);
@@ -536,27 +570,61 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       // asked to allocate more than Integer.MAX_VALUE bytes
       VM_Interface.failWithOutOfMemoryError();
     }
-    // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
+    // JMTk requires sizes to be multiples of BYTES_IN_PARTICLES.
     // Jikes RVM does not ensure this for arrays, so we must round up here.
-    int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_ADDRESS);
-    int rawSize = (align != BYTES_IN_ADDRESS) ? (size + align) : size;
+    int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_PARTICLE);
+    int rawSize = (align > BYTES_IN_INT) ? (size + align) : size;
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align != BYTES_IN_ADDRESS) {
-      // This code is based on some fancy modulo artihmetic.
-      // It ensures the property (region + offset) % alignment == 0
-      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-      region = region.add(delta);
-    }
+    if (align > BYTES_IN_INT) region = alignAllocation(region, align, offset);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, false,
                    allocator);
     return result;
+  }
+
+  /**
+   * Align an allocation using some modulo arithmetic to guarantee the
+   * following property:<br>
+   * <code>(region + offset) % alignment == 0</code>
+   *
+   * @param region The initial (unaligned) start value of the
+   * allocated region of memory.
+   * @param align The alignment requested, must be a power of two
+   * @param offset The offset at which the alignment is desired
+   * @return <code>region</code> plus some delta (possibly 0) such
+   * that the return value is aligned according to the above
+   * constraints.
+   */
+  public static final int alignAllocation(int initialOffset, int align,
+                                          int offset)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return alignAllocation(VM_Address.fromInt(initialOffset), align, offset).toInt();
+  }
+
+  /**
+   * Align an allocation using some modulo arithmetic to guarantee the
+   * following property:<br>
+   * <code>(region + offset) % alignment == 0</code>
+   *
+   * @param region The initial (unaligned) start value of the
+   * allocated region of memory.
+   * @param align The alignment requested, must be a power of two
+   * @param offset The offset at which the alignment is desired
+   * @return <code>region</code> plus some delta (possibly 0) such
+   * that the return value is aligned according to the above
+   * constraints.
+   */
+  private static final VM_Address alignAllocation(VM_Address region, int align,
+                                                  int offset)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+    VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+    VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+    return region.add(delta);
   }
 
   /**
@@ -611,7 +679,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Array stackType = VM_Array.ByteArray;
     Object [] stackTib = stackType.getTypeInformationBlock();
     int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
-    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), BYTES_IN_ADDRESS);
+    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), BYTES_IN_PARTICLE);
     int fullSize = arraySize + alignment;  // somewhat wasteful
     if (VM.VerifyAssertions) VM._assert(alignment > offset);
     AllocAdvice advice = VM_Interface.getPlan().getAllocAdvice(null, fullSize, null, null);
@@ -736,11 +804,13 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   /**
    * Processes an object during the tracing phase of a collection.
    *
-   * @param obj the address of the object to be processed
+   * @param object the address of the object to be processed
+   * @return The address of the object after processing (it may have
+   * been moved in the course of processing).
    */
-  public static VM_Address processPtrValue(VM_Address obj)
+  public static VM_Address processPtrValue(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline { 
-    return Plan.traceObject(obj);
+    return Plan.traceObject(object);
   }
 
   /**
@@ -797,12 +867,37 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   */
 
   /**
+   * A new type has been resolved by the VM.  Create a new MM type to
+   * reflect the VM type, and associate the MM type with the VM type.
+   *
+   * @param vmType The newly resolved type
+   */
+  public static void notifyClassResolved(VM_Type vmType) 
+    throws VM_PragmaInterruptible {
+    MMType type;
+    if (vmType.isArrayType()) {
+      type = new MMType(false,
+                        vmType.asArray().getElementType().isReferenceType(),
+                        vmType.isAcyclicReference(),
+                        pickAllocatorForType(vmType),
+                        zeroLengthIntArray);
+    } else {
+      type = new MMType(false,
+                        false,
+                        vmType.isAcyclicReference(),
+                        pickAllocatorForType(vmType),
+                        vmType.asClass().getReferenceOffsets());
+    }
+    vmType.setMMType(type);
+  }
+
+  /**
    * Generic hook to allow benchmarks to be harnessed.  A plan may use
    * this to perform certain actions prior to the commencement of a
    * benchmark, such as a full heap collection, turning on
    * instrumentation, etc.
    */
-  public static void harnessBegin() {
+  public static void harnessBegin() throws VM_PragmaInterruptible {
     Plan.harnessBegin();
   }
 
@@ -837,6 +932,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     return Plan.gcInProgress();
   }
 
+  /**
+   * Start the GCSpy server
+   */
+  public static void startGCSpyServer() throws VM_PragmaInterruptible {
+    GCSpy.startGCSpyServer();
+  }
 
  /***********************************************************************
   *

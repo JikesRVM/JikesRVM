@@ -17,7 +17,7 @@ START_NAME=utf8test
 include $(JAL_ROOT)/rvm/regression/Make.rules
 
 $(WORKING)/utf8test.java:	utf8testdriver.class
-		$(HOST_JAVA) -classpath $(BENCH_CLASS_CP) utf8testdriver > $(WORKING)/utf8test.java
+		$(HOST_VM_RT) -classpath $(BENCH_CLASS_CP) utf8testdriver > $(WORKING)/utf8test.java
 
 sanity:		sanity-compare
 

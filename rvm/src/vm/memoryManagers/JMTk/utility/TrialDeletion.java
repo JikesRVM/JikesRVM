@@ -2,13 +2,15 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
-
+import org.mmtk.plan.RCBaseHeader;
+import org.mmtk.policy.RefCountLocal;
+import org.mmtk.policy.RefCountSpace;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -54,7 +56,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class TrialDeletion extends CycleDetector
+public final class TrialDeletion extends CycleDetector
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -89,6 +91,12 @@ final class TrialDeletion extends CycleDetector
   private static final int GREY_VISIT_BOUND = 10;
   private static final int GREY_VISIT_GRAIN = 100;
   private static final int FILTER_BOUND = 8192;
+
+  // Statistics
+  private static Timer greyTime;
+  private static Timer scanTime;
+  private static Timer whiteTime;
+  private static Timer freeTime;
 
   /****************************************************************************
    *
@@ -137,9 +145,14 @@ final class TrialDeletion extends CycleDetector
     cyclePoolB.newClient();
     freePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     freePool.newClient();
+
+    greyTime = new Timer("cd-grey", false, true);
+    scanTime = new Timer("cd-scan", false, true);
+    whiteTime = new Timer("cd-white", false, true);
+    freeTime = new Timer("cd-free", false, true);
   }
 
-  TrialDeletion(RefCountLocal rc_, Plan plan_) {
+  public TrialDeletion(RefCountLocal rc_, Plan plan_) {
     rc = rc_;
     plan = plan_;
     workQueue = new AddressDeque("cycle workqueue", workPool);
@@ -157,7 +170,7 @@ final class TrialDeletion extends CycleDetector
     collectEnum = new TDCollectEnumerator(this);
   }
 
-  final void possibleCycleRoot(VM_Address object)
+  public final void possibleCycleRoot(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -165,7 +178,7 @@ final class TrialDeletion extends CycleDetector
     unfilteredPurpleBuffer.insert(object);
   }
 
-  final boolean collectCycles(int count, boolean time) {
+  public final boolean collectCycles(int count, boolean timekeeper) {
     collectedCycles = false;
     if (count == 1 && shouldFilterPurple()) {
       long filterStart = VM_Interface.cycles();
@@ -189,7 +202,7 @@ final class TrialDeletion extends CycleDetector
           while (maturePurplePool.enqueuedPages()> 0 && !abort &&
                  (remaining > gcTimeCap/CYCLE_TIME_FRACTION ||
                   RefCountSpace.RC_SANITY_CHECK)) {
-            abort = collectSomeCycles(time, finishTarget);
+            abort = collectSomeCycles(timekeeper, finishTarget);
             remaining = finishTarget - VM_Interface.cycles();
           }
           flushFilteredPurpleBufs();
@@ -205,24 +218,25 @@ final class TrialDeletion extends CycleDetector
   }
 
 
-  private final boolean collectSomeCycles(boolean time, long finishTarget) {
+  private final boolean collectSomeCycles(boolean timekeeper,
+                                          long finishTarget) {
     collectedCycles = true;
     filterMaturePurpleBufs();
-    if (time) Statistics.cdGreyTime.start();
+    if (timekeeper) greyTime.start();
     long start = VM_Interface.cycles();
     long remaining = finishTarget - start;
     long targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
     boolean abort = doMarkGreyPhase(targetTime);
-    if (time) Statistics.cdGreyTime.stop();
-    if (time) Statistics.cdScanTime.start();
+    if (timekeeper) greyTime.stop();
+    if (timekeeper) scanTime.start();
     doScanPhase();
-    if (time) Statistics.cdScanTime.stop();
-    if (time) Statistics.cdCollectTime.start();
+    if (timekeeper) scanTime.stop();
+    if (timekeeper) whiteTime.start();
     doCollectPhase();
-    if (time) Statistics.cdCollectTime.stop();
-    if (time) Statistics.cdFreeTime.start();
+    if (timekeeper) whiteTime.stop();
+    if (timekeeper) freeTime.start();
     processFreeBufs();
-    if (time) Statistics.cdFreeTime.stop();
+    if (timekeeper) freeTime.stop();
     return abort;
   }
 
@@ -426,7 +440,7 @@ final class TrialDeletion extends CycleDetector
       
       if (!abort && !RCBaseHeader.isGrey(object)) {
         RCBaseHeader.makeGrey(object);
-        ScanObject.enumeratePointers(object, greyEnum);
+        Scan.enumeratePointers(object, greyEnum);
       }
       object = workQueue.pop();
     }
@@ -468,7 +482,7 @@ final class TrialDeletion extends CycleDetector
           phase = SCAN;
         } else {
           RCBaseHeader.makeWhite(object);
-          ScanObject.enumeratePointers(object, scanEnum);
+          Scan.enumeratePointers(object, scanEnum);
         }
       } 
       object = workQueue.pop();
@@ -488,7 +502,7 @@ final class TrialDeletion extends CycleDetector
         VM_Interface._assert(!RCBaseHeader.isGreen(object));
       if (!RCBaseHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
         RCBaseHeader.makeBlack(object);
-        ScanObject.enumeratePointers(object, scanBlackEnum);
+        Scan.enumeratePointers(object, scanBlackEnum);
       }
       object = blackQueue.pop();
     }
@@ -520,7 +534,7 @@ final class TrialDeletion extends CycleDetector
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
         RCBaseHeader.makeBlack(object);
-        ScanObject.enumeratePointers(object, collectEnum);
+        Scan.enumeratePointers(object, collectEnum);
         freeBuffer.push(object);
       }
       object = workQueue.pop();
@@ -541,18 +555,5 @@ final class TrialDeletion extends CycleDetector
   }
   int getVisitCount() throws VM_PragmaInline {
     return visitCount;
-  }
-  final void printTimes(boolean totals) {
-    double time;
-    if (collectedCycles) {
-      time = (totals) ? Statistics.cdGreyTime.sum() : Statistics.cdGreyTime.lastMs();
-      Log.write(" grey: "); Log.write(time);
-      time = (totals) ? Statistics.cdScanTime.sum() : Statistics.cdScanTime.lastMs();
-      Log.write(" scan: "); Log.write(time);
-      time = (totals) ? Statistics.cdCollectTime.sum() : Statistics.cdCollectTime.lastMs();
-      Log.write(" coll: "); Log.write(time);
-      time = (totals) ? Statistics.cdFreeTime.sum() : Statistics.cdFreeTime.lastMs();
-      Log.write(" free: "); Log.write(time);
-    }
   }
 }

@@ -196,6 +196,15 @@ public final class VM_MethodReference extends VM_MemberReference {
         return resolvedMember;
       }
     }
+    if (!VM.fullyBooted) {
+	VM.sysWrite("VM_MethodReference.resolveInternal():");
+	VM.sysWrite(" unable to find a method named ");
+	declaringClass.getDescriptor().sysWrite();
+	VM.sysWrite(".");
+	name.sysWrite();
+	VM.sysWriteln("while booting the VM.");
+	VM.sysFail("VM_MethodReference.resolveInternal(): unable to resolve a method during VM booting.");
+    }
     throw new NoSuchMethodError(this.toString());
   }
 

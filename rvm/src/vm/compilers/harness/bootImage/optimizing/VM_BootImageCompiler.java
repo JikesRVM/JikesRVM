@@ -46,9 +46,6 @@ public class VM_BootImageCompiler {
       // and stability of the generated code.  Set the options accordingly.
       OPT_Compiler.setBootOptions(options);
 
-      // An unexpected error when building the opt boot image should be fatal
-      options.ERRORS_FATAL = true; 
-
       // Allow further customization by the user.
       for (int i = 0, n = args.length; i < n; i++) {
         String arg = args[i];
@@ -66,7 +63,8 @@ public class VM_BootImageCompiler {
 
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
-      if (e.isFatal && options.ERRORS_FATAL) {
+      if (e.isFatal) {
+        // An unexpected error when building the opt boot image should be fatal
         e.printStackTrace();
         System.exit(VM.exitStatusOptCompilerFailed);
       } else {
@@ -102,7 +100,8 @@ public class VM_BootImageCompiler {
         }
         return cm;
       } catch (OPT_OptimizingCompilerException e) {
-        if (e.isFatal && options.ERRORS_FATAL) {
+        if (e.isFatal) {
+          // An unexpected error when building the opt boot image should be fatal
           e.printStackTrace();
           System.exit(VM.exitStatusOptCompilerFailed);
         } else {

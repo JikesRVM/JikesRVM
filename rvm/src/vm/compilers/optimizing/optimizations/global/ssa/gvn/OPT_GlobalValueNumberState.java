@@ -118,10 +118,10 @@ public final class OPT_GlobalValueNumberState {
      int val2 = v2.getValueNumber();
      if ( val1 == val2 ) return;
 
-     OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.elementAt(val1);
+     OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.get(val1);
 
      while ( true ) {
-       OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.elementAt(val2);
+       OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.get(val2);
        Iterator i = class2.iterator() ;  
        if ( ! i.hasNext() ) break;
        OPT_ValueGraphVertex v = (OPT_ValueGraphVertex) i.next();
@@ -134,7 +134,7 @@ public final class OPT_GlobalValueNumberState {
      }
 
      // Null out entry for val2
-     B.setElementAt(null, val2);
+     B.set(val2, null);
    }
 
 
@@ -171,8 +171,8 @@ public final class OPT_GlobalValueNumberState {
   public boolean DD (int v1, int v2) {
     if ((v1 == -1) || (v2 == -1))
       return  false;
-    OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.elementAt(v1);
-    OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.elementAt(v2);
+    OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.get(v1);
+    OPT_GVCongruenceClass class2 = (OPT_GVCongruenceClass)B.get(v2);
     Object label1 = class1.getLabel();
     Object label2 = class2.getLabel();
     // if one is a constant, they must both be ...
@@ -239,7 +239,7 @@ public final class OPT_GlobalValueNumberState {
 
   public OPT_GVCongruenceClass congruenceClass(Object name) {
     OPT_ValueGraphVertex v = valueGraph.getVertex(name);
-    return ((OPT_GVCongruenceClass)B.elementAt(v.getValueNumber()));
+    return ((OPT_GVCongruenceClass)B.get(v.getValueNumber()));
   }
 
   /**
@@ -262,7 +262,7 @@ public final class OPT_GlobalValueNumberState {
     for (Enumeration e = valueGraph.enumerateVertices(); e.hasMoreElements();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
       int valueNumber = v.getValueNumber();
-      OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)B.elementAt(valueNumber);
+      OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)B.get(valueNumber);
       System.out.println(v.name + " " + valueNumber + " " + c.getLabel());
     }
   }
@@ -272,9 +272,9 @@ public final class OPT_GlobalValueNumberState {
    */
   OPT_IR ir;
   /**
-   * Vector of OPT_GVCongruenceClass, indexed by value number.
+   * ArrayList of OPT_GVCongruenceClass, indexed by value number.
    */
-  Vector B = new Vector();      // Vector of OPT_GVCongruenceClass,
+  ArrayList B = new ArrayList();      // ArrayList of OPT_GVCongruenceClass,
   /**
    * The value graph.
    */
@@ -311,7 +311,7 @@ public final class OPT_GlobalValueNumberState {
    * @return the congruence class for the label.
    */
   private OPT_GVCongruenceClass findOrCreateCongruenceClass (Object label, 
-      HashMap labelMap) {
+							     HashMap labelMap) {
     OPT_GVCongruenceClass result = (OPT_GVCongruenceClass)labelMap.get(label);
     if ((result == null) || (label == null)) {
       result = createCongruenceClass(label);
@@ -329,7 +329,7 @@ public final class OPT_GlobalValueNumberState {
     // create a new congruence class, and update data structures
     int index = B.size();
     OPT_GVCongruenceClass result = new OPT_GVCongruenceClass(index, label);
-    B.addElement(result);
+    B.add(result);
     return  result;
   }
 
@@ -339,8 +339,8 @@ public final class OPT_GlobalValueNumberState {
    * in the class point to corresponding targets in separate partitions.
    */
   private void initializeWorkList () {
-    for (Enumeration e = B.elements(); e.hasMoreElements();) {
-      OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)e.nextElement();
+    for (Iterator it = B.iterator(); it.hasNext();) {
+      OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)it.next();
       if (c.size() == 1)
         continue;
       // store a reference to the first node in c
@@ -367,10 +367,10 @@ public final class OPT_GlobalValueNumberState {
     // as a representative for this class
     Iterator i = partition.iterator();
     OPT_ValueGraphVertex first = (OPT_ValueGraphVertex)i.next();
-    Vector newClasses = new Vector();
+    ArrayList newClasses = new ArrayList();
     // now check each other node in c, to see if it matches the
     // representative
-    Vector toRemove = new Vector();
+    ArrayList toRemove = new ArrayList();
     for (; i.hasNext();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)i.next();
       if (!checkCongruence(first, v)) {
@@ -380,7 +380,7 @@ public final class OPT_GlobalValueNumberState {
         if (index > -1) {
           // MATCH FOUND!! place v in newClasses[index]
           OPT_GVCongruenceClass match = (OPT_GVCongruenceClass)
-              B.elementAt(index);
+              B.get(index);
           match.addVertex(v);
           v.setValueNumber(match.getValueNumber());
         } 
@@ -389,18 +389,18 @@ public final class OPT_GlobalValueNumberState {
           // find the appropriate label for the new congruence class
           // and create a new congruence class with this label
           OPT_GVCongruenceClass c = createCongruenceClass(v);
-          newClasses.addElement(c);
+          newClasses.add(c);
           c.addVertex(v);
           v.setValueNumber(c.getValueNumber());
         }
         // mark v as to be removed from partition
         // (Can't remove it yet while iterating over the set);
-        toRemove.addElement(v);
+        toRemove.add(v);
       }
     }
     // remove necessary vertices
-    for (Enumeration e = toRemove.elements(); e.hasMoreElements();) {
-      OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
+    for (Iterator it = toRemove.iterator(); it.hasNext();) {
+      OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)it.next();
       partition.removeVertex(v);
     }
     // if needed place the original partition back on the work list
@@ -410,7 +410,7 @@ public final class OPT_GlobalValueNumberState {
     // place any new congruence classes with size > 1 on the worklist
     // also place any classes which might indirectly be affected
     for (int j = 0; j < newClasses.size(); j++) {
-      OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)newClasses.elementAt(j);
+      OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)newClasses.get(j);
       if (c.size() > 1)
         workList.push(c);
       addDependentClassesToWorklist(c);
@@ -430,7 +430,7 @@ public final class OPT_GlobalValueNumberState {
       for (Enumeration e = v.inNodes(); e.hasMoreElements();) {
         OPT_ValueGraphVertex in = (OPT_ValueGraphVertex)e.nextElement();
         int vn = in.getValueNumber();
-        OPT_GVCongruenceClass x = (OPT_GVCongruenceClass)B.elementAt(vn);
+        OPT_GVCongruenceClass x = (OPT_GVCongruenceClass)B.get(vn);
         workList.push(x);
       }
     }
@@ -445,9 +445,9 @@ public final class OPT_GlobalValueNumberState {
    * @return the value number corresponding to the congruence class
    * containing v.  -1 iff no such class is found.
    */
-  private int findCongruenceMatch (Vector vector, OPT_ValueGraphVertex v) {
+  private int findCongruenceMatch (ArrayList vector, OPT_ValueGraphVertex v) {
     for (int i = 0; i < vector.size(); i++) {
-      OPT_GVCongruenceClass klass = (OPT_GVCongruenceClass)vector.elementAt(i);
+      OPT_GVCongruenceClass klass = (OPT_GVCongruenceClass)vector.get(i);
       if (checkCongruence(v, klass)) {
         return  klass.getValueNumber();
       }

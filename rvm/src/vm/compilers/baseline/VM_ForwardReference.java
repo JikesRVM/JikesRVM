@@ -59,7 +59,7 @@ public abstract class VM_ForwardReference {
   // add a new reference r to a priority queue q
   // return the updated queue
   //
-  static final VM_ForwardReference enqueue (VM_ForwardReference q, VM_ForwardReference r) {
+  public static final VM_ForwardReference enqueue (VM_ForwardReference q, VM_ForwardReference r) {
     if (q == null) return r;
     if (r.targetBytecodeIndex < q.targetBytecodeIndex) {
       r.next = q;
@@ -117,10 +117,14 @@ public abstract class VM_ForwardReference {
 
   }
 
-  static class ShortBranch extends VM_ForwardReference {
+  public static class ShortBranch extends VM_ForwardReference {
 
     ShortBranch (int source) {
       super(source);
+    }
+
+    public ShortBranch (int source, int btarget) {
+      super(source, btarget);
     }
 
     public void resolve (VM_Assembler asm) {

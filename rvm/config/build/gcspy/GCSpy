@@ -1,0 +1,4 @@
+   export RVM_WITH_GCSPY=1
+   export GCSPY_ROOT=$RVM_ROOT/gcspy0.9
+   export GCSPY_INCLUDE_DIR=$GCSPY_ROOT/src/c/include
+   export GCSPY_LIB_DIR=$GCSPY_ROOT/src/c/lib

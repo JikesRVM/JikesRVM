@@ -115,9 +115,9 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
           VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
           parser.nextToken(); // discard '>'
           ClassLoader cl;
-          if (clName.equals("SystemCL")) {
+          if (clName.equals("BootstrapCL")) {
             cl = VM_SystemClassLoader.getVMClassLoader();
-          } else if (clName.equals("AppCL")) {
+          } else if (clName.equals("SystemAppCL")) {
             cl = VM_ClassLoader.getApplicationClassLoader();
           } else {
             VM.sysFail("Unable to match classloader "+clName);

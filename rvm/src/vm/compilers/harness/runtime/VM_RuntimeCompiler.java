@@ -291,9 +291,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
   /**
    * Process command line argument destined for the opt compiler
    */
-  public static void processOptCommandLineArg(String arg) {
+  public static void processOptCommandLineArg(String prefix, String arg) {
     if (compilerEnabled) {
-      if (options.processAsOption("-X:irc", arg)) {
+      if (options.processAsOption(prefix, arg)) {
         // update the optimization plan to reflect the new command line argument
         setNoCacheFlush(options);
         optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
@@ -302,11 +302,12 @@ public class VM_RuntimeCompiler implements VM_Constants,
         VM.sysExit(VM.exitStatusBogusCommandLineArg);
       }
     } else {
-      String[] tmp = new String[earlyOptArgs.length+1];
+      String[] tmp = new String[earlyOptArgs.length+2];
       for (int i=0; i<earlyOptArgs.length; i++) {
         tmp[i] = earlyOptArgs[i];
       }
       earlyOptArgs = tmp;
+      earlyOptArgs[earlyOptArgs.length-2] = prefix;
       earlyOptArgs[earlyOptArgs.length-1] = arg;
     }
   }
@@ -406,7 +407,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       return optCompile(method, plan);
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_RuntimeCompiler: can't optimize \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
-      if (e.isFatal && options.ERRORS_FATAL) {
+      if (e.isFatal && VM.ErrorsFatal) {
         e.printStackTrace();
         VM.sysFail(msg);
       } else {
@@ -444,7 +445,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         +"(via recompileWithOptOnStackSpecialization): "
         +"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
 
-      if (e.isFatal && plan.options.ERRORS_FATAL) {
+      if (e.isFatal && VM.ErrorsFatal) {
         VM.sysFail(msg);
       } else {
         VM.sysWrite(msg);
@@ -479,7 +480,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
           plan.method.replaceCompiledMethod(cm);
         } catch (Throwable e) {
           String msg = "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" + plan.method + "\" (error was: " + e + ")\n"; 
-          if (plan.options.ERRORS_FATAL) {
+          if (VM.ErrorsFatal) {
             e.printStackTrace();
             VM.sysFail(msg);
           } else {
@@ -490,7 +491,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         return cm.getId();
       } catch (OPT_OptimizingCompilerException e) {
         String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
-        if (e.isFatal && plan.options.ERRORS_FATAL) {
+        if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
           VM.sysFail(msg);
         } else {
@@ -561,20 +562,20 @@ public class VM_RuntimeCompiler implements VM_Constants,
     // when we reach here the OPT compiler is enabled.
     compilerEnabled = true;
 
-    for (int i=0; i<earlyOptArgs.length; i++) {
-      processOptCommandLineArg(earlyOptArgs[i]);
+    for (int i=0; i<earlyOptArgs.length; i+=2) {
+      processOptCommandLineArg(earlyOptArgs[i], earlyOptArgs[i+1]);
     }
     //-#endif
   }
   
-  public static void processCommandLineArg(String arg) {
+  public static void processCommandLineArg(String prefix, String arg) {
     //-#if !RVM_WITH_ADAPTIVE_SYSTEM
-    VM_BaselineCompiler.processCommandLineArg("-X:irc",arg);
+    VM_BaselineCompiler.processCommandLineArg(prefix, arg);
     //-#else
     if (VM_Controller.options !=null  && VM_Controller.options.optIRC()) {
-      processOptCommandLineArg(arg);
+      processOptCommandLineArg(prefix, arg);
     } else {
-      VM_BaselineCompiler.processCommandLineArg("-X:irc", arg);
+      VM_BaselineCompiler.processCommandLineArg(prefix, arg);
     }
     //-#endif
   }
