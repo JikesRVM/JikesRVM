@@ -7,7 +7,7 @@ HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M
 HOST_MEM_MIN=300M
 
-JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(JAL_BUILD)/RVM.classes/jksvm.jar:$(JAL_BUILD)/RVM.classes/rvmrt.jar:$(JAL_BUILD)/RVM.classes
+JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(JAL_BUILD)/RVM.classes:$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
 $SRCS=	BootImage.java \
 	BootImageChecker.java \

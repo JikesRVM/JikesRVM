@@ -9,17 +9,24 @@
 
 /^Bottom Line: / { results[ currentBench, currentImage ] = substr($0, 13) }
 
-END {
-    lastbench="fake";
+END {    
     for (result in results ) {
         split(result, parts, SUBSEP);
-        bench=parts[1];
-	image=parts[2];
-	if ( bench != lastbench ) {
-	    lastbench = bench;
-	    print "Results for " bench;
-	}
+        benches[ parts[1] ] = "YES";
+    }
+       
+    for (bench in benches) {
+	print "\nResults for " bench;
+	print "----------------------------------";
 
-	print "\t" image "\t" results[ result ];
+	for (result in results) {
+	    split(result, parts, SUBSEP);
+	    rbench=parts[1];
+	    rimage=parts[2];
+	    
+	    if ( rbench == bench ) {
+		printf "%-25s%-50s\n", rimage, results[ result ];
+	    }
+	}
     }
 }
