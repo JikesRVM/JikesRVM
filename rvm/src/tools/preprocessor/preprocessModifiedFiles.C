@@ -55,9 +55,12 @@ static const char long_help_msg[] = ""
 "\n"
 "   --help, -h  Show this long help message and exit with status 0.\n"
 "\n"
+"   --keep-going, -k  Keep going in spite of errors; still exit with bad status.\n"
+"\n"
 "   -D<name>=0 is historically a no-op; equivalent to never defining <name>.\n"
-"   The intent is that <name> be a constant usable \n"
-"   in an //-#if <name> directive.\n"
+"   (However, the --no-undefined-constants-in-conditions flag changes that\n"
+"    behavior, requiring that any <name> in an //-#if <name> directive.\n"
+"    be defined with -D<name>=0 or -D<name>=1.\n"
 "\n"
 "   -D<name>=1 and -D<name> are equivalent.\n"
 "\n"
@@ -70,7 +73,7 @@ static const char long_help_msg[] = ""
 "\n"
 "      //-#if    <name>\n"
 "	    Historically, it is not an error for <name> have never been\n"
-"	    defined; it's equivalent to -D<name>=0.  This is currently \n"
+"	    defined; it's equivalent to -D<name>=0.  This can be \n"
 "	    experimentally promoted to an error with the flag\n"
 "	    --noundefined-constants-in-conditions.  The historical\n"
 "	    behavior is explicitly requested with "
@@ -156,6 +159,10 @@ bool only_boolean_constants_in_conditions = false; /* historical behaviour */
 bool undefined_constants_in_conditions = true; /* Historical behavior */
 //bool undefined_constants_in_conditions = false; /* Strict behavior */
 bool exit_with_status_1_if_files_modified = true; /* Historical behavior */
+bool keep_going = false;
+int keep_going_xitstatus = 0;	// what status to exit the program with.
+
+
 
 
 
@@ -200,11 +207,22 @@ int   Constants;                    // number thereof
 //
 char package[MAXLINE];       // package name if it exists
 const char *SourceName;            // file name
-int   SourceLine;            // current line number therein
+int   SourceLineNo;            // current line number therein
+
 int   Nesting;               // number of unclosed #if's
-int   TrueSeen[MAXNESTING];  // has any block evaluated VV_TRUE at current nesting level?
-int   Value[MAXNESTING];     // has current block at current nesting level evaluated VV_TRUE?
-int   Unmatched[MAXNESTING]; // line number of currently active #if, #elif, or #else at each level
+/* Structure for unmatched conditionals.  This is a simple stack. */
+/* At nesting level 1, the item is stored in array element 0, and so on.
+ * Ugly, no? */
+struct nest_st {
+    int lineNo; // line number of currently active #if, #elif, or #else at each level
+    char lineTxt[MAXLINE];		// A copy of the current line, but
+					// with the line ending chopped off
+					// (for error messages)
+    bool trueSeen; // has any block evaluated true at the current nesting level?
+    bool val;			// has the current block at current nesting level evaluated true
+} unmatched[MAXNESTING];
+
+
 bool   PassLines;             // if true, pass lines through.   false --> don't
 
 char *PutIntoPackage = NULL;	// points to memory that's part of argv.
@@ -217,23 +235,28 @@ void reviseState(void);
 void printState(FILE *fout, char *constant, char *line);
 #endif
 bool eval(char *p);
-int  evalReplace(char *cursor);
+const char *evalReplace(char *cursor);
 char *getToken(char **c);
 bool getBoolean(char **c);
 
 // Types of tokens returned by scan().
 //
 enum scan_token {
-    TT_TEXT         = 0,
-    TT_IF           = 1,
-    TT_ELIF         = 2,
-    TT_ELSE         = 3,
-    TT_ENDIF        = 4,
-    TT_REPLACE      = 5,
+    TT_TEXT         = 0,	// nothing to replace.
+    TT_IF           = 1,	// arg.If
+    TT_ELIF         = 2,	// arg.If
+    TT_ELSE         = 3,	// no arg
+    TT_ENDIF        = 4,	// no arg
+    TT_REPLACE      = 5,	// arg.Replace
     TT_UNRECOGNIZED = 6,
 };
 
-enum scan_token scan(const char *srcFile, char *line, int *valuep);
+union scan_arg {
+    bool If;
+    const char *Replace;
+};
+
+enum scan_token scan(const char *srcFile, char *line, union scan_arg *argp);
 
 #define UNUSED_DECL_ARG __attribute__((__unused__))
 #define UNUSED_DEF_ARG __attribute__((__unused__))
@@ -247,18 +270,12 @@ enum scan_token scan(const char *srcFile, char *line, int *valuep);
 #endif
 
 
-// Values of tokens returned by scan() (in *valuep) for IF and ELIF.
-// For some cases, an index into ConstantValue is returned.
-#define VV_FALSE 0
-#define VV_TRUE  1
-
-
 /* snprintf(), but with our own built-in error checks. */
 void xsnprintf(char *buf, size_t bufsize, const char *format, ...)
     __attribute__((__format__(__printf__, 3, 4)));
 void xsystem(const char *command);
 void inputErr(const char msg[], ...) 
-    __attribute__((noreturn))
+//    __attribute__((noreturn))
     __attribute__((__format__(__printf__, 1, 2)));
 
 static void set_up_trouble_handlers();
@@ -269,7 +286,8 @@ static void shorthelp(FILE *out);
 /** Delete this file on trouble.  This is the interface to
  * delete_on_trouble().  */
 const char *DeleteOnTrouble = NULL;
-
+static void delete_on_trouble(UNUSED_DECL_ARG int dummy_status , UNUSED_DECL_ARG void *dummy_arg ) 
+    SIGNAL_ATTRIBUTE;
 
 int
 main(int argc, char **argv) 
@@ -298,6 +316,11 @@ main(int argc, char **argv)
 	    printf(short_help_msg, Me);
 	    fputs(long_help_msg, stdout);
 	    exit(0);
+	}
+      
+	if (streql(arg, "-keep-going") || streql(arg, "-k")) {
+	    keep_going = true;
+	    continue;
 	}
       
 	if (streql(arg, "-disable-modification-exit-status")) {
@@ -435,7 +458,7 @@ main(int argc, char **argv)
     }
     
 
-    while (argc != 0) {
+    while (argc > 0) {
 	char *source = *argv++; --argc;
 	char  destination[PATH_MAX + 1];
 	xsnprintf(destination, sizeof destination, "%s/%s", outputDirectory, basename(source));
@@ -445,8 +468,13 @@ main(int argc, char **argv)
 	time_t      destinationTime;
 	
 	if (stat(source, &info) < 0) {
-	    fprintf(stderr, "%s: a source file (%s) doesn't exist.  Aborting.\n",
+	    fprintf(stderr, "%s: a source file (%s) doesn't exist\n",
 		    Me, source);
+	    if (keep_going) {
+		keep_going_xitstatus = 2;
+		continue;
+	    }
+	    fprintf(stderr, "%s: Aborting Execution.\n", Me);
 	    exit(2);
 	}
 	sourceTime = info.st_mtime;
@@ -473,6 +501,12 @@ main(int argc, char **argv)
 	    //    chmod(destination, S_IREAD | S_IWRITE);
 	  
 	    if (preprocess(source, DeleteOnTrouble = destination) < 0) {
+		if (keep_going) {
+		    delete_on_trouble(0, 0);
+		    keep_going_xitstatus = 2;
+		    continue;
+		}
+		fprintf(stderr, "%s: Aborting Execution.\n", Me);
 		exit(2);             // treat as fatal error
 	    }
 	    DeleteOnTrouble = NULL;
@@ -480,7 +514,7 @@ main(int argc, char **argv)
 
 	    // Move file to the right subdirectory if it is part of a package
 	    //
-	    if (*package != 0) {
+	    if (*package) {
 		// Should do error-checking of package
 		char command[PATH_MAX + 100];
 		char finalDir[PATH_MAX + 1];
@@ -514,6 +548,8 @@ main(int argc, char **argv)
     if (verbose)
 	fprintf(stdout, "\n%s: %d of %d files required preprocessing\n", Me, preprocessed, examined);
     // SHOW_PROGRESS("\n");
+    if (keep_going_xitstatus)
+	exit(keep_going_xitstatus);
     if (exit_with_status_1_if_files_modified && preprocessed)
 	exit(1);
     exit(0);
@@ -530,6 +566,7 @@ preprocess(const char *srcFile, const char *dstFile)
 {
     const int Trouble = -1;
     const int OK = 0;
+    int trouble = OK;
     
     *package = 0;
     FILE *fin = fopen(srcFile, "r");
@@ -547,16 +584,16 @@ preprocess(const char *srcFile, const char *dstFile)
 
 #if DEBUG
     for (int i = 0; i < Constants; ++i) {
-	struct def *dp = Constants + i;
+	struct def *dp = Constant + i;
 	fprintf(fout, "[%s=%s]\n", dp->Name, 
-		Constant[i].Value ? : 
+		dp->Value ? : 
 		( dp->isset == membof(dp->) SET ? "1 (*SET*)" : "0 (*UNSET*)"));
     }
 	
 #endif
 
     SourceName = srcFile;
-    SourceLine = 0;
+    SourceLineNo = 0;
     Nesting = 0;
     reviseState();
 
@@ -569,40 +606,56 @@ preprocess(const char *srcFile, const char *dstFile)
 
 	if (!fgets(line, sizeof line, fin)) { 
 	    if (feof(fin)) {
+	    cleanup:
 		if (fclose(fin)) {
 		    fputs("Trouble while closing the input file ", stderr);
 		    perror(SourceName);
-		    return Trouble; // take advantage of the fact that the
-				    // caller will abort.
+		    if (!keep_going)
+			return Trouble;
+		    trouble = Trouble;
 		}; 
 
 		if (ferror(fout)) {
 		    fputs("Trouble while writing the file ", stderr);
 		    perror(dstFile);
-		    return Trouble;
+		    if (!keep_going)
+			return Trouble;
+		    trouble = Trouble;
 		}
 
 		if (fclose(fout)) {
 		    fputs("Trouble while closing the file ", stderr);
 		    perror(dstFile);
-		    return Trouble;
+		    if (!keep_going)
+			return Trouble;
+		    trouble = Trouble;
 		}
 
 		if (Nesting) {
-		    fprintf(stderr, "%s: %s:%d: No matching #endif for this line\n", Me, SourceName, Unmatched[Nesting]);
-		    return Trouble;
+		    do {
+			struct nest_st *u = &unmatched[--Nesting];
+			fprintf(stderr, "%s: %s:%d: Never found a matching #endif for this line: %s\n", Me, SourceName, u->lineNo, u->lineTxt);
+		    } while (Nesting > 0);
+		    
+		    if (!keep_going)
+			return Trouble;
+		    trouble = Trouble;
 		}
-		return OK;
+		return trouble;
 	    } else if (ferror(fin)) {
 		fprintf(stderr, "%s: Trouble while reading the file \"%s\": ",
 			Me, SourceName);
 		perror("");
 		// take advantage of the fact that the caller will abort.; no
 		// need to close files.
-		return Trouble;
+		if (!keep_going)
+		    return Trouble;
+		trouble = Trouble;
+		goto cleanup;
 	    } else {
-		fprintf(stderr, "%s: Internal error: fgets() returned NULL, but"
-			" neither feof() nor ferror() are true!\n"
+		fprintf(stderr, 
+			"%s: Internal error: fgets() returned NULL, but"
+			" neither feof() nor ferror() are true!  This should never happen.\n"
 			"%s: Aborting execution.\n", Me, Me);
 		exit(13);
 	    }
@@ -612,15 +665,16 @@ preprocess(const char *srcFile, const char *dstFile)
 	if (line[ linelen - 1 ] != '\n') {
 	    inputErr("Line too long (over %lu characters).\n", 
 		     (unsigned long) linelen);
+	    exit(13);
 	}
 
-	++SourceLine;
+	++SourceLineNo;
 	
 
-	int value;
 	enum scan_token token_type;
-	
-	switch (token_type = scan(srcFile, line, &value)) {
+	union scan_arg scanned;
+
+	switch (token_type = scan(srcFile, line, &scanned)) {
 	case TT_TEXT:
 #if DEBUG
 	    printState(fout, "TEXT ", line);
@@ -632,30 +686,41 @@ preprocess(const char *srcFile, const char *dstFile)
 #if DEBUG
 	    printState(fout, "REPLACE ", line);
 #endif
-	    fputs(PassLines ? Constant[value].Value : "\n", fout);
+	    fputs(PassLines ? scanned.Replace : "\n", fout);
 	    continue;
 
-	case TT_IF:
-	    TrueSeen[Nesting] = Value[Nesting] = value;
-	    Unmatched[Nesting] = SourceLine;
-	    ++Nesting;
+	case TT_IF: 
+	{
+	    /* temp. pointer to current unmatched struct */
+	    register struct nest_st *u = &unmatched[Nesting++];
+	    u->trueSeen = u->val = scanned.If;
+	    u->lineNo = SourceLineNo;
+	    strcpy(u->lineTxt, line);
+	    char *nlp = strchr(u->lineTxt, '\n');
+	    assert(nlp);	// must be newline terminated.  That's how
+				// fgets() works, and we tested above.
+	    *nlp = '\0';
+	    
 	    reviseState();
 #if DEBUG
 	    printState(fout, "IF   ", line);
 #endif
 	    fputs("\n", fout);
 	    continue;
-
+	}
 	case TT_ELIF:
+	{
 	    if (Nesting == 0) {
 		inputErr("#elif with no corresponding #if");
+		continue;
 	    }
-	    --Nesting;
+	    register struct nest_st *u = &unmatched[Nesting - 1];
 	    
-	    if (TrueSeen[Nesting]) Value[Nesting] = VV_FALSE;
-	    else                   TrueSeen[Nesting] = Value[Nesting] = value;
-	    Unmatched[Nesting] = SourceLine;
-	    ++Nesting;
+	    if (u->trueSeen) 
+		u->val = false;
+	    else 
+		u->trueSeen = u->val = scanned.If;
+	    u->lineNo = SourceLineNo;
 	    
 	    reviseState();
 #if DEBUG
@@ -663,29 +728,31 @@ preprocess(const char *srcFile, const char *dstFile)
 #endif
 	    fputs("\n", fout);
 	    continue;
-
+	}
 	case TT_ELSE:
+	{
 	    if (Nesting == 0) {
 		inputErr("#else with no corresponding #if");
+		continue;
 	    }
-	    --Nesting;
-	    if (TrueSeen[Nesting]) 
-		Value[Nesting] = VV_FALSE;
+	    register struct nest_st *u = &unmatched[Nesting - 1];
+	    if (u->trueSeen) 
+		u->val = false;
 	    else
-		TrueSeen[Nesting] = Value[Nesting] = VV_TRUE;
+		u->trueSeen = u->val = true;
 
-	    Unmatched[Nesting] = SourceLine;
-	    ++Nesting;
+	    u->lineNo = SourceLineNo;
 	    reviseState();
 #if DEBUG
 	    printState(fout, "ELSE ", line);
 #endif
 	    fputs("\n", fout);
 	    continue;
-
+	}
 	case TT_ENDIF:
 	    if (Nesting == 0) {
-		inputErr("#endif with no corresponding #if");
+		inputErr("#endif with no corresponding #if: %s", line);
+		continue;
 	    }
 	    --Nesting;
 	    reviseState();
@@ -696,29 +763,28 @@ preprocess(const char *srcFile, const char *dstFile)
 	    continue;
 
 	case TT_UNRECOGNIZED:
-	    inputErr("unrecognized preprocessor constant: %s", line);
-	    return Trouble; 
+	    inputErr("unrecognized preprocessor directive: %s", line);
+	    continue;
 
 	default:
-	    fprintf(stderr, "%s: %s:%d: Internal error: scan() should never return token type %d\n", Me, SourceName, SourceLine, token_type);
-	    return Trouble;
-
+	    fprintf(stderr, "%s: %s:%d: Internal error: scan() should never return token type %d\n", Me, SourceName, SourceLineNo, token_type);
+	    exit(13);
 	}
     }
     /* NOTREACHED */
 }
 
 // Compute new preprocessor state after scanning a constant.
-// Taken:    Value[]
-//           Nesting
-// Returned: PassLines
+// Uses:    nesting[].val
+//          Nesting
+// Sets: PassLines
 //
 void reviseState(void) 
 {
 
     PassLines = true;
     for (int i = 0; i < Nesting; ++i)
-	PassLines = PassLines && Value[i];
+	PassLines = PassLines && unmatched[i].val;
 }
 
 #if DEBUG
@@ -735,7 +801,7 @@ printState(FILE *fout, char *constant, char *line)
 
     int i;
     for (i = 0; i < Nesting; ++i) 
-	fprintf(fout, "%d ", Value[i]);
+	fprintf(fout, "%s ", unmatched[i].val ? "true" : "false");
    
     for (; i < 5; ++i)
 	fprintf(fout, "..");
@@ -747,7 +813,8 @@ printState(FILE *fout, char *constant, char *line)
 // Scan for a preprocessor directive.  Also handles "package" declarations.
 //
 // Taken:    line to be scanned
-//           place to put value of #if or #elif directive, if found
+//           argp: place to put value of #if or #elif directive, if found
+//		or place to put replacement text
 // Returned: TT_TEXT         --> found no                directive
 //           TT_IF           --> found '//-#if <name>'   directive
 //           TT_ELIF         --> found `//-#elif <name>' directive
@@ -758,7 +825,7 @@ printState(FILE *fout, char *constant, char *line)
 // In some cases, value is modified.
 
 enum scan_token
-scan(const char *srcFile, char *line, int *valuep) 
+scan(const char *srcFile, char *line, union scan_arg *argp) 
 {
     // skip whitespace
     //
@@ -771,7 +838,7 @@ scan(const char *srcFile, char *line, int *valuep)
     if (strneql(p, "package ", 8)) {
 	if (PutIntoPackage)
 	    fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
-	if (*package != 0)
+	if (*package)
 	    fprintf(stderr, "WARNING: multiple package declaration in file %s", srcFile);
 	p += 8;
 	char *tmp = package;
@@ -797,7 +864,8 @@ scan(const char *srcFile, char *line, int *valuep)
 	while (isspace(*p))
 	    ++p;
        
-	*valuep = evalReplace(p);
+	argp->Replace = evalReplace(p);
+	
 	return TT_REPLACE;
     }
 
@@ -807,7 +875,7 @@ scan(const char *srcFile, char *line, int *valuep)
 	p +=3;
 	while (isspace(*p))
 	    ++p;
-	*valuep = eval(p);
+	argp->If = eval(p);
 	return TT_IF;
     }
      
@@ -818,7 +886,7 @@ scan(const char *srcFile, char *line, int *valuep)
 	while (isspace(*p))
 	    ++p;
 
-	*valuep = eval(p);
+	argp->If = eval(p);
 	return TT_ELIF;
     }
      
@@ -880,30 +948,33 @@ bool getBoolean(char **cursorp)
 }
 
 
-/* Returns an index into Constant[i], which our caller derefs. for
- * Constant[i].Value. */ 
-int 
+/* Returns a pointer to the replacement token for a //-#value directive. */
+const char *
 evalReplace(char *cursor) 
 {
     char *name = getToken( &cursor );
     assert( ( cursor == name ) ? ( *name == '\0' ) : *name);
     size_t len = cursor - name;
-    if (len == 0)
+    if (len == 0) {
 	inputErr("The //-#value <name> preprocessor construct needs a <name>");
-	
+	return "BOGUS #value";
+    }
     for (int i = 0; i < Constants; ++i) {
-	const char *constantName = Constant[i].Name;
-	if (strlen(constantName) == len && strneql(name, constantName, len))
+	struct def *dp = Constant + i;
+	
+	if (strlen(dp->Name) == len && strneql(name, dp->Name, len))
 	{
-	    if (Constant[i].Value == NULL)
+	    if (! dp->Value) {
 		inputErr(
 		    "//-#value used on non-value (true/false) constant '%s'", 
-		    constantName);
-	    return i;
+		    dp->Name);
+		return dp->Name;	// Error return
+	    }
+	    return dp->Value;
 	}
     }
     inputErr("//-#value used on undefined constant '%*.*s'", (int) len, (int) len, name);
-    /* NOTREACHED */
+    return name;
 }
 
 
@@ -933,9 +1004,9 @@ eval(char *cursor)
 		if (dp->Value) {
 		    if (only_boolean_constants_in_conditions)
 			inputErr(
-			    "The constant name %*.*s is a Value constant;\n"
-			    "     preprocessor conditions require a"
-			    " True/False constant.", (int) len, (int) len, dp->Name);
+			    "The constant '%*.*s' is a Value constant;\n"
+			    "     //-#if and //-#elif require a"
+			    " Boolean (1 or 0) constant.", (int) len, (int) len, dp->Name);
 		    match = 1;
 		} else {
 		    assert(!dp->Value);
@@ -948,7 +1019,7 @@ eval(char *cursor)
 	}
 	if (match < 0) {
 	    if (! undefined_constants_in_conditions)
-		inputErr("Undefined constant name %*.*s"
+		inputErr("Undefined constant named \"%*.*s\""
 			 " in preprocessor condition", (int) len, (int) len, name);
 	    match = 0;
 	}
@@ -958,7 +1029,8 @@ eval(char *cursor)
 	if ( !getBoolean( &cursor ) ) 
 	    break;
 	if ( cursor[0] == '|' ) {
-	    if ( match ) 	// skip further syntax checking; whoops!
+	    if ( match ) 	// skip further syntax checking; TODO: Check
+				// the rest of the syntax.
 		return true;
 	} else {
 	    assert(*cursor == '&');
@@ -972,7 +1044,6 @@ eval(char *cursor)
     if (*cursor) {
 	inputErr("Garbage characters (\"%s\") are at the"
 		 "end of a preprocessor condition.", cursor);
-	exit(2);
     }
     return match;
 }
@@ -993,6 +1064,7 @@ xsnprintf(char *buf, size_t bufsize, const char *format, ...)
 	fprintf(stderr, "%s: xsnprintf(): Ran out of space in a"
 		" fixed-size buffer while formatting a string"
 		" starting with: \"%s\"\n", Me, buf);
+	fprintf(stderr, "%s: Aborting Execution.\n", Me);
 	exit(4);
     }
     /* All is well. */
@@ -1011,6 +1083,7 @@ xsystem(const char *command)
     if (ret < 0) {
 	fputs(Me, stderr);
 	perror(": Trouble while trying to use system()");
+	fprintf(stderr, "%s: Aborting Execution.\n", Me);
 	exit(5);
     }
 
@@ -1041,9 +1114,6 @@ shorthelp(FILE *out)
 }
 
       
-static void delete_on_trouble(UNUSED_DECL_ARG int dummy_status , UNUSED_DECL_ARG void *dummy_arg ) 
-    SIGNAL_ATTRIBUTE;
-
 
 static void 
 delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *dummy_arg)
@@ -1092,11 +1162,18 @@ inputErr(const char msg[], ...)
 {
     va_list ap;
     va_start(ap, msg);
-    fprintf(stderr, "%s: %s:%d: ", Me, SourceName, SourceLine);
+    fprintf(stderr, "%s: %s:%d: ", Me, SourceName, SourceLineNo);
     vfprintf(stderr, msg, ap);
     va_end(ap);			/* silly to clean up; we're going to die
 				 * anyway.  */
-    fprintf(stderr, "\n%s: Aborting Execution.\n", Me);
+    putc('\n', stderr);
+
+    if (keep_going) {
+	delete_on_trouble(0, 0);
+	keep_going_xitstatus = 2;
+	return;
+    }
+    fprintf(stderr, "%s: Aborting Execution.\n", Me);
     exit(2);
 }
 
@@ -1106,7 +1183,7 @@ inputErr(const char msg[], ...)
 static void
 xsignal_oldsignal(int signum, void (*handler)(int))
 {
-   void (*ret)(int) = signal(signum, handler);
+    void (*ret)(int) = signal(signum, handler);
     if (ret == SIG_ERR) {
 	fprintf(stderr, 
 		"%s: Trouble trying to set up a handler for signal %d: ",
