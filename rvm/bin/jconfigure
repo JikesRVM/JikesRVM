@@ -1997,7 +1997,7 @@ EOF
     
     declare -i save_temps=0	# You might set save_temps=1 when debugging.
     if (( ! save_temps )); then
-	CLEANUP='rm -f $PRIMORDIAL_CLASSES_STR.1 $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3'
+	echo "CLEANUP='rm -f $PRIMORDIAL_CLASSES_STR.want-these $PRIMORDIAL_CLASSES_STR.want-minus-exclusions $PRIMORDIAL_CLASSES_STR.in-gnu-classpath'"
     fi
 
     # Start a subshell where the output from a series of commands will go to
@@ -2018,9 +2018,9 @@ EOF
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
-    echo ") > ${PRIMORDIAL_CLASSES_STR}.1"
+    echo ") > ${PRIMORDIAL_CLASSES_STR}.want-these"
     cat <<- EOF
-cleanFileList >> ${PRIMORDIAL_CLASSES_STR}.1 << EOF_PRIMORDIAL_CLASSES_STR_1
+cleanFileList >> ${PRIMORDIAL_CLASSES_STR}.want-these << EOF_PRIMORDIAL_CLASSES_STR_1
 # VM daemon threads that do not start with VM for historical reasons
 com/ibm/JikesRVM/FinalizerThread
 com/ibm/JikesRVM/MainThread
@@ -2310,17 +2310,17 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	    # At this line, get rid of any lines containing a literal '$'
 	    #		delete any initial './' (from find's output)
 	    #		delete any trailing .class (also from find)
-	    \$FGREP -v -f $EXCLUDED_CLASSES_STR ${PRIMORDIAL_CLASSES_STR}.1 | ${SED_STR} -e'/\\\$/d' -e 's@^\\./@@' -e 's@\.class\$@@' -e 's@^\\(.*\\)\$@\\1.class\\
-\\1\$@' > ${PRIMORDIAL_CLASSES_STR}.2
-	    $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.3
+	    \$FGREP -v -f $EXCLUDED_CLASSES_STR ${PRIMORDIAL_CLASSES_STR}.want-these | ${SED_STR} -e'/\\\$/d' -e 's@^\\./@@' -e 's@\.class\$@@' -e 's@^\\(.*\\)\$@\\1.class\\
+\\1\$@' > ${PRIMORDIAL_CLASSES_STR}.want-minus-exclusions
+	    $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	# Nuke leading "./" from the strings "find" prints out.
-	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.3
+	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	    > $PRIMORDIAL_CLASSES_STR # Create it clean
 #	DEBUGGING -- lets us test for junk in the RVM.primordials file:
 #	    echo fi > $PRIMORDIAL_CLASSES_STR
 	# Convert from file names ending in .class "java/lang/String.class"
 	# into internal form "Ljava/lang/String;"
-	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | $SED_STR 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
+	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.want-minus-exclusions $PRIMORDIAL_CLASSES_STR.in-gnu-classpath | $SED_STR 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
 	eval \$CLEANUP		# Remove temp files.
 	# 
 	# (4) Add Array types.  NOTE: These must be in internal form.
