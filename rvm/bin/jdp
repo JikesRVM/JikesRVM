@@ -94,7 +94,7 @@ $RVM_BUILD/jbuild.buildJDP
 export LIBPATH=$RVM_BUILD/RVM.tools:.
 export LD_LIBRARY_PATH=$RVM_BUILD/RVM.tools:.
 
-JDP_CLASSPATH=$RVM_BUILD/RVM.tools:$RVM_BUILD/RVM.scratch:$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar:.
+JDP_CLASSPATH=$RVM_BUILD/RVM.tools:$RVM_BUILD/RVM.scratch:$RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar:.
 
 
 #****************************************************************************
@@ -120,9 +120,9 @@ INTERPRETERMODE=""
 
 BOOTER_ARGS=""
 
-OTHER_ARGS="-X:vmClasses=$RVM_BUILD/RVM.classes -classpath ."
+OTHER_ARGS="-X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar -classpath ."
 
-JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $RVM_IMAGE  -classpath $RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar:. "
+JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $RVM_IMAGE  -classpath $RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar:. "
 
 
 START_OF_APPLICATION_ARGS_SEEN=0
@@ -155,12 +155,6 @@ for arg in $*; do
       JDP_ARGS="$arg -jdpviewboot $JDP_ARGS"
    elif [[ $arg = -jdpGUI* ]]; then
       JDP_ARGS="-jdpserver $JDP_ARGS"
-   elif [[ $arg = -X:record* ]]; then
-      APP_ARGS="DejaVu -record $APP_ARGS"
-      JDP_ARGS="-jdprecord $JDP_ARGS"
-   elif [[ $arg = -X:replay* ]]; then
-      APP_ARGS="DejaVu -replay $APP_ARGS"
-      JDP_ARGS="-jdpreplay $JDP_ARGS"
    elif [[ $arg = -jdpviewboot* ]]; then
       JDP_ARGS="$arg $JDP_ARGS"
    else
