@@ -1,8 +1,16 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
 /**
  * Generic driver to run a program <N> times.
  * This driver notifies the Jikes RVM of each application run start.
  *
  * Usage: java Driver <N> <main class> <main routine> [program args .. .. ]
+ *
+ * @author Steve Fink
+ * @date April 2, 2002
  */
 
 import java.lang.reflect.*;
