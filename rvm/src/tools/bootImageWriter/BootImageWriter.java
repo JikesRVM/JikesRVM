@@ -807,11 +807,19 @@ public class BootImageWriter extends BootImageWriterMessages
       // Set tocRegister early so opt compiler can access it to
       //   perform fixed_jtoc optimization (compile static addresses into code).
       // In the boot image, the bootrecord comes first followed by a VM_Address array and then the TOC.
-      // 
+      // To do this, we must fully simulate the alignment logic in the allocation code!
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      bootRecord.tocRegister = VM_Address.fromIntZeroExtend(bootImageAddress + rvmBRType.getInstanceSize() + intArrayType.getInstanceSize(0));
+      int bp = bootImageAddress;
+      bp += rvmBRType.getInstanceSize();
+      int align = VM_ObjectModel.getAlignment(intArrayType);
+      int offset = VM_ObjectModel.getOffsetForAlignment(intArrayType);
+      int mod = (bp + offset) & (align-1);
+      int delta = (align - mod) & (align-1);
+      bp += delta;
+      bp += intArrayType.getInstanceSize(0);
+      bootRecord.tocRegister = VM_Address.fromIntZeroExtend(bp);
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
@@ -905,144 +913,48 @@ public class BootImageWriter extends BootImageWriterMessages
         Class jdkType   = fieldInfo.jdkType;
         if (verbose >= 1) say("building static and instance fieldinfo for " + rvmType);
 
-        // First the statics
+        // First the static fields
+        // 
         VM_Field rvmFields[] = rvmType.getStaticFields();
         fieldInfo.jdkStaticFields = new Field[rvmFields.length];
 
-        //
-        // Search order:
-        // nextField helps us try to speedup locating the
-        // right field in the jdk's Field list. Turns out most of
-        // the time the jdk list is in the exact opposite order.
-        // So start at the end of the list and search forward.
-        // The next search should start from where we left off. 
-        // If the first loop doesn't find the item, we'll need to 
-        // search the fields we skipped in the second loop
-        //
-        int nextField = fieldInfo.jdkFields.length-1;
         for (int j = 0; j < rvmFields.length; j++) {
-          boolean found = false;
           String  rvmName = rvmFields[j].getName().toString();
-          for (int k = nextField; k >= 0; k--) {
+          for (int k = 0; k < fieldInfo.jdkFields.length; k++) {
             Field f = fieldInfo.jdkFields[k];
             if (f.getName().equals(rvmName)) {
               fieldInfo.jdkStaticFields[j] = f;
               f.setAccessible(true);
-              found = true;
-              nextField = k-1;
               break;
             }
           }
-          if (!found) {
-            for (int k = nextField+1; k < fieldInfo.jdkFields.length; k++) {
-              Field f = fieldInfo.jdkFields[k];
-              if (f.getName().equals(rvmName)) {
-                fieldInfo.jdkStaticFields[j] = f;
-                f.setAccessible(true);
-                found = true;
-                nextField = fieldInfo.jdkFields.length-1;
-                break;
-              }
-            }	    
-            if (!found) {
-              // Some fields just don't exist in JDK version
-              fieldInfo.jdkStaticFields[j] = null;
-            }
-          }
         }
 
-        //
         // Now the instance fields
-        // The search order is again organized in what seems to be
-        // the best for speed. With instance fields we need to search
-        // the superclasses too. Once a field is found in a fieldtable
-        // we try to start the search for the next field in the same
-        // field table starting from where we left off. If it is not
-        // in the current field table we try the superclasses's fieldtables
-        // If that doesn't work, we must try again but starting from
-        // the original jdktype.
-        //
-
+        // 
         rvmFields = rvmType.getInstanceFields();
         fieldInfo.jdkInstanceFields = new Field[rvmFields.length];
 
-        Field[] jdkFields = fieldInfo.jdkFields;
-        nextField = jdkFields.length-1;
-        for (int j = 0; j < rvmFields.length; j++) {
-          boolean found = false;
+        for (int j = 0; j<rvmFields.length; j++) {
           String  rvmName = rvmFields[j].getName().toString();
-          while (!found && jdkType != null) {
-            for (int k = nextField; k >= 0; k--) {
-              Field f = jdkFields[k];
-              if (f.getName().equals(rvmName)) {
-                fieldInfo.jdkInstanceFields[j] = f;
-                f.setAccessible(true);
-                found = true;
-                nextField = k-1;
-                break;
-              }
-            }
-            if (!found) {
-              // Try the part of the field table we missed
-              for (int k = nextField+1; k < jdkFields.length; k++) {
-                Field f = jdkFields[k];
-                if (f.getName().equals(rvmName)) {
-                  fieldInfo.jdkInstanceFields[j] = f;
-                  f.setAccessible(true);
-                  found = true;
-                  // Order seems unpredicable, so do a full search for
-                  // next field
-                  nextField = jdkFields.length-1;
-                  break;
-                }
-              }
-            }
-            // If not found try field array from next superclass
-            if (!found) {
-              jdkType = jdkType.getSuperclass();
-              if (jdkType != null) {
-                Key key = new Key(jdkType);
-                FieldInfo superFieldInfo = (FieldInfo)bootImageTypeFields.get(key);
-                jdkFields = superFieldInfo.jdkFields;
-                nextField = jdkFields.length-1;
-              }
-            }
-          }
-          if (!found) {
-            // go back to basics and start search from beginning.
-            jdkType = fieldInfo.jdkType;
-            FieldInfo jdkFieldInfo = fieldInfo;
-            for (jdkType = fieldInfo.jdkType; jdkType != null && !found; 
-                 jdkType = jdkType.getSuperclass(), 
-                 jdkFieldInfo = (jdkType!=null) ? (FieldInfo)bootImageTypeFields.get(new Key(jdkType)) : null) {
-              jdkFields = jdkFieldInfo.jdkFields;
-              for (int k = 0; k < jdkFields.length; k++) {
-                Field f = jdkFields[k];
-                if (f.getName().equals(rvmName)) {
-                  fieldInfo.jdkInstanceFields[j] = f;
-                  f.setAccessible(true);
-                  found = true;
-                  // Turns out the next field is often in this table too
-                  // so remember where we left off.
-                  nextField = k-1;
-                  break;
-                }
-              }
-            }
-            if (!found) {
-              fieldInfo.jdkInstanceFields[j] = null;
-              // Best to start search for next field from beginning
-              jdkType = fieldInfo.jdkType;
-              jdkFields = fieldInfo.jdkFields;
-              nextField = jdkFields.length-1;
-              found = true;
+          // We look only in the JDK type that corresponds to the
+          // VM_Type of the field's declaring class.
+          // This is the only way to correctly handle private fields.
+          jdkType = getJdkType(rvmFields[j].getDeclaringClass());
+          if (jdkType == null) continue;
+          FieldInfo jdkFieldInfo = (FieldInfo)bootImageTypeFields.get(new Key(jdkType));
+          if (jdkFieldInfo == null) continue;
+          Field[] jdkFields = jdkFieldInfo.jdkFields;
+          for (int k = 0; k <jdkFields.length; k++) {
+            Field f = jdkFields[k];
+            if (f.getName().equals(rvmName)) {
+              fieldInfo.jdkInstanceFields[j] = f;
+              f.setAccessible(true);
+              break;
             }
           }
         }
-
       }
-
-
 
       //
       // Create stack, thread, and processor context in which rvm will begin
@@ -1190,7 +1102,6 @@ public class BootImageWriter extends BootImageWriterMessages
   private static int depth = -1;
   private static int jtocCount = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
-
 
   private static void check (int value, String msg) {
     int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
@@ -1501,10 +1412,7 @@ public class BootImageWriter extends BootImageWriterMessages
               Object o = jdkFieldAcc.get(jdkObject);
               VM_Address addr = (VM_Address) o;
               String msg = " instance field " + rvmField.toString();
-              if (VM.BuildFor32Addr)
-		bootImage.setFullWord(rvmFieldOffset, (int) getAddressValue(addr, msg, true));
-	      else if (VM.BuildFor64Addr)
-		bootImage.setDoubleWord(rvmFieldOffset, getAddressValue(addr, msg, true));
+              bootImage.setAddressWord(rvmFieldOffset, getAddressValue(addr, msg, true));
             } else if (rvmFieldType.equals(VM_TypeReference.Word)) {
               VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
               VM_Statics.setSlotContents(rvmFieldOffset, w.toInt());
@@ -1610,35 +1518,34 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_Address values[] = (VM_Address[]) jdkObject;
       for (int i=0; i<arrayCount; i++) {
 	VM_Address addr = values[i];
-	String msg = "VM_Address array element " + i;
-	if (VM.BuildFor32Addr)
-	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
-				(int)getAddressValue(addr, msg, true));
-	else if (VM.BuildFor64Addr)
-	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
-				  getAddressValue(addr, msg, true));
+	String msg = "VM_Address array element";
+        bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
+                                 getAddressValue(addr, msg, true));
       }
     } else if (rvmElementType.equals(VM_Type.WordType)) {
       VM_Word values[] = (VM_Word[]) jdkObject;
-      for (int i = 0; i < arrayCount; i++)
-	if (VM.BuildFor32Addr)
-	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
-	else if (VM.BuildFor64Addr)
-	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
+      for (int i = 0; i < arrayCount; i++) {
+	String msg = "VM_Word array element ";
+        VM_Address addr = values[i].toAddress();
+        bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
+                                 getAddressValue(addr, msg, true));
+      }
     } else if (rvmElementType.equals(VM_Type.OffsetType)) {
       VM_Offset values[] = (VM_Offset[]) jdkObject;
-      for (int i = 0; i < arrayCount; i++)
-	if (VM.BuildFor32Addr)
-	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
-	else if (VM.BuildFor64Addr)
-	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
+      for (int i = 0; i < arrayCount; i++) {
+	String msg = "VM_Offset array element " + i;
+        VM_Address addr = values[i].toWord().toAddress();
+        bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
+                                 getAddressValue(addr, msg, true));
+      }
     } else if (rvmElementType.equals(VM_Type.ExtentType)) {
       VM_Extent values[] = (VM_Extent[]) jdkObject;
-      for (int i = 0; i < arrayCount; i++)
-	if (VM.BuildFor32Addr)
-	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
-	else if (VM.BuildFor64Addr)
-	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
+      for (int i = 0; i < arrayCount; i++) {
+	String msg = "VM_Extent array element ";
+        VM_Address addr = values[i].toWord().toAddress();
+        bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS),
+                                 getAddressValue(addr, msg, true));
+      }
     } else {
       fail("unexpected magic array type: " + rvmArrayType);
     }
