@@ -63,7 +63,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   private boolean active = false;
 
   /*
-   * Start producing.
+   * Start producing.  Determined by consumer.
    */
   public  void   activate() throws VM_PragmaLogicallyUninterruptible
   { 
@@ -71,24 +71,28 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     active = true;  
   }
   /*
-   * Stop producing.
+   * Stop producing.  Determined by consumer.
    */
   public  void passivate()  throws VM_PragmaLogicallyUninterruptible
   { 
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.passivate() PID ",vpid);
     active = false; 
   }
+  /*
+   *  Determine if HPM sampling is available.
+   */
+  public boolean isActive() { return active; }
 
   /*
    * record formats
    */
-  static private int            TRACE_FORMAT = 1;
-  static private int        START_APP_FORMAT = 2;
-  static private int     COMPLETE_APP_FORMAT = 3;
-  static private int    START_APP_RUN_FORMAT = 4;
-  static private int COMPLETE_APP_RUN_FORMAT = 5;
-  static private int             EXIT_FORMAT = 6;
-  static private int          PADDING_FORMAT = 10;	// add spaces
+  static final public int            TRACE_FORMAT = 1;
+  static final public int        START_APP_FORMAT = 2;
+  static final public int     COMPLETE_APP_FORMAT = 3;
+  static final public int    START_APP_RUN_FORMAT = 4;
+  static final public int COMPLETE_APP_RUN_FORMAT = 5;
+  static final public int             EXIT_FORMAT = 6;
+  static final public int          PADDING_FORMAT = 10;	// add spaces
   /*
    * static fields required for tracing HPM counter values
    */
@@ -161,13 +165,14 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   }
   
   /*
-   * Update HPM counters (entry point for VM_Processor.dispatch()).
+   * Update HPM counters.
    * Accumulate HPM counter values with virtual processor, and 
    * the thread that is being swapped out (previous_trhead)
    * If tracing on, record a trace record.
    *
    * CONSTRAINT: JNI calls cause stack to be grown and cause an assertion failure. Use sysCalls.
    * CONSTRAINT: this method is uninterruptible!
+   * ASSUMPTION: only called if active == true.
    *
    * @param previous_thread     thread that is being switched out
    * @param current_thread      thread that is being scheduled
@@ -178,7 +183,8 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 				boolean timerInterrupted, boolean threadSwitch)
   {
     //-#if RVM_WITH_HPM
-    if (notifyExitFound) return;	// don't collect any more HPM data after notifyExit!
+    //    if(VM.VerifyAssertions)
+    //      VM._assert(active,"***VM_HPM.updateHPMcounters() called with active = false!***");
 
     VM_SysCall.sysHPMstopMyThread();
     long endOfWallTime   = VM_Magic.getTimeBase();
@@ -230,11 +236,14 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 
   // number of trace records missed due to both buffers being full
   private int  missed_records = 0;
+  public  int missedRecords() { return missed_records; }
+
   // number of trace records written
   private int n_records = 0;
+  public  int numberOfRecords() { return n_records; }
 
   /*
-   * output buffers 
+   * OUTPUT buffers 
    * Buffering scheme.  When a buffer gets full, activate consumer to write full buffer to
    * disk and have this produce switch to the other buffer.
    *
@@ -361,7 +370,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     int thread_switch = (threadSwitch==true?1:0);
     int encoding = (tid  << 16) + (buffer_code << 15) + (thread_switch << 14) + 
                    (vpid <<  4) + TRACE_FORMAT;
-    
     if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
       if (threadSwitch) VM.sysWrite(" ");
       else              VM.sysWrite("*");
@@ -407,31 +415,11 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
 	index += VM_HardwarePerformanceMonitors.SIZE_OF_LONG;
       }
     }
-    if (VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
+    if (VM_HardwarePerformanceMonitors.verbose>=5 || 
+	VM_HardwarePerformanceMonitors.hpm_trace_verbose == vpid) {
       VM.sysWriteln();
     }
     updateBufferIndex();
-
-    // after thread switch is handled, handle notify exit if occurred
-    if (notifyExit) {
-      if (pickBuffer(4+4)) {
-	// write notify trace record
-	writeNotifyExit(EXIT_FORMAT, notify_exit_value);
-	updateBufferIndex();
-	n_records++;
-      }
-      // don't collect any more trace records!
-      passivate();
-
-      // reset state (not really needed as expect notifyExit occurs only once!)
-      //      notifyExit = false; notify_exit_value = -1;
-      // Don't collect any more HPM trace records
-      notifyExitFound = true;
-
-      // notify consumer to drain buffer and close file
-      consumer.notifyExit = true;
-      activateConsumer();
-    }
     //-#endif
   }
   /**
@@ -521,12 +509,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * NOTE: Need to store application name as an array instead of a String because 
    * String.length() is interruptible!
    */
-  // set after notifyExit set to true
-  private boolean notifyExitFound         = false;
-  // notify exit black board
-  private boolean notifyExit              = false;
-  private int     notify_exit_value       = -1;
-
   // notify application start black board
   private boolean notifyAppStart          = false;
   private byte[]  start_app_name          = null;
@@ -676,21 +658,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     n_records++;
   }
 
-  private void writeNotifyExit(int FORMAT, int value)
-  {
-    VM_Magic.setIntAtOffset( buffer, index, FORMAT);					// format
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-
-    VM_Magic.setIntAtOffset( buffer, index, value);					// value
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-
-    if (VM_HardwarePerformanceMonitors.verbose>=3) {
-      VM.sysWrite  ("writeNotifyExit(",FORMAT);
-      VM.sysWrite  (") n_records ",n_records);
-      VM.sysWriteln(", missed ",missed_records);
-    }
-  }
-
   /*
    * General entry points.
    */
@@ -704,18 +671,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /*
    * Entry points for consumer (VM_TraceWriter)
    */
-  /*
-   * Called when notifyExit callback occurs.
-   * @param value  exit value
-   */
-  public void notifyExit(int value) throws VM_PragmaLogicallyUninterruptible
-  {
-    if(VM_HardwarePerformanceMonitors.verbose>=2){ 
-      VM.sysWriteln("VM_HPM.notifyExit(",value,") PID ",vpid); 
-    }
-    notify_exit_value = value;
-    notifyExit = true;
-  }
 
   /**
    * Called when notifyAppStart callback occurs.
