@@ -1835,7 +1835,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // This is independent of whether or not the static type of the receiver is 
 	  // known to implement the interface and it is not that case that being able
 	  // to prove one implies the other.
-	  if (receiverType != null && receiverType.isResolved() && !receiverType.isInterface()) {
+	  if (receiverType != null && receiverType.isInitialized() && !receiverType.isInterface()) {
 	    VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(receiverType, ref);
 	    if (vmeth != null) {
 	      VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
