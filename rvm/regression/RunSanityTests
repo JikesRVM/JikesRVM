@@ -386,21 +386,20 @@ function doBuild {
 		return -1
 	    fi
 	fi
-
+	
 	(( failed )) && return $failed
 	
 	cd $RVM_BUILD || failed=$?
-	    say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
-	    ./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
-	    if (( failed )); then
-		say "FAILED to build $NAME at $(date) on $(hostname)"
-		say "  See $RVM_BUILD/RVM.trace for details"
-	    else
-		say "Linked $NAME successfully"
-	    fi
+	say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
+	./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
+	if (( failed )); then
+	    say "FAILED to build $NAME at $(date) on $(hostname)"
+	    say "  See $RVM_BUILD/RVM.trace for details"
+	else
+	    say "Linked $NAME successfully"
 	fi
     fi
-
+    
     return $failed;
 }
 
