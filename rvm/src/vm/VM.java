@@ -91,6 +91,8 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
+    currentThread.isBootThread = true;
+    
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
     currentThread.startQuantum(VM_Time.cycles());
     
@@ -179,6 +181,13 @@ public class VM extends VM_Properties
     runClassInitializer("gnu.java.io.EncodingManager");
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
+
+    // We can safely allocate a java.lang.Thread now, I think.  The boot
+    // thread (running right now) is going to need this, since at least one of
+    // the initializers we're going to be running below, as of Classpath 0.11,
+    // invokes Thread.getCurrentThread(). 
+    VM_Scheduler.giveBootVM_ThreadAJavaLangThread();
+
     runClassInitializer("java.io.PrintWriter");
     runClassInitializer("gnu.java.lang.SystemClassLoader");
     runClassInitializer("java.lang.String");
@@ -300,19 +309,17 @@ public class VM extends VM_Properties
       pleaseSpecifyAClass();
     }
 
+    // Schedule "main" thread for execution.
+    if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
-    // Work around class incompatibilities in boot image writer
-    // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    // Junk this when we do feature 3601.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    Thread      xx         = new MainThread(applicationArguments);
-    Address  yy         = VM_Magic.objectAsAddress(xx);
-    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
+    Thread mainThread = new MainThread(applicationArguments);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
+    if (verboseBoot >= 1) VM.sysWriteln("Starting debugger thread");
     // Create one debugger thread.
     VM_Thread t = new DebuggerThread();
     t.start(VM_Scheduler.debuggerQueue);
@@ -331,6 +338,9 @@ public class VM extends VM_Properties
     // End of boot thread.
     //
     if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
+    if (verboseBoot >= 2) 
+      VM.sysWriteln("Boot sequence completed; finishing boot thread");
+    
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
