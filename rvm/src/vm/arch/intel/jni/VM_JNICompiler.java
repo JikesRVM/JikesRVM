@@ -112,9 +112,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
       asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1  
     }
 
-    // CHECK - may not do anything - leave below will remove whole frame
-    // asm.emitPUSH_Reg(T0);                // push the return value onto the stack
-
     // pop frame in JNIRefs array (need to use
     // S0 <- VM_Thread
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
