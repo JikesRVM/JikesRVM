@@ -416,7 +416,7 @@ public abstract class BasePlan
    *
    * @param value The exit value
    */
-  public static void notifyExit(int value) {
+  public void notifyExit(int value) {
     if (verbose == 1) {
       VM.sysWrite("[End ", ((VM_Interface.now() - bootTime)*1000));
       VM.sysWrite("ms]\n");
