@@ -8,7 +8,6 @@ BaseAdaptiveSemispace -test-list nightly-tests-short
 FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
 FullOptCopyGenVariable -test-list nightly-tests-with-jdp
 FullAdaptiveSemispace -test-list nightly-tests
-FullOptHybrid -test-list nightly-tests
 FastSemispace -test-list nightly-tests-short
 FastMarkSweep -test-list nightly-tests-short
 FastHybrid -test-list nightly-tests-short
