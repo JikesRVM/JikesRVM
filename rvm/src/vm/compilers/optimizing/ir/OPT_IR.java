@@ -153,18 +153,12 @@ public final class OPT_IR implements OPT_Operators {
   public OPT_InstrumentationPlan instrumentationPlan;
 
   /**
-   * Used to make edge counts available to all opt phases.
-   */
-  public OPT_EdgeCounts edgeCounts;
-
-  /**
    * The {@link OPT_ControlFlowGraph FCFG} (Factored Control Flow Graph)
    */
   public OPT_ControlFlowGraph cfg;
 
   /**
    * The {@link OPT_RegisterPool Register pool}
-   * TODO: remove this by replacing uses with gc.regpool
    */
   public OPT_RegisterPool regpool;
 
@@ -239,9 +233,7 @@ public final class OPT_IR implements OPT_Operators {
     //-#if RVM_WITH_SPECIALIZATION
     special = cp.special;
     //-#endif
-
     instrumentationPlan = cp.instrumentationPlan;
-    edgeCounts = cp.edgeCounts; 
   }
 
   
@@ -249,12 +241,6 @@ public final class OPT_IR implements OPT_Operators {
    * Print the instructions in this IR to System.out.
    */
   public void printInstructions() {
-    // If counts are available, include them in the printed IR
-    if (this.basicBlockFrequenciesAvailable()) {
-      // Update the counts to be sure they are valid.
-      this.updateCFGFrequencies();
-    }
-
     for (OPT_InstructionEnumeration e = forwardInstrEnumerator(); 
 	 e.hasMoreElements(); ) {
       OPT_Instruction i = e.next();
@@ -615,81 +601,6 @@ public final class OPT_IR implements OPT_Operators {
       b.unfactor(this);
     }
   }
-
-
-  /**
-   * Are basic block frequencies available?
-   *
-   * @return Whether basic block frequencies are available
-   */
-  public boolean basicBlockFrequenciesAvailable() {
-    if (edgeCounts == null)
-      return false;
-
-    return edgeCounts.basicBlockFrequenciesAvailable();
-  }
-
-  /**
-   * Are intraprocedural edge frequencies available?
-   *
-   * @return Whether edge frequencies are available
-   */
-  public boolean edgeFrequenciesAvailable() {
-    if (edgeCounts == null)
-      return false;
-
-    return edgeCounts.edgeFrequenciesAvailable();
-  }
-
-
-  /**
-   * Return the execution frequency of this basic block
-   *
-   * @param bb the basic block
-   * @return the count
-   */
-  public double getBasicBlockFrequency(OPT_BasicBlock bb) {
-    if (edgeCounts != null)
-      return edgeCounts.getBasicBlockFrequency(bb);
-    return -1;
-  }
-
-  /**
-   * Return the execution frequency of an edge
-   *
-   * @param source The source (basic block) of the edge
-   * @param target The target (basic block) of the edge
-   * @return the count
-   */
-  public double getEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target) {
-    if (edgeCounts != null)
-      return edgeCounts.getEdgeFrequency(source,target);
-    return -1.0;
-  }
-
-  /**
-   * Set the execution frequency of an edge
-   *
-   * @param source The source (basic block) of the edge
-   * @param target The target (basic block) of the edge
-   * @param the count
-   */
-  public void setEdgeFrequency(OPT_BasicBlock source, OPT_BasicBlock target,
-                               double frequency) {
-    if (edgeCounts != null) 
-      edgeCounts.setEdgeFrequency(source,target,frequency);
-  }
-
-  /**
-   * Bring the edge counts up-to-date.  Call this in each phase prior
-   * to using the edge counts.
-   *
-   * @see OPT_EdgeCounts#updateCFGFrequencies
-   */
-   public void updateCFGFrequencies() {
-     if (edgeCounts != null)
-       edgeCounts.updateCFGFrequencies(this);
-   }
 
   /**
    * States whether liveness for handlers is available

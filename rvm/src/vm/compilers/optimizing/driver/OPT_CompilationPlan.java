@@ -36,10 +36,6 @@ public final class OPT_CompilationPlan {
    */
   public OPT_InstrumentationPlan instrumentationPlan;
   /**
-   * Used to make edge counts available to all opt phases.
-   */
-  public OPT_EdgeCounts edgeCounts;
-  /**
    * The oracle to be consulted for all inlining decisions.
    */
   public OPT_InlineOracle inlinePlan;
@@ -170,12 +166,6 @@ public final class OPT_CompilationPlan {
     if (instrumentationPlan != null) {
       instrumentationPlan.finalizeInstrumentation(method);
     }
-
-    // Give the edge counts a chance to clear their data structures to
-    // prevent memory leaks.  This would be unnecessary if we had weak
-    // references.
-    if (ir.edgeCounts != null)
-      ir.edgeCounts.compilationFinished();
 
     return ir;
   }
