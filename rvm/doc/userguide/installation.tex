@@ -97,32 +97,28 @@ C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 
 
 \subsection{Installation Overview}
-The RVM distribution consists of a directory structure, which shadows a
-CVS repository at Watson. 
-\index{shadow}
-We will refer to your own private copy of the 
-directory tree as your {\em shadow}.  The shadow holds the RVM 
-source files, tools needed to build RVM, and the sources of standard
-library files. 
-A more complete description of the shadow directory structure
-is provided in Section~\ref{rvmroot}.
+The RVM distribution consists of a directory structure, available as
+a CVS repository on developerWorks.
+Your working directory holds the RVM 
+source files and tools needed to build RVM. 
 
 RVM can be configured in various ways. Multiple versions of RVM,
 corresponding to different configurations, can be generated from 
-one shadow. See Section~\ref{configs} for information about the various 
+one working directory. See Section~\ref{configs} for information about the 
+various 
 configurations.
 \index{configurations}
 The RVM  {\em boot image} and other files generated during the 
 configuration process
 \index{boot image}
 are stored in a {\em build directory} which is logically separate from 
-the shadow. See Section~\ref{rvmbuild} for a detailed description of the
-files in the build directory.
+the working directory. See Section~\ref{rvmbuild} for a detailed description 
+of the files in the build directory.
 \index{build directory}
 
 In order to install RVM  you must:
 \begin{enumerate}
-\item Obtain the shadow
+\item Obtain a working directory 
 \item Set various environment variables
 \item Edit two RVM environment scripts
 \item Choose a configuration and run the configuration script to write
@@ -136,10 +132,10 @@ The remainder of this section describes the process in greater detail.
 \subsection{Installation Steps}
 
 \begin{enumerate}
-\item Obtain the shadow
+\item Obtain the working directory
 
 Extract the RVM distribution into
-a directory such as {\tt \$HOME/rvm2.0.0}
+a directory such as {\tt \$HOME/rvmRoot}
 
 \index{environment variables}
 \index{RVM\_ROOT}
@@ -163,7 +159,7 @@ boot image is generated.
 the software environment where the system support is generated. i.e. where
 the ``booter'' and ``C runtime'' will be generated.
 
-\item[{\tt PATH}] your path should contain {\tt \$RVM\_ROOT/bin} in
+\item[{\tt PATH}] your path should contain {\tt \$RVM\_ROOT/rvm/bin} in
 order to pick up various scripts and utilities
 \end{description}
 
@@ -189,27 +185,27 @@ file.  For example, for {\tt csh}, you might insert the
 following into your {\tt .cshrc} file:
 
 \begin{verbatim}
-setenv RVM_ROOT $HOME/rvm2.0.0   # <--define your shadow directory 
+setenv RVM_ROOT $HOME/rvmRoot   # <--define your shadow directory 
 setenv RVM_BUILD $HOME/rvmBuild     # <--define your current build directory 
-setenv PATH $RVM_ROOT/bin:$PATH
-setenv RVM_HOST_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
-setenv RVM_TARGET_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
+setenv PATH $RVM_ROOT/rvm/bin:$PATH
+setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
+setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 \end{verbatim}
 
 For a Linux-Intel environment, the  exports
 would be replaced with the following:
 
 \begin{verbatim}
-setenv RVM_HOST_CONFIG $RVM_ROOT/config/i686-pc-linux-gnu
-setenv RVM_TARGET_CONFIG $RVM_ROOT/config/i686-pc-linux-gnu
+setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
+setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 \end{verbatim}
 
 For a Cygwin-Intel environment, the  exports
 would be replaced with the following:
 
 \begin{verbatim}
-setenv RVM_HOST_CONFIG $RVM_ROOT/config/i686-pc-cygwin
-setenv RVM_TARGET_CONFIG $RVM_ROOT/config/i686-pc-cygwin
+setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
+setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
 \end{verbatim}
 
 These two variables point to the same file when the type of system  
@@ -220,11 +216,11 @@ Platform Building.
 
 \item Edit configuration scripts
 
-You must edit two scripts in the {\tt \$RVM\_ROOT/config}  directory to set 
+You must edit two scripts in the {\tt \$RVM\_ROOT/rvm/config}  directory to set 
 up variables used by the installation process.  
 
 First, edit the files that define the host and target configuration
-environments in the {\tt \$RVM\_ROOT/config} directory.  You do not need to {\em
+environments in the {\tt \$RVM\_ROOT/rvm/config} directory.  You do not need to {\em
 source} these variables in your working shell; variables in this file will be 
 picked up by the installation scripts.  You must set the following
 variables in this file:
@@ -248,7 +244,7 @@ may need definitions.
 \index{jconfigure script}
 \item Choose configuration and populate your build directory
 
-You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/bin}) to
+You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
 first choose a RVM configuration.
 
@@ -324,7 +320,7 @@ They do not affect the operation of the system.
 
 This section describes the RVM build configurations.
 
-The standard RVM configurations follow the following naming scheme
+Most standard RVM configurations loosely follow the following naming scheme
 \begin{verbatim}
        <boot image compiler> <runtime compiler> <garbage collector>
 \end{verbatim}
@@ -339,9 +335,9 @@ the classes loaded at runtime.
 \item the {\em garbage collector} is the garbage collection scheme used.
 \end{itemize}
 
-The types of compilers -- the baseline compiler, the quick compiler, and 
-the optimizing compiler -- are designated by the names {\em Base},
-{\em Quick},  and {\em Opt} respectively.  In these configurations,
+The types of compilers -- the baseline compiler and 
+the optimizing compiler -- are designated by the names {\em Base}
+and {\em Opt} respectively.  In these configurations,
 all classes loaded at runtime are compiled once, by the specified
 compiler.  This is different than the adaptive configurations,
 discussed in Section~\ref{adaptive-configs}.
@@ -350,6 +346,8 @@ The garbage collector names follow the following format
 \begin{verbatim}
            <type> [modifier]
 \end{verbatim}
+
+\remark{TODO! update GC names}
 
 A garbage collector may have any of the following types:
 
@@ -434,8 +432,9 @@ used, use the following command:
 Section~\ref{section:running} describes how this image can be used in
 the manner mentioned above.
 
-To view a complete list of configurations see 
-{\tt \$RVM\_ROOT/bin/jconfigure}.
+To view a list of configurations see 
+{\tt \$RVM\_ROOT/rvm/bin/jconfigure} and
+{\tt \$RVM\_ROOT/rvm/config/builds}. 
 Some configurations may not be available at your site. 
 
 \subsection{Cross Platform Building}
@@ -461,8 +460,9 @@ Operating systems are ``aix'' and ``linux''.
 environment on which the boot image is to be built RVM\_HOST\_CONFIG  and where
 the boot image loader  RVM\_TARGET\_CONFIG is to be built. These variables
 each point to a file where additional environmnet variables the location
-of software components like javac, Jikes\trademark, and the C compiler. This distribution
-contains examples of such files in the {\tt \$RVM\_ROOT/config} directory.   
+of software components like javac, Jikes\trademark, and the C compiler. 
+This distribution
+contains examples of such files in the {\tt \$RVM\_ROOT/rvm/config} directory.   
 
 For example, to build a BaseBasecopyingGC system for AIX {\em on a Linux
 host}:
