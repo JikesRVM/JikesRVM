@@ -88,3 +88,4 @@ export PS=/bin/ps
 export SED=/usr/bin/sed
 export WGET=/usr/bin/wget
 export XARGS="/usr/bin/xargs"
+export UNZIP="/usr/bin/unzip"

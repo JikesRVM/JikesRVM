@@ -86,6 +86,7 @@ export PS="/bin/ps"
 export SED="/bin/sed"
 export WGET="/usr/bin/wget"
 export XARGS="/usr/bin/xargs"
+export UNZIP="/usr/bin/unzip"
 
 # The following is optional; only needed for fancy CVS scripts
 export CVS="/usr/bin/cvs"
