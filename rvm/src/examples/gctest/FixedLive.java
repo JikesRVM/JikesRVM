@@ -6,6 +6,8 @@
  * @author Perry Cheng
  */
 
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+
 class FixedLive {
 
   static int liveSize = 0;  // in megabytes
@@ -65,6 +67,11 @@ class FixedLive {
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
   //
+  public static void allocateLoop(int count) throws VM_PragmaNoInline {
+    for (int i=0; i<count; i++) 
+      junk = new Node2I2A();
+  }
+
   public static void allocateDie(int maxGC, int maxMb) {
 
     int count = maxMb * ((1 << 20) / Node2I2A.objectSize);
@@ -75,8 +82,7 @@ class FixedLive {
     double allocatedSize = 0;
     for (int i=0; i< count / checkFreq && sampleCount < maxGC; i++) {
       long start = System.currentTimeMillis();
-      for (int j=0; j<checkFreq; j++) 
-	junk = new Node2I2A();
+      allocateLoop(checkFreq);
       allocatedSize += checkFreq * Node2I2A.objectSize;
       long end = System.currentTimeMillis();
       double traceElapsed = (end - start) / 1000.0;
