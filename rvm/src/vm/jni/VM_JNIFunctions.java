@@ -292,10 +292,10 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
     try {
       VM.sysWrite(VM_JNIEnvironment.createStringFromC(messageAddress));
-      System.exit(0);
+      System.exit(99);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
-      System.exit(0);
+      System.exit(123);
     }
   }
 
