@@ -77,10 +77,12 @@ public class VM_StackTrace implements VM_Constants {
      }
      VM.enableGC();
       
-     if (VM.TraceStackTrace) {
-	 VM.disableGC();
-	 VM_Scheduler.dumpStack();
-	 VM.enableGC();
+     if (verboseTracePeriod > 0) {
+	 if ((verboseTraceIndex++ % verboseTracePeriod) == 0) {
+	     VM.disableGC();
+	     VM_Scheduler.dumpStack();
+	     VM.enableGC();
+	 }
      }
 
      return stackTrace;
@@ -146,6 +148,9 @@ public class VM_StackTrace implements VM_Constants {
   //----------------//
   // implementation //
   //----------------//
+
+  static int verboseTracePeriod = 0;
+  static int verboseTraceIndex = 0;
 
   VM_CompiledMethod compiledMethod;
   public int               instructionOffset;

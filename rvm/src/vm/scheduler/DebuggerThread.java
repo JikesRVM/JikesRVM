@@ -232,7 +232,6 @@ class DebuggerThread extends VM_Thread {
      if (VM_Scheduler.wakeupQueue.contains(t))    return "sleeping";
      if (VM_Scheduler.debuggerQueue.contains(t))  return "waitingForDebuggerWork";
      if (VM_Scheduler.collectorQueue.contains(t)) return "waitingForCollectorWork";
-     if (VM_Scheduler.deadQueue.contains(t))      return "waitingToBeReaped";
       
      // scan lock queues
      //

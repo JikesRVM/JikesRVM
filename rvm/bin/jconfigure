@@ -1751,7 +1751,7 @@ function emitImageLinker
          print "   print 'Ljava/util/HashMap\$1;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/TreeMap;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/TreeMap\$3;'          >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'Ljava/util/TreeMap\$4;'          >> $PRIMORDIAL_CLASSES_STR"
+#         print "   print 'Ljava/util/TreeMap\$4;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/TreeSet;'          >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/Stack;'               >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/util/Vector\$1;'          >> $PRIMORDIAL_CLASSES_STR"

@@ -14,6 +14,7 @@ BEGIN {
     kill_next = no
     boot_image_junk = no
     verbose_trap = no
+    memory_crap = no
 }
 
 #
@@ -73,6 +74,16 @@ gc_mess==yes { gc_mess = no }
 /TOTAL COMPILATION TIME/ && report_crap==yes { report_crap=no; next }
 
 report_crap==yes { next }
+
+#
+# memory usage report
+#
+/Object Demographics by type/ { memory_crap=yes; next }
+
+/^[0-9() KMb]*TOTAL$/ { memory_crap=no; next }
+
+memory_crap==yes { next }
+
 
 #
 # scheduler messages
