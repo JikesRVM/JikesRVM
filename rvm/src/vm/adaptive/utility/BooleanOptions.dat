@@ -44,12 +44,6 @@ Insert counters on all instructions in opt recompiled code?
 INSERT_DEBUGGING_COUNTERS -1 false
 Enable easy insertion of (debugging) counters in opt recompiled code.
 
-WEIGHTED_COMPILATION_RATE -1 false
-Compute online baseline compilation rate by weighted the method size
-
-ESTIMATE_COMPILATION_TIME -1 false
+ESTIMATE_COMPILATION_TIME -1 true
 Use an aggregate estimate of previous compilation time rather than the actual time
-
-ARITH_MEAN_COMPILATION_RATE -1 false
-Use arithmetic mean, instead of geometric mean, when computing compilation rates
 
