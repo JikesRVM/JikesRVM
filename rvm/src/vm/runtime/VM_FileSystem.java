@@ -68,6 +68,28 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   }
 
   /**
+   * Get user's perms for a file.
+   * @param fileName file name
+   * @param kind     kind of access perm(s) to check for (ACCESS_W_OK,...)
+   * @return 0 if access ok (-1 -> error)
+   */ 
+  public static int access(String fileName, int kind) {
+    // convert file name from unicode to filesystem character set
+    // (assume file name is ascii, for now)
+    byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
+    fileName.getBytes(0, fileName.length(), asciiName, 0);
+
+    // PIN(asciiName);
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    int rc = VM.sysCall2(bootRecord.sysAccessIP, 
+                         VM_Magic.objectAsAddress(asciiName).toInt(), kind);
+    // UNPIN(asciiName);
+
+    if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
+    return rc;
+  }
+
+  /**
    * Set the modification time on given file.
    */
   public static boolean setLastModified(String fileName, long time) {

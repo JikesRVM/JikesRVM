@@ -39,6 +39,12 @@ public class FileSupport {
   public static final int STAT_LAST_MODIFIED = 5;
   public static final int STAT_LENGTH        = 6;
 
+  // options for access()
+  public static final int ACCESS_F_OK	= 00;
+  public static final int ACCESS_R_OK	= 04;
+  public static final int ACCESS_W_OK	= 02;
+  public static final int ACCESS_X_OK	= 01;
+  
   private static final String pathSeparator =
     System.getProperty("path.separator") == null ? ":" :
     System.getProperty("path.separator");
@@ -197,6 +203,20 @@ public class FileSupport {
   }
 
   /**
+   * Get user's perms for a file.
+   * @param fileName file name
+   * @param kind     kind of access perm(s) to check for (ACCESS_W_OK,...)
+   * @return 0 if access ok (-1 -> error)
+   */ 
+//-#if RVM_WITH_GNU_CLASSPATH
+  public static int access(String fileName, int kind) {
+//-#else
+  private static int access(String fileName, int kind) {
+//-#endif
+    return VM_FileSystem.access(fileName, kind);
+  }
+
+  /**
    * Answers a boolean indicating whether or not the current context i
    * allowed to read this File.
    *
@@ -208,7 +228,7 @@ public class FileSupport {
     SecurityManager security = System.getSecurityManager();
     if (security != null)
       security.checkRead(f.getPath());
-    return stat(f.getAbsolutePath(), STAT_IS_READABLE) == 1;
+      return access(f.getAbsolutePath(), ACCESS_R_OK) == 0;
   }
 
 
@@ -224,7 +244,7 @@ public class FileSupport {
     SecurityManager security = System.getSecurityManager();
     if (security != null)
       security.checkWrite(f.getPath());
-    return stat(f.getAbsolutePath(), STAT_IS_WRITABLE) == 1;
+      return access(f.getAbsolutePath(), ACCESS_W_OK) == 0;
   }
 
   /**
@@ -240,7 +260,7 @@ public class FileSupport {
     SecurityManager security = System.getSecurityManager();
     if (security != null)
       security.checkRead(f.getPath());
-    return stat(f.getAbsolutePath(), STAT_EXISTS) == 1;
+      return access(f.getAbsolutePath(), ACCESS_F_OK) == 0;
   }
 
   /**

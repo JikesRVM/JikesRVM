@@ -317,6 +317,21 @@ sysStat(char *name, int kind)
    return -1; // unrecognized request
    }
 
+// Check user's perms.
+// Taken:    null terminated filename
+//           kind of access perm to check for (see VM_FileSystem.ACCESS_W_OK)
+// Returned: 0 on success (-1=error)
+//
+extern "C" int
+sysAccess(char *name, int kind)
+   {
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: access %s\n", name);
+#endif
+
+   return access(name, kind);
+   }
+
 // Set modification time (and access time) to given value
 // (representing seconds after the epoch).
 extern "C" int sysUtime(const char *fileName, int modTimeSec)

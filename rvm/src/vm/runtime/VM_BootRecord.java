@@ -252,7 +252,8 @@ public class VM_BootRecord {
   public int sysSyncFileIP;
   public int sysIsTTYIP;
   public int sysSetFdCloseOnExecIP;
-
+  
+  public int sysAccessIP;
   // shm* - memory mapping
   public int sysShmgetIP;
   public int sysShmctlIP;
