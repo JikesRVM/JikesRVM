@@ -164,6 +164,7 @@ enum scan_token {
 enum scan_token scan(const char *srcFile, char *line, int *value);
 
 
+// These work only under GNU C, not under GNU C++.  I do not know why.
 // #ifdef __GNUC__
 // #define UNUSED __attribute__((unused)) 
 //#endif // __GNUC__
@@ -171,8 +172,18 @@ enum scan_token scan(const char *srcFile, char *line, int *value);
 // // :#define UNUSED_DECL_ARG __attribute__((unused))
 #define UNUSED_DEF_ARG
 #define UNUSED_DECL_ARG
+// The __signal__ attribute is only relevant on GCC on the AVR processor.
+// We don't (yet) work on the AVR, so this code will probably never be
+// #executed.,  
+#ifdef __avr__
+#define SIGNAL_ATTRIBUTE    __attribute__((signal))
+#else
+#define SIGNAL_ATTRIBUTE
+#endif
+
 //static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG);
-static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG) __attribute__((signal));
+static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG) 
+    SIGNAL_ATTRIBUTE;
 
 
 // Values of tokens returned by scan() for IF and ELIF.
