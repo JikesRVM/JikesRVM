@@ -1604,6 +1604,17 @@ function emitCompiler
      print 'unzip -U -n -x rvmrt.jar java/io/BufferedInputStream.class 2> /dev/null'
      print 'unzip -U -n -x rvmrt.jar java/io/FilterOutputStream.class 2> /dev/null'
      print 'unzip -U -n -x rvmrt.jar java/io/BufferedOutputStream.class 2> /dev/null'
+     print "unzip -U -n -x rvmrt.jar 'java/util/zip/ZipFileJpn*.class' 2> /dev/null"
+     print 'unzip -U -n -x rvmrt.jar java/util/zip/ZipConstants.class 2> /dev/null'
+     print "unzip -U -n -x rvmrt.jar 'java/util/zip/InflateJala*.class' 2> /dev/null"
+     print 'unzip -U -n -x rvmrt.jar java/io/PrintStream.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/io/FileOutputStream.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/io/OutputStreamField.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/lang/Runtime.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermissions.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/util/Properties.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/util/Dictionary.class 2> /dev/null'
+     print "unzip -U -n -x rvmrt.jar 'java/util/Hashtable*.class' 2> /dev/null"
 
        if (( RVM_WITH_JAZZLIB )); then
          print 'unzip -U -n -x rvmrt.jar java/util/Calendar.class 2> /dev/null'
@@ -1783,6 +1794,8 @@ function emitImageLinker
 #  print "   print 'Ljava/util/MapEntry;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Map;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Map\$Entry;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/Constructor;'       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/reflect/AccessibleObject;'       >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Lcom/ibm/oti/io/CharacterConverter;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Lcom/ibm/oti/io/CharacterConverter_8859_1;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Lcom/ibm/oti/io/CharacterConverter_8859_2;' >> $PRIMORDIAL_CLASSES_STR"
@@ -1802,6 +1815,12 @@ function emitImageLinker
    print "   print 'Ljava/lang/Double;' >> $PRIMORDIAL_CLASSES_STR" # for doubleToLongBits()
    print "   print 'Ljava/lang/Float;'  >> $PRIMORDIAL_CLASSES_STR" # for intToFloatBits()
    print "   print 'Ljava/lang/Class;'  >> $PRIMORDIAL_CLASSES_STR" # for Double.TYPE and Float.TYPE
+   print "   print 'Ljava/lang/Character;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Integer;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Boolean;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Long;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Byte;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/Short;' >> $PRIMORDIAL_CLASSES_STR"
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
    #
@@ -1874,13 +1893,6 @@ function emitImageLinker
          print "   print 'Ljava/lang/VirtualMachineError;' >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/Error;'               >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'Ljava/lang/LinkageError;'        >> $PRIMORDIAL_CLASSES_STR"
-
-      print "   print 'Ljava/lang/Boolean;'             >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/lang/Byte;'                >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/lang/Integer;'             >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/lang/Character;'           >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/lang/Short;'               >> $PRIMORDIAL_CLASSES_STR"
-      print "   print 'Ljava/lang/Long;'                >> $PRIMORDIAL_CLASSES_STR"
 
          print "   print 'LOPT_CallSiteTreeNode;'  	>> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_FieldAnalysis;'  	        >> $PRIMORDIAL_CLASSES_STR"
