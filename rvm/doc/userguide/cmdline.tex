@@ -1,22 +1,22 @@
 
 Currently, the RVM has two types of configurations:
 the adaptive configurations contain the adaptive optimization system (AOS),
-and the nonadaptive configurations that do not.  
+and the non-adaptive configurations that do not.  
 This section describes the nonstandard RVM command-line directives that 
 provide the mechanism to specify adaptive optimization system and optimizing
 compiler options.
 Section~\ref{subsection:nonadaptive:cmdline} describes how command-line 
-directives are specified in a nonadaptive configuration, and 
+directives are specified in a non-adaptive configuration, and 
 Section~\ref{subsection:adaptive:cmdline} describes how command-line 
 directives are specified in a adaptive configuration.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Command-Line Directives in Nonadaptive Configurations}
+\subsection{Command-Line Directives in Non-adaptive Configurations}
 \label{subsection:nonadaptive:cmdline}
 
 This section describes how nonstandard RVM command line options are 
-specified for a nonadaptive configuration of RVM.
-In a nonadaptive configuration, the command line options modifies
+specified for a non-adaptive configuration of RVM.
+In a non-adaptive configuration, the command line options modifies
 the behavior of the initial runtime compile when this compiler
 is the optimizing compiler.
 
@@ -26,7 +26,7 @@ For example, to perform global array bounds check elimination on demand
 when a method is initially compiled with the optimizing compiler,
 use the {\tt -X:irc:global\_bounds=true} directive.
 
-Please note that a particular nonadaptive configuration (such as
+Please note that a particular non-adaptive configuration (such as
 OptBasecopyingGC) may not use the 
 optimizing compiler as the initial runtime compiler, but rather use the 
 baseline compiler.
@@ -175,7 +175,7 @@ Nonstandard RVM command-line options are those options that are specific to RVM.
 The format of a nonstandard RVM option is {\tt -X:o=v} where {\tt o} is the 
 option and {\tt v} is the value it is to be set to.
 Adherence to this format is important to keep command-line options processing
-from becoming unweildy.
+from becoming unwieldy.
 
 RVM command-line options are processed in two places: {\tt RunBootImage.C} and
 {\tt VM\_CommandLineArgs.java}.  
@@ -187,5 +187,5 @@ to be loaded (such as {\tt help} and {\tt version}),
 heap size, message output, or where to find the boot image.
 To allow unrestricted RVM option orders and 
 since command line processing stops at the first option that is not 
-recognized as a RVM option, all other options must be reconized by
+recognized as a RVM option, all other options must be recognized by
 {\tt RunBootImage.C} and passed on.

@@ -262,7 +262,7 @@ call interruptible code. Furthermore, any uninterruptible method should
 not need more stack space than specified in VM\_StackFrameLayoutConstants
 for the stack ``guard'' area.
 
-It is perhaps unfortunate that the uninterruptible attibute is currently
+It is perhaps unfortunate that the uninterruptible attribute is currently
 specified on a class level.  In some cases, we have declared an entire
 class uninterruptible, even though only a few methods of the class are
 really not safe to interrupt.  We would like to someday use a finer-grain
@@ -361,8 +361,8 @@ and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
 LOCK prefix.
 \item [\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
 This class implements some useful common low-level synchronization
-sequences, such as fetch-and-add and test-and-set.  The VM\_Sychronization
-primities, in turn, are implemented using VM\_Magic.prepare and attempt.
+sequences, such as fetch-and-add and test-and-set.  The VM\_Synchronization
+primitives, in turn, are implemented using VM\_Magic.prepare and attempt.
 \item [
 \xlink{VM\_ProcessorLock}{\VMProcessorLockURL}
 ]

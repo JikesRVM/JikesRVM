@@ -67,7 +67,7 @@ processor's
 inhabits this queue.  When no other
 thread is executable, this thread is executed.  This thread requests
 work by setting the static {\tt idleProcessor} field to its virtual
-processor.  (When {\tt dispatch} is looking for a runable thread it
+processor.  (When {\tt dispatch} is looking for a runnable thread it
 checks that this field is null.  If not, and it has an spare runnable
 thread, it places the spare thread on the idle processor's transfer
 queue.)  The idle thread then spins for a short period of time waiting
@@ -84,9 +84,9 @@ RVM uses a light-weight locking scheme to implement Java monitors (see
 used for locking.  If the top bit is set, the bottom nineteen are an
 index into an array of heavy-weight locks.  Otherwise, if the object
 is locked, these bits contain the id of the thread that holds the lock
-and a count of how many times it is held.  If a thread try's to lock
+and a count of how many times it is held.  If a thread tries to lock
 an object locked with a light-weight lock by another thread, it can
-spin, yeald, or inflate the lock.  Spinning is probably a bad idea.
+spin, yield, or inflate the lock.  Spinning is probably a bad idea.
 The number of times to yield before inflating is a matter open for
 investigation (along with a number of locking issues, see {\tt VM\_Lock}).
 Heavy-weight locks contain an {\tt enteringQueue} for threads trying
