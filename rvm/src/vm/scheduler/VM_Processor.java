@@ -839,39 +839,39 @@ implements VM_Uninterruptible, VM_Constants {
   private double   scratchNanoseconds;
 
   public void dumpProcessorState() throws VM_PragmaInterruptible {
-    VM_Scheduler.writeString("Processor "); 
-    VM_Scheduler.writeDecimal(id);
-    if (this == VM_Processor.getCurrentProcessor()) VM_Scheduler.writeString(" (me)");
-    VM_Scheduler.writeString(" running thread");
+    VM.sysWrite("Processor "); 
+    VM.sysWriteInt(id);
+    if (this == VM_Processor.getCurrentProcessor()) VM.sysWrite(" (me)");
+    VM.sysWrite(" running thread");
     if (activeThread != null) activeThread.dump();
-    else VM_Scheduler.writeString(" NULL Active Thread");
-    VM_Scheduler.writeString("\n");
-    VM_Scheduler.writeString(" system thread id ");
-    VM_Scheduler.writeDecimal(pthread_id);
-    VM_Scheduler.writeString("\n");
-    VM_Scheduler.writeString(" transferQueue:");
+    else VM.sysWrite(" NULL Active Thread");
+    VM.sysWrite("\n");
+    VM.sysWrite(" system thread id ");
+    VM.sysWriteInt(pthread_id);
+    VM.sysWrite("\n");
+    VM.sysWrite(" transferQueue:");
     if (transferQueue!=null) transferQueue.dump();
-    VM_Scheduler.writeString(" readyQueue:");
+    VM.sysWrite(" readyQueue:");
     if (readyQueue!=null) readyQueue.dump();
-    VM_Scheduler.writeString(" ioQueue:");
+    VM.sysWrite(" ioQueue:");
     if (ioQueue!=null) ioQueue.dump();
-    VM_Scheduler.writeString(" processWaitQueue:");
+    VM.sysWrite(" processWaitQueue:");
     if (processWaitQueue!=null) processWaitQueue.dump();
-    VM_Scheduler.writeString(" idleQueue:");
+    VM.sysWrite(" idleQueue:");
     if (idleQueue!=null) idleQueue.dump();
-    if ( processorMode == RVM) VM_Scheduler.writeString(" mode: RVM\n");
-    else if ( processorMode == NATIVE) VM_Scheduler.writeString(" mode: NATIVE\n");
-    else if ( processorMode == NATIVEDAEMON) VM_Scheduler.writeString(" mode: NATIVEDAEMON\n");
-    VM_Scheduler.writeString(" status: "); 
+    if ( processorMode == RVM) VM.sysWrite(" mode: RVM\n");
+    else if ( processorMode == NATIVE) VM.sysWrite(" mode: NATIVE\n");
+    else if ( processorMode == NATIVEDAEMON) VM.sysWrite(" mode: NATIVEDAEMON\n");
+    VM.sysWrite(" status: "); 
     int status = vpStatus[vpStatusIndex];
-    if (status ==  IN_NATIVE) VM_Scheduler.writeString("IN_NATIVE\n");
-    if (status ==  IN_JAVA) VM_Scheduler.writeString("IN_JAVA\n");
-    if (status ==  BLOCKED_IN_NATIVE) VM_Scheduler.writeString("BLOCKED_IN_NATIVE\n");
-    if (status ==  IN_SIGWAIT) VM_Scheduler.writeString("IN_SIGWAIT\n");
-    if (status ==  BLOCKED_IN_SIGWAIT)  VM_Scheduler.writeString("BLOCKED_IN_SIGWAIT\n");
-    VM_Scheduler.writeString(" threadSwitchRequested: ");
-    VM_Scheduler.writeDecimal(threadSwitchRequested); 
-    VM_Scheduler.writeString("\n");
+    if (status ==  IN_NATIVE) VM.sysWrite("IN_NATIVE\n");
+    if (status ==  IN_JAVA) VM.sysWrite("IN_JAVA\n");
+    if (status ==  BLOCKED_IN_NATIVE) VM.sysWrite("BLOCKED_IN_NATIVE\n");
+    if (status ==  IN_SIGWAIT) VM.sysWrite("IN_SIGWAIT\n");
+    if (status ==  BLOCKED_IN_SIGWAIT)  VM.sysWrite("BLOCKED_IN_SIGWAIT\n");
+    VM.sysWrite(" threadSwitchRequested: ");
+    VM.sysWriteInt(threadSwitchRequested); 
+    VM.sysWrite("\n");
   }
 
 
