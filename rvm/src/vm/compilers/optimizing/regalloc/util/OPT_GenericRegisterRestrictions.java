@@ -5,6 +5,8 @@
 
 import java.util.Vector;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * An instance of this class provides a mapping from symbolic register to
@@ -18,10 +20,10 @@ import java.util.Enumeration;
 abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
-  private java.util.HashMap hash = new java.util.HashMap();
+  private HashMap hash = new HashMap();
 
   // a set of symbolic registers that must not be spilled.
-  private java.util.HashSet noSpill = new java.util.HashSet();
+  private HashSet noSpill = new HashSet();
 
   protected OPT_PhysicalRegisterSet phys;
 
@@ -36,14 +38,14 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * Record that the register allocator must not spill a symbolic
    * register.
    */
-  void noteMustNotSpill(OPT_Register r) {
+  final void noteMustNotSpill(OPT_Register r) {
     noSpill.add(r);
   }
 
   /**
    * Is spilling a register forbidden?
    */
-  boolean mustNotSpill(OPT_Register r) {
+  final boolean mustNotSpill(OPT_Register r) {
     return noSpill.contains(r);
   }
 
@@ -54,7 +56,7 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  void init(OPT_IR ir) {
+  final void init(OPT_IR ir) {
     // process each basic block
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
       OPT_BasicBlock b = (OPT_BasicBlock)e.nextElement();
@@ -70,39 +72,21 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  protected void processBlock(OPT_BasicBlock bb) {
-    Vector physical = new Vector(3);
+  final private void processBlock(OPT_BasicBlock bb) {
     Vector symbolic = new Vector(10);
-    
+
     // 1. walk through the live intervals and identify which correspond to
-    // physical and symbolic registers
+    // symbolic registers
     for (Enumeration e = bb.enumerateLiveIntervals();
          e.hasMoreElements();) {
       OPT_LiveIntervalElement li = (OPT_LiveIntervalElement)e.nextElement();
       OPT_Register r = li.getRegister();
-      if (r.isPhysical()) {
-        if (r.isVolatile() || r.isNonVolatile()) {
-          physical.addElement(li);
-        }
-      } else {
+      if (r.isSymbolic()) {
         symbolic.addElement(li);
       }
     }
 
-    // 2. walk through the live intervals for physical registers.  For
-    // each such interval, record the conflicts where the live range
-    // overlaps a live range for a symbolic register.
-    for (Enumeration p = physical.elements(); p.hasMoreElements(); ) {
-      OPT_LiveIntervalElement phys = (OPT_LiveIntervalElement)p.nextElement();
-      for (Enumeration s = symbolic.elements(); s.hasMoreElements(); ) {
-        OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)s.nextElement();
-        if (overlaps(phys,symb)) {
-          addRestriction(symb.getRegister(),phys.getRegister());
-        }
-      }
-    }
-
-    // 3. Volatile registers used by CALL instructions do not appear in
+    // 2. Volatile registers used by CALL instructions do not appear in
     // the liveness information.  Handle CALL instructions as a special
     // case.
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
@@ -111,15 +95,15 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (Enumeration sym = symbolic.elements(); sym.hasMoreElements(); ) {
           OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)
-                                        sym.nextElement();
+            sym.nextElement();
           if (contains(symb,s.scratch)) {
-            addRestrictions(symb.getRegister(),phys.getVolatiles());
+            forbidAllVolatiles(symb.getRegister());
           }
         }
       }
     }
 
-    // 4. architecture-specific restrictions
+    // 3. architecture-specific restrictions
     addArchRestrictions(bb,symbolic);
   }
 
@@ -140,7 +124,7 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  protected boolean contains(OPT_LiveIntervalElement R, int n) {
+  final protected boolean contains(OPT_LiveIntervalElement R, int n) {
     int begin = -1;
     int end = Integer.MAX_VALUE;
     if (R.getBegin() != null) {
@@ -166,7 +150,7 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
     int end1    = -1;
     int begin2  = -1;
     int end2    = -1;
-      
+
     if (li1.getBegin() != null) {
       begin1 = li1.getBegin().scratch;
     }
@@ -192,12 +176,25 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
 
   /**
    * Record that it is illegal to assign a symbolic register symb to any
+   * volatile physical registers 
+   */
+  final void forbidAllVolatiles(OPT_Register symb) {
+    RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
+    if (r == null) {
+      r = new RestrictedRegisterSet(phys);
+      hash.put(symb,r);
+    }
+    r.setNoVolatiles();
+  }
+
+  /**
+   * Record that it is illegal to assign a symbolic register symb to any
    * of a set of physical registers 
    */
-  void addRestrictions(OPT_Register symb, OPT_BitSet set) {
-    OPT_RestrictedRegisterSet r = (OPT_RestrictedRegisterSet)hash.get(symb);
+  final void addRestrictions(OPT_Register symb, OPT_BitSet set) {
+    RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
     if (r == null) {
-      r = new OPT_RestrictedRegisterSet(phys);
+      r = new RestrictedRegisterSet(phys);
       hash.put(symb,r);
     }
     r.addAll(set);
@@ -207,10 +204,10 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * Record that it is illegal to assign a symbolic register symb to a
    * physical register p
    */
-  void addRestriction(OPT_Register symb, OPT_Register p) {
-    OPT_RestrictedRegisterSet r = (OPT_RestrictedRegisterSet)hash.get(symb);
+  final void addRestriction(OPT_Register symb, OPT_Register p) {
+    RestrictedRegisterSet r = (RestrictedRegisterSet)hash.get(symb);
     if (r == null) {
-      r = new OPT_RestrictedRegisterSet(phys);
+      r = new RestrictedRegisterSet(phys);
       hash.put(symb,r);
     }
     r.add(p);
@@ -220,24 +217,39 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
    * Return the set of restricted physical register for a given symbolic
    * register. Return null if no restrictions.
    */
-  OPT_RestrictedRegisterSet getRestrictions(OPT_Register symb) {
-    return (OPT_RestrictedRegisterSet)hash.get(symb);
+  final RestrictedRegisterSet getRestrictions(OPT_Register symb) {
+    return (RestrictedRegisterSet)hash.get(symb);
+  }
+
+  /**
+   * Is it forbidden to assign symbolic register symb to any volatile
+   * register?
+   * @return true :yes, all volatiles are forbidden
+   *         false :maybe, maybe not
+   */
+  final boolean allVolatilesForbidden(OPT_Register symb) {
+    if (VM.VerifyAssertions) {
+      VM.assert(symb != null);
+    }
+    RestrictedRegisterSet s = getRestrictions(symb);
+    if (s == null) return false;
+    return s.getNoVolatiles();
   }
 
   /**
    * Is it forbidden to assign symbolic register symb to physical register
    * phys?
    */
-  boolean isForbidden(OPT_Register symb, OPT_Register phys) {
+  final boolean isForbidden(OPT_Register symb, OPT_Register phys) {
     if (VM.VerifyAssertions) {
       VM.assert(symb != null);
       VM.assert(phys != null);
     }
-    OPT_RestrictedRegisterSet s = getRestrictions(symb);
+    RestrictedRegisterSet s = getRestrictions(symb);
     if (s == null) return false;
     return s.contains(phys);
   }
-  
+
   /**
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
@@ -245,4 +257,52 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
   abstract boolean isForbidden(OPT_Register symb, OPT_Register r,
                                OPT_Instruction s);
 
+  /**
+   * An instance of this class represents restrictions on physical register 
+   * assignment.
+   * 
+   * @author Stephen Fink
+   */
+  private static final class RestrictedRegisterSet {
+    /**
+     * The set of registers to which assignment is forbidden.
+     */
+    private OPT_BitSet bitset;
+
+    /**
+     * additionally, are all volatile registers forbidden?
+     */
+    private boolean noVolatiles = false;
+    boolean getNoVolatiles() { return noVolatiles; }
+    void setNoVolatiles() { noVolatiles = true; }
+
+    /**
+     * Default constructor
+     */
+    RestrictedRegisterSet(OPT_PhysicalRegisterSet phys) {
+      bitset = new OPT_BitSet(phys);
+    }
+
+    /**
+     * Add a particular physical register to the set.
+     */
+    void add(OPT_Register r) {
+      bitset.add(r);
+    }
+
+    /**
+     * Add a set of physical registers to this set.
+     */
+    void addAll(OPT_BitSet set) {
+      bitset.addAll(set);
+    }
+
+    /**
+     * Does this set contain a particular register?
+     */
+    boolean contains(OPT_Register r) {
+      if (r.isVolatile() && noVolatiles) return true;
+      else return bitset.contains(r);
+    }
+  }
 }

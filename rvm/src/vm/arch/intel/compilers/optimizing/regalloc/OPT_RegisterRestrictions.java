@@ -36,6 +36,58 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
    * block
    */
   void addArchRestrictions(OPT_BasicBlock bb, Vector symbolics) {
+    // If there are any registers used in catch blocks, we want to ensure
+    // that these registers are not used or evicted from scratch registers
+    // at a relevant PEI, so that the assumptions of register homes in the
+    // catch block remain valid.  For now, we do this by forcing any
+    // register used in such a PEI as not spilled.  TODO: relax this
+    // restriction for better code.
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+         ie.hasMoreElements(); ) {
+      OPT_Instruction s = ie.next();
+      if (s.isPEI() && s.operator != IR_PROLOGUE) {
+        if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
+          for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
+            OPT_Operand op = (OPT_Operand)e.nextElement();
+            if (op != null && op.isRegister()) {
+              noteMustNotSpill(op.asRegister().register);
+              handle8BitRestrictions(s);
+            }
+          }
+        }
+      }
+
+      // handle special cases 
+      switch (s.getOpcode()) {
+        case MIR_LOWTABLESWITCH_opcode:
+          {
+            OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
+            noteMustNotSpill(op.register);
+          }
+          break;
+        case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+          {
+            OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+            if (MIR_Unary.getVal(s).isRegister()) {
+              OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
+              restrictTo8Bits(val.register);
+            }
+          }
+          break;
+        case IA32_SET$B_opcode:
+          { 
+            if (MIR_Set.getResult(s).isRegister()) {
+              OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
+              restrictTo8Bits(op.register);
+            }
+          }
+          break;
+
+        default:
+          handle8BitRestrictions(s);
+          break;
+      }
+    }
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
          ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
@@ -67,72 +119,6 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
       }
     }
   }
-  /**
-   * Record all the register restrictions dictated by live ranges on a
-   * particular basic block.
-   *
-   * PRECONDITION: the instructions in each basic block are numbered in
-   * increasing order before calling this.  The number for each
-   * instruction is stored in its <code>scratch</code> field.
-   */
-  protected void processBlock(OPT_BasicBlock bb) {
-    // first process the default register restrictions
-    super.processBlock(bb);
-
-    // If there are any registers used in catch blocks, we want to ensure
-    // that these registers are not used or evicted from scratch registers
-    // at a relevant PEI, so that the assumptions of register homes in the
-    // catch block remain valid.  For now, we do this by forcing any
-    // register used in such a PEI as not spilled.  TODO: relax this
-    // restriction for better code.
-    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements(); ) {
-      OPT_Instruction s = ie.next();
-      if (s.isPEI() && s.operator != IR_PROLOGUE) {
-        if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
-          for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
-            OPT_Operand op = (OPT_Operand)e.nextElement();
-            if (op != null && op.isRegister()) {
-              noteMustNotSpill(op.asRegister().register);
-              handle8BitRestrictions(s);
-            }
-          }
-        }
-      }
-
-      // handle special cases for IA32
-      switch (s.getOpcode()) {
-        case MIR_LOWTABLESWITCH_opcode:
-          {
-            OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
-            noteMustNotSpill(op.register);
-          }
-          break;
-        case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
-          {
-            OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-            if (MIR_Unary.getVal(s).isRegister()) {
-              OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
-              restrictTo8Bits(val.register);
-            }
-          }
-          break;
-        case IA32_SET$B_opcode:
-          { 
-            if (MIR_Set.getResult(s).isRegister()) {
-              OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
-              restrictTo8Bits(op.register);
-            }
-          }
-          break;
-
-        default:
-          handle8BitRestrictions(s);
-          break;
-      }
-    }
-  }
-
 
   /**
    * Does instruction s contain an 8-bit memory operand?

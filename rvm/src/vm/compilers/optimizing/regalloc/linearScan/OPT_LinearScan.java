@@ -1195,6 +1195,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     final OPT_Register findAvailableRegister(CompoundInterval newInterval) {
 
       OPT_Register r = newInterval.getRegister();
+      OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
       // first attempt to allocate to the preferred register
       if (COALESCE_MOVES) {
@@ -1212,11 +1213,13 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       int type = phys.getPhysicalRegisterType(r);
 
       // next attempt to allocate to a volatile
-      for (Enumeration e = phys.enumerateVolatiles(type); 
-           e.hasMoreElements(); ) {
-        OPT_Register p = (OPT_Register)e.nextElement();
-        if (allocateToPhysical(newInterval,p)) {
-          return p;
+      if (!restrict.allVolatilesForbidden(r)) {
+        for (Enumeration e = phys.enumerateVolatiles(type); 
+             e.hasMoreElements(); ) {
+          OPT_Register p = (OPT_Register)e.nextElement();
+          if (allocateToPhysical(newInterval,p)) {
+            return p;
+          }
         }
       }
 
