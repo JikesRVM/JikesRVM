@@ -265,8 +265,8 @@ done
 #
 # Default optimization controls for adaptive and nonadaptive configurations
 #
-DEFAULT_ADAPTIVE_RC_ARGS="-X:aos:opt:errors_fatal=true -X:aos:irc:errors_fatal=true"
-DEFAULT_NONADAPTIVE_RC_ARGS="-X:irc:errors_fatal=true"
+DEFAULT_ADAPTIVE_RC_ARGS="-X:aos:opt:errors_fatal=true"
+DEFAULT_NONADAPTIVE_OPT_RC_ARGS="-X:irc:errors_fatal=true"
 
 # Name of current configuration being tested.
 #
@@ -334,14 +334,17 @@ function doRun
      # Determine which set of runtime arguments to pass
      case $NAME in
        *Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS ;;
-       * ) export RC_ARGS=$DEFAULT_NONADAPTIVE_RC_ARGS
-           # use opt. level, if requested
-           if [ x$OPT_LEVEL != x ]; then
+       @(@(Base|Opt|Fast|Full|ExtremeAssertionsOpt)Opt*|FastMarkSweep|FastSemispace)  ) 
+	export RC_ARGS=$DEFAULT_NONADAPTIVE_OPT_RC_ARGS
+        # use opt. level, if requested
+        if [ x$OPT_LEVEL != x ]; then
 	     RC_ARGS="$RC_ARGS -X:irc:$OPT_LEVEL"
 	   else 
 	     RC_ARGS="$RC_ARGS -X:irc:O3"
            fi
-       ;;
+        ;;
+       * ) # baseline must be the runtime compiler - no default options yet
+        ;;
      esac
 
      # start test running
