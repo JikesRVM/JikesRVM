@@ -45,6 +45,7 @@ public class SortAddressStack extends LocalDeque
    * Sort the address on the shared stack.
    */ 
   public final void sort() {
+    flushLocal();  
     ((SortSharedDeque)queue).sort();
   }
 
