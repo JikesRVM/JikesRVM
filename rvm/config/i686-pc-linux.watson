@@ -94,6 +94,9 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 #  some Unix commands
 export AWK="/bin/awk"
 export BASH="/bin/bash"
+# You need one of YACC or Bison (one will usually be installed)
+# If you're using Bison, uncomment the line below:
+# BISON="bison"
 export CVS="/usr/bin/cvs"
 export DIFF="/usr/bin/diff"
 export FGREP="/bin/fgrep"
@@ -117,5 +120,6 @@ export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
 
 
+# Used for the Emacs spell-checker
 #  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
 #  LocalWords:  bnoentry SRE lc bE
