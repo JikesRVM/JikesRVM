@@ -232,10 +232,8 @@ public class VM_Allocator
       build_list_for_new_block(init_blocks[i], st.sizes[i]);
     }
 
-    // Get the three arrays that control large object space
+    // Get the (full sized) allocation array that control large object space
     short[] temp    = new short[bootrecord.largeSize/4096 + 1];
-    largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
-    largeSpaceGen   = new byte[bootrecord.largeSize/4096 + 1];
 
     for (i = 0; i < GC_INITIAL_LARGE_SPACE_PAGES; i++)
       temp[i] = largeSpaceAlloc[i];
@@ -245,6 +243,9 @@ public class VM_Allocator
     largeSpaceAlloc = temp;
     largeSpacePages = bootrecord.largeSize/4096;
 
+    // alloc full sized arrays used to collect large space
+    largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
+    largeSpaceGen   = new byte[bootrecord.largeSize/4096 + 1];
 
     // At this point it is possible to allocate 
     // (1 GC_BLOCKSIZE worth of )objects foreach size
@@ -970,7 +971,8 @@ public class VM_Allocator
   static int     smallHeapSize;
   static int     largeHeapSize;
   static int     large_last_allocated;
-             
+
+  private final static int GC_INITIAL_LARGE_SPACE_PAGES = 128; // for early allocation of large objs             
   static short[]	largeSpaceAlloc;	// used to allocate 
   static short[]	largeSpaceMark;		// used to mark
   static byte[]	largeSpaceGen;		// used to remember generation number
@@ -1556,7 +1558,8 @@ public class VM_Allocator
     VM_CollectorThread mylocal = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
     // workqueue should have been left empty, with top == start
-    if (VM.VerifyAssertions) VM.assert( mylocal.workQueueTop == mylocal.workQStartAddress);
+    // ...apparently these fields are gone??
+    // if (VM.VerifyAssertions) VM.assert( mylocal.workQueueTop == mylocal.workQStartAddress);
 
     // This rendezvous appears to be required, else pBOB fails
     // See copyingGC.VM_Allocator...
@@ -2457,7 +2460,7 @@ public class VM_Allocator
    */
   static boolean
     gc_setMarkLarge (int tref) { 
-    int ij, temp, temp1;
+    int ij, temp, statusWord, statusAddr;
     int page_num = (tref - largeHeapStartAddress ) >> 12;
     boolean result = (largeSpaceMark[page_num] != 0);
     if (result) return true;	// fast, no synch case
@@ -2494,12 +2497,28 @@ public class VM_Allocator
     }
        
     // Need to turn back on barrier bit *always*
-    do {
-      temp1 = VM_Magic.prepare(VM_Magic.addressAsObject(tref),
-			       - (OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET));
-      temp = temp1 | OBJECT_BARRIER_MASK;
-    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(tref),
-			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET), temp1, temp));
+    statusAddr = tref - OBJECT_HEADER_OFFSET + OBJECT_STATUS_OFFSET;
+    statusWord = VM_Magic.getMemoryWord(statusAddr);
+    if ((statusWord & OBJECT_HASHCODE_MASK) != 0) {
+      VM_Magic.setMemoryWord(statusAddr,
+			     statusWord | OBJECT_BARRIER_MASK );
+    }
+    else {
+      int hashCode = VM_Runtime.newObjectHashCode();
+      VM_Magic.setMemoryWord(statusAddr,
+			     statusWord | hashCode | OBJECT_BARRIER_MASK );
+    }
+
+    // old atomic store of statusword should not be necessary because
+    // this is now done while holding the largeSpace processor lock.
+    //
+    // do {
+    //      temp1 = VM_Magic.prepare(VM_Magic.addressAsObject(tref), 
+    //			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET));
+    //      temp = temp1 | OBJECT_BARRIER_MASK;
+    //    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(tref), 
+    //			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET),
+    //			       temp1, temp));
        
     sysLockLarge.unlock();	// INCLUDES sync()
 
@@ -3173,16 +3192,22 @@ public class VM_Allocator
     }
 
     // replace status word in copied object, forcing writebarrier bit on (bit 30)
-    // set mark bit to "unmarked" state
-    if (MARK_VALUE == 0)
-      // "marked" = 0, set markbit on to designate "unmarked"
-      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
-			     statusWord | (OBJECT_BARRIER_MASK | OBJECT_GC_MARK_MASK) );
-    else 
-      // "marked" = 1, markbit in orig. statusword should be 0
+    // markbit in orig. statusword should be 0 (unmarked).
+    // If hashcode has not been assigned yet, assign one now. This allows
+    // the write barrier to reset the barrier bit in the low-order byte,
+    // which contains part of the 8-bit hashcode, using an unsynchronized
+    // store byte.
+
+    if ((statusWord & OBJECT_HASHCODE_MASK) != 0) {
       VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
 			     statusWord | OBJECT_BARRIER_MASK );
-
+    }
+    else {
+      int hashCode = VM_Runtime.newObjectHashCode();
+      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
+			     statusWord | hashCode | OBJECT_BARRIER_MASK );
+    }
+    
     VM_Magic.sync(); // make changes viewable to other processors 
 
     // set status word in old/from object header to forwarding address with
@@ -3430,16 +3455,19 @@ public class VM_Allocator
     VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
 
     // replace status word in copied object, forcing writebarrier bit on (bit 30)
-    // set mark bit to "unmarked" state
-    if (MARK_VALUE == 0)
-      // "marked" = 0, set markbit on to designate "unmarked"
-      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
-			     statusWord | (OBJECT_BARRIER_MASK | OBJECT_GC_MARK_MASK) );
-    else 
-      // "marked" = 1, markbit in orig. statusword should be 0
+    // markbit in orig. statusword should be 0 (unmarked). also set hascode
+    // if not already set.
+    
+    if ((statusWord & OBJECT_HASHCODE_MASK) != 0) {
       VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
 			     statusWord | OBJECT_BARRIER_MASK );
-     
+    }
+    else {
+      int hashCode = VM_Runtime.newObjectHashCode();
+      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
+			     statusWord | hashCode | OBJECT_BARRIER_MASK );
+    }
+
     // sync here to ensure copied object is intact, before setting forwarding ptr
     VM_Magic.sync(); // make changes viewable to other processors 
 

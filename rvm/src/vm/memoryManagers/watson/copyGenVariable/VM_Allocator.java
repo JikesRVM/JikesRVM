@@ -198,15 +198,17 @@ public class VM_Allocator
     minLargeRef = largeHeapStartAddress-OBJECT_HEADER_OFFSET;   // first ref in large space
     maxLargeRef = largeHeapEndAddress+4;      // last ref in large space
     
-    // Get the (full sized) arrays that control large object space
-    largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
-    largeSpaceGen   = new byte[bootrecord.largeSize/4096 + 1];
+    // Get the (full sized) allocation array that control large object space
     short[] temp  = new short[bootrecord.largeSize/4096 + 1];
     // copy any existing large object allocations into new alloc array
     // ...with this simple allocator/collector there may be none
     for (int i = 0; i < GC_INITIAL_LARGE_SPACE_PAGES; i++)
       temp[i] = largeSpaceAlloc[i];
     largeSpaceAlloc = temp;
+
+    // alloc full sized arrays used to collect large space
+    largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
+    largeSpaceGen   = new byte[bootrecord.largeSize/4096 + 1];
     
     arrayOfIntType = VM_Array.getPrimitiveArrayType( 10 /*code for INT*/ ); // for sync'ing arrays of code
     
@@ -788,7 +790,7 @@ public class VM_Allocator
   // following for managing large object space
   private static VM_ProcessorLock sysLockLarge;        // serializes access to large space
   private final static int GC_LARGE_SIZES = 20;           // for statistics  
-  private final static int GC_INITIAL_LARGE_SPACE_PAGES = 100; // for early allocation of large objs
+  private final static int GC_INITIAL_LARGE_SPACE_PAGES = 128; // for early allocation of large objs
   private static int           largeHeapStartAddress;
   private static int           largeHeapEndAddress;
   private static int           largeSpacePages;
@@ -1957,8 +1959,21 @@ public class VM_Allocator
     }
     
     // replace status word in copied object, forcing writebarrier bit on (bit 30)
-    // markbit in orig. statusword should be 0 (unmarked)
-    VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET, statusWord | OBJECT_BARRIER_MASK );
+    // markbit in orig. statusword should be 0 (unmarked).
+    // If hashcode has not been assigned yet, assign one now. This allows
+    // the write barrier to reset the barrier bit in the low-order byte,
+    // which contains part of the 8-bit hashcode, using an unsynchronized
+    // store byte.
+
+    if ((statusWord & OBJECT_HASHCODE_MASK) != 0) {
+      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
+			     statusWord | OBJECT_BARRIER_MASK );
+    }
+    else {
+      int hashCode = VM_Runtime.newObjectHashCode();
+      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
+			     statusWord | hashCode | OBJECT_BARRIER_MASK );
+    }
     
     VM_Magic.sync(); // make changes viewable to other processors 
     
@@ -2051,9 +2066,19 @@ public class VM_Allocator
     VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
     
     // replace status word in copied object, forcing writebarrier bit on (bit 30)
-    // markbit in orig. statusword should be 0 (unmarked)
-    VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET, statusWord | OBJECT_BARRIER_MASK );
+    // markbit in orig. statusword should be 0 (unmarked). also set hascode
+    // if not already set.
     
+    if ((statusWord & OBJECT_HASHCODE_MASK) != 0) {
+      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
+			     statusWord | OBJECT_BARRIER_MASK );
+    }
+    else {
+      int hashCode = VM_Runtime.newObjectHashCode();
+      VM_Magic.setMemoryWord(toRef + OBJECT_STATUS_OFFSET,
+			     statusWord | hashCode | OBJECT_BARRIER_MASK );
+    }
+
     // sync here to ensure copied object is intact, before setting forwarding ptr
     VM_Magic.sync(); // make changes viewable to other processors 
     
@@ -2459,7 +2484,7 @@ public class VM_Allocator
    */
   static boolean
     gc_setMarkLarge (int tref) { 
-    int ij, temp, temp1;
+    int ij, temp, statusWord, statusAddr;
     int page_num = (tref - largeHeapStartAddress ) >> 12;
     boolean result = (largeSpaceMark[page_num] != 0);
     if (result) return true;	// fast, no synch case
@@ -2496,12 +2521,28 @@ public class VM_Allocator
     }
        
     // Need to turn back on barrier bit *always*
-    do {
-      temp1 = VM_Magic.prepare(VM_Magic.addressAsObject(tref),
-			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET));
-      temp = temp1 | OBJECT_BARRIER_MASK;
-    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(tref),
-			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET), temp1, temp));
+    statusAddr = tref - OBJECT_HEADER_OFFSET + OBJECT_STATUS_OFFSET;
+    statusWord = VM_Magic.getMemoryWord(statusAddr);
+    if ((statusWord & OBJECT_HASHCODE_MASK) != 0) {
+      VM_Magic.setMemoryWord(statusAddr,
+			     statusWord | OBJECT_BARRIER_MASK );
+    }
+    else {
+      int hashCode = VM_Runtime.newObjectHashCode();
+      VM_Magic.setMemoryWord(statusAddr,
+			     statusWord | hashCode | OBJECT_BARRIER_MASK );
+    }
+
+    // old atomic store of statusword should not be necessary because
+    // this is now done while holding the largeSpace processor lock.
+    //
+    // do {
+    //      temp1 = VM_Magic.prepare(VM_Magic.addressAsObject(tref), 
+    //			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET));
+    //      temp = temp1 | OBJECT_BARRIER_MASK;
+    //    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(tref), 
+    //			       -(OBJECT_HEADER_OFFSET - OBJECT_STATUS_OFFSET),
+    //			       temp1, temp));
        
     sysLockLarge.unlock();	// INCLUDES sync()
 
