@@ -181,7 +181,7 @@ import OPT_IA32ConditionOperand;
 /**
  * The OPTYPE.NAME InstructionFormat class.
  * 
- * The header comment for (@link OPT_Instruction} contains 
+ * The header comment for {@link OPT_Instruction} contains 
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  *	
