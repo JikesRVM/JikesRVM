@@ -131,8 +131,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     if (Options.verbose >= 1) {
       printVerboseOutputLine(GCType);
-      if (VM_CollectorThread.MEASURE_WAIT_TIMES)
-        VM_CollectorThread.printThreadWaitTimes();
+//       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
+//         VM_CollectorThread.printThreadWaitTimes();
     }
   }
 
@@ -231,7 +231,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       VM.sysWriteln();
     }
 
-    if (VM_CollectorThread.MEASURE_WAIT_TIMES && (gcCount>0)) {
+/*    if (VM_CollectorThread.MEASURE_WAIT_TIMES && (gcCount>0)) {
       double totalBufferWait = 0.0;
       double totalFinishWait = 0.0;
       int avgBufferWait=0, avgFinishWait=0;
@@ -248,7 +248,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       VM.sysWrite("Average Wait Times For Each Collector Thread In A Collection:\n");
       VM.sysWrite("Buffer Wait ", avgBufferWait, " (us) Finish Wait ");
       VM.sysWrite( avgFinishWait, " (us)\n\n");
-    }
+      } */
     if (COUNT_ALLOCATIONS) {
       long bytes = 0, objects = 0, syncObjects = 0;
       VM_Processor st;
