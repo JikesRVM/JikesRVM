@@ -372,7 +372,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     // INTEL version:  doesn't work
     // do Intel single step via ptrace
     // stillrunning = mstep();
-    // printCurrentStatus(printMode);
+    printCurrentStatus(printMode);
 
     return stillrunning;
   }
