@@ -24,7 +24,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    *       These are NOT int[][]'s by any stretch of the imagination!!!!
    */
   //-#if RVM_FOR_LINUX
-  private static int[][]   JNIFunctions;
+  private static VM_CodeArray[]   JNIFunctions;
   //-#elif RVM_FOR_AIX
   private static int[][][] JNIFunctions;
   //-#endif
@@ -45,7 +45,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   // since the VM_JNIEnvironment object will contain a field pointing to this array
   public static void init() {
     //-#if RVM_FOR_LINUX
-    JNIFunctions = new int[FUNCTIONCOUNT+1][];
+    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
     //-#elif RVM_FOR_AIX
     JNIFunctions = new int[FUNCTIONCOUNT][][];
     //-#endif
@@ -86,7 +86,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
       int jniIndex = indexOf(methodName);
       if (jniIndex!=-1) {
 	//-#if RVM_FOR_LINUX
-	JNIFunctions[jniIndex]     = mths[i].getCurrentInstructions();
+	JNIFunctions[jniIndex] = mths[i].getCurrentInstructions();
 	//-#elif RVM_FOR_AIX
 	// GACK.  We need this horrible kludge because the array is not well typed.
 	Object array = JNIFunctions[jniIndex];
@@ -125,13 +125,15 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
   }
 
+  //-#if RVM_FOR_AIX
   public int[] getInstructions(int id) {    
-    //-#if RVM_FOR_AIX
     return JNIFunctions[id][IP];
-    //-#elif RVM_FOR_LINUX
-    return JNIFunctions[id];
-    //-#endif
   }
+  //-#elif RVM_FOR_LINUX
+  public VM_CodeArray getInstructions(int id) {    
+    return JNIFunctions[id];
+  }
+  //-#endif
 
   /*****************************************************************************
    * Utility function called from VM_JNIFunction
