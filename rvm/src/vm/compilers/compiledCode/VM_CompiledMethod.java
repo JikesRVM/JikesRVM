@@ -16,6 +16,9 @@ import com.ibm.JikesRVM.classloader.*;
  */
 public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_SizeConstants {
 
+  /*
+   * constants for compiler types
+   */
   public final static int TRAP      = 0; // no code: special trap handling stackframe
   public final static int BASELINE  = 1; // baseline code
   public final static int OPT       = 3; // opt code
@@ -200,6 +203,16 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
    */ 
   public abstract int getCompilerType() throws VM_PragmaUninterruptible;
+
+  public static final String compilerTypeToString (int compilerType) throws VM_PragmaUninterruptible {
+    switch (compilerType) {
+      case TRAP: return "TRAP";
+      case BASELINE: return "BASELINE";
+      case OPT: return "OPT";
+      case JNI: return "JNI";
+      default: if (VM.VerifyAssertions) VM._assert(false); return null;
+    }
+  }
 
   /**
    * @return Name of the compiler that produced this compiled method.
