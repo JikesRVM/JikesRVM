@@ -2301,11 +2301,10 @@ fi
 # Create output directory structure.
 #
 mkdir -p $BUILD_DIRECTORY
-mkdir -p $GENERATED_FILES_DIRECTORY/com/ibm/JikesRVM
+mkdir -p $GENERATED_FILES_DIRECTORY
 mkdir -p $GENERATED_FILES_DIRECTORY/instructionFormats
 mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY
-#mkdir -p $CLASSES_DIRECTORY/instructionFormats
 
 print -n "(directories created) "
 
