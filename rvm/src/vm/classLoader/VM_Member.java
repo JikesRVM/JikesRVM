@@ -192,11 +192,11 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
 
   protected final static int UNINITIALIZED_OFFSET = -1;
 
-  protected VM_Class declaringClass;
-  protected VM_Atom  name;
-  protected VM_Atom  descriptor;
+  protected final VM_Class declaringClass;
+  protected final VM_Atom  name;
+  protected final VM_Atom  descriptor;
   protected int      modifiers;
-  protected int      dictionaryId;
+  protected final int      dictionaryId;
 
   /**
    * To guarantee uniqueness, only the VM_ClassLoader class may construct 
@@ -204,7 +204,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * All VM_Member creation should be performed by calling 
    * "VM_ClassLoader.findOrCreate" methods.
    */ 
-  protected VM_Member() { }
+  protected VM_Member() { this(null, null, null, -1); }
 
   protected VM_Member(VM_Class declaringClass, VM_Atom name, 
 		      VM_Atom descriptor, int dictionaryId) {
