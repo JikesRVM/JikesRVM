@@ -854,6 +854,26 @@ sysPthreadSelf()
     */
    sigemptyset(&input_set);
    sigaddset(&input_set, SIGCONT);
+
+#ifdef __linux__
+   /*
+    *  Provide space for this pthread to process exceptions.  This is 
+    * needed on Linux because multiple pthreads can handle signals
+    * concurrently, since the masking of signals during handling applies
+    * on a per-pthread basis.
+    */
+   stack_t stack;
+   
+   memset (&stack, 0, sizeof stack);
+   stack.ss_sp = new char[SIGSTKSZ];
+   
+   stack.ss_size = SIGSTKSZ;
+   if (sigaltstack (&stack, 0)) {
+     fprintf (SysErrorFile, "sigaltstack failed (errno=%d)\n", errno);
+     return 1;
+   }
+#endif
+
 #ifdef __linux__
    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
 #else

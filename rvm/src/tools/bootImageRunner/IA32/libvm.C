@@ -130,9 +130,15 @@ isVmSignal(unsigned int ip, unsigned int jtoc)
 	 && IN_RVM_ADDRESS_SPACE(jtoc);
 }
 
+#include <pthread.h>
+ 
+pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
+
 void
 hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 {
+    pthread_mutex_lock( &exceptionLock );
+
   unsigned int localInstructionAddress;
   unsigned int localVirtualProcessorAddress;
   unsigned int localFrameAddress;
@@ -192,6 +198,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
 		me, signo, 
 		signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
 
+    write (SysErrorFd, buf, sprintf (buf, "handler stack 0x%x\n", &buf));
     write (SysErrorFd, buf, sprintf (buf, "gs            0x%08x\n", sc->gs));
     write (SysErrorFd, buf, sprintf (buf, "fs            0x%08x\n", sc->fs));
     write (SysErrorFd, buf, sprintf (buf, "es            0x%08x\n", sc->es));
@@ -341,6 +348,8 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     sc->eip = dumpStack;
     *vmr_inuse = false;
 
+    pthread_mutex_unlock( &exceptionLock );
+
     return;
   }
 
@@ -456,6 +465,9 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   #ifdef DEBUG_TRAP_HANDLER
   debug_in_use = 0;
   #endif
+
+  pthread_mutex_unlock( &exceptionLock );
+
 }
 #endif
 
@@ -737,10 +749,10 @@ createJVM (int vmInSeparateThread)
   /* install a stack for hardwareTrapHandler() to run on */
 #ifdef __linux__
   stack_t stack;
-
+   
   memset (&stack, 0, sizeof stack);
   stack.ss_sp = new char[SIGSTKSZ];
-
+   
   stack.ss_size = SIGSTKSZ;
   if (sigaltstack (&stack, 0)) {
     fprintf (SysErrorFile, "%s: sigaltstack failed (errno=%d)\n", me, errno);
