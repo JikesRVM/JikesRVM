@@ -153,12 +153,6 @@ public class VM_Allocator
   static final boolean RENDEZVOUS_TIMES = false;
 
   /**
-   * When true, causes -verbosegc option to generate a count of
-   * (most) all objects in the system, listed by type.
-   */
-  static final boolean GC_COUNT_BY_TYPES = false;
-
-  /**
    * Initialize for boot image.
    */
   static void
@@ -286,8 +280,6 @@ public class VM_Allocator
       	 VM.sysWrite("Compiled with PROCESSOR_LOCAL_ALLOCATE on\n");
       if (PROCESSOR_LOCAL_MATURE_ALLOCATE)
       	 VM.sysWrite("Compiled with PROCESSOR_LOCAL_MATURE_ALLOCATE on\n");
-      if (VM_GCWorkQueue.USE_OLD_PRIVATE_WORKQUEUE)
-	VM.sysWrite("Compiled to use OLD THREAD PRIVATE WORK QUEUE\n");
       if ( writeBarrier )
 	VM.sysWrite("WARNING - semi-space collector compiled with write barriers\n");
     }
@@ -1058,13 +1050,6 @@ public class VM_Allocator
       if (TRACE||GC_TRIGGERGC)
 	VM_Scheduler.trace("VM_Allocator", "gc initialization for gcCount", gcCount);
 
-//-#if RVM_FOR_IA32
-      // if (VM.VerifyAssertions) {
-      // if ( ! VM_ScanStatics.validateRefs() )
-      //    VM_Scheduler.trace("VM_Allocator", "invalid staic ref before gc", gcCount);
-      // }
-//-#endif
-      
       gcInProgress = true;
       gcDone = false;
       
@@ -1442,21 +1427,6 @@ public class VM_Allocator
 	
       if (RENDEZVOUS_TIMES) printRendezvousTimes();
 	
-      if (GC_COUNT_BY_TYPES) {
-	printCountsByType();
-
-	// now do count types of objects on the 2 finalizer lists
-	int count = VM_Finalizer.countHasFinalizer();
-	VM.sysWrite("\n-- Count By Type of objects on hasFinalize: (total = ");
-	VM.sysWrite(count,false);
-	VM.sysWrite(") --\n");
-	printCountsByType();
-	count = VM_Finalizer.countToBeFinalized();
-	VM.sysWrite("\n-- Count By Type of objects on Finalize (to be finalized): (total = ");
-	VM.sysWrite(count,false);
-	VM.sysWrite(") --\n");
-	printCountsByType();
-      }
     }  // end of verboseGC
 
     }  // end of selectedThread
@@ -1597,11 +1567,8 @@ public class VM_Allocator
 	  assertion = ((toRef & 3)==0) && validRef(toRef);
 	else
 	  assertion = ((toRef & 3)==1) && validRef(toRef & ~3);
-	if (!assertion) {
-	  VM_Scheduler.trace("   copyAndScanObject", "looser - invalid toRef =",toRef);
-	  VM_Scheduler.trace("   copyAndScanObject", "looser - invalid fromref =",
-			     VM_Magic.objectAsAddress(fromObj));
-	}
+	if (!assertion)
+	  VM_Scheduler.traceHex("copyAndScanObject", "invalid forwarding ptr =",toRef);
 	VM.assert(assertion);  
       }
       if (MARK_VALUE == 0)
@@ -1622,8 +1589,6 @@ public class VM_Allocator
     type = VM_Magic.getObjectType(fromObj);
     if (VM.VerifyAssertions) VM.assert(validRef(type));
     
-    if (GC_COUNT_BY_TYPES) type.liveCount++;   // for both objects and arrays
-    
     if ( type.isClassType() ) {
       full_size = type.asClass().getInstanceSize();
       toAddress = gc_getMatureSpace(full_size);
@@ -1641,8 +1606,6 @@ public class VM_Allocator
       int num_elements = VM_Magic.getArrayLength(fromObj);
       full_size = type.asArray().getInstanceSize(num_elements);
       full_size = (full_size + 3) & ~3;;  //need Magic to roundup
-      
-      if (GC_COUNT_BY_TYPES)	type.liveSpace += full_size;     // for arrays add size
       
       toAddress = gc_getMatureSpace(full_size);
       toObj = VM_Magic.addressAsObject(toAddress - OBJECT_HEADER_OFFSET);
@@ -1756,11 +1719,8 @@ public class VM_Allocator
 	  assertion = ((statusWord & 3)==0) && validRef(statusWord);
 	else
 	  assertion = ((statusWord & 3)==1) && validRef(statusWord & ~3);
-	if (!assertion) {
-	  VM_Scheduler.trace("   copyObject", "looser - invalid statusWord(toRef) =",statusWord);
-	  VM_Scheduler.trace("   copyObject", "looser - invalid fromref =",
-			     VM_Magic.objectAsAddress(fromRef));
-	}
+	if (!assertion)
+	  VM_Scheduler.traceHex("copyObject", "invalid forwarding ptr =",statusWord);
 	VM.assert(assertion);  
       }
       if (MARK_VALUE==0)
@@ -1788,8 +1748,6 @@ public class VM_Allocator
     // remember, header is to right, ref is 4 bytes beyond header
     fromAddress = VM_Magic.objectAsAddress(fromRef) + OBJECT_HEADER_OFFSET + SCALAR_HEADER_SIZE - full_size;
 
-    if (GC_COUNT_BY_TYPES) type.liveCount++;   // counting live objects in small obj heap
-    
     // copy object...before status word modified
     VM_Memory.aligned32Copy( toAddress, fromAddress, full_size );
     
@@ -2472,16 +2430,6 @@ public class VM_Allocator
 
   // DEBUGGING 
 
-  // for checking refs in stacks during scanStack, before processing
-  //
-  private static boolean
-  validStackRef ( int ref ) {
-    if ( (ref >= minBootRef && ref <= maxBootRef ) || 
-	 (ref >= minFromRef && ref <= maxFromRef ) ||
-	 (ref >= minLargeRef && ref <= maxLargeRef ) ) return true;
-    return false;
-  }
-
   // Purely for backward compatibility.  Axe me after fixing all collectors, VM_WriteBuffer
   static boolean
   validRef ( int ref ) {
@@ -2554,62 +2502,6 @@ public class VM_Allocator
     else return validForwardingPtr( ref );
   }
 
-
-  static void
-  dumpThreadsArray () {
-    VM_Thread t;
-    int limit = 20;
-    if (VM_Scheduler.threads.length < 20) 
-      limit = VM_Scheduler.threads.length;
-    VM.sysWrite("VM_Scheduler.threads[0-19]:\n");
-    for ( int i=0; i<limit; i++ ) {
-      VM.sysWrite(" i = ");
-      VM.sysWrite(i);
-      t = VM_Scheduler.threads[i];
-      if (t==null) {
-	VM.sysWrite(" t is NULL");
-	VM.sysWrite("\n");
-      }
-      else {
-    	VM.sysWrite(", addr = ");
-    	VM.sysWrite(VM_Magic.objectAsAddress(t));
-    	VM.sysWrite(", stack = ");
-    	VM.sysWrite(VM_Magic.objectAsAddress(t.stack));
-    	if (t.isGCThread)
-    	  VM.sysWrite(" (isGCThread)");	  
-    	if (t.isDaemon)
-    	  VM.sysWrite(" (isDaemon)");	  
-    	VM.sysWrite("\n");	  
-      }
-    }
-   }
-
-
-  static void
-  dumpProcessorsArray () {
-    VM_Processor st;
-    VM.sysWrite("VM_Scheduler.processors[]:\n");
-    for (int i = 0; ++i <= VM_Scheduler.numProcessors;) {
-      st = VM_Scheduler.processors[i];
-      VM.sysWrite(" i = ");
-      VM.sysWrite(i);
-      if (st==null) 
-	VM.sysWrite(" st is NULL");
-      else {
-	VM.sysWrite(", id = ");
-	VM.sysWrite(st.id);
-	VM.sysWrite(", address = ");
-	VM.sysWrite(VM_Magic.objectAsAddress(st));
-	VM.sysWrite(", buffer = ");
-	VM.sysWrite(VM_Magic.objectAsAddress(st.modifiedOldObjects));
-	VM.sysWrite(", top = ");
-	VM.sysWrite(st.modifiedOldObjectsTop);
-      }
-      VM.sysWrite("\n");
-    }
-  }
-     
-
   private static void
   printRendezvousTimes () {
 
@@ -2666,84 +2558,15 @@ public class VM_Allocator
       VM.sysFail(err_msg);   // this is now supposed to complete without allocations
     }
   }
-     
 
-  static int
-  getnewblockx (int ndx) { return -1; }
-
-  // Called from VM_Processor constructor: 
+  /*
+   * Initialize a VM_Processor for allocation and collection.
+   */
   static void
   setupProcessor (VM_Processor p) {
     if (writeBarrier)
       VM_WriteBuffer.setupProcessor(p);
   }
-
-  // following referenced by refcountGC methods (but not called)
-  static void
-  gc_scanStacks () { }
-
-  static boolean
-  isValidHeapPointer( int ref ) {
-    if ( ref >= minFromRef &&  ref <= maxFromRef ) return true;
-    if ( ref >= minBootRef &&  ref <= maxBootRef ) return true;
-    if ( ref >= minLargeRef && ref <= maxLargeRef ) return true;
-    else return false;
-  }	
-
-  private static void
-  displayHeapConfig () {
-    VM_Scheduler.trace("Heap Configuration",":");
-    VM_Scheduler.trace("      ","smallHeapStartAddress:",smallHeapStartAddress);
-    VM_Scheduler.trace("      ","heapMiddleAddress:",heapMiddleAddress);
-    VM_Scheduler.trace("      ","smallHeapEndAddress:",smallHeapEndAddress);
-    VM_Scheduler.trace("      ","fromStartAddress:",fromStartAddress);
-    VM_Scheduler.trace("      ","fromEndAddress:",fromEndAddress);
-    VM_Scheduler.trace("      ","minFromRef:",minFromRef);
-    VM_Scheduler.trace("      ","maxFromRef:",maxFromRef);
-    VM_Scheduler.trace("      ","minBootRef:",minBootRef);
-    VM_Scheduler.trace("      ","maxBootRef:",maxBootRef);
-    VM_Scheduler.trace("      ","minLargeRef:",minLargeRef);
-    VM_Scheduler.trace("      ","maxLargeRef:",maxLargeRef);
-  }
-
-
-  // A routine to report number of live objects by type.  counts are in
-  // VM_Type objects, set during collection, reset here
-  //
-  private static void
-  printCountsByType () {
-    int nextId = VM_TypeDictionary.getNumValues();
-    VM.sysWrite("\nCounts of live objects by type:\n");
-    VM.sysWrite("VM_TypeDictionary.getNumValues() = ");
-    VM.sysWrite(nextId,false);
-    VM.sysWrite("\n");
-    for (int i = 1; i < nextId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
-      if (type.liveCount == 0) continue;
-      VM.sysWrite(type.liveCount, false);
-      if (type.liveCount < 10) VM.sysWrite      ("      ");
-      else if (type.liveCount < 100) VM.sysWrite ("     ");
-      else if (type.liveCount < 1000) VM.sysWrite ("    ");
-      else if (type.liveCount < 10000) VM.sysWrite ("   ");
-      else if (type.liveCount < 100000) VM.sysWrite ("  ");
-      else if (type.liveCount < 1000000) VM.sysWrite (" ");
-      VM.sysWrite(type.getDescriptor());
-      if (type.isClassType() && type.isResolved()) {
-	int size = type.asClass().getInstanceSize();
-	VM.sysWrite ("   space is ");
-	VM.sysWrite(size * type.liveCount, false);
-      }
-      else {
-	VM.sysWrite("    space is ");
-	VM.sysWrite(type.liveSpace, false);
-      }
-      VM.sysWrite("\n");
-      type.liveCount = 0;	// reset
-      type.liveSpace = 0;	// reset
-    }
-    VM.sysWrite(" End of counts of live objects by type \n");
-  }  // printCountsByType
-     
 
   // Check if the "integer" pointer points to a dead or live object.
   // If live, and in the FromSpace (ie has been marked and forwarded),
@@ -2800,16 +2623,9 @@ public class VM_Allocator
     VM_ScanObject.scanObjectOrArray(ref);
   }
   
-  public static boolean
-  inRange(int ref)
-  {
-    return ((ref >= minBootRef) && (ref <= largeHeapEndAddress));
-  }
-
-  // added for VM_GCUtil 080101 SES
-
   /**
    * Process an object reference field during collection.
+   * Called from GC utility classes like VM_ScanStack.
    *
    * @param location  address of a reference field
    */
@@ -2832,6 +2648,7 @@ public class VM_Allocator
 
   /**
    * Process an object reference (value) during collection.
+   * Called from GC utility classes like VM_ScanStack.
    *
    * @param location  address of a reference field
    */
