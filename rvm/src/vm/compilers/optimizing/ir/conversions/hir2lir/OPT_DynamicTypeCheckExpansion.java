@@ -361,7 +361,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	if (etc.isResolved() && etc.isFinal()) {
 	  if (VM.VerifyAssertions) VM._assert(!etc.isInterface());
 	  OPT_RegisterOperand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
-	  OPT_RegisterOperand etTIB = getTIB(curBlock.lastInstruction(), ir, etc);
+	  OPT_Operand etTIB = getTIB(curBlock.lastInstruction(), ir, etc);
 	  curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
 						  rhsTIB, etTIB,
 						  OPT_ConditionOperand.NOT_EQUAL(), 
@@ -377,7 +377,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // optionally (2) from above
       OPT_RegisterOperand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
       if (((arrayRef instanceof OPT_RegisterOperand)&&((OPT_RegisterOperand)arrayRef).isDeclaredType()) || compType == VM_Type.JavaLangObjectArrayType) {
-	OPT_RegisterOperand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
+	OPT_Operand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
 	curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
 						declTIB, lhsTIB,
 						OPT_ConditionOperand.EQUAL(), 
@@ -540,7 +540,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	  if (LHSclass.isFinal()) {
 	    // For a final class, we can do a PTR compare of 
 	    // rhsTIB and the TIB of the class
-	    OPT_RegisterOperand classTIB = getTIB(s, ir, LHSclass);
+	    OPT_Operand classTIB = getTIB(s, ir, LHSclass);
 	    BooleanCmp.mutate(s, BOOLEAN_CMP, result, RHStib, classTIB, 
 			      OPT_ConditionOperand.EQUAL(),
 			      new OPT_BranchProfileOperand());
@@ -601,7 +601,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	     innermostElementType.asClass().isFinal())) {
 	  // [^k of primitive or [^k of final class. Just like final classes, 
 	  // a PTR compare of rhsTIB and the TIB of the class gives the answer.
-	  OPT_RegisterOperand classTIB = getTIB(s, ir, LHSArray);
+	  OPT_Operand classTIB = getTIB(s, ir, LHSArray);
 	  BooleanCmp.mutate(s, BOOLEAN_CMP, result, RHStib, classTIB, 
 			    OPT_ConditionOperand.EQUAL(), new OPT_BranchProfileOperand());
 	  return s;
@@ -733,7 +733,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	  if (LHSclass.isFinal()) {
 	    // For a final class, we can do a PTR compare of 
 	    // rhsTIB and the TIB of the class
-	    OPT_RegisterOperand classTIB = getTIB(continueAt, ir, LHSclass);
+	    OPT_Operand classTIB = getTIB(continueAt, ir, LHSclass);
 	    continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
 						 RHStib, classTIB,
 						 OPT_ConditionOperand.NOT_EQUAL(), 
@@ -800,7 +800,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // Case 2 of VM_DynamicTypeCheck: LHS is an array.
       VM_Array LHSArray = (VM_Array)LHStype.peekResolvedType();
       if (LHSArray != null) {
-	OPT_RegisterOperand classTIB = getTIB(continueAt, ir, LHSArray);
+	OPT_Operand classTIB = getTIB(continueAt, ir, LHSArray);
 	VM_Type innermostElementType = LHSArray.getInnermostElementType();
 	if (innermostElementType.isPrimitiveType() || 
 	    (innermostElementType.asClass().isResolved() && 

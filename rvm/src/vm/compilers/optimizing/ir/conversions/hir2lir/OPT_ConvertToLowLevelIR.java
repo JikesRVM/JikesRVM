@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
  * Converts all remaining instructions with HIR-only operators into 
@@ -203,7 +204,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	    getTIB(s, ir, 
 		   InlineGuard.getClearValue(s), 
 		   InlineGuard.getClearGuard(s));
-	  OPT_RegisterOperand t2 = 
+	  OPT_Operand t2 = 
 	    getTIB(s, ir, methOp.getTarget().getDeclaringClass());
 	  IfCmp.mutate(s, INT_IFCMP, null, 
 		       getInstanceMethod(s, ir, t1, methOp.getTarget()), 
@@ -264,7 +265,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
       case GET_CLASS_OBJECT_opcode:
 	{
-	  OPT_RegisterOperand TIB = 
+	  OPT_Operand TIB = 
 	    getTIB(s, ir, (OPT_TypeOperand)Unary.getClearVal(s));
 	  OPT_RegisterOperand type = ir.regpool.makeTemp(VM_TypeReference.VM_Type);
 	  s.insertBefore(Unary.create(GET_TYPE_FROM_TIB, type, TIB));
@@ -669,7 +670,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						Call.getClearAddress(v)));
       } else {
 	// invoking a virtual method; do it via TIB of target's declaring class.
-	OPT_RegisterOperand tib = getTIB(v, ir, target.getDeclaringClass());
+	OPT_Operand tib = getTIB(v, ir, target.getDeclaringClass());
 	Call.setAddress(v, InsertLoadOffset(v, ir, REF_LOAD, 
 					    VM_TypeReference.CodeArray, 
 					    tib, Call.getClearAddress(v), null, TG()));
@@ -1029,25 +1030,31 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   }
 
   // get the class tib for type
-  static OPT_RegisterOperand getTIB (OPT_Instruction s, OPT_IR ir, 
-				     VM_Type type) {
+  static OPT_Operand getTIB (OPT_Instruction s, OPT_IR ir, VM_Type type) {
     return getTIB(s, ir, new OPT_TypeOperand(type));
   }
 
   // get the class tib for type
-  static OPT_RegisterOperand getTIB (OPT_Instruction s, OPT_IR ir, 
-				     OPT_TypeOperand type) {
-    OPT_RegisterOperand res = 
-      ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
-    s.insertBack(Unary.create(GET_CLASS_TIB, res, type));
-    return res.copyD2U();
+  static OPT_Operand getTIB (OPT_Instruction s, OPT_IR ir, 
+                             OPT_TypeOperand type) {
+    VM_Type t = type.getVMType();
+    if (VM.BuildForIA32 && !MM_Interface.MOVES_TIBS &&
+        VM.runningVM && t != null && t.isResolved()) {
+      VM_Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
+      return new OPT_AddressConstantOperand(addr);
+    } else {
+      OPT_RegisterOperand res = 
+        ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
+      s.insertBack(Unary.create(GET_CLASS_TIB, res, type));
+      return res.copyD2U();
+    }
   }
 
   /**
    * Get an instance method from a TIB
    */
   static OPT_RegisterOperand getInstanceMethod (OPT_Instruction s, OPT_IR ir, 
-						OPT_RegisterOperand tib, 
+						OPT_Operand tib, 
 						VM_Method method) {
     return InsertLoadOffset(s, ir, REF_LOAD, 
 			    VM_TypeReference.CodeArray, 
