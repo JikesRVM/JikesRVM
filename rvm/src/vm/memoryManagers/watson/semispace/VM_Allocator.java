@@ -568,9 +568,6 @@ public class VM_Allocator  extends VM_GCStatistics
       gcInProgress = true;
       gcDone = false;
 
-      // All space in toHeap is now available for allocation
-      toHeap.reset();
- 
       // invert the mark_flag value, used for marking BootImage objects
       BOOT_MARK_VALUE = BOOT_MARK_VALUE ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
  
@@ -712,6 +709,9 @@ public class VM_Allocator  extends VM_GCStatistics
       VM_ContiguousHeap temp = fromHeap;
       fromHeap = toHeap;
       toHeap = temp;
+
+      // toHeap is ready to be used for the next collection
+      toHeap.reset();
 
       // round up current address in fromHeap to allow using efficient zeroPages()
       fromHeap.roundUpPage();
