@@ -494,12 +494,23 @@ abstract class OPT_AssemblerBase extends VM_Assembler
 
         // Generated from the same case in VM_Assembler
       case IA32_ADC_opcode:case IA32_ADD_opcode:case IA32_AND_opcode:
-      case IA32_CMP_opcode:case IA32_OR_opcode:case IA32_SBB_opcode:
-      case IA32_TEST_opcode:case IA32_XOR_opcode:
+      case IA32_OR_opcode:case IA32_SBB_opcode:
+      case IA32_XOR_opcode:
         budget -= 2; // opcode + modr/m
         budget -= operandCost(MIR_BinaryAcc.getResult(inst), true);
         budget -= operandCost(MIR_BinaryAcc.getValue(inst), true);
         break;
+      case IA32_CMP_opcode:
+        budget -= 2; // opcode + modr/m
+        budget -= operandCost(MIR_Compare.getVal1(inst), true);
+        budget -= operandCost(MIR_Compare.getVal2(inst), true);
+        break;
+      case IA32_TEST_opcode:
+        budget -= 2; // opcode + modr/m
+        budget -= operandCost(MIR_Test.getVal1(inst), true);
+        budget -= operandCost(MIR_Test.getVal2(inst), true);
+        break;
+        
       case IA32_PUSH_opcode:
         {
           OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
