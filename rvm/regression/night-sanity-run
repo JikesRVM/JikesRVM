@@ -65,9 +65,9 @@ chmod u=rw,g=r,o=r $RUN_LOG
 # Determine OS and machine architecture 
 NS_OS=$(uname)
 if [[ $NS_OS = 'AIX' ]]; then
-  $NS_ARCH=`uname -p`
+  NS_ARCH=`uname -p`
 else
-  $NS_ARCH=`uname -m`
+  NS_ARCH=`uname -m`
 fi
 
 # Set number of processors based on OS
