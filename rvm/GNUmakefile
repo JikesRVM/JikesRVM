@@ -38,7 +38,7 @@ all:
 	@echo >&2 ' (Well, it can also run "find" in ways useful for the Emacs Meta-x grep-find '
 	@echo >&2 ' command.  It also makes an alternative tags file, TAGS.ALL, which contains'
 	@echo >&2 ' all files in the source tree, skipping only Emacs backups and CVS files.)'
-	@echo >&2 ' Documentation is at the head of the Makefile."
+	@echo >&2 ' Documentation is at the head of the Makefile.'
 
 
 ## If RVM_BUILD is in the environment, then we have a real Jikes RVM build that
