@@ -8,6 +8,8 @@
 #
 include		$(RVM_ROOT)/rvm/Make.rules
 
+JCOMPILE=$(RVM_BUILD)/jbuild.tool
+
 default:;
 
 clean:
