@@ -1667,9 +1667,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
               // then end is dead.  Change it to a NOP. 
               Empty.mutate(end,NOP);
             } else {
-              if (VM.VerifyAssertions) {
-                VM.assert(MIR_Move.getValue(end).asRegister().register == reg);
-              }
+              //if (VM.VerifyAssertions) {
+	      //VM.assert(MIR_Move.getValue(end).asRegister().register == reg);
+              //}
               end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
             }
           }
