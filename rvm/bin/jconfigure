@@ -2810,7 +2810,7 @@ function emitImageLinker () {
 #	    JikesRVMSocketImpl.class
 
 	# We can not carry these from bootimage writing to runtime 
-	# without special treatment
+	# without special treatment.  We're lazy, so we don't bother.
 	    java/lang/ref/PhantomReference.class
 	    java/lang/ref/SoftReference.class
 	    java/lang/ref/WeakReference.class
@@ -2985,11 +2985,15 @@ java/lang/reflect/InvocationTargetException
 com/ibm/JikesRVM/classloader/ApplicationClassLoader # Uses URLClassLoader
 java/net/URLClassLoader		# Uses java.util.HashMap
 java/net/URL			# Used by URLClassLoader's initializer
+## These protocol handlers are necessary for Classpath 0.13 and later,
+## since we are now initializing URLClassLoader before dynamic class
+## loading is ever enabled:
 gnu/java/net/protocol/file/Handler # by java/net/URL
+gnu/java/net/protocol/jar/Handler # by java/net/URL
 
-# Not necessary, since we can class load from regular files at the point 
-# it's needed, but used while booting, so it should save us time at 
-# startup to just include it.
+# Not necessary, since we can class load from regular files at the
+# point it's needed, but used while booting, so including it should
+# save us time at startup.
 gnu/java/lang/reflect/TypeSignature # Used by ObjectStreamField
 
     # class loading from regular files
