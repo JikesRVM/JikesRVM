@@ -600,17 +600,15 @@
       (VM_Atom.findOrCreateAsciiAtom("char"),    
        VM_Atom.findOrCreateAsciiAtom("C"));
 
-    //-#if RVM_FOR_POWERPC
-    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    //-#endif
-    //-#if RVM_FOR_IA32
-    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-    //-#endif
+    CodeType    =  VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom(VM.INSTRUCTION_ARRAY_SIGNATURE), VM_SystemClassLoader.getVMClassLoader()).asArray();
 
     // create additional, frequently used, type descriptions
     //
     JavaLangObjectType    = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
     JavaLangThrowableType = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"), VM_SystemClassLoader.getVMClassLoader());
     JavaLangStringType    = VM_ClassLoader.findOrCreateType
