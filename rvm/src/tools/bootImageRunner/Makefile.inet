@@ -1,0 +1,4 @@
+include			$(JAL_BUILD)/Make.rules
+
+$(DEST):		java_net_InetAddressJpn.C java_net_InetAddressJpn.h
+	$(LDSHARED) -o $(DEST) -I$(HOST_JAVA_HOME)/include -O -g java_net_InetAddressJpn.C

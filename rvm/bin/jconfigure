@@ -2234,13 +2234,13 @@ function emitBooterLinker
    fi
    print""
 
-   # TODO: Julian  what does this add?
-	print 'cd $JAL_ROOT/src/lib2/java/net'
-	if (( RVM_FOR_AIX )); then
-	    print '$GNU_MAKE DEST=$JAL_BUILD/libjpninet.a'
-	else
-	    print '$GNU_MAKE DEST=$JAL_BUILD/libjpninet.so'
-        fi
+   # build the JNI code for heavyweight networking calls
+   print 'cd $JAL_ROOT/src/tools/bootImageRunner/'
+   if (( RVM_FOR_AIX )); then
+      print '$GNU_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a'
+    else
+      print '$GNU_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so'
+   fi
 
    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
     SMP_STR="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
