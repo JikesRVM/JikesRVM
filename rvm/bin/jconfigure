@@ -864,7 +864,6 @@ declare -i RVM_WITH_OSR=0
 # complains about any tests against undefined conditionals.
 # Search for "BUILD_WITH_PARANOID_PREPROCESSOR" below and way below.
 
-declare -i RVM_WITHOUT_LOAD_BALANCING=0	# default in VM_IdleThread.java
 declare -i RVM_WITH_FREE_LOCK_BALANCING=0	# In VM_Lock.java
 declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0	
 declare -i RVM_FOR_MCS_PROCESSOR_LOCKS=0
