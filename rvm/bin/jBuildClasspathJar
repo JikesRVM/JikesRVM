@@ -11,13 +11,6 @@
 ##
 TOP_LEVEL_PACKAGES="java javax gnu"
 
-
-##
-## read host config
-##
-
-. $RVM_BUILD/jbuild.environment
-
 ##
 ## defaults
 ##
