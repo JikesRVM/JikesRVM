@@ -1,24 +1,6 @@
 % $Id$
 %
 % trademark-macros.tex
-% Two trademark styles we use in the Jikes RVM User's Guide.
-%%
-%% Rationale: As of October 16th and 17th, 2003, I have changed the
-% style of trademark attribution that we use.  I do not know whether
-%there may be legal reasons why we were using the old style.
-%
-%% I took the footnote off from the title page.  That's what Sun does with
-% their Java books.  If you think otherwise, put it back.  You should
-%probably be able to do it by changing the boolean variable below, TMOnOwnPage.
-
-%% Changed back pending dicussion with Mike or IBM attorneys.
-
-%% \T \usepackage{ifthen}
-%% \T \newboolean{TMOnOwnPage}
-%% \T \setboolean{TMOnOwnPage}{true}
-% An earlier attempt to get a nice pretty TM symbol.
-% \T \renewcommand{\texttrademark}{\ensuremath{^{\mbox{\tiny \texttrademark}}}}
-% \T \newcommand{\trademark}{\ }
 
 % From the SPEC page (HTML ISO Latin 1):
 % [ <b>&reg;</b> = Registered Trademark, <b>&#153;</b> = Trademark
@@ -26,266 +8,39 @@
 % Unicode: Trademark sign is 0x2122 or <super> 0x0054 0x004D
 % TS1 (the Cork encoding) uses 0227 (octal)
 
-%% %% \ifthenelse{\boolean{TMOnOwnPage}}{%
-%%   \W \newcommand{\trademark}{\xmlsym{##8482}}
-%%   \W \newcommand{\registeredTrademark}{\xml{small}\xml{sup}\xmlsym{reg}\xml{/sup}\xml{/small}}
-%%   %  \T \newcommand{\registeredTrademark}{\}
-%%   %% TM notices on a page of trademark statements.
-%%   % Earlier attempts:
-%%   % \title{\texonly{\vfill} {\huge The $\mbox{Jikes}^{\mbox{\tiny TM}}$ 
-  
-%%   %% The \*TMheading{} forms of the macros are for inside
-%%   %% LaTeX \section{} commands.
-\T \renewcommand{\texttrademark}{\ensuremath{%
-\T               \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-\T \newcommand{\trademark}{\texttrademark}
-\T \newcommand{\registeredTrademark}{\trademark}
+%% The \*heading{} forms of the macros are for inside
+%% LaTeX \section{} and \subsection{} commands.
+
+%% First, define a symbol for TM and for (R), both in HTML and in LaTeX
+%% I wonder what \texttrademark does normally.
+\T \newcommand{\trademark}{\ensuremath{%
+\T               \protect\raisebox{.41\baselineskip}{\tiny \textsc{TM}}}}
+\T \newcommand{\registeredTrademark}{\ensuremath{%
+\T		 \protect\raisebox{.41\baselineskip}{\tiny \textregistered}}}
 
 %% The spaces do not hurt the HTML and may help it.
-\W \newcommand{\trademark}{\xmlsym{##8482}\ }
-\W \newcommand{\registeredTrademark}{\xml{sup}\xmlsym{reg}\xml{/sup}\ }
+\W \newcommand{\trademark}{\xmlsym{##8482}}
+\W \newcommand{\registeredTrademark}{\xml{sup}\xmlsym{small}\xmlsym{reg}\xmlsym{/small}\xml{/sup}}
+
+%% Use the defined symbols to generate \TM and \R macros.
+
+\newcommand{\TM}{\link{\trademark}{trademarks}\xspace}
+\newcommand{\TMweb}{\htmlonly{\TM}\xspace}
+\newcommand{\TMheading}{\trademark\xspace}
+\newcommand{\TMheadingweb}{\htmlonly{\TMheading}\xspace}
+
+\newcommand{\R}{\link{\registeredTrademark}{trademarks}\xspace}
+\newcommand{\Rweb}{\htmlonly{\R}\xspace}
+\newcommand{\Rheading}{\registeredTrademark\xspace}
+\newcommand{\Rheadingweb}{\htmlonly{\Rheading}\xspace}
 
 
-
-  \W \begin{iftex}
-  %% This looks quite nice on the title page --augart, 2003 Oct 16
-  \newcommand{\AIXTM}{AIX\ensuremath{%
-     \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\AIXTMheading}{\AIXTM}
-
-  \newcommand{\AIXTMweb}{AIX}
-  \newcommand{\AIXTMwebheading}{AIX}
-
-  \newcommand{\IBMR}{IBM\ensuremath{%\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\IBMRweb}{IBM}
-
-  \newcommand{\IntelR}{Intel\ensuremath{\protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\IntelRheading}{\IntelR}
-
-  \newcommand{\IntelRweb}{Intel}
-  \newcommand{\IntelRwebheading}{Intel}
-
-  \newcommand{\JikesTM}{Jikes\ensuremath{\!%
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\JikesTMweb}{Jikes}
-
-  \newcommand{\JavaTM}{Java\ensuremath{\!%\!\!\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-
-  \newcommand{\JavaTMweb}{Java}
-
-  \newcommand{\JavadocTM}{Javadoc\ensuremath{\!%\!\!\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\JavadocTMweb}{Javadoc}
-
-  \newcommand{\LinuxR}{Linux\ensuremath{\!%\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\LinuxRheading}{\LinuxR}
-
-  \newcommand{\LinuxRweb}{Linux}
-  \newcommand{\LinuxRwebheading}{Linux}
-
-  \newcommand{\PostScriptR}{PostScript\ensuremath{\!%\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\PostScriptRweb}{PostScript}
-
-
-  \newcommand{\PowerPCTM}{PowerPC\ensuremath{%\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\PowerPCTMweb}{PowerPC}
-
-  \newcommand{\RedHatTM}{Red Hat\ensuremath{%
-      \!\protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\RedHatTMheading}{\RedHatTM}
-
-  \newcommand{\RedHatTMweb}{Red Hat}
-  \newcommand{\RedHatTMwebheading}{Red Hat}
-
-  \newcommand{\SPECR}{SPEC\ensuremath{%\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\SPECRheading}{\SPECR}
-  \newcommand{\SPECjvmR}{SPECjvm\ensuremath{\!%\!\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\SPECjvmRheading}{\SuSER}
-  \newcommand{\SPECjbbR}{SPECjbb\ensuremath{\!%\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\SPECjbbRheading}{\SPECjbbR}
-
-  \newcommand{\SunR}{Sun\ensuremath{%
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\SunRweb}{Sun}
-
-  \newcommand{\SuSER}{SuSE\ensuremath{%
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \newcommand{\SuSERheading}{\SuSER}
-
-  \newcommand{\SuSERweb}{SuSE}
-  \newcommand{\SuSERwebheading}{SuSE}
-
-
-  \newcommand{\UnixR}{Unix\ensuremath{\!%\!\!
-      \protect\raisebox{.41\baselineskip}{\tiny TM}}}
-  \W \end{iftex}
-
-  \T \begin{ifhtml}
-
-  \W \newcommand{\AIXTM}{AIX\link{\trademark}{trademarks}}
-  \W \newcommand{\AIXTMheading}{AIX\trademark}
-
-  \newcommand{\AIXTMweb}{\AIXTM}
-  \newcommand{\AIXTMwebheading}{\AIXTMheading}
-
-  \W \newcommand{\IBMR}{IBM\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\IBMRweb}{\IBMR}
-
-  \W \newcommand{\IntelR}{Intel\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\IntelRheading}{Intel\registeredTrademark}
-  \W \newcommand{\IntelRweb}{\IntelR}
-  \W \newcommand{\IntelRwebheading}{\IntelRheading}
-
-  \W \newcommand{\JavaTM}{Java\link{\trademark}{trademarks}}
-  \W \newcommand{\JavaTMweb}{\JavaTM}
-
-  \W \newcommand{\JavadocTM}{Javadoc\link{\trademark}{trademarks}}
-  \W \newcommand{\JavadocTMweb}{\JavadocTM}
-
-  \W \newcommand{\JikesTM}{Jikes\link{\trademark}{trademarks}}
-  \W \newcommand{\JikesTMweb}{\JikesTM}
-
-  \W \newcommand{\LinuxR}{Linux\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\LinuxRheading}{Linux\registeredTrademark}
-  \W \newcommand{\LinuxRweb}{\LinuxR}
-  \W \newcommand{\LinuxRwebheading}{\LinuxRheading}
-
-  \W \newcommand{\PostScriptR}{PostScript\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\PostScriptRweb}{\PostScriptR}
-
-
-  \W \newcommand{\PowerPCTM}{PowerPC\link{\trademark}{trademarks}}
-  \W \newcommand{\PowerPCTMweb}{\PowerPCTM}
-
-  \W \newcommand{\SPECR}{SPEC\link{\registeredTrademark}{trademarks}}
-
-  \W \newcommand{\SPECjvmR}{SPECjvm\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\SPECjvmRheading}{SPECjvm\registeredTrademark}
-
-  \W \newcommand{\SPECjbbR}{SPECjbb\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\SPECjbbRheading}{SPECjbb\registeredTrademark}
-
-  \W \newcommand{\RedHatTM}{Red Hat\link{\trademark}{trademarks}}
-  \W \newcommand{\RedHatTMheading}{Red Hat\trademark}
-
-  \W \newcommand{\RedHatTMweb}{\RedHatTM}
-  \W \newcommand{\RedHatTMwebheading}{\RedHatTMheading}
-
-  \W \newcommand{\SunR}{Sun\link{\registeredTrademark}{trademarks}}
-
-  \W \newcommand{\SunRweb}{\SunR}
-
-  \W \newcommand{\SuSER}{SuSE\link{\registeredTrademark}{trademarks}}
-  \W \newcommand{\SuSERheading}{SuSE\registeredTrademark}
-
-  \W \newcommand{\SuSERweb}{\SuSER}
-  \W \newcommand{\SuSERwebheading}{\SuSERheading}
-
-  \W \newcommand{\UnixR}{Unix\link{\registeredTrademark}{trademarks}}
-  \T \end{ifhtml}
-
-%Unnecessary:
-%%   \newcommand{\JikesTMFootnote}{}
-%%   \newcommand{\AIXTMFootnote}{}
-%%   \newcommand{\PowerPCTMFootnote}{}
-%%   \newcommand{\JavaTMFootnote}{}
-%%   \newcommand{\LinuxRegisteredTMFootnote}{}
-
-  %% Footers (Blank for this version.)
-  \newcommand{\JikesTMFooter}{}
-  \newcommand{\AIXTMFooter}{}
-  \newcommand{\PowerPCTMFooter}{}
-  \newcommand{\JavaTMFooter}{}
-  \newcommand{\AIXPPCTMFooter}{}
-  \newcommand{\JikesAIXTMFooter}{}
-  \newcommand{\AIXPPCJikesTMFooter}{}
-
-  
-%% }{%% TM notices sprinkled everywhere. 
-%%   % You could also use this compatibility definition:
-%%   \newcommand{\JikesTM}{Jikes\JikesTMFootnote}
-%%   \newcommand{\AIXTM}{AIX\AIXTMFootnote}
-%%   \newcommand{\AIXTMheading}{AIX\trademark}
-%%   \newcommand{\PowerPCTM}{PowerPC\PowerPCTMFootnote}
-%%   \newcommand{\JavaTM}{Java\JavaTMFootnote}
-%%   \newcommand{\LinuxR}{Linux\LinuxRFootnote}
-%%   \newcommand{\LinuxRheading}{Linux\registeredTrademark}
-%%   \newcommand{\SPECR}{SPEC\registeredTrademark}
-%%   \newcommand{\SPECjvmR}{SPECjvm\registeredTrademark}
-%%   \newcommand{\SPECjvmRheading}{SPECjvm\registeredTrademark}
-%%   \newcommand{\SPECjbbR}{SPECjbb\registeredTrademark}
-%%   \newcommand{\SPECjbbRheading}{SPECjbb\registeredTrademark}
-%%   \newcommand{\RedHatTM}{Red Hat}
-%%   \newcommand{\RedHatTMheading}{Red Hat}
-%%   \newcommand{\SuSER}{SuSE}
-%%   \newcommand{\SuSERheading}{SuSE}
-%%   \newcommand{\IntelR}{Intel}
-%%   \newcommand{\IntelRheading}{Intel}
-%%   \newcommand{\IBMR}{IBM}
-%%   \newcommand{\UnixR}{Unix}
-
-%%   \newcommand{\JikesTMFootnote}{{\texonly \texttrademark}{\htmlonly
-%%       \trademark}\texonly{\footnote{{\bf Jikes} is a
-%%         trademark or registered trademark of International Business Machines
-%%         Corporation in the United States, other countries, or both.}}}
-  
-%%   \newcommand{\JikesTMFooter}{\W \hline {\small {\bf Jikes} is a
-%%       trademark or registered trademark of International Business Machines
-%%       Corporation in the United States, other countries, or both.}}
-
-%%   \newcommand{\AIXTMFootnote}{{\texonly \texttrademark}{\htmlonly
-%%       \trademark}\texonly{\footnote{{\bf AIX} is a
-%%         trademark or registered trademark of International Business Machines
-%%         Corporation in the United States, other countries, or both.}}}
-  
-%%   \newcommand{\AIXTMFooter}{\W \hline {\small {\bf AIX} is a
-%%       trademark or registered trademark of International Business Machines
-%%       Corporation in the United States, other countries, or both.}}
-  
-%%   \newcommand{\PowerPCTMFootnote}{{\texonly \texttrademark}{\htmlonly
-%%       \trademark}\texonly{\footnote{{\bf PowerPC} is a
-%%         trademark or registered trademark of International Business Machines
-%%         Corporation in the United States, other countries, or both.}}}
-  
-%%   \newcommand{\PowerPCTMFooter}{\W \hline {\small {\bf PowerPC} is a
-%%       trademark or registered trademark of International Business Machines
-%%       Corporation in the United States, other countries, or both.}}
-  
-%%   \newcommand{\JavaTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
-%%       \trademark}\texonly{\footnote{\small {\bf Java} and all Java-based
-%%         trademarks and 
-%%         logos are trademarks or registered trademarks of Sun Microsystems,
-%%         Inc.\ in the United States, other countries, or both.}}}
-  
-%%   \newcommand{\JavaTMFooter}{\W \hline {\small {\bf Java} and all Java-based trademarks and
-%%       logos are trademarks or registered trademarks of Sun Microsystems,
-%%       Inc.\ in the United States, other countries, or both.}}
-  
-%%   \newcommand{\AIXPPCTMFooter}{\W \hline {\small {\bf AIX} and {\bf
-%%         PowerPC} are
-%%       trademarks or registered trademarks of International Business Machines
-%%       Corporation in the United States, other countries, or both.}}
-  
-%%   \newcommand{\JikesAIXTMFooter}{\W \hline {\small {\bf Jikes} and {\bf AIX} are
-%%       trademarks or registered trademarks of International Business Machines
-%%       Corporation in the United States, other countries, or both.}}
-  
-%%   \newcommand{\AIXPPCJikesTMFooter}{\W \hline {\small {\bf AIX}, {\bf
-%%         PowerPC}, and {\bf Jikes} are
-%%       trademarks or registered trademarks of International Business Machines
-%%       Corporation in the United States, other countries, or both.}}
-  
-%%   %% I do not know how to get the (R) symbol, so we'll substitute with
-%%   %% TM for now.
-%%   \newcommand{\LinuxRFootnote}{\registeredTrademark\texonly{\footnote{\small {\bf Linux} is a registered
-%%         trademark of Linux Torvalds.}}}
-%% }
-
+%% Footers (Blank for this version.)
+%% TODO: Remove these.
+\newcommand{\JikesTMFooter}{}
+\newcommand{\AIXTMFooter}{}
+\newcommand{\PowerPCTMFooter}{}
+\newcommand{\JavaTMFooter}{}
+\newcommand{\AIXPPCTMFooter}{}
+\newcommand{\JikesAIXTMFooter}{}
+\newcommand{\AIXPPCJikesTMFooter}{}
