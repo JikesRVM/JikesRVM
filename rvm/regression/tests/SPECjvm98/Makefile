@@ -26,9 +26,11 @@ TESTS=_200_check _201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_
 
 
 $(WORKING)/spec:	$(WORKING)
+	rm -f $(WORKING)/spec
 	ln -fs $(BENCH_HOME)/spec $(WORKING)/spec
 
 $(WORKING)/props:	$(WORKING)
+	rm -f $(WORKING)/props
 	ln -fs $(BENCH_HOME)/props $(WORKING)/props
 
 $(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/rvm/regression/tests/SPECjvm98/Makefile
