@@ -165,7 +165,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
-	out.print("\tat");
+	out.print("\tat ");
 	out.print(m.getDeclaringClass());
 	out.print('.');
 	out.print(m.getName());
@@ -180,7 +180,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
         }
       }
     } else {
-	out.print("\tat");
+	out.print("\tat ");
 	out.print(method.getDeclaringClass());
 	out.print('.');
 	out.print(method.getName());
