@@ -347,6 +347,8 @@ public class VM_StackBuffer
 	    }
 	}
 	       
+	iterator.cleanupPointers();
+
 	if (CHECK_REF_MAPS) displayChkRefLast(previousrefaddr, lastrefaddr);
 
 	return stack_ref_count;
