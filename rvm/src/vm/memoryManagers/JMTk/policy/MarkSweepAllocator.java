@@ -143,10 +143,9 @@ final class MarkSweepAllocator extends BaseFreeList
    * fresh allocation.
    */
   protected final void postAlloc(VM_Address cell, boolean isScalar,
-				 EXTENT bytes, boolean small, boolean large,
-				 boolean copy) 
+				 EXTENT bytes, boolean small, boolean large)
     throws VM_PragmaInline {
-    collector.postAlloc(cell, isScalar, bytes, small, large, copy, this);
+    collector.postAlloc(cell, isScalar, bytes, small, large, this);
   };
 
   ////////////////////////////////////////////////////////////////////////////

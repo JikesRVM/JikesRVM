@@ -102,14 +102,13 @@ final class MarkSweepCollector implements Constants, VM_Uninterruptible {
    * @param bytes The size of the cell in bytes
    * @param small True if the cell is for a small object
    * @param large True if the cell is for a large object
-   * @param copy True if this allocation is for a copy rather than a
    * fresh allocation.
    * @param allocator The mark sweep allocator instance through which
    * this instance was allocated.
    */
   public final void postAlloc(VM_Address cell, boolean isScalar,
 			      EXTENT bytes, boolean small, boolean large,
-			      boolean copy, MarkSweepAllocator allocator)
+			      MarkSweepAllocator allocator)
     throws VM_PragmaInline {
     if (large)
       addToTreadmill(cell, allocator);
