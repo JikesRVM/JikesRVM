@@ -329,7 +329,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * ie., it throws the <CODE>VM_PragmaInline</CODE> exception?
    */
   final boolean hasInlinePragma() {
-    return VM_PragmaInline.declaredBy(this) ?  true : false;
+    return VM_PragmaInline.declaredBy(this);
   }
     
   /**
@@ -337,7 +337,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * ie., it throws the <CODE>VM_PragmaNoInline</CODE> exception?
    */
   final boolean hasNoInlinePragma() {
-    return VM_PragmaNoInline.declaredBy(this) ?  true : false;
+    return VM_PragmaNoInline.declaredBy(this);
   }
     
   //------------------------------------------------------------------//
