@@ -49,7 +49,7 @@ public class VM_Properties extends VM_Configuration {
 	  -1;
 	//-#else
         //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-          10;
+           1000;
         //-#else // the normal case (timer-driven preemptive thread switching)
 	  0;
 	//-#endif
