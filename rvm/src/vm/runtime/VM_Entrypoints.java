@@ -90,9 +90,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_Field threadSwitchInstructionsField                  = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "threadSwitchInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
-  //-#if RVM_FOR_POWERPC
-  public static final VM_Field getTimeInstructionsField                       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "getTimeInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
-  //-#endif
   public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
 
   public static final VM_Field deterministicThreadSwitchCountField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "deterministicThreadSwitchCount", "I");
@@ -194,7 +191,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field JNIEnvAddressField  = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIEnvAddress", "Lcom/ibm/JikesRVM/VM_Address;");
   static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "savedTIreg", "I");
   static final VM_Field JNIEnvSavedPRField         = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "savedPRreg", "Lcom/ibm/JikesRVM/VM_Processor;");
-  static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefs", "[I");
+  static final VM_Field JNIRefsField               = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefs", "Lcom/ibm/JikesRVM/VM_AddressArray;");
   static final VM_Field JNIRefsTopField            = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsTop", "I");
   static final VM_Field JNIRefsMaxField            = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsMax", "I");
   static final VM_Field JNIRefsSavedFPField        = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsSavedFP", "I");
