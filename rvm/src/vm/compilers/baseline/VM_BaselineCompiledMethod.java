@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.classloader.*;
  * instructions.
  *
  * @author Bowen Alpern
+ * @modified Steven Augart
  */
 public final class VM_BaselineCompiledMethod extends VM_CompiledMethod 
   implements VM_BaselineConstants {
@@ -171,22 +172,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
   //          the PrintStream to print the stack trace to.
-  public final void printStackTrace (VM_Offset instructionOffset, java.io.PrintStream out) {
-    int lineNumber = findLineNumberForInstruction(instructionOffset);
-    if (lineNumber <= 0) {      // unknown line
-      out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset.toInt())
-		  + ")");
-    } else {      // print class name + method name + file name + line number
-      out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		  + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
-		  + ":" + lineNumber + ")");
-    }
-  }
-
-  // Print this compiled method's portion of a stack trace 
-  // Taken:   offset of machine instruction from start of method
-  //          the PrintWriter to print the stack trace to.
-  public final void printStackTrace (VM_Offset instructionOffset, java.io.PrintWriter out) {
+  public final void printStackTrace (VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
       out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset.toInt())
