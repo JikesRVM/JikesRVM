@@ -8,6 +8,12 @@ These are release notes for the future Jikes RVM release 2.3.3.
 
 *Highlights of this release include:
 
+**GNU Classpath 0.10
+Jikes RVM now uses GNU Classpath version 0.10.  Although Classpath
+0.08 is still expected to work with Jikes RVM 2.3.3, we recommend that
+users upgraded to the Classpath 0.10 to benefit from the additional
+functionality and bug fixes since Classpath 0.08.
+
 **GCspy garbage collection visualization tool
 
 Jikes RVM now includes support for the GCspy tool for visualizing the
@@ -15,6 +21,12 @@ garbage collector's behaviour.  Many thanks to Richard Jones of the
 University of Kent for this contribution.  (This item should have been
 included in the 2.3.2 release notes, but was inadvertently omitted.)
 Documentation is in the user's guide.
+
+**PowerPC/Linux/64 support with baseline compiler
+Jikes RVM now runs on 64-bit PowerPC Linux to the same extent as it
+does on 64-bit PowerPC AIX.  All regression tests pass with the
+baseline compiler, porting of the opt compiler to 64 bit PowerPC is an
+open work item; contributions welcome!
 
 **Startup time slashed
 The startup time for Jikes RVM to run a simple "Hello World" program
@@ -44,4 +56,4 @@ improved; volunteers welcome.
 *Other notes:
 
 *Bug Fixes:
-**Calls to the JNI function pair GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested.
+** Calls to the JNI function pair GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested . 
