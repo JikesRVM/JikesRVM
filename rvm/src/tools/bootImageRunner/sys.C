@@ -861,13 +861,21 @@ void *timeSlicerThreadMain(void *arg) {
   extern "C" int hpm_set_event  (int, int, int, int);
   extern "C" int hpm_set_event_X(int, int, int, int);
   extern "C" int hpm_set_mode(int);
-  extern "C" int hpm_set_settings();
-  extern "C" int hpm_start_counting();
-  extern "C" int hpm_stop_counting();
-  extern "C" int hpm_reset_counters();
-  extern "C" int hpm_get_counters();
-  extern "C" long long hpm_get_counter(int);
+
+  extern "C" int hpm_set_program_mythread();
+  extern "C" int hpm_start_mythread();
+  extern "C" int hpm_stop_mythread();
+  extern "C" int hpm_reset_mythread();
+  extern "C" long long hpm_get_counter_mythread(int);
+  extern "C" int hpm_get_number_of_counters();
   extern "C" int hpm_test();
+
+  extern "C" int hpm_set_program_mygroup();
+  extern "C" int hpm_start_mygroup();
+  extern "C" int hpm_stop_mygroup();
+  extern "C" int hpm_reset_mygroup();
+  extern "C" int hpm_print_mygroup();
+  extern "C" long long hpm_get_counter_mygroup(int);
 #endif
 
 /*
@@ -879,20 +887,20 @@ extern "C" int
 sysHPMinit()
 {
 #ifdef __linux__
-  fprintf(stderr, "sys: sysHPMint(%d) called: no support for linux\n");
+  fprintf(stderr, "sys: sysHPMinit() called: no support for linux\n");
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   int rc;
 #ifdef DEBUG_SYS
-  fprintf(SysErrorFile, "sys: sysHPMint() called:\n");
+  fprintf(SysErrorFile, "sys: sysHPMinit() called:\n");
 #endif
   int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
   rc = hpm_init(filter);
   return rc;
 #else
-  fprintf(SysErrorFile, "sys: sysHPMint(%d) called: not compiled for HPM\n");
+  fprintf(SysErrorFile, "sys: sysHPMinit() called: not compiled for HPM\n");
   exit(1);
   return 0;
 #endif
@@ -1000,76 +1008,155 @@ sysHPMsetMode(int mode)
  * May be called multiple times only if sysHPMdeleteSettings is called in between.
  */
 extern "C" int
-sysHPMsetSettings()
+sysHPMsetProgramMyThread()
 {
 #ifdef __linux__
-  fprintf(stderr, "sys: sysHPMsetSettings() called: no support for linux\n");
+  fprintf(stderr, "sys: sysHPMsetProgramMyThread() called: no support for linux\n");
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   int rc;
 #ifdef DEBUG_SYS
-  fprintf(SysTraceFile, "sys: sysHPMsetSettings() called from pthread id %d\n",pthread_self());
+  fprintf(SysTraceFile, "sys: sysHPMsetProgramMyThread() called from pthread id %d\n",pthread_self());
 #endif
-  rc = hpm_set_settings();
+  rc = hpm_set_program_mythread();
   return rc;
 #else
-  fprintf(SysTraceFile, "sys: sysHPMsetSettings() called: not compiled for HPM\n");
+  fprintf(SysTraceFile, "sys: sysHPMsetProgramMyThread() called: not compiled for HPM\n");
   exit(1);
  return 0;
 #endif
 #endif
 }
-
+/*
+ * Set, in HPM world, what is to be monitored for groups.
+ * Only returns if valid parameters.
+ * Must be called after sysHPMinit is called.
+ * May becalled multiple times only if sysHPMdeleteGroupSettings is called in between.
+ */
+extern "C" int
+sysHPMsetProgramMyGroup()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMsetProgramMyGroup() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+#ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "jvm: sysHPMsetProgramMyGroup() called\n");
+#endif
+  rc = hpm_set_program_mygroup();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMsetProgramMyGroup() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
 /*
  * Start HPM counting.
- * Constraint: sysHPMstartSettings must have been called.
+ * Constraint: sysHPMstartProgramMythread must have been called.
  * Only returns if valid parameters.
  */
 extern "C" int
-sysHPMstartCounting()
+sysHPMstartMyThread()
 {
 #ifdef __linux__
-  fprintf(stderr, "sys: sysHPMstartCounting() called: no support for linux\n");
+  fprintf(stderr, "sys: sysHPMstartMyThread() called: no support for linux\n");
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   int rc;
 #ifdef DEBUG_SYS
-  fprintf(SysTraceFile, "sys: sysHPMstartCounting() called from pthread id %d\n",pthread_self());
+  fprintf(SysTraceFile, "sys: sysHPMstartMyThread() called from pthread id %d\n",pthread_self());
 #endif
-  rc = hpm_start_counting();
+  rc = hpm_start_mythread();
   return rc;
 #else
-  fprintf(SysTraceFile, "sys: sysHPMstartCounting() called: not compiled for HPM\n");
+  fprintf(SysTraceFile, "sys: sysHPMstartMyThread() called: not compiled for HPM\n");
   exit(1);
  return 0;
 #endif
 #endif
 }
-
 /*
- * Stop monitoring.
- * Should be called only after sysHPMstartCounting is called.
+ * Start group monitoring.
+ * May be called only after sysHPMsetGroupSettings is called.
  * Only returns if successful.
  */
 extern "C" int
-sysHPMstopCounting()
+sysHPMstartMyGroup()
 {
 #ifdef __linux__
-  fprintf(stderr, "jvm: sysHPMstopCounting() called: no support for linux\n");
+  fprintf(stderr, "jvm: sysHPMstartMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   int rc;
-  // fprintf(SysErrorFile, "jvm: sysHPMstopCounting() called\n");
-  rc = hpm_stop_counting();
+#ifdef DEBUG_SYS
+  fprintf(SysTraceFile, "sys: sysHPMstartMyGroup() called from pthread id %d\n",pthread_self());
+#endif
+  rc = hpm_start_mygroup();
   return rc;
 #else
-  fprintf(SysErrorFile, "jvm: sysHPMstopCounting() called: not compiled for HPM\n");
+  fprintf(SysErrorFile, "jvm: sysHPMstartMyGroup() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+
+
+/*
+ * Stop monitoring.
+ * Should be called only after sysHPMstartMythread is called.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMstopMyThread()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMstopMyThread() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  // fprintf(SysErrorFile, "jvm: sysHPMstopMyThread() called\n");
+  rc = hpm_stop_mythread();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMstopMyThread() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+/*
+ * Stop group monitoring.
+ * Should be called only after sysHPMstartGroupCounting is called.
+ * Only returns if successful.
+ */
+extern "C" int
+sysHPMstopMyGroup()
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMstopMyGroup() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_stop_mygroup();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMstopMyGroup() called: not compiled for HPM\n");
   exit(1);
   return 0;
 #endif
@@ -1082,20 +1169,19 @@ sysHPMstopCounting()
  * Only returns if successful.
  */
 extern "C" int
-sysHPMresetCounters()
+sysHPMresetMyThread()
 {
 #ifdef __linux__
-  fprintf(stderr, "jvm: sysHPMresetCounters() called: no support for linux\n");
+  fprintf(stderr, "jvm: sysHPMresetMyThread() called: no support for linux\n");
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   int rc;
-  // fprintf(SysErrorFile, "jvm: sysHPMresetCounters() called\n");
-  rc = hpm_reset_counters();
+  rc = hpm_reset_mythread();
   return rc;
 #else
-  fprintf(SysErrorFile, "jvm: sysHPMresetCounters() called: not compiled for HPM\n");
+  fprintf(SysErrorFile, "jvm: sysHPMresetMyThread() called: not compiled for HPM\n");
   exit(1);
   return 0;
 #endif
@@ -1103,24 +1189,24 @@ sysHPMresetCounters()
 }
 
 /*
- * Get counters.
+ * Reset counters to zero.
+ * Should be called only after sysHPMstop has been called.
  * Only returns if successful.
  */
 extern "C" int
-sysHPMgetCounters()
+sysHPMresetMyGroup()
 {
 #ifdef __linux__
-  fprintf(stderr, "jvm: sysHPMgetCounters() called: no support for linux\n");
+  fprintf(stderr, "jvm: sysHPMresetMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   int rc;
-  // fprintf(SysErrorFile, "jvm: sysHPMresetCounters() called\n");
-  rc = hpm_get_counters();
+  rc = hpm_reset_mygroup();
   return rc;
 #else
-  fprintf(SysErrorFile, "jvm: sysHPMgetCounters() called: not compiled for HPM\n");
+  fprintf(SysErrorFile, "jvm: sysHPMresetMyGroup() called: not compiled for HPM\n");
   exit(1);
   return 0;
 #endif
@@ -1136,18 +1222,73 @@ sysHPMgetCounters()
  *   return value   output: is the value of the counter that is read.
  */
 extern "C" long long
-sysHPMgetCounter(int counter)
+sysHPMgetCounterMyThread(int counter)
 {
 #ifdef __linux__
-  fprintf(stderr, "jvm: sysHPMgetCounterValue(%d) called: no support for linux\n",
+  fprintf(stderr, "jvm: sysHPMgetCounterMyThread(%d) called: no support for linux\n",
 	  counter);
   exit(1);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
-  return hpm_get_counter(counter);
+  return hpm_get_counter_mythread(counter);
 #else
-  fprintf(SysErrorFile, "jvm: sysHPMgetCounterValue(%d) called: not compiled for HPM\n",counter);
+  fprintf(SysErrorFile, "jvm: sysHPMgetCounterMyThread(%d) called: not compiled for HPM\n",counter);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+/*
+ * Get value from a counter.
+ * Only returns if successful.
+ * May be called only after sysHPMstart is called.
+ * parameters:
+ *   counter input: specifies which counter to read.
+ *   return value   output: is the value of the counter that is read.
+ */
+extern "C" long long
+sysHPMgetCounterMyGroup(int counter)
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMgetCounterMyGroup(%d) called: no support for linux\n",
+	  counter);
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  return hpm_get_counter_mygroup(counter);
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMgetCounterMyGroup(%d) called: not compiled for HPM\n",counter);
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+/*
+ * Set mode(s) to be monitored.
+ * Only returns if valid parameters.
+ * Possible modes are:
+ *   #define PM_USER		4	// turns user mode counting on
+ *   #define PM_KERNEL		8	// turns kernel mode counting on
+ */
+extern "C" int
+sysHPMgetNumberOfCounters()
+{
+#ifdef __linux__
+  fprintf(stderr, "sys: sysHPMgetNumberofCounters() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+#ifdef DEBUG_SYS
+  fprintf(SysErrorFile, "sys: sysHPMgetNumberofCounters() called\n");
+#endif
+  rc = hpm_get_number_of_counters();
+  return rc;
+#else
+  fprintf(SysErrorFile, "sys: sysHPMgetNumberofCounters() called: not compiled for HPM\n");
   exit(1);
   return 0;
 #endif
@@ -1168,11 +1309,32 @@ sysHPMtest()
 #else
 #ifdef RVM_WITH_HPM
   int rc;
-  // fprintf(SysErrorFile, "jvm: sysHPMresetCounters() called\n");
   rc = hpm_test();
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMtest() called: not compiled for HPM\n");
+  exit(1);
+  return 0;
+#endif
+#endif
+}
+/*
+ * Print
+ */
+extern "C" int
+sysHPMprintMyGroup() 
+{
+#ifdef __linux__
+  fprintf(stderr, "jvm: sysHPMprintMyGroup() called: no support for linux\n");
+  exit(1);
+  return 0;
+#else
+#ifdef RVM_WITH_HPM
+  int rc;
+  rc = hpm_print_mygroup();
+  return rc;
+#else
+  fprintf(SysErrorFile, "jvm: sysHPMprintMyGroup() called: not compiled for HPM\n");
   exit(1);
   return 0;
 #endif
@@ -1321,15 +1483,19 @@ pthread_key_t IsVmProcessorKey;
 
 // Create keys for thread-specific data.
 extern "C" void sysCreateThreadSpecificDataKeys(void) {
-  int rc;
+  int rc1, rc2;
 
   // Create a key for thread-specific data so we can associate
   // the id of the VM_Processor object with the pthread it
   // is running on.
-  rc = pthread_key_create(&VmProcessorIdKey, 0);
-  rc = pthread_key_create(&IsVmProcessorKey, 0);
-  if (rc != 0 ) {
-    fprintf(SysErrorFile, "sys: pthread_key_create() failed (err=%d)\n", rc);
+  rc1 = pthread_key_create(&VmProcessorIdKey, 0);
+  if (rc1 != 0) { 
+    fprintf(SysErrorFile, "sys: pthread_key_create(&VMProcessorIdKey,0) failed (err=%d)\n", rc1);
+    sysExit(1);
+  }
+  rc2 = pthread_key_create(&IsVmProcessorKey, 0);
+  if (rc2 != 0) { 
+    fprintf(SysErrorFile, "sys: pthread_key_create(&IsVMProcessorKey,0) failed (err=%d)\n", rc2);
     sysExit(1);
   }
 
