@@ -208,7 +208,8 @@ checkenv --may-not-exist RVM_BUILD
 ## What configuration will host the build process?
 checkenv RVM_HOST_CONFIG
 ## What configuration will run the system?
-checkenv RVM_TARGET_CONFIG
+# checkenv RVM_TARGET_CONFIG
+[[ ${RVM_TARGET_CONFIG-} ]] || export RVM_TARGET_CONFIG="${RVM_HOST_CONFIG}"
 
 #---------------------------#
 # SECTION 1a - DOCUMENTATION #
@@ -461,7 +462,7 @@ function rationalize_config_file_settings () {
 	elif [[ ${JIKES-} ]]; then	# always true
 	    # JIKES_WARNING_FLAGS won't be set the first time we read 
 	    # this file; that is OK.
-	    export HOST_JAVAC="CLASSPATH=${RVM_BUILD}/RVM.classes/rvmrt.jar $JIKES ${JIKES_WARNING_FLAGS-}"
+	    export HOST_JAVAC="CLASSPATH=${RVM_BUILD}/RVM.classes:${RVM_BUILD}/RVM.classes/rvmrt.jar $JIKES ${JIKES_WARNING_FLAGS-}"
 #	    if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]; then
 #		export HOST_JAVAC=$bin_dir/fake-javac
 #	    else
