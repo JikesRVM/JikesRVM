@@ -69,7 +69,7 @@ echo "Using the configuration $configuration, in $config_fullpath"
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $images -result $results -norun -wait sem" -config "${configuration}" || croak "Running NightSanityDriver to build (-norun) failed miserably."
 
-echo "OK, now we will try to build the javadoc for the FullAdaptiveCopyMS image"
+echo "OK, now we will try to build the Javadoc for the FullAdaptiveCopyMS image"
 fass_dir="$RVM_ROOT/images/FullAdaptiveCopyMS"
 if [[ ! -d $fass_dir ]]; then
     echo "$ME: It looks as if you didn't make a FullAdaptiveCopyMS build.  We'll skip jdoc.sh."
@@ -78,12 +78,12 @@ else
     . $je || croak "Unable to load $je"
     "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
     if [[ -d $RVM_ROOT/pushAPI ]]; then
-      echo "Publishing javadoc to dW webspace via cvs commit"
-      cd $RVM_ROOT/doc/api
-      tar czf $RVM_ROOT/pushAPI/api.tar.gz *
-      cd $RVM_ROOT/pushAPI
-      cvs add -kb api.tar.gz
-      cvs commit -m "push it" 
+      echo "Publishing Javadoc to dW webspace via cvs commit"
+      cd $RVM_ROOT/doc/api || croak "$RVM_ROOT/doc/api directory missing!?  jdoc.sh should have reported this problem already, but it didn't."
+      tar czf $RVM_ROOT/pushAPI/api.tar.gz * || croak "Tarring up the API failed."
+      cd $RVM_ROOT/pushAPI || croak "The filesystem is changing under our feet!?"
+      cvs add -kb api.tar.gz || croak "cvs add -kb api.tar.gz failed"
+      cvs commit -m "push it" || croak "Unable to commit the Javadoc to dW space"
     fi
 fi
 
