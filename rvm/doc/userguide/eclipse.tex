@@ -10,10 +10,11 @@ is not recommended at this time.  Furthermore:
 \begin{itemize}
 \item We strongly recommend you run a
 recent --- 7.3 or newer --- version of RedHat Linux for Intel IA32.
-\item Use either *Adaptive* or BaseBase*  Jikes RVM builds when trying
-to run Eclipse.  The *Opt* images will attempt to optimize all
-executed methods, which will result in bad performance.
-\item Use recommend using the *CopyMS builds of Jikes RVM.
+
+\item We would suggest using either the {\tt prototype} or {\tt
+development} configurations to run eclipse. If you are going to use a
+different configuration, CopyMS is the best GC strategy. 
+
 \item Under Linux, use the Eclipse builds for the GTK windowing
 toolkit.  There are Linux builds for the Motif toolkit, but we never
 test these and work on Eclipse seems to focus on the GTK version.
@@ -51,10 +52,11 @@ successfully developed and run Java programs, checked projects out of
 CVS repositories, used the refactoring support, run the Web-based help
 system, applied updates to Eclipse, and so on.  Furthermore,
 performance is not bad, at least when adaptive builds of Jikes RVM,
-such as FastAdaptiveSemiSpace, are used.  Most importantly, we very
-much want users to try running Eclipse on Jikes RVM: we eagerly
-solicit feedback regarding bugs and would be especially grateful for
-any contributions that enhance the usability of Eclipse on Jikes RVM.
+such as {\tt production} or {\tt development}, are used.  Most
+importantly, we very much want users to try running Eclipse on Jikes
+RVM: we eagerly solicit feedback regarding bugs and would be
+especially grateful for any contributions that enhance the usability
+of Eclipse on Jikes RVM.
 
 Setting up Eclipse and Jikes RVM is relatively straightforward; you
 have to install Jikes RVM and Eclipse themselves first, and, after
