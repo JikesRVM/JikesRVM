@@ -47,7 +47,7 @@ public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
 
   /** 
    * Called after compilation is complete.  If instrumentation has
-   * occured, perform some cleanup/finalization
+   * occurred, perform some cleanup/finalization
    **/
 
   public void finalizeInstrumentation(VM_NormalMethod method) {

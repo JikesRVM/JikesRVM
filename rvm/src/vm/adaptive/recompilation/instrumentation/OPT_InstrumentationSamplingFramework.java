@@ -292,7 +292,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 	continue;
       }
 
-      // If you have a yieldpoint, of if you are the precdecessor of a
+      // If you have a yieldpoint, or if you are the predecessor of a
       // split exception handler when duplicating code) then insert a
       // check 
 
@@ -534,7 +534,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // LIR
       OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
       bb.prependInstruction(dummy);
-      // Load teh reset value
+      // Load the reset value
       load = Load.create(INT_LOAD, cbsReg.copyRO(), 
 			 ir.regpool.makeJTOCOp(ir,dummy), 
 			 OPT_IRTools.I(VM_Entrypoints.cbsResetValueField.getOffset()),

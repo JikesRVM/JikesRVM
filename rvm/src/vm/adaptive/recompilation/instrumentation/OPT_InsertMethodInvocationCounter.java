@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.adaptive.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
- * An OPT_Phase that inserts a method invocation counter on the first
+ * An OPT_CompilerPhase that inserts a method invocation counter on the first
  * basic block of the method.  It uses a
  * VM_InstrumentedEventCounterManager to obtain the space to put the
  * counters.
@@ -55,7 +55,7 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
     // increment of the appropriate VM_CounterArray element.
     OPT_Instruction c = data.createEventCounterInstruction(cmid);
 
-    // Insert it at the beginnging of the basic block
+    // Insert it at the beginning of the basic block
     firstBB.prependInstructionRespectingPrologue(c);
   }
 }

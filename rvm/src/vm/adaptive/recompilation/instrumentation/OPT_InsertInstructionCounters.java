@@ -24,8 +24,6 @@ import java.util.Enumeration;
 class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
-  static final boolean DEBUG = false;
-
   public final boolean shouldPerform(OPT_Options options) {
     return VM_Controller.options.INSERT_INSTRUCTION_COUNTERS;
   }
@@ -93,7 +91,7 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
 	   OPT_Instruction prev = i.prevInstructionInCodeOrder();
 	   
 	   // If the instruction above this branch is also a branch,
-	   // then we can't instruction as-is because a basic block
+	   // then we can't instrument as-is because a basic block
 	   // must end with branches only.  Solve by splitting block.
 	   if (prev.isBranch()) {
 	     OPT_BasicBlock newBlock = bb.splitNodeWithLinksAt(prev,ir);
@@ -108,7 +106,7 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
 	   i.insertBefore(counterInst);      
 	 }
 	 else {
-	   // It's a non-branching instruction.  Insert counter after
+	   // It's a non-branching instruction.  Insert counter before
 	   // the instruction.
 	   
 	   // Use the name of the operator as the name of the event
