@@ -56,11 +56,35 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  } else {
 	    hasFinalizer = new OPT_IntConstantOperand(0);      // false
 	  }
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  // check if we are at a alloc advice site
+	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
+	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
+	    if (aadvice != null) {
+	      // change to alloc advice call
+	      int allocNum = aadvice.getAllocator();
+	      Call.mutate3(inst, CALL, New.getClearResult(inst), null,
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewScalarMethod),
+			   new OPT_IntConstantOperand(cls.getInstanceSize()),
+			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type),
+			   new OPT_IntConstantOperand(allocNum));
+	      // FIXME: the above doesn't use the finalizer
+	    } else
 	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethodNEW), 
 		       new OPT_IntConstantOperand(cls.getInstanceSize()),
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
 		       hasFinalizer);
+	  } else {
+	  //-#endif
+	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethodNEW), 
+		       new OPT_IntConstantOperand(cls.getInstanceSize()),
+		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
+		       hasFinalizer);
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  }
+	  //-#endif
 	  if (ir.options.INLINE_NEW) {
 	    inline(inst, ir);
 	  }
@@ -73,6 +97,23 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  Call.mutate1(inst, CALL, New.getClearResult(inst), null,
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.newScalarMethod), 
 		       new OPT_IntConstantOperand(typeRefId));
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
+	    // overwrite the call with alloc advice version
+	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
+	    if (debug_alloc_advice)
+	      GCTk_AllocAdviceAttribute.debugCall("ConvertoLowLevel", inst.position.getMethod(), inst.getBytecodeIndex(), aadvice);
+	    
+	    if (aadvice != null) {
+	      int allocNum = aadvice.getAllocator();
+	      // change to alloc advice call
+	      Call.mutate2(inst, CALL, New.getClearResult(inst), null,
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceNewScalarMethod),
+			   new OPT_IntConstantOperand(typeRefId), 
+			   new OPT_IntConstantOperand(allocNum));
+	    }
+	  }
+	  //-#endif
 	}
 	break;
 
@@ -107,10 +148,32 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    int n = NumberElements.asIntConstant().value;
 	    Size = new OPT_IntConstantOperand((n<<width)+ARRAY_HEADER_SIZE);
 	  }
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
+	    // check if we are at a alloc advice site
+	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
+	    if (aadvice != null) {
+	      // change to alloc advice call
+	      int allocNum = aadvice.getAllocator();
+	      Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null,
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewArrayMethod),
+			   NumberElements.copy(), Size, 
+			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
+			   new OPT_IntConstantOperand(allocNum));
+	    } else
+	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod),
+			   NumberElements.copy(), Size, 
+			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
+	  } else {
+	  //-#endif
 	  Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null, 
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod), 
 		       NumberElements.copy(), Size, 
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  }
+	  //-#endif
 	  if (ir.options.INLINE_NEW) {
 	    inline(inst, ir);
 	  } 
@@ -120,10 +183,36 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       case NEWOBJMULTIARRAY_opcode:
 	{
 	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
+	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
+	    if (debug_alloc_advice)
+	      GCTk_AllocAdviceAttribute.debugCall("ConvertoLowLevel", 
+					inst.position.getMethod(),
+					inst.getBytecodeIndex(), aadvice);
+	    
+	    if (aadvice != null) {
+	      int allocNum = aadvice.getAllocator();
+	      // change to alloc advice call
+	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
+			   OPT_MethodOperand.STATIC(VM_OptLinker.allocAdviceNewArrayArrayMethod), 
+			   NewArray.getClearSize(inst), 
+			   new OPT_IntConstantOperand(typeRefId), 
+			   new OPT_IntConstantOperand(allocNum));
+	    } else
+	      Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
+			   OPT_MethodOperand.STATIC(VM_OptLinker.newArrayArrayMethod),
+			   NewArray.getClearSize(inst), 
+			   new OPT_IntConstantOperand(typeRefId));
+	  } else {
+	  //-#endif
 	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
 		       OPT_MethodOperand.STATIC(VM_OptLinker.newArrayArrayMethod), 
 		       NewArray.getClearSize(inst),
 		       new OPT_IntConstantOperand(typeRefId));
+	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+	  }
+	  //-#endif
 	}
 	break;
 	
@@ -308,6 +397,56 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	}
 	break;
 
+//-#if RVM_WITH_READ_BARRIER
+    case GETFIELD_opcode:
+	{
+	  // Sharad: load of a ref, instrument for both CBGC and cacheSimulator
+	  OPT_LocationOperand loc = GetField.getLocation(inst);
+	  VM_Field field = loc.field;
+	  if ( (VM.CompileForIBGCinst || VM.CompileForCBGCinstrumentation || VM.CompileForDCacheSimulation) &&
+	       safeToInlineForInstrumentation(field, ir) ) {
+	    OPT_Instruction rb = Call.create2(CALL, null, null,
+                    OPT_MethodOperand.STATIC(
+		       OPT_Entrypoints.resolvedGetfieldReadBarrierMethod),
+		       GetField.getRef(inst).copy(),
+                       new OPT_IntConstantOperand(field.getOffset())
+			 );
+
+	    rb.bcIndex = RUNTIME_SERVICES;
+	    rb.position = inst.position;
+	    inst.insertBefore(rb);
+	    // do inlining here and adjust next
+	    inline(rb, ir);
+	    next = inst.nextInstructionInCodeOrder();
+	  }
+	}
+	break;
+
+      case GETFIELD_UNRESOLVED_opcode:
+	{
+	  // Sharad: if load of a reference field, need for cache simulator
+	  OPT_LocationOperand loc = GetField.getLocation(inst);
+	  VM_Field field = loc.field;
+	  if ( (VM.CompileForIBGCinst || VM.CompileForCBGCinstrumentation || VM.CompileForDCacheSimulation) &&
+	       safeToInlineForInstrumentation(field, ir) ) {
+	    OPT_Instruction rb = Call.create2(CALL, null, null,
+                    OPT_MethodOperand.STATIC(
+                       OPT_Entrypoints.unresolvedGetfieldReadBarrierMethod),
+		       GetField.getRef(inst).copy(),
+                       new OPT_IntConstantOperand(field.getDictionaryId())
+			 );
+
+	    rb.bcIndex = RUNTIME_SERVICES;
+	    rb.position = inst.position;
+	    inst.insertBefore(rb);
+	    // do inlining here and adjust next
+	    inline(rb, ir);
+	    next = inst.nextInstructionInCodeOrder();
+	  }
+	}
+	break;
+//-#endif RVM_WITH_READ_BARRIER
+
         default:
           break;
       }
@@ -347,4 +486,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
   private boolean didSomething = false;
 
+  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+  static private final boolean debug_alloc_advice = false;
+  //-#endif
 }

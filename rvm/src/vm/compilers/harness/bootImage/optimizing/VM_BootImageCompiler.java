@@ -83,6 +83,9 @@ class VM_BootImageCompiler {
       // now under the assumption that any important methods of 
       // java.lang.Object will be inlined, and thus opt compiled. --dave
       VM_Class object = VM_Class.forName("java.lang.Object");
+      //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+      GCTk_AllocAdvice.buildInit(options.ALLOC_ADVICE_FILE);
+      //-#endif
       compilerEnabled = true;
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";

@@ -327,6 +327,89 @@ public class VM_Runtime implements VM_Constants {
     return VM_Collector.totalMemory();
   }
 
+  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+  //---------------------------------------------------------------//
+  //           Object Allocation with "allocator" argument.        //
+  //---------------------------------------------------------------//
+  private static final boolean debug_alloc_advice = false;
+
+  // alloc advice versions of corresponding calls with allocator argument
+  static Object newScalar(int dictionaryId, int allocator) throws VM_ResolutionException, 
+  OutOfMemoryError
+  { 
+    if (debug_alloc_advice) VM.sysWrite("newScalar alloc advised to " + allocator + "\n");
+    // Disable profiling during allocation
+    if (VM.BuildForProfiling) VM_Profiler.disableProfiling();
+    
+    VM_Class cls = VM_TypeDictionary.getValue(dictionaryId).asClass();
+    if (VM.VerifyAssertions) VM.assert(cls.isClassType());
+    if (!cls.isInitialized())
+      initializeClassForDynamicLink(cls);
+
+    Object ret =  VM_Allocator.allocateScalar(cls.getInstanceSize(), cls.getTypeInformationBlock(), allocator, cls.hasFinalizer());
+    if (VM.BuildForProfiling) VM_Profiler.enableProfiling();
+    return ret;
+  }
+
+   public static Object quickNewScalar(int size, Object[] tib, boolean hasFinalizer, int allocator)
+       throws OutOfMemoryError
+   {
+     // Disable profiling during allocation
+     if (VM.BuildForProfiling) VM_Profiler.disableProfiling();
+
+     Object ret = VM_Allocator.allocateScalar(size, tib, allocator, hasFinalizer);
+     if (VM.BuildForProfiling) VM_Profiler.enableProfiling();
+     return ret;
+   }
+
+   public static Object quickNewScalar(int size, Object[] tib, int allocator) 
+       throws OutOfMemoryError
+   {
+     if (VM.CompileForFinalization)
+     {
+       boolean hasFinalizer = VM_Magic.addressAsType(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(tib))).hasFinalizer();
+       return quickNewScalar(size, tib, hasFinalizer, allocator);
+     } 
+     else 
+	 return quickNewScalar(size, tib, false, allocator);
+   }
+
+   public static Object quickNewArray(int numElements, int size, Object[] tib, int allocator)
+       throws OutOfMemoryError, NegativeArraySizeException
+   {
+     if (numElements < 0) raiseNegativeArraySizeException();
+     // Disable profiling during allocation
+     if (VM.BuildForProfiling) VM_Profiler.disableProfiling();
+
+     Object ret = VM_Allocator.allocateArray(numElements, size, tib, allocator);
+
+     if (VM.BuildForProfiling) VM_Profiler.enableProfiling();
+     return ret;
+   }
+
+   public static Object buildMultiDimensionalArray(int[] numElements, int dimIndex, 
+						   VM_Array arrayType, int allocator)
+   {
+     arrayType.load();
+     arrayType.resolve();
+     arrayType.instantiate();
+     
+     int    nelts     = numElements[dimIndex];
+     int    size      = ARRAY_HEADER_SIZE + (nelts << arrayType.getLogElementSize());
+     Object newObject = VM_Allocator.allocateArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
+     
+     if (++dimIndex == numElements.length)
+       return newObject; // all dimensions have been built
+     
+     Object[] newArray     = (Object[]) newObject;
+     VM_Array newArrayType = arrayType.getElementType().asArray();
+   
+     for (int i = 0; i < nelts; ++i)
+       newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, newArrayType, allocator);
+     
+     return newArray;
+   }
+  //-#endif RVM_WITH_GCTk_ALLOC_ADVICE
 
   // Helper function to actually throw the required exception.
   // Keep out of line to mitigate code space when quickNewArray is inlined.

@@ -79,6 +79,21 @@ static int framePointerOffset;
 static int hiddenSignatureIdOffset;
 static int arrayIndexTrapParamOffset;
 //-#endif
+
+//-#if RVM_WITH_GCTk_ALLOC_ADVICE
+   static VM_Method allocAdviceNewScalarMethod;
+   static int       allocAdviceNewScalarOffset;
+
+   static VM_Method allocAdviceQuickNewArrayMethod;    
+   static int       allocAdviceQuickNewArrayOffset;    
+
+   static VM_Method allocAdviceQuickNewScalarMethod;   
+   static int       allocAdviceQuickNewScalarOffset;   
+
+   static VM_Method allocAdviceQuickNewScalarMethodNEW;   
+   static int       allocAdviceQuickNewScalarOffsetNEW;   
+//-#endif
+
    // Methods of VM_Math (method description + offset of code pointer within jtoc).
    //
    static VM_Method longMultiplyMethod;     
@@ -98,6 +113,20 @@ static int arrayIndexTrapParamOffset;
    
    static VM_Method doubleToLongMethod;     
    static int       doubleToLongOffset;     
+
+//-#if RVM_WITH_GCTk_ALLOC_ADVICE
+   static VM_Method allocAdviceNewScalarMethod;
+   static int       allocAdviceNewScalarOffset;
+
+   static VM_Method allocAdviceQuickNewArrayMethod;    
+   static int       allocAdviceQuickNewArrayOffset;    
+
+   static VM_Method allocAdviceQuickNewScalarMethod;   
+   static int       allocAdviceQuickNewScalarOffset;   
+
+   static VM_Method allocAdviceQuickNewScalarMethodNEW;   
+   static int       allocAdviceQuickNewScalarOffsetNEW;   
+//-#endif
 
    // Fields of VM_Math (offset of field within jtoc).
    //
@@ -140,8 +169,11 @@ static int arrayIndexTrapParamOffset;
    // Fields of VM_Processor (offset of field off the processor register).
    //
    static int deterministicThreadSwitchCountOffset;
+     
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
    static int modifiedOldObjectsTopOffset;
    static int modifiedOldObjectsMaxOffset;
+//-#endif
    static int incDecBufferTopOffset;
    static int incDecBufferMaxOffset;
    static int scratchSecondsOffset;
@@ -178,8 +210,10 @@ static int arrayIndexTrapParamOffset;
 
    // Fields of VM_Allocator (offset of field within jtoc).
    //
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
    static int areaCurrentAddressOffset;
    static int matureCurrentAddressOffset;
+//-#endif
 
    // Fields of VM_FinalizerListElement (offset of field within instance
    //  
@@ -264,6 +298,31 @@ static int arrayIndexTrapParamOffset;
    static VM_Method resolvedPutStaticWriteBarrierMethod;
    static int       resolvedPutStaticWriteBarrierOffset;
 
+//-#if RVM_WITH_READ_BARRIER
+   static VM_Method arrayLoadReadBarrierMethod;
+   static int       arrayLoadReadBarrierOffset;
+
+   static VM_Method unresolvedGetfieldReadBarrierMethod;
+   static int       unresolvedGetfieldReadBarrierOffset;
+
+   static VM_Method resolvedGetfieldReadBarrierMethod;
+   static int       resolvedGetfieldReadBarrierOffset;
+
+   static VM_Method unresolvedGetStaticReadBarrierMethod;
+   static int       unresolvedGetStaticReadBarrierOffset;
+
+   static VM_Method resolvedGetStaticReadBarrierMethod;
+   static int       resolvedGetStaticReadBarrierOffset;
+//-#endif
+
+//-#if RVM_WITH_GCTk
+   static ADDRESS GCTk_WriteBufferBase;
+   static ADDRESS GCTk_BumpPointerBase;
+   static ADDRESS GCTk_SyncPointerBase;
+   static ADDRESS GCTk_ChunkAllocatorBase;
+   static ADDRESS GCTk_TraceBufferBase;
+//-#endif
+
    static void
    init()
       {
@@ -299,6 +358,19 @@ static int arrayIndexTrapParamOffset;
       m = quickNewScalarMethodNEW = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
       quickNewScalarOffsetNEW = m.getOffset();
 
+//-#if RVM_WITH_GCTk_ALLOC_ADVICE
+      m = allocAdviceNewScalarMethod = (VM_Method)VM.getMember("LVM_Runtime;", "newScalar", "(II)Ljava/lang/Object;");
+      allocAdviceNewScalarOffset = m.getOffset();
+
+      m = allocAdviceQuickNewArrayMethod = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;I)Ljava/lang/Object;");
+      allocAdviceQuickNewArrayOffset = m.getOffset();
+
+      m = allocAdviceQuickNewScalarMethod = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;I)Ljava/lang/Object;");
+      allocAdviceQuickNewScalarOffset = m.getOffset();
+
+      m = allocAdviceQuickNewScalarMethodNEW = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;ZI)Ljava/lang/Object;");
+      allocAdviceQuickNewScalarOffsetNEW = m.getOffset();
+//-#endif
       m = lockMethod = (VM_Method)VM.getMember("LVM_Lock;", "lock", "(Ljava/lang/Object;)V");
       lockOffset = m.getOffset();
 
@@ -395,13 +467,19 @@ static int arrayIndexTrapParamOffset;
       
       deterministicThreadSwitchCountOffset            = VM.getMember("LVM_Processor;", "deterministicThreadSwitchCount", "I").getOffset();
 
+//-#if RVM_WITH_GCTk
+      GCTk_WriteBufferBase = VM.getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
+      GCTk_TraceBufferBase        = VM.getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
+//-#endif
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
       modifiedOldObjectsTopOffset = VM.getMember("LVM_Processor;", "modifiedOldObjectsTop", "I").getOffset();
       modifiedOldObjectsMaxOffset = VM.getMember("LVM_Processor;", "modifiedOldObjectsMax", "I").getOffset();
+      incDecBufferTopOffset       = VM.getMember("LVM_Processor;", "incDecBufferTop", "I").getOffset();
+      incDecBufferMaxOffset       = VM.getMember("LVM_Processor;", "incDecBufferMax", "I").getOffset();
+//-#endif
       scratchSecondsOffset        = VM.getMember("LVM_Processor;", "scratchSeconds", "D").getOffset();
       scratchNanosecondsOffset    = VM.getMember("LVM_Processor;", "scratchNanoseconds", "D").getOffset();
       threadSwitchRequestedOffset = VM.getMember("LVM_Processor;", "threadSwitchRequested", "I").getOffset();
-      incDecBufferTopOffset       = VM.getMember("LVM_Processor;", "incDecBufferTop", "I").getOffset();
-      incDecBufferMaxOffset       = VM.getMember("LVM_Processor;", "incDecBufferMax", "I").getOffset();
       activeThreadOffset          = VM.getMember("LVM_Processor;", "activeThread", "LVM_Thread;").getOffset();
 
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
@@ -412,8 +490,11 @@ static int arrayIndexTrapParamOffset;
       vpStatusAddressOffset       = VM.getMember("LVM_Processor;", "vpStatusAddress", "I").getOffset();
 //-#endif
 
+      //-#if RVM_WITH_GCTk  // not supported by GCTk yet
+      //-#else
       finalizerListElementValueOffset = VM.getMember("LVM_FinalizerListElement;", "value", "I").getOffset();
       finalizerListElementPointerOffset = VM.getMember("LVM_FinalizerListElement;", "pointer", "Ljava/lang/Object;").getOffset();
+      //-#endif
 
       threadSwitchFromPrologueOffset = VM.getMember("LVM_Thread;", "threadSwitchFromPrologue", "()V").getOffset();
       threadSwitchFromBackedgeOffset = VM.getMember("LVM_Thread;", "threadSwitchFromBackedge", "()V").getOffset();
@@ -425,11 +506,12 @@ static int arrayIndexTrapParamOffset;
       beingDispatchedOffset          = VM.getMember("LVM_Thread;", "beingDispatched", "Z").getOffset();
       threadSlotOffset               = VM.getMember("LVM_Thread;", "threadSlot", "I").getOffset();
 
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
       areaCurrentAddressOffset        = VM.getMember("LVM_Allocator;", "areaCurrentAddress", "I").getOffset();
       matureCurrentAddressOffset      = VM.getMember("LVM_Allocator;", "matureCurrentAddress", "I").getOffset();
 
       allocCountOffset                = VM.getMember("LVM_BlockControl;", "allocCount", "I").getOffset();
-
+//-#endif
       processorsOffset                = VM.getMember("LVM_Scheduler;", "processors", "[LVM_Processor;").getOffset();
       threadsOffset                   = VM.getMember("LVM_Scheduler;", "threads", "[LVM_Thread;").getOffset();
 
@@ -458,6 +540,42 @@ static int arrayIndexTrapParamOffset;
 	JNITopJavaFPOffset          = VM.getMember("LVM_JNIEnvironment;", "JNITopJavaFP", "I").getOffset();
 	JNIPendingExceptionOffset   = VM.getMember("LVM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;").getOffset();
 	JNIFunctionPointersOffset   = VM.getMember("LVM_JNIEnvironment;", "JNIFunctionPointers", "[I").getOffset();
+        //-#if RVM_WITH_GCTk
+	ADDRESS top, bot;
+	top = VM.getMember("LVM_Processor;", "allocBump0", "I").getOffset();
+	bot = VM.getMember("LVM_Processor;", "allocBump7", "I").getOffset();
+	GCTk_BumpPointerBase = (top > bot) ? bot : top;
+	if (VM.VerifyAssertions) {
+	  boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
+			       || ((top < bot) && ((bot - top) != 28)));
+	  if (unaligned)
+	    VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_BumpPointerBase+"<----\n");
+	  VM.assert(!unaligned);
+	}
+  
+	top = VM.getMember("LVM_Processor;", "allocSync0", "I").getOffset();
+	bot = VM.getMember("LVM_Processor;", "allocSync7", "I").getOffset();
+	GCTk_SyncPointerBase = (top > bot) ? bot : top;
+	if (VM.VerifyAssertions) {
+	  boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
+		       || ((top < bot) && ((bot - top) != 28)));
+	  if (unaligned)
+	    VM.sysWrite("---->"+top+","+bot+"->"+GCTk_SyncPointerBase+"<----\n");
+	  VM.assert(!unaligned);
+	}
+	  
+	top = VM.getMember("LGCTk_ChunkAllocator;", "allocChunkStart0", "I").getOffset();
+	bot = VM.getMember("LGCTk_ChunkAllocator;", "allocChunkEnd7", "I").getOffset();
+	GCTk_ChunkAllocatorBase = (top > bot) ? bot : top;
+	if (VM.VerifyAssertions) {
+	  boolean unaligned = (((top > bot) && ((top - bot) != 60)) 
+		       || ((top < bot) && ((bot - top) != 60)));
+	  if (unaligned) 
+	    VM.sysWrite("---->"+top+","+bot+"->"+GCTk_ChunkAllocatorBase+"<----\n");
+	  VM.assert(!unaligned);
+	}
+        //-#endif
+
         the_boot_recordOffset            = VM.getMember("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;").getOffset();
         globalGCInProgressFlagOffset     = VM.getMember("LVM_BootRecord;", "globalGCInProgressFlag", "I").getOffset();
         lockoutProcessorOffset           = VM.getMember("LVM_BootRecord;", "lockoutProcessor", "I").getOffset();
@@ -485,6 +603,21 @@ static int arrayIndexTrapParamOffset;
 
       m = unresolvedPutStaticWriteBarrierMethod = (VM_Method)VM.getMember("LVM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
       unresolvedPutStaticWriteBarrierOffset = m.getOffset();
+//-#if RVM_WITH_READ_BARRIER
+      m = arrayLoadReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "arrayLoadReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+      arrayLoadReadBarrierOffset = m.getOffset();
 
+      m = resolvedGetfieldReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "resolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+      resolvedGetfieldReadBarrierOffset = m.getOffset();
+
+      m = unresolvedGetfieldReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "unresolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+      unresolvedGetfieldReadBarrierOffset = m.getOffset();
+
+      m = resolvedGetStaticReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "resolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
+      resolvedGetStaticReadBarrierOffset = m.getOffset();
+
+      m = unresolvedGetStaticReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "unresolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
+      unresolvedGetStaticReadBarrierOffset = m.getOffset();
+//-#endif
    }
 }

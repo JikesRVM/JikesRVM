@@ -28,4 +28,8 @@ class Dummy
    // need ifdef because VM_RCBuffers class only available for refcountGC builds
    static VM_RCBuffers               p; // not used by opt yet, but referenced in VM_Entrypoints
    //-#endif
+   //-#if RVM_WITH_READ_BARRIER
+   static VM_ReadBarrier             q;  // referenced in VM_Entrypoints
+   //-#endif 
+
    }

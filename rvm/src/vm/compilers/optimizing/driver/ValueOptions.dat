@@ -73,6 +73,10 @@ V UNROLL_LOG int 2
 Unroll loops. Duplicates the loop body n times.
 
 
+V ALLOC_ADVICE_SITES String null
+Read allocation advice attributes for all classes from this file
+ 
+ 
 E SPILL_COST_ESTIMATE byte SIMPLE_SPILL_COST
 Selection of spilling heuristic
 "SIMPLE_SPILL_COST simpleSpillCost simple" \

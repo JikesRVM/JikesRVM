@@ -347,6 +347,7 @@ class VM_CommandLineArgs {
 	  VM.sysExit(1);
 	}
 	break;
+      //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
       case WRITEBUFFER_ARG: // internal option used by Steve Smith
 	int workQueueBufferSize = 1;
 	try { workQueueBufferSize = Integer.parseInt(arg);
@@ -364,7 +365,7 @@ class VM_CommandLineArgs {
 	VM.sysWrite(VM_GCWorkQueue.WORK_BUFFER_SIZE,false);
 	VM.sysWrite("(bytes)\n\n");
 	break;
-
+      //-#endif
         // ----------------------------------------------------
 	// Access nonadaptive configuration's initial runtime
 	// optimizing compiler.

@@ -1068,7 +1068,30 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
 
   // steve - add your stuff here - such as...
   GCTk_Collector collector;
+  ADDRESS writeBuffer0;
+  ADDRESS writeBuffer1;
 
+  ADDRESS remset[];
+
+  // Allocation bump pointers (per processor)
+  ADDRESS allocBump0;
+  ADDRESS allocBump1;
+  ADDRESS allocBump2;
+  ADDRESS allocBump3;
+  ADDRESS allocBump4;
+  ADDRESS allocBump5;
+  ADDRESS allocBump6;
+  ADDRESS allocBump7;
+
+  // Per-allocator
+  ADDRESS allocSync0;
+  ADDRESS allocSync1;
+  ADDRESS allocSync2;
+  ADDRESS allocSync3;
+  ADDRESS allocSync4;
+  ADDRESS allocSync5;
+  ADDRESS allocSync6;
+  ADDRESS allocSync7;
   //-#endif
 
   //--------------------//

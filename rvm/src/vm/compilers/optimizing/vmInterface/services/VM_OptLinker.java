@@ -127,6 +127,28 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
   }
 
+  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+  public static Object allocAdviceNewArrayArray(int[] dimensions, int dictionaryId, int generation) 
+    throws VM_ResolutionException, NegativeArraySizeException, 
+	   OutOfMemoryError { 
+    
+    // validate arguments
+    for (int i = 0; i < dimensions.length; i++) {
+      if (dimensions[i] < 0)
+	throw new NegativeArraySizeException();
+    }
+    
+    // create array
+    //
+    Object arrayObject;
+    //synchronized (VM_Runtime.lock) { removed since the callee acquires and lock and the references lock does not exit. Maria
+    arrayObject = VM_Runtime.buildMultiDimensionalArray(dimensions, 
+							  0, VM_TypeDictionary.getValue(dictionaryId).asArray(), generation);
+    //}
+    return arrayObject;
+  }
+  //-#endif
+
   // These are cached references to VM_Methods and VM_Fields for
   // "machine code helper" methods that provide services for java 
   // bytecodes that cannot be mapped directly into native machine 
@@ -154,6 +176,12 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     (VM_Method)VM.getMember("LVM_OptLinker;", 
 			    "newArrayArray", 
 			    "([II)Ljava/lang/Object;");
+  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+  static final VM_Method allocAdviceNewArrayArrayMethod = 
+    (VM_Method)VM.getMember("LVM_OptLinker;",
+			    "allocAdviceNewArrayArray",
+			    "([III)Ljava/lang/Object;");
+  //-#endif
   static final VM_Field fieldOffsetsField = 
     (VM_Field)VM.getMember("LVM_ClassLoader;", 
 			   "fieldOffsets", "[I");
