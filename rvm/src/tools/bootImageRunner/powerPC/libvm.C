@@ -717,6 +717,8 @@ unsigned largeHeapSize = 0;                // megs
 unsigned nurserySize   = 10 * 1024 * 1024; // megs
 unsigned permanentHeapSize = 0;
 
+unsigned traceClassLoading = 0;
+ 
 // name of program that will load and run RVM
 char *me;
 
@@ -861,7 +863,9 @@ int createJVM(int vmInSeparateThread) {
    bootRecord.largeSpaceSize   = largeHeapSize;
    bootRecord.bootImageStart   = (int) bootRegion;
    bootRecord.bootImageEnd     = (int) bootRegion + roundedImageSize;
-   
+  
+   bootRecord.traceClassLoading = traceClassLoading;
+
    // set host o/s linkage information into boot record
    //
    bootRecord.setLinkage();

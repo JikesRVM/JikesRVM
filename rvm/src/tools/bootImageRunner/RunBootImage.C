@@ -53,12 +53,6 @@ extern "C" char *sys_siglist[];
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 
-// for DejaVu
-#define NO_DEJAVU 0
-#define RECORD 1
-#define REPLAY 2
-
-
 #if IBM_AIX
 #include <AixLinkageLayout.h>
 #endif
@@ -92,12 +86,10 @@ extern unsigned smallHeapSize;  // megs
 extern unsigned largeHeapSize;  // megs
 extern unsigned nurserySize;    // megs
 extern unsigned permanentHeapSize;
-extern int verboseGC;
 
-int dejaVuMode;
-char * dejaVuClassName = "DejaVu";
-char * dejaVuRecordString = "-record";
-char * dejaVuReplayString = "-replay";
+extern unsigned traceClassLoading;
+
+extern int verboseGC;
 
 extern "C" int createJVM(int);
 
@@ -156,8 +148,8 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"                    physical cpu to which first virtual processor is bound\n");
   fprintf(SysTraceFile,"    -X:processors=<number|\"all\">\n");
   fprintf(SysTraceFile,"                    number of processors to use on a multiprocessor or use all\n");
-  fprintf(SysTraceFile,"    -X:measureCompilation=<boolean>\n");
-  fprintf(SysTraceFile,"                    produce a report on compilation time\n");
+  fprintf(SysTraceFile,"    -X:traceClassLoading\n");
+  fprintf(SysTraceFile,"                    produce a report on class loading activity\n");
   fprintf(SysTraceFile,"    -X:verbose      print out additional information for GC\n");
   fprintf(SysTraceFile,"    -X:aos[:help]   print options supported by adaptive optimization system when in an adaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos:<option> pass <option> on to the adaptive optimization system when in an adaptive configuration\n");
@@ -169,8 +161,6 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
   fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
-  fprintf(SysTraceFile,"    -X:record  run under DejaVu control and produce a trace file for replay\n");
-  fprintf(SysTraceFile,"    -X:replay  replay the application under DejaVu control using a previous trace file\n");
   fprintf(SysTraceFile,"\n");
 }
 
@@ -277,8 +267,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
   char *subtoken;
   int i;
 
-  dejaVuMode = NO_DEJAVU;
-
   if ( n_CLAs > maxTokens )
     JCLAs = new char*[n_CLAs];
   else
@@ -301,14 +289,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     // pass on all command line arguments that do not start with a dash, '-'.
     if (token[0] != '-') {
-      // insert DejaVu class if running with DejaVu
-      if (dejaVuMode==RECORD || dejaVuMode==REPLAY)  {
-        JCLAs[n_JCLAs++]=dejaVuClassName;
-        if (dejaVuMode==RECORD)
-          JCLAs[n_JCLAs++]=dejaVuRecordString;
-        else
-          JCLAs[n_JCLAs++]=dejaVuReplayString;
-      }
       JCLAs[n_JCLAs++]=token;
       startApplicationOptions = 1;
       continue;
@@ -423,15 +403,11 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       bootFilename = token + 5;
       continue;
     }
-    if (!strncmp(token, "-X:record", 9)) {
-      dejaVuMode = RECORD;
+
+    if (!strncmp(token, "-X:traceClassLoading", 10)) {
+      traceClassLoading = 1;
       continue;
-    }
-    if (!strncmp(token, "-X:replay", 9)) {
-      dejaVuMode = REPLAY;
-      continue;
-    }
-    
+    } 
     
     /*
      * JDK 1.3 standard command line arguments that are not supported.
@@ -474,15 +450,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     }
 
-    // unrecognized flag: assume start of application options
-    // insert DejaVu class if running with DejaVu
-    if (dejaVuMode==RECORD || dejaVuMode==REPLAY)  {
-      JCLAs[n_JCLAs++]=dejaVuClassName;
-      if (dejaVuMode==RECORD)
-        JCLAs[n_JCLAs++]=dejaVuRecordString;
-      else
-        JCLAs[n_JCLAs++]=dejaVuReplayString;
-    }
     JCLAs[n_JCLAs++]=token;
     startApplicationOptions = 1;
   }

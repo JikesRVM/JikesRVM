@@ -64,6 +64,8 @@ int ProcessorsOffset;
 /* TOC offset of VM_Scheduler.debugRequested */
 int DebugRequestedOffset;
 
+unsigned traceClassLoading = 0;
+
 /* name of program that will load and run RVM */
 char *me;
 
@@ -765,6 +767,8 @@ createJVM (int vmInSeparateThread)
    bootRecord->largeSpaceSize   = largeHeapSize;
    bootRecord->bootImageStart   = (int) bootRegion;
    bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
+  
+   bootRecord->traceClassLoading = traceClassLoading;
 
   /* write sys.C linkage information into boot record */
   bootRecord->setLinkage ();
