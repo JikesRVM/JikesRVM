@@ -6,7 +6,7 @@
 # If no word is specified, list names of all jalapeno source files.
 
 if [ $# = 0 ]; then
-   find $RVM_ROOT/src/vm -name CVS -prune \
+   find $RVM_ROOT/rvm/src/vm -name CVS -prune \
 	         -o -name '*.java'     \
                  -o -name '*.C'        \
                  -o -name '*.c'        \
@@ -16,7 +16,7 @@ if [ $# = 0 ]; then
                  -o -name 'Make*'      
 
 else
-   find $RVM_ROOT/src/vm -name CVS -prune \
+   find $RVM_ROOT/rvm/src/vm -name CVS -prune \
 	         -o -name '*.java'     \
                  -o -name '*.C'        \
                  -o -name '*.c'        \
