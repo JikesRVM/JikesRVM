@@ -403,7 +403,7 @@ public abstract class Generational extends StopTheWorldGC
     nurseryMR.reset(); // reset the nursery
     lastGCFull = fullHeapGC;
     if (fullHeapGC) {
-      fullHeap.set();
+      if (Stats.gatheringStats()) fullHeap.set();
       // prepare each of the collected regions
       if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
