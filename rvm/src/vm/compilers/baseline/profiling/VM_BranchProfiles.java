@@ -64,18 +64,6 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     // We exploit the fact that the baseline compiler generates code in 
     // a linear pass over the bytecodes to make this possible.
 
-    //-#if RVM_WITH_OSR
-    /* In the presence of PSEUDO bytecodes, the bcIndex has to be adjusted
-     * to skip over the prologue. Also, because pesudo bytecodes happen only
-     * in prologue, no worry about that when parsing the original code.
-     */	
-    int bciAdjustment = 0;
-    if (m.isForSpecialization()) {
-      bcodes.reset(m.getOsrPrologueLength());
-      bciAdjustment = m.getOsrPrologueLength();
-    }
-    //-#endif 
-
     while(bcodes.hasMoreBytecodes()) {
       int bcIndex = bcodes.index();
       int code = bcodes.nextInstruction();
@@ -90,12 +78,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 	int offset = bcodes.getBranchOffset();
 	boolean backwards = offset < 0;
 	countIdx += 2;
-//-#if RVM_WITH_OSR
-        // with pseudo instruction, adjust bcIndex
-	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex - bciAdjustment, yea, nea, backwards);
-//-#else
 	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea, backwards);
-//-#endif
 	break;
       }
 
@@ -105,11 +88,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 	int low = bcodes.getLowSwitchValue();
 	int high = bcodes.getHighSwitchValue();
 	int n = high - low + 1;
-//-#if RVM_WITH_OSR
-	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex - bciAdjustment, cs, countIdx, n+1);         
-//-#else
 	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, n+1);
-//-#endif
 	countIdx += n + 1;
 	bcodes.skipTableSwitchOffsets(n);
 	break;
@@ -119,11 +98,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 	bcodes.alignSwitch();
 	int def = bcodes.getDefaultSwitchOffset();
 	int numPairs = bcodes.getSwitchLength();
-//-#if RVM_WITH_OSR
-	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex-bciAdjustment, cs, countIdx, numPairs+1);
-//-#else
 	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, numPairs+1);
-//-#endif
 	countIdx += numPairs + 1;
 	bcodes.skipLookupSwitchPairs(numPairs);
 	break;
