@@ -607,6 +607,8 @@
     //
     JavaLangObjectType    = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangClassType    = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Class;"), VM_SystemClassLoader.getVMClassLoader());
     JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
     JavaLangThrowableType = VM_ClassLoader.findOrCreateType
