@@ -164,7 +164,7 @@ function archiveResults() {
     fi
 
     echo -e "Archiving results into $ARCHIVE\n" | tee -a $RUN_LOG >> $VERBOSE_LOG
-    local filename=`date +"%A"`.${NS_OS}.{$NS_ARCH}.tar.gz
+    local filename=`date +"%A"`.${NS_OS}.${NS_ARCH}.tar.gz
     local tarfile=$ARCHIVE/$filename
     if :; then
 	$RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results
