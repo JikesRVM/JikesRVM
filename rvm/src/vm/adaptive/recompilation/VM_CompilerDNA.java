@@ -15,12 +15,9 @@ import java.util.*;
  * 
  * <p>
  * The DNA tells the AOS two important kinds of averages for each optimization
- * level: how much more that level COSTS (to perform in the compiler) than the
- * previous level, and the expected SPEEDUP (to optimized code at run time)
- * that the level provides.  These are best set by measurement with benchmarks
- * on a real platform, but as we all know, averages are only averages, and
- * cannot predict with any certainty what will happen to a particular piece of
- * code :).
+ * level: the cost of compiling at an optimization level (as measured in
+ * bytecode/milliseconds) and the expected speedup of the resulting code
+ * (relative to the first compiler).
  *
  * <p>There is an AOS command-line option to set the compiler DNA.  The method
  * {@link VM_CompilerDNA#readDNA} contains a comment on the expected format.
