@@ -15,14 +15,8 @@ Perform local constant propagation
 LOCAL_COPY_PROP 0 true
 Perform local copy propagation
 
-LOCAL_CSE 1 true
+LOCAL_CSE 0 true
 Perform local common subexpression elimination
-
-LOCAL_SCALAR_REPLACEMENT 1 true local_sr
-Perform local scalar replacement
-
-LOCAL_CHECK 1 true
-Perform local elimination of redundant null checks and array bounds checks
 
 # ABCD is currently incomplete; it doesn't check lower bounds
 GLOBAL_BOUNDS_CHECK -1 false global_bounds
@@ -99,9 +93,6 @@ Perform noisy global code placement
 
 LICM_IGNORE_PEI -1 false licm_ignore_pei
 Asume PEIs do not throw or state is not observable
-
-VALUE_PROP_VERBOSE -1 false value_prop_verbose
-Perform noisy value propagation
 
 TURN_WHILES_INTO_UNTILS 2 false unwhile
 Turn whiles into untils

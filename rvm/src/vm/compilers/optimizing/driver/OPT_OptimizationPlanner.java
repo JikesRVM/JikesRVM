@@ -10,9 +10,8 @@ import java.util.Vector;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
+
 /**
- * OPT_OptimizationPlanner.java
- *
  * This class specifies the order in which OPT_CompilerPhases are
  * executed during opt compilation of a method.
  * The methods BC2IR, HIROptimizations, SSA, HIR2LIR, LIROptimizations,
@@ -85,23 +84,21 @@ public class OPT_OptimizationPlanner {
    * @return an OPT_OptimizationPlanElement[] selected from 
    * the masterPlan based on options.
    */
-  public static OPT_OptimizationPlanElement[] 
-    createOptimizationPlan(OPT_Options options) {
-      if (masterPlan == null) {
-        initializeMasterPlan();
-      }
-
-      Vector temp = new Vector(masterPlan.length);
-      for (int i = 0; i < masterPlan.length; i++) {
-        if (masterPlan[i].shouldPerform(options)) {
-          temp.addElement(masterPlan[i]);
-        }
-      }
-      if (VM.writingBootImage)
-        masterPlan = null;        // avoid problems with 
-      // classes not being in bootimage.
-      return finalize(temp);
+  public static OPT_OptimizationPlanElement[] createOptimizationPlan(OPT_Options options) {
+    if (masterPlan == null) {
+      initializeMasterPlan();
     }
+
+    Vector temp = new Vector(masterPlan.length);
+    for (int i = 0; i < masterPlan.length; i++) {
+      if (masterPlan[i].shouldPerform(options)) {
+	temp.addElement(masterPlan[i]);
+      }
+    }
+    if (VM.writingBootImage)
+      masterPlan = null;  // avoid problems with classes not being in bootimage.
+    return finalize(temp);
+  }
 
   /**
    * This method is called to initialize all phases to support
@@ -217,7 +214,7 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalConstantProp());
     // Perform local common-subexpression elimination for a 
     // factored basic block.
-    addComponent(p, new OPT_LocalCSE());
+    addComponent(p, new OPT_LocalCSE(true));
     // Flow-insensitive field analysis
     addComponent(p, new OPT_FieldAnalysis());
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -422,7 +419,7 @@ public class OPT_OptimizationPlanner {
     // Perform local constant propagation for a factored basic block.
     addComponent(p, new OPT_LocalConstantProp());
     // Perform local common-subexpression elimination for a factored basic block.
-    addComponent(p, new OPT_LocalCSE());
+    addComponent(p, new OPT_LocalCSE(false));
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(0, false, false));
     // Late expansion of counter-based yieldpoints

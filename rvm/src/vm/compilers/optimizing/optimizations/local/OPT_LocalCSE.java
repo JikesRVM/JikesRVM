@@ -23,19 +23,21 @@ import java.util.*;
  *                       partially based on OPT_LocalBoundsCheck)
  */
 public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
+  private final boolean isHIR;
 
-  static final boolean DEBUG = false;
+  OPT_LocalCSE(boolean isHIR) {
+    this.isHIR = isHIR;
+  }
 
   public final boolean shouldPerform (OPT_Options options) {
-    return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT ||
-      options.LOCAL_CHECK;
+    return options.LOCAL_CSE;
   }
 
   public final String getName () {
     return "Local CSE";
   }
 
-  public void reportAdditionalStats() {
+  public final void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1/container.counter2*100, 2);
     VM.sysWrite("% Infrequent BBs");
@@ -46,9 +48,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * 
    * @param ir the IR to optimize
    */
-  public void perform (OPT_IR ir) {
+  public final void perform (OPT_IR ir) {
     // iterate over each basic block
-    if (DEBUG) OPT_Compiler.printInstructions(ir, "Before CSE");
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 
 	 bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
@@ -57,21 +58,22 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	container.counter1++;
 	if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
-      optimizeBasicBlock(ir, bb, ir.options);
+      if (isHIR) {
+	optimizeBasicBlockHIR(ir, bb);
+      } else {
+	optimizeBasicBlockLIR(ir, bb);
+      }
     }
-    if (DEBUG) OPT_Compiler.printInstructions(ir, "After CSE");
   }
 
   /**
-   * Perform Local CSE for a basic block.
+   * Perform Local CSE for a basic block in HIR.
    *
    * @param ir the method's ir
    * @param bb the basic block
-   * @param options controlling compiler options
    */
-  private void optimizeBasicBlock(OPT_IR ir, OPT_BasicBlock bb, 
-				  OPT_Options options) {
-    AvExCache cache = new AvExCache();
+  private final void optimizeBasicBlockHIR(OPT_IR ir, OPT_BasicBlock bb) {
+    AvExCache cache = new AvExCache(ir.options, true);
     // iterate over all instructions in the basic block
     for (OPT_Instruction inst = bb.firstRealInstruction(), 
 	   sentinel = bb.lastInstruction(), 
@@ -83,48 +85,69 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
       // 1. try and replace this instruction according to
       // available expressions in the cache, and update cache
       // accordingly.
-      if (options.LOCAL_SCALAR_REPLACEMENT) {
-        if (isLoadInstruction(inst)) {
-          loadHelper(ir, cache, inst);
-        } else if (isStoreInstruction(inst)) {
-          storeHelper(cache, inst);
-        }
+      if (isLoadInstruction(inst)) {
+	loadHelper(ir, cache, inst);
+      } else if (isStoreInstruction(inst)) {
+	storeHelper(cache, inst);
+      } else if (isExpression(inst)) {
+	expressionHelper(ir, cache, inst);
+      } else if (isCheck(inst)) {
+	checkHelper(ir, cache, inst);
+      } else if (isTypeCheck(inst)) {
+	typeCheckHelper(ir, cache, inst);
       }
-      if (options.LOCAL_CSE) {
-        if (isExpression(inst)) {
-          expressionHelper(ir, cache, inst);
-	}
-      }
-      if (options.LOCAL_CHECK) {
-        if (isCheck(inst)) {
-          checkHelper(ir, cache, inst);
-        } else if (isTypeCheck(inst)) {
-	  typeCheckHelper(ir, cache, inst);
-	}
-      }
+
       // 2. update the cache according to which expressions this
       // instruction kills
-      cache.eliminate(inst, options);
-      if (options.LOCAL_SCALAR_REPLACEMENT) {
-        // CALL instructions and synchronizations KILL all memory
-        // locations!
-        if (Call.conforms(inst) || isSynchronizing(inst)
-            || inst.isDynamicLinkingPoint()) {
-          cache.invalidateAllLoads();
-        }
+      cache.eliminate(inst);
+      // CALL instructions and synchronizations KILL all memory locations!
+      if (Call.conforms(inst) || isSynchronizing(inst)
+	  || inst.isDynamicLinkingPoint()) {
+	cache.invalidateAllLoads();
       }
     }
   }
 
   /**
-   * Is a given instruction a "load" for scalar replacement purposes ?
+   * Perform Local CSE for a basic block in LIR.
+   *
+   * @param ir the method's ir
+   * @param bb the basic block
+   */
+  private final void optimizeBasicBlockLIR(OPT_IR ir, OPT_BasicBlock bb) {
+    AvExCache cache = new AvExCache(ir.options, false);
+    // iterate over all instructions in the basic block
+    for (OPT_Instruction inst = bb.firstRealInstruction(), 
+	   sentinel = bb.lastInstruction(), 
+	   nextInstr = null; 
+	 inst != sentinel; 
+	 inst = nextInstr) {
+      nextInstr = inst.nextInstructionInCodeOrder(); // cache before we 
+                                                     // mutate prev/next links
+      // 1. try and replace this instruction according to
+      // available expressions in the cache, and update cache
+      // accordingly.
+      if (isExpression(inst)) {
+	expressionHelper(ir, cache, inst);
+      } else if (isCheck(inst)) {
+	checkHelper(ir, cache, inst);
+      }
+
+      // 2. update the cache according to which expressions this
+      // instruction kills
+      cache.eliminate(inst);
+    }
+  }
+
+  /**
+   * Is a given instruction a CSE-able load?
    */
   public static boolean isLoadInstruction (OPT_Instruction s) {
     return GetField.conforms(s) || GetStatic.conforms(s);
   }
 
   /**
-   * Is a given instruction a "store" for scalar replacement purposes ?
+   * Is a given instruction a CSE-able store?
    */
   public static boolean isStoreInstruction (OPT_Instruction s) {
     return PutField.conforms(s) || PutStatic.conforms(s);
@@ -136,7 +159,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst the instruction in question
    * @return true or false, as appropriate
    */
-  private boolean isExpression (OPT_Instruction inst) {
+  private final boolean isExpression (OPT_Instruction inst) {
     if (inst.isDynamicLinkingPoint()) return false;
     switch (inst.operator.format) {
     case OPT_InstructionFormat.Unary_format:
@@ -156,7 +179,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst the instruction in question
    * @return true or false, as appropriate
    */
-  private boolean isCheck (OPT_Instruction inst) {
+  private final boolean isCheck (OPT_Instruction inst) {
     switch (inst.getOpcode()) {
     case NULL_CHECK_opcode:case BOUNDS_CHECK_opcode:
     case INT_ZERO_CHECK_opcode:case LONG_ZERO_CHECK_opcode:
@@ -169,7 +192,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     }
   }
 
-  private boolean isTypeCheck(OPT_Instruction inst) {
+  private final boolean isTypeCheck(OPT_Instruction inst) {
     return TypeCheck.conforms(inst);
   }
 
@@ -181,8 +204,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private void loadHelper(OPT_IR ir, AvExCache cache, 
-			  OPT_Instruction inst) {
+  private final void loadHelper(OPT_IR ir, AvExCache cache, 
+				OPT_Instruction inst) {
     OPT_LocationOperand loc = LocationCarrier.getLocation(inst);
     if (loc.mayBeVolatile()) return; // don't optimize volatile fields
     
@@ -234,7 +257,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private void storeHelper (AvExCache cache, OPT_Instruction inst) {
+  private final void storeHelper (AvExCache cache, OPT_Instruction inst) {
     OPT_LocationOperand loc = LocationCarrier.getLocation(inst);
     if (loc.mayBeVolatile()) return; // don't optimize volatile fields
 
@@ -254,8 +277,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private void expressionHelper(OPT_IR ir, AvExCache cache, 
-				OPT_Instruction inst) {
+  private final void expressionHelper(OPT_IR ir, AvExCache cache, 
+				      OPT_Instruction inst) {
     // look up the expression in the cache
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
@@ -291,8 +314,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst the instruction begin processed
    * @param e the controlling instruction enumerator
    */
-  private void checkHelper (OPT_IR ir, AvExCache cache, 
-			    OPT_Instruction inst) {
+  private final void checkHelper (OPT_IR ir, AvExCache cache, 
+				  OPT_Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
@@ -328,7 +351,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst the instruction begin processed
    * @param e the controlling instruction enumerator
    */
-  private void typeCheckHelper(OPT_IR ir, AvExCache cache, 
+  private final void typeCheckHelper(OPT_IR ir, AvExCache cache, 
 			       OPT_Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
@@ -342,7 +365,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
   }
 
 
-  private OPT_Operator getMoveOp(OPT_RegisterOperand r) {
+  private final OPT_Operator getMoveOp(OPT_RegisterOperand r) {
     return OPT_IRTools.getMoveOp(r.type);
   }
 
@@ -365,9 +388,18 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
   /** 
    * Implements a cache of Available Expressions 
    */
-  private static final class AvExCache {
+  protected static final class AvExCache {
     /** Implementation of the cache */
-    private ArrayList cache = new ArrayList(0);
+    private ArrayList cache = new ArrayList(3);
+
+    private OPT_Options options;
+    private boolean doMemory;
+
+    AvExCache(OPT_Options opts, boolean doMem) {
+      options = opts;
+      doMemory = doMem;
+    }
+
 
     /**
      * Find and return a matching available expression.
@@ -383,17 +415,21 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_LocationOperand location = null;
       switch(inst.operator.format) {
       case OPT_InstructionFormat.GetField_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	op1 = GetField.getRef(inst);
 	location = GetField.getLocation(inst);
 	break;
       case OPT_InstructionFormat.GetStatic_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	location = GetStatic.getLocation(inst);
 	break;
       case OPT_InstructionFormat.PutField_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	op1 = PutField.getRef(inst);
 	location = PutField.getLocation(inst);
 	break;
       case OPT_InstructionFormat.PutStatic_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	location = PutStatic.getLocation(inst);
 	break;
       case OPT_InstructionFormat.Unary_format:
@@ -463,17 +499,21 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
       switch(inst.operator.format) {
       case OPT_InstructionFormat.GetField_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	op1 = GetField.getRef(inst);
 	location = GetField.getLocation(inst);
 	break;
       case OPT_InstructionFormat.GetStatic_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	location = GetStatic.getLocation(inst);
 	break;
       case OPT_InstructionFormat.PutField_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	op1 = PutField.getRef(inst);
 	location = PutField.getLocation(inst);
 	break;
       case OPT_InstructionFormat.PutStatic_format:
+	if (VM.VerifyAssertions) VM._assert(doMemory);
 	location = PutStatic.getLocation(inst);
 	break;
       case OPT_InstructionFormat.Unary_format:
@@ -562,9 +602,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
      * Eliminate all AE tuples that are killed by a given instruction
      *
      * @param s the store instruction
-     * @param options controlling compiler options
      */
-    public void eliminate (OPT_Instruction s, OPT_Options options) {
+    public void eliminate (OPT_Instruction s) {
       int i = 0;
       // first kill all registers that this instruction defs
       for (OPT_OperandEnumeration defs = s.getDefs(); defs.hasMoreElements();) {
@@ -574,9 +613,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	  eliminate((OPT_RegisterOperand)def);
 	}
       }
-      // if doing scalar replacement, eliminate all memory locations
-      // killed by stores
-      if (options.LOCAL_SCALAR_REPLACEMENT) {
+      if (doMemory) {
+	// eliminate all memory locations killed by stores
 	if (OPT_LocalCSE.isStoreInstruction(s) || 
 	    (options.READS_KILL && OPT_LocalCSE.isLoadInstruction(s))) {
 	  // sLocation holds the location killed by this instruction
@@ -584,7 +622,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 	  // walk through the cache and invalidate any killed locations
 	  while (i < cache.size()) {
 	    AvailableExpression ae = (AvailableExpression)
-              cache.get(i);
+	      cache.get(i);
 	    if (ae.inst != s) {   // a store instruction doesn't kill itself 
 	      boolean killIt = false;
 	      if (ae.isLoadOrStore()) {
@@ -610,12 +648,11 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
      * Eliminate all AE tuples that cache ANY memory location.
      */
     public void invalidateAllLoads () {
+      if (!doMemory) return;
       int i = 0;
       while (i < cache.size()) {
 	AvailableExpression ae = (AvailableExpression)cache.get(i);
 	if (ae.isLoadOrStore()) {
-	  if (OPT_LocalCSE.DEBUG)
-	    System.out.println("FOUND KILL " + ae);
 	  cache.remove(i);
 	  continue;               // don't increment i, since we removed 
 	}
