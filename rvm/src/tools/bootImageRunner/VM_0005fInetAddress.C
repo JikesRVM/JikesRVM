@@ -67,15 +67,17 @@ Java_com_ibm_JikesRVM_VM_1InetAddress_getAliasesByNameImpl(
   int rc = gethostbyname_r(bytes, results, &data);
   if (rc != 0) {
 #endif
-    jclass ex = env->FindClass("Ljava/net/UnknownHostException;");
+    jclass ex = env->FindClass("java/net/UnknownHostException");
     env->ThrowNew(ex, strerror( errno ));
+    return (jobjectArray)0;
   }
 
   // verify 4-byte-address assumption
   //
   if (results->h_addrtype != AF_INET || results->h_length != 4) {
-    jclass ex = env->FindClass("Ljava/net/UnknownHostException;");
+    jclass ex = env->FindClass("java/net/UnknownHostException");
     env->ThrowNew(ex, "Cannot understand result of gethostbyname");
+    return (jobjectArray)0;
   }
   
   // get addresses (which is all we care about)
