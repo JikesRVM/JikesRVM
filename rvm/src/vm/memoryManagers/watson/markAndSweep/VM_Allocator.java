@@ -27,91 +27,39 @@
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  * @modified by Dave Grove Created VM_SegregatedListHeap to factor out common code
  */
-public class VM_Allocator implements VM_Constants, 
-				     VM_GCConstants, 
-				     VM_Uninterruptible,
-				     VM_Callbacks.ExitMonitor, 
-				     VM_Callbacks.AppRunStartMonitor {
+public class VM_Allocator extends VM_GCStatistics 
+  implements VM_Constants, 
+	     VM_GCConstants, 
+	     VM_Uninterruptible {
 
-  static final boolean IGNORE_EXPLICIT_GC_CALLS = false;
-
-  // to allow runtime check for which allocator/collector is running
-  static final int    TYPE =11;
+  /**
+   * Control chattering during progress of GC
+   */
+  static int verbose = 0;
 
   // DEBUG WORD TO FIND WHO POINTS TO SOME POINTER
   static VM_Address interesting_ref = VM_Address.zero();
-  static VM_Address the_array     = VM_Address.zero();
-
-  // maps processors to their collector threads
-  static VM_CollectorThread[] proc_to_collector = null;  
-
-  // fields used for timing
-  static int scanStaticsProcessor = 0;  // id of VM_Processor that scanned statics
-  static int gcInitProcessor = 0;      // id of VM_Processor that did gc initialization 
-  static int gcFinishProcessor = 0;    // id of VM_Processor that gc finish
 
   // following are referenced from elsewhere in VM
-  // following are for compilation compatibility with copying collectors
   static final int    MARK_VALUE = 1;              
   static final boolean movesObjects = false;
-
   static final boolean writeBarrier = false;
   static final int    SMALL_SPACE_MAX = 2048;      // largest object in small heap
 
   static final int GC_RETRY_COUNT = 3;             // number of times to GC before giving up
 
-  static final boolean TIME_GC_PHASES            = VM_CollectorThread.TIME_GC_PHASES; 
-  static final boolean GC_PARALLEL_FREE_BLOCKS   = true;
   static final boolean RENDEZVOUS_TIMES          = false;
   static final boolean RENDEZVOUS_WAIT_TIME     = VM_CollectorThread.MEASURE_WAIT_TIMES;
-  // Flag for counting bytes allocated and objects allocated
-  static final boolean COUNT_ALLOCATIONS = false;
-  static final boolean GC_COUNT_FAST_ALLOC       = false;
-  static final boolean GC_COUNT_LIVE_OBJECTS     = false;
-  static final boolean GC_COUNT_BYTE_SIZES       = false;
-  static final boolean GC_COUNT_BY_TYPES         = true;
-  static final boolean GC_STATISTICS             = false;   // for timing parallel GC
-  static final boolean GCDEBUG_PARALLEL          = false;   // for debugging parallel alloc
-  static final boolean GC_TIMING                 = false ;  // for timing parallel GC
-  static final boolean GC_MUTATOR_TIMES          = false;   // gc time as observed by mutator in gc1
-  static final boolean GC_TRACEALLOCATOR         = false;   // for detailed tracing
 
-  static double gcMinorTime;           // for timing gc times
-  static double gcMaxTime  ;           // for timing gc times
-  static double gcMajorTime;           // for timing gc times
-  static double gcStartTime;           // for timing gc times
-  static double gcEndTime;             // for timing gc times
-  static double gcTotalTime = 0;       // for timing gc times
-
-  // accumulated times & counts for sysExit callback printout SES 0317
-  private static double totalStartTime = 0.0;           
-
-  // total times for TIME_GC_PHASES output
-  private static double totalInitTime;
-  private static double totalScanningTime;
-  private static double totalFinalizeTime;
-  private static double totalFinishTime;
-  
-  // timestamps for TIME_GC_PHASES output
-  private static double gcInitDoneTime = 0;
-  private static double gcScanningDoneTime = 0;
-  private static double gcFinalizeDoneTime = 0;
-
-  static int verbose = 1;
 
   static final boolean  Debug = false;  
   static final boolean  Debug_torture = false;  
   static final boolean  DebugInterest = false;  
-  static final boolean  DebugLink = false;
-  static final boolean  GC_CLOBBERFREE = false;  
 
   // statistics reporting
   //
   static boolean flag2nd = false;
 
-  static int    gcCount  = 0; // updated every entry to collect
-  // major collections in generational scheme
-  static int    gcMajorCount = 0; 
   static boolean gc_collect_now = false; // flag to do a collection (new logic)
 
   private static VM_Heap bootHeap                = new VM_Heap("Boot Image Heap");   
@@ -119,11 +67,6 @@ public class VM_Allocator implements VM_Constants,
   private static VM_SegregatedListHeap smallHeap = new VM_SegregatedListHeap("Small Object Heap", mallocHeap);
   private static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
-
-  static int markboot_count = 0;  // counter of objects marked in the boot image
-  static int total_markboot_count = 0;  // counter of times markboot called
-
-  static int marklarge_count = 0;  // counter of large objects marked
 
   static boolean gcInProgress = false;
   static int OBJECT_GC_MARK_VALUE = 0;  // changes between this and 0
@@ -180,35 +123,15 @@ public class VM_Allocator implements VM_Constants,
     VM_Callbacks.addAppRunStartMonitor(new VM_Allocator());
 
     if (verbose >= 1) showParameter();
-  } // boot
+  }
 
   static void showParameter() {
       VM.sysWriteln("\nMark-Sweep Collector (verbose = ", verbose, ")");
-      VM.sysWrite("         Boot Image: "); bootHeap.show(); VM.sysWriteln();
-      VM.sysWrite("      Immortal Heap: "); immortalHeap.show(); VM.sysWriteln();
-      VM.sysWrite("  Small Object Heap: "); smallHeap.show(); VM.sysWriteln();
-      VM.sysWrite("  Large Object Heap: "); largeHeap.show(); VM.sysWriteln();
+      bootHeap.show();
+      immortalHeap.show();
+      smallHeap.show();
+      largeHeap.show();
       VM.sysWriteln("  Work queue buffer size = ", VM_GCWorkQueue.WORK_BUFFER_SIZE);
-      VM.sysWrite("\n");
-  }
-
-
-  /**
-   * To be called when the application starts a run
-   * @param value the exit value
-   */
-  public void notifyAppRunStart(int value) {
-    VM.sysWrite("Clearing VM_Allocator statistics\n");
-    clearSummaryStatistics();
-  }
-
-  /**
-   * To be called when the VM is about to exit.
-   * @param value the exit value
-   */
-  public void notifyExit(int value) {
-      if (VM_Finalizer.finalizeOnExit) VM_Finalizer.finalizeAll();
-      printSummaryStatistics();
   }
 
   /**
@@ -222,6 +145,7 @@ public class VM_Allocator implements VM_Constants,
     throws OutOfMemoryError {
     VM_Magic.pragmaInline(); 
     VM_Address objaddr = allocateRawMemory(size);
+    profileAlloc(objaddr, size, tib);
     return VM_ObjectModel.initializeScalar(objaddr, tib, size);
   }
 
@@ -238,6 +162,7 @@ public class VM_Allocator implements VM_Constants,
     throws OutOfMemoryError {
     VM_Magic.pragmaInline(); 
     VM_Address objaddr = allocateRawMemory(size);
+    profileAlloc(objaddr, size, tib);
     return VM_ObjectModel.initializeArray(objaddr, tib, numElements, size);
   }
 
@@ -284,15 +209,6 @@ public class VM_Allocator implements VM_Constants,
   }
 
   
-/**
- Garbage Collection routines begin here.
-   scan jtoc for pointers to objects.
-   then scan stack for pointers to objects
-   processPtrValue() is the routine that processes a pointer, marks 
-   the object as live, then scans the object pointed to for pointer,
-   and calls processPtrValue()
-*/
-
   public static void heapExhausted(VM_SegregatedListHeap h, int size, int count) {
     if (count > GC_RETRY_COUNT) outOfMemory(size, "Out of memory trying to allocate small object");
     flag2nd = count > 0;
@@ -364,15 +280,11 @@ public class VM_Allocator implements VM_Constants,
 	smallHeap.freeSmallSpaceDetails(true);
       }
 
-      gcStartTime = VM_Time.now();         // start time for GC
-      totalStartTime += gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime; //time since GC requested
-
-      gcCount++;
-
-      if (GC_TRACEALLOCATOR) VM_Scheduler.trace(" Inside Mutex1", "");
-
-      // setup common workqueue for num VPs participating
-      VM_GCWorkQueue.workQueue.initialSetup(VM_CollectorThread.numCollectors());
+      // Start timers to measure time since GC requested
+      //
+      startTime.start(VM_CollectorThread.gcBarrier.rendezvousStartTime); 
+      initTime.start(startTime);
+      GCTime.start(initTime.lastStart);
 
       if (gcInProgress) {
 	VM.sysWrite("VM_Allocator: Garbage Collection entered recursively \n");
@@ -380,9 +292,13 @@ public class VM_Allocator implements VM_Constants,
       } else {
 	gcInProgress = true;
       }
+      
+      gcCount++;
+      
+      if (verbose >= 2) VM.sysWriteln("Starting GC ", gcCount);
 
-      if (GC_TRACEALLOCATOR) 
-	VM.sysWrite("VM_Allocator: Garbage Collection Beginning \n");
+      // setup common workqueue for num VPs participating
+      VM_GCWorkQueue.workQueue.initialSetup(VM_CollectorThread.numCollectors());
 
       // invert the mark_flag value, used for marking BootImage objects
       if (OBJECT_GC_MARK_VALUE == 0)
@@ -398,10 +314,12 @@ public class VM_Allocator implements VM_Constants,
 
       // perform per vp processing for non-participating vps
       prepareNonParticipatingVPsForGC();
+
+      rootTime.start(initTime);
     }
     //   END OF SYNCHRONIZED INITIALIZATION BLOCK
 
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 
     // ALL GC THREADS IN PARALLEL
 
@@ -411,25 +329,18 @@ public class VM_Allocator implements VM_Constants,
     // Each participating processor clears the mark array for the blocks it owns
     smallHeap.zeromarks(VM_Processor.getCurrentProcessor());
     
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
-      gcInitDoneTime = VM_Time.now();
-
-    //   SYNCHRONIZATION CODE
-    
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
-
-    //   END OF SYNCHRONIZING CODE
+    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 
     VM_ScanStatics.scanStatics();     // all threads scan JTOC in parallel
 
     if (verbose >= 1) VM.sysWriteln("Scanning Stacks");
     gc_scanStacks();
 
+    if (mylocal.gcOrdinal == 1)	scanTime.start(rootTime);
+
     gc_emptyWorkQueue();
 
-    // have processor 1 record timestamp for end of scan/mark/copy phase
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
-      gcScanningDoneTime = VM_Time.now();
+    if (mylocal.gcOrdinal == 1)	finalizeTime.start(scanTime);
 
     // If counting or timing in VM_GCWorkQueue, save current counter values
     //
@@ -461,10 +372,10 @@ public class VM_Allocator implements VM_Constants,
       }	
     }	// if existObjectsWithFinalizers
       
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal==1))  gcFinalizeDoneTime = VM_Time.now();
+    if (mylocal.gcOrdinal == 1)	finishTime.start(finalizeTime);
 
     // done
-    if (GC_CLOBBERFREE) smallHeap.clobberfree();
+    if (VM.ParanoidGCCheck) smallHeap.clobberfree();
 
     // Sweep large space
     if (mylocal.gcOrdinal == 1) {
@@ -483,86 +394,34 @@ public class VM_Allocator implements VM_Constants,
     if (VM_CollectorThread.MEASURE_WAIT_TIMES)
       mylocal.incrementWaitTimeTotals();
 
-    if (mylocal.gcOrdinal != 1) return;
+    if (mylocal.gcOrdinal == 1) {
+      prepareNonParticipatingVPsForAllocation();
 
-    prepareNonParticipatingVPsForAllocation();
+      gc_collect_now  = false;  // reset flag
+      gcInProgress    = false;
+      VM_GCLocks.reset();
 
-    gc_collect_now  = false;  // reset flag
-    gcInProgress    = false;
-    VM_GCLocks.reset();
+      // done with collection...except for measurement counters, diagnostic output etc
 
-    // done with collection...except for measurement counters, diagnostic output etc
+      finishTime.stop();
+      GCTime.stop(finishTime.lastStop);
 
-    if (GC_COUNT_LIVE_OBJECTS) {
-      int  small = 0;
-      for (int i = 1; i < VM_Scheduler.numProcessors + 1; i++) {
-        small  += VM_Scheduler.processors[i].small_live; 
-        VM_Scheduler.processors[i].small_live  = 0; 
-      }
-      VM_Scheduler.trace("AFTER  GC", "small live =", small);
-    }
+      updateGCStats(DEFAULT, 0);
+      printGCStats(DEFAULT);
+
+      if (RENDEZVOUS_TIMES) VM_CollectorThread.gcBarrier.printRendezvousTimes();
+      
+      if (verbose >= 2) {
+	VM.sysWrite(gcCount, "  collections ");
+      }    
     
-    //TODO: complete the support for these data
-    if (GC_STATISTICS) {
-      //  report  high-water marks, then reset hints to the freeblock scanner 
-
-      VM.sysWriteln("VM_Allocator:  markbootcount      = ", markboot_count); 
-      VM.sysWriteln("VM_Allocator:  total_markbootcount  = ", total_markboot_count );
-      //  report number of collections so far
-      VM.sysWriteln(gcCount, "th  collection just completed");
-    
-      markboot_count  = 0;
-      total_markboot_count  = 0;
-    }  // end of statistics report  
-
-    // always get time - for printSummaryStatistics
-    gcEndTime = VM_Time.now();
-    gcMinorTime  = gcEndTime - gcStartTime;
-    gcTotalTime  += gcMinorTime;
-    if (gcMinorTime > gcMaxTime) gcMaxTime = gcMinorTime;
-
-    if (verbose >= 1 || GC_TIMING) {
-        VM.sysWrite("\n<GC ", gcCount);
-	VM.sysWriteln("  time ", ((int)(gcMinorTime * 1000)), " (ms)>"); 
-    }
-
-    if (TIME_GC_PHASES) accumulateGCPhaseTimes();  	
-
-    if (verbose >= 1 && VM_CollectorThread.MEASURE_WAIT_TIMES)
-      VM_CollectorThread.printThreadWaitTimes();
-    else {
-      if (VM_GCWorkQueue.MEASURE_WAIT_TIMES) {
-	VM.sysWrite(" Wait Times for Scanning \n");
-	VM_GCWorkQueue.printAllWaitTimes();
-	VM_GCWorkQueue.saveAllWaitTimes();
-	VM.sysWrite("\n Wait Times for Finalization \n");
-	VM_GCWorkQueue.printAllWaitTimes();
-	VM_GCWorkQueue.resetAllWaitTimes();
+      smallHeap.postCollectionReport();
+      if (flag2nd) {
+	VM_Scheduler.trace(" End of gc:", "flag2nd on");
+	smallHeap.freeSmallSpaceDetails(true);
+	flag2nd = false;
       }
     }
-
-    if (VM_GCWorkQueue.WORKQUEUE_COUNTS) {
-      VM.sysWrite(" Work Queue Counts for Scanning \n");
-      VM_GCWorkQueue.printAllCounters();
-      VM_GCWorkQueue.saveAllCounters();
-      VM.sysWrite("\n WorkQueue Counts for Finalization \n");
-      VM_GCWorkQueue.printAllCounters();
-      VM_GCWorkQueue.resetAllCounters();
-    }
-
-    if (RENDEZVOUS_TIMES) VM_CollectorThread.gcBarrier.printRendezvousTimes();
-
-    if (verbose >= 2) {
-      VM.sysWrite(gcCount, "  collections ");
-    }    
-
-    smallHeap.postCollectionReport();
-    if (flag2nd) {
-      VM_Scheduler.trace(" End of gc:", "flag2nd on");
-      smallHeap.freeSmallSpaceDetails(true);
-      flag2nd = false;
-    }
- 
   }  // end of collect
 
   /**  gc_scanStacks():
@@ -651,16 +510,11 @@ public class VM_Allocator implements VM_Constants,
   //  To be able to be called from java/lang/runtime, or internally
   //
   public  static void gc ()  {
-    if (IGNORE_EXPLICIT_GC_CALLS) {
-      if (Debug) VM.sysWrite("Skipped external call to collect garbage.\n");
-      return;
-    }
     gc1("GC triggered by external call to gc() ", 0);
   }
 
 
   public static void gc1 (String why, int size) {
-
     gc_collect_now  = true;
 
     if (verbose >= 1) VM.sysWriteln(why, size);
@@ -668,16 +522,8 @@ public class VM_Allocator implements VM_Constants,
     //  Tell gc thread to reclaim space, then wait for it to complete its work.
     //  The gc thread will do its work by calling collect(), below.
     //
-    double time = GC_MUTATOR_TIMES ? VM_Time.now() : 0.0;
     VM_CollectorThread.collect(VM_CollectorThread.collect);
-    if (GC_MUTATOR_TIMES) {
-      time = VM_Time.now() - time;
-      VM_Scheduler.trace("GC time at mutator","(millisec)",(int)(time*1000.0));
-      VM_Scheduler.trace("GC - time","     (millisec)",(int)(gcMinorTime*1000.0));
-      VM_Scheduler.trace("GC TOTAL - time"," (millisec)",(int)(gcTotalTime*1000.0));
-      VM_Scheduler.trace("GC TOTAL COLLECTIONS = ", "", gcCount);
-    }
-  }  //  gc1
+  }
 
 
   public  static long totalMemory () {
@@ -699,34 +545,6 @@ public class VM_Allocator implements VM_Constants,
   public static long allSmallUsableMemory () {
     return smallHeap.getSize();
   }
-
-  private static void accumulateGCPhaseTimes () {
-
-    double start    = gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime;
-    double init     = gcInitDoneTime - gcStartTime;
-    double scanning = gcScanningDoneTime - gcInitDoneTime;
-    double finalize = gcFinalizeDoneTime - gcScanningDoneTime;
-    double finish   = gcEndTime - gcFinalizeDoneTime;
-
-    // add current GC times into totals for summary output
-    //    totalStartTime += start;   // always measured in ge initialization
-    totalInitTime += init;
-    totalScanningTime += scanning;
-    totalFinalizeTime += finalize;
-    totalFinishTime += finish;
-
-    // if invoked with -verbose:gc print output line for this last GC
-    if (verbose >= 1) {
-      VM.sysWrite("<GC ", gcCount);
-      VM.sysWrite(   (int)   (start*1000000.0), "(us) init ");
-      VM.sysWrite(   (int)    (init*1000000.0), "(us) scanning ");
-      VM.sysWrite(   (int)   (scanning*1000.0), "(ms) finalize ");
-      VM.sysWrite(   (int)(finalize*1000000.0), "(us) finish ");
-      VM.sysWriteln( (int)  (finish*1000000.0), "(us)>");
-    }
-  }
-
-
 
   static boolean gc_isLive (VM_Address ref) {
     if (bootHeap.refInHeap(ref) || immortalHeap.refInHeap(ref) ) {
@@ -782,114 +600,14 @@ public class VM_Allocator implements VM_Constants,
     return is_live;
   }
 
-  static void clearSummaryStatistics () {
-      VM_Processor st;
-      for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-        st = VM_Scheduler.processors[i];
-        st.totalBytesAllocated = 0;
-        st.totalObjectsAllocated = 0;
-        st.synchronizedObjectsAllocated = 0;
-      }
+
+  private static void outOfMemory (int size, String why) {
+    VM_Scheduler.trace(" Out of memory", " could not satisfy bytes = ", size);
+    VM_Scheduler.trace("              ", why);
+    VM_Scheduler.trace(" Current small object heapsize ", "=", smallHeap.size);
+    VM_Scheduler.trace(" Specify more space with", " -X:h=");
+    VM.shutdown(-5);
   }
-
-
-  static void  printSummaryStatistics () {
-    int avgTime=0, avgStartTime=0;
-    int np = VM_Scheduler.numProcessors;
-
-	// produce summary system exit output if -verbose:gc was specified of if
-	// compiled with measurement flags turned on
-	//
-	
-	VM.sysWriteln("\nGC stats: Mark Sweep Collector (", np, " Collector Threads ):");
-	VM.sysWriteln("          Heap Size ", smallHeap.size / 1024, " Kb");
-	VM.sysWriteln("  Large Object Heap Size ", largeHeap.size / 1024, " Kb");
-	
-	if (gcCount>0) {
-	    avgTime = (int)( ((gcTotalTime/(double)gcCount)*1000.0) );
-	    avgStartTime = (int)( ((totalStartTime/(double)gcCount)*1000000.0) );
-	}
-	VM.sysWrite(gcCount, " Collections: avgTime ");
-	VM.sysWrite(avgTime," (ms) maxTime ");
-	VM.sysWrite((int)(gcMaxTime*1000.0)," (ms) totalTime ");
-	VM.sysWrite((int)(gcTotalTime*1000.0)," (ms) avgStartTime ");
-	VM.sysWrite(avgStartTime, " (us)\n\n");
-	
-	if (TIME_GC_PHASES) { 
-	    int avgStart=0, avgInit=0, avgScan=0, avgFinalize=0, avgFinish=0;
-	    if (gcCount>0) {
-		avgStart = (int)((totalStartTime/(double)gcCount)*1000000.0);
-		avgInit = (int)((totalInitTime/(double)gcCount)*1000000.0);
-		avgScan = (int)((totalScanningTime/(double)gcCount)*1000.0);
-		avgFinalize = (int)((totalFinalizeTime/(double)gcCount)*1000000.0);
-		avgFinish = (int)((totalFinishTime/(double)gcCount)*1000000.0);
-	    }
-	    VM.sysWrite("Average Time in Phases of Collection:\n");
-	    VM.sysWrite("startTime ", avgStart, "(us) init ");
-	    VM.sysWrite( avgInit, "(us) scanning ");
-	    VM.sysWrite( avgScan, "(ms) finalize ");
-	    VM.sysWrite( avgFinalize, "(us) finish ");
-	    VM.sysWrite( avgFinish, "(us)>\n\n");
-	}
-	
-	if (VM_CollectorThread.MEASURE_WAIT_TIMES) {
-	    double totalBufferWait = 0.0;
-	    double totalFinishWait = 0.0;
-	    double totalRendezvousWait = 0.0;  
-	    int avgBufferWait=0, avgFinishWait=0, avgRendezvousWait=0;
-
-	    VM_CollectorThread ct;
-	    for (int i=1; i <= np; i++ ) {
-		ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
-		totalBufferWait += ct.totalBufferWait;
-		totalFinishWait += ct.totalFinishWait;
-		totalRendezvousWait += ct.totalRendezvousWait;
-	    }
-	    if (gcCount>0) {
-		avgBufferWait = ((int)((totalBufferWait/(double)gcCount)*1000000.0))/np;
-		avgFinishWait = ((int)((totalFinishWait/(double)gcCount)*1000000.0))/np;
-		avgRendezvousWait = ((int)((totalRendezvousWait/(double)gcCount)*1000000.0))/np;
-	    }
-	    VM.sysWrite("Average Wait Times For Each Collector Thread In A Collection:\n");
-	    VM.sysWrite("Buffer Wait ", avgBufferWait, " (us) Finish Wait ");
-	    VM.sysWrite( avgFinishWait, " (us) Rendezvous Wait ");
-	    VM.sysWrite( avgRendezvousWait, " (us)\n\n");
-	    
-	    VM.sysWriteln("Sum of Wait Times For All Collector Threads ( ", np, " Collector Threads ):");
-	    VM.sysWrite("Buffer Wait ", (int)(totalBufferWait*1000.0), " (ms) Finish Wait ");
-	    VM.sysWrite( (int)(totalFinishWait*1000.0), " (ms) Rendezvous Wait ");
-	    VM.sysWrite( (int)(totalRendezvousWait*1000.0), " (ms) TOTAL ");
-	    VM.sysWrite( (int)((totalRendezvousWait+totalFinishWait+totalBufferWait)*1000.0), " (ms)\n");
-	}
-	
-	if (COUNT_ALLOCATIONS) {
-	    VM.sysWrite(" Total No. of Objects Allocated in this run ");
-	    long bytes = 0, objects = 0;
-	    VM_Processor st;
-	    for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-		st = VM_Scheduler.processors[i];
-		bytes += st.totalBytesAllocated;
-		objects += st.totalObjectsAllocated;
-	    }
-	    VM.sysWrite(Long.toString(objects));
-	    VM.sysWrite("\n Total No. of bytes Allocated in this run ");
-	    VM.sysWrite(Long.toString(bytes));
-	    VM.sysWrite("\n");
-	}
-	
-	VM.sysWrite(" Number of threads found stuck in native code = ");
-	VM.sysWrite(VM_NativeDaemonThread.switch_count);
-	VM.sysWrite("\n");
-	
-    }
-      
-    private static void outOfMemory (int size, String why) {
-	VM_Scheduler.trace(" Out of memory", " could not satisfy bytes = ", size);
-	VM_Scheduler.trace("              ", why);
-	VM_Scheduler.trace(" Current small object heapsize ", "=", smallHeap.size);
-	VM_Scheduler.trace(" Specify more space with", " -X:h=");
-	VM.shutdown(-5);
-    }
 
 
   /**
