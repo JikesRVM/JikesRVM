@@ -359,7 +359,10 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Run <clinit> method of specified class, if that class appears 
-   * in bootimage.
+   * in bootimage and actually has a clinit method (we are flexible to
+   * allow one list of classes to work with different bootimages and 
+   * different version of classpath (eg 0.05 vs. cvs head).
+   * 
    * @param className
    */
   static void runClassInitializer(String className) throws VM_PragmaInterruptible {
@@ -367,27 +370,29 @@ public class VM extends VM_Properties implements VM_Constants,
       sysWrite("running class intializer for ");
       sysWriteln(className);
     }
-
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
-      clinit.compile();
-      if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
-      try {
-	VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
-      } catch (Error e) {
-	throw e;
-      } catch (Throwable t) {
-	ExceptionInInitializerError eieio
-	  = new ExceptionInInitializerError(
-		    "Caught exception while invoking the class initializer for"
-		    +  className);
-	eieio.initCause(t);
-	throw eieio;
-      }
+      if (clinit != null) {
+	clinit.compile();
+	if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
+	try {
+	  VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+	} catch (Error e) {
+	  throw e;
+	} catch (Throwable t) {
+	  ExceptionInInitializerError eieio
+	    = new ExceptionInInitializerError("Caught exception while invoking the class initializer for"
+					      +  className);
+	  eieio.initCause(t);
+	  throw eieio;
+	}
+      } else {
+	if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
+      }	
       cls.setAllFinalStaticJTOCEntries();
     }
   }
