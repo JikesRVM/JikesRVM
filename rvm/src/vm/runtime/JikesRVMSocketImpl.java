@@ -344,9 +344,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 
   /**
    * Return the local port used by this socket impl.
-   *
    */
-  public synchronized int getLocalPort() {
+  public int getLocalPort() {
     getLocalPortInternal();  // someone has asked, so we'd better find out.
     return localport;
   }
@@ -413,10 +412,13 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * @exception	SocketException	thrown if an error occurs while accessing the option
    */
   public synchronized Object getOption(int optID) throws SocketException {
-    if (optID == SocketOptions.SO_TIMEOUT) 
+    if (optID == SocketOptions.SO_TIMEOUT) {
       return new Integer(receiveTimeout);
-    else
-      throw new VM_UnimplementedError("JikesRVMSocketImpl.getOption");
+    } else if (optID == SocketOptions.SO_BINDADDR) {
+      return localAddress;
+    } else {
+      throw new VM_UnimplementedError("JikesRVMSocketImpl.getOption: " + optID);
+    }
   }
 
   //
