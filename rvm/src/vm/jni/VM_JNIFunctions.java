@@ -3768,21 +3768,9 @@ class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
 
     try {
-      String returnString = null;
       byte[] utf8array = VM_JNIHelpers.createByteArrayFromC(utf8bytes);
-
-      try {
-        returnString = VM_UTF8Convert.fromUTF8(utf8array);
-      } catch (UTFDataFormatException e) {
-        VM.sysWrite("UTFDataFormatException caught in VM_JNIFunctions.NewStringUTF\n");
-      }
-
-      if (returnString!=null) {
-        return env.pushJNIRef(returnString);
-      } else {
-        env.recordException(new OutOfMemoryError());
-        return 0;
-      }
+      String returnString = VM_UTF8Convert.fromUTF8(utf8array);
+      return env.pushJNIRef(returnString);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
