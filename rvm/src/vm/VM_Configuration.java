@@ -115,12 +115,10 @@ public abstract class VM_Configuration {
   public static final boolean BuildForDeterministicThreadSwitching =
 	//-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
 	  true;
-	//-#else
-        //-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
+        //-#elif RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
           true;
         //-#else
           false;
-	//-#endif
 	//-#endif
 
   /** Does this build include support for Hardware Performance Monitors? */
