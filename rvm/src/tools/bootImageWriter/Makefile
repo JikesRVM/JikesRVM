@@ -21,8 +21,8 @@ UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
 UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
 $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/rvmrt.jar
-	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT) >& /dev/null
-	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) >& /dev/null
+	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT) 2> /dev/null
+	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) 2> /dev/null
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
