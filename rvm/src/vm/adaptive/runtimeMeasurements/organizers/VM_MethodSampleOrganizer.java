@@ -93,7 +93,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
     for (int i=0; i<uniqueIdx; i++) {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);
-      if (ns > 3.0) {
+      if (ns >= VM_Controller.options.MIN_SAMPLES) {
 	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	if ( cm != null ) {		// not already recompiled
 	  VM_CompilerInfo info = cm.getCompilerInfo();

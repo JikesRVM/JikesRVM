@@ -13,6 +13,10 @@ V INITIAL_SAMPLE_SIZE int 50
 Initial value of how many samples to take before reporting method hotness to controller
 
 
+V MIN_SAMPLES int 4
+How many samples are needed for a method before we treat it as significant? (i.e., < than this number is treated as noise)
+
+
 V MAX_OPT_LEVEL int VM.BuildForIA32?1:2
 What is the highest optimization level to use when adaptive recompilation is employed?
 
