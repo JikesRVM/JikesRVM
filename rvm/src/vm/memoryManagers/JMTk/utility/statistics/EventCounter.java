@@ -82,7 +82,7 @@ public class EventCounter extends Counter
    * Increment the event counter
    */
   public void inc() {
-    inc(1);
+    if (running) inc(1);
   }
 
   /** 
@@ -91,7 +91,7 @@ public class EventCounter extends Counter
    * @param value The amount by which the counter should be incremented.
    */
   public void inc(int value) {
-    totalCount += value;
+    if (running) totalCount += value;
   }
 
   /****************************************************************************
