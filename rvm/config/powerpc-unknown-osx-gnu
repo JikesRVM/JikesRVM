@@ -1,6 +1,7 @@
+
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2005
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -9,6 +10,7 @@
 #
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
+# This file is pre-configured for PowerPC hosts running OSX/Darwin
 
 #########
 # PART I: Preprocessor directives that hold for every config on this target
@@ -21,8 +23,10 @@ export RVM_FOR_32_ADDR=1
 export RVM_FOR_OSX=1
 
 # SMP is not supported on PowerPC/Linux.
-# pthread library doesn't play nicely with RVM since it wants to
-# mask the bottom bits of stackpointer to find phtread local storage.
+# Its pthread library doesn't play nicely with Jikes RVM since it wants to
+# mask the bottom bits of the stackpointer to find phtread local storage.
+# Whenever the C library finally starts supporting "floating stacks",
+# you can set this to 0.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 
@@ -31,6 +35,12 @@ export MAXIMUM_MAPPABLE_ADDRESS=0x80000000
 
 ##########
 # PART II: Where to find tools and resources on this target
+#
+# The configuration process can make use of auto-guessing features in
+# the RVM_ROOT/rvm/bin/jconfigure program.  You can see the results of
+# its guesses in "RVM_BUILD/environment.host".  (This particular file
+# doesn't use those features, though, since they won't work if
+# you're doing a cross-build.)
 ########## 
 
 export HOST_JAVA_HOME=/usr/
@@ -38,20 +48,20 @@ export HOST_JAVA_HOME=/usr/
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
 
-# the JDK javadoc executable
-export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
+# the JDK Javadoc executable
+export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
 
 # the JDK javac executable
-export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
+export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"
 
 # the JDK jar executable
-export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
+export JAR="$HOST_JAVA_HOME/bin/jar"
 
 # the JDK standard library jar files
 export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
 
 # the JDK tools jar
-export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
+export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # path for GNU make
 export GNU_MAKE=/usr/bin/make
@@ -60,13 +70,13 @@ export GNU_MAKE=/usr/bin/make
 export JIKES=/usr/local/bin/jikes  # v 1.18
 
 # what C compilers should be used?
-export CC="/usr/bin/gcc -w -O"
+export CC="/usr/bin/gcc -w -O -fno-common"
 
 # what C++ compilers should be used?
-export CPLUS="/usr/bin/g++"
+export CPLUS="/usr/bin/g++ -fno-common"
 
 # how to link a shared C++ library
-export LDSHARED="/usr/bin/g++ -dynamiclib"
+export LDSHARED="${CPLUS} -dynamiclib"
 
 # used by the jbuild.linkBooter
 export CPP=/usr/bin/cpp
