@@ -25,6 +25,12 @@
  *	Cleaned up memory management.  Made the handling of numeric args
  *	robust. 
  */
+#define _ISOC99_SOURCE          /* make it clear to slightly old versions of
+                                   the GNU C library that we want C99
+                                   features, specifically strtold() */
+#define _ISOC9X_SOURCE          // For even older versions of GNU C library
+
+#include "config.h"
 
 #include <stdio.h>
 #include <assert.h>		// assert()
@@ -524,7 +530,16 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
                                K for kilobytes, etc. */
 
     errno = 0;
-    double hs = strtod(subtoken, &endp);  // heap size number
+    long double heapsz;
+#ifdef HAVE_STRTOLD
+        /* This gets around some nastiness in AIX 5.1, where <stdlib.h> only
+           prototypes strtold() if we're using the 96 or 128 bit "long double"
+           type.  Which is an option to the IBM Visual Age C compiler, but
+           apparently not (yet) available for GCC.  */
+        heapsz = strtold(subtoken, &endp);
+#else
+        heapsz = strtod(subtoken, &endp);
+#endif
 
     // First, set the factor appropriately, and make sure there aren't extra
     // characters at the end of the line.
@@ -570,10 +585,10 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
 
     // Note: on underflow, strtod() returns 0.
     if (!*fastExit) {
-        if (hs <= 0.0) {
+        if (heapsz <= 0.0) {
 	    fprintf(SysTraceFile, 
 		    "%s: You may not specify a %s %s heap size;\n", 
-		    Me, hs < 0.0 ? "negative" : "zero", sizeName);
+		    Me, heapsz < 0.0 ? "negative" : "zero", sizeName);
 	    fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
 	    *fastExit = true;
         }
@@ -581,7 +596,7 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
 
     if (!*fastExit) {
 	if (errno == ERANGE 
-            || hs > ((double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
+            || heapsz > ((long double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
         {
 	// If message not already printed, print it.
 	    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
@@ -613,7 +628,7 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
                 " to a multiple of the virtual memory page size.\n");
 	return 0U;		// Distinguished value meaning trouble.
     } 
-    long double tot_d = hs * factor;
+    long double tot_d = heapsz * factor;
     assert(tot_d <= (UINT_MAX - BYTES_IN_PAGE));
     assert(tot_d >= 1);
     
@@ -647,7 +662,7 @@ parse_heap_sizeIntOnly(const char *sizeName, const char *sizeFlag,
 				// for kilobytes, etc.
 
     errno = 0;
-    long hs = strtol(subtoken, &endp, 0);  // heap size number
+    long heapsz = strtol(subtoken, &endp, 0);  // heap size number
 
     // First, set the factor appropriately, and make sure there aren't extra
     // characters at the end of the line.
@@ -673,17 +688,17 @@ parse_heap_sizeIntOnly(const char *sizeName, const char *sizeFlag,
     }
 
     if (!*fastExit) {
-	if (hs <= 0) {
+	if (heapsz <= 0) {
 	    fprintf(SysTraceFile, 
 		    "%s: You may not specify a %s initial heap size;", 
-		    Me, hs < 0 ? "negative" : "zero");
+		    Me, heapsz < 0 ? "negative" : "zero");
 	    fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
 	    *fastExit = true;
 	}
     } 
 
     if (!*fastExit) {
-	if ((unsigned long) hs > (UINT_MAX / factor) || errno == ERANGE)  {
+	if ((unsigned long) heapsz > (UINT_MAX / factor) || errno == ERANGE)  {
 	// If message not already printed, print it.
 	    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
 	    *fastExit = true;
@@ -703,7 +718,7 @@ parse_heap_sizeIntOnly(const char *sizeName, const char *sizeFlag,
                 (int) namelen, (int) namelen, " ", sizeFlag);
 	return 0U;		// Dummy.
     } 
-    unsigned int tot = hs * factor;
+    unsigned int tot = heapsz * factor;
     if (tot % BYTES_IN_PAGE) {
 	unsigned newtot =  ((tot >> LOG_BYTES_IN_PAGE) + 1) << LOG_BYTES_IN_PAGE;
 	
