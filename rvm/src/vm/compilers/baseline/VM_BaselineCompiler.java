@@ -117,6 +117,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
     klass = method.getDeclaringClass();
+    //-#if RVM_WITH_OSR
+    // new synthesized bytecodes for osr
+    if (method.isForOsrSpecialization()) 
+      bcodes = method.getOsrSynthesizedBytecodes();
+    else
+      //-#endif
     bcodes = method.getBytecodes();
     bytecodeMap = new int [bcodes.length()+1];
     asm = new VM_Assembler(bcodes.length(), shouldPrint);
@@ -194,77 +200,58 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
 
+    VM_ReferenceMaps refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
     //-#if RVM_WITH_OSR
-    /* adjust stack heights, get heights for the original bytecodes, 
-     * then compute the heights for the prologue, and concat 
-     * together.
+    /* reference map and stackheights were computed using original bytecodes
+     * and possibly new operand words
+     * recompute the stack height, but keep the operand words of the code 
+     * generation consistant with reference map 
      */
-    VM_ReferenceMaps refMaps = null;
     boolean edge_counters = options.EDGE_COUNTERS;
-    if (method.isForSpecialization()) {
-      if (stackHeights != null) {
-	// only do this on IA32 where stackHeights is not null
-	OSR_BytecodeTraverser.computeStackHeights(method, stackHeights, true);
-      }
+    if (method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
-    } else {
-      refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
-    }
-    //-#else
-    VM_ReferenceMaps refMaps = 
-      new VM_ReferenceMaps(compiledMethod, stackHeights);
+      if (stackHeights != null) {
+	// we already allocatedc enough space for stackHeights, shift it back first
+	System.arraycopy(stackHeights, 0, stackHeights, 
+			 method.getOsrPrologueLength(), 
+			 method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
+
+	// only do this on IA32 where stackHeights is not null
+	// compute stack height for prologue
+	new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
+	//	new OSR_BytecodeTraverser().computeStackHeights(method, method.getOsrSynthesizedBytecodes(), stackHeights, true);
+      }
+    } 
     //-#endif
 
     VM_MachineCode  machineCode  = genCode();
     INSTRUCTION[]   instructions = machineCode.getInstructions();
-    int[]           bytecodeMap  = machineCode.getBytecodeMap();
+    int[]           bcMap        = machineCode.getBytecodeMap();
 
     //-#if RVM_WITH_OSR
     /* adjust machine code map, and restore original bytecode
      * for building reference map later.
      */
-    if (method.isForSpecialization()) {
-      int[] newmap = new int[bytecodeMap.length - method.realBCOffset];
-      System.arraycopy(bytecodeMap,
-		       method.realBCOffset,
+    if (method.isForOsrSpecialization()) {
+      int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
+      System.arraycopy(bcMap,
+		       method.getOsrPrologueLength(),
 		       newmap,
 		       0,
 		       newmap.length);
       machineCode.setBytecodeMap(newmap);
-      bytecodeMap = newmap;
-
-      // switch back 
-      method.finalizeSpecialization();
-      
-      // stack heights are useless now, but we can verify it
-      if (VM.VerifyAssertions &&
-	  VM.TraceOnStackReplacement && 
-	  (stackHeights != null)) {
-	int[] newheights = new int[method.getBytecodeArray().length];
-	refMaps = new VM_ReferenceMaps(compiledMethod, newheights);
-	// verify the stack heights computed before
-	for (int i=0, n=newheights.length; i<n; i++) {
-	  // it may be unreachable code in specialied bytecode
-	  if ((newheights[i] != stackHeights[i+method.realBCOffset]) 
-					  && (stackHeights[i+method.realBCOffset] != 0)){
-	    VM.sysWriteln("stack heights mismatch : "+i+"@"+method.toString());
-
-	    VM._assert(VM.NOT_REACHED);
-	  }
-	}
-      }
-      
-      // restore stack heights for original bytecodes
-      refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
+      bcMap = newmap;
+      // switch back to original state
+      method.finalizeOsrSpecialization();
       // restore options
-      options.EDGE_COUNTERS = edge_counters;
+      options.EDGE_COUNTERS = edge_counters;     
     }
     //-#endif
 	
     if (method.isSynchronized()) {
       compiledMethod.setLockAcquisitionOffset(lockOffset);
     }
-    compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
+    compiledMethod.encodeMappingInfo(refMaps, bcMap, instructions.length);
     compiledMethod.compileComplete(instructions);
     if (edgeCounterIdx > 0) {
       VM_EdgeCounterDictionary.setValue(edgeCounterId, new int[edgeCounterIdx]);
@@ -2007,8 +1994,20 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  break;
 	}
 	case PSEUDO_InvokeStatic: {
-	  int mid = bcodes.readIntConst(); // fetch4BytesSigned();
-	  VM_Method methodRef = OSR_ClassLoaderInterface.getMethodById(mid);
+	  VM_Method methodRef = null;
+	  int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
+	  switch (targetidx) {
+	  case GETREFAT:
+	    methodRef = VM_Entrypoints.osrGetRefAtMethod;
+	    break;
+	  case CLEANREFS:
+	    methodRef = VM_Entrypoints.osrCleanRefsMethod;
+	    break;
+	  default:
+	    if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokstatic with unknown target index "+targetidx);
+	    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+	    break;
+	  }
 
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic "+methodRef.toString());
 	  
@@ -2028,6 +2027,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  }
 	  break;
 	}
+	  /*
 	case PSEUDO_CheckCast: {
 
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
@@ -2037,6 +2037,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  // do nothing now
 	  break;
 	}
+	  */
 	case PSEUDO_InvokeCompiledMethod: {
 	  int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
 	  int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
@@ -2044,7 +2045,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid "+cmid);
 	  
 	  this.pendingCMID = cmid;
-	  this.pendingIdx = origIdx+this.method.realBCOffset;
+	  this.pendingIdx = origIdx+this.method.getOsrPrologueLength();
 	  this.pendingRef = emit_pending_goto(this.pendingIdx);
 	  /*
 	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);

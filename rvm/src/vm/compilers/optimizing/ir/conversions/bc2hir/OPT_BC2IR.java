@@ -207,12 +207,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       
     }
+	//-#if RVM_WITH_OSR
+	if (context.method.isForOsrSpecialization())
+	  bcodes = context.method.getOsrSynthesizedBytecodes();
+	else
+	//-#endif
     bcodes = context.method.getBytecodes();
     // initialize the local state from context.arguments
     _localState = new OPT_Operand[context.method.getLocalWords()];
 
     //-#if RVM_WITH_OSR
-    if (context.method.isForSpecialization()) {
+    if (context.method.isForOsrSpecialization()) {
       this.bciAdjustment = context.method.getOsrPrologueLength();
     } else {
       this.bciAdjustment = 0;
@@ -220,7 +225,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     this.osrGuardedInline = VM.runningVM &&
       context.options.OSR_GUARDED_INLINING &&
-      !context.method.isForSpecialization() &&
+      !context.method.isForOsrSpecialization() &&
 	  OPT_Compiler.getAppStarted() &&
 	  (VM_Controller.options != null) &&
 	  VM_Controller.options.adaptive();
@@ -2302,8 +2307,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           int value = bcodes.readIntConst();
 
-	  if (VM.TraceOnStackReplacement) 
-	    VM.sysWriteln("PSEUDO_LoadAddrConst "+value);
+	      if (VM.TraceOnStackReplacement) 
+	        VM.sysWriteln("PSEUDO_LoadAddrConst "+value);
 
           push(new ReturnAddressOperand(value));
           break;
@@ -2311,64 +2316,45 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         case PSEUDO_InvokeStatic:
         {
 	  /* pseudo invoke static for getRefAt and cleanRefAt, both must be resolved already */
-          int mid = bcodes.readIntConst();
-          VM_Method meth = OSR_ClassLoaderInterface.getMethodById(mid);
-
+	  VM_Method meth = null;
+	  int targetidx = bcodes.readIntConst();
+	  switch (targetidx) {
+	  case GETREFAT:
+	    meth = VM_Entrypoints.osrGetRefAtMethod;
+	    break;
+	  case CLEANREFS:
+	    meth = VM_Entrypoints.osrCleanRefsMethod;
+	    break;
+	  default:
+	    if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokestatic, unknown target index "+targetidx);
+	    OPT_OptimizingCompilerException.UNREACHABLE();
+	    break;
+	  }
+				 
           if (VM.TraceOnStackReplacement) 
-	    VM.sysWriteln("PSEUDO_Invoke "+meth+"\n");
+	        VM.sysWriteln("PSEUDO_Invoke "+meth+"\n");
 
           s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
-	  Call.setAddress(s, new OPT_IntConstantOperand(Call.getMethod(s).method.getOffset()));
+	      Call.setAddress(s, new OPT_IntConstantOperand(Call.getMethod(s).method.getOffset()));
 
           /* try to set the type of return register */
-          if (meth.getName() == VM_Atom.findOrCreateAsciiAtom("getRefAt")) {
+          if (targetidx == GETREFAT) {
             Object realObj = OSR_ObjectHolder.getRefAt(param1, param2);
-            if (realObj != null) {
 
-		  VM_Type klass = VM_Magic.getObjectType(realObj);
+	    if (VM.VerifyAssertions) VM._assert(realObj != null);
 
-              OPT_RegisterOperand op0 = gc.temps.makeTemp(klass);
-              Call.setResult(s, op0);
-              pop();    // pop the old one and push the new return type.
-              push(op0.copyD2U(), klass);
-            }
-          }
-  
-          // If we don't need dynamic linking code, think about inlining
-	  if (maybeInlineMethod(shouldInline(s, null, false), s)) {
-	    return;
+	    VM_Type klass = VM_Magic.getObjectType(realObj);
+
+	    OPT_RegisterOperand op0 = gc.temps.makeTemp(klass);
+	    Call.setResult(s, op0);
+	    pop();    // pop the old one and push the new return type.
+	    push(op0.copyD2U(), klass);
 	  }
-
+  
           // CALL must be treated as potential throw of anything
           rectifyStateWithExceptionHandlers();
           break;
         }
-	case PSEUDO_CheckCast: {
-	  int tid = bcodes.readIntConst();
-	  VM_Type typeRef = OSR_ClassLoaderInterface.getTypeById(tid);
-
-	  // I know this won't cause the class loading,
-	  // it is just providing some type information
-	  // for the opt compiler.
-	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
-	  OPT_Operand op2 = pop();
-
-	  OPT_RegisterOperand reg = (OPT_RegisterOperand)op2;
-	  if (isNonNull(reg)) {
-	    s = TypeCheck.create(CHECKCAST_NOTNULL, reg, 
-				 typeOp, getGuard(reg));
-	  } else {
-	    s = TypeCheck.create(CHECKCAST, reg, typeOp);
-	  }
-
-	  reg = reg.copyU2U();
-	  reg.type = typeRef;
-	  push(reg);
-	  VM_Class et = OPT_ClassLoaderProxy.JavaLangClassCastExceptionType;
-	  rectifyStateWithExceptionHandler(et);
-
-	  break;
-	}
 	case PSEUDO_InvokeCompiledMethod: {
           int cmid = bcodes.readIntConst();
 	  int origBCIdx = bcodes.readIntConst(); // skip it
@@ -4471,7 +4457,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       OPT_Operand op = (OPT_Operand)livevars.get(i);
       if (op instanceof ReturnAddressOperand) {
         int tgtpc = ((ReturnAddressOperand)op).retIndex
-                        - gc.method.realBCOffset;
+                        - gc.method.getOsrPrologueLength();
         op = new OPT_IntConstantOperand(tgtpc);
       } else if (op instanceof OPT_LongConstantOperand) {
         op = _prepareLongConstant(op);
