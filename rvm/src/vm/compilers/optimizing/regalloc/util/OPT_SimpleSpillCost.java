@@ -35,14 +35,20 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements(); ) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       double factor = 1.0;
-      if (s.isMove()) factor *= MOVE_FACTOR;
+      if (s.isMove()) {
+        factor *= MOVE_FACTOR;
+      }
+      double baseFactor = factor;
+      if (hasBadSizeMemoryOperand(s)) {
+        baseFactor *= MEMORY_OPERAND_FACTOR;
+      }
       // first deal with non-memory operands
       for (Enumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
         OPT_Operand op = (OPT_Operand)e2.nextElement();
         if (op.isRegister()) {
           OPT_Register r = op.asRegister().register;
           if (r.isSymbolic()) {
-            update(r,factor);
+            update(r,baseFactor);
           }
         }
       }
@@ -64,5 +70,17 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
         }
       }
     }
+  }
+
+  /**
+   * Does instruction s have a memory operand of an inconvenient size?
+   * NOTE: This is pretty intel-specific.  Refactor to arch/ tree.
+   */
+  static boolean hasBadSizeMemoryOperand(OPT_Instruction s) {
+    for (Enumeration e = s.getMemoryOperands(); e.hasMoreElements(); ) {
+      OPT_MemoryOperand M = (OPT_MemoryOperand)e.nextElement();
+      if (M.size != 4) return true;
+    }
+    return false;
   }
 }

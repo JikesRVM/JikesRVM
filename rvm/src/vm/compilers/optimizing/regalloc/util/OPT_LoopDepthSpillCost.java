@@ -32,6 +32,10 @@ class OPT_LoopDepthSpillCost extends OPT_SpillCostEstimator {
 
         double factor = loopDepth.getBasicBlockFrequency(bb);
         if (s.isMove()) factor *= OPT_SimpleSpillCost.MOVE_FACTOR;
+        double baseFactor = factor;
+        if (OPT_SimpleSpillCost.hasBadSizeMemoryOperand(s)) {
+          baseFactor *= OPT_SimpleSpillCost.MEMORY_OPERAND_FACTOR;
+        }
 
         // first deal with non-memory operands
         for (Enumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
@@ -39,7 +43,7 @@ class OPT_LoopDepthSpillCost extends OPT_SpillCostEstimator {
           if (op.isRegister()) {
             OPT_Register r = op.asRegister().register;
             if (r.isSymbolic()) {
-              update(r,factor);
+              update(r,baseFactor);
             }
           }
         }
