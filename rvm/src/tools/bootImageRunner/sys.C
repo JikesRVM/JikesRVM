@@ -60,6 +60,7 @@ extern "C" int sched_yield();
 #endif
 #include <strings.h>        /* bzero() */
 #include <sys/mman.h>       /* mmap & munmap() */
+#include <sys/shm.h>
 #include <errno.h>
 #include <dlfcn.h>
 
@@ -76,8 +77,8 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include <pthread.h>
 #endif
 
-/*#define DEBUG_SYS*/
-/*#define VERBOSE_PTHREAD*/
+/* #define DEBUG_SYS */
+/* #define VERBOSE_PTHREAD*/
 
 static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
@@ -232,8 +233,11 @@ sysArg(int argno, char *buf, int buflen)
 extern "C" int
 sysList(char *name, char *buf, int limit)
    {
-// fprintf(SysTraceFile, "sys: list %s 0x%08x %d\n", name, buf, limit);
-   
+
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: list %s 0x%08x %d\n", name, buf, limit);
+#endif
+     
    char DELIMITER = '\0';
    int  cnt = 0;
    DIR *dir = opendir(name);
@@ -243,6 +247,11 @@ sysList(char *name, char *buf, int limit)
 	// POSIX says that d_name is NULL-terminated
       char *name = dp->d_name;
       int len = strlen( name );
+
+#ifdef DEBUG_SYS
+      fprintf(SysTraceFile, "sys: found %s\n", name);
+#endif   
+
 
       if (len == 2 && name[0] == '.' && name[1] == '.') continue; // skip ".."
       if (len == 1 && name[0] == '.'                  ) continue; // skip "."
@@ -271,7 +280,10 @@ sysList(char *name, char *buf, int limit)
 extern "C" int
 sysStat(char *name, int kind)
    {
-   //fprintf(SysTraceFile, "sys: stat %s\n", name);
+
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: stat %s\n", name);
+#endif
 
    struct stat info;
 
@@ -300,7 +312,11 @@ sysStat(char *name, int kind)
 extern "C" int
 sysOpen(char *name, int how)
    {
-// fprintf(SysTraceFile, "sys: open %s %d\n", name, how);
+
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: open %s %d\n", name, how);
+#endif
+
    switch (how)
       {
       case VM_FileSystem_OPEN_READ:   return open(name, O_RDONLY                         ); // "read"
@@ -318,7 +334,10 @@ sysOpen(char *name, int how)
 extern "C" int
 sysDelete(char *name)
    {
-// fprintf(SysTraceFile, "sys: delete %s\n", name);
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: delete %s\n", name);
+#endif
+
 	return remove(name);
    }
 
@@ -329,7 +348,10 @@ sysDelete(char *name)
 extern "C" int
 sysRename(char *fromName, char *toName)
    {
-// fprintf(SysTraceFile, "sys: rename %s\n", name);
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: rename %s to %s\n", fromName, toName);
+#endif
+     
 	return rename(fromName, toName);
    }
 
@@ -340,7 +362,10 @@ sysRename(char *fromName, char *toName)
 extern "C" int
 sysMkDir(char *name)
    {
-// fprintf(SysTraceFile, "sys: mkdir %s\n", name);
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: mkdir %s\n", name);
+#endif
+
      return mkdir(name, 0777); // Give all user/group/other permissions.
                                // mkdir will modify them according to the
                                // file mode creation mask (umask (1)).
@@ -389,10 +414,6 @@ sysReadByte(int fd)
    unsigned char ch;
    int rc;
 
-   #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sys: read (byte) %d\n", fd);
-   #endif    
-
    switch ( rc = read(fd, &ch, 1))
       {
       case  1: 
@@ -416,11 +437,6 @@ extern "C" int
 sysWriteByte(int fd, int data)
    {
    char ch = data;
-
-   #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sys: write %d\n", fd);
-   #endif   
-
    return write(fd, &ch, 1);
    }
 
@@ -526,7 +542,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
  // System timer operations. //
  //--------------------------//
 
- extern int VmBottom, VmMiddle, VmTop;
+ extern int VmBottom, VmTop;
  #ifdef _AIX
  #include <mon.h>
  #endif
@@ -999,19 +1015,48 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
 // Arithmetic operations. //
 //------------------------//
 
-// long divide and remainder
-//
-extern "C" long long
-sysLongDivide(long long a, long long b)
-  {
-  return a / b;
-  }
+extern "C" long long sysLongDivide(long long a, long long b) {
+  return a/b;
+}
 
-extern "C" long long
-sysLongRemainder(long long a, long long b)
-  {
+extern "C" long long sysLongRemainder(long long a, long long b) {
   return a % b;
-  }
+}
+
+extern "C" double sysLongToDouble(long long a) {
+  return (double)a;
+}
+
+extern "C" float sysLongToFloat(long long a) {
+  return (float)a;
+}
+
+double maxlong = 0.5 + (double)0x7fffffffffffffffLL;
+double maxint  = 0.5 + (double)0x7fffffff;
+
+extern "C" int sysFloatToInt(float a) {
+  if (maxint <= a) return 0x7fffffff;
+  if (a <= -maxint) return 0x80000000;
+  return (int)a;
+}
+
+extern "C" int sysDoubleToInt(double a) {
+  if (maxint <= a) return 0x7fffffff;
+  if (a <= -maxint) return 0x80000000;
+  return (int)a;
+}
+
+extern "C" long long sysFloatToLong(float a) {
+  if (maxlong <= a) return 0x7fffffffffffffffLL;
+  if (a <= -maxlong) return 0x8000000000000000LL;
+  return (long long)a;
+}
+
+extern "C" long long sysDoubleToLong(double a) {
+  if (maxlong <= a) return 0x7fffffffffffffffLL;
+  if (a <= -maxlong) return 0x8000000000000000LL;
+  return (long long)a;
+}
 
 //-------------------//
 // Memory operations //
@@ -1186,6 +1231,32 @@ sysSyncCache(int address, int size)
    }
 
 //-----------------//
+// SHM* operations //
+//-----------------//
+extern "C" int sysShmget(int key, int size, int flags) 
+{
+    return shmget(key, size,flags);
+}
+
+extern "C" void * sysShmat(int shmid, char * addr, int flags) 
+{
+    return shmat(shmid, addr, flags);
+}
+
+extern "C" int sysShmdt(char * addr)
+{
+    if (shmdt(addr) == 1)
+	return errno;
+    return 0;
+}
+
+extern "C" int sysShmctl(int shmid, int command)
+{
+    return shmctl(shmid, command, NULL);
+}
+
+
+//-----------------//
 // MMAP operations //
 //-----------------//
 
@@ -1217,7 +1288,15 @@ sysMMap(char *start, char *length, int protection, int flags, int fd, long long 
 extern "C" void *
 sysMMapNonFile(char *start, char *length, int protection, int flags)
    {
-   return mmap(start, (size_t)(length), protection, flags, -1, 0);
+       void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
+       if (res == (void *) -1) {
+	 printf("mmap(%d, %d, %d, %d, -1, 0) failed with %d\n", start, length, protection, flags, errno);
+	 return (void *) errno;
+       }
+       #ifdef DEBUG_SYS
+       printf("mmap worked - region = [0x%x ... 0x%x]    size = %d\n", res, ((int)res) + length, length);
+       #endif
+       return res;
    }
 
 // mmap - demand zero fixed address case
@@ -1334,43 +1413,10 @@ sysDlopen(char *libname)
        }
        while( (libHandler == 0 /*null*/) && (errno == EINTR) );
        if (libHandler == 0) {
-	 if (errno == ENOEXEC)
-	   fprintf(SysErrorFile, "vm: error loading library, %s\n", dlerror());
-	 else {
-	   switch (errno) {
-	     case EACCES:
-	       fprintf(SysErrorFile, "vm: error loading library, cannot access because not an ordinary file, or permission denied\n"); 
-	       return 0;
-	     case EINVAL:
-	       fprintf(SysErrorFile, "vm: error loading library, incorrect file header for the host machine\n"); 
-	       return 0;
-	     case ELOOP:
-	       fprintf(SysErrorFile, "vm: error loading library, too many symbolic links in path name\n"); 
-	       return 0;
-	     case ENOEXEC:
-	       fprintf(SysErrorFile, "vm: error loading library, problem in loading or resolving symbols, possibly invalid XCOFF header\n"); 
-	       return 0;
-	     case ENOMEM:
-	       fprintf(SysErrorFile, "vm: error loading library, not enough memory\n"); 
-	       return 0;
-	     case ETXTBSY:
-	       fprintf(SysErrorFile, "vm: error loading library, file currently open for writing by others\n"); 
-	       return 0;
-	     case ENAMETOOLONG:
-	       fprintf(SysErrorFile, "vm: error loading library, path exceeded 1023 characters\n"); 
-	       return 0;
-	     case ENOENT:
-	       fprintf(SysErrorFile, "vm: error loading library, bad library path\n"); 
-	       return 0;
-	     case ENOTDIR:
-	       fprintf(SysErrorFile, "vm: error loading library, library path not a directory\n"); 
-	       return 0;
-	     case ESTALE:
-	       fprintf(SysErrorFile, "vm: error loading library, file system unmounted\n"); 
-	       return 0;
-	   }
-
-	 }
+	 fprintf(SysErrorFile,
+		 "vm: error loading library %s: %s\n", 
+		 libname, dlerror());
+	 return 0;
        }
 
        return (int)libHandler;

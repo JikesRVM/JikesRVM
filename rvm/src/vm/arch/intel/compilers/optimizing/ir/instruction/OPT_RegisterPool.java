@@ -37,8 +37,8 @@ class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators 
    */ 
   public OPT_Operand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
     if (ir.options.FIXED_JTOC) {
-      int jtoc = VM_Magic.getTocPointer();
-      return new OPT_IntConstantOperand(jtoc);
+      VM_Address jtoc = VM_Magic.getTocPointer();
+      return new OPT_IntConstantOperand(jtoc.toInt());
     } else {
       OPT_RegisterOperand res = ir.regpool.makeTemp
 	(OPT_ClassLoaderProxy.IntArrayType);

@@ -78,7 +78,9 @@ class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
    * Read a serialized representation of the object from a stream.
    * Expected format is that produced by toString.
    */
-  public void readObject (LineNumberReader in) throws IOException {
+  public void readObject (LineNumberReader in, ClassLoader classloader)
+    throws IOException
+  {
     int bytecodeOffset;
     String s = in.readLine();
     while (s != null) {
@@ -93,8 +95,8 @@ class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        caller = 
-	  VM_ClassLoader.findOrCreateMethod(callerClass, callerName, callerDescriptor);
+        caller = OPT_ClassLoaderProxy.findOrCreateMethod(callerClass, 
+	    callerName, callerDescriptor, classloader);
       }
       nextToken1 = parser.nextToken();
       if (!nextToken1.equals("null")) {
@@ -107,8 +109,8 @@ class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        callee = 
-	  VM_ClassLoader.findOrCreateMethod(calleeClass, calleeName, calleeDescriptor);
+        callee = OPT_ClassLoaderProxy.findOrCreateMethod(calleeClass, 
+	    calleeName, calleeDescriptor, classloader);
       }
       addRule(caller, bytecodeOffset, callee);
       s = in.readLine();

@@ -580,7 +580,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * Returns a VCG descriptor for the graph which will provide VCG-relevant
    * information for the graph.
    * @return graph descriptor
-   * @see OPT_VCGGraph.getVCGDescriptor()
+   * @see OPT_VCGGraph#getVCGDescriptor
    */
   public GraphDesc getVCGDescriptor() {
     return new GraphDesc() {

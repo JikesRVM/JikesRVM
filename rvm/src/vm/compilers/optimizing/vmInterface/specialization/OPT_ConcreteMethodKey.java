@@ -22,7 +22,7 @@ class OPT_ConcreteMethodKey {
 	if (dispatchClass instanceof VM_Class)
 	    cls = (VM_Class)dispatchClass;
 	else
-	    cls = (VM_Class) VM_Type.JavaLangObjectType;
+	    cls = (VM_Class) OPT_ClassLoaderProxy.JavaLangObjectType;
 
 	for (VM_Method newmeth = null;
 	     (newmeth == null) && (cls != null); 

@@ -75,8 +75,8 @@
    //
    public final boolean isClassType()     { return dimension == 0; } 
    public final boolean isArrayType()     { return dimension > 0;  }
-   public final boolean isPrimitiveType() { return dimension < 0;  }
-   public final boolean isReferenceType() { return dimension >= 0; }
+   public final boolean isPrimitiveType() { return (dimension < 0) || isAddressType();  }
+   public final boolean isReferenceType() { return !isPrimitiveType(); }
    
   // Downcasting.
   public final VM_Class asClass() { 
@@ -140,8 +140,13 @@
    */
   public int hashCode() { return dictionaryId; }
 
-  public int liveCount; 		// field for statistics: instance cnt
-  public int liveSpace;                // field for statistics: space
+  // Statistics by type
+  public int allocCount; 		// number of objects of this type allocated
+  public int allocBytes;                // total bytes of objs of this type allocated
+  public int copyCount; 		
+  public int copyBytes;                 
+  public int scanCount; 		
+  public int scanBytes;
  
   /**
    * Load status.
@@ -239,6 +244,11 @@
   public abstract Object[] getTypeInformationBlock();
 
   /**
+   * Get the class loader for this type
+   */
+  public abstract ClassLoader getClassLoader();
+
+  /**
    * get number of superclasses to Object 
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
@@ -248,7 +258,7 @@
   /**
    * Instance of java.lang.Class corresponding to this type.
    */   
- public final Class getClassForType() {
+  public final Class getClassForType() {
     // ensure that create() is not called during boot image writing
     // since the jdk loads its version of java.lang.Class instead of ours.
     // This only happens for static synchronized methods and the Class 
@@ -261,10 +271,8 @@
      // to check it all over the reflection code. 
      if (!isResolved()) {
        try {
-	 synchronized(VM_ClassLoader.lock) {
-	   load();
-	   resolve();
-	 }
+	 load();
+	 resolve();
        } catch (VM_ResolutionException e) {
 	 throw new NoClassDefFoundError(e.getException().toString());
        }
@@ -293,7 +301,12 @@
   /**
    * supertype of all types
    */
-  public static VM_Type JavaLangObjectType;    
+  public static VM_Type JavaLangObjectType;
+
+  public static VM_Type JavaLangClassType;
+
+  public static VM_Array JavaLangObjectArrayType;
+  
   public static VM_Type NativeBridgeType;
   /**
    * supertype of all exception types
@@ -306,19 +319,32 @@
   /**
    * all arrays are Cloneable, needed for type checking
    */
-  static VM_Type JavaLangCloneableType; 
+  static VM_Class JavaLangCloneableType; 
   /**
    * all arrays are Serializable, needed for type checking
    */
-  static VM_Type JavaIoSerializableType; 
+  static VM_Class JavaIoSerializableType; 
   /**
    * type used to extend java semantics for vm implementation
    */
   static VM_Type MagicType;             
   /**
+   * type used to represent machine addresses
+   */
+  static VM_Type AddressType;             
+  /**
+   * type used to represent code - array of INSTRUCTION
+   */
+  static VM_Type CodeType;             
+  /**
    * interface implemented to prevent compiler-inserted threadswitching
    */
   static VM_Type UninterruptibleType;   
+  /**
+   * interface implemented to hint to the runtime system that an object
+   * may be locked
+   */
+  static VM_Type SynchronizedObjectType;   
   /**
    * interface implemented to save/restore appropriate registers 
    * during dynamic linking, etc.
@@ -341,13 +367,15 @@
   public final boolean isFloatType()             { return this == FloatType;          }
   public final boolean isDoubleType()            { return this == DoubleType;         }
   public final boolean isCharType()              { return this == CharType;           }
-  public final boolean isIntLikeType()           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType(); }
+  public final boolean isIntLikeType()           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isAddressType(); }
 
   public final boolean isJavaLangObjectType()    { return this == JavaLangObjectType;    }
   public final boolean isJavaLangThrowableType() { return this == JavaLangThrowableType; }
   public final boolean isJavaLangStringType()    { return this == JavaLangStringType;    }
   public final boolean isMagicType()             { return this == MagicType;             }
+  public final boolean isAddressType()           { return this == AddressType;           }
   public final boolean isUninterruptibleType()   { return this == UninterruptibleType;   }
+  public final boolean isSynchronizedObjectType(){ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType()     { return this == DynamicBridgeType;     }
   public final boolean isSaveVolatileType()      { return this == SaveVolatileType;      }
   public final boolean isNativeBridgeType()      { return this == NativeBridgeType;      }
@@ -358,7 +386,8 @@
   public final VM_Array getArrayTypeForElementType() {
     VM_Atom arrayDescriptor = getDescriptor().
       arrayDescriptorFromElementDescriptor();
-    return VM_ClassLoader.findOrCreateType(arrayDescriptor).asArray();
+    ClassLoader cl;
+    return VM_ClassLoader.findOrCreateType(arrayDescriptor, getClassLoader()).asArray();
   }
 
   /**
@@ -371,20 +400,25 @@
   }
 
   /**
-   * get implements trits vector (@see VM_DynamicTypeCheck)
+   * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
-  final byte[] getImplementsTrits () {
+  final int[] getDoesImplement () {
     if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
-    return VM_Magic.objectAsByteArray(getTypeInformationBlock()
-                                      [VM.TIB_IMPLEMENTS_TRITS_INDEX]);
+    return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
+  }
+	 
+  /**
+   * Only intended to be used by the BootImageWriter
+   */
+  void markAsBootImageClass() {
+    inBootImage = true;
   }
 
   /**
-   * set implements trits vector (@see VM_DynamicTypeCheck)
+   * Is this class part of the virtual machine's boot image?
    */ 
-  final void setImplementsTrits (byte[] it) {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
-    getTypeInformationBlock()[VM.TIB_IMPLEMENTS_TRITS_INDEX] = it;
+  public final boolean isInBootImage() {
+    return inBootImage;
   }
 
   /**
@@ -452,35 +486,41 @@
     rhs.resolve();
 
     if (lhs.asClass().isInterface()) { 
-      // rhs interface (or one of its superinterfaces) must 
+      // rhs (or one of its superclasses/superinterfaces) must 
       // implement interface of lhs
-      if (lhs == rhs) 
-	return true;
+      if (lhs == rhs) return true;
       VM_Class Y = rhs.asClass();
       VM_Class I = lhs.asClass();
-      while (Y != null && !VM_DynamicTypeCheck.explicitImplementsTest(I, Y)) 
+      while (Y != null && !explicitImplementsTest(I, Y)) {
 	Y = Y.getSuperClass();
-      return !(Y == null);
+      }
+      return (Y != null);
     } else { 
       // rhs must be same class as lhs, or a subclass of it
-      while (true) {
-	if (lhs == rhs)
-	  return true;
-
+      while (rhs != null) {
+	if (lhs == rhs) return true;
 	rhs = rhs.asClass().getSuperClass();
-	if (rhs == null)
-	  return false;
-
-	rhs.load();
-	rhs.resolve();
       }
+      return false;
     }
   }
 
+  static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
+     VM_Class [] superInterfaces = J.getDeclaredInterfaces();
+     if (superInterfaces == null) return false;
+     for (int i=0; i<superInterfaces.length; i++) {
+       VM_Class superInterface = superInterfaces[i];
+       if (!superInterface.isInterface()) throw new VM_ResolutionException(superInterface.getDescriptor(), new IncompatibleClassChangeError());
+       if (I==superInterface || explicitImplementsTest(I, superInterface)) return true;
+     }
+     return false;
+   }
        
   //----------------//
   // implementation //
   //----------------//
+
+  private boolean inBootImage;
 
   /**
    * current class-loading stage of this type
@@ -501,7 +541,7 @@
   protected int     tibSlot;      
   /**
    * instance of java.lang.Class corresponding to this type 
-   * (null --> not created yet)
+   * (null --> not created yet
    */
   private   Class   classForType; 
   /**
@@ -511,11 +551,21 @@
   /**
    * -1 => primitive, 0 => Class/Interface, positive => array (number of [)
    */
-  protected int     dimension;    
+  int     dimension;    
   /**
    * number of superclasses to Object
    */
   protected int     depth;        
+
+  /**
+   * At what offset is the thin lock word to be found in instances of
+   * objects of this type?  A value of -1 indicates that the instances of
+   * this type do not have inline thin locks. <p>
+   * Accessed directly instead of via accessor function because this class is not Uninterruptible.
+   * TODO: once we have method-level uninterruptibility make this protected and
+   *       add appropriate accessor methods.
+   */
+  public int thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
 
   static void init() {
     // create primitive type descriptions
@@ -547,29 +597,40 @@
     CharType    = VM_ClassLoader.findOrCreatePrimitiveType
       (VM_Atom.findOrCreateAsciiAtom("char"),    
        VM_Atom.findOrCreateAsciiAtom("C"));
-      
+
+    CodeType    =  VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom(VM.INSTRUCTION_ARRAY_SIGNATURE), VM_SystemClassLoader.getVMClassLoader()).asArray();
+
     // create additional, frequently used, type descriptions
     //
     JavaLangObjectType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"));
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
     JavaLangThrowableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"));
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"), VM_SystemClassLoader.getVMClassLoader());
     JavaLangStringType    = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"));
-    JavaLangCloneableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"));
-    JavaIoSerializableType = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"));
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangCloneableType = (VM_Class) VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaIoSerializableType = (VM_Class) VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"), VM_SystemClassLoader.getVMClassLoader());
     MagicType             = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"));
+      (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"), VM_SystemClassLoader.getVMClassLoader());
     UninterruptibleType   = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"));
+      (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"), VM_SystemClassLoader.getVMClassLoader());
+    SynchronizedObjectType = VM_ClassLoader.findOrCreateType 
+      (VM_Atom.findOrCreateAsciiAtom("LVM_SynchronizedObject;"), VM_SystemClassLoader.getVMClassLoader());
     DynamicBridgeType     = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"));
+      (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"), VM_SystemClassLoader.getVMClassLoader());
     SaveVolatileType      = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"));
+      (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"), VM_SystemClassLoader.getVMClassLoader());
     NativeBridgeType      = VM_ClassLoader.findOrCreateType
-      (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"));
+      (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
+    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Address;"), VM_SystemClassLoader.getVMClassLoader());
+
+    VM_Array.init();
+
   }
 
   public String toString() {
@@ -584,4 +645,5 @@
   protected boolean isAcyclicReference() {
     return acyclic;
   }
+
 }

@@ -83,8 +83,8 @@ public class OPT_SortedGraphIterator {
    *
    * @return the next node to analyze
    *
-   * @see isSingleSuccessor
-   * @see isSinglePredecessor
+   * @see #isSingleSuccessor
+   * @see #isSinglePredecessor
    */
   public OPT_SortedGraphNode markAndGetNextTopSort(boolean changed) {
     if (changed) {

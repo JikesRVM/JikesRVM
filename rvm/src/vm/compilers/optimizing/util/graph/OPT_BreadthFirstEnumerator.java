@@ -16,21 +16,12 @@ final class OPT_BreadthFirstEnumerator
   OPT_Queue queue;
   int mark;
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_GraphNode start
-   * @param   int markNumber
-   */
-  OPT_BreadthFirstEnumerator (OPT_GraphNode start, int markNumber) {
+  OPT_BreadthFirstEnumerator(OPT_GraphNode start, int markNumber) {
     queue = new OPT_Queue(start);
     mark = markNumber;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  public boolean hasMoreElements () {
+  public boolean hasMoreElements() {
     if (queue == null)
       return  false;
     OPT_LinkedListObjectEnumerator e = queue.elements();
@@ -44,19 +35,11 @@ final class OPT_BreadthFirstEnumerator
     return  false;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  public Object nextElement () {
+  public Object nextElement() {
     return  next();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  public OPT_GraphNode next () {
+  public OPT_GraphNode next() {
     if (queue == null) {
       throw  new NoSuchElementException("OPT_BreadthFirstEnumerator");
     }
@@ -75,10 +58,7 @@ final class OPT_BreadthFirstEnumerator
     throw  new NoSuchElementException("OPT_BreadthFirstEnumerator");
   }
 
-  /**
-   * put your documentation comment here
-   */
-  private OPT_BreadthFirstEnumerator () {
+  private OPT_BreadthFirstEnumerator() {
   }
   public static OPT_BreadthFirstEnumerator EMPTY = 
       new OPT_BreadthFirstEnumerator();

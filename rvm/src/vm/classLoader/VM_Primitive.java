@@ -24,7 +24,7 @@
  * @author Derek Lieber
  */
 public class VM_Primitive extends VM_Type
-  implements VM_Constants, VM_ClassLoaderConstants {
+  implements VM_Constants, VM_ClassLoaderConstants, VM_SynchronizedObject {
   //-----------//
   // Interface //
   //-----------//
@@ -79,6 +79,10 @@ public class VM_Primitive extends VM_Type
   public final Object[] getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     return null;
+  }
+
+  public final ClassLoader getClassLoader() {
+      return VM_SystemClassLoader.getVMClassLoader();
   }
 
   //----------------//

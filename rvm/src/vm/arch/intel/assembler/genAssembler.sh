@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -5,6 +6,10 @@
 #
 # @author Julian Dolby
 #
+
+FILENAME=$1
+
+cat $2 > $FILENAME
 
 function emitBinaryReg() {
   acronym=$1
@@ -27,8 +32,16 @@ function emitBinaryReg() {
     prefix="
 	setMachineCodes(mi++, (byte) $sizeOrPrefix);"
   fi
-  cat <<EOF
-    // [dstReg] ${opStr}= $code srcReg
+  cat >> $FILENAME <<EOF
+    /**
+     * Generate a register--register ${acronym}. That is,
+     * <PRE>
+     * [dstReg] ${opStr}= ${code} srcReg
+     * </PRE>
+     *
+     * @param dstReg the destination register
+     * @param srcReg the source register
+     */
     final void emit${acronym}_RegInd_Reg${ext}(byte dstReg, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
@@ -36,7 +49,17 @@ function emitBinaryReg() {
 	if (lister != null) lister.RNR(miStart, "${acronym}", dstReg, srcReg);
     }
 
-    // [dstIndex<<scale + dstDisp] ${opStr}= $code srcReg 
+    /**
+     * Generate a register-offset--register ${acronym}. That is,
+     * <PRE>
+     * [dstReg<<dstScale + dstDisp] ${opStr}= ${code} srcReg
+     * </PRE>
+     *
+     * @param srcReg the source register
+     * @param dstIndex the destination index register
+     * @param dstScale the destination shift amount
+     * @param dstDisp the destination displacement
+     */
     final void emit${acronym}_RegOff_Reg${ext}(byte dstIndex, short scale, int dstDisp, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
@@ -78,7 +101,7 @@ function emitBinaryReg() {
 
 EOF
     if [ x$rrmCode != xnone ]; then
-	cat <<EOF
+	cat >> $FILENAME <<EOF
     // dstReg ${opStr}= $code [srcReg + srcDisp]
     final void emit${acronym}_Reg_RegDisp${ext}(byte dstReg, byte srcReg, int srcDisp) {
 	int miStart = mi; ${prefix}
@@ -143,7 +166,7 @@ function emitBinaryImmWordOrDouble() {
   else
     emitImm=emitImm32
   fi
-  cat <<EOF
+  cat >> $FILENAME <<EOF
     // dstReg ${opStr}= ${code} imm
     final void emit${acronym}_Reg_Imm${ext}(byte dstReg, int imm) {
 	int miStart = mi;$prefix
@@ -263,7 +286,7 @@ function emitBinaryImmByte() {
   ext=
   code=
   prefix=
-  cat <<EOF
+  cat >> $FILENAME <<EOF
     // dstReg ${opStr}= (byte) imm
     final void emit${acronym}_Reg_Imm_Byte(byte dstReg, int imm) {
 	int miStart = mi;
@@ -363,7 +386,7 @@ function emitCall() {
   rel32Code=$3
   rmCode=$4
   rmExtCode=$5
-  cat <<EOF
+  cat >> $FILENAME <<EOF
     // pc = {future address from label | imm}
     final void emit${acronym}_ImmOrLabel(int imm, int label) {
 	if (imm == 0)
@@ -411,7 +434,7 @@ function emitCall() {
 	int miStart = mi;
 EOF
   if [ $rel8Code != none ]; then
-    cat <<EOF
+    cat >> $FILENAME <<EOF
 	// can we fit the offset from the next instruction into 8
 	// bits, assuming this instruction is 2 bytes (which it will
         // be if the offset fits into 8 bits)?
@@ -426,18 +449,18 @@ EOF
 	    // be 5 bytes long.
 EOF
   fi
-  cat <<EOF
+  cat >> $FILENAME <<EOF
 	    setMachineCodes(mi++, (byte) $rel32Code);
 	    // offset of next instruction (this instruction is 5 bytes,
 	    // but we just accounted for one of them in the mi++ above)
 	    emitImm32(imm - (mi + 4));
 EOF
   if [ $rel8Code != none ]; then
-    cat <<EOF
+    cat >> $FILENAME <<EOF
 	}
 EOF
   fi
-  cat <<EOF
+  cat >> $FILENAME <<EOF
     if (lister != null) lister.I(miStart, "${acronym}", imm);
     }
 
@@ -522,7 +545,7 @@ emitUnaryAcc() {
         setMachineCodes(mi++, (byte) 0x66);"
   fi
     if [ $rOpCode != none ]; then
-	cat <<EOF
+	cat >> $FILENAME <<EOF
     // $opStr ${code} reg
     void emit${acronym}_Reg${ext}(byte reg) {
 	int miStart = mi;$prefix
@@ -531,7 +554,7 @@ emitUnaryAcc() {
     }
 EOF
     else
-	cat <<EOF
+	cat >> $FILENAME <<EOF
     // $opStr ${code} reg
     void emit${acronym}_Reg${ext}(byte reg) {
 	int miStart = mi;$prefix
@@ -541,7 +564,7 @@ EOF
     }
 EOF
     fi
-    cat <<EOF
+    cat >> $FILENAME <<EOF
     // $opStr ${code} [reg + disp]
     void emit${acronym}_RegDisp${ext}(byte reg, int disp) {
 	int miStart = mi;$prefix
@@ -610,7 +633,7 @@ emitMD() {
     acronym=$1
     opStr=$2
     opExt=$3
-cat<<EOF
+cat >> $FILENAME<<EOF
   // EAX:EDX = EAX $opStr srcReg
   final void emit${acronym}_Reg_Reg(byte dstReg, byte srcReg) {
       int miStart = mi;
@@ -679,7 +702,7 @@ emitMoveSubWord() {
     desc=$2
     rm8code=$3
     rm16code=$4
-cat <<EOF
+cat >> $FILENAME <<EOF
     // dstReg := (byte) srcReg ($desc)
     final void emit${acronym}_Reg_Reg_Byte(byte dstReg, byte srcReg) {
         int miStart = mi;
@@ -814,7 +837,7 @@ emitShift () {
 	prefix="
         setMachineCodes(mi++, (byte) 0x66);"
     fi
-cat <<EOF
+cat >> $FILENAME <<EOF
     // $descr of reg by imm
     final void emit${acronym}_Reg_Imm${ext}(byte reg, int imm) {
         int miStart = mi;
@@ -999,7 +1022,7 @@ emitShiftDouble() {
     opStr=$2
     immOp=$3
     regOp=$4
-    cat <<EOF
+    cat >> $FILENAME <<EOF
     // left ${opStr}= shiftBy (with bits from right shifted in)
     final void emit${acronym}_Reg_Reg_Imm(byte left, byte right, int shiftBy) {
 	int miStart = mi;
@@ -1134,7 +1157,7 @@ emitStackOp() {
     memCode=$5
     memExt=$6
     imm32Code=$7
-    cat <<EOF
+    cat >> $FILENAME <<EOF
   // $op1 dstReg, SP $op2 4
   final void emit${acronym}_Reg (byte dstReg) {
     int miStart = mi;
@@ -1184,7 +1207,7 @@ emitStackOp() {
 
 EOF
     if [ $imm32Code != none ]; then
-	cat <<EOF
+	cat >> $FILENAME <<EOF
   // $op1 imm, SP $op2 4
   final void emit${acronym}_Imm(int imm) {
     int miStart = mi;
@@ -1213,7 +1236,7 @@ emitFloatMemAcc() {
     else
         ext=""
     fi
-    cat <<EOF
+    cat >> $FILENAME <<EOF
   // dstReg ${op}= (${size}) [srcReg + disp]
   final void emit${acronym}_Reg_RegDisp${ext}(byte dstReg, byte srcReg, int disp) {
     int miStart = mi;
@@ -1286,7 +1309,7 @@ emitFloatBinAcc() {
     emitFloatMemAcc $intAcronym $op $mOpExt 0xDA 
     emitFloatMemAcc $intAcronym $op $mOpExt 0xDE word
 
-    cat <<EOF
+    cat >> $FILENAME <<EOF
   // dstReg ${op}= srcReg
   final void emit${acronym}_Reg_Reg(byte dstReg, byte srcReg) {
     int miStart = mi;
@@ -1343,7 +1366,7 @@ emitFloatMem() {
 	preArg=""
 	postArg=", byte dummy"
     fi
-    cat <<EOF
+    cat >> $FILENAME <<EOF
   // top of stack ${op} (${size:-double word}) [reg + disp] 
   final void emit${acronym}${pre}_RegDisp${ext}(${preArg}byte reg, int disp${postArg}) {
     int miStart = mi;
@@ -1411,7 +1434,7 @@ emitFloatCmp() {
     acronym=$1
     opcode1=$2
     opcode2=$3
-    cat <<EOF
+    cat >> $FILENAME <<EOF
   final void emit${acronym}_Reg_Reg (byte reg1, byte reg2) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM.assert(reg1 == FP0);
@@ -1447,7 +1470,7 @@ emitMoveImms() {
 	prefix=""
 	immWrite=emitImm32
     fi
-cat <<EOF
+cat >> $FILENAME <<EOF
   final void emitMOV_RegInd_Imm${ext}(byte dst, int imm) {
       int miStart = mi;$prefix
       setMachineCodes(mi++, (byte) $opcode);
@@ -1508,7 +1531,7 @@ emitFSTATE() {
      prefix=""
   fi
 
-cat <<EOF
+cat >> $FILENAME <<EOF
   // ${comment}
   final void emit${acronym}_RegDisp (byte dstReg, int dstDisp) {
     int miStart = mi;$prefix
@@ -1565,7 +1588,7 @@ opcode=$1
 value=$2
 opExt=$3
 
-cat <<EOF
+cat >> $FILENAME <<EOF
   // load ${value} into FP0
   void emit${opcode}_Reg(byte dstReg) {
     if (VM.VerifyAssertions) VM.assert(dstReg == FP0);
@@ -1587,3 +1610,6 @@ emitFCONST FLDLG2 "log_10(2)" 0xEC
 emitFCONST FLDLN2 "log_e(2)" 0xED
 emitFCONST FLDZ "0.0" 0xEE
 
+cat >> $FILENAME <<EOF
+}
+EOF

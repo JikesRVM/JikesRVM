@@ -142,6 +142,15 @@ class breakpointList extends Vector implements jdpConstants {
       Platform.setbp(bp.next_addr);
       return;
     }
+    // if branch for a yieldpoint, don't want to follow branch set step
+    // for next instruction
+    if (is_brl) {
+      boolean is_yld = PPC_Disassembler.isBranchForYieldpoint(current_I);
+      if (is_yld) {
+	Platform.setbp(bp.next_addr);
+        return;
+      }
+    }
 
     // if it's other types of branch or we are stepping into call on a brl
     // then we also need to set a breakpoint at the branch target

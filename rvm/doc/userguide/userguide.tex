@@ -47,6 +47,24 @@ Inc.\ in the United States, other countries, or both.}}}
 logos are trademarks or registered trademarks of Sun Microsystems,
 Inc.\ in the United States, other countries, or both.}
 
+\newcommand{\WindowsTMFooter}{\W \hline \small {\bf Windows} is
+a trademark or registered trademark of Microsoft Corporation.} 
+
+\newcommand{\AIXPPCTMFooter}{\W \hline \small {\bf AIX} and {\bf
+PowerPC} are
+trademarks or registered trademarks of International Business Machines
+Corporation in the United States, other countries, or both.}
+
+\newcommand{\JikesAIXTMFooter}{\W \hline \small {\bf Jikes} and {\bf AIX} are
+trademarks or registered trademarks of International Business Machines
+Corporation in the United States, other countries, or both.}
+
+\newcommand{\AIXPPCJikesTMFooter}{\W \hline \small {\bf AIX}, {\bf
+PowerPC}, and {\bf Jikes} are
+trademarks or registered trademarks of International Business Machines
+Corporation in the United States, other countries, or both.}
+
+
 
 
 %Define macros
@@ -57,7 +75,8 @@ Inc.\ in the United States, other countries, or both.}
 %%     Nov, 2001: 2.0.1
 %%     Jan, 2002: 2.0.2
 %%     Mar, 2002: 2.0.3
-\newcommand{\version}{2.0.3}
+%%     Jun, 2002: 2.1.0
+\newcommand{\version}{2.1.0}
 \newcommand{\jp}{Jalape\~{n}o}
 \newcommand{\jrvm}{Jikes RVM}
 \newcommand{\ignore}[1]{{}}
@@ -71,6 +90,9 @@ Inc.\ in the United States, other countries, or both.}
 \newcommand{\JalapenoHomeURL}{http://www.research.ibm.com/jalapeno}
 \newcommand{\QandAURL}{{\RVMHomeURL}/info/overview.shtml}
 \newcommand{\RVMPubsURL}{{\RVMHomeURL}/info/pubs.shtml}
+\newcommand{\RVMUsersPubsURL}{{\RVMHomeURL}/info/users-pubs.shtml}
+\newcommand{\RVMUsersURL}{{\RVMHomeURL}/info/users.shtml}
+\newcommand{\RVMSlidesURL}{{\RVMHomeURL}/info/presentations.shtml}
 \newcommand{\RVMUserGuideURL}{{\RVMHomeURL}/userguide/HTML/userguide.html}
 \newcommand{\RVMJavadocURL}{{\RVMHomeURL}/api}
 \newcommand{\RVMDownloadURL}{http://www-124.ibm.com/developerworks/projects/jikesrvm}
@@ -80,10 +102,17 @@ Inc.\ in the United States, other countries, or both.}
 \newcommand{\RVMUserListURL}{{\RVMHomeURL}/info/users.shtml}
 \newcommand{\RVMResearcherMailingListURL}{{\RVMDownloadURL}}
 \newcommand{\RVMBugURL}{\RVMDownloadURL}
+\newcommand{\RVMContribURL}{{\RVMHomeURL}/info/contributions.shtml}
+\newcommand{\RVMTeachingResourcesURL}{{\RVMHomeURL}/info/course-info.shtml}
 \newcommand{\CPLURL}{http://oss.software.ibm.com/developerworks/opensource/license-cpl.html}
 \newcommand{\IBMURL}{http://www.ibm.com}
 \newcommand{\WatsonURL}{http://www.watson.ibm.com}
 \newcommand{\SPECURL}{http://www.spec.org}
+\newcommand{\SOOTURL}{http://www.sable.mcgill.ca/soot}
+\newcommand{\classpathURL}{http://www.gnu.org/software/classpath}
+\newcommand{\jazzlibURL}{http://sourceforge.net/project/showfiles.php?group_id=16807}
+\newcommand{\jazzlibjarfile}{jazzlib-binary-0.04-juz.jar}
+\newcommand{\osiURL}{http://www.opensource.org}
 
 \newcommand{\OPTCompilationPlanURL}{{\RVMJavadocURL}/OPT\_CompilationPlan.html}
 \newcommand{\OPTCompilerPhaseURL}{{\RVMJavadocURL}/OPT\_CompilerPhase.html}
@@ -112,6 +141,7 @@ Inc.\ in the United States, other countries, or both.}
 \newcommand{\VMInstrumentationURL}{{\RVMJavadocURL}/VM\_Instrumentation.html}
 \newcommand{\VMInstrumentedControlFlowEdgeCounterDataURL}{{\RVMJavadocURL}/VM\_InstrumentedControlFlowEdgeCounterData.html}
 \newcommand{\VMLockURL}{{\RVMJavadocURL}/VM\_Lock.html}
+\newcommand{\VMThinLockURL}{{\RVMJavadocURL}/VM\_ThinLock.html}
 \newcommand{\VMMagicURL}{{\RVMJavadocURL}/VM\_Magic.html}
 \newcommand{\VMMagicCompilerURL}{{\RVMJavadocURL}/VM\_MagicCompiler.html}
 \newcommand{\VMManagedCounterDataURL}{{\RVMJavadocURL}/VM\_ManagedCounterData.html}
@@ -133,6 +163,26 @@ Inc.\ in the United States, other countries, or both.}
 \newcommand{\PPCRegisterConstantsURL}{{\RVMJavadocURL}/finishURL}
 \newcommand{\LintelRegisterConstantsURL}{{\RVMJavadocURL}/finishURL}
 
+\newcommand{\VMObjectModelURL}{{\RVMJavadocURL}/VM\_ObjectModel.html}
+\newcommand{\VMTIBLayoutConstantsURL}{{\RVMJavadocURL}/VM\_TIBLayoutConstants.html}
+\newcommand{\VMAllocatorHeaderURL}{{\RVMJavadocURL}/VM\_AllocatorHeader.html}
+\newcommand{\VMJavaHeaderURL}{{\RVMJavadocURL}/VM\_JavaHeader.html}
+\newcommand{\VMMiscHeaderURL}{{\RVMJavadocURL}/VM\_MiscHeader.html}
+
+\newcommand{\VMInterfaceInvocationURL}{{\RVMJavadocURL}/VM\_InterfaceInvocation.html}
+
+\newcommand{\VMRuntimeCompilerURL}{{\RVMJavadocURL}/VM\_RuntimeCompiler.html}
+\newcommand{\VMControllerURL}{{\RVMJavadocURL}/VM\_Controller.html}
+\newcommand{\VMControllerThreadURL}{{\RVMJavadocURL}/VM\_ControllerThread.html}
+\newcommand{\VMCompilationThreadURL}{{\RVMJavadocURL}/VM\_CompilationThread.html}
+\newcommand{\VMCompilerDNAURL}{{\RVMJavadocURL}/VM\_CompilerDNA.html}
+\newcommand{\VMMethodListenerURL}{{\RVMJavadocURL}/VM\_MethodListener.html}
+\newcommand{\VMEdgeListenerURL}{{\RVMJavadocURL}/VM\_EdgeListener.html}
+\newcommand{\VMMethodSampleOrganizerURL}{{\RVMJavadocURL}/VM\_MethodSampleOrganizer.html}
+\newcommand{\VMAIByEdgeOrganizerURL}{{\RVMJavadocURL}/VM\_AIByEdgeOrganizer.html}
+\newcommand{\VMAOSLoggingURL}{{\RVMJavadocURL}/VM\_AOSLogging.html}
+\newcommand{\VMThreadthreadSwitchURL}{{\RVMJavadocURL}/VM\_Thread.html\#threadSwitch(int)}
+
 \newcommand{\gnuMakeURL}{http://www.gnu.org/software/make/make.html}
 \newcommand{\gnuTarURL}{http://www.gnu.org/software/tar/tar.html}
 \newcommand{\jikesURL}{http://oss.software.ibm.com/developerworks/opensource/jikes}
@@ -151,9 +201,9 @@ Inc.\ in the United States, other countries, or both.}
 \newcommand{\SunCodeConventionURL}{http://java.sun.com/docs/codeconv}
 \newcommand{\JavadocURL}{http://java.sun.com/j2se/javadoc/index.html}
 \newcommand{\VimURL}{http://www.vim.org}
-\newcommand{\jazzlibURL}{http://jazzlib.sourceforge.net}
 \newcommand{\DejavuURL}{{\JalapenoHomeURL}/dejavu/index.html}
 \newcommand{\QuicksilverURL}{http://www.research.ibm.com/people/g/gupta/oopsla00.ps}
+\newcommand{\unzipURL}{http://www.info-zip.org/pub/infozip/UnZip.html}
 
 %% Html declarations: Output directory and filenames, node title
 %\htmlcss{http://www.w3.org/StyleSheets/Core/Steely}
@@ -226,7 +276,7 @@ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill} }
 \input{installation}
 
 \T \newpage
-\section{Running RVM} \label{section:running}
+\section{Running \jrvm} \label{section:running}
 \input{running}
 
 \T \newpage
@@ -241,6 +291,15 @@ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill} }
 \T \newpage
 \section{Memory Management Details}
 \input{mmdetails}
+
+\T \newpage
+\section{Magic}
+\input{magic}
+
+\T \newpage
+\section{Adaptive Optimization System}
+\label{section:aosdetails}
+\input{aosdetails}
 
 \T \newpage
 \section{JDP: the \jrvm\ debugger}
@@ -271,9 +330,16 @@ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill} }
 \T \bibliography{main}
 
 \T \newpage
-\section{Appendix A: RVM command-line directives}
+
+\T \appendix
+
+\section{Appendix A: Jikes RVM Command-Line Options}
 \label{appendix:nonadaptive:cmdline}
 \input{cmdline}
+
+\section{Appendix B: Jikes RVM Licenses}
+\label{appendix:licenses}
+\input{licenses}
 
 \xname{userguide_index}
 \W \section*{\indexname}\label{hlxindex}

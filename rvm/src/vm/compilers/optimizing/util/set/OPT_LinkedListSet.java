@@ -13,17 +13,10 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
   OPT_LinkedListObjectElement tos;
   boolean no_duplicates;
 
-  /**
-   * put your documentation comment here
-   */
   public OPT_LinkedListSet () {
     no_duplicates = true;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   int eliminateDuplicates () {
     java.util.Set s = new java.util.HashSet();
     OPT_LinkedListObjectElement curr = tos;
@@ -43,10 +36,6 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  size;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object pull () {
     if (tos == null)
       throw  new NoSuchElementException();
@@ -55,10 +44,6 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  v;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object pullLast () {
     if (tos == null)
       throw  new NoSuchElementException();
@@ -73,10 +58,6 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  v;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public int size () {
     if (!no_duplicates)
       return  eliminateDuplicates();
@@ -89,19 +70,10 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  size;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public boolean isEmpty () {
     return  tos == null;
   }
 
-  /**
-   * put your documentation comment here
-   * @param o
-   * @return 
-   */
   public boolean contains (Object o) {
     OPT_LinkedListObjectElement e = tos;
     while (e != null) {
@@ -112,20 +84,12 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  false;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public java.util.Iterator iterator () {
     if (!no_duplicates)
       eliminateDuplicates();
     return  new OPT_LinkedListSetIterator(this);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object[] toArray () {
     int size = size();
     Object[] a = new Object[size];
@@ -137,8 +101,10 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  a;
   }
 
-  // note: breaks java.util.Set spec, always returns true.
-  // doesn't allow null.
+  /**
+   * note: breaks java.util.Set spec, always returns true.
+   * doesn't allow null.
+   */
   public boolean add (Object o) {
     OPT_LinkedListObjectElement e = new OPT_LinkedListObjectElement(o);
     e.next = tos;
@@ -147,11 +113,6 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     return  true;
   }
 
-  /**
-   * put your documentation comment here
-   * @param o
-   * @return 
-   */
   public boolean remove (Object o) {
     if (no_duplicates) {
       if (tos == null)
@@ -198,9 +159,6 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
     }
   }
 
-  /**
-   * put your documentation comment here
-   */
   public void clear () {
     tos = null;
     no_duplicates = true;
@@ -208,35 +166,20 @@ class OPT_LinkedListSet extends java.util.AbstractSet {
 }
 
 
-/**
- * put your documentation comment here
- */
 class OPT_LinkedListSetIterator
     implements java.util.Iterator {
   OPT_LinkedListSet s;
   OPT_LinkedListObjectElement n, npp;
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_LinkedListSet e
-   */
   OPT_LinkedListSetIterator (OPT_LinkedListSet e) {
     s = e;
     n = s.tos;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public boolean hasNext () {
     return  n == null;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object next () {
     if (n == null)
       throw  new NoSuchElementException();
@@ -257,9 +200,6 @@ class OPT_LinkedListSetIterator
     return  v;
   }
 
-  /**
-   * put your documentation comment here
-   */
   public void remove () {
     if (npp == null) {
       if (n == s.tos) {
@@ -275,6 +215,3 @@ class OPT_LinkedListSetIterator
     npp.next = n;
   }
 }
-
-
-

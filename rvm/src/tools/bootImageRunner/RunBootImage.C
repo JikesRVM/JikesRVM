@@ -92,6 +92,7 @@ extern unsigned smallHeapSize;  // megs
 extern unsigned largeHeapSize;  // megs
 extern unsigned nurserySize;    // megs
 extern unsigned permanentHeapSize;
+extern int verboseGC;
 
 int dejaVuMode;
 char * dejaVuClassName = "DejaVu";
@@ -117,7 +118,7 @@ void usage()
   fprintf(SysTraceFile,"              set search path for application classes and resources\n");
   fprintf(SysTraceFile,"    -D<name>=<value>\n");
   fprintf(SysTraceFile,"              set a system property\n");
-  fprintf(SysTraceFile,"    -verbose[:class|gc|jni]\n");
+  fprintf(SysTraceFile,"    -verbose[:class|:gc|:jni]\n");
   fprintf(SysTraceFile,"              enable verbose output (:jni not supported)\n");
   fprintf(SysTraceFile,"    -version  print version\n");
   fprintf(SysTraceFile,"    -showversion\n");
@@ -158,14 +159,14 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"    -X:measureCompilation=<boolean>\n");
   fprintf(SysTraceFile,"                    produce a report on compilation time\n");
   fprintf(SysTraceFile,"    -X:verbose      print out additional information for GC\n");
-  fprintf(SysTraceFile,"    -X:irc[:help]   print options supported by the initial runtime compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:irc:<option> pass <option> on to the initial runtime compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos[:help]   print options supported by adaptive optimization system when in an adaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos:<option> pass <option> on to the adaptive optimization system when in an adaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:opt[:help]   print options supported by the optimizing compiler when in a nonadaptive configuration\n");
-  fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:irc[:help]   print options supported by the initial runtime compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:irc:<option> pass <option> on to the initial runtime compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:base[:help]  print options supported by the baseline compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:base:<option> pass <option> on to the baseline compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:opt[:help]   print options supported by the optimizing compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
   fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
   fprintf(SysTraceFile,"    -X:record  run under DejaVu control and produce a trace file for replay\n");
@@ -342,6 +343,19 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     if (!strcmp(token, "-showversion")) {
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
+      continue;
+    }
+    if (!strcmp(token, "-verbose:gc")) {
+      verboseGC = 1;
+      continue;
+    }
+    if (!strncmp(token, "-verbose:gc=",12)) {
+      subtoken = token + 12;
+      verboseGC = atoi(subtoken);
+      if (verboseGC < 0) {
+	fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
+	*fastExit = 1; break;
+      }
       continue;
     }
     if (!strncmp(token, "-X:h=", 5)) {

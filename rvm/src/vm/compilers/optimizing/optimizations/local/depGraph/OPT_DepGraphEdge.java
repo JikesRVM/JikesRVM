@@ -255,7 +255,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
   /**
    * Returns the string representation of the end node (used for printing).
    * @return string representation of the end node
-   * @see OPT_SpaceEffGraphEdge.toNodeString()
+   * @see OPT_SpaceEffGraphEdge#toNodeString()
    */
   public String toNodeString() {
     return getTypeString() + " " + _toNode;
@@ -264,7 +264,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
   /**
    * Returns the string representation of the start node (used for printing).
    * @return string representation of the start node
-   * @see OPT_SpaceEffGraphEdge.fromNodeString()
+   * @see OPT_SpaceEffGraphEdge#fromNodeString()
    */
   public String fromNodeString() {
     return getTypeString() + " " + _fromNode;

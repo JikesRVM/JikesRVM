@@ -64,7 +64,7 @@ abstract class OPT_AssemblerBase
      * answer and trusts the caller to ignore it. This behavior
      * simplifies life when generating code for ImmOrLabel operands.
      *
-     * @see @isImm
+     * @see #isImm
      *
      * @param op the operand being queried
      * @return the immediate value represented by the operand

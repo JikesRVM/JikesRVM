@@ -12,7 +12,7 @@
 
 import java.lang.reflect.*;
 
-class RemoteInterpreter extends InterpreterBase
+class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 {
   static String jbiFileName = "~/jvmBuild/RVM.map";
 
@@ -82,7 +82,7 @@ class RemoteInterpreter extends InterpreterBase
     
     RemoteInterpreter interpreter = new RemoteInterpreter();
     
-    if (traceInterpreter) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
+    if (traceInterpreter >= 1) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
     
     interpreter.interpretMethod(mainMethod, mainArgs);
     
@@ -102,7 +102,7 @@ class RemoteInterpreter extends InterpreterBase
   // -- implemention of abstract methods of VM_InterperterBase
   //
   protected int getStaticWord(int index) {
-    if (traceInterpreter) 
+    if (traceInterpreter >= 1) 
       System.out.println("RemoteInterpreter: VM_Statics.getSlotContentsAsInt("+index+") (" +
 			 VM_Statics.getSlotDescriptionAsString(index)+")");
     return VM_Statics.getSlotContentsAsInt(index);
@@ -277,7 +277,7 @@ class RemoteInterpreter extends InterpreterBase
     } catch (InvocationTargetException e2) {
       // the reflected method throws an exception
       // unwrap the exception and pass it on to the program 
-      if (traceInterpreter)
+      if (traceInterpreter >= 1)
 	println("exception caught in invokeReflective " + calledMethodName + ", " + e2.getTargetException());
       Throwable realEx = e2.getTargetException();
       _throwException(realEx);
@@ -297,7 +297,7 @@ class RemoteInterpreter extends InterpreterBase
   protected void invokeMagic(VM_Method called_method)    {
       if (sysCall1 == null) super.init();  /// TODO: convince VM to do this
 
-      if (traceInterpreter) System.out.println("RemoteInterpreter: invokeMagic on "+called_method);
+      if (traceInterpreter >= 1) System.out.println("RemoteInterpreter: invokeMagic on "+called_method);
       
       VM_Atom methodName = called_method.getName();
      
@@ -364,8 +364,8 @@ class RemoteInterpreter extends InterpreterBase
 	 }
       else if (methodName == getMemoryWord)
 	 {
-	 int address = stack.popInt();
-	 System.out.print("RemoteInterpreter: VM.Magic.getMemoryWord("+Integer.toHexString(address)+")=");
+	 VM_Address address = VM_Address.fromInt(stack.popInt());
+	 System.out.print("RemoteInterpreter: VM.Magic.getMemoryWord("+Integer.toHexString(address.toInt())+")=");
 	 int word = VM_Magic.getMemoryWord(address);
 	 System.out.println(Integer.toHexString(word));
 	 stack.push(word);
@@ -375,15 +375,41 @@ class RemoteInterpreter extends InterpreterBase
 	 // VM_Type getObjectType(Object object);
 	 Object obj = stack.popObject();
 	 InterpreterBase.assert(obj != null);
-	 System.out.print("RemoteInterpreter: VM.Magic.getObjectType("+obj+")=");
+	 // System.out.print("RemoteInterpreter: VM.Magic.getObjectType("+obj+")=");
 	 VM_Type the_type = VM_Magic.getObjectType(obj);
 	 stack.push(the_type);
-	 if (traceInterpreter) System.out.println(the_type);
+	 // System.out.println(the_type);
 	 }
       else if (methodName == isync)
 	{
 	// Nothing to do 
 	  //  System.out.println("isync is being skipped");
+	}
+      else if (methodName == pragmaInline)
+	{
+	// Nothing to do 
+	  //  System.out.println("pragmaInline is being skipped");
+	}
+      else if (methodName == pragmaNoInline)
+	{
+	// Nothing to do 
+	  //  System.out.println("pragmaNoInline is being skipped");
+	}
+      else if (methodName == addressFromInt)
+	{
+	  stack.push(VM_Address.fromInt(stack.popInt())); 
+	}
+      else if (methodName == addressToInt)
+	{
+	  Object obj = stack.popObject();
+	  stack.push(((VM_Address)obj).toInt());
+	}
+      else if (methodName == addressAdd)
+	{
+	  int value = stack.popInt();
+	  Object obj = stack.popObject();
+	  InterpreterBase.assert(obj != null);
+	  stack.push(((VM_Address)(obj)).add(value));
 	}
       else
 	 {
@@ -391,7 +417,6 @@ class RemoteInterpreter extends InterpreterBase
 	 InterpreterBase.assert(NOT_IMPLEMENTED);
 	 }
   }
-   
 
   protected VM_StackTrace[] extendStackTrace(VM_StackTrace base[])  {
     int size = base.length;
@@ -426,7 +451,7 @@ class RemoteInterpreter extends InterpreterBase
    *  (5) find the type using the data structure in the interpreter
    */
   void X_ldc(VM_Class cls, int poolIndex) {
-    if (traceInterpreter) 
+    if (traceInterpreter >= 2) 
       System.out.println("X_ldc: load from constant pool index " + poolIndex);
 
     VM_Class currentClass = getCurrentClass();
@@ -480,7 +505,7 @@ class RemoteInterpreter extends InterpreterBase
    *  (5) find the type using the data structure in the interpreter
    */
   void X_ldc2_w(VM_Class cls, int poolIndex) {
-    if (traceInterpreter) 
+    if (traceInterpreter >= 2) 
       System.out.println("X_ldc2_w: new implementation");
 
     VM_Class currentClass = getCurrentClass();
@@ -546,7 +571,7 @@ class RemoteInterpreter extends InterpreterBase
     // Check bounds
     if (index<0)
       _throwException(new ArrayIndexOutOfBoundsException("negative index"));    
-    int realArrayLength = Platform.readmem(mappedArray.getAddress() + VM.ARRAY_LENGTH_OFFSET);
+    int realArrayLength = Platform.readmem(mappedArray.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
     if (index >= realArrayLength)
       _throwException(new ArrayIndexOutOfBoundsException("index="+index+" >= "+realArrayLength));
 
@@ -671,7 +696,7 @@ class RemoteInterpreter extends InterpreterBase
    *
    */
   void X_getstatic() {
-    // if (traceInterpreter) 
+    // if (traceInterpreter >= 2) 
     VM_Class currentClass = getCurrentClass();
     int index = byte_codes.fetch2BytesUnsigned();      
 
@@ -763,12 +788,12 @@ class RemoteInterpreter extends InterpreterBase
   void X_getfield(Object ref) {
     int index = byte_codes.fetch2BytesUnsigned();      
     mapVM mappedObject = (mapVM) ref;
-    // if (traceInterpreter) 
+    // if (traceInterpreter >= 2) 
     // System.out.println("X_getfield: constant pool index " + index + " of current class " + getCurrentClass() + ", for mapped object " + mappedObject);
 
     // (1) Compute pointer to the VM_Type, which should be VM_Class since we expect an object
-    int addr = Platform.readmem(mappedObject.getAddress() + 
-				       VM_ObjectLayoutConstants.OBJECT_TIB_OFFSET);
+    int addr = VM_ObjectModel.getTIB(this,mappedObject.getAddress());
+    // int addr = JDPObjectModel.getTIBFromPlatform(mappedObject.getAddress());
     addr = Platform.readmem(addr);           
     // System.out.println("X_getfield: candidate object VM_Class @ " + Integer.toHexString(addr));
 
@@ -823,7 +848,7 @@ class RemoteInterpreter extends InterpreterBase
 
     // convert the type string to the VM_ structure in the external world
     VM_Atom fieldDescriptor = VM_Atom.findOrCreateAsciiAtom(mappedFieldType);
-    VM_Type fieldType = VM_ClassLoader.findOrCreateType(fieldDescriptor);
+    VM_Type fieldType = VM_ClassLoader.findOrCreateType(fieldDescriptor,VM_SystemClassLoader.getVMClassLoader());
     
     // Decode the field type to decide what to do, we have three cases:
     int mappedFieldValue, mappedFieldValue1;
@@ -878,7 +903,7 @@ class RemoteInterpreter extends InterpreterBase
    * Currently we don't allow store into the JVM space
    */
   void X_putfield() {
-    // if (traceInterpreter) 
+    // if (traceInterpreter >= 2) 
     System.out.println("X_putfield: not implemented yet");
     debug();
   }
@@ -888,7 +913,7 @@ class RemoteInterpreter extends InterpreterBase
    */
   int X_arraylength(Object obj) {
     mapVM mappedObj = (mapVM) obj;
-    int length = Platform.readmem(mappedObj.getAddress() + VM.ARRAY_LENGTH_OFFSET);
+    int length = Platform.readmem(mappedObj.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
     if (traceExtension)	
       System.out.println("X_arraylength: array length for " + mappedObj + ", " + length);
     return length;
@@ -900,8 +925,9 @@ class RemoteInterpreter extends InterpreterBase
   boolean X_checkcast(Object ref, VM_Type lhsType) throws VM_ResolutionException {
 
     // compute the address of the class object
-    int typeAddress = Platform.readmem(((mapVM) ref).getAddress() + 
-				       VM_ObjectLayoutConstants.OBJECT_TIB_OFFSET);
+    int addr = ((mapVM)ref).getAddress();
+    int typeAddress = VM_ObjectModel.getTIB(this,addr);
+    // int typeAddress = JDPObjectModel.getTIBFromPlatform(addr);
     typeAddress = Platform.readmem(typeAddress);           
 
     // read the class name for the object from the JVM side
@@ -991,6 +1017,24 @@ class RemoteInterpreter extends InterpreterBase
     }
   }
 
+  /**
+   * Return the contents of a JTOC slot in the debuggee
+   *
+   * @param slot 
+   */
+  public int readJTOCSlot(int slot) {
+    int ptr = mapVM.getJTOC() + (slot << 2);
+    return Platform.readmem(ptr);
+  }
+
+  /**
+   * Return the contents of a memory location in the debuggee
+   *
+   * @param ptr the memory location
+   */
+  public int readMemory(ADDRESS ptr) {
+    return Platform.readmem(ptr);
+  }
 }
 
 

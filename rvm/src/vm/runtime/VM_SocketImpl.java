@@ -230,10 +230,9 @@ public static FileDescriptor acceptStreamSocketImpl(
 	// PIN(newSocket);
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 	VM_ThreadIOQueue.selectInProgressMutex.lock();
-	int connectionFd = VM.sysCall2(
-				       bootRecord.sysNetSocketAcceptIP,
+	int connectionFd = VM.sysCall2(bootRecord.sysNetSocketAcceptIP,
 				       fdServer.fd,
-				       VM_Magic.objectAsAddress(newSocket));
+				       VM_Magic.objectAsAddress(newSocket).toInt());
 	VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
 	// Note that sysNetSocketAccept fills in the InetAddress

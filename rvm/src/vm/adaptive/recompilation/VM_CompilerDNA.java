@@ -14,7 +14,7 @@ import java.util.*;
  */
 class VM_CompilerDNA implements VM_Constants {
 
-  private static String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
+  private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
   final static int BASELINE = 0;
   final static int OPT0 = 1;
   final static int OPT1 = 2;
@@ -30,14 +30,14 @@ class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on Feb 14, 2002 on AIX/PPC
+   *  These numbers were from a shadow on May 18, 2002 on AIX/PPC (munchkin)
    */
-  private static double[] compilationRates = {293.67, 6.69, 2.53, 0.87};
+  private static final double[] compilationRates = {492.76, 9.80, 4.01, 1.56};
   //-#else
   /*
-   *  These numbers were from a shadow on Feb 14, 2002 on Linux/IA32
+   *  These numbers were from a shadow on May 18, 2002 on Linux/IA32 (turangalila)
    */
-  private static double[] compilationRates = {504.51, 13.29, 5.89, 2.24};
+  private static final double[] compilationRates = {540.34, 14.77, 5.60, 2.43};
   //-#endif
 
   /**
@@ -45,15 +45,14 @@ class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on Feb 14, 2002 on AIX/PPC
+   *  These numbers were from a shadow on May 18, 2002 on AIX/PPC (munchkin)
    */
-  private static double[] speedupRates = {1.00, 4.08, 6.02, 6.30};
+  private static final double[] speedupRates = {1.00, 4.11, 5.30, 5.58};
   //-#else
-
   /*
-   *  These numbers were from a shadow on Feb 14, 2002 on Linux/IA32
+   *  These numbers were from a shadow on May 18, 2002 on Linux/IA32 (turangalila)
    */
-  private static double[] speedupRates = {1.00, 2.82, 4.21, 3.92};
+  private static final double[] speedupRates = {1.00, 3.51, 4.63, 4.36};
   //-#endif
 
   /**

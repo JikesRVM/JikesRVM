@@ -44,7 +44,7 @@ final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
    * Returns a VCG descriptor for the node which will provide VCG-relevant
    * information for the node.
    * @return node descriptor
-   * @see OPT_VCGNode.getVCGDescriptor()
+   * @see OPT_VCGNode#getVCGDescriptor
    */
   public NodeDesc getVCGDescriptor() {
     return new NodeDesc() {

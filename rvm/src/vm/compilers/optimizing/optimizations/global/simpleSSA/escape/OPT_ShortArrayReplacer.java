@@ -162,8 +162,10 @@ public class OPT_ShortArrayReplacer
          use = (OPT_RegisterOperand)use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case NEWOBJMULTIARRAY_opcode:case OBJARRAY_STORE_CHECK_opcode:
+        case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
         case GET_OBJ_TIB_opcode:case NULL_CHECK_opcode:case INSTANCEOF_opcode:
         case INSTANCEOF_NOTNULL_opcode:
+        case INSTANCEOF_UNRESOLVED_opcode:
           return  true;
         case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
         case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:

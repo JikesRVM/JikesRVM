@@ -56,32 +56,32 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
     int frameOffset = compilerInfo.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
       // get to the non vol area
-      int nonVolArea = framePtr - frameOffset;
+      VM_Address nonVolArea = framePtr.sub(frameOffset);
     
       // update non-volatiles
       int first = compilerInfo.getFirstNonVolatileGPR();
       if (first >= 0) {
 	// move to the beginning of the nonVol area
-	int location = nonVolArea;
+	VM_Address location = nonVolArea;
 	
 	for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
 	  // determine what register index corresponds to this location
 	  int registerIndex = NONVOLATILE_GPRS[i];
-	  registerLocations[registerIndex] = location;
-	  location -= 4;
+	  registerLocations[registerIndex] = location.toInt();
+	  location = location.sub(4);
 	}
       }
       
       // update volatiles if needed
       if (compilerInfo.isSaveVolatile()) {
 	// move to the beginning of the nonVol area
-	int location = nonVolArea + (4 * NUM_VOLATILE_GPRS);
+	VM_Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
 	
 	for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
 	  // determine what register index corresponds to this location
 	  int registerIndex = VOLATILE_GPRS[i];
-	  registerLocations[registerIndex] = location;
-	  location -= 4;
+	  registerLocations[registerIndex] = location.toInt();
+	  location = location.sub(4);
 	}
 	
 	// the scratch register is also considered a volatile, 
@@ -97,8 +97,8 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @param offset  the offset for the spill 
    *  @return the resulting spill location
    */
-  int getStackLocation(int framePtr, int offset) {
-    return framePtr - offset;
+  VM_Address getStackLocation(VM_Address framePtr, int offset) {
+    return framePtr.sub(offset);
   }
 
   /** 
@@ -106,8 +106,8 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @param the frame pointer
    *  @return the first spill location
    */
-  int getFirstSpillLoc() {
-    return framePtr - (-VM.STACKFRAME_BODY_OFFSET);
+  VM_Address getFirstSpillLoc() {
+    return framePtr.sub(-VM.STACKFRAME_BODY_OFFSET);
   }
 
   /** 
@@ -115,11 +115,11 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @param the frame pointer
    *  @return the last spill location
    */
-  int getLastSpillLoc() {
+  VM_Address getLastSpillLoc() {
     if (compilerInfo.isSaveVolatile()) {
-      return framePtr - compilerInfo.getUnsignedNonVolatileOffset() + 4 + SAVE_VOL_SIZE;
+      return framePtr.sub(compilerInfo.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
     } else {
-      return framePtr - compilerInfo.getUnsignedNonVolatileOffset() + 4;
+      return framePtr.sub(compilerInfo.getUnsignedNonVolatileOffset() - 4);
     }
   }
 

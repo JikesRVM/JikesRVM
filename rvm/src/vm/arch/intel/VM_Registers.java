@@ -16,8 +16,8 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
   //
   int    gprs[]; // general purpose registers
   double fprs[]; // floating point registers
-  int    ip;     // instruction address register
-  int    fp;     // frame pointer
+  VM_Address ip;     // instruction address register
+  VM_Address fp;     // frame pointer
   
   // set by C hardware exception handler and VM_Runtime.athrow 
   // and reset by each implementation of VM_ExceptionDeliverer.deliverException
@@ -32,14 +32,14 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
   /**
    * Return framepointer for the deepest stackframe
    */
-  final int getInnermostFramePointer() {
+  final VM_Address getInnermostFramePointer() {
     return fp;
   }
   
   /**
    * Return next instruction address for the deepest stackframe
    */
-  final int getInnermostInstructionAddress() {
+  final VM_Address getInnermostInstructionAddress() {
     return ip;
   }
 
@@ -56,7 +56,7 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
    * the stack during GC will start, for ex., the top java frame for
    * a thread that is blocked in native code during GC.
    */
-  final void setInnermost(int newip, int newfp) {
+  final void setInnermost(VM_Address newip, VM_Address newfp) {
     ip = newip;
     fp = newfp;
   }
@@ -67,7 +67,7 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
    * starting at the frame of the method that called sigwait.
    */
   final void setInnermost() {
-    int current_fp = VM_Magic.getFramePointer();
+    VM_Address current_fp = VM_Magic.getFramePointer();
     ip = VM_Magic.getReturnAddress(current_fp);
     fp = VM_Magic.getCallerFramePointer(current_fp);
   }

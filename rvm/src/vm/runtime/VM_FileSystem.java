@@ -11,29 +11,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_FileSystem {
-  // options for open()
-  //
-  public static final int OPEN_READ   = 0; // open for read/only  access
-  public static final int OPEN_WRITE  = 1; // open for read/write access, create if doesn't already exist, truncate if already exists
-  public static final int OPEN_MODIFY = 2; // open for read/write access, create if doesn't already exist
-  public static final int OPEN_APPEND = 3; // open for read/write access, create if doesn't already exist, append writes
-
-  // options for seek()
-  //
-  public static final int SEEK_SET = 0;    // set i/o position to start of file plus "offset"
-  public static final int SEEK_CUR = 1;    // set i/o position to current position plus "offset"
-  public static final int SEEK_END = 2;    // set i/o position to end of file plus "offset"
-
-  // options for stat()
-  //
-  public static final int STAT_EXISTS        = 0;
-  public static final int STAT_IS_FILE       = 1;
-  public static final int STAT_IS_DIRECTORY  = 2;
-  public static final int STAT_IS_READABLE   = 3;
-  public static final int STAT_IS_WRITABLE   = 4;
-  public static final int STAT_LAST_MODIFIED = 5;
-  public static final int STAT_LENGTH        = 6;
+public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 
   /**
    * Get file status.
@@ -50,7 +28,7 @@ public class VM_FileSystem {
     // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall2(bootRecord.sysStatIP, 
-                         VM_Magic.objectAsAddress(asciiName), kind);
+                         VM_Magic.objectAsAddress(asciiName).toInt(), kind);
     // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
@@ -72,7 +50,7 @@ public class VM_FileSystem {
     // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int fd = VM.sysCall2(bootRecord.sysOpenIP, 
-                         VM_Magic.objectAsAddress(asciiName), how);
+                         VM_Magic.objectAsAddress(asciiName).toInt(), how);
     // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
@@ -122,7 +100,7 @@ public class VM_FileSystem {
     // PIN(buf);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall3(bootRecord.sysReadBytesIP, fd, 
-                         VM_Magic.objectAsAddress(buf) + off, cnt);
+                         VM_Magic.objectAsAddress(buf).add(off).toInt(), cnt);
     // UNPIN(buf);
 
     return rc;
@@ -149,8 +127,8 @@ public class VM_FileSystem {
 
     // PIN(buf);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int rc = VM.sysCall3(bootRecord.sysWriteBytesIP, fd, 
-                         VM_Magic.objectAsAddress(buf)  + off, cnt);
+    VM_Address start = VM_Magic.objectAsAddress(buf).add(off);
+    int rc = VM.sysCall3(bootRecord.sysWriteBytesIP, fd, start.toInt(), cnt);
     // UNPIN(buf);
 
     return rc;
@@ -206,8 +184,8 @@ public class VM_FileSystem {
       // PIN(asciiName);
       // PIN(asciiList);
       len = VM.sysCall3(bootRecord.sysListIP, 
-                        VM_Magic.objectAsAddress(asciiName), 
-                        VM_Magic.objectAsAddress(asciiList), max);
+                        VM_Magic.objectAsAddress(asciiName).toInt(), 
+                        VM_Magic.objectAsAddress(asciiList).toInt(), max);
       // UNPIN(asciiName);
       // UNPIN(asciiList);
 
@@ -243,7 +221,7 @@ public class VM_FileSystem {
   }
 
   /**
-   * Get file status.
+   * Delete file.
    * @param fileName file name
    * @return true -- delete; false -- not delete
    */ 
@@ -256,7 +234,7 @@ public class VM_FileSystem {
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall1(bootRecord.sysDeleteIP,
-                         VM_Magic.objectAsAddress(asciiName));
+                         VM_Magic.objectAsAddress(asciiName).toInt());
 
     if (rc == 0) return true;
     else return false;
@@ -280,8 +258,8 @@ public class VM_FileSystem {
 
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall2(bootRecord.sysRenameIP,
-                         VM_Magic.objectAsAddress(fromCharStar),
-                         VM_Magic.objectAsAddress(toCharStar));
+                         VM_Magic.objectAsAddress(fromCharStar).toInt(),
+                         VM_Magic.objectAsAddress(toCharStar).toInt());
 
     if (rc == 0) return true;
     else return false;
@@ -301,10 +279,8 @@ public class VM_FileSystem {
     fileName.getBytes(0, fileName.length(), asciiName, 0);      
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall1(bootRecord.sysMkDirIP,
-                         VM_Magic.objectAsAddress(asciiName));
-
-    if (rc == 0) return true;
-    else return false;
+                         VM_Magic.objectAsAddress(asciiName).toInt());
+    return (rc == 0);
   } 
 
   public static boolean sync(int fd) {

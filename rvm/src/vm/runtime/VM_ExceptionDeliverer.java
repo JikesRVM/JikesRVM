@@ -50,7 +50,7 @@ abstract class VM_ExceptionDeliverer {
    * catch block
    */
   abstract void deliverException(VM_CompiledMethod compiledMethod,
-				 int               catchBlockInstructionAddress,
+				 VM_Address        catchBlockInstructionAddress,
 				 Throwable         exceptionObject,
 				 VM_Registers      registers);
 
@@ -59,7 +59,7 @@ abstract class VM_ExceptionDeliverer {
    * and stackframe is to be "unwound" as follows:
    *
    * <ul>
-   * <li> 1. for a synchronized method, call VM_Lock.unlock(),
+   * <li> 1. for a synchronized method, call VM_ObjectModel.genericUnlock(),
    *     passing it the appropriate "lock" object
    *       - for non-static methods, the lock is the method's 
    *         first argument ("this")

@@ -198,13 +198,12 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 	  boolean requiresImplementsTest = true;
 	  if (refType.isResolved() && !refType.isInterface()) {
 	    byte doesImplement = 
-	      OPT_ClassLoaderProxy.proxy.isAssignableWith(interfaceType, 
-							  refType);
+	      OPT_ClassLoaderProxy.includesType(interfaceType, refType);
 	    requiresImplementsTest = doesImplement != OPT_Constants.YES;
 	  }
 	  if (requiresImplementsTest) {
 	    OPT_Instruction dtc = 
-	      TypeCheck.create(CHECKCAST_INTERFACE_NOTNULL,
+	      TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
 			       receiver.copyU2U(),
 			       new OPT_TypeOperand(interfaceType),
 			       Call.getGuard(callSite).copy());
@@ -257,9 +256,8 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 	  // It is quite common to be able to answer (1) "YES" at compile
 	  // time, in which case we only have to generate IR to establish 
 	  // (2) at runtime.
-	  byte doesImplement = OPT_ClassLoaderProxy.proxy.
-	    isAssignableWith(callDeclClass, 
-			     target.getDeclaringClass());
+	  byte doesImplement = OPT_ClassLoaderProxy.
+	    includesType(callDeclClass, target.getDeclaringClass());
 	  if (doesImplement != OPT_Constants.YES) {
 	    // We can't be sure at compile time that the receiver implements
 	    // the interface. So, inject a test to make sure that it does.

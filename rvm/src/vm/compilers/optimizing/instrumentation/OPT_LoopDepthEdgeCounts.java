@@ -13,11 +13,10 @@ import java.util.Enumeration;
  * 
  * Use the loop nesting depth to approximate edge counts.
  *
- * @see OPT_StaticBranchProbEdgeCounts
  * @see OPT_EdgeCounts
  *
  * @author Matthew Arnold
- * */
+ */
 
 class OPT_LoopDepthEdgeCounts extends OPT_EdgeCounts
 implements OPT_Constants, OPT_Operators
@@ -151,11 +150,3 @@ implements OPT_Constants, OPT_Operators
   Hashtable basicBlockMap;
 
 }
-
-
-
-
-
-
-
-

@@ -65,6 +65,19 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     return getSize();
   }
 
+  /**
+   * Return the total number of nonvolatile GPRs.
+   */
+  static final int getNumberOfNonvolatileGPRs() {
+    return NUM_NONVOLATILE_GPRS;
+  }
+
+  /**
+   * Return the total number of nonvolatile FPRs.
+   */
+  static final int getNumberOfNonvolatileFPRs() {
+    return NUM_NONVOLATILE_FPRS;
+  }
 
   /**
    * Constructor: set up a pool of physical registers.
@@ -120,14 +133,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     reg[FRAME_POINTER].setSpansBasicBlock();
     reg[JTOC_POINTER].setSpansBasicBlock();
     reg[THREAD_ID_REGISTER].setSpansBasicBlock();
+
+    // 8. set up the volatile FPRs
     for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + 
         LAST_VOLATILE_FPR; i++) {
       OPT_Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
-
-    // 8. set up the volatile FPRs
     reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].linkWithNext(reg[FIRST_DOUBLE
         + FIRST_SCRATCH_FPR]);
     reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].setVolatile();
@@ -738,7 +751,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
   /**
    * An enumerator for use by the physical register utilities.
    */
-  class PhysicalRegisterEnumeration implements Enumeration {
+  final class PhysicalRegisterEnumeration implements Enumeration {
     private int start;
     private int end;
     private int index;

@@ -60,6 +60,20 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
     return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_CHECKCAST);
   }
   /**
+   * Create a trap code operand for a must implement
+   * @return the newly created trap code operand
+   */
+  public static OPT_TrapCodeOperand MustImplement() { 
+    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_MUST_IMPLEMENT);
+  }
+  /**
+   * Create a trap code operand for a must implement
+   * @return the newly created trap code operand
+   */
+  public static OPT_TrapCodeOperand StoreCheck() { 
+    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_STORE_CHECK);
+  }
+  /**
    * Create a trap code operand for a regeneration trap
    * @return the newly created trap code operand
    */
@@ -114,6 +128,24 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
   }
 
   /**
+   * Does the operand represent a must implement trap?
+   * @return <code>true</code> if it does and <code>false</code> 
+   *         if it does not
+   */
+  public boolean isDoesImplement() { 
+    return trapCode == VM_Runtime.TRAP_MUST_IMPLEMENT;
+  }
+
+  /**
+   * Does the operand represent an array store check?
+   * @return <code>true</code> if it does and <code>false</code> 
+   *         if it does not
+   */
+  public boolean isStoreCheck() { 
+    return trapCode == VM_Runtime.TRAP_STORE_CHECK;
+  }
+
+  /**
    * Does the operand represent a regeneration trap?
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
@@ -164,6 +196,10 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
       return "<STACK OVERFLOW>";
     case VM_Runtime.TRAP_CHECKCAST:
       return "<CLASSCAST>"; 
+    case VM_Runtime.TRAP_MUST_IMPLEMENT:
+      return "<MUST IMPLEMENT>"; 
+    case VM_Runtime.TRAP_STORE_CHECK:
+      return "<OBJARRAY STORE CHECK>"; 
     case VM_Runtime.TRAP_REGENERATE:
       return "<REGENERATE>";
     default:

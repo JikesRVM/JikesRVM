@@ -147,21 +147,21 @@ class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
   /**
    * Returns the source node of the edge.
    * @return edge source node
-   * @see OPT_VisEdge.sourceNode()
+   * @see OPT_VisEdge#sourceNode
    */
   public OPT_VisNode sourceNode() { return _fromNode; }
 
   /**
    * Returns the target node of the edge.
    * @return edge target node
-   * @see OPT_VisEdge.targetNode()
+   * @see OPT_VisEdge#targetNode
    */
   public OPT_VisNode targetNode() { return _toNode; }
 
   /**
    * Returns whether this edge is a backedge.
    * @return true if the edge is a backedge, false otherwise
-   * @see OPT_VCGEdge.backEdge()
+   * @see OPT_VCGEdge#backEdge
    */
   // Already defined above.
   //public boolean backEdge();
@@ -170,7 +170,7 @@ class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * Returns a VCG descriptor for the edge which will provide VCG-relevant
    * information for the edge.
    * @return edge descriptor
-   * @see OPT_VCGEdge.getVCGDescriptor()
+   * @see OPT_VCGEdge#getVCGDescriptor
    */
   public EdgeDesc getVCGDescriptor() {
     return new EdgeDesc() {

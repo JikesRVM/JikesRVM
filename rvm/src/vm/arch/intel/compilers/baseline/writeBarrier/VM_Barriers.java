@@ -21,7 +21,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 4)
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 0)
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayStoreWriteBarrierOffset);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
   }
 
   static void compilePutfieldBarrier (VM_Assembler asm, int fieldOffset) {
@@ -32,7 +32,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset);
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 0)
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedPutfieldWriteBarrierOffset);
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedPutfieldWriteBarrierMethod.getOffset());
   }
 
   static void compileUnresolvedPutfieldBarrier (VM_Assembler asm, int fieldID) {
@@ -43,7 +43,7 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitPUSH_Imm(fieldID);
     asm.emitPUSH_RegDisp(SP, 8);  // Push what was originally (SP, 0)
     genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedPutfieldWriteBarrierOffset);
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedPutfieldWriteBarrierMethod.getOffset());
   }
 
   // currently do not have a "write barrier for putstatic, emit nothing, for now...

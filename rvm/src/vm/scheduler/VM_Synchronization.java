@@ -18,92 +18,106 @@
  */
 class VM_Synchronization implements VM_Uninterruptible {
 
-   static final boolean testAndSet(Object base, int offset, int newValue) {
-      VM_Magic.pragmaInline();
-      int oldValue;
-      do {
-         oldValue = VM_Magic.prepare(base, offset);
-         if (oldValue != 0) return false;
-      } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
-      return true;
-   }
-
-  // used to mark boot image objects during a parallel scan of objects during GC
-  //
-  static final boolean testAndMark (Object base, int offset, int value)
-  {
+  static final boolean testAndSet(Object base, int offset, int newValue) {
     VM_Magic.pragmaInline();
     int oldValue;
-    do 
-      {
-	oldValue = VM_Magic.prepare(base, offset);              // get old value
-	int markBit  = oldValue & VM.OBJECT_GC_MARK_MASK;  // extract mark bit
-	if ( markBit == value) return false;               // if object marked return
-      }
-    while (! VM_Magic.attempt(base, offset, oldValue, oldValue ^ VM.OBJECT_GC_MARK_MASK)); // try to mark
-    return true;                                           // mark successful
+    do {
+      oldValue = VM_Magic.prepare(base, offset);
+      if (oldValue != 0) return false;
+    } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
+    return true;
   }
 
-
-   static final int fetchAndStore(Object base, int offset, int newValue) {
-      VM_Magic.pragmaInline();
-      int oldValue;
-      do {
-         oldValue = VM_Magic.prepare(base, offset);
-      } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
-      return oldValue;
-   }
-
-
-   static final int fetchAndAdd(Object base, int offset, int increment) {
-      VM_Magic.pragmaInline();
-      int oldValue;
-      do {
-         oldValue = VM_Magic.prepare(base, offset);
-      } while (!VM_Magic.attempt(base, offset, oldValue, oldValue+increment));
-      return oldValue;
-   }
-
-   static final int fetchAndDecrement(Object base, int offset, int decrement) {
-      VM_Magic.pragmaInline();
-      int oldValue;
-      do {
-         oldValue = VM_Magic.prepare(base, offset);
-      } while (!VM_Magic.attempt(base, offset, oldValue, oldValue-decrement));
-      return oldValue;
-   }
-
-   static final int fetchAndAddWithBound(Object base, int offset, int increment, int bound) {
-      VM_Magic.pragmaInline();
-      int oldValue, newValue;
-      do {
-         oldValue = VM_Magic.prepare(base, offset);
-         newValue = oldValue +increment;
-         if (newValue > bound) return  -1;
-      } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
-      return oldValue;
-   }
-
-  // used to mark small heap objects during a parallel scan of objects during GC
-  //
-  static final int fetchAndMarkBusy (Object base, int offset) {
-    return fetchAndMarkBusy(base, offset, VM_Collector.MARK_VALUE);
-  } 
-
-  // used to mark small heap objects during a parallel scan of objects during GC
-  //
-  static final int fetchAndMarkBusy (Object base, int offset, int value)
-  {
+  static final int fetchAndStore(Object base, int offset, int newValue) {
     VM_Magic.pragmaInline();
     int oldValue;
-    do 
-      {
-	oldValue = VM_Magic.prepare(base, offset);              // get old value
-	int markBit  = oldValue & VM.OBJECT_GC_MARK_MASK;  // extract mark bit
-	if ( markBit == value) return oldValue;            // return forward ptr or busy pattern
-      }
-    while (! VM_Magic.attempt(base, offset, oldValue, VM_Collector.BEING_FORWARDED_PATTERN)); // try to mark
-    return oldValue;                                       // return status word
+    do {
+      oldValue = VM_Magic.prepare(base, offset);
+    } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
+    return oldValue;
   }
 
+  static final VM_Address fetchAndStoreAddress(Object base, int offset, VM_Address newValue) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue;
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
+    } while (!VM_Magic.attempt(base, offset, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
+
+  static final int fetchAndAdd(Object base, int offset, int increment) {
+    VM_Magic.pragmaInline();
+    int oldValue;
+    do {
+      oldValue = VM_Magic.prepare(base, offset);
+    } while (!VM_Magic.attempt(base, offset, oldValue, oldValue+increment));
+    return oldValue;
+  }
+
+  static final int fetchAndDecrement(Object base, int offset, int decrement) {
+    VM_Magic.pragmaInline();
+    int oldValue;
+    do {
+      oldValue = VM_Magic.prepare(base, offset);
+    } while (!VM_Magic.attempt(base, offset, oldValue, oldValue-decrement));
+    return oldValue;
+  }
+
+  static final VM_Address fetchAndAddAddress(VM_Address addr, int increment) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue;
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
+    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(addr), 0, oldValue.toInt(), oldValue.add(increment).toInt()));
+    return oldValue;
+  }
+
+  static final VM_Address fetchAndAddAddressWithBound(VM_Address addr, int increment, VM_Address bound) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(increment > 0);
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
+      newValue = oldValue.add(increment);
+      if (newValue.GT(bound)) return VM_Address.max();
+    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(addr), 0, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
+
+  static final VM_Address fetchAndSubAddressWithBound(VM_Address addr, int decrement, VM_Address bound) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(decrement > 0);
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
+      newValue = oldValue.sub(decrement);
+      if (newValue.LT(bound)) return VM_Address.max();
+    } while (!VM_Magic.attempt(VM_Magic.addressAsObject(addr), 0, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
+
+  static final VM_Address fetchAndAddAddressWithBound(Object base, int offset, int increment, VM_Address bound) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(increment > 0);
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
+      newValue = oldValue.add(increment);
+      if (newValue.GT(bound)) return VM_Address.max();
+    } while (!VM_Magic.attempt(base, offset, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
+
+  static final VM_Address fetchAndSubAddressWithBound(Object base, int offset, int decrement, VM_Address bound) {
+    VM_Magic.pragmaInline();
+    VM_Address oldValue, newValue;
+    if (VM.VerifyAssertions) VM.assert(decrement > 0);
+    do {
+      oldValue = VM_Address.fromInt(VM_Magic.prepare(base, offset));
+      newValue = oldValue.sub(decrement);
+      if (newValue.LT(bound)) return VM_Address.max();
+    } while (!VM_Magic.attempt(base, offset, oldValue.toInt(), newValue.toInt()));
+    return oldValue;
+  }
 }

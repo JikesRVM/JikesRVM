@@ -27,28 +27,27 @@ public class VM_JNIStartUp implements Runnable {
 
   static boolean trace = false;
 
-  int argAddress; 
-  int externalJNIEnvAddress;
-  int pthreadID;
+    VM_Address argAddress; 
+    VM_Address externalJNIEnvAddress;
+    int pthreadID;
 
   /**
    * Used for AttachCurrentThread to create a java.lang.Thread and associate 
    * it with an external OS thread
    * @param argAddress  address pointing to a struct parms in C defined in libjni.c
    *                    (requestType, JNIEnv ** and pthreadID)
-   * @return
    */
-  public VM_JNIStartUp (int argAddress1) {
+  public VM_JNIStartUp (VM_Address argAddress1) {
     argAddress = argAddress1;
 
     // obtain the JNIEnv pointer and the pthread ID
     // based on the struct parms defined in libjni.C
-    externalJNIEnvAddress = VM_Magic.getMemoryWord(argAddress+4);
-    pthreadID             = VM_Magic.getMemoryWord(argAddress+8);
+    externalJNIEnvAddress = VM_Magic.getMemoryAddress(argAddress.add(4));
+    pthreadID             = VM_Magic.getMemoryWord(argAddress.add(8));
 
     if (trace) 
-      System.out.println("VM_JNIStartUp: " + VM.intAsHexString(argAddress) +
-			 ", JNIEnvAddr=" + VM.intAsHexString(externalJNIEnvAddress) +
+      System.out.println("VM_JNIStartUp: " + VM.intAsHexString(argAddress.toInt()) +
+			 ", JNIEnvAddr=" + VM.intAsHexString(externalJNIEnvAddress.toInt()) +
 			 ", pid=" + pthreadID);
     
   }
@@ -73,9 +72,9 @@ public class VM_JNIStartUp implements Runnable {
 
     if (trace) {
       System.out.println("VM_JNIStartUp: Java thread " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())) +
+			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()) +
 			 " attaching external pthread " + pthreadID + "\n");
-      System.out.println("JNIEnv to be placed at " + VM.intAsHexString(externalJNIEnvAddress));
+      System.out.println("JNIEnv to be placed at " + VM.intAsHexString(externalJNIEnvAddress.toInt()));
       
     }
 
@@ -113,7 +112,7 @@ public class VM_JNIStartUp implements Runnable {
     // register the vpStatusAddress for this thread in the VM_JNIEnvironment.JNIFunctionPointers
     // this is normally done in the prolog of the native method on the Java to C transition
     VM_JNIEnvironment.JNIFunctionPointers[(VM_Thread.getCurrentThread().getIndex() * 2) + 1] = 
-      nativeVP.vpStatusAddress;
+      nativeVP.vpStatusAddress.toInt();
 
     // normally done by StartupThread
     nativeVP.pthread_id = pthreadID;
@@ -124,7 +123,7 @@ public class VM_JNIStartUp implements Runnable {
     // to make JNI calls
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
     myEnv.alwaysHasNativeFrame = true;     // indicate that no stack resize should occur
-    myEnv.JNITopJavaFP = VM_Constants.STACKFRAME_SENTINAL_FP;      // indicate to GC that no Java stack frame below this point
+    myEnv.JNITopJavaFP = VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP);      // indicate to GC that no Java stack frame below this point
     myEnv.savedPRreg = nativeVP;
    
     // make sure no locking is done after this point or lock info may be lost
@@ -153,7 +152,7 @@ public class VM_JNIStartUp implements Runnable {
     if (trace) {
       System.out.println("VM_JNIStartUp: attached thread terminated, " +
 			 Thread.currentThread().getName() + ", " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())));
+			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()));
     }
 
     // remove the VP data structure from the list maintained for GC
@@ -178,8 +177,6 @@ public class VM_JNIStartUp implements Runnable {
    * @param arg[0] a string "-jni xxxx" where xxxx is the decimal address 
    *               of the JNIEnv pointer
    * @param arg[1] a string "-pid xxxx" where xxxx is the decimal pthread ID
-   * @return
-   * 
    */
   public static void main(String[] args) {
     int externalJNIEnv = 0;
@@ -215,11 +212,11 @@ public class VM_JNIStartUp implements Runnable {
 
     if (trace) {
       System.out.println("Main VM_Thread is " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())));
+			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()));
       System.out.println("env for external pthread is " + VM.intAsHexString(externalJNIEnv));
       System.out.println("AttachRequest at " + 
 			 VM.intAsHexString(VM_BootRecord.the_boot_record.attachThreadRequestedOffset + 
-					   VM_Magic.getTocPointer()));
+					   VM_Magic.getTocPointer().toInt()));
     }
 
     // before executing the following code, bind ourselves to the current processor
@@ -245,8 +242,8 @@ public class VM_JNIStartUp implements Runnable {
     // it will also be bound to the same processor
     VM_JNICreateVMFinishThread cleanupThread = 
       new VM_JNICreateVMFinishThread(VM_Thread.getCurrentThread(),
-				      externalJNIEnv,
-				      currentVP);
+				     VM_Address.fromInt(externalJNIEnv),
+				     currentVP);
     // get it going
     cleanupThread.start(currentVP.readyQueue);
 
@@ -270,7 +267,7 @@ public class VM_JNIStartUp implements Runnable {
       // register the vpStatusAddress for this thread in the VM_JNIEnvironment.JNIFunctionPointers
       // this is normally done in the prolog of the native method on the Java to C transition
       VM_JNIEnvironment.JNIFunctionPointers[(VM_Thread.getCurrentThread().getIndex() * 2) + 1] = 
-	nativeVP.vpStatusAddress;
+	nativeVP.vpStatusAddress.toInt();
     }
 
 
@@ -283,7 +280,7 @@ public class VM_JNIStartUp implements Runnable {
     // to make JNI calls
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
     myEnv.alwaysHasNativeFrame = true;     // indicate that no stack resize should occur
-    myEnv.JNITopJavaFP = VM_Constants.STACKFRAME_SENTINAL_FP;    // indicate to GC that no Java stack frame below this point
+    myEnv.JNITopJavaFP = VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP);    // indicate to GC that no Java stack frame below this point
     myEnv.savedPRreg = nativeVP;
    
     // make sure no locking is done after this point or lock info may be lost
@@ -317,7 +314,7 @@ public class VM_JNIStartUp implements Runnable {
     if (trace) {
       System.out.println("VM_JNIStartUp: main Java thread terminated, " +
 			 Thread.currentThread().getName() + ", " + 
-			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread())));
+			 VM.intAsHexString(VM_Magic.objectAsAddress(VM_Thread.getCurrentThread()).toInt()));
     }
 
     //  System.out.println("VM_JNIStartUp: " + VM_Scheduler.numActiveThreads + " active threads, " +

@@ -111,7 +111,16 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // unconditional branch to unconditional branch.
       // replace g with goto to targetInst's target
-      Goto.setTarget(g, Goto.getTarget(targetInst));
+      OPT_BranchOperand top = Goto.getTarget(targetInst);
+      if (top.similar(Goto.getTarget(g))) {
+	// Avoid an infinite recursion in the following bizarre scenario:
+	// g: goto L
+	// ...
+	// L: goto L
+	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
+	return false;
+      }
+      Goto.setTarget(g, top);
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -517,7 +526,7 @@ public final class OPT_BranchOptimizations
 				    OPT_Operand val2, 
 				    OPT_ConditionOperand cond) {
     if ((val1 instanceof OPT_RegisterOperand) && 
-        ((OPT_RegisterOperand)val1).type == VM_Type.BooleanType && 
+        ((OPT_RegisterOperand)val1).type == OPT_ClassLoaderProxy.BooleanType && 
 	(val2 instanceof OPT_IntConstantOperand)) {
       int value = ((OPT_IntConstantOperand)val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1))
@@ -1040,7 +1049,7 @@ public final class OPT_BranchOptimizations
       int fv = ((OPT_IntConstantOperand)fr).value;
       if (!((tv == 1 && fv == 0) || (tv == 1 && fv == 0)))
         return false;
-      OPT_RegisterOperand t = ir.regpool.makeTemp(VM_Type.BooleanType);
+      OPT_RegisterOperand t = ir.regpool.makeTemp(OPT_ClassLoaderProxy.BooleanType);
       // Cases 1) and 2)
       if (tv == 0)
         condition = condition.flipCode();

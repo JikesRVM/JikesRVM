@@ -13,13 +13,27 @@ import instructionFormats.*;
  * @author Stephen Fink
  */
 
-final class OPT_LoadElimination extends OPT_CompilerPhase 
-implements OPT_Operators {
+final class OPT_LoadElimination extends
+OPT_OptimizationPlanCompositeElement implements OPT_Operators {
+
+  /**
+   * @param round which round of load elimination is this?
+   */
+  OPT_LoadElimination(int round) {
+    super("Load Elimination", new OPT_OptimizationPlanElement[] {
+          new OPT_OptimizationPlanAtomicElement(new LoadEliminationPreparation(round)),
+          new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+          new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
+          new OPT_OptimizationPlanAtomicElement(new OPT_IndexPropagation()),
+          new OPT_OptimizationPlanAtomicElement(new LoadEliminator())
+          });
+    this.round = round;
+  }
 
   static final boolean DEBUG = false;
 
-  final boolean shouldPerform (OPT_Options options) {
-    return  options.LOAD_ELIMINATION;
+  final boolean shouldPerform(OPT_Options options) {
+    return options.LOAD_ELIMINATION;  
   }
 
   final String getName () {
@@ -30,32 +44,39 @@ implements OPT_Operators {
     return false;
   }
 
-  /** 
-   * main driver for redundant load elimination 
-   * Preconditions: Array SSA form and Global Value Numbers computed
-   * @param ir the governing IR
+  /**
+   * which round of load elimination is this?
    */
-  final public void perform (OPT_IR ir) {
+  private int round;
 
-    for (int i=0; i<ir.options.LOAD_ELIMINATION_ROUNDS; i++) {
-      // Set up IR state to control SSA translation as needed
-      (new LoadEliminationPreparation()).perform(ir);
-      // Get the desired SSA form
-      (new OPT_EnterSSA()).perform(ir); 
-      // compute value numbers.
-      (new OPT_GlobalValueNumber()).perform(ir);
+  final static class LoadEliminator extends OPT_CompilerPhase implements OPT_Operators{
 
-      // perform index propagation 
-      OPT_IndexPropagation ip = new OPT_IndexPropagation();
-      ip.perform(ir);
-      OPT_DF_Solution indexPropSolution = ir.HIRInfo.indexPropagationSolution;
-      boolean didSomething = eliminateLoads(ir, indexPropSolution);
+    final boolean shouldPerform (OPT_Options options) {
+      return true;
+    }
+
+    final String getName () {
+      return  "Load Eliminator";
+    }
+
+    final boolean printingEnabled (OPT_Options options, boolean before) {
+      return false;
+    }
+
+    /** 
+     * main driver for redundant load elimination 
+     * Preconditions: Array SSA form and Global Value Numbers computed
+     * @param ir the governing IR
+     */
+    final public void perform (OPT_IR ir) {
+
+      if (ir.desiredSSAOptions.getAbort()) return;
+      boolean didSomething = eliminateLoads(ir, ir.HIRInfo.indexPropagationSolution);
       // Note that SSA is no longer valid!!!
       // This will force construction of SSA next time we call EnterSSA
       ir.actualSSAOptions.setScalarValid(false);
       ir.actualSSAOptions.setHeapValid(false);
-
-      if (!didSomething) return;
+      ir.HIRInfo.loadEliminationDidSomething = didSomething;
     }
   }
 
@@ -65,9 +86,9 @@ implements OPT_Operators {
    *
    * @return true if any load is eliminated.
    */
-  final boolean eliminateLoads (OPT_IR ir, OPT_DF_Solution available) {
+  final static boolean eliminateLoads (OPT_IR ir, OPT_DF_Solution available) {
     // maintain a mapping from value number to temporary register
-    java.util.HashMap registers = new java.util.HashMap();
+    HashMap registers = new HashMap();
     UseRecordSet UseRepSet = replaceLoads(ir, available, registers);
     replaceDefs(ir, UseRepSet, registers);
 
@@ -85,8 +106,8 @@ implements OPT_Operators {
    * @param available information on which values are available
    * @param registers a place to store information about temp registers
    */
-  final UseRecordSet replaceLoads (OPT_IR ir, OPT_DF_Solution available, 
-                                   java.util.HashMap registers) {
+  final static UseRecordSet replaceLoads (OPT_IR ir, OPT_DF_Solution available, 
+                                   HashMap registers) {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
@@ -166,7 +187,7 @@ implements OPT_Operators {
    * Replace a Load instruction s with a load from a scalar register r
    * TODO: factor this functionality out elsewhere
    */
-  void replaceLoadWithMove (OPT_Register r, OPT_Instruction load) {
+  static void replaceLoadWithMove (OPT_Register r, OPT_Instruction load) {
     OPT_RegisterOperand dest = ResultCarrier.getResult(load);
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, dest.type);
     load.replace(Move.create(OPT_IRTools.getMoveOp(dest.type), 
@@ -180,8 +201,8 @@ implements OPT_Operators {
    * @param UseRepSet stores the uses(loads) that have been eliminated
    * @param registers mapping from valueNumber -> temporary register
    */
-  final void replaceDefs (OPT_IR ir, UseRecordSet UseRepSet, 
-                          java.util.HashMap registers) {
+  final static void replaceDefs (OPT_IR ir, UseRecordSet UseRepSet, 
+                          HashMap registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
@@ -268,7 +289,7 @@ implements OPT_Operators {
    * Append an instruction after a store instruction that caches
    * value in register r.
    */
-  void appendMove (OPT_Register r, OPT_Operand src, OPT_Instruction store) {
+  static void appendMove (OPT_Register r, OPT_Operand src, OPT_Instruction store) {
     VM_Type type = src.getType();
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, type);
     store.insertAfter(Move.create(OPT_IRTools.getMoveOp(type), 
@@ -286,8 +307,8 @@ implements OPT_Operators {
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
    */
-  OPT_Register findOrCreateRegister (Object heapType, int valueNumber, 
-                                     java.util.HashMap registers, 
+  static OPT_Register findOrCreateRegister (Object heapType, int valueNumber, 
+                                     HashMap registers, 
                                      OPT_RegisterPool pool, VM_Type type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     OPT_Register result = (OPT_Register)registers.get(key);
@@ -310,8 +331,8 @@ implements OPT_Operators {
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
    */
-  OPT_Register findOrCreateRegister (Object heapType, int v1, int v2, 
-                                     java.util.HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+  static OPT_Register findOrCreateRegister (Object heapType, int v1, int v2, 
+                                     HashMap registers, OPT_RegisterPool pool, VM_Type type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -352,7 +373,7 @@ implements OPT_Operators {
   }
 
   static class UseRecordSet {
-    java.util.HashSet set = new java.util.HashSet(10);
+    HashSet set = new HashSet(10);
 
     // Does this set contain a use that has the same type as H and
     // the given value number?
@@ -391,10 +412,10 @@ implements OPT_Operators {
    *	1) there's a load L of type T	
    *	2) there's another load or store M of type T, M!=L 
    */
-  final public static java.util.Set getCandidates (OPT_IR ir) {
-    java.util.HashSet seenLoad = new java.util.HashSet(10);
-    java.util.HashSet seenStore = new java.util.HashSet(10);
-    java.util.HashSet resultSet = new java.util.HashSet(10);
+  final public static Set getCandidates (OPT_IR ir) {
+    HashSet seenLoad = new HashSet(10);
+    HashSet seenStore = new HashSet(10);
+    HashSet resultSet = new HashSet(10);
     // walk the instructions.  Store whether we've seen a load and/or a
     // store for each type. Then, when we see a second appearance,
     // if we've previously seen a load, then add this type to the
@@ -482,6 +503,12 @@ implements OPT_Operators {
       return  false;
     }
 
+    private final int round;
+
+    LoadEliminationPreparation(int round) {
+      this.round = round;
+    }
+
     final public void perform (OPT_IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination
@@ -490,6 +517,8 @@ implements OPT_Operators {
       ir.desiredSSAOptions.setBackwards(false);
       ir.desiredSSAOptions.setInsertUsePhis(true);
       ir.desiredSSAOptions.setHeapTypes(OPT_LoadElimination.getCandidates(ir));
+      ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS) 
+                                    || (ir.HIRInfo.loadEliminationDidSomething == false));
     }
   }
 }

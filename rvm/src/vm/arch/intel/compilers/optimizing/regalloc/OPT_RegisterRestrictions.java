@@ -3,9 +3,10 @@
  */
 //$Id$
 
-import java.util.Enumeration;
+import java.util.Iterator;
 import instructionFormats.*;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 /**
  * An instance of this class encapsulates restrictions on register
@@ -35,50 +36,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
-  void addArchRestrictions(OPT_BasicBlock bb, Vector symbolics) {
-    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements(); ) {
-      OPT_Instruction s = ie.next();
-      if (s.operator == IA32_FNINIT) {
-        // No floating point register survives across an FNINIT
-        for (Enumeration sym = symbolics.elements(); sym.hasMoreElements(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)
-            sym.nextElement();
-          if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb,s.scratch)) {
-              addRestrictions(symb.getRegister(),phys.getFPRs());
-            }
-          }
-        }
-      } else if (s.operator == IA32_FCLEAR) {
-        // Only some FPRs survive across an FCLEAR
-        for (Enumeration sym = symbolics.elements(); sym.hasMoreElements(); ) {
-          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement)
-            sym.nextElement();
-          if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb,s.scratch)) {
-              int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
-              for (int i = nSave; i < NUM_FPRS; i++) {
-                addRestriction(symb.getRegister(), phys.getFPR(i));
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  /**
-   * Record all the register restrictions dictated by live ranges on a
-   * particular basic block.
-   *
-   * PRECONDITION: the instructions in each basic block are numbered in
-   * increasing order before calling this.  The number for each
-   * instruction is stored in its <code>scratch</code> field.
-   */
-  protected void processBlock(OPT_BasicBlock bb) {
-    // first process the default register restrictions
-    super.processBlock(bb);
-
+  void addArchRestrictions(OPT_BasicBlock bb, ArrayList symbolics) {
     // If there are any registers used in catch blocks, we want to ensure
     // that these registers are not used or evicted from scratch registers
     // at a relevant PEI, so that the assumptions of register homes in the
@@ -100,9 +58,9 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
         }
       }
 
-      // handle special cases for IA32
+      // handle special cases 
       switch (s.getOpcode()) {
-        case IA32_LOWTABLESWITCH_opcode:
+        case MIR_LOWTABLESWITCH_opcode:
           {
             OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
             noteMustNotSpill(op.register);
@@ -131,8 +89,35 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           break;
       }
     }
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+         ie.hasMoreElements(); ) {
+      OPT_Instruction s = ie.next();
+      if (s.operator == IA32_FNINIT) {
+        // No floating point register survives across an FNINIT
+        for (Iterator sym = symbolics.iterator(); sym.hasNext(); ) {
+          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
+          if (symb.getRegister().isFloatingPoint()) {
+            if (contains(symb,s.scratch)) {
+              addRestrictions(symb.getRegister(),phys.getFPRs());
+            }
+          }
+        }
+      } else if (s.operator == IA32_FCLEAR) {
+        // Only some FPRs survive across an FCLEAR
+        for (Iterator sym = symbolics.iterator(); sym.hasNext(); ) {
+          OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
+          if (symb.getRegister().isFloatingPoint()) {
+            if (contains(symb,s.scratch)) {
+              int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
+              for (int i = nSave; i < NUM_FPRS; i++) {
+                addRestriction(symb.getRegister(), phys.getFPR(i));
+              }
+            }
+          }
+        }
+      }
+    }
   }
-
 
   /**
    * Does instruction s contain an 8-bit memory operand?
@@ -210,7 +195,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           if (op.asRegister().register == r) return true;
         }
         break;
-      case IA32_LOWTABLESWITCH_opcode:
+      case MIR_LOWTABLESWITCH_opcode:
         {
           OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
           if (op.asRegister().register == r) return true;

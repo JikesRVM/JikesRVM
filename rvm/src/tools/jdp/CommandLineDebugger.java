@@ -38,10 +38,10 @@ public class CommandLineDebugger
    */  
   
   public CommandLineDebugger (int bp, String runner, boolean rawMode, boolean interpreted, String init_macro,
-                              boolean viewBoot, boolean dejavu)
+                              boolean viewBoot)
   {
     console = new CommandLine("jdp:0>", rawMode);    
-    debugger = new Debugger(bp, runner, rawMode, interpreted, init_macro, console, viewBoot, dejavu);
+    debugger = new Debugger(bp, runner, rawMode, interpreted, init_macro, console, viewBoot);
   }
 
   /**

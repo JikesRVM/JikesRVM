@@ -51,16 +51,16 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
     if (frameOffset >= 0) {
 
       // get to the nonVol area
-      int nonVolArea = framePtr + frameOffset;
+      VM_Address nonVolArea = framePtr.add(frameOffset);
       
       // update non-volatiles that were saved
       int first = compilerInfo.getFirstNonVolatileGPR();
       if (first >= 0) {
 	// move to the beginning of the save area for nonvolatiles
-	int location = nonVolArea;
+	VM_Address location = nonVolArea;
 	for (int i = first; i <= LAST_GCMAP_REG; i++) {
-	  registerLocations[i] = location;
-	  location += 4;
+	  registerLocations[i] = location.toInt();
+	  location = location.add(4);
 	}
       }
       
@@ -68,18 +68,18 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
       if (compilerInfo.isSaveVolatile()) {
 	// move to the beginning of the save area for volatiles
 	int numSlotsToSkip = FIRST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR;
-	int location = nonVolArea - (4 * numSlotsToSkip);
+	VM_Address location = nonVolArea.sub(4 * numSlotsToSkip);
 	
 	// Walk the saved volatiles, updating registerLocations array
 	for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
-	  registerLocations[i] = location;
-	  location += 4;
+	  registerLocations[i] = location.toInt();
+	  location = location.add(4);
 	}
 	
 	// Walk the saved scratch, updating registerLocations array
 	for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; i++) {
-	  registerLocations[i] = location;
-	  location += 4;
+	  registerLocations[i] = location.toInt();
+	  location = location.add(4);
 	}
       }
     }
@@ -92,8 +92,8 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @param offset  the offset 
    *  @return the resulting stack location
    */
-  int getStackLocation(int framePtr, int offset) {
-    return framePtr + offset;
+  VM_Address getStackLocation(VM_Address framePtr, int offset) {
+    return framePtr.add(offset);
   }
 
   /** 
@@ -101,8 +101,8 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @param the frame pointer
    *  @return the first spill location
    */
-  int getFirstSpillLoc() {
-    return framePtr + SPILL_DISTANCE_FROM_FP;
+  VM_Address getFirstSpillLoc() {
+    return framePtr.add(SPILL_DISTANCE_FROM_FP);
   }
 
   /** 
@@ -113,7 +113,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @return the last spill location, if no spills occur, we return the
    *      first spill location
    */
-  int getLastSpillLoc() {
+  VM_Address getLastSpillLoc() {
     if (DEBUG) {
       VM.sysWrite("\n unsigendNVOffset: ");
       VM.sysWrite(compilerInfo.getUnsignedNonVolatileOffset());
@@ -141,17 +141,17 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
     // enough info in the VM_OptCompilerInfo object (the one that is available
     // at GC time) to distinguish the lower part of the spill.
 
-    int lastSpill = 0;
-    int firstSpill = getFirstSpillLoc();
+    VM_Address firstSpill = getFirstSpillLoc();
+    VM_Address lastSpill;
     int nonVolOffset = compilerInfo.getUnsignedNonVolatileOffset();
     if (nonVolOffset != 0) {
       if (compilerInfo.isSaveVolatile()) {
-	lastSpill = framePtr + nonVolOffset - 4 - SAVE_VOL_SIZE;
+	lastSpill = framePtr.add(nonVolOffset - 4 - SAVE_VOL_SIZE);
       } else {
-	lastSpill = framePtr + nonVolOffset - 4;
+	lastSpill = framePtr.add(nonVolOffset - 4);
       }
       // If the above computation is less than firstSpill, there are no spills
-      if (lastSpill < firstSpill) {
+      if (lastSpill.LT(firstSpill)) {
 	lastSpill = firstSpill;
       }
     } else {

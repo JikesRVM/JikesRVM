@@ -33,9 +33,20 @@ class t3GT3
   public static void main(String args[])
   {
     // Kludge for running under sanity harness
-    if (args[0].equals("-quiet")) {
+    if (args.length > 0 && args[0].equals("-quiet")) {
       args = new String[] { "1", "50", "2500", "1", "1" };
       sanity = true;
+    }
+
+    if (args.length < 5) {
+      System.out.println("If \"-quiet\" is not specified as the first command line argument,\nthen the following 5 command line arguments must be specified:\n"+
+			 "  number of workers,\n"+
+			 "  number of buffers created,\n"+
+			 "  length of buffer append,\n"+			 
+			 "  waiters, and\n"+
+			 "  wait time\n"
+			 );
+      System.exit(-1);
     }
 
     int time;
@@ -61,14 +72,12 @@ class t3GT3
 			// have main thread do the computing
 			// now take the time
       starttime = System.currentTimeMillis();
-		for (int i = 0; i < arg1; i++) t3GTGC.runit(arg1, arg2);
-   if (FORCE_GC) {
-     // VM_Scheduler.trace("\nMain calling","System.gc:\n");
-     System.gc();
-   }
-    }
-
-    else {
+      for (int i = 0; i < arg1; i++) t3GTGC.runit(arg1, arg2);
+      if (FORCE_GC) {
+	// VM_Scheduler.trace("\nMain calling","System.gc:\n");
+	System.gc();
+      }
+    } else {
       int waiters, wait_time;
 			if (args.length > 4) {
 				waiters = Integer.parseInt(args[3]);

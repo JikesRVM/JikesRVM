@@ -116,11 +116,6 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       VM_CompiledMethod compiledMethod   = VM_CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
       VM_Method callee = compiledMethod.getMethod();
-      if (OPT_InliningUtilities.methodShouldNotBeInlined(callee)) {
-	if(DEBUG)VM.sysWrite("  "+callee+" should not be inlined!\n");
-	continue;
-      }
-
       int callerCMID = buffer[i+1];
       compiledMethod   = VM_CompiledMethods.getCompiledMethod(callerCMID);
       if (compiledMethod == null) continue;

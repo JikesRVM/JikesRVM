@@ -31,7 +31,7 @@ class VM_BootImageCompiler {
       OPT_Compiler.setBootOptions( options );
 
       // An unexpected error when building the opt boot image should be fatal
-      options.ERRORS_FATAL = true;
+      options.ERRORS_FATAL = true; 
 
       // Allow further customization by the user.
       for (int i = 0, n = args.length; i < n; i++) {

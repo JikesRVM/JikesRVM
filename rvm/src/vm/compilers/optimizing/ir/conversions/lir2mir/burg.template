@@ -20,7 +20,8 @@ import instructionFormats.*;
  *
  * NOTE: Program generated file, do not edit!
  */
-public final class OPT_BURS_STATE extends OPT_BURS_Helpers 
+public final class OPT_BURS_STATE 
+   extends OPT_BURS_Helpers 
    implements OPT_Operators, OPT_BURS_Definitions {
 
    static final byte NOFLAGS           = 0x00;
@@ -52,7 +53,6 @@ public final class OPT_BURS_STATE extends OPT_BURS_Helpers
    // NOTE: There are (many) more of these that are architecture-specific 
    //       defined in OPT_BURS_Helpers.java and inherited by OPT_BURS_STATE.
 	
-
    // is a == 0?
    boolean ZERO(OPT_Operand a) {
      return (IV(a) == 0);
@@ -67,7 +67,6 @@ public final class OPT_BURS_STATE extends OPT_BURS_Helpers
    boolean MINUSONE(OPT_Operand a) {
      return (IV(a) == -1);
    }
-
 
    // helper functions for condition operands
    boolean EQ_NE(OPT_ConditionOperand c) {
@@ -142,14 +141,12 @@ public final class OPT_BURS_STATE extends OPT_BURS_Helpers
     *    from the file gen.c, from the LCC compiler.
     *
     ************************************************************************/
-
    void trace(OPT_BURS_TreeNode p, int rule, int cost, int bestcost) {
      if (OPT_BURS.DEBUG) {
        VM.sysWrite(p+" matched "+OPT_BURS_Debug.string[rule]+" with cost "+
 		   cost+"vs. "+bestcost);
      }
    }
-
 
    //
    // This function will dump the tree

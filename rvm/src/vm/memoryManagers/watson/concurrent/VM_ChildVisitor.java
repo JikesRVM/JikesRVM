@@ -10,15 +10,15 @@ public abstract class VM_ChildVisitor
     extends VM_RCGC
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    protected boolean visit(int object) { VM.assert(false); return false; }
-    protected boolean visit(int object, int objectRef) { VM.assert(false); return false; }
+    protected boolean visit(VM_Address object) { VM.assert(false); return false; }
+    protected boolean visit(VM_Address object, VM_Address objectRef) { VM.assert(false); return false; }
 
     protected final boolean ignorePrimitiveTypes = false;
 
     private static final boolean measureDepth = false;
     private static int depth;
 
-    public final boolean visitChildren(int object) {
+    public final boolean visitChildren(VM_Address object) {
 	if (measureDepth) {
 	    depth++;
 	    if ((depth % 50) == 0) 
@@ -33,8 +33,8 @@ public abstract class VM_ChildVisitor
 	    if (trace1) VM.sysWrite("<");
 	    int[] referenceOffsets = type.asClass().getReferenceOffsets();
 	    for (int i = 0, n = referenceOffsets.length; i < n; ++i) {
-		int objectRef = VM_Magic.getMemoryWord(object + referenceOffsets[i]);
-		if (objectRef != 0) 
+		VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(referenceOffsets[i]));
+		if (!objectRef.isZero())
 		    if (! visit(objectRef)) {
 			if (measureDepth) depth--;
 			return false;
@@ -47,8 +47,8 @@ public abstract class VM_ChildVisitor
 		if (trace1) VM.sysWrite("[");
 		int elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(object));
 		for (int i = 0; i < elements; i++) {
-		    int objectRef = VM_Magic.getMemoryWord(object + (i<<2));
-		    if (objectRef != 0)			
+		    VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(i<<2));
+		    if (!objectRef.isZero())
 			if (! visit(objectRef)) {
 			    if (measureDepth) depth--;
 			    return false;
@@ -73,7 +73,7 @@ public abstract class VM_ChildVisitor
 
     // cloned from above routine -- provides edge info for debug purposes.
     // should merge routines back together at some point.
-    public final boolean visitChildrenWithEdges(int object) {
+    public final boolean visitChildrenWithEdges(VM_Address object) {
 
 	VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(object));
 
@@ -83,8 +83,8 @@ public abstract class VM_ChildVisitor
 	    if (trace1) VM.sysWrite("<");
 	    int[] referenceOffsets = type.asClass().getReferenceOffsets();
 	    for (int i = 0, n = referenceOffsets.length; i < n; ++i) {
-		int objectRef = VM_Magic.getMemoryWord(object + referenceOffsets[i]);
-		if (objectRef != 0) 
+		VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(referenceOffsets[i]));
+		if (!objectRef.isZero())
 		    if (! visit(object, objectRef))
 			return false;
 	    }
@@ -95,8 +95,8 @@ public abstract class VM_ChildVisitor
 		if (trace1) VM.sysWrite("[");
 		int elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(object));
 		for (int i = 0; i < elements; i++) {
-		    int objectRef = VM_Magic.getMemoryWord(object + (i<<2));
-		    if (objectRef != 0)			
+		    VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(i<<2));
+		    if (!objectRef.isZero())
 			if (! visit(object, objectRef))
 			    return false;
 		}

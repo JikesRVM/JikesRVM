@@ -171,8 +171,8 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * <li> For a non-static method: offset of code object reference from 
    * start of tib
    * </ul>
-   * @see VM_Class.getLiteralOffset() to obtain offset of constant from 
-   * start of jtoc
+   * @see VM_Class#getLiteralOffset
+   * to obtain offset of constant from start of jtoc
    */ 
   abstract int getOffset();
    

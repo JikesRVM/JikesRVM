@@ -74,13 +74,6 @@ class Debugger implements jdpConstants {
    */
   private breakpointList saved_bpset;
 
-
-
-  /// /**
-  /// * BootImageWriter for compiling a boot image
-  /// */
-  /// private BootImageWriter bi;
-
   /**
    * Flag set to true if the previous command was for java source debugging 
    * (e.g. stepline), false if machine code debugging (e.g. step).
@@ -98,11 +91,6 @@ class Debugger implements jdpConstants {
    * flag to view booting of VM
    */
   private boolean viewBoot;
-
-  /**
-   * flag to see whether we are using dejavu
-   */
-  private boolean dejavu;
 
   /**
    * Macro file holding jdp commands
@@ -141,6 +129,7 @@ class Debugger implements jdpConstants {
   static char integerPreference='d';   // print array, class fields in hex or integer
   static char stackPreference='x';     // print stack with or without decimal column
   static char fprPreference='f';     // print FPR values in hex or in float
+  static boolean showFPRsPreference = false;  // Show or do not show FPRs with other regs
 
 
   /**
@@ -155,8 +144,7 @@ class Debugger implements jdpConstants {
    * @see     jdp
    */  
   public Debugger(int bp, String runner, boolean rawMode, boolean interpreted, String init_macro,
-                  JDPCommandInterface console, boolean _viewBoot, boolean _dejavu)
-  {
+                  JDPCommandInterface console, boolean _viewBoot) {
     // load the JNI library to access ptrace
     Platform.init();
 
@@ -176,7 +164,6 @@ class Debugger implements jdpConstants {
 
     interpretMode = interpreted;
     viewBoot = _viewBoot;
-    dejavu = _dejavu;
 
     // default:  out of process debugger
     if (runner==null)
@@ -186,23 +173,6 @@ class Debugger implements jdpConstants {
 
     macro = new jdpMacro();
   }
-
-  /**
-   * Instance of an internal Debugger (inside the JVM)
-   * @param   
-   * @return  
-   * @see  
-   */    
-  // public Debugger() {
-  //   jdp_console = new CommandLine("jvm>", false);
-  //   printMode = PRINTASSEMBLY;
-  //   debuggerEnvironment = INTERNAL;          // internal debugger
-  //   interpretMode = false;
-  //   // macro = new jdpMacro();  // StringTokenizer is not in JVM yet
-  //   
-  //   // for the internal debugger, create the process once only
-  //   user = new OsProcessInternal();
-  // }
 
 
   /**
@@ -215,8 +185,7 @@ class Debugger implements jdpConstants {
    * @return  
    * @see     jdp  
    */  
-  public void init(String args[])
-  {
+  public void init(String args[]) {
     int i, status;
     saved_args = args;
     VM_Method mymethod[];
@@ -254,8 +223,7 @@ class Debugger implements jdpConstants {
   /**
    * Exit the debugger
    */
-  public void exit()
-  {
+  public void exit() {
     // exiting debugger
     if (user!=null) 
       user.pkill();
@@ -281,7 +249,6 @@ class Debugger implements jdpConstants {
                                    classesNeededFilename, classpath);
 
       // wait for the attachment to complete
-
       // cache the JTOC value before referring to other JVM structures
       user.reg.cacheJTOC();
       
@@ -295,24 +262,17 @@ class Debugger implements jdpConstants {
       // we will need use the dictionary pointers)
       user.bmap.fillBootMethodTable();
 
-
-
       jdp_console.writeOutput(user.mem.printCurrentInstr());
     }
-    /*
-     */
     catch (OsProcessException e) {
-
     }
   }
 
   /**
    * detach the debugger and exit
    */
-  public void exitAttached()
-  {
-    if (user!=null)
-    {
+  public void exitAttached() {
+    if (user!=null) {
       user.bpset.clearAllBreakpoint();
       user.mdetach();
     }
@@ -408,13 +368,11 @@ class Debugger implements jdpConstants {
 
 
 
-  public boolean runCommand()
-  {
+  public boolean runCommand() {
     String cmd; 
     String cmd_args[];
     // if we are processing a macro file, get the next line
-    if (macro.next())
-    {
+    if (macro.next()) {
       String cmd_arg_string=" ";
       cmd = macro.cmd();
       cmd_args = macro.args();
@@ -426,27 +384,21 @@ class Debugger implements jdpConstants {
       jdp_console.writeOutput("Macro line " + macro.currentLine() + ": " + 
                               cmd + cmd_arg_string);
     }
-    else
-    {
+    else {
       // otherwise parse the jdp_console input into command and args 
       jdp_console.readCommand(user);     
       cmd = jdp_console.cmd();
       cmd_args = jdp_console.args();
     }
-    if (!cmd.equals(""))
-    {    
-      if (cmd.equals("quit") || cmd.equals("q"))
-      {
+    if (!cmd.equals("")) {    
+      if (cmd.equals("quit") || cmd.equals("q")) {
         return true;
       }
-      else
-      {
-        try
-        {
+      else {
+        try {
           return jdpCommand(cmd, cmd_args);
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
           jdp_console.writeOutput("ERROR executing jdp command: " + e.getMessage());
           //e.printStackTrace();
           jdp_console.writeOutput("email to jvm-coders or try again . . . ");
@@ -615,6 +567,12 @@ class Debugger implements jdpConstants {
       doRegisterWrite(command, args);
     }
 
+    else if (command.equals("regname") || command.equals("regnames")) {
+      if (args.length != 0)
+	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
+      doRegisterName(command);
+    }
+
     else if (command.equals("memraw") || command.equals("mraw")) {
       doMemoryReadRaw(command, args);
     }
@@ -696,11 +654,11 @@ class Debugger implements jdpConstants {
       doSetPreference(command, args);
     }
 
-    else if (command.equals("preference") || command.equals("x2d")) {
+    else if (command.equals("x2d")) {
       doConvertHexToInt(command, args);
     }
 
-    else if (command.equals("preference") || command.equals("d2x")) {
+    else if (command.equals("d2x")) {
       doConvertIntToHex(command, args);
     }
 
@@ -762,10 +720,8 @@ class Debugger implements jdpConstants {
 
   }
 
-  public boolean checkCleanup()
-  {
-    if (!runstat && (user != null))
-    {
+  public boolean checkCleanup() {
+    if (!runstat && (user != null)) {
       saved_bpset = user.bpset;
       user.pkill();
       user = null;         /* drop reference, process terminated */
@@ -773,8 +729,7 @@ class Debugger implements jdpConstants {
     return !runstat;
   }
 
-  public int getThreadNumber()
-  {
+  public int getThreadNumber() {
     return user.reg.getContextThreadID();
   }
   
@@ -917,24 +872,11 @@ class Debugger implements jdpConstants {
     user.pcontinue(0, PRINTASSEMBLY, true);
 
     refreshEnvironment();
-    if (dejavu)
-    {
-      System.out.println("An extra continue for Dejavu ...");
-      user.pcontinue(0, PRINTASSEMBLY, true);
-      refreshEnvironment();
-    }
-    // user.pcontinueToReturn(0, PRINTASSEMBLY);    // up one frame to return to MainThread
-    
     refreshEnvironment();
     
     
     // set breakpoint in main() method of user program
-    breakpoint main_bp;
-    if (dejavu) {
-      main_bp = setDejaVuMainBreakpoint();
-    } else {
-      main_bp = setMainBreakpoint();
-    }
+    breakpoint main_bp = setMainBreakpoint();
     // remove original breakpoint
     user.bpset.clearBreakpoint(bp);
     
@@ -949,33 +891,6 @@ class Debugger implements jdpConstants {
     user.bpset.clearBreakpoint(main_bp);
   }
 
-
-  /**
-   * set a breakpoint at the user main() method when
-   * running DejaVu
-   * @return the breakpoint
-   */
-  private breakpoint setDejaVuMainBreakpoint()
-  {
-    JDP_Class dejavuClass = null;
-    // get DejaVu class
-    try
-    {
-      dejavuClass = user.bmap.objectToJDPClass("DejaVu", 0, true);
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    // get mainClassName static field
-    JDP_Field classNameField = null;
-    for (int i = 0; i < dejavuClass.fields.size(); i++)
-    {
-      classNameField = (JDP_Field)dejavuClass.fields.elementAt(i);
-      if (classNameField.name.equals("mainClassName")) break;
-    }
-    return setBreakpointAtStringClass(classNameField);
-  }
 
   /**
    * set a breakpoint at the user main() method
@@ -1401,17 +1316,32 @@ class Debugger implements jdpConstants {
 	// }
 	break;
       case 1:
-	addr = parseHex32(args[0]);
-	jdp_console.writeOutput(user.mem.listInstruction(addr, 10));
+	if (args[0].startsWith("0x") || args[0].startsWith("0X")) {
+	  addr = parseHex32(args[0]);
+	  count = 10;
+	}
+	else {
+	  addr = user.reg.currentIP();
+	  count = Integer.parseInt(args[0]);
+	  if (count < 0 && Platform.listiNegCountImplemented == 0) {
+	    jdp_console.writeOutput("Sorry, use of a negative count is not available on this platform");
+	    break;
+	  }
+	}
+	jdp_console.writeOutput(user.mem.listInstruction(addr, count));
 	break;
       default:
 	addr = parseHex32(args[0]);
 	count = Integer.parseInt(args[1]);
+	if (count < 0 && Platform.listiNegCountImplemented == 0) {
+	  jdp_console.writeOutput("Sorry, use of a negative count is not available on this platform");
+	  break;
+	}
 	jdp_console.writeOutput(user.mem.listInstruction(addr, count));
 	break;
       }
     } catch (NumberFormatException e) {
-      jdp_console.writeOutput("bad address: " + args[0]);
+      jdp_console.writeOutput("If an address is specified it must be as a hex number, any count specified must be an integer");
     }
   }
 
@@ -1563,6 +1493,19 @@ class Debugger implements jdpConstants {
 
   }
 
+  /**
+   * Print the symbolic names of the registers
+   * @param command String containing the command
+   * @return  
+   * @see     
+   */
+  public void doRegisterName(String command) {
+    try {
+      jdp_console.writeOutput(user.reg.getNames());
+    } catch (Exception e) {
+      jdp_console.writeOutput(e.getMessage());
+    }
+  }
 
   /**
    * Print the value of static fields of a class
@@ -1847,9 +1790,13 @@ class Debugger implements jdpConstants {
     try {
       switch (args.length) {
       case 0:
+	// See if context had been set; report what it had been set to
+	threadID = user.reg.getContextThreadID();
+	if (threadID != 0)
+	  jdp_console.writeOutput("context had been set to thread: " + threadID);
 	// return to the thread context in the hardware (R15)
 	threadID = user.reg.registerToTPIndex(user.reg.hardwareTP());
-	jdp_console.writeOutput("context of executing thread: " + threadID);
+	jdp_console.writeOutput("setting context to executing thread: " + threadID);
 	user.reg.setContextThreadID(threadID);
 	break;
       case 1:
@@ -1939,6 +1886,11 @@ class Debugger implements jdpConstants {
       ret.append("  integer = " + integerPreference + "\n");
       ret.append("  stack = "   + stackPreference + "\n");
       ret.append("  fpr = "     + fprPreference + "\n");
+      ret.append("  showFPRs = ");
+      if (showFPRsPreference) 
+	ret.append(" true\n");
+      else
+	ret.append(" false\n");
       jdp_console.writeOutput(ret.toString());
 
     } else if (args[0].equals("int")) {
@@ -1965,7 +1917,17 @@ class Debugger implements jdpConstants {
       else 
 	printHelp(command);
       return;
-    } else {      
+    } else if (args[0].equals("showFPRs") || args[0].equals("showfprs")) {
+      if (args[1].equals("true"))
+	showFPRsPreference = true;
+      else if (args[1].equals("false")) 
+	showFPRsPreference = false;
+      else {
+	jdp_console.writeOutput("Sorry, value should be 'true' or 'false'\n");
+	printHelp(command);
+      }
+    } else {
+      jdp_console.writeOutput("Sorry, I do not recognize your preference request");
       printHelp(command);
     }
   }
@@ -2098,6 +2060,8 @@ class Debugger implements jdpConstants {
       ret.append("Display/update hardware registers (not thread context registers)\n");
       ret.append("For AIX: you can specify number or name, where number is:  0-31, 128-136, 138, 148, 256-287\n");
       ret.append("For Lintel: you can only specify name.\n");
+      ret.append("Display will not include floating point registers unless\n");
+      ret.append("'pref showFPRs true' has been specified.\n");
       ret.append("On this plaform the register names are: \n");
       String regname="";
       for (int i=0; i<VM_BaselineConstants.GPR_NAMES.length; i++)
@@ -2108,6 +2072,11 @@ class Debugger implements jdpConstants {
 	regname += VM_BaselineConstants.FPR_NAMES[i] + " ";
       ret.append(regname);
       ret.append(Platform.extraRegNames);
+
+    } else if (command.equals("regnames") || command.equals("regname")) {
+      ret.append("Format: regnames || regnames \n");
+      ret.append("Show the correspondence between hardware register names \n");
+      ret.append("and symbolic register names \n");
 
     } else if (command.equals("mem") || command.equals("m") || 
 	       command.equals("wmem") || command.equals("wm") ||
@@ -2159,8 +2128,9 @@ class Debugger implements jdpConstants {
     } else if (command.equals("listi") || command.equals("li")) {
       ret.append("Format:  < li | listi > <hexaddr><count>\n");
       ret.append("Dissassemble the machine instruction in this range of addresses\n");
-      ret.append("If address is not specified, use the current PC\n");
-      ret.append("Default count is 10\n");
+      ret.append("If address is not specified, the current PC will be used.\n");
+      ret.append("If count is specified it must be an integer. It can be negative on PPC\n");
+      ret.append("Default count is 10. Count can be specified alone.\n");
  
     } else if (command.equals("listt") || command.equals("lt")) {
       ret.append("Format:  < lt | listt > <all|byname|run|ready|wakeup|system|gc>\n");
@@ -2216,11 +2186,12 @@ class Debugger implements jdpConstants {
       ret.append("The value for Frame Pointer may be specified in <hexval>\n");
       
     } else if (command.equals("preference") || command.equals("pref")) {
-      ret.append("Format:  < preference | pref> <string>\n");
+      ret.append("Format:  < preference | pref> <string> <value>\n");
       ret.append("Set user preferences\n");
       ret.append("To display integer in hex or decimal, specify:  int  < hex | x | dec | d > \n");
       ret.append("To display stack with/without a decimal column, specify: stack < hex | x | dec | d > \n");
-      ret.append("To display floating point register in hex or float, specify:  fpr  < hex | x | float | f > "); 
+      ret.append("To display floating point register in hex or float, specify:  fpr  < hex | x | float | f >\n "); 
+      ret.append("To select whether floating point registers are displayed as part of reg command, specify: showFPRs true | false\n");
 
 
     } else if (command.equals("verbose") || command.equals("v")) {
@@ -2271,6 +2242,7 @@ class Debugger implements jdpConstants {
       ret.append("wmem          write memory \n");
       ret.append("reg           display registers \n");
       ret.append("wreg          write register \n");
+      ret.append("regnames      display register symbolic names \n");
       ret.append("printclass    print the class statics or the type of an object address\n");
       ret.append("print         print local variables or cast an address as an object\n");
       ret.append("listi         list machine instruction\n");

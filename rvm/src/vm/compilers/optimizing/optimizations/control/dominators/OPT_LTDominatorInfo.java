@@ -9,7 +9,7 @@ import  java.util.HashSet;
 /**
  * This class holds data associated with a basic block as computed by the
  * Lengauer-Tarjan dominator calculation.  
- * @see OPT_LTDominators.java
+ * @see OPT_LTDominators
  *
  * @author Michael Hind
  */
@@ -260,7 +260,7 @@ class OPT_LTDominatorInfo {
    * return the immediate dominator of a basic block. 
    * Note: the dominator info must be pre-calculated
    * @param bb the basic block in question
-   * @returns bb's immediate dominator
+   * @return bb's immediate dominator
    */
   public static OPT_BasicBlock getIdom(OPT_BasicBlock bb) {
     return  getInfo(bb).dominator;
@@ -268,13 +268,9 @@ class OPT_LTDominatorInfo {
 
   /**
    * Prints a string version of objection
-   * @return 
    */
   public String toString() {
     return  super.toString() + " [Parent: " + parent + " SDom: " + semiDominator
         + " Dom: " + dominator + "]";
   }
 }
-
-
-

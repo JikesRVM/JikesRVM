@@ -21,8 +21,7 @@
  * @author Derek Lieber
  * @author Janice Sheperd
  */
-class VM_MagicCompiler implements VM_BaselineConstants, 
-				  VM_ObjectLayoutConstants {
+class VM_MagicCompiler implements VM_BaselineConstants {
 
   // These constants do not really belong here, but since I am making this change
   // I might as well make it a little better.  All size in bytes.
@@ -30,6 +29,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   static final int SIZE_TOC = 4;
   static final int SIZE_ADDRESS = 4;
   static final int SIZE_INTEGER = 4;
+
+  static final int DEBUG = 0;
 
   //-----------//
   // interface //
@@ -145,8 +146,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          
       if (methodName == VM_MagicNames.sysCallSigWait)
          {
-         int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-         int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+         int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+	 int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
  
          asm.emitL   (T0, 0, SP);	// t0 := address of VM_Registers object
          asm.emitCAL (SP, 4, SP);	// pop address of VM_Registers object
@@ -294,7 +295,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          asm.emitL  (T0, 0, SP); // t0 := address of VM_Processor object
          asm.emitCAL(SP, 4, SP); // pop arg
          
-         asm.emitLtoc(S0, VM_Entrypoints.getTimeInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
          asm.emitMTLR(S0);
          asm.emitCall(spSaveAreaOffset);             // call out of line machine code
 
@@ -360,7 +361,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          }
 
       if (methodName == VM_MagicNames.getIntAtOffset ||
-		   methodName == VM_MagicNames.getObjectAtOffset)
+          methodName == VM_MagicNames.getObjectAtOffset ||
+          methodName == VM_MagicNames.getObjectArrayAtOffset)
       {
 		  asm.emitL  (T0, +4, SP); // pop object
 		  asm.emitL  (T1,  0, SP); // pop offset
@@ -424,7 +426,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 		  return;
       }
 
-      if (methodName == VM_MagicNames.getMemoryWord)
+      if (methodName == VM_MagicNames.getMemoryWord ||
+	  methodName == VM_MagicNames.getMemoryAddress)
          {
          asm.emitL  (T0,  0, SP); // address
          asm.emitL  (T0,  0, T0); // *address
@@ -432,7 +435,8 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          return;
          }
 
-      if (methodName == VM_MagicNames.setMemoryWord)
+      if (methodName == VM_MagicNames.setMemoryWord ||
+	  methodName == VM_MagicNames.setMemoryAddress)
          {
          asm.emitL  (T0,  4, SP); // address
          asm.emitL  (T1,  0, SP); // value
@@ -488,7 +492,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          {
          asm.emitL   (T0, 0, SP); // T0 := address of VM_Registers object
          
-         asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
          asm.emitMTLR(S0);
          asm.emitCall(spSaveAreaOffset); // call out of line machine code
          
@@ -501,7 +505,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          asm.emitL(T0, 4, SP); // T0 := address of previous VM_Thread object
          asm.emitL(T1, 0, SP); // T1 := address of VM_Registers of new thread
          
-         asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
          asm.emitMTLR(S0);
 	 asm.emitCall(spSaveAreaOffset);
 
@@ -513,7 +517,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          {
          asm.emitL(T0, 0, SP); // T0 := address of VM_Registers object
 
-         asm.emitLtoc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
          asm.emitMTLR(S0);
          asm.emitBLR(); // branch to out of line machine code (does not return)
          return;
@@ -572,10 +576,12 @@ class VM_MagicCompiler implements VM_BaselineConstants,
           methodName == VM_MagicNames.addressAsByteArray      ||
           methodName == VM_MagicNames.addressAsIntArray       ||
           methodName == VM_MagicNames.addressAsObject         ||
+          methodName == VM_MagicNames.addressAsObjectArray    ||
           methodName == VM_MagicNames.addressAsType           ||
           methodName == VM_MagicNames.objectAsType            ||
           methodName == VM_MagicNames.objectAsByteArray       ||
           methodName == VM_MagicNames.objectAsShortArray      ||
+          methodName == VM_MagicNames.objectAsIntArray        ||
           methodName == VM_MagicNames.addressAsThread         ||
           methodName == VM_MagicNames.objectAsThread          ||
           methodName == VM_MagicNames.objectAsProcessor       ||
@@ -602,12 +608,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       if (methodName == VM_MagicNames.getObjectType)
          {
          generateGetObjectType(asm);
-         return;
-         }
-         
-      if (methodName == VM_MagicNames.getObjectStatus)
-         {
-         generateGetObjectStatus(asm);
          return;
          }
          
@@ -661,9 +661,135 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 		 		  // forces baseline compilation
          }
 
+      if (methodName == VM_MagicNames.addressFromInt) {
+	  // no-op
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.fromInt as no-op");
+	  return;
+      }
+
+      if (methodName == VM_MagicNames.addressToInt) {
+	  // no-op
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.toInt as no-op");
+	  return;
+      }
+
+      if (methodName == VM_MagicNames.addressAdd) {
+	  // same as an integer add
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.add as integer add");
+          asm.emitL  (T0,  0, SP);
+          asm.emitL  (T1,  4, SP);
+          asm.emitA  (T2, T1, T0);
+          asm.emitSTU(T2,  4, SP);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressSub ||
+	  methodName == VM_MagicNames.addressDiff) {
+	  // same as an integer subtraction
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.sub/diff as integer sub");
+          asm.emitL  (T0,  0, SP);
+          asm.emitL  (T1,  4, SP);
+          asm.emitSF (T2, T0, T1);
+          asm.emitSTU(T2,  4, SP);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressLT) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LT as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBLT(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressLE) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LE as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBLE(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressEQ) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.EQ as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBEQ(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressNE) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.NE as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBNE(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressGT) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GT as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBGT(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressGE) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GE as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBGE(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressIsZero) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isZero as unsigned comparison");
+	  asm.emitLIL (T0,  0);
+	  asm.emitSTU (T0, -4, SP);
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBEQ(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressIsMax) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isMax as unsigned comparison");
+	  asm.emitLIL (T0, -1);
+	  asm.emitSTU (T0, -4, SP);
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBEQ(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressZero) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.zero as 0");
+	  asm.emitLIL (T0,  0);
+	  asm.emitSTU (T0, -4, SP);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressMax) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.max as -1");
+	  asm.emitLIL (T0, -1);
+	  asm.emitSTU (T0, -4, SP);
+	  return;
+      }
       VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + "\n");
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
       }
+
+    private static void generateInlinedComparisonBefore(VM_Assembler asm) {
+	asm.emitL  (T1,  0, SP);
+	asm.emitL  (T0,  4, SP);
+	asm.emitLIL(T2,  1);
+	asm.emitCMPL(T0, T1);    // unsigned comparison
+    }
+
+    private static void generateInlinedComparisonAfter(VM_Assembler asm) {
+	asm.emitLIL(T2,  0);
+	asm.emitSTU(T2,  4, SP);
+    }
+
 
     // Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
     // Taken:   VM_Method of the magic method being called
@@ -713,7 +839,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 
       // fetch parameters and generate call to method invoker
       //
-      asm.emitLtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsOffset);
+      asm.emitLtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
       asm.emitL    (T0, 12, SP);        // t0 := code
       asm.emitMTLR (S0);
       asm.emitL    (T1,  8, SP);        // t1 := gprs
@@ -736,26 +862,9 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       //            +-------------------------+    /
 
       asm.emitL (T0,  0, SP);                   // get object pointer
-      asm.emitL (T0,  OBJECT_TIB_OFFSET, T0);   // get type information block pointer
+      VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
       asm.emitL (T0,  TIB_TYPE_INDEX << 2, T0); // get "type" field from type information block
       asm.emitST(T0,  0, SP);                   // *sp := type
-      }
-
-   // Generate code for "int VM_Magic.getObjectStatus(Object object)".
-   //
-   static void
-   generateGetObjectStatus(VM_Assembler asm)
-      {
-      // On entry the stack looks like this:
-      //
-      //                     hi-mem
-      //            +-------------------------+    \
-      //    SP ->   |    (Object object)      |     |- java operand stack
-      //            +-------------------------+    /
-
-      asm.emitL (T0,  0, SP);                    // get object pointer
-      asm.emitL (T0,  OBJECT_STATUS_OFFSET, T0); // get object status field
-      asm.emitST(T0,  0, SP);                    // *sp := length
       }
 
    // Generate code for "int VM_Magic.getArrayLength(Object object)".
@@ -771,7 +880,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       //            +-------------------------+    /
 
       asm.emitL (T0,  0, SP);                   // get object pointer
-      asm.emitL (T0,  ARRAY_LENGTH_OFFSET, T0); // get array length field
+      asm.emitL (T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
       asm.emitST(T0,  0, SP);                   // *sp := length
       }
 
@@ -893,6 +1002,33 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL   (SP,   linkageAreaSize - 8, FP);    // restore SP
       asm.emitCAL (FP,  +linkageAreaSize, FP);        // remove linkage area
       }
+
+
+  // generate call and return sequence to invoke a C arithmetic helper function through the boot record
+  // field specificed by target.  See comments above in sysCall1 about AIX linkage conventions.
+  // Caller deals with expression stack (setting up args, pushing return, adjusting stack height)
+  static void generateSysCall(VM_Assembler asm, int parametersSize, VM_Field target) {
+    int linkageAreaSize   = parametersSize + (2 * SIZE_TOC) + (6 * 4);
+
+    asm.emitSTU (FP,  -linkageAreaSize, FP);        // create linkage area
+    asm.emitST  (JTOC, linkageAreaSize-4, FP);      // save JTOC
+    asm.emitST  (SP,   linkageAreaSize-8, FP);      // save SP
+
+    // acquire toc and ip from bootrecord
+    asm.emitLtoc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitL   (JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+    asm.emitL   (0, target.getOffset(), S0);
+
+    // call it
+    asm.emitMTLR(0);
+    asm.emitBLRL(); 
+
+    // cleanup
+    asm.emitL   (JTOC, linkageAreaSize - 4, FP);    // restore JTOC
+    asm.emitL   (SP,   linkageAreaSize - 8, FP);    // restore SP
+    asm.emitCAL (FP,   linkageAreaSize, FP);        // remove linkage area
+  }
+
 
    static void
    generateSysCallRet_I(VM_Assembler asm, int rawParametersSize)

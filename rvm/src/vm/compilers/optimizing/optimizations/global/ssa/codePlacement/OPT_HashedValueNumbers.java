@@ -25,7 +25,6 @@ class OPT_HashedValueNumbers implements OPT_Operators {
   /**
    * Get the value number for an instruction or an operand
    * @param name
-   * @return 
    */
   public int getValueNumber (Object name) {
 
@@ -235,7 +234,6 @@ class OPT_HashedValueNumbers implements OPT_Operators {
   /**
    * Get the result operand of an instruction
    * @param inst
-   * @return 
    */
   OPT_RegisterOperand getResult (OPT_Instruction inst) {
     if (ResultCarrier.conforms(inst))
@@ -318,7 +316,6 @@ class OPT_HashedValueNumbers implements OPT_Operators {
     /**
      * Check, whether two instances are the same
      * @param o
-     * @return 
      */
     public boolean equals (Object o) {
       if (!(o instanceof OpTuple))
@@ -334,7 +331,6 @@ class OPT_HashedValueNumbers implements OPT_Operators {
     
     /**
      * Calculate the hash code from the hash codes of its children
-     * @return 
      */
     public int hashCode () {
       if (hashcode == 0) {
@@ -349,7 +345,6 @@ class OPT_HashedValueNumbers implements OPT_Operators {
     
     /**
      * String representation that mentions the operator and all operands
-     * @return 
      */
     public String toString () {
       String res = op.toString() + " (";

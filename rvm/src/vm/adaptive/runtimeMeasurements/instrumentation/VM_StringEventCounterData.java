@@ -61,24 +61,11 @@ class VM_StringEventCounterData extends VM_ManagedCounterData
    */
   OPT_Instruction getCounterInstructionForEvent(String event, 
 						double incrementValue) {
-    int counterNumber =0;
 
-    // If this string already has a counter, return it.  Hopefully
-    // String has equality defined so that two of the same string will
-    // map to the same instructions.
-    Integer integerCounterNum = (Integer) stringToCounterMap.get(event);
-    if (integerCounterNum != null) {
-      // Use existing
-      counterNumber = integerCounterNum.intValue();
-    }
-    else {
-      // Use new counter
-      counterNumber = ++ eventNumber;
-      // remember it, and return it
-      stringToCounterMap.put(event,new Integer(eventNumber));
-    }
+    // Get (or create) the counter for this string and return it.
+    int counterIdx = getOrCreateCounterIndexForString(event);
 
-    return createEventCounterInstruction(counterNumber,incrementValue);
+    return createEventCounterInstruction(counterIdx,incrementValue);
   }
 
   /**
@@ -115,12 +102,54 @@ class VM_StringEventCounterData extends VM_ManagedCounterData
 	 e.hasMoreElements();) {
       String stringName = (String) e.nextElement();
 
-      Integer counterNum = (Integer) stringToCounterMap.get(stringName);
-      double counterVal = getCounter(counterNum.intValue());
+      int counterIdx = getCounterIndexForString(stringName);
+      double counterVal = getCounter(counterIdx);
       VM.sysWrite(doubleToString(counterVal) + " " + stringName + "\n");
       total += counterVal;
     }
     VM.sysWrite("Total: " + doubleToString(total) + "\n");
+  }
+
+  /**
+   * For a given string, return the number of the counter associated
+   * with this string.  If this string doesn't already have a counter, 
+   * reserve one. 
+   *
+   * @param str The string for which you want the counter number
+   * @return The counter number for this string
+
+   */
+  public int getOrCreateCounterIndexForString(String str) {
+
+    int counterIdx = getCounterIndexForString(str);
+    if (counterIdx == -1) {
+      // Use new counter
+      counterIdx = ++ eventNumber;
+      // remember it, and return it
+      stringToCounterMap.put(str,new Integer(eventNumber));
+    }
+
+    return counterIdx;
+  }
+
+
+  /**
+   * For a given string, return the number of the counter associated
+   * with this string.  Ideally this number would be completely hidden
+   * from the outside world, but for efficiency it is made public.
+   *
+   * @param str The string for which you want the counter number
+   * @return The counter number for this string, or -1 if the string has no 
+             counter associated with it. 
+   */
+  public int getCounterIndexForString(String str) {
+
+    int counter = -1;
+    Integer counterNum = (Integer) stringToCounterMap.get(str);
+    if (counterNum != null) 
+      counter = counterNum.intValue();
+
+    return counter;
   }
 
   /**
@@ -130,8 +159,7 @@ class VM_StringEventCounterData extends VM_ManagedCounterData
     for (Enumeration e = stringToCounterMap.keys();
 	 e.hasMoreElements();) {
       String stringName = (String) e.nextElement();
-      Integer counterNum = (Integer) stringToCounterMap.get(stringName);
-      int counterIdx = counterNum.intValue();
+      int counterIdx = getCounterIndexForString(stringName);
       setCounter(counterIdx, 0.0);
     }
   }

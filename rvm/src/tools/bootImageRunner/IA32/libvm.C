@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <string.h>
 #include <asm/ucontext.h>
+#include <assert.h>
 #if (defined __linuxsmp__)
 #include <pthread.h>
 #endif
@@ -51,11 +52,6 @@ int JavaArgc;
 /* Emit trace information? */
 int lib_verbose = 0;
 
-/* Memory segments in which virtual machine image is running. */
-unsigned VmBottom;		/* lowest address      == start of bootimage */
-unsigned VmMiddle;		/*                     == end   of bootimage */
-unsigned VmTop;			/* highest address + 1 == end of large object heap */
-
 /* Location of jtoc within virtual machine image. */
 unsigned VmToc;
 
@@ -65,12 +61,20 @@ int DumpStackAndDieOffset;
 /* TOC offset of VM_Scheduler.processors[] */
 int ProcessorsOffset;
 
+/* TOC offset of VM_Scheduler.debugRequested */
+int DebugRequestedOffset;
+
 /* name of program that will load and run RVM */
 char *me;
 
 extern "C" int createJVM (int);
 extern "C" int bootThread (int ip, int jtoc, int pr, int sp);
 
+
+static int pageRoundUp(int size) {
+    int pageSize = 4096;
+    return (size + pageSize - 1) / pageSize * pageSize;
+}
 
 /*
  * Bootimage is loaded and ready for execution:
@@ -118,17 +122,29 @@ getInstructionFollowing (unsigned int faultingInstructionAddress)
 
 VM_BootRecord *bootRecord;
 
-#define IN_RVM_ADDRESS_SPACE(a) (VmBottom<=(a)&&(a)<bootRecord.heapEnd )
-static int
-isVmSignal(unsigned int ip, unsigned int jtoc)
-{
-  /* get the boot record */
-  void *region1address = (void *) bootImageAddress;
-  VM_BootRecord & bootRecord = *(VM_BootRecord *) region1address;
 
-  return IN_RVM_ADDRESS_SPACE(ip) 
-	 && IN_RVM_ADDRESS_SPACE(jtoc);
+static int inRVMAddressSpace(unsigned int addr) {
+
+   /* get the boot record */
+   VM_Address *heapRanges = bootRecord->heapRanges;
+   int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
+
+   for (int which = 0; ; which++) {
+     assert(which <= 2 * (MaxHeaps + 1));
+       VM_Address start = heapRanges[2 * which];
+       VM_Address end = heapRanges[2 * which + 1];
+       if (start == ~0 && end == ~0) break;
+       if (start <= addr  && addr  < end)
+	 return true;
+   }
+	
+   return false;
 }
+
+static int isVmSignal(unsigned int ip, unsigned int jtoc) {
+  return inRVMAddressSpace(ip) && inRVMAddressSpace(jtoc);
+}
+
 
 #include <pthread.h>
  
@@ -246,19 +262,18 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     else
     {
       fprintf (SysTraceFile, "vm: internal error\n");
-      exit(1);
     }
   }
 
   /* get the boot record */
-  void *region1address = (void *) bootImageAddress;
-  VM_BootRecord & bootRecord = *(VM_BootRecord *) region1address;
+  void *bootRegion = (void *) bootImageAddress;
+  bootRecord = (VM_BootRecord *) bootRegion;
 
   /* test validity of virtual processor address */
   {
   unsigned int vp_hn;  /* the high nibble of the vp address value */
   vp_hn = localVirtualProcessorAddress >> 28;  
-  if (vp_hn < 3 || !IN_RVM_ADDRESS_SPACE(localVirtualProcessorAddress)) 
+  if (vp_hn < 3 || !inRVMAddressSpace(localVirtualProcessorAddress)) 
     {
       write (SysErrorFd, buf,
              sprintf (buf,
@@ -276,7 +291,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   {
   unsigned int fp_hn;
   fp_hn = localFrameAddress >> 28;  
-  if (fp_hn < 3 || !IN_RVM_ADDRESS_SPACE(localFrameAddress)) 
+  if (fp_hn < 3 || !inRVMAddressSpace(localFrameAddress)) 
     {
       write (SysErrorFd, buf,
              sprintf (buf,
@@ -286,21 +301,21 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   }
 
 
-  int HardwareTrapMethodId = bootRecord.hardwareTrapMethodId;
+  int HardwareTrapMethodId = bootRecord->hardwareTrapMethodId;
   unsigned int javaExceptionHandlerAddress = 
-		*(unsigned int *) (localJTOC + bootRecord.deliverHardwareExceptionOffset);
+		*(unsigned int *) (localJTOC + bootRecord->deliverHardwareExceptionOffset);
 
-  DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
+  DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
   /* get the thread id */
   int threadID = *(int *) (localVirtualProcessorAddress + VM_Processor_threadId_offset);
   /* get the index of the thread in the threads array multiplied by the array element
      size (4) */
-  int threadIndex = threadID >> (VM_Constants_OBJECT_THREAD_ID_SHIFT - 2);
+  int threadIndex = threadID >> (VM_ThinLockConstants_TL_THREAD_ID_SHIFT - 2);
 
   /* get the address of the threads array  */
   unsigned int threadsArrayAddress =
-		*(unsigned int *) (localJTOC + bootRecord.threadsOffset);
+		*(unsigned int *) (localJTOC + bootRecord->threadsOffset);
   /* the thread object itself */
   unsigned int threadObjectAddress = 
 		*(unsigned int *) (threadsArrayAddress + threadIndex);
@@ -318,9 +333,10 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   long unsigned int *fp;
 
   /* test for recursive errors- if so, take one final stacktrace and exit */
-  if (*vmr_inuse) {
-    fprintf (SysTraceFile, 
-	"vm: internal error: recursive use of hardware exception registers (exiting)\n");
+  if (*vmr_inuse || !isRecoverable) {
+    if (*vmr_inuse)
+      fprintf (SysTraceFile, 
+	       "vm: internal error: recursive use of hardware exception registers (exiting)\n");
     /*
      * Things went badly wrong, so attempt to generate a useful error dump
      * before exiting by returning to VM_Scheduler.dumpStackAndDie passing it the fp
@@ -480,7 +496,7 @@ void
 #ifdef __CYGWIN__
 softwareSignalHandler (int signo)
 #else
-softwareSignalHandler (int signo, siginfo_t * si, void *unused)
+softwareSignalHandler (int signo, siginfo_t * si, void *context)
 #endif
 {
 
@@ -552,10 +568,63 @@ softwareSignalHandler (int signo, siginfo_t * si, void *unused)
 #endif
     }
   }
+
+  else if (signo == SIGQUIT)
+      { // asynchronous signal used to awaken internal debugger
+      
+      // Turn on debug-request flag.
+      // Note that "jtoc" is not necessairly valid, because we might have interrupted
+      // C-library code, so we use boot image jtoc address (== VmToc) instead.
+      // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+      // For now, we assume table is fixed in boot image and never moves.
+      //
+      unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
+      if (*flag)
+         {
+         static char *message = "vm: debug request already in progress, please wait\n";
+         write(SysTraceFd, message, strlen(message));
+         }
+      else
+         {
+         static char *message = "vm: debug requested, waiting for a thread switch\n";
+         write(SysTraceFd, message, strlen(message));
+         *flag = 1;
+         }
+      }
+
+  else if (signo == SIGTERM) {
+      unsigned int localJTOC = VmToc;
+      sigcontext *sc = &((ucontext *) context)->uc_mcontext;
+      int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
+   
+      /* get the frame pointer from processor object  */
+      unsigned int localVirtualProcessorAddress	= sc->esi;
+      unsigned int localFrameAddress = 
+	  *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
+
+      /* setup stack frame to contain the frame pointer */
+      long unsigned int *sp = (long unsigned int *) sc->esp;
+
+      /* put fp as a  parameter on the stack  */
+      sc->esp = sc->esp - 4;
+      sp = (long unsigned int *) sc->esp;
+      *sp = localFrameAddress;
+      // must pass localFrameAddress in first param register!
+      sc->eax = localFrameAddress;
+
+      /* put a return address of zero on the stack */
+      sc->esp = sc->esp - 4;
+      sp = (long unsigned int *) sc->esp;
+      *sp = 0;
+
+      /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
+      sc->eip = dumpStack;
+  }
 }
 
 /* startup configuration option with default values */
 char *bootFilename = 0;
+int verboseGC = 0;
 unsigned smallHeapSize = 20 * 1024 * 1024;	/* megs */
 unsigned largeHeapSize = 10 * 1024 * 1024;	/* megs */
 
@@ -592,7 +661,7 @@ createJVM (int vmInSeparateThread)
   }
 
   /* open and mmap the image file. 
-   * create region1 and region2 portions of address space.
+   * create bootRegion
    */
   FILE *fin = fopen (bootFilename, "r");
   if (!fin) {
@@ -604,62 +673,44 @@ createJVM (int vmInSeparateThread)
   if (lib_verbose)
     fprintf (SysTraceFile, "%s: loading from \"%s\"\n", me, bootFilename);
   fseek (fin, 0L, SEEK_END);
-  unsigned imageSize = ftell (fin);
-
+   unsigned actualImageSize = ftell(fin);
+   unsigned roundedImageSize = pageRoundUp(actualImageSize);
   fseek (fin, 0L, SEEK_SET);
 
-  /* allocate memory regions in units of 4k (== system page size) */
-  void *region1address = (void *) bootImageAddress;	/* address used by bootimage writer */
-  unsigned region1size = (((imageSize + smallHeapSize) / 4096) + 1) * 4096;
 
-  void *region2address = (void *) 0;	/* any address is ok */
-  unsigned region2size = ((largeHeapSize / 4096) + 1) * 4096;
-
-  if (lib_verbose)
-    fprintf (SysTraceFile, "region1 size %08x, region 2 size %08x\n", 
-	     region1size, region2size);
+  void *bootRegion = 0;
 
   // allocate region 1 and 2
 #ifdef __linux__  
-  void *region1 = mmap (region1address, region1size + region2size, 
-			PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+  bootRegion = mmap ((void *) bootImageAddress, roundedImageSize,
+		     PROT_READ | PROT_WRITE | PROT_EXEC,
+		     MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
 
-  if (region1 == (void *) -1) {
+  if (bootRegion == (void *) -1) {
     fprintf (SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
     return 1;
   }
 #else
   /* cygwin mmap doesn't appear to really work, so use win32 VirtualAlloc */
-  void *region1 = VirtualAlloc(region1address, region1size + region2size,
+  void *bootRegion = VirtualAlloc(bootImageAddress, roundedImageSize,
 			       MEM_RESERVE | MEM_COMMIT,
 			       PAGE_EXECUTE_READWRITE);
-  if (region1 != region1address) {
-    fprintf (SysTraceFile, "%s: error allocating region1\n", me);
+  if (bootRegion != bootImageAddress) {
+    fprintf (SysTraceFile, "%s: error allocating boot image region\n", me);
     return 1;
   }
 #endif
 
-  region2address = (void*)((int)region1address + region1size);
-  void *region2 = region2address;
-
-  if (lib_verbose) {
-    fprintf (SysTraceFile, "%s: 1st memory region: [0x%08x...0x%08x]\n",
-		me, region1, (int) region1 + region1size);
-    fprintf (SysTraceFile, "%s: 2nd memory region: [0x%08x...0x%08x]\n",
-		me, region2, (int) region2 + region2size);
-  }
-
   /* read image into memory segment */
-  int cnt = fread (region1, 1, imageSize, fin);
-  if (cnt != imageSize) {
+  int cnt = fread (bootRegion, 1, actualImageSize, fin);
+  if (cnt != actualImageSize) {
     fprintf (SysErrorFile, "%s: read failed (errno=%d)\n", me, errno);
     return 1;
   }
 
-  if (imageSize % 4 != 0) {
+  if (actualImageSize % 4 != 0) {
     fprintf (SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n",
-			me, imageSize);
+			me, actualImageSize);
     return 1;
   }
 
@@ -668,31 +719,13 @@ createJVM (int vmInSeparateThread)
     return 1;
   }
 
-  if (lib_verbose) {
-    fprintf (SysTraceFile, "%s: 1st memory region: [0x%08x...0x%08x]\n",
-		me, region1, (int) region1 + region1size);
-    fprintf (SysTraceFile, "%s: 2nd memory region: [0x%08x...0x%08x]\n",
-		me, region2, (int) region2 + region2size);
-  }
-
-  /* remember memory segments for later use by trap handler and instruction sampler */
-  VmBottom = (unsigned) region1;		/* start of bootimage */
-  VmMiddle = (unsigned) region1 + imageSize;	/* end of bootimage */
-  VmTop = (unsigned) region2 + region2size;	/* end of heap */
-  if (VmTop < VmBottom) {
-    fprintf (SysErrorFile,
-	"%s: image load error: memory segments allocated in unexpected order\n", me);
-    fprintf (SysErrorFile,
-	"   bottom=0x%08x middle=0x%08x top=0x%08x\n", VmBottom, VmMiddle, VmTop);
-    return 1;
-  }
 
   /* validate contents of boot record */
-  bootRecord = (VM_BootRecord *) region1;
+  bootRecord = (VM_BootRecord *) bootRegion;
 
-  if (bootRecord->startAddress != (int) region1) {
+  if (bootRecord->bootImageStart != (int) bootRegion) {
     fprintf (SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
-		me, bootRecord->startAddress, region1);
+		me, bootRecord->bootImageStart, bootRegion);
     return 1;
   }
 
@@ -721,24 +754,27 @@ createJVM (int vmInSeparateThread)
   /* get and remember JTOC offset of VM_Scheduler.processors[] */
   ProcessorsOffset = bootRecord->processorsOffset;
 
-  /* write freespace information into boot record */
-  bootRecord->freeAddress = (int) region1 + imageSize;
-  bootRecord->endAddress = (int) region1 + region1size;
-  bootRecord->largeStart = (int) region2;
-  bootRecord->largeSize = region2size;
-  bootRecord->heapEnd    = (int) region1 + region1size + region2size;
+  // remember JTOC offset of VM_Scheduler.DebugRequested
+  // 
+  DebugRequestedOffset = bootRecord->debugRequestedOffset;
 
-  bootRecord->nurserySize = nurserySize;
+  /* write freespace information into boot record */
+   bootRecord->verboseGC        = verboseGC;
+   bootRecord->nurserySize      = nurserySize;
+   bootRecord->smallSpaceSize   = smallHeapSize;
+   bootRecord->largeSpaceSize   = largeHeapSize;
+   bootRecord->bootImageStart   = (int) bootRegion;
+   bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
 
   /* write sys.C linkage information into boot record */
   bootRecord->setLinkage ();
   if (lib_verbose) {
     fprintf (SysTraceFile, "%s: boot record contents:\n", me);
-    fprintf (SysTraceFile, "   startAddress:         0x%08x\n", bootRecord->startAddress);
-    fprintf (SysTraceFile, "   freeAddress:          0x%08x\n", bootRecord->freeAddress);
-    fprintf (SysTraceFile, "   endAddress:           0x%08x\n", bootRecord->endAddress);
-    fprintf (SysTraceFile, "   largeStart:           0x%08x\n", bootRecord->largeStart);
-    fprintf (SysTraceFile, "   largeSize:            0x%08x\n", bootRecord->largeSize);
+    fprintf (SysTraceFile, "   bootImageStart:       0x%08x\n", bootRecord->bootImageStart);
+    fprintf (SysTraceFile, "   bootImageEnd:         0x%08x\n", bootRecord->bootImageEnd);
+    fprintf (SysTraceFile, "   smallSpaceSize:       0x%08x\n", bootRecord->smallSpaceSize);
+    fprintf (SysTraceFile, "   largeSpaceSize:       0x%08x\n", bootRecord->largeSpaceSize);
+    fprintf (SysTraceFile, "   nurserySize:          0x%08x\n", bootRecord->nurserySize);
     fprintf (SysTraceFile, "   tiRegister:           0x%08x\n", bootRecord->tiRegister);
     fprintf (SysTraceFile, "   spRegister:           0x%08x\n", bootRecord->spRegister);
     fprintf (SysTraceFile, "   ipRegister:           0x%08x\n", bootRecord->ipRegister);
@@ -801,6 +837,14 @@ createJVM (int vmInSeparateThread)
     fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
     return 1;
   }
+  if (sigaction (SIGQUIT, &action, 0)) {	/* catch QUIT to invoke debugger thread */
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+  if (sigaction (SIGTERM, &action, 0)) {	/* catch TERM to dump and die */
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
 
 #else
   struct sigaction action;
@@ -833,7 +877,7 @@ createJVM (int vmInSeparateThread)
    * processor object.
    */
   *(unsigned int *) (pr + VM_Processor_threadId_offset) =
-		VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_Constants_OBJECT_THREAD_ID_SHIFT;
+		VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
   *(unsigned int *) (pr + VM_Processor_jtoc_offset) = jtoc;
   *(unsigned int *) (pr + VM_Processor_framePointer_offset) = (int)sp - 8;
   } 

@@ -65,6 +65,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @param ir the IR to optimize 
    */
   public void perform (OPT_IR ir) {
+    if (ir.desiredSSAOptions.getAbort()) return;
     OPT_IndexPropagationSystem system = new OPT_IndexPropagationSystem(ir);
     if (DEBUG)
       System.out.print("Solving...");
@@ -264,7 +265,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System
     else {      // GetStatic.conforms(s)
       valueNumber = 0;
     }
-    if (OPT_RVMIRTools.mayBeVolatileFieldLoad(s) ||
+    if (OPT_IRTools.mayBeVolatileFieldLoad(s) ||
         ir.options.READS_KILL) {
       // to obey JMM strictly, we must treat every load as a 
       // DEF
@@ -333,7 +334,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System
       throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processALoad: aload instruction defs or uses multiple heap variables?");
     OPT_Operand array = ALoad.getArray(s);
     OPT_Operand index = ALoad.getIndex(s);
-    if (OPT_RVMIRTools.mayBeVolatileFieldLoad(s) ||
+    if (OPT_IRTools.mayBeVolatileFieldLoad(s) ||
         ir.options.READS_KILL) {
       // to obey JMM strictly, we must treat every load as a 
       // DEF

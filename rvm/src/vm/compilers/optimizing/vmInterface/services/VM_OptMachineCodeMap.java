@@ -58,10 +58,12 @@ public final class VM_OptMachineCodeMap
     generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
-      int ie = (inlineEncoding == null) ? 0 : (inlineEncoding.length*4 + ARRAY_HEADER_SIZE);
-      int gc = (gcMaps == null) ? 0 : (gcMaps.length*4 + ARRAY_HEADER_SIZE);
-      int mySize = 12 + SCALAR_HEADER_SIZE;
-      int totalMapBytes = ie + gc + mySize + MCInformation.length*8;
+      VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
+      VM_Array longArrayType = VM_Array.getPrimitiveArrayType(11);
+      int ie = (inlineEncoding == null) ? 0 : intArrayType.getInstanceSize(inlineEncoding.length);
+      int gc = (gcMaps == null) ? 0 : intArrayType.getInstanceSize(gcMaps.length);
+      int mySize = this.getClass().getVMType().asClass().getInstanceSize();
+      int totalMapBytes = ie + gc + mySize + longArrayType.getInstanceSize(MCInformation.length);
       recordStats(ir.method, totalMapBytes, machineCodeSize << LG_INSTRUCTION_WIDTH);
     }
 
@@ -215,9 +217,17 @@ public final class VM_OptMachineCodeMap
       } else if (MCOffset > offset) {
         // middle is too small, shift interval to the right
         left = middle + 1; 
+	while ((MCInformation[left] & START_OF_ENTRY) != START_OF_ENTRY) {
+	  // if necessary, step forward to find next entry, but not passed end
+	  // Need to do this to avoid finding middle again
+	  left++;
+	  if (left >= MCInformation.length)
+	    return -1;
+	}
       } else {
         // middle is too small, shift interval to the left
         right = middle - 1;
+	// Note no need to adjust as, we won't chance finding middle again
       }
     }
     return  -1;

@@ -156,4 +156,15 @@ abstract class VM_CompilerInfo  {
    * @param out the PrintWriter to print the stack trace to.
    */
   abstract void printStackTrace(int instructionOffset, java.io.PrintWriter out);
+
+  /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  abstract void set(VM_StackBrowser browser, int instr);
+
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  abstract boolean up(VM_StackBrowser browser);
+
 }

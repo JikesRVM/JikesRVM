@@ -33,5 +33,4 @@ abstract class OPT_GenericRegisterPreferences {
   OPT_CoalesceGraph getGraph() {
     return graph;
   }
-
 }

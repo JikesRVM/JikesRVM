@@ -21,12 +21,12 @@ class VM_DynamicLinkerHelper implements VM_Constants, VM_Uninterruptible {
   static Object getReceiverObject() {
     VM_Magic.pragmaNoInline();
     // reach into register save area and fetch "this" parameter
-    int callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+    VM_Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
-    int location = VM_Magic.getCallerFramePointer(callingFrame)
-      - (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8  // skip fprs
-      - (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * 4; // skip gprs
-         
-    return VM_Magic.addressAsObject(VM_Magic.getMemoryWord(location));
+    callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
+    VM_Address location = callingFrame.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8 + 
+					   (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * 4); 
+    
+    return VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(location));
   }
 }

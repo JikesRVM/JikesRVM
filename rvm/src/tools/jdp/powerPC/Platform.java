@@ -262,6 +262,7 @@ public class Platform implements jdpConstants {
   public static final int cthreadImplemented = 1; // Yes - implemented
   public static final int listtRunImplemented = 1; // Yes - implemented
   public static final int listtSystemImplemented = 1; // Yes - implemented
+  public static final int listiNegCountImplemented = 1; // Yes - implemented
   public static final String extraRegNames = "IP LR CR\n";
 
   public static void printbp() {

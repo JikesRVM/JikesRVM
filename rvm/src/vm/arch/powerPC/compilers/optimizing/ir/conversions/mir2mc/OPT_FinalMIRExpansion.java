@@ -16,7 +16,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Igor Pechtchanski
  */
-abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
+abstract class OPT_FinalMIRExpansion extends OPT_IRTools
   implements VM_BytecodeConstants {
 
   /**
@@ -37,29 +37,28 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
       p.setmcOffset(-1);
       p.scratchObject = null;
       switch (p.getOpcode()) {
-      case LOWTABLESWITCH_opcode:
+      case MIR_LOWTABLESWITCH_opcode:
 	{
 	  
 	  OPT_BasicBlock tableBlock = p.getBasicBlock();
 	  OPT_BasicBlock nextBlock = 
 	    tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
 	  nextBlock.firstInstruction().setmcOffset(-1);
-	  OPT_Register regT = phys.getGPR(LAST_SCRATCH_GPR);
-	  OPT_Register regS = LowTableSwitch.getIndex(p).register;
-	  int NumTargets = LowTableSwitch.getNumberOfTargets(p);
+	  OPT_Register regI = MIR_LowTableSwitch.getIndex(p).register;
+	  int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
 	  tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, 
 							nextBlock.makeJumpTarget()));
 
 	  for (int i = 0; i < NumTargets; i++) {
 	    tableBlock.appendInstruction(MIR_DataLabel.create(PPC_DATA_LABEL, 
-							      LowTableSwitch.getClearTarget(p, i)));
+							      MIR_LowTableSwitch.getClearTarget(p, i)));
 	  }
 	  OPT_Register temp = phys.getGPR(0);
 	  p.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getLR())));
-	  p.insertBack(MIR_Binary.create(PPC_SLWI, R(regT), R(regS), I(2)));
-	  p.insertBack(nonPEIGC(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regT), R(temp))));
-	  p.insertBack(MIR_Binary.create(PPC_ADD, R(regT), R(regT), R(temp)));
-	  p.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getCTR()), R(regT)));
+	  p.insertBack(MIR_Binary.create(PPC_SLWI, R(regI), R(regI), I(2)));
+	  p.insertBack(nonPEIGC(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regI), R(temp))));
+	  p.insertBack(MIR_Binary.create(PPC_ADD, R(regI), R(regI), R(temp)));
+	  p.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getCTR()), R(regI)));
 	  MIR_Branch.mutate(p, PPC_BCTR);
 	  instructionCount += NumTargets + 7;
 	}
@@ -145,7 +144,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
 	  OPT_Register CTR = phys.getCTR();
 	  if (VM.VerifyAssertions) 
 	    VM.assert(p.bcIndex >= 0 && p.position != null);
-	  int offset = VM_OptLinker.optResolveMethod.getOffset();
+	  int offset = VM_Entrypoints.optResolveMethod.getOffset();
 	  if (OPT_Bits.fits(offset, 16)) {
 	    p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
 						    R(JTOC), I(offset))));
@@ -190,7 +189,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
               OPT_Register PR = phys.getPR();
               p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
                              R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedOffset))));
+                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
               p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
                              I(0)));
               instructionCount += 2;
@@ -214,7 +213,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
               OPT_Register PR = phys.getPR();
               p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
                              R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedOffset))));
+                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
               p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
                              I(0)));
               instructionCount += 2;
@@ -228,6 +227,16 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
             conditionalBranchCount++;
           }
           break;
+        case IR_ENDPROLOGUE_opcode:
+          {
+	    // Remember where the end of prologue is for jdp
+	    OPT_Instruction next = p.nextInstructionInCodeOrder();
+	    ir.MIRInfo.instAfterPrologue = next;
+	    p.remove();
+	    p = next.prevInstructionInCodeOrder();
+	  }
+	  break;
+
       default:
 	if (p.operator().isConditionalBranch())
 	  conditionalBranchCount++; 
@@ -270,17 +279,17 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
       if (ir.MIRInfo.prologueYieldpointBlock != null) 
         return ir.MIRInfo.prologueYieldpointBlock;
       else 
-        meth = VM_OptLinker.optThreadSwitchFromPrologueMethod;
+        meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
     } else if (whereFrom == VM_Thread.BACKEDGE) {
       if (ir.MIRInfo.backedgeYieldpointBlock != null) 
         return ir.MIRInfo.backedgeYieldpointBlock;
       else 
-        meth = VM_OptLinker.optThreadSwitchFromBackedgeMethod;
+        meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
     } else if (whereFrom == VM_Thread.EPILOGUE) {
       if (ir.MIRInfo.epilogueYieldpointBlock != null) 
         return ir.MIRInfo.epilogueYieldpointBlock;
       else 
-        meth = VM_OptLinker.optThreadSwitchFromEpilogueMethod;
+        meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
     }
 
     // Not found.  create new basic block holding the requested yieldpoint

@@ -34,6 +34,18 @@ $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
 $$$$ END FOREACH
 $$$$ END IF
 
+$$$$ IF ARCHITECTURE == "NONE"
+$$$$ IF USE_EXTRA_OPLIST == "TRUE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+$$$$ FOREACH OPERATOR ExtraOperatorList.dat
+  public static final char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
+$$$$ END FOREACH
+$$$$ END IF
+$$$$ END IF
+
 $$$$ FOREACH OPERATOR OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
   public static final OPT_Operator OPERATOR.SYMBOL = OPT_Operator.OperatorArray[OPERATOR.INDEX];
@@ -47,6 +59,18 @@ $$$$ IF ARCHITECTURE != "NONE"
 $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
   public static final OPT_Operator OPERATOR.SYMBOL = OPT_Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
 $$$$ END FOREACH
+$$$$ END IF
+
+$$$$ IF ARCHITECTURE == "NONE"
+$$$$ IF USE_EXTRA_OPLIST == "TRUE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+$$$$ FOREACH OPERATOR ExtraOperatorList.dat
+  public static final OPT_Operator OPERATOR.SYMBOL = OPT_Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
+$$$$ END FOREACH
+$$$$ END IF
 $$$$ END IF
 
 }

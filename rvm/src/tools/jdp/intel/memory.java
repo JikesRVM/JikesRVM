@@ -14,7 +14,8 @@ import java.util.*;
 /* not needed for build in separate RVM.tools directory */
 /* import PPC_Disassembler; */
 
-abstract class memory implements jdpConstants, VM_Constants 
+abstract class memory implements jdpConstants, VM_Constants,
+JDPServiceInterface 
 {
   //****************************************************************************
   // In the external implementations, these will be native methods 
@@ -53,6 +54,24 @@ abstract class memory implements jdpConstants, VM_Constants
   //******************************************************************************
   // Methods for accessing memory
   //******************************************************************************
+
+  /**
+   * Return the contents of a JTOC slot in the debuggee
+   *
+   * @param slot 
+   */
+  public int readJTOCSlot(int slot) {
+    return readTOC(slot);
+  }
+
+  public int readMemory(int address) {
+    try {
+      return readsafe(address);
+    } catch (memoryException e) {
+      System.out.println("bad address");
+      return 0;
+    }
+  }
   
   public int readsafe(int address) throws memoryException {
     int data = read(address);     
@@ -467,6 +486,7 @@ abstract class memory implements jdpConstants, VM_Constants
    */
   private String printThisFrame(int depth, int linkaddr, int fp) {
     // System.out.println("methodID " + methodID);
+    VM_CompilerInfo compInfo;
     BootMap bmap = owner.bootmap();
     String depthString;
     StringBuffer ret = new StringBuffer();
@@ -509,10 +529,18 @@ abstract class memory implements jdpConstants, VM_Constants
       	String line;
       	if (depth==0)            // for IP, get the current line
       	  line = bmap.findLineNumberAsString(compiledMethodID, linkaddr);   
-      	else                     // for LR, get the previous line
-      	  line = bmap.findPreviousLineNumberAsString(compiledMethodID, linkaddr);  
+      	else {                   // for LR, get the previous line
+	  compInfo = bmap.findVMCompilerInfo(compiledMethodID, true);
+	  if (compInfo != null && 
+	      compInfo.getCompilerType() == VM_CompilerInfo.OPT)
+	    line = bmap.findLineNumberAsString(compiledMethodID, linkaddr);
+	  else 
+	    line = bmap.findPreviousLineNumberAsString(compiledMethodID, linkaddr); 
+	}	
+	String offset = Integer.toHexString(bmap.instructionOffset(compiledMethodID, linkaddr));  
       	ret.append(depthString + "  " + VM.intAsHexString(linkaddr) + 
                    "   " + class_name + "." + method_name + 
+		   "(+0x" + offset + ") " + 
                    ": " + line + "   " + method_sig);
         ret.append('\n');
       } else {
@@ -990,9 +1018,15 @@ abstract class memory implements jdpConstants, VM_Constants
 		 IntelDisassembler.disasm(instr, 1, IP) +
 		 "  (native " + getNativeProcedureName(IP) + ")");
        }
-       
-       // look up the class/method for this address
-       VM_Method mth = bmap.findVMMethod(compiledMethodID, true);
+
+       VM_Method mth;
+
+       if (compiledMethodID == 0)
+	 mth = null;
+       else {
+	 // look up the class/method for this address
+	 mth = bmap.findVMMethod(compiledMethodID, true);
+       }
        
        if (mth!=null) {
        
@@ -1032,9 +1066,4 @@ abstract class memory implements jdpConstants, VM_Constants
       return ("ERROR: " + e.getMessage());
     }
   }
-
-
-
-
 }
-

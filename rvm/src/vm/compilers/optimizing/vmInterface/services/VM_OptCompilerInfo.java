@@ -115,6 +115,63 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   }
 
   /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  final void set(VM_StackBrowser browser, int instr) {
+    VM_OptMachineCodeMap map = getMCMap();
+    int iei = map.getInlineEncodingForMCOffset(instr);
+    if (iei >= 0) {
+      int[] inlineEncoding = map.inlineEncoding;
+      int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+
+      browser.setInlineEncodingIndex( iei );
+      browser.setBytecodeIndex( map.getBytecodeIndexForMCOffset(instr) );
+      browser.setCompilerInfo( this );
+      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+
+      if (VM.TraceStackTrace) {
+	  VM.sysWrite("setting stack to frame (opt): ");
+	  VM.sysWrite( browser.getMethod() );
+	  VM.sysWrite( browser.getBytecodeIndex() );
+	  VM.sysWrite("\n");
+      }
+    }
+    
+    else
+	VM.assert(VM.NOT_REACHED);
+  }
+
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  final boolean up(VM_StackBrowser browser) {
+    VM_OptMachineCodeMap map = getMCMap();
+    int iei = browser.getInlineEncodingIndex();
+    int[] ie = map.inlineEncoding;
+    int next = VM_OptEncodedCallSiteTree.getParent(iei, ie);
+    if (next >= 0) {
+      int mid = VM_OptEncodedCallSiteTree.getMethodID(next, ie);
+      int bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(iei, ie);
+
+      browser.setInlineEncodingIndex( next );
+      browser.setBytecodeIndex( bci );
+      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+
+      if (VM.TraceStackTrace) {
+	  VM.sysWrite("up within frame stack (opt): ");
+	  VM.sysWrite( browser.getMethod() );
+	  VM.sysWrite( browser.getBytecodeIndex() );
+	  VM.sysWrite("\n");
+      }
+
+      return true;
+    }
+
+    else
+      return false;
+  }
+
+  /**
    * Print this compiled method's portion of a stack trace.
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.
@@ -205,6 +262,22 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
     _method = meth;
   }
 
+  /**
+   * Get the offset for the end of the prologue
+   * 
+   */
+  final int getEndPrologueOffset() {
+    return endPrologueOffset;
+  }
+
+  /**
+   * Get the offset for the end of the prologue
+   * *param  int endPrologue
+   */
+  final void setEndPrologueOffset(int endPrologue) {
+    this.endPrologueOffset = endPrologue;
+  }
+
   //----------------//
   // implementation //
   //----------------//
@@ -224,6 +297,9 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   //-#if RVM_FOR_IA32
   private int[] patchMap;
   //-#endif
+  // Used with jdp to locate instruction after prologue
+  private int endPrologueOffset;  
+
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
@@ -254,7 +330,6 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   
   private static final int NO_INTEGER_ENTRY = (int)(INTEGER_MASK >>> INTEGER_SHIFT);
   private static final int NO_FLOAT_ENTRY   = (int)(FLOAT_MASK >>> FLOAT_SHIFT);
-  
 
   final int getUnsignedNonVolatileOffset() {
     return (int)((_bits & NONVOLATILE_MASK) >>> NONVOLATILE_SHIFT);
@@ -387,11 +462,13 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
 
   /**
    * Create the final machine code map for the compiled method.
+   * Remember the offset for the end of prologue too for jdp
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */
   public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) {
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
+    setEndPrologueOffset(ir.MIRInfo.instAfterPrologue.getmcOffset());
   }
 
   /**

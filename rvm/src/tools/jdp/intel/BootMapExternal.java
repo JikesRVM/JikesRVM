@@ -229,7 +229,7 @@ class BootMapExternal extends BootMap {
    *         false otherwise.
    */
   public boolean isInstructionAddress(int startAddress, int address) {
-    int endAddress = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
+    int endAddress = owner.mem.read(startAddress + VM_ObjectModel.getArrayLengthOffset());
     endAddress = startAddress + (endAddress-1)*4;
     if (address>=startAddress && address<=endAddress)
       return true;
@@ -283,14 +283,12 @@ class BootMapExternal extends BootMap {
    * @param compiledMethodID index into the compiled methods table
    * @param address an address pointing to arbitrary machine instructions
    * @return the byte offset 
-   * @exception BmapNotFoundException if the address does not have an entry in the 
-   *            method map
    * @see
    */
   public int instructionOffset(int compiledMethodID, int address) {
     int startAddress = instructionAddress(compiledMethodID);
-    int endAddress = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
-    endAddress = startAddress + endAddress*4;
+    int endAddress = owner.mem.read(startAddress + VM_ObjectModel.getArrayLengthOffset());
+    endAddress = startAddress + endAddress;
     // System.out.println("instructionOffset: code @ " + Integer.toHexString(startAddress) +
       		 // " to " + Integer.toHexString(endAddress));
     if (address<startAddress || address > endAddress) {
@@ -455,7 +453,8 @@ class BootMapExternal extends BootMap {
 	// Integer.toHexString(codeAddress));
         return new breakpoint(compiledMethodID, 0, codeAddress);
       } else {
-        int offset = scanPrologSize(codeAddress);
+	VM_CompilerInfo compInfo = findVMCompilerInfo(compiledMethodID, true);
+        int offset = getPrologSize(compInfo, codeAddress);
 	// System.out.println("breakpointForMethod: " + compiledMethodID + ", " + offset +  
 	// " at " + Integer.toHexString(codeAddress + offset));
         return new breakpoint(compiledMethodID, offset, codeAddress + offset);
@@ -468,6 +467,33 @@ class BootMapExternal extends BootMap {
 
   }
 
+  /**
+   * Get the prolog size 
+   * If the compilerinfo indicates this is an opt compiled method, then
+   * the compilerInfo has the end of prologue offset. If the method
+   * is baseline compiled then use the scan prolog approach
+   * @param compInfo VM_CompilerInfo of the method of interest
+   * @param startAddress starting address of the method
+   * @return size of the prologue (ie offset of instruction after the prologue)
+   */
+  public int getPrologSize(VM_CompilerInfo compInfo, int startAddress) {
+    if (compInfo == null)
+      return 0;
+    else {
+      //-#if RVM_WITH_OPT_COMPILER
+      if (compInfo.getCompilerType() == VM_CompilerInfo.OPT) {
+	int result = ((VM_OptCompilerInfo)compInfo).getEndPrologueOffset();
+        // if result == -1, then there is no prologue
+        if (result == -1) result = 0;
+        return result;
+      } else
+      //-#endif
+        {
+	return scanPrologSize(startAddress);
+        }
+    }
+  }
+      
 
   /**
    * The prolog from the base compiler contains this pattern to mark the start of
@@ -478,7 +504,7 @@ class BootMapExternal extends BootMap {
    * Return 0 if the pattern is not found (code may be from the optimizing compiler)
    */
   public int scanPrologSize(int startAddress) {
-    int byteLength = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
+    int byteLength = owner.mem.read(startAddress + VM_ObjectModel.getArrayLengthOffset());
     // limit: 60 bytes should be enough to capture the prolog
     if (byteLength > 60)
       byteLength = 60;
@@ -554,7 +580,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
-        offset = mth.getMostRecentlyGeneratedCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         if (offset!=-1) {
           startAddr = instructionAddressForClass(id, i, true);
           methodID = getCompiledMethodIDForInstruction(startAddr);
@@ -572,7 +598,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
-        offset = mth.getMostRecentlyGeneratedCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         //System.out.println("... checking virtual method " + methods[i].getName().toString() +
         // 			    ": offset " + offset);
         if (offset!=-1) {
@@ -661,6 +687,45 @@ class BootMapExternal extends BootMap {
       int limit = VM_MethodDictionary.getNumValues();
       if (methodID > 0 && methodID < limit)
 	return mthArray[methodID];
+      else
+	return null;
+    }
+  }
+
+  /**
+   * Implement abstract method: find the VM_CompilerInfo given a method ID
+   * @param methodID  an index into either the method dictionary table or the compiled method table
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
+   *                              false if indexing the method dictionary table
+   * @return the runtime VM_CompilerInfo for this method
+   * @exception BmapNotFoundException if the name is not in the map
+   * @see findVMMethodByIndex
+   */
+  public VM_CompilerInfo findVMCompilerInfo(int methodID, boolean usingCompiledMethodID){
+    if (usingCompiledMethodID) {
+      // the methodID is an index into the compiled method table VM_CompiledMethods.compiledMethods[]
+      VM_CompiledMethod[] compiledMths = VM_CompiledMethods.getCompiledMethods();
+      // System.out.println("findVMMethod: looking for compiled method ID " + methodID +
+      // 	 " out of " + compiledMths.length);
+      // System.out.println("findVMMethod: compiled " + VM_CompiledMethods.numCompiledMethods());
+      
+      VM_CompiledMethod compiledMethod = compiledMths[methodID];
+      if (compiledMethod !=null) {
+	VM_CompilerInfo compInfo = compiledMethod.getCompilerInfo();
+	// System.out.println("findVMCompilerInfo: found " + compInfo.getCompilerType() + 
+	// 		   " at compiled method ID " + methodID);
+	return compInfo;
+      } else {
+	return null;
+      }
+    } else {
+      // the methodID is an index into the method dictionary VM_MethodDictionary.values[]
+      VM_Method[] mthArray = VM_MethodDictionary.getValuesPointer();    
+      int limit = VM_MethodDictionary.getNumValues();
+      if (methodID > 0 && methodID < limit) {
+	VM_Method mth = mthArray[methodID];
+	return mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo();
+      }
       else
 	return null;
     }
@@ -783,7 +848,7 @@ class BootMapExternal extends BootMap {
 	  // some 150 entries will be native or else and have no instructions
 	  endAddress[i] = 0;
 	} else {
-	  int codeSize = owner.mem.read(startAddress[i] + VM.ARRAY_LENGTH_OFFSET);
+	  int codeSize = owner.mem.read(startAddress[i] + VM_ObjectModel.getArrayLengthOffset());
 	  // For AIX, code is word size (4 bytes), for Lintel, code is byte size
 	  // endAddress[i] = startAddress[i] + codeSize*4;
 	  endAddress[i] = startAddress[i] + codeSize;
@@ -795,20 +860,14 @@ class BootMapExternal extends BootMap {
       // now get the address range of the boot image
       field = findVMField("VM_BootRecord", "the_boot_record");
       int bootRecordAddress = owner.mem.readTOC(field.getOffset());
-      field = findVMField("VM_BootRecord", "startAddress");
+      field = findVMField("VM_BootRecord", "bootImageStart");
       bootStart = owner.mem.read(bootRecordAddress + field.getOffset()); 
-      field = findVMField("VM_BootRecord", "freeAddress");
+      field = findVMField("VM_BootRecord", "bootImageEnd");
       bootEnd = owner.mem.read(bootRecordAddress + field.getOffset());
-      field = findVMField("VM_BootRecord", "endAddress");
-      vmEndAddress = bootRecordAddress + field.getOffset();
 
-        System.out.println("Method table: " + methodArraySize + " entries, boot address " +
-       		    Integer.toHexString(bootStart) + " : " + 
-       		    Integer.toHexString(bootEnd) + " : @" +
-       		    Integer.toHexString(vmEndAddress));
-
-
-
+      System.out.println("Method table: " + methodArraySize + " entries, boot address " +
+			 Integer.toHexString(bootStart) + " : " + 
+			 Integer.toHexString(bootEnd));
     } catch (BmapNotFoundException e) {
       System.out.println("JDP ERROR: fillBootMethodTable , could not find class VM_BootRecord, VM_MethodDictionary or VM_Method, or one of their fields.");
       return;
@@ -920,7 +979,9 @@ class BootMapExternal extends BootMap {
     }
 
     // not found in dictionary, the address must not be an instruction address
-    System.out.println("scanCompiledMethodIDTable:  not found");
+    System.out.print("Could not find code address: " + Integer.toHexString(address));
+    System.out.println(" in address ranges of any compiled method.");
+    System.out.println("scanCompiledMethodIDTable:  address not found");
     return 0;
   }
 
@@ -932,7 +993,7 @@ class BootMapExternal extends BootMap {
    */
   // This no longer works, the compiled method ID is not being saved with the instruction block
   // public int methodIDForAddress(int methodAddress) {    
-  //   int length = owner.mem.read(methodAddress + VM.ARRAY_LENGTH_OFFSET);
+  //   int length = owner.mem.read(methodAddress + VM_ObjectModel.getArrayLengthOffset());
   //   return owner.mem.read(methodAddress + (length-1)*4);
   // }
 

@@ -75,7 +75,6 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     /**
      * Should this phase perform?
      * @param options
-     * @return 
      */
     final boolean shouldPerform (OPT_Options options) {
       return  options.GCP || options.VERBOSE_GCP || options.GCSE;
@@ -83,7 +82,6 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Return the name of the phase
-     * @return 
      */
     final String getName () {
       return  "GCP Preparation";
@@ -137,7 +135,6 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     /**
      * Should this phase perform?
      * @param options
-     * @return 
      */
     final boolean shouldPerform (OPT_Options options) {
       return  options.GCP || options.VERBOSE_GCP || options.GCSE;
@@ -145,7 +142,6 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Return the name of the phase
-     * @return 
      */
     final String getName () {
       return  "GCP Finalization";

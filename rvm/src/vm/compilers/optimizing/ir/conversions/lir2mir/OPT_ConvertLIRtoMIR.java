@@ -66,42 +66,22 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    //-#endif
 	    }
 	    else 
-		// array_ref[ARRAY_LENGTH_OFFSET] contains the length
+		// array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
 		Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			    GuardedUnary.getClearVal(s), I(ARRAY_LENGTH_OFFSET), 
+			    GuardedUnary.getClearVal(s),
+                            I(VM_ObjectModel.getArrayLengthOffset()), 
 			    new OPT_LocationOperand(), 
 			    GuardedUnary.getClearGuard(s));
 	  }
 	  break;
 
-	case GET_OBJ_STATUS_opcode:
-	  {
-	    // TODO: Valid location operand?
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(OBJECT_STATUS_OFFSET), null, 
-			GuardedUnary.getClearGuard(s));
-	  }
-	  break;
-
-        case SET_OBJ_STATUS_opcode:
-          {
-            Store.mutate(s, INT_STORE, GuardedSet.getClearVal(s),
-                GuardedSet.getClearRef(s), I(OBJECT_STATUS_OFFSET), null,
-                GuardedSet.getClearGuard(s));
-          }
-          break;
-
 	case GET_OBJ_TIB_opcode:
 	  {
-	    // TODO: Valid location operand?
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(OBJECT_TIB_OFFSET), null, 
-			GuardedUnary.getClearGuard(s));
+	    VM_ObjectModel.lowerGET_OBJ_TIB(s, ir);
 	  }
 	  break;
 
+	  //-#if RVM_WITH_REALTIME_GC
 	case GET_OBJ_RAW_opcode:
 	  {
 	    OPT_Operand address = GuardedUnary.getClearVal(s);
@@ -110,6 +90,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 			GetField.getClearGuard(s));
 	  }
 	  break;
+	  //-#endif
 
 	case GET_CLASS_TIB_opcode:
 	  {
@@ -139,12 +120,12 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	  }
 	  break;
 
-	case GET_IMPLEMENTS_TRITS_FROM_TIB_opcode:
+	case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
 	  {
 	    // TODO: Valid location operand?
 	    Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
 			Unary.getClearVal(s), 
-			I(TIB_IMPLEMENTS_TRITS_INDEX << 2), null);
+			I(TIB_DOES_IMPLEMENT_INDEX << 2), null);
 	  }
 	  break;
 
@@ -162,7 +143,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    CallSpecial.mutate2(s, SYSCALL, 
 				GuardedBinary.getClearResult(s), 
 				null, 
-				new OPT_SysMethodOperand("sysLongDivide"), 
+				new OPT_SysMethodOperand(VM_Entrypoints.sysLongDivideIPField), 
 				GuardedBinary.getClearVal1(s), 
 				GuardedBinary.getClearVal2(s));
 	    OPT_CallingConvention.expandSysCall(s, ir);
@@ -174,14 +155,59 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    CallSpecial.mutate2(s, SYSCALL, 
 				GuardedBinary.getClearResult(s), 
 				null, 
-				new OPT_SysMethodOperand("sysLongRemainder"), 
+				new OPT_SysMethodOperand(VM_Entrypoints.sysLongRemainderIPField), 
 				GuardedBinary.getClearVal1(s), 
 				GuardedBinary.getClearVal2(s));
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;
-
-	default:
+	  
+	case LONG_2FLOAT_opcode:
+	  { 
+	    if (VM.BuildForPowerPC) {
+	      CallSpecial.mutate1(s, SYSCALL,
+				  Unary.getClearResult(s),
+				  null,
+				  new OPT_SysMethodOperand(VM_Entrypoints.sysLongToFloatIPField),
+				  Unary.getClearVal(s));
+	      OPT_CallingConvention.expandSysCall(s, ir);
+	    }
+	  }
+	  break;
+	  
+	case LONG_2DOUBLE_opcode:
+	  { 
+	    if (VM.BuildForPowerPC) {
+	      CallSpecial.mutate1(s, SYSCALL,
+				  Unary.getClearResult(s),
+				  null,
+				  new OPT_SysMethodOperand(VM_Entrypoints.sysLongToDoubleIPField),
+				  Unary.getClearVal(s));
+	      OPT_CallingConvention.expandSysCall(s, ir);
+	    }
+	  }
+	  break;
+	  
+	case FLOAT_2LONG_opcode:
+	  { 
+	    CallSpecial.mutate1(s, SYSCALL,
+				Unary.getClearResult(s),
+				null,
+				new OPT_SysMethodOperand(VM_Entrypoints.sysFloatToLongIPField),
+				Unary.getClearVal(s));
+	    OPT_CallingConvention.expandSysCall(s, ir);
+	  }
+	  break;
+	  
+	case DOUBLE_2LONG_opcode:
+	  { 
+	    CallSpecial.mutate1(s, SYSCALL,
+				Unary.getClearResult(s),
+				null,
+				new OPT_SysMethodOperand(VM_Entrypoints.sysDoubleToLongIPField),
+				Unary.getClearVal(s));
+	    OPT_CallingConvention.expandSysCall(s, ir);
+	  }
 	  break;
         }
       }

@@ -22,7 +22,7 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention extends OPT_RVMIRTools
+final class OPT_CallingConvention extends OPT_IRTools
   implements OPT_Operators,
 	     OPT_PhysicalRegisterConstants {
 
@@ -83,7 +83,7 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
             findOrCreateInterfaceMethodSignatureId(mo.method.getName(), 
                                                    mo.method.getDescriptor());
           OPT_MemoryOperand M = OPT_MemoryOperand.BD
-            (R(phys.getPR()), VM_Entrypoints.hiddenSignatureIdOffset, 
+            (R(phys.getPR()), VM_Entrypoints.hiddenSignatureIdField.getOffset(), 
              (byte)WORDSIZE, null, null);
           call.insertBefore(MIR_Move.create(IA32_MOV,M,I(signatureId)));
         }
@@ -285,6 +285,7 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     restoreNonvolatilesAfterSysCall(call, ir);
     call.operator = IA32_CALL;
   }
+
   /**
    * Save all nonvolatile registers before a syscall.  
    * We do this in case the sys call does not respect our
@@ -442,11 +443,8 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
       OPT_SysMethodOperand sysM = 
 	(OPT_SysMethodOperand)CallSpecial.getClearMethod(s);
       OPT_RegisterOperand t1 = 
-	OPT_ConvertToLowLevelIR.getStatic(s, ir, sysM.record);
+	OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
       ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, sysM.ip);
-
-
-
     } else {
       ip = (OPT_RegisterOperand)CallSpecial.getClearAddress(s);
     }

@@ -77,6 +77,22 @@ class VM_JNICompilerInfo extends VM_CompilerInfo {
       return null;
       }
 
+  /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  final void set(VM_StackBrowser browser, int instr) {
+      browser.setBytecodeIndex( -1 );
+      browser.setCompilerInfo( this );
+      browser.setMethod( method );
+  }
+
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  final boolean up(VM_StackBrowser browser) {
+      return false;
+  }
+
    public final void 
    printStackTrace(int instructionOffset, java.io.PrintStream out) 
      {

@@ -207,7 +207,7 @@ public final class OPT_Instruction
   /**
    * Override and refine the operator-based trait (characteristic)
    * information. 
-   * @see OPT_Operator.java
+   * @see OPT_Operator
    */
   private byte operatorInfo;
 
@@ -319,6 +319,7 @@ public final class OPT_Instruction
 	result.append("<unused>");
       }
     }
+
     // print implicit defs
     result.append(OPT_PhysicalDefUse.getString(operator.implicitUses));
     usesPrinted += operator.getNumberOfImplicitUses();
@@ -429,7 +430,7 @@ public final class OPT_Instruction
    * Get the offset into the machine code array (in bytes) that
    * corresponds to the first byte after this instruction.  
    * This method only returns a valid value after it has been set as a
-   * side-effect of {@link OPT_Assembler#generateCode() final assembly}.
+   * side-effect of {@link OPT_Assembler#generateCode final assembly}.
    * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
    * 
    * @return the offset (in bytes) of the machinecode instruction 
@@ -440,7 +441,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Only for use by {@link OPT_Assembler#generateCode()}; sets the machine
+   * Only for use by {@link OPT_Assembler#generateCode}; sets the machine
    * code offset of the instruction as described in {@link #getmcOffset}.
    * 
    * @param mcOffset the offset (in bytes) for this instruction.
@@ -821,8 +822,9 @@ public final class OPT_Instruction
   public boolean isTwoWayBranch() { 
     // Is there a cleaner way to answer this question?
     return (isConditionalBranch() &&
-	    !IfCmp2.conforms(this) &&
-	    !MIR_CondBranch2.conforms(this));
+	    !IfCmp2.conforms(this) 
+	    && !MIR_CondBranch2.conforms(this)
+	    );
   }
 
   /**
@@ -1167,7 +1169,6 @@ public final class OPT_Instruction
     operatorInfo |= (OI_PEI_VALID | OI_GC_VALID);
   }
 
-
   /**
    * Is the first mark bit of the instruction set?
    * 
@@ -1280,11 +1281,12 @@ public final class OPT_Instruction
 	return MIR_Branch.getTarget(this).target.getBasicBlock();
       } else if (MIR_CondBranch.conforms(this)) {
 	return MIR_CondBranch.getTarget(this).target.getBasicBlock();
-      } else {
-	throw new OPT_OptimizingCompilerException("getBranchTarget()",
-						  "operator not implemented",
-						  operator.toString());
-      }
+      } else
+
+      throw new OPT_OptimizingCompilerException("getBranchTarget()",
+						"operator not implemented",
+						operator.toString());
+      
     }
   }
 
@@ -1337,7 +1339,7 @@ public final class OPT_Instruction
       for(int i = 0; i < LowTableSwitch.getNumberOfTargets(this); i++) 
 	e.addPossiblyDuplicateElement(LowTableSwitch.getTarget(this, i).target.getBasicBlock());
       break;
-
+      
     case LOOKUPSWITCH_opcode:
       e.addElement(LookupSwitch.getDefault(this).target.getBasicBlock());
       for(int i = 0; i < LookupSwitch.getNumberOfTargets(this); i++) 
@@ -1364,8 +1366,13 @@ public final class OPT_Instruction
 	throw new OPT_OptimizingCompilerException("getBranchTargets()",
 						  "operator not implemented",
 						  operator().toString());
-      }
+      } else
+
+      throw new OPT_OptimizingCompilerException("getBranchTargets()",
+						"operator not implemented",
+						operator().toString());
     }
+
     return e;
   }
 
@@ -1453,6 +1460,12 @@ public final class OPT_Instruction
       VM.assert(!isBbLast(), "cannot insert after last instruction of block");
     }
 
+    // set position unless someone else has
+    if (newInstr.position == null) {
+	newInstr.position = position;
+	newInstr.bcIndex = bcIndex;
+    }
+
     // Splice newInstr into the doubly linked list of instructions
     OPT_Instruction old_next = next;
     next = newInstr;
@@ -1489,6 +1502,12 @@ public final class OPT_Instruction
       isBackwardLinked();
       newInstr.isNotLinked();
       VM.assert(!isBbFirst(), "Cannot insert before first instruction of block");
+    }
+
+    // set position unless someone else has
+    if (newInstr.position == null) {
+	newInstr.position = position;
+	newInstr.bcIndex = bcIndex;
     }
 
     // Splice newInstr into the doubly linked list of instructions
@@ -1799,7 +1818,6 @@ public final class OPT_Instruction
   private OPT_Operand setInstruction(OPT_Operand op) {
     if (op == null) return null;
     if ((op.instruction != null)) {
-      if (op instanceof OPT_RegisterOperand)
 	op = op.copy();
     }
     op.instruction = this;
@@ -1883,13 +1901,38 @@ public final class OPT_Instruction
   /**
    * For IR internal use only;   general clients should always use higer level
    * mutation functions. 
-   * Link this and other together by setting this's {@link next} field to
-   * point to other and other's {@link prev} field to point to this.
+   * Link this and other together by setting this's {@link #next} field to
+   * point to other and other's {@link #prev} field to point to this.
    * 
    * @param other the instruction to link with.
    */
   protected void linkWithNext(OPT_Instruction other) {
     next = other;
     other.prev = this;
+  }
+
+  /**
+   * Might this instruction be a load from a field that is declared 
+   * to be volatile?
+   *
+   * @return <code>true</code> if the instruction might be a load
+   *         from a volatile field or <code>false</code> if it 
+   *         cannot be a load from a volatile field
+   */
+  public boolean mayBeVolatileFieldLoad() {
+    boolean isVolatileLoad = false;
+    if (OPT_LocalCSE.isLoadInstruction(this)) {
+      OPT_LocationOperand l = LocationCarrier.getLocation(this);
+      if (l.isFieldAccess()) {
+	VM_Field f = l.getField();
+	if (!f.getDeclaringClass().isLoaded()) {
+	  // class not yet loaded; conservatively assume
+	  // volatile! (yuck)
+	  isVolatileLoad = true;
+	}
+	else if (f.isVolatile()) isVolatileLoad = true;
+      }
+    }
+    return isVolatileLoad;
   }
 }

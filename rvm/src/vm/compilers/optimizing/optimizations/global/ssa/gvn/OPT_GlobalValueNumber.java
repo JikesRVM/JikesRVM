@@ -51,6 +51,8 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
    * @param ir the governing IR
    */
   final public void perform (OPT_IR ir) {
+    if (ir.desiredSSAOptions.getAbort()) return;
+    
     // make sure the SSA computation completed successfully
     // TODO if (!ir.SSAForm()) return;
     OPT_DefUse.computeDU(ir);

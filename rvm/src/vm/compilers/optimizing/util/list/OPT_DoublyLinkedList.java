@@ -11,51 +11,27 @@ class OPT_DoublyLinkedList {
   OPT_DoublyLinkedListElement start;
   OPT_DoublyLinkedListElement end;
 
-  /**
-   * put your documentation comment here
-   */
   OPT_DoublyLinkedList () {
   }
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_DoublyLinkedListElement e
-   */
   OPT_DoublyLinkedList (OPT_DoublyLinkedListElement e) {
     start = end = e;
   }
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_DoublyLinkedListElement s
-   * @param   OPT_DoublyLinkedListElement e
-   */
   OPT_DoublyLinkedList (OPT_DoublyLinkedListElement s, 
       OPT_DoublyLinkedListElement e) {
     start = s;
     end = e;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final OPT_DoublyLinkedListElement first () {
     return  start;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final OPT_DoublyLinkedListElement last () {
     return  end;
   }
 
-  /**
-   * put your documentation comment here
-   * @param e
-   */
   final void remove (OPT_DoublyLinkedListElement e) {
     if (e == start) {
       if (e == end) {
@@ -75,10 +51,6 @@ class OPT_DoublyLinkedList {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   final OPT_DoublyLinkedListElement removeLast () {
     OPT_DoublyLinkedListElement e = end;
     if (e == start) {
@@ -122,13 +94,7 @@ class OPT_DoublyLinkedList {
     //return e;
   }
 
-  /**
-   * put your documentation comment here
-   */
   final void deleteAll () {
     start = end = null;
   }
 }
-
-
-

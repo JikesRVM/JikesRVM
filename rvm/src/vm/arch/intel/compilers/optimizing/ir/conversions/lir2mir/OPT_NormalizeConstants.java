@@ -39,10 +39,9 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.JavaLangStringType);
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
-              int offset = sc.value.offset();
+              int offset = sc.index << 2;
               if (offset == 0)
-                throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
-              offset = offset << 2;
+                throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
 	      s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset), loc));
 	      s.putOperand(idx, rop.copyD2U());
@@ -50,22 +49,18 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use.copy();
-              int offset = dc.offset;
-              if (offset == 0) {
-                offset = VM_Statics.findOrCreateDoubleLiteral(VM_Magic.doubleAsLongBits(dc.value));
+              if (dc.index == 0) {
+                dc.index = VM_Statics.findOrCreateDoubleLiteral(VM_Magic.doubleAsLongBits(dc.value));
               }
-	      dc.offset = offset << 2;
 	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
 	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use.copy();
-              int offset = fc.offset;
-              if (offset == 0) {
-                offset = VM_Statics.findOrCreateFloatLiteral(VM_Magic.floatAsIntBits(fc.value));
+              if (fc.index  == 0) {
+                fc.index = VM_Statics.findOrCreateFloatLiteral(VM_Magic.floatAsIntBits(fc.value));
               }
-	      fc.offset = offset << 2;
 	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());
 	    } else if (use instanceof OPT_NullConstantOperand) {

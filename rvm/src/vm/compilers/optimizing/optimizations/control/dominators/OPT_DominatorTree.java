@@ -49,11 +49,11 @@ class OPT_DominatorTree extends OPT_Tree {
       if (ir.options.PRINT_DOMINATORS) {
 	if (DEBUG) {
 	  System.out.println("Here is the CFG for method "+
-			     ir.method.name +"\n"+
+			     ir.method.getName() +"\n"+
 			     ir.cfg);
 	}
 	System.out.println("Here is the Dominator Tree for method "+
-			   ir.method.name +"\n"+
+			   ir.method.getName() +"\n"+
 			   ir.HIRInfo.dominatorTree);
       }
     } else {
@@ -61,11 +61,11 @@ class OPT_DominatorTree extends OPT_Tree {
       if (ir.options.PRINT_POST_DOMINATORS) {
 	if (DEBUG) {
 	  System.out.println("Here is the CFG for method "+
-			     ir.method.name +"\n"+
+			     ir.method.getName() +"\n"+
 			     ir.cfg);
 	}
 	System.out.println("Here is the Post-Dominator Tree for method "+
-			   ir.method.name +"\n"+
+			   ir.method.getName() +"\n"+
 			   ir.HIRInfo.postDominatorTree);
       }
     }

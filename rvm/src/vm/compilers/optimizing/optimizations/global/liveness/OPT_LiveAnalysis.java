@@ -241,10 +241,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // No longer need currentSet, which is simply a cache of a LiveSet).
     currentSet = null;
 
+    //-#if JIKESBT
+    //-#else
     // This will be null if createGCMaps is false
     if (createGCMaps) {
       ir.MIRInfo.gcIRMap = map;
     }
+    //-#endif
 
     // inform the IR that handler liveness is now available
     if (storeLiveAtHandlers) {
@@ -341,7 +344,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * @param ir the governing if
    * @see "Efficient and Precise Modeling of Exceptions for the 
    *      Analysis of Java Programs" by Choi, Grove, Hind, Sarkar
-   *      in ACM PASTE99 workshop (available at www.research.ibm.com/jalapeno)
+   *      in ACM PASTE99 workshop (available at
+   *      www.research.ibm.com/jalapeno)"
    */
   private void computeBlockGenAndKill(OPT_BasicBlock bblock, OPT_IR ir) {
     if (verbose) {
@@ -349,8 +353,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
     
     // Tells whether we've seen the first PEI
-    boolean seenFirstPEI = false;
-
+    boolean seenFirstPEI = false; 
     // Because control flow may emanate from a potentially excepting
     // instruction (PEI) out of the basic block, care must be taken 
     // when computing what can be killed by a basic block.  
@@ -890,13 +893,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       if (createGCMaps) {
         System.out.print("and GC Maps ");
       }
-      System.out.println("for method: " + ir.method.name + " in class: "
+      System.out.println("for method: " + ir.method.getName() + " in class: "
           + ir.method.getDeclaringClass().getName() + "\n");
       System.out.println("  method has " 
           + ir.cfg.numberOfNodes() + " basic blocks");
     }
     if (debug || dumpFinalMaps) {
-      System.out.println("**** START OF IR for method: " + ir.method.name
+      System.out.println("**** START OF IR for method: " + ir.method.getName()
           + " in class: " + ir.method.getDeclaringClass().getName());
       ir.printInstructions();
       System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
@@ -933,7 +936,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   private void printFixedPointResults(OPT_IR ir) {
     System.out.println("\n  ***** Fixed point results for IR-based GC Maps for "
-        + ir.method.getDeclaringClass().getName() + "." + ir.method.name);
+        + ir.method.getDeclaringClass().getName() + "." + ir.method.getName());
     int length = bbLiveInfo.length;
     for (int i = 0; i < length; i++) {
       System.out.println("Live Info for Block #" + i);
@@ -947,7 +950,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   private void printFinalMaps(OPT_IR ir) {
     System.out.println("\n  =-=-=-=-=- Final IR-based GC Maps for " + 
-        ir.method.getDeclaringClass().getName() + "." + ir.method.name);
+        ir.method.getDeclaringClass().getName() + "." + ir.method.getName());
     map.dump();
     System.out.println("  =-=-=-=-=- End Final IR-based GC Maps\n");
   }
@@ -969,7 +972,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     ir.printInstructions();
     System.out.println("\n  *+*+*+*+*+ Final Live Intervals for " 
         + ir.method.getDeclaringClass().getName()
-        + "." + ir.method.name);
+        + "." + ir.method.getName());
     for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); block
         != null; block = block.nextBasicBlockInCodeOrder()) {
       OPT_LiveInterval.printLiveIntervalList(block);

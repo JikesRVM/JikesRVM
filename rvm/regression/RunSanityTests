@@ -72,7 +72,7 @@ TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/nightly-tests`
 
 ## Default configurations
 #
-CONFIG_LIST="BaseBaseSemispace BaseBaseMarkSweep BaseBaseCopyGenVariable FullOptMarkSweep FullOptCopyGenVariable FullAdaptiveSemispace FastAdaptiveSemispace ExtremeAssertionsOptOptSemispace"
+CONFIG_LIST="NIGHT_SANITY"
 
 # help message of usage options
 #
@@ -80,7 +80,7 @@ function showHelp {
   echo 'valid options:'
   echo '-images <dir>               where to put generated images'
   echo '-result <root dir>          where to put results of tests'
-  echo '-test[s] "<tests>"            list of tests to run'
+  echo '-test[s] "<tests>"          list of tests to run'
   echo '-test-list <file>           file listing tests to run'
   echo '-nobuild                    do not build boot images'
   echo '-noclean                    do not clean when running tests'
@@ -350,6 +350,14 @@ function doRun
      # start test running
      say "start $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
 
+     # ignore -numprocs if image does not support it
+     if fgrep -q "VIRTUAL_PROCESSOR=1" $RVM_BUILD/RVM.configuration; then
+	if [ $NUM_PROCS != 1 ]; then
+	    echo "Ignoring -numprocs for single cpu boot image"
+	fi
+	NUM_PROCS=1
+     fi
+
      # Supply a result dir
      if [ x$RESULT = x ]; then
        RESULT="$RVM_BUILD/sanity" 
@@ -403,7 +411,6 @@ function doRun
     . $RVM_BUILD/environment
     $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
-           JBOOT=$RVM_ROOT/rvm/bin/rvm \
 	   SUFFIX=$SUFFIX \
            PROCESSORS=\"$NUM_PROCS\" \
            RC_ARGS=\"$RC_ARGS $EXTRA_RC_ARGS\" \
@@ -467,6 +474,16 @@ function runTests {
 # Build and test a series of configurations.
 #
 function main {
+  if [[ $CONFIG_LIST = "NIGHT_SANITY" ]]; then
+     ARCH=`arch`
+     if [[ $ARCH = 'power' ]] then
+       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-powerpc
+     else
+       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-lintel
+     fi
+     exit
+  fi
+
   for config in $CONFIG_LIST; do
     setConfiguration $config; time runTests
   done

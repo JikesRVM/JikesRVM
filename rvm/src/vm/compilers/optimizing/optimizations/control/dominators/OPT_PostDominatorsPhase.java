@@ -12,11 +12,23 @@
 final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
 
   /**
+   * Should we unfactor the CFG? 
+   */
+  private boolean unfactor = false;
+
+  /**
+   * @param unfactor Should we unfactor the CFG before computing
+   * dominators?
+   */
+  OPT_PostDominatorsPhase(boolean unfactor) {
+    this.unfactor = unfactor;
+  }
+
+  /**
    * Should this phase be performed?  This is a member of a composite
    * phase, so always return true.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
-   * @return 
    */
   final boolean shouldPerform(OPT_Options options) {
     return true;
@@ -51,7 +63,7 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
 
       // compute post-dominators, 
       // leaves info in scratch object of basic blocks
-      OPT_LTDominators.perform(ir, false, false);
+      OPT_LTDominators.perform(ir, false, unfactor);
 
       // create the dominator tree, relies on dominator info being
       // in scratch object of basic blocks

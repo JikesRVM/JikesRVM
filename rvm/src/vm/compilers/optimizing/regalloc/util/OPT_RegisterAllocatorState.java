@@ -26,7 +26,7 @@ class OPT_RegisterAllocatorState {
       OPT_Register reg = (OPT_Register)e.nextElement();
       reg.deallocateRegister();
       reg.mapsToRegister = null;  // mapping from real to symbolic
-      putPhysicalRegResurrectList(reg, null);
+  //    putPhysicalRegResurrectList(reg, null);
       reg.defList        = null;
       reg.useList        = null;
       setSpill(reg, 0);
@@ -38,21 +38,25 @@ class OPT_RegisterAllocatorState {
    * TODO: use another field for safety; scratchObject is also used by 
    *  clan OPT_LinearScanLiveAnalysis
    */
+  /*
   static void putPhysicalRegResurrectList(OPT_Register r, 
 					  OPT_LinearScanLiveInterval li) {
     if (VM.VerifyAssertions) VM.assert(r.isPhysical());
     r.scratchObject = li;
   }
+  */
   /**
    *
    * Special use of scratchObject field as "resurrect lists" for real registers
    * TODO: use another field for safety; scratchObject is also used by 
    *  clan OPT_LinearScanLiveAnalysis
    */
+  /*
   static OPT_LinearScanLiveInterval getPhysicalRegResurrectList(OPT_Register r) {
     if (VM.VerifyAssertions) VM.assert(r.isPhysical());
     return (OPT_LinearScanLiveInterval) r.scratchObject;
   }
+  */
   
   static void setSpill(OPT_Register reg, int spill) {
     reg.spillRegister();

@@ -5,8 +5,9 @@
 
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
- * The compiler() method translates the bytecodes of a method to 
- * straightforward machine code.
+ *
+ * <p> The <code> compile() </code> method translates the bytecodes of a 
+ * method to straightforward machine code.
  * 
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -17,7 +18,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   // interface //
   //-----------//
    
-  static VM_CompiledMethod compile (VM_Method method) {
+  static synchronized VM_CompiledMethod compile (VM_Method method) {
     int compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
     if (method.isNative()) {
       VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative
@@ -25,14 +26,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
       return new VM_CompiledMethod(compiledMethodId, method, 
                                    machineCode.getInstructions(), info); 
-    } 
-    else if (!VM.BuildForInterpreter) {
+    } else if (VM.runningAsJDPRemoteInterpreter) {
+      return new VM_CompiledMethod(compiledMethodId, method, null, null);
+    } else {
       VM_Compiler     compiler     = new VM_Compiler();
       VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, null);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
+      
       if ((options.PRINT_MACHINECODE) &&
           (!options.hasMETHOD_TO_PRINT() ||
 	   options.fuzzyMatchMETHOD_TO_PRINT(method.toString()))) {
@@ -49,8 +52,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       return new VM_CompiledMethod(compiledMethodId, method, 
                                    instructions, info);
-    } else {
-      return new VM_CompiledMethod(compiledMethodId, method, null, null);
     }
   }
 
@@ -162,7 +163,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private VM_MachineCode genCode (int compiledMethodId, VM_Method meth) {
     if (options.PRINT_METHOD) printMethodMessage(meth);
-    if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: begin compiling " + meth + "\n");
     /* initialization */ { 
       if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
       if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
@@ -241,43 +241,43 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x09: /* --- lconst_0 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("lconst_0 ");  // floating-point 0 is long 0
-          asm.emitLFStoc(F0, VM_Entrypoints.zeroOffset, T0);
+          asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
           asm.emitSTFDU (F0, -8, SP);
           break;
 	}
         case 0x0a: /* --- lconst_1 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("lconst_1 ");
-          asm.emitLFDtoc(F0, VM_Entrypoints.longOneOffset, T0);
+          asm.emitLFDtoc(F0, VM_Entrypoints.longOneField.getOffset(), T0);
           asm.emitSTFDU (F0, -8, SP);
           break;
 	}
         case 0x0b: /* --- fconst_0 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("fconst_0");
-          asm.emitLFStoc(F0, VM_Entrypoints.zeroOffset, T0);
+          asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
           asm.emitSTFSU (F0, -4, SP);
           break;
 	}
         case 0x0c: /* --- fconst_1 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("fconst_1");
-          asm.emitLFStoc(F0, VM_Entrypoints.oneOffset, T0);
+          asm.emitLFStoc(F0, VM_Entrypoints.oneFloatField.getOffset(), T0);
           asm.emitSTFSU (F0, -4, SP);
           break;
 	}
         case 0x0d: /* --- fconst_2 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("fconst_2");
-          asm.emitLFStoc(F0, VM_Entrypoints.twoOffset, T0);
+          asm.emitLFStoc(F0, VM_Entrypoints.twoFloatField.getOffset(), T0);
           asm.emitSTFSU (F0, -4, SP);
           break;
 	}
         case 0x0e: /* --- dconst_0 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("dconst_0");
-          asm.emitLFStoc(F0, VM_Entrypoints.zeroOffset, T0);
+          asm.emitLFStoc(F0, VM_Entrypoints.zeroFloatField.getOffset(), T0);
           asm.emitSTFDU (F0, -8, SP);
           break;
 	}
         case 0x0f: /* --- dconst_1 --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("dconst_1");
-          asm.emitLFStoc(F0, VM_Entrypoints.oneOffset, T0);
+          asm.emitLFStoc(F0, VM_Entrypoints.oneFloatField.getOffset(), T0);
           asm.emitSTFDU (F0, -8, SP);
           break;
 	}
@@ -797,7 +797,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x53: /* --- aastore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("aastore");
-	  asm.emitLtoc(T0,  VM_Entrypoints.checkstoreOffset);
+	  asm.emitLtoc(T0,  VM_Entrypoints.checkstoreMethod.getOffset());
           asm.emitMTLR(T0);
           asm.emitL   (T0,  8, SP);  //  T0 := arrayref
           asm.emitL   (T1,  0, SP);  //  T1 := value
@@ -807,7 +807,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTLLE seem redundant and possibly bogus
           asm.emitL   (T1,  8, SP);                    // T1 is array ref
           asm.emitL   (T0,  4, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+          asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
 	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
 	  emitSegmentedArrayAccess (asm, T1, T0, T2, 2);
 	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
@@ -1034,15 +1034,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x6d: /* --- ldiv --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("ldiv");
-          asm.emitLtoc(T0, VM_Entrypoints.longDivideOffset);
-          asm.emitMTLR(T0);
-          asm.emitL   (T1, 12, SP);
-	  asm.emitL   (T0,  8, SP);
           asm.emitL   (T3,  4, SP);
           asm.emitL   (T2,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
-	  asm.emitST  (T1, 12, SP);
-	  asm.emitSTU (T0,  8, SP);
+	  asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+          asm.emitTEQ0(T0);         // trap if 0.
+          asm.emitL   (T1, 12, SP);
+	  asm.emitL   (T0,  8, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysLongDivideIPField);
+	  asm.emitST  (T1, 12, SP); 
+	  asm.emitSTU (T0,  8, SP); 
           break;
 	}
         case 0x6e: /* --- fdiv --- */ {
@@ -1074,15 +1074,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x71: /* --- lrem --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("lrem");
-          asm.emitLtoc(T0, VM_Entrypoints.longRemainderOffset);
-          asm.emitMTLR(T0);
-          asm.emitL   (T1, 12, SP);
-	  asm.emitL   (T0,  8, SP);
           asm.emitL   (T3,  4, SP);
           asm.emitL   (T2,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
-	  asm.emitST  (T1, 12, SP);
-	  asm.emitSTU (T0,  8, SP);
+	  asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+          asm.emitTEQ0(T0);         // trap if 0.
+          asm.emitL   (T1, 12, SP);
+	  asm.emitL   (T0,  8, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysLongRemainderIPField);
+	  asm.emitST  (T1, 12, SP); 
+	  asm.emitSTU (T0,  8, SP); 
           break;
 	}
         case 0x72: /* --- frem --- */ {
@@ -1090,11 +1090,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitLFS   (F0,  0, SP);              // F0 is b
           asm.emitLFS   (F1,  4, SP);              // F1 is a
           asm.emitFD    (F2, F1, F0);              // F2 is a/b
-          asm.emitLFStoc(F3, VM_Entrypoints.halfOffset, T0);      // F3 is 0.5
+          asm.emitLFStoc(F3, VM_Entrypoints.halfFloatField.getOffset(), T0);      // F3 is 0.5
           asm.emitFNEG  (F1, F3);                  // F1 is -0.5
           asm.emitFSEL  (F3, F2, F3, F1);          // F3 is (a/b<0)?-0.5:0.5
           asm.emitFS    (F2, F2, F3);              // F2 is a/b - (a/b<0)?-0.5:0.5
-          asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicOffset, T0); // F3 is MAGIC
+          asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T0); // F3 is MAGIC
           asm.emitFA    (F2, F2, F3);              // F2 is MAGIC + a/b - (a/b<0)?-0.5:0.5
           asm.emitFS    (F2, F2, F3);              // F2 is trunc(a/b)
           asm.emitLFS   (F1,  4, SP);              // F1 is a
@@ -1107,11 +1107,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           asm.emitLFD   (F0,  0, SP);              // F0 is b
           asm.emitLFD   (F1,  8, SP);              // F1 is a
           asm.emitFD    (F2, F1, F0);              // F2 a/b
-          asm.emitLFStoc(F3, VM_Entrypoints.halfOffset, T0);     // F3 is 0.5
+          asm.emitLFStoc(F3, VM_Entrypoints.halfFloatField.getOffset(), T0);     // F3 is 0.5
           asm.emitFNEG  (F1, F3);                  // F1 is -0.5
           asm.emitFSEL  (F3, F2, F3, F1);          // F3 is (a/b<0)?-0.5:0.5
           asm.emitFS    (F2, F2, F3);              // F2 is a/b - (a/b<0)?-0.5:0.5
-          asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicOffset, T0); // F3 is MAGIC
+          asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T0); // F3 is MAGIC
           asm.emitFA    (F2, F2, F3);              // F2 is MAGIC + a/b - 0.5
           asm.emitFS    (F2, F2, F3);              // F2 is trunc(a/b)
           asm.emitLFD   (F1,  8, SP);              // F1 is a
@@ -1322,7 +1322,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           if (VM.TraceAssembler) asm.noteBytecode("i2f");
           asm.emitL     (T0,  0, SP);               // T0 is X (an int)
 	  asm.emitCMPI  (T0,  0);                   // is X < 0
-          asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicOffset, T1);  // F0 is MAGIC
+          asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
           asm.emitSTFD  (F0, -4, SP);               // MAGIC on stack
           asm.emitST    (T0,  0, SP);               // if 0 <= X, MAGIC + X 
           asm.emitBGE   ( 4);                       // ow, handle X < 0
@@ -1338,7 +1338,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           if (VM.TraceAssembler) asm.noteBytecode("i2d");
           asm.emitL     (T0,  0, SP);               // T0 is X (an int)
 	  asm.emitCMPI  (T0,  0);                   // is X < 0
-          asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicOffset, T1);  // F0 is MAGIC
+          asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
           asm.emitSTFD  (F0, -4, SP);               // MAGIC on stack
           asm.emitST    (T0,  0, SP);               // if 0 <= X, MAGIC + X 
           asm.emitBGE   ( 4);                       // ow, handle X < 0
@@ -1357,21 +1357,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x89: /* --- l2f --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("l2f");
-          asm.emitLtoc (T0, VM_Entrypoints.longToDoubleOffset);
-          asm.emitMTLR (T0);
-          asm.emitL    (T1,  4, SP);
-	  asm.emitL    (T0,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
+          asm.emitL   (T1, 4, SP);
+	  asm.emitL   (T0, 0, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysLongToFloatIPField);
 	  asm.emitSTFSU(F0,  4, SP);
           break;
 	}
         case 0x8a: /* --- l2d --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("l2d"); 
-	  asm.emitLtoc(T0, VM_Entrypoints.longToDoubleOffset);
-          asm.emitMTLR(T0);
-          asm.emitL   (T1,  4, SP);
-	  asm.emitL   (T0,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
+          asm.emitL   (T1, 4, SP);
+	  asm.emitL   (T0, 0, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysLongToDoubleIPField);
 	  asm.emitSTFD(F0,  0, SP);
           break;
 	}
@@ -1384,10 +1380,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x8c: /* --- f2l --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("f2l");
-          asm.emitLtoc(T0, VM_Entrypoints.doubleToLongOffset);
-          asm.emitMTLR(T0);
           asm.emitLFS (F0,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
+	  VM_MagicCompiler.generateSysCall(asm, 4, VM_Entrypoints.sysFloatToLongIPField);
 	  asm.emitST  (T1,  0, SP);
 	  asm.emitSTU (T0, -4, SP);
           break;
@@ -1408,12 +1402,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x8f: /* --- d2l --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("d2l");
-          asm.emitLtoc(T0, VM_Entrypoints.doubleToLongOffset);
-          asm.emitMTLR(T0);
-          asm.emitLFD (F0, 0, SP);
-          asm.emitCall(spSaveAreaOffset);
-          asm.emitST  (T1, 4, SP);
-	  asm.emitST  (T0, 0, SP);
+          asm.emitLFD (F0,  0, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysDoubleToLongIPField);
+	  asm.emitST  (T1, 4, SP);
+	  asm.emitSTU (T0, 0, SP);
           break;
 	}
         case 0x90: /* --- d2f --- */ {
@@ -2022,7 +2014,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !(fieldRefClass == klass) &&
 	      !(fieldRefClass.isInBootImage() && VM.writingBootImage)
 	      ) {
-	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
+	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, fieldRefClass.getDictionaryId()); 
 	    asm.emitCall(spSaveAreaOffset);
@@ -2068,16 +2060,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      asm.emitSTU   (T0, -4, SP);      // push value
 	    } else { // volatile field is two words (double or long)
 	      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL     (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL     (S0, VM_Entrypoints.processorLockOffset, T1);
+	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
 	      asm.emitMTLR  (S0);
 	      asm.emitCall  (spSaveAreaOffset);
 	      asm.emitLFDtoc(F0, fieldOffset, T0);
 	      asm.emitSTFDU (F0, -8, SP);
-	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL     (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL     (S0, VM_Entrypoints.processorUnlockOffset, T1);
+	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL     (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
 	      asm.emitMTLR  (S0);
 	      asm.emitCall  (spSaveAreaOffset);
 	    }
@@ -2111,7 +2103,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !(fieldRefClass == klass) &&
 	      !(fieldRefClass.isInBootImage() && VM.writingBootImage)
 	      ) { 
-	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
+	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, fieldRefClass.getDictionaryId()); 
 	    asm.emitCall(spSaveAreaOffset);
@@ -2136,7 +2128,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
 		//-#if RVM_WITH_CONCURRENT_GC
 		if (wasResolved)
-		  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
+		  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
 		else
 		  VM_RCBarriers.compileDynamicPutstaticBarrier2(asm, spSaveAreaOffset, method, fieldRef);
 		//-#endif
@@ -2163,7 +2155,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      asm.emitCAL   (SP, 4, SP);
 	      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
 		//-#if RVM_WITH_CONCURRENT_GC 
-		VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
+		VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
 		//-#endif
 	      } else { // see Appendix E of PowerPC Microprocessor Family: The Programming Environments
 		asm.emitLVAL  (T1, fieldOffset); // T1 = fieldOffset
@@ -2174,17 +2166,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      // asm.emitSYNC(); // to make putstatic of a volatile field a write barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
 	    } else { // volatile field is two words (double or long)
 	      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	      asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL      (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL      (S0, VM_Entrypoints.processorLockOffset, T1);
+	      asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL      (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
 	      asm.emitMTLR   (S0);
 	      asm.emitCall   (spSaveAreaOffset);
 	      asm.emitLFD    (F0, 0, SP );
 	      asm.emitCAL    (SP, 8, SP);
 	      asm.emitSTFDtoc(F0, fieldOffset, T0);
-	      asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL      (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL      (S0, VM_Entrypoints.processorUnlockOffset, T1);
+	      asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL      (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
 	      asm.emitMTLR   (S0);
 	      asm.emitCall   (spSaveAreaOffset);
 	    }
@@ -2249,17 +2241,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      asm.emitST    (T0, 0, SP);           // push value
 	    } else { // volatile field is two words (double or long)
 	      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL     (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL     (S0, VM_Entrypoints.processorLockOffset, T1);
+	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
 	      asm.emitMTLR  (S0);
 	      asm.emitCall  (spSaveAreaOffset);
 	      asm.emitL     (T1, 0, SP);
 	      asm.emitLFD   (F0, fieldOffset, T1);
 	      asm.emitSTFDU (F0, -4, SP);
-	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL     (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL     (S0, VM_Entrypoints.processorUnlockOffset, T1);
+	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);	
+	      asm.emitL     (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
 	      asm.emitMTLR  (S0);
 	      asm.emitCall  (spSaveAreaOffset);
 	    }
@@ -2348,18 +2340,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      // asm.emitSYNC(); // to make putfield of a volatile field a write barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
 	    } else { // volatile field is two words (double or long)
 	      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL     (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL     (S0, VM_Entrypoints.processorLockOffset, T1);
+	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
 	      asm.emitMTLR  (S0);
 	      asm.emitCall  (spSaveAreaOffset);
 	      asm.emitLFD   (F0,  0, SP);
 	      asm.emitL     (T1,  8, SP);
 	      asm.emitCAL   (SP, 12, SP);
 	      asm.emitSTFD  (F0, fieldOffset, T1);
-	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexOffset);
-	      asm.emitL     (T1, OBJECT_TIB_OFFSET, T0);
-	      asm.emitL     (S0, VM_Entrypoints.processorUnlockOffset, T1);
+	      asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	      VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
+	      asm.emitL     (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
 	      asm.emitMTLR  (S0);
 	      asm.emitCall  (spSaveAreaOffset);
 	    }
@@ -2370,6 +2362,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
           if (VM.TraceAssembler)  asm.noteBytecode("invokevirtual " + constantPoolIndex + " (" + methodRef + ")");
+          if (methodRef.getDeclaringClass().isAddressType()) {
+            VM_MagicCompiler.generateInlineCode(this, methodRef);
+	    break;
+          } 
           boolean classPreresolved = false;
 	  VM_Class methodRefClass = methodRef.getDeclaringClass();
 	  if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -2385,7 +2381,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  int methodRefParameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
 	  int objectOffset = (methodRefParameterWords << 2) - 4;
 	  asm.emitL   (T0, objectOffset,      SP); // load this
-	  asm.emitL   (T1, OBJECT_TIB_OFFSET, T0); // load TIB
+	  VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0); // load TIB
 	  if (methodRef.needsDynamicLink(method) && !classPreresolved) {
 	    emitDynamicLinkingSequence(methodRef); // leaves method offset in T2
 	    asm.emitLX  (T2, T2, T1);  
@@ -2445,7 +2441,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
           if (VM.TraceAssembler) asm.noteBytecode("invokestatic " + constantPoolIndex + " (" + methodRef + ")");
-          if (methodRef.getDeclaringClass().isMagicType()) {
+          if (methodRef.getDeclaringClass().isMagicType() ||
+	      methodRef.getDeclaringClass().isAddressType()) {
             VM_MagicCompiler.generateInlineCode(this, methodRef);
 	    break;
           } 
@@ -2466,7 +2463,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !(methodRefClass == klass) &&
 	      !(methodRefClass.isInBootImage() && VM.writingBootImage)
 	      ) { 
-	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
+	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, methodRefClass.getDictionaryId()); 
 	    asm.emitCall(spSaveAreaOffset);
@@ -2513,20 +2510,20 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    if (resolvedMethodRef == null) {
 	      // might be a ghost ref. Call uncommon case typechecking routine 
               // to deal with this
-	      asm.emitLtoc(T0, VM_Entrypoints.unresolvedInterfaceMethodOffset);
+	      asm.emitLtoc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
 	      asm.emitMTLR(T0);
 	      asm.emitLIL (T0, methodRef.getDictionaryId());  // dictionaryId of method we are trying to call
 	      asm.emitL   (T1, (count-1) << 2, SP);           // the "this" object
-	      asm.emitL   (T1, OBJECT_TIB_OFFSET, T1);        // its tib
+              VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
 	      asm.emitCall(spSaveAreaOffset);                 // throw exception, if link error
 	    } else {
 	      // normal case.  Not a ghost ref.
-	      asm.emitLtoc(T0, VM_Entrypoints.mandatoryInstanceOfInterfaceOffset);
+	      asm.emitLtoc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
 	      asm.emitMTLR(T0);
 	      asm.emitLtoc(T0, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
 	      asm.emitL   (T0, TIB_TYPE_INDEX << 2, T0);                   // type of the interface method
 	      asm.emitL   (T1, (count-1) << 2, SP);                        // the "this" object
-	      asm.emitL   (T1, OBJECT_TIB_OFFSET, T1);                     // its tib
+              VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
 	      asm.emitCall(spSaveAreaOffset);                              // throw exception, if link error
 	    }
 	  }
@@ -2535,10 +2532,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    int signatureId = VM_ClassLoader.
               findOrCreateInterfaceMethodSignatureId(methodRef.getName(), 
                                                      methodRef.getDescriptor());
-            int offset      = VM_InterfaceMethodSignature.getOffset
-                                                          (signatureId);
+            int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
             genMoveParametersToRegisters(true, methodRef); // T0 is "this"
-            asm.emitL   (S0, OBJECT_TIB_OFFSET, T0);       // its TIB
+            VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
             if (VM.BuildForIndirectIMT) {
               // Load the IMT base into S0
               asm.emitL(S0, TIB_IMT_TIB_INDEX << 2, S0);
@@ -2558,10 +2554,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    methodRef = methodRef.resolve();
 	    VM_Class I = methodRef.getDeclaringClass();
 	    genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
-	    asm.emitL   (S0, OBJECT_TIB_OFFSET, T0);  // its TIB
+            VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
 	    asm.emitL   (S0, TIB_ITABLES_TIB_INDEX << 2, S0); // iTables 
 	    asm.emitL   (S0, I.getInterfaceId() << 2, S0);  // iTable
-	    asm.emitL   (S0, I.getITableIndex(methodRef) << 2, S0); // the method to call
+	    asm.emitL   (S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2, S0); // the method to call
 	    asm.emitMTLR(S0);
 	    //-#if RVM_WITH_SPECIALIZATION
 	    asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
@@ -2574,7 +2570,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    if (VM.BuildForITableInterfaceInvocation) {
 	      // get the index of the method in the Itable
 	      if (I.isLoaded()) {
-		itableIndex = I.getITableIndex(methodRef);
+		itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef);
 	      }
 	    }
             if (itableIndex == -1) {
@@ -2582,7 +2578,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
               // call "invokeInterface" to resolve object + method id into 
               // method address
               int methodRefId = klass.getMethodRefId(constantPoolIndex);
-              asm.emitLtoc(T0, VM_Entrypoints.invokeInterfaceOffset);
+              asm.emitLtoc(T0, VM_Entrypoints.invokeInterfaceMethod.getOffset());
               asm.emitMTLR(T0);
               asm.emitL   (T0, (count-1) << 2, SP); // object
               asm.emitLVAL(T1, methodRefId);        // method id
@@ -2598,11 +2594,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
               // itable index is known at compile-time.
               // call "findITable" to resolve object + interface id into 
               // itable address
-              asm.emitLtoc(T0, VM_Entrypoints.findItableOffset);
+              asm.emitLtoc(T0, VM_Entrypoints.findItableMethod.getOffset());
               asm.emitMTLR(T0);
               asm.emitL   (T0, (count-1) << 2, SP);     // object
-	      asm.emitL   (T0, OBJECT_TIB_OFFSET, T0);  // its TIB
-              asm.emitLVAL(T1, I.getDictionaryId());    // interface id
+              VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
+              asm.emitLVAL(T1, I.getInterfaceId());    // interface id
               asm.emitCall(spSaveAreaOffset);   // T0 := itable reference
               asm.emitL   (T0, itableIndex << 2, T0); // T0 := the method to call
               asm.emitMTLR(T0);
@@ -2630,7 +2626,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    VM_Class newclass = (VM_Class)typeRef;
 	    int instanceSize = newclass.getInstanceSize();
 	    int tibOffset = newclass.getTibOffset();
-	    asm.emitLtoc(T0, VM_Entrypoints.quickNewScalarOffset);
+	    asm.emitLtoc(T0, VM_Entrypoints.quickNewScalarMethod.getOffset());
 	    asm.emitMTLR(T0);
 	    asm.emitLVAL(T0, instanceSize);
 	    asm.emitLtoc(T1, tibOffset);
@@ -2638,7 +2634,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    asm.emitCall(spSaveAreaOffset);
 	    asm.emitSTU (T0, -4, SP);
 	  } else { // call regular allocator (someday backpatch?)
-	    asm.emitLtoc(T0, VM_Entrypoints.newScalarOffset);
+	    asm.emitLtoc(T0, VM_Entrypoints.newScalarMethod.getOffset());
 	    asm.emitMTLR(T0);
 	    asm.emitLVAL(T0, klass.getTypeRefId(constantPoolIndex));
 	    asm.emitCall(spSaveAreaOffset);
@@ -2654,12 +2650,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  if (VM.TraceAssembler)  asm.noteBytecode("newarray " + atype + "(" + array + ")");
 	  int width      = array.getLogElementSize();
           int tibOffset  = array.getTibOffset();
-          int headerSize = ARRAY_HEADER_SIZE;
-          asm.emitLtoc (T0, VM_Entrypoints.quickNewArrayOffset);
+          int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
+          asm.emitLtoc (T0, VM_Entrypoints.quickNewArrayMethod.getOffset());
           asm.emitMTLR (T0);
 	  asm.emitL    (T0,  0, SP);                // T0 := number of elements
           asm.emitSLI  (T1, T0, width);             // T1 := number of bytes
-	  asm.emitCAL  (T1, ARRAY_HEADER_SIZE, T1); //    += header bytes
+	  asm.emitCAL  (T1, headerSize, T1);        //    += header bytes
           asm.emitLtoc (T2, tibOffset);             // T2 := tib
           asm.emitCall(spSaveAreaOffset);
           asm.emitST   (T0, 0, SP);
@@ -2676,12 +2672,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           if (VM.TraceAssembler) asm.noteBytecode("anewarray new " + constantPoolIndex + " (" + array + ")");
 	  int width      = array.getLogElementSize();
           int tibOffset = array.getTibOffset();
-          int headerSize = ARRAY_HEADER_SIZE;
-          asm.emitLtoc (T0, VM_Entrypoints.quickNewArrayOffset);
+          int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
+          asm.emitLtoc (T0, VM_Entrypoints.quickNewArrayMethod.getOffset());
           asm.emitMTLR (T0);
 	  asm.emitL    (T0,  0, SP);                // T0 := number of elements
           asm.emitSLI  (T1, T0, width);             // T1 := number of bytes
-	  asm.emitCAL  (T1, ARRAY_HEADER_SIZE, T1); //    += header bytes
+	  asm.emitCAL  (T1, headerSize, T1);        //    += header bytes
           asm.emitLtoc (T2, tibOffset);             // T2 := tib
           asm.emitCall(spSaveAreaOffset);
           asm.emitST   (T0, 0, SP);
@@ -2690,7 +2686,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         case 0xbe: /* --- arraylength --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("arraylength");
           asm.emitL (T0, 0, SP);
-          asm.emitL (T1, ARRAY_LENGTH_OFFSET, T0);
+          asm.emitL (T1, VM_ObjectModel.getArrayLengthOffset(), T0);
 	  if (VM.BuildForRealtimeGC) {
 	      asm.emitCMPI(T1, 0);
 	      asm.emitBGE(2);
@@ -2702,7 +2698,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         case 0xbf: /* --- athrow --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("athrow");
           if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE); 
-          asm.emitLtoc(T0, VM_Entrypoints.athrowOffset);
+          asm.emitLtoc(T0, VM_Entrypoints.athrowMethod.getOffset());
           asm.emitMTLR(T0);
           asm.emitL   (T0, 0, SP);
           asm.emitCall(spSaveAreaOffset);
@@ -2712,7 +2708,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
           if (VM.TraceAssembler) asm.noteBytecode("checkcast " + constantPoolIndex + " (" + typeRef + ")");
-          asm.emitLtoc(T0,  VM_Entrypoints.checkcastOffset);
+          asm.emitLtoc(T0,  VM_Entrypoints.checkcastMethod.getOffset());
           asm.emitMTLR(T0);
           asm.emitL   (T0,  0, SP); // checkcast(obj, klass) consumes obj
           asm.emitLVAL(T1, typeRef.getTibOffset());
@@ -2723,13 +2719,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
           if (VM.TraceAssembler) asm.noteBytecode("instanceof " + constantPoolIndex + " (" + typeRef + ")");
-          int offset = VM_Entrypoints.instanceOfOffset;
+          int offset = VM_Entrypoints.instanceOfMethod.getOffset();
           if (typeRef.isClassType()) { 
 	    VM_Class Class = typeRef.asClass();
 	    if (Class.isLoaded() && Class.isFinal())
-	      offset = VM_Entrypoints.instanceOfFinalOffset;
+	      offset = VM_Entrypoints.instanceOfFinalMethod.getOffset();
           } else if (typeRef.isArrayType() && typeRef.asArray().getElementType().isPrimitiveType())
-	    offset = VM_Entrypoints.instanceOfFinalOffset;
+	    offset = VM_Entrypoints.instanceOfFinalMethod.getOffset();
           asm.emitLtoc(T0,  offset);            
           asm.emitMTLR(T0);
 	  asm.emitL   (T0, 0, SP);
@@ -2740,18 +2736,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0xc2: /* --- monitorenter ---  */ {
           if (VM.TraceAssembler) asm.noteBytecode("monitorenter");
-          asm.emitL   (T0, 0, SP);
-	  // inline initial attempt to acquire the object's lock. see also: VM_Lock.lock()
-	  // NB: If you change this, you must also update the version used by the opt compiler.
-	  asm.emitCAL   (T1, OBJECT_STATUS_OFFSET, T0);  // T1 := &object.status
-	  asm.emitLWARX (T2, 0, T1);                     // T2 := status, with reservation
-	  asm.emitSRAIr ( 0, T2, OBJECT_THREAD_ID_SHIFT);// test: fatbit==0 && threadid==0
-	  asm.emitBNE   (+5);                            // if false then branch to lock call
-	  asm.emitOR    (T2, TI, T2);                    // T2 := (thread id | status)
-	  asm.emitSTWCXr(T2, 0, T1);                     // *T1 := T2, with condition
-	  asm.emitISYNC ();                              // assume success, kill contents of prefetch buffer -- see VM_Lock.lock()
-	  asm.emitBEQ   (VM_Assembler.CALL_INSTRUCTIONS + 3); // if store succeeded then branch around lock call
-          asm.emitL   (S0, VM_Entrypoints.lockOffset, JTOC);
+          asm.emitL   (S0, VM_Entrypoints.lockMethod.getOffset(), JTOC);
           asm.emitMTLR(S0);
           asm.emitCall(spSaveAreaOffset);
 	  asm.emitCAL (SP, 4, SP);
@@ -2760,17 +2745,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         case 0xc3: /* --- monitorexit --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("monitorexit");
           asm.emitL     (T0, 0, SP);
-          // inline initial attempt to release the object's lock. see also: VM_Lock.unlock()
-	  // NB: If you change this, you must also update the version used  by the opt compiler.
-          asm.emitCAL   (T1, OBJECT_STATUS_OFFSET, T0);   // T1 := &object.status
-          asm.emitLWARX (T2,  0, T1);                     // T2 := status, with reservation
-          asm.emitXOR   (T2, T2, TI);                     // T2 := status ^ thread id
-          asm.emitSRAIr ( 0, T2, OBJECT_LOCK_COUNT_SHIFT);// test: fatbit==0 && count==0 && lockid=me
-          asm.emitBNE   (+4);                             // if not then branch to unlock call
-          asm.emitSYNC  ();                               // assume success, synchronize memory updates -- see VM_Lock.unlock()
-          asm.emitSTWCXr(T2, 0, T1);                      // *T1 := T2 (== unlocked state), with condition
-          asm.emitBEQ   (VM_Assembler.CALL_INSTRUCTIONS + 3); // if store succeeded then branch around lock call
-          asm.emitL   (S0, VM_Entrypoints.unlockOffset, JTOC);
+          asm.emitL   (S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);
           asm.emitMTLR(S0);
           asm.emitCall(spSaveAreaOffset);
           asm.emitCAL (SP, 4, SP);
@@ -2883,7 +2858,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int dimensions = fetch1ByteUnsigned();
           VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
           if (VM.TraceAssembler) asm.noteBytecode("multianewarray " + constantPoolIndex + " (" + typeRef + ") "  + dimensions);
-          asm.emitLtoc(T0, VM_Entrypoints.newArrayArrayOffset);
+          asm.emitLtoc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
           asm.emitMTLR(T0);
           asm.emitLVAL(T0, dimensions);
           asm.emitLVAL(T1, klass.getTypeRefId(constantPoolIndex));
@@ -2973,7 +2948,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
     }
     asm.emitDATA(compiledMethodId); // put method signature at end of machine code
-    if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: end compiling " + meth + "\n");
     return asm.makeMachineCode();
   }
 
@@ -3024,7 +2998,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private void aloadSetup (int logSize) {
     asm.emitL   (T1,  4, SP);                    // T1 is array ref
     asm.emitL   (T0,  0, SP);                    // T0 is array index
-    asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+    asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     if (logSize >= 0)
 	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
     if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
@@ -3037,7 +3011,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private void astoreSetup (int logSize) {
     asm.emitL   (T1,  8, SP);                    // T1 is array ref
     asm.emitL   (T0,  4, SP);                    // T0 is array index
-    asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+    asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     asm.emitL   (T3,  0, SP);                    // T3 is value to store
     if (logSize >= 0)
 	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
@@ -3051,7 +3025,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private void astoreLong () {
     asm.emitL    (T1, 12, SP);                    // T1 is array ref
     asm.emitL    (T0,  8, SP);                    // T0 is array index
-    asm.emitL    (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+    asm.emitL    (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
     emitSegmentedArrayAccess(asm, T1, T0, T2, 3);
     if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
@@ -3133,24 +3107,19 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   //
   private void genSynchronizedMethodPrologue() {
     if (method.isStatic()) { // put java.lang.Class object for VM_Type into T0
-      klass.getClassForType(); // force java.lang.Class to get loaded into "klass.classForType"
+      if (VM.writingBootImage) {
+	VM.deferClassObjectCreation(klass);
+      } else {
+	klass.getClassForType();
+      }
       int tibOffset = klass.getTibOffset();
       asm.emitLtoc(T0, tibOffset);
       asm.emitL   (T0, 0, T0);
-      asm.emitL   (T0, VM_Entrypoints.classForTypeOffset, T0); 
+      asm.emitL   (T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
     } else { // first local is "this" pointer
       asm.emitL(T0, localOffset(0), FP);
     }
-    // inline initial attempt to acquire the object's lock. see also: VM_Lock.lock()
-    asm.emitCAL   (T1, OBJECT_STATUS_OFFSET, T0);  // T1 := &object.status
-    asm.emitLWARX (T2, 0, T1);                     // T2 := status, with reservation
-    asm.emitSRAIr ( 0, T2, OBJECT_THREAD_ID_SHIFT);// test fatbit==0 && threadid==0
-    asm.emitBNE   (+5);                            // if false then branch to lock call
-    asm.emitOR    (T2, TI, T2);                    // T2 := (thread id | status)
-    asm.emitSTWCXr(T2, 0, T1);                     // *T1 := T2, with condition
-    asm.emitISYNC ();                              // assume success, kill contents of prefetch buffer -- see VM_Lock.lock()
-    asm.emitBEQ   (VM_Assembler.CALL_INSTRUCTIONS + 3); // if store succeeded then branch around lock call
-    asm.emitL     (S0, VM_Entrypoints.lockOffset, JTOC); // call out...
+    asm.emitL     (S0, VM_Entrypoints.lockMethod.getOffset(), JTOC); // call out...
     asm.emitMTLR  (S0);                                  // ...of line lock
     asm.emitCall(spSaveAreaOffset);
     lockOffset = 4*(asm.currentInstructionOffset() - 1); // after this instruction, the method has the monitor
@@ -3163,20 +3132,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int tibOffset = klass.getTibOffset();
       asm.emitLtoc(T0, tibOffset);
       asm.emitL   (T0, 0, T0);
-      asm.emitL   (T0, VM_Entrypoints.classForTypeOffset, T0); 
+      asm.emitL   (T0, VM_Entrypoints.classForTypeField.getOffset(), T0); 
     } else { // first local is "this" pointer
       asm.emitL(T0, localOffset(0), FP); //!!TODO: think about this - can anybody store into local 0 (ie. change the value of "this")?
     }
-    // inline initial attempt to release the object's lock.  see also: VM_Lock.unlock()
-    asm.emitCAL   (T1, OBJECT_STATUS_OFFSET, T0);       // T1 := &object.status
-    asm.emitLWARX (T2,  0, T1);                         // T2 := status, with reservation
-    asm.emitXOR   (T2, T2, TI);                         // T2 := status ^ thread id
-    asm.emitSRAIr ( 0, T2, OBJECT_LOCK_COUNT_SHIFT);    // test: fatbit==0 && count==0 && lockid=me
-    asm.emitBNE   (+4);                                 // if not then branch to unlock call
-    asm.emitSYNC  ();                                   // assume success, synchronize memory updates -- see VM_Lock.unlock()
-    asm.emitSTWCXr(T2, 0, T1);                          // *T1 := T2 (== unlocked state), with condition
-    asm.emitBEQ   (VM_Assembler.CALL_INSTRUCTIONS + 3); // if store succeeded then branch around lock call
-    asm.emitL   (S0, VM_Entrypoints.unlockOffset, JTOC);  // call out...
+    asm.emitL   (S0, VM_Entrypoints.unlockMethod.getOffset(), JTOC);  // call out...
     asm.emitMTLR(S0);                                     // ...of line lock
     asm.emitCall(spSaveAreaOffset);
   }
@@ -3210,25 +3170,25 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       if (VM.BuildForDeterministicThreadSwitching) { // set THREAD_SWITCH_BIT every N method calls
 	
 	// Decrement counter
-	asm.emitL  (T2, VM_Entrypoints.deterministicThreadSwitchCountOffset, PROCESSOR_REGISTER);
+	asm.emitL  (T2, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
 	asm.emitCAL(T2, -1, T2);  // decrement it
-	asm.emitST (T2, VM_Entrypoints.deterministicThreadSwitchCountOffset, PROCESSOR_REGISTER);
+	asm.emitST (T2, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
         
 	// If counter reaches zero, set threadswitch bit
 	asm.emitCMPI(T2, 0);
 	asm.emitBGT(VM_Assembler.CALL_INSTRUCTIONS + 5);
 	asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0); // set thread switch bit
       } else if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
-	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedOffset, PROCESSOR_REGISTER);
+	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedField.getOffset(), PROCESSOR_REGISTER);
 	asm.emitCMPI(THREAD_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_BIT in CR
       } // else rely on the timer interrupt to set the THREAD_SWITCH_BIT
       asm.emitBNTS(VM_Assembler.CALL_INSTRUCTIONS + 3); // skip, unless THREAD_SWITCH_BIT in CR is set
       if (whereFrom == VM_Thread.PROLOGUE) {
-	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromPrologueOffset, JTOC);
+	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset(), JTOC);
       } else if (whereFrom == VM_Thread.BACKEDGE) {
-	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromBackedgeOffset, JTOC);
+	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset(), JTOC);
       } else { // EPILOGUE
-	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromEpilogueOffset, JTOC);
+	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset(), JTOC);
       }
       asm.emitMTLR(S0);
       asm.emitCall(spSaveAreaOffset);

@@ -41,10 +41,10 @@ public class NetworkDebugger
    * @see     jdp
    */    
   public NetworkDebugger(int bp, String runner, boolean rawMode, boolean interpreted, String init_macro,
-                         boolean viewBoot, boolean dejavu)
+                         boolean viewBoot)
   {
     jdpServer = new JDPServer(1024);
-    debugger = new Debugger(bp, runner, rawMode, interpreted, init_macro, jdpServer, viewBoot, dejavu);
+    debugger = new Debugger(bp, runner, rawMode, interpreted, init_macro, jdpServer, viewBoot);
   }
 
   /**

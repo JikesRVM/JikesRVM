@@ -1480,6 +1480,29 @@ class PPC_Disassembler implements VM_Constants {
     else
       return true;
   }
+
+  /*
+   * Return whether an instruction is a branch for yieldpoint
+   *  used by OPT compiler
+   */
+  /* static int branch_for_yieldpoint(inst) */
+  static boolean isBranchForYieldpoint(int inst)
+  {
+    int opcode, ext_op;
+    int link;
+    
+    opcode = bits(inst,0,5);
+    link = bits(inst,31,31);
+    switch (opcode) {
+    case 16: /* unconditional branch */
+      if (link==1)
+	return true;
+      else
+	return false;
+    }
+    
+    return false;
+  }
   
   
   static String intAsHexString(int x) {
@@ -1487,5 +1510,6 @@ class PPC_Disassembler implements VM_Constants {
   }
   
 }
+
 
 

@@ -37,7 +37,7 @@ import instructionFormats.*;
  * @author Mauricio J. Serrano
  * @author Martin Trapp
  */
-final class OPT_IR implements OPT_Operators {
+public final class OPT_IR implements OPT_Operators {
 
   /**
    * Control for (dynamic) IR invariant checking.
@@ -52,7 +52,7 @@ final class OPT_IR implements OPT_Operators {
   /**
    * Control for (dynamic) IR invariant checking.
    * By default PARANOID is <code>false</code>. 
-   * PARANOID must not be true unless {@link VM#VerifyAssetrtions}
+   * PARANOID must not be true unless {@link VM#VerifyAssertions}
    * is also <code>true</code>.
    * When PARANOID is <code>true</code> many IR utility functions
    * check the invariants on which they depend, and 
@@ -92,7 +92,7 @@ final class OPT_IR implements OPT_Operators {
 
   /**
    * Every unit of compiled code in the system is assigned a unique id
-   * by the {@link VM_CompiledMethodDictionary compiled method dictionary}.
+   * by the compiled method dictionary.
    * compiledMethodId contains the id assigned to the current compilation.
    */
   public int compiledMethodId;
@@ -143,7 +143,7 @@ final class OPT_IR implements OPT_Operators {
    * TODO: It's plausible that this field also really belongs on
    * the generation context instead of the IR.
    */
-  public OPT_SpecializationGraphNode context;
+    public OPT_SpecializationHandler special;
   //-#endif
     
   /**
@@ -222,8 +222,8 @@ final class OPT_IR implements OPT_Operators {
    * @param ip   the inlining oracle to use for the compilation
    * @param opts the options to use for the compilation
    */
-  public OPT_IR(VM_Method meth, OPT_InlineOracle ip, OPT_Options opts) {
-    method = meth;
+  public OPT_IR(VM_Method m, OPT_InlineOracle ip, OPT_Options opts) {
+    method = m;
     options = opts;
     inlinePlan = ip;
   }
@@ -232,12 +232,12 @@ final class OPT_IR implements OPT_Operators {
    * @param meth the method to compile
    * @param cp   the compilation plan to execute
    */
-  public OPT_IR(VM_Method meth, OPT_CompilationPlan cp) {
-    method = meth;
+  public OPT_IR(VM_Method m, OPT_CompilationPlan cp) {
+    method = m;
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     //-#if RVM_WITH_SPECIALIZATION
-    context = cp.context;
+    special = cp.special;
     //-#endif
 
     instrumentationPlan = cp.instrumentationPlan;
@@ -248,7 +248,7 @@ final class OPT_IR implements OPT_Operators {
   /**
    * Print the instructions in this IR to System.out.
    */
-  void printInstructions() {
+  public void printInstructions() {
     // If counts are available, include them in the printed IR
     if (this.basicBlockFrequenciesAvailable()) {
       // Update the counts to be sure they are valid.
@@ -685,8 +685,7 @@ final class OPT_IR implements OPT_Operators {
    * Bring the edge counts up-to-date.  Call this in each phase prior
    * to using the edge counts.
    *
-   * @see OPT_EdgeCounts.updateoCFGFrequencies()
-   * 
+   * @see OPT_EdgeCounts#updateCFGFrequencies
    */
    public void updateCFGFrequencies() {
      if (edgeCounts != null)

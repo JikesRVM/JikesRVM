@@ -163,6 +163,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       // BURS doesn't really care, so consolidate to reduce rule space
       case INT_2FLOAT_opcode: s.operator = INT_2FP; break;
       case INT_2DOUBLE_opcode: s.operator = INT_2FP; break;
+      case LONG_2FLOAT_opcode: s.operator = LONG_2FP; break;
+      case LONG_2DOUBLE_opcode: s.operator = LONG_2FP; break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case REF_LOAD_opcode: s.operator = INT_LOAD; break;

@@ -145,6 +145,12 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     result.methodLocal = true;
     for (OPT_RegisterOperand use = reg.useList; use != null; 
         use = (OPT_RegisterOperand)use.getNext()) {
+
+      if (VM.VerifyAssertions && use.type == null) {
+	  ir.printInstructions();
+	  VM.assert(false, "type of " + use + " is null");
+      }
+
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
       if (use.type.isPrimitiveType()) {
@@ -161,9 +167,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     }
     for (OPT_RegisterOperand def = reg.defList; def != null; 
         def = (OPT_RegisterOperand)def.getNext()) {
+
+      if (VM.VerifyAssertions && def.type == null) {
+	  ir.printInstructions();
+	  VM.assert(false, "type of " + def + " is null");
+      }
+
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
-      if (def.type.isPrimitiveType()) {
+      if (def.type == null || def.type.isPrimitiveType()) {
         result.threadLocal = false;
         result.methodLocal = false;
         break;
@@ -212,7 +224,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case SHORT_ALOAD_opcode:case USHORT_ALOAD_opcode:
       case REF_ALOAD_opcode:
-      case INT_LOAD_opcode: case LONG_LOAD_opcode:
+      case INT_LOAD_opcode: case LONG_LOAD_opcode:case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);
         if (result != use) {
@@ -260,12 +272,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
       case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
       case BOOLEAN_CMP_opcode:case OBJARRAY_STORE_CHECK_opcode:
-      case GET_OBJ_STATUS_opcode:case GET_OBJ_TIB_opcode:
+      case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
+      case GET_OBJ_TIB_opcode:
       case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
       case NEWOBJMULTIARRAY_opcode:case NEW_UNRESOLVED_opcode:
       case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
-      case CHECKCAST_opcode: case CHECKCAST_INTERFACE_NOTNULL_opcode:
-      case CHECKCAST_NOTNULL_opcode:case GET_CAUGHT_EXCEPTION_opcode:
+      case INSTANCEOF_UNRESOLVED_opcode:
+      case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:
+      case CHECKCAST_NOTNULL_opcode: case CHECKCAST_UNRESOLVED_opcode:
+      case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode: 
         return  false;
       case RETURN_opcode:
@@ -373,7 +388,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:case REF_ALOAD_opcode:
-      case INT_LOAD_opcode:case LONG_LOAD_opcode:
+      case INT_LOAD_opcode:case LONG_LOAD_opcode:case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);
         if (result != use) {
@@ -420,13 +435,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case REF_IFCMP_opcode:case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
       case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
       case BOOLEAN_CMP_opcode:
-      case OBJARRAY_STORE_CHECK_opcode:case GET_OBJ_STATUS_opcode:
+      case OBJARRAY_STORE_CHECK_opcode:
+      case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:
       case NEWARRAY_opcode:case NEWOBJMULTIARRAY_opcode:
-      case NEW_UNRESOLVED_opcode:case INSTANCEOF_opcode:
-      case INSTANCEOF_NOTNULL_opcode:
-      case CHECKCAST_opcode:case CHECKCAST_NOTNULL_opcode:
-      case CHECKCAST_INTERFACE_NOTNULL_opcode:
+      case NEW_UNRESOLVED_opcode:
+      case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
+      case INSTANCEOF_UNRESOLVED_opcode:
+      case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:
+      case CHECKCAST_NOTNULL_opcode: case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode: 
         return  false;

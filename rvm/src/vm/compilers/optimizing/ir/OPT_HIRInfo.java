@@ -38,4 +38,7 @@ final class OPT_HIRInfo {
 
   /** Place to hang results of index propagation analysis */
   public OPT_DF_Solution indexPropagationSolution;
+
+  /** Did load elimination do anything last time? */
+  public boolean loadEliminationDidSomething = true;
 }

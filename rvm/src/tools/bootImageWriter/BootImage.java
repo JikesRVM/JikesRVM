@@ -1,7 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//BootImage.java
 //$Id$
 
 import java.io.FileOutputStream;
@@ -15,56 +14,54 @@ import java.io.IOException;
  * @version 03 Jan 2000
  */
 public class BootImage extends BootImageWriterMessages
-  implements BootImageWriterConstants
-{
+  implements BootImageWriterConstants, BootImageInterface {
+
   /**
    * Talk while we work?
    */
-  private static boolean trace = false;
+  private boolean trace = false;
 
   /**
    * Write words low-byte first?
    */
-  private static boolean littleEndian;
+  private boolean littleEndian;
 
   /**
    * The actual boot image
    */
-  private static byte[] bootImage;
+  private byte[] bootImage;
 
   /**
    * Offset of next free word, in bytes
    */
-  private static int freeOffset;
+  private int freeOffset;
 
   /**
    * Offset of last free word + 1, in bytes
    */
-  private static int endOffset;
+  private int endOffset;
 
   /**
    * Number of objects appearing in bootimage
    */
-  private static int numObjects;
+  private int numObjects;
 
   /**
    * Number of non-null object addresses appearing in bootimage
    */
-  private static int numAddresses;
+  private int numAddresses;
 
   /**
    * Number of object addresses set to null because they referenced objects
    * that are not part of bootimage
    */
-  private static int numNulledReferences;
+  private int numNulledReferences;
 
   /**
-   * Prepare boot image for use.
-   *
    * @param ltlEndian write words low-byte first?
    * @param t turn tracing on?
    */
-  public static void init(boolean ltlEndian, boolean t) {
+  BootImage(boolean ltlEndian, boolean t) {
     bootImage = new byte[endOffset = IMAGE_SIZE];
     littleEndian = ltlEndian;
     trace = t;
@@ -75,7 +72,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param imageFileName the name of the image file
    */
-  public static void write(String imageFileName) throws IOException {
+  public void write(String imageFileName) throws IOException {
     if (trace) {
       say((numObjects / 1024)   + "k objects");
       say((numAddresses / 1024) + "k non-null object references");
@@ -95,7 +92,7 @@ public class BootImage extends BootImageWriterMessages
    * Get image size, in bytes.
    * @return image size
    */
-  public static int getSize() {
+  public int getSize() {
     return freeOffset;
   }
 
@@ -103,71 +100,56 @@ public class BootImage extends BootImageWriterMessages
    * Allocate a scalar object.
    * Note: size should be divisible by 4
    *
-   * @param size object's size, in bytes (including object header)
+   * @param klass VM_Class object of scalar being allocated
    * @return offset of object within bootimage, in bytes
    */
-  public static int allocateScalar(int size) {
+  public int allocateScalar(VM_Class klass) {
     numObjects += 1;
-
-    //
-    // allocate space, noting that scalars are layed out "backwards"
-    //
-    freeOffset += size;
-    if (freeOffset > endOffset)
-      fail("bootimage full (need " + size + " more bytes)");
-    int imageOffset = freeOffset - SCALAR_HEADER_SIZE - OBJECT_HEADER_OFFSET;
-
-    //
-    // set .status field
-    // - for reference counting gc, install large reference count
-    // - for generational gc, turn on barrier bit for boot (== "old") object
-    //
-    if (VM.BuildForConcurrentGC) // RCGC
-      setFullWord(imageOffset + OBJECT_REFCOUNT_OFFSET, BOOTIMAGE_REFCOUNT);
-    else
-      setFullWord(imageOffset + OBJECT_STATUS_OFFSET,
-		  VM_Runtime.newObjectHashCode() | OBJECT_BARRIER_MASK);
-
-    return imageOffset;
+    return VM_ObjectModel.allocateScalar(this, klass);
   }
 
   /**
    * Allocate an array object.
    *
-   * @param size object's size, in bytes (including object header)
+   * @param array VM_Array object of array being allocated.
    * @param numElements number of elements
    * @return offset of object within bootimage, in bytes
    */
-  public static int allocateArray(int size, int numElements) {
+  public int allocateArray(VM_Array array, int numElements) {
     numObjects += 1;
+    return VM_ObjectModel.allocateArray(this, array, numElements);
+  }
 
-    //
-    // allocate space, noting that arrays are layed out "forwards"
-    //
-    int imageOffset = freeOffset - OBJECT_HEADER_OFFSET;
-
-    // preserve future alignments on word boundaries
-    freeOffset += ((size + 3) & ~3);
+  /**
+   * Allocate space in bootimage. Moral equivalent of 
+   * memory managers allocating raw storage at runtime.
+   * @param size the number of bytes to allocate
+   */
+  public int allocateStorage(int size) {
+    int lowAddr = freeOffset;
+    freeOffset += ((size + 3) & ~3); // maintain word alignment
     if (freeOffset > endOffset)
       fail("bootimage full (need " + size + " more bytes)");
-
-    //
-    // set .status field
-    // - for reference counting gc, install large reference count
-    // - for generational gc, turn on barrier bit for boot (== "old") object
-    //
-    if (VM.BuildForConcurrentGC) // RCGC
-      setFullWord(imageOffset + OBJECT_REFCOUNT_OFFSET, BOOTIMAGE_REFCOUNT);
-    else
-      setFullWord(imageOffset + OBJECT_STATUS_OFFSET, OBJECT_BARRIER_MASK);
-
-    //
-    // set .length field
-    //
-    setFullWord(imageOffset + ARRAY_LENGTH_OFFSET, numElements);
-
-    return imageOffset;
+    return lowAddr;
   }
+
+
+  /**
+   * Allocate space in bootimage. Moral equivalent of 
+   * memory managers allocating raw storage at runtime.
+   * @param size the number of bytes to allocate
+   */
+  public int allocateAlignedStorage(int size) {
+      // DFB: MAJOR HACK
+      freeOffset += 8;
+      freeOffset = VM_Memory.align(freeOffset, 16);
+      int result = freeOffset - 8;
+      freeOffset = VM_Memory.align(freeOffset + size - 8, 4);
+      if (freeOffset > endOffset)
+	  fail("bootimage full (need " + size + " more bytes)");
+      return result;
+  }
+
 
   /**
    * Fill in 1 byte of bootimage.
@@ -175,7 +157,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public static void setByte(int offset, int value) {
+  public void setByte(int offset, int value) {
     bootImage[offset] = (byte) value;
   }
 
@@ -185,7 +167,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public static void setHalfWord(int offset, int value) {
+  public void setHalfWord(int offset, int value) {
     if (littleEndian) {
       bootImage[offset++] = (byte) (value);
       bootImage[offset  ] = (byte) (value >>  8);
@@ -201,7 +183,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public static void setFullWord(int offset, int value) {
+  public void setFullWord(int offset, int value) {
     if (littleEndian) {
       bootImage[offset++] = (byte) (value);
       bootImage[offset++] = (byte) (value >>  8);
@@ -221,7 +203,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public static void setAddressWord(int offset, int value) {
+  public void setAddressWord(int offset, int value) {
     setFullWord(offset, value);
     numAddresses += 1;
   }
@@ -231,7 +213,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param offset offset of target from start of image, in bytes
    */
-  public static void setNullAddressWord(int offset) {
+  public void setNullAddressWord(int offset) {
     setAddressWord(offset, 0);
     numNulledReferences += 1;
   }
@@ -242,7 +224,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public static void setDoubleWord(int offset, long value) {
+  public void setDoubleWord(int offset, long value) {
     if (littleEndian) {
       bootImage[offset++] = (byte) (value);
       bootImage[offset++] = (byte) (value >>  8);
@@ -268,8 +250,7 @@ public class BootImage extends BootImageWriterMessages
    * Keep track of how many references were set null because they pointed to
    * non-bootimage objects.
    */
-  public static void countNulledReference() {
+  public void countNulledReference() {
     numNulledReferences += 1;
   }
 }
-

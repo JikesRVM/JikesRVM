@@ -14,45 +14,30 @@ abstract class OPT_LinkedListElement {
    * Returns a pointer to the next element in the list, or null if this is the
    * last element.
    *
-   * @returns pointer to next element
+   * @return pointer to next element
    */
-  public final OPT_LinkedListElement getNext () {
+  public final OPT_LinkedListElement getNext() {
     return  next;
   }
 
-  /**
-   * put your documentation comment here
-   * @param next
-   */
-  public final void setNext (OPT_LinkedListElement next) {
+  public final void setNext(OPT_LinkedListElement next) {
     if (this != next)
       this.next = next;
   }
 
-  /**
-   * put your documentation comment here
-   * @param e
-   */
-  public final void insertAfter (OPT_LinkedListElement e) {
+  public final void insertAfter(OPT_LinkedListElement e) {
     if (this != e) {
       e.next = next;
       next = e;
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param e
-   */
-  public final void insertBefore (OPT_LinkedListElement e) {
+  public final void insertBefore(OPT_LinkedListElement e) {
     if (this != e)
       e.next = this;
   }
 
-  /**
-   * put your documentation comment here
-   */
-  public final void removeNext () {
+  public final void removeNext() {
     next = next.next;
   }
 
@@ -61,7 +46,7 @@ abstract class OPT_LinkedListElement {
    *
    * @param l list to append
    */
-  final OPT_LinkedListElement append (OPT_LinkedListElement l) {
+  final OPT_LinkedListElement append(OPT_LinkedListElement l) {
     if (this == l)
       return  this;
     if (next != null)
@@ -71,6 +56,3 @@ abstract class OPT_LinkedListElement {
     return  this;
   }
 }
-
-
-

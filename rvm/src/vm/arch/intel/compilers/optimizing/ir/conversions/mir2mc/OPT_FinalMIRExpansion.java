@@ -24,7 +24,7 @@ import instructionFormats.*;
  * @author Julian Dolby
  * @modified Peter Sweeney 
  */
-class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
+class OPT_FinalMIRExpansion extends OPT_IRTools {
 
   /**
    * @param ir the IR to expand
@@ -41,7 +41,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
       p.scratchObject = null; 
 
       switch (p.getOpcode()) {
-      case IA32_LOWTABLESWITCH_opcode:
+      case MIR_LOWTABLESWITCH_opcode:
 	{
 	  // split the basic block after the MIR_LOWTABLESWITCH
 	  OPT_BasicBlock thisBlock = p.getBasicBlock();
@@ -142,7 +142,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 	    }
 	    OPT_MemoryOperand mo = 
 	      OPT_MemoryOperand.BD(R(phys.getPR()),
-				   VM_Entrypoints.arrayIndexTrapParamOffset,
+				   VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
 				   (byte)4, 
 				   null, 
 				   null);
@@ -221,16 +221,23 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 	break;
 
       case YIELDPOINT_PROLOGUE_opcode:
-	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromPrologueMethod);
+	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod);
 	break;
 
       case YIELDPOINT_EPILOGUE_opcode:
-	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromEpilogueMethod);
+	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod);
 	break;
 
       case YIELDPOINT_BACKEDGE_opcode:
-	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromBackedgeMethod);
+	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod);
 	break;
+
+      case IR_ENDPROLOGUE_opcode:
+	// Remember where the end of prologue is for jdp
+	p.remove();
+	ir.MIRInfo.instAfterPrologue = next;
+	break;
+
       }
     }
     return 0;
@@ -351,7 +358,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(offset + VM_Magic.getTocPointer(), (byte)4, loc, guard);
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(), (byte)4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
 		     OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
@@ -362,7 +369,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.threadSwitchRequestedOffset;
+    int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, I(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),

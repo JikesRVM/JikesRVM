@@ -37,7 +37,7 @@ class OPT_DepGraphStats implements OPT_Operators {
    * @param   dg        the dependence graph
    * @param   bbName    name of the basic block
    */
-  OPT_DepGraphStats (OPT_DepGraph dg, String bbName) {
+  OPT_DepGraphStats(OPT_DepGraph dg, String bbName) {
     // First pass -- compute numNodes
     int numNodes = 0;
     boolean containsLoadOrStore = false;
@@ -95,7 +95,7 @@ class OPT_DepGraphStats implements OPT_Operators {
    * Print the dependence graph stats for all basic blocks in an IR.
    * @param ir the IR
    */
-  static void printBasicBlockStatistics (OPT_IR ir) {
+  static void printBasicBlockStatistics(OPT_IR ir) {
     System.out.println();
     System.out.println("**** START OF printBasicBlockStatistics() for method "
         + ir.method + " ****");
@@ -121,15 +121,11 @@ class OPT_DepGraphStats implements OPT_Operators {
    * Return an estimate of the number of cycles for a given instruction.
    * Currently, this estimate is comically simple.
    * @param instr the instruction
-   * @return 
    */
-  int estimateExecutionTime (OPT_Instruction instr) {
+  int estimateExecutionTime(OPT_Instruction instr) {
     if (instr.operator() == NULL_CHECK)
       return  0; 
     else 
       return  1;
   }
 }
-
-
-

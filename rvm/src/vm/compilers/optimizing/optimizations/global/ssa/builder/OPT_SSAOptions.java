@@ -30,6 +30,15 @@ class OPT_SSAOptions {
   private java.util.Set heapTypes;    // restrict Heap SSA to this set of types?
   private boolean heapValid;          // is Heap SSA info valid?
   private boolean scalarValid;        // is Scalar SSA info valid?
+  private boolean abort;              // abort all ssa passes?
+
+  final boolean getAbort() {
+    return abort;
+  }
+
+  final void setAbort(boolean b) {
+    abort = b;
+  }
 
   final boolean getScalarsOnly () {
     return  scalarsOnly;

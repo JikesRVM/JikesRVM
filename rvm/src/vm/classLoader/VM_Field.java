@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 /**
  * A field of a java class.
  *
@@ -252,6 +255,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
 
   public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException
   {
+    VM.assert(false, "FINISH ME\n");
     // !!TODO: get and modify form Field
   }
 
@@ -276,12 +280,18 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
     }
 
     if (isStatic()) {
+      if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	VM_WriteBarrier.resolvedPutStaticWriteBarrier(offset, ref);
+      }
       VM_Statics.setSlotContents(offset>>>2, ref);
     } else {
       if (obj == null)
 	throw new NullPointerException();
       if (!getDeclaringClass().getClassForType().isInstance(obj))
 	throw new IllegalArgumentException();
+      if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	VM_WriteBarrier.resolvedPutfieldWriteBarrier(obj, offset, ref);
+      }
       VM_Magic.setObjectAtOffset(obj, offset, ref);
     }
   }
@@ -429,17 +439,17 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   VM_Field(VM_Class declaringClass, VM_Atom name, 
 	   VM_Atom descriptor, int dictionaryId) {
     super(declaringClass, name, descriptor, dictionaryId);
-    type = VM_ClassLoader.findOrCreateType(getDescriptor());
+    type = VM_ClassLoader.findOrCreateType(getDescriptor(), declaringClass.classloader);
     offset = VM_Member.UNINITIALIZED_OFFSET;
   }
 
-  final void load(VM_BinaryData input, int modifiers) {
+  final void load(DataInputStream input, int modifiers) throws IOException {
     this.modifiers = modifiers;
     readAttributes(input);
     this.modifiers |= ACC_LOADED;
   }
 
-  private void readAttributes(VM_BinaryData input) {
+  private void readAttributes(DataInputStream input) throws IOException {
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
       VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
       int     attLength = input.readInt();

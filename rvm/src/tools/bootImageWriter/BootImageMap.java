@@ -33,11 +33,6 @@ public class BootImageMap extends BootImageWriterMessages
   private static Entry nullEntry;
 
   /**
-   * objectId to associate with next new jdk object we see
-   */
-  private static int idGenerator;
-
-  /**
    * Key for looking up map entry.
    */
   private static class Key {
@@ -76,7 +71,7 @@ public class BootImageMap extends BootImageWriterMessages
     /**
      * Unique id associated with a jdk/rvm object pair.
      */
-    int objectId;
+    VM_Address objectId;
 
     /**
      * JDK object.
@@ -95,11 +90,16 @@ public class BootImageMap extends BootImageWriterMessages
      * @param jdkObject the JDK object
      * @param imageOffset the offset of the object in the bootimage
      */
-    public Entry(int objectId, Object jdkObject, int imageOffset) {
+    public Entry(VM_Address objectId, Object jdkObject, int imageOffset) {
       this.objectId    = objectId;
       this.jdkObject   = jdkObject;
       this.imageOffset = imageOffset;
     }
+  }
+
+  private static int idGenerator = 0;
+  private static VM_Address newId() {
+      return VM_Address.fromInt(idGenerator++);
   }
 
   /**
@@ -109,9 +109,8 @@ public class BootImageMap extends BootImageWriterMessages
     keyToEntry      = new Hashtable(5000);
     objectIdToEntry = new Vector(5000);
     // predefine "null" object
-    objectIdToEntry.addElement(nullEntry = new Entry(0, null, 0));
+    objectIdToEntry.addElement(nullEntry = new Entry(newId(), null, 0));
     // slot 0 reserved for "null" object entry
-    idGenerator = 1;
   }
 
   /**
@@ -126,7 +125,7 @@ public class BootImageMap extends BootImageWriterMessages
     Key   key   = new Key(jdkObject);
     Entry entry = (Entry) keyToEntry.get(key);
     if (entry == null) {
-      entry = new Entry(idGenerator++, jdkObject, OBJECT_NOT_ALLOCATED);
+      entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
       keyToEntry.put(key, entry);
       objectIdToEntry.addElement(entry);
     }

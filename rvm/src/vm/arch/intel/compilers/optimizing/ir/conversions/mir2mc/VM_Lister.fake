@@ -11,6 +11,10 @@ class VM_Lister {
 
   }
   
+  final void lockPrefix() {
+
+  }
+
   final void OP (int i, String op) {
 
   }

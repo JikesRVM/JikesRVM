@@ -16,6 +16,8 @@ class jdp {
     
   }
 
+  static boolean trace = false;
+
   public static void main(String args[])  {
     String  userArgs[] = null;  // args for user program
     int initial_bp = 0;
@@ -26,9 +28,10 @@ class jdp {
     boolean interpreted = true;
     boolean commandLine = true;
     boolean viewBoot = false; // if false, will start debugger at main() of user program
-    boolean dejavu = false; // true if we're recording or replaying
     int processID = 0;
     int cnt, i;
+
+    if (trace) System.out.println("*** Entered jdp.main ***");
 
     // parse the debugger arguments and separate those for the user program
     // Note that in the java convention, args[] does not include
@@ -36,7 +39,7 @@ class jdp {
     // So args[0] is not "jdp", it is really the first argument of jdp.
     for (i = 0; i < args.length; i++)  {
       
-      // System.out.println("parsing " + i + ": " + args[i]);
+      if (trace) System.out.println("parsing " + i + ": " + args[i]);
       String arg = args[i];    
       // pick up the initial breakpoint
       if (arg.equals("-jdpbreakpoint")) {
@@ -102,16 +105,13 @@ class jdp {
         viewBoot = true;
       }
 
-      else if (arg.startsWith("-jdprecord") || arg.startsWith("-jdpreplay"))
-      {
-        dejavu = true;
-      }
-            
       // no more valid jdp args, drop out
       else {
 	break;
       }
-    }
+    } // for i
+
+    if (trace) System.out.println("*** Processed args ***");
 
     // pick up the rest of the arguments to make up the user program args
     cnt = args.length - i;
@@ -136,16 +136,18 @@ class jdp {
       System.exit(1);      
     } 
 
+    if (trace) System.out.println("*** Creating debugger ***");
+
     // Create the debugger: either create the user process or attach to a current one
     if (commandLine)
     {
       // run in command line mode
       CommandLineDebugger db;
       if (attach) {
-        db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot, dejavu);
+        db = new CommandLineDebugger(0, null, false, interpreted, null, viewBoot);
         db.runAttached(processID, userArgs);
       } else {
-        db = new CommandLineDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot, dejavu);
+        db = new CommandLineDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot);
         if (args.length==0) {
           System.out.println("no program specified");
           System.exit(1);
@@ -159,10 +161,10 @@ class jdp {
       // run in server mode
       NetworkDebugger db;
       if (attach) {
-        db = new NetworkDebugger(0, null, false, interpreted, null, viewBoot, dejavu);
+        db = new NetworkDebugger(0, null, false, interpreted, null, viewBoot);
         db.runAttached(processID, userArgs);
       } else {
-        db = new NetworkDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot, dejavu);
+        db = new NetworkDebugger(initial_bp, bi_runner, rawMode, interpreted, initial_macro, viewBoot);
         if (args.length==0) {
           System.out.println("no program specified");
           System.exit(1);

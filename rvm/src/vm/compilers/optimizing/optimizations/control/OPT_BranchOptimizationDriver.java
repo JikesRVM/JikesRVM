@@ -245,7 +245,7 @@ public abstract class OPT_BranchOptimizationDriver
    * <em> not </em> taken
    *
    * @param bb the basic block in question
-   * @returns basic block
+   * @return basic block
    */
   protected final OPT_BasicBlock getNotTakenNextBlock(OPT_BasicBlock bb) {
     OPT_Instruction last = bb.lastRealInstruction();

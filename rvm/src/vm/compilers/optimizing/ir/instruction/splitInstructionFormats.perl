@@ -9,7 +9,10 @@
 # @date 01/08/2001.
 
 $outputDir = shift(@ARGV);
+$inputFile = shift(@ARGV);
 $infile = 0;
+
+open(STDIN, "<$inputFile") || die "cannot redirect standard input";
 
 while (<>) {
     if (m/\#\#NEW_FILE_STARTS_HERE (\S+)\#\#/) {

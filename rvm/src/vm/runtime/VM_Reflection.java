@@ -24,12 +24,20 @@ public class VM_Reflection implements VM_Constants {
    * See also: java/lang/reflect/Method.invoke()
    */ 
   public static Object invoke(VM_Method method, Object thisArg, 
-                              Object[] otherArgs) {
+                              Object[] otherArgs) throws VM_ResolutionException {
     return invoke(method, thisArg, otherArgs, false);
   }
 
   public static Object invoke(VM_Method method, Object thisArg, 
-                              Object[] otherArgs, boolean isNonvirtual) {
+                              Object[] otherArgs, boolean isNonvirtual) throws VM_ResolutionException {
+
+    // the class must be initialized before we can invoke a method
+    //
+    VM_Class klass = method.getDeclaringClass();
+    if (!klass.isInitialized()) {
+      VM_Runtime.initializeClassForDynamicLink(klass);
+    }
+
     // choose actual method to be called
     //
     VM_Method targetMethod;
@@ -43,9 +51,7 @@ public class VM_Reflection implements VM_Constants {
     // make sure it's been compiled
     //
     if (!targetMethod.isCompiled()) {
-      synchronized (VM_ClassLoader.lock) {
-	targetMethod.compile();
-      }
+      targetMethod.compile();
     }
         
     // remember return type
@@ -93,7 +99,7 @@ public class VM_Reflection implements VM_Constants {
     // obsolete and reclaimed.
     INSTRUCTION[] code = targetMethod.getMostRecentlyGeneratedInstructions();
     VM.enableGC();
-     
+
     if (!returnIsPrimitive) {
       return VM_Magic.invokeMethodReturningObject(code, GPRs, FPRs, Spills);
     }
@@ -169,7 +175,7 @@ public class VM_Reflection implements VM_Constants {
   public static long   unwrapLong(Object o)   { VM_Magic.pragmaNoInline(); return ((Long)      o).longValue();    }
   public static float  unwrapFloat(Object o)  { VM_Magic.pragmaNoInline(); return ((Float)     o).floatValue();   }
   public static double unwrapDouble(Object o) { VM_Magic.pragmaNoInline(); return ((Double)    o).doubleValue();  }
-  public static int    unwrapObject(Object o) { VM_Magic.pragmaNoInline(); return VM_Magic.objectAsAddress(o);    }
+  public static int    unwrapObject(Object o) { VM_Magic.pragmaNoInline(); return VM_Magic.objectAsAddress(o).toInt();    }
 
   //----------------//
   // implementation //

@@ -194,7 +194,6 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
    * Don't even think of adding handwritten stuff here! --dave
    *
    * @param arg the command line argument to be processed
-   * @return void
    */
   public static void processCommandLineArg(String arg) {
     if (options == null) {

@@ -35,11 +35,11 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   //    	+ saved FP   +  <---- FP for called native method  
 
   // additional instance fields added by this subclass of VM_GCMapIterator
-  int[]  jniRefs;
-  int    jniNextRef;
-  int    jniFramePtr;
-  int    jniSavedProcessorRegAddr;     // -> saved PR reg
-  int    jniSavedReturnAddr;           // -> return addr in generated transition prolog
+  int[]         jniRefs;
+  int           jniNextRef;
+  int           jniFramePtr;
+  VM_Address    jniSavedProcessorRegAddr;     // -> saved PR reg
+  VM_Address    jniSavedReturnAddr;           // -> return addr in generated transition prolog
   
   VM_JNIGCMapIterator(int[] registerLocations) {
     this.registerLocations = registerLocations;
@@ -59,23 +59,24 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
       this.jniRefs = env.JNIRefs;
       this.jniNextRef = env.JNIRefsTop;
       this.jniFramePtr = env.JNIRefsSavedFP;  
-      this.jniSavedProcessorRegAddr = 0;  // necessary so getNextRefAddr() can be used to report
-                                          // jniRefs in a "frame", without calling setup. 
+      this.jniSavedProcessorRegAddr = VM_Address.zero();  
+                                    // necessary so getNextRefAddr() can be used to report
+                                    // jniRefs in a "frame", without calling setup. 
     } 
   }
      
-  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, int framePtr) {
+  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr) {
     this.framePtr = framePtr;
 
     // processor reg (PR) was saved at JNI_PR_OFFSET, and will be used to
     // set processor reg upon return to java.  it must be reported during
     // GC so it will be relocated, if necessary.
     //
-    jniSavedProcessorRegAddr = framePtr + VM_JNICompiler.JNI_PR_OFFSET;
+    jniSavedProcessorRegAddr = framePtr.add(VM_JNICompiler.JNI_PR_OFFSET);
 
     // return address into generated prolog must be relocated if the code object
     // for that prolog/epilog is moved by GC
-    jniSavedReturnAddr       = framePtr + VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET;
+    jniSavedReturnAddr       = framePtr.add(VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
   } //- implements VM_GCMapIterator
    
@@ -84,23 +85,23 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //
-  int getNextReferenceAddress() {
+  VM_Address getNextReferenceAddress() {
     int nextFP;
-    int ref_address;
+    VM_Address ref_address;
 
     // first report jni refs in the current frame in the jniRef side stack
     // until all in the frame are reported
     //
     if ( jniNextRef > jniFramePtr ) {
-      ref_address = jniNextRef + VM_Magic.objectAsAddress(jniRefs);
+      ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
       jniNextRef = jniNextRef - 4;
       return ref_address;
     }
 
     // report location of saved processor reg in the Java to C frame
-    if ( jniSavedProcessorRegAddr != 0 ) {
+    if ( !jniSavedProcessorRegAddr.isZero() ) {
       ref_address = jniSavedProcessorRegAddr;
-      jniSavedProcessorRegAddr = 0;
+      jniSavedProcessorRegAddr = VM_Address.zero();
       return ref_address;
     }
 
@@ -121,21 +122,21 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
     // the JNI transition frame at a fixed negative offset from the callers FP.
     // the save non-volatiles are EBX, EBP,  and EDI (JTOC)
     //
-    registerLocations[JTOC] = framePtr + VM_JNICompiler.EDI_SAVE_OFFSET;
-    registerLocations[EBX]  = framePtr + VM_JNICompiler.EBX_SAVE_OFFSET;
-    registerLocations[EBP]  = framePtr + VM_JNICompiler.EBP_SAVE_OFFSET;
+    registerLocations[JTOC] = framePtr.add(VM_JNICompiler.EDI_SAVE_OFFSET).toInt();
+    registerLocations[EBX]  = framePtr.add(VM_JNICompiler.EBX_SAVE_OFFSET).toInt();
+    registerLocations[EBP]  = framePtr.add(VM_JNICompiler.EBP_SAVE_OFFSET).toInt();
 
-    return 0;  // no more refs to report
+    return VM_Address.zero();  // no more refs to report
   } //- implements VM_GCMapIterator
   
-  int getNextReturnAddressAddress() {
-    int  ref_address;
-    if ( jniSavedReturnAddr != 0 ) {
+  VM_Address getNextReturnAddressAddress() {
+    VM_Address ref_address;
+    if ( !jniSavedReturnAddr.isZero() ) {
       ref_address = jniSavedReturnAddr;
-      jniSavedReturnAddr = 0;
+      jniSavedReturnAddr = VM_Address.zero();
       return ref_address;
     }
-    return 0;
+    return VM_Address.zero();
   } //- implements VM_GCMapIterator
   
   void reset() {

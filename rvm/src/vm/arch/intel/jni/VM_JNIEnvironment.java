@@ -42,7 +42,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    *  -the list of references passed to native code, for GC purpose
    *  -saved RVM system registers
    */
-  int JNIEnvAddress;      // contain a pointer to the JNIFunctions array
+  VM_Address JNIEnvAddress;      // contain a pointer to the JNIFunctions array
   int savedTIreg;         // for saving thread index register on entry to native, to be restored on JNI call from native
   VM_Processor savedPRreg; // for saving processor register on entry to native, to be restored on JNI call from native
   boolean alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
@@ -51,7 +51,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   int   JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int   JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int   JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
-  int   JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
+  VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
 
   Throwable pendingException = null;
 
@@ -77,20 +77,10 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     // Why is INSTRUCTION not working?  getting filled with null
     JNIFunctions = new byte[FUNCTIONCOUNT+1][];
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni (not fully implemented for IA32 - DO NOT USE)
-    // Use two words for each thread: 
-    // First word is a pointer to the JNIFunction table
-    // Second word is a pointer to the JTOC (Unlike in powerPC, the JTOC is not
-    // restored in the Lintel convention during a call from native code)
-    JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-//-#else
-// default implementation of jni
     // First word is a pointer to the JNIFunction table
     // Second word is address of current processors vpStatus word
     // (JTOC is now stored at end of shared JNIFunctions array)
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-//-#endif
   }
 
   /**
@@ -133,8 +123,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     //
     // following causes exception in checkstore, so forced to setMemoryWord instead
     // JNIFunctions[FUNCTIONCOUNT+1] = VM_Magic.addressAsByteArray(VM_Magic.getTocPointer());
-    VM_Magic.setMemoryWord(VM_Magic.objectAsAddress(JNIFunctions) + JNIFUNCTIONS_JTOC_OFFSET,
-			   VM_Magic.getTocPointer());
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
+			      VM_Magic.getTocPointer());
 
     initialized = true;
   }
@@ -144,24 +134,11 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   //
   public VM_JNIEnvironment (int threadSlot) {
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// alternate implementation of jni (not fully implemented for IA32 - DO NOT USE)
-    // set the jni function pointer for the creating thread, to be used when
-    // it makes native calls
-    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions);
-    JNIFunctionPointers[(threadSlot * 2)+1] = VM_Magic.objectAsAddress(VM_Statics.getSlots());
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers) + threadSlot*8;
-//-#else
-// default implementation of jni
-    // this build uses 2 words for each thread, the first is the function pointer
-    // to be used when making native calls
-    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions);
+    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers) + threadSlot*8;
-//-#endif
-
+    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
     JNIRefs = new int[JNIREFS_ARRAY_LENGTH];
-    JNIRefs[0] = 0;                                        // 0 entry for bottom of stack
+    JNIRefs[0] = 0;                       // 0 entry for bottom of stack
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
     JNIRefsMax = (JNIRefs.length - 1) * 4;   // byte offset to last entry
@@ -177,8 +154,15 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   // Returned: offset of entry in JNIRefs stack
   // 
   public int pushJNIRef( Object ref ) {
+    if (ref == null) return 0;
+    if (VM.VerifyAssertions) VM.assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(ref) ) );
     JNIRefsTop += 4;
-    JNIRefs[ JNIRefsTop >> 2 ] = VM_Magic.objectAsAddress(ref);
+    if (JNIRefsTop >> 2 >= JNIRefs.length) {
+	int[] newrefs = new int[ JNIRefs.length * 2 ];
+	for(int i = 0; i < JNIRefs.length; i++) newrefs[i] = JNIRefs[i];
+	JNIRefs = newrefs;
+    }
+    JNIRefs[ JNIRefsTop >> 2 ] = VM_Magic.objectAsAddress(ref).toInt();
     return JNIRefsTop;
   }
 
@@ -189,11 +173,32 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
       VM.sysWrite(offset); 
-      VM.sysWrite("\n");
+      VM.sysWrite("(top is ");
+      VM.sysWrite(JNIRefsTop);
+      VM.sysWrite(")\n");
       return null;
     }
-    return VM_Magic.addressAsObject( JNIRefs[ offset>>2 ] );
+    if (offset < 0)
+	return VM_JNIGlobalRefTable.ref( offset );
+    else
+	return VM_Magic.addressAsObject( VM_Address.fromInt(JNIRefs[ offset>>2 ]) );
     
+  }
+
+  // remove a reference from the JNIRefs stack
+  // Taken:    offset in JNIRefs stack
+  public void deleteJNIRef( int offset ) {
+    if (offset > JNIRefsTop) {
+      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
+      VM.sysWrite(offset); 
+      VM.sysWrite("(top is ");
+      VM.sysWrite(JNIRefsTop);
+      VM.sysWrite(")\n");
+    }
+    
+    JNIRefs[ offset>>2 ] = 0;
+
+    if (offset == JNIRefsTop) JNIRefsTop -= 4;
   }
 
   // record an exception as pending so that it will be delivered on the return
@@ -220,7 +225,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   // Taken:    nothing 
   // Returned: the address of the JNIFunctions array 
   // 
-  public int getJNIenvAddress() {
+  public VM_Address getJNIenvAddress() {
     return JNIEnvAddress;
   }
 
@@ -514,9 +519,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * (object creation)
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
-   * @see VM_JNIFunctions.CallStaticIntMethod, VM_JNIFunctions.CallStaticLongMethod, etc.
    */
-  public static Object invokeInitializer(Class cls, int methodID, int argAddress, 
+  public static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
 					 boolean isJvalue, boolean isDotDotStyle) 
     throws Exception  {
 
@@ -534,7 +538,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
 
     // Package the parameters for the constructor
-    int varargAddress;
+    VM_Address varargAddress;
     if (isDotDotStyle) 
       // flag is false because this JNI function has 3 args before the var args
       varargAddress = getVarArgAddress(false);    
@@ -560,14 +564,13 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param methodID the method ID
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethod, VM_JNIFunctions.CallStaticLongMethod, etc.
    */
   public static Object invokeWithDotDotVarArg(int methodID, VM_Type expectReturnType)
     throws Exception {
     VM_Magic.pragmaNoOptCompile();	// expect a certain stack frame structure
     VM_Magic.pragmaNoInline();
 
-    int varargAddress = getVarArgAddress(false);    
+    VM_Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
 
   }
@@ -581,7 +584,6 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param skip4Args  true if the calling JNI Function takes 4 args before the vararg
    *                   false if the calling JNI Function takes 3 args before the vararg
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallIntMethod, VM_JNIFunctions.CallLongMethod, etc.
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
 					      VM_Type expectReturnType, boolean skip4Args)
@@ -589,7 +591,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     VM_Magic.pragmaNoOptCompile();	// expect a certain stack frame structure
     VM_Magic.pragmaNoInline();
 
-    int varargAddress = getVarArgAddress(skip4Args);    
+    VM_Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
 
   }
@@ -667,11 +669,12 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static int getVarArgAddress(boolean skip4Args) {
+  private static VM_Address getVarArgAddress(boolean skip4Args) {
     
-    int fp = VM_Magic.getMemoryWord(VM_Magic.getFramePointer());
-    fp = VM_Magic.getMemoryWord(fp);
-    return (fp + 2*4 + (skip4Args ? 4*4 : 3*4));
+    VM_Address fp = VM_Magic.getFramePointer();
+    fp = VM_Magic.getMemoryAddress(fp);
+    fp = VM_Magic.getMemoryAddress(fp);
+    return (fp.add(2*4 + (skip4Args ? 4*4 : 3*4)));
 
   }
 
@@ -680,9 +683,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodV, VM_JNIFunctions.CallStaticLongMethodV, etc.
    */
-  public static Object invokeWithVarArg(int methodID, int argAddress, VM_Type expectReturnType) 
+  public static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_Type expectReturnType) 
     throws Exception {
 
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
@@ -697,9 +699,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodV, VM_JNIFunctions.CallStaticLongMethodV, etc.
    */
-  public static Object invokeWithVarArg(Object obj, int methodID, int argAddress, 
+  public static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args) 
     throws Exception {
 
@@ -712,9 +713,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param methodID an index into the VM_MethodDictionary
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodA, VM_JNIFunctions.CallStaticLongMethodA, etc.
    */
-  public static Object invokeWithJValue(int methodID, int argAddress, VM_Type expectReturnType) 
+  public static Object invokeWithJValue(int methodID, VM_Address argAddress, VM_Type expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
   }
@@ -727,9 +727,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see VM_JNIFunctions.CallStaticIntMethodA, VM_JNIFunctions.CallStaticLongMethodA, etc.
    */
-  public static Object invokeWithJValue(Object obj, int methodID, int argAddress, 
+  public static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args) 
     throws Exception {
 
@@ -752,9 +751,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param isVarArg  This flag describes whether the array of parameters is in var arg format or
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value 
-   * @see invokeWithJValue, invokeWithVarArg, invokeWithDotDotVarArg
    */
-  public static Object packageAndInvoke(Object obj, int methodID, int argAddress, 
+  public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args, 
 					boolean isVarArg) 
     throws Exception {
@@ -805,9 +803,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param argAddress an address into the C space for the array of jvalue unions;  
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
-   * @see packageAndInvoke()
    */
-  static Object[] packageParameterFromVarArg(VM_Method targetMethod, int argAddress) {
+  static Object[] packageParameterFromVarArg(VM_Method targetMethod, VM_Address argAddress) {
     VM_Type[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -817,14 +814,16 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
     // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
 
-    for (int i=0, addr=argAddress; i<argCount; i++) {
-      int loword, hiword;
-      loword = VM_Magic.getMemoryWord(addr);
+    VM_Address addr = argAddress;
+    for (int i=0; i<argCount; i++) {
+
+      int loword = VM_Magic.getMemoryWord(addr);
+      int hiword;
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + loword + 
       // " or " + VM.intAsHexString(loword) + "\n");
 
-      addr+=4;
+      addr = addr.add(4);
 
       // convert and wrap the argument according to the expected type
 
@@ -832,19 +831,19 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 	// NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
 	// so we have to extract it as a double and convert it back to a float
 	hiword = VM_Magic.getMemoryWord(addr);
-	addr+=4;                       
+	addr = addr.add(4);                       
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
 	
       } else if (argTypes[i].isDoubleType()) {
 	hiword = VM_Magic.getMemoryWord(addr);
-	addr+=4;
+	addr = addr.add(4);
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
 	hiword = VM_Magic.getMemoryWord(addr);
-	addr+=4;
+	addr = addr.add(4);
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
@@ -890,7 +889,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromJValue(VM_Method targetMethod, int argAddress) {
+  static Object[] packageParameterFromJValue(VM_Method targetMethod, VM_Address argAddress) {
 
     VM_Type[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
@@ -901,9 +900,11 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
     // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
 
-    for (int i=0, addr=argAddress; i<argCount; i++, addr+=8) {
-      int loword, hiword;
-      loword = VM_Magic.getMemoryWord(addr);
+    VM_Address addr = argAddress;
+    for (int i=0; i<argCount; i++, addr = addr.add(8)) {
+
+      int loword = VM_Magic.getMemoryWord(addr);
+      int hiword;
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + loword + 
       //  " or " + VM.intAsHexString(loword) + ", at address " + 
@@ -915,12 +916,12 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
 
       } else if (argTypes[i].isDoubleType()) {
-	hiword = VM_Magic.getMemoryWord(addr+4);
+	hiword = VM_Magic.getMemoryWord(addr.add(4));
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
-	hiword = VM_Magic.getMemoryWord(addr+4);
+	hiword = VM_Magic.getMemoryWord(addr.add(4));
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
@@ -964,10 +965,10 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param stringAddress an address in C space for a string
    * @return a new Java byte[]
    */
-  static byte[] createByteArrayFromC(int stringAddress) {
+  static byte[] createByteArrayFromC(VM_Address stringAddress) {
     int word;
     int length = 0;
-    int addr = stringAddress;
+    VM_Address addr = stringAddress;
 
     // scan the memory for the null termination of the string
     while (true) {
@@ -988,7 +989,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
       if (byte3==0)
 	break;
       length++;
-      addr += 4;
+      addr = addr.add(4);
     }
 
    byte[] contents = new byte[length];
@@ -1003,7 +1004,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @param stringAddress an address in C space for a string
    * @return a new Java String
    */
-  static String createStringFromC(int stringAddress) {
+  static String createStringFromC(VM_Address stringAddress) {
 
     byte[] contents = createByteArrayFromC( stringAddress );
     return new String(contents);
@@ -1014,7 +1015,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     int jniRefOffset = JNIRefsTop;
     VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
     VM.sysWrite("* JNIRefs = ");
-    VM.sysWriteHex(VM_Magic.objectAsAddress(JNIRefs));
+    VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs));
     VM.sysWrite(" * JNIRefsTop = ");
     VM.sysWrite(JNIRefsTop,false);
     VM.sysWrite(" * JNIRefsSavedFP = ");
@@ -1023,9 +1024,9 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     while ( jniRefOffset >= 0 ) {
       VM.sysWrite(jniRefOffset,false);
       VM.sysWrite(" ");
-      VM.sysWriteHex(VM_Magic.objectAsAddress(JNIRefs)+jniRefOffset);
+      VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_GCUtil.dumpRef(JNIRefs[ jniRefOffset >> 2 ]);
+      VM_GCUtil.dumpRef(VM_Address.fromInt(JNIRefs[ jniRefOffset >> 2 ]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");

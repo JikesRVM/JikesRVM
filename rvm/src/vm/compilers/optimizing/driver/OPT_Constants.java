@@ -8,7 +8,7 @@
  *
  * @author Stephen Fink
  */
-interface OPT_Constants {
+public interface OPT_Constants {
   // the following constants are dummy bytecode indices,
   // used to mark IR instructions that do not correspond
   // to any original bytecode
@@ -24,8 +24,11 @@ interface OPT_Constants {
   final int INSTRUMENTATION_BCI = -10;
   final int RUNTIME_SERVICES_BCI = -11;
   final int EXTANT_ANALYSIS_BCI = -12;
+  final int PROLOGUE_BLOCK_BCI = -13;
+  final int EPILOGUE_BLOCK_BCI = -14;
+
   // The following are used as trinary return values in OptCompiler code
-  final byte NO = 0;
-  final byte YES = 1;
-  final byte MAYBE = 2;
+  public final byte NO = 0;
+  public final byte YES = 1;
+  public final byte MAYBE = 2;
 }

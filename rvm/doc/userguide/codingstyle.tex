@@ -1,24 +1,20 @@
 This section describes a set of coding style guidelines that we
-recommend for all code added to the RVM  system.  
+recommend for all code added to the Jikes\trademark RVM  system.  
 
 Regrettably, much code in the current system does not follow any consistent
-coding style.  This unfortunate residue of the system's evolution 
-make editing sometimes unpleasant, and prevent javadoc from formatting comments
-in
+coding style.  This is an unfortunate residue of the system's evolution 
+make editing sometimes unpleasant, and prevents javadoc from
+formatting comments in
 many files.  To alleviate this problem, we present this style guide 
 (which consists of a small tweak of the style guide advanced by Sun) 
 for new code. 
 
 \index{javadoc}
-Most code in the optimizing compiler has been formatted to at least obey 
-the indentation rule, 80 columns, and javadoc comments.  Most other RVM code
-has not been so formatted. We ask that all new code introduced
-into the system, at least for the optimizing compiler, follow the 
-guidelines unless compelling factors dictate otherwise.  
 
 \subsection {Coding style description}
 
-The RVM coding style guidelines are defined as a reference to an Sun
+The Jikes\trademark RVM coding style guidelines are defined as a
+reference to an Sun 
 Microsystems ``Code Conventions for the Java\trademark Programming Language'',
 with a few exceptions listed below.  The Sun coding
 conventions can be found at 
@@ -30,11 +26,13 @@ We have adopted one revision to the Sun code conventions:
 \begin{enumerate}
 \index{indenting}
 \item {\bf Two space indenting} The Sun coding convention suggests 4
-space indenting, however with 80 column lines and 4 space indenting,
+space indenting; however with 80 column lines and 4 space indenting,
 there is very little room left for code.  Thus, we recommend using 2
-spaces indenting.
+space indenting and allow 132 column lines.
 
 \end{enumerate}
+
+\JikesTMFooter
 
 \JavaTMFooter
 
@@ -98,7 +96,10 @@ of this subsection (\ref{options:vi}).
 
 \paragraph{vim}\label{options:vim}
 
-Add the following to your {\tt .vimrc} for formatting:
+If you are using vim version 6.0 or higher, then you can add the
+following to your {\tt .vimrc} for formatting:
+
+\T {\small
 \begin{verbatim}
 set shiftwidth=2           " for indenting and shifting
 set expandtab              " to replace tab characters by spaces
@@ -119,9 +120,10 @@ augroup END
 If you want {\tt vim} to truncate long lines instead of wrapping them, add
 the following to your {\tt .vimrc}:
 \begin{verbatim}
-set formatoption+=t " to allow autowrap text
+set formatoptions+=t " to allow autowrap text
 set textwidth=74    " to allow autowrap text at 74th column
 \end{verbatim}
+\T }
 
 \paragraph{vi}\label{options:vi}
 

@@ -50,7 +50,7 @@ import Platform;
 import java.util.*;
 import java.io.*;
 
-class mapVM {
+class mapVM implements JDPServiceInterface {
   // init flag
   static boolean initialized = false;
   static Class mapClass;
@@ -114,8 +114,7 @@ class mapVM {
   // these indicates the address space of the JVM
   // they are needed to support mixed stack frames of Java and native code
   // NOTE:  this assumes that VM_BootRecord is never moved by GC
-  static int vmStartAddress;         // address of field VM_BootRecord.startAddress
-  static int vmEndAddress;           // address of field VM_BootRecord.startAddress
+  static int heapRanges;             // value of VM_BootRecord.heapRanges which should not move
   static int cachedJTOC;             // last known value of JTOC, to use when in native code
 
 
@@ -151,25 +150,25 @@ class mapVM {
       // mapVMClass = InterpreterBase.forName("mapVM");
 
       // save the offset values for VM_Field object to be used later
-      VM_Field field = (VM_Field) VM.getMember("LVM_Field;", "offset", "I");
+      VM_Field field = BootMap.findVMField("LVM_Field;", "offset");
       VMFieldOffset_offset = field.getOffset();
-      field = (VM_Field) VM.getMember("LVM_Field;", "type", "LVM_Type;");
+      field = BootMap.findVMField("LVM_Field;", "type");
       VMFieldType_offset = field.getOffset();
 
       // save the offset values for VM_Class object to be used later
-      field = (VM_Field) VM.getMember("LVM_Class;", "constantPool", "[I");
+      field = BootMap.findVMField("LVM_Class;", "constantPool");
       VMClassConstantPool_offset = field.getOffset();
-      field = (VM_Field) VM.getMember("LVM_Class;", "superClass", "LVM_Class;");
+      field = BootMap.findVMField("LVM_Class;", "superClass");
       VMClassSuper_offset = field.getOffset();
       field = BootMap.findVMField("VM_Class", "descriptor");
       VMClassName_offset = field.getOffset();
 
       // save the offset values for VM_Atom object to be used later
-      field = (VM_Field) VM.getMember("LVM_Atom;", "val", "[B");
+      field = BootMap.findVMField("LVM_Atom;", "val");
       VMAtomVal_offset = field.getOffset();
 
       // save the offset values for VM_Type object to be used later
-      field = (VM_Field) VM.getMember("LVM_Type;", "descriptor", "LVM_Atom;");
+      field = BootMap.findVMField("LVM_Type;", "descriptor");
       VMTypeDescriptor_offset = field.getOffset();
 
     // } catch (VM_ResolutionException e) {
@@ -299,7 +298,7 @@ class mapVM {
       /* JTOC register does not exist in Lintel, have to get it through PR */
       int procReg = registerExternal.regGetNum("PR");
       procReg = Platform.readreg(procReg);
-      int jtocOffset = ((VM_Field) VM.getMember("LVM_Processor;", "jtoc", "Ljava/lang/Object;")).getOffset();
+      int jtocOffset = VM_Entrypoints.processorJTOCField.getOffset();
       int currentJTOC = Platform.readmem(procReg + jtocOffset);
 //-#else
       int jtocReg = registerExternal.regGetNum("JT");
@@ -309,22 +308,18 @@ class mapVM {
 
       // bootstrap for the first time getJTOC is called,
       // assume we stop in a Java stack frame
-      if (vmStartAddress==0) {
-        VM_Field field = (VM_Field) VM.getMember("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
-        int bootRecordAddress ;
+      if (heapRanges==0) {
+	VM_Field field = BootMap.findVMField("LVM_BootRecord;", "the_boot_record");
+        int bootRecordAddress;
         if (cachedJTOC==0)
           bootRecordAddress = currentJTOC + field.getOffset();
         else
           bootRecordAddress = cachedJTOC + field.getOffset();
 
-        field = (VM_Field) VM.getMember("LVM_BootRecord;", "startAddress", "I");
-        vmStartAddress = bootRecordAddress + field.getOffset();
+        field = BootMap.findVMField("LVM_BootRecord;", "heapRanges");
+	int heapRangesAddress = bootRecordAddress + field.getOffset();
+	heapRanges = Platform.readmem(heapRangesAddress);
 
-        field = (VM_Field) VM.getMember("LVM_BootRecord;", "endAddress", "I");
-        vmEndAddress = bootRecordAddress + field.getOffset();
-
-        // System.out.println("getJTOC: " + Integer.toHexString(vmStartAddress) +
-        //                 " - " + Integer.toHexString(vmEndAddress));
       }
 
       if (cachedJTOC==0) {
@@ -333,10 +328,8 @@ class mapVM {
       } else  {
 	// for other times, check if the JTOC is within the JVM space
 	// if not, just use the last known value
-	int start = Platform.readmem(vmStartAddress);
-	int end =  Platform.readmem(vmEndAddress);
-	if (currentJTOC>=vmStartAddress && currentJTOC<=vmEndAddress)
-	  cachedJTOC = currentJTOC;
+	  if (addressInVM(currentJTOC))
+	      cachedJTOC = currentJTOC;
       }
 
      } catch (Exception e1) {
@@ -347,6 +340,35 @@ class mapVM {
     return cachedJTOC;
 
 
+  }
+
+
+  static boolean unsignedLT(int value1, int value2) {
+    if (value1 >= 0 && value2 >= 0) return value1 < value2;
+    if (value1 < 0 && value2 < 0) return value1 < value2;
+    if (value1 < 0) return true;
+    return false;
+  }
+
+  static boolean unsignedLE(int value1, int value2) {
+      return (value1 == value2) || unsignedLT(value1, value2);
+  }
+
+  static boolean unsignedGE(int value1, int value2) {
+      return unsignedLE(value2, value2);
+  }
+
+  static boolean addressInVM(int addr) {
+      if (VM.VerifyAssertions) VM.assert(heapRanges != 0);
+      for (int which = 0; ; which += 2) {
+ 	  int MaxHeaps = 20; // Surely there are not more than 20 heaps!  Array is probably malformed.
+	  if (VM.VerifyAssertions) VM.assert(which <= 2 * (MaxHeaps + 1));
+	  int start = Platform.readmem(heapRanges + 4 * (2 * which));
+	  int end = Platform.readmem(heapRanges + 4 * (2 * which + 1));
+	  if (start == -1 && end == -1) return false;
+	  if (unsignedGE(addr, start) && unsignedLT(addr, end))
+	      return true;
+      }
   }
 
 
@@ -381,7 +403,7 @@ class mapVM {
 
       // dumpCache();
 
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       System.out.println("mapVM.cachePointer:  cannot find JTOC register using the name JT, has the name been changed in VM_BaselineConstants.java?");
     }
   }
@@ -399,7 +421,7 @@ class mapVM {
   // 	   continue;
   // 	 codeStartAddress = Platform.readmem(methodAddress + VMMethodInstructions_offset);
   // 	 if (codeStartAddress!=0) {
-  // 	   codeEndAddress = Platform.readmem(codeStartAddress + VM.ARRAY_LENGTH_OFFSET);
+  // 	   codeEndAddress = Platform.readmem(codeStartAddress + VM_ObjectModel.getArrayLengthOffset() );
   // 	   codeEndAddress = codeStartAddress + codeEndAddress*4;
   // 	 }
   //   }
@@ -610,7 +632,7 @@ class mapVM {
    */
   public void handleAbstractClass() {
     // get the pointer to the real VM_Type on the JVM side
-    int typeAddress = Platform.readmem(address + VM_ObjectLayoutConstants.OBJECT_TIB_OFFSET);
+    int typeAddress = VM_ObjectModel.getTIB(this,address);
     typeAddress = Platform.readmem(typeAddress);           
 
     int descriptorAddress = Platform.readmem(typeAddress + VMTypeDescriptor_offset);
@@ -650,11 +672,16 @@ class mapVM {
    */
   static String getMappedString(mapVM mappedString) {
     int address = mappedString.getAddress();
-    VM_Field valueField = (VM_Field) VM.getMember("Ljava/lang/String;", "value", "[C");
-  
-    // get the char array address and size from the JVM side
-    address = Platform.readmem(address + valueField.getOffset());
-    int count = Platform.readmem(address + VM.ARRAY_LENGTH_OFFSET);
+    try {
+      VM_Field valueField = BootMap.findVMField("Ljava/lang/String;", "value");
+      // get the char array address and size from the JVM side
+      address = Platform.readmem(address + valueField.getOffset());
+    } catch (BmapNotFoundException e2) {
+      VM.sysWrite(e2 + "\n");
+      e2.printStackTrace();
+      VM.sysExit(1);            
+    }
+    int count = Platform.readmem(address + VM_ObjectModel.getArrayLengthOffset() );
 
     // copy the char array that constitute the String
     char cloneArray[] = new char[count];
@@ -683,7 +710,7 @@ class mapVM {
     }
 
     // get the element count from the JVM side
-    int count = Platform.readmem(mappedArray.getAddress() + VM.ARRAY_LENGTH_OFFSET);
+    int count = Platform.readmem(mappedArray.getAddress() + VM_ObjectModel.getArrayLengthOffset() );
 
     // fill up the array with contents from the JVM side
     int address = mappedArray.getAddress();
@@ -777,7 +804,7 @@ class mapVM {
    */
   static String getVMAtomString(int VMAtomObjectAddress) {
     int stringAddr = Platform.readmem(VMAtomObjectAddress + VMAtomVal_offset);
-    int size = Platform.readmem(stringAddr + VM.ARRAY_LENGTH_OFFSET);
+    int size = Platform.readmem(stringAddr + VM_ObjectModel.getArrayLengthOffset() );
     byte className[] = new byte[size];
     for (int i=0; i<size; i++) {
       className[i] = Platform.readByte(stringAddr+i);
@@ -802,7 +829,7 @@ class mapVM {
     byte[] keyByte = new byte[len];
     keyString.getBytes(0, len, keyByte, 0);
     int hash = dictionaryExtension.hashName(keyByte);
-    int chainLength = Platform.readmem(TypeDictionary_chains + VM.ARRAY_LENGTH_OFFSET);
+    int chainLength = Platform.readmem(TypeDictionary_chains + VM_ObjectModel.getArrayLengthOffset() );
     int chainIndex = (hash & 0x7fffffff) % chainLength;
     int chainAddr = Platform.readmem(TypeDictionary_chains + chainIndex*4);
     // System.out.println("manualTypeSearch: chain index " + chainIndex +
@@ -813,7 +840,7 @@ class mapVM {
       return 0;
 
     // Then walk through the index in the chain and check each VM_Atom    
-    chainLength = Platform.readmem(chainAddr + VM.ARRAY_LENGTH_OFFSET);
+    chainLength = Platform.readmem(chainAddr + VM_ObjectModel.getArrayLengthOffset() );
     int candidateId = -1;
 
     for (int i=0; i<chainLength; i++) {
@@ -825,7 +852,7 @@ class mapVM {
 	return 0;
 
       int candidateStringAddr = Platform.readmem(candidateAtomAddr + VMAtomVal_offset);
-      int candidateLength = Platform.readmem(candidateStringAddr + VM.ARRAY_LENGTH_OFFSET);
+      int candidateLength = Platform.readmem(candidateStringAddr + VM_ObjectModel.getArrayLengthOffset() );
       // System.out.println("manualTypeSearch: VM_Atom @" + Integer.toHexString(candidateAtomAddr));
 
       if (candidateLength==len) {
@@ -906,4 +933,22 @@ class mapVM {
     return "mapVM " + type.getName() + " @ " + Integer.toHexString(address);
   }
 
+  /**
+   * Return the contents of a memory location in the debuggee
+   *
+   * @param ptr the memory location
+   */
+  public int readMemory(ADDRESS ptr) {
+    return Platform.readmem(ptr);
+  }
+
+  /**
+   * Return the contents of a JTOC slot in the debuggee
+   *
+   * @param slot 
+   */
+  public int readJTOCSlot(int slot) {
+    int ptr = getJTOC() + (slot << 2);
+    return Platform.readmem(ptr);
+  }
 }

@@ -119,15 +119,14 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
   public static void printInstructions (OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     System.out.println("********* START OF IR DUMP in SSA FOR " + ir.method);
-    for (OPT_BasicBlockEnumeration be = 
-        ir.forwardBlockEnumerator(); be.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.next();
       // print the explicit instructions for basic block bb
       for (Enumeration e = dictionary.getAllInstructions(bb); 
           e.hasMoreElements();) {
         OPT_Instruction s = (OPT_Instruction)e.nextElement();
         System.out.print(s.bcIndex + "\t" + s);
-        if (dictionary.defsHeapVariable(s)) {
+        if (dictionary.defsHeapVariable(s) && s.operator!=PHI) {
           System.out.print("  (Implicit Defs: ");
           OPT_HeapOperand[] defs = dictionary.getHeapDefs(s);
           if (defs != null)
@@ -135,7 +134,7 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
               System.out.print(defs[i] + " ");
           System.out.print(" )");
         }
-        if (dictionary.usesHeapVariable(s)) {
+        if (dictionary.usesHeapVariable(s) && s.operator!=PHI) {
           System.out.print("  (Implicit Uses: ");
           OPT_HeapOperand[] uses = dictionary.getHeapUses(s);
           if (uses != null)

@@ -36,9 +36,8 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * phase, so always return true.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
-   * @return 
    */
-  final boolean shouldPerform (OPT_Options options) {
+  final boolean shouldPerform(OPT_Options options) {
     return true;
   }
 
@@ -46,7 +45,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * Return a String representation for this phase
    * @return a String representation for this phase
    */
-  final String getName () {
+  final String getName() {
     return  "Dominance Frontier";
   }
 
@@ -57,7 +56,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @param before true iff querying before the phase
    * @return true or false
    */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -71,7 +70,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // make sure the dominator computation completed successfully
     if (!ir.HIRInfo.dominatorsAreComputed)
       return;
@@ -138,7 +137,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @param bits the BitVector representing the set of basic blocks
    * @returns a BitVector representing the dominance frontier for the set
    */
-  public static OPT_BitVector getDominanceFrontier (OPT_IR ir, OPT_BitVector bits) {
+  public static OPT_BitVector getDominanceFrontier(OPT_IR ir, OPT_BitVector bits) {
     OPT_BitVector result = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
     OPT_DominatorTree dTree = ir.HIRInfo.dominatorTree;
     for (int i = 0; i < bits.length(); i++) {
@@ -161,7 +160,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @returns a BitVector representing the dominance frontier for the set
    */
   public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir, 
-                                                        OPT_BitVector S) {
+                                                           OPT_BitVector S) {
     OPT_BitVector DFi = getDominanceFrontier(ir, S);
     while (true) {
       OPT_BitVector DFiplus1 = getDominanceFrontier(ir, DFi);

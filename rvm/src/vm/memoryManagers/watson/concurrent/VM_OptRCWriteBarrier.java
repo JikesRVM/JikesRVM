@@ -30,30 +30,30 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param oldval The old value to be decremented.
    * @param newval The new value to be incremented.
    */
-    static final void emitBufferStores(int oldval, int newval) {
+    static final void emitBufferStores(VM_Address oldval, VM_Address newval) {
 	VM_Magic.pragmaInline();
 
 	VM_Processor p = VM_Processor.getCurrentProcessor();
-	int bufferPointer = p.incDecBufferTop;
+	VM_Address bufferPointer = p.incDecBufferTop;
 
 	// emit address of object whose refcount is to be incremented
-	if (newval != VM_Magic.objectAsAddress(null)) {
-	    bufferPointer += 4;
-	    VM_Magic.setMemoryWord(bufferPointer, newval);
+	if (newval.NE(VM_Magic.objectAsAddress(null))) {
+	    bufferPointer = bufferPointer.add(4);
+	    VM_Magic.setMemoryAddress(bufferPointer, newval);
 	}
 
 	// emit address of object whose refcount is to be decremented
-	if (oldval != VM_Magic.objectAsAddress(null)) {
-	    oldval |= VM_RCBuffers.DECREMENT_FLAG;
-	    bufferPointer += 4;
-	    VM_Magic.setMemoryWord(bufferPointer, oldval);
+	if (oldval.NE(VM_Magic.objectAsAddress(null))) {
+	    oldval = VM_Address.fromInt(oldval.toInt() | VM_RCBuffers.DECREMENT_FLAG);
+	    bufferPointer = bufferPointer.add(4);
+	    VM_Magic.setMemoryAddress(bufferPointer, oldval);
 	}	    
 
 	// store updated buffer pointer
 	p.incDecBufferTop = bufferPointer;
 
 	// check for overflow
-	if (bufferPointer > p.incDecBufferMax)
+	if (bufferPointer.GT(p.incDecBufferMax))
 	    VM_RCBuffers.processIncDecBuffer();
     }
 
@@ -66,11 +66,11 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    */
   static void aastore(Object ref, int index, Object value) {
       // atomically store value at ref[index]
-      int oldval;
-      int newval = VM_Magic.objectAsAddress(value);
+      VM_Address oldval;
+      VM_Address newval = VM_Magic.objectAsAddress(value);
       do {
-	oldval = VM_Magic.prepare(ref, index<<2);
-      } while (! VM_Magic.attempt(ref, index<<2, oldval, newval));
+	oldval = VM_Address.fromInt(VM_Magic.prepare(ref, index<<2));
+      } while (! VM_Magic.attempt(ref, index<<2, oldval.toInt(), newval.toInt()));
 
       // enqueue oldval and newval values in buffer
       emitBufferStores(oldval, newval);
@@ -84,11 +84,11 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param value  The value being stored
    */
   static void resolvedPutfield(Object ref, int offset, Object value) {
-      int oldval;
-      int newval = VM_Magic.objectAsAddress(value);
+      VM_Address oldval;
+      VM_Address newval = VM_Magic.objectAsAddress(value);
       do {
-	  oldval = VM_Magic.prepare(ref, offset);
-      } while (! VM_Magic.attempt(ref, offset, oldval, newval));
+	  oldval = VM_Address.fromInt(VM_Magic.prepare(ref, offset));
+      } while (! VM_Magic.attempt(ref, offset, oldval.toInt(), newval.toInt()));
 
       // enqueue oldval and newval values in buffer
       emitBufferStores(oldval, newval);
@@ -103,7 +103,7 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param value The value being stored
    */
   static void unresolvedPutfield(Object ref, int fid, Object value) {
-    int offset = VM_ClassLoader.getFieldOffset(fid);
+    int offset = VM_TableBasedDynamicLinker.getFieldOffset(fid);
     // if we're doing a putfield, we've instantiated ref already, therefore
     // the offset can't possibly still be unresolved.
     if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
@@ -119,11 +119,11 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param value  The value being stored
    */
   static void resolvedPutstatic(int offset, Object value) {
-      int oldval;
-      int newval = VM_Magic.objectAsAddress(value);
+      VM_Address oldval;
+      VM_Address newval = VM_Magic.objectAsAddress(value);
       do {
-	  oldval = VM_Magic.prepare(VM_Magic.getJTOC(), offset);
-      } while (! VM_Magic.attempt(VM_Magic.getJTOC(), offset, oldval, newval));
+	  oldval = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.getJTOC(), offset));
+      } while (! VM_Magic.attempt(VM_Magic.getJTOC(), offset, oldval.toInt(), newval.toInt()));
 
       // enqueue oldval and newval values in buffer
       emitBufferStores(oldval, newval);
@@ -138,11 +138,11 @@ class VM_OptRCWriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param value The value being stored
    */
   static void unresolvedPutstatic(int fid, Object value) throws Throwable {
-    int offset = VM_ClassLoader.getFieldOffset(fid);
+    int offset = VM_TableBasedDynamicLinker.getFieldOffset(fid);
     if (offset == NEEDS_DYNAMIC_LINK) {
       VM_Field target = VM_FieldDictionary.getValue(fid);
       VM_Runtime.initializeClassForDynamicLink(target.getDeclaringClass());
-      offset = VM_ClassLoader.getFieldOffset(fid);
+      offset = VM_TableBasedDynamicLinker.getFieldOffset(fid);
       if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
     }
     resolvedPutstatic(offset, value);

@@ -7,7 +7,7 @@ import java.util.*;
 import java.io.Serializable;
 
 /**
- *  This is general graph implementation for graphs that do not need
+ * This is general graph implementation for graphs that do not need
  * explicit edge objects.  It co-operates with OPT_EdgelessGraphNode
  * to implement a graph in which edges are represented by in and out
  * node hash tables in each node.
@@ -26,7 +26,7 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
 
     /** 
      * Enumerate all the nodes in the graph
-     * @returns an enumeration of all the nodes in the graph
+     * @return an enumeration of all the nodes in the graph
      */
     public OPT_GraphNodeEnumeration enumerateNodes() {
 	final Enumeration e = nodes.elements();

@@ -21,7 +21,7 @@ include		$(RVM_BUILD)/Make.rules
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/opttests
 BENCH_SOURCE_PATH=$(BENCH_HOME)
-HEAPSIZE = 80
+HEAPSIZE = 150
 EXPECTED=Tests.expected
 START_NAME=InvokeReflect
 START_ARGS=$(ALL_TESTS)

@@ -180,23 +180,22 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  array.load();
 	  array.resolve();
 	  array.instantiate();
-	  int width = array.getLogElementSize();
-	  OPT_Operand NumberElements = NewArray.getClearSize(inst);
-	  OPT_Operand Size = null;
-	  if (NumberElements instanceof OPT_RegisterOperand) {
-	    OPT_RegisterOperand temp = NumberElements.asRegister();
+	  OPT_Operand numberElements = NewArray.getClearSize(inst);
+	  OPT_Operand size = null;
+	  if (numberElements instanceof OPT_RegisterOperand) {
+	    int width = array.getLogElementSize();
+	    OPT_RegisterOperand temp = numberElements.asRegister();
 	    if (width != 0) {
 	      temp = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_SHL, 
 							  VM_Type.IntType, 
 							  temp, 
 							  new OPT_IntConstantOperand(width));
 	    }
-	    Size = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_ADD, 
+	    size = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_ADD, 
 							VM_Type.IntType, temp,
-							new OPT_IntConstantOperand(ARRAY_HEADER_SIZE));
+							new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array)));
 	  } else { 
-	    int n = NumberElements.asIntConstant().value;
-	    Size = new OPT_IntConstantOperand((n<<width)+ARRAY_HEADER_SIZE);
+	    size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
 	  }
 	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
 	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
@@ -207,19 +206,19 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      int allocNum = aadvice.getAllocator();
 	      Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null,
 			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewArrayMethod),
-			   NumberElements.copy(), Size, 
+			   numberElements.copy(), size, 
 			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
 			   new OPT_IntConstantOperand(allocNum));
 	    } else
 	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
 			   OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod),
-			   NumberElements.copy(), Size, 
+			   numberElements.copy(), size, 
 			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
 	  } else {
 	  //-#endif
 	  Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null, 
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod), 
-		       NumberElements.copy(), Size, 
+		       numberElements.copy(), size, 
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
 	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
 	  }
@@ -245,19 +244,19 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      int allocNum = aadvice.getAllocator();
 	      // change to alloc advice call
 	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_OptLinker.allocAdviceNewArrayArrayMethod), 
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.optAllocAdviceNewArrayArrayMethod), 
 			   NewArray.getClearSize(inst), 
 			   new OPT_IntConstantOperand(typeRefId), 
 			   new OPT_IntConstantOperand(allocNum));
 	    } else
 	      Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_OptLinker.newArrayArrayMethod),
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod),
 			   NewArray.getClearSize(inst), 
 			   new OPT_IntConstantOperand(typeRefId));
 	  } else {
 	  //-#endif
 	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-		       OPT_MethodOperand.STATIC(VM_OptLinker.newArrayArrayMethod), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod), 
 		       NewArray.getClearSize(inst),
 		       new OPT_IntConstantOperand(typeRefId));
 	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
@@ -277,35 +276,25 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		     methodOp, Athrow.getClearValue(inst));
 	break;
 
-      case LONG_2DOUBLE_opcode: case LONG_2FLOAT_opcode:
-        if (Unary.getResult(inst).isRegister()) {
-          // make sure we get it as a double
-          Unary.getResult(inst).asRegister().type = VM_Type.DoubleType;
-        }
-	Call.mutate1(inst, CALL, Unary.getClearResult(inst), null, 
-		     OPT_MethodOperand.STATIC(VM_Entrypoints.longToDoubleMethod), 
-		     Unary.getClearVal(inst));
-	break;
-
-      case DOUBLE_2LONG_opcode: case FLOAT_2LONG_opcode:
-        if (Unary.getVal(inst).isRegister()) {
-          // make sure we pass it as a double
-          Unary.getVal(inst).asRegister().type = VM_Type.DoubleType;
-        }
-	Call.mutate1(inst, CALL, Unary.getClearResult(inst), null, 
-		     OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToLongMethod), 
-		     Unary.getClearVal(inst));
-	break;
-
       case MONITORENTER_opcode:
 	if (ir.options.NO_SYNCHRO) {
 	  inst.remove();
 	} else {
-	  Call.mutate1(inst, CALL, null, null, 
-		       OPT_MethodOperand.STATIC(OPT_Entrypoints.optLockMethod), 
-		       MonitorOp.getClearGuard(inst), 
-		       MonitorOp.getClearRef(inst));
-	  inline(inst, ir, true);
+	  OPT_Operand ref = MonitorOp.getClearRef(inst);
+	  VM_Type refType = ref.getType();
+	  if (refType.thinLockOffset != -1) {
+	    Call.mutate2(inst, CALL, null, null, 
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.inlineLockMethod), 
+			 MonitorOp.getClearGuard(inst), 
+			 ref,
+			 new OPT_IntConstantOperand(refType.thinLockOffset));
+	    inline(inst, ir);
+	  } else {
+	    Call.mutate1(inst, CALL, null, null, 
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.lockMethod),
+			 MonitorOp.getClearGuard(inst), 
+			 ref);
+	  }
 	}
 	break;
 
@@ -313,11 +302,21 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	if (ir.options.NO_SYNCHRO) {
 	  inst.remove();
 	} else {
-	  Call.mutate1(inst, CALL, null, null, 
-		       OPT_MethodOperand.STATIC(OPT_Entrypoints.optUnlockMethod), 
-		       MonitorOp.getClearGuard(inst), 
-		       MonitorOp.getClearRef(inst));
-	  inline(inst, ir);
+	    OPT_Operand ref = MonitorOp.getClearRef(inst);
+	    VM_Type refType = ref.getType();
+	    if (refType.thinLockOffset != -1) {
+		Call.mutate2(inst, CALL, null, null, 
+			     OPT_MethodOperand.STATIC(VM_Entrypoints.inlineUnlockMethod), 
+			     MonitorOp.getClearGuard(inst), 
+			     ref,
+			     new OPT_IntConstantOperand(refType.thinLockOffset));
+		inline(inst, ir);
+	    } else {
+		Call.mutate1(inst, CALL, null, null, 
+			     OPT_MethodOperand.STATIC(VM_Entrypoints.unlockMethod),
+			     MonitorOp.getClearGuard(inst), 
+			     ref);
+	    }
 	} 
 	break;
 
@@ -400,7 +399,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  //-#if RVM_WITH_CONCURRENT_GC
 	  if (opcode == REF_ASTORE_opcode) {
 	      Call.mutate3(inst, CALL, null, null, 
-			   OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_aastoreMethod), 
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_aastoreMethod), 
 			   AStore.getClearArray(inst), 
 			   AStore.getClearIndex(inst), 
 			   AStore.getClearValue(inst));
@@ -439,10 +438,38 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  if (VM_Configuration.BuildWithEagerRedirect) {
 	      OPT_LocationOperand dataLoc = GetField.getLocation(inst);
 	      VM_Field dataField = dataLoc.field;
-	      if (!dataField.getType().isPrimitiveType()) {
-		  OPT_RegisterOperand result = GetField.getResult(inst);
-		  OPT_RedirectResult rr = conditionalRedirect(ir, inst, result);
-		  next = rr.next;
+	      OPT_Operand origObject = GetField.getClearRef(inst);
+	      if (VM_Configuration.BuildWithLazyRedirect) {
+		  OPT_RegisterOperand realObject = ir.gc.temps.makeTemp(origObject);
+		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
+								     GetField.getGuard(inst).copy());
+		  redirectInst.bcIndex = inst.bcIndex;
+		  inst.insertBefore(redirectInst);
+		  GetField.setRef(inst,realObject);
+	      }
+	      else {  // VM_Configuration.BuildWithEagerRedirect
+		  if (!dataField.getType().isPrimitiveType()) {
+		      OPT_RegisterOperand result = GetField.getClearResult(inst);
+		      OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
+		      GetField.setResult(inst,temp);
+		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
+		      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+		      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+		      beforeBB.insertOut(afterBB);   // unusual path
+		      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, temp,
+							    new OPT_IntConstantOperand(0),  // NULL is 0
+							    OPT_ConditionOperand.EQUAL(),
+							    afterBB.makeJumpTarget(),
+							    OPT_BranchProfileOperand.unlikely());
+		      OPT_Instruction moveInst = Move.create(INT_MOVE, result, temp); // no REF_MOVE in lir
+		      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, result, temp, OPT_IRTools.TG());
+		      ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+		      beforeBB.appendInstruction(moveInst);
+		      beforeBB.appendInstruction(ifInst);
+		      redirectBB.appendInstruction(redirectInst);
+		  }
 	      }
 	  }
 	  
@@ -453,8 +480,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		boolean isResolved = (opcode == GETFIELD_opcode);
 		OPT_Instruction rb = Call.create2(CALL, null, null,
 						  OPT_MethodOperand.STATIC(isResolved ? 
-							  OPT_Entrypoints.resolvedGetfieldReadBarrierMethod :
-							  OPT_Entrypoints.unresolvedGetfieldReadBarrierMethod),
+									   VM_Entrypoints.resolvedGetfieldReadBarrierMethod :
+									   VM_Entrypoints.unresolvedGetfieldReadBarrierMethod),
 						  GetField.getRef(inst).copy(),
 						  new OPT_IntConstantOperand(isResolved ? 
 									     field.getOffset() : 
@@ -501,19 +528,18 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (!field.getType().isPrimitiveType()) {
 		    String className = 
 			field.getDeclaringClass().getDescriptor().toString();
-		    if (className.equals("LVM_BlockControl;")) {
-			VM.sysWrite("Omitting barrier for method " + ir.method
-				    + " field " + field + "\n");
+		    if (VM_RCBarriers.shouldOmitBarrier(method,field)) {
+			// shouldOmitBarrier already prints Omitting message
 		    } else {
 			if (opcode == PUTFIELD_opcode)
 			    Call.mutate3(inst, CALL, null, null, 
-				     OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_resolvedPutfieldMethod), 
+				     OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_resolvedPutfieldMethod), 
 				     PutField.getClearRef(inst), 
 				     new OPT_IntConstantOperand(field.getOffset()), 
 				     PutField.getClearValue(inst));
 			else // opcode == PUTFIELD_UNRESOLVED_opcode
 			    Call.mutate3(inst, CALL, null, null, 
-					 OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_unresolvedPutfieldMethod), 
+					 OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_unresolvedPutfieldMethod), 
 					 PutField.getClearRef(inst), 
 					 new OPT_IntConstantOperand(field.getDictionaryId()), 
 					 PutField.getClearValue(inst));
@@ -571,8 +597,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      boolean isResolved = (opcode == PUTSTATIC_opcode);
 	      Call.mutate2(inst, CALL, null, null, 
 			   OPT_MethodOperand.STATIC(isResolved ?
-						    OPT_Entrypoints.RCGC_resolvedPutstaticMethod :
-						    OPT_Entrypoints.RCGC_unresolvedPutstaticMethod),
+						    VM_Entrypoints.RCGC_resolvedPutstaticMethod :
+						    VM_Entrypoints.RCGC_unresolvedPutstaticMethod),
 			   new OPT_IntConstantOperand(isResolved ? field.getOffset() : field.getDictionaryId()),
 			   PutStatic.getClearValue(inst));
 	      inline(inst, ir);

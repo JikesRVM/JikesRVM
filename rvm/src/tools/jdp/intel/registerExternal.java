@@ -102,7 +102,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
    */
   public int hardwareTP(){
     int proc = read(PR);
-    int thread = owner.mem.read(proc + VM_Entrypoints.activeThreadOffset);    
+    int thread = owner.mem.read(proc + VM_Entrypoints.activeThreadField.getOffset());    
     return thread;
   }
 
@@ -144,7 +144,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
       if (!owner.bmap.isInRVMspace(currentIP)) {
 	// System.out.println("cacheJTOC: cached " + VM.intAsHexString(currentJTOC));
 	int currentPROC = read("PR");
-	cachedJTOC = owner.mem.read(currentPROC + VM_Entrypoints.jtocOffset);
+	cachedJTOC = owner.mem.read(currentPROC + VM_Entrypoints.jtocField.getOffset());
       } 
       // else {
       //   System.out.println("cacheJTOC: not cached " + VM.intAsHexString(currentJTOC) +
@@ -181,8 +181,12 @@ class registerExternal extends register implements VM_BaselineConstants, registe
     try {
       // for native code, use ebp as FP
       // for RVM code, use VirtualProcessor register to get FP
-      if (owner.bmap.isInRVMspace(currentIP()))
-        return Platform.currentFP();
+      if (owner.bmap.isInRVMspace(currentIP())) {
+	if (contextThread == 0 || threadIsLoaded(contextThread)) 
+	  return Platform.currentFP();
+	else 
+	  return getContextFP();
+      }
       else
 	return getContextRegister("ebp");
 
@@ -241,6 +245,22 @@ class registerExternal extends register implements VM_BaselineConstants, registe
   }
 
   /** 
+   * Get the FP integer register the context thread
+   */
+  public int getContextFP() throws Exception {
+    // Context thread id must be not 0;
+    if (contextThread==0) {
+      System.out.println("getContextFP - contextThread must not be 0");
+      return 0;
+    } else {
+      int regnum, regs[];
+      regnum = 9;
+      regs = getVMThreadGPR(contextThread);
+      return regs[regnum];
+    }
+  }
+
+  /** 
    * Access the registers for the context thread
    *
    */
@@ -265,48 +285,58 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 	    else
 	      result += "IP";
 
-	    result += "  = " + 
-	      VM.intAsHexString(regs[i]) + "  " + regGetName(i);
-	    result += "\n";
+	    result += ":" + 
+	      VM.intAsHexString(regs[i]);
+	    if (i==4)
+	      result += "\n";
+	    else
+	      result += " ";
+	  }
+	  result += "\n";
+	}
+
+	if (Debugger.showFPRsPreference) {
+	  if (threadIsLoaded(contextThread)) {
+	    /* floating point registers */
+	    int tag = Platform.fregtag();
+	    int top = Platform.fregtop();
+	    // result += "tag ";
+	    // result += VM.intAsHexString(tag);
+	    // result += "\n";
+	    result += "FPR stack:\n";
+	    // count the number of stack slots with valid value
+	    int numValid = 0;
+	    for (i=0; i<8; i++) {   
+	      int status = (tag>>(i*2)) & 0x3;
+	      if (status==0)
+		numValid++;
+	    }
+
+	    // get the values
+	    int stackTop = 0;
+	    for (i=0; i<8; i++) {   
+	      double fpr= Platform.readfreg(i);
+	      result += FPR_NAMES[i];
+	      if (stackTop++<numValid)
+		result += " (valid) = " + fpr + "\n";
+	      else 
+		result += " (empty) = " + fpr + "\n";
+	    }
+	  } else {
+	    fregs = getVMThreadSavedFPR(contextThread);
+	    result += "FPR saved context :\n";
+	    for (i=fregs.length-1; i>=0; i--) { 
+	      result += "FP" + i + " = " + fregs[i];
+	      result += "\n";	    
+	    }
 	  }
 	}
 
-	if (threadIsLoaded(contextThread)) {
-          /* floating point registers */
-	  int tag = Platform.fregtag();
-	  int top = Platform.fregtop();
-	  // result += "tag ";
-	  // result += VM.intAsHexString(tag);
-	  // result += "\n";
-	  result += "FPR stack:\n";
-	  // count the number of stack slots with valid value
-	  int numValid = 0;
-	  for (i=0; i<8; i++) {   
-	    int status = (tag>>(i*2)) & 0x3;
-	    if (status==0)
-	      numValid++;
-	  }
-
-	  // get the values
-	  int stackTop = 0;
-	  for (i=0; i<8; i++) {   
-	    double fpr= Platform.readfreg(i);
-	    result += FPR_NAMES[i];
-	    if (stackTop++<numValid)
-	      result += " (valid) = " + fpr + "\n";
-	    else 
-	      result += " (empty) = " + fpr + "\n";
-	  }
-	} else {
-	  fregs = getVMThreadSavedFPR(contextThread);
-	  result += "FPR saved context :\n";
-	  for (i=fregs.length-1; i>=0; i--) { 
-	    result += "FP" + i + " = " + fregs[i];
-	    result += "\n";	    
-	  }
-	}
-
-      } 
+	if (!Debugger.showFPRsPreference)
+	  result += "To see FPRs specify 'pref showFPRs true'\n";
+	else
+	  result += "To hide FPRs specify 'pref showFPRs false'\n";
+      }
   
       else if (count == 1) {   /* print specific registers */
   	if ((regnum>=GPR0 && regnum<=GPR7) || (regnum==IAR)|| (regnum==LR)) {
@@ -322,7 +352,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
       else if (count < 8) {   /* print range of registers */
 	regs = getVMThreadGPR(contextThread);
   	for (i=regnum; i<=regnum+count; i++) {
-	  result += " R" + i + " = " + VM.intAsHexString(regs[i]) + "  " + regGetName(i);
+	  result += " " + regGetName(i) + ":" + VM.intAsHexString(regs[i]);
   	}
       }
   
@@ -332,6 +362,37 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 
   }
 
+  /** 
+   * Show the register names
+   *
+   */
+  public String getNames() throws Exception {
+    int regnum, regs[], i, j, k;    
+    double fregs[];
+    int systemThreadID[];
+    int regdata;    
+    String result="";
+        
+    regnum = 0;
+    for (i=0; i<9; i++) {   /* the general purpose reg */
+      if ( i < GPR_NAMES.length )
+	result += GPR_NAMES[i];
+      else
+	result += "IP";
+
+      result += " ";
+    }
+    result += "\n";
+
+    /* floating point registers */
+    int stackTop = 0;
+    for (i=0; i<8; i++) {   
+      double fpr= Platform.readfreg(i);
+      result += FPR_NAMES[i] + " ";
+    }
+
+    return result;
+  }
 
 
 

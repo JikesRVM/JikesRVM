@@ -79,6 +79,21 @@ public class BootImageWriterMessages {
     System.out.println();
   }
 
+  protected static void say(String message, String message1, String message2,
+                            String message3, String message4, String message5,
+                            String message6, String message7) {
+    System.out.print("BootImageWriter: ");
+    System.out.print(message);
+    System.out.print(message1);
+    System.out.print(message2);
+    System.out.print(message3);
+    System.out.print(message4);
+    System.out.print(message5);
+    System.out.print(message6);
+    System.out.print(message7);
+    System.out.println();
+  }
+
   protected static void fail(String message) throws Error {
     throw new Error("\nBootImageWriter: " + message);
   }

@@ -1184,13 +1184,27 @@ class VM_Assembler implements VM_BaselineConstants {
   static final int MFLRtemplate = 31<<26 | 0x08<<16 | 339<<1;
 
   static final INSTRUCTION MFLR (int RT) {
-    return 31<<26 | RT<<21 | 0x08<<16 | 339<<1;
+    return MFLRtemplate | RT<<21;
   }
 
   final void emitMFLR (int RT) {
-    INSTRUCTION mi = MFLRtemplate | RT<<21;
+    INSTRUCTION mi = MFLR(RT);
     if (VM.TraceAssembler)
       asm(mIP, mi, "mflr", RT);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int MFCRtemplate = 31<<26 | 19<<1;
+
+  static final INSTRUCTION MFCR (int RT) {
+    return MFCRtemplate | RT<<21;
+  }
+
+  final void emitMFCR (int RT) {
+    INSTRUCTION mi = MFCR(RT);
+    if (VM.TraceAssembler)
+      asm(mIP, mi, "mfcr", RT);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1212,16 +1226,31 @@ class VM_Assembler implements VM_BaselineConstants {
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
   static final INSTRUCTION MTLR (int RS) {
-    return 31<<26 | RS<<21 | 0x08<<16 | 467<<1;
+    return MTLRtemplate | RS<<21;
   }
 
   final void emitMTLR (int RS) {
-    INSTRUCTION mi = MTLRtemplate | RS<<21;
+    INSTRUCTION mi = MTLR(RS);
     if (VM.TraceAssembler)
       asm(mIP, mi, "mtlr", RS);
     mIP++;
     mc.addInstruction(mi);
   }
+
+  static final int MTCRFtemplate = 31<<26 | 144<<1;
+
+  static final INSTRUCTION MTCRF (int mask, int RS) {
+    return MTCRFtemplate | mask<<12 | RS<<21;
+  }
+
+  final void emitMTCRF (int mask, int RS) {
+    INSTRUCTION mi = MTCRF(mask, RS);
+    if (VM.TraceAssembler)
+      asm(mIP, mi, "mtcrf", mask, RS);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
 
   static final int MTCTRtemplate = 31<<26 | 0x09<<16 | 467<<1;
 
@@ -1303,6 +1332,22 @@ class VM_Assembler implements VM_BaselineConstants {
     INSTRUCTION mi = ORtemplate | RS<<21 | RA<<16 | RB<<11;
     if (VM.TraceAssembler)
       asm(mIP, mi, "or", RA, RS, RB);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int RLWINM_template = 21<<26;
+
+  static final INSTRUCTION RLWINM (int RA, int RS, int SH, int MB, int ME) {
+    return 21<<26 | RS<<21 | RA<<16 | SH<<11 | MB<<6 | ME<<1;
+  }
+
+  final void emitRLWINM (int RA, int RS, int SH, int MB, int ME) {
+    INSTRUCTION mi = RLWINM_template | RS<<21 | RA<<16 | SH<<11 | MB<<6 | ME<<1;
+    /*
+    if (VM.TraceAssembler)
+      asm(mIP, mi, "rlwinm", RA, RS, SH, MB, ME);
+    */
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1981,15 +2026,11 @@ class VM_Assembler implements VM_BaselineConstants {
 
    /**
     * Append an array of INSTRUCTION to the current machine code
-    * @see VM_Compiler.storeParametersForAIX()
     */
-   void
-   appendInstructions (INSTRUCTION[] instructionSegment) {
-     
+   void appendInstructions (INSTRUCTION[] instructionSegment) {
      for (int i=0; i<instructionSegment.length; i++) {
        mc.addInstruction(instructionSegment[i]);
      }
-
    }
 
   // new PowerPC instuctions
@@ -2119,7 +2160,7 @@ class VM_Assembler implements VM_BaselineConstants {
   // After:    R0, S0 destroyed
   //
   void emitStackOverflowCheck (int frameSize) {
-    emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitOffset, PROCESSOR_REGISTER);   // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame
     emitTLT (S0,  0);                                    // trap if new frame below guard page
     }
@@ -2134,19 +2175,19 @@ class VM_Assembler implements VM_BaselineConstants {
   // After:    R0, S0 destroyed
   //
   void emitNativeStackOverflowCheck (int frameSize) {
-    emitL    (S0, VM_Entrypoints.activeThreadOffset, PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitL    (S0, VM_Entrypoints.jniEnvOffset, S0);      // S0 := thread.jniEnv
-    emitL    ( 0, VM_Entrypoints.JNIRefsTopOffset,S0);   // R0 := thread.jniEnv.JNIRefsTop
-    emitL    (S0, VM_Entrypoints.activeThreadOffset, PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitL    (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
+    emitL    ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
+    emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitCMPI ( 0, 0);                                 	 // check if S0 == 0 -> first native frame on stack
     emitBEQ(5);                                      	 // skip 4 instructions forward
     // check for enough space for requested frame size
-    emitL   ( 0,  VM_Entrypoints.stackLimitOffset, S0);  // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame pointer
     emitTLT (S0,  0);                                    // trap if new frame below guard page
     emitB(8);                                      	 // branch 5 instructions forward    
     // check for enough space for STACK_SIZE_JNINATIVE 
-    emitL   ( 0,  VM_Entrypoints.stackLimitOffset, S0);  // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitLIL(S0, 1);
     emitSLI(S0, S0, STACK_LOG_JNINATIVE);
     emitSF (S0, S0, FP);             // S0 := &new frame pointer

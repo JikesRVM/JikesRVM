@@ -80,7 +80,7 @@ public class VM_Array extends VM_Type
    * @return size
    */
   public final int getInstanceSize(int numelts) {
-    return ARRAY_HEADER_SIZE + (numelts << getLogElementSize());
+    return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
    //--------------------------------------------------------------------------------------------------//
@@ -131,6 +131,10 @@ public class VM_Array extends VM_Type
     return typeInformationBlock;
   }
 
+  public final ClassLoader getClassLoader() {
+      return elementType.getClassLoader();
+  }
+
    //--------------------------------------------------------------------------------------------------//
    //                                       Section 3.                                                 //
    //         The following are available after "instantiate()" has been called.                       //
@@ -148,12 +152,16 @@ public class VM_Array extends VM_Type
    */
   public static VM_Array forName(String arrayName) throws VM_ResolutionException {
     VM_Atom arrayDescriptor = VM_Atom.findOrCreateAsciiAtom(arrayName.replace('.','/'));
-    VM_Array ary = VM_ClassLoader.findOrCreateType(arrayDescriptor).asArray();
+    
+    ClassLoader cl = VM_SystemClassLoader.getVMClassLoader();
+    VM_Array ary =
+	VM_ClassLoader.findOrCreateType(arrayDescriptor, cl).asArray();
+
     ary.load();
     ary.resolve();
     ary.instantiate();
     ary.initialize();
-    VM_Callbacks.notifyForName(ary);
+
     return ary;
   }
 
@@ -166,43 +174,27 @@ public class VM_Array extends VM_Type
     switch (atype)
       {
       case  4: 
-	if (arrayOfBooleanType == null)
-	  arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z")).asArray();
 	return arrayOfBooleanType;
          
       case  5: 
-	if (arrayOfCharType == null)
-	  arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C")).asArray();
 	return arrayOfCharType;
          
       case  6: 
-	if (arrayOfFloatType == null)
-	  arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F")).asArray();
 	return arrayOfFloatType;
          
       case  7: 
-	if (arrayOfDoubleType == null)
-	  arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D")).asArray();
 	return arrayOfDoubleType;
          
       case  8: 
-	if (arrayOfByteType == null)
-	  arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
 	return arrayOfByteType;
          
       case  9: 
-	if (arrayOfShortType == null)
-	  arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S")).asArray();
 	return arrayOfShortType;
          
       case 10: 
-	if (arrayOfIntType == null)
-	  arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I")).asArray();
 	return arrayOfIntType;
          
       case 11: 
-	if (arrayOfLongType == null)
-	  arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J")).asArray();
 	return arrayOfLongType;
       }
 
@@ -311,8 +303,8 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
-				VM_Magic.objectAsAddress(src) + (srcPos<<2),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
+				VM_Magic.objectAsAddress(src).add(srcPos<<2),
 				len<<2);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -336,8 +328,8 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
-				VM_Magic.objectAsAddress(src) + (srcPos<<2),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
+				VM_Magic.objectAsAddress(src).add(srcPos<<2),
 				len<<2);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -361,8 +353,8 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
-				VM_Magic.objectAsAddress(src) + (srcPos<<3),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<3),
+				VM_Magic.objectAsAddress(src).add(srcPos<<3),
 				len<<3);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -386,8 +378,8 @@ public class VM_Array extends VM_Type
 	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
       if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<3),
-				VM_Magic.objectAsAddress(src) + (srcPos<<3),
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<3),
+				VM_Magic.objectAsAddress(src).add(srcPos<<3),
 				len<<3);
       } else if (srcPos < dstPos) {
 	srcPos += len;
@@ -426,16 +418,17 @@ public class VM_Array extends VM_Type
 
 	  // handle as two cases, for efficiency and in case subarrays overlap
 	  if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
-	    VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst) + (dstPos<<2),
-				    VM_Magic.objectAsAddress(src) + (srcPos<<2),
+	    VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
+				    VM_Magic.objectAsAddress(src).add(srcPos<<2),
 				    len<<2);
 	    if (VM.BuildForConcurrentGC) { // dfb: must increment for copied pointers
-	      int start = VM_Magic.objectAsAddress(dst) + (dstPos<<2);
-	      int end = start + (len<<2);
-	      VM_Processor p = VM_Processor.getCurrentProcessor();
-	      for (int i = start; i < end; i = i + 4) {
+		VM_Address start = VM_Magic.objectAsAddress(dst).add(dstPos<<2);
+		VM_Address end = start.add(len<<2);
+		VM_Processor p = VM_Processor.getCurrentProcessor();
+		int diff = end.diff(start);
+		for (int i = 0; i < diff; i += 4) {
 		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available with concurrent memory managers
-		VM_RCBuffers.addIncrement(VM_Magic.getMemoryWord(i), p);
+		VM_RCBuffers.addIncrement(VM_Magic.getMemoryAddress(start.add(i)), p);
 		//-#endif
 	      }
 	    }
@@ -452,7 +445,7 @@ public class VM_Array extends VM_Type
 
 	      if (VM.BuildForConcurrentGC) {
 		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available with concurrent memory managers
-		VM_RCBuffers.addIncrement(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(dst) + dstPos),
+		VM_RCBuffers.addIncrement(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(dst).add(dstPos)),
 					  VM_Processor.getCurrentProcessor());
 		//-#endif
 	      }
@@ -476,8 +469,8 @@ public class VM_Array extends VM_Type
 	  } else {
 	    VM_Array ary = VM_Magic.getObjectType(src).asArray();
 	    Object temp[] = 
-	      (Object[])(VM_Allocator.allocateArray(len, ary.getInstanceSize(len), 
-						    ary.getTypeInformationBlock()));
+	      (Object[])VM_Runtime.quickNewArray(len, ary.getInstanceSize(len), 
+						 ary.getTypeInformationBlock());
 	    int cnt = len;
 	    int tempPos = 0;
 	    while (cnt-- != 0)
@@ -510,14 +503,14 @@ public class VM_Array extends VM_Type
   //----------------//
    
   private static Object[] javaLangObjectTIB;
-  private static VM_Array arrayOfBooleanType;
-  private static VM_Array arrayOfByteType;
-  private static VM_Array arrayOfShortType;
-  private static VM_Array arrayOfIntType;
-  private static VM_Array arrayOfLongType;
-  private static VM_Array arrayOfFloatType;
-  private static VM_Array arrayOfDoubleType;
-  private static VM_Array arrayOfCharType;
+  static VM_Array arrayOfBooleanType;
+  static VM_Array arrayOfByteType;
+  static VM_Array arrayOfShortType;
+  static VM_Array arrayOfIntType;
+  static VM_Array arrayOfLongType;
+  static VM_Array arrayOfFloatType;
+  static VM_Array arrayOfDoubleType;
+  static VM_Array arrayOfCharType;
 
   private VM_Type  elementType;
   private VM_Type  innermostElementType;
@@ -528,14 +521,14 @@ public class VM_Array extends VM_Type
   //
   private VM_Array() { }
 
-  VM_Array(VM_Atom descriptor, int dictionaryId) {
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Array: create " + descriptor + "\n");
+  VM_Array(VM_Atom descriptor, int dictionaryId, ClassLoader classloader) {
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Array: create " + descriptor + " with " + classloader + "\n");
     this.descriptor     = descriptor;
     this.dimension      = descriptor.parseForArrayDimensionality();
     this.depth          = 1;
     this.dictionaryId   = dictionaryId;
     this.tibSlot        = VM_Statics.allocateSlot(VM_Statics.TIB);
-    this.elementType    = VM_ClassLoader.findOrCreateType(descriptor.parseForArrayElementDescriptor());
+    this.elementType    = VM_ClassLoader.findOrCreateType(descriptor.parseForArrayElementDescriptor(), classloader);
     if (this.elementType.isArrayType()) {
       this.innermostElementType = this.elementType.asArray().getInnermostElementType();
     } else {
@@ -548,7 +541,7 @@ public class VM_Array extends VM_Type
     // install partial type information block (type-slot but no method-slots) for use in type checking.
     // later, during instantiate(), we'll replace it with full type information block (including method-slots).
     //
-    Object[] tib = new Object[1];
+    Object[] tib = VM_RuntimeStructures.newTIB(1);
     tib[0] = this;
     VM_Statics.setSlotContents(tibSlot, tib);
   }
@@ -557,7 +550,7 @@ public class VM_Array extends VM_Type
   // JVM spec says anewarray forces loading of base class   
   // 
   // TODO: this should throw VM_ResolutionException
-  public final void load() {
+  public final synchronized void load() {
     if (isLoaded())
       return;
 
@@ -578,7 +571,7 @@ public class VM_Array extends VM_Type
   // JVM spec says anewarray forces resolution of base class   
   //
   // TODO: this should throw VM_ResolutionException
-  public final void resolve() {
+  public final synchronized void resolve() {
     if (isResolved())
       return;
     if (VM.VerifyAssertions) VM.assert(state == CLASS_LOADED);
@@ -596,16 +589,16 @@ public class VM_Array extends VM_Type
     // virtual method fields and substuting an appropriate type field.
     //
     if (javaLangObjectTIB == null) {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;")).asClass();
+      VM_Class cls = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
       javaLangObjectTIB = cls.getTypeInformationBlock();
     }
        
-    typeInformationBlock = new Object[javaLangObjectTIB.length];
+    typeInformationBlock = VM_RuntimeStructures.newTIB(javaLangObjectTIB.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     typeInformationBlock[0] = this;
     if (VM.BuildForFastDynamicTypeCheck) {
       typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
-      typeInformationBlock[TIB_IMPLEMENTS_TRITS_INDEX] = VM_DynamicTypeCheck.buildImplementsTrits(this);
+      typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
       if (!elementType.isPrimitiveType() && elementType.isResolved()) {
 	typeInformationBlock[TIB_ARRAY_ELEMENT_TIB_INDEX] = elementType.getTypeInformationBlock();
       }
@@ -616,12 +609,12 @@ public class VM_Array extends VM_Type
 
   // Build type information block and install it in jtoc.
   //
-  public final void instantiate() {
+  public final synchronized void instantiate() {
     if (isInstantiated())
       return;
     if (VM.VerifyAssertions) VM.assert(state == CLASS_RESOLVED);
   
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Array: instantiate " + descriptor + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Array: instantiate " + descriptor + "\n");
     
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
     for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX, n = javaLangObjectTIB.length; i < n; ++i)
@@ -633,5 +626,17 @@ public class VM_Array extends VM_Type
   // No-op (arrays have no <clinit> method).
   //
   public final void initialize() { }
-  
+
+
+  static void init() {
+    arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+    arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+  }
+
 }

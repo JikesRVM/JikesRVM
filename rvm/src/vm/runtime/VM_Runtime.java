@@ -53,6 +53,8 @@ public class VM_Runtime implements VM_Constants {
   static final int TRAP_CHECKCAST      =  4; // opt-compiler
   static final int TRAP_REGENERATE     =  5; // opt-compiler
   static final int TRAP_JNI_STACK      =  6; // jni
+  static final int TRAP_MUST_IMPLEMENT =  7; 
+  static final int TRAP_STORE_CHECK    =  8; 
    
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
@@ -73,7 +75,7 @@ public class VM_Runtime implements VM_Constants {
 
     Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
                                                targetTibOffset);
-    Object rhsTib = VM_Magic.getObjectAtOffset(object, OBJECT_TIB_OFFSET);
+    Object rhsTib = VM_ObjectModel.getTIB(object);
     if (lhsTib == rhsTib)
       return true; // exact match
          
@@ -95,7 +97,7 @@ public class VM_Runtime implements VM_Constants {
 
     Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
                                               targetTibOffset);
-    Object rhsTib= VM_Magic.getObjectAtOffset(object, OBJECT_TIB_OFFSET);
+    Object rhsTib= VM_ObjectModel.getTIB(object);
     return (lhsTib == rhsTib);
   }
 
@@ -113,7 +115,7 @@ public class VM_Runtime implements VM_Constants {
       
     Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
                                                targetTibOffset);
-    Object rhsTib = VM_Magic.getObjectAtOffset(object, OBJECT_TIB_OFFSET);
+    Object rhsTib= VM_ObjectModel.getTIB(object);
     if (lhsTib == rhsTib)
       return; // exact match
 
@@ -142,6 +144,9 @@ public class VM_Runtime implements VM_Constants {
       
     if (elmType == VM_Type.JavaLangObjectType) 
       return; // array of Object can receive anything
+
+    if (elmType == VM_Type.AddressType)
+      return; // array of Address can receive anything that was verifiable
       
     VM_Type rhsType = VM_Magic.getObjectType(arrayElement);
      
@@ -177,10 +182,7 @@ public class VM_Runtime implements VM_Constants {
 	}
       }
       
-      boolean rc; 
-      synchronized (VM_ClassLoader.lock) {
-	rc = lhs.isAssignableWith(rhs);
-      }
+      boolean rc = lhs.isAssignableWith(rhs);
       
       // update cache of successful type comparisions 
       // (no synchronization required)
@@ -198,6 +200,9 @@ public class VM_Runtime implements VM_Constants {
   //                     Object Allocation.                        //
   //---------------------------------------------------------------//
    
+  static int countDownToGC = 500;
+  static final int GCInterval  = 100; // how many GC's in a test interval
+
   /**
    * Allocate something like "new Foo()".
    * @param dictionaryId type of object (VM_TypeDictionary id)
@@ -213,11 +218,9 @@ public class VM_Runtime implements VM_Constants {
     if (!cls.isInitialized())
       initializeClassForDynamicLink(cls);
 
-    Object ret =  VM_Allocator.allocateScalar(cls.getInstanceSize(), 
-                                              cls.getTypeInformationBlock(), 
-					      cls.hasFinalizer());
-
-    return ret;
+    return quickNewScalar(cls.getInstanceSize(), 
+			  cls.getTypeInformationBlock(), 
+			  cls.hasFinalizer());
   }
    
   /**
@@ -228,11 +231,12 @@ public class VM_Runtime implements VM_Constants {
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  static int countDownToGC = 500;
-  static final int GCInterval  = 100; // how many GC's in a test interval
-  public static Object quickNewScalar(int size, Object[] tib, 
+  public static Object quickNewScalar(int size, 
+				      Object[] tib, 
                                       boolean hasFinalizer) 
     throws OutOfMemoryError {
+
+    // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
@@ -240,8 +244,18 @@ public class VM_Runtime implements VM_Constants {
 	VM_Collector.gc();
       }
     }
-    Object ret = VM_Allocator.allocateScalar(size, tib, hasFinalizer);
-    return ret;
+    
+    // Event logging and stat gathering
+    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
+      VM_EventLogger.logObjectAllocationEvent();
+
+    // Allocate the object and initialize its header
+    Object newObj = VM_Allocator.allocateScalar(size, tib);
+
+    // Deal with finalization
+    if (hasFinalizer) VM_Finalizer.addElement(newObj);
+
+    return newObj;
   }
    
   /**
@@ -253,10 +267,14 @@ public class VM_Runtime implements VM_Constants {
    * to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
-  public static Object quickNewArray(int numElements, int size, 
+  public static Object quickNewArray(int numElements, 
+				     int size, 
                                      Object[] tib)
     throws OutOfMemoryError, NegativeArraySizeException {
+
     if (numElements < 0) raiseNegativeArraySizeException();
+
+    // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
@@ -264,34 +282,73 @@ public class VM_Runtime implements VM_Constants {
 	VM_Collector.gc();
       }
     }
-    Object ret = VM_Allocator.allocateArray(numElements, size, tib);
-    return ret;
+
+    // Event logging and stat gathering
+    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
+      VM_EventLogger.logObjectAllocationEvent();
+
+    // Allocate the array and initialize its header
+    return VM_Allocator.allocateArray(numElements, size, tib);
   }
+
 
   /**
    * clone a Scalar or Array Object
    * called from java/lang/Object.clone()
+   * 
+   * For simplicity, we just code this more or less in Java using
+   * internal reflective operations and some magic.  
+   * This is inefficient for large scalar objects, but until that 
+   * is proven to be a  performance problem, we won't worry about it.
+   * By keeping this in Java instead of dropping into VM_Memory.copy,
+   * we avoid having to add special case code to deal with write barriers,
+   * and other such things.
+   * 
+   * @param obj the object to clone
+   * @return the cloned object
    */ 
-  public static Object clone ( Object obj )
+  public static Object clone (Object obj)
     throws OutOfMemoryError, CloneNotSupportedException {
-      VM_Type type = VM_Magic.getObjectType(obj);
-      if (type.isArrayType()) {
-	VM_Array ary   = type.asArray();
-	int      nelts = VM_Magic.getArrayLength(obj);
-	int      size  = ary.getInstanceSize(nelts);
-	Object[] tib   = ary.getTypeInformationBlock();
-	return VM_Allocator.cloneArray(nelts, size, tib, obj);
+    VM_Type type = VM_Magic.getObjectType(obj);
+    if (type.isArrayType()) {
+      VM_Array ary   = type.asArray();
+      int      nelts = VM_ObjectModel.getArrayLength(obj);
+      int      size  = ary.getInstanceSize(nelts);
+      Object[] tib   = ary.getTypeInformationBlock();
+      Object newObj  = quickNewArray(nelts, size, tib);
+      System.arraycopy(obj, 0, newObj, 0, nelts);
+      return newObj;
+    } else {
+      if (!(obj instanceof Cloneable))
+	throw new CloneNotSupportedException();
+      VM_Class cls   = type.asClass();
+      int      size  = cls.getInstanceSize();
+      Object[] tib   = cls.getTypeInformationBlock();
+      Object newObj  = quickNewScalar(size, tib, cls.hasFinalizer());
+      VM_Field[] instanceFields = cls.getInstanceFields();
+      for (int i=0; i<instanceFields.length; i++) {
+	VM_Field f = instanceFields[i];
+	VM_Type ft = f.getType();
+	if (ft.isReferenceType()) {
+	  // Do via slower "pure" reflection to enable
+	  // collectors to do the right thing wrt reference counting
+	  // and write barriers.
+	  f.setObjectValue(newObj, f.getObjectValue(obj));
+	} else if (ft.isLongType() || ft.isDoubleType()) {
+	  int offset = f.getOffset();
+	  long bits = VM_Magic.getLongAtOffset(obj, offset);
+	  VM_Magic.setLongAtOffset(newObj, offset, bits);
+	} else {
+	  // NOTE: assumes that all other types get 32 bits.
+	  //       This is currently true, but may change in the future.
+	  int offset = f.getOffset();
+	  int bits = VM_Magic.getIntAtOffset(obj, offset);
+	  VM_Magic.setIntAtOffset(newObj, offset, bits);
+	}
       }
-      else {
-	if (!(obj instanceof Cloneable))
-	  throw new CloneNotSupportedException();
-	VM_Class cls   = type.asClass();
-	int      size  = cls.getInstanceSize();
-	Object[] tib   = cls.getTypeInformationBlock();
-	return VM_Allocator.cloneScalar(size, tib, obj);
-      }
+      return newObj;
+    }
   }
-
 
   /**
    * initiate a garbage collection
@@ -387,6 +444,11 @@ public class VM_Runtime implements VM_Constants {
      arrayType.resolve();
      arrayType.instantiate();
      
+     VM.sysWrite("buildMultiDimensionalArray: dimIndex = ", dimIndex);
+     VM.sysWriteln("                            numElements.len = ", numElements.length);
+     for (int i=0; i<numElements.length; i++)
+	 VM.sysWriteln("                            numElements[", i, "] = ", numElements[i]);
+
      int    nelts     = numElements[dimIndex];
      int    size      = ARRAY_HEADER_SIZE + (nelts << arrayType.getLogElementSize());
      Object newObject = VM_Allocator.allocateArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
@@ -415,55 +477,14 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * Get a new object hashcode value.  Returns a 32 bit word
-   * containing a shifted 8-bit hashcode.
-   *
-   * @return word containing a new object hashcode
-   * @see java.lang.Object.hashCode()
-   */ 
-  public static int newObjectHashCode() {
-    int hashCode;       
-    // Generate a 32 bit integer with a non-0 hashcode.  A hashcode
-    // is a 8-bit number, left shifted 2 bits within a 32 bit word.
-    // The right 2 bits are used for garbage collection.
-    // Note that the hashcode generator is not guarded by a serialization
-    // lock, but that's ok because we're not required to guarantee 
-    // unique hashcodes.
-    //
-    do {
-      hashCodeGenerator += OBJECT_HASHCODE_UNIT;
-      hashCode = hashCodeGenerator & OBJECT_HASHCODE_MASK;
-    } while (hashCode == 0);
-    return hashCode;
-  }
-
-
-  /**
    * Get an object's "hashcode" value.
    * @return object's hashcode
    * Side effect: hash value is generated and stored into object's 
    * status word
-   * @see java.lang.Object.hashCode()
+   * @see java.lang.Object#hashCode
    */ 
   public static int getObjectHashCode(Object object) {
-    int hashCode = VM_Magic.getIntAtOffset(object, OBJECT_STATUS_OFFSET) 
-      & OBJECT_HASHCODE_MASK;
-    if (hashCode != 0)
-      return hashCode; // object already has a hashcode
-       
-    // Install hashcode.
-    //
-    hashCode = newObjectHashCode();
-    while (true) {
-      int statusWord = VM_Magic.prepare(object, OBJECT_STATUS_OFFSET);
-      if ((statusWord & OBJECT_HASHCODE_MASK) != 0)
-	return statusWord & OBJECT_HASHCODE_MASK; // another thread 
-                                            // installed a hashcode
-
-      if (VM_Magic.attempt(object, OBJECT_STATUS_OFFSET, statusWord, 
-                           statusWord | hashCode))
-	return hashCode; // hashcode installed successfully
-    }
+      return VM_ObjectModel.getObjectHashCode(object);
   }
 
   //---------------------------------------------------------------//
@@ -474,118 +495,24 @@ public class VM_Runtime implements VM_Constants {
    * Prepare a class for use prior to first allocation, 
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
-   * @see VM_Member.needsDynamicLink()
+   * @see VM_Member#needsDynamicLink
    */ 
   public static void initializeClassForDynamicLink(VM_Class cls) 
     throws VM_ResolutionException {
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " 
                   + cls + "\n");
-    synchronized(VM_ClassLoader.lock) {
-      cls.load();
-      cls.resolve();
-      cls.instantiate();
+
+    try {
+	cls.classloader.loadClass(cls.getDescriptor().classNameFromDescriptor(), true);
+    } catch (ClassNotFoundException e) {
+	VM.sysWrite("bad " + cls + " with " + cls.classloader + "\n");
+	throw new VM_ResolutionException(cls.getDescriptor(), e);
     }
-    // class initialization invokes the static init method, which 
-    // cannot execute while holding the classloader lock.  
-    // Therefore, we release the lock before initializing the class 
-    cls.initialize();
+
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " 
                   + cls + "\n");
-  }
-
-  //---------------------------------------------------------------//
-  //                        Interface invocation.                  //
-  //---------------------------------------------------------------//
-
-  
-  /**
-   * Resolve an interface method call.
-   * @param target object to which interface method is to be applied
-   * @param dictionaryId interface method sought (VM_MethodDictionary id)
-   * @return machine code corresponding to desired interface method
-   * See also: bytecode 0xb9 ("invokeinterface")
-   *           VM_DynamicTypeCheck.populateITable
-   */
-  static INSTRUCTION[] invokeInterface(Object target, int dictionaryId) 
-    throws IncompatibleClassChangeError, VM_ResolutionException {
-    
-    VM_Method sought = 
-      VM_MethodDictionary.getValue(dictionaryId).resolveInterfaceMethod(true);
-    VM_Class I = sought.getDeclaringClass();
-    VM_Class C = VM_Magic.getObjectType(target).asClass(); 
-    if (VM.BuildForITableInterfaceInvocation) {
-      Object[] tib = C.getTypeInformationBlock();
-      Object[] iTable = findITable(tib, I.getDictionaryId());
-      return (INSTRUCTION[])iTable[I.getITableIndex(sought)];
-    } else { 
-      if (!isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
-      VM_Method found  = C.findVirtualMethod(sought.getName(), 
-                                             sought.getDescriptor());
-      if (found == null) throw new IncompatibleClassChangeError();
-      if (!found.isCompiled()) 
-        synchronized(VM_ClassLoader.lock) { found.compile(); }
-      INSTRUCTION[] instructions = 
-	found.getMostRecentlyGeneratedInstructions();
-      return instructions;
-    }
-  }
-  
-  /**
-   * Return a reference to the itable for a given class, interface pair
-   * If no itable is found, this version performs a dynamic type check
-   * and instantiates the itable.
-   * @param tib the TIB for the class
-   * @param id id of the interface sought
-   * @return iTable for desired interface
-   * See also: bytecode 0xb9 ("invokeinterface")
-   *           VM_DynamicTypeCheck.populateITable
-   */
-  public static Object[] findITable(Object[] tib, int id) 
-    throws IncompatibleClassChangeError, VM_ResolutionException {
-    Object[] iTables = 
-      (Object[])tib[VM_ObjectLayoutConstants.TIB_ITABLES_TIB_INDEX];
-    if (VM.DirectlyIndexedITables) {
-      // ITable is at fixed offset
-      return (Object[])iTables[id];
-    } else {
-      // Search for the right ITable
-      VM_Type I = VM_TypeDictionary.getValue(id);
-      if (iTables != null) {
-	// check the cache at slot 0
-	Object[] iTable = (Object[])iTables[0];
-	if (iTable[0] == I) { 
-	  return iTable; // cache hit :)
-	}
-	  
-	// cache miss :(
-	// Have to search the 'real' entries for the iTable
-	for (int i=1; i<iTables.length; i++) {
-	  iTable = (Object[])iTables[i];
-	  if (iTable[0] == I) { 
-	    // found it; update cache
-	    iTables[0] = iTable;
-	    return iTable;
-	  }
-        }
-      }
-
-      // Didn't find the itable, so we don't yet know if 
-      // the class implements the interface. :((( 
-      // Therefore, we need to establish that and then 
-      // look for the iTable again.
-      VM_Class C = (VM_Class)tib[0];
-      if (VM.BuildForFastDynamicTypeCheck) {
-        VM_DynamicTypeCheck.mandatoryInstanceOfInterface((VM_Class)I, tib);
-      } else {
-        if (!isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
-        VM_DynamicTypeCheck.populateITable(C, (VM_Class)I);
-      }
-      Object[] iTable = findITable(tib, id);
-      if (VM.VerifyAssertions) VM.assert(iTable != null);
-      return iTable;
-    }
   }
 
   //---------------------------------------------------------------//
@@ -666,7 +593,7 @@ public class VM_Runtime implements VM_Constants {
 	!myThread.hasNativeStackFrame()) { 
       // determine whether the method causing the overflow is native
       VM.disableGC();   // because we're holding raw addresses (ip)
-      int ip                 = exceptionRegisters.getInnermostInstructionAddress();
+      VM_Address ip                    = exceptionRegisters.getInnermostInstructionAddress();
       VM_CompiledMethod	compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       VM.enableGC();
       VM_CompilerInfo	compilerInfo	= compiledMethod.getCompilerInfo();
@@ -707,6 +634,12 @@ public class VM_Runtime implements VM_Constants {
     case TRAP_CHECKCAST:
       exceptionObject = new java.lang.ClassCastException();
       break;
+    case TRAP_MUST_IMPLEMENT:
+      exceptionObject = new java.lang.IncompatibleClassChangeError();
+      break;
+    case TRAP_STORE_CHECK:
+      exceptionObject = new java.lang.ArrayStoreException();
+      break;
     default:
       exceptionObject = new java.lang.UnknownError();
       VM_Scheduler.traceback("UNKNOWN ERROR");
@@ -728,7 +661,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static void unlockAndThrow (Object objToUnlock, Throwable objToThrow) {
     VM_Magic.pragmaNoInline();
-    VM_Lock.inlineUnlock(objToUnlock);
+    VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
 
@@ -779,13 +712,30 @@ public class VM_Runtime implements VM_Constants {
     throw new java.lang.ArithmeticException();
   }
 
+  /**
+   * Create and throw a java.lang.AbstractMethodError.
+   * Used to handle error cases in invokeinterface dispatching.
+   */
+  static void raiseAbstractMethodError() {
+    VM_Magic.pragmaNoInline();
+    throw new java.lang.AbstractMethodError();
+  }
+
+  /**
+   * Create and throw a java.lang.IllegalAccessError.
+   * Used to handle error cases in invokeinterface dispatching.
+   */
+  static void raiseIllegalAccessError() {
+    VM_Magic.pragmaNoInline();
+    throw new java.lang.IllegalAccessError();
+  }
+
+
 
   //----------------//
   // implementation //
   //----------------//
    
-  private static int hashCodeGenerator; // seed for generating Object hash codes
-
   static void init() {
     // tell "RunBootImage.C" to pass control to 
     // "VM_Runtime.deliverHardwareException()"
@@ -794,19 +744,18 @@ public class VM_Runtime implements VM_Constants {
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
       VM_ClassLoader.createHardwareTrapCompiledMethodId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
-      VM.getMember("LVM_Runtime;", 
-                   "deliverHardwareException", 
-                   "(II)V").getOffset();
+      VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
     // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     VM_BootRecord.the_boot_record.debugRequestedOffset = 
-      VM.getMember("LVM_Scheduler;", "debugRequested", "Z").getOffset();
+      VM_Entrypoints.debugRequestedField.getOffset();
 
     // for "libjni.C" to make AttachCurrentThread request
     VM_BootRecord.the_boot_record.attachThreadRequestedOffset = 
-      VM.getMember("LVM_Scheduler;", "attachThreadRequested", "I").getOffset();
+      VM_Entrypoints.attachThreadRequestedField.getOffset();
+
   }
 
   /**
@@ -820,18 +769,14 @@ public class VM_Runtime implements VM_Constants {
 						  int dimIndex, 
 						  VM_Array arrayType) {
     if (!arrayType.isInstantiated()) {
-      synchronized(VM_ClassLoader.lock) {
-	arrayType.load();
-	arrayType.resolve();
-	arrayType.instantiate();
-      }
+      arrayType.load();
+      arrayType.resolve();
+      arrayType.instantiate();
     }
 
     int    nelts     = numElements[dimIndex];
-    int    size      = ARRAY_HEADER_SIZE + (nelts << 
-                                            arrayType.getLogElementSize());
-    Object newObject = VM_Allocator.allocateArray(nelts, size, 
-                                                  arrayType.getTypeInformationBlock());
+    int    size      = arrayType.getInstanceSize(nelts);
+    Object newObject = quickNewArray(nelts, size, arrayType.getTypeInformationBlock());
 
     if (++dimIndex == numElements.length)
       return newObject; // all dimensions have been built
@@ -865,8 +810,6 @@ public class VM_Runtime implements VM_Constants {
    */
   private static void deliverException(Throwable exceptionObject, 
 				       VM_Registers exceptionRegisters) {
-    if (VM.TraceTimes) VM_Timer.start(VM_Timer.EXCEPTION_HANDLING);
-
     //-#if RVM_FOR_IA32
     VM_Magic.clearFloatingPointState();
     //-#endif
@@ -874,42 +817,35 @@ public class VM_Runtime implements VM_Constants {
     // walk stack and look for a catch block
     //
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
-    int fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
+    VM_Address fp = exceptionRegisters.getInnermostFramePointer();
+    while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
-	VM_CompiledMethod compiledMethod = VM_CompiledMethods.
-          getCompiledMethod(compiledMethodId);
-	VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
-	VM_ExceptionDeliverer exceptionDeliverer = compilerInfo.
-          getExceptionDeliverer();
-	int ip = exceptionRegisters.getInnermostInstructionAddress();
-	int methodStartAddress = VM_Magic.objectAsAddress
-          (compiledMethod.getInstructions());
-	int catchBlockOffset   = compilerInfo.
-          findCatchBlockForInstruction(ip - methodStartAddress, exceptionType);
+	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+	  VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
+	  VM_ExceptionDeliverer exceptionDeliverer = compilerInfo.getExceptionDeliverer();
+	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
+	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+	  int catchBlockOffset = compilerInfo.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
 
-	if (catchBlockOffset >= 0) { 
-	  // found an appropriate catch block
-	  if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
-	  exceptionDeliverer.deliverException(compiledMethod, 
-                                              methodStartAddress + 
-                                              catchBlockOffset, 
-                                              exceptionObject, 
-                                              exceptionRegisters);
-	  if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-	}
-
-	exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
+	  if (catchBlockOffset >= 0) { 
+	      // found an appropriate catch block
+	      exceptionDeliverer.deliverException(compiledMethod, 
+						  methodStartAddress.add(catchBlockOffset), 
+						  exceptionObject, 
+						  exceptionRegisters);
+	      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	  }
+	  
+	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
       } else {
-	unwindInvisibleStackFrame(exceptionRegisters);
+	  unwindInvisibleStackFrame(exceptionRegisters);
       }
       fp = exceptionRegisters.getInnermostFramePointer();
     }
 
     // no appropriate catch block found
     //
-    if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
     VM.enableGC();
     exceptionObject.printStackTrace();
     VM_Thread.terminate();
@@ -929,17 +865,15 @@ public class VM_Runtime implements VM_Constants {
    * return address of the glue frame)
    * Ton Ngo 7/30/01
    */
-  public static int unwindNativeStackFrame(int currfp) {
-    int ip, callee_fp;
-    int fp = VM_Magic.getCallerFramePointer(currfp);
-    int vmStart = VM_BootRecord.the_boot_record.startAddress;
-    int vmEnd = VM_BootRecord.the_boot_record.largeStart + 
-      VM_BootRecord.the_boot_record.largeSize;
+  public static VM_Address unwindNativeStackFrame(VM_Address currfp) {
+    VM_Address ip, callee_fp;
+    VM_Address fp = VM_Magic.getCallerFramePointer(currfp);
+
     do {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( ( ip < vmStart || ip >= vmEnd ) && fp != STACKFRAME_SENTINAL_FP);
+    } while ( !VM_Heap.refInAnyHeap(ip) && fp.toInt() != STACKFRAME_SENTINAL_FP);
     return callee_fp;
   }
 

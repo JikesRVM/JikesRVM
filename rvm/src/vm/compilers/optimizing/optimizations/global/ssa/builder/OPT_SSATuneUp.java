@@ -17,7 +17,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
   /**
    * Build this phase as a composite of others.
    */
-  OPT_SSATuneUp () {
+  OPT_SSATuneUp() {
     super("SSA Tune Up", new OPT_OptimizationPlanElement[] {
       // 1. Set up IR state to control SSA translation as needed
       new OPT_OptimizationPlanAtomicElement(new TuneUpPreparation()), 
@@ -30,8 +30,8 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
     });
   }
 
-  boolean shouldPerform (OPT_Options options) {
-    return  options.SSA;
+  boolean shouldPerform(OPT_Options options) {
+    return options.SSA;
   }
 
   /**
@@ -39,22 +39,22 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
    */
   private static class FoldingDriver extends OPT_CompilerPhase {
 
-    final boolean shouldPerform (OPT_Options options) {
+    final boolean shouldPerform(OPT_Options options) {
       return  options.SSA && options.EXPRESSION_FOLDING;
     }
 
-    final String getName () {
+    final String getName() {
       return  "SSA Expression Folding";
     }
 
-    final boolean printingEnabled (OPT_Options options, boolean before) {
+    final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
     /**
      * Execute expression folding. 
      */
-    final public void perform (OPT_IR ir) {
+    final public void perform(OPT_IR ir) {
       OPT_DefUse.computeDU(ir);
       OPT_ExpressionFolding.perform(ir);
     }
@@ -64,15 +64,15 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
    */
   private static class TuneUpPreparation extends OPT_CompilerPhase {
 
-    final boolean shouldPerform (OPT_Options options) {
+    final boolean shouldPerform(OPT_Options options) {
       return  options.SSA;
     }
 
-    final String getName () {
+    final String getName() {
       return  "SSA Tune UpPreparation";
     }
 
-    final boolean printingEnabled (OPT_Options options, boolean before) {
+    final boolean printingEnabled(OPT_Options options, boolean before) {
       return false;
     }
 
@@ -80,7 +80,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
      * register in the IR the SSA properties we need for simple scalar
      * optimizations
      */
-    final public void perform (OPT_IR ir) {
+    final public void perform(OPT_IR ir) {
       ir.desiredSSAOptions = new OPT_SSAOptions();
       ir.desiredSSAOptions.setScalarsOnly(true);
       ir.desiredSSAOptions.setBackwards(false);

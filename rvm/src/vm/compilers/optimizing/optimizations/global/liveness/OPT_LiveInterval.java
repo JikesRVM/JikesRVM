@@ -6,8 +6,6 @@
 /**
  * This class contains useful methods for managing liveIntervals.
  *
- * @see OPT_IRMap
- *
  * @author Michael Hind
  * @author Mauricio Serrano
  */

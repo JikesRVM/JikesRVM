@@ -19,7 +19,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param ir
    */
   void perform (OPT_IR ir) {
-    //VM.sysWrite ("in LICM for "+ir.method+"\n");
     if (ir.hasReachableExceptionHandlers() || OPT_GCP.tooBig(ir)) return;
     
     verbose = ir.options.VERBOSE_GCP;
@@ -31,14 +30,17 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     
     initialize(ir);
 
-    //if (verbose) OPT_SSA.printInstructions (ir);
+    if (verbose) OPT_SSA.printInstructions (ir);
     OPT_Instruction inst = ir.firstInstructionInCodeOrder();
     while (inst != null) {
       OPT_Instruction next = inst.nextInstructionInCodeOrder();
-      // System.out.println("scheduleEarly: " + inst);
+      if (verbose) System.out.println("scheduleEarly: " + inst);
       scheduleEarly(inst);
       inst = next;
     }
+    
+    if (verbose) OPT_SSA.printInstructions (ir);
+
     inst = ir.firstInstructionInCodeOrder();
     while (inst != null) {
       if (getState(inst) < late)
@@ -49,7 +51,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
   /**
    * Returns the name of the phase
-   * @return 
    */
   String getName () {
     return  "LICM";
@@ -58,7 +59,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Should this phase be executed?
    * @param options
-   * @return 
    */
   boolean shouldPerform (OPT_Options options) {
     return  options.GCP || options.VERBOSE_GCP;
@@ -96,10 +96,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     switch (inst.operator.opcode) {
     case INT_MOVE_opcode:
     case LONG_MOVE_opcode:
-      //  OPT_Operand ival = Move.getVal(inst);
-      //if (ival instanceof OPT_ConstantOperand)
-      //return  false;
-      // fall through
+    case INT_COND_MOVE_opcode:
+    case LONG_COND_MOVE_opcode:
+    case FLOAT_COND_MOVE_opcode:
+    case DOUBLE_COND_MOVE_opcode:
+    case REF_COND_MOVE_opcode:
     case PUTSTATIC_opcode:
     case PUTSTATIC_UNRESOLVED_opcode:
     case PUTFIELD_opcode:
@@ -127,9 +128,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case GET_CLASS_OBJECT_opcode:
     case CHECKCAST_opcode:
     case CHECKCAST_NOTNULL_opcode:
-    case CHECKCAST_INTERFACE_NOTNULL_opcode:
+    case CHECKCAST_UNRESOLVED_opcode:
+    case MUST_IMPLEMENT_INTERFACE_opcode:
     case INSTANCEOF_opcode:
     case INSTANCEOF_NOTNULL_opcode:
+    case INSTANCEOF_UNRESOLVED_opcode:
     case PI_opcode:
     case FLOAT_MOVE_opcode:
     case DOUBLE_MOVE_opcode:
@@ -200,6 +203,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case INT_ZERO_CHECK_opcode:
     case LONG_ZERO_CHECK_opcode:
     case OBJARRAY_STORE_CHECK_opcode:
+    case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
     case BOOLEAN_NOT_opcode:
     case BOOLEAN_CMP_opcode:
     case FLOAT_AS_INT_BITS_opcode:
@@ -212,7 +216,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case GET_CLASS_TIB_opcode:
     case GET_TYPE_FROM_TIB_opcode:
     case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
-    case GET_IMPLEMENTS_TRITS_FROM_TIB_opcode:
+    case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
     case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
       return !(OPT_GCP.usesOrDefsPhysicalRegister(inst));
     }
@@ -226,20 +230,20 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   void scheduleEarly (OPT_Instruction inst) {
     
     if (getState(inst) >= early) {
-	//	System.out.println("                           getState > early");
+      if (DEBUG) System.out.println("                           getState > early");
 	return;
     }
     setState(inst, early);
 
     // already on outer level?
     if (ir.HIRInfo.LoopStructureTree.getLoopNestDepth(getBlock(inst)) == 0) {
-	// System.out.println("                           already on outer level");
+      if (DEBUG) System.out.println("                           already on outer level");
 	return;
     }
 
     // explicitely INCLUDE instructions
     if (!shouldMove(inst, ir)) {
-        // System.out.println("                           shouldMove failed");
+      if (DEBUG) System.out.println("                           shouldMove failed");
 	return;
     }
 
@@ -250,7 +254,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     if (inst.isImplicitLoad() || inst.isImplicitStore() || inst.isPEI())
       earlyPos = scheduleDefEarly(ssad.getHeapUses(inst), earlyPos, inst);
 
-    // System.out.println("                           moved to " + earlyPos);
+    if (DEBUG) System.out.println("                           moved to " + earlyPos);
 
     // move inst to its new location
     move(inst, upto(earlyPos, inst));
@@ -260,7 +264,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Find the earliest position that still keeps dep after all its uses.
    * @param dep
    * @param earlyPos
-   * @return 
    */
   private OPT_Instruction scheduleAfter (OPT_Instruction dep, 
 					 OPT_Instruction earlyPos) {
@@ -317,7 +320,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Return the instruction that defines the operand.
    * @param op
-   * @return 
    */
   OPT_Instruction definingInstruction (OPT_Operand op) {
     if (op instanceof OPT_HeapOperand) {
@@ -368,8 +370,10 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   OPT_Instruction upto (OPT_Instruction earlyPos, OPT_Instruction inst) {
     if (earlyPos == null)
       return  earlyPos;
-    OPT_BasicBlock origBlock = getOrigBlock(inst), actBlock = origBlock, 
-      bestBlock = actBlock, earlyBlock = getBlock(earlyPos);
+    OPT_BasicBlock origBlock = getOrigBlock(inst);
+    OPT_BasicBlock actBlock = origBlock;
+    OPT_BasicBlock bestBlock = actBlock;
+    OPT_BasicBlock earlyBlock = getBlock(earlyPos);
     // should not happen. does it still?
     if (!(dominator.dominates(earlyBlock.getNumber(), 
 			      origBlock.getNumber()))) {
@@ -378,9 +382,10 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       return  null;
     }
     for (;;) {
-      if ((true || inst.isPEI() || inst.isImplicitStore()) && 
-	  !postDominates(origBlock, actBlock))
+      if ((inst.isPEI() || inst.isImplicitStore()) && 
+	  !postDominates(origBlock, actBlock)) {
 	break;
+      }
       if (frequency(actBlock) < frequency(bestBlock))
 	bestBlock = actBlock;
       if (actBlock == earlyBlock)
@@ -460,7 +465,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Get the basic block of an instruction
    * @param inst
-   * @return 
    */
   OPT_BasicBlock getBlock (OPT_Instruction inst) {
     return  block[inst.scratch];
@@ -478,7 +482,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Get the block, where the instruction was originally located
    * @param inst
-   * @return 
    */
   OPT_BasicBlock getOrigBlock (OPT_Instruction inst) {
     return  origBlock[inst.scratch];
@@ -496,7 +499,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Behind which instruction should this one be placed?
    * @param inst
-   * @return 
    */
   OPT_Instruction getPosition (OPT_Instruction inst) {
     if (position[inst.scratch] == null)
@@ -517,7 +519,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * In what state (initial, early, late, delete) is this instruction
    * @param inst
-   * @return 
    */
   int getState (OPT_Instruction inst) {
     return  state[inst.scratch];
@@ -535,7 +536,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Is inst on stack?1
    * @param inst
-   * @return 
    */
   boolean onStack (OPT_Instruction inst) {
     return  stack[inst.scratch];
@@ -560,7 +560,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * what is the position of theis instruction in its basic block?
    * @param inst
-   * @return 
    */
   int seqNo (OPT_Instruction inst) {
     return  inst.scratch;
@@ -615,7 +614,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	setState(inst, initial);
       }
     }
-    //if (verbose) OPT_SSA.printInstructions (ir);
+    if (verbose) OPT_SSA.printInstructions (ir);
   }
   //------------------------------------------------------------
   // private state

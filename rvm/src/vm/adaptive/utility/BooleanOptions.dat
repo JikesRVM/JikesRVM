@@ -23,9 +23,6 @@ After completion, should we dump inlining decisions?
 USE_OFFLINE_INLINE_PLAN -1 false
 Should we read a inlining plan from disk and use it to perform inlining?
 
-HARDWARE_PERFORMANCE_MONITORS -1 false
-Should we use the hardware performance monitors?
-
 USE_COMPILER_DNA_FILE -1 false
 Should we read the compiler DNA (relative cost/benefits) from a file?
 

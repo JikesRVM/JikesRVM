@@ -15,21 +15,12 @@ final class OPT_DepthFirstEnumerator
   OPT_Stack stack;
   int mark;
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_GraphNode start
-   * @param   int markNumber
-   */
   OPT_DepthFirstEnumerator (OPT_GraphNode start, int markNumber) {
     stack = new OPT_Stack();
     stack.push(start);
     mark = markNumber;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public boolean hasMoreElements () {
     if (stack == null)
       return  false;
@@ -46,18 +37,10 @@ final class OPT_DepthFirstEnumerator
     return  false;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public Object nextElement () {
     return  next();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   public OPT_GraphNode next () {
     if (stack == null)
       throw  new NoSuchElementException("OPT_DepthFirstEnumerator");
@@ -76,13 +59,7 @@ final class OPT_DepthFirstEnumerator
     throw  new NoSuchElementException("OPT_DepthFirstEnumerator");
   }
 
-  /**
-   * put your documentation comment here
-   */
   private OPT_DepthFirstEnumerator () {
   }
   public static OPT_DepthFirstEnumerator EMPTY = new OPT_DepthFirstEnumerator();
 }
-
-
-

@@ -6,12 +6,6 @@
 import  java.util.Enumeration;
 
 /**
- * @author Brian Cooper
- * @author Vassily Litvinov
- * @author Dave Grove
- * @author Michael Hind
- * @author Stephen Fink
- *
  * <p> The main driver of the OPT_Compiler. 
  * <p> External drivers are responsible for providing the policies; the 
  * role of this class is simply to take a OPT_CompilationPlan
@@ -33,6 +27,13 @@ import  java.util.Enumeration;
  *  </ul>
  *
  * <p> This class is not meant to be instantiated.
+ *
+ * @author Brian Cooper
+ * @author Vassily Litvinov
+ * @author Dave Grove
+ * @author Michael Hind
+ * @author Stephen Fink
+ *
  */
 public class OPT_Compiler {
 
@@ -47,8 +48,7 @@ public class OPT_Compiler {
     try {
       if (!(VM.writingBootImage || VM.runningTool || VM.runningVM)) {
         // Caller failed to ensure that the VM was initialized.
-        throw  new OPT_OptimizingCompilerException("VM not initialized", 
-            true);
+        throw new OPT_OptimizingCompilerException("VM not initialized", true);
       }
 
       // Make a local copy so that some options can be forced off just for the
@@ -76,19 +76,20 @@ public class OPT_Compiler {
       }
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {
-      e.isFatal = true;         // any failures during initialization are 
-      // bad news and shouldn't be ignored.
-      throw  e;
+      // failures during initialization can't be ignored
+      e.isFatal = true;
+      throw e;
     } catch (Throwable e) {
-      e.printStackTrace();
-      throw  new OPT_OptimizingCompilerException("OPT_Compiler", 
-                "untrapped failure during init, "
-          + " Converting to OPT_OptimizingCompilerException");
+	e.printStackTrace();
+	throw new OPT_OptimizingCompilerException("OPT_Compiler", 
+						  "untrapped failure during init, "
+						  + " Converting to OPT_OptimizingCompilerException");
     }
   }
 
   /**
    * Set up option used while compiling the boot image
+   * @param options the options to set
    */
   public static void setBootOptions(OPT_Options options) {
     // Pick an optimization level
@@ -97,11 +98,6 @@ public class OPT_Compiler {
     // Disable things that we think are a bad idea in this context
     options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
 
-    // would increase build time by some 25%
-    options.GCP = false;
-    options.TURN_WHILES_INTO_UNTILS = false;
-    options.GCSE=false;
-	 
     // Pre-existence based inlining isn't supported for bootimage writing.
     // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
     // The problem is that some subset of bootimage methods can't be safely invalidated.
@@ -127,17 +123,14 @@ public class OPT_Compiler {
   }
 
   /**
-   * Load a class which must be compiled in a special way
+   * Load a class which must be compiled by the opt compiler in a special way
    * @param klassName the class to load
    * @param options compiler options for compiling the class
    * @exception VM_ResolutionException if the class cannot be resolved
    */
   private static void loadSpecialClass (String klassName, OPT_Options options) 
-            throws VM_ResolutionException {
-    // TODO: This could be phased out as the new DynamicBridge 
-    // magic comes on line.
-    VM_Class klass = 
-      (VM_Class)OPT_ClassLoaderProxy.proxy.findOrCreateType(klassName);
+    throws VM_ResolutionException {
+    VM_Class klass = (VM_Class)OPT_ClassLoaderProxy.findOrCreateType(klassName, VM_SystemClassLoader.getVMClassLoader());
     klass.load();
     klass.resolve();
     klass.instantiate();
@@ -145,15 +138,14 @@ public class OPT_Compiler {
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
       VM_Method meth = methods[j];
-
       if (meth.isClassInitializer())
         continue;
       if (!meth.isCompiled() || 
-           meth.getMostRecentlyGeneratedCompilerInfo().getCompilerType()
-          != VM_CompilerInfo.OPT) {
-        OPT_CompilationPlan cp = new OPT_CompilationPlan(meth, 
-                      OPT_OptimizationPlanner.createOptimizationPlan(options), 
-                      null, options);
+	  meth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().getCompilerType() != VM_CompilerInfo.OPT) {
+        OPT_CompilationPlan cp = 
+	  new OPT_CompilationPlan(meth, 
+				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
+				  null, options);
         meth.replaceCompiledMethod(compile(cp));
       }
     }
@@ -161,7 +153,6 @@ public class OPT_Compiler {
 
   public static void preloadSpecialClass( OPT_Options options ) {
     String klassName = "L"+options.PRELOAD_CLASS+";";
-
 
     if (options.PRELOAD_AS_BOOT ) {
       setBootOptions( options  );
@@ -182,13 +173,9 @@ public class OPT_Compiler {
    * Call the static init functions for the OPT_Compiler subsystems
    */
   private static void initializeStatics () {
-    OPT_ClassLoaderProxy.proxy = new OPT_RVMClassLoaderProxy();
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
-    OPT_Entrypoints.init();
-    OPT_Debug.init();
     OPT_InvokeeThreadLocalContext.init();
     VM_Class.OptCLDepManager = new OPT_ClassLoadingDependencyManager();
-    OPT_InliningUtilities.init();
     VM_OptStaticProgramStats.reset();
   }
 
@@ -197,6 +184,7 @@ public class OPT_Compiler {
    */
   private OPT_Compiler () {
   }
+
   /**
    * Has the optimizing compiler been initialized?
    */
@@ -206,7 +194,14 @@ public class OPT_Compiler {
    * Has the optimizing compiler been initialized?
    */
   static boolean isInitialized () {
-    return  isInitialized;
+    return isInitialized;
+  }
+
+  /**
+   * Reset the optimizing compiler
+   */
+  static void reset () {
+    isInitialized = false;
   }
 
   ////////////////////////////////////////////
@@ -214,7 +209,7 @@ public class OPT_Compiler {
   ////////////////////////////////////////////
   /**
    * Invoke the opt compiler to execute a compilation plan.
-   *
+   * 
    * @param cp the compilation plan to be executed
    * @return the VM_CompiledMethod object containing the compiled code 
    * & VM_OptCompilerInfo
@@ -225,25 +220,38 @@ public class OPT_Compiler {
     checkSupported(method, options);
     try {
       printMethodMessage(method, options);
-      OPT_IR ir = cp.execute();
-      // Temporary workaround memory retention problems
-      if (!ir.options.IPA) {
-        cleanIR(ir);
+      // Lock out class initialization while the opt compiler is compiling.
+      // This is an attempt to ensure that speculative optimizations don't
+      // get invalidated before the compilation is complete. 
+      // Actually, this doesn't really work, since there is a race condition
+      // after compilation completes, but before the method is installed.
+      // TODO: We'll fix this soon.
+      // This race condition already exisited in the old VM_ClassLoader.lock
+      // synchronization scheme, so we actually haven't made the situation much
+      // worse by pushing the synchronization down to here.  It's just a little more
+      // obvious that the race condition exists now!
+      // This is defect 2916.
+      synchronized (VM_Class.OptCLDepManager) {
+	OPT_IR ir = cp.execute();
+	// Temporary workaround memory retention problems
+	if (!cp.irGeneration) {
+	  cleanIR(ir);
+	}
+	// if doing analysis only, don't try to return an object
+	if (cp.analyzeOnly || cp.irGeneration)
+	  return null;
+	// now that we're done compiling, give the specialization
+	// system a chance to eagerly compile any specialized version
+	// that are pending.  TODO: use lazy compilation with specialization.
+	OPT_SpecializationDatabase.doDeferredSpecializations();
+	return new VM_CompiledMethod(ir.compiledMethodId, ir.method, 
+				     ir.MIRInfo.machinecode, ir.MIRInfo.info);
       }
-      // if doing analysis only, don't try to return an object
-      if (cp.analyzeOnly)
-        return  null;
-      // now that we're done compiling, give the specialization
-      // system a chance to eagerly compile any specialized version
-      // that are pending.  TODO: use lazy compilation with specialization.
-      OPT_SpecializationDatabase.doDeferredSpecializations();
-      return  new VM_CompiledMethod(ir.compiledMethodId, ir.method, 
-                ir.MIRInfo.machinecode, ir.MIRInfo.info);
     } catch (OPT_OptimizingCompilerException e) {
-      throw  e;
+      throw e;
     } catch (Throwable e) {
       fail(e, method);
-      return  null;
+      return null;
     }
   }
 
@@ -355,8 +363,8 @@ public class OPT_Compiler {
     VM.sysWrite("OPT_Compiler failure during compilation of " 
               + method.toString() + "\n");
     e.printStackTrace();
-    throw  new OPT_OptimizingCompilerException("OPT_Compiler", 
-                     "failure during compilation of", method.toString());
+    throw new OPT_OptimizingCompilerException("OPT_Compiler", 
+					      "failure during compilation of", method.toString());
   }
 
   /**

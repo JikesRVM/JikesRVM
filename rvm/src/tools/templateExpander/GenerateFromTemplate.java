@@ -238,9 +238,11 @@ class QuotedStringTokenizer {
   }
 }
 
-class GenerateFromTemplate {
+public class GenerateFromTemplate {
 
   static boolean DEBUG = false;
+
+  static String inDir;
 
   /**
    * Main.
@@ -260,10 +262,28 @@ class GenerateFromTemplate {
           args[i] = args[i+1];
     }
 
+    // When driven from ant (on AIX), there's a problem keeping tokens that
+    // are separated by blanks from being split into separate tokens when
+    // when the java command is forked. Each token should contain an "=".
+    // Verify this and reassemble them if they don't.
+    int limit = argc;
+    argc = 2;
+    for (int i = 2; i < limit; i++) {
+      if ( args[i].indexOf("=") < 0 )
+	args[ argc-1 ] = args[ argc-1 ] + " " + args[ i ];
+      else {
+	args[ argc++ ] = args[ i ];
+      }
+    }
+
     FileInputStream inStream = null;
     FileOutputStream outStream = null;
     if (DEBUG) System.out.println("in:"+args[0]+"\nout:"+args[1]);
     try {
+      if (args[0].indexOf(File.separator) != -1)
+	  inDir = args[0].substring(0, args[0].lastIndexOf(File.separator)+1);
+      else
+	  inDir = "";
       inStream = new FileInputStream(args[0]);
       outStream = new FileOutputStream(args[1]);
 
@@ -438,7 +458,11 @@ class GenerateFromTemplate {
        throw new IOException("Missing filename in INCLUDE");
     String file_name = pst.nextToken();
     LineNumberReader old_in = in;
-    in = new LineNumberReader(new FileReader(file_name));
+    try {
+	in = new LineNumberReader(new FileReader(file_name));
+    } catch (java.io.FileNotFoundException e) {
+	in = new LineNumberReader(new FileReader(inDir + file_name));
+    }
     String inLine;
     // loop over strings in the file
     for (inLine = readLine(); inLine != null; inLine = readLine()) {
@@ -530,7 +554,12 @@ class GenerateFromTemplate {
     }
 
     // open data file
-    BufferedReader data = new BufferedReader(new FileReader(file_name));
+    BufferedReader data;
+    try {
+	data = new BufferedReader(new FileReader(file_name));
+    } catch (java.io.FileNotFoundException e) {
+	data = new BufferedReader(new FileReader(inDir + file_name));
+    }	
 
     // read field information
     Vector fields_v = new Vector();

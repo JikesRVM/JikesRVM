@@ -14,7 +14,7 @@
  * We therefore write such code blocks here, out of line.
  *
  * These code blocks can be shared by all compilers. They can be branched to
- * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsOffset).
+ * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsMethod).
  *
  * 17 Mar 1999 Derek Lieber
  *
@@ -86,7 +86,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // create new frame
     //
     asm.emitCAL  (S0,  0, FP);                  // S0 := old frame pointer
-    asm.emitL    (T0, ARRAY_LENGTH_OFFSET, T3); // T0 := number of spill words
+    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
     asm.emitCAL  (T3, -4, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
     spillLoop:
     asm.emitAIr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
@@ -140,7 +140,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     setupFPRLoader:
     asm.emitMFLR (T3);                          // T3 := address of first fpr load instruction
-    asm.emitL    (T0, ARRAY_LENGTH_OFFSET, T2); // T0 := number of fprs to be loaded
+    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T2); // T0 := number of fprs to be loaded
     asm.emitCAL  (T3, VOLATILE_FPRS<<2,    T3); // T3 := address of first instruction following fpr loads
     asm.emitSLI  (T0, T0,                   2); // T0 := number of bytes of fpr load instructions
     asm.emitSF   (T3, T0,                  T3); // T3 := address of instruction for highest numbered fpr to be loaded
@@ -150,7 +150,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     setupGPRLoader:
     asm.emitMFLR (T3);                          // T3 := address of first gpr load instruction
-    asm.emitL    (T0, ARRAY_LENGTH_OFFSET, T1); // T0 := number of gprs to be loaded
+    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T1); // T0 := number of gprs to be loaded
     asm.emitCAL  (T3, VOLATILE_GPRS<<2,    T3); // T3 := address of first instruction following gpr loads
     asm.emitSLI  (T0, T0,                   2); // T0 := number of bytes of gpr load instructions
     asm.emitSF   (T3, T0,                  T3); // T3 := address of instruction for highest numbered gpr to be loaded
@@ -175,9 +175,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateSaveThreadStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
     asm.emitLIL(T1, -1);           // T1 = -1
     asm.emitST (T1, ipOffset, T0); // registers.ip = -1
@@ -226,10 +226,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    int regsOffset = VM.getMember("LVM_Thread;", "contextRegisters", "LVM_Registers;").getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
 
     // (1) Save nonvolatile hardware state of current thread.
     asm.emitMFLR (T3);                         // T3 gets return address
@@ -252,7 +252,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // (2) Set currentThread.beingDispatched to false
     asm.emitLIL(0, 0);                                        // R0 := 0
-    asm.emitST (0, VM_Entrypoints.beingDispatchedOffset, T0); // T0.beingDispatched := R0
+    asm.emitST (0, VM_Entrypoints.beingDispatchedField.getOffset(), T0); // T0.beingDispatched := R0
 
     // (3) Restore nonvolatile hardware state of new thread.
 
@@ -294,10 +294,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    int lrOffset   = VM.getMember("LVM_Registers;", "lr",   "I" ).getOffset();
-    int ipOffset   = VM.getMember("LVM_Registers;", "ip",   "I" ).getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int lrOffset   = VM_Entrypoints.registersLRField.getOffset();
 
     // restore LR
     //
@@ -361,12 +361,12 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateGetTimeInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int scratchSecondsOffset     = VM_Entrypoints.scratchSecondsOffset;
-    int scratchNanosecondsOffset = VM_Entrypoints.scratchNanosecondsOffset;
+    int scratchSecondsOffset     = VM_Entrypoints.scratchSecondsField.getOffset();
+    int scratchNanosecondsOffset = VM_Entrypoints.scratchNanosecondsField.getOffset();
 
     asm.emitOR    (T3, T0, T0);                             // t3 := address of VM_Processor object
-    asm.emitLFDtoc(F2, VM_Entrypoints.billionthOffset, T1); // f2 := 1e-9
-    asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicOffset, T1); // f3 := IEEEmagic
+    asm.emitLFDtoc(F2, VM_Entrypoints.billionthField.getOffset(), T1); // f2 := 1e-9
+    asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T1); // f3 := IEEEmagic
 
     asm.emitSTFD  (F3, scratchNanosecondsOffset, T3);       // scratch_nanos   := IEEEmagic
     asm.emitSTFD  (F3, scratchSecondsOffset,     T3);       // scratch_seconds := IEEEmagic
@@ -403,96 +403,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     return asm.makeMachineCode().getInstructions();
   }
 
-  //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-  // alternate implementation of jni
-
-  // "checked in" non purple version of native processors
-
-  private static INSTRUCTION[] generateInvokeNativeFunctionInstructions() {
-
-    VM_Assembler asm = new VM_Assembler(0);
-    int lockoutLockOffset = VM_Entrypoints.lockoutProcessorOffset;
-
-    // storing the return address to the prolog, which is now in LR in the
-    // frame.  T3 and V4 (register 7) are used as scratch
-    asm.emitL     (T3, 0, FP);
-    asm.emitMFLR  (7);
-    asm.emitST    (7, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3);   // save return address in stack frame
-
-
-    asm.emitMTLR  (T0);                                     // set up native code address in link reg
-
-    // release the lock that inhibits garbage collection
-    // NOTE: from this point on GC can occur soooo all references to memory must  be to the fixed areas
-    //
-    asm.emitL     (T3, VM_Entrypoints.the_boot_recordOffset, JTOC);       // get boot record address
-    asm.emitCAL   (T3, VM_Entrypoints.lockoutProcessorOffset, T3);        // get address of gc lockout word
-    asm.emitCAL   (T0, 0, 0);                               // clear a reg
-    asm.emitST    (T0, 0, T3);                              // and then clear the lock
-
-    // setup the native code TOC register
-    asm.emitCAL   (JTOC, 0, T1);                            // move native code toc register to proper place
-
-    // restore the volatile registers from the spill area since they may not have 
-    // survived the pthread switch
-    for (int i = FIRST_AIX_VOLATILE_GPR, offset = AIX_FRAME_HEADER_SIZE;
-	 i <= LAST_AIX_VOLATILE_GPR; i++, offset+=4) {
-      asm.emitL  (i,  offset, FP);
-    }
-
-    // goto the native code
-    asm.emitBLRL  ();                                       // call native method
-
-    // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
-    // in the call to becomeRVMThreadOffset
-    asm.emitST    (T0, AIX_FRAME_HEADER_SIZE, FP);
-    asm.emitST    (T1, AIX_FRAME_HEADER_SIZE+4, FP);
-
-    // get the GC lockout lock on return from native code
-    //
-    // restore RVM JTOC
-    int label1    = asm.currentInstructionOffset();	      // inst index in the machine code array of the following load instr.
-    asm.emitL     (JTOC, 0, FP);                            // get previous frame
-    asm.emitL     (JTOC, -4, JTOC);                         // get real jtoc address  
-    asm.emitL     (T2, VM_Entrypoints.the_boot_recordOffset, JTOC);       // T2 gets boot record address
-    asm.emitCAL   (T3, VM_Entrypoints.lockoutProcessorOffset, T2);        // T3 gets address of gc lockout word
-    //
-    asm.emitLWARX (S0, 0, T3);                              // load GC lockput word
-    asm.emitCMPI  (0,  S0,  0);                             // compare loaded word to 0, set CR0
-    int f_branch_length = 6;
-    int label2    = asm.currentInstructionOffset();
-    asm.emitBEQ   (f_branch_length);                        // read 0, jump to try and set to 1
-
-    // not zero, call C routine to do pthread_yield
-    //
-    asm.emitL     (JTOC, VM_Entrypoints.sysTOCOffset, T2);  // load TOC for syscalls from bootrecord
-    asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPOffset, T2);  // load addr of function
-    asm.emitMTLR  (T1);
-    asm.emitBLRL  ();                                       // call sysVirtualProcessorYield in sys.C
-    asm.emitB     ( label1 - asm.currentInstructionOffset() ); // try again to acquire lockout lock
-
-    if (VM.VerifyAssertions) VM.assert ( ( asm.currentInstructionOffset() - label2 ) == f_branch_length );
-    // branch to here if lockoutProcessor was 0, try and set to 1
-    //
-    asm.emitCAL   (S0,  1,  0);                             // S0 <- 1, value to store if lock is zero
-    asm.emitSTWCXr(S0,  0, T3);                             // attempt to store new value (1)
-    asm.emitBNE   ( label1 - asm.currentInstructionOffset() ); // retry lwarx
-
-
-    // return to caller
-    //
-    asm.emitL     (T3, 0 , FP);
-    asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3);   // get return address from stack frame
-    asm.emitMTLR  (S0);
-    asm.emitBLR   ();
-
-    return asm.makeMachineCode().getInstructions();
-
-  } // generateInvokeNativeFunctionInstructions - alternate implementation
-
-  //-#else
-  // default implementation of jni
-
   // on entry:
   //   JTOC = TOC for native call
   //   TI - IP address of native function to branch to
@@ -505,7 +415,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateInvokeNativeFunctionInstructions() {
 
     VM_Assembler asm = new VM_Assembler(0);
-    int lockoutLockOffset = VM_Entrypoints.lockoutProcessorOffset;
+    int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
     //
     // store the return address to the Java to C glue prolog, which is now in LR
     // into transition frame. If GC occurs, the JNIGCMapIterator will cause
@@ -518,12 +428,12 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // Load required JNI function ptr into first parameter reg (GPR3/T0)
     // This pointer is in the JNIEnvAddress field of JNIEnvironment
     //
-    asm.emitL (T0, VM_Entrypoints.JNIEnvAddressOffset, S0);
+    asm.emitL (T0, VM_Entrypoints.JNIEnvAddressField.getOffset(), S0);
     //
     // change the vpstatus of the VP to "in Native"
     //
-    asm.emitL     (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPROffset, S0); 
-    asm.emitL     (SP, VM_Entrypoints.vpStatusAddressOffset, PROCESSOR_REGISTER); // SP gets addr vpStatus word
+    asm.emitL     (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0); 
+    asm.emitL     (SP, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // SP gets addr vpStatus word
     asm.emitCAL   (S0,  VM_Processor.IN_NATIVE, 0 );              // S0  <- new status value
     asm.emitST    (S0,  0, SP);                                   // change state to native
 
@@ -548,16 +458,16 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitL     (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
     asm.emitL     (JTOC, -4, PROCESSOR_REGISTER);                         // load JTOC reg
     asm.emitL     (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
-    asm.emitL     (T3, VM_Entrypoints.vpStatusAddressOffset, PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
+    asm.emitL     (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
     asm.emitLWARX (S0, 0, T3);                                            // get status for processor
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);                   // are we blocked in native code
     asm.emitBNE   (+7);                                                   // br if not blocked
     //
     // if blocked in native, call C routine to do pthread_yield
     //
-    asm.emitL     (T2, VM_Entrypoints.the_boot_recordOffset, JTOC);       // T2 gets boot record address
-    asm.emitL     (JTOC, VM_Entrypoints.sysTOCOffset, T2);                // load TOC for syscalls from bootrecord
-    asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPOffset, T2);  // load addr of function
+    asm.emitL     (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);       // T2 gets boot record address
+    asm.emitL     (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);                // load TOC for syscalls from bootrecord
+    asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBLRL  ();                                          // call sysVirtualProcessorYield in sys.C
     asm.emitB     ( label1 - asm.currentInstructionOffset() ); // retest the blocked in native
@@ -577,8 +487,5 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     //
     return asm.makeMachineCode().getInstructions();
 
-  }  // generateInvokeNativeFunctionInstructions - default implementation
-
-  //-#endif
-
+  }  // generateInvokeNativeFunctionInstructions
 }

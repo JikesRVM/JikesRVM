@@ -17,8 +17,8 @@ BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=64
 START_NAME=
 EXPECTED=
-BENCH_JDK_ARGS=-Djava.libaray.path=$(BENCH_CLASS_CP)
-BENCH_RVM_ARGS=-Djava.libaray.path=$(BENCH_CLASS_CP)
+BENCH_JDK_ARGS=
+BENCH_RVM_ARGS=
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
@@ -27,7 +27,6 @@ ifeq ($(shell uname),Linux)
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin and object that is not pinned
 #       MonitorTests            JDK hangs
-#       StackResize 		fails on RVM
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation NativeException StringFunctions \
 	TestGC t3GT3
@@ -35,7 +34,6 @@ else
 # TESTS that currently fail for one reason or another on AIX/PowerPC
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin and object that is not pinned
-#       StackResize 		fails on AIX RVM
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
@@ -43,12 +41,12 @@ endif
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
 
-sanity: clean $(LIBS) $(TESTS)
+sanity: $(LIBS) $(TESTS)
 	$(MAKE) do-sanity-finish
 
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
 
-single:	clean $(ONE_TEST_LIB)
+single:	$(ONE_TEST_LIB)
 	export LIBPATH=$(BENCH_CLASS_CP); export LD_LIBRARY_PATH=$(BENCH_CLASS_CP); \
 		$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
 	$(MAKE) do-sanity-finish

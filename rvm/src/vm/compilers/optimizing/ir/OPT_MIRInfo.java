@@ -39,11 +39,6 @@ final class OPT_MIRInfo {
   int fpStackHeight;
 
   /**
-   * The live interval information needed for linear scan reg alloc
-   */
-  OPT_LinearScanLiveAnalysis liveInfo;
-  
-  /**
    * A basic block holding the call to VM_Thread.threadSwitch for a
    * prologue.
    */
@@ -60,6 +55,13 @@ final class OPT_MIRInfo {
    * backedge.
    */
   OPT_BasicBlock backedgeYieldpointBlock = null;
+
+  /**
+   * Information needed for linear scan. 
+   */
+  OPT_LinearScan.LinearScanState linearScanState = null;
+
+  OPT_Instruction instAfterPrologue;
   
   OPT_MIRInfo(OPT_IR ir) {
     info = new VM_OptCompilerInfo(ir.method);

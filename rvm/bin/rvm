@@ -24,14 +24,20 @@ if [[ $RVM_BUILD = "" ]]; then
    exit 1
 fi
 
+. $RVM_BUILD/environment
+
 if [[ X`uname` = X"CYGWIN_NT-5.0" ]]; then
   # need to kludge path to image because we use win32 api calls to mmap it.
   # other paths can be left in "unix" form; we use cygwin api calls for them.
   ARGS="-X:i=`cygpath -p -w $RVM_BUILD/RVM.image`"
-  ARGS="$ARGS -X:vmClasses=`cygpath -p -w $RVM_BUILD/RVM.classes` -classpath ."
+  ARGS="$ARGS -X:vmClasses=`cygpath -p -w $RVM_BUILD`"
 else
   ARGS="-X:i=$RVM_BUILD/RVM.image"
-  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes -classpath ."
+  if [[ ! -e $RVM_BUILD/javamath.jar ]]; then
+    ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAL_ROOT/support/lib/jazzlib.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
+  else
+    ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAL_ROOT/support/lib/jazzlib.jar:$RVM_BUILD/javamath.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
+  fi
 fi
 for arg in $*; do
    if   [[ $arg = --   ]]; then
@@ -39,7 +45,7 @@ for arg in $*; do
    fi
 done
 
-. $RVM_BUILD/environment
+ARGS="$ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
 
 LOADPATH=$RVM_BUILD:$HOST_JAVA_HOME/jre/bin:$HOST_JAVA_HOME/jre/bin/classic
 typeset -x LIBPATH=$LIBPATH:$LOADPATH

@@ -23,7 +23,6 @@ public class OPT_InvokeeThreadLocalContext
   /**
    * Find or create a specialized method in this context.
    * @param source
-   * @return 
    */
   public OPT_SpecializedMethod findOrCreateSpecializedVersion 
       (VM_Method source) {
@@ -51,7 +50,6 @@ public class OPT_InvokeeThreadLocalContext
   /**
    * Create specialized method in this context.
    * @param method
-   * @return 
    */
   private OPT_SpecializedMethod createSpecializedMethod (VM_Method method) {
     return  (new OPT_SpecializedMethod(method, this));
@@ -61,7 +59,6 @@ public class OPT_InvokeeThreadLocalContext
    * Generate code to specialize a method in this context. Namely, invoke
    * the opt compiler with the INVOKEE_THREAD_LOCAL option.
    * @param source
-   * @return 
    */
   public VM_CompiledMethod specialCompile (VM_Method source) {
     OPT_CompilationPlan plan = new OPT_CompilationPlan(source, 

@@ -63,6 +63,7 @@ class VM_MagicNames {
   static VM_Atom getByteAtOffset;
   static VM_Atom getIntAtOffset;
   static VM_Atom getObjectAtOffset;
+  static VM_Atom getObjectArrayAtOffset;
   static VM_Atom getLongAtOffset;
   static VM_Atom setByteAtOffset;
   static VM_Atom setIntAtOffset;
@@ -71,6 +72,8 @@ class VM_MagicNames {
 
   static VM_Atom getMemoryWord;            
   static VM_Atom setMemoryWord;            
+  static VM_Atom getMemoryAddress;
+  static VM_Atom setMemoryAddress;
 
   static VM_Atom prepare;
   static VM_Atom attempt;
@@ -86,12 +89,14 @@ class VM_MagicNames {
     
   static VM_Atom objectAsAddress;          
   static VM_Atom addressAsObject;          
+  static VM_Atom addressAsObjectArray;          
   static VM_Atom addressAsType;
   static VM_Atom objectAsType;
   static VM_Atom addressAsByteArray;
   static VM_Atom addressAsIntArray;
   static VM_Atom objectAsByteArray;
   static VM_Atom objectAsShortArray;
+  static VM_Atom objectAsIntArray;
   static VM_Atom addressAsThread;
   static VM_Atom objectAsThread;
   static VM_Atom objectAsProcessor;
@@ -112,7 +117,6 @@ class VM_MagicNames {
   static VM_Atom longBitsAsDouble;
              
   static VM_Atom getObjectType;            
-  static VM_Atom getObjectStatus;          
   static VM_Atom getArrayLength;           
    
   static VM_Atom sync;
@@ -129,6 +133,24 @@ class VM_MagicNames {
   static VM_Atom pragmaNoInline;
   static VM_Atom pragmaInline;
   static VM_Atom pragmaNoOptCompile;
+
+  // Names associated with class VM_Address
+  //
+  static VM_Atom addressFromInt;
+  static VM_Atom addressToInt;
+  static VM_Atom addressAdd;
+  static VM_Atom addressSub;
+  static VM_Atom addressDiff;
+  static VM_Atom addressLT;
+  static VM_Atom addressLE;
+  static VM_Atom addressEQ;
+  static VM_Atom addressNE;
+  static VM_Atom addressGT;
+  static VM_Atom addressGE;
+  static VM_Atom addressZero;
+  static VM_Atom addressMax;
+  static VM_Atom addressIsZero;
+  static VM_Atom addressIsMax;
 
    //----------------//
    // implementation //
@@ -182,6 +204,7 @@ class VM_MagicNames {
     getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
     getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
     getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
+    getObjectArrayAtOffset        = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
     getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
     setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
     setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
@@ -190,6 +213,8 @@ class VM_MagicNames {
 
     getMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("getMemoryWord");
     setMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("setMemoryWord");
+    getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");
+    setMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("setMemoryAddress");
 
     prepare                       = VM_Atom.findOrCreateAsciiAtom("prepare");
     attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
@@ -205,12 +230,14 @@ class VM_MagicNames {
       
     objectAsAddress               = VM_Atom.findOrCreateAsciiAtom("objectAsAddress");
     addressAsObject               = VM_Atom.findOrCreateAsciiAtom("addressAsObject");
+    addressAsObjectArray          = VM_Atom.findOrCreateAsciiAtom("addressAsObjectArray");
     addressAsType                 = VM_Atom.findOrCreateAsciiAtom("addressAsType");
     objectAsType                  = VM_Atom.findOrCreateAsciiAtom("objectAsType");
     addressAsByteArray            = VM_Atom.findOrCreateAsciiAtom("addressAsByteArray");
     addressAsIntArray             = VM_Atom.findOrCreateAsciiAtom("addressAsIntArray");
     objectAsByteArray             = VM_Atom.findOrCreateAsciiAtom("objectAsByteArray");
     objectAsShortArray            = VM_Atom.findOrCreateAsciiAtom("objectAsShortArray");
+    objectAsIntArray              = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
 
     addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
     objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
@@ -232,7 +259,6 @@ class VM_MagicNames {
     longBitsAsDouble              = VM_Atom.findOrCreateAsciiAtom("longBitsAsDouble");
       
     getObjectType                 = VM_Atom.findOrCreateAsciiAtom("getObjectType");
-    getObjectStatus               = VM_Atom.findOrCreateAsciiAtom("getObjectStatus");
     getArrayLength                = VM_Atom.findOrCreateAsciiAtom("getArrayLength");
 
     sync                          = VM_Atom.findOrCreateAsciiAtom("sync");
@@ -249,6 +275,23 @@ class VM_MagicNames {
     pragmaNoInline                = VM_Atom.findOrCreateAsciiAtom("pragmaNoInline");
     pragmaInline                  = VM_Atom.findOrCreateAsciiAtom("pragmaInline");
     pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
+
+    addressFromInt                = VM_Atom.findOrCreateAsciiAtom("fromInt");
+    addressToInt                  = VM_Atom.findOrCreateAsciiAtom("toInt");
+    addressAdd                    = VM_Atom.findOrCreateAsciiAtom("add");
+    addressSub                    = VM_Atom.findOrCreateAsciiAtom("sub");
+    addressDiff                   = VM_Atom.findOrCreateAsciiAtom("diff");
+    addressLT                     = VM_Atom.findOrCreateAsciiAtom("LT");
+    addressLE                     = VM_Atom.findOrCreateAsciiAtom("LE");
+    addressEQ                     = VM_Atom.findOrCreateAsciiAtom("EQ");
+    addressNE                     = VM_Atom.findOrCreateAsciiAtom("NE");
+    addressGT                     = VM_Atom.findOrCreateAsciiAtom("GT");
+    addressGE                     = VM_Atom.findOrCreateAsciiAtom("GE");
+    addressZero                   = VM_Atom.findOrCreateAsciiAtom("zero");
+    addressMax                    = VM_Atom.findOrCreateAsciiAtom("max");
+    addressIsZero                 = VM_Atom.findOrCreateAsciiAtom("isZero");
+    addressIsMax                  = VM_Atom.findOrCreateAsciiAtom("isMax");
   }
 }
+
 

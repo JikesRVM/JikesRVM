@@ -39,7 +39,7 @@ class VM_AdaptiveInlining {
 	//  Read the plan from disk
 	String fn = options.OFFLINE_INLINE_PLAN_NAME;
 	LineNumberReader in = new LineNumberReader(new FileReader(fn));
-	VM_AdaptiveInlining.plan.readObject(in);
+	VM_AdaptiveInlining.plan.readObject(in, VM_SystemClassLoader.getVMClassLoader());
       } catch (Exception e) {
 	e.printStackTrace();
 	throw new OPT_OptimizingCompilerException("Inline",

@@ -8,7 +8,7 @@
 #
 # Invocation:  jCheckLibs
 #
-# @authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp
+# @authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp, Michael Hind
 
 # Stop immediately if any programs we call return errors.
 #
@@ -21,6 +21,8 @@ license_file=$lib_dir/$license_name
 license_cache=$HOME/.rvmrt
 jar_file=rvmrt.jar
 id_file=rvmrt
+jazzlib_dir=http://telia.dl.sourceforge.net/sourceforge/jazzlib
+jazzlib_file=$jazzlib_dir/jazzlib-binary-0.04-juz.jar
 ignore_HOST_CONFIG=""
 
 # Who we are.
@@ -57,7 +59,7 @@ fi
 #
 if [[ x$RVM_ROOT = x ]]; then
    echo "$ME: please set your RVM_ROOT environment variable"
-   echo "(eg. $HOME/jikesRVM-1.0.0)"
+   echo "(eg. $HOME/jikesRVM-2.1.0)"
    exit 1
 fi
 
@@ -75,6 +77,33 @@ fi
 
 if [[ x$WGET != x && ! -x $WGET ]] ; then
     WGET=""
+fi
+
+# make sure we have the jazzlib jar file
+if [[ ! -e $RVM_ROOT/support/lib/jazzlib.jar ]]; then
+cat <<EOF
+
+The GNU Classpath jazzlib jar file is required for this build.
+
+You can download this file from
+${jazzlib_file}
+
+The license for this library is available at 
+http://www.gnu.org/software/classpath
+
+EOF
+
+if [[ x$automatic = x ]] ; then 
+  echo "Do you want to automatically download and install this file now? \c"
+  if ! read automatic ; then 
+    automatic="y"
+  fi
+fi
+  if [[ x$automatic = xy || x$automatic = xyes ]] ; then
+    echo "Downloading and installing jazzlib.jar"
+    mkdir -p $RVM_ROOT/support/lib
+    $WGET -q -O $RVM_ROOT/support/lib/jazzlib.jar ${jazzlib_file}
+  fi
 fi
 
 cd $rvm_ids
@@ -115,7 +144,7 @@ fi
 if [[ -f ${lib_dir}/${jar_file} ]] ; then
   rm -f ${id_file}.id
   # make an attempt for speed:
-  unzip -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
+  $UNZIP -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
   if [ ! -f ${id_file}.id ] ; then
     # fall back
     $HOST_JAR xf ${lib_dir}/${jar_file} ${id_file}.id
@@ -167,9 +196,19 @@ Version [$revision] of rvmrt.jar is required for this build.
 
 You can download this revision from
 http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries?rev=$revision
+
+NOTE: This file has a different license than Jikes RVM.
+
 EOF
+
 if [[ x$license = x || x$WGET = x ]] ; then
   exit 1
+fi
+
+#Reset automatic as needed
+automatic=""
+if [ $RVM_FORCE_LIB_DOWNLOAD ] ; then
+  automatic="y"
 fi
 
 if [[ x$automatic = x ]] ; then 
@@ -179,7 +218,7 @@ if [[ x$automatic = x ]] ; then
   fi
 fi
 if [[ x$automatic = xy || x$automatic = xyes ]] ; then
-  echo "\nDowloading $RVM_ROOT/jlibraries-$revision.tar.gz"
+  echo "\nDownloading $RVM_ROOT/jlibraries-$revision.tar.gz"
   options="?rev=$revision&license=$license"
   $WGET -q -O $RVM_ROOT/jlibraries-$revision.tar.gz \
   "http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries.tar.gz$options"
@@ -201,6 +240,9 @@ if [[ x$automatic = xy || x$automatic = xyes ]] ; then
   done
   $GNU_TAR zxvf $RVM_ROOT/jlibraries-$revision.tar.gz
   echo file jlibraries-$revision.tar.gz left in $RVM_ROOT
+  echo "\nThe license for this library is available in"
+  echo "  $RVM_ROOT/support/lib/BinaryLibLicense.txt"
   exit 0
 fi
 exit 1
+

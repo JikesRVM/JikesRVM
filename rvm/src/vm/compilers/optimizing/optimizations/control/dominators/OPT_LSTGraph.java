@@ -14,7 +14,7 @@ import  OPT_SpaceEffGraphNode.*;
  *  because Java source code is structured enough to prevent 
  *  irreducible loops.)
  *
- * @see OPT_DominatorsPhase.java
+ * @see OPT_DominatorsPhase
  *
  * @author: Mauricio J. Serrano
  * @modified: Stephen Fink

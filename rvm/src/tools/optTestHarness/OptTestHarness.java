@@ -24,6 +24,7 @@ import java.io.*;
  * Any command that can be given to the optimizing compiler via -X:irc:<cmd>
  * can be given to the optimizing compiler by OptTestHarness via -oc:<cmd>.
  * In addition, the OptTestHarness supports the following commands:
+ * -useBootOptions           Use the same OptOptions as the bootimage compiler.
  * -longcommandline <filename>    Read commands (one per line) from a file
  * -inlineplan <filename>         Read an inline plan from a file
  * +baseline                      Switch default compiler to baseline
@@ -68,6 +69,8 @@ class OptTestHarness {
 
   // Record and show performance of executed methods, if any
   static Performance perf;
+
+  static ClassLoader cl;
 
   // Keep baseline and opt methods separate in list of methods 
   // to be compiled
@@ -152,12 +155,8 @@ class OptTestHarness {
     return null;
   }
   
-  static VM_Class loadClass(String s) throws VM_ResolutionException {
-    if (s.startsWith("./")) s = s.substring(2, s.length());
-    if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
-    if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
-    s = s.replace('.','/');
-    return VM_Class.forName(s); 
+  static VM_Class loadClass(String s) throws ClassNotFoundException {
+    return (VM_Class)cl.loadClass(s, true).getVMType();
   }
 
   static void printFormatString() {
@@ -182,9 +181,10 @@ class OptTestHarness {
 				    boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
-      if (!baselineMethodVector.contains(method))
+      if (!baselineMethodVector.contains(method)) {
 	baselineMethodVector.addElement(method);
-    }else if (!optMethodVector.contains(method)) {
+      }
+    } else if (!optMethodVector.contains(method)) {
       // Method to be opt compiled
       optMethodVector.addElement(method);
       optOptionsVector.addElement(opts);
@@ -202,6 +202,8 @@ class OptTestHarness {
 	if (arg.startsWith("-oc:") && 
 	    options.processAsOption("-X:rc:", arg.substring(4))) {
 	  // handled in processAsOption
+	} else if (arg.equals("-useBootOptions")) {
+	  OPT_Compiler.setBootOptions(options);
 	} else if (arg.equals("-longcommandline")) {
 	  // the -longcommandline option reads options from a file.
 	  // use for cases when the command line is too long for AIX
@@ -222,7 +224,7 @@ class OptTestHarness {
 	  // -inlineplan is used to read an inline plan from a file
 	  i++;
 	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
-	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
+	  plan.readObject(new LineNumberReader(new FileReader(args[i])), VM_SystemClassLoader.getVMClassLoader());
 	  System.out.println(plan.toString());
 	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
@@ -287,7 +289,7 @@ class OptTestHarness {
 	    }
 	  }
 	  if (cm != null) method.replaceCompiledMethod(cm);
-	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes() ;
+	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
 	  Object[]  reflectMethodArgs = new Object[argDesc.length] ;
 	  i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
 	  java.lang.reflect.Method reflectoid = new java.lang.reflect.Method(method) ;
@@ -381,6 +383,8 @@ class OptTestHarness {
 	   IOException,
 	   IllegalAccessException, 
 	   VM_ResolutionException {
+
+    cl = new VM_ApplicationClassLoader(VM_SystemClassLoader.getVMClassLoader());
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);
     baselineMethodVector = new Vector(50);

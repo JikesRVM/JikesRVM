@@ -13,7 +13,8 @@ import  java.util.Vector;
  *
  * @author Stephen Fink
  * @author Dave Grove
- * @author Michael Hind */
+ * @author Michael Hind 
+ */
 class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
 
 

@@ -531,6 +531,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       else {
 	System.out.println("Unexpected signal: " + statusMessage(e.status));
 	System.out.println("...type cont/step to continue with this signal");
+	// If you want to reinstate this line see powerPC version
 	// printCurrentStatus(printMode);	
       }
     }
@@ -868,7 +869,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     try {
       VM_Field field = bmap.findVMField("VM_Scheduler", "threads");   // get the thread array
       int address = mem.readTOC(field.getOffset());           // we know it's a static field
-      int arraySize = mem.read(address + VM.ARRAY_LENGTH_OFFSET);
+      int arraySize = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
 
       // first find the size
       VM_Field numThreadsField = bmap.findVMField("VM_Scheduler", "numActiveThreads");
@@ -901,7 +902,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     try {
       VM_Field field = bmap.findVMField("VM_Scheduler", "threads");   // get the thread array
       int address = mem.readTOC(field.getOffset());           // we know it's a static field
-      int arraySize = mem.read(address + VM.ARRAY_LENGTH_OFFSET);
+      int arraySize = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
       return mem.read(address+index*4);
     } catch (BmapNotFoundException e) {
       throw new Exception("cannot find VM_Scheduler.threads, has VM_Scheduler.java been changed?");
@@ -1055,7 +1056,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       // get the list of virtual processors
       VM_Field field = bmap.findVMField("VM_Scheduler", "processors");   
       int address = mem.readTOC(field.getOffset());           // we know it's a static field
-      int processorCount = mem.read(address + VM.ARRAY_LENGTH_OFFSET);
+      int processorCount = mem.read(address + VM_ObjectModel.getArrayLengthOffset() );
 
       // get the offset into the readyQueue field
       field = bmap.findVMField("VM_Processor", "readyQueue");   // get the ready queue
@@ -1250,7 +1251,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
     try {
       // get the thread ID from the thread object
-      int id = mem.read(threadPointer + VM_Entrypoints.threadSlotOffset);
+      int id = mem.read(threadPointer + VM_Entrypoints.threadSlotField.getOffset());
       result += id + " @" + VM.intAsHexString(threadPointer);
       
       // Find the name of the top stack frame

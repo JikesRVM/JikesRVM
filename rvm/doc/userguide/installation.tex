@@ -1,5 +1,6 @@
-So you've gotten the RVM distribution.  Now what?  This section gives
-instructions on how to install and run RVM for the new RVM user.
+So you've downloaded the Jikes\trademark RVM distribution.  Now what?
+This section gives 
+instructions on how to install and run the system.
 
 \subsection{System Prerequisites}
 To build on any platform you will need the following:
@@ -20,14 +21,18 @@ You can download this from
 We have experienced problems with the AIX\AIXTMFootnote tar program
 truncating file names. 
 
+\item unzip. 
+You can download an {\tt unzip} implementation from
+\xlink{{\tt \unzipURL}} {\unzipURL}.
+
 \end{itemize}
 
 %% footnotes not allowed in section headings, so we specialize
-\htmlonly{\subsubsection{AIX\trademark/PowerPC\trademark}}
-\texonly {\subsubsection{AIX\trademark/PowerPC\trademark}}
+\htmlonly{\subsubsection{AIX/PowerPC\trademark}}
+\texonly {\subsubsection{AIX/PowerPC\trademark}}
 
 In addition to the software mentioned above, to install, build, and
-run RVM on a AIX/PowerPC environment, 
+run the Jikes RVM on a AIX/PowerPC environment, 
 you will need 
 \begin{itemize}
 \item a PowerPC processor
@@ -35,11 +40,14 @@ you will need
 \item (recommended) 512MB of memory.
 \item the IBM AIX Developer Kit for Java version 1.3.0.  You can
 download this from \xlink{{\tt \AIXJdkURL}} {\AIXJdkURL}. 
+\item a C/C++ compiler.  We recommend {\tt gcc v2.95.3}; it's been
+reported that other gcc versions on AIX don't work.  It's also been
+reported that IBM's {\tt xlC} works.
 \end{itemize}
 
 \subsubsection{Linux/IA32}
 In addition to the software mentioned above, to install, build, and
-run RVM on a Linux Intel environment, you will need 
+run the Jikes RVM on a Linux Intel\copyright environment, you will need 
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
 \item Linux  (we have run on RedHat 6.0 and 7.0)
@@ -49,14 +57,17 @@ download this from
 \xlink{{\tt \LinuxJdkURL}} {\LinuxJdkURL}.  We did have problems on
 bleeding edge 2.4 kernels running on SMP machines with versions of the IBM
 Developer Kit built prior to May 2001.  We are currently using IBM
-build cx130-20010502; later builds should work as well.
+build cx130-20010502.  We have seen problems using the IBM 1.3.1 JDK;
+avoid it until further notice.
 \item {\tt ksh}. This must be installed in {\tt /bin/ksh}.
 \end{itemize}
 
 \subsubsection{Win32 and Cygwin/IA32}
-Currently this option for running RVM is barely if at all functional.
+Currently this option for running the Jikes RVM is barely, if at all,
+functional. 
 It is not currently being maintained or tested. You are encouraged to 
-skip this section and don't even think about running RVM on Win32 with 
+skip this section and don't even think about running the Jike RVM on
+Win32 with  
 cygwin.
 
 If you're still reading, you are probably an enterprising hacker that is
@@ -64,15 +75,16 @@ interested in getting this configuration up an running.  More power to
 you! We'd like to hear your progress.
 
 In addition to the software mentioned above, to install, build, and
-run RVM on a Win32/Cygwin Intel environment, you will need 
+run the Jikes RVM on a Win32/Cygwin Intel environment, you will need 
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
-\item a Win32 operating system (we have only tried it on Windows 2000).
+\item a Win32 operating system (we have only tried it on
+Microsoft\copyright\ Windows\copyright\ 2000).
 \item Cygwin. You can download this from 
-\xlink{{\tt \CygwinURL}} {\CygwinURL}. (I used dll version 1.1.8).
+\xlink{{\tt \CygwinURL}} {\CygwinURL}. (We used dll version 1.1.8).
 \item The system has run in 256MB on Windows 2000; we have not established
 a lower bound.
-\item the IBM Developer Kit (at least version 2.1.3).  You can download this from
+\item The IBM Developer Kit (at least version 2.1.3).  You can download this from
 \xlink{{\tt \WinJdkURL}} {\WinJdkURL}.
 \item {\tt ksh}.  One alternative is {\tt pdksh} from 
 \xlink{{\tt \pdkshURL}} {\pdkshURL}.
@@ -90,63 +102,82 @@ particular the config file assumes that
 C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 \end{itemize}
 
-\JikesTMFooter
+\AIXPPCJikesTMFooter
 
 \JavaTMFooter
 
-\AIXTMFooter
-
-\PowerPCTMFooter
+\WindowsTMFooter
 
 \subsection{Installation Overview}
 
-In order to install and build RVM, you will need to acquire the following
-items from the 
-\xlink{RVM Download Page}{\RVMDownloadURL}.
+To install and build the Jikes\trademark RVM, three items are required
 \begin{itemize}
-\item the RVM source distribution.  This is available as a compressed tar
-file {\tt \RVMTarFile}.  You can also work with the contents of this repository with CVS from the
+\item The Jikes RVM source distribution.  This is available as a
+compressed tar file {\tt \RVMTarFile}.  You can also work with the
+contents of this repository with CVS from the 
 \xlink{public repository}{\RVMCVSURL}.
-\item the RVM standard libraries.  This is a file {\tt \LibTarFile}
-available from the download page. 
+
+\item The Jikes RVM standard libraries. This is a jar file {\tt \LibTarFile}.
+
+\item The 
+\xlink{Classpath}{\classpathURL} jazzlib library ({\tt
+\jazzlibjarfile}), which 
+implements java.util.zip and java.util.jar. 
 \end{itemize}
 
-After downloading these files, you will set up 
-a working directory holding the RVM source files, standard library jar, and 
-tools needed to build RVM. 
+Each item is distributed under a different license.  The licenses for
+the first two items are provided in Appendix~\ref{appendix:licenses}.  The GNU
+Classpath jazzlib license is available at
+\xlink{{\tt \classpathURL}}{\classpathURL}.
 
-RVM can be configured in various ways. Multiple versions of RVM,
+The first and second items are available  from the Jikes RVM
+\xlink{download}{\RVMDownloadURL} page. The third item is available at
+\xlink{jazzlib}{\jazzlibURL} page.  
+However, you do not need to explicitly download the 
+second and third items; the Jikes RVM build process will automatically
+check that these two items are present. If they are not present, the
+files will be automatically downloaded, after asking for your
+confirmation. 
+
+Once these files have been downloaded, you will set up 
+a working directory holding the Jikes RVM source files, standard
+library jar, and tools needed to build Jikes RVM. 
+
+Jikes RVM can be configured in various ways. Multiple versions of the system,
 corresponding to different configurations, can be generated from 
 one working directory. See Section~\ref{configs} for information about the 
 various 
 configurations.
 \index{configurations}
-The RVM  {\em boot image} and other files generated during the 
+The Jikes RVM  {\em boot image} and other files generated during the 
 configuration process
 \index{boot image}
-are stored in a {\em build directory} which is logically separate from 
+are stored in a {\em build directory}, which is logically separate from 
 the working directory. 
 \index{build directory}
 
-In order to install RVM  you must:
+To install Jikes RVM  you must do the following:
 \begin{enumerate}
 \item Set up a working directory.
 \item Set various environment variables.
-\item Edit RVM environment scripts.
+\item Edit Jikes RVM environment scripts.
 \item Choose a configuration and run the configuration script to write
 the appropriate directory and configuration specific files to the
 build directory.
-\item Build an executable version of RVM.
+\item Build an executable version of Jikes RVM.
 \end{enumerate}
 
 The remainder of this section describes the process in greater detail.
+
+\JikesTMFooter
 
 \subsection{Installation Steps}
 
 \begin{enumerate}
 \item {\bf Set up a working directory.}
 
-First extract the RVM source distribution into a directory such as 
+First extract the Jikes\trademark RVM source distribution into a
+directory such as  
 {\tt \$HOME/rvmRoot}.
 \begin{verbatim}
 % cd $HOME
@@ -155,12 +186,19 @@ First extract the RVM source distribution into a directory such as
 % zcat jikesrvm-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
-Next extract the RVM standard libraries.  The following installs the
+Next, extract the Jikes RVM standard libraries, or ignore this step and
+it will be performed automatically for you when you try to build a
+Jikes RVM configuration.  The following installs the
 standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 \begin{verbatim}
 % cd $HOME/rvmRoot
 % zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
+
+If you downloaded the jazzlib library, place it also in 
+{\tt \$RVM\_ROOT/support/lib}.  If you did not download the library,
+it will also be automatically retrieved when you try to build a Jikes RVM
+configuration. 
 
 \index{environment variables}
 \index{RVM\_ROOT}
@@ -174,7 +212,7 @@ You need to set up the following shell environment variables:
 \item [{\tt RVM\_ROOT}] the directory that contains the extracted
 distribution 
 \item [{\tt RVM\_BUILD}] the directory where you would like the build
-process to generate an executable RVM configuration
+process to generate an executable Jikes RVM configuration
 
 \item [{\tt RVM\_HOST\_CONFIG}] the configuration file used to specify
 the software environment on which the system is generated; i.e., where the
@@ -222,7 +260,7 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
 
 These two variables point to the same file when the type of system  
 doing the build is the same as where  you are going 
-the execute the RVM. To cross build a system
+the execute the Jikes RVM. To cross build a system
 e.g., build on AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote for a
 Linux/IA32 platform, see the section on Cross 
 Platform Building.
@@ -231,8 +269,8 @@ Platform Building.
 
 You must edit a script in the {\tt \$RVM\_ROOT/rvm/config}  directory to set 
 up variables used by the installation process.  
-If someone else at your site has already installed RVM, they have
-probably already done this step for you.  Consult your local RVM guru.
+If someone else at your site has already installed Jikes RVM, they have
+probably already done this step for you.  Consult your local Jikes RVM guru.
 
 You must edit the file(s) that define the host and target configuration
 environments in the {\tt \$RVM\_ROOT/rvm/config} directory.  
@@ -241,7 +279,7 @@ variables in this file will be picked up by the installation scripts.
 
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
-whether or not the platform will support SMP-builds of JikesRVM. 
+whether or not the platform will support SMP-builds of Jikes RVM. 
 For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_AIX, or
 RVM\_FOR\_CYGWIN to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
@@ -256,7 +294,7 @@ RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR
 segment register to access pthread-specific state.
 \end{description}                
 The second section in the configuration file is used to define how to
-find tools that RVM needs. You must set the following variables:
+find tools that Jikes RVM needs. You must set the following variables:
 \begin{description}
 \item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM
 \item {\tt HOST\_JAVA} the executable command for the JDK JVM
@@ -271,7 +309,8 @@ find tools that RVM needs. You must set the following variables:
 \item {\tt LDSHARED} how to link a shared C++ library.
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
-The remaining variables in the config file are not required for basic RVM
+The remaining variables in the config file are not required for basic
+Jikes RVM
 builds.
 
 Someday we should consider setting up an autoconf to automate this
@@ -283,10 +322,11 @@ step.
 
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
-first choose a RVM configuration.
+first choose a Jikes RVM configuration.
 
-For novice users, two configurations are recommended.  (A discussion
-of RVM configurations appears in Section~\ref{configs}.)
+For novice users performing application performance runs, two
+configurations are recommended.  (A discussion 
+of Jikes RVM configurations appears in Section~\ref{configs}.)
 
 \begin{itemize}
 \item {\tt BaseBaseSemispace}: a non-adaptive system that uses the
@@ -324,14 +364,14 @@ the following command:
 \index{jbuild script}
 \index{boot image}
 \index{RVM\_BUILD}
-\item {\bf Build an executable version of RVM.}  
+\item {\bf Build an executable version of Jikes RVM.}  
 
 Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
 to build an executable system.  This script copies source files into
 {\tt \$RVM\_BUILD/RVM.classes}, preprocesses these files, generates
 some code with template expansions, builds an executable C program to
-start the RVM, and writes the RVM boot image.  The boot image is the
-binary image of a ready-to-go instance of the RVM.
+start the Jikes RVM, and writes the Jikes RVM boot image.  The boot
+image is the binary image of a ready-to-go instance of the Jikes RVM.
 
 The {\tt jbuild} script must be run from the {\tt \$RVM\_BUILD}
 directory. It prints a copious report of its operation which you may
@@ -351,20 +391,18 @@ affect system viability.
 
 \end{enumerate}
 
-\JikesTMFooter
+\AIXPPCJikesTMFooter
 
-\AIXTMFooter
-
-\PowerPCTMFooter
-
-\subsection{RVM Configurations}\label{configs}
+\subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
 
-This section describes the RVM build configurations.  The various RVM
+This section describes the Jikes\trademark RVM build configurations.
+The various 
 build configurations are defined by files in {\tt
 \$RVM\_ROOT/rvm/config/build}.
 
-Most standard RVM configuration files loosely follow the following naming scheme
+Most standard Jikes RVM configuration files loosely follow the
+following naming scheme 
 \begin{verbatim}
        <boot image compiler> <runtime compiler> <garbage collector>
 \end{verbatim}
@@ -373,7 +411,8 @@ Most standard RVM configuration files loosely follow the following naming scheme
 \index{runtime compiler}
 where
 \begin{itemize}
-\item the {\em boot image compiler} is the compiler used to compile the RVM boot image.
+\item the {\em boot image compiler} is the compiler used to compile
+the Jikes RVM boot image. 
 \item the {\em runtime compiler} is the ``compiler'' used to compile
 the classes loaded at runtime.  
 \item the {\em garbage collector} is the garbage collection scheme used.
@@ -392,12 +431,12 @@ A garbage collector may have any of the following types:
 \item[NoGC] no garbage collection is performed
 \item[Semispace] a copying semi-space collector
 \item[MarkSweep] a mark-and-sweep (non copying) collector
+\item[CopyGen] a copying generational collector with a
+fixed-size nursery
 \item[CopyGenVariable] a copying generational collector with a
 variable-size nursery
-\item[CopyGenFixed] a copying generational collector with a
-fixed-size nursery
-\item[HybridGC] a hybrid collector, semi-space for the nursery and
-mark-and-sweep for the mature space
+\item[Hybrid] a hybrid generational collector, semi-space for the
+nursery and mark-and-sweep for the mature space
 \item[Concurrent] a concurrent reference counting collector
 \end{description}
 
@@ -412,8 +451,8 @@ Some files augment the standard configurations as follows:
 \item The word 
 {\em Full} at the beginning of the configuration name identifies a 
 configuration
-such that all the RVM classes are included in the boot image (by default
-a small subset of the RVM classes are included in the boot image). 
+such that all the Jikes RVM classes are included in the boot image (by default
+a small subset of these classes are included in the boot image). 
 \item The word
 {\em Fast} at the beginning of the configuration name identifies a Full
 configuration where all assertion checking has been turned off. 
@@ -474,11 +513,14 @@ directory to define your own configurations with different options.  See
 the {\tt jconfigure} file for a list of all options the builder
 understands.
 
+\JikesTMFooter
+
 \subsection{Cross Platform Building}
 
-The RVM build process consists of two major phases: the building of a
-RVM {\em boot image}, and the building of a RVM {\em boot loader}.
-The boot image is built using a Java\trademark executed within a host
+The Jikes\trademark RVM build process consists of two major phases:
+the building of a 
+{\em boot image}, and the building of a {\em boot loader}.
+The boot image is built using a Java\trademark program executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
 
@@ -535,15 +577,14 @@ via {\tt rsh} or {\tt ssh}, etc.  By setting {\tt RVM\_BUILD\_COPY}
 appropriately on the host platform, cross-platform building can become
 a stream-lined process.
 
-\JikesTMFooter
+\JikesAIXTMFooter
 
 \JavaTMFooter
 
-\AIXTMFooter
+\subsection{Building the Libraries}
 
-\subsection{Building the libraries}
-
-Most RVM users will not need to rebuild the libraries; thus the default
+Most Jikes\trademark RVM users will not need to rebuild the libraries;
+thus the default 
 process described above provides a ``binary'' {\tt rvmrt.jar}.  However,
 the library source for the RVM is available at
 \xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  
@@ -557,30 +598,28 @@ library sources in {\tt \$RVM\_ROOT/support/lib}, and build a new {\tt
 rvmrt.jar} in {\tt \$RVM\_BUILD}.
 
 You will find that some versions (including 1.13) of 
-\xlink{{\tt Jikes\trademark}}{ \jikesURL } fail to compile the
+\xlink{{\tt Jikes}}{ \jikesURL } fail to compile the
 libraries, dying with myriad errors.  You need to apply Jikes 
 patch 62 to
 the Jikes build to fix a problem with variable shadowing by inner classes. 
 We have
 successfully applied this patch to Jikes version 1.13 on both
-AIX\AIXTMFootnote and Linux/IA32.
+AIX\copyright and Linux/IA32.
 
-The {\tt jBuildLibs} script will prompt you, asking whether to install 
+The {\tt jBuildLibs} script will prompt you whether to install 
 the new {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.  
 If you answer {\tt 'y'}, future invocations of {\tt jbuild} will pick up
-the new library build.  However, note that by installing it, you will
-{\em overwrite} the original version of {\tt rvmrt.jar}, losing it.  Be
+the new library build.  However, this will
+{\em overwrite} the original version of {\tt rvmrt.jar}, so  be
 careful!
 
-\JikesTMFooter
+\JikesAIXTMFooter
 
-\AIXTMFooter
-
-\subsection{Building documentation}
+\subsection{Building Documentation}
 
 The {\tt \RVMTarFile} file contains a postscript version of this userguide
 in {\tt \$RVM\_ROOT/rvm/doc}.  Additionally, the 
-\xlink{developerWorks web page}{\RVMHomeURL} keeps an on-line version of
+\xlink{developerWorks web page}{\RVMHomeURL} keeps an online version of
 the userguide and javadoc API, corresponding to the latest HEAD of the CVS
 repository.
 

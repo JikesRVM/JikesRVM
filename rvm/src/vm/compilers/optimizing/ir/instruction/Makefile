@@ -11,7 +11,7 @@ default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_OperatorNames.java \
 			$(GEN_FILES_DIR)/InstructionFormats.RAW
 
-GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` GenerateFromTemplate
+GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` GenerateFromTemplate 
 
 # make trickiness to allow generation of HIR/LIR without specifying an MIR.
 # used in the opt compiler on JikesBT configuration
@@ -31,28 +31,32 @@ $(GEN_FILES_DIR)/OPT_Operator.java: OPT_Operator.template  OperatorList.dat Inst
 	$(GENERATE) OPT_Operator.template \
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_Operator.java` \
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCHITECTURE=$(ARCHITECTURE)
+	ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
 
 $(GEN_FILES_DIR)/OPT_Operators.java: OPT_Operators.template OperatorList.dat InstructionFormatList.dat CommonOperands.dat $(ARCH_OPS) $(ARCH_IFS)
 	$(GENERATE) OPT_Operators.template \
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_Operators.java`\
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
 	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)` \
-	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE)
+	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
 
 $(GEN_FILES_DIR)/OPT_OperatorNames.java:	OPT_OperatorNames.template OperatorList.dat $(ARCH_OPS)
 	$(GENERATE) OPT_OperatorNames.template \
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_OperatorNames.java` \
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCHITECTURE=$(ARCHITECTURE)
+	ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
 
 $(GEN_FILES_DIR)/InstructionFormats.RAW: InstructionFormats.template OperatorList.dat InstructionFormatList.dat CommonOperands.dat $(ARCH_OPS) $(ARCH_IFS)
 	$(GENERATE) InstructionFormats.template \
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
 	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)` \
-	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR) < $(GEN_FILES_DIR)/InstructionFormats.RAW
+	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
+	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
 
 ## TODO FIX these three rules!!
 uncheckedInstructionFormat:	
@@ -60,22 +64,25 @@ uncheckedInstructionFormat:
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
 	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`
-	VERIFY_INSTRUCTION_FORMATS="" ARCHITECTURE=$(ARCHITECTURE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR) < $(GEN_FILES_DIR)/InstructionFormats.RAW
+	VERIFY_INSTRUCTION_FORMATS="" ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
+	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
 
 warnInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
 	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`\
-	VERIFY_INSTRUCTION_FORMATS="warn" ARCHITECTURE=$(ARCHITECTURE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR) < $(GEN_FILES_DIR)/InstructionFormats.RAW
+	VERIFY_INSTRUCTION_FORMATS="warn" ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
+	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
 
 fatalInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
 	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
 	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
 	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`\
-	VERIFY_INSTRUCTION_FORMATS="fatal" ARCHITECTURE=$(ARCHITECTURE)
-	./splitInstructionFormats.perl $(GEN_FILES_DIR) < $(GEN_FILES_DIR)/InstructionFormats.RAW
+	VERIFY_INSTRUCTION_FORMATS="fatal" ARCHITECTURE=$(ARCHITECTURE) \
+	INSTRFMTPKG=instructionFormats RVMPKG=
+	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
 

@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:
+//$Id$
+
+import java.io.DataInputStream;
+import java.io.IOException;
 
 /**
  * A java method's local variable information (for use by debuggers).
@@ -12,22 +15,24 @@
 class VM_LocalVariable {
   VM_Atom name;               // name of this variable
   VM_Atom descriptor;         // its type descriptor
+  ClassLoader classloader;
 
   int stackSlot;              // slot where it resides (in "locals" part of stackframe)
 
   int startPC;                // range of bytecodes for which it resides in that stack slot,
   int endPC;                  // indexed from start of methods' bytecodes[] (inclusive)
 
-  VM_LocalVariable(VM_Class cls, VM_BinaryData input) {
+  VM_LocalVariable(VM_Class cls, DataInputStream input) throws IOException {
     startPC    = input.readUnsignedShort();
     endPC      = startPC + input.readUnsignedShort();
     name       = cls.getUtf(input.readUnsignedShort());
     descriptor = cls.getUtf(input.readUnsignedShort());
     stackSlot  = input.readUnsignedShort();
+    classloader = cls.getClassLoader();
   }
 
   final VM_Type getType() {
-    return VM_ClassLoader.findOrCreateType(descriptor);
+    return VM_ClassLoader.findOrCreateType(descriptor, classloader);
   }
 
   // Is this local variable currently in scope of specified bytecode?

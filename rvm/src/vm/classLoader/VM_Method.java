@@ -3,14 +3,15 @@
  */
 //$Id$
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 /**
  * A method of a java class.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import java.util.Stack;
-
 public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   //-----------//
   // Interface //
@@ -343,7 +344,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * haven't already done so.
    * @return copy of machine code that was generated
    */
-  final INSTRUCTION[] compile() {
+  final synchronized INSTRUCTION[] compile() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
 
     if (isCompiled())
@@ -351,7 +352,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
     if (VM.VerifyAssertions)   VM.assert(declaringClass.isResolved());
-    if (VM.TraceClassLoading)  VM.sysWrite("VM_Method: compiling " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
     if (isAbstract())
       mostRecentlyGeneratedInstructions = getUnexpectedAbstractMethodInstructions();
@@ -362,8 +363,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       mostRecentlyGeneratedInstructions = getUnexpectedNativeMethodInstructions();
     else
     {
-      if (VM.TraceTimes) VM_Timer.start(VM_Timer.METHOD_COMPILE);
-
       // generate machine code
       //
       VM_CompiledMethod compiledMethod;
@@ -379,10 +378,9 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
       mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
       mostRecentlyGeneratedCompiledMethod = compiledMethod;
-
-      if (VM.TraceTimes) VM_Timer.stop(VM_Timer.METHOD_COMPILE);
     }
 
+    if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
     return mostRecentlyGeneratedInstructions;
   }
 
@@ -398,30 +396,18 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    */ 
   public final INSTRUCTION[] getMostRecentlyGeneratedInstructions() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
-
     if (VM.VerifyAssertions) VM.assert(isCompiled());
     return mostRecentlyGeneratedInstructions;
-
-    ///   if (isCompiled())
-    ///      return mostRecentlyGeneratedInstructions;
-    ///   VM.sysWrite("VM_Method.getMostRecentlyGeneratedInstructions: assuming lazy compilation of " + this + "\n");
-    ///   if (VM.VerifyAssertions) VM.assert(lazyMethodInvokerInstructions != null);
-    ///   return lazyMethodInvokerInstructions;
   }
 
   /**
-   * Get compiler info for most recently compiled version of this method.
-   * @return compiler info
-   * 
-   * !!TODO: temporary migration aid until opt compiler uses VM_CompiledMethod
-   *         instead of VM_Method to save state across compilations.
-   *         DON'T USE THIS METHOD IN NEWLY WRITTEN CODE. --DL
+   * Get compiled method for most recently compiled version of this method.
+   * @return compiled method
    */ 
-  public final VM_CompilerInfo getMostRecentlyGeneratedCompilerInfo() {
+  public final VM_CompiledMethod getMostRecentlyGeneratedCompiledMethod() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
-
     if (VM.VerifyAssertions) VM.assert(isCompiled());
-    return mostRecentlyGeneratedCompiledMethod.getCompilerInfo();
+    return mostRecentlyGeneratedCompiledMethod;
   }
 
   /**
@@ -430,7 +416,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   final void clearMostRecentCompilation() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
 
-    VM_CompiledMethods.setCompiledMethodObsolete( mostRecentlyGeneratedCompiledMethod );    
+    VM_CompiledMethods.setCompiledMethodObsolete(mostRecentlyGeneratedCompiledMethod);
     mostRecentlyGeneratedInstructions = null;
     mostRecentlyGeneratedCompiledMethod = null;
   }
@@ -527,13 +513,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   //----------------//
 
   // machine instructions for methods that have no bodies
-  private static INSTRUCTION[] interfaceMethodInvokerInstructions;
   private static INSTRUCTION[] lazyMethodInvokerInstructions;
-  private static INSTRUCTION[] unexpectedInterfaceMethodInstructions;
   private static INSTRUCTION[] unexpectedAbstractMethodInstructions;
   private static INSTRUCTION[] unexpectedNativeMethodInstructions;
   private static INSTRUCTION[] nativeMethodInvokerInstructions;
-  private static INSTRUCTION[] interfaceConflictResolutionBridgeInstructions;
 
   //
   // The following are set during "creation".
@@ -638,22 +621,22 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Standard initialization.
    */
   VM_Method(VM_Class declaringClass, VM_Atom name, VM_Atom descriptor, 
-            int dictionaryId) {
+            int dictionaryId, ClassLoader classloader) {
     super(declaringClass, name, descriptor, dictionaryId);
-    returnType = descriptor.parseForReturnType();
-    parameterTypes = descriptor.parseForParameterTypes();
+    returnType = descriptor.parseForReturnType(classloader);
+    parameterTypes = descriptor.parseForParameterTypes(classloader);
     for (int i = 0, n = parameterTypes.length; i < n; ++i)
       parameterWords += parameterTypes[i].getStackWords();
     offset = VM_Member.UNINITIALIZED_OFFSET;
   }
 
-  final void load(VM_BinaryData input, int modifiers) {
+  final void load(DataInputStream input, int modifiers) throws IOException {
     this.modifiers = modifiers;
     readAttributes(input);
     this.modifiers |= ACC_LOADED;
   }
 
-  private void readAttributes(VM_BinaryData input) {
+  private void readAttributes(DataInputStream input) throws IOException {
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i)
     {
       VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
@@ -666,7 +649,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
         localWords   = input.readUnsignedShort();
 
         bytecodes = new byte[input.readInt()];
-        input.readBytes(bytecodes);
+        input.readFully(bytecodes);
 
         //-#if RVM_WITH_OPT_COMPILER
 	VM_OptMethodSummary.summarizeMethod(this, bytecodes, 
@@ -677,7 +660,8 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
         int cnt = input.readUnsignedShort();
         if (cnt != 0)
           exceptionHandlerMap = new VM_ExceptionHandlerMap(input, 
-                                                           declaringClass, cnt);
+                                                           declaringClass, 
+							   cnt);
 
         readAttributes(input);
         continue;
@@ -765,36 +749,22 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
   static INSTRUCTION[] getLazyMethodInvokerInstructions() {
     if (lazyMethodInvokerInstructions == null) {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", 
-                                      "lazyMethodInvoker", "()V");
-      lazyMethodInvokerInstructions = ((VM_Method)member).compile();
+      lazyMethodInvokerInstructions = VM_Entrypoints.lazyMethodInvokerMethod.compile();
     }
     return VM_LazyCompilationTrampolineGenerator.getTrampoline();
   }
 
-  static INSTRUCTION[] getUnexpectedInterfaceMethodInstructions() {
-    if (unexpectedInterfaceMethodInstructions == null) {
-      VM_Member member = VM.getMember("LVM_Runtime;", 
-                                      "unexpectedInterfaceMethodCall", "()V");
-      unexpectedInterfaceMethodInstructions = ((VM_Method)member).compile();
-    }
-    return unexpectedInterfaceMethodInstructions;
-  }
-
   private static INSTRUCTION[] getUnexpectedAbstractMethodInstructions() {
     if (unexpectedAbstractMethodInstructions == null) {
-      VM_Member member = VM.getMember("LVM_Runtime;", 
-                                      "unexpectedAbstractMethodCall", "()V");
-      unexpectedAbstractMethodInstructions = ((VM_Method)member).compile();
+      unexpectedAbstractMethodInstructions = 
+	VM_Entrypoints.unexpectedAbstractMethodCallMethod.compile();
     }
     return unexpectedAbstractMethodInstructions;
   }
 
   static INSTRUCTION[] getNativeMethodInvokerInstructions() {
     if (nativeMethodInvokerInstructions == null) {
-      VM_Member member;
-      member = VM.getMember("LVM_DynamicLinker;", "lazyMethodInvoker", "()V");
-      nativeMethodInvokerInstructions = ((VM_Method)member).compile();
+      nativeMethodInvokerInstructions = VM_Entrypoints.lazyMethodInvokerMethod.compile();
     }
     return nativeMethodInvokerInstructions;
   }
@@ -839,7 +809,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Compute the mangled name of the native routine: Java_Class_Method_Sig
    */
-  private String getMangledName() {
+  private String getMangledName(boolean sig) {
     String mangledClassName, mangledMethodName;
     String className = declaringClass.getName().toString();
     String methodName = name.toString();
@@ -855,14 +825,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     //   class.with_underscore  -> class_with_1underscore
     mangledMethodName = replaceCharWithString(methodName, '_', "_1");
 
-    // Special cases:  Sig is needed if the method is overloaded
-    VM_Method mthList[] = declaringClass.getDeclaredMethods();
-    int match = 0;
-    for (int i=0; i<mthList.length; i++) {
-      if (mthList[i].getName().toString().equals(methodName))
-        match++;
-    }
-    if (match>1) {
+    if (sig) {
       String sigName = getDescriptor().toString();
       sigName = sigName.substring( sigName.indexOf('(')+1, sigName.indexOf(')') );
       sigName = replaceCharWithString(sigName, '[', "_3");
@@ -883,30 +846,35 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
   private boolean resolveNativeMethod() {
 
-    nativeProcedureName = getMangledName();
+    nativeProcedureName = getMangledName(false);
+    String nativeProcedureNameWithSigniture = getMangledName(true);
 
     // get the library in VM_ClassLoader
     // resolve the native routine in the libraries
     VM_DynamicLibrary libs[] = VM_ClassLoader.getDynamicLibraries();
-    int symbolAddress = 0;
+    VM_Address symbolAddress = VM_Address.zero();
     if (libs!=null) {
-      for (int i=1; i<libs.length && symbolAddress==0; i++) {
+      for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
         VM_DynamicLibrary lib = libs[i];
         if (lib!=null)
+          symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
+        if (lib != null && symbolAddress == VM_Address.zero())
           symbolAddress = lib.getSymbol(nativeProcedureName);
+	else if (symbolAddress != VM_Address.zero())
+	  nativeProcedureName = nativeProcedureNameWithSigniture;
       }
     }
 
-    if (symbolAddress==0) {
+    if (symbolAddress.isZero()) {
       // native procedure not found in library
       return false;
     } else {
       //-#if RVM_FOR_IA32
-      nativeIP = symbolAddress;		// Intel use direct branch address
+      nativeIP = symbolAddress.toInt();		// Intel use direct branch address
       nativeTOC = 0;                          // not used
       //-#else
       nativeIP  = VM_Magic.getMemoryWord(symbolAddress);     // AIX use a triplet linkage
-      nativeTOC = VM_Magic.getMemoryWord(symbolAddress + 4);
+      nativeTOC = VM_Magic.getMemoryWord(symbolAddress.add(4));
       //-#endif
       // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
       return true;
@@ -915,12 +883,9 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   }
 
   private static INSTRUCTION[] getUnexpectedNativeMethodInstructions() {
-    if (unexpectedNativeMethodInstructions == null)
-    {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", "unimplementedNativeMethod", "()V");
-      unexpectedNativeMethodInstructions = ((VM_Method)member).compile();
+    if (unexpectedNativeMethodInstructions == null) {
+      unexpectedNativeMethodInstructions = VM_Entrypoints.unimplementedNativeMethodMethod.compile();
     }
     return unexpectedNativeMethodInstructions;
   }
-
 }

@@ -14,7 +14,7 @@ class VM_RCBarriers implements VM_BaselineConstants {
 
     private static void emitBufferStores (VM_Assembler asm, int spSaveAreaOffset, int Told, int Tnew, int Ttmp) {
 	// Get pointer to mutation buffer
-	asm.emitL    (Ttmp, VM_Entrypoints.incDecBufferTopOffset, PROCESSOR_REGISTER);
+	asm.emitL    (Ttmp, VM_Entrypoints.incDecBufferTopField.getOffset(), PROCESSOR_REGISTER);
 	// If increment value is non-null, store in buffer 
 	asm.emitCMPI (Tnew, 0);
 	asm.emitBEQ  (+2);
@@ -25,14 +25,14 @@ class VM_RCBarriers implements VM_BaselineConstants {
 	asm.emitCAL  (Told, VM_RCBuffers.DECREMENT_FLAG, Told);
 	asm.emitSTU  (Told, 4, Ttmp);
 	// Store updated mutation buffer pointer
-	asm.emitST   (Ttmp, VM_Entrypoints.incDecBufferTopOffset, PROCESSOR_REGISTER);
+	asm.emitST   (Ttmp, VM_Entrypoints.incDecBufferTopField.getOffset(), PROCESSOR_REGISTER);
 
 	// Check for mutation buffer overflow
-	asm.emitL    (Told, VM_Entrypoints.incDecBufferMaxOffset, PROCESSOR_REGISTER);
+	asm.emitL    (Told, VM_Entrypoints.incDecBufferMaxField.getOffset(), PROCESSOR_REGISTER);
 	asm.emitCMP  (Ttmp, Told);
 	asm.emitBLE  (VM_Assembler.CALL_INSTRUCTIONS + 3);
 	// Buffer overflowed; call function to expand it.
-	asm.emitL    (S0, VM_Entrypoints.processIncDecBufferOffset, JTOC);
+	asm.emitL    (S0, VM_Entrypoints.processIncDecBufferMethod.getOffset(), JTOC);
 	asm.emitMTLR (S0);
 	asm.emitCall (spSaveAreaOffset);
     }
@@ -51,18 +51,28 @@ class VM_RCBarriers implements VM_BaselineConstants {
 	emitBufferStores(asm, spSaveAreaOffset, T2, T3, T0);	// T2 = old, T3 = new, T0 = temp
     }
 
+    static boolean shouldOmitBarrier (VM_Method method, VM_Field field) {
+	String className = field.getDeclaringClass().getDescriptor().toString();
+	String fieldName = field.getName().toString();
+	String typeName = field.getType().toString();
+	if ((DONT_BARRIER_BLOCK_CONTROLS && className.equals("LVM_BlockControl;")) ||
+	    (typeName.equals("VM_BootRecord")) ||
+	    (className.equals("LVM_Heap;") && (typeName.equals("VM_Heap") ||
+					       fieldName.equals("bootHeap")))) {
+	    VM.sysWriteln("Omitting RC barrier: method = " + method + "     field = " + field);
+	    return true;
+	}
+	return false;
+    }
+
 
     static void compilePutfieldBarrier (VM_Assembler asm, int spSaveAreaOffset, int fieldOffset, VM_Method method, VM_Field field) {
 	// On entry: T0 = ref to store
 	//           T1 = target object
 
-	if (DONT_BARRIER_BLOCK_CONTROLS) {
-	    String className = field.getDeclaringClass().getDescriptor().toString();
-	    if (className.equals("LVM_BlockControl;")) {
-		VM.sysWrite("Omitting barrier for method " + method + " field " + field + "\n");
-		asm.emitST(T0, fieldOffset, T1);
-		return;
-	    }
+	if (shouldOmitBarrier(method,field)) {
+	    asm.emitST(T0, fieldOffset, T1);
+	    return;
 	}
 
 	asm.emitCAL(T1, fieldOffset, T1);			// T1 = pointer to slot
@@ -74,8 +84,14 @@ class VM_RCBarriers implements VM_BaselineConstants {
 	emitBufferStores(asm, spSaveAreaOffset, T2, T0, T1);	// T2 = old, T0 = new, T1 = temp
     }
 
-    static void compilePutstaticBarrier (VM_Assembler asm, int spSaveAreaOffset, int jtocOffset) {
+    static void compilePutstaticBarrier (VM_Assembler asm, int spSaveAreaOffset, int jtocOffset, VM_Method method, VM_Field field) {
 	// On entry: T0 = new ref value to store
+
+	if (shouldOmitBarrier(method,field)) {
+	    asm.emitCALtoc(T1, jtocOffset);			// T1 = offset of field within JTOC
+	    asm.emitST(T0, 0, T1);
+	    return;
+	}
 
 	asm.emitCALtoc(T1, jtocOffset);			// T1 = offset of field within JTOC
 
@@ -93,13 +109,9 @@ class VM_RCBarriers implements VM_BaselineConstants {
 	//           T1 = target base address
 	//           T2 = target field offset
 
-	if (DONT_BARRIER_BLOCK_CONTROLS) {
-	    String className = field.getDeclaringClass().getDescriptor().toString();
-	    if (className.equals("LVM_BlockControl;")) {
-		VM.sysWrite("Omitting dynamic barrier for method " + method + " field " + field + "\n");
-		asm.emitSTX(T0, T2, T1);
-		return;
-	    }
+	if (shouldOmitBarrier(method,field)) {
+	    asm.emitSTX(T0, T2, T1);
+	    return;
 	}
 
 	if (TRACE_DYNAMIC_BARRIERS)

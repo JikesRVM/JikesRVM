@@ -49,32 +49,27 @@ class VM_CompilationThread extends VM_Thread {
     plan.setTimeInitiated(VM_Controller.controllerClock);
     if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(cp); 
 
-    double compileTime; // compile time in milliseconds 
-    int newCMID;
-
     if (cp.options.PRINT_METHOD) {
       VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
     }
     
-    synchronized (VM_ClassLoader.lock) { 
-      // must hold classloader lock while compiling.
-      // Update compilation thread timing information to prepare for new run.
-      double now = VM_Time.now();
-      cpuTotalTime += (now - cpuStartTime);
-      cpuStartTime = now;
-      double start = cpuTotalTime;
+    // must hold classloader lock while compiling.
+    // Update compilation thread timing information to prepare for new run.
+    double now = VM_Time.now();
+    cpuTotalTime += (now - cpuStartTime);
+    cpuStartTime = now;
+    double start = cpuTotalTime;
 
-      // Compile the method.
-      newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
+    // Compile the method.
+    int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
 
-      // Update compilation thread timing information and compute time 
-      // taken during this compilation.
-      now = VM_Time.now();
-      cpuTotalTime += (now - cpuStartTime);
-      cpuStartTime = now;
-      double end = cpuTotalTime;
-      compileTime = (end - start) * 1000.0; // Convert seconds to milliseconds.
-    }
+    // Update compilation thread timing information and compute time 
+    // taken during this compilation.
+    now = VM_Time.now();
+    cpuTotalTime += (now - cpuStartTime);
+    cpuStartTime = now;
+    double end = cpuTotalTime;
+    double compileTime = (end - start) * 1000.0; // Convert seconds to milliseconds.
       
     // transfer the samples from the old CMID to the new CMID.
     // scale the number of samples down by the expected speedup 

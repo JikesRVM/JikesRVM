@@ -54,6 +54,29 @@ else
 fi
 
 if [ $# = 0 ]; then
+   find $RVM_ROOT/rvm/src/include -name CVS -prune \
+	         -o -name '*.java'     \
+                 -o -name '*.C'        \
+                 -o -name '*.c'        \
+                 -o -name '*.s'        \
+                 -o -name '*.h'        \
+                 -o -name '*.template' \
+                 -o -name 'Make*'      
+
+else
+   find $RVM_ROOT/rvm/src/include -name CVS -prune \
+	         -o -name '*.java'     \
+                 -o -name '*.C'        \
+                 -o -name '*.c'        \
+                 -o -name '*.s'        \
+                 -o -name '*.h'        \
+                 -o -name '*.template' \
+                 -o -name 'Make*'      \
+                 | xargs fgrep -n -- "$*"
+fi
+
+
+if [ $# = 0 ]; then
    find $RVM_ROOT/rvm/bin -name CVS -prune -o -name '*' 
 
 else

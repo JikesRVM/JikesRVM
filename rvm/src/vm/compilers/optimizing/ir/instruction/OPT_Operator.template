@@ -11,6 +11,8 @@
  * DO NOT MANUALLY EDIT THE JAVA FILE.
  */
 
+import instructionFormats.*;
+
 /**
  * An OPT_Operator represents the operator of an {@link OPT_Instruction}.
  * For each operator in the IR, we create exactly one OPT_Operator instance
@@ -654,17 +656,17 @@ $$$$ END IF
 
 
 $$$$ IF ARCHITECTURE == "NONE"
-  private static final OPT_Register[] _empty = new OPT_Register[0];
+  private static final int _empty = 0;
 $$$$ END IF
   public static final OPT_Operator OperatorArray[] = {
 $$$$ FOREACH OPERATOR OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
-     new OPT_Operator((char)OPERATOR.INDEX, instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,  //OPERATOR.SYMBOL
+     new OPT_Operator((char)OPERATOR.INDEX, OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,  //OPERATOR.SYMBOL
 $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
 	              (OPERATOR.TRAITS),
                       0,0,0,
 $$$$ ELSE
-	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits), 
+	              (OPERATOR.TRAITS | OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits), 
     $$$$ FOREACH OPTYPE InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
@@ -689,12 +691,12 @@ $$$$ IF ARCHITECTURE != "NONE"
 $$$$ IF ARCHITECTURE == "powerPC"
   $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
      new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
-                      instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
+                      OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
   $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
 	              (OPERATOR.TRAITS),
                       0,0,0,
   $$$$ ELSE
-	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+	              (OPERATOR.TRAITS | OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
     $$$$ FOREACH OPTYPE InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
@@ -717,12 +719,12 @@ $$$$ IF ARCHITECTURE == "powerPC"
 $$$$ ELSE
   $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
      new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
-                      instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
+                      OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
   $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
 	              (OPERATOR.TRAITS),
                       0,0,0,
   $$$$ ELSE
-	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+	              (OPERATOR.TRAITS | OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
     $$$$ FOREACH OPTYPE InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
@@ -743,6 +745,17 @@ $$$$ ELSE
   $$$$ END FOREACH
 $$$$ END IF
 $$$$ END IF 
+$$$$ IF ARCHITECTURE == "NONE"
+$$$$ IF USE_EXTRA_OPLIST == "TRUE"
+  $$$$ FOREACH OPERATOR ExtraOperatorList.dat
+     new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
+                      OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,
+	              (OPERATOR.TRAITS),
+                      0,0,0,
+	              _empty,_empty),
+  $$$$ END FOREACH
+$$$$ END IF
+$$$$ END IF
      null };
 
   // For HIR/LIR

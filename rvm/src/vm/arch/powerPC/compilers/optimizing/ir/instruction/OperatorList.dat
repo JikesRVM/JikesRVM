@@ -134,6 +134,16 @@ none
 
 -1
 
+########################################
+# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence, index is DU)
+########################################
+MIR_LOWTABLESWITCH
+MIR_LowTableSwitch
+branch
+
+
+-1
+
 ####################
 PPC_DATA_INT
 MIR_DataInt
@@ -679,6 +689,14 @@ JTOC
 (18<<26 | 1)
 
 ####################
+PPC_BL_SYS
+MIR_Call
+call | dynLink | immedPEI
+LR
+JTOC
+(18<<26 | 1)
+
+####################
 # Although we could use PPC_BLR for general indirect branches
 # by convention we only use it for returns.
 PPC_BLR
@@ -698,6 +716,14 @@ CTR
 
 ####################
 PPC_BCTRL
+MIR_Call
+call | indirect | dynLink | immedPEI
+LR
+JTOC_CTR
+(19<<26 | 0x14<<21 | 528<<1 | 1)
+
+####################
+PPC_BCTRL_SYS
 MIR_Call
 call | indirect | dynLink | immedPEI
 LR

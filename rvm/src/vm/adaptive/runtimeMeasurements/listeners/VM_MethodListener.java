@@ -31,21 +31,9 @@ abstract class VM_MethodListener extends VM_Listener
   protected int nextIndex;
   
   /*
-   * Offset of nextIndex field, needed for fetchAndAdd synchronization
-   */
-  static final int nextIndexOffset = 
-    VM.getMember("LVM_MethodListener;", "nextIndex", "I").getOffset();
-  
-  /*
    * Number of samples taken so far
    */
   protected int numSamples;
-  
-  /*
-   * Offset of numSamples field, needed for fetchAndAdd synchronization
-   */
-  static final int numSamplesOffset = 
-    VM.getMember("LVM_MethodListener;", "numSamples", "I").getOffset();
   
   /*
    * The sample buffer
@@ -142,15 +130,14 @@ abstract class VM_MethodListener extends VM_Listener
    */
   private int recordSample(int CMID) {  
     // reserved the next available slot
-    int idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+    int idx = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNextIndexField.getOffset(), 1);
     // make sure it is valid
     if (idx < sampleSize) {
       samples[idx] = CMID;
 
       // sampleNumber has the value before we incremented, add one to 
       // determine which sample we were
-      int sampleNumber =  VM_Synchronization.fetchAndAdd(this, 
-						     numSamplesOffset, 1) + 1;
+      int sampleNumber =  VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNumSamplesField.getOffset(), 1) + 1;
       return sampleNumber;
     } else {
       return -1;

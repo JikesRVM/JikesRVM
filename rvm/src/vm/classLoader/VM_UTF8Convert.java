@@ -26,7 +26,7 @@ abstract class VM_UTF8Convert {
    * Strictly check the format of the utf8/pseudo-utf8 byte array in
    * fromUTF8.
    */
-  static final boolean STRICTLY_CHECK_FORMAT = true;
+  static final boolean STRICTLY_CHECK_FORMAT = false;
   /**
    * Set fromUTF8 to not throw an exception when given a normal utf8
    * byte array.

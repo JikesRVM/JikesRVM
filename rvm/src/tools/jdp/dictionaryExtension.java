@@ -42,6 +42,14 @@ class dictionaryExtension
     // get pointers to the dictionary table
     VM_Atom[]   keys   = VM_TypeDictionary.getKeysPointer();     // dictionary keys
     int[][]     chains = VM_TypeDictionary.getChainsPointer();   // hash table 
+    if (keys == null) {
+      System.out.println("dictionaryExtension: error keys is null");
+      return 0;
+    }
+    if (chains == null) {
+      System.out.println("dictionaryExtension: error chains is null");
+      return 0;
+    }
     int id = findIdByString(keyString, keys, chains);
     return id;
   }

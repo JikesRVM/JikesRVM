@@ -50,6 +50,18 @@ class OPT_SCC_Enumeration
   }
 
   /**
+   *  Construct an enumeration of the SCCs of the subset of a given
+   * graph determined by starting at a given set of nodes.
+   *
+   * @param net The graph over which to compute SCCs.
+   * @param e The set of nodes that determine the subset of interest
+   */
+  OPT_SCC_Enumeration (OPT_Graph net, OPT_GraphNodeEnumeration e, OPT_GraphEdgeFilter filter) {
+    OPT_GraphNodeEnumeration topOrder = OPT_GraphUtilities.enumerateTopSort(net, e, filter);
+    rev = new OPT_ReverseFilteredDFSenumerateByFinish(net, topOrder, filter);
+  }
+
+  /**
    *  Determine whether there are any more SCCs remaining in this
    * enumeration. 
    *

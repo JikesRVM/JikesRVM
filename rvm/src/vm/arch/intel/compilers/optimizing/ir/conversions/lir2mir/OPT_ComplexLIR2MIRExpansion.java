@@ -12,7 +12,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @modified Peter Sweeney
  */
-abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
+abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   /**
    * Converts the given IR to low level IA32 IR.
@@ -729,11 +729,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     // get the correct method to be called for a thread switch
     VM_Method meth = null;
     if (s.getOpcode() == YIELDPOINT_PROLOGUE_opcode) {
-      meth = VM_OptLinker.optThreadSwitchFromPrologueMethod;
+      meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
     } else if (s.getOpcode() == YIELDPOINT_EPILOGUE_opcode) {
-      meth = VM_OptLinker.optThreadSwitchFromEpilogueMethod;
+      meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
     } else { 
-      meth = VM_OptLinker.optThreadSwitchFromBackedgeMethod;
+      meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
     }
 
     // split the basic block after the yieldpoint
@@ -749,7 +749,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     int offset = meth.getOffset();
     OPT_Operand jtoc = 
       OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-			   VM_Entrypoints.jtocOffset, 
+			   VM_Entrypoints.jtocField.getOffset(), 
 			   (byte)4, null, TG());
     OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
@@ -769,7 +769,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.threadSwitchRequestedOffset;
+    int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, I(0));
     s.insertBefore(compare);

@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 /** 
  * A java method's try/catch/finally information.
  *
@@ -37,7 +40,9 @@ class VM_ExceptionHandlerMap {
   // a null indicates a "finally block" (handler accepts all
   // exceptions).
 
-  VM_ExceptionHandlerMap(VM_BinaryData input, VM_Class declaringClass, int n){
+  VM_ExceptionHandlerMap(DataInputStream input, 
+			 VM_Class declaringClass, 
+			 int n) throws IOException {
     startPCs       = new int[n];
     endPCs         = new int[n];
     handlerPCs     = new int[n];

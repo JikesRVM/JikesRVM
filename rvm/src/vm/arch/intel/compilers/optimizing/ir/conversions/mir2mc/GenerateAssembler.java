@@ -65,7 +65,7 @@ import java.lang.reflect.*;
  *
  * @author Julian Dolby 
  */
-class GenerateAssembler {
+public class GenerateAssembler {
 
     /** Global flag controlling printing of debugging information */
     static final boolean DEBUG = false;

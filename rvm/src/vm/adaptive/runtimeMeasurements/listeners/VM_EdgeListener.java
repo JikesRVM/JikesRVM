@@ -45,12 +45,6 @@ class VM_EdgeListener extends VM_ContextListener
    */
   private int nextIndex;
 
-  /*
-   * Offset of nextIndex field, needed for fetchAndAdd synchronization
-   */
-  static final int nextIndexOffset = 
-    VM.getMember("LVM_EdgeListener;", "nextIndex", "I").getOffset();
-  
   /**
    * Number of samples to be taken before issuing callback to controller 
    */
@@ -61,12 +55,6 @@ class VM_EdgeListener extends VM_ContextListener
    */
   protected int samplesTaken = 0;
 
-  /*
-   * Offset of numSamples field, needed for fetchAndAdd synchronization
-   */
-  static final int samplesTakenOffset = 
-    VM.getMember("LVM_EdgeListener;", "samplesTaken", "I").getOffset();
-  
   /**
    * Number of times update is called
    */
@@ -128,9 +116,9 @@ class VM_EdgeListener extends VM_ContextListener
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  public final void update(int sfp, int whereFrom) {
+  public final void update(VM_Address sfp, int whereFrom) {
      if(DEBUG) {
-        VM.sysWrite("VM_EdgeListener.update("+sfp+","+whereFrom+
+        VM.sysWrite("VM_EdgeListener.update("+sfp.toInt()+","+whereFrom+
 		  "): enter "+samplesTaken+"\n");     
      }
 
@@ -145,8 +133,7 @@ class VM_EdgeListener extends VM_ContextListener
      // VM.disableGC() will attempt to resize and move this stack. So, sample
      // only if we have this much space left.  TODO:  look into this
      // again.  This may compromise the sampling accuracy a bit.
-     if (VM_Magic.getFramePointer() - STACK_SIZE_GCDISABLED < 
-	 VM_Thread.getCurrentThread().stackLimit) {
+     if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(VM_Thread.getCurrentThread().stackLimit)) {
        return;
      }
 
@@ -164,7 +151,7 @@ class VM_EdgeListener extends VM_ContextListener
 
      int calleeCMID    = 0;
      int callerCMID    = 0;
-     int returnAddress = 0;
+     VM_Address returnAddress = VM_Address.zero();
 
      // While GC is disabled, don't do string concatenation!
      VM.disableGC(); // so call stack doesn't change during walk
@@ -218,9 +205,9 @@ class VM_EdgeListener extends VM_ContextListener
      // store the offset of the return address from the beginning of the 
      // instruction
      VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
-     int beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
+     VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
 
-     int callSite = returnAddress - beginningOfMachineCode;
+     int callSite = returnAddress.diff(beginningOfMachineCode);
 
      if(DEBUG){ 
 	VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");
@@ -229,7 +216,7 @@ class VM_EdgeListener extends VM_ContextListener
      }
 
      if(DEBUG) { // walk stack.
-        int fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+        VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
 	int compiledMethodID = 0;
 	for(int i=1; i<6; i++) {
 	   if(VM_Magic.getMemoryWord(fp) == STACKFRAME_SENTINAL_FP) {
@@ -257,7 +244,9 @@ class VM_EdgeListener extends VM_ContextListener
      VM.enableGC();
 
      // Try to get 3 buffer slots and update nextIndex appropriately
-     int idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 3);
+     int idx = VM_Synchronization.fetchAndAdd(this, 
+					      VM_Entrypoints.edgeListenerNextIndexField.getOffset(),
+					      3);
 
      // Ensure that we got slots for our sample, if we don't (because another
      // thread is racing with us) we'll just ignore this sample
@@ -270,7 +259,9 @@ class VM_EdgeListener extends VM_ContextListener
        // fetchAndAdd returns the value before the increment, add one to
        // determine which sample we were
        int sampleNumber = 
-	 VM_Synchronization.fetchAndAdd(this, samplesTakenOffset, 1) + 1;
+	 VM_Synchronization.fetchAndAdd(this, 
+					VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
+					1) + 1;
 
        // If we are the last sample, we need to take action
        if (sampleNumber == desiredSamples) {

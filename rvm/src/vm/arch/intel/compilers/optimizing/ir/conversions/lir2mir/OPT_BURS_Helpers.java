@@ -444,7 +444,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      int offset = fc.offset;
+      int offset = fc.index << 2;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
 	return MO_D(IV(base)+offset, DW, loc, TG());
@@ -453,7 +453,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       }
     } else {
       OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      int offset = dc.offset;
+      int offset = dc.index << 2;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
 	return MO_D(IV(base)+offset, QW, loc, TG());
@@ -468,6 +468,19 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     return new OPT_StackLocationOperand(true, offset, size);
   }
 
+  final void STORE_LONG_FOR_CONV(OPT_BURS burs, OPT_Operand op) {
+    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
+    if (op instanceof OPT_RegisterOperand) {
+      OPT_RegisterOperand hval = R(op);
+      OPT_RegisterOperand lval = R(burs.ir.regpool.getSecondReg(hval.register));
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset+4, DW), hval));
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset, DW), lval));
+    } else {
+      OPT_LongConstantOperand val = L(op);
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset+4, DW), I(val.upper32())));
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset, DW), I(val.lower32())));
+    }
+  }      
 
   // condition code state
   private OPT_ConditionOperand cc;
@@ -489,12 +502,12 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     if (burs.ir.options.FIXED_JTOC) {
-      return OPT_MemoryOperand.D(offset + VM_Magic.getTocPointer(),
+      return OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(),
 				 (byte)4, loc, guard);
     } else {
       OPT_Operand jtoc = 
 	OPT_MemoryOperand.BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
-			     VM_Entrypoints.jtocOffset, 
+			     VM_Entrypoints.jtocField.getOffset(), 
 			     (byte)4, null, TG());
       OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
       burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
@@ -558,35 +571,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
   /**
-   * Expansion of FLOAT_2INT and DOUBLE_2INT, by calling VM_Math
-   * 
-   * Note: we cannot inline VM_Math.doubleToInt, since we cannot register
-   * allocate it and preserve IEEE FPR semantics, since IA32 has 80-bit
-   * FPRs.  TODO: support the fp strict option, including inlining of
-   * strict into non-strict.
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void FPR_2INT_VM_Math(OPT_BURS burs, OPT_Instruction s,
-			      OPT_RegisterOperand result,
-			      OPT_Operand value) {
-    OPT_RegisterOperand doubleVal = burs.ir.regpool.makeTempDouble();
-    burs.append(MIR_Move.create(IA32_FMOV, doubleVal, value));
-
-    // Call VM_Math.doubleToInt
-    int offset = VM_Entrypoints.doubleToIntOffset;
-    OPT_Operand targetAddr = loadFromJTOC(burs, offset);
-    OPT_MethodOperand targetMeth = 
-      OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToIntMethod);
-    burs.append(CPOS(s, MIR_Call.mutate1(s, IA32_CALL, result, null, 
-					 targetAddr, targetMeth, 
-					 doubleVal)));
-  }
-
-  /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT, using the FIST instruction.
    * This expansion does some boolean logic and conditional moves in order
    * to avoid changing the floating-point rounding mode or inserting
@@ -597,9 +581,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result operand
    * @param value the second operand
    */
-  final void FPR_2INT_FIST(OPT_BURS burs, OPT_Instruction s,
-			   OPT_RegisterOperand result,
-			   OPT_Operand value) {
+  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
+		      OPT_RegisterOperand result,
+		      OPT_Operand value) {
     OPT_MemoryOperand M;
 
     // Step 1: Get value to be converted into myFP0
@@ -679,15 +663,15 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       burs.append(MIR_Move.create(IA32_MOV, 
 				  R(jtoc), 
 				  MO_BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
-					VM_Entrypoints.jtocOffset, DW, null, null)));
+					VM_Entrypoints.jtocField.getOffset(), DW, null, null)));
     }
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Entrypoints.maxintOffset + VM_Magic.getTocPointer(),
+      M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.maxintField.getOffset()).toInt(),
 			      QW, null, null);
     } else {
-      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintOffset, QW, null, null);
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintField.getOffset(), QW, null, null);
     }
     burs.append(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
@@ -701,10 +685,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Entrypoints.minintOffset + VM_Magic.getTocPointer(),
+      M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.minintField.getOffset()).toInt(),
 			      QW, null, null);
     } else {
-      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintOffset, QW, null, null);
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintField.getOffset(), QW, null, null);
     }
     burs.append(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MIN_VALUE; myFP1 = value
@@ -726,27 +710,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				    OPT_IA32ConditionOperand.PE()));
     
   }
-  /**
-   * Expansion of FLOAT_2INT and DOUBLE_2INT
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
-		      OPT_RegisterOperand result,
-		      OPT_Operand value) {
-    OPT_Options options = getIR().options;
-    if (options.f2intVM_Math()) {
-      FPR_2INT_VM_Math(burs,s,result,value);
-    } else if (options.f2intFist()) {
-      FPR_2INT_FIST(burs,s,result,value);
-    } else {
-      OPT_OptimizingCompilerException.TODO("Unsupported f2int option");
-    }
-  }
-
 
   /**
    * Emit code to move 64 bits from FPRs to GPRs
@@ -798,14 +761,14 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     // load the JTOC into a register
     OPT_RegisterOperand PR = R(burs.ir.regpool.getPhysicalRegisterSet().
                                getPR());
-    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocOffset, 
+    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocField.getOffset(), 
                                             DW, null, null);
     OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
     burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
 
     // Store the FPU Control Word to a JTOC slot
     OPT_MemoryOperand M = OPT_MemoryOperand.BD
-      (regOp.copyRO(), VM_Entrypoints.FPUControlWordOffset, W, null, null);
+      (regOp.copyRO(), VM_Entrypoints.FPUControlWordField.getOffset(), W, null, null);
     burs.append(MIR_UnaryNoRes.create(IA32_FNSTCW, M));
     // Set the bits in the status word that control round to zero.
     // Note that we use a 32-bit and, even though we only care about the
@@ -1648,19 +1611,20 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param s the instruction to expand
    */
   final void LOWTABLESWITCH(OPT_BURS burs, OPT_Instruction s) {
-    OPT_RegisterOperand index = LowTableSwitch.getIndex(s);
+    // (1) We're changing index from a U to a DU.
+    //     Inject a fresh copy instruction to make sure we aren't
+    //     going to get into trouble (if someone else was also using index).
+    OPT_RegisterOperand newIndex = burs.ir.regpool.makeTempInt(); 
+    burs.append(MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))); 
     int number = LowTableSwitch.getNumberOfTargets(s);
-
-    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(IA32_LOWTABLESWITCH,
-                                                          index, number*2));
+    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex, number*2));
     for (int i=0; i<number; i++) {
-      OPT_BranchOperand target = LowTableSwitch.getTarget(s,i);
-      OPT_BranchProfileOperand profile = LowTableSwitch.getBranchProfile(s,i);
-      MIR_LowTableSwitch.setTarget(s2,i,target);
-      MIR_LowTableSwitch.setBranchProfile(s2,i,profile);
+      MIR_LowTableSwitch.setTarget(s2,i,LowTableSwitch.getTarget(s,i));
+      MIR_LowTableSwitch.setBranchProfile(s2,i,LowTableSwitch.getBranchProfile(s,i));
     }
     burs.append(s2);
   }
+
   /**
    * Expansion of RESOLVE.  Dynamic link point.
    * Build up MIR instructions for Resolve.
@@ -1670,10 +1634,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void RESOLVE(OPT_BURS burs, 
 		     OPT_Instruction s) {
-    OPT_Operand target = loadFromJTOC(burs, VM_OptLinker.optResolveMethod.getOffset());
+    OPT_Operand target = loadFromJTOC(burs, VM_Entrypoints.optResolveMethod.getOffset());
     burs.append(CPOS(s, MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, 
 					 null, null,  target, 
-					 OPT_MethodOperand.STATIC(VM_OptLinker.optResolveMethod))));
+					 OPT_MethodOperand.STATIC(VM_Entrypoints.optResolveMethod))));
   }
   /**
    * Expansion of TRAP_IF, with an int constant as the second value.

@@ -17,7 +17,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   void deliverException(VM_CompiledMethod compiledMethod, 
-			int catchBlockInstructionAddress, 
+			VM_Address catchBlockInstructionAddress, 
 			Throwable exceptionObject, 
 			VM_Registers registers) {
 
@@ -28,7 +28,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       // only put the exception object in the stackframe if the catch block is expecting it.
       // (if the method hasn't allocated a stack slot for caught exceptions, then we can safely
       //  drop the exceptionObject on the floor).
-      int fp = registers.getInnermostFramePointer();
+      VM_Address fp = registers.getInnermostFramePointer();
       VM_Magic.setObjectAtOffset(VM_Magic.addressAsObject(fp), offset, exceptionObject);
     }
 
@@ -49,7 +49,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    */ 
   void unwindStackFrame(VM_CompiledMethod compiledMethod, 
 		       VM_Registers registers) {
-    int fp = registers.getInnermostFramePointer();
+    VM_Address fp = registers.getInnermostFramePointer();
     VM_Method method = compiledMethod.getMethod();
     VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
 
@@ -58,7 +58,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     int firstInteger = info.getFirstNonVolatileGPR();
     if (firstInteger >= 0) {
       for (int i = firstInteger; i < 32; i++) {
-	registers.gprs[i] = VM_Magic.getMemoryWord(fp + frameOffset);
+	registers.gprs[i] = VM_Magic.getMemoryWord(fp.add(frameOffset));
 	frameOffset += 4;
       }
     }

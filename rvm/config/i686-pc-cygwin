@@ -87,3 +87,4 @@ export DIFF="/usr/bin/diff"
 export MD5SUM=/usr/bin/md5sum
 export GNU_TAR=/bin/tar
 export XARGS="/usr/bin/xargs"
+export UNZIP="/usr/bin/unzip"

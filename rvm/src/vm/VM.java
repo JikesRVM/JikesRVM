@@ -13,10 +13,6 @@
  */
 public class VM extends VM_Properties implements VM_Constants, 
 						 VM_Uninterruptible { 
-  //-----------//
-  // interface //
-  //-----------//
-
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -53,6 +49,8 @@ public class VM extends VM_Properties implements VM_Constants,
     init(classpath, null);
   }
 
+  static int verbose = 0;  // Show progress of boot 
+
   /**
    * Begin vm execution.
    * The following machine registers are set by "C" bootstrap program 
@@ -67,18 +65,24 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
 
-    // 0. Set up the current VM_Processor object.  The bootstrap program
+    if (verbose >= 1) VM.sysWriteln("Booting");
+
+    // Set up the current VM_Processor object.  The bootstrap program
     // has placed a pointer to the current VM_Processor in a special
     // register.
+    if (verbose >= 1) VM.sysWriteln("Setting up current VM_Processor");
     VM_ProcessorLocalState.boot();
-    
-    // 1. Finish thread initialization that couldn't be done in boot image.
-    //    The "stackLimit" must be set before any method calls, 
-    //    because it's accessed
-    //    by compiler-generated stack overflow checks.
+
+
+    // Finish thread initialization that couldn't be done in boot image.
+    // The "stackLimit" must be set before any method calls, 
+    // because it's accessed
+    // by compiler-generated stack overflow checks.
     //
-    VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> OBJECT_THREAD_ID_SHIFT];
-    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack) + STACK_SIZE_GUARD;
+    if (verbose >= 1) VM.sysWriteln("Doing thread initialization");
+    VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
+    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
+
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
     // get pthread_id from OS and store into vm_processor field
@@ -87,44 +91,45 @@ public class VM extends VM_Properties implements VM_Constants,
       VM_Processor.getCurrentProcessor().pthread_id = 
         VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
     
-     
-    // 2. Initialize memory manager's write barrier.
-    //    This must happen before any putfield or arraystore of object refs
-    //    because the buffer is accessed by compiler-generated write barrier code.
+    // Initialize memory manager's write barrier.
+    // This must happen before any putfield or arraystore of object refs
+    // because the buffer is accessed by compiler-generated write barrier code.
     //
+    if (verbose >= 1) VM.sysWriteln("Setting up write barrier");
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
     }
      
-    //-#if RVM_WITH_CONCURRENT_GC
-    // call setupProcessor to initialize increment/decrement buffer
-    // and set localEpoch to -1
-    //
-    // if reference counting set NEEDS_WRITE_BARRIER this call to
-    // setupProcessor would occur above...ie remove this ifdef
-    //
-    VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
-    //-#endif
-    
-    // 3. Initialize memory manager.
+    // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
+    if (verbose >= 1) VM.sysWriteln("Setting up memory manager");
     VM_Collector.boot(VM_BootRecord.the_boot_record);
-    
-    VM.sysWrite("vm: booting\n");
-    
-    // 4. Reset timers, so they don't inherit values from boot image.
-    //
-    VM_Timer.reset();
 
-    // 5. Fetch arguments from program command line.
+    
+    // Create class objects for static synchronized methods in the bootimage.
+    // This must happen before any bootimage static synchronized methods 
+    // can be invoked.
+    if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
+    createClassObjects();
+    
+    // Fetch arguments from program command line.
     //
+    if (verbose >= 1) VM.sysWriteln("Fetching command-line arguments");
     VM_CommandLineArgs.fetchCommandLineArguments();
 
-    // 6. Initialize class loader.
+    // Initialize class loader.
     //
+    if (verbose >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
+
+    //  Start up the baseline compiler's options before any compilations happen
+    //
+
+    if (verbose >= 1) VM.sysWriteln("Retrieving compiler's boot options");
+    VM_Compiler.bootOptions();
+
 
     //
     // At this point the virtual machine is running as a single thread 
@@ -134,10 +139,6 @@ public class VM extends VM_Properties implements VM_Constants,
     // the user level "main" thread.
     //
 
-    //  Start up the baseline compiler's options before any compilations happen
-    //
-    VM_Compiler.bootOptions();
-     
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 
     // appear in fields that are unique to RVM implementation of 
@@ -146,8 +147,8 @@ public class VM extends VM_Properties implements VM_Constants,
     // "object not part of bootimage" messages printed out by bootimage 
     // writer.
     //
-    runClassInitializer("java.io.FileDescriptor");
 
+    if (verbose >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
@@ -163,8 +164,9 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.lang.Character");
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
     runClassInitializer("java.util.Hashtable");
-    runClassInitializer("java.lang.Class");
-    //-#if RVM_WITH_JAZZLIB
+    runClassInitializer("java.lang.String");
+    runClassInitializer("java.lang.ClassLoader");
+    runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.lang.RuntimePermission");
     runClassInitializer("java.util.TimeZone");
@@ -177,55 +179,81 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    //-#endif
+    runClassInitializer("java.util.jar.Attributes$Name");
 
-    // Initialize compiler.
+    // Initialize compiler that compiles dynamically loaded classes.
     //
+    if (verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
     VM_RuntimeCompiler.boot();
- 
+
     
-    // 7. Process virtual machine directives.
+    // Process virtual machine directives.
     //
+    if (verbose >= 1) VM.sysWriteln("Processing VM directives");
     String[] applicationArguments = VM_CommandLineArgs.processCommandLineArguments();
     if (applicationArguments.length == 0) {  
       VM.sysWrite("vm: please specify a class to execute\n");
       VM.sysExit(1);
     }
 
-    // 8. Allow Baseline compiler to respond to command line arguments
-    //  
-
+    // Allow Baseline compiler to respond to command line arguments
     // The baseline compiler ignores command line arguments until all are processed
     // otherwise printing may occur because of compilations ahead of processing the
     // method_to_print restriction
+    //
+    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
     VM_Compiler.postBootOptions();
 
 
-    // 9. Allow Collector to respond to command line arguments
+    // Allow Collector to respond to command line arguments
     //
+    if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
     VM_Collector.postBoot();
 
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    Thread    xx         = new MainThread(applicationArguments);
-    int       yy         = VM_Magic.objectAsAddress(xx);
-    VM_Thread mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
+    if (verbose >= 1) VM.sysWriteln("Constructing mainThread");
+    Thread      xx         = new MainThread(applicationArguments);
+    VM_Address  yy         = VM_Magic.objectAsAddress(xx);
+    VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
 
     // record the main thread and the name of the main application class.
     _mainApplicationClassName = applicationArguments[0];
     _mainThread = mainThread;
-    
-     
-    //Ensure that all classes in the boot image that have static synchronized methods have their class objects loaded:
-    (VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Thread;")).asClass()).getClassForType();
-     
+
+    VM_Lock.boot();
+
     // Begin multiprocessing.
     //
     VM_Scheduler.boot(mainThread);
     if (VM.VerifyAssertions) 
       VM.assert(VM.NOT_REACHED);
   }
-   
+
+  private static VM_Class[] classObjects = new VM_Class[0];
+  /**
+   * Called by the compilers when compiling a static synchronized method
+   * during bootimage writing.
+   */
+  static void deferClassObjectCreation(VM_Class c) {
+    for (int i=0; i<classObjects.length; i++) {
+      if (classObjects[i] == c) return; // already recorded
+    }
+    VM_Class[] tmp = new VM_Class[classObjects.length+1];
+    System.arraycopy(classObjects, 0, tmp, 0, classObjects.length);
+    tmp[classObjects.length] = c;
+    classObjects = tmp;
+  }
+  /**
+   * Create the java.lang.Class objects needed for 
+   * static synchronized methods in the bootimage.
+   */
+  private static void createClassObjects() {
+    for (int i=0; i<classObjects.length; i++) {
+      classObjects[i].getClassForType();
+    }
+  }
+
   /**
    * Run <clinit> method of specified class, if that class appears 
    * in bootimage.
@@ -234,12 +262,7 @@ public class VM extends VM_Properties implements VM_Constants,
   private static void runClassInitializer(String className) {
     VM_Atom  classDescriptor = 
        VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
-    // SJF: The following line ensures that the java.lang.Class object for
-    // this type is created.  As a result, we can call static synchronized
-    // methods on this type.  TODO: implement a more robust scheme for
-    // putting static synchronized methods in the boot image.
-    cls.getClassForType();
+    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
     if (cls.isInBootImage()) {
       VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getMostRecentlyGeneratedInstructions());
       cls.setAllFinalStaticJTOCEntries();
@@ -268,7 +291,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param message the message to print if the assertion is false
    */
   static void assert(boolean b, String message) {
-    if (VM.VerifyAssertions == false) {
+    if (!VM.VerifyAssertions) {
       // somebody forgot to conditionalize their call to assert with
       // "if (VM.VerifyAssertions)"
       _assertionFailure("vm internal error: assert called when !VM.VerifyAssertions");
@@ -292,7 +315,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
    * @param number
-   * @return 
+   * @return a String with the hex representation of the integer
    */
   static String intAsHexString(int number) {
     char[] buf   = new char[10];
@@ -333,11 +356,17 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value   what is printed
    */
   public static void sysWrite(String value) {
-    if (runningVM)
-      for (int i = 0, n = value.length(); i < n; ++i)
+    if (runningVM) {
+      boolean enabled = VM_Processor.getCurrentProcessor().threadSwitchingEnabled();
+      if (enabled) VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      for (int i = 0, n = value.length(); i < n; ++i) {
         sysWrite(value.charAt(i));
-    else
+      }
+      if (enabled) VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    }
+    else {
       System.err.print(value);
+    }
   }
 
   /**
@@ -351,12 +380,63 @@ public class VM extends VM_Properties implements VM_Constants,
       System.err.print(value);
   }
 
+
+  /**
+   * Low level print to console.  Can't pass doubles yet so just print to 2 decimal places.
+   * @param value   double to be printed
+   *
+   */
+  public static void sysWrite(double value) {
+    if (runningVM) {
+      int ones = (int) value;
+      int hundredths = (int) (100.0 * (value - ones));
+      sysWrite(ones, false); 
+      sysWrite(".");
+      if (hundredths < 10)
+	  sysWrite("0");
+      sysWrite(hundredths, false);
+    }
+    else
+      System.err.print(value);
+  }
+
   /**
    * Low level print to console.
    * @param value	what is printed
    */
   public static void sysWrite(int value) {
-    sysWrite(value, true);
+    if (runningVM) {
+	int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
+	sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
+    }
+    else
+      System.err.print(value);
+  }
+
+  /**
+   * Low level print to console.
+   * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
+   */
+  public static void sysWriteField(int fieldWidth, int value) {
+    if (runningVM) {
+	int len = 1, temp = value;
+	if (temp < 0) { len++; temp = -temp; }
+	while (temp >= 10) { len++; temp /= 10; }
+	while (fieldWidth > len++) sysWrite(" ");
+	sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+    }
+    else
+      System.err.print(value);
+  }
+
+  /**
+   * Low level print to console.
+   * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
+   */
+  public static void sysWriteField(int fieldWidth, VM_Atom s) {
+      int len = s.length();
+      while (fieldWidth > len++) sysWrite(" ");
+      sysWrite(s);
   }
 
   /**
@@ -387,8 +467,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void
-  sysWrite(long value) {
+  public static void sysWrite(long value) {
     sysWrite(value, true);
   }
 
@@ -398,8 +477,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void
-  sysWrite(long value, boolean hexToo) {
+  public static void sysWrite(long value, boolean hexToo) {
     if (runningVM) {
       int val1, val2;
       val1 = (int)(value>>32);
@@ -408,6 +486,40 @@ public class VM extends VM_Properties implements VM_Constants,
     } else
       System.err.print(value);
   }
+
+  /**
+   * A group of multi-argument sysWrites with optional newline.
+   */
+  public static void sysWriteln ()                     { sysWrite("\n"); }
+  public static void sysWrite   (VM_Address addr)      { sysWriteHex(addr.toInt()); }
+  public static void sysWriteln (int i)                { sysWrite(i);   sysWriteln(); }
+  public static void sysWriteln (double d)             { sysWrite(d);   sysWriteln(); }
+  public static void sysWriteln (long l)               { sysWrite(l);   sysWriteln(); }
+  public static void sysWriteln (String s)             { sysWrite(s);   sysWriteln(); }
+  public static void sysWrite   (String s, int i)           { sysWrite(s);   sysWrite(i); }
+  public static void sysWriteln (String s, int i)           { sysWrite(s);   sysWriteln(i); }
+  public static void sysWrite   (String s, double d)        { sysWrite(s);   sysWrite(d); }
+  public static void sysWriteln (String s, double d)        { sysWrite(s);   sysWriteln(d); }
+  public static void sysWrite   (String s, long i)           { sysWrite(s);   sysWrite(i); }
+  public static void sysWriteln (String s, long i)           { sysWrite(s);   sysWriteln(i); }
+  public static void sysWrite   (int i, String s)           { sysWrite(i);   sysWrite(s); }
+  public static void sysWriteln (int i, String s)           { sysWrite(i);   sysWriteln(s); }
+  public static void sysWrite   (String s1, String s2)      { sysWrite(s1);  sysWrite(s2); }
+  public static void sysWriteln (String s1, String s2)      { sysWrite(s1);  sysWriteln(s2); }
+  public static void sysWrite   (String s, VM_Address addr) { sysWrite(s);   sysWriteHex(addr.toInt()); }
+  public static void sysWriteln (String s, VM_Address addr) { sysWrite(s);   sysWriteHex(addr.toInt()); sysWriteln(); }
+  public static void sysWrite   (String s1, String s2, int i)  { sysWrite(s1);  sysWrite(s2); sysWrite(i); }
+  public static void sysWriteln (String s1, String s2, int i)  { sysWrite(s1);  sysWrite(s2); sysWriteln(i); }
+  public static void sysWrite   (String s1, int i, String s2)  { sysWrite(s1);  sysWrite(i);  sysWrite(s2); }
+  public static void sysWriteln (String s1, int i, String s2)  { sysWrite(s1);  sysWrite(i);  sysWriteln(s2); }
+  public static void sysWrite   (String s1, String s2, String s3)  { sysWrite(s1);  sysWrite(s2); sysWrite(s3); }
+  public static void sysWriteln (String s1, String s2, String s3)  { sysWrite(s1);  sysWrite(s2); sysWriteln(s3); }
+  public static void sysWrite   (int i1, String s, int i2)     { sysWrite(i1);  sysWrite(s);  sysWrite(i2); }
+  public static void sysWriteln (int i1, String s, int i2)     { sysWrite(i1);  sysWrite(s);  sysWriteln(i2); }
+  public static void sysWrite   (int i1, String s1, String s2) { sysWrite(i1);  sysWrite(s1); sysWrite(s2); }
+  public static void sysWriteln (int i1, String s1, String s2) { sysWrite(i1);  sysWrite(s1); sysWriteln(s2); }
+  public static void sysWrite   (String s1, int i1, String s2, int i2) { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWrite(i2); }
+  public static void sysWriteln (String s1, int i1, String s2, int i2) { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWriteln(i2); }
 
   /**
    * Exit virtual machine due to internal failure of some sort.
@@ -424,6 +536,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value  value to pass to host o/s
    */
   public static void sysExit(int value) {
+    // SJF: I don't want this method inlined, since I use it as a
+    // breakpoint for the jdp regression test.
+    VM_Magic.pragmaNoInline();
     if (runningVM) {
       System.out.flush();
       System.err.flush();
@@ -456,9 +571,10 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param fp
    * @return virtual processor's o/s handle
    */
-  static int sysVirtualProcessorCreate(int jtoc, int pr, int ti, int fp) {
+  static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
+				       int ti, VM_Address fp) {
     return sysCall4(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
-		    jtoc, pr, ti, fp);
+		    jtoc.toInt(), pr.toInt(), ti, fp.toInt());
   }
 
   /**
@@ -714,7 +830,7 @@ public class VM extends VM_Properties implements VM_Constants,
     try {
       VM_Atom atom = VM_Atom.findOrCreateUnicodeAtom(spelling);
       int     slot = VM_Statics.findOrCreateStringLiteral(atom);
-      return  (String)VM_Magic.addressAsObject(VM_Statics.getSlotContentsAsInt(slot));
+      return  (String)VM_Magic.addressAsObject(VM_Address.fromInt(VM_Statics.getSlotContentsAsInt(slot)));
     } catch (java.io.UTFDataFormatException x) {
       throw new InternalError();
     }
@@ -722,24 +838,24 @@ public class VM extends VM_Properties implements VM_Constants,
    
   /**
    * Get description of virtual machine component (field or method).
-   * Note: This is method is intended for use only by VM classes that need 
-   * to address their own fields and methods in the runtime virtual machine 
+   * Note: This is method is intended for use only by VM classes that need
+   * to address their own fields and methods in the runtime virtual machine
    * image.  It should not be used for general purpose class loading.
    * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
    * @param memberName       member name       - something like "invokestatic"
    * @param memberDescriptor member descriptor - something like "()V"
    * @return description
    */
-  static VM_Member getMember(String classDescriptor, String memberName, 
-			     String memberDescriptor) {
+  static VM_Member getMember(String classDescriptor, String memberName,
+                             String memberDescriptor) {
     VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor).asClass();
+      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
       cls.load();
       cls.resolve();
-         
+
       VM_Member member;
       if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
         return member;
@@ -754,7 +870,7 @@ public class VM extends VM_Properties implements VM_Constants,
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     } catch (VM_ResolutionException e) {
       VM.sysWrite("VM.getMember: can't resolve class=" + classDescriptor+
-		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
+                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     }
     return null;
@@ -788,10 +904,10 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_MagicNames.init();
     VM_ClassLoader.init(vmClassPath);
     VM_Class object       = VM_Type.JavaLangObjectType.asClass();
-    VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;")).asClass();
-    VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;")).asClass();
-    VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;")).asClass();
-    VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;")).asClass();
+    VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
      
     // initialization of reference maps locks for jsr processing
     VM_ReferenceMaps.init(); 
@@ -824,9 +940,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Runtime.init();
     VM_Scheduler.init();
     VM_Collector.init();
-
-    if (runningTool)
-      return;
   }
 
   /**
@@ -877,7 +990,7 @@ public class VM extends VM_Properties implements VM_Constants,
       
     // 1.
     //
-    if (VM_Magic.getFramePointer() - STACK_SIZE_GCDISABLED < myThread.stackLimit)
+    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit))
        VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GCDISABLED >> 2), null);
 
     // 2.
@@ -911,7 +1024,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * getMainMethod
-   * @return 
+   * @return the main method of the main thread
    */
   public static VM_Method getMainMethod()  {
     if(VM.VerifyAssertions) VM.assert(_mainThread != null);

@@ -21,7 +21,7 @@
  * <pre>
  *  newExecution(ir).performPhase(ir).
  * </pre>
- * @see OPT_OptimizationPlanAtomicElement.perform.
+ * @see OPT_OptimizationPlanAtomicElement#perform
  *
  * <p> NOTE: compiler phases that do not need to use instance
  * fields to hold per-compilation state may override 

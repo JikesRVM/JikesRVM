@@ -23,19 +23,14 @@ public class VM_StackTrace implements VM_Constants {
    * @return list of stackframes that called us
    */
    public static VM_StackTrace[] create() {
-     if (VM.TraceTimes) VM_Timer.start(VM_Timer.EXCEPTION_HANDLING);
-
-     int vmStart = VM_BootRecord.the_boot_record.startAddress;
-     int vmEnd = VM_BootRecord.the_boot_record.largeStart + VM_BootRecord.the_boot_record.largeSize;
-
      // count number of frames comprising stack
      //
      int stackFrameCount = 0;
      VM.disableGC(); // so fp & ip don't change under our feet
-     int fp = VM_Magic.getFramePointer();
-     int ip = VM_Magic.getReturnAddress(fp);
+     VM_Address fp = VM_Magic.getFramePointer();
+     VM_Address ip = VM_Magic.getReturnAddress(fp);
      fp = VM_Magic.getCallerFramePointer(fp);
-     while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
+     while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
        stackFrameCount++;
        int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
@@ -69,7 +64,7 @@ public class VM_StackTrace implements VM_Constants {
        if (compiledMethodId!=INVISIBLE_METHOD_ID) {
 	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	 stackTrace[i].compiledMethod = compiledMethod;
-	 stackTrace[i].instructionOffset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+	 stackTrace[i].instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
 	 if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
 	   // skip native frames, stopping at last native frame preceeding the
 	   // Java To C transition frame
@@ -81,7 +76,12 @@ public class VM_StackTrace implements VM_Constants {
      }
      VM.enableGC();
       
-     if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
+     if (VM.TraceStackTrace) {
+	 VM.disableGC();
+	 VM_Scheduler.dumpStack();
+	 VM.enableGC();
+     }
+
      return stackTrace;
    }
 
@@ -135,17 +135,10 @@ public class VM_StackTrace implements VM_Constants {
        }
          
        VM_CompiledMethod compiledMethod = stackTrace[i].compiledMethod;
-       if (compiledMethod == null) {
+       if (compiledMethod == null) 
 	 out.println("\tat <invisible method>");
-       }
-
-       VM_Method       method       = compiledMethod.getMethod();
-       VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
-       if (compilerInfo.getCompilerType() == VM_CompilerInfo.TRAP) {
-	 out.println("\tat <hardware trap>");
-       } else {
+       else 
 	 compiledMethod.getCompilerInfo().printStackTrace(stackTrace[i].instructionOffset, out);
-       }
      }
    }
 

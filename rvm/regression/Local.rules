@@ -61,8 +61,14 @@ InterClient_JARS=$(wildcard $(InterClient_HOME)/*.jar)
 HTTPClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 
 #
+# Java Grande Forum Benchmarks v2.0
+#
+JGF_HOME=/u/sfink/tmp/jgf_v2.0
+
+#
 # rules
 #
 BENCH_HOME=$($(BENCH_NAME)_HOME)
 BENCH_JARS=$($(BENCH_NAME)_JARS) $(foreach I, $(BENCH_INCLUDE), $($(I)_JARS))
+
 

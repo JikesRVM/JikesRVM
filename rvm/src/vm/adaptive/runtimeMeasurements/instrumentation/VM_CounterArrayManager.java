@@ -28,18 +28,6 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   static final boolean DEBUG=false;
 
   /**
-   *  Constructor.  
-   *
-   * @param vmMethod The method for which the count is being maintained.
-   * @return an integer identifier for the new counter array
-   */
-  public VM_CounterArrayManager()
-  {
-    counterArraysField = (VM_Field)VM.getMember("LVM_CounterArrayManager;",
-						"counterArrays","[[D");
-  }
-
-  /**
    *  This method is called my a VM_ManagedData object to obtain space
    *  in the counter manager.  A handle or "ID" is returned for the
    *  data to identify it's counter space.
@@ -168,7 +156,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
 
     // Get the base of array
     OPT_RegisterOperand counterArray =  OPT_ConvertToLowLevelIR.
-      getStatic(counterInst, ir, counterArraysField);
+      getStatic(counterInst, ir, VM_Entrypoints.counterArrayManagerCounterArraysField);
 
     // load counterArrays[handle]
     OPT_RegisterOperand array2 =
@@ -249,12 +237,6 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     }
   }
  
-  /* --- Implementation --- */
-
-  // Used as an entrypoint to the method that does the actual counting.
-  VM_Method countEventMethod = null;
-  VM_Field counterArraysField = null;
-
   /** Implementation */
   static final int INITIAL_COUNT = 10;
   static final int INCREMENT = 10;

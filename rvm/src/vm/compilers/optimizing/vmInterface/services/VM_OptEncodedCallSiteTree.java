@@ -25,42 +25,19 @@ import  java.util.*;
  */
 class VM_OptEncodedCallSiteTree {
 
-  /**
-   * put your documentation comment here
-   * @param entryOffset
-   * @param encoding
-   * @return 
-   */
-  static int getMethodID (int entryOffset, int[] encoding) {
+  static int getMethodID(int entryOffset, int[] encoding) {
     return  encoding[entryOffset + 1];
   }
 
-  /**
-   * put your documentation comment here
-   * @param entryOffset
-   * @param encoding
-   * @param methodID
-   */
-  static void setMethodID (int entryOffset, int[] encoding, int methodID) {
+  static void setMethodID(int entryOffset, int[] encoding, int methodID) {
     encoding[entryOffset + 1] = methodID;
   }
 
-  /**
-   * put your documentation comment here
-   * @param entryOffset
-   * @param encoding
-   * @return 
-   */
-  static int getByteCodeOffset (int entryOffset, int[] encoding) {
+  static int getByteCodeOffset(int entryOffset, int[] encoding) {
     return  encoding[entryOffset];
   }
 
-  /**
-   * put your documentation comment here
-   * @param tree
-   * @return 
-   */
-  static int[] getEncoding (OPT_CallSiteTree tree) {
+  static int[] getEncoding(OPT_CallSiteTree tree) {
     int size = 0;
     if (tree.isEmpty())
       return  null; 
@@ -79,15 +56,7 @@ class VM_OptEncodedCallSiteTree {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param current
-   * @param offset
-   * @param parent
-   * @param encoding
-   * @return 
-   */
-  static int getEncoding (OPT_CallSiteTreeNode current, int offset, int parent, 
+  static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, 
       int[] encoding) {
     int i = offset;
     if (parent != -1)
@@ -113,13 +82,7 @@ class VM_OptEncodedCallSiteTree {
     return  j;
   }
 
-  /**
-   * put your documentation comment here
-   * @param index
-   * @param encodedTree
-   * @return 
-   */
-  static int getParent (int index, int[] encodedTree) {
+  static int getParent(int index, int[] encodedTree) {
     while (index >= 0 && encodedTree[index] >= -1)
       index--;
     if (index < 0)

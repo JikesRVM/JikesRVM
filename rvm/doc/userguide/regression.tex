@@ -1,15 +1,21 @@
 
- The RVM distribution includes a harness for running regression and
+ The Jikes\trademark RVM distribution includes a harness for running
+regression and 
 performance tests, and several example applications that use this
-harness.  It is located in the rvm/regression subtree in the RVM
-distribution, and consists of three parts: support for running sanity
-and performance tests, individual benchmark test subdirectories, and a
-driver for running nightly sanity tests.  The support for running
+harness.  It is located in the {\tt \$RVM\_ROOT/rvm/regression}
+subtree in the 
+distribution, and consists of three parts: 
+\begin{itemize}
+\item support for running sanity and performance tests, 
+\item individual benchmark test subdirectories, and 
+\item a driver for running nightly sanity tests.  
+\end{itemize}
+The support for running
 sanity and performance tests comprises a set of scripts and makefiles
 that define a common interface for running a variety of programs, and
 for determining their performance and correctness.  The individual
 tests are all located in {\tt{\$RVM\_ROOT/rvm/regression/tests}}, and
-consist of makefiles, scripts sample inputs and outputs; each
+consist of makefiles, scripts, sample inputs and outputs; each
 directory contains support for running an individual application in
 the testing harness.  The support for night sanity runs is a layer on
 top of actual sanity testing support to ease the task of running and
@@ -19,8 +25,9 @@ described in more detail.
 \subsubsection{Testing Support}
 
   The top-level driver for running sanity tests is called
-{\tt{RunSanityTests}}; it is located in the rvm/regression directory
-and requires {\tt{ksh}} and {\em{GNU make}} in order to run.  When it
+{\tt{RunSanityTests}}; it is located in the {\tt
+\$RVM\_ROOT/rvm/regression} directory 
+and requires {\tt{ksh}} and {\em{GNU make}} to run.  When it
 is invoked, it will, by default, build a variety of boot images and
 run several test programs with each boot image.  The behavior of
 RunSanityTests is highly customizable: most of its behavior can be
@@ -33,7 +40,7 @@ RunSanityTests and the benchmarks must also be customized to your
 local setup by modifying {\tt
 \$RVM\_ROOT/rvm/regression/Local.rules}.  In addition, you can also
 customize by making control files for RunSanityTests to ease running
-your preferred selection of boot images, test programs and options.
+your preferred selection of boot images, test programs, and options.
 
 \paragraph{{\tt{RunSanityTests}} Command-Line Options}
 
@@ -41,7 +48,7 @@ your preferred selection of boot images, test programs and options.
 what tests to run, what boot images to build, how many processors to
 use, where to put generated boot images and results, whether to run
 sanity or performance tests, what optimization levels to use for opt
-compiler tests, and options to pass to the RVM runtime.  These
+compiler tests, and options to pass to the Jikes RVM runtime.  These
 command-line options are detailed below:
 
 \begin{itemize}
@@ -274,7 +281,7 @@ sanity checking and benchmark invocation.
 
  The general setup options control source and class paths, the heap
 sizes needed by the benchmark and any extra boot time arguments to
-RVM.  These variables are as follows:
+Jikes RVM.  These variables are as follows:
 \begin{description}
 \item[BENCH\_SOURCE\_PATH] is a list of directories in which to find
 Java\trademark source files that are used by this benchmark.  This is not a
@@ -314,13 +321,15 @@ variables depending upon whether the benchmark is a stand-alone program
 or a client-server one.  For stand-alone programs, the variables are as
 follows: 
 \begin{description}
-\item[START\_CLASS] is the name of the class to give when invoking RVM
+\item[START\_CLASS] is the name of the class to give when invoking
+Jikes RVM
 for this benchmark; this is a normal class name, not a descriptor, so
 it expects dots rather than slashes for package names.
-\item[START\_ARGS] is a string of arguments to pass when invoking RVM
+\item[START\_ARGS] is a string of arguments to pass when invoking
+Jikes RVM
 for this benchmark.  These arguments are passed after the class name,
 so they are arguments to the Java program itself, not boot time
-arguments to RVM.
+arguments to Jikes RVM.
 \end{description}
 
  The client-server programs require more variables since they must
@@ -369,7 +378,7 @@ differ in how they check for correctness:
 \item[sanity-diff] uses the EXPECTED file to check correctness.  This
 is only supported for stand-alone programs.
 \item[sanity-compare] runs the same program with the JDK and compares
-the results with those obtained from RVM.  This is only supported for
+the results with those obtained from Jikes RVM.  This is only supported for
 stand-alone programs. 
 \item[sanity-check-rule] invokes the ``check'' make rule, which must be
 defined by the test program makefile.  The ``check'' rule can assume

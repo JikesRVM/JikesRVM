@@ -254,7 +254,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
   /** 
    * Get the OPT_DF_LatticeCell key corresponding to a basic block
    * @param bb the basic block 
-   * @returns the key (just the block itself)
+   * @return the key (just the block itself)
    */
   Object getKey (OPT_BasicBlock bb) {
     return  bb;
@@ -263,7 +263,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
   /** 
    * Make a new OPT_DF_LatticeCell key corresponding to a basic block
    * @param key the basic block 
-   * @returns the new cell
+   * @return the new cell
    */
   protected OPT_DF_LatticeCell makeCell (Object key) {
     return  new OPT_DominatorCell((OPT_BasicBlock)key,ir);
@@ -395,7 +395,7 @@ class OPT_DominatorOperator extends OPT_DF_Operator {
    * Evaluate an equation with the MEET operation 
    * @param operands the lhs(operands[0]) and rhs(operands[1])
    * 	   of the equation.
-   * @returns true if the value of the lhs changes. false otherwise
+   * @return true if the value of the lhs changes. false otherwise
    */
   boolean evaluate (OPT_DF_LatticeCell[] operands) {
     OPT_DominatorCell lhs = (OPT_DominatorCell)operands[0];

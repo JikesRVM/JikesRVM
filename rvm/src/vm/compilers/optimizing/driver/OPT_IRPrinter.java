@@ -8,14 +8,14 @@
  *
  * @author Dave Grove
  */
-class OPT_IRPrinter extends OPT_CompilerPhase {
+public class OPT_IRPrinter extends OPT_CompilerPhase {
   protected String msg;
 
   /**
    * Constuct a phase to print the IR with a message.
    * @param   m the message
    */
-  OPT_IRPrinter (String m) {
+  public OPT_IRPrinter (String m) {
     msg = m;
   }
 

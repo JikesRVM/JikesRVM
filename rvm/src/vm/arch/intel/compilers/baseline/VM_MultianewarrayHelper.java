@@ -35,9 +35,11 @@ class VM_MultianewarrayHelper {
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
-    int argp = VM_Magic.getFramePointer() + argOffset;
-    for (int i = 0; i < numDimensions; ++i)
-      numElements[i] = VM_Magic.getMemoryWord(argp -= 4);
+    VM_Address argp = VM_Magic.getFramePointer().add(argOffset);
+    for (int i = 0; i < numDimensions; ++i) {
+	argp = argp.sub(4);
+	numElements[i] = VM_Magic.getMemoryWord(argp);
+    }
     VM.enableGC();
     
     // validate arguments

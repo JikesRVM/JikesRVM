@@ -30,10 +30,6 @@ class TestGC {
 
     String str1 = new String("string 1");
     String str2 = new String("string 2");
-    int oldAddress1=0;
-    int oldAddress2=0;
-    int newAddress1=0;
-    int newAddress2=0;
 
     System.loadLibrary("TestGC");
 
@@ -49,30 +45,34 @@ class TestGC {
 	}
     }
 
-    printVerbose("TestGC Before native call:");
+    Object returnobj;
+
     if ( ! runningUnderJDK ) {
-      oldAddress1 = VM_Magic.objectAsAddress(str1);
-      oldAddress2 = VM_Magic.objectAsAddress(str2);
-      printVerbose("  str1 address = " + VM.intAsHexString(oldAddress1));
-      printVerbose("  str2 address = " + VM.intAsHexString(oldAddress2));
+
+	VM_Address oldAddress1 = VM_Magic.objectAsAddress(str1);
+	VM_Address oldAddress2 = VM_Magic.objectAsAddress(str2);
+	printVerbose("  str1 address = " + VM.intAsHexString(oldAddress1.toInt()));
+	printVerbose("  str2 address = " + VM.intAsHexString(oldAddress2.toInt()));
+
+	returnobj = testgc( str1, str2 );
+	printVerbose("TestGC After native call:");
+	
+	VM_Address newAddress1 = VM_Magic.objectAsAddress(str1);
+	VM_Address newAddress2 = VM_Magic.objectAsAddress(str2);
+	if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
+	    copyingGC = true;
+	    printVerbose("Objects have been moved by GC:");
+	} else {
+	    copyingGC = false;
+	    printVerbose("Objects have NOT been moved by GC:");
+	}
+	printVerbose("  str1 address = " + VM.intAsHexString(newAddress1.toInt()));
+	printVerbose("  str2 address = " + VM.intAsHexString(newAddress2.toInt()));
+	printVerbose("  returnobj address = " + VM.intAsHexString(VM_Magic.objectAsAddress(returnobj).toInt()));
     }
-
-    Object returnobj = testgc( str1, str2 );
-
-    printVerbose("TestGC After native call:");
-    if ( ! runningUnderJDK ) {
-      newAddress1 = VM_Magic.objectAsAddress(str1);
-      newAddress2 = VM_Magic.objectAsAddress(str2);
-      if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
-	copyingGC = true;
-	printVerbose("Objects have been moved by GC:");
-      } else {
-	copyingGC = false;
-	printVerbose("Objects have NOT been moved by GC:");
-      }
-      printVerbose("  str1 address = " + VM.intAsHexString(newAddress1));
-      printVerbose("  str2 address = " + VM.intAsHexString(newAddress2));
-      printVerbose("  returnobj address = " + VM.intAsHexString(VM_Magic.objectAsAddress(returnobj)));
+    else {
+	returnobj = testgc( str1, str2 );
+	printVerbose("TestGC After native call:");
     }
 
     // if (copyingGC)
