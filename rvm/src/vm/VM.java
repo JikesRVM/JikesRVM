@@ -276,6 +276,8 @@ public class VM extends VM_Properties
     // up to this point, we are OK deferring its proper re-initialization.
     runClassInitializer("java.lang.ClassLoader"); 
 
+    /* Here, we lie and pretend to have a working app class loader, since we
+       need it in order to run other initializers properly! */
     //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
     //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
@@ -393,10 +395,6 @@ public class VM extends VM_Properties
     com.ibm.JikesRVM.adaptive.VM_Controller.boot();
     //-#endif
 
-    // Turn on security checks again.
-    // Commented out because we haven't incorporated this into the main CVS
-    // tree yet. 
-    // java.security.JikesRVMSupport.fullyBootedVM();
 
     // The first argument must be a class name.
     if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
@@ -411,9 +409,27 @@ public class VM extends VM_Properties
       pleaseSpecifyAClass();
     }
 
+
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
     VM_ClassLoader.getApplicationClassLoader();
     VM_ClassLoader.declareApplicationClassLoaderIsReady();
+
+    if (verboseBoot >= 1) VM.sysWriteln("Turning back on security checks.  Letting people see the ApplicationClassLoader.");
+    // Turn on security checks again.
+    // Commented out because we haven't incorporated this into the main CVS
+    // tree yet. 
+    // java.security.JikesRVMSupport.fullyBootedVM();
+
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    //-#elif RVM_WITH_CLASSPATH_0_12
+    java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
+    //-#else
+    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD
+    /** This one absolutely requires that we have a working Application/System
+        class loader, or at least a returnable one.  That, in turn, requires
+        lots of things be set up for Jar.  */
+    runClassInitializer("java.lang.ClassLoader$StaticData");
+    //-#endif
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
