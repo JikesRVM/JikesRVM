@@ -645,6 +645,9 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, int i1, String s2, int i2) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWriteln(i2); }
   public static void sysWrite   (String s1, int i1, String s2, long l1) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWrite(  l1); }
   public static void sysWriteln (String s1, int i1, String s2, long l1) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i1); sysWrite(s2); sysWriteln(l1); }
+  public static void sysWrite   (String s1, double d, String s2)        throws VM_PragmaNoInline { sysWrite(s1);   sysWrite(d); sysWrite(s2); }
+  public static void sysWriteln (String s1, double d, String s2)        throws VM_PragmaNoInline { sysWrite(s1);   sysWrite(d); sysWriteln(s2); }
+
 
   public static void sysWrite   (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(i1); sysWrite(  s3); }
   public static void sysWriteln (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(i1); sysWriteln(s3); }
