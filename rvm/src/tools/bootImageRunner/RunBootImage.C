@@ -531,17 +531,14 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
 
     errno = 0;
     long double heapsz;
-#ifdef HAVE_STRTOLD
+#ifdef HAVE_CXX_STRTOLD
         /* This gets around some nastiness in AIX 5.1, where <stdlib.h> only
            prototypes strtold() if we're using the 96 or 128 bit "long double"
            type.  Which is an option to the IBM Visual Age C compiler, but
            apparently not (yet) available for GCC.  */
-    // heapsz = strtold(subtoken, &endp);
-    // Doesn't work and I don't have time to figure out why. --dave
-       heapsz = strtod(subtoken, &endp);
-
+    heapsz = strtold(subtoken, &endp);
 #else
-        heapsz = strtod(subtoken, &endp);
+    heapsz = strtod(subtoken, &endp);
 #endif
 
     // First, set the factor appropriately, and make sure there aren't extra
