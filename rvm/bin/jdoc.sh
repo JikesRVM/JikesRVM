@@ -79,15 +79,19 @@ echo -n "(sources processed) "
 # run javadoc
 cd $CODE_DIR
 
+# collect the JikesRVM packages; for these packages we want all files
 PACKAGES=
-for _d in `find . -type d`; do
+for _d in `find . -type d -a ! -path './java*'`; do
   if [ `find $_d -type f -maxdepth 1 -name '*.java' | wc -l` != 0 ]; then
     PACKAGES="$PACKAGES `echo $_d | $SED s@^\./\*@@g | $SED s@/@.@g`"
   fi
 done
 
+# collect the java.* files; for these packages we want only our files
+FILES=`find java -name '*.java'`
+
 rm -f ../javadoc.out
-find . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES >> ../javadoc.out 2>&1
+find . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES $FILES >> ../javadoc.out 2>&1
 
 echo -n "(javadoc complete) "
 
