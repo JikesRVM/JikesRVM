@@ -29,12 +29,13 @@ import org.vmmagic.pragma.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of RefCountLocal.
  *
+ * $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
 public final class RefCountSpace implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
 
   /****************************************************************************
    *
