@@ -65,6 +65,11 @@ abstract class VM_BaselineCompiler {
   protected int biStart; 
 
   /**
+   * Next edge counter entry to allocate
+   */
+  protected int edgeCounterIdx;
+
+  /**
    * The compiledMethod assigned to this compilation of method
    */
   protected VM_BaselineCompiledMethod compiledMethod;
@@ -201,6 +206,9 @@ abstract class VM_BaselineCompiler {
     }
     compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
     compiledMethod.compileComplete(instructions);
+    if (edgeCounterIdx > 0) {
+      VM_EdgeCounts.allocateCounters(method.getDictionaryId(), edgeCounterIdx);
+    }
     if (shouldPrint) {
       compiledMethod.printExceptionTable();
       printEndHeader(method);

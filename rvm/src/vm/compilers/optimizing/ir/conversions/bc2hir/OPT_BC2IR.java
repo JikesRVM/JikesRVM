@@ -1212,7 +1212,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       case JBC_tableswitch:
 	{
 	  OPT_Operand op0 = popInt();
-	  // bcInfo.alignSwitch();
 	  int defaultoff = bcInfo.getSwitchDefaultTarget();
 	  int low = bcInfo.getSwitchLowValue();
 	  int high = bcInfo.getSwitchHighValue();
@@ -1236,14 +1235,25 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 				 new OPT_IntConstantOperand(low), 
 				 new OPT_IntConstantOperand(high), 
 				 generateTarget(defaultoff), 
-				 new OPT_BranchProfileOperand(),
+				 null,
 				 number*2);
-	  double approxProb = 1/(number+1); // num targets + default
 	  for (int i = 0; i < number; ++i) {
-	    TableSwitch.setTarget(s, i, 
-				  generateTarget(bcInfo.getSwitchTarget(i)));
-	    TableSwitch.
-	      setBranchProfile(s, i, new OPT_BranchProfileOperand(approxProb));
+	    TableSwitch.setTarget(s, i, generateTarget(bcInfo.getSwitchTarget(i)));
+	  }
+	  
+	  // Set branch probabilities
+	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
+	  if (sp == null) {
+	    double approxProb = 1.0/(double)(number+1); // number targets + default
+	    TableSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
+	    for (int i = 0; i < number; ++i) {
+	      TableSwitch.setBranchProfile(s, i, new OPT_BranchProfileOperand(approxProb));
+	    }
+	  } else {
+	    TableSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(sp.getDefaultProbability()));
+	    for (int i = 0; i < number; ++i) {
+	      TableSwitch.setBranchProfile(s, i, new OPT_BranchProfileOperand(sp.getCaseProbability(i)));
+	    }
 	  }
 	}
 	break;
@@ -1251,7 +1261,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       case JBC_lookupswitch:
 	{
 	  OPT_Operand op0 = popInt();
-	  // bcInfo.alignSwitch();
 	  int defaultoff = bcInfo.getSwitchDefaultTarget();
 	  int numpairs = bcInfo.getLookupSwitchNumberOfPairs();
 	  if (numpairs == 0) {
@@ -1278,17 +1287,29 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    s = _gotoHelper(offset);
 	    break;
 	  }
+
+	  // Construct switch
 	  s = LookupSwitch.create(LOOKUPSWITCH, op0, null, null, 
 				  generateTarget(defaultoff), 
-				  new OPT_BranchProfileOperand(),numpairs*3);
-	  double approxProb = 1/(numpairs+1); // num targets + default
+				  null,  numpairs*3);
 	  for (int i = 0; i < numpairs; ++i) {
-	    LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand
-				  (bcInfo.getSwitchValue(i)));
-	    LookupSwitch.setTarget(s, i, 
-				   generateTarget(bcInfo.getSwitchTarget(i)));
-	    LookupSwitch.
-	      setBranchProfile(s, i, new OPT_BranchProfileOperand(approxProb));
+	    LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand(bcInfo.getSwitchValue(i)));
+	    LookupSwitch.setTarget(s, i, generateTarget(bcInfo.getSwitchTarget(i)));
+	  }
+
+	  // Set branch probabilities
+	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
+	  if (sp == null) {
+	    double approxProb = 1.0/(double)(numpairs+1); // num targets + default
+	    LookupSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
+	    for (int i = 0; i < numpairs; ++i) {
+	      LookupSwitch.setBranchProfile(s, i, new OPT_BranchProfileOperand(approxProb));
+	    }
+	  } else {
+	    LookupSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(sp.getDefaultProbability()));
+	    for (int i = 0; i < numpairs; ++i) {
+	      LookupSwitch.setBranchProfile(s, i, new OPT_BranchProfileOperand(sp.getCaseProbability(i)));
+	    }
 	  }
 	}
 	break;
@@ -3354,7 +3375,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return IfCmp.create(INT_IFCMP, guard, op0, 
 			  new OPT_IntConstantOperand(0), 
 			  cond, generateTarget(offset),
-			  new OPT_BranchProfileOperand());
+			  gc.getConditionalBranchProfileOperand(instrIndex));
     }
     OPT_RegisterOperand val = (OPT_RegisterOperand)op0;
     OPT_BranchOperand branch = null;
@@ -3433,7 +3454,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    guard = gc.temps.makeTempValidation();
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
-			      cond, branch,new OPT_BranchProfileOperand());
+			      cond, branch,
+			      gc.getConditionalBranchProfileOperand(instrIndex));
+
 	}
       case INSTANCEOF_NOTNULL_opcode:
 	{
@@ -3502,7 +3525,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_RegisterOperand guard = gc.temps.makeTempValidation();
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
-			      cond, branch,new OPT_BranchProfileOperand());
+			      cond, branch,
+			      gc.getConditionalBranchProfileOperand(instrIndex));
 	}
       case DOUBLE_CMPG_opcode:case DOUBLE_CMPL_opcode:
       case FLOAT_CMPG_opcode:case FLOAT_CMPL_opcode:case LONG_CMP_opcode:
@@ -3545,7 +3569,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  branch = generateTarget(offset);
 	  OPT_RegisterOperand guard = gc.temps.makeTempValidation();
 	  return IfCmp.create(operator, guard, val1, val2, cond, 
-			      branch, new OPT_BranchProfileOperand());
+			      branch, 
+			      gc.getConditionalBranchProfileOperand(instrIndex));
 	}
       default:
 	// Fall through and Insert INT_IFCMP
@@ -3556,7 +3581,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(INT_IFCMP, guard, val, 
 			new OPT_IntConstantOperand(0), 
-			cond, branch, new OPT_BranchProfileOperand());
+			cond, branch,
+			gc.getConditionalBranchProfileOperand(instrIndex));
   }
 
   // helper function for if_icmp?? bytecodes
@@ -3593,7 +3619,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(INT_IFCMP, guard, op0, op1, cond, 
 			generateTarget(offset),
-			new OPT_BranchProfileOperand());
+			gc.getConditionalBranchProfileOperand(instrIndex));
   }
 
   // helper function for ifnull/ifnonnull bytecodes
@@ -3671,7 +3697,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, ref, 
 			new OPT_NullConstantOperand(), cond, branch,
-			new OPT_BranchProfileOperand());
+			gc.getConditionalBranchProfileOperand(instrIndex));
   }
   
   // helper function for if_acmp?? bytecodes
@@ -3704,7 +3730,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, op0, op1, 
 			cond, generateTarget(offset),
-			new OPT_BranchProfileOperand());
+			gc.getConditionalBranchProfileOperand(instrIndex));
   }
 
   //// REPLACE LOCALS ON STACK.

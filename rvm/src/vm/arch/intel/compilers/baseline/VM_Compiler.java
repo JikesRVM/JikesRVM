@@ -1512,10 +1512,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifeq(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+    genCondBranch(asm.EQ, bTarget);
   }
 
   /**
@@ -1523,10 +1522,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifne(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+    genCondBranch(asm.NE, bTarget);
   }
 
   /**
@@ -1534,10 +1532,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_iflt(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.LT, mTarget, bTarget);
+    genCondBranch(asm.LT, bTarget);
   }
 
   /**
@@ -1545,10 +1542,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifge(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.GE, mTarget, bTarget);
+    genCondBranch(asm.GE, bTarget);
   }
 
   /**
@@ -1556,10 +1552,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifgt(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.GT, mTarget, bTarget);
+    genCondBranch(asm.GT, bTarget);
   }
 
   /**
@@ -1567,10 +1562,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifle(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Imm(T0, 0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.LE, mTarget, bTarget);
+    genCondBranch(asm.LE, bTarget);
   }
 
   /**
@@ -1578,11 +1572,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpeq(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+    genCondBranch(asm.EQ, bTarget);
   }
 
   /**
@@ -1590,11 +1583,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpne(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+    genCondBranch(asm.NE, bTarget);
   }
 
   /**
@@ -1602,11 +1594,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmplt(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.LT, mTarget, bTarget);
+    genCondBranch(asm.LT, bTarget);
   }
 
   /**
@@ -1614,11 +1605,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpge(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.GE, mTarget, bTarget);
+    genCondBranch(asm.GE, bTarget);
   }
 
   /**
@@ -1626,11 +1616,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmpgt(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.GT, mTarget, bTarget);
+    genCondBranch(asm.GT, bTarget);
   }
 
   /**
@@ -1638,11 +1627,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_icmple(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.LE, mTarget, bTarget);
+    genCondBranch(asm.LE, bTarget);
   }
 
   /**
@@ -1650,11 +1638,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_acmpeq(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+    genCondBranch(asm.EQ, bTarget);
   }
 
   /**
@@ -1662,11 +1649,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_if_acmpne(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+    genCondBranch(asm.NE, bTarget);
   }
 
   /**
@@ -1674,10 +1660,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifnull(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+    genCondBranch(asm.EQ, bTarget);
   }
 
   /**
@@ -1685,10 +1670,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_ifnonnull(int bTarget) {
-    int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
-    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+    genCondBranch(asm.NE, bTarget);
   }
 
   /**
@@ -1731,7 +1715,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg (T0);                          // T0 is index of desired case
     asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
     asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
-    asm.emitJCC_Cond_ImmOrLabel (asm.LGE, mTarget, bTarget);   // if not, goto default case
+    if (options.EDGE_COUNTERS) {
+      // Load counter array for this method
+      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountsArrayField.getOffset());
+      asm.emitMOV_Reg_RegDisp(T1, T1, method.getDictionaryId() << 2);
+      int firstCounter = edgeCounterIdx;
+      edgeCounterIdx += (n + 1);
+
+      // Jump around code for default case
+      VM_ForwardReference fr = asm.forwardJcc(asm.LLT);
+      incEdgeCounter(T1, S0, firstCounter + n);
+      asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+      fr.resolve(asm);
+
+      // Increment counter for the appropriate case
+      incEdgeCounterIdx(T1, S0, T0, firstCounter);
+    } else {
+      asm.emitJCC_Cond_ImmOrLabel (asm.LGE, mTarget, bTarget);   // if not, goto default case
+    }
     asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n<<LG_WORDSIZE) ); 
     // jump around table, pushing address of 0th delta
     for (int i=0; i<n; i++) {                  // create table of deltas
@@ -1746,7 +1747,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Reg(S0);                          // push computed case address
     asm.emitRET ();                            // goto case
   }
-
+  
   /**
    * Emit code to implement the lookupswitch bytecode.
    * Uses linear search, one could use a binary search tree instead,
@@ -1756,6 +1757,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param npairs number of pairs in the lookup switch
    */
   protected final void emit_lookupswitch(int defaultval, int npairs) {
+    if (options.EDGE_COUNTERS) {
+      // Load counter array for this method
+      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountsArrayField.getOffset());
+      asm.emitMOV_Reg_RegDisp(T1, T1, method.getDictionaryId() << 2);
+    }
+
     asm.emitPOP_Reg(T0);
     for (int i=0; i<npairs; i++) {
       int match   = fetch4BytesSigned();
@@ -1763,10 +1770,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int offset  = fetch4BytesSigned();
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
-      asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+      if (options.EDGE_COUNTERS) {
+	// Flip conditions so we can jump over the increment of the taken counter.
+	VM_ForwardReference fr = asm.forwardJcc(asm.NE);
+
+	// Increment counter & jump to target
+	incEdgeCounter(T1, S0, edgeCounterIdx++);
+	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+	fr.resolve(asm);
+      } else {
+	asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+      }
     }
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
+    if (options.EDGE_COUNTERS) {
+      incEdgeCounter(T1, S0, edgeCounterIdx++);
+    }
     asm.emitJMP_ImmOrLabel(mTarget, bTarget);
   }
 
@@ -2528,6 +2548,52 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE );	  // trap
     fr.resolve(asm);
   }
+
+  /**
+   * Emit a conditional branch on the given condition and bytecode target.
+   * The caller has just emitted the instruction sequence to set the condition codes.
+   */
+  private final void genCondBranch(byte cond, int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    if (options.EDGE_COUNTERS) {
+      // Allocate 2 counters, taken and not taken
+      int entry = edgeCounterIdx;
+      edgeCounterIdx += 2;
+
+      // Load counter array for this method
+      asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.edgeCountsArrayField.getOffset());
+      asm.emitMOV_Reg_RegDisp(T0, T0, method.getDictionaryId() << 2);
+
+      // Flip conditions so we can jump over the increment of the taken counter.
+      VM_ForwardReference notTaken = asm.forwardJcc(asm.flipCode(cond));
+
+      // Increment taken counter & jump to target
+      incEdgeCounter(T0, T1, entry + VM_EdgeCounts.TAKEN);
+      asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+
+      // Increment not taken counter
+      notTaken.resolve(asm);
+      incEdgeCounter(T0, T1, entry + VM_EdgeCounts.NOT_TAKEN);
+    } else {
+      asm.emitJCC_Cond_ImmOrLabel(cond, mTarget, bTarget);
+    }
+  }
+
+
+  private final void incEdgeCounter(byte counters, byte scratch, int counterIdx) {
+    asm.emitMOV_Reg_RegDisp(scratch, counters, counterIdx<<2);
+    asm.emitINC_Reg(scratch);
+    asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
+    asm.emitMOV_RegDisp_Reg(counters, counterIdx<<2, scratch);
+  }
+
+  private final void incEdgeCounterIdx(byte counters, byte scratch, byte idx, int counterIdx) {
+    asm.emitMOV_Reg_RegIdx(scratch, counters, idx, asm.WORD, counterIdx<<2);
+    asm.emitINC_Reg(scratch);
+    asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
+    asm.emitMOV_RegIdx_Reg(counters, idx, asm.WORD, counterIdx<<2, scratch);
+  }
+
 
   /** 
    * Copy a single floating-point double parameter from operand stack into fp register stack.

@@ -723,6 +723,23 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   }
 
   /**
+   * Return the appropriate condition code if we want to 
+   * reverse the sense of the branch
+   */
+  final byte flipCode(byte cond) {
+    switch (cond) {
+      case EQ: return NE;
+      case NE: return EQ;
+      case LT: return GE;
+      case GT: return LE;
+      case LE: return GT;
+      case GE: return LT;
+      default:
+        throw new InternalError("Unexpected condition code");
+    }
+  }
+
+  /**
    *  Generate a forward JMP instruction into the generated code.
    * This form is used when the compiler wants to hang onto the
    * forward reference object and call resolve on it directly.  These

@@ -36,6 +36,11 @@ final class OPT_GenerationContext implements OPT_Constants,
   VM_Method method;
 
   /**
+   * The BranchProfile data for method, if available
+   */
+  VM_BranchProfile[] branchProfiles;
+
+  /**
    * The options to control the generation
    */
   OPT_Options options;
@@ -187,6 +192,7 @@ final class OPT_GenerationContext implements OPT_Constants,
     original_method = meth;
     original_cm = cm;
     method = meth;
+    branchProfiles = VM_EdgeCounts.getBranchProfiles(meth);
     options = opts;
     inlinePlan = ip;
     inlineSequence = new OPT_InlineSequence(meth);
@@ -280,6 +286,7 @@ final class OPT_GenerationContext implements OPT_Constants,
 						  OPT_Instruction callSite) {
     OPT_GenerationContext child = new OPT_GenerationContext();
     child.method = callee;
+    child.branchProfiles = VM_EdgeCounts.getBranchProfiles(callee);
     child.original_method = parent.original_method;
     child.original_cm = parent.original_cm;
 
@@ -573,6 +580,27 @@ final class OPT_GenerationContext implements OPT_Constants,
       _ncGuards.put(ref, guard);
     }
     return guard;
+  }
+
+
+  ///////////
+  // Profile data
+  ///////////
+  public OPT_BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex) {
+    if (branchProfiles != null) {
+      VM_BranchProfile bp = VM_EdgeCounts.getBranchProfile(branchProfiles, bcIndex);
+      return new OPT_BranchProfileOperand(((VM_ConditionalBranchProfile)bp).getTakenProbability());
+    } 
+    return new OPT_BranchProfileOperand(); // defaults to .5, ie 50/50 taken/notTaken
+  }
+
+  public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {
+    if (branchProfiles != null) {
+      VM_BranchProfile bp = VM_EdgeCounts.getBranchProfile(branchProfiles, bcIndex);
+      return (VM_SwitchBranchProfile)bp;
+    } else {
+      return null;
+    }
   }
 
 

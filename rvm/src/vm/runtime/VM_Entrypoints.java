@@ -241,6 +241,8 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field sysTOCField                     = getField("LVM_BootRecord;", "sysTOC", "I");
   //-#endif
 
+  static final VM_Field edgeCountsArrayField            = getField("LVM_EdgeCounts;", "counts", "[[I");
+
   static final VM_Method arrayStoreWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");

@@ -500,6 +500,7 @@ function emitSourceList
    #
    print $RVM_ROOT/rvm/src/vm/compilers/baseline           # architecture independent
    print $RVM_ROOT/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
+   print $RVM_ROOT/rvm/src/vm/compilers/baseline/profiling # architecture independent
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline    # architecture dependent
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/GCMap
    if [[ -e $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler ]]; then
@@ -1338,6 +1339,7 @@ function emitImageLinker
    # Generate list of classes comprising bootimage.
    #
    print "if [[ ! -e $PRIMORDIAL_CLASSES_STR ]]; then"
+
    
    # skip: needed to build bootimage, but not to run it
    print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"

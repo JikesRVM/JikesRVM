@@ -231,6 +231,10 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM_OptStaticProgramStats.report();
     }
 
+    if (options.FINAL_REPORT_LEVEL >= 2) {
+      VM_EdgeCounts.dumpCounts();
+    }
+
     if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();
   }
 
