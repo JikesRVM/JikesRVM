@@ -1518,9 +1518,8 @@ fi
 
    if (( ! BUILD_RVMRT_JAR )); then
      print "cp $RVM_ROOT/support/lib/rvmrt.jar $CLASSES_DIRECTORY"
+     print "\nprint -n '(rvmrt.jar copied) \n'"
    fi
-
-   print "\nprint -n '(rvmrt.jar copied) \n'"
 
    # Remember if any new (or modified) source files were discovered.
    #
