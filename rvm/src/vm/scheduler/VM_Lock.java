@@ -615,6 +615,16 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
   }
 
   /**
+   * Does the given VM_Thread own the lock on obj?
+   * @param obj the object to check
+   * @param thread the thread whose ownership is being checked
+   * @return true if <tt>thread</tt> owns <tt>obj</tt>, false otherwise
+   */
+  public static boolean owns(Object o, VM_Thread owner) {
+    return owns(o, owner.getLockingId());
+  }
+
+  /**
    * Does the given thread own the lock on obj?
    * @param obj the object to check
    * @param tid thread locking id
