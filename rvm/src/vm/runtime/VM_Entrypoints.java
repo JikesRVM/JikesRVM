@@ -266,7 +266,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method sysArrayCopy = getMethod("Lcom/ibm/JikesRVM/librarySupport/SystemSupport;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
   //-#endif
 
-
+  //-#if RVM_WITH_OSR
+  public static final VM_Method osrGetRefAtMethod = getMethod("Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
+  public static final VM_Method osrCleanRefsMethod = getMethod("Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;", "cleanRefs", "(I)V");
+  //-#endif
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   ////////////////// 
