@@ -15,7 +15,7 @@
 #########
 # target architecture is PowerPC
 export RVM_FOR_POWERPC=1
-export RVM_FOR_32_ADDR=1
+export RVM_FOR_64_ADDR=1
 
 # target OS is AIX
 export RVM_FOR_AIX=1
@@ -34,9 +34,7 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-#export HOST_JAVA_HOME="/usr/java130"
-#export HOST_JAVA_HOME="/usr/java14"
-export HOST_JAVA_HOME="/usr/java14_64"
+export HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
 export HOST_JAVA="${HOST_JAVA_HOME}/jre/bin/java"
@@ -58,27 +56,20 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # sources for classpath 0.05 (current stable version of classpath)
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.05
-
-export GNUBIN="/.../watson.ibm.com/fs/system/local/applications/gnu/bin"
+export CLASSPATH_ROOT=/home/jalapeno/classpath-0.05
 
 # path for GNU make
-export GNU_MAKE="${GNUBIN}/make"
+export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
 export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.18
 
 # what C/C++ compilers should be used?
-#export CC="${GNUBIN}/gcc -w -O -Wa,-mppc"
-#export CPLUS="${GNUBIN}/g++ -w -O -Wa,-mppc"
-export GCC="/.../watson.ibm.com/fs/system/local/applications/gnu/aix/5.1/power"
-export CC="${GCC}/bin/gcc -w -O -Wa,-mppc"
-export CPLUS="${GCC}/bin/g++ -w -O -Wa,-mppc"
-
+export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -Wa,-a64 -maix64"
+export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc -Wa,-a64 -maix64"
 
 # how to link a shared C++ library
-#export LDSHARED="${GNUBIN}/g++ -shared"
-export LDSHARED="${GCC}/bin/g++ -shared"
+export LDSHARED="/usr/gnu/bin/g++ -shared -maix64"
 
 #
 export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
@@ -88,18 +79,23 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 # some Unix commands used in sanity rules and automatic rvmrt retrieval
-export AWK="${GNUBIN}/gawk"
-export BASH="${GNUBIN}/bash"
+export AR="ar"
+export AR_FLAGS="-X64 -q"
+export AWK="/usr/gnu/bin/gawk"
+export BASH="/usr/gnu/bin/bash"
 export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
-export DIFF="${GNUBIN}/diff"
-export FGREP="${GNUBIN}/fgrep"
-export FIND="${GNUBIN}/find"
-export GNU_TAR="${GNUBIN}/tar"
-export GREP="${GNUBIN}/grep"
-export MD5SUM="${GNUBIN}/md5sum"
+export DIFF="/usr/gnu/bin/diff"
+export FGREP="/usr/gnu/bin/fgrep"
+export FIND="/usr/gnu/bin/find"
+export GNU_TAR="/usr/gnu/bin/tar"
+export GREP="/usr/gnu/bin/grep"
+export MD5SUM="/usr/gnu/bin/md5sum"
 export PS="/usr/bin/ps"
-export SED="${GNUBIN}/sed"
-export XARGS="${GNUBIN}/xargs"
-export WGET="${GNUBIN}/wget"
-export ZIP_CMD="/homes/meriadoc/jalapeno/bin/power/zip"
-export UNZIP_CMD="/homes/meriadoc/jalapeno/bin/power/unzip"
+export SED="/usr/gnu/bin/sed"
+export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
+export XARGS="/usr/gnu/bin/xargs"
+export ZIP_CMD="/usr/bin/zip"
+export UNZIP_CMD="/usr/bin/unzip"
+
+# Horrible kludge to convince nm, ar, etc to all play together nicely in 64 bit mode.
+export OBJECT_MODE=32_64
