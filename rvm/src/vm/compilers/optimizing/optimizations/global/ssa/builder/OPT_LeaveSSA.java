@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -230,7 +230,6 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * it.
    * @param bb the basic block to process
    * @param live valid liveness information for the IR
-   * @param s structure holding stacks of names for each symbolic register
    */
   private void scheduleCopies(OPT_BasicBlock bb, OPT_LiveAnalysis live) {
 
@@ -481,7 +480,6 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    * @param bb the basic block
    * @param dom a valid dominator tree for the IR
    * @param live valid liveness information for the IR
-   * @param s a structure holding stacks of names for symbolic registers
    */
   private void insertCopies(OPT_BasicBlock bb, 
                             OPT_DominatorTree dom, 
