@@ -209,10 +209,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return an long that reflects the value of this
+   * Return a <code>long</code> that reflects the value of this
    * {@link Address} instance.
    *
-   * @return An long that reflects the value of this
+   * @return a <code>long</code> that reflects the value of this
    * {@link Address} instance.
    */
   public long toLong () {
@@ -255,7 +255,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Add an {@link Offset} to this {@link Address}, and
-   * return the sum.
+   * return a new {@link Address} which is the sum.
    *
    * @param offset the {@link Offset} to be added to the address
    * @return An {@link Address} instance that reflects the result
@@ -272,7 +272,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Add an {@link Extent} to this {@link Address}, and
-   * return the sum.
+   * return a new {@link Address} which is the sum.
    *
    * @param extent the {@link Extent} to be added to this
    * {@link Address}
@@ -475,7 +475,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a reference from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public ObjectReference loadObjectReference(Offset offset) {
@@ -498,7 +498,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a byte from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public byte loadByte(Offset offset) {
@@ -521,7 +521,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a char from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public char loadChar(Offset offset) {
@@ -544,7 +544,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a short from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public short loadShort(Offset offset) {
@@ -567,7 +567,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a float from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public float loadFloat(Offset offset) {
@@ -590,7 +590,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads an int from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public int loadInt(Offset offset) {
@@ -614,7 +614,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a long from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public long loadLong(Offset offset) {
@@ -637,7 +637,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads a <code>double</code> from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read value
    */
   public double loadDouble(Offset offset) {
@@ -661,7 +661,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Loads an {@link Address} value from the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read address value.
    */
   public Address loadAddress(Offset offset) {
@@ -682,9 +682,9 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /** 
    * Loads a word value from the memory location pointed to by the
-   * current instance.
+   * current instance plus the passed offset.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the read word value.
    */
   public Word loadWord(Offset offset) {
@@ -704,10 +704,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Stores the address value in the memory location pointed to by the
-   * current instance.
+   * current instance plus the passed offset.
    *
    * @param value The address value to store.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    */
   public void store(ObjectReference value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -725,10 +725,10 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
   /**
    * Stores the address value in the memory location pointed to by the 
-   * current instance.
+   * current instance plus the passed offset.
    *
    * @param value The address value to store.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    */
   public void store(Address value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -745,11 +745,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Stores the {@lfloat value in the memory location pointed to by the 
-   * current instance.
+   * Stores a <code>float</code> in the memory location pointed to by the 
+   * current instance plus the passed offset.
    *
    * @param value The float value to store.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    */
   public void store(float value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -771,7 +771,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * current instance.
    *
    * @param value The {@link Word} value to store.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    */
   public void store(Word value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -792,7 +792,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * current instance.
    *
    * @param value The byte value to store.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    */
   public void store(byte value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -800,7 +800,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
 
   /** 
-   * Stores an int value in memory location pointed to by the
+   * Stores an <code>int</code> value in the memory location pointed to by the
    * current instance.
    *
    * @param value The int value to store.
@@ -810,19 +810,19 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Stores an int value in memory location pointed to by the
-   * current instance.
+   * Stores an <code>int</code> value in the memory location pointed to by the
+   * current instance plus the passed offset.
    *
    * @param value The int value to store.
-   * @param offset the offset to the value.
+   * @param offset The offset to the current instance.
    */
   public void store(int value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /** 
-   * Stores a double value in memory location pointed to by the
-   * current instance.
+   * Stores a <code>double</code> value in the memory location pointed to 
+   * by the current instance.
    *
    * @param value The double value to store.
    */
@@ -831,11 +831,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Stores a double value in memory location pointed to by the
-   * current instance.
+   * Stores a <code>double</code> value in the memory location pointed to by the
+   * current instance plus the passed offset.
    *
-   * @param value The double value to store.
-   * @param offset the offset to the value.
+   * @param value The <code>double</code> value to store.
+   * @param offset The offset to the current instance.
    */
   public void store(double value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -843,42 +843,42 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 
 
   /** 
-   * Stores a double value in memory location pointed to by the
+   * Stores a <code>long</code> value in the memory location pointed to by the
    * current instance.
    *
-   * @param value The double value to store.
+   * @param value The <code>long</code> value to store.
    */
   public void store(long value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /** 
-   * Stores a double value in memory location pointed to by the
+   * Stores a <code>long</code> value in the memory location pointed to by the
    * current instance.
    *
-   * @param offset the offset to the value.
-   * @param value The double value to store.
+   * @param value The <code>double</code> value to store.
+   * @param offset The offset to the current instance.
    */
   public void store(long value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /** 
-   * Stores a char value in the memory location pointed to by the
+   * Stores a <code>char</code> value in the memory location pointed to by the
    * current instance.
    *
-   * @param value the char value to store. 
+   * @param value The char value to store. 
    */
   public void store(char value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /** 
-   * Stores a char value in the memory location pointed to by the
+   * Stores a <code>char</code> value in the memory location pointed to by the
    * current instance.
    *
-   * @param value the char value to store. 
-   * @param offset the offset to the value.
+   * @param value The char value to store. 
+   * @param offset The offset to the current instance.
    */
   public void store(char value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -899,7 +899,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * current instance.
    *
    * @param value the short value to store. 
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    */
   public void store(short value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -926,7 +926,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Prepare for an atomic store operation. This must be associated with
    * a related call to {@link #attempt}.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the old value to be passed to an {@link #attempt} call.
    */
   public Word prepareWord(Offset offset) {
@@ -949,7 +949,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Prepare for an atomic store operation. This must be associated with
    * a related call to {@link #attempt}.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the old value to be passed to an {@link #attempt} call.
    */
   public ObjectReference prepareObjectReference(Offset offset) {
@@ -972,7 +972,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Prepare for an atomic store operation. This must be associated with
    * a related call to {@link #attempt}.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the old value to be passed to an {@link #attempt} call.
    */
   public Address prepareAddress(Offset offset) {
@@ -995,7 +995,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Prepare for an atomic store operation. This must be associated with
    * a related call to {@link #attempt}.
    *
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return the old value to be passed to an {@link #attempt} call.
    */
   public int prepareInt(Offset offset) {
@@ -1022,7 +1022,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return true if the attempt was successful.
    */
   public boolean attempt(int old, int value, Offset offset) {
@@ -1049,7 +1049,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return true if the attempt was successful.
    */
   public boolean attempt(Word old, Word value, Offset offset) {
@@ -1076,7 +1076,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return true if the attempt was successful.
    */
   public boolean attempt(ObjectReference old, ObjectReference value, 
@@ -1104,7 +1104,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @param offset the offset to the value.
+   * @param offset the offset to the current instance.
    * @return true if the attempt was successful.
    */
   public boolean attempt(Address old, Address value, Offset offset) {
