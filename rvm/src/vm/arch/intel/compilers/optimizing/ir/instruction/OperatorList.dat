@@ -575,7 +575,7 @@ C0_C1_C2_C3
 ####################
 IA32_FILD
 MIR_Move
-none
+fpPush
 C0_C1_C2_C3
 
 
