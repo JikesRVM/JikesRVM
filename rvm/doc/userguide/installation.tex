@@ -5,10 +5,11 @@ present the simple case first.  We then present details for installing
 on other platforms, and finally discuss further installation steps for
 running Eclipse on Jikes RVM.
 
-\subsection{Installing on RedHat Linux 7.3 and 8.x for Intel x86}
+\subsection{Installing on RedHat Linux 7.3, 8.x, and 9.x or SuSE Linux 8.x for Intel x86}
 
 RedHat Linux for Intel IA32 has emerged as the 
-primary platform for Jikes RVM. 
+primary platform for Jikes RVM.  SuSE Linux is also in daily use by one of the
+core team members.
 If you have either a developer or full install of RedHat
 Linux 7.3 or later, your system has almost everything you need
 to run Jikes RVM.  The following instructions describe how to install
@@ -38,6 +39,8 @@ compiler, if you have not already
 done so (it is not included in standard RedHat installs).  You can
 obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL}.
 Use the pre-built rpm file for {\tt jikes-1.18} or higher.   
+If you're using SuSE Linux 8.2 or newer, Jikes 1.18 is on the install CD and is installed by default in the developer installations.
+
 
 {\tt jikes-1.15} in
 particular --- installed by default with SuSE Linux 8.1 --- has a
@@ -60,7 +63,7 @@ configure or install the package; the Jikes RVM build process will
 handle this automatically.  Note, you can skip this step and have the
 Jikes RVM build process download classpath for you automatically,
 however this requires that you have a number of RPMs installed
-on your machine that aren't part of the default Red Hat install.
+on your machine that aren't part of the default Red Hat install (but are part of the Developer SuSE Linux install).
 Unless you regularly build the GNU classpath libraries from their CVS
 tree, we recommend that you download a classpath release tar ball
 instead. When editing the configuration file (next step), you will set
@@ -112,7 +115,7 @@ for information about the various configurations.
 
 \subsection{The Hard Way}
 
- For any platform that is not RedHat Linux 7.3 or newer for Intel
+ For any platform that is not SuSE Linux 8.2 or newer, or RedHat Linux 7.3 or newer for Intel
 IA32, installation can be more complicated.  We present a list of system
 prerequisites, and then a series of install steps that assumes you
 have those.
