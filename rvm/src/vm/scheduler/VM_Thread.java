@@ -47,6 +47,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public final static int OSROPT  = 99;
   //-#endif
   
+  /* Set by exception handler. */
+  public boolean dyingWithUncaughtException = false;
   //-#if RVM_WITH_HPM
   // Keep counter values for each Java thread.
   public HPM_counters hpm_counters = null;
@@ -796,7 +798,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
 
     if (terminateSystem) {
-      VM.sysExit(0);
+      VM.sysExit(myThread.dyingWithUncaughtException ? 113 : 0);
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
