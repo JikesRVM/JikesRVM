@@ -2745,7 +2745,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    
   private final void genMonitorEnter () {
     if (method.isStatic()) {
-      klass.getClassForType(); 			                   // force java.lang.Class to get loaded int klass.classForType
+      if (VM.writingBootImage) {
+	VM.deferClassObjectCreation(klass);
+      } else {
+	klass.getClassForType();
+      }
       int tibOffset = klass.getTibOffset();
       asm.emitMOV_Reg_RegDisp (T0, JTOC, tibOffset);	           // T0 = tib for klass
       asm.emitMOV_Reg_RegInd (T0, T0);		                   // T0 = VM_Class for klass

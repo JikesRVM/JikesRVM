@@ -3104,7 +3104,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   //
   private void genSynchronizedMethodPrologue() {
     if (method.isStatic()) { // put java.lang.Class object for VM_Type into T0
-      klass.getClassForType(); // force java.lang.Class to get loaded into "klass.classForType"
+      if (VM.writingBootImage) {
+	VM.deferClassObjectCreation(klass);
+      } else {
+	klass.getClassForType();
+      }
       int tibOffset = klass.getTibOffset();
       asm.emitLtoc(T0, tibOffset);
       asm.emitL   (T0, 0, T0);

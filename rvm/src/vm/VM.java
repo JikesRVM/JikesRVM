@@ -67,15 +67,15 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
 
-    // 0. Set up the current VM_Processor object.  The bootstrap program
+    // Set up the current VM_Processor object.  The bootstrap program
     // has placed a pointer to the current VM_Processor in a special
     // register.
     VM_ProcessorLocalState.boot();
     
-    // 1. Finish thread initialization that couldn't be done in boot image.
-    //    The "stackLimit" must be set before any method calls, 
-    //    because it's accessed
-    //    by compiler-generated stack overflow checks.
+    // Finish thread initialization that couldn't be done in boot image.
+    // The "stackLimit" must be set before any method calls, 
+    // because it's accessed
+    // by compiler-generated stack overflow checks.
     //
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack) + STACK_SIZE_GUARD;
@@ -88,9 +88,9 @@ public class VM extends VM_Properties implements VM_Constants,
         VM.sysCall0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
     
      
-    // 2. Initialize memory manager's write barrier.
-    //    This must happen before any putfield or arraystore of object refs
-    //    because the buffer is accessed by compiler-generated write barrier code.
+    // Initialize memory manager's write barrier.
+    // This must happen before any putfield or arraystore of object refs
+    // because the buffer is accessed by compiler-generated write barrier code.
     //
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
@@ -106,25 +106,34 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
     //-#endif
     
-    // 3. Initialize memory manager.
-    //    This must happen before any uses of "new".
+    // Initialize memory manager.
+    // This must happen before any uses of "new".
     //
     VM_Collector.boot(VM_BootRecord.the_boot_record);
     
-    VM.sysWrite("vm: booting\n");
+    // Create class objects for static synchronized methods in the bootimage.
+    // 
+    createClassObjects();
     
-    // 4. Reset timers, so they don't inherit values from boot image.
+    VM.sysWrite("vm: booting\n");
+
+    // Reset timers, so they don't inherit values from boot image.
     //
     VM_Timer.reset();
 
-    // 5. Fetch arguments from program command line.
+    // Fetch arguments from program command line.
     //
     VM_CommandLineArgs.fetchCommandLineArguments();
 
-    // 6. Initialize class loader.
+    // Initialize class loader.
     //
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
+
+    //  Start up the baseline compiler's options before any compilations happen
+    //
+    VM_Compiler.bootOptions();
+
 
     //
     // At this point the virtual machine is running as a single thread 
@@ -134,10 +143,6 @@ public class VM extends VM_Properties implements VM_Constants,
     // the user level "main" thread.
     //
 
-    //  Start up the baseline compiler's options before any compilations happen
-    //
-    VM_Compiler.bootOptions();
-     
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 
     // appear in fields that are unique to RVM implementation of 
@@ -146,8 +151,6 @@ public class VM extends VM_Properties implements VM_Constants,
     // "object not part of bootimage" messages printed out by bootimage 
     // writer.
     //
-    runClassInitializer("java.io.FileDescriptor");
-
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
@@ -179,12 +182,11 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
     //-#endif
 
-    // Initialize compiler.
+    // Initialize compiler that compiles dynamically loaded classes.
     //
     VM_RuntimeCompiler.boot();
- 
     
-    // 7. Process virtual machine directives.
+    // Process virtual machine directives.
     //
     String[] applicationArguments = VM_CommandLineArgs.processCommandLineArguments();
     if (applicationArguments.length == 0) {  
@@ -192,16 +194,15 @@ public class VM extends VM_Properties implements VM_Constants,
       VM.sysExit(1);
     }
 
-    // 8. Allow Baseline compiler to respond to command line arguments
-    //  
-
+    // Allow Baseline compiler to respond to command line arguments
     // The baseline compiler ignores command line arguments until all are processed
     // otherwise printing may occur because of compilations ahead of processing the
     // method_to_print restriction
+    // 
     VM_Compiler.postBootOptions();
 
 
-    // 9. Allow Collector to respond to command line arguments
+    // Allow Collector to respond to command line arguments
     //
     VM_Collector.postBoot();
 
@@ -215,10 +216,6 @@ public class VM extends VM_Properties implements VM_Constants,
     _mainApplicationClassName = applicationArguments[0];
     _mainThread = mainThread;
     
-     
-    //Ensure that all classes in the boot image that have static synchronized methods have their class objects loaded:
-    (VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Thread;")).asClass()).getClassForType();
-     
     VM_Lock.boot();
 
     // Begin multiprocessing.
@@ -227,7 +224,31 @@ public class VM extends VM_Properties implements VM_Constants,
     if (VM.VerifyAssertions) 
       VM.assert(VM.NOT_REACHED);
   }
-   
+
+  private static VM_Class[] classObjects = new VM_Class[0];
+  /**
+   * Called by the compilers when compiling a static synchronized method
+   * during bootimage writing.
+   */
+  static void deferClassObjectCreation(VM_Class c) {
+    for (int i=0; i<classObjects.length; i++) {
+      if (classObjects[i] == c) return; // already recorded
+    }
+    VM_Class[] tmp = new VM_Class[classObjects.length+1];
+    System.arraycopy(classObjects, 0, tmp, 0, classObjects.length);
+    tmp[classObjects.length] = c;
+    classObjects = tmp;
+  }
+  /**
+   * Create the java.lang.Class objects needed for 
+   * static synchronized methods in the bootimage.
+   */
+  private static void createClassObjects() {
+    for (int i=0; i<classObjects.length; i++) {
+      classObjects[i].getClassForType();
+    }
+  }
+
   /**
    * Run <clinit> method of specified class, if that class appears 
    * in bootimage.
@@ -237,11 +258,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Atom  classDescriptor = 
        VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
-    // SJF: The following line ensures that the java.lang.Class object for
-    // this type is created.  As a result, we can call static synchronized
-    // methods on this type.  TODO: implement a more robust scheme for
-    // putting static synchronized methods in the boot image.
-    cls.getClassForType();
     if (cls.isInBootImage()) {
       VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getMostRecentlyGeneratedInstructions());
       cls.setAllFinalStaticJTOCEntries();
@@ -804,9 +820,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Runtime.init();
     VM_Scheduler.init();
     VM_Collector.init();
-
-    if (runningTool)
-      return;
   }
 
   /**

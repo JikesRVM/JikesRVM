@@ -686,11 +686,17 @@ final class OPT_GenerationContext implements OPT_Constants,
   // Get either the class object or the this ptr...
   private OPT_Operand getLockObject(int bcIndex, OPT_BasicBlock target) {
     if (method.isStatic()) {
-      // force java.lang.Class object into declaringClass.classForType
-      method.getDeclaringClass().getClassForType();
+      // make sure java.lang.Class object will be created before
+      // the static method we are compiling can execute.
+      VM_Class c = method.getDeclaringClass();
+      if (VM.writingBootImage) {
+	VM.deferClassObjectCreation(c);
+      } else {
+	c.getClassForType();
+      }
       OPT_Instruction s = Unary.create(GET_CLASS_OBJECT,
 				       temps.makeTemp(VM_Type.JavaLangClassType),
-				       new OPT_TypeOperand(method.getDeclaringClass()));
+				       new OPT_TypeOperand(c));
       appendInstruction(target, s, bcIndex);
       return Unary.getResult(s).copyD2U();
     } else {
