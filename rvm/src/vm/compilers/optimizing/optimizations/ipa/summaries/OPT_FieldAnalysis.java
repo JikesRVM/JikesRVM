@@ -216,7 +216,7 @@ final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * runtime?
    */
   private static boolean isTrouble (VM_Field f) {
-    if (f.getDeclaringClass() == VM_Type.JavaLangStringType)
+    if (f.getDeclaringClass() == OPT_ClassLoaderProxy.JavaLangStringType)
       return  true;
     return  false;
   }

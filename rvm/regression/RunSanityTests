@@ -350,6 +350,14 @@ function doRun
      # start test running
      say "start $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
 
+     # ignore -numprocs if image does not support it
+     if fgrep -q "VIRTUAL_PROCESSOR=1" $RVM_BUILD/RVM.configuration; then
+	if [ $NUM_PROCS != 1 ]; then
+	    echo "Ignoring -numprocs for single cpu boot image"
+	fi
+	NUM_PROCS=1
+     fi
+
      # Supply a result dir
      if [ x$RESULT = x ]; then
        RESULT="$RVM_BUILD/sanity" 

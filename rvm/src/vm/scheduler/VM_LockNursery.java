@@ -94,6 +94,7 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
    */
   private synchronized VM_Lock findOrInsert (Object o, boolean insert) {
     int h = o.hashCode() % SIZE;
+    if (h < 0) h = -1 * h;
 
     for (VM_LockBucket b = buckets[h]; b != null; b = b.next) 
       if (b.object == o) {

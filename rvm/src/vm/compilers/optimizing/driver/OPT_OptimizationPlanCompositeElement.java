@@ -18,7 +18,7 @@
  * @author Dave Grove
  * @author Michael Hind
  */
-class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanElement {
+public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanElement {
   /**
    * Name of this element.
    */

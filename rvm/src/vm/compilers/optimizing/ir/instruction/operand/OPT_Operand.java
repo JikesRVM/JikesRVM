@@ -518,25 +518,25 @@ public abstract class OPT_Operand {
       int value = asIntConstant().value;
       VM_Type type;
       if ((value == 0) || (value == 1))
-	type = VM_Type.BooleanType;
+	type = OPT_ClassLoaderProxy.BooleanType;
       else if (-128 <= value && value <= 127)
-	type = VM_Type.ByteType;
+	type = OPT_ClassLoaderProxy.ByteType;
       else if (-32768 <= value && value <= 32767)
-	type = VM_Type.ShortType;
+	type = OPT_ClassLoaderProxy.ShortType;
       else
-	type = VM_Type.IntType;
+	type = OPT_ClassLoaderProxy.IntType;
       return type;
     }
     if (isNullConstant())
       return OPT_ClassLoaderProxy.NULL_TYPE;
     if (isStringConstant())
-      return VM_Type.JavaLangStringType;
+      return OPT_ClassLoaderProxy.JavaLangStringType;
     if (isFloatConstant())
-      return VM_Type.FloatType;
+      return OPT_ClassLoaderProxy.FloatType;
     if (isLongConstant())
-      return VM_Type.LongType;
+      return OPT_ClassLoaderProxy.LongType;
     if (isDoubleConstant())
-      return VM_Type.DoubleType;
+      return OPT_ClassLoaderProxy.DoubleType;
     if (isTrueGuard())
       return OPT_ClassLoaderProxy.VALIDATION_TYPE;
     throw new OPT_OptimizingCompilerException("unknown operand type: "+this);
@@ -646,7 +646,7 @@ public abstract class OPT_Operand {
 	    return true;
 	  }
 	} else if (compatiblePrimitives(type1, type2) ||
-		   OPT_ClassLoaderProxy.proxy.includesType(type1, type2) == OPT_Constants.YES) {
+		   OPT_ClassLoaderProxy.includesType(type1, type2) == OPT_Constants.YES) {
 	  // types are ok, only have to worry about the flags
 	  if (rop1.isPreciseType() || rop1.hasLessConservativeFlags(rop2)) {
 	    if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -683,7 +683,7 @@ public abstract class OPT_Operand {
 	VM_Type type2 = op2.getType();
 	if (type1 == type2 || 
 	    compatiblePrimitives(type1, type2) ||
-	    (OPT_ClassLoaderProxy.proxy.includesType(type1, type2) == OPT_Constants.YES)) {
+	    (OPT_ClassLoaderProxy.includesType(type1, type2) == OPT_Constants.YES)) {
 	  // only have to consider state of op1's flags.  Types are ok.
 	  if (rop1.isPreciseType() && (type1 != type2)) {
 	    if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -823,7 +823,7 @@ public abstract class OPT_Operand {
 	return op1;
       } else {
 	VM_Type superType = 
-	  OPT_ClassLoaderProxy.proxy.findCommonSuperclass(op1.getType(), 
+	  OPT_ClassLoaderProxy.findCommonSuperclass(op1.getType(), 
 							  op2.getType());
 	if (superType == null) {
 	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -875,7 +875,7 @@ public abstract class OPT_Operand {
 	    return op1;
 	  }
 	} else if (compatiblePrimitives(type1, type2) ||
-		   OPT_ClassLoaderProxy.proxy.includesType(type1, type2) == OPT_Constants.YES) {
+		   OPT_ClassLoaderProxy.includesType(type1, type2) == OPT_Constants.YES) {
 	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	    VM.sysWrite("Compatabily typed register operands, checking flags...");
 	  }
@@ -912,7 +912,7 @@ public abstract class OPT_Operand {
  	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	    VM.sysWrite("Incompatibly typed register operands...("+type1+", "+type2+")...");
 	  }
-	  VM_Type resType = OPT_ClassLoaderProxy.proxy.findCommonSuperclass(type1, type2);
+	  VM_Type resType = OPT_ClassLoaderProxy.findCommonSuperclass(type1, type2);
 	  if (resType == null) {
 	    if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	      VM.sysWrite("no common supertype, returning bottom\n");
@@ -947,7 +947,7 @@ public abstract class OPT_Operand {
 	VM_Type type2 = op2.getType();
 	if (type1 == type2 || 
 	    compatiblePrimitives(type1, type2) ||
-	    (OPT_ClassLoaderProxy.proxy.includesType(type1, type2) == OPT_Constants.YES)) {
+	    (OPT_ClassLoaderProxy.includesType(type1, type2) == OPT_Constants.YES)) {
 	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	    VM.sysWrite("Compatabily typed register & other operand, checking flags...");
 	  }
@@ -976,7 +976,7 @@ public abstract class OPT_Operand {
  	  if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	    VM.sysWrite("Incompatabily typed register & other operand...("+type1+", "+type2+")...");
 	  }
-	  VM_Type resType = OPT_ClassLoaderProxy.proxy.findCommonSuperclass(type1, type2);
+	  VM_Type resType = OPT_ClassLoaderProxy.findCommonSuperclass(type1, type2);
 	  if (resType == null) {
 	    if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
 	      VM.sysWrite("no common supertype, returning bottom\n");

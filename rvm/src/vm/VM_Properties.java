@@ -113,6 +113,7 @@ public class VM_Properties extends VM_Configuration {
   public static boolean TraceDynamicLinking     = false;
   public static boolean TraceFileSystem         = false;
   public static boolean TraceThreads            = false;
+  public static boolean TraceStackTrace         = false;
 
   // Baseline compiler tracing.
   //
@@ -155,6 +156,7 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceDynamicLinking     = false;
   public static final boolean TraceFileSystem         = false;
   public static final boolean TraceThreads            = false;
+  public static final boolean TraceStackTrace         = false;
 
   // Baseline compiler tracing.
   //

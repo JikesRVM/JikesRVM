@@ -220,8 +220,8 @@ public final class OPT_LocationOperand extends OPT_Operand
   // NOTE: not checking for (t1==null xor t2==null) for efficiency
   private static boolean arrayMayBeAliased(VM_Type t1, VM_Type t2) {
     return ((t1 == t2) ||
-	    (OPT_ClassLoaderProxy.proxy.includesType(t1, t2) != NO) ||
-	    (OPT_ClassLoaderProxy.proxy.includesType(t2, t1) != NO));
+	    (OPT_ClassLoaderProxy.includesType(t1, t2) != NO) ||
+	    (OPT_ClassLoaderProxy.includesType(t2, t1) != NO));
   }
 
   /**

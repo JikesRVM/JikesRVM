@@ -22,18 +22,27 @@ import java.io.IOException;
 public class VM_BinaryData {
   private byte data[];
   private int  index;
+  final private String repository;
 
   // Data provided by caller
   //
   public VM_BinaryData(byte[] data) {
     this.data  = data;
     this.index = -1;
+    this.repository = null;
+  }
+
+  public VM_BinaryData(byte[] data, String repository) {
+    this.data  = data;
+    this.index = -1;
+    this.repository = repository;
   }
 
   // Data from a zip or jar archive.
   //
-  VM_BinaryData(InputStream input, int length) throws IOException {
+  VM_BinaryData(InputStream input, int length, String src) throws IOException {
     byte[] data = new byte[length];
+    this.repository = src;
     for (int index = 0; length > 0; ) {
       int n = input.read(data, index, length);
       if (n < 0)
@@ -47,7 +56,7 @@ public class VM_BinaryData {
 
   // Data from a filesystem directory.
   //
-  VM_BinaryData(String fileName) throws FileNotFoundException, IOException {
+  VM_BinaryData(String fileName, String repository) throws FileNotFoundException, IOException {
     FileInputStream input = new FileInputStream(fileName);
     int             len   = (int)(new File(fileName)).length();
     byte[] data = new byte[len];
@@ -56,6 +65,11 @@ public class VM_BinaryData {
     input.close();
     this.data  = data;
     this.index = -1;
+    this.repository = repository;
+  }
+
+  final public String getRepository() {
+      return repository;
   }
 
   final public long readLong() {

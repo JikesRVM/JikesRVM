@@ -16,7 +16,7 @@ class OPT_DF_Graph
   /**
    * The nodes of the graph.
    */
-  private Vector nodes = new Vector();
+  public Vector nodes = new Vector();
   /**
    * Number of nodes in the graph.
    */

@@ -456,7 +456,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
 
 
-  private static final boolean traceDetails = true;
+  private static final boolean traceDetails = false;
 
   // Print out message in format "p[j] (cez#td) who: what", where:
   //    p  = processor id
@@ -625,7 +625,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         VM_Method         method            = compiledMethod.getMethod();
         int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
-        int               lineNumber        = compiledMethod.getCompilerInfo().findLineNumberForInstruction(instructionOffset);
+        int               lineNumber        = compiledMethod.getCompilerInfo().findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
 
         //-#if RVM_WITH_OPT_COMPILER
         VM_CompilerInfo   info              = compiledMethod.getCompilerInfo();

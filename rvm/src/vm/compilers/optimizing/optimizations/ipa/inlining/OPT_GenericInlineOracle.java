@@ -27,6 +27,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
     }
     VM_Method caller = state.getMethod();
     VM_Method callee = state.obtainTarget();
+
     if (state.isInvokeInterface()) {
       if (!callee.getDeclaringClass().isLoaded()) {
 	return OPT_InlineDecision.NO("Cannot inline interface before it is loaded");
@@ -113,7 +114,9 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
 							    state.getCompiledMethodId());
       }
-    } else if (guard == OPT_Options.IG_CODE_PATCH) {
+    } 
+    else
+    if (guard == OPT_Options.IG_CODE_PATCH) {
       guard = OPT_Options.IG_METHOD_TEST;
     }
 

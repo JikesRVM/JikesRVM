@@ -10,7 +10,7 @@ include $(RVM_BUILD)/Make.rules
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/reflect
 BENCH_SOURCE_PATH=$(BENCH_HOME)
-HEAPSIZE=100
+HEAPSIZE=150
 LARGEHEAPSIZE=30
 
 include $(JAL_ROOT)/rvm/regression/Make.rules

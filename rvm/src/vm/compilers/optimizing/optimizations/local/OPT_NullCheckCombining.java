@@ -105,7 +105,8 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
 		activeNullCheck.remove();
 		activeGuard = null;
 		combined = true;
-	      } else if (instr.isPEI()) {
+	      } else 
+		if (instr.isPEI()) {
                 // can't reorder PEI's 
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;

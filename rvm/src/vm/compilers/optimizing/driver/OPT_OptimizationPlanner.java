@@ -176,8 +176,10 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_YieldPoints());
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(true, true));
+
     // Simple escape analysis and related transformations
     addComponent(p, new OPT_EscapeTransformations());
+
     // Perform peephole branch optimizations to clean-up before SSA stuff
     addComponent(p, new OPT_BranchOptimizations(1));
     // CFG spliting
@@ -391,6 +393,173 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LowerInstrumentation());
     //-#endif
   }
+
+  //-#if RVM_FOR_IA32
+  ////////////////////////////////////////////////////////////////
+  // Plan elements for the IA32 backend
+  ////////////////////////////////////////////////////////////////
+  /** 
+   * This method defines the optimization plan elements that
+   * are to be performed to convert LIR to IA32 MIR.
+   *
+   * @param p the plan under construction
+   */
+  private static void LIR2MIR(Vector p) {
+    composeComponents(p, "Convert LIR to MIR", new Object[] {
+      // Split very large basic blocks into smaller ones.
+      new OPT_SplitBasicBlock(), 
+      // Optional printing of final LIR
+      new OPT_IRPrinter("Final LIR") {
+        boolean shouldPerform(OPT_Options options) {
+          return options.PRINT_FINAL_LIR;
+        }
+      }, 
+      // Convert from 3-operand to 2-operand ALU ops.
+      new OPT_ConvertALUOperators(), 
+      // Change operations that split live ranges to moves
+      new OPT_MutateSplits(),
+      // Instruction Selection
+      new OPT_ConvertLIRtoMIR(), 
+      // For now, always print the Initial MIR
+      new OPT_IRPrinter("Initial MIR") {
+        boolean shouldPerform(OPT_Options options) {
+          return options.PRINT_MIR;
+        }
+      }
+    });
+  }
+
+  /** 
+   * This method defines the optimization plan elements that
+   * are to be performed on IA32 MIR.
+   *
+   * @param p the plan under construction
+   */
+  private static void MIROptimizations(Vector p) {
+    // NullCheck combining and validation operand removal.
+    addComponent(p, new OPT_NullCheckCombining());
+
+    // Register Allocation
+    composeComponents(p, "Register Mapping", new Object[] {
+      new OPT_MIRSplitRanges(),
+      // MANDATORY: Expand calling convention
+      new OPT_ExpandCallingConvention(),
+      // MANDATORY: Insert defs/uses due to floating-point stack
+      new OPT_ExpandFPRStackConvention(),
+      // MANDATORY: Perform Live analysis and create GC maps
+      new OPT_LiveAnalysis(true, false),
+      // MANDATORY: Perform register allocation
+      new OPT_RegisterAllocator(),
+      // MANDATORY: Add prologue and epilogue
+      new OPT_PrologueEpilogueCreator(),
+    });
+    // Peephole branch optimizations
+    addComponent(p, new OPT_MIRBranchOptimizations(1));
+  }
+
+  /** 
+   * This method defines the optimization plan elements that
+   * are to be performed to convert IA32 MIR into
+   * ready-to-execute machinecode (and associated mapping tables).
+   *
+   * @param p the plan under construction
+   */
+  private static void MIR2MC(Vector p) {
+    // MANDATORY: Final assembly
+    addComponent(p, new OPT_ConvertMIRtoMC());
+  }
+
+  //-#elif RVM_FOR_POWERPC
+  /////////////////////////////////////////////////////////////////////
+  // Plan elements for the PowerPC backend
+  /////////////////////////////////////////////////////////////////////
+  /** 
+   * This method defines the optimization plan elements that
+   * are to be performed to convert LIR to PowerPC MIR.
+   *
+   * @param p the plan under construction
+   */
+  private static void LIR2MIR(Vector p) {
+    composeComponents(p, "Convert LIR to MIR", new Object[] {
+      // Optional printing of final LIR
+      new OPT_IRPrinter("Final LIR") {
+        boolean shouldPerform(OPT_Options options) {
+          return options.PRINT_FINAL_LIR;
+        }
+      }, 
+      // Split very large basic blocks into smaller ones.
+      new OPT_SplitBasicBlock(), 
+      // Change operations that split live ranges to moves
+      new OPT_MutateSplits(),
+      // Instruction selection
+      new OPT_ConvertLIRtoMIR(), 
+      // Optional printing of initial MIR
+      new OPT_IRPrinter("Initial MIR") {
+        boolean shouldPerform(OPT_Options options) {
+          return options.PRINT_MIR;
+        }
+      }
+    });
+  }
+
+  /** 
+   * This method defines the optimization plan elements that
+   * are to be performed on PowerPC MIR.
+   *
+   * @param p the plan under construction
+   */
+  private static void MIROptimizations(Vector p) {
+    ////////////////////
+    // MIR OPTS(1) (before register allocation)
+    ////////////////////
+    // INSTRUCTION SCHEDULING (PRE-PASS --- PRIOR TO REGISTER ALLOCATION)
+    addComponent(p, new OPT_PrePassScheduler());
+    // NullCheck combining and validation operand removal.
+    addComponent(p, new OPT_NullCheckCombining());
+    ////////////////////
+    // GCMapping part1 and RegisterAllocation
+    ////////////////////
+
+    composeComponents(p, "Register Mapping", new Object[] {
+      // MANDATORY: Expand calling convention
+      new OPT_ExpandCallingConvention(),
+      // MANDATORY: Perform Live analysis and create GC maps
+      new OPT_LiveAnalysis(true, false),
+      // MANDATORY: Perform register allocation
+      new OPT_RegisterAllocator(),
+      // MANDATORY: Add prologue and epilogue
+      new OPT_PrologueEpilogueCreator(),
+    });
+    ////////////////////
+    // MIR OPTS(2) (after register allocation)
+    // NOTE: GCMapping part 1 has created the GC maps already.
+    //       From now until the end of compilation, we cannot change
+    //       the set of live references at a GC point 
+    //       without updating the GCMaps.
+    //       Effectively this means that we can only do the 
+    //       most trivial optimizations from
+    //       here on out without having to some potentially complex bookkeeping.
+    ////////////////////
+    // Peephole branch optimizations
+    addComponent(p, new OPT_MIRBranchOptimizations(1));
+  }
+
+  /** 
+   * This method defines the optimization plan elements that
+   * are to be performed to convert PowerPC MIR into
+   * ready-to-execute machinecode (and associated mapping tables).
+   * 
+   * @param p the plan under construction
+   */
+  private static void MIR2MC(Vector p) {
+    // MANDATORY: Final assembly
+    addComponent(p, new OPT_IRPrinter("Final MIR") {
+	boolean shouldPerform(OPT_Options options) {
+	  return options.PRINT_FINAL_MIR; } 
+      });
+    addComponent(p, new OPT_ConvertMIRtoMC());
+  }
+  //-#endif
 
   // Helper functions for constructing the masterPlan.
   protected static void addComponent(Vector p, OPT_CompilerPhase e) {

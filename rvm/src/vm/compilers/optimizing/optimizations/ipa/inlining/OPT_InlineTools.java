@@ -39,8 +39,9 @@ abstract class OPT_InlineTools implements OPT_Constants {
     if (!callee.getDeclaringClass().isLoaded()) {
       return false;
     }
-    if (callee.needsDynamicLink(caller)) {
-      return false;  // Can't inline due to class loading state of callee
+
+    if (OPT_ClassLoaderProxy.needsDynamicLink(callee, caller.getDeclaringClass())) {
+      return  false;  // Can't inline due to class loading state of callee
     }
     if (callee.isAbstract() || callee.isNative()) {
       return false;            // No body to inline
@@ -154,30 +155,32 @@ abstract class OPT_InlineTools implements OPT_Constants {
   public static boolean hasInlinePragma(VM_Method callee, 
 					OPT_CompilationState state) {
     if (VM_OptMethodSummary.hasInlinePragma(callee))
-      return true;
+      return  true;
     // If we know what kind of array "src" (argument 0) is
     // then we always want to inline java.lang.System.arraycopy.
     // TODO: Would be nice to discover this automatically!!!
     //       There have to be other methods with similar properties.
     if (callee == VM_Entrypoints.sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return src.getType() != VM_Type.JavaLangObjectType;
+      return  src.getType() != OPT_ClassLoaderProxy.JavaLangObjectType;
     }
     // More arraycopy hacks.  If we the two starting indices are constant and
     // it's not the object array version 
     // (too big...kills other inlining), then inline it.
-    if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type && 
-	callee.getName() == arraycopyName && 
-	callee.getDescriptor() != objectArrayCopyDescriptor) {
-      return Call.getParam(state.getCallInstruction(), 1).isConstant() && 
-	Call.getParam(state.getCallInstruction(), 3).isConstant();
+    if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type
+        && callee.getName() == arraycopyName && callee.getDescriptor()
+        != objectArrayCopyDescriptor) {
+      return  Call.getParam(state.getCallInstruction(), 1).isConstant()
+          && Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
-    return false;
+    return  false;
   }
+
   private static VM_Atom arraycopyName = 
     VM_Atom.findOrCreateAsciiAtom("arraycopy");
   private static VM_Atom objectArrayCopyDescriptor = 
-    VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
+      VM_Atom.findOrCreateAsciiAtom(
+      "([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Should the callee method be barred from ever being considered for inlining?

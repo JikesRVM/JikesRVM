@@ -19,7 +19,7 @@
  * @author Dave Grove
  * @author Michael Hind
  */
-abstract class OPT_OptimizationPlanElement {
+public abstract class OPT_OptimizationPlanElement {
 
   /**
    * Determine, possibly by consulting the passed options object,

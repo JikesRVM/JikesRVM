@@ -134,10 +134,11 @@ final class OPT_Register {
   void setdNode(OPT_DepGraphNode a) {
     scratchObject = a;
   }
- 
+
   OPT_DepGraphNode dNode() {
     return (OPT_DepGraphNode)scratchObject;
   }
+
 
   /**
    * Used to store register lists.

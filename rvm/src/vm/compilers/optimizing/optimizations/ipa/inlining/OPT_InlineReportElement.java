@@ -152,7 +152,7 @@ class OPT_InlineReportElement {
       isPrivate = callee.isPrivate();
       isObjectInitializer = callee.isObjectInitializer();
       isStatic = callee.isStatic();
-      needsDynamicLink = callee.needsDynamicLink(caller);
+      needsDynamicLink = OPT_ClassLoaderProxy.needsDynamicLink(callee,caller.getDeclaringClass());
       isAbstract = callee.isAbstract();
       isNative = callee.isNative();
     }

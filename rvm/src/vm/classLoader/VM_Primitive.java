@@ -81,6 +81,10 @@ public class VM_Primitive extends VM_Type
     return null;
   }
 
+  public final ClassLoader getClassLoader() {
+      return VM_SystemClassLoader.getVMClassLoader();
+  }
+
   //----------------//
   // Implementation //
   //----------------//

@@ -179,6 +179,21 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     return VM_Magic.addressAsObject( VM_Address.fromInt(JNIRefs[ offset>>2 ]) );
   }
 	
+  // remove a reference from the JNIRefs stack
+  // Taken:    offset in JNIRefs stack
+  public void deleteJNIRef( int offset ) {
+    if (offset > JNIRefsTop) {
+      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
+      VM.sysWrite(offset); 
+      VM.sysWrite("(top is ");
+      VM.sysWrite(JNIRefsTop);
+      VM.sysWrite(")\n");
+    }
+    
+    JNIRefs[ offset>>2 ] = 0;
+
+    if (offset == JNIRefsTop) JNIRefsTop -= 4;
+  }
 
   // record an exception as pending so that it will be delivered on the return
   // to the Java caller;  clear the exception by recording null

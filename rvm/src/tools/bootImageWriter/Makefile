@@ -33,7 +33,7 @@ UTIL_KLUDGE_CLASSES = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES)
 UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
 UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
-$(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/RVM.classes/rvmrt.jar
+$(UTIL_KLUDGE_JAR):		$(JAL_ROOT)/support/lib/rvmrt.jar
 	cd $(SCRATCH_DIR); unzip -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
 	cd $(SCRATCH_DIR); $(HOST_JAR) cvf `$(HOST_JAVA_PATH_ADJUST) $@` $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
 	@print -n "(built workaround zip) "

@@ -725,7 +725,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * The name of the heap variable
    * that is used for modelling explicit exception dependencies
    */
-  VM_Atom exceptionState = VM_Atom.findOrCreateUnicodeAtom("X-State");
+  String exceptionState = "X-State";
   
   /**
    * A pointer to the governing IR
@@ -916,7 +916,7 @@ final class OPT_SSADictionary implements OPT_Operators {
       registerDef(s, b, f);
     }
     else {
-      VM_Atom a = (VM_Atom)Htype;
+      String a = (String)Htype;
       registerDef(s, b, a);
     }
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
@@ -930,7 +930,7 @@ final class OPT_SSADictionary implements OPT_Operators {
         VM_Field f = (VM_Field)Utype;
         registerUse(s, f);
       } else {
-        VM_Atom a = (VM_Atom)Utype;
+        String a = (String)Utype;
         registerUse(s, a);
       }
     }
@@ -1074,7 +1074,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @param t the field heap variable the instruction uses
    */
-  private void registerUse (OPT_Instruction s, VM_Atom a) {
+  private void registerUse (OPT_Instruction s, String a) {
     if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
@@ -1098,7 +1098,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param b s's basic block
    * @param t the field heap variable the instruction modifies
    */
-  private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Atom a) {
+  private void registerDef (OPT_Instruction s, OPT_BasicBlock b, String a) {
     if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are

@@ -391,7 +391,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     } else {
       // For nonstatic method, "this" pointer should be the first arg in the caller frame,
       // make it the 2nd arg in the glue frame
-      asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset);
+      asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset+WORDSIZE);
       firstActualParameter = 1;
     }
 
@@ -417,7 +417,10 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
       // for reference, substitute with a jref index
       if (types[argIndex].isReferenceType()) {
 	asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+	asm.emitCMP_Reg_Imm(EBX, 0);
+	VM_ForwardReference beq = asm.forwardJcc(asm.EQ);
 	pushJNIref(asm);
+	beq.resolve(asm);
 	asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
 	i--;
       

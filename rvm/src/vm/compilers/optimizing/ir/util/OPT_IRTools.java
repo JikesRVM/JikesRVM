@@ -28,7 +28,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return integer register operand
    */
   static final OPT_RegisterOperand R(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, VM_Type.IntType);
+    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
   }
 
   /**
@@ -42,7 +42,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return float register operand
    */
   static final OPT_RegisterOperand F(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, VM_Type.FloatType);
+    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.FloatType);
   }
 
   /**
@@ -56,7 +56,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return double register operand
    */
   static final OPT_RegisterOperand D(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, VM_Type.DoubleType);
+    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.DoubleType);
   }
 
   /**
@@ -70,7 +70,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return long register operand
    */
   static final OPT_RegisterOperand L(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, VM_Type.LongType);
+    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.LongType);
   }
 
   /**
@@ -84,7 +84,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return condition register operand
    */
   static final OPT_RegisterOperand CR(OPT_Register reg) {
-    return new OPT_RegisterOperand(reg, VM_Type.IntType);
+    return new OPT_RegisterOperand(reg, OPT_ClassLoaderProxy.IntType);
   }
 
   /**

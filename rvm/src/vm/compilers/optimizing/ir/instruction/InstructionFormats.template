@@ -19,12 +19,12 @@ be a pain in the butt and since it currently isn't required, we don't do it.
  * OperatorList.dat, etc.
  */
 
-package instructionFormats;
+package INSTRFMTPKG;
 
-import OPT_OptimizingCompilerException;
-import OPT_Instruction;
-import OPT_Operator;
-import VM;
+import RVMPKGOPT_OptimizingCompilerException;
+import RVMPKGOPT_Instruction;
+import RVMPKGOPT_Operator;
+import RVMPKGVM;
 
 /**
  * Abstract parent class of all InstructionFormat classes.
@@ -146,36 +146,38 @@ $$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
  * and 'fatalInstructionFormat'
  */
 
-package instructionFormats;
+package INSTRFMTPKG;
 
-import OPT_Instruction;
-import OPT_Operator;
-import OPT_BasicBlockOperand;
-import OPT_BranchOperand;
-import OPT_BranchProfileOperand;
-import OPT_ConditionOperand;
-import OPT_ConstantOperand;
-import OPT_DoubleConstantOperand;
-import OPT_FloatConstantOperand;
-import OPT_IntConstantOperand;
-import OPT_LocationOperand;
-import OPT_LongConstantOperand;
-import OPT_MemoryOperand;
-import OPT_MethodOperand;
-import OPT_NullConstantOperand;
-import OPT_Operand;
-import OPT_RegisterOperand;
-import OPT_StringConstantOperand;
-import OPT_SysMethodOperand;
-import OPT_TrapCodeOperand;
-import OPT_TrueGuardOperand;
-import OPT_TypeOperand;
+import RVMPKGOPT_Instruction;
+import RVMPKGOPT_Operator;
+import RVMPKGOPT_BasicBlockOperand;
+import RVMPKGOPT_BranchOperand;
+import RVMPKGOPT_BranchProfileOperand;
+import RVMPKGOPT_ConditionOperand;
+import RVMPKGOPT_ConstantOperand;
+import RVMPKGOPT_DoubleConstantOperand;
+import RVMPKGOPT_FloatConstantOperand;
+import RVMPKGOPT_IntConstantOperand;
+import RVMPKGOPT_LocationOperand;
+import RVMPKGOPT_LongConstantOperand;
+import RVMPKGOPT_MemoryOperand;
+import RVMPKGOPT_MethodOperand;
+import RVMPKGOPT_NullConstantOperand;
+import RVMPKGOPT_Operand;
+import RVMPKGOPT_RegisterOperand;
+import RVMPKGOPT_StringConstantOperand;
+  $$$$ IF ARCHITECTURE != "NONE"
+import RVMPKGOPT_SysMethodOperand;
+  $$$$ END IF
+import RVMPKGOPT_TrapCodeOperand;
+import RVMPKGOPT_TrueGuardOperand;
+import RVMPKGOPT_TypeOperand;
   $$$$ IF ARCHITECTURE == "powerPC"
-import OPT_PowerPCConditionOperand;
-import OPT_PowerPCTrapOperand;
+import RVMPKGOPT_PowerPCConditionOperand;
+import RVMPKGOPT_PowerPCTrapOperand;
   $$$$ END IF
   $$$$ IF ARCHITECTURE == "intel"
-import OPT_IA32ConditionOperand;
+import RVMPKGOPT_IA32ConditionOperand;
   $$$$ END IF
 
 /**
@@ -823,35 +825,37 @@ $$$$ FOREACH CSIG CommonOperands.dat
  * and 'fatalInstructionFormat'
  */
 
-package instructionFormats;
+package INSTRFMTPKG;
 
-import OPT_Instruction;
-import OPT_Operator;
-import OPT_BasicBlockOperand;
-import OPT_BranchOperand;
-import OPT_BranchProfileOperand;
-import OPT_ConditionOperand;
-import OPT_ConstantOperand;
-import OPT_DoubleConstantOperand;
-import OPT_FloatConstantOperand;
-import OPT_IntConstantOperand;
-import OPT_LocationOperand;
-import OPT_LongConstantOperand;
-import OPT_MethodOperand;
-import OPT_SysMethodOperand;
-import OPT_NullConstantOperand;
-import OPT_Operand;
-import OPT_RegisterOperand;
-import OPT_StringConstantOperand;
-import OPT_TrapCodeOperand;
-import OPT_TrueGuardOperand;
-import OPT_TypeOperand;
+import RVMPKGOPT_Instruction;
+import RVMPKGOPT_Operator;
+import RVMPKGOPT_BasicBlockOperand;
+import RVMPKGOPT_BranchOperand;
+import RVMPKGOPT_BranchProfileOperand;
+import RVMPKGOPT_ConditionOperand;
+import RVMPKGOPT_ConstantOperand;
+import RVMPKGOPT_DoubleConstantOperand;
+import RVMPKGOPT_FloatConstantOperand;
+import RVMPKGOPT_IntConstantOperand;
+import RVMPKGOPT_LocationOperand;
+import RVMPKGOPT_LongConstantOperand;
+import RVMPKGOPT_MethodOperand;
+  $$$$ IF ARCHITECTURE != "NONE"
+import RVMPKGOPT_SysMethodOperand;
+  $$$$ END IF
+import RVMPKGOPT_NullConstantOperand;
+import RVMPKGOPT_Operand;
+import RVMPKGOPT_RegisterOperand;
+import RVMPKGOPT_StringConstantOperand;
+import RVMPKGOPT_TrapCodeOperand;
+import RVMPKGOPT_TrueGuardOperand;
+import RVMPKGOPT_TypeOperand;
   $$$$ IF ARCHITECTURE == "powerPC"
-import OPT_PowerPCConditionOperand;
-import OPT_PowerPCTrapOperand;
+import RVMPKGOPT_PowerPCConditionOperand;
+import RVMPKGOPT_PowerPCTrapOperand;
   $$$$ END IF
   $$$$ IF ARCHITECTURE == "intel"
-import OPT_IA32ConditionOperand;
+import RVMPKGOPT_IA32ConditionOperand;
   $$$$ END IF
 
 

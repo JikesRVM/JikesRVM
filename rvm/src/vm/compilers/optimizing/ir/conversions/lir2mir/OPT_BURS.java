@@ -21,7 +21,7 @@ import instructionFormats.*;
  */
 final class OPT_BURS implements OPT_Operators {
 
-  static final boolean DEBUG = false;
+  static boolean DEBUG = false;
 
   private static final OPT_BURS_TreeNode NullTreeNode = 
     new OPT_BURS_TreeNode(NULL_opcode);
@@ -97,7 +97,6 @@ final class OPT_BURS implements OPT_Operators {
     }
   }
 
-
   /**
    * Build BURS trees for dependence graph dg, label the trees, and
    * then generate MIR instructions based on the labeling.
@@ -115,6 +114,7 @@ final class OPT_BURS implements OPT_Operators {
     labelTrees(burs);
     generateTrees(burs);
   }
+
 
 
   ////////////////////////////////
@@ -503,7 +503,6 @@ final class OPT_BURS implements OPT_Operators {
       }
     }
   }
-
 
   /**
    * Return true if node n must be a root of a BURS tree

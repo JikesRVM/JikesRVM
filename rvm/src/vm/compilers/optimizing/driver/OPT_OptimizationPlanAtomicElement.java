@@ -18,7 +18,7 @@
  * @author Dave Grove
  * @author Michael Hind
  */
-final class OPT_OptimizationPlanAtomicElement extends 
+public final class OPT_OptimizationPlanAtomicElement extends 
                                           OPT_OptimizationPlanElement {
   /**
    * The phase to be performed.

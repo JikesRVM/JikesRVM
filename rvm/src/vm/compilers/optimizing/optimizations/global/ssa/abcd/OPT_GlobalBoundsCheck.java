@@ -427,7 +427,7 @@ final class OPT_GlobalBoundsCheck extends OPT_OptimizationPlanCompositeElement {
         System.out.println("\n-----------------------------------------");
         System.out.println("GBoundsCheck: method = " + 
             ir.method.getDeclaringClass()
-            + "  " + ir.method.name);
+            + "  " + ir.method.getName());
       }
       // flush cache on each method
       answers = new java.util.HashMap();

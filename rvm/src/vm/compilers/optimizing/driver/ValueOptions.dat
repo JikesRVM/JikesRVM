@@ -83,3 +83,6 @@ Selection of spilling heuristic
 "BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
 "LOOPDEPTH_SPILL_COST loopDepthSpillCost loopDepth"
 
+S METHOD_TO_WRITE String
+Write class file from HIR for this method
+

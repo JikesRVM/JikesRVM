@@ -732,7 +732,7 @@ public final class VM_RootBuffer
 
     // Abstraction of classloader
     private static VM_Type findOrCreateType (String str) {
-	return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(str));
+	return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(str), VM_SystemClassLoader.getVMClassLoader());
     }
 
     // Set acyclic bit in class object

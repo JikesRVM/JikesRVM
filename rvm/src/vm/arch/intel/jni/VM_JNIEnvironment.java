@@ -154,7 +154,14 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   // Returned: offset of entry in JNIRefs stack
   // 
   public int pushJNIRef( Object ref ) {
+    if (ref == null) return 0;
+    if (VM.VerifyAssertions) VM.assert( VM_GCUtil.validRef( VM_Magic.objectAsAddress(ref) ) );
     JNIRefsTop += 4;
+    if (JNIRefsTop >> 2 >= JNIRefs.length) {
+	int[] newrefs = new int[ JNIRefs.length * 2 ];
+	for(int i = 0; i < JNIRefs.length; i++) newrefs[i] = JNIRefs[i];
+	JNIRefs = newrefs;
+    }
     JNIRefs[ JNIRefsTop >> 2 ] = VM_Magic.objectAsAddress(ref).toInt();
     return JNIRefsTop;
   }
@@ -166,11 +173,32 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
       VM.sysWrite(offset); 
-      VM.sysWrite("\n");
+      VM.sysWrite("(top is ");
+      VM.sysWrite(JNIRefsTop);
+      VM.sysWrite(")\n");
       return null;
     }
-    return VM_Magic.addressAsObject( VM_Address.fromInt(JNIRefs[ offset>>2 ]) );
+    if (offset < 0)
+	return VM_JNIGlobalRefTable.ref( offset );
+    else
+	return VM_Magic.addressAsObject( VM_Address.fromInt(JNIRefs[ offset>>2 ]) );
     
+  }
+
+  // remove a reference from the JNIRefs stack
+  // Taken:    offset in JNIRefs stack
+  public void deleteJNIRef( int offset ) {
+    if (offset > JNIRefsTop) {
+      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
+      VM.sysWrite(offset); 
+      VM.sysWrite("(top is ");
+      VM.sysWrite(JNIRefsTop);
+      VM.sysWrite(")\n");
+    }
+    
+    JNIRefs[ offset>>2 ] = 0;
+
+    if (offset == JNIRefsTop) JNIRefsTop -= 4;
   }
 
   // record an exception as pending so that it will be delivered on the return

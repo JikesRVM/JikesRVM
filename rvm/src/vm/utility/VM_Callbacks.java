@@ -486,6 +486,130 @@ public final class VM_Callbacks {
     forNameEnabled = true;
   }
 
+
+  /**
+   * Interface for monitoring defineClass calls.
+   */
+  public static interface DefineClassMonitor {
+    /**
+     * Notify the monitor that java.lang.Class.defineclass was called.
+     * @param type the type that will be returned
+     */
+    public void notifyDefineClass(VM_Type type);
+  }
+
+  /**
+   * defineclass call callback list.
+   */
+  private static CallbackList defineClassCallbacks = null;
+  private static Object defineClassLock = new Object();
+  private static boolean defineClassEnabled = true;
+
+  /**
+   * Register a callback for defineClass call.
+   * @param cb the object to notify when event happens
+   */
+  public static void addDefineClassMonitor(DefineClassMonitor cb) {
+    synchronized (defineClassLock) {
+      if (TRACE_ADDMONITOR || TRACE_DEFINECLASS) {
+        VM.sysWrite("adding defineclass monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      defineClassCallbacks = new CallbackList(cb, defineClassCallbacks);
+    }
+  }
+
+  /**
+   * Notify the monitor that java.lang.Class.defineclass was called.
+   * @param type the type that will be returned
+   */
+  public static void notifyDefineClass(VM_Type type) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!defineClassEnabled) return;
+    defineClassEnabled = false;
+    if (TRACE_DEFINECLASS) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking defineclass monitors: ");
+      VM.sysWrite(type.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = defineClassCallbacks; l != null; l = l.next) {
+      if (TRACE_DEFINECLASS) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((DefineClassMonitor) l.callback).notifyDefineClass(type);
+    }
+    defineClassEnabled = true;
+  }
+
+
+
+  /**
+   * Interface for monitoring loadClass calls.
+   */
+  public static interface LoadClassMonitor {
+    /**
+     * Notify the monitor that java.lang.Class.loadclass was called.
+     * @param type the type that will be returned
+     */
+    public void notifyLoadClass(VM_Type type);
+  }
+
+  /**
+   * loadclass call callback list.
+   */
+  private static CallbackList loadClassCallbacks = null;
+  private static Object loadClassLock = new Object();
+  private static boolean loadClassEnabled = true;
+
+  /**
+   * Register a callback for loadClass call.
+   * @param cb the object to notify when event happens
+   */
+  public static void addLoadClassMonitor(LoadClassMonitor cb) {
+    synchronized (loadClassLock) {
+      if (TRACE_ADDMONITOR || TRACE_LOADCLASS) {
+        VM.sysWrite("adding loadclass monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      loadClassCallbacks = new CallbackList(cb, loadClassCallbacks);
+    }
+  }
+
+  /**
+   * Notify the monitor that java.lang.Class.loadclass was called.
+   * @param type the type that will be returned
+   */
+  public static void notifyLoadClass(VM_Type type) {
+    // NOTE: will need synchronization if allowing unregistering
+    if (!loadClassEnabled) return;
+    loadClassEnabled = false;
+    if (TRACE_LOADCLASS) {
+      //VM.sysWrite(getThread(), false);
+      //VM.sysWrite(": ");
+      VM.sysWrite("invoking loadclass monitors: ");
+      VM.sysWrite(type.getDescriptor());
+      VM.sysWrite("\n");
+      //printStack("From: ");
+    }
+    for (CallbackList l = loadClassCallbacks; l != null; l = l.next) {
+      if (TRACE_LOADCLASS) {
+        VM.sysWrite("    ");
+        VM.sysWrite(getClass(l.callback));
+        VM.sysWrite("\n");
+      }
+      ((LoadClassMonitor) l.callback).notifyLoadClass(type);
+    }
+    loadClassEnabled = true;
+  }
+
+
   /**
    * Interface for monitoring boot image writing.
    */
@@ -802,6 +926,8 @@ public final class VM_Callbacks {
   private final static boolean TRACE_METHODOVERRIDE    = false;
   private final static boolean TRACE_METHODCOMPILE     = false;
   private final static boolean TRACE_FORNAME           = false;
+  private final static boolean TRACE_DEFINECLASS       = false;
+  private final static boolean TRACE_LOADCLASS         = false;
   private final static boolean TRACE_BOOTIMAGE         = false;
   private final static boolean TRACE_STARTUP           = false;
   private final static boolean TRACE_EXIT              = false;

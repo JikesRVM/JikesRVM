@@ -13,6 +13,8 @@
 
 package com.ibm.JikesRVM.librarySupport;
 import VM;
+import VM_Atom;
+import VM_Array;
 import VM_Class;
 import VM_ClassLoader;
 import VM_ResolutionException;
@@ -76,7 +78,7 @@ public class ClassLoaderSupport {
    * @see	java.lang.ClassLoader
    */
   public static ClassLoader getClassLoader(Class C) {
-    return VM_SystemClassLoader.getVMClassLoader();
+      return ((VM_Class)C.type).getClassLoader();
   }
   /**
    * Constructs a new class from an array of bytes containing a
@@ -94,12 +96,12 @@ public class ClassLoaderSupport {
                                   int offset, int length, ProtectionDomain protectionDomain)
     throws java.lang.ClassFormatError
     {
-      VM.sysWrite("WARNING: ignoring ProtectionDomain for class definition!\n");
-      return VM_ClassLoader.defineClassInternal(
-                                                className,
+      return VM_ClassLoader.defineClassInternal(className,
                                                 classRep,
                                                 offset,
-                                                length);
+                                                length,
+						cl,
+						protectionDomain);
     }
   /**
    * Constructs a new class from an array of bytes containing a
@@ -115,21 +117,19 @@ public class ClassLoaderSupport {
    */
   public static Class defineClass(ClassLoader cl, String className, byte[] classRep, 
                                   int offset, int length) throws ClassFormatError {
-    return VM_ClassLoader.defineClassInternal(className, classRep, offset, length);
+    return VM_ClassLoader.defineClassInternal(className, classRep, offset, length, cl);
   }
 
-  /**
-   * Loads the class with the specified name, optionally linking the class
-   * after load.
-   *
-   * @return 		java.lang.Class the Class object.
-   * @param 		className the name of the class to search for.
-   * @param 		resolveClass indicates if class should be resolved after loading.
-   * @exception	ClassNotFoundException If the class could not be found.
-   */
-  public static synchronized Class loadClass(ClassLoader cl, String className, boolean resolveClass) 
-    throws ClassNotFoundException {
-      return VM_ClassLoader.loadClassInternal(className, resolveClass);
+
+    public static Class loadArrayType(ClassLoader cl, String className, boolean resolveClass) throws ClassNotFoundException {
+
+	VM_Atom d = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
+	VM_Array cls = (VM_Array)VM_ClassLoader.findOrCreateType(d, cl);
+
+	if (! cls.getElementType().isPrimitiveType())
+	    cl.loadClass(cls.getElementType().getName(), resolveClass);
+
+	return cls.getClassForType();
     }
 
   /**
@@ -177,13 +177,10 @@ public class ClassLoaderSupport {
    * @param 		className String
    *					the name of the class to search for.
    */
-  public static Class findLoadedClass (ClassLoader cl, String className)
-  {
-    UnimplementedError.unimplemented("findLoadedClass");
-    return null;
-  }
-
-
+    public static Class findLoadedClass(ClassLoader cl, String className) {
+	// for now, just one name space
+	return VM_SystemClassLoader.getVMClassLoader().findLoadedClassInternal(className);
+    }
 
 
   /**
@@ -204,7 +201,11 @@ public class ClassLoaderSupport {
    *					if a security manager exists and it does not
    *					allow access to the system class loader.
    */
-  public static ClassLoader getSystemClassLoader () {
-    return VM_SystemClassLoader.getVMClassLoader();
-  }
+    public static ClassLoader getSystemClassLoader () {
+	return VM_SystemClassLoader.getVMClassLoader();
+    }
+    
+    public static ClassLoader getClassLoaderFromStackFrame(int depth) {
+	return VM_Class.getClassLoaderFromStackFrame(depth+1);
+    }
 }

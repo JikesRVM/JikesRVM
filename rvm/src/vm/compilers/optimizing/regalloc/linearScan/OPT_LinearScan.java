@@ -276,8 +276,8 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           ir.MIRInfo.linearScanState.spilledSomething = true;
         }
       }
+  }
 
-    }
   /**
    * Implements a basic live interval (no holes), which is a pair
    *   begin    - the starting point of the interval
@@ -733,6 +733,19 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return result;
     }
 
+    //-#if RVM_WITH_CLASS_WRITER
+    // prune intervals before a specified start to avoid reinspecting them
+    void pruneIntervals( int before ) {
+	Iterator intervals = iterator();
+	while ( intervals.hasNext() ) {
+	    BasicInterval current = (BasicInterval)intervals.next();
+	    if ( current.endsBefore( before ) ) {
+		intervals.remove();
+	    }
+	}
+    }
+    //-#endif
+
     /**
      * SJF: Apparently our java.util implementation of removeAll()
      * doesn't work.  Perhaps I've somehow screwed up the comparator with
@@ -852,6 +865,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return str;
     }
   }
+
   /**
    * "Active set" for linear scan register allocation.
    * This version is maintained sorted in order of increasing
@@ -1734,7 +1748,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // debug support
       if (verboseDebug) {
         VM.sysWrite("**** start of interval dump "+ir.method+" ****\n");
-        VM.sysWrite(state.intervals.toString());
+        VM.sysWrite(ir.MIRInfo.linearScanState.intervals.toString());
         VM.sysWrite("**** end   of interval dump ****\n");
       }
     }
@@ -1809,11 +1823,14 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
            reg = reg.getNext()) {
         setInterval(reg, null); 
         OPT_RegisterAllocatorState.setSpill(reg,0);
+	//-#if RVM_WITH_CLASS_WRITER
+	//-#else
         // clear the 'long' type if it's persisted to here.
         if (reg.isLong()) {
           reg.clearType();
           reg.setInteger();
         }
+	//-#endif
       }
     }
 
@@ -2420,12 +2437,13 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       rewriteFPStack(ir);
     }
+
     /**
      *  Iterate over the IR and replace each symbolic register with its
      *  allocated physical register.
      *  Also used by ClassWriter
      */
-    public void replaceSymbolicRegisters(OPT_IR ir) {
+    static public void replaceSymbolicRegisters(OPT_IR ir) {
       for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
            inst.hasMoreElements();) {
         OPT_Instruction s = inst.next();

@@ -44,8 +44,8 @@ final class VM_SegregatedListHeap extends VM_Heap
 
   private int total_blocks_in_use;
 
-  private static final VM_Array BCArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[LVM_BlockControl;")).asArray();
-  private static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
+  private static final VM_Array BCArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+  private static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
   private static final int byteArrayHeaderSize = VM_ObjectModel.computeArrayHeaderSize(byteArrayType);
   private static Object[] byteArrayTIB;  // we cache this because the code to get this is interruptible
 

@@ -115,6 +115,63 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   }
 
   /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  final void set(VM_StackBrowser browser, int instr) {
+    VM_OptMachineCodeMap map = getMCMap();
+    int iei = map.getInlineEncodingForMCOffset(instr);
+    if (iei >= 0) {
+      int[] inlineEncoding = map.inlineEncoding;
+      int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+
+      browser.setInlineEncodingIndex( iei );
+      browser.setBytecodeIndex( map.getBytecodeIndexForMCOffset(instr) );
+      browser.setCompilerInfo( this );
+      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+
+      if (VM.TraceStackTrace) {
+	  VM.sysWrite("setting stack to frame (opt): ");
+	  VM.sysWrite( browser.getMethod() );
+	  VM.sysWrite( browser.getBytecodeIndex() );
+	  VM.sysWrite("\n");
+      }
+    }
+    
+    else
+	VM.assert(VM.NOT_REACHED);
+  }
+
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  final boolean up(VM_StackBrowser browser) {
+    VM_OptMachineCodeMap map = getMCMap();
+    int iei = browser.getInlineEncodingIndex();
+    int[] ie = map.inlineEncoding;
+    int next = VM_OptEncodedCallSiteTree.getParent(iei, ie);
+    if (next >= 0) {
+      int mid = VM_OptEncodedCallSiteTree.getMethodID(next, ie);
+      int bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(iei, ie);
+
+      browser.setInlineEncodingIndex( next );
+      browser.setBytecodeIndex( bci );
+      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+
+      if (VM.TraceStackTrace) {
+	  VM.sysWrite("up within frame stack (opt): ");
+	  VM.sysWrite( browser.getMethod() );
+	  VM.sysWrite( browser.getBytecodeIndex() );
+	  VM.sysWrite("\n");
+      }
+
+      return true;
+    }
+
+    else
+      return false;
+  }
+
+  /**
    * Print this compiled method's portion of a stack trace.
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.

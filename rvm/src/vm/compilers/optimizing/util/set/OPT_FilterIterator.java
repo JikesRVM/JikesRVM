@@ -64,7 +64,7 @@ public class OPT_FilterIterator
    * put your documentation comment here
    */
   public void remove () {
-    throw  new java.util.UnsupportedOperationException();
+    throw  new java.lang.UnsupportedOperationException();
   }
 
   /**

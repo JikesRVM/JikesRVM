@@ -436,7 +436,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   VM_Field(VM_Class declaringClass, VM_Atom name, 
 	   VM_Atom descriptor, int dictionaryId) {
     super(declaringClass, name, descriptor, dictionaryId);
-    type = VM_ClassLoader.findOrCreateType(getDescriptor());
+    type = VM_ClassLoader.findOrCreateType(getDescriptor(), declaringClass.classloader);
     offset = VM_Member.UNINITIALIZED_OFFSET;
   }
 

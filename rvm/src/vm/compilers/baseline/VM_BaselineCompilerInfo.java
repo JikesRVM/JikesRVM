@@ -202,6 +202,29 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
     return  results;
   }
 
+  /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  final void set(VM_StackBrowser browser, int instr) {
+    browser.setMethod( method );
+    browser.setCompilerInfo( this );
+    browser.setBytecodeIndex( findBytecodeIndexForInstruction(instr>>>LG_INSTRUCTION_WIDTH) );
+
+    if (VM.TraceStackTrace) {
+	VM.sysWrite("setting stack to frame (base): ");
+	VM.sysWrite( browser.getMethod() );
+	VM.sysWrite( browser.getBytecodeIndex() );
+	VM.sysWrite("\n");
+    }
+  }
+
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  final boolean up(VM_StackBrowser browser) {
+      return false;
+  }
+
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
   //          the PrintStream to print the stack trace to.

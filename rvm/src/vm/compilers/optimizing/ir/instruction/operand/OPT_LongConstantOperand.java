@@ -27,7 +27,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    *
    * @param v value
    */
-  OPT_LongConstantOperand(long v) {
+  public OPT_LongConstantOperand(long v) {
     value = v;
   }
 

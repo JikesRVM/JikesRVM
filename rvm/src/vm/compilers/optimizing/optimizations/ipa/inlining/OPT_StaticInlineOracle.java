@@ -47,6 +47,7 @@ final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
     // Ok, the size looks good, attempt to do it.
     if (needsGuard) {
+
       if (preEx) {
 	if (OPT_ClassLoadingDependencyManager.TRACE || 
 	    OPT_ClassLoadingDependencyManager.DEBUG) {
@@ -56,7 +57,9 @@ final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
 							    state.getCompiledMethodId());
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
-      } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
+      } else 
+
+	  if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
 	return OPT_InlineDecision.guardedYES(callee, 
 					     chooseGuard(caller, callee, state, true), 
 					     "static guarded inline passsed size checks");

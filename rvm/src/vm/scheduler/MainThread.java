@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import java.net.URL;
+import java.net.URLClassLoader;
+
 /**
  * Thread in which user's "main" program runs.
  *
@@ -35,10 +38,6 @@ class MainThread extends Thread {
    * Run "main" thread.
    */
   public void run() {
-    // Notify other clients that the startup is complete.
-    //
-    VM_Callbacks.notifyStartup();
-
     // VM_Scheduler.trace("MainThread", "run");
       
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -46,16 +45,20 @@ class MainThread extends Thread {
     VM_Controller.boot();
     //-#endif
 
+    // Set up application class loader
+    VM_ApplicationClassLoader.setPathProperty();
+    ClassLoader cl = new VM_ApplicationClassLoader( VM_SystemClassLoader.getVMClassLoader() );
+
+    // find method to run
     String[]      mainArgs = null;
     INSTRUCTION[] mainCode = null;
-      
     synchronized (VM_ClassLoader.lock) {
       // load class specified by args[0]
       //
       VM_Class cls = null;
       try {
-	cls = VM_Class.forName(args[0]);
-      } catch (VM_ResolutionException e) { 
+	cls = (VM_Class) cl.loadClass(args[0], true).getVMType();
+      } catch (ClassNotFoundException e) { 
 	// no such class
 	VM.sysWrite(e.getException() + "\n");
 	return;
@@ -80,6 +83,10 @@ class MainThread extends Thread {
       
     }
    
+    // Notify other clients that the startup is complete.
+    //
+    VM_Callbacks.notifyStartup();
+
     // dummy call for debugger to find the main method
     // (needed for the default option of stopping in the main method on start up)
     VM.debugBreakpoint();

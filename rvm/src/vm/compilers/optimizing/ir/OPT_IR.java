@@ -37,7 +37,7 @@ import instructionFormats.*;
  * @author Mauricio J. Serrano
  * @author Martin Trapp
  */
-final class OPT_IR implements OPT_Operators {
+public final class OPT_IR implements OPT_Operators {
 
   /**
    * Control for (dynamic) IR invariant checking.
@@ -143,7 +143,7 @@ final class OPT_IR implements OPT_Operators {
    * TODO: It's plausible that this field also really belongs on
    * the generation context instead of the IR.
    */
-  public OPT_SpecializationGraphNode context;
+    public OPT_SpecializationHandler special;
   //-#endif
     
   /**
@@ -222,8 +222,8 @@ final class OPT_IR implements OPT_Operators {
    * @param ip   the inlining oracle to use for the compilation
    * @param opts the options to use for the compilation
    */
-  public OPT_IR(VM_Method meth, OPT_InlineOracle ip, OPT_Options opts) {
-    method = meth;
+  public OPT_IR(VM_Method m, OPT_InlineOracle ip, OPT_Options opts) {
+    method = m;
     options = opts;
     inlinePlan = ip;
   }
@@ -232,12 +232,12 @@ final class OPT_IR implements OPT_Operators {
    * @param meth the method to compile
    * @param cp   the compilation plan to execute
    */
-  public OPT_IR(VM_Method meth, OPT_CompilationPlan cp) {
-    method = meth;
+  public OPT_IR(VM_Method m, OPT_CompilationPlan cp) {
+    method = m;
     options = cp.options;
     inlinePlan = cp.inlinePlan;
     //-#if RVM_WITH_SPECIALIZATION
-    context = cp.context;
+    special = cp.special;
     //-#endif
 
     instrumentationPlan = cp.instrumentationPlan;
@@ -248,7 +248,7 @@ final class OPT_IR implements OPT_Operators {
   /**
    * Print the instructions in this IR to System.out.
    */
-  void printInstructions() {
+  public void printInstructions() {
     // If counts are available, include them in the printed IR
     if (this.basicBlockFrequenciesAvailable()) {
       // Update the counts to be sure they are valid.

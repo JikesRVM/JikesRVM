@@ -30,6 +30,18 @@ public class VM_Reflection implements VM_Constants {
 
   public static Object invoke(VM_Method method, Object thisArg, 
                               Object[] otherArgs, boolean isNonvirtual) {
+
+    // the class must be initialized before we can invoke a method
+    //
+    try {
+	method.getDeclaringClass().load();
+	method.getDeclaringClass().resolve();
+	method.getDeclaringClass().instantiate();
+	method.getDeclaringClass().initialize();
+    } catch (Throwable e) {
+	e.printStackTrace();
+    }
+
     // choose actual method to be called
     //
     VM_Method targetMethod;
@@ -93,7 +105,7 @@ public class VM_Reflection implements VM_Constants {
     // obsolete and reclaimed.
     INSTRUCTION[] code = targetMethod.getMostRecentlyGeneratedInstructions();
     VM.enableGC();
-     
+
     if (!returnIsPrimitive) {
       return VM_Magic.invokeMethodReturningObject(code, GPRs, FPRs, Spills);
     }

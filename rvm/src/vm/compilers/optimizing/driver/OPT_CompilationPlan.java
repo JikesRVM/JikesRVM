@@ -48,13 +48,15 @@ final class OPT_CompilationPlan {
   /**
    * pointer to context when compilation caused by specialization
    */
-  public OPT_SpecializationGraphNode context;
+  public OPT_SpecializationHandler special;
   //-#endif
 
   /** 
    * Whether this compilation is for analysis only?
    */
   public boolean analyzeOnly;
+
+  public boolean irGeneration;
 
   /**
    * Construct a compilation plan
@@ -84,13 +86,13 @@ final class OPT_CompilationPlan {
    */
   public OPT_CompilationPlan (VM_Method m, OPT_OptimizationPlanElement[] op, 
       OPT_InstrumentationPlan mp, OPT_Options opts, 
-      OPT_SpecializationGraphNode c) {
+      OPT_SpecializationHandler special) {
     method = m;
     optimizationPlan = op;
     instrumentationPlan = mp;
     inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
     options = opts;
-    context = c;
+    this.special = special;
   }
   //-#endif
     
@@ -123,14 +125,14 @@ final class OPT_CompilationPlan {
    */
   public OPT_CompilationPlan (VM_Method m, OPT_OptimizationPlanElement op, 
 			      OPT_InstrumentationPlan mp, OPT_Options opts,
-			      OPT_SpecializationGraphNode c)
+			      OPT_SpecializationHandler special)
   {
     method = m;
     optimizationPlan = new OPT_OptimizationPlanElement[] { op };
     instrumentationPlan = mp;
     inlinePlan = OPT_InlineOracleDictionary.getOracle(m);
     options = opts;
-    context = c;
+    this.special = special;
   }
   //-#endif
 
@@ -147,7 +149,9 @@ final class OPT_CompilationPlan {
    */
   public OPT_IR execute () {
     OPT_IR ir = new OPT_IR(method, this);
+
     ir.compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
+
     // If there is instrumentation to perform, do some initialization
     if (instrumentationPlan != null) {
       instrumentationPlan.initInstrumentation(method);

@@ -14,7 +14,7 @@
  *
  * @author Dave Grove
  **/
-class OPT_Options implements Cloneable {
+public class OPT_Options implements Cloneable {
 
   // Non-template instance fields that we don't want
   //  available on the command-line)

@@ -42,7 +42,7 @@ final class VM_BlockControl
     int allocCount; // RCGC number of allocated slots in the block
 
 
-    static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BlockControl;")).asClass();
+    static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 
     private static int      instanceSize;
     private static Object[] TIB;

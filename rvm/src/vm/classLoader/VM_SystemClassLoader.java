@@ -3,6 +3,7 @@
  */
 //$Id$
 
+import java.util.Hashtable;
 import java.io.*;
 
 /** 
@@ -14,33 +15,66 @@ import java.io.*;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public final class VM_SystemClassLoader extends java.lang.ClassLoader {
+public final class VM_SystemClassLoader extends com.ibm.oti.vm.AbstractClassLoader {
 
   /* Interface */
-  public static VM_SystemClassLoader getVMClassLoader() { 
-    return classLoader;
-  }
+  private static VM_SystemClassLoader vmClassLoader =
+      new VM_SystemClassLoader();
 
-  /* Implementation */
-  private static VM_SystemClassLoader classLoader = new VM_SystemClassLoader();
+  public static VM_SystemClassLoader getVMClassLoader() { 
+      return vmClassLoader;
+  }
 
   // prevent other classes from constructing
-  private VM_SystemClassLoader() {}
+  private VM_SystemClassLoader() { }
 
-  public InputStream getResourceAsStream (String resName) {
-    try {
-      VM_BinaryData vd = VM_ClassLoader.getClassOrResourceData( resName );
-      if ( vd == null )
-        return null;
-      else
-        return vd.asInputStream();
-    } catch ( FileNotFoundException e ) {
-      return null;
-    }
-    catch ( IOException e ) {
-      return null;
-    }
+  public Class loadClass(String className, boolean resolveClass)
+      throws ClassNotFoundException
+  {
+    Class loadedClass = null;
+
+    // Ask the VM to look in its cache.
+    loadedClass = findLoadedClassInternal(className);
+
+    if (loadedClass == null) loadedClass = findClass(className);
+
+    // resolve if required
+    if (resolveClass) resolveClass(loadedClass);
+
+    return loadedClass;
   }
+
+    private static byte[] getBytes(InputStream is) throws IOException {
+	byte[] buf = new byte[4096];
+	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	int count;
+	while ((count = is.read(buf)) > 0)
+	    bos.write(buf, 0, count);
+	return bos.toByteArray();
+    }
+    
+    protected Class findClass (String className) throws ClassNotFoundException
+    {
+	VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+	VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
+	try {	    
+	    InputStream is =
+		getResourceAsStream( 
+		    classDescriptor.classFileNameFromDescriptor());
+
+	    if (is == null)
+		throw new NullPointerException();
+
+	    synchronized (cls) {
+		if (! cls.isLoaded())
+		    cls.load(new VM_BinaryData(getBytes(is)));
+	    }
+	} catch (Throwable e) {
+	    throw new ClassNotFoundException(className);
+	}
+
+	return cls.getClassForType();
+    }
 
   /**
    * Attempts to find and return a class which has already

@@ -70,7 +70,7 @@ class GenerateInterfaceDeclarations {
   static void emitBootRecordDeclarations () throws VM_ResolutionException {
     VM_Atom className = VM_Atom.findOrCreateAsciiAtom("VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
-    VM_Class bootRecord = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
+    VM_Class bootRecord = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
 
     bootRecord.load();
 

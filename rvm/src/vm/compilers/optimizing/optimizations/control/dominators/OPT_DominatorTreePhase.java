@@ -51,7 +51,7 @@ final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
     if (!ir.HIRInfo.dominatorsAreComputed)
       return;
     try {
-      OPT_DominatorTree.perform(ir);
+      OPT_DominatorTree.perform(ir, true);
     } catch (OPT_OperationNotImplementedException e) {
       if (ir.options.PRINT_DOMINATORS || ir.options.PRINT_SSA) {
         OPT_Compiler.report(e.getMessage());

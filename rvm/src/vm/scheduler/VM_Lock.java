@@ -400,7 +400,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    */
   static VM_Lock allocate () {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
-    if (!mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
+    if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
       localizeFreeLocks();
     }

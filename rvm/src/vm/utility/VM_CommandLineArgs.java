@@ -306,7 +306,6 @@ class VM_CommandLineArgs {
       case CLASSPATH_ARG:
 	// arguments of the form "-classpath a:b:c" or "-cp a:b:c"
 	VM_ClassLoader.setApplicationRepositories(arg);
-	System.setPathProperty();
 	break;
       case ENVIRONMENT_ARG: // arguments of the form "-Dx=y"
 	int mid = arg.indexOf('=');

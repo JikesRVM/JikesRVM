@@ -20,7 +20,7 @@ final class VM_OptExceptionTable implements VM_Constants {
   public  static final int TRY_START = 0;
   public  static final int TRY_END = 1;
   public  static final int CATCH_START = 2;
-  private static final int EX_TYPE = 3;
+  public  static final int EX_TYPE = 3;
 
   private static final boolean DEBUG = false;
   /**

@@ -46,13 +46,6 @@ public class VM_Class extends VM_Type
     return 1;
   }
 
-  /**
-   * Is this class part of the virtual machine's boot image?
-   */ 
-  public final boolean isInBootImage() {
-    return inBootImage;
-  }
-
   //--------------------------------------------------------------------//
   //                           Section 1.                               //
   //  The following are available after the class has been "loaded".    //
@@ -323,6 +316,18 @@ public class VM_Class extends VM_Type
   }
 
   /**
+   * Should the methods of this class be compiled with 
+   * @see VM_BootImageInitialization
+   */ 
+  final boolean isBootImageInitialized () {
+    VM_Class[] interfaces = getDeclaredInterfaces();
+    for (int i = 0, n = interfaces.length; i < n; ++i)
+	if (interfaces[i].getName().equals("VM_BootImageInitialization"))
+	    return true;
+    return false; // does not (directly) implement VM_BootImageInitialization
+  }
+
+  /**
    * Does this object implement the VM_SynchronizedObject interface?
    * @see VM_SynchronizedObject
    */ 
@@ -550,30 +555,19 @@ public class VM_Class extends VM_Type
    * the initiating loader of the required class is the
    * defining loader of the requiring class.
    *
-   * @author CRA
+   * @author Julian Dolby
    * 
    * @param frames specifies the number of frames back from the 
    * caller to the method whose class's loader is required
    */
-  public static ClassLoader getClassLoaderFromStackFrame(int frames) {
-
-    VM_Address fp = VM_Magic.getFramePointer();
-    fp = VM_Magic.getCallerFramePointer(fp);
-    for (int i = 0; i < frames; i++)
-      fp = VM_Magic.getCallerFramePointer(fp);
-
-    int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-    VM_CompiledMethod compiledMethod = 
-      VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-    VM_Method method = compiledMethod.getMethod();
-    ClassLoader theclassloader = method.getDeclaringClass().getClassLoader();
-    if (DEBUG) { 
-      if (theclassloader != null) VM_Scheduler.trace("getLoaderFromFrame: ",
-                                                     theclassloader.toString(),
-                                                     VM_Magic.objectAsAddress(theclassloader).toInt());
-      else VM_Scheduler.trace("getLoaderFromFrame:", "null classloader");
-    }
-    return theclassloader;
+  public static ClassLoader getClassLoaderFromStackFrame(int skip) {
+      skip++; // account for stack frame of this function
+      VM_StackBrowser browser = new VM_StackBrowser();
+      VM.disableGC();
+      browser.init();
+      while (skip-- > 0) browser.up();
+      VM.enableGC();
+      return browser.getClassLoader();
   }
 
   /**
@@ -585,13 +579,16 @@ public class VM_Class extends VM_Type
     throws VM_ResolutionException {
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom
       (className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
+
+    ClassLoader cl = VM_SystemClassLoader.getVMClassLoader();
+    VM_Class cls = 
+	VM_ClassLoader.findOrCreateType(classDescriptor, cl).asClass();
+
     cls.load();
     cls.resolve();
     cls.instantiate();
     cls.initialize();
 
-    VM_Callbacks.notifyForName(cls);
     return cls;
   }
 
@@ -644,12 +641,11 @@ public class VM_Class extends VM_Type
   //
   // The following are always valid.
   //
-  private boolean inBootImage;
 
   // add field to identify the class Loader for this class
   // 06/19/00 CRA:
   //
-  private ClassLoader  classloader; 
+  ClassLoader  classloader; 
 
   //
   // The following are valid only when "state >= CLASS_LOADED".
@@ -715,13 +711,6 @@ public class VM_Class extends VM_Type
 
 
   /**
-   * Only intended to be used by the BootImageWriter
-   */
-  void markAsBootImageClass() {
-    inBootImage = true;
-  }
-
-  /**
    * To guarantee uniqueness, only the VM_ClassLoader class may 
    * construct VM_Class instances.
    * All VM_Class creation should be performed by calling 
@@ -729,11 +718,12 @@ public class VM_Class extends VM_Type
    */ 
   private VM_Class() { }
 
-  VM_Class(VM_Atom descriptor, int dictionaryId) {
+  VM_Class(VM_Atom descriptor, int dictionaryId, ClassLoader classloader) {
     this.descriptor   = descriptor;
     this.dictionaryId = dictionaryId;
     this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.subClasses   = new VM_Class[0];
+    this.classloader  = classloader;
 
     // install partial type information block 
     // (type-slot but no method-slots) for use in type checking.
@@ -753,7 +743,7 @@ public class VM_Class extends VM_Type
     if (isLoaded())
       return;
 
-    if (VM.TraceClassLoading) 
+    if (VM.TraceClassLoading && VM.runningVM) 
       VM.sysWrite("VM_Class: (begin) load " + descriptor + "\n");
 
     VM_Thread myThread;
@@ -761,30 +751,26 @@ public class VM_Class extends VM_Type
     if (VM.TraceTimes) VM_Timer.start(VM_Timer.CLASS_LOAD);
 
     try {
-      load(VM_ClassLoader.getClassOrResourceData
-	   (descriptor.classFileNameFromDescriptor()));
-    } catch (FileNotFoundException e) { 
+	classloader.loadClass( getName().toString() );
+    } catch (ClassNotFoundException e) { 
       // no .class file
       throw new VM_ResolutionException(descriptor, 
 				       new NoClassDefFoundError
 					 (descriptor.classNameFromDescriptor()));
-    } catch (IOException e) { 
-      // corrupted .class file
-      throw new VM_ResolutionException(descriptor, e);
     } catch (ClassFormatError e) { 
       // not really a .class file
       throw new VM_ResolutionException(descriptor, e);
     }
 
     if (VM.TraceTimes) VM_Timer.stop(VM_Timer.CLASS_LOAD);
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (end)   load " + descriptor + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load " + descriptor + "\n");
   }
 
   /**
    * Read this class's description from specified data stream.
    */ 
   final void load(VM_BinaryData input) throws ClassFormatError {
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (begin) load file " 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_VACANT);
 
@@ -793,6 +779,8 @@ public class VM_Class extends VM_Type
 
     if (input.readUnsignedShort() != 3 || input.readUnsignedShort() != 45)
       throw new ClassFormatError("bad version number");
+
+    this.sourceRepository = input.getRepository();
 
     //
     // pass 1: read constant pool
@@ -898,10 +886,10 @@ public class VM_Class extends VM_Type
 	  case TAG_TYPEREF: { // in: utf index
 	    VM_Atom typeName = VM_AtomDictionary.getValue(tmpPool[tmpPool[i]]);
 	    if (typeName.isArrayDescriptor())
-	      constantPool[i] = VM_ClassLoader.findOrCreateTypeId(typeName);
+	      constantPool[i] = VM_ClassLoader.findOrCreateTypeId(typeName, classloader);
 	    else
 	      constantPool[i] = VM_ClassLoader.findOrCreateTypeId
-		(typeName.descriptorFromClassName());
+		(typeName.descriptorFromClassName(), classloader);
 	    break; } // out: type dictionary id
 
 	  case TAG_STRING: 
@@ -932,8 +920,8 @@ public class VM_Class extends VM_Type
 		(tmpPool[memberDescriptorIndex]);
 
 	      constantPool[i] = (tmpTags[i] == TAG_FIELDREF)
-		? VM_ClassLoader.findOrCreateFieldId(classDescriptor, memberName, memberDescriptor)
-		: VM_ClassLoader.findOrCreateMethodId(classDescriptor, memberName, memberDescriptor);
+		? VM_ClassLoader.findOrCreateFieldId(classDescriptor, memberName, memberDescriptor, classloader)
+		: VM_ClassLoader.findOrCreateMethodId(classDescriptor, memberName, memberDescriptor, classloader);
 	      break; } // out: field or method dictionary id
 	    
 	  case TAG_MEMBERNAME_AND_DESCRIPTOR: // in: member+descriptor indices
@@ -972,7 +960,7 @@ public class VM_Class extends VM_Type
       int      modifiers       = input.readUnsignedShort();
       VM_Atom  fieldName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
       VM_Atom  fieldDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Field field           = VM_ClassLoader.findOrCreateField(getDescriptor(), fieldName, fieldDescriptor);
+      VM_Field field           = VM_ClassLoader.findOrCreateField(getDescriptor(), fieldName, fieldDescriptor, classloader);
       
       field.load(input, modifiers);
       declaredFields[i] = field;
@@ -983,7 +971,7 @@ public class VM_Class extends VM_Type
       int       modifiers        = input.readUnsignedShort();
       VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
       VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Method method           = VM_ClassLoader.findOrCreateMethod(getDescriptor(), methodName, methodDescriptor);
+      VM_Method method           = VM_ClassLoader.findOrCreateMethod(getDescriptor(), methodName, methodDescriptor, classloader);
 
       method.load(input, modifiers);
       declaredMethods[i] = method;
@@ -1018,7 +1006,7 @@ public class VM_Class extends VM_Type
 
     VM_Callbacks.notifyClassLoaded(this);
 
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (end)   load file " + 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   load file " + 
                                           descriptor + "\n");
   }
 
@@ -1032,7 +1020,7 @@ public class VM_Class extends VM_Type
     if (isResolved())
       return;
 
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (begin) resolve " 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) resolve " 
                                           + descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_LOADED);
 
@@ -1250,7 +1238,7 @@ public class VM_Class extends VM_Type
       finalizeMethod = null;
 
     if (VM.TraceTimes) VM_Timer.stop(VM_Timer.CLASS_RESOLVE);
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (end)   resolve " + descriptor + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   resolve " + descriptor + "\n");
   }
 
 
@@ -1322,7 +1310,7 @@ public class VM_Class extends VM_Type
     if (isInstantiated())
       return;
 
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (begin) instantiate " 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) instantiate " 
                                           + descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_RESOLVED);
 
@@ -1401,7 +1389,7 @@ public class VM_Class extends VM_Type
     if (VM.writingBootImage)
       VM_Callbacks.notifyClassInitialized(this);
 
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (end)   instantiate " 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   instantiate " 
                                           + descriptor + "\n");
   }
 
@@ -1437,7 +1425,7 @@ public class VM_Class extends VM_Type
       return;
     }
 
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (begin) initialize " + 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) initialize " + 
                                           descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_INSTANTIATED);
     state = CLASS_INITIALIZING;
@@ -1491,7 +1479,7 @@ public class VM_Class extends VM_Type
 
     VM_Callbacks.notifyClassInitialized(this);
 
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Class: (end)   initialize " 
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   initialize " 
                                           + descriptor + "\n");
   }
 
@@ -1750,6 +1738,13 @@ public class VM_Class extends VM_Type
 
   static VM_Class getInterface(int id) {
     return interfaces[id];
+  }
+
+  // where did I come from?
+  private String sourceRepository;
+
+  public String getSourceRepository() {
+      return sourceRepository;
   }
 
   private synchronized void assignInterfaceId() {

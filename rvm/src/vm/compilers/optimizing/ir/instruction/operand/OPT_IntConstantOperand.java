@@ -21,7 +21,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    *
    * @param v value
    */
-  OPT_IntConstantOperand(int v) {
+  public OPT_IntConstantOperand(int v) {
     value = v;
   }
 

@@ -311,7 +311,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
         OPT_Register r = c.destination.register;
         VM_Type tt = c.destination.type;
         if (tt == null) {
-          tt = VM_Type.IntType;
+          tt = OPT_ClassLoaderProxy.IntType;
           VM.sysWrite("OPT_SSA, warning: null type in " + c.destination
               + "\n");
         }

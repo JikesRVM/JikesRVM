@@ -225,7 +225,7 @@ class OptTestHarness {
 	  // -inlineplan is used to read an inline plan from a file
 	  i++;
 	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
-	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
+	  plan.readObject(new LineNumberReader(new FileReader(args[i])), VM_SystemClassLoader.getVMClassLoader());
 	  System.out.println(plan.toString());
 	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
@@ -290,7 +290,7 @@ class OptTestHarness {
 	    }
 	  }
 	  if (cm != null) method.replaceCompiledMethod(cm);
-	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes() ;
+	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
 	  Object[]  reflectMethodArgs = new Object[argDesc.length] ;
 	  i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
 	  java.lang.reflect.Method reflectoid = new java.lang.reflect.Method(method) ;

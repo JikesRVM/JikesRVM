@@ -29,7 +29,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
    *
    * @param v value
    */
-  OPT_DoubleConstantOperand(double v) {
+  public OPT_DoubleConstantOperand(double v) {
     value = v;
     if (v == 0.) {
       index = VM_Entrypoints.zeroDoubleField.getOffset() >> 2;

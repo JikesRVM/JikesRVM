@@ -244,6 +244,11 @@
   public abstract Object[] getTypeInformationBlock();
 
   /**
+   * Get the class loader for this type
+   */
+  public abstract ClassLoader getClassLoader();
+
+  /**
    * get number of superclasses to Object 
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
@@ -383,7 +388,8 @@
   public final VM_Array getArrayTypeForElementType() {
     VM_Atom arrayDescriptor = getDescriptor().
       arrayDescriptorFromElementDescriptor();
-    return VM_ClassLoader.findOrCreateType(arrayDescriptor).asArray();
+    ClassLoader cl;
+    return VM_ClassLoader.findOrCreateType(arrayDescriptor, getClassLoader()).asArray();
   }
 
   /**
@@ -401,6 +407,20 @@
   final int[] getDoesImplement () {
     if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
+  }
+	 
+  /**
+   * Only intended to be used by the BootImageWriter
+   */
+  void markAsBootImageClass() {
+    inBootImage = true;
+  }
+
+  /**
+   * Is this class part of the virtual machine's boot image?
+   */ 
+  public final boolean isInBootImage() {
+    return inBootImage;
   }
 
   /**
@@ -487,7 +507,7 @@
     }
   }
 
-   private static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
+  static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
      VM_Class [] superInterfaces = J.getDeclaredInterfaces();
      if (superInterfaces == null) return false;
      for (int i=0; i<superInterfaces.length; i++) {
@@ -501,6 +521,8 @@
   //----------------//
   // implementation //
   //----------------//
+
+  private boolean inBootImage;
 
   /**
    * current class-loading stage of this type
@@ -579,28 +601,37 @@
        VM_Atom.findOrCreateAsciiAtom("C"));
 
     //-#if RVM_FOR_POWERPC
-    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I")).asArray();
+    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
     //-#endif
     //-#if RVM_FOR_IA32
-    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
+    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
     //-#endif
 
     // create additional, frequently used, type descriptions
     //
-    JavaLangObjectType    = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"));
-    JavaLangClassType     = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Class;"));
-    JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;")).asArray();
-    JavaLangThrowableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"));
-    JavaLangStringType    = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"));
-    JavaLangCloneableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;")).asClass();
-    JavaIoSerializableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;")).asClass();
-    MagicType             = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"));
-    UninterruptibleType   = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"));
-    SynchronizedObjectType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_SynchronizedObject;"));
-    DynamicBridgeType     = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"));
-    SaveVolatileType      = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"));
-    NativeBridgeType      = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"));
-    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Address;"));
+    JavaLangObjectType    = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangThrowableType = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangStringType    = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaLangCloneableType = (VM_Class) VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"), VM_SystemClassLoader.getVMClassLoader());
+    JavaIoSerializableType = (VM_Class) VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"), VM_SystemClassLoader.getVMClassLoader());
+    MagicType             = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"), VM_SystemClassLoader.getVMClassLoader());
+    UninterruptibleType   = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"), VM_SystemClassLoader.getVMClassLoader());
+    SynchronizedObjectType = VM_ClassLoader.findOrCreateType 
+      (VM_Atom.findOrCreateAsciiAtom("LVM_SynchronizedObject;"), VM_SystemClassLoader.getVMClassLoader());
+    DynamicBridgeType     = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"), VM_SystemClassLoader.getVMClassLoader());
+    SaveVolatileType      = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"), VM_SystemClassLoader.getVMClassLoader());
+    NativeBridgeType      = VM_ClassLoader.findOrCreateType
+      (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
+    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Address;"), VM_SystemClassLoader.getVMClassLoader());
   }
 
   public String toString() {

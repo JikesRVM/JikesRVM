@@ -83,7 +83,9 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
   }
 
   public String toString() {
-    return OPT_OperatorNames.operatorName[getOpcode()];
+    String node;
+    node = OPT_OperatorNames.operatorName[getOpcode()];
+    return node;
   }
 
   public boolean isSuperNodeRoot() {
@@ -95,3 +97,4 @@ final class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
   }
 
 /**** remainder will be inserted by the BURS generator *********/
+

@@ -45,7 +45,7 @@ class OPT_SingletonIterator
    * put your documentation comment here
    */
   public void remove () {
-    throw  new java.util.UnsupportedOperationException();
+    throw  new java.lang.UnsupportedOperationException();
   }
 }
 

@@ -643,7 +643,7 @@ final class VM_OptMethodSummary
     summary = setSize(summary, calleeSize);
     if (DEBUG) {
       VM.sysWrite("Method summary for ");
-      VM.sysWrite(method);
+      VM.sysWrite(method.toString());
       VM.sysWrite("\n\tActual bytecode length =");
       VM.sysWrite(bcLength, false);
       VM.sysWrite("\n\tInlined Size Estimate = ");

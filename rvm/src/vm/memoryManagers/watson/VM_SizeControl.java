@@ -20,7 +20,7 @@
  *
  */
 class VM_SizeControl implements VM_Constants {
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_SizeControl;")).asClass();
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_SizeControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 
   int first_block;
   int current_block;

@@ -53,6 +53,12 @@ NewArray
 "D Result OPT_RegisterOperand" "U Type OPT_TypeOperand" "U Size OPT_Operand"
 
 
+Multianewarray
+1 0 1 1 U -1
+"D Result OPT_RegisterOperand" \
+"U Type OPT_TypeOperand"
+"Dimension OPT_Operand"
+
 # how do we verify that the operand is a ref?
 Athrow
 0 0 1

@@ -27,7 +27,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
    *
    * @param v value
    */
-  OPT_FloatConstantOperand(float v) {
+  public OPT_FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
       index = VM_Entrypoints.zeroFloatField.getOffset() >> 2;

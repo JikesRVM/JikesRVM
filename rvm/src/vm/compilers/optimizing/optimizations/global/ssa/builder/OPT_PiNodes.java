@@ -10,12 +10,13 @@ import instructionFormats.*;
 /**
  * @author Rastislav Bodik
  * @author Stephen Fink
+ * @author Julian Dolby
  *
  * This pass inserts PI nodes (Effectively copies)
  * on branch edges, to introduce new names for analysis
  */
 public final class OPT_PiNodes extends OPT_CompilerPhase
-    implements OPT_Operators {
+    implements OPT_Operators, OPT_Constants {
    
   /**
    * Should we insert PI nodes for array references after bounds-checks
@@ -44,7 +45,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    * @return 
    */
   final boolean shouldPerform (OPT_Options options) {
-    return options.GLOBAL_BOUNDS_CHECK;
+    return options.GLOBAL_BOUNDS_CHECK || typeChecks;
   };
 
   /**

@@ -526,7 +526,7 @@ public final class OPT_BranchOptimizations
 				    OPT_Operand val2, 
 				    OPT_ConditionOperand cond) {
     if ((val1 instanceof OPT_RegisterOperand) && 
-        ((OPT_RegisterOperand)val1).type == VM_Type.BooleanType && 
+        ((OPT_RegisterOperand)val1).type == OPT_ClassLoaderProxy.BooleanType && 
 	(val2 instanceof OPT_IntConstantOperand)) {
       int value = ((OPT_IntConstantOperand)val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1))
@@ -1049,7 +1049,7 @@ public final class OPT_BranchOptimizations
       int fv = ((OPT_IntConstantOperand)fr).value;
       if (!((tv == 1 && fv == 0) || (tv == 1 && fv == 0)))
         return false;
-      OPT_RegisterOperand t = ir.regpool.makeTemp(VM_Type.BooleanType);
+      OPT_RegisterOperand t = ir.regpool.makeTemp(OPT_ClassLoaderProxy.BooleanType);
       // Cases 1) and 2)
       if (tv == 0)
         condition = condition.flipCode();

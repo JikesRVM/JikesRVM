@@ -453,7 +453,7 @@ class VM_Lister implements VM_Constants {
   }
 
   static VM_Type loadType(VM_Atom descriptor) throws VM_ResolutionException {
-    VM_Type type = VM_ClassLoader.findOrCreateType(descriptor);
+    VM_Type type = VM_ClassLoader.findOrCreateType(descriptor, VM_SystemClassLoader.getVMClassLoader());
     type.load();
     type.resolve();
     type.instantiate();

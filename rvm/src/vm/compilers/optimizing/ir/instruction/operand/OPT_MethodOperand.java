@@ -308,5 +308,4 @@ public final class OPT_MethodOperand extends OPT_Operand {
     if (spMethod != null){ return true;}
     return false;
   }
-
 }

@@ -319,6 +319,7 @@ public final class OPT_Instruction
 	result.append("<unused>");
       }
     }
+
     // print implicit defs
     result.append(OPT_PhysicalDefUse.getString(operator.implicitUses));
     usesPrinted += operator.getNumberOfImplicitUses();
@@ -821,8 +822,9 @@ public final class OPT_Instruction
   public boolean isTwoWayBranch() { 
     // Is there a cleaner way to answer this question?
     return (isConditionalBranch() &&
-	    !IfCmp2.conforms(this) &&
-	    !MIR_CondBranch2.conforms(this));
+	    !IfCmp2.conforms(this) 
+	    && !MIR_CondBranch2.conforms(this)
+	    );
   }
 
   /**
@@ -1167,7 +1169,6 @@ public final class OPT_Instruction
     operatorInfo |= (OI_PEI_VALID | OI_GC_VALID);
   }
 
-
   /**
    * Is the first mark bit of the instruction set?
    * 
@@ -1280,11 +1281,12 @@ public final class OPT_Instruction
 	return MIR_Branch.getTarget(this).target.getBasicBlock();
       } else if (MIR_CondBranch.conforms(this)) {
 	return MIR_CondBranch.getTarget(this).target.getBasicBlock();
-      } else {
-	throw new OPT_OptimizingCompilerException("getBranchTarget()",
-						  "operator not implemented",
-						  operator.toString());
-      }
+      } else
+
+      throw new OPT_OptimizingCompilerException("getBranchTarget()",
+						"operator not implemented",
+						operator.toString());
+      
     }
   }
 
@@ -1337,7 +1339,7 @@ public final class OPT_Instruction
       for(int i = 0; i < LowTableSwitch.getNumberOfTargets(this); i++) 
 	e.addPossiblyDuplicateElement(LowTableSwitch.getTarget(this, i).target.getBasicBlock());
       break;
-
+      
     case LOOKUPSWITCH_opcode:
       e.addElement(LookupSwitch.getDefault(this).target.getBasicBlock());
       for(int i = 0; i < LookupSwitch.getNumberOfTargets(this); i++) 
@@ -1364,8 +1366,13 @@ public final class OPT_Instruction
 	throw new OPT_OptimizingCompilerException("getBranchTargets()",
 						  "operator not implemented",
 						  operator().toString());
-      }
+      } else
+
+      throw new OPT_OptimizingCompilerException("getBranchTargets()",
+						"operator not implemented",
+						operator().toString());
     }
+
     return e;
   }
 
@@ -1453,6 +1460,12 @@ public final class OPT_Instruction
       VM.assert(!isBbLast(), "cannot insert after last instruction of block");
     }
 
+    // set position unless someone else has
+    if (newInstr.position == null) {
+	newInstr.position = position;
+	newInstr.bcIndex = bcIndex;
+    }
+
     // Splice newInstr into the doubly linked list of instructions
     OPT_Instruction old_next = next;
     next = newInstr;
@@ -1489,6 +1502,12 @@ public final class OPT_Instruction
       isBackwardLinked();
       newInstr.isNotLinked();
       VM.assert(!isBbFirst(), "Cannot insert before first instruction of block");
+    }
+
+    // set position unless someone else has
+    if (newInstr.position == null) {
+	newInstr.position = position;
+	newInstr.bcIndex = bcIndex;
     }
 
     // Splice newInstr into the doubly linked list of instructions
@@ -1799,7 +1818,6 @@ public final class OPT_Instruction
   private OPT_Operand setInstruction(OPT_Operand op) {
     if (op == null) return null;
     if ((op.instruction != null)) {
-      if (op instanceof OPT_RegisterOperand)
 	op = op.copy();
     }
     op.instruction = this;
@@ -1891,5 +1909,30 @@ public final class OPT_Instruction
   protected void linkWithNext(OPT_Instruction other) {
     next = other;
     other.prev = this;
+  }
+
+  /**
+   * Might this instruction be a load from a field that is declared 
+   * to be volatile?
+   *
+   * @return <code>true</code> if the instruction might be a load
+   *         from a volatile field or <code>false</code> if it 
+   *         cannot be a load from a volatile field
+   */
+  public boolean mayBeVolatileFieldLoad() {
+    boolean isVolatileLoad = false;
+    if (OPT_LocalCSE.isLoadInstruction(this)) {
+      OPT_LocationOperand l = LocationCarrier.getLocation(this);
+      if (l.isFieldAccess()) {
+	VM_Field f = l.getField();
+	if (!f.getDeclaringClass().isLoaded()) {
+	  // class not yet loaded; conservatively assume
+	  // volatile! (yuck)
+	  isVolatileLoad = true;
+	}
+	else if (f.isVolatile()) isVolatileLoad = true;
+      }
+    }
+    return isVolatileLoad;
   }
 }

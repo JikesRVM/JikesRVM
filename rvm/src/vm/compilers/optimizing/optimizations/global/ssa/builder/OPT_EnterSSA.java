@@ -854,7 +854,7 @@ implements OPT_Operators, OPT_Constants {
     // we maintain a stack of names for each type of heap variable
     // stacks implements a mapping from type to Stack.
     // Example: to get the stack of names for HEAP<int> variables,
-    // use stacks.get(VM_Type.IntType);
+    // use stacks.get(OPT_ClassLoaderProxy.IntType);
     HashMap stacks = new HashMap(n);
     // populate the stacks variable with the initial heap variable
     // names, currently stored in the SSADictionary
@@ -1065,14 +1065,15 @@ implements OPT_Operators, OPT_Constants {
         result = t;
         continue;
       } else {
-        VM_Type meet = OPT_ClassLoaderProxy.proxy.findCommonSuperclass(result,t);
+        VM_Type meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
         if (meet == null) {
           if (  (result.isIntLikeType() && (t.isReferenceType() || t.isAddressType())) 
                 || ((result.isReferenceType() || t.isAddressType()) && t.isIntLikeType()) ) {
-            meet = VM_Type.IntType;
+            meet = OPT_ClassLoaderProxy.IntType;
           }
         }
-        if (VM.VerifyAssertions) VM.assert(meet!=null);
+        if (VM.VerifyAssertions && meet==null)
+	    VM.assert(false, result + " and " + t + " meet to null");
         result = meet;
       }
     }

@@ -77,8 +77,8 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include <pthread.h>
 #endif
 
-/*#define DEBUG_SYS*/
-/*#define VERBOSE_PTHREAD*/
+/* #define DEBUG_SYS */
+/* #define VERBOSE_PTHREAD*/
 
 static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
@@ -233,8 +233,11 @@ sysArg(int argno, char *buf, int buflen)
 extern "C" int
 sysList(char *name, char *buf, int limit)
    {
-// fprintf(SysTraceFile, "sys: list %s 0x%08x %d\n", name, buf, limit);
-   
+
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: list %s 0x%08x %d\n", name, buf, limit);
+#endif
+     
    char DELIMITER = '\0';
    int  cnt = 0;
    DIR *dir = opendir(name);
@@ -244,6 +247,11 @@ sysList(char *name, char *buf, int limit)
 	// POSIX says that d_name is NULL-terminated
       char *name = dp->d_name;
       int len = strlen( name );
+
+#ifdef DEBUG_SYS
+      fprintf(SysTraceFile, "sys: found %s\n", name);
+#endif   
+
 
       if (len == 2 && name[0] == '.' && name[1] == '.') continue; // skip ".."
       if (len == 1 && name[0] == '.'                  ) continue; // skip "."
@@ -272,7 +280,10 @@ sysList(char *name, char *buf, int limit)
 extern "C" int
 sysStat(char *name, int kind)
    {
-   //fprintf(SysTraceFile, "sys: stat %s\n", name);
+
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: stat %s\n", name);
+#endif
 
    struct stat info;
 
@@ -301,7 +312,11 @@ sysStat(char *name, int kind)
 extern "C" int
 sysOpen(char *name, int how)
    {
-// fprintf(SysTraceFile, "sys: open %s %d\n", name, how);
+
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: open %s %d\n", name, how);
+#endif
+
    switch (how)
       {
       case VM_FileSystem_OPEN_READ:   return open(name, O_RDONLY                         ); // "read"
@@ -319,7 +334,10 @@ sysOpen(char *name, int how)
 extern "C" int
 sysDelete(char *name)
    {
-// fprintf(SysTraceFile, "sys: delete %s\n", name);
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: delete %s\n", name);
+#endif
+
 	return remove(name);
    }
 
@@ -330,7 +348,10 @@ sysDelete(char *name)
 extern "C" int
 sysRename(char *fromName, char *toName)
    {
-// fprintf(SysTraceFile, "sys: rename %s\n", name);
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: rename %s to %s\n", fromName, toName);
+#endif
+     
 	return rename(fromName, toName);
    }
 
@@ -341,7 +362,10 @@ sysRename(char *fromName, char *toName)
 extern "C" int
 sysMkDir(char *name)
    {
-// fprintf(SysTraceFile, "sys: mkdir %s\n", name);
+#ifdef DEBUG_SYS
+     fprintf(SysTraceFile, "sys: mkdir %s\n", name);
+#endif
+
      return mkdir(name, 0777); // Give all user/group/other permissions.
                                // mkdir will modify them according to the
                                // file mode creation mask (umask (1)).
@@ -390,10 +414,6 @@ sysReadByte(int fd)
    unsigned char ch;
    int rc;
 
-   #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sys: read (byte) %d\n", fd);
-   #endif    
-
    switch ( rc = read(fd, &ch, 1))
       {
       case  1: 
@@ -417,11 +437,6 @@ extern "C" int
 sysWriteByte(int fd, int data)
    {
    char ch = data;
-
-   #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sys: write %d\n", fd);
-   #endif   
-
    return write(fd, &ch, 1);
    }
 
@@ -1398,43 +1413,10 @@ sysDlopen(char *libname)
        }
        while( (libHandler == 0 /*null*/) && (errno == EINTR) );
        if (libHandler == 0) {
-	 if (errno == ENOEXEC)
-	   fprintf(SysErrorFile, "vm: error loading library, %s\n", dlerror());
-	 else {
-	   switch (errno) {
-	     case EACCES:
-	       fprintf(SysErrorFile, "vm: error loading library, cannot access because not an ordinary file, or permission denied\n"); 
-	       return 0;
-	     case EINVAL:
-	       fprintf(SysErrorFile, "vm: error loading library, incorrect file header for the host machine\n"); 
-	       return 0;
-	     case ELOOP:
-	       fprintf(SysErrorFile, "vm: error loading library, too many symbolic links in path name\n"); 
-	       return 0;
-	     case ENOEXEC:
-	       fprintf(SysErrorFile, "vm: error loading library, problem in loading or resolving symbols, possibly invalid XCOFF header\n"); 
-	       return 0;
-	     case ENOMEM:
-	       fprintf(SysErrorFile, "vm: error loading library, not enough memory\n"); 
-	       return 0;
-	     case ETXTBSY:
-	       fprintf(SysErrorFile, "vm: error loading library, file currently open for writing by others\n"); 
-	       return 0;
-	     case ENAMETOOLONG:
-	       fprintf(SysErrorFile, "vm: error loading library, path exceeded 1023 characters\n"); 
-	       return 0;
-	     case ENOENT:
-	       fprintf(SysErrorFile, "vm: error loading library, bad library path\n"); 
-	       return 0;
-	     case ENOTDIR:
-	       fprintf(SysErrorFile, "vm: error loading library, library path not a directory\n"); 
-	       return 0;
-	     case ESTALE:
-	       fprintf(SysErrorFile, "vm: error loading library, file system unmounted\n"); 
-	       return 0;
-	   }
-
-	 }
+	 fprintf(SysErrorFile,
+		 "vm: error loading library %s: %s\n", 
+		 libname, dlerror());
+	 return 0;
        }
 
        return (int)libHandler;

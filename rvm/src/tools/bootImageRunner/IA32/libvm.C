@@ -259,7 +259,6 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     else
     {
       fprintf (SysTraceFile, "vm: internal error\n");
-      exit(1);
     }
   }
 
@@ -331,9 +330,10 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   long unsigned int *fp;
 
   /* test for recursive errors- if so, take one final stacktrace and exit */
-  if (*vmr_inuse) {
-    fprintf (SysTraceFile, 
-	"vm: internal error: recursive use of hardware exception registers (exiting)\n");
+  if (*vmr_inuse || !isRecoverable) {
+    if (*vmr_inuse)
+      fprintf (SysTraceFile, 
+	       "vm: internal error: recursive use of hardware exception registers (exiting)\n");
     /*
      * Things went badly wrong, so attempt to generate a useful error dump
      * before exiting by returning to VM_Scheduler.dumpStackAndDie passing it the fp

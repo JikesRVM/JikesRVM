@@ -168,6 +168,15 @@ Use loop depth to approximate edge counts
 FIXED_JTOC -1 VM.BuildForIA32
 Exploit knowledge that the value of JTOC is a constant?
 
+CW_REFERENCED_CLASSES -1 true
+Apply Class Writer to referenced classes
+
+CW_GUARDS -1 false
+Leave guards in before BURS
+
+CW_STACK -1 true
+Process Stack to eliminate Loads/Stores
+
 ##########
 # Next, declare all the printing options
 # MUST start with PRINT_ or VCG_ prefix
@@ -238,6 +247,21 @@ Print IR before and after register allocation
 
 PRINT_CALLING_CONVENTIONS -1 false 
 Print IR after expanding calling conventions
+
+PRINT_CW_BURS -1 false 
+Verbose dump of Class Writer BURS processing
+
+PRINT_CW_BURS_NOISY -1 false 
+Verbose dump of Class Writer BURS processing
+
+PRINT_CW_ALLOC -1 false 
+Verbose dump of Class Writer Allocation of Locals
+
+PRINT_CW_STACK -1 false 
+Verbose dump of Class Writer Stack processing to eliminate Load/Store
+
+PRINT_CW_PRODUCE -1 false 
+Dump of Class Writer Byte Code Production
 
 VCG_DG_BURS -1 false 
 Dump dependence graph before BURS in vcg form

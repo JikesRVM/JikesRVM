@@ -28,10 +28,10 @@ if [[ X`uname` = X"CYGWIN_NT-5.0" ]]; then
   # need to kludge path to image because we use win32 api calls to mmap it.
   # other paths can be left in "unix" form; we use cygwin api calls for them.
   ARGS="-X:i=`cygpath -p -w $RVM_BUILD/RVM.image`"
-  ARGS="$ARGS -X:vmClasses=`cygpath -p -w $RVM_BUILD/RVM.classes` -classpath ."
+  ARGS="$ARGS -X:vmClasses=`cygpath -p -w $RVM_BUILD`"
 else
   ARGS="-X:i=$RVM_BUILD/RVM.image"
-  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes -classpath ."
+  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
 fi
 for arg in $*; do
    if   [[ $arg = --   ]]; then
@@ -39,9 +39,11 @@ for arg in $*; do
    fi
 done
 
+ARGS="$ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+
 . $RVM_BUILD/environment
 
-LOADPATH=$RVM_BUILD:$HOST_JAVA_HOME/jre/bin:$HOST_JAVA_HOME/jre/bin/classic
+LOADPATH=$RVM_BUILD:$JAVA_HOME/jre/bin:$JAVA_HOME/jre/bin/classic
 typeset -x LIBPATH=$LIBPATH:$LOADPATH
 typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LOADPATH
 exec $RVM_BUILD/JikesRVM $ARGS "$@"

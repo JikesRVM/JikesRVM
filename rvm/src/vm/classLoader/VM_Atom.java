@@ -33,7 +33,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * ascii subset of unicode (not including null)
    * @return atom
    */ 
-  static VM_Atom findOrCreateAsciiAtom(String str) {
+  public static VM_Atom findOrCreateAsciiAtom(String str) {
     int    len   = str.length();
     byte[] ascii = new byte[len];
     str.getBytes(0, len, ascii, 0);
@@ -87,7 +87,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: class name       - something like "java/lang/Object"
    * @return class descriptor - something like "Ljava/lang/Object;"
    */ 
-  final VM_Atom descriptorFromClassName() {
+  public final VM_Atom descriptorFromClassName() {
     byte sig[] = new byte[1 + val.length + 1];
     sig[0] = (byte)'L';
     for (int i = 0, n = val.length; i < n; ++i)
@@ -113,7 +113,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class file name  - something like "java/lang/String.class"
    */ 
   final String classFileNameFromDescriptor() {
-    if (VM.VerifyAssertions) VM.assert(val[0] == 'L');
+    if (VM.VerifyAssertions && val[0] != 'L') VM.assert(false, toString());
     // return new String(val,    1, val.length - 2) + ".class"; // preferred (unicode)
     return new String(val, 0, 1, val.length - 2) + ".class"; // deprecated (ascii)
   }
@@ -162,7 +162,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  final VM_Type parseForReturnType() {
+  final VM_Type parseForReturnType(ClassLoader classloader) {
     if (VM.VerifyAssertions) VM.assert(val[0] == '(');
 
     int i = 0;
@@ -179,7 +179,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
       case DoubleTypeCode:  return VM_Type.DoubleType;
       case CharTypeCode:    return VM_Type.CharType;
       case ClassTypeCode:   // fall through
-      case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, i, val.length - i));
+      case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, i, val.length - i), classloader);
       default:              if (VM.VerifyAssertions) VM.assert(NOT_REACHED); return null;
       }
   }
@@ -190,7 +190,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */ 
-  final VM_Type[] parseForParameterTypes() {
+  final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
     if (VM.VerifyAssertions) VM.assert(val[0] == '(');
 
     VM_TypeVector sigs = new VM_TypeVector();
@@ -209,14 +209,14 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 	case ClassTypeCode: {
 	  int off = i - 1;
 	  while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off)));
+	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off), classloader));
 	  continue;
 	}
 	case ArrayTypeCode: {
 	  int off = i - 1;
 	  while (val[i] == ArrayTypeCode) ++i;
 	  if (val[i++] == ClassTypeCode) while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off)));
+	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off), classloader));
 	  continue;
 	}
 	case (byte)')': // end of parameter list

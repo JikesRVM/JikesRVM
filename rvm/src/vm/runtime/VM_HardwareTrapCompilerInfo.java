@@ -86,4 +86,19 @@ class VM_HardwareTrapCompilerInfo extends VM_CompilerInfo
       {
       out.println("\tat <hardware trap>");
       }
+
+  /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  final void set(VM_StackBrowser browser, int instr) {
+      VM.assert(VM.NOT_REACHED);
   }
+       
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  final boolean up(VM_StackBrowser browser) {
+      return false;
+  }
+
+}

@@ -69,7 +69,7 @@ public class VM_Allocator implements VM_Constants,
   static final boolean GC_COUNT_FAST_ALLOC       = false;
   static final boolean GC_COUNT_LIVE_OBJECTS     = false;
   static final boolean GC_COUNT_BYTE_SIZES       = false;
-  static final boolean GC_COUNT_BY_TYPES         = false;
+  static final boolean GC_COUNT_BY_TYPES         = true;
   static final boolean GC_STATISTICS             = false;   // for timing parallel GC
   static final boolean GCDEBUG_PARALLEL          = false;   // for debugging parallel alloc
   static final boolean GC_TIMING                 = false ;  // for timing parallel GC

@@ -33,6 +33,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
    * Constant fold long operations?
    */
   public static final boolean CF_LONG = true;
+
   /** 
    * Constant fold float operations?  Default is false to avoid consuming
    * precious JTOC slots to hold new constant values.
@@ -43,6 +44,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
    * precious JTOC slots to hold new constant values.
    */
   public static final boolean CF_DOUBLE = false; 
+
   /**
    * Enumeration value to indicate an operation is unchanged, although the
    * order of operands may have been canonicalized.
@@ -186,7 +188,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	} else {
 	  VM_Type rType = ref.getType();
 	  OPT_TypeOperand op1 = TypeCheck.getType(s);
-	  if (OPT_ClassLoaderProxy.proxy.includesType(op1.type, rType) == OPT_Constants.YES) {
+	  if (OPT_ClassLoaderProxy.includesType(op1.type, rType) == OPT_Constants.YES) {
 	    Empty.mutate(s, NOP);
 	    return REDUCED;
 	  }
@@ -197,7 +199,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       { 
 	VM_Type rType = TypeCheck.getRef(s).getType();
 	OPT_TypeOperand op1 = TypeCheck.getType(s);
-	if (OPT_ClassLoaderProxy.proxy.includesType(op1.type, rType) == OPT_Constants.YES) {
+	if (OPT_ClassLoaderProxy.includesType(op1.type, rType) == OPT_Constants.YES) {
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
 	}

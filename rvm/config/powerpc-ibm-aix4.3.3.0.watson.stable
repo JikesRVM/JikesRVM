@@ -47,7 +47,7 @@ export HOST_REPOSITORIES="/share/power/Java/aix/J1.3.0/java130/jre/lib/rt.jar"
 export HOST_TOOLS="/share/power/Java/aix/J1.3.0/java130/lib/tools.jar"
 
 # path for GNU make
-export GNU_MAKE="/homes/fury5/jalapeno/bin/jmake"
+export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
 export JIKES="/homes/fury5/jalapeno/bin/jikes-1.13"
@@ -83,5 +83,6 @@ export XARGS="/usr/gnu/bin/xargs"
 # The following is optional; only needed for fancy CVS scripts
 export CVS="/homes/fury5/jalapeno/bin/cvs"
 
+
 # where to find Jazzlib
-export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02
+export JAZZLIBJAR=${RVM_ROOT}/support/lib/jazzlib.jar

@@ -369,7 +369,7 @@ class VM_Entrypoints implements VM_Constants {
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor).asClass();
+      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
       cls.load();
       cls.resolve();
          

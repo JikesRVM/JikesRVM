@@ -505,15 +505,14 @@ public class VM_Runtime implements VM_Constants {
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " 
                   + cls + "\n");
-    synchronized(VM_ClassLoader.lock) {
-      cls.load();
-      cls.resolve();
-      cls.instantiate();
+
+    try {
+	cls.classloader.loadClass(cls.getDescriptor().classNameFromDescriptor(), true);
+    } catch (ClassNotFoundException e) {
+	VM.sysWrite("bad " + cls + " with " + cls.classloader + "\n");
+	throw new VM_ResolutionException(cls.getDescriptor(), e);
     }
-    // class initialization invokes the static init method, which 
-    // cannot execute while holding the classloader lock.  
-    // Therefore, we release the lock before initializing the class 
-    cls.initialize();
+
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " 
                   + cls + "\n");

@@ -19,7 +19,7 @@ import instructionFormats.*;
  *
  * @modified Julian Dolby
  */
-final class OPT_Simple extends OPT_CompilerPhase
+public final class OPT_Simple extends OPT_CompilerPhase
   implements OPT_Operators, OPT_Constants {
 
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1);
@@ -59,7 +59,7 @@ final class OPT_Simple extends OPT_CompilerPhase
    * @param typeProp should type propagation be peformed
    * @param foldChecks should we attempt to eliminate boundscheck
    */
-  OPT_Simple (boolean typeProp, boolean foldChecks) {
+  public OPT_Simple (boolean typeProp, boolean foldChecks) {
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;
     this.foldBranches = true;
@@ -272,7 +272,7 @@ final class OPT_Simple extends OPT_CompilerPhase
           use = (OPT_RegisterOperand)use.getNext()) {
         // if rhs.type is a supertype of use.type, don't do it
         // because use.type has more detailed information
-        if (OPT_ClassLoaderProxy.proxy.includesType(rhs.type, use.type) == YES)
+        if (OPT_ClassLoaderProxy.includesType(rhs.type, use.type) == YES)
           continue;
 	// If VM_Magic has been employed to convert an int to a reference, 
 	// don't undo the effects!

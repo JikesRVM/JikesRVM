@@ -231,12 +231,15 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     if (hasExceptionHandlers()) {
       VM.sysWrite("\tIn scope exception handlers: ");
       e2 = getExceptionHandlers();
-      bb2 = e2.next();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-	bb2 = e2.next();
-	VM.sysWrite(", "+bb2.toString());
-      }
+      if (e2.hasMoreElements()) {
+	  bb2 = e2.next();
+	  VM.sysWrite(bb2.toString());
+	  while (e2.hasMoreElements()) {
+	      bb2 = e2.next();
+	      VM.sysWrite(", "+bb2.toString());
+	  }
+      } else
+	  VM.sysWrite("<none>");
       VM.sysWrite("\n");
     }
 
@@ -678,8 +681,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final boolean hasGoto() {
     if (isEmpty()) return false;
-    return Goto.conforms(lastRealInstruction()) ||
-      MIR_Branch.conforms(lastRealInstruction());
+    return Goto.conforms(lastRealInstruction())
+      || MIR_Branch.conforms(lastRealInstruction());
   }
 
   /**
@@ -690,8 +693,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final boolean hasReturn() {
     if (isEmpty()) return false;
-    return Return.conforms(lastRealInstruction()) || 
-           MIR_Return.conforms(lastRealInstruction());
+    return Return.conforms(lastRealInstruction())
+      || MIR_Return.conforms(lastRealInstruction());
   }
 
   /**
@@ -703,8 +706,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   public final boolean hasSwitch() {
     if (isEmpty()) return false;
     OPT_Instruction s = lastRealInstruction();
-    return LowTableSwitch.conforms(s) ||
-      TableSwitch.conforms(s) || 
+    return TableSwitch.conforms(s) || 
+      LowTableSwitch.conforms(s) ||
       LookupSwitch.conforms(s);
   }
 

@@ -193,8 +193,8 @@ final class OPT_GenerationContext implements OPT_Constants,
 
     // Create the CFG. Initially contains prologue, epilogue, and exit.
     cfg = new OPT_ControlFlowGraph(0);
-    prologue = new OPT_BasicBlock(PROLOGUE_BCI, inlineSequence, cfg);
-    epilogue = new OPT_BasicBlock(EPILOGUE_BCI, inlineSequence, cfg);
+    prologue = new OPT_BasicBlock(PROLOGUE_BLOCK_BCI, inlineSequence, cfg);
+    epilogue = new OPT_BasicBlock(EPILOGUE_BLOCK_BCI, inlineSequence, cfg);
     cfg.addLastInCodeOrder(prologue);
     cfg.addLastInCodeOrder(epilogue);
     exit = cfg.exit();
@@ -245,7 +245,12 @@ final class OPT_GenerationContext implements OPT_Constants,
       }
     }
     VM_Type returnType = meth.getReturnType();
-    if (returnType != VM_Type.VoidType) {
+
+    try {
+	Class.forName("OPT_ClassLoaderProxy");
+    } catch (Throwable e) {
+    }
+    if (returnType != OPT_ClassLoaderProxy.VoidType) {
       resultReg = temps.makeTemp(returnType).register;
     }
     
@@ -328,7 +333,7 @@ final class OPT_GenerationContext implements OPT_Constants,
       OPT_RegisterOperand local = null;
       if (receiver.isRegister()) {
 	OPT_RegisterOperand objPtr = receiver.asRegister();
-	if (OPT_ClassLoaderProxy.proxy.includesType(child.method.getDeclaringClass(), objPtr.type) != YES) {
+	if (OPT_ClassLoaderProxy.includesType(child.method.getDeclaringClass(), objPtr.type) != YES) {
 	  // narrow type of actual to match formal static type implied by method
 	  objPtr.type = child.method.getDeclaringClass();
 	  objPtr.clearPreciseType(); // Can be precise but not assignable 
@@ -339,7 +344,7 @@ final class OPT_GenerationContext implements OPT_Constants,
 	child.arguments[0] = local; // Avoid confusion in BC2IR of callee 
 	// when objPtr is a local in the caller.
       } else if (receiver.isStringConstant()) {
-	local = child.makeLocal(localNum++, VM_Type.JavaLangStringType);
+	local = child.makeLocal(localNum++, OPT_ClassLoaderProxy.JavaLangStringType);
 	local.setPreciseType();
 	// String constants trivially non-null
 	OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
@@ -361,7 +366,7 @@ final class OPT_GenerationContext implements OPT_Constants,
       OPT_Operand actual = child.arguments[argIdx];
       if (actual.isRegister()) {
 	OPT_RegisterOperand rActual = actual.asRegister();
-	if (OPT_ClassLoaderProxy.proxy.includesType(argType, rActual.type) != YES) {
+	if (OPT_ClassLoaderProxy.includesType(argType, rActual.type) != YES) {
 	  // narrow type of actual to match formal static type implied by method
 	  rActual.type = argType;
 	  rActual.clearPreciseType(); // Can be precise but not 
@@ -478,11 +483,11 @@ final class OPT_GenerationContext implements OPT_Constants,
   }
 
   private OPT_Register[] getPool(VM_Type type) {
-    if (type == VM_Type.FloatType) {
+    if (type == OPT_ClassLoaderProxy.FloatType) {
       return floatLocals;
-    } else if (type == VM_Type.LongType) {
+    } else if (type == OPT_ClassLoaderProxy.LongType) {
       return longLocals;
-    } else if (type == VM_Type.DoubleType) {
+    } else if (type == OPT_ClassLoaderProxy.DoubleType) {
       return doubleLocals;
     } else {
       return intLocals;
@@ -593,6 +598,9 @@ final class OPT_GenerationContext implements OPT_Constants,
     }
 
     // Deal with implicit monitorenter for synchronized methods.
+    // When working with the class writer do not expand static
+    // synchronization headers as there is no easy way to get at
+    // class object
     if (method.isSynchronized() && !options.MONITOR_NOP
     				&& !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject(PROLOGUE_BCI, prologue);
@@ -637,19 +645,22 @@ final class OPT_GenerationContext implements OPT_Constants,
    * PRECONDITION: cfg, arguments & temps have been setup/initialized.
    */
   private void completeExceptionHandlers(boolean isOutermost) {
-    if (method.isSynchronized() && !options.MONITOR_NOP) {
+    if (method.isSynchronized() && !options.MONITOR_NOP
+	) {
       OPT_ExceptionHandlerBasicBlock rethrow =
 	      new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
-        new OPT_TypeOperand(VM_Type.JavaLangThrowableType), cfg);
+        new OPT_TypeOperand(OPT_ClassLoaderProxy.JavaLangThrowableType), cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
-      OPT_RegisterOperand ceo = temps.makeTemp(VM_Type.JavaLangThrowableType);
+      OPT_RegisterOperand ceo = temps.makeTemp(OPT_ClassLoaderProxy.JavaLangThrowableType);
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
       OPT_Operand lockObject = getLockObject(SYNTH_CATCH_BCI, rethrow);
+
       OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(VM_Entrypoints.unlockAndThrowMethod);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
       s = Call.create2(CALL, null, null, methodOp, lockObject, ceo);
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);
+
       cfg.insertBeforeInCodeOrder(epilogue, rethrow);
 
       // May be overly conservative 
@@ -681,16 +692,17 @@ final class OPT_GenerationContext implements OPT_Constants,
   // Get either the class object or the this ptr...
   private OPT_Operand getLockObject(int bcIndex, OPT_BasicBlock target) {
     if (method.isStatic()) {
+
+      VM_Class c = method.getDeclaringClass();
       // make sure java.lang.Class object will be created before
       // the static method we are compiling can execute.
-      VM_Class c = method.getDeclaringClass();
       if (VM.writingBootImage) {
 	VM.deferClassObjectCreation(c);
       } else {
 	c.getClassForType();
       }
       OPT_Instruction s = Unary.create(GET_CLASS_OBJECT,
-				       temps.makeTemp(VM_Type.JavaLangClassType),
+				       temps.makeTemp(OPT_ClassLoaderProxy.JavaLangClassType),
 				       new OPT_TypeOperand(c));
       appendInstruction(target, s, bcIndex);
       return Unary.getResult(s).copyD2U();

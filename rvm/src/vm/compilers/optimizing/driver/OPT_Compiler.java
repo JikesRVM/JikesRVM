@@ -130,7 +130,7 @@ public class OPT_Compiler {
   private static void loadSpecialClass (String klassName, OPT_Options options) 
     throws VM_ResolutionException {
     VM_Class klass = 
-      (VM_Class)OPT_ClassLoaderProxy.proxy.findOrCreateType(klassName);
+      (VM_Class)OPT_ClassLoaderProxy.findOrCreateType(klassName, VM_SystemClassLoader.getVMClassLoader());
     klass.load();
     klass.resolve();
     klass.instantiate();
@@ -173,7 +173,6 @@ public class OPT_Compiler {
    * Call the static init functions for the OPT_Compiler subsystems
    */
   private static void initializeStatics () {
-    OPT_ClassLoaderProxy.proxy = new OPT_RVMClassLoaderProxy();
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_InvokeeThreadLocalContext.init();
     VM_Class.OptCLDepManager = new OPT_ClassLoadingDependencyManager();
@@ -197,6 +196,13 @@ public class OPT_Compiler {
     return  isInitialized;
   }
 
+  /**
+   * Reset the optimizing compiler
+   */
+  static void reset () {
+    isInitialized = false;
+  }
+
   ////////////////////////////////////////////
   // Public interface for compiling a method
   ////////////////////////////////////////////
@@ -215,11 +221,11 @@ public class OPT_Compiler {
       printMethodMessage(method, options);
       OPT_IR ir = cp.execute();
       // Temporary workaround memory retention problems
-      if (!ir.options.IPA) {
+      if (!cp.irGeneration) {
         cleanIR(ir);
       }
       // if doing analysis only, don't try to return an object
-      if (cp.analyzeOnly)
+      if (cp.analyzeOnly || cp.irGeneration)
         return  null;
       // now that we're done compiling, give the specialization
       // system a chance to eagerly compile any specialized version

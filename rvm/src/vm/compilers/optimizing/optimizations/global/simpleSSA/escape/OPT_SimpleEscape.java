@@ -145,6 +145,12 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     result.methodLocal = true;
     for (OPT_RegisterOperand use = reg.useList; use != null; 
         use = (OPT_RegisterOperand)use.getNext()) {
+
+      if (VM.VerifyAssertions && use.type == null) {
+	  ir.printInstructions();
+	  VM.assert(false, "type of " + use + " is null");
+      }
+
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
       if (use.type.isPrimitiveType()) {
@@ -161,9 +167,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     }
     for (OPT_RegisterOperand def = reg.defList; def != null; 
         def = (OPT_RegisterOperand)def.getNext()) {
+
+      if (VM.VerifyAssertions && def.type == null) {
+	  ir.printInstructions();
+	  VM.assert(false, "type of " + def + " is null");
+      }
+
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
-      if (def.type.isPrimitiveType()) {
+      if (def.type == null || def.type.isPrimitiveType()) {
         result.threadLocal = false;
         result.methodLocal = false;
         break;

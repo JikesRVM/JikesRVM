@@ -32,6 +32,14 @@ $$$$ IF ARCHITECTURE != "NONE"
       "OSYM ",
     $$$$ END LET
   $$$$ END FOREACH
+$$$$ ELSE
+$$$$ IF USE_EXTRA_OPLIST == "TRUE"
+  $$$$ FOREACH OPERATOR ExtraOperatorList.dat
+    $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
+      "OSYM ",
+    $$$$ END LET
+  $$$$ END FOREACH
+$$$$ END IF
 $$$$ END IF
       "<UNKNOWN OPERATOR>"
     };

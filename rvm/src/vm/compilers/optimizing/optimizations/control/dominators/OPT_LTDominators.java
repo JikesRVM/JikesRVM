@@ -92,7 +92,7 @@ class OPT_LTDominators extends OPT_Stack {
   protected void analyze(OPT_IR ir)
   {
     if (DEBUG) { 
-      System.out.println("   Here's the CFG for method: "+ ir.method.name
+      System.out.println("   Here's the CFG for method: "+ ir.method.getName()
 			 +"\n"+ ir.cfg);
     }
 
@@ -124,7 +124,7 @@ class OPT_LTDominators extends OPT_Stack {
   {
     if (!forward) {
       if (DFSCounter != cfg.numberOfNodes()) {
-	VM.sysWrite(" *** Warning ***\n CFG for method "+ ir.method.name
+	  VM.sysWrite(" *** Warning ***\n CFG for method "+ ir.method.getName()
 		    + " in class " + ir.method.getDeclaringClass().getName()
 		    + " has unreachable nodes.\n");
 	VM.sysWrite(" Assuming pessimistic results in dominators computation\n"
@@ -549,13 +549,13 @@ class OPT_LTDominators extends OPT_Stack {
   private void printResults(OPT_IR ir) {
     if (forward) {
       System.out.println("Results of dominators computation for method "+
-			 ir.method.name +"\n");
+			 ir.method.getName() +"\n");
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
       System.out.println("\n\n  Here's the Dominator Info:");
     } else {
       System.out.println("Results of Post-Dominators computation for method "+
-			 ir.method.name +"\n");
+			 ir.method.getName() +"\n");
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
       System.out.println("\n\n  Here's the Post-Dominator Info:");

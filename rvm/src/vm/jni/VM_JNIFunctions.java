@@ -52,7 +52,8 @@ import java.lang.reflect.*;
  * @date 2/1/00
  */
 public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
-  static boolean verboseJNI = false;   // one message for each JNI function called from native
+  // one message for each JNI function called from native
+  static boolean verboseJNI = false;
 
   private static final boolean LittleEndian = VM.BuildForIA32;
   
@@ -240,11 +241,20 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Throwable e = env.getException();
       if (e==null)
 	return 0;
-      else
-	return env.pushJNIRef(e);
+      else {
+	  if (verboseJNI) {
+	      VM.sysWrite( e.toString() );
+	      VM.sysWrite("\n");
+	  }
+	  return env.pushJNIRef(e);
+      }
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
+      if (verboseJNI) {
+	  VM.sysWrite( unexpected.toString() );
+	  VM.sysWrite("\n");
+      }
       return env.pushJNIRef(unexpected);
     }
   }
@@ -315,30 +325,39 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   }
 
 
-  private static int NewGlobalRef                    (int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: NewGlobalRef                     \n");
-   
-    VM_Scheduler.traceback("JNI ERROR: NewGlobalRef not implemented yet.");
-    VM.sysExit(200);
-    return NEWGLOBALREF ; 
+  private static int NewGlobalRef(int envJREF, int objectJREF) {
+    if (verboseJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
+    try {
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+	Object obj1 = (Object) env.getJNIRef(objectJREF);
+	return VM_JNIGlobalRefTable.newGlobalRef( obj1 );
+    } catch (Throwable whatever) {
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+	env.recordException(whatever);
+	return 0;
+    }
   }
 
-
-  private static int DeleteGlobalRef                 (int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: DeleteGlobalRef                  \n");
-   
-    VM_Scheduler.traceback("JNI ERROR: DeleteGlobalRef not implemented yet.");
-    VM.sysExit(200);
-    return DELETEGLOBALREF ; 
+  private static void DeleteGlobalRef(int envJREF, int refJREF) {
+    if (verboseJNI) VM.sysWrite("JNI called: DeleteGlobalRef\n");
+    try {
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+	VM_JNIGlobalRefTable.deleteGlobalRef( refJREF );
+    } catch (Throwable whatever) {
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+	env.recordException(whatever);
+    }
   }
 
-
-  private static int DeleteLocalRef                  (int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: DeleteLocalRef                   \n");
-   
-    VM_Scheduler.traceback("JNI ERROR: DeleteLocalRef not implemented yet.");
-    VM.sysExit(200);
-    return DELETELOCALREF  ; 
+  private static void DeleteLocalRef(int envJREF, int objJREF) {
+    if (verboseJNI) VM.sysWrite("JNI called: DeleteLocalRef\n");
+    try {
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+	env.deleteJNIRef(objJREF);
+    } catch (Throwable whatever) {
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+	env.recordException(whatever);
+    }
   }
 
 
@@ -2675,7 +2694,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       // create exception and return 0 if not found
-      env.recordException(new NoSuchFieldError());
+      env.recordException(new NoSuchFieldError(fieldString + ", " + descriptorString + " of " + cls));
       return 0;                      
 
     } catch (Throwable unexpected) {
@@ -5525,6 +5544,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       boolean sourceArray[] = (boolean []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) 
+	  return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5574,6 +5598,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       byte sourceArray[] = (byte []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5624,6 +5652,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       char sourceArray[] = (char []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5674,6 +5706,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       short sourceArray[] = (short []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5724,6 +5760,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       int sourceArray[] = (int []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5773,6 +5813,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       long sourceArray[] = (long []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5822,6 +5866,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       float sourceArray[] = (float []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5871,6 +5919,10 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       double sourceArray[] = (double []) env.getJNIRef(arrayJREF);
+
+      // Is this right, I wonder? It's not like the spec says anything :(
+      if (sourceArray == null || sourceArray.length == 0) return VM_Address.zero();
+
       int size = sourceArray.length;
       
       // alloc non moving buffer in C heap for a copy of string contents
@@ -5985,7 +6037,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   private static void ReleaseByteArrayElements (int envJREF, int arrayJREF, VM_Address copyBufferAddress, 
 					       int releaseMode) {
     if (verboseJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  \n");
-   
+    
     VM_JNIEnvironment env;
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -6001,7 +6053,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
       	VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size );
       } 
-      
+
       // mode 0 and mode 2:  free the buffer
       if (releaseMode== 0 || releaseMode== 2) {
       	VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress.toInt());

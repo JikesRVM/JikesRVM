@@ -131,6 +131,10 @@ public class VM_Array extends VM_Type
     return typeInformationBlock;
   }
 
+  public final ClassLoader getClassLoader() {
+      return elementType.getClassLoader();
+  }
+
    //--------------------------------------------------------------------------------------------------//
    //                                       Section 3.                                                 //
    //         The following are available after "instantiate()" has been called.                       //
@@ -148,12 +152,16 @@ public class VM_Array extends VM_Type
    */
   public static VM_Array forName(String arrayName) throws VM_ResolutionException {
     VM_Atom arrayDescriptor = VM_Atom.findOrCreateAsciiAtom(arrayName.replace('.','/'));
-    VM_Array ary = VM_ClassLoader.findOrCreateType(arrayDescriptor).asArray();
+    
+    ClassLoader cl = VM_SystemClassLoader.getVMClassLoader();
+    VM_Array ary =
+	VM_ClassLoader.findOrCreateType(arrayDescriptor, cl).asArray();
+
     ary.load();
     ary.resolve();
     ary.instantiate();
     ary.initialize();
-    VM_Callbacks.notifyForName(ary);
+
     return ary;
   }
 
@@ -167,42 +175,42 @@ public class VM_Array extends VM_Type
       {
       case  4: 
 	if (arrayOfBooleanType == null)
-	  arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z")).asArray();
+	  arrayOfBooleanType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[Z"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfBooleanType;
          
       case  5: 
 	if (arrayOfCharType == null)
-	  arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C")).asArray();
+	  arrayOfCharType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[C"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfCharType;
          
       case  6: 
 	if (arrayOfFloatType == null)
-	  arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F")).asArray();
+	  arrayOfFloatType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[F"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfFloatType;
          
       case  7: 
 	if (arrayOfDoubleType == null)
-	  arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D")).asArray();
+	  arrayOfDoubleType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[D"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfDoubleType;
          
       case  8: 
 	if (arrayOfByteType == null)
-	  arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
+	  arrayOfByteType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfByteType;
          
       case  9: 
 	if (arrayOfShortType == null)
-	  arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S")).asArray();
+	  arrayOfShortType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[S"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfShortType;
          
       case 10: 
 	if (arrayOfIntType == null)
-	  arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I")).asArray();
+	  arrayOfIntType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfIntType;
          
       case 11: 
 	if (arrayOfLongType == null)
-	  arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J")).asArray();
+	  arrayOfLongType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[J"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 	return arrayOfLongType;
       }
 
@@ -529,14 +537,14 @@ public class VM_Array extends VM_Type
   //
   private VM_Array() { }
 
-  VM_Array(VM_Atom descriptor, int dictionaryId) {
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Array: create " + descriptor + "\n");
+  VM_Array(VM_Atom descriptor, int dictionaryId, ClassLoader classloader) {
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Array: create " + descriptor + " with " + classloader + "\n");
     this.descriptor     = descriptor;
     this.dimension      = descriptor.parseForArrayDimensionality();
     this.depth          = 1;
     this.dictionaryId   = dictionaryId;
     this.tibSlot        = VM_Statics.allocateSlot(VM_Statics.TIB);
-    this.elementType    = VM_ClassLoader.findOrCreateType(descriptor.parseForArrayElementDescriptor());
+    this.elementType    = VM_ClassLoader.findOrCreateType(descriptor.parseForArrayElementDescriptor(), classloader);
     if (this.elementType.isArrayType()) {
       this.innermostElementType = this.elementType.asArray().getInnermostElementType();
     } else {
@@ -597,7 +605,7 @@ public class VM_Array extends VM_Type
     // virtual method fields and substuting an appropriate type field.
     //
     if (javaLangObjectTIB == null) {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;")).asClass();
+      VM_Class cls = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
       javaLangObjectTIB = cls.getTypeInformationBlock();
     }
        
@@ -622,7 +630,7 @@ public class VM_Array extends VM_Type
       return;
     if (VM.VerifyAssertions) VM.assert(state == CLASS_RESOLVED);
   
-    if (VM.TraceClassLoading) VM.sysWrite("VM_Array: instantiate " + descriptor + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Array: instantiate " + descriptor + "\n");
     
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
     for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX, n = javaLangObjectTIB.length; i < n; ++i)
@@ -634,5 +642,5 @@ public class VM_Array extends VM_Type
   // No-op (arrays have no <clinit> method).
   //
   public final void initialize() { }
-  
+
 }

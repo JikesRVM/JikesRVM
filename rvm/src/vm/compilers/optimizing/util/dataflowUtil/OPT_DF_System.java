@@ -20,8 +20,19 @@ import  java.util.*;
  * @author Stephen Fink
  *
  */
-public abstract class OPT_DF_System {
+public abstract class OPT_DF_System implements OPT_Solvable {
   static final boolean DEBUG = false;
+
+  final boolean EAGER;
+
+    OPT_DF_System() {
+	EAGER = false;
+    }
+
+
+    OPT_DF_System(boolean eager) {
+	EAGER = eager;
+    }
 
   /** 
    * Solve the set of dataflow equations.
@@ -163,6 +174,7 @@ public abstract class OPT_DF_System {
     // add to the list of equations
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1);
     equations.addGraphNode(eq);
+    equations.addGraphNode(lhs);
     equations.addGraphNode(op1);
     newEquations.add(eq);
     // add lattice cells for the operands to the working solution
@@ -170,6 +182,7 @@ public abstract class OPT_DF_System {
     //       cells.put(op1.getKey(),op1);
     op1.addUse(eq);
     lhs.addDef(eq);
+    if (EAGER && eq.evaluate()) changedCell(lhs);
   }
 
   /** 
@@ -185,6 +198,7 @@ public abstract class OPT_DF_System {
     // add to the list of equations
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1, op2);
     equations.addGraphNode(eq);
+    equations.addGraphNode(lhs);
     equations.addGraphNode(op1);
     equations.addGraphNode(op2);
     newEquations.add(eq);
@@ -195,6 +209,7 @@ public abstract class OPT_DF_System {
     //       cells.put(op2.getKey(),op2);
     op2.addUse(eq);
     lhs.addDef(eq);
+    if (EAGER && eq.evaluate()) changedCell(lhs);
   }
 
   /** 
@@ -212,6 +227,7 @@ public abstract class OPT_DF_System {
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1, op2, 
         op3);
     equations.addGraphNode(eq);
+    equations.addGraphNode(lhs);
     equations.addGraphNode(op1);
     equations.addGraphNode(op2);
     equations.addGraphNode(op3);
@@ -225,6 +241,7 @@ public abstract class OPT_DF_System {
     //       cells.put(op3.getKey(),op3);
     op3.addUse(eq);
     lhs.addDef(eq);
+    if (EAGER && eq.evaluate()) changedCell(lhs);
   }
 
   /** 
@@ -240,6 +257,7 @@ public abstract class OPT_DF_System {
     // add to the list of equations
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, rhs);
     equations.addGraphNode(eq);
+    equations.addGraphNode(lhs);
     newEquations.add(eq);
     // add the operands to the working solution
     //       cells.put(lhs.getKey(),lhs);
@@ -249,7 +267,37 @@ public abstract class OPT_DF_System {
       equations.addGraphNode(rhs[i]);
     }
     lhs.addDef(eq);
+    if (EAGER && eq.evaluate()) changedCell(lhs);
   }
+
+  /** 
+   * Add an existing equation to the system
+   *
+   * @param eq the equation
+   */
+    void addEquation (OPT_DF_Equation eq) {
+	equations.addGraphNode(eq);
+	newEquations.add(eq);
+	
+	OPT_DF_LatticeCell lhs = eq.getLHS();
+	if (! (lhs.getDefs().hasNext()||lhs.getUses().hasNext())) {
+	    lhs.addDef(eq);
+	    equations.addGraphNode(lhs);
+	} else
+	    lhs.addDef(eq);
+
+	OPT_DF_LatticeCell operands[] = eq.getOperands();
+	for(int i = 1; i < operands.length; i++) {
+	    OPT_DF_LatticeCell op = operands[i];
+	    if (! (op.getDefs().hasNext()||op.getUses().hasNext())) {
+		op.addUse(eq);
+		equations.addGraphNode(op);
+	    } else
+		op.addUse(eq);
+	}
+
+	if (EAGER && eq.evaluate()) changedCell(lhs);
+    }
 
   /** 
    * Return the OPT_DF_LatticeCell corresponding to a key.
@@ -277,7 +325,8 @@ public abstract class OPT_DF_System {
   /**
    * The equations that comprise this dataflow system.
    */
-  protected OPT_Graph equations = new OPT_DF_Graph();
+  OPT_Graph equations = new OPT_DF_Graph();
+
   /**
    * Set of equations pending evaluation
    */
@@ -297,7 +346,7 @@ public abstract class OPT_DF_System {
   /**
    * Set of equations considered "new"
    */
-  protected java.util.Set newEquations = new java.util.HashSet();
+  java.util.Set newEquations = new java.util.HashSet();
   /**
    * The lattice cells of the system: Mapping from Object to OPT_DF_LatticeCell
    */

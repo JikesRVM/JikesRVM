@@ -79,6 +79,13 @@ public class VM_StackTrace implements VM_Constants {
      VM.enableGC();
       
      if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
+
+     if (VM.TraceStackTrace) {
+	 VM.disableGC();
+	 VM_Scheduler.dumpStack();
+	 VM.enableGC();
+     }
+
      return stackTrace;
    }
 
@@ -132,17 +139,10 @@ public class VM_StackTrace implements VM_Constants {
        }
          
        VM_CompiledMethod compiledMethod = stackTrace[i].compiledMethod;
-       if (compiledMethod == null) {
+       if (compiledMethod == null) 
 	 out.println("\tat <invisible method>");
-       }
-
-       VM_Method       method       = compiledMethod.getMethod();
-       VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
-       if (compilerInfo.getCompilerType() == VM_CompilerInfo.TRAP) {
-	 out.println("\tat <hardware trap>");
-       } else {
+       else 
 	 compiledMethod.getCompilerInfo().printStackTrace(stackTrace[i].instructionOffset, out);
-       }
      }
    }
 

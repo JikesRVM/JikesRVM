@@ -32,8 +32,21 @@ class OPT_GraphUtilities {
   public static OPT_GraphNodeEnumeration 
       enumerateTopSort (OPT_Graph G, OPT_GraphNodeEnumeration ie) 
   {
+      return enumerateTopSortInternal(G, new OPT_DFSenumerateByFinish(G, ie));
+  }
+
+  public static OPT_GraphNodeEnumeration 
+      enumerateTopSort (OPT_Graph G, 
+			OPT_GraphNodeEnumeration ie,
+			OPT_GraphEdgeFilter f)
+  {
+      return enumerateTopSortInternal(G, new OPT_FilteredDFSenumerateByFinish(G, ie, f));
+  }
+
+  public static OPT_GraphNodeEnumeration 
+      enumerateTopSortInternal (OPT_Graph G, OPT_GraphNodeEnumeration e)
+  { 
       final OPT_GraphNode[] elts = new OPT_GraphNode[ G.numberOfNodes() ];
-      OPT_GraphNodeEnumeration e = new OPT_DFSenumerateByFinish(G, ie);
 
       int i = 0;
       while (e.hasMoreElements())

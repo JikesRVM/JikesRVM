@@ -16,6 +16,7 @@ import java.util.HashMap;
 import VM;
 import VM_Atom;
 import VM_Array;
+import VM_Callbacks;
 import VM_Class;
 import VM_ClassLoader;
 import VM_Field;
@@ -24,6 +25,7 @@ import VM_Method;
 import VM_Reflection;
 import VM_ResolutionException;
 import VM_Runtime;
+import VM_Scheduler;
 import VM_SystemClassLoader;
 import VM_Type;
 import VM_UnimplementedError;
@@ -443,55 +445,7 @@ public class ReflectionSupport {
     Object   obj = VM_Runtime.quickNewArray(size, arrayType.getInstanceSize(size), tib);
     return obj;
   }
-  /**
-   * Answers a Class object which represents the class
-   * named by the argument. The name should be the name
-   * of a class as described in the class definition of
-   * java.lang.Class, however Classes representing base
-   * types can not be found using this method.
-   *
-   * @return		the named Class
-   * @param		className name of the non-base type class to find
-   * @exception	ClassNotFoundException If the class could not be found
-   *
-   * @see			java.lang.Class
-   */
-  public static Class forName(String typeName) throws ClassNotFoundException {
-    boolean DEBUG = false;
-    if (DEBUG) VM.sysWrite("Class.forName starting", typeName);
-    SecurityManager security = System.getSecurityManager();
-    if (security != null)
-      throw new VM_UnimplementedError("Classloading with security manager");
-    ClassLoader defaultClassLoader = VM_Class.getClassLoaderFromStackFrame(1);
-    // If requestor was loaded by a user's classloader, invoke it for load
-    // 
-    if (defaultClassLoader != null && defaultClassLoader != 
-        VM_SystemClassLoader.getVMClassLoader()) {
-      if (DEBUG) VM.sysWrite("Class.forName loading with special class loader ", typeName);
-      return defaultClassLoader.loadClass(typeName);
-    }
-    else {
-      if (DEBUG) VM.sysWrite("Class.forName loading with default class loader ", typeName);
-      Class guess = (Class) classCache.get( typeName );
-      if (guess != null)  return guess;
 
-      synchronized (VM_ClassLoader.lock) {
-        try {
-          if (typeName.startsWith("[")) {
-            if (!validArrayDescriptor(typeName)) throw new IllegalArgumentException();
-            else classCache.put(typeName, VM_Array.forName(typeName).getClassForType());
-          }
-          else
-            classCache.put(typeName, VM_Class.forName(typeName).getClassForType());
-          if (DEBUG) VM.sysWrite("Class.forName returning for ", typeName);
-          return (Class) classCache.get( typeName );
-        }
-        catch (VM_ResolutionException e) {
-          throw new ClassNotFoundException(typeName);
-        }
-      }
-    }
-  }
   /**
    * Answers a Class object which represents the class
    * named by the argument. The name should be the name
@@ -510,45 +464,50 @@ public class ReflectionSupport {
    * @see			java.lang.Class
    */
   public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
-    SecurityManager security = System.getSecurityManager();
-    boolean DEBUG = false;
-    if (security != null)
-      throw new VM_UnimplementedError("Classloading with security manager");
-
-    if ( (initialize == true) 
-         && ( (classLoader == null) 
-              || (classLoader instanceof VM_SystemClassLoader) ) ) {
-
-      Class guess = (Class) classCache.get( className );;
-      if (guess != null) return guess;
-
-      synchronized (VM_ClassLoader.lock) {
-        try {
-          if (className.startsWith("[")) {
-            if (!validArrayDescriptor(className)) throw new IllegalArgumentException();
-            classCache.put(className, VM_Array.forName(className).getClassForType());
-            return (Class) classCache.get( className );
-          }
-          else {
-            classCache.put(className, VM_Class.forName(className).getClassForType());
-            return (Class) classCache.get( className );
-          }
-        }
-        catch (VM_ResolutionException e) {
-          throw new ClassNotFoundException(className);
-        }
+      SecurityManager security = System.getSecurityManager();
+      boolean DEBUG = false;
+      if (security != null)
+	  throw new VM_UnimplementedError("Classloading with security manager");
+      
+      if ( (initialize == true) 
+	   && ( (classLoader == null) 
+		|| (classLoader instanceof VM_SystemClassLoader) ) ) {
+	  
+	  Class guess = (Class) classCache.get( className );
+	  if (guess != null) {
+	      VM_Callbacks.notifyForName( guess.type );
+	      return guess;
+	  }
+	  
+	  synchronized (VM_ClassLoader.lock) {
+	      try {
+		  if (className.startsWith("[")) {
+		      if (!validArrayDescriptor(className)) throw new IllegalArgumentException();
+		      classCache.put(className, VM_Array.forName(className).getClassForType());
+		      VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
+		      return (Class) classCache.get( className );
+		  }
+		  else {
+		      classCache.put(className, VM_Class.forName(className).getClassForType());
+		      VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
+		      return (Class) classCache.get( className );
+		  }
+	      }
+	      catch (VM_ResolutionException e) {
+		  throw new ClassNotFoundException(className);
+	      }
+	  }
+	  
       }
-
-    }
-    else {
-
-      if (DEBUG) VM.sysWrite("Class.forName 3 args, loading", className);
-      if  ( classLoader == null  ||  classLoader instanceof VM_SystemClassLoader) 
-        throw new VM_UnimplementedError("NoLoad option not supported for system classloader yet");
-      else
-        return classLoader.loadClass(className, initialize);
-    }
+      else {
+	  
+	  if (DEBUG) VM_Scheduler.trace("Class.forName 3 args, loading", className);
+	  Class klass = classLoader.loadClass(className, initialize);
+	  VM_Callbacks.notifyForName( klass.type );
+	  return klass;
+      }
   }
+
   /**
    * Answers a Method object from Class C which represents the method
    * described by the arguments. Note that the associated

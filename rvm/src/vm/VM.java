@@ -173,8 +173,9 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.lang.Character");
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
     runClassInitializer("java.util.Hashtable");
+    runClassInitializer("java.lang.String");
+    runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
-    //-#if RVM_WITH_JAZZLIB
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.lang.RuntimePermission");
     runClassInitializer("java.util.TimeZone");
@@ -187,7 +188,7 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    //-#endif
+    runClassInitializer("java.util.jar.Attributes$Name");
 
     // Initialize compiler that compiles dynamically loaded classes.
     //
@@ -270,7 +271,7 @@ public class VM extends VM_Properties implements VM_Constants,
   private static void runClassInitializer(String className) {
     VM_Atom  classDescriptor = 
        VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
+    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
     if (cls.isInBootImage()) {
       VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getMostRecentlyGeneratedInstructions());
       cls.setAllFinalStaticJTOCEntries();
@@ -841,6 +842,46 @@ public class VM extends VM_Properties implements VM_Constants,
     }
   }
    
+  /**
+   * Get description of virtual machine component (field or method).
+   * Note: This is method is intended for use only by VM classes that need
+   * to address their own fields and methods in the runtime virtual machine
+   * image.  It should not be used for general purpose class loading.
+   * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
+   * @param memberName       member name       - something like "invokestatic"
+   * @param memberDescriptor member descriptor - something like "()V"
+   * @return description
+   */
+  static VM_Member getMember(String classDescriptor, String memberName,
+                             String memberDescriptor) {
+    VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
+    VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
+    VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
+    try {
+      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
+      cls.load();
+      cls.resolve();
+
+      VM_Member member;
+      if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
+        return member;
+      if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null)
+        return member;
+
+      // The usual causes for VM.getMember() to fail are:
+      //  1. you mispelled the class name, member name, or member signature
+      //  2. the class containing the specified member didn't get compiled
+      //
+      VM.sysWrite("VM.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
+      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    } catch (VM_ResolutionException e) {
+      VM.sysWrite("VM.getMember: can't resolve class=" + classDescriptor+
+                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
+      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+    }
+    return null;
+  }
+
    //----------------//
    // implementation //
    //----------------//
@@ -869,10 +910,10 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_MagicNames.init();
     VM_ClassLoader.init(vmClassPath);
     VM_Class object       = VM_Type.JavaLangObjectType.asClass();
-    VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;")).asClass();
-    VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;")).asClass();
-    VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;")).asClass();
-    VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;")).asClass();
+    VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
      
     // initialization of reference maps locks for jsr processing
     VM_ReferenceMaps.init(); 

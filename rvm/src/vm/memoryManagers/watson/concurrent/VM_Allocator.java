@@ -24,8 +24,8 @@ public class VM_Allocator
     static final int      TYPE = 12; // needed for finalization or something?
 
 
-  static final VM_Array BCArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[LVM_BlockControl;")).asArray();
-  static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
+  static final VM_Array BCArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asArray();
+  static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
   private static final int byteArrayHeaderSize = VM_ObjectModel.computeArrayHeaderSize(byteArrayType);
 
   static Object[] byteArrayTIB;

@@ -91,4 +91,5 @@ export XARGS="/usr/bin/xargs"
 export CVS="/usr/bin/cvs"
 
 # where to find Jazzlib
-export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02
+export JAZZLIBJAR=${RVM_ROOT}/support/lib/jazzlib.jar
+

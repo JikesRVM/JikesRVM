@@ -351,7 +351,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
     if (VM.VerifyAssertions)   VM.assert(declaringClass.isResolved());
-    if (VM.TraceClassLoading)  VM.sysWrite("VM_Method: compiling " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
     if (isAbstract())
       mostRecentlyGeneratedInstructions = getUnexpectedAbstractMethodInstructions();
@@ -383,6 +383,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       if (VM.TraceTimes) VM_Timer.stop(VM_Timer.METHOD_COMPILE);
     }
 
+    if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
     return mostRecentlyGeneratedInstructions;
   }
 
@@ -623,10 +624,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Standard initialization.
    */
   VM_Method(VM_Class declaringClass, VM_Atom name, VM_Atom descriptor, 
-            int dictionaryId) {
+            int dictionaryId, ClassLoader classloader) {
     super(declaringClass, name, descriptor, dictionaryId);
-    returnType = descriptor.parseForReturnType();
-    parameterTypes = descriptor.parseForParameterTypes();
+    returnType = descriptor.parseForReturnType(classloader);
+    parameterTypes = descriptor.parseForParameterTypes(classloader);
     for (int i = 0, n = parameterTypes.length; i < n; ++i)
       parameterWords += parameterTypes[i].getStackWords();
     offset = VM_Member.UNINITIALIZED_OFFSET;
@@ -662,7 +663,8 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
         int cnt = input.readUnsignedShort();
         if (cnt != 0)
           exceptionHandlerMap = new VM_ExceptionHandlerMap(input, 
-                                                           declaringClass, cnt);
+                                                           declaringClass, 
+							   cnt);
 
         readAttributes(input);
         continue;
@@ -810,7 +812,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Compute the mangled name of the native routine: Java_Class_Method_Sig
    */
-  private String getMangledName() {
+  private String getMangledName(boolean sig) {
     String mangledClassName, mangledMethodName;
     String className = declaringClass.getName().toString();
     String methodName = name.toString();
@@ -826,14 +828,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     //   class.with_underscore  -> class_with_1underscore
     mangledMethodName = replaceCharWithString(methodName, '_', "_1");
 
-    // Special cases:  Sig is needed if the method is overloaded
-    VM_Method mthList[] = declaringClass.getDeclaredMethods();
-    int match = 0;
-    for (int i=0; i<mthList.length; i++) {
-      if (mthList[i].getName().toString().equals(methodName))
-        match++;
-    }
-    if (match>1) {
+    if (sig) {
       String sigName = getDescriptor().toString();
       sigName = sigName.substring( sigName.indexOf('(')+1, sigName.indexOf(')') );
       sigName = replaceCharWithString(sigName, '[', "_3");
@@ -854,7 +849,8 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
   private boolean resolveNativeMethod() {
 
-    nativeProcedureName = getMangledName();
+    nativeProcedureName = getMangledName(false);
+    String nativeProcedureNameWithSigniture = getMangledName(true);
 
     // get the library in VM_ClassLoader
     // resolve the native routine in the libraries
@@ -864,7 +860,11 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
       for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
         VM_DynamicLibrary lib = libs[i];
         if (lib!=null)
+          symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
+        if (lib != null && symbolAddress == VM_Address.zero())
           symbolAddress = lib.getSymbol(nativeProcedureName);
+	else if (symbolAddress != VM_Address.zero())
+	  nativeProcedureName = nativeProcedureNameWithSigniture;
       }
     }
 

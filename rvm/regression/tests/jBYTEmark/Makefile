@@ -12,7 +12,7 @@ include         $(RVM_BUILD)/Make.rules
 BENCH_NAME=jBYTEmark
 include		$(JAL_ROOT)/rvm/regression/Local.rules
 
-HEAPSIZE=70
+HEAPSIZE=150
 
 ifeq ($(MODE),PERFORMANCE)
 

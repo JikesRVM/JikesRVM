@@ -654,9 +654,8 @@ public class BootImageWriter2 extends BootImageWriterMessages
       // create corresponding rvm type
       //
       VM_Atom name = VM_Atom.findOrCreateAsciiAtom(typeName);
-      VM_Type type = VM_ClassLoader.findOrCreateType(name);
-      if (type.isClassType())
-        type.asClass().markAsBootImageClass();
+      VM_Type type = VM_ClassLoader.findOrCreateType(name, VM_SystemClassLoader.getVMClassLoader());
+      type.markAsBootImageClass();
 
       //
       // convert type name from internal form to external form

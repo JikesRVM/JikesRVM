@@ -216,7 +216,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     // If/when the baseline compiler gets these, invoke them here.
     
     // Get the opt's report
-    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LOPT_OptimizationPlanner;"));
+    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LOPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
     if (theType.asClass().isInitialized()) {
       OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
     } else {

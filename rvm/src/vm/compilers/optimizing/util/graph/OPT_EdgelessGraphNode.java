@@ -25,11 +25,13 @@ class OPT_EdgelessGraphNode
   /**
    *  The set of nodes that have edges pointing to this node.
    */
-  private java.util.HashSet inEdges = new java.util.HashSet();
+  private java.util.HashSet inEdges = null;
+
   /**
    *  The set of nodes to which this node has edges.
    */
-  private java.util.HashSet outEdges = new java.util.HashSet();
+  private java.util.HashSet outEdges = null;
+
   /**
    *  A scratch field in int type
    * @deprecated
@@ -152,6 +154,7 @@ class OPT_EdgelessGraphNode
    * @see OPT_Graph#addGraphEdge
    */
   void addOutEdgeInternal (OPT_EdgelessGraphNode n) {
+    if (outEdges == null) outEdges = new java.util.HashSet();
     outEdges.add(n);
   }
 
@@ -164,6 +167,7 @@ class OPT_EdgelessGraphNode
    * @see OPT_Graph#addGraphEdge
    */
   void addInEdgeInternal (OPT_EdgelessGraphNode n) {
+    if (inEdges == null) inEdges = new java.util.HashSet();
     inEdges.add(n);
   }
 
@@ -174,7 +178,8 @@ class OPT_EdgelessGraphNode
    *
    */
   public OPT_GraphNodeEnumeration outNodes () {
-    return  new NodeEnumeration(outEdges.iterator());
+    return  new NodeEnumeration(
+      outEdges==null? OPT_EmptyIterator.INSTANCE: outEdges.iterator());
   }
 
   /**
@@ -184,7 +189,8 @@ class OPT_EdgelessGraphNode
    *
    */
   public OPT_GraphNodeEnumeration inNodes () {
-    return  new NodeEnumeration(inEdges.iterator());
+    return  new NodeEnumeration(
+      inEdges==null? OPT_EmptyIterator.INSTANCE: inEdges.iterator());
   }
 
   /**
@@ -194,7 +200,7 @@ class OPT_EdgelessGraphNode
    * @return true if there is an edge from this node to x
    */
   public boolean hasOut (OPT_GraphNode x) {
-    return  outEdges.contains(x);
+    return  outEdges!=null && outEdges.contains(x);
   }
 
   /**
@@ -204,7 +210,7 @@ class OPT_EdgelessGraphNode
    * @return true if there is an edge from x to this node
    */
   public boolean hasIn (OPT_GraphNode x) {
-    return  inEdges.contains(x);
+    return  inEdges!=null && inEdges.contains(x);
   }
 }
 
