@@ -202,6 +202,15 @@ public class VM_Magic {
   }
 
   /**
+   * Get VM_Word at arbitrary (byte) offset from object.
+   * Use getWordAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
+   */
+  public static VM_Word getWordAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_Word.max();
+  }
+
+  /**
    * Get Object at arbitrary (byte) offset from object.
    * Use getObjectAtOffset(obj, ofs) instead of 
    * addressAsObject(getMemoryAddress(objectAsAddress(obj)+ofs))
@@ -268,6 +277,14 @@ public class VM_Magic {
    * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 
   public static void setIntAtOffset(Object object, int offset, int newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set word at arbitrary (byte) offset from object.
+   * Use setWordAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
+   */ 
+  public static void setWordAtOffset(Object object, int offset, VM_Word newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -340,6 +357,14 @@ public class VM_Magic {
   }
 
   /**
+   * Get contents of (object + offset) and begin conditional critical section.
+   */ 
+  public static VM_Word prepareWord(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_Word.max();
+  }
+
+  /**
    * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
    * Must be paired with a preceding prepare (which returned the oldValue)
    * Returns true if successful.
@@ -368,6 +393,18 @@ public class VM_Magic {
    * Ends conditional critical section.
    */ 
   public static boolean attemptAddress(Object object, int offset, VM_Address oldValue, VM_Address newValue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return false;
+  }
+
+  /**
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Must be paired with a preceding prepare (which returned the oldValue)
+   * Returns true if successful.
+   * Ends conditional critical section.
+   */ 
+  public static boolean attemptWord(Object object, int offset,
+                                    VM_Word oldValue, VM_Word newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }

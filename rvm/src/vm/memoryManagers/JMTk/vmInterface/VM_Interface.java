@@ -341,8 +341,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static boolean attemptAvailableBits(VM_Address o,
 					     int oldVal, int newVal) {
-      return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),
-						 oldVal, newVal);
+    return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),
+                                               // TODO: 64 bit broken
+                                               VM_Word.fromInt(oldVal),
+                                               VM_Word.fromInt(newVal));
   }
 
   /**
@@ -353,7 +355,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return the value of the bits
    */
   public static int prepareAvailableBits(VM_Address o) {
-      return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o));
+    return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o)).toInt();
   }
 
   /**
@@ -363,7 +365,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @param val the new value of the bits
    */
   public static void writeAvailableBitsWord(VM_Address o, int val) {
-    VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o), val);
+    VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o),
+                                          VM_Word.fromInt(val));
   }
 
   /**
@@ -373,7 +376,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return the value of the bits
    */
   public static int readAvailableBitsWord(VM_Address o) {
-    return VM_ObjectModel.readAvailableBitsWord(o);
+    return VM_ObjectModel.readAvailableBitsWord(o).toInt();
   }
 
   /**

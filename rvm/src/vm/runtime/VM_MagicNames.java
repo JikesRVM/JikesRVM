@@ -48,12 +48,14 @@ public class VM_MagicNames {
   public static final VM_Atom getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
   public static final VM_Atom getCharAtOffset               = VM_Atom.findOrCreateAsciiAtom("getCharAtOffset");
   public static final VM_Atom getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
+  public static final VM_Atom getWordAtOffset                = VM_Atom.findOrCreateAsciiAtom("getWordAtOffset");
   public static final VM_Atom getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
   public static final VM_Atom getObjectArrayAtOffset        = VM_Atom.findOrCreateAsciiAtom("getObjectArrayAtOffset");
   public static final VM_Atom getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
   public static final VM_Atom setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
   public static final VM_Atom setCharAtOffset               = VM_Atom.findOrCreateAsciiAtom("setCharAtOffset");
   public static final VM_Atom setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
+  public static final VM_Atom setWordAtOffset                = VM_Atom.findOrCreateAsciiAtom("setWordAtOffset");
   public static final VM_Atom setObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("setObjectAtOffset");
   public static final VM_Atom setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
   public static final VM_Atom setDoubleAtOffset             = VM_Atom.findOrCreateAsciiAtom("setDoubleAtOffset");
@@ -68,9 +70,11 @@ public class VM_MagicNames {
   public static final VM_Atom prepareInt                    = VM_Atom.findOrCreateAsciiAtom("prepareInt");
   public static final VM_Atom prepareObject                 = VM_Atom.findOrCreateAsciiAtom("prepareObject");
   public static final VM_Atom prepareAddress                = VM_Atom.findOrCreateAsciiAtom("prepareAddress");
+  public static final VM_Atom prepareWord                   = VM_Atom.findOrCreateAsciiAtom("prepareWord");
   public static final VM_Atom attemptInt                    = VM_Atom.findOrCreateAsciiAtom("attemptInt");
   public static final VM_Atom attemptObject                 = VM_Atom.findOrCreateAsciiAtom("attemptObject");
   public static final VM_Atom attemptAddress                = VM_Atom.findOrCreateAsciiAtom("attemptAddress");
+  public static final VM_Atom attemptWord                   = VM_Atom.findOrCreateAsciiAtom("attemptWord");
 
   public static final VM_Atom saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
   public static final VM_Atom threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");

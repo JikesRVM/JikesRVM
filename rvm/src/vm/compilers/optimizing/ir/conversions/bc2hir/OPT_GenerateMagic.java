@@ -140,6 +140,19 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, object, offset, 
 					   null));
+    } else if (methodName == VM_MagicNames.getWordAtOffset) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, object, offset, 
+					  null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.setWordAtOffset) {
+      OPT_Operand val = bc2ir.popRef();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      bc2ir.appendInstruction(Store.create(REF_STORE, val, object, offset, 
+					   null));
     } else if (methodName == VM_MagicNames.getLongAtOffset) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();
@@ -474,6 +487,12 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Prepare.create(PREPARE, val, base, offset, null));
       bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.prepareWord) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand base = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Word);
+      bc2ir.appendInstruction(Prepare.create(PREPARE, val, base, offset, null));
+      bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.attemptInt) {
       OPT_Operand newVal = bc2ir.popInt();
       OPT_Operand oldVal = bc2ir.popInt();
@@ -495,6 +514,15 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.attemptAddress) {
       OPT_Operand newVal = bc2ir.popAddress();
       OPT_Operand oldVal = bc2ir.popAddress();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand base = bc2ir.popRef();
+      OPT_RegisterOperand test = gc.temps.makeTempInt();
+      bc2ir.appendInstruction(Attempt.create(ATTEMPT, test, base, offset, oldVal, 
+					     newVal, null));
+      bc2ir.push(test.copyD2U());
+    } else if (methodName == VM_MagicNames.attemptWord) {
+      OPT_Operand newVal = bc2ir.pop();
+      OPT_Operand oldVal = bc2ir.pop();
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand base = bc2ir.popRef();
       OPT_RegisterOperand test = gc.temps.makeTempInt();

@@ -344,8 +344,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Non-atomic read of word containing available bits
    */
-  public static int readAvailableBitsWord(Object o) {
-    return VM_Magic.getIntAtOffset(o, STATUS_OFFSET);
+  public static VM_Word readAvailableBitsWord(Object o) {
+    return VM_Magic.getWordAtOffset(o, STATUS_OFFSET);
   }
 
   /**
@@ -358,21 +358,20 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Non-atomic write of word containing available bits
    */
-  public static void writeAvailableBitsWord(Object o, int val) {
-    VM_Magic.setIntAtOffset(o, STATUS_OFFSET, val);
+  public static void writeAvailableBitsWord(Object o, VM_Word val) {
+    VM_Magic.setWordAtOffset(o, STATUS_OFFSET, val);
   }
 
   /**
-   * Non-atomic write of word containing available bits for a <b>boot
-   * image</b> object.
-   *
-   * @param bootImage The boot image interface.
-   * @param ref The object reference
-   * @param val The new status word
+   * Non-atomic write of word containing available bits
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-					    int ref, int val) throws VM_PragmaInterruptible {
-    bootImage.setFullWord(ref + STATUS_OFFSET, val);
+                                            int ref, VM_Word val) {
+    //-#if RVM_FOR_32_ADDR
+    bootImage.setAddressWord(ref + STATUS_OFFSET, val.toInt());
+    //-#else
+    bootImage.setAddressWord(ref + STATUS_OFFSET, val.toLong());
+    //-#endif
   }
 
   /**
@@ -386,18 +385,22 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Return true if argument bit is 1, false if it is 0
    */
   public static boolean testAvailableBit(Object o, int idx) {
-    return ((1 << idx) & VM_Magic.getIntAtOffset(o, STATUS_OFFSET)) != 0;
+    VM_Word mask = VM_Word.fromIntSignExtend(1<<idx);
+    VM_Word status = VM_Magic.getWordAtOffset(o, STATUS_OFFSET);
+    return mask.and(status).NE(VM_Word.zero());
   }
 
   /**
    * Set argument bit to 1 if value is true, 0 if value is false
    */
   public static void setAvailableBit(Object o, int idx, boolean flag) {
-    int status = VM_Magic.getIntAtOffset(o, STATUS_OFFSET);
+    VM_Word status = VM_Magic.getWordAtOffset(o, STATUS_OFFSET);
     if (flag) {
-      VM_Magic.setIntAtOffset(o, STATUS_OFFSET, status | (1 << idx));
+      VM_Word mask = VM_Word.fromIntSignExtend(1<<idx);
+      VM_Magic.setWordAtOffset(o, STATUS_OFFSET, status.or(mask));
     } else {
-      VM_Magic.setIntAtOffset(o, STATUS_OFFSET, status & ~(1 << idx));
+      VM_Word mask = VM_Word.fromIntSignExtend(1<<idx).not();
+      VM_Magic.setWordAtOffset(o, STATUS_OFFSET, status.and(mask));
     }
   }
 
@@ -412,15 +415,16 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * A prepare on the word containing the available bits
    */
-  public static int prepareAvailableBits(Object o) {
-    return VM_Magic.prepareInt(o, STATUS_OFFSET);
+  public static VM_Word prepareAvailableBits(Object o) {
+    return VM_Magic.prepareWord(o, STATUS_OFFSET);
   }
   
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, int oldVal, int newVal) {
-    return VM_Magic.attemptInt(o, STATUS_OFFSET, oldVal, newVal);
+  public static boolean attemptAvailableBits(Object o, VM_Word oldVal,
+                                             VM_Word newVal) {
+    return VM_Magic.attemptWord(o, STATUS_OFFSET, oldVal, newVal);
   }
   
   /**

@@ -2972,7 +2972,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
     if (methodName == VM_MagicNames.attemptInt ||
 	methodName == VM_MagicNames.attemptObject ||
-	methodName == VM_MagicNames.attemptAddress) {
+	methodName == VM_MagicNames.attemptAddress ||
+        methodName == VM_MagicNames.attemptWord) {
       // attempt gets called with four arguments: base, offset, oldVal, newVal
       // returns ([base+offset] == oldVal)
       // if ([base+offset] == oldVal) [base+offset] := newVal
@@ -3164,11 +3165,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
   
     if (methodName == VM_MagicNames.getIntAtOffset ||
+        methodName == VM_MagicNames.getWordAtOffset || 
 	methodName == VM_MagicNames.getObjectAtOffset ||
 	methodName == VM_MagicNames.getObjectArrayAtOffset ||
 	methodName == VM_MagicNames.prepareInt ||
 	methodName == VM_MagicNames.prepareObject ||
-	methodName == VM_MagicNames.prepareAddress) {
+	methodName == VM_MagicNames.prepareAddress ||
+        methodName == VM_MagicNames.prepareWord) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
       asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
@@ -3192,6 +3195,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     
     if (methodName == VM_MagicNames.setIntAtOffset ||
+        methodName == VM_MagicNames.setWordAtOffset || 
 	methodName == VM_MagicNames.setObjectAtOffset ) {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset

@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -34,7 +35,8 @@ public final class VM_AllocatorHeader extends Header {
     throws VM_PragmaInterruptible {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
     int status = getBootTimeAvailableBits(ref, tib, size, isScalar, 0);
-    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
+    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref,
+                                         VM_Word.fromInt(status));
   }
 
   /**

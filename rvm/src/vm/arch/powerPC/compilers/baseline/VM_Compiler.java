@@ -2855,10 +2855,10 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (couldBeZero) {
       int resolverOffset = VM_Entrypoints.resolveMemberMethod.getOffset();
       int label = asm.getMachineCodeIndex();
-
+      
       // load offset table
       asm.emitLAddrToc (reg, tableOffset);
-      asm.emitLWZoffset(reg, reg, memberOffset);
+      asm.emitLIntOffset(reg, reg, memberOffset);
 
       // test for non-zero offset and branch around call to resolver
       asm.emitCMPI (reg, NEEDS_DYNAMIC_LINK);	      // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
@@ -3539,6 +3539,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitLIntX (T0, T1, T0); // *(object+offset)
       pushInt(T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.getObjectAtOffset ||
+               methodName == VM_MagicNames.getWordAtOffset || 
 	       methodName == VM_MagicNames.getObjectArrayAtOffset) {
       popInt(T1); // pop offset
       popAddr(T0); // pop object
@@ -3559,7 +3560,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == VM_MagicNames.setObjectAtOffset) {
+    } else if (methodName == VM_MagicNames.setObjectAtOffset ||
+               methodName == VM_MagicNames.setWordAtOffset) {
       popAddr(T2); // pop newvalue
       popInt(T1); // pop offset
       popAddr(T0); // pop object
@@ -3625,7 +3627,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       } //this Integer is not sign extended !!
       pushInt(T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.prepareObject ||
-	       methodName == VM_MagicNames.prepareAddress) {
+	       methodName == VM_MagicNames.prepareAddress ||
+               methodName == VM_MagicNames.prepareWord) {
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       if (VM.BuildForSingleVirtualProcessor) {
@@ -3656,7 +3659,8 @@ public class VM_Compiler extends VM_BaselineCompiler
 	pushInt(T0);  // push success of conditional store
       }
     } else if (methodName == VM_MagicNames.attemptObject ||
-	       methodName == VM_MagicNames.attemptAddress) {
+	       methodName == VM_MagicNames.attemptAddress ||
+               methodName == VM_MagicNames.attemptWord) {
       popAddr(T2);  // pop newValue
       discardSlot(); // ignore oldValue
       popInt(T1);  // pop offset

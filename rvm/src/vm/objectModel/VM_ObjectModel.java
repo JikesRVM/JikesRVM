@@ -342,7 +342,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Non-atomic read of word containing available bits
    */
-  public static int readAvailableBitsWord(Object o) {
+  public static VM_Word readAvailableBitsWord(Object o) {
     return VM_JavaHeader.readAvailableBitsWord(o);
   }
 
@@ -356,7 +356,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Non-atomic write of word containing available bits
    */
-  public static void writeAvailableBitsWord(Object o, int val) {
+  public static void writeAvailableBitsWord(Object o, VM_Word val) {
     VM_JavaHeader.writeAvailableBitsWord(o, val);
   }
 
@@ -392,14 +392,15 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * A prepare on the word containing the available bits
    */
-  public static int prepareAvailableBits(Object o) {
+  public static VM_Word prepareAvailableBits(Object o) {
     return VM_JavaHeader.prepareAvailableBits(o);
   }
   
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, int oldVal, int newVal) {
+  public static boolean attemptAvailableBits(Object o, VM_Word oldVal,
+                                             VM_Word newVal) {
     return VM_JavaHeader.attemptAvailableBits(o, oldVal, newVal);
   }
 
