@@ -1,10 +1,13 @@
+/*
+ * (C) Copyright Department of Computer Science,
+ * Australian National University. 2003
+ */
+//$Id$
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-
-//$Id:
 
 /**
  * Callbacks from ScanObject to Plan.enumeratePointerLocation are
