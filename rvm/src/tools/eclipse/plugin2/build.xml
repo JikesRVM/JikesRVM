@@ -32,7 +32,7 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <property name="package"     value="org.eclipse.jdt.launching.jikesrvm_2.0.0"/>
+  <property name="package"     value="org.eclipse.jdt.launching.jikesrvm_post2.2.2"/>
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
