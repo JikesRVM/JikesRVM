@@ -769,6 +769,9 @@ function emitEnvironmentKsh
    print "export WGET='$WGET'"
    print "export XARGS='$XARGS'"
    print "export UNZIP_CMD='$UNZIP_CMD'"
+   print "export ANT_CMD='$ANT_CMD'"
+   print ""
+   print "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
    print ""
    if (( RVM_WITH_GNU_CLASSPATH )); then
        print "export CLASSPATH_LIBRARIES=YES"
@@ -938,6 +941,11 @@ function emitController
    print '# do we still have the right version of rvmrt.jar?'
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
     print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f )'
+   else
+    print '. $RVM_HOST_CONFIG'
+    print 'if [[ x$CLASSPATH_SRC = x ]]; then'
+    print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
+    print 'fi'
    fi
    print ''
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
@@ -1212,18 +1220,16 @@ function emitCopier
      else
        CPS=$CLASSPATH_SRC
      fi
+     print 'SYSTEM_TYPE=`'$CPS'/classpath/config.guess`'
      if (( RVM_FOR_AIX )); then
-       OS_VER=`uname -v`
-       print 'for _library in' $CPS/aix$OS_VER'/native/jni/*/.libs/*.so.0; do'
+       print 'for _library in' $CPS/'$SYSTEM_TYPE/native/jni/*/.libs/*.so.0; do'
        print '  cp $_library' $BUILD_DIRECTORY_STR'/`basename $_library so.0`a'
        print 'done'
-       print "\nprint -n '(classpath native libraries copied) '"
-       print "cp -f $CPS/aix$OS_VER/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
      else
-       print "cp -f $CPS/i686/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
-       print "\nprint -n '(classpath native libraries copied) '"
-       print "cp -f $CPS/i686/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
+       print 'cp -f '$CPS'/$SYSTEM_TYPE/native/jni/*/.libs/*.so '$BUILD_DIRECTORY_STR
      fi
+     print "\nprint -n '(classpath native libraries copied) '"
+     print 'cp -f '$CPS'/$SYSTEM_TYPE/lib/glibj.zip '$CLASSES_DIRECTORY_STR/rvmrt.jar
    else
      print "cp -f $ROOT_DIRECTORY_STR/support/lib/classpath.jar $CLASSES_DIRECTORY_STR/rvmrt.jar"
    fi
@@ -2243,6 +2249,44 @@ function emitToolCompiler
    fi
    }
   
+function emitPluginBuilder
+{
+    print '#!/bin/ksh'
+    print '# Build and install Jikes RVM launching plugin for Eclipse 2.x'
+    print ''
+    print '# pick up configuration to learn where Ant is'
+    print '. $RVM_BUILD/environment'
+    print ''
+    print '# allow user-specified Eclipse install to override env'
+    print 'if [[ x$1 != x ]]; then'
+    print '  ECLIPSE_INSTALL_DIR=$1'
+    print 'fi'
+    print ''
+    print '# must have Eclipse for command line or env'
+    print 'if [[ x$ECLIPSE_INSTALL_DIR = x ]]; then'
+    print '  print "must specify Eclipse home: either'
+    print '  print "  1: set it in $RVM_TARGET_CONFIG, or'
+    print '  print "  2: use jbuild.plugin <eclipse dir>"'
+    print '  exit -1'
+    print 'fi'
+    print ''
+    print '# must have Ant'
+    print 'if [[ x$ANT_CMD = x ]]; then'
+    print '  print "must specify ANT_CMD in $RVM_TARGET_CONFIG"'
+    print '  exit -1'
+    print 'fi'
+    print ''
+    print '# build the plugin'
+    print 'echo "building org.eclipse.jdt.launching.jikesrvm"'
+    print ''
+    print 'echo "eclipse.dir=$ECLIPSE_INSTALL_DIR" > $JAL_ROOT/rvm/src/tools/eclipse/plugin2/ant.properties'
+    print ''
+    print 'cd $JAL_ROOT/rvm/src/tools/eclipse/plugin2'
+    print 'export JAVA_HOME=$HOST_JAVA_HOME'
+    print '$ANT_CMD -quiet install'
+    print ''
+}
+
 #----------------------#
 # SECTION 6 - MAINLINE #
 #----------------------#
@@ -2255,7 +2299,7 @@ if (( ! BUILD_RVMRT_JAR )); then
  else
   . $RVM_HOST_CONFIG
   if [[ x$CLASSPATH_SRC = x ]]; then
-    $RVM_ROOT/rvm/bin/jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath
   fi
  fi
 fi
@@ -2323,6 +2367,9 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkBooter
 
 emitToolCompiler              >$BUILD_DIRECTORY/jbuild.tool
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.tool
+
+emitPluginBuilder             >$BUILD_DIRECTORY/jbuild.plugin
+chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.plugin
 
 # write the environment specific configuration files
 #
