@@ -35,7 +35,8 @@
 #include <pthread.h>
 #endif
 
-extern pthread_key_t VmProcessorKey;
+// Seems unused --Steve Augart, July 2003
+// extern pthread_key_t VmProcessorKey;
 
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
@@ -44,10 +45,13 @@ extern pthread_key_t VmProcessorKey;
 
 extern "C" void setLinkage(VM_BootRecord*);
 
+#include "../bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
+
+// These are definitions of items declared in bootImageRunner.h
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile;
-int SysErrorFd;
-
+static int SysErrorFd;		// not used outside this file.
+ 
 /* Sink for trace messages produced by VM.sysWrite(). */
 FILE *SysTraceFile;
 int SysTraceFd;
@@ -60,7 +64,7 @@ int JavaArgc;
 int lib_verbose = 0;
 
 /* Location of jtoc within virtual machine image. */
-unsigned VmToc;
+static unsigned VmToc;
 
 /* TOC offset of VM_Scheduler.dumpStackAndDie */
 int DumpStackAndDieOffset;
@@ -73,11 +77,6 @@ int DebugRequestedOffset;
 
 /* name of program that will load and run RVM */
 char *me;
-
-extern "C" int createJVM (int);
-extern "C" int bootThread (int ip, int jtoc, int pr, int sp);
-
-extern "C" int getArrayLength(void* ptr);
 
 static int pageRoundUp(int size) {
     int pageSize = 4096;
@@ -629,14 +628,11 @@ void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
 /* startup configuration option with default values */
 char *bootFilename = 0;
 
-extern unsigned initialHeapSize;
-extern unsigned maximumHeapSize;
-
 /* timer tick interval, in milliseconds     (10 <= delay <= 999) */
 static int TimerDelay = 10;
 
 int
-createJVM (int vmInSeparateThread)
+createJVM(int vmInSeparateThread)
 {
   SysErrorFile = stderr;
   SysErrorFd = 2;
