@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002, 2003
+ * (C) Copyright IBM Corp. 2002, 2003, 2004
  */
 //$Id$
 
