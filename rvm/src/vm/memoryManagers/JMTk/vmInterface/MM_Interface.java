@@ -631,6 +631,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
      * First adjust the request to accommodate alignment requirment
      */
     if (VM.VerifyAssertions) VM._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
+    int originalBytes = bytes;
     if (align > BYTES_IN_PARTICLE) { 
       /* mainly used for objects with doubles and floats on 32-bit
        * most wasteful case: e.g. align==8 or even align==16;
@@ -658,7 +659,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     /*
      * Now post-align the result
      */
-    region = alignAllocation(region, align, offset);
+    if (originalBytes != bytes) 
+      region = alignAllocation(region, align, offset);
 
     return region;
   }
