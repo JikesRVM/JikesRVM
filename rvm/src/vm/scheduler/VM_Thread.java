@@ -64,7 +64,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       global_hpm_tid = new Integer(global_hpm_tid.intValue()+1);
     }
     if(VM_HardwarePerformanceMonitors.verbose>=2) {
-      VM.sysWrite  (" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
+      VM.sysWrite(" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
       VM.sysWriteln(global_tid);
     }
   }
@@ -1247,24 +1247,38 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     dump(0);
   }
 
+  /** Dump this thread's info.  The <code>verbosity</code> argument is ignored.
+   * We do not use any spacing or newline characters.  Callers are responsible
+   * for space-separating or newline-terminating output.   Strangely enough,
+   * we use VM_Scheduler.write*() here, but sysWrite everywhere else.  They
+  end up mapping onto the same thing anyway, so it really doesn't matter, but
+  it is kind of weird from an abstraction point of view. */
   public void dump(int verbosity) {
     VM_Scheduler.writeDecimal(getIndex());   // id
-    if (isDaemon)              VM_Scheduler.writeString("-daemon");     // daemon thread?
-    if (isNativeIdleThread)    VM_Scheduler.writeString("-nativeidle");    // NativeIdle
-    if (isIdleThread)          VM_Scheduler.writeString("-idle");       // idle thread?
-    if (isGCThread)            VM_Scheduler.writeString("-collector");  // gc thread?
-    if (isNativeDaemonThread)  VM_Scheduler.writeString("-nativeDaemon");  
-    if (beingDispatched)       VM_Scheduler.writeString("-being_dispatched");
+    if (isDaemon)              
+      VM_Scheduler.writeString("-daemon");     // daemon thread?
+    if (isNativeIdleThread)    
+      VM_Scheduler.writeString("-nativeidle");    // NativeIdle
+    if (isIdleThread)          
+      VM_Scheduler.writeString("-idle");       // idle thread?
+    if (isGCThread)            
+      VM_Scheduler.writeString("-collector");  // gc thread?
+    if (isNativeDaemonThread)  
+      VM_Scheduler.writeString("-nativeDaemon");  
+    if (beingDispatched)       
+      VM_Scheduler.writeString("-being_dispatched");
+    // VM_Scheduler.writeString("\n");
   }
 
   public static void dumpAll(int verbosity) {
     for (int i=0; i<VM_Scheduler.threads.length; i++) {
       VM_Thread t = VM_Scheduler.threads[i];
       if (t == null) continue;
-      VM.sysWrite("Thread ", i);
-      VM.sysWrite(":  ", VM_Magic.objectAsAddress(t));
-      VM.sysWrite("   ");
+      VM_Scheduler.writeString("Thread ", i);
+      VM_Scheduler.writeString(":  ", VM_Magic.objectAsAddress(t));
+      VM_Scheduler.writeString("   ");
       t.dump(verbosity);
+      // This is here to compensate for t.dump() not newline-terminating info.
       VM.sysWriteln();
     }
   }
