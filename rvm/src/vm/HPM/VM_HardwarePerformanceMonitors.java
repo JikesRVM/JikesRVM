@@ -574,7 +574,7 @@ public class VM_HardwarePerformanceMonitors
       VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(HPM_info.getEndian()));   index += SIZE_OF_INT;
     }
     // write number of events
-    VM_Magic.setIntAtOffset(buffer, index, HPM_info.getNumberOfEvents());index += SIZE_OF_INT;
+    VM_Magic.setIntAtOffset(buffer, index, HPM_info.getNumberOfValues());index += SIZE_OF_INT;
     // write mode
     VM_Magic.setIntAtOffset(buffer, index, HPM_info.mode);               index += SIZE_OF_INT;
 
