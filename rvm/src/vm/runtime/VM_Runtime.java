@@ -560,8 +560,10 @@ public class VM_Runtime implements VM_Constants {
    * (null --> deliver NullPointerException).
    * does not return 
    * (stack is unwound and execution resumes in a catch block)
+   *
+   * This method is public so that it can be invoked by java.lang.VMClass.
    */
-  static void athrow(Throwable exceptionObject) throws NoInlinePragma {
+  public static void athrow(Throwable exceptionObject) throws NoInlinePragma {
     VM_Registers registers = new VM_Registers();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     VM_Magic.saveThreadState(registers);
