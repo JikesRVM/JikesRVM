@@ -14,8 +14,6 @@ import com.ibm.JikesRVM.librarySupport.SystemSupport;
  */
 public class Object {
 
-  private static final int j9Config = 0x6D617800;	// 'max\0'
-
   public Object() {
 
   }
