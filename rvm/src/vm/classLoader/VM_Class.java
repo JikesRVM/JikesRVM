@@ -282,14 +282,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get contents of a "methodRef" constant pool entry.
    */
   public final VM_MethodReference getMethodRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
-    return (VM_MethodReference)memberReferences[constantPool[constantPoolIndex]];
+    return (VM_MethodReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
   }
 
   /**
    * Get contents of a "fieldRef" constant pool entry.
    */
   public final VM_FieldReference getFieldRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
-    return (VM_FieldReference)memberReferences[constantPool[constantPoolIndex]];
+    return (VM_FieldReference)VM_MemberReference.getMemberRef(constantPool[constantPoolIndex]);
   }
 
   /**
@@ -583,7 +583,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // The following are valid only when "state >= CLASS_LOADED".
   //
   private int[]        constantPool;
-  private VM_MemberReference[] memberReferences;
   private int          modifiers;
   private VM_Class     superClass;
   private VM_Class[]   subClasses;
@@ -748,7 +747,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     //
     int  tmpPool[] = new int[input.readUnsignedShort()];
     byte tmpTags[] = new byte[tmpPool.length];
-    int numMemberRefs = 0;
 
     // note: slot 0 is unused
     for (int i = 1; i < tmpPool.length; ++i) {
@@ -797,7 +795,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	    int classDescriptorIndex         = input.readUnsignedShort();
 	    int memberNameAndDescriptorIndex = input.readUnsignedShort();
 	    tmpPool[i] = (classDescriptorIndex << 16) | memberNameAndDescriptorIndex;
-	    numMemberRefs++;
 	    break; 
 	  }
 
@@ -819,11 +816,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // (we must do this in a second pass because of forward references)
     //
     constantPool = new int[tmpPool.length];
-    VM_MemberReference[] memberRefs = null;
-    if (numMemberRefs > 0) {
-      memberRefs = new VM_MemberReference[numMemberRefs];
-    }
-    numMemberRefs = 0;
     try {
       for (int i = 1, n = tmpPool.length; i < n; ++i) {
 	switch (tmpTags[i])
@@ -879,11 +871,11 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	      VM_Atom classDescriptor  = className.descriptorFromClassName();
 	      VM_Atom memberName       = VM_AtomDictionary.getValue(tmpPool[memberNameIndex]);
 	      VM_Atom memberDescriptor = VM_AtomDictionary.getValue(tmpPool[memberDescriptorIndex]);
-	      constantPool[i] = numMemberRefs;
-	      memberRefs[numMemberRefs++] = VM_MemberReference.findOrCreate(classLoader, classDescriptor, 
-									    memberName, memberDescriptor);
+	      VM_MemberReference mr    = VM_MemberReference.findOrCreate(classLoader, classDescriptor, 
+									 memberName, memberDescriptor);
+	      constantPool[i] = mr.getId();
 	      break; 
-	    } // out: index into memberReferences array that contains VM_MemberReference.
+	    } // out: VM_MemberReference id
 	    
 	  case TAG_MEMBERNAME_AND_DESCRIPTOR: // in: member+descriptor indices
 	    constantPool[i] = -1;
@@ -908,7 +900,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     myType.setClassLoader(classLoader);
     myType.constantPool = constantPool;
     myType.modifiers = modifiers;
-    myType.memberReferences = memberRefs;
 
     if (thisTypeDescriptor != null && myType.getDescriptor() != thisTypeDescriptor) { 
       // eg. file contains a different class than would be 
