@@ -610,15 +610,28 @@ function load_config_file () {
 load_config_file "${RVM_HOST_CONFIG}"
 
 ## We normally check for a variable named CLASSPATH_ROOT in the config file.
-## An EXPERIMENTAL alternative is to set
+
+## There are alternatives to CLASSPATH_ROOT:
+##
+## First, is to set
 ## CLASSPATH_INSTALLATION in your config file.  If you've run "make install"
 ## in the default configuration, then CLASSPATH_INSTALLATION will be
 ## "/usr/local/classpath".
 ##
-## This does not have the checks in it that we normally get
+## This does not include the usual consistency checks we perform on 
+## CLASSPATH_ROOT.
+##
+## OR, if you haven't installed GNU Classpath, you can set
+## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
+## *and* set CLASSPATH_BUILD_DIR to the directory
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure"
+
+
 
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 [[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r HOST_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION} # XXX Experimental
+[[ ${CLASSPATH_BUILD_DIR-} ]]  && declare -r HOST_CLASSPATH_BUILD_DIR=${CLASSPATH_BUILD_DIR} # XXX Experimental
+[[ ${CLASSPATH_SOURCE_DIR-} ]]  && declare -r HOST_CLASSPATH_SOURCE_DIR=${CLASSPATH_SOURCE_DIR} # XXX Experimental
 
 
 
@@ -861,6 +874,8 @@ declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 #       revert to old default until it works again.
 declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 
+declare -i RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD=0
+
 # Our support for classpath 0.11 isn't up and running yet.  For now, 
 # we're using Classpath 0.10.
 declare -i RVM_WITH_CLASSPATH_0_11_OR_LATER=0
@@ -961,7 +976,9 @@ function unsetEnvironment() {
     unset WGET XARGS UNZIP 
     unset HOST_JAVA_LD_LIBRARY_PATH
     unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
-    unset CLASSPATH_INSTALLATION # XXX Experimental
+    unset CLASSPATH_INSTALLATION
+    unset CLASSPATH_SOURCE_DIR # XXX Experimental
+    unset CLASSPATH_BUILD_DIR # XXX Experimental
     unset PS MD5SUM GREP GNU_TAR FIND FGREP DIFF CVS BASH AWK
     unset BENCHMARK_ROOT
     set $flags;			# turn back on -e, if it was off.
@@ -978,6 +995,8 @@ unsetEnvironment;
 load_config_file "${RVM_TARGET_CONFIG}"
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r TARGET_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 [[ ${CLASSPATH_INSTALLATION-} ]]  && declare -r TARGET_CLASSPATH_INSTALLATION=${CLASSPATH_INSTALLATION}
+[[ ${CLASSPATH_SOURCE_DIR-} ]]  && declare -r TARGET_CLASSPATH_SOURCE_DIR=${CLASSPATH_SOURCE_DIR}
+[[ ${CLASSPATH_BUILD_DIR-} ]]  && declare -r TARGET_CLASSPATH_BUILD_DIR=${CLASSPATH_BUILD_DIR}
 
 # echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
@@ -1374,6 +1393,12 @@ EOF
 	$RVM_ROOT/rvm/src/vm/libSupport/java/net
 	$RVM_ROOT/rvm/src/vm/libSupport/java/io
 EOF
+    if (( RVM_WITH_CLASSPATH_0_11_OR_LATER )); then
+	# We actually aren't using java.security right now, except in a branch,
+	# but this does no harm.	
+	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
+	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
+    fi
 
     # Add support for hardware performance monitors on PowerPC
     #
@@ -1507,7 +1532,7 @@ cat <<- EOF
 	export WGET='$WGET'
 	export XARGS='$XARGS'
 	export UNZIP_CMD='$UNZIP_CMD'
-	export CLASSPATH_LIBRARIES=YES
+	export CLASSPATH_LIBRARIES=YES # XXX We always use Classpath; this should go away.
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
 	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
 	export JIKES_WARNING_FLAGS='${JIKES_WARNING_FLAGS}'
@@ -1529,7 +1554,9 @@ EOF
     [[ ! ${ECLIPSE_INSTALL_DIR-} ]] || echo "export ECLIPSE_INSTALL_DIR='$ECLIPSE_INSTALL_DIR'"
     echo ""
     [[ ! ${CLASSPATH_ROOT-} ]] || echo "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
-    [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"	# XXX Experimental
+    [[ ! ${CLASSPATH_INSTALLATION-} ]] || echo "export CLASSPATH_INSTALLATION=$CLASSPATH_INSTALLATION"
+    [[ ! ${CLASSPATH_SOURCE_DIR-} ]] || echo "export CLASSPATH_SOURCE_DIR=$CLASSPATH_SOURCE_DIR"
+    [[ ! ${CLASSPATH_BUILD_DIR-} ]] || echo "export CLASSPATH_BUILD_DIR=$CLASSPATH_BUILD_DIR"
     echo ""
     # For self-booting with Jikes RVM (work in progress)
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
@@ -1629,6 +1656,7 @@ EOF
 
 
 	JIKES_WARNING_FLAGS = ${JIKES_WARNING_FLAGS}
+	# XXX CLASSPATH_LIBRARIES should go away; we don't need it any more.
 	CLASSPATH_LIBRARIES = YES
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
@@ -1801,14 +1829,18 @@ function emitController () {
 	# (at least when we're operating in open-source mode, under the 
 	# Jikes compiler, which doesn't have a default bootclasspath)
 EOF
-    if [[ ${CLASSPATH_INSTALLATION-} ]]; then
+    if [[ ${CLASSPATH_BUILD_DIR-} ]]; then
 	cat <<- EOF
-	# Experimental; use a built GNU Classpath that was installed
-	# with "make install".
+	# Experimental; use a pre-built GNU Classpath in a 
+	# user-specified directory.
+	SRC=${CLASSPATH_BUILD_DIR}/lib/glibj.zip
+EOF
+    elif [[ ${CLASSPATH_INSTALLATION-} ]]; then
+	cat <<- EOF
 	SRC=${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
 EOF
     else
-	## The classic, stable, documented, and recommended way
+	## The classic way
 	cat <<- EOF
 	# Ensure that we have the right version of the class libraries
 	$ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
@@ -2542,8 +2574,14 @@ function emitImageLinker () {
 	    OptDummy.class
 	    BuildJNIFunctionTable.class
 
-	# skip: JikesRVMSocketImpl; do not load native libs unless needed
-	    JikesRVMSocketImpl.class
+# XXX JikesRVMSocketImpl is used in booting.  It cannot really help us
+# to keep it out of the boot image.
+#
+# TODO: revise JikesRVMSocketImpl so that we just initialize the
+# parts of it that have to be initialized, without bringing in the 
+# native library. 
+#	# skip: JikesRVMSocketImpl; do not load native libs unless needed
+#	    JikesRVMSocketImpl.class
 
 	# We can not carry these from bootimage writing to runtime 
 	# without special treatment
@@ -2746,7 +2784,12 @@ EOF
         cat <<EOF
 gnu/java/security/action/GetPropertyAction
 java/security/VMAccessController
+java/security/AccessControlContext
+# Used by Classpath 0.11's reference VMAccessController
 java/lang/ThreadLocal
+# Used by ThreadLocal
+java/util/LinkedList
+java/util/VMTimeZone
 EOF
    fi
 
@@ -3253,17 +3296,22 @@ function emitBooterLinker () {
     echo ""
 
     if	   [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]] \
-	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]]
+	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]] \
+	&& [[ ! ${TARGET_CLASSPATH_BUILD_DIR-} ]]
     then
 	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
     fi
 
-    if [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
+    if [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
+	if (( ! RVM_FOR_LINUX )); then
+	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_BUILD_DIR for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_BUILD_DIR in your config file."
+	fi
+    elif [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
 	if (( ! RVM_FOR_LINUX )); then
 	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_INSTALLATION for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_INSTALLATION in your config file."
 	fi
     else
-	# copy native libraries
+	# source from which to copy native libraries
 	CPS="${TARGET_CLASSPATH_ROOT-$RVM_ROOT/classpath}"
 	echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     fi
@@ -3308,6 +3356,17 @@ cat <<- EOF
 	for _library in ${TARGET_CLASSPATH_INSTALLATION}/lib/classpath/*.so
 	do
 	    copyIfNewer "\$_library" ${BUILD_DIRECTORY_STR}
+	done
+	unset oldbase dest_lib _library || :
+EOF
+    elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]] ; then
+	local -r shlib_suffix=.so
+cat <<- EOF
+	## On Linux, dynamically loaded libraries end in .so.
+	## The classpath builder conveniently generates them with that suffix.
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*${shlib_suffix}
+	do
+	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
 	unset oldbase dest_lib _library || :
 EOF
