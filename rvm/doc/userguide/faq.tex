@@ -163,14 +163,6 @@ examples, too.  In summary: incremental boot image writing would be nice,
 but it's not easy to support, and it hasn't been at the top of our
 priorities.
 
-\subsubsection{Can I recompile the RVM classes without rebuilding the boot
-image?}
-
-Yes.  Use {\tt jbuild -nolink}. This will copy, preprocess, and compile
-the RVM source files, but will not re-link the boot image.  This is
-extremely useful for development, when the modified classes do not go in
-the boot image.
-
 \subsubsection{Can I monitor progress during jbuild?}
 
 Yes.  Use {\tt jbuild -trace} to see detailed progress.  Use {\tt
@@ -236,9 +228,6 @@ doubleword values
 kill" property.  However, there is a command-line option to enforce the
 property, which constrains the optimizations.
 \end{itemize}
-
-\subsubsection{Does RVM support zip files?}
-Yes, as of Jikes RVM v2.1.0.
 
 \subsubsection{How do RVM's threads, Posix threads, and kernel
 threads relate to each other?}
@@ -349,22 +338,28 @@ No. There is nothing in RVM that remotely resembles HPI.
 
 \subsection{Libraries}
 
+\subsubsection{Why don't you use the GNU Classpath libraries?}
+As of version 2.2.1 we do.  
+
 \subsubsection{Does RVM run awt?}
 
 We believe we support it to the extent that the 
 \xlink{GNU Classpath}{\classpathURL}  
-libraries support it. The last time we tried it, classpath support was
-very incomplete. 
+libraries support it. 
 
 \subsubsection{Can I run some standard library on RVM that is not included
 in GNU classpath?}
 
 You can try.  Set your classpath to pick up the library you desire.
 
-\subsubsection{Why don't you use the GNU Classpath libraries?}
-As of version 2.2.1 we do.  
-
 \subsection{Optimizing Compiler}
+
+\subsubsection{How can I force all dynamically compiled methods to be
+compiled with the optimizing compiler?}
+Use the command line argument {\tt -X:aos:initial\_compiler=opt} to the
+adaptive system.  If you want to disable profile-driven recompilation,
+you also need to give the command line argument 
+{\tt -X:aos:enable\_recompilation=false}. 
 
 \subsubsection{What is a PEI?}
 PEI is our acronym for potentially excepting instruction.  This applies to
@@ -456,10 +451,9 @@ can use the driver to selectively compile individual methods with
 certain options.
 
 \subsection{Regression Tests}
+
 \subsubsection{Where can I order or download the test programs 
 SPECjvm98\trademark and SPECjbb2000\trademark?}
-
-
 
 Information for ordering the SPEC benchmark suites can be found at
 \xlink{http://www.spec.org}{\SPECURL}.
