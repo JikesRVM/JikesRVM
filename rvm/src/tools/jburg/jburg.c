@@ -13,7 +13,10 @@
 #include <unistd.h>		/* getcwd().  We use the non-gnu interface
 				 * (ugh).  */
 
-static char rcsid[] = "$Id$";
+// Commented out to hush up GCC warnings.
+// #ifndef lint
+// static char rcsid[] = "$Id$";
+// #endif
 static const char *prefix = "";	/* prefix for any Java symbols */
 static int Tflag = 0;
 static int ntnumber = 0;
@@ -34,20 +37,20 @@ static const char *cwd(void);
 static void ckreach(Nonterm p);
 static void emitclosure(Nonterm nts_);
 static void emitcost(Tree t, const char *v);
-static void emitdefs(Nonterm nts_, int ntnumber_);
+static void emitdefs(Nonterm nts_);
 static void emitheader(void);
 static void emitkids(Rule rules_, int nrules_);
 static void emitnts(Rule rules_, int nrules_);
 static void emitrecalc(const char *pre, Term root, Term kid);
 static void emitrecord(const char *pre, Rule r, const char *c, int cost);
 static void emitrule(Nonterm nts_);
-static void emitlabel(Term terms_, Nonterm start_, int ntnumber_);
+static void emitlabel(Term terms_);
 static void emitstring(Rule rules_);
-static void emitstruct(Nonterm nts_, int ntnumber_);
+static void emitstruct(Nonterm nts_);
 static void emitterms(Term terms_);
 static void emittest(Tree t, const char *v, const char *suffix);
 static void readPacked(Nonterm term_);
-static void verify_chars(int ret, size_t bufsz, const char *bp_);
+static void verify_chars(int ret, size_t bufsz);
 
 
 static int oneterminal = 0;	/* boolean */
@@ -135,7 +138,7 @@ main(int argc, char *argv[])
 	    yyerror("%s: can't write `%s/%s'\n", argv[0], cwd(), outfn);
 	    exit(1);
 	}
-        emitdefs(nts, ntnumber);
+        emitdefs(nts);
         fclose(outfp);
         outfp = saveoutfp;
     }
@@ -147,12 +150,12 @@ main(int argc, char *argv[])
 	    yyerror("%s: can't write `%s/%s'\n", argv[0], cwd(), outfn);
 	    exit(1);
 	}
-        emitstruct(nts, ntnumber);
+        emitstruct(nts);
         fclose(outfp);
         outfp = saveoutfp;
     }
     emitheader();
-    /*emitdefs(nts, ntnumber);*/
+    /*emitdefs(nts);*/
     emitnts(rules, nrules);
     emitterms(terms);
     {
@@ -164,8 +167,9 @@ main(int argc, char *argv[])
     }
     emitrule(nts);
     emitclosure(nts);
-    if (start)
-	emitlabel(terms, start, ntnumber);
+    if (start) {
+        emitlabel(terms);
+    }
     emitkids(rules, nrules);
     if (!feof(infp))
 	while ((c = getc(infp)) != EOF)
@@ -451,7 +455,7 @@ ckreach(Nonterm p)
 
 /* emitcase - emit one case in function state */
 static void
-emitcase(Term p, int ntnumber_)
+emitcase(Term p)
 {
     Rule r;
 
@@ -574,7 +578,7 @@ emitcost(Tree t, const char *v)
 
 /* emitdefs - emit nonterminal defines and data structures */
 static void
-emitdefs(Nonterm nts_, int ntnumber_)
+emitdefs(Nonterm nts_)
 {
     Nonterm p;
 
@@ -620,7 +624,7 @@ computekids(Tree t, const char *v, char *bp, size_t *bufszp, int *ip)
     if (p->kind == NONTERMINAL) {
 	int ret = snprintf(bp, *bufszp, "\t\tif (kidnumber == %d)  return %s;\n", (*ip)++, v);
 	size_t nwrote;
-	verify_chars(ret, *bufszp, bp);
+	verify_chars(ret, *bufszp);
 	nwrote = ret;
 	*bufszp -= nwrote;
 	bp += nwrote;
@@ -644,7 +648,7 @@ computeMarkkids(Tree t, const char *v, char *bp, size_t *bufszp, int *ip)
 	    ret = snprintf(bp, *bufszp, "\t\tmark(%s, (byte)1);\n", v);
 	else
 	    ret = snprintf(bp, *bufszp, "\t\tmark(%s, ntsrule[%d]);\n", v, *ip);
-	verify_chars(ret, *bufszp, bp);
+	verify_chars(ret, *bufszp);
 	nwrote = ret;
 	
 	++*ip;
@@ -736,7 +740,7 @@ emitkids(Rule rules_, int nrules_)
 
 /* emitlabel - emit label function */
 static void
-emitlabel(Term terms_, Nonterm start_, int ntnumber_)
+emitlabel(Term terms_)
 {
 //    int i;
     Term p;
@@ -748,7 +752,7 @@ emitlabel(Term terms_, Nonterm start_, int ntnumber_)
 
     /* Emit a function for each opcode */
     for (p = terms_; p; p = p->link) {
-	emitcase(p, ntnumber_);
+	emitcase(p);
     }
 
     /* Emit master case statement */
@@ -775,7 +779,7 @@ computents(Tree t, char *bp, size_t *bufszp)
 	    int ret = snprintf(bp, *bufszp, "%s_NT, ", p->name);
 	    size_t nwrote;
 	    
-	    verify_chars(ret, *bufszp, bp);
+	    verify_chars(ret, *bufszp);
 	    nwrote = ret;
 	    bp += nwrote;
 	    *bufszp -= nwrote;
@@ -967,7 +971,7 @@ emitstring(Rule rules_)
 
 /* emitstruct - emit the definition of the state structure */
 static void
-emitstruct(Nonterm nts_, int ntnumber_)
+emitstruct(Nonterm nts_)
 {
     Nonterm ntsc; 
     int bit_offset, word_number, i;
@@ -1131,7 +1135,7 @@ xstrdup(const char *src)
 
 	
 static void
-verify_chars(int ret, size_t bufsz, const char *bp_)
+verify_chars(int ret, size_t bufsz)
 {
     // ret < 0 for compatibility with old glibc versions.
     size_t nwrote;
