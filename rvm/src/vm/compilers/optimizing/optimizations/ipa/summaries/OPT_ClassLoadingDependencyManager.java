@@ -52,7 +52,7 @@ public final class OPT_ClassLoadingDependencyManager {
    * Record that the code currently being compiled (cm) must be 
    * invalidated if source ever has a subclass.
    */
-  public void addNoSubclassDependency(VM_Class source, VM_CompiledMethod cm) {
+  public synchronized void addNoSubclassDependency(VM_Class source, VM_CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG)
       report("CLDM: " + cmid + "("+cm.getMethod()+") is dependent on " + source + " not having a subclass\n");
@@ -62,7 +62,6 @@ public final class OPT_ClassLoadingDependencyManager {
   ////////////////////////
   // Implementation
   ////////////////////////
-  OPT_ClassLoadingDependencyManager() { }
 
   /**
    * Take action when a method is overridden.
@@ -89,7 +88,7 @@ public final class OPT_ClassLoadingDependencyManager {
 	    }
           }
           db.removeNotOverriddenDependency(overridden);
-        }
+	}
       }
     }
   }
@@ -145,13 +144,16 @@ public final class OPT_ClassLoadingDependencyManager {
   void report(String s) {
     if (VM.runningVM) {
       if (log == null) {
+	if (!VM.fullyBooted) {
+	  VM.sysWriteln("CLDM: VM not fully booted ", s);
+	  return;
+	}
 	try {
 	  log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
 	} catch (IOException e) {
 	  VM.sysWrite("\n\nCLDM: Error opening logging file!!\n\n");
 	}
       }
-      log.print(s);
     } else {
       System.out.print(s);
     }
