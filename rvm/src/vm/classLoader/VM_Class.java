@@ -1175,7 +1175,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	if (vMeth.getName() == iName && vMeth.getDescriptor() == iDesc) continue outer;
       }
       VM_MemberReference mRef = VM_MemberReference.findOrCreate(typeRef, iName, iDesc);
-      virtualMethods.addElement(new VM_AbstractMethod(this, mRef, ACC_ABSTRACT, iMeth.getExceptionTypes()));
+      virtualMethods.addElement(new VM_AbstractMethod(this, mRef, ACC_ABSTRACT | ACC_PUBLIC, 
+						      iMeth.getExceptionTypes()));
     }
     VM_Class[] parents = I.getDeclaredInterfaces();
     for (int i=0; i<parents.length; i++) {
@@ -1322,17 +1323,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (superClass != null) {
       superClass.initialize();
     }
-
-    /*
-     *  The spec says we dont have to do this; Eclipse gets
-     * very unhappy if we do do this.  So don't.
-     *
-    if (VM.runningVM) {
-      for (int i=0; i<declaredInterfaces.length; i++) {
-	declaredInterfaces[i].initialize();
-      }
-    }
-     */
 
     // run <clinit>
     //

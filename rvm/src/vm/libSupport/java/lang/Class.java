@@ -270,17 +270,25 @@ public final class Class implements java.io.Serializable {
       throw new NoSuchMethodException(name + parameterTypes);
     }
 
-    // TODO: 1.4 SPEC states that if there are multiple matching methods
-    // then we should return the one with the most specific return type.
     VM_Method[] methods = type.asClass().getDeclaredMethods(); 
+    java.lang.reflect.Method answer = null;
     for (int i = 0; i<methods.length; i++) {
       VM_Method meth = methods[i];
       if (meth.getName() == aName && 
 	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
-	return java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	if (answer == null) {
+	  answer = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	} else {
+	  java.lang.reflect.Method m2 = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
+	    answer = m2;
+	  }
+	}
       }
     }
-    
+
+    if (answer != null) return answer;
+
     throw new NoSuchMethodException(name + parameterTypes);
   }
 
@@ -310,10 +318,6 @@ public final class Class implements java.io.Serializable {
     }
   }
 
-  // TODO: Search algorithm is wrong.  Must search in the following order.
-  //         (1) declared fields of this
-  //         (2) superinterfaces of this (recursively)
-  //         (3) superclass of this
   public Field getField(String name) throws NoSuchFieldException, SecurityException {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchFieldException();
@@ -321,23 +325,15 @@ public final class Class implements java.io.Serializable {
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
     if (aName == null) throw new NoSuchFieldException(name);
 
-    VM_Field static_fields[] = type.getStaticFields();
-    for (int i = 0; i < static_fields.length; i++) {
-      VM_Field field = static_fields[i];
-      if (field.isPublic() && field.getName() == aName) {
-	return java.lang.reflect.JikesRVMSupport.createField(field);
-      }
+    Field ans = getFieldInternal(aName);
+    
+    if (ans == null) {
+      throw new NoSuchFieldException(name);
+    } else {
+      return ans;
     }
-    VM_Field instance_fields[] = type.getInstanceFields();
-    for (int i = 0; i < instance_fields.length; i++) {
-      VM_Field field = instance_fields[i];
-      if (field.isPublic() && field.getName() == aName) {
-	return java.lang.reflect.JikesRVMSupport.createField(field);
-      }
-    }
-    throw new NoSuchFieldException(name);
   }
-
+  
   public Field[] getFields() throws SecurityException {
     checkMemberAccess(Member.PUBLIC);
     
@@ -376,10 +372,6 @@ public final class Class implements java.io.Serializable {
     }
   }
 
-  // TODO: Search algorithm is wrong.
-  //        (1) declared methods of this
-  //        (2) this's superclass (recursively)
-  //        (3) superinterfaces of this.
   public Method getMethod(String name, Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
     checkMemberAccess(Member.PUBLIC);
 
@@ -392,26 +384,49 @@ public final class Class implements java.io.Serializable {
       // null means that we don't have such an atom; <init> and <clinit> are not methods.
       throw new NoSuchMethodException(name + parameterTypes);
     }
+    
+    // (1) Scan the declared public methods of this class and each of its superclasses
+    for (VM_Class current = type.asClass(); current != null; current = current.getSuperClass().asClass()) {
+      VM_Method[] methods = current.getDeclaredMethods(); 
+      java.lang.reflect.Method answer = null;
+      for (int i = 0; i<methods.length; i++) {
+	VM_Method meth = methods[i];
+	if (meth.getName() == aName && meth.isPublic() &&
+	    parametersMatch(meth.getParameterTypes(), parameterTypes)) {
+	  if (answer == null) {
+	    answer = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  } else {
+	    java.lang.reflect.Method m2 = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	    if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
+	      answer = m2;
+	    }
+	  }
+	}
+      }
+      if (answer != null) return answer;
+    }
 
-    // TODO: This implementation doesn't match the 1.4 SPEC in several
-    //       ways. (1) multiple matching methods must pick most specific
-    //       return type. (2) Maybe we need to look at superclass's static methods?
-    VM_Method static_methods[] = type.getStaticMethods();
-    for (int i = 0; i < static_methods.length; i++) {
-      VM_Method meth = static_methods[i];
-      if (meth.getName() == aName && meth.isPublic() && 
+    // (2) Now we need to consider methods inherited from interfaces.
+    //     Because we inject the requisite Miranda methods, we can do this simply
+    //     by looking at this class's virtual methods instead of searching interface hierarchies.
+    VM_Method[] methods = type.asClass().getVirtualMethods(); 
+    java.lang.reflect.Method answer = null;
+    for (int i = 0; i<methods.length; i++) {
+      VM_Method meth = methods[i];
+      if (meth.getName() == aName && meth.isPublic() &&
 	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
-	return java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	if (answer == null) {
+	  answer = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	} else {
+	  java.lang.reflect.Method m2 = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
+	    answer = m2;
+	  }
+	}
       }
     }
-    VM_Method virtual_methods[] = type.getVirtualMethods();
-    for (int i = 0; i < virtual_methods.length; i++) {
-      VM_Method meth = virtual_methods[i];
-      if (meth.getName() == aName && meth.isPublic() && 
-	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
-	return java.lang.reflect.JikesRVMSupport.createMethod(meth);
-      }
-    }
+
+    if (answer != null) return answer;
 
     throw new NoSuchMethodException(name + parameterTypes);
   }
@@ -459,9 +474,9 @@ public final class Class implements java.io.Serializable {
     return type.toString();
   }
 
-  // TODO: This seems bogus.
   public Package getPackage() {
-    return new Package(getPackageName(), "", "", "", "", "", "", null);
+    ClassLoader cl = type.getClassLoader();
+    return cl.getPackage(getPackageName());
   }
 
   public ProtectionDomain getProtectionDomain() {
@@ -618,14 +633,9 @@ public final class Class implements java.io.Serializable {
   }
 
   void setSigners(Object[] signers) {
-    signers = signers;
-    throw new VM_UnimplementedError("Class.setSigners");
+    this.signers = signers;
   }
    
-  // TODO: (1) If className denotes a primitive type or void, then
-  //           we need to look for a user-defined class in the unnamed package
-  //           of that name.  This method should not return the Class objects
-  //           for primitive types of void.
   private static Class forNameInternal(String className, 
 				       boolean initialize, 
 				       ClassLoader classLoader) throws ClassNotFoundException,
@@ -649,6 +659,34 @@ public final class Class implements java.io.Serializable {
     }
     return ans.getClassForType();
   }
+
+
+  private Field getFieldInternal(VM_Atom name) {
+    VM_Class ctype = type.asClass();
+    // (1) Check my public declared fields
+    VM_Field[] fields = ctype.getDeclaredFields();
+    for (int i = 0; i < fields.length; i++) {
+      VM_Field field = fields[i];
+      if (field.isPublic() && field.getName() == name) {
+	return java.lang.reflect.JikesRVMSupport.createField(field);
+      }
+    }
+
+    // (2) Check superinterfaces
+    VM_Class[] interfaces = ctype.getDeclaredInterfaces();
+    for (int i=0; i<interfaces.length; i++) {
+      Field ans = interfaces[i].getClassForType().getFieldInternal(name);
+      if (ans != null) return ans;
+    }
+
+    // (3) Check superclass (if I have one).
+    if (ctype.getSuperClass() != null) {
+      return ctype.getSuperClass().getClassForType().getFieldInternal(name);
+    }
+      
+    return null;
+  }
+
 
   private String getPackageName() {
     String name = getName();
