@@ -22,11 +22,15 @@ public class JikesRVMSupport implements VM_SizeConstants {
   }
 
   public static InetAddress createInetAddress(int address) {
-    return new InetAddress(toArrayForm(address), null, null);
+    return createInetAddress(address, null);
   }
     
   public static InetAddress createInetAddress(int address, String hostname) {
+    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+    return new InetAddress(toArrayForm(address), hostname);
+    //-#else
     return new InetAddress(toArrayForm(address), hostname, null);
+    //-#endif
   }
     
   public static int getFamily(InetAddress inetaddress) {
