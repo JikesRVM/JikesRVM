@@ -339,7 +339,8 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
           ((out.contains(r) && SplitBlockToAvoidRenaming) || (rr!=null && usedBelowCopy(bb, rr) && SplitBlockForLocalLive));
 
         if (SplitBlockIntoInfrequent) {
-          if (!bb.getInfrequent() && c.phi.getBasicBlock().getInfrequent()) 
+          if (!bb.getInfrequent() && c.phi.getBasicBlock().getInfrequent()
+              && !c.phi.getBasicBlock().isExceptionHandlerBasicBlock()) 
             shouldSplitBlock = true;
         }
         
