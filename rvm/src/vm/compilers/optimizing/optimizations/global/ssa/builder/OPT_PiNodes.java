@@ -92,8 +92,6 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    */
   public void perform (OPT_IR ir) {
     if (insertion) {
-      if (OPT_SSA.containsUnsupportedOpcode(ir))
-        return;
       if (!typeChecks) {
 	  insertPiIfNodes(ir);
 	  insertPiBcNodes(ir);

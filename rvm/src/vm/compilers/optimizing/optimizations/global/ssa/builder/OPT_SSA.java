@@ -149,16 +149,6 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
     System.out.println("*********   END OF IR DUMP in SSA FOR " + ir.method);
   }
 
-  /**
-   * Does this IR contain instructions which prevent our translation
-   * to SSA form?
-   *
-   * @return false always
-   */
-  public static boolean containsUnsupportedOpcode (OPT_IR ir) {
-    return  false;
-  }
-
   /** 
    * Create a move instruction r1 := r2.
    *

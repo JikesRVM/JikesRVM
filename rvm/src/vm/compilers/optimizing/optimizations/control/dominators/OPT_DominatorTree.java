@@ -45,11 +45,7 @@ class OPT_DominatorTree extends OPT_Tree {
    */
   public static void perform(OPT_IR ir, boolean forward) {
     if (forward) {
-      // temporary: skip some troublesome methods
-      if (OPT_SSA.containsUnsupportedOpcode(ir))
-	return;
       ir.HIRInfo.dominatorTree = new OPT_DominatorTree(ir, forward);
-
       if (ir.options.PRINT_DOMINATORS) {
 	if (DEBUG) {
 	  System.out.println("Here is the CFG for method "+

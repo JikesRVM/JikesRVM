@@ -295,9 +295,6 @@ implements OPT_Operators, OPT_Constants {
     // if reads Kill.  model this with uphis.
     if (ir.options.READS_KILL) insertUsePhis = true;
 
-    if (OPT_SSA.containsUnsupportedOpcode(ir))
-      throw  new OPT_OperationNotImplementedException(
-                              "Warning: SSA skipped due to unsupported opcode");
     // reset Array SSA information
     if (!scalarsOnly)
       ir.HIRInfo.SSADictionary = new OPT_SSADictionary(heapTypes, 
