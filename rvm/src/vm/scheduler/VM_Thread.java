@@ -286,8 +286,32 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Preempt execution of current thread.
    * Called by compiler-generated yieldpoints approx. every 10ms.
    */ 
-  public static void threadSwitch(int whereFrom) throws VM_PragmaNoInline {
-    VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
+  public static void threadSwitch(int whereFrom) throws VM_PragmaNoInline 
+  {
+    /*
+     * Thread switch only when interruptQuantumCounter == schedulingMultiplier.
+     * Otherwise sample HPM counter values and return.
+     */
+    VM_Processor virtualProcessor = VM_Processor.getCurrentProcessor();
+    virtualProcessor.interruptQuantumCounter++;
+    boolean threadSwitch = ! (virtualProcessor.interruptQuantumCounter < VM.schedulingMultiplier);
+
+    //-#if RVM_WITH_HPM
+    if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
+      // sample HPM counter values at every interrupt or a thread switch.
+      if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
+	  ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	VM_Thread myThread = getCurrentThread();
+	virtualProcessor.hpm.updateHPMcounters(myThread, myThread, true, threadSwitch);
+      }
+    }
+    //-#endif 
+
+    if (! threadSwitch) return;
+
+    virtualProcessor.interruptQuantumCounter = 0;
+
+    virtualProcessor.threadSwitchRequested   = 0;
 
     //-#if RVM_FOR_POWERPC
     /* give a chance to check the sync request
@@ -479,23 +503,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   public static void timerTickYield (int whereFrom) 
   {
-    VM_Scheduler.interruptQuantumCounter++;
-
-    boolean threadSwitch = ! (VM_Scheduler.interruptQuantumCounter < VM.schedulingMultiplier);
     VM_Thread myThread = getCurrentThread();
-    //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
-      // sample HPM counter values at every interrupt or a thread switch.
-      if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-	  ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
-	VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, threadSwitch);
-      }
-    }
-    //-#endif 
-
-    if (! threadSwitch) return;
-
-    VM_Scheduler.interruptQuantumCounter = 0;
     // thread switch
     myThread.beingDispatched = true;
     if (trace) VM_Scheduler.trace("VM_Thread", "timerTickYield() scheduleThread ", myThread.getIndex());
