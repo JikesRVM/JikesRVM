@@ -37,12 +37,6 @@ Java_com_ibm_JikesRVM_Java2HPM_init(JNIEnv *env,	/* interface pointer */
 				    jclass cls		/* "this" pointer */
 				    ) 
 {
-#if (defined RVM_FOR_POWERPC)
-  int filter = PM_UNVERIFIED|PM_VERIFIED|PM_CAVEAT;
-#elif (defined RVM_FOR_LINUX)
-  int filter = 0;
-#endif
-
   if(debug>=1) fprintf(stdout, "Java2HPM.init() call hpm_init(%d)\n",filter);
 
   return hpm_init(filter);
@@ -490,18 +484,11 @@ Java_com_ibm_JikesRVM_Java2HPM_isPower4(JNIEnv *env,	/* interface pointer */
 					jclass cls	/* "this" pointer */
 					)
 {
-#if   (defined RVM_WITH_INTEL)
-  return 0;
-#elif (defined RVM_FOR_POWERPC)
   jint value;
   //  if(debug>=1) fprintf(stdout,"Java2HPM_isPower4()\n");
   value = hpm_isPower4();
   if(debug>=1) fprintf(stdout,"Java2HPM_isPower4() returns %d\n",value);
   return value;
-#else
-  fprintf(stderr, "\nJava2HPM.isPower4() called: not compiled for HPM\n");
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
 }
 /*
  * Is machine PowerPC Power3?
@@ -512,18 +499,11 @@ Java_com_ibm_JikesRVM_Java2HPM_isPower3(JNIEnv *env,	/* interface pointer */
 					jclass cls	/* "this" pointer */
 					)
 {
-#if   (defined RVM_WITH_INTEL)
-  return 0;
-#elif (defined RVM_FOR_POWERPC)
   jint value;
   //  if(debug>=1) fprintf(stdout,"Java2HPM_isPower3()\n");
   value = hpm_isPower3();
   if(debug>=1) fprintf(stdout,"Java2HPM_isPower3() returns %d\n",value);
   return value;
-#else
-  fprintf(stderr, "\nJava2HPM.isPower3() called: not compiled for HPM\n");
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
 }
 /*
  * Is machine RS64-III?
@@ -534,18 +514,11 @@ Java_com_ibm_JikesRVM_Java2HPM_isRS64III(JNIEnv *env,	/* interface pointer */
 					 jclass cls	/* "this" pointer */
 					 )
 {
-#if   (defined RVM_WITH_INTEL)
-  return 0;
-#elif (defined RVM_FOR_POWERPC)
   jint value;
   //  if(debug>=1) fprintf(stdout,"Java2HPM_isRS64III()\n");
   value = hpm_isRS64III();
   if(debug>=1) fprintf(stdout,"Java_com_ibm_JikesRVM_Java2HPM_isRS64III() returns %d\n",value);
   return value;
-#else
-  fprintf(stderr, "\nJava2HPM.isRS64III() called: not compiled for HPM\n");
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
 }
 /*
  * Is machine 604e?
@@ -556,18 +529,11 @@ Java_com_ibm_JikesRVM_Java2HPM_is604e(JNIEnv *env,	/* interface pointer */
 				      jclass cls	/* "this" pointer */
 				      )
 {
-#if   (defined RVM_WITH_INTEL)
-  return 0;
-#elif (defined RVM_FOR_POWERPC)
   jint value;
   //  if(debug>=1) fprintf(stdout,"Java2HPM_is604e()\n");
   value = hpm_is604e();
   if(debug>=1) fprintf(stdout,"Java2HPM_is604e() returns %d\n",value);
   return value;
-#else
-  fprintf(stderr, "\nJava2HPM.is604e() called: not compiled for HPM\n");
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
 }
 /*
  * Is machine PowerPC Power3-II?
@@ -578,18 +544,11 @@ Java_com_ibm_JikesRVM_Java2HPM_isPower3II(JNIEnv *env,	/* interface pointer */
 					  jclass cls	/* "this" pointer */
 					  )
 {
-#if   (defined RVM_WITH_INTEL)
-  return 0;
-#elif (defined RVM_FOR_POWERPC)
   jint value;
   /*  if(debug>=1) fprintf(stdout,"Java_com_ibm_JikesRVM_Java2HPM_isPower3II()\n"); */
   value = hpm_isPower3II();
   if(debug>=1) fprintf(stdout,"Java2HPM_isPower3II() returns %d\n",value);
   return value;
-#else
-  fprintf(stderr, "\nJava2HPM.isPower3II() called: not compiled for HPM\n");
-  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#endif
 }
 
 
