@@ -33,6 +33,25 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    */
   private static int currentHeapSize; 
 
+
+  private final static double[][] generationalFunction =    {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
+                                                             {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+                                                             {0.01, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+                                                             {0.02, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
+                                                             {0.07, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
+                                                             {0.15, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
+                                                             {0.40, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
+                                                             {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
+
+  private final static double[][] nongenerationalFunction = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
+                                                             {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+                                                             {0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+                                                             {0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
+                                                             {0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
+                                                             {0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
+                                                             {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
+                                                             {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
+
   /**
    * An encoding of the function used to manage heap size.  
    * The xaxis represents the live ratio at the end of a major collection.
@@ -51,15 +70,8 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    *      greater than the liveRatio for that column.</li>
    * </ul>
    */
-  private static final double[][] function = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
-                                              {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-                                              {0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-                                              {0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
-                                              {0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
-                                              {0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
-                                              {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
-                                              {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
-  
+  private static final double[][] function = Plan.NEEDS_WRITE_BARRIER ? generationalFunction : nongenerationalFunction;
+ 
   private static long endLastMajorGC;
   private static double accumulatedGCTime;
 
