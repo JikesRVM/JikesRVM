@@ -44,11 +44,22 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
    */
   void perform (OPT_IR ir) {
     if (VM.VerifyAssertions) VM.assert (ir.IRStage != OPT_IR.MIR);
+
+    // Construct dominator and LST information 
+    if (ir.options.getOptLevel() >= 1) {
+      OPT_LTDominators.approximate(ir, true);
+      OPT_DominatorTree.perform(ir, true);
+      OPT_LSTGraph.perform(ir);
+    }      
+    
+    // Find sources of infrequency (direct and implied)
     if (!markInfrequentBlocks(ir)) return;
     ir.cfg.entry().clearInfrequent();
     if (ir.options.getOptLevel() >= 1) {
       propagateInfrequency(ir);
     }
+
+    // Exile infrequent blocks to end of code ordering
     implementNewOrdering(ir, selectNewOrdering(ir));
   }
 
@@ -61,6 +72,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
    *  <li> it has already been marked as infrequent
    *  <li> it is an exception handler block
    *  <li> it contains an instruction that is expected to be infrequently executed
+   *  <li> it is not reachable from the entry block traversing non-skewed conditional branches (O1+ only)
    * </ul>
    * @return true if any infrequent blocks are found
    */
@@ -69,6 +81,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
 	 e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
+      bb.clearScratchFlag();
       numBlocks++;
       if (bb.getInfrequent() ||
 	  bb.isExceptionHandlerBasicBlock() ||
@@ -78,7 +91,62 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 	if (DEBUG) VM.sysWrite("Marking "+bb+" as directly infrequent\n");
       }
     }
+
+    if (ir.options.getOptLevel() >= 1) {
+      traverseWarmEdges(ir.cfg.entry(), ir);
+      
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+	   e.hasMoreElements();) {
+	OPT_BasicBlock bb = e.next();
+	if (!bb.getScratchFlag()) {
+	  bb.setInfrequent();
+	  foundSome = true;
+	  if (DEBUG) VM.sysWrite("Marking "+bb+" as unreachable via frequent edges\n");
+	}
+      }
+    }	
+
     return foundSome;
+  }
+
+  private void traverseWarmEdges(OPT_BasicBlock bb, OPT_IR ir) {
+    if (bb.getScratchFlag()) return;
+    bb.setScratchFlag();
+    if (DEBUG) VM.sysWrite("Marking "+bb+" as reachable via frequent edges\n");
+    double threshold = ir.options.CBS_HOTNESS;
+    OPT_LSTGraph lst = ir.HIRInfo.LoopStructureTree;
+    for (OPT_InstructionEnumeration e = bb.enumerateBranchInstructions();
+	 e.hasMoreElements();) {
+      OPT_Instruction s = e.next();
+      if (IfCmp.conforms(s)) {
+	OPT_BranchProfileOperand bp = IfCmp.getBranchProfile(s);
+	if (bp.takenProbability > threshold) {
+	  if (DEBUG) VM.sysWrite("Found skewed taken branch "+s+"\n");
+	  OPT_BasicBlock taken = s.getBranchTarget();
+	  OPT_BasicBlock notTaken = bb.getNotTakenNextBlock();
+	  traverseWarmEdges(taken, ir);
+	  if (lst != null && lst.isLoopExit(bb, notTaken)) {
+	    if (DEBUG) VM.sysWrite("\tloop exit treatment for "+notTaken);
+	    traverseWarmEdges(notTaken, ir); // don't make a loop exit infrequent!
+	  }
+	  return;
+	} else if (bp.takenProbability < (1.0 - threshold)) {
+	  if (DEBUG) VM.sysWrite("Found skewed nottaken branch "+s+"\n");
+	  OPT_BasicBlock taken = s.getBranchTarget();
+	  if (lst != null && lst.isLoopExit(bb, taken)) {
+	    if (DEBUG) VM.sysWrite("\tloop exit treatment for "+taken);
+	    traverseWarmEdges(taken, ir); // don't make a loop exit infrequent!
+	  }
+	  continue;
+	}
+      }
+      for (OPT_BasicBlockEnumeration e2 = s.getBranchTargets();
+	   e2.hasMoreElements();) {
+	traverseWarmEdges(e2.next(), ir);
+      }
+    }
+    OPT_BasicBlock ft = bb.getFallThroughBlock();
+    if (ft != null) traverseWarmEdges(ft, ir);
   }
 
 
@@ -137,10 +205,6 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
    * infrequency from the seed blocks to other blocks.
    */
   void propagateInfrequency(OPT_IR ir) {
-    // compute dominators, and mark all nodes dominated by
-    // an infrequent block as infrequent
-    OPT_LTDominators.approximate(ir, true);
-    OPT_DominatorTree.perform(ir, true);
     markChildren(ir.cfg.entry(), ir.HIRInfo.dominatorTree);
 
     // compute post dominators, and mark all nodes postdominated by
