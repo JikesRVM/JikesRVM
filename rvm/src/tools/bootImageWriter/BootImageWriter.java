@@ -893,10 +893,10 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
       int brOffset = bootImage.allocateStorage(rvmBRType.getInstanceSize(), 
                                                VM_ObjectModel.getAlignment(rvmBRType), 
-                                               0);
+                                               VM_ObjectModel.getOffsetForAlignment(rvmBRType));
       int jtocOffset = bootImage.allocateStorage(intArrayType.getInstanceSize(0),
                                                  VM_ObjectModel.getAlignment(intArrayType),
-                                                 0);
+                                                 VM_ObjectModel.getOffsetForAlignment(intArrayType));
       bootImage.resetAllocator();
       bootRecord.tocRegister = bootImageAddress.add(jtocOffset).add(intArrayType.getInstanceSize(0));
 
