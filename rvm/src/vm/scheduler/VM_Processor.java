@@ -558,6 +558,12 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     // to transfer control into vm image.
 
     VM.disableGC();
+
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    //-#else
+		// Need to set startuplock here
+    VM.sysInitializeStartupLocks(1);
+		//-#endif
     newProcessor.activeThread = target;
     newProcessor.activeThreadStackLimit = target.stackLimit;
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
