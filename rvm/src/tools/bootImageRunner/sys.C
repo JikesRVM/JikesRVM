@@ -1453,21 +1453,21 @@ sysHPMprintMyGroup()
 // Taken:    register values to use for pthread startup
 // Returned: virtual processor's o/s handle
 //
-extern "C" int
-sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP ip, int UNUSED_SVP fp)
+extern "C" VM_Address
+sysVirtualProcessorCreate(VM_Address UNUSED_SVP jtoc, VM_Address UNUSED_SVP pr, VM_Address UNUSED_SVP ip, VM_Address UNUSED_SVP fp)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
-    int           *sysVirtualProcessorArguments;
+    VM_Address    *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
     pthread_t      sysVirtualProcessorHandle;
     int            rc;
 
     // create arguments
     //
-    sysVirtualProcessorArguments = new int[4];
+    sysVirtualProcessorArguments = new VM_Address[4];
     sysVirtualProcessorArguments[0] = jtoc;
     sysVirtualProcessorArguments[1] = pr;
     sysVirtualProcessorArguments[2] = ip;
@@ -1497,9 +1497,9 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
     }
 
     if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (unsigned) sysVirtualProcessorHandle);
+        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (VM_Address) sysVirtualProcessorHandle);
 
-    return (int)sysVirtualProcessorHandle;
+    return (VM_Address)sysVirtualProcessorHandle;
 #endif
 }
 

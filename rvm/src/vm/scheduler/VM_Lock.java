@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
    <p>
    This class may be decomposed into four sections:
    <OL>
-   <LI> support for synchronization methods of java.lang.Oblect,
+   <LI> support for synchronization methods of java.lang.Object,
    <LI> heavy weight locking mechanism,
    <LI> management of heavy weight locks, and
    <LI> debugging and performance tuning support.
@@ -382,8 +382,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[INIT_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
-      VM._assert((VM_Scheduler.locks.length-1<=(VM_ThinLockConstants.TL_LOCK_ID_MASK>>>VM_ThinLockConstants.TL_LOCK_ID_SHIFT))
-                || (VM_ThinLockConstants.TL_LOCK_ID_MASK==-1));
+      VM._assert((VM_Scheduler.locks.length-1<=VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt())
+                || VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(VM_Word.fromIntSignExtend(-1)));
   }
   
   static void growLocks() throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
@@ -587,7 +587,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM.sysWrite("Lock "); VM.sysWriteInt(index); VM.sysWrite(":\n");
     VM.sysWrite(" lockedObject: 0x"); VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject)); 
     VM.sysWrite("   thin lock = "); 
-    VM.sysWriteHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
+    VM.sysWriteHex(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
     VM.sysWrite("\n");
 
     VM.sysWrite(" ownerId: "); VM.sysWriteInt(ownerId); VM.sysWrite(" recursionCount: "); VM.sysWriteInt(recursionCount); VM.sysWrite("\n");
@@ -623,13 +623,13 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM_Lock l = VM_LockNursery.findOrCreate(o, false);
       return l != null && l.ownerId == tid;
     } else {
-      int bits = VM_Magic.getIntAtOffset(o, thinLockOffset);
-      if ((bits & VM_ThinLockConstants.TL_FAT_LOCK_MASK) == 0) {
+      VM_Word bits = VM_Magic.getWordAtOffset(o, thinLockOffset);
+      if (bits.and(VM_ThinLockConstants.TL_FAT_LOCK_MASK).isZero()) {
         // if locked, then locked with a thin lock
-        return (bits & VM_ThinLockConstants.TL_THREAD_ID_MASK) == tid;
+        return (bits.and(VM_ThinLockConstants.TL_THREAD_ID_MASK).toInt() == tid);
       } else {
         // if locked, then locked with a fat lock
-        int index = (bits & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+        int index = bits.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
         VM_Lock l = VM_Scheduler.locks[index];
         return l != null && l.ownerId == tid;
       }

@@ -31,11 +31,11 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineLock(Object o, int lockOffset) throws VM_PragmaInline {
-    int old = VM_Magic.prepareInt(o, lockOffset);
-    if ((old >>> TL_THREAD_ID_SHIFT) == 0) { 
+    VM_Word old = VM_Magic.prepareWord(o, lockOffset);
+    if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) { 
       // implies that fatbit == 0 & threadid == 0
       int threadId = VM_Processor.getCurrentProcessor().threadId;
-      if (VM_Magic.attemptInt(o, lockOffset, old, old | threadId)) {
+      if (VM_Magic.attemptWord(o, lockOffset, old, old.or(VM_Word.fromIntZeroExtend(threadId)))) {
         VM_Magic.isync(); // don't use stale prefetched data in monitor
         if (STATS) fastLocks++;
         return;           // common case: o is now locked
@@ -55,11 +55,11 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
   static void inlineUnlock(Object o, int lockOffset) throws VM_PragmaInline {
-    int old = VM_Magic.prepareInt(o, lockOffset);
-    int threadId = VM_Processor.getCurrentProcessor().threadId;
-    if (((old ^ threadId) >>> TL_LOCK_COUNT_SHIFT) == 0) { // implies that fatbit == 0 && count == 0 && lockid == me
+    VM_Word old = VM_Magic.prepareWord(o, lockOffset);
+    VM_Word threadId = VM_Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
+    if (old.xor(threadId).rshl(TL_LOCK_COUNT_SHIFT).isZero()) { // implies that fatbit == 0 && count == 0 && lockid == me
       VM_Magic.sync(); // memory barrier: subsequent locker will see previous writes
-      if (VM_Magic.attemptInt(o, lockOffset, old, old & TL_UNLOCK_MASK)) {
+      if (VM_Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK))) {
         return; // common case: o is now unlocked
       }
     }
@@ -76,29 +76,29 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    */
   static void lock(Object o, int lockOffset) throws VM_PragmaNoInline {
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
-         int retries = retryLimit; 
-         int threadId = VM_Processor.getCurrentProcessor().threadId;
+         int retries = retryLimit;
+         VM_Word threadId = VM_Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
 minor:  while (0 != retries--) { // repeat if there is contention for thin lock
-          int old = VM_Magic.prepareInt(o, lockOffset);
-          int id = old & (TL_THREAD_ID_MASK | TL_FAT_LOCK_MASK);
-          if (id == 0) { // o isn't locked
-            if (VM_Magic.attemptInt(o, lockOffset, old, old | threadId)) {
+          VM_Word old = VM_Magic.prepareWord(o, lockOffset);
+          VM_Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
+          if (id.isZero()) { // o isn't locked
+            if (VM_Magic.attemptWord(o, lockOffset, old, old.or(threadId))) {
               VM_Magic.isync(); // don't use stale prefetched data in monitor
               if (STATS) slowLocks++;
               break major;  // lock succeeds
             }
             continue minor; // contention, possibly spurious, try again
           }
-          if (id == threadId) { // this thread has o locked already
-            int changed = old + TL_LOCK_COUNT_UNIT; // update count
-            if ((changed & TL_LOCK_COUNT_MASK) == 0) { // count wrapped around (most unlikely), make heavy lock
+          if (id.EQ(threadId)) { // this thread has o locked already
+            VM_Word changed = old.toAddress().add(TL_LOCK_COUNT_UNIT).toWord(); // update count
+            if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
               while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
                 if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled())
                   VM_Thread.yield();;
               }
               break major;  // lock succeeds (note that lockHeavy has issued an isync)
             }
-            if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
+            if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
               VM_Magic.isync(); // don't use stale prefetched data in monitor !!TODO: is this isync required?
               if (STATS) slowLocks++;
               break major;  // lock succeeds
@@ -106,9 +106,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
             continue minor; // contention, probably spurious, try again (TODO!! worry about this)
           }
 
-          if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
-            int index = old & TL_LOCK_ID_MASK;
-            index >>>= TL_LOCK_ID_SHIFT;
+          if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
+            int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
             while (index >= VM_Scheduler.locks.length) 
               VM_Lock.growLocks();
             if (VM_Scheduler.locks[index].lockHeavy(o)) {
@@ -153,33 +152,32 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
   static void unlock(Object o, int lockOffset) throws VM_PragmaNoInline {
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
-      int old = VM_Magic.prepareInt(o, lockOffset);
-      int id  = old & (TL_THREAD_ID_MASK | TL_FAT_LOCK_MASK);
-      int threadId = VM_Processor.getCurrentProcessor().threadId;
-      if (id != threadId) { // not normal case
-        if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
-          int index = (old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+      VM_Word old = VM_Magic.prepareWord(o, lockOffset);
+      VM_Word id  = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
+      VM_Word threadId = VM_Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
+      if (id.NE(threadId)) { // not normal case
+        if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
+          int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
           VM_Scheduler.locks[index].unlockHeavy(o); 
           // note that unlockHeavy has issued a sync
           return;
         } 
-        VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", old);
+        VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", old.toAddress());
         VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", VM_Magic.objectAsAddress(o));
         // VM_Scheduler.trace("VM_Lock", VM_Thread.getCurrentThread().toString(), 0);
         VM_Lock.raiseIllegalMonitorStateException("thin unlocking", o);
       }
-      int countbits = old & TL_LOCK_COUNT_MASK; // get count
-      if (countbits == 0) { // this is the last lock
-        int changed = old & TL_UNLOCK_MASK;
-        if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
+      if (old.and(TL_LOCK_COUNT_MASK).isZero()) { // get count, 0 is the last lock
+        VM_Word changed = old.and(TL_UNLOCK_MASK);
+        if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
           return; // unlock succeeds
         } 
         continue;
       }
       // more than one lock
       // decrement recursion count
-      int changed = old - TL_LOCK_COUNT_UNIT; 
-      if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
+      VM_Word changed = old.toAddress().sub(TL_LOCK_COUNT_UNIT).toWord(); 
+      if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         return; // unlock succeeds
       }
     }
@@ -200,28 +198,28 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @return the heavy-weight lock on this object
    */
   private static VM_Lock inflate (Object o, int lockOffset) {
-    int old;
-    int changed;
+    VM_Word old;
+    VM_Word changed;
     VM_Lock l = VM_Lock.allocate();
     if (VM.VerifyAssertions) VM._assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
-    int locked = TL_FAT_LOCK_MASK | (l.index << TL_LOCK_ID_SHIFT);
+    VM_Word locked = TL_FAT_LOCK_MASK.or(VM_Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
     l.mutex.lock();
     do {
-      old = VM_Magic.prepareInt(o, lockOffset);
+      old = VM_Magic.prepareWord(o, lockOffset);
       // check to see if another thread has already created a fat lock
-      if ((old & TL_FAT_LOCK_MASK) != 0) { // already a fat lock in place
-        int index = (old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+      if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
+        int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
         VM_Lock.free(l);
         l.mutex.unlock();
         l = VM_Scheduler.locks[index];
         return l;
       }
-      changed = locked | (old & TL_UNLOCK_MASK);
-      if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
+      changed = locked.or(old.and(TL_UNLOCK_MASK));
+      if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         l.lockedObject = o;
-        l.ownerId      = old & TL_THREAD_ID_MASK;
+        l.ownerId      = old.and(TL_THREAD_ID_MASK).toInt();
         if (l.ownerId != 0) 
-          l.recursionCount = ((old & TL_LOCK_COUNT_MASK) >> TL_LOCK_COUNT_SHIFT) +1;
+          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() +1;
         l.mutex.unlock();
         return l;      // VM_Lock in place
       }
@@ -231,15 +229,15 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
 
   static void deflate (Object o, int lockOffset, VM_Lock l) {
     if (VM.VerifyAssertions) {
-      int old = VM_Magic.getIntAtOffset(o, lockOffset);
-      VM._assert((old & TL_FAT_LOCK_MASK) != 0);
-      VM._assert(l == VM_Scheduler.locks[(old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT]);
+      VM_Word old = VM_Magic.getWordAtOffset(o, lockOffset);
+      VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
+      VM._assert(l == VM_Scheduler.locks[old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt()]);
     }
-    int old;
-    int changed;
+    VM_Word old;
+    VM_Word changed;
     do {
-      old = VM_Magic.prepareInt(o, lockOffset);
-    } while (!VM_Magic.attemptInt(o, lockOffset, old, old & TL_UNLOCK_MASK));
+      old = VM_Magic.prepareWord(o, lockOffset);
+    } while (!VM_Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK)));
   }
 
 
@@ -254,31 +252,31 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @return whether the object was successfully locked
    */
   private static boolean inflateAndLock (Object o, int lockOffset) {
-    int old;
-    int changed;
+    VM_Word old;
+    VM_Word changed;
     VM_Lock l = VM_Lock.allocate();
     if (l == null) return false; // can't allocate locks during GC
-    int locked = TL_FAT_LOCK_MASK | (l.index << TL_LOCK_ID_SHIFT);
+    VM_Word locked = TL_FAT_LOCK_MASK.or(VM_Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
     l.mutex.lock();
     do {
-      old = VM_Magic.prepareInt(o, lockOffset);
+      old = VM_Magic.prepareWord(o, lockOffset);
       // check to see if another thread has already created a fat lock
-      if ((old & TL_FAT_LOCK_MASK) != 0) { // already a fat lock in place
+      if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
         VM_Lock.free(l);
         l.mutex.unlock();
-        int index = (old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+        int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
         l = VM_Scheduler.locks[index];
         l.mutex.lock();
         if (l.lockedObject == o) break;  // l is heavy lock for o
         l.mutex.unlock();
         return false;
       }
-      changed = locked | (old & TL_UNLOCK_MASK);
-      if (VM_Magic.attemptInt(o, lockOffset, old, changed)) {
+      changed = locked.or(old.and(TL_UNLOCK_MASK));
+      if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         l.lockedObject = o;
-        l.ownerId = old & TL_THREAD_ID_MASK;
+        l.ownerId = old.and(TL_THREAD_ID_MASK).toInt();
         if (l.ownerId != 0) 
-          l.recursionCount = ((old & TL_LOCK_COUNT_MASK) >> TL_LOCK_COUNT_SHIFT) +1;
+          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() +1;
         break;  // l is heavy lock for o
       } 
       // contention detected, try again
@@ -320,9 +318,9 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @return the heavy-weight lock on the object (if any)
    */
   static VM_Lock getHeavyLock (Object o, int lockOffset, boolean create) {
-    int old = VM_Magic.getIntAtOffset(o, lockOffset);
-    if ((old & TL_FAT_LOCK_MASK) != 0) { // already a fat lock in place
-      int index = (old & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+    VM_Word old = VM_Magic.getWordAtOffset(o, lockOffset);
+    if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
+      int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
       return VM_Scheduler.locks[index];
     } else if (create) {
       return inflate(o, lockOffset);
