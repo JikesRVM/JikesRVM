@@ -701,7 +701,9 @@ public class VM_CommandLineArgs {
       buf = new byte[buflen];
     }
 
-    /** Read argument # @param i */
+    /** Read argument # @param i
+     * Assume arguments are encoded in the platform's 
+     * "default character set". */ 
     String getArg(int i) {
       int cnt;
       for (;;) {
@@ -712,7 +714,7 @@ public class VM_CommandLineArgs {
         buf = new byte[buflen];
       }
       if (VM.VerifyAssertions) VM._assert(cnt != -1); 
-      return new String(buf, 0, 0, cnt);
+      return new String(buf, 0, cnt);
     }
     int numArgs() {
       return sysArg(-1, buf);
