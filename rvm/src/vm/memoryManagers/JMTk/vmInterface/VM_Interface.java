@@ -254,6 +254,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {
+    Statistics.gcExternalCount++;
     triggerCollection(EXTERNALLY_TRIGGERED_GC);
   }
 
@@ -461,6 +462,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       ScanThread.scanThread(th2, rootLocations, codeLocations);
     }
     ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
+    VM_CollectorThread.gcBarrier.rendezvous();
   }
 
   // The collector threads of processors currently running threads off in JNI-land cannot run.
@@ -519,7 +521,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
 
-  public static void collect() {
+  public static void collect () {
     getPlan().collect();
   }
 
