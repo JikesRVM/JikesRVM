@@ -8,5 +8,6 @@ jni
 CaffeineMark
 jBYTEmark
 javalex 
+xerces
 SPECjvm98 
 SPECjbb2000 
