@@ -704,6 +704,8 @@ class GenerateInterfaceDeclarations {
         + VM.EXIT_STATUS_JNI_TROUBLE + ";");
     pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = "
         + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
+    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = "
+        + VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
   }
 
   // Emit assembler constants.
