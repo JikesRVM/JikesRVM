@@ -83,6 +83,11 @@ public final class VM_ControllerPlan {
   private double expectedSpeedup;
 
   /**
+   *  The compilation time we were expecting
+   */
+  private double expectedCompilationTime;
+
+  /**
    *  The priority associated with this plan
    */
   private double priority;
@@ -115,18 +120,21 @@ public final class VM_ControllerPlan {
    * @param timeCreated  The "time" this plan was created
    * @param prevCMID     The previous compiled method ID
    * @param expectedSpeedup	Expected recompilation benefit
+   * @param expectedCompilationTime	Expected recompilation cost
    * @param priority     How important is executing this plan?
    */
   public VM_ControllerPlan(OPT_CompilationPlan compPlan, 
 			   int timeCreated, 
 			   int prevCMID, 
 			   double expectedSpeedup,
+			   double expectedCompilationTime,
 			   double priority) {
     this.compPlan = compPlan;
     this.timeCreated = timeCreated;
     this.prevCMID = prevCMID;
     this.status = VM_ControllerPlan.UNINITIALIZED;
     this.expectedSpeedup = expectedSpeedup;
+    this.expectedCompilationTime = expectedCompilationTime;
     this.priority = priority;
   }
   
@@ -217,7 +225,7 @@ public final class VM_ControllerPlan {
 	VM_AOSLogging.recompilationAborted(cp);
       } else {
 	VM_AOSLogging.recompilationCompleted(cp);
-	VM_AOSLogging.recordCompileTime(cm);
+	VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
       }
     }
     
@@ -233,6 +241,11 @@ public final class VM_ControllerPlan {
    * The expected speedup <em>for this method </em> due to this recompilation
    */
   public double getExpectedSpeedup() { return expectedSpeedup; }
+
+  /**
+   * The expected compilation time for this method
+   */
+  public double getExpectedCompilationTime() { return expectedCompilationTime; }
 
   /**
    * The priority (how important is it that this plan be executed)
@@ -332,6 +345,7 @@ public final class VM_ControllerPlan {
 	       +"\n\tInitiated at "+ timeInitiated
 	       +"\n\tCompleted at "+ timeCompleted
 	       +"\n\tExpected Speedup: "+ expectedSpeedup
+	       +"\n\tExpected Compilation Time: "+ expectedCompilationTime
 	       +"\n\tPriority: "+ priority
 	       +"\n\tStatus: "+ getStatusString()
 	       +"\n\tComp. Plan Level: "+compPlan.options.getOptLevel() +"\n");
