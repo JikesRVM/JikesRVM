@@ -14,5 +14,5 @@
 
 FILE=$1
 
-RunSanityTests -measureCompilation -configuration FastBaseAdaptiveSemispace -test SPECjvm98 \
+RunSanityTests -measureCompilation -configuration FastBaseAdaptiveSemiSpace -test SPECjvm98 \
 -rc-args "-X:aos:final_report_level=2 -X:aos:primary_strategy=baseonly -X:aos:base:edge_counter_file=$FILE"

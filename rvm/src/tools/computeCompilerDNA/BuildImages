@@ -15,7 +15,7 @@
 # parent of build directories is command line argument to the script
 BUILDDIR=$1
  
-IMAGES='FastAdaptiveSemispace FastBaseBaseSemispace FastOpt0Semispace FastOpt1Semispace FastSemispace'
+IMAGES='FastAdaptiveSemiSpace FastBaseBaseSemiSpace FastOpt0SemiSpace FastOpt1SemiSpace FastSemiSpace'
 
 for image in $IMAGES
 do
