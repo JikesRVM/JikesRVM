@@ -137,15 +137,6 @@ public abstract class VM_Configuration {
                                               !BuildForIMTInterfaceInvocation;
   public static final boolean DirectlyIndexedITables = false;
 
-  // Compiler support for garbage collection and stack management.
-  //
-  public static final boolean BuildForConcurrentGC =
-      //-#if RVM_WITH_CONCURRENT_GC
-        true;
-      //-#else
-        false;
-      //-#endif
-
   // Compiler support for real-time garbage collection
   //
   public static final boolean BuildForRealtimeGC =
@@ -211,12 +202,11 @@ public abstract class VM_Configuration {
   // new pThreads to run the old virtual processors.
   //
   public static final boolean BuildWithNativeDaemonProcessor = 
-	//-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
-	  !BuildForSingleVirtualProcessor
-	    && !BuildForConcurrentGC;
-	//-#else
-	  false;
-	//-#endif
+    //-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
+    !BuildForSingleVirtualProcessor;
+    //-#else
+    false;
+    //-#endif
 
   // The following configuration objects are final when disabled, but
   // non-final when enabled.

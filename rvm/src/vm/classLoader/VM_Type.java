@@ -458,10 +458,6 @@ package com.ibm.JikesRVM;
    */
   private   Class   classForType; 
   /**
-   * RCGC: is this type acyclic? (public because VM_Type not Uninterruptable)
-   */
-  public    boolean acyclic;	   
-  /**
    * -1 => primitive, 0 => Class/Interface, positive => array (number of [)
    */
   int     dimension;    
@@ -550,15 +546,6 @@ package com.ibm.JikesRVM;
 
   public final String toString() {
     return getName().toString();
-  }
-
-
-  /**
-   * RCGC: Is a reference of this type contained 
-   * in another object inherently acyclic?
-   */ 
-  protected boolean isAcyclicReference() throws VM_PragmaUninterruptible {
-    return acyclic;
   }
 
 }

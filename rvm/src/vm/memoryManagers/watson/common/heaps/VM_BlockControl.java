@@ -39,7 +39,6 @@ import com.ibm.JikesRVM.VM_Array;
  */
 
 public final class VM_BlockControl {
-
   VM_Address baseAddr;
   int slotsize;	  // slotsize
   byte[] mark;
@@ -50,7 +49,6 @@ public final class VM_BlockControl {
   boolean live;
   boolean sticky;
   int alloc_size; // allocated length of mark and alloc arrays
-  int allocCount; // RCGC number of allocated slots in the block
   
   static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   static final VM_Array ARRAY_TYPE = TYPE.getArrayTypeForElementType();

@@ -173,12 +173,6 @@ package com.ibm.JikesRVM;
         allocateSlot(STRING_LITERAL);
 	VM_Address slotContent = VM_Magic.objectAsAddress(literal.toUnicodeString());
         slots[slot] = slotContent.toInt();
-        if (VM.BuildForConcurrentGC && VM.runningVM) // enque increment for new ptr stored into jtoc (no decrement since a new entry)
-        {
-          //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available for concurrent memory managers
-          VM_RCBuffers.addIncrement(slotContent, VM_Processor.getCurrentProcessor());
-          //-#endif
-        }
       }
       return slot;
     }
@@ -315,12 +309,6 @@ package com.ibm.JikesRVM;
      */
     public static void setSlotContents(int slot, int value) throws VM_PragmaUninterruptible {
       slots[slot] = value;
-      if (VM.BuildForConcurrentGC && VM.runningVM && isReference(slot)) 
-      {
-        VM.sysWrite("WARNING - setSlotContents of int for reference slot, value = ");
-        VM.sysWrite(value);
-        VM.sysWrite("\n");
-      }
     }
 
     /**
@@ -341,16 +329,7 @@ package com.ibm.JikesRVM;
      */ 
     static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
       VM_Address newContent = VM_Magic.objectAsAddress(object);
-      if (VM.BuildForConcurrentGC && VM.runningVM) 
-      {
-	VM_Address oldContent = VM_Address.fromInt(slots[slot]);
-        slots[slot] = newContent.toInt();
-        //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available for concurrent memory managers
-        VM_RCBuffers.addIncrementAndDecrement(newContent, oldContent, VM_Processor.getCurrentProcessor());
-        //-#endif
-      }
-      else
-        slots[slot] = newContent.toInt();
+      slots[slot] = newContent.toInt();
     }
 
     /**

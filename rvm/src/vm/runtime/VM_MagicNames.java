@@ -106,9 +106,6 @@ public class VM_MagicNames {
   public static VM_Atom addressAsBlockControl;
   public static VM_Atom addressAsSizeControl;
   public static VM_Atom addressAsSizeControlArray;
-//-#if RVM_WITH_CONCURRENT_GC
-  public static VM_Atom threadAsRCCollectorThread;
-//-#endif
 //-#endif
   public static VM_Atom threadAsCollectorThread;
   public static VM_Atom addressAsRegisters;
@@ -247,9 +244,6 @@ public class VM_MagicNames {
     addressAsBlockControl         = VM_Atom.findOrCreateAsciiAtom("addressAsBlockControl");
     addressAsSizeControl          = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControl");
     addressAsSizeControlArray     = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControlArray");
-  //-#if RVM_WITH_CONCURRENT_GC
-    threadAsRCCollectorThread     = VM_Atom.findOrCreateAsciiAtom("threadAsRCCollectorThread");
-  //-#endif
   //-#endif
     threadAsCollectorThread       = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
     addressAsRegisters            = VM_Atom.findOrCreateAsciiAtom("addressAsRegisters");

@@ -110,12 +110,7 @@ public class VM_CollectorThread extends VM_Thread
   static VM_GCSynchronizationBarrier gcBarrier;
   
   static {
-    //-#if RVM_WITH_CONCURRENT_GC
-    collect = new VM_RCHandshake();
-    //-#else
     collect = new VM_Handshake();
-    //-#endif
-
     participantCount = new int[1];  // counter for threads starting a collection
   } 
   
@@ -492,11 +487,7 @@ public class VM_CollectorThread extends VM_Thread
   //
   public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) throws VM_PragmaInterruptible {
     int[] stack =  VM_RuntimeStructures.newImmortalStack(STACK_SIZE_COLLECTOR>>2);
-    //-#if RVM_WITH_CONCURRENT_GC
-    return new VM_RCCollectorThread(stack, true, processorAffinity);
-    //-#else
     return new VM_CollectorThread(stack, true, processorAffinity);
-    //-#endif
   }
   
   // Make a collector thread that will not participate in gc.

@@ -59,12 +59,11 @@ class VM_IdleThread extends VM_Thread {
       }
       
       do {
-	  if (!VM.BuildForConcurrentGC) VM_Processor.idleProcessor = myProcessor;
-	  if (availableWork(myProcessor)) {
-	      
-	      VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
-	      continue main;
-	  }
+	VM_Processor.idleProcessor = myProcessor;
+	if (availableWork(myProcessor)) {
+	  VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
+	  continue main;
+	}
       } while (VM_Time.now()<t);
       
       VM.sysVirtualProcessorYield();

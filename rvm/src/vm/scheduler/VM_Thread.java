@@ -19,12 +19,6 @@ import com.ibm.JikesRVM.adaptive.VM_Controller;
 public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
-   * constant for RCGC reference counting per thread stack increment/decrement 
-   * buffers 
-   */
-  final static int MAX_STACKBUFFER_COUNT = 2;
-
-  /**
    * debug flag
    */
   private final static boolean trace = false;
@@ -127,10 +121,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Put given thread to sleep.
    */
   public static void sleepImpl(VM_Thread thread) {
-    // RCGC - currently prevent threads from migrating to another processor
-    if (VM.BuildForConcurrentGC) {
-      thread.processorAffinity = VM_Processor.getCurrentProcessor();
-    }
     VM_Scheduler.wakeupMutex.lock();
     yield(VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex);
   }
@@ -745,7 +735,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) throws VM_PragmaInterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
-    if (!VM.BuildForConcurrentGC && VM_Collector.gcInProgress())
+    if (VM_Collector.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
     int[] newStack = VM_RuntimeStructures.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -1027,16 +1017,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     contextRegisters           = new VM_Registers();
     hardwareExceptionRegisters = new VM_Registers();
 
-    // RCGC related field initialization
-    if (VM.BuildForConcurrentGC) {
-	stackBufferNeedScan = true;
-	stackBufferSame = false;
-	stackBufferCurrent = 0;
-	stackBuffer = new int[MAX_STACKBUFFER_COUNT];
-	stackBufferTop = new int[MAX_STACKBUFFER_COUNT];
-	stackBufferMax = new int[MAX_STACKBUFFER_COUNT];
-    }
-    
     // put self in list of threads known to scheduler and garbage collector
     // !!TODO: need growable array here
     // !!TODO: must recycle thread ids
@@ -1102,25 +1082,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
 
-    if (VM.BuildForConcurrentGC) { // RCGC - currently assign a 
-      // thread to a processor - no migration yet
-      if (VM_Scheduler.allProcessorsInitialized) {
-	//-#if RVM_WITH_CONCURRENT_GC 
-        //// because VM_RCCollectorThread only available for concurrent 
-        //memory managers
-	if (VM_RCCollectorThread.GC_ALL_TOGETHER && 
-            VM_Scheduler.numProcessors > 1) {
-	  // assign new threads to first N-1 processors, reserve last for gc
-	  processorAffinity = VM_Scheduler.
-            processors[(threadSlot % (VM_Scheduler.numProcessors-1)) + 1];
-	} else {
-	  processorAffinity = VM_Scheduler.processors
-            [(threadSlot % VM_Scheduler.numProcessors) + 1];
-	}
-	//-#endif
-      }
-    }
-
     VM_Scheduler.threadCreationMutex.unlock();
 
 //-#if RVM_FOR_IA32 
@@ -1157,8 +1118,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
          //
          threadSlot = index;
          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,threadSlot << 2, this);
-	 if (VM.BuildForConcurrentGC && index > maxThreadIndex)
-	     maxThreadIndex = index;
          return;
          }
        }
@@ -1363,16 +1322,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public int chosenProcessorId; 
 
   public VM_JNIEnvironment  jniEnv;
-  
-  // fields needed for RCGC reference counting collector
-  // int[] should be VM_Address array but compilers erroneously emit write barriers 
-  boolean        stackBufferNeedScan;
-  int[]          stackBuffer;        // the buffer
-  int[]          stackBufferTop;     // pointer to most recently filled slot in buffer (an address, not an index)
-  int[]          stackBufferMax;     // pointer to last available slot in buffer (an address, not an index)
-  int            stackBufferCurrent;
-  boolean        stackBufferSame;    // are the two stack buffers the same?
-  static int     maxThreadIndex = 16;
   
   // Cpu utilization statistics, used if "VM_Properties.EnableCPUMonitoring == true".
   //

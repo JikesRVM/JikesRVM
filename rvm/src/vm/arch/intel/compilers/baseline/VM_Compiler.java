@@ -3283,9 +3283,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.addressAsBlockControl   ||
 	methodName == VM_MagicNames.addressAsSizeControl    ||
 	methodName == VM_MagicNames.addressAsSizeControlArray   ||
-//-#if RVM_WITH_CONCURRENT_GC
-	methodName == VM_MagicNames.threadAsRCCollectorThread ||
-//-#endif
 //-#endif
 	methodName == VM_MagicNames.threadAsCollectorThread ||
 	methodName == VM_MagicNames.addressAsRegisters      ||

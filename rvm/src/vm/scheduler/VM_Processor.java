@@ -101,9 +101,8 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) 
       VM._assert(threadSwitchingEnabledCount <= 1);
-    if (VM.VerifyAssertions && 
-        VM_Collector.gcInProgress() && !VM.BuildForConcurrentGC) 
-	VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
+    if (VM.VerifyAssertions && VM_Collector.gcInProgress()) 
+      VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
       threadSwitchRequested = -1;
@@ -166,8 +165,6 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       if (trace) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
       scheduleThread(t);
     }
-
-    if (VM.BuildForConcurrentGC) newThread.stackBufferNeedScan = true;
 
     if (VM.EnableCPUMonitoring) {
       double now = VM_Time.now();
@@ -308,13 +305,6 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     if (t.processorAffinity != null) {
       if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
       t.processorAffinity.transferThread(t);
-      return;
-    }
-
-    // concurrent memory manager currently does not move threads between processors
-    if (VM.BuildForConcurrentGC) { 
-      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", " staying on same processor");
-      getCurrentProcessor().transferThread(t);
       return;
     }
 
@@ -791,13 +781,6 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   //--------------------//
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  //-#if RVM_WITH_CONCURRENT_GC
-  VM_Address incDecBuffer;        // the buffer
-  VM_Address incDecBufferTop;     // address of most recently filled slot in buffer
-  VM_Address incDecBufferMax;     // address of last available slot in buffer
-  int    localEpoch;
-  //-#endif
-
   // misc. fields - probably should verify if still in use
   //
   public int    large_live;		// count live objects during gc

@@ -380,16 +380,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  if (VM_Configuration.BuildWithEagerRedirect) {
 	      // no modifications needed for eager version on stores
 	  }
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  if (opcode == REF_ASTORE_opcode) {
-	      Call.mutate3(inst, CALL, null, null, 
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_aastoreMethod), 
-			   AStore.getClearArray(inst), 
-			   AStore.getClearIndex(inst), 
-			   AStore.getClearValue(inst));
-              if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
-	  }
-          //-#endif
 	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
 	      if (opcode == REF_ASTORE_opcode) {
 		  OPT_Instruction wb =
@@ -508,29 +498,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (VM_Configuration.BuildWithEagerRedirect) {
 		// No modification needed
 	    }
-	    //-#if RVM_WITH_CONCURRENT_GC
-	    if (!field.getType().isPrimitiveType()) {
-		    String className = 
-			field.getDeclaringClass().getDescriptor().toString();
-		    if (VM_RCBarriers.shouldOmitBarrier(method,field)) {
-			// shouldOmitBarrier already prints Omitting message
-		    } else {
-			if (opcode == PUTFIELD_opcode)
-			    Call.mutate3(inst, CALL, null, null, 
-				     OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_resolvedPutfieldMethod), 
-				     PutField.getClearRef(inst), 
-				     new OPT_IntConstantOperand(field.getOffset()), 
-				     PutField.getClearValue(inst));
-			else // opcode == PUTFIELD_UNRESOLVED_opcode
-			    Call.mutate3(inst, CALL, null, null, 
-					 OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_unresolvedPutfieldMethod), 
-					 PutField.getClearRef(inst), 
-					 new OPT_IntConstantOperand(field.getDictionaryId()), 
-					 PutField.getClearValue(inst));
-			inline(inst, ir);
-		    }
-	    }
-	      //-#endif
 	    if (VM_Collector.NEEDS_WRITE_BARRIER) {
 		if (!field.getType().isPrimitiveType()) {
 		    boolean isResolved = (opcode == PUTFIELD_opcode);
@@ -570,27 +537,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      }
 	  }
 	  break;
-
-      case PUTSTATIC_opcode:
-      case PUTSTATIC_UNRESOLVED_opcode:
-	{
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  OPT_LocationOperand loc = PutStatic.getLocation(inst);
-	  VM_Field field = loc.field;
-	  if (!field.getType().isPrimitiveType()) {
-	      boolean isResolved = (opcode == PUTSTATIC_opcode);
-	      Call.mutate2(inst, CALL, null, null, 
-			   OPT_MethodOperand.STATIC(isResolved ?
-						    VM_Entrypoints.RCGC_resolvedPutstaticMethod :
-						    VM_Entrypoints.RCGC_unresolvedPutstaticMethod),
-			   new OPT_IntConstantOperand(isResolved ? field.getOffset() : field.getDictionaryId()),
-			   PutStatic.getClearValue(inst));
-            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
-	  }
-	  //-#endif
-	}
-	break;
-
+	  
       default:
           break;
       }

@@ -152,10 +152,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field finalizerListElementPointerField = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
   //-#endif
 
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  public static final VM_Field allocCountField                = getField("Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;", "allocCount", "I");
-  //-#endif
-
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field registersFPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "fprs", "[D");
   public static final VM_Field registersGPRsField = getField("Lcom/ibm/JikesRVM/VM_Registers;", "gprs", "[I");
@@ -165,17 +161,6 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
   //-#if RVM_FOR_IA32
   public static final VM_Field registersFPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "fp",  "Lcom/ibm/JikesRVM/VM_Address;");
-  //-#endif
-
-  //-#if RVM_WITH_CONCURRENT_GC
-  static final VM_Field incDecBufferTopField            = getField("Lcom/ibm/JikesRVM/VM_Processor;", "incDecBufferTop", "Lcom/ibm/JikesRVM/VM_Address;");
-  static final VM_Field incDecBufferMaxField            = getField("Lcom/ibm/JikesRVM/VM_Processor;", "incDecBufferMax", "Lcom/ibm/JikesRVM/VM_Address;");
-  static final VM_Method processIncDecBufferMethod      = getMethod("Lcom/ibm/JikesRVM/VM_RCBuffers;", "processIncDecBuffer", "()V");
-  static final VM_Method RCGC_aastoreMethod             = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "aastore", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method RCGC_resolvedPutfieldMethod    = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "resolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method RCGC_unresolvedPutfieldMethod  = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "unresolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method RCGC_resolvedPutstaticMethod   = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "resolvedPutstatic", "(ILjava/lang/Object;)V");
-  static final VM_Method RCGC_unresolvedPutstaticMethod = getMethod("Lcom/ibm/JikesRVM/VM_OptRCWriteBarrier;", "unresolvedPutstatic", "(ILjava/lang/Object;)V");
   //-#endif
 
   static final VM_Field outputLockField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "outputLock", "I");

@@ -104,9 +104,7 @@ public final class VM_Primitive extends VM_Type
     this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.dimension    = -1;
     this.depth        = 0;
-    if (VM.BuildForConcurrentGC)
-      this.acyclic  = true;	// All primitives are inherently acyclic
-      
+
     // install type information block (no method dispatch table) 
     // for use in type checking.
     //

@@ -495,13 +495,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     emitSegmentedArrayAccess (asm, T1, T0, T2, 2);
     asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
     asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    if (VM.BuildForConcurrentGC) {
-      //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBarriers not available for non concurrent GC builds
-      VM_RCBarriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
-      //-#endif
-    } else {
-      asm.emitSTX (T3, T0, T1);  // store ref value in array
-    }
+    asm.emitSTX (T3, T0, T1);  // store ref value in array
     asm.emitCAL (SP, 12, SP);  // complete 3 pops
   }
 
@@ -1840,13 +1834,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitL    (T0, 0, SP);
       asm.emitCAL  (SP, 4, SP);
-      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-	//-#if RVM_WITH_CONCURRENT_GC
-	VM_RCBarriers.compileDynamicPutstaticBarrier2(asm, spSaveAreaOffset, method, fieldRef);
-	//-#endif
-      } else {
-	asm.emitSTX(T0, T2, JTOC);
-      }
+      asm.emitSTX(T0, T2, JTOC);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD    (F0, 0, SP );
@@ -1867,13 +1855,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitL    (T0, 0, SP);
       asm.emitCAL  (SP, 4, SP);
-      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-	//-#if RVM_WITH_CONCURRENT_GC
-	VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-	//-#endif
-      } else {
-	asm.emitSTtoc(T0, fieldOffset, T1);
-      }
+      asm.emitSTtoc(T0, fieldOffset, T1);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD    (F0, 0, SP );
@@ -1931,13 +1913,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitL  (T1, 4, SP); // T1 = object reference
       asm.emitL  (T0, 0, SP); // T0 = value
       asm.emitCAL(SP, 8, SP);  
-      if (!(VM.BuildForConcurrentGC && !fieldRef.getType().isPrimitiveType())) { // normal case
-	asm.emitSTX(T0, T2, T1);
-      } else {	// barrier needed for reference counting GC
-	//-#if RVM_WITH_CONCURRENT_GC
-	VM_RCBarriers.compileDynamicPutfieldBarrier2(asm, spSaveAreaOffset, method, fieldRef);
-	//-#endif
-      }
+      asm.emitSTX(T0, T2, T1);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD (F0,  0, SP); // F0 = doubleword value
@@ -1960,13 +1936,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitL  (T1, 4, SP); // T1 = object reference
       asm.emitL  (T0, 0, SP); // T0 = value
       asm.emitCAL(SP, 8, SP);  
-      if (!(VM.BuildForConcurrentGC && !fieldRef.getType().isPrimitiveType())) { // normal case
-	asm.emitST (T0, fieldOffset, T1);
-      } else {	// barrier needed for reference counting GC
-	//-#if RVM_WITH_CONCURRENT_GC
-	VM_RCBarriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-	//-#endif
-      }
+      asm.emitST (T0, fieldOffset, T1);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
       asm.emitLFD (F0,  0, SP); // F0 = doubleword value

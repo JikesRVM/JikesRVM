@@ -81,10 +81,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   static VM_ThreadQueue       debuggerQueue;       // thread waiting to service debugging requests
   static VM_ProcessorLock     debuggerMutex;
 
-  // RCGC addition
-  static VM_ThreadQueue       gcWaitQueue;         // threads waiting for GC epoch to finish
-  static VM_ProcessorLock     gcWaitMutex;
-
   public static VM_ThreadQueue       collectorQueue;      // collector threads waiting to be resumed
   public static VM_ProcessorLock     collectorMutex;
 
@@ -201,11 +197,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     attachThreadQueue = new VM_ThreadQueue(VM_EventLogger.ATTACHTHREAD_QUEUE);
     attachThreadMutex = new VM_ProcessorLock();
-
-    // RCGC addition
-    gcWaitQueue     = new VM_ThreadQueue(VM_EventLogger.GC_WAIT_QUEUE);
-    gcWaitMutex     = new VM_ProcessorLock();
-    // ~RC addition
 
     collectorQueue  = new VM_ThreadQueue(VM_EventLogger.COLLECTOR_QUEUE);
     collectorMutex  = new VM_ProcessorLock();
@@ -765,7 +756,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     writeString("\n-- System Queues -- \n");   wakeupQueue.dump();
     writeString(" wakeupQueue:");   wakeupQueue.dump();
     writeString(" debuggerQueue:"); debuggerQueue.dump();
-    writeString(" gcWaitQueue:");   gcWaitQueue.dump();    // RCGC addition
     writeString(" deadQueue:");     deadQueue.dump();
     writeString(" deadVPQueue:");     deadVPQueue.dump();
     writeString(" collectorQueue:");   collectorQueue.dump();

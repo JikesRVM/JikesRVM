@@ -475,21 +475,6 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler return null;
     return null;
   }
-
-//-#if RVM_WITH_CONCURRENT_GC
-  /**
-  /**
-   * Downcast.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param  t VM_Thread object reference
-   * @return   VM_RCCollectorThread object reference
-   */
-  public static VM_RCCollectorThread threadAsRCCollectorThread(VM_Thread t) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-//-#endif
-
 //-#endif
 
   /**

@@ -18,8 +18,5 @@ class OptDummy {
   static OPT_Compiler a;
   static OPT_StaticInlineOracle f;
   VM_OptSaveVolatile g;
-  //-#if RVM_WITH_CONCURRENT_GC
-  VM_OptRCWriteBarrier i;
-  //-#endif
   static OPT_SpecializedMethodPool q;
 }

@@ -78,41 +78,6 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
     return t;
   }
 
-  // Remove a thread from the queue using processor ID
-  // Used by RCGC to dequeue collectorThread by processor ID
-  //
-  VM_Thread dequeue (int processorID) {
-    if (VM.VerifyAssertions) VM_Scheduler._assert(processorID != 0);
-    if (VM.VerifyAssertions) VM_Scheduler._assert(head != null);
-
-    VM_Thread currentThread = head;
-    VM_Thread nextThread = head.next;
-    
-    if (currentThread.processorAffinity.id == processorID) {
-      head = nextThread;
-      if (head == null)
-	  tail = null;
-      currentThread.next = null;
-      return currentThread;
-    }
-
-    while (nextThread != null) {
-      if (nextThread.processorAffinity.id == processorID) {
-	  currentThread.next = nextThread.next;
-	  if (nextThread == tail)
-	      tail = currentThread;
-	  nextThread.next = null;
-	  return nextThread;
-      }
-      currentThread = nextThread;
-      nextThread = nextThread.next;
-    }
-
-    if (VM.VerifyAssertions) VM_Scheduler._assert(VM.NOT_REACHED);
-    return null;
-  }
-
-
   // Dequeue the CollectorThread, if any, from this queue
   // if qlock != null protect by lock
   // if no thread found, return null

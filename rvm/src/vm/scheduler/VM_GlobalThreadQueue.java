@@ -40,14 +40,6 @@ public final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uni
     return t;
   }
   
-  public VM_Thread dequeue (int processorID) {
-    if (length == 0) return null;
-    VM_Thread t = super.dequeue(processorID);
-    if (t == null) return null;
-    length--;
-    return t;
-  }
-  
   public VM_Thread dequeueGCThread (VM_ProcessorLock qlock) {
     if (length == 0) return null;
     VM_Thread t = super.dequeueGCThread(qlock);

@@ -427,38 +427,20 @@ public final class VM_Array extends VM_Type
 	  }
 
 	  // handle as two cases, for efficiency and in case subarrays overlap
-	  if ((! VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
+	  if ((!VM.BuildForRealtimeGC) && (src != dst || srcPos > dstPos)) {
 	    VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
 				    VM_Magic.objectAsAddress(src).add(srcPos<<2),
 				    len<<2);
-	    if (VM.BuildForConcurrentGC) { // dfb: must increment for copied pointers
-		VM_Address start = VM_Magic.objectAsAddress(dst).add(dstPos<<2);
-		VM_Address end = start.add(len<<2);
-		VM_Processor p = VM_Processor.getCurrentProcessor();
-		int diff = end.diff(start);
-		for (int i = 0; i < diff; i += 4) {
-		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available with concurrent memory managers
-		VM_RCBuffers.addIncrement(VM_Magic.getMemoryAddress(start.add(i)), p);
-		//-#endif
-	      }
-	    }
 	  } else if (srcPos < dstPos) {
 	    srcPos = (srcPos + len) << 2;
 	    dstPos = (dstPos + len) << 2;
 	    while (len-- != 0) {
 	      srcPos -= 4;
 	      dstPos -= 4;
-	      if (! VM.BuildForRealtimeGC)
+	      if (!VM.BuildForRealtimeGC)
 		  VM_Magic.setObjectAtOffset(dst, dstPos, VM_Magic.getObjectAtOffset(src, srcPos));
 	      else
 		  dst[dstPos>>2] = src[srcPos>>2];
-
-	      if (VM.BuildForConcurrentGC) {
-		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available with concurrent memory managers
-		VM_RCBuffers.addIncrement(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(dst).add(dstPos)),
-					  VM_Processor.getCurrentProcessor());
-		//-#endif
-	      }
 	    }
 	  } else {
 	    while (len-- != 0)
@@ -538,9 +520,6 @@ public final class VM_Array extends VM_Type
     } else {
       this.innermostElementType = this.elementType;
     }
-
-    if (VM.BuildForConcurrentGC)
-      this.acyclic = elementType.isAcyclicReference(); // Array is acyclic if its references are acyclic
 
     // install partial type information block (type-slot but no method-slots) for use in type checking.
     // later, during instantiate(), we'll replace it with full type information block (including method-slots).
