@@ -60,14 +60,6 @@ none
 # We begin with machine specific HIR/LIR instructions.
 # These operators are only used to implement VM_Magics.
 ########################################
-# LIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
-LOWTABLESWITCH
-LowTableSwitch
-branch
-
-
--1
-
 # Implements the magic to clear the thread switch bit
 CLEAR_THREAD_SWITCH_BIT
 Empty

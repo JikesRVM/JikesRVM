@@ -1433,6 +1433,13 @@ none
 
 
 
+# LIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
+LOWTABLESWITCH
+LowTableSwitch
+branch
+
+
+
 # NOT a real opcode, but rather a marker for template generation
 ARCH_INDEPENDENT_END
 Unassigned

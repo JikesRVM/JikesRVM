@@ -364,6 +364,14 @@ EMIT_INSTRUCTION
 EMIT(P(p));
 
 ##################################
+# One operator is passed through nearly unchanged
+##################################
+stm:	LOWTABLESWITCH(r)
+10
+EMIT_INSTRUCTION
+LOWTABLESWITCH(burs, P(p));
+
+##################################
 # NOPs can simply be dropped
 ##################################
 stm:	NOP
@@ -3734,14 +3742,6 @@ r:	DOUBLE_CMPG(r,r)
 30
 EMIT_INSTRUCTION
 EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
-
-#####
-# LOWTABLESWITCH
-#####
-stm:    LOWTABLESWITCH(r)
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
 
 #####
 # GOTO

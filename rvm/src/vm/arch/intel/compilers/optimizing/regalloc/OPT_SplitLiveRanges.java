@@ -124,7 +124,7 @@ implements OPT_Operators {
               rOp.register = temp.register;
             }
             break;
-          case LOWTABLESWITCH_opcode:
+          case IA32_LOWTABLESWITCH_opcode:
             {
               OPT_RegisterOperand rOp = LowTableSwitch.getIndex(s);
               OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);

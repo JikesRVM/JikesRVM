@@ -290,6 +290,11 @@ LookupSwitch
 "Match OPT_IntConstantOperand Matches" "Target OPT_BranchOperand" \
 "BranchProfile OPT_BranchProfileOperand"
 
+LowTableSwitch
+0 0 1 2 U -1
+"U Index OPT_RegisterOperand" 
+"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
+
 Phi
 1 0 0 2 U -1
 "D Result OPT_Operand"

@@ -13,12 +13,6 @@ SIG
 #                                use PLURAL if NAME"s" is not plural for NAME
 VARSIG
 
-# backend support for tableswitch
-LowTableSwitch
-0 0 1 2 U -1
-"U Index OPT_RegisterOperand" 
-"Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
-
 #
 # PowerPC MIR instruction formats 
 #

@@ -132,7 +132,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 	  noteMustNotSpill(op.register);
 	}
 	break;
-      case LOWTABLESWITCH_opcode:
+      case IA32_LOWTABLESWITCH_opcode:
 	{
 	  OPT_RegisterOperand op = LowTableSwitch.getIndex(s);
 	  noteMustNotSpill(op.register);

@@ -251,13 +251,6 @@ none
 ########################################
 # Next comes the machine specific HIR/LIR instructions.
 ########################################
-# LIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
-LOWTABLESWITCH
-LowTableSwitch
-branch
-
-
-
 # Acquire the JTOC from the processor object.  Make unary operator to simplify CSE.
 GET_JTOC
 Unary
@@ -358,6 +351,15 @@ none
 MIR_ESP_PROLOGUE
 MIR_Empty
 none
+
+
+
+########################################
+# MIR version of TABLESWITCH (partially expanded into explicit pre-sequence)
+########################################
+IA32_LOWTABLESWITCH
+MIR_LowTableSwitch
+branch
 
 
 

@@ -41,25 +41,25 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
       p.scratchObject = null; 
 
       switch (p.getOpcode()) {
-        case LOWTABLESWITCH_opcode:
+        case IA32_LOWTABLESWITCH_opcode:
           {
-            // split the basic block after the LOWTABLESWITCH
+            // split the basic block after the MIR_LOWTABLESWITCH
             OPT_BasicBlock thisBlock = p.getBasicBlock();
             OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p,ir);
             nextBlock.firstInstruction().setmcOffset(-1); 
 
             // place offset data table after call so that call pushes
             // the base address of this table onto the stack
-            int NumTargets = LowTableSwitch.getNumberOfTargets(p);
+            int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
             for (int i = 0; i < NumTargets; i++) 
               thisBlock.appendInstruction(MIR_CaseLabel.create
                                           (IA32_OFFSET, I(i), 
-                                           LowTableSwitch.getClearTarget(p, 
+                                           MIR_LowTableSwitch.getClearTarget(p, 
                                                                          i)));
 
             // calculate address to which to jump, and store it
             // on the top of the stack
-            OPT_Register regS = LowTableSwitch.getIndex(p).register;
+            OPT_Register regS = MIR_LowTableSwitch.getIndex(p).register;
             nextBlock.appendInstruction(MIR_BinaryAcc.create
                                         (IA32_SHL, R(regS), I(2)));
             nextBlock.appendInstruction(MIR_BinaryAcc.create
