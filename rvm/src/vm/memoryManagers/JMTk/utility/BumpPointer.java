@@ -92,7 +92,6 @@ public final class BumpPointer extends Allocator
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
-    Memory.zero(start, chunkSize);
 
     // check for (dis)contiguity with previous chunk
     if (limit.NE(start)) cursor = start;
