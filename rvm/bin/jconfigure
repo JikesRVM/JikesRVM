@@ -481,15 +481,6 @@ if [[ X"$CONFIGURATION_NAME" = "X" ]]; then
    exit 1
 fi
 
-# Temporarily default RVM_WITH_JIKESRVM_MEMORY_MANAGERS to 1
-# eventually it should be specified for EACH configuration using
-# one of the distributed collectors and to 0 otherwise
-# ie if using GCTk collectors. Similarily RVM_WITH_GCTK will
-# need to be set to 0 or 1
-# Maria should know how to do this.
-#
-export RVM_WITH_JIKESRVM_MEMORY_MANAGERS=1
-
 if [[ -f $CONFIGURATION_FILE_SOURCE/$CONFIGURATION_NAME ]]; then
    . $CONFIGURATION_FILE_SOURCE/$CONFIGURATION_NAME $CONFIGURATION_FILE_SOURCE
 else
@@ -568,7 +559,6 @@ function emitSourceList
    
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
-
    # Baseline compiler components (always part of bootimage).
    #
    print $RVM_ROOT/rvm/src/vm/compilers/baseline           # architecture independent
@@ -582,7 +572,6 @@ function emitSourceList
    # Optimizing compiler components.
    #
    if (( RVM_WITH_OPT_COMPILER )); then
-      
       # core components
       #
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing
@@ -627,13 +616,11 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
-#      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/jdk2
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/list
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/set
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/services
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface
-
 
       # architecture-specific components
       #
@@ -650,12 +637,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/disassembler
    fi
 
-   # Testing harnesses
-   #
-   if (( RVM_WITH_OPT_TEST_HARNESS )); then
-      print $RVM_ROOT/rvm/src/tools/optTestHarness
-   fi
-      
    # Adaptive compiler components.
    #
    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
@@ -776,10 +757,6 @@ function emitEnvironment
    print "export $HOST_J9_STR1=\"$HOST_J9\""
    print "export $HOST_J9_LIBS_STR1=\"$HOST_J9_LIBS\""
    print ""
-   print "export HOST_1_1_8_JAVA=$HOST_1_1_8_JAVA"
-   print "export HOST_1_1_8_JAVAC=$HOST_1_1_8_JAVAC"
-   print "export HOST_1_1_8_REPOSITORIES=$HOST_1_1_8_REPOSITORIES"
-   print ""
    print "export $GNU_MAKE_STR1=$GNU_MAKE"
    print ""
    print "export $HOST_CC_STR1='$CC'"
@@ -840,10 +817,6 @@ function emitMakefile
    print "HOST_J9_LIBS = $HOST_J9_LIBS"
    print ""
    print "TARGET_INSTRUCTION_TYPE = $INSTRUCTION_TYPE"
-   print ""
-   print "HOST_1_1_8_JAVA = $HOST_1_1_8_JAVA"
-   print "HOST_1_1_8_JAVAC = $HOST_1_1_8_JAVAC"
-   print "HOST_1_1_8_REPOSITORIES = $HOST_1_1_8_REPOSITORIES"
    print ""
    print "CC = $CC"
    print "CPLUS = $CC"
@@ -1050,7 +1023,6 @@ function emitCopier
    print '   print -n "$ME: "'
    print '   cd' $CLASSES_DIRECTORY_STR
    print '   echo *.java | xargs rm -f'
-   print '   find java com ! -type d -print | fgrep .java | xargs rm -f'
    print '   touch' $CLASSES_INVALID_STR
    print '   print "(sources cleaned)"'
    print '   exit 0'
@@ -1184,7 +1156,6 @@ function emitCompiler
    print 'if [[ $1 = -clean ]]; then'
    print '   cd' $CLASSES_DIRECTORY_STR
    print '   echo *.class | xargs rm -f'
-   print '   find java com ! -type d -print | fgrep .class | xargs rm -f'
    print '   touch' $CLASSES_INVALID_STR
    print '   print "(classes cleaned) "'
    print '   exit 0'
@@ -1976,16 +1947,6 @@ mkdir -p $GENERATED_FILES_DIRECTORY
 mkdir -p $GENERATED_FILES_DIRECTORY/instructionFormats
 mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY
-mkdir -p $CLASSES_DIRECTORY/java/lang
-mkdir -p $CLASSES_DIRECTORY/java/lang/reflect
-mkdir -p $CLASSES_DIRECTORY/java/io
-mkdir -p $CLASSES_DIRECTORY/java/net
-mkdir -p $CLASSES_DIRECTORY/java/util
-mkdir -p $CLASSES_DIRECTORY/java/util/zip
-mkdir -p $CLASSES_DIRECTORY/com
-mkdir -p $CLASSES_DIRECTORY/com/ibm
-mkdir -p $CLASSES_DIRECTORY/com/ibm/oti
-mkdir -p $CLASSES_DIRECTORY/com/ibm/oti/io
 mkdir -p $CLASSES_DIRECTORY/instructionFormats
 if (( RVM_WITH_JAZZLIB )); then
   mkdir -p $CLASSES_DIRECTORY/jazzlib
