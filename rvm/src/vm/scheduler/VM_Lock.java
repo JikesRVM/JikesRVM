@@ -45,12 +45,10 @@
    </p>
 
    <p><STRONG>Section 1:</STRONG> 
-   support for {@link java.lang.Object#notify Object.notify()},
-   {@link java.lang.Object#notifyAll Object.notifyAll()}, and
-   {@link java.lang.Object#wait Object.wait()}.  When these methods
-   are called, the indicated object must be locked by the current 
-   thread.
-   <p>
+   support for {@link java.lang.Object#notify}, {@link
+   java.lang.Object#notifyAll}, and {@link java.lang.Object#wait}.
+   When these methods are called, the indicated object must be locked
+   by the current thread.  <p>
 
    <p><STRONG>Section 2:</STRONG> 
    light-weight locking and unlocking.  Handles the most common
@@ -84,28 +82,47 @@
    <LI> <EM>What to do if the attempt to lock an object fails?</EM>  There
         are three choices: try again (busy-wait), yield and then try again,
         inflate the lock and yield to the heavy-weight lock's entering
-	queue.  Currently, yield {@link #retryLimit} retryLimit times, then
-        inflate.  (This seemed to be best for the portBOB benchmark on a
-        12-way SMP in the Fall of '99.)
+	queue.  Currently, yield {@link #retryLimit} times, then inflate.  
+        (This seemed to be best for the portBOB benchmark on a 12-way AIX
+        SMP in the Fall of '99.)
    <LI> <EM>When should a heavy-weight lock be deflated?</EM>  Currently,
         deflation happens when the lock is unlocked with nothing on either
         of its queues.  Probably better, would be to periodically (what
         period?) examine heavy-weight locks and deflate any that havn't
         been held for a while (how long?).
+   <LI> <EM>How many heavy-weight locks are needed? and how should they be
+        managed?</EM>  Currently, each processor maintains a pool of free
+	locks.  When a lock is inflated by a processor it is taken from
+	this pool and when a lock is deflated by a processor it gets added
+        to the processors pool.  Since inflation can happen on one processor
+        and deflation on another, this can create an imbalance.  It might
+	be worth investigating a scheme for balancing these local pools.
+   <LI> <EM>Is there any advantage to using the {@link VM_ProcessorLock#tryLock}
+        method?</EM>  
    </OL>
+   Once these questions, and the issue of using MCS locking in {@link 
+   VM_ProcessorLock}, have been investigate, then a larger performance issue
+   comes into view.  A number of different light-weight locking schemes have
+   been proposed over the years (see last several OOPSLA's).  It should be
+   possible to implement each of them in RVM and compare their performance.
    </p>
 
    @see java.lang.Object
    @see VM_ObjectLayoutConstants
    @see VM_ProcessorLock
-   @author Bowen Alpern 
-*/
+   @author Bowen Alpern */
 public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 
   ////////////////////////////////////////////////////////////////////////
   /// Section 1: Support for synchronizing methods of java.lang.Object ///
   ////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Support for Java synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @see java.lang.Object#wait()
+   */
   public static void wait (Object o) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     VM_Thread t = VM_Thread.getCurrentThread();
@@ -144,6 +161,13 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 
+  /**
+   * Support for Java synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @param millis the number of milliseconds to wait for notification
+   * @see java.lang.Object#wait(long time)
+   */
   public static void wait (Object o, long millis) {
     double time;
     VM_Thread t = VM_Thread.getCurrentThread();
@@ -184,6 +208,12 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 
+  /**
+   * Support for Java synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @see java.lang.Object#notify
+   */
   public static void notify (Object o) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyBegin(); }
     VM_Lock l = getHeavyLock(o);
@@ -204,6 +234,12 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyEnd(); }
   }
 
+  /**
+   * Support for Java synchronization primitive.
+   *
+   * @param o the object synchronized on
+   * @see java.lang.Object#notifyAll
+   */
   public static void notifyAll (Object o) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyAllBegin(); }
     VM_Lock l = getHeavyLock(o);
@@ -224,10 +260,15 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   /// Section 2: Support for light-weight locking ///
   ///////////////////////////////////////////////////
 
-  // Acquire the lock on an object (monitorenter)
-  // Inline lock for Opt compiler
-  //     see VM_Compiler, monitorenter sequence
-  //
+  /**
+   * Obtains a lock on the indicated object.  Abreviated light-weight
+   * locking sequence inlined by the optimizing compiler for the
+   * prologue of synchronized methods and for the
+   * <code>monitorenter</code> bytecode.
+   *
+   * @param o the object to be locked 
+   * @see OPT_ExpandRuntimeServices
+   */
   static void inlineLock (Object o) {
     VM_Magic.pragmaInline();
     int oldStatus = VM_Magic.prepare(o, OBJECT_STATUS_OFFSET);
@@ -240,10 +281,15 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     lock(o);              // uncommon case: default to non inlined lock()
   }
 
-  // Release the lock on an object (monitorexit)
-  // Inline unlock for Opt compiler
-  //     see VM_Compiler, monitorexit sequence
-  //
+  /**
+   * Releases the lock on the indicated object.  Abreviated
+   * light-weight unlocking sequence inlined by the optimizing
+   * compiler for the epilogue of synchronized methods and for the
+   * <code>monitorexit</code> bytecode.
+   *
+   * @param o the object to be unlocked 
+   * @see  OPT_ExpandRuntimeServices
+   */
   static void inlineUnlock (Object o) {
     VM_Magic.pragmaInline();
     int oldStatus = VM_Magic.prepare(o, OBJECT_STATUS_OFFSET);
@@ -256,15 +302,19 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     unlock(o);  // uncommon case: default to non inlined unlock()
   }
 
-  // aquire the lock on an object (monitorenter) 
-  // the first try failed due to contention (possibly spurious)
-  //
+  /**
+   * Obtains a lock on the indicated object.  Light-weight locking
+   * sequence for the prologue of synchronized methods and for the
+   * <code>monitorenter</code> bytecode.
+   *
+   * @param o the object to be locked 
+   */
   static void lock (Object o) {
     VM_Magic.pragmaNoInline();
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { if (o == VM_ClassLoader.lock) VM_EventLogger.logRuntimeLockContentionEvent(); else VM_EventLogger.logOtherLockContentionEvent(); }
-    major: while (true) { // repeat only if attempt to lock a promoted lock fails
+   major: while (true) { // repeat only if attempt to lock a promoted lock fails
       int retries = retryLimit; 
-      minor:  while (0 != retries--) { // repeat if there is contention for thin lock
+     minor:  while (0 != retries--) { // repeat if there is contention for thin lock
 	int oldStatus = VM_Magic.prepare(o, OBJECT_STATUS_OFFSET);
 	int id = oldStatus & (OBJECT_THREAD_ID_MASK | OBJECT_FAT_LOCK_MASK);
 	if (id == 0) { // o isn't locked
@@ -278,7 +328,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 	if (id == VM_Magic.getThreadId()) { // this thread has o locked already
 	  int newStatus = oldStatus + OBJECT_LOCK_COUNT_UNIT; // update count
 	  if ((newStatus & OBJECT_LOCK_COUNT_MASK) == 0) { // count wrapped around (most unlikely), make heavy lock
-//	    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED); // To catch recursive locking bugs
 	    while (!inflateAndLock(o)) { // wait for a lock to become available
 	      if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled())
 		VM_Thread.yield();;
@@ -288,29 +337,29 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 	  if (VM_Magic.attempt(o, OBJECT_STATUS_OFFSET, oldStatus, newStatus)) {
 	    VM_Magic.isync(); // don't use stale prefetched data in monitor !!TODO: is this isync required?
 	    break major;  // lock succeeds
-	    }
+	  }
 	  continue minor; // contention, probably spurious, try again (TODO!! worry about this)
 	}
 	if ((oldStatus & OBJECT_FAT_LOCK_MASK) != 0) { // o has a heavy lock
 	  int index = oldStatus & OBJECT_LOCK_ID_MASK;
 	  index >>>= OBJECT_LOCK_ID_SHIFT;
 	  if (VM_Scheduler.locks[index].lockHeavy(o)) {
-	      break major; // lock succeeds (note that lockHeavy has issued an isync)
+	    break major; // lock succeeds (note that lockHeavy has issued an isync)
 	  }
 	  // heavy lock failed (deflated or contention for system lock)
-          if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-            VM_Thread.yield(); // wait, hope o gets unlocked
-          }
+	  if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
+	    VM_Thread.yield(); // wait, hope o gets unlocked
+	  }
 	  continue major;    // try again
 	}
 	// real contention: wait (hope other thread unlocks o), try again
 	if (traceContention) { // for performance tuning only (see section 5)
 	  int fp = VM_Magic.getFramePointer();
-          fp = VM_Magic.getCallerFramePointer(fp);
-          int mid = VM_Magic.getCompiledMethodID(fp);
+	  fp = VM_Magic.getCallerFramePointer(fp);
+	  int mid = VM_Magic.getCompiledMethodID(fp);
 	  VM_Method m1 = VM_ClassLoader.getCompiledMethod(mid).getMethod();
-          fp = VM_Magic.getCallerFramePointer(fp);
-          mid = VM_Magic.getCompiledMethodID(fp);
+	  fp = VM_Magic.getCallerFramePointer(fp);
+	  mid = VM_Magic.getCompiledMethodID(fp);
 	  VM_Method m2 = VM_ClassLoader.getCompiledMethod(mid).getMethod();
 	  String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
 	  VM_Scheduler.trace(VM_Magic.getObjectType(o).getName(), s, -2-retries);
@@ -321,17 +370,17 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       }
       // create a heavy lock for o and lock it
       if (inflateAndLock(o)) break major;
-      // heavy lock failed (deflated or there was contention for the system lock)
-      if (tentative && VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-	VM_Thread.yield(); // wait, hope o gets unlocked
-      }
     }
     // o has been locked, must return before an exception can be thrown
   }
 
-  // release the lock on an object (monitorexit)
-  // first try failed due to spurious contention, keep trying
-  //
+  /**
+   * Releases the lock on the indicated object.   Light-weight unlocking
+   * sequence for the epilogue of synchronized methods and for the
+   * <code>monitorexit</code> bytecode.
+   *
+   * @param o the object to be locked 
+   */
   static void unlock (Object o) {
     VM_Magic.pragmaNoInline();
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
@@ -368,38 +417,46 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   /// Section 3: Support for heavy-weight locking ///
   ///////////////////////////////////////////////////
 
-  // proper fields of a VM_Lock object
-  private int                  ownerId;        // lock owner
-  private int                  recursionCount; // number of times object is locked
-          Object               lockedObject;   // object locked
-          VM_ThreadQueue       entering;       // threads contending for lock (guard with mutex)
-          VM_ProxyWaitingQueue waiting;        // threads waiting to be notified
-          VM_ProcessorLock     mutex;          // spin lock (avoid thread-switching)
+  /** The object being locked (if any). */
+  Object               lockedObject;
+  /** The id of the thread that owns this lock (if any). */
+  int                  ownerId;
+  /** The number of times the owning thread (if any) has acquired this lock. */
+  int                  recursionCount;
+  /** A queue of threads contending for this lock (guarded by <code>mutex</code>). */
+  VM_ThreadQueue       entering;   
+  /** A queue of (proxies for) threads awaiting notification on this object (guarded by <code>mutex</code>). */
+  VM_ProxyWaitingQueue waiting; 
+  /** A spin lock to handle contention for the data structures of this lock. */
+  VM_ProcessorLock     mutex;
 
-//        VM_Processor         creator;        // for debugging (see section 5)
-
+  /**
+   * A heavy weight lock to handle extreme contention and wait/notify
+   * synchronization.
+   */
   VM_Lock () {
     entering = new VM_ThreadQueue(VM_EventLogger.ENTERING_QUEUE);
     waiting  = new VM_ProxyWaitingQueue(VM_EventLogger.WAITING_QUEUE);
     mutex    = new VM_ProcessorLock();
-//  creator  = VM_Processor.getCurrentProcessor(); // for debugging
   }
 
   //////////////////////////////////////////////////////////////////////////
   /// Section 3A: Support for locking (and unlocking) heavy-weight locks ///
   //////////////////////////////////////////////////////////////////////////
 
-  // aquire the fat lock for an object o
-  // return false, if this nolonger locks o
-  //
+  /**
+   * Acquires this heavy-weight lock on the indicated object.
+   *
+   * @param o the object to be locked 
+   * @return true, if the lock succeeds; false, otherwise
+   */
   private boolean lockHeavy (Object o) {
-    if (tryLock) {
+    if (tentativeMicrolocking) {
       if (!mutex.tryLock()) 
 	return false;
-    } else mutex.lock(); 
-    // (until unlock(), thread-switching fatal)
+    } else mutex.lock();  // Note: thread switching is not allowed while mutex is held.
     if (lockedObject != o) { // lock disappeared before we got here
-      mutex.unlock(); // thread-switching benign
+      mutex.unlock(); // thread switching benign
       return false;
     }
     if (ownerId == VM_Magic.getThreadId()) {
@@ -411,13 +468,10 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM_Thread.yield(entering, mutex); // thread-switching benign
       // when this thread next gets scheduled, it will be entitled to the lock,
       // but another thread might grab it first.
-      if (tentative) {
-	lock(o); // infinite recursion == starvation
-	return true;
-      } else return false; // caller will try again
+      return false; // caller will try again
     } else { // can't yield - must spin and let caller retry
       // potential deadlock if user thread is contending for a lock with thread switching disabled
-      if (VM.VerifyAssertions) VM_Scheduler.assert(VM_Thread.getCurrentThread().isGCThread);
+      if (VM.VerifyAssertions) VM.assert(VM_Thread.getCurrentThread().isGCThread);
       mutex.unlock(); // thread-switching benign
       return false; // caller will try again
     }
@@ -425,11 +479,14 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     return true;
   }
   
-  // release the fat lock for an object
-  //
+  /**
+   * Releases this heavy-weight lock on the indicated object.
+   *
+   * @param o the object to be unlocked 
+   */
   private void unlockHeavy (Object o) {
     boolean deflated = false;
-    mutex.lock(); // until unlock(), thread-switching fatal
+    mutex.lock(); // Note: thread switching is not allowed while mutex is held.
     if (ownerId != VM_Magic.getThreadId()) {
       mutex.unlock(); // thread-switching benign
       throw new IllegalMonitorStateException();
@@ -442,25 +499,30 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Thread t = entering.dequeue();
     if (t != null) t.scheduleHighPriority();
     else if (entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
-      // !!TODO: decide on a heuristic to control when lock should be deflated
+      // Possible project: decide on a heuristic to control when lock should be deflated
       if (true) { // deflate heavy lock
 	deflate(o);
 	deflated = true;
       }
     }
     mutex.unlock(); // does a VM_Magic.sync();  (thread-switching benign)
-    if (deflated && LOCK_ALLOCATION_UNIT_SIZE<<1 <= VM_Processor.getCurrentProcessor().freeLocks)
+    if (deflated && ((LOCK_ALLOCATION_UNIT_SIZE<<1) <= VM_Processor.getCurrentProcessor().freeLocks) && balanceFreeLocks)
       globalizeFreeLocks();
-
   }
   
   ////////////////////////////////////////////////////////////////////////////
   /// Section 3B: Support for inflating (and deflating) heavy-weight locks ///
   ////////////////////////////////////////////////////////////////////////////
 
-  // turn thin lock into a fat lock and return it
-  // if there already is a fat lock on the object, return that fat lock
-  //
+  /**
+   * Promotes a light-weight lock to a heavy-weight lock.  Note: the
+   * object is question will normally be locked by another thread,
+   * or it may be unlocked.  If there is already a heave-weight lock
+   * on this object, that lock is returned.
+   *
+   * @param o the object to get a heavy-weight lock 
+   * @return the heavy-weight lock on this object
+   */
   private static VM_Lock inflate (Object o) {
     int oldStatus;
     int newStatus;
@@ -492,22 +554,26 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     } while (true);
   }
 
-  // unlock and relinquish a fat lock
-  //
+  /**
+   * Disassociates this heavy-weight lock from the indicated object.
+   * This lock is not heald, nor are any threads on its queues.  Note:
+   * the mutex for this lock is held when deflate is called.
+   *
+   * @param o the object from which this lock is to be disassociated
+   */
   private void deflate (Object o) {
-    int oldStatus;
-    int newStatus;
     if (VM.VerifyAssertions) {
-      oldStatus = VM_Magic.getIntAtOffset(o, OBJECT_STATUS_OFFSET);
-      VM_Scheduler.assert((oldStatus & OBJECT_FAT_LOCK_MASK) != 0);
-      VM_Lock l = VM_Scheduler.locks[(oldStatus & OBJECT_LOCK_ID_MASK) >>> OBJECT_LOCK_ID_SHIFT];
-      VM_Scheduler.assert(l.lockedObject == o);
-      VM_Scheduler.assert(l.recursionCount == 0);
-      VM_Scheduler.assert(l.entering.isEmpty() && l.waiting.isEmpty());
+      VM.assert(lockedObject == o);
+      VM.assert(recursionCount == 0);
+      VM.assert(entering.isEmpty());
+      VM.assert(waiting.isEmpty());
+      int oldStatus = VM_Magic.getIntAtOffset(o, OBJECT_STATUS_OFFSET);
+      VM.assert((oldStatus & OBJECT_FAT_LOCK_MASK) != 0);
+      VM.assert(this == VM_Scheduler.locks[(oldStatus & OBJECT_LOCK_ID_MASK) >>> OBJECT_LOCK_ID_SHIFT]);
     }
     do {
-      oldStatus = VM_Magic.prepare(o, OBJECT_STATUS_OFFSET);
-      newStatus = oldStatus & OBJECT_UNLOCK_MASK;
+      int oldStatus = VM_Magic.prepare(o, OBJECT_STATUS_OFFSET);
+      int newStatus = oldStatus & OBJECT_UNLOCK_MASK;
       if (VM_Magic.attempt(o, OBJECT_STATUS_OFFSET, oldStatus, newStatus)) {
        	lockedObject = null;
 	free(this);
@@ -517,9 +583,14 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     } while (true);
   }
 
-  // This thread has object o locked.
-  // If the lock is a fat lock return it.
-  //
+  /**
+   * Obtains the heavy-weight lock, if there is one, associated with the
+   * indicated object.  Returns <code>null</code>, if there is no
+   * heavy-weight lock associated with the object.
+   *
+   * @param o the object from which a lock is desired
+   * @return the heavy-weight lock on the object (if any)
+   */
   private static VM_Lock getHeavyLock (Object o) {
     int status = VM_Magic.getIntAtOffset(o, OBJECT_STATUS_OFFSET);
     if ((status & OBJECT_FAT_LOCK_MASK) != 0) { // already a fat lock in place
@@ -530,9 +601,15 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     }
   }
 
-  // turn thin lock into a fat lock and return it
-  // if there already is a fat lock on the object, return that fat lock
-  //
+  /**
+   * Promotes a light-weight lock to a heavy-weight lock and locks it.
+   * Note: the object is question will normally be locked by another
+   * thread, or it may be unlocked.  If there is already a
+   * heave-weight lock on this object, that lock is returned.
+   *
+   * @param o the object to get a heavy-weight lock 
+   * @return whether the object was successfully locked
+   */
   private static boolean inflateAndLock (Object o) {
     int oldStatus;
     int newStatus;
@@ -574,13 +651,10 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM_Thread.yield(l.entering, l.mutex); // thread-switching benign
       // when this thread next gets scheduled, it will be entitled to the lock,
       // but another thread might grab it first.
-      if (tentative) {
-	lock(o); // infinite recursion == starvation
-	return true;
-      } else return false; // caller will try again
+      return false; // caller will try again
     } else { // can't yield - must spin and let caller retry
       // potential deadlock if user thread is contending for a lock with thread switching disabled
-      if (VM.VerifyAssertions) VM_Scheduler.assert(VM_Thread.getCurrentThread().isGCThread);
+      if (VM.VerifyAssertions) VM.assert(VM_Thread.getCurrentThread().isGCThread);
       l.mutex.unlock(); // thread-switching benign
       return false; // caller will try again
     }
@@ -610,6 +684,9 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   private static VM_Lock          globalFreeLock;
   private static int              globalFreeLocks;
 
+  /**
+   * Sets up the data structures for holding heavy-weight locks.
+   */
   static void init() {
     lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[MAX_LOCKS+1]; // don't use slot 0
@@ -617,14 +694,19 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM.assert(VM_Scheduler.locks.length-1<=(OBJECT_LOCK_ID_MASK>>>OBJECT_LOCK_ID_SHIFT));
   }
   
-  // thick locks are allocated in local regions, so no synchronization is 
-  // required.
-  //
-  // returns null if a lock can't be allocated (called during GC)
+  /**
+   * Delivers up an unassigned heavy-weight lock.  Locks are allocated
+   * from processor specific regions or lists, so normally no synchronization
+   * is required to obtain a lock.
+   *
+   * Collector threads cannot use heavy-weight locks.
+   *
+   * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
+   */
   private static VM_Lock allocate () {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (!mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
-    if (mine.freeLocks == 0 && 0 < globalFreeLocks) {
+    if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
       localizeFreeLocks();
     }
     VM_Lock l = mine.freeLock;
@@ -637,9 +719,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       l = new VM_Lock(); // may cause thread switch (and processor loss)
       mine = VM_Processor.getCurrentProcessor();
       if (mine.lastLockIndex < mine.nextLockIndex) {
-	// if (tryLock) { 
-	//   if (!lockAllocationMutex.tryLock()) return null;
-	// } else
 	lockAllocationMutex.lock();
 	mine.nextLockIndex = 1 + (LOCK_ALLOCATION_UNIT_SIZE * lockUnitsAllocated++);
 	lockAllocationMutex.unlock();
@@ -658,6 +737,13 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     return l;
   }
 
+  /**
+   * Recycles a unused heavy-weight lock.  Locks are deallocated
+   * to processor specific lists, so normally no synchronization
+   * is required to obtain or release a lock.
+   *
+   * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
+   */
   private static void free (VM_Lock l) {
     l.active = false;
     VM_Processor mine = VM_Processor.getCurrentProcessor();
@@ -667,8 +753,14 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     mine.locksFreed++;
   }
 
+  /**
+   * Transfers free heavy-weight locks from a processor local
+   * structure to a global one.
+   *
+   * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
+   * directive is set for the current build.
+   */
   private static void globalizeFreeLocks () {
-    if (true) return; // SUSAN TEMP
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.freeLocks <= LOCK_ALLOCATION_UNIT_SIZE) {
       if (VM.VerifyAssertions) VM.assert(mine.freeLock != null);
@@ -697,11 +789,18 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       lockAllocationMutex.unlock();
       mine.freeLock    = q;
       mine.freeLocks  -= LOCK_ALLOCATION_UNIT_SIZE;
-  }
+    }
   }
 
+  /**
+   * Transfers free heavy-weight locks from a global structure to a
+   * processor local one.
+   *
+   * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
+   * directive is set for the current build.  
+   */
   private static void localizeFreeLocks () {
-    if (true) return;
+    if (true) return; // TEMP
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (VM.VerifyAssertions) VM.assert(mine.freeLock == null);
     lockAllocationMutex.lock();
@@ -730,12 +829,85 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   /// Section 5: Support for debugging and performance tuning ///
   ///////////////////////////////////////////////////////////////
 
-  private static final int retryLimit = 40; // (-1 is effectively infinity)
-          static       boolean tryLock = false; // TEMP!! for performance tuning
-  private static final boolean tentative       = false;
-  
-  private static final boolean traceContention = false;  // set true to discover contended for locks
+//-#if RVM_WITH_FREE_LOCK_BALANCING
+  /**
+   * Attempt to keep the roughly equal sized pools for free
+   * heavy-weight locks on each processor.
+   *
+   * Preprocessor directive RVM_WITH_FREE_LOCK_BALANCING=1.  
+   */
+  private static final boolean balanceFreeLocks = true;
+//-#else
+  /**
+   * Don't attempt to keep the roughly equal sized pools for free
+   * heavy-weight locks on each processor.  Each virual processor
+   * keeps its own free pool of the locks that it has freed 
+   * (deflated).
+   *
+   * Preprocessor directive RVM_WITH_FREE_LOCK_BALANCING=0.
+   */
+  private static final boolean balanceFreeLocks = false;
+//-#endif
 
+//-#if RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT
+  /**
+   * Number of times a thread yields before inflating the lock on a
+   * object to a heavy-weight lock.  The current value was for the
+   * portBOB benchmark on a 12-way SMP (AIX) in the Fall of '99.  This
+   * is almost certainly not the optimal value.
+   *
+   * Preprocessor directive RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=1.  
+   */
+  private static int retryLimit = 40; // (-1 is effectively infinity)
+//-#else
+  /**
+   * Number of times a thread yields before inflating the lock on a
+   * object to a heavy-weight lock.  The current value was for the
+   * portBOB benchmark on a 12-way SMP (AIX) in the Fall of '99.  This
+   * is almost certainly not the optimal value.
+   *
+   * Preprocessor directive RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0.
+   */
+  private static final int retryLimit = 40; // (-1 is effectively infinity)
+//-#endif
+
+//-#if RVM_WITH_TENTATIVE_MICROLOCKING
+  /**
+   * Give up the attempt to get a heavy-weight lock, if its
+   * <code>mutex</code> microlock is held by another procesor.
+   *
+   * Preprocessor directive RVM_WITH_TENTATIVE_MICROLOCKING=1.
+   */
+  private static final boolean tentativeMicrolocking = true;
+//-#else
+  /**
+   * Persist in attempting to get a heavy-weight lock, if its
+   * <code>mutex</code> microlock is held by another procesor.
+   *
+   * Preprocessor directive RVM_WITH_TENTATIVE_MICROLOCKING=0.
+   */
+  private static final boolean tentativeMicrolocking = false;
+//-#endif
+
+//-#if RVM_WITH_LOCK_CONTENTION_TRACING
+  /**
+   * Report lock contention (for debugging).
+   *
+   * Preprocessor directive RVM_WITH_LOCK_CONTENTION_TRACING=1.
+   */
+  private static final boolean traceContention = true;
+//-#else
+  /**
+   * Don't report lock contention. 
+   *
+   * Preprocessor directive RVM_WITH_LOCK_CONTENTION_TRACING=0.
+   */
+  private static final boolean traceContention = false;
+//-#endif
+
+  /**
+   * Reports the state of a heavy-weight lock.
+   */
   void dump() {
     if (!active) return;
     VM_Scheduler.writeString("Lock "); VM_Scheduler.writeDecimal(index); VM.sysWrite(":\n");

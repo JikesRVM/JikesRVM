@@ -5,8 +5,8 @@
 /**
  *
  * <p> Alternative (to Java monitors) light-weight synchronization
- * mechanism to implement thread scheduling (@link VM_Processor) and
- * Java monitors (@link VM_Lock).  These locks should not be used
+ * mechanism to implement thread scheduling {@link VM_Processor} and
+ * Java monitors {@link VM_Lock}.  These locks should not be used
  * where Java monitors would suffice.  They are intended to be held
  * only briefly!
  *
@@ -69,12 +69,12 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
   /**
    * Contending <code>VM_Processor</code>s spin on processor local addresses.
    */
-  public static final boolean MCS_Locking = true;
+  private static final boolean MCS_Locking = true;
 //-#else
   /**
    * Contending <code>VM_Processor</code>s spin on a globally shared address.
    */
-  public static final boolean MCS_Locking = false;
+  private static final boolean MCS_Locking = false;
 //-#endif
   
   /**
