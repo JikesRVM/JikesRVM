@@ -100,7 +100,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * method that overrides java.lang.Object.finalize()
    * null => class does not have a finalizer
    */
-  private VM_Method    finalizeMethod;         
+  private VM_Method finalizeMethod;         
 
   /**
    * type and virtual method dispatch table for class
@@ -798,7 +798,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
     
     VM_TypeReference superType = getTypeRef(input.readUnsignedShort()); // possibly null
-    if (superType != null) {
+    if (!(isInterface() || superType == null)) {
       superClass = superType.resolve().asClass();
       superClass.addSubClass(this);
     }
@@ -915,27 +915,30 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (begin) resolve "+this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
-    // Resolve superclass
+    // Resolve superclass and super interfaces
     //
     if (superClass != null) {
       superClass.resolve();
-      depth = 1 + superClass.depth;
-      thinLockOffset = superClass.thinLockOffset;
-      instanceSize = superClass.instanceSize;
-    } else {
-      instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
-	
-	//-#if RVM_FOR_64_ADDR
-	   int diff = VM_JavaHeader.objectEndOffset(this) - VM_Memory.alignDown(VM_JavaHeader.objectEndOffset(this), BYTES_IN_ADDRESS);
-		if (diff != 0) {	
-			if (VM.VerifyAssertions) VM._assert(diff % BYTES_IN_INT == 0); //assume bad aligned on 8 byte, but good aligned on 4 byte
-			increaseInstanceSizeAndSetAlignOffset(diff);
-		}
-	//-#endif
-		
     }
     for (int i=0; i<declaredInterfaces.length; i++) {
       declaredInterfaces[i].resolve();
+    }
+
+    if (isInterface()) {
+      depth = 1; 
+    } else if (isJavaLangObjectType()) {
+      instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
+      //-#if RVM_FOR_64_ADDR
+      int diff = VM_JavaHeader.objectEndOffset(this) - VM_Memory.alignDown(VM_JavaHeader.objectEndOffset(this), BYTES_IN_ADDRESS);
+      if (diff != 0) {	
+	if (VM.VerifyAssertions) VM._assert(diff % BYTES_IN_INT == 0); //assume bad aligned on 8 byte, but good aligned on 4 byte
+	increaseInstanceSizeAndSetAlignOffset(diff);
+      }
+      //-#endif
+    } else {
+      depth = superClass.depth + 1;
+      thinLockOffset = superClass.thinLockOffset;
+      instanceSize = superClass.instanceSize;
     }
 
     if (isSynchronizedObject() || this == VM_Type.JavaLangClassType)
@@ -1143,17 +1146,19 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
-
+    
     VM_Callbacks.notifyClassResolved(this);
 
     // check for a "finalize" method that overrides the one in java.lang.Object
     //
-    VM_Method finalize = findVirtualMethod(VM_ClassLoader.StandardObjectFinalizerMethodName, 
-                                           VM_ClassLoader.StandardObjectFinalizerMethodDescriptor);
-    if (finalize.getDeclaringClass().getSuperClass() != null)
-      finalizeMethod = finalize;
-    else
-      finalizeMethod = null;
+    finalizeMethod = null;
+    if (!isInterface()) {
+      VM_Method finalize = findVirtualMethod(VM_ClassLoader.StandardObjectFinalizerMethodName, 
+					     VM_ClassLoader.StandardObjectFinalizerMethodDescriptor);
+      if (!finalize.getDeclaringClass().isJavaLangObjectType()) {
+	finalizeMethod = finalize;
+      }
+    }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   resolve " + this);
   }
@@ -1237,8 +1242,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // instantiate superclass
     //
-    if (superClass != null)
+    if (superClass != null) {
       superClass.instantiate();
+    }
     if (VM.runningVM) {
       // can't instantiate if building bootimage, since this can cause
       // class initializer to be lost (when interface is not included in bootimage).
@@ -1313,8 +1319,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // run super <clinit>
     //
-    if (superClass != null)
+    if (superClass != null) {
       superClass.initialize();
+    }
 
     /*
      *  The spec says we dont have to do this; Eclipse gets

@@ -69,9 +69,8 @@ public final class OPT_ClassLoadingDependencyManager {
    * @param c a class that has just been loaded.
    */
   private void handleOverriddenMethods(VM_Class c) {
+    if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do.
     VM_Class sc = c.getSuperClass();
-    if (sc == null)
-      return;                   // c == java.lang.Object.
     // for each virtual method of sc, if it is overriden by 
     // a virtual method declared by c, then handle any required invalidations.
     VM_Method[] sc_methods = sc.getVirtualMethods();
@@ -96,9 +95,8 @@ public final class OPT_ClassLoadingDependencyManager {
   }
 
   private void handleSubclassing(VM_Class c) {
+    if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do
     VM_Class sc = c.getSuperClass();
-    if (sc == null)
-      return;                   // c == java.lang.Object.
     java.util.Iterator invalidatedMethods = db.invalidatedBySubclass(sc);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {

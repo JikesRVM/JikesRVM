@@ -96,26 +96,23 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    */
   static short[] buildSuperclassIds(VM_Type t) {
     int depth   = t.getTypeDepth();
-    int size    = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth+1 : MIN_SUPERCLASS_IDS_SIZE;
-    short[] tsi = new short[size];
-    VM_Type p;                          
-    if (depth == 0) {        // t is Object (or eventually some interfaces TODO!!)
-      int id = t.getId();
-      if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
-      tsi[0] = (short) id;
-      return tsi;
-    } else if (depth == 1) { // t is array or top level class
-      if (VM.VerifyAssertions) VM._assert(t.isArrayType() || t.asClass().getSuperClass() == VM_Type.JavaLangObjectType);
-      p = VM_Type.JavaLangObjectType; //  TODO!! handle interfaces better
-    } else if (1 < depth) {  // t is a non Object, non top level class
-      p = t.asClass().getSuperClass();
-    } else {                 // t is a primitive
-      VM._assert(VM.NOT_REACHED);
-      p = null;
-    }
-    short[] psi = p.getSuperclassIds();
-    for (int i=0; i<depth; i++) {
-      tsi[i] = psi[i];
+    short[] tsi;
+    if (t.isJavaLangObjectType()) {
+      if (VM.VerifyAssertions) VM._assert(depth == 0);
+      tsi = new short[1];
+    } else {
+      int size    = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth+1 : MIN_SUPERCLASS_IDS_SIZE;
+      tsi = new short[size];
+      VM_Type p;                          
+      if (t.isArrayType() || t.asClass().isInterface()) {
+	p = VM_Type.JavaLangObjectType;
+      } else {
+	p = t.asClass().getSuperClass();
+      }
+      short[] psi = p.getSuperclassIds();
+      for (int i=0; i<depth; i++) {
+	tsi[i] = psi[i];
+      }
     }
     int id = t.getId();
     if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
@@ -165,22 +162,22 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     }
 
     // I need one of my own; first figure out how big it needs to be.
-    int size = t.isInterface() ? t.getDoesImplementIndex() : 0;
+    int size;
+    if (t.isInterface()) {
+      size = Math.max(MIN_DOES_IMPLEMENT_SIZE, t.getDoesImplementIndex()+1);
+    } else {
+      size = t.getSuperClass().getDoesImplement().length;
+    }
     for (int i=0; i<superInterfaces.length; i++) {
       VM_Class superInterface = superInterfaces[i];
       size = Math.max(size, superInterface.getDoesImplement().length);
     }
-    if (t.getSuperClass() != null) {
-      size = Math.max(size, t.getSuperClass().getDoesImplement().length);
-    }
-    size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size+1);
 
     // then create and populate it
     int[] mine = new int[size];
     if (t.isInterface()) {
       mine[t.getDoesImplementIndex()] = t.getDoesImplementBitMask();
-    }
-    if (t.getSuperClass() != null) {
+    } else {
       int[] parent = t.getSuperClass().getDoesImplement();
       for (int j=0; j<parent.length; j++) {
 	mine[j] |= parent[j];
