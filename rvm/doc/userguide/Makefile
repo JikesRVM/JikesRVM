@@ -8,8 +8,9 @@ GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
 OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
-OPT_BOOLEAN_DAT_FILES := ${OPTION_DIR}/BooleanOptions.dat
-OPT_VALUE_DAT_FILES := ${OPTION_DIR}/ValueOptions.dat
+SHARED_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/baseline
+OPT_BOOLEAN_DAT_FILES := ${SHARED_DIR}/SharedBooleanOptions.dat ${OPTION_DIR}/BooleanOptions.dat
+OPT_VALUE_DAT_FILES := ${SHARED_DIR}/SharedValueOptions.dat ${OPTION_DIR}/ValueOptions.dat
 OPT_DAT_FILES := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
 ADAPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
