@@ -196,14 +196,14 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     write (SysErrorFd, buf, sprintf (buf, "fs            0x%08x\n", sc->fs));
     write (SysErrorFd, buf, sprintf (buf, "es            0x%08x\n", sc->es));
     write (SysErrorFd, buf, sprintf (buf, "ds            0x%08x\n", sc->ds));
-    write (SysErrorFd, buf, sprintf (buf, "edi --(JTOC?) 0x%08x\n", sc->edi));
+    write (SysErrorFd, buf, sprintf (buf, "edi -- JTOC?  0x%08x\n", sc->edi));
     write (SysErrorFd, buf, sprintf (buf, "esi -- PR/VP  0x%08x\n", sc->esi));
-    write (SysErrorFd, buf, sprintf (buf, "ebp --(FP?)   0x%08x\n", sc->ebp));
+    write (SysErrorFd, buf, sprintf (buf, "ebp -- FP?    0x%08x\n", sc->ebp));
     write (SysErrorFd, buf, sprintf (buf, "esp -- SP     0x%08x\n", sc->esp));
     write (SysErrorFd, buf, sprintf (buf, "ebx           0x%08x\n", sc->ebx));
-    write (SysErrorFd, buf, sprintf (buf, "edx -- T1     0x%08x\n", sc->edx));
-    write (SysErrorFd, buf, sprintf (buf, "ecx -- S0     0x%08x\n", sc->ecx));
-    write (SysErrorFd, buf, sprintf (buf, "eax -- T0     0x%08x\n", sc->eax));
+    write (SysErrorFd, buf, sprintf (buf, "edx -- T1?    0x%08x\n", sc->edx));
+    write (SysErrorFd, buf, sprintf (buf, "ecx -- S0?    0x%08x\n", sc->ecx));
+    write (SysErrorFd, buf, sprintf (buf, "eax -- T0?    0x%08x\n", sc->eax));
     write (SysErrorFd, buf, sprintf (buf, "trapno        0x%08x\n", sc->trapno));
     write (SysErrorFd, buf, sprintf (buf, "err           0x%08x\n", sc->err));
     write (SysErrorFd, buf, sprintf (buf, "eip           0x%08x\n", sc->eip));
@@ -448,6 +448,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   /* set up context block to look like the artificial stack frame is returning  */
   sc->esp = (int) sp;
   sc->ebp = (int) fp;
+  *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
 
   /* setup to return to deliver hardware exception routine */
   sc->eip = javaExceptionHandlerAddress;
@@ -809,19 +810,20 @@ createJVM (int vmInSeparateThread)
   int ip   = bootRecord->ipRegister;
   int jtoc = bootRecord->tocRegister;
   int pr;
+  int *sp  = (int *) bootRecord->spRegister;
   {
   unsigned *processors = *(unsigned **)(bootRecord->tocRegister +
                                         bootRecord->processorsOffset);
   pr       = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
 
-  /* initialize the thread id field and the jtoc field in the primordial
+  /* initialize the thread id jtoc, and framepointer fields in the primordial
    * processor object.
    */
   *(unsigned int *) (pr + VM_Processor_threadId_offset) =
 		VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_Constants_OBJECT_THREAD_ID_SHIFT;
   *(unsigned int *) (pr + VM_Processor_jtoc_offset) = jtoc;
+  *(unsigned int *) (pr + VM_Processor_framePointer_offset) = (int)sp - 8;
   } 
-  int *sp  = (int *) bootRecord->spRegister;
 
   *--sp = 0xdeadbabe;		/* STACKFRAME_RETURN_ADDRESS_OFFSET */
   *--sp = VM_Constants_STACKFRAME_SENTINAL_FP;	/* STACKFRAME_FRAME_POINTER_OFFSET */
