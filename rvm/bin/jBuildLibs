@@ -95,7 +95,7 @@ $FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.
 cd $RVM_BUILD/RVM.classes
 
 # Create the file rvmrt.id, containing the date
-date -u +"%Y-%m-%d-%H-%M-%S" > rvmrt.id
+echo "R-`date -u +"%Y-%m-%d-%H-%M-%S"`" > rvmrt.id
 
 # Create the jar file
 $FIND . -type f | $GREP -v \.class\$ | $GREP -v rvmrt.id | $XARGS rm -f
