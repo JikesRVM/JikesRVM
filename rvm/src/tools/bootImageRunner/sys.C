@@ -1767,43 +1767,6 @@ sysVirtualProcessorYield()
 #endif
 }
 
-//
-// Taken -- address of an integer lockword
-//       -- value to store in the lockword to 'release' the lock
-// release the lockout word by storing the in it
-// and wait for a signal.
-extern "C" int
-sysPthreadSigWait( int UNUSED_SVP * lockwordAddress, 
-		   int UNUSED_SVP  lockReleaseValue )
-{
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-#else
-    sigset_t input_set, output_set;
-    int      sig;
-
-    *lockwordAddress = lockReleaseValue;
-
-    sigemptyset(&input_set);
-    sigaddset(&input_set, SIGCONT);
-#ifdef RVM_FOR_LINUX
-    pthread_sigmask(SIG_BLOCK, NULL, &output_set);
-#else
-    sigthreadmask(SIG_BLOCK, NULL, &output_set);
-#endif
-    sigwait(&input_set, &sig);
-
-    // if status has been changed to BLOCKED_IN_SIGWAIT (because of GC)
-    // sysYield until unblocked
-    //
-    while ( *lockwordAddress == 5 /*VM_Processor.BLOCKED_IN_SIGWAIT*/ )
-	sysVirtualProcessorYield();
-
-    return 0;
-#endif
-}
-
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
 // Stash id of the VM_Processor object in the thread-specific
 // data for the current pthread.  This allows us to get a handle

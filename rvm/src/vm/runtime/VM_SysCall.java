@@ -140,10 +140,6 @@ public class VM_SysCall implements VM_Uninterruptible {
    */
   public static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {}
   public static int sysPthreadSelf() { return 0; }
-  public static int sysPthreadSigWait(VM_Address lockwordAddress,
-				      int lockReleaseValue) {
-    return 0;
-  }
   public static int sysPthreadSignal(int pthread) { return 0; }
   public static void sysPthreadExit() {}
   public static int sysPthreadJoin(int pthread) { return 0; }

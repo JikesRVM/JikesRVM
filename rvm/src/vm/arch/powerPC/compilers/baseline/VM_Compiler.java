@@ -3414,21 +3414,6 @@ public class VM_Compiler extends VM_BaselineCompiler
       } else if (rtype.isLongType()) {
 	pushLong(T0, VM.BuildFor64Addr?T0:T1);
       }
-    } else if (methodName == VM_MagicNames.sysCallSigWait) {
-      int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-      int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-      popAddr(T0);	// t0 := address of VM_Registers object
-      VM_ForwardReference fr1 = asm.emitForwardBL();
-      fr1.resolve(asm);
-      asm.emitMFLR(0);
-      asm.emitSTAddr(0, ipOffset, T0 ); // store ip into VM_Registers Object
-      asm.emitLAddr(T0, gprsOffset, T0); // TO <- registers.gprs[]
-      asm.emitSTAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T0);  
-      peekInt(T0, 1);
-      peekInt(T1, 0);
-      generateSysCall1(2 * BYTES_IN_STACKSLOT);
-      discardSlots(3); // 2 args + ip
-      pushInt(T0);
     } else if (methodName == VM_MagicNames.getFramePointer) {
       pushAddr(FP); 
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
@@ -3979,37 +3964,6 @@ public class VM_Compiler extends VM_BaselineCompiler
     peekAddr(T3, 0);        // t3 := spills
     asm.emitBCCTRL();
     discardSlots(4);       // pop parameters
-  }
-
-  /** 
-   * Generate code for "int VM_Magic.sysCallSigWait(int ip, int val0, int val1)
-   * TODO: This code is almost dead....
-   * 
-   * @param rawParameterSize: number of bytes in parameters (not including IP)
-   */
-  private void generateSysCall1(int rawParametersSize) {
-    int ipIndex = rawParametersSize >> LOG_BYTES_IN_STACKSLOT; // where to access IP parameter
-    int linkageAreaSize   = rawParametersSize +		// values
-      BYTES_IN_STACKSLOT +		 	        // saveJTOC
-      (6 * BYTES_IN_STACKSLOT);		 		// backlink + cr + lr + res + res + TOC
-
-    peekAddr(0, ipIndex);              // load desired IP. MUST do before we change FP value
-    asm.emitMTCTR(0);                  // send to CTR so we can call it in a few instructions.
-
-    if (VM.BuildFor32Addr) {
-      asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
-    } else {
-      asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
-    }
-    asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
-
-    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset()); // load sysTOC into JTOC
-    asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
-
-    asm.emitBCCTRL();                             // call the desired function
-
-    asm.emitLAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);    // restore JTOC
-    asm.emitADDI (FP, linkageAreaSize, FP);        // remove linkage area
   }
 
   /** 

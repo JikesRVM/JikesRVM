@@ -784,11 +784,6 @@ public class VM_Magic {
     return null;
   }
 
-   public static int sysCallSigWait(VM_Address ip, VM_Address toc, VM_Address p0, 
-				    int p1, VM_Registers r){  
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-
   //-#if RVM_FOR_IA32
    /**
     * Set the floating-point rounding mode to round-towards-zero

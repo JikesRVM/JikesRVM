@@ -3085,61 +3085,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }	
     
-    /*
-     * A special version of sysCall2, for invoking sigWait and allowing
-     * collection of the frame making the call.  The signature of the
-     * magic is shared between powerPC and intel to simplify the caller.
-     * The signature is
-     * address to "call"
-     * toc or undefined for intel
-     * address of a lock/barrier which will be passed to sigWait
-     * value to store into the lock/barrier, also passed to sigWait.  
-     * the VM_Register object of the executing thread.
-     *
-     * The magic stores the current ip/fp into the VM_Register, to
-     * allow collection of this thread from the current frame and below.
-     * It then reverses the order of the two parameters on the stack to
-     * conform to C calling convention, and finally invokes sigwait.
-     *
-     * stack:
-     *	low memory
-     *		ip -- address of sysPthreadSigWait in sys.C
-     *		toc --
-     *          p1 -- address of lockword
-     *		p2 -- value to store in lockword
-     *          address of VM_Register object for this thread
-     *	high mem
-     * This to be invoked from baseline code only.
-     */
-    if (methodName == VM_MagicNames.sysCallSigWait) {
-
-      int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-      int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-      int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-
-      asm.emitMOV_Reg_RegInd(T0, SP);	                // T0 <- context register obj @
-      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));  // compute FP
-      asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);	// store fp in context
-      asm.emitCALL_Imm (asm.getMachineCodeIndex() + 5);
-      asm.emitPOP_Reg(T1);				// T1 <- IP
-      asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);	// store ip in context
-      asm.emitMOV_Reg_RegDisp(T0, T0, gprsOffset);	// T0 <- grps array @
-      asm.emitMOV_Reg_RegDisp(T1, SP, WORDSIZE);	// second arg
-      asm.emitMOV_Reg_RegDisp(S0, SP, 2*WORDSIZE);	// first arg
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- [sysPthreadSigWait @]
-      asm.emitADD_Reg_Imm(T0, 4*WORDSIZE);
-      asm.emitPUSH_Reg(JTOC);	// save JTOC aka EDI
-      asm.emitPUSH_Reg(T1);	// reorder arguments for C 
-      asm.emitPUSH_Reg(S0);	// reorder arguments for C
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);	// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore JTOC
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*4);	// pop all but last
-      asm.emitMOV_RegInd_Reg(SP, T0);	// overwrite last with return value
-
-      return true;
-    }
-    
     if (methodName == VM_MagicNames.getFramePointer) {
       asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));
       asm.emitPUSH_Reg       (S0);
