@@ -227,7 +227,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	  s.operator = INSTANCEOF_NOTNULL;
 	  return simplify(s);
 	}
-	VM_Type lhsType = TypeCheck.getType(s).type;
+	VM_Type lhsType = InstanceOf.getType(s).type;
 	VM_Type rhsType = ref.getType();
 	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
 	// NOTE: OPT_Constants.YES doesn't help because ref may be null and null instanceof T is false
@@ -242,7 +242,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
     case INSTANCEOF_NOTNULL_opcode:
       {
 	OPT_Operand ref = InstanceOf.getRef(s);
-	VM_Type lhsType = TypeCheck.getType(s).type;
+	VM_Type lhsType = InstanceOf.getType(s).type;
 	VM_Type rhsType = ref.getType();
 	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
 	if (ans == OPT_Constants.YES) {
