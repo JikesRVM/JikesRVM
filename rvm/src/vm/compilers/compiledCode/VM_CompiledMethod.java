@@ -43,6 +43,11 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   protected INSTRUCTION[] instructions; 
 
   /**
+   * The time in milliseconds taken to compile the method.
+   */
+  protected float compilationTime;
+
+  /**
    * A bit field.  The upper 4 bits are reserved for use by 
    * VM_CompiledMethod.  Subclasses may use the lower 28 bits for their own
    * purposes.
@@ -126,7 +131,8 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     return (bitField1 & OBSOLETE) != 0;
   }
 
-
+  public final double getCompilationTime() { return (double)compilationTime; }
+  public final void setCompilationTime(double ct) { compilationTime = (float)ct; }
 
   /**
    * Identify the compiler that produced this compiled method.

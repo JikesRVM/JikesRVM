@@ -74,7 +74,13 @@ public class VM_Properties extends VM_Configuration {
    * The following is set on by -X:measureCompilation=true command line arg.
    * When true, it times compilations and generates a report at VM exit.
    */
-  public static boolean MeasureCompilation      = false;  
+  public static boolean MeasureCompilation = false;  
+
+  /**
+   * Accumulate per java thread CPU time.
+   * Used by AOS and MeasureCompilation to get accurate compilation times.
+   */
+  public static boolean EnableCPUMonitoring = VM_Configuration.BuildForAdaptiveSystem;
 
   /**
    * The following is set on by -X:verify=true command line arg.

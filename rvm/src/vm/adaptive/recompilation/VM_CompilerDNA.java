@@ -16,7 +16,7 @@ import java.util.*;
  *
  * @author: Michael Hind
  */
-class VM_CompilerDNA implements VM_Constants {
+public class VM_CompilerDNA implements VM_Constants {
 
   private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
   final static int BASELINE = 0;

@@ -631,9 +631,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     myThread.exit(); 
 
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-    if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
-//-#endif
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    VM_RuntimeMeasurements.monitorThreadExit();
+    //-#endif
 
     synchronized (myThread) { // release anybody waiting on this thread - 
 
@@ -1350,10 +1350,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   boolean        stackBufferSame;    // are the two stack buffers the same?
   static int     maxThreadIndex = 16;
   
-  // Cpu utilization statistics, used if "VM_BuildForCpuMonitoring == true".
+  // Cpu utilization statistics, used if "VM_Properties.EnableCPUMonitoring == true".
   //
   double cpuStartTime = -1;  // time at which this thread started running on a cpu (-1: has never run, 0: not currently running)
-  double         cpuTotalTime;       // total cpu time used by this thread so far, in seconds
+  double cpuTotalTime;       // total cpu time used by this thread so far, in seconds
 
   // Network utilization statistics, used if "VM_BuildForNetworkMonitoring == true".
   //

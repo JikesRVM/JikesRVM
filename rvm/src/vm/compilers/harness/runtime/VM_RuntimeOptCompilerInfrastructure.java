@@ -77,10 +77,10 @@ public class VM_RuntimeOptCompilerInfrastructure
       VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
     }
     
-    Timer timer = null; // Only used if VM.MeasureCompilation 
-    if (VM.MeasureCompilation) {
-      timer = new Timer();
-      timer.start();
+    double start = 0;
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      start = updateStartAndTotalTimes(now);
     }
 
     //-#if RVM_FOR_IA32
@@ -102,11 +102,14 @@ public class VM_RuntimeOptCompilerInfrastructure
     }
     //-#endif
 
-    if (VM.MeasureCompilation) {
-      timer.finish();
-      record(OPT_COMPILER, method, cm, timer);
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      double end = updateStartAndTotalTimes(now);
+      double compileTime = (end - start) * 1000; // convert to milliseconds
+      cm.setCompilationTime(compileTime);
+      record(OPT_COMPILER, method, cm);
     }
-
+    
     return cm;
   }
   

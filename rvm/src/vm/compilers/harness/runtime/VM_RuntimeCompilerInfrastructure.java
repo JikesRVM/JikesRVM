@@ -40,19 +40,18 @@ import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
  * @author Mike Hind
  */
 public class VM_RuntimeCompilerInfrastructure
-  implements VM_Constants, VM_Callbacks.ExitMonitor
-{
+  implements VM_Constants, VM_Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
   public static final byte BASELINE_COMPILER = 0;
-  public static final byte OPT_COMPILER      = 2;
+  public static final byte OPT_COMPILER      = 1;
 
   // Data accumulators
-  private static final String name[]         = {"Base\t","\t","Opt\t"};   // Output names
-  private static int total_methods[]         = {0,0,0};                        // (1)
-  private static double total_time[]         = {0.0,0.0,0.0};                  // (2)
-  private static int total_bcodeLen[]        = {0,0,0};                        // (3)
-  private static int total_mcodeLen[]        = {0,0,0};                        // (4)
+  private static final String name[]         = {"Base\t","Opt\t"};   // Output names
+  private static int total_methods[]         = {0,0};                // (1)
+  private static double total_time[]         = {0.0,0.0};            // (2)
+  private static int total_bcodeLen[]        = {0,0};                // (3)
+  private static int total_mcodeLen[]        = {0,0};                // (4)
 
   /**
    * To be called when the VM is about to exit.
@@ -71,15 +70,18 @@ public class VM_RuntimeCompilerInfrastructure
    * @param timer the timer hold the time used for compilation
    */
   public static void record(byte compiler, VM_Method method, 
-			    VM_CompiledMethod compiledMethod, Timer timer) {
-
-    // we don't count native methods.  They don't have any bytecodes
-    if (timer.validTiming() && !method.isNative()) {
+			    VM_CompiledMethod compiledMethod) {
+    
+    // KLUDGE: The baseline compiler is currently also used to compile
+    //         native methods (which don't have bytecodes).
+    // TODO: Compile stub frames for native methods directly with 
+    //       JNICompiler and record it properly here.
+    if (!method.isNative()) {
       total_methods[compiler]++;
       total_bcodeLen[compiler] += method.getBytecodes().length;
       total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
       if (VM.MeasureCompilation) {
-	total_time[compiler] += timer.elapsedTime();
+	total_time[compiler] += compiledMethod.getCompilationTime();
       }
     }
   }
@@ -98,10 +100,10 @@ public class VM_RuntimeCompilerInfrastructure
 	VM.sysWrite(total_methods[i], false);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite(VM_Time.toMilliSecs(total_time[i]), false);
+	VM.sysWrite((int)total_time[i], false);
 	VM.sysWrite("\t");
 	// Bytecode bytes per millisecond
-	printRatio(total_bcodeLen[i], VM_Time.toMilliSecs(total_time[i]), 2);
+	printRatio(total_bcodeLen[i], (int)total_time[i], 2);
 	VM.sysWrite("\t");
 	// Ratio of machine code bytes to bytecode bytes
 	printRatio(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH, total_bcodeLen[i], 2);
@@ -166,68 +168,40 @@ public class VM_RuntimeCompilerInfrastructure
    * @param time the total time
    */
   public static void printPercentage(double phaseTime, double time) {
-    printRatio(VM_Time.toMilliSecs(phaseTime)*100,
-	       VM_Time.toMilliSecs(time), 2);
+    printRatio((int)(phaseTime*100), (int)time, 2);
   }
 
-
   /**
-   * This method will compile the passed method using our "quicker" compiler.
-   * Currently, this is the baseline compiler.
+   * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
    */
   public static VM_CompiledMethod baselineCompile(VM_Method method) {
-    Timer timer = null; // Only used if VM.MeasureCompilation 
-    if (VM.MeasureCompilation) {
-      timer = new Timer();
-      timer.start();
+    double start = 0;
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      start = updateStartAndTotalTimes(now);
     }
 
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
-    if (VM.MeasureCompilation) {
-      timer.finish();
-      record(BASELINE_COMPILER, method, cm, timer);
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+      double now = VM_Time.now();
+      double end = updateStartAndTotalTimes(now);
+      double compileTime = (end - start) * 1000; // convert to milliseconds
+      cm.setCompilationTime(compileTime);
+      record(BASELINE_COMPILER, method, cm);
     }
     
     return cm;
-   }
+  }
 
   /**
-   * A class to record compilation times
+   * Support for timing compilation accurately by accumulating CPU on the Java thread.
    */
-  public static class Timer {
-    private static final boolean EXCLUDE_GC = true; 
-    private double startTime; 
-    private double endTime;   
-    private int gc_epoch;     
-    private long startTick;   
-    private long endTick;     
-
-    public double elapsedTime() { return endTime - startTime; }
-    public long elapsedTicks() { return endTick - startTick; }
-    public boolean validTiming() { return !EXCLUDE_GC || gc_epoch != -1; }
-    
-    Timer() { }
-    
-    public void start() {
-      if (EXCLUDE_GC) {
-	gc_epoch = VM_CollectorThread.collectionCount;
-      }
-      if (VM.MeasureCompilation) {
-	startTime = VM_Time.now();
-      }
-    }
-
-    public void finish() {
-      if (EXCLUDE_GC && gc_epoch != VM_CollectorThread.collectionCount) {
-	VM.sysWrite("Not timing compilation due to intervening GC");
-	gc_epoch = -1; // 
-      } else {
-	if (VM.MeasureCompilation) {
-	  endTime = VM_Time.now();
-	}
-      }
-    }
+  protected static double updateStartAndTotalTimes(double now) {
+    VM_Thread t = VM_Thread.getCurrentThread();
+    t.setCPUTotalTime(t.getCPUTotalTime() + (now - t.getCPUStartTime()));
+    t.setCPUStartTime(now);
+    return t.getCPUTotalTime();
   }
 }

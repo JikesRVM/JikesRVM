@@ -167,11 +167,12 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
 
     if (VM.BuildForConcurrentGC) newThread.stackBufferNeedScan = true;
 
-    if (VM.BuildForCpuMonitoring) {
+    if (VM.EnableCPUMonitoring) {
       double now = VM_Time.now();
       // primordial thread: ignore first time slice
-      if (previousThread.cpuStartTime == -1) ; 
-      else previousThread.cpuTotalTime += now - previousThread.cpuStartTime;
+      if (previousThread.cpuStartTime != -1) {
+	previousThread.cpuTotalTime += now - previousThread.cpuStartTime;
+      }
       previousThread.cpuStartTime = 0;    // this thread has stopped running
       newThread.cpuStartTime = now;  // this thread has started running
     }

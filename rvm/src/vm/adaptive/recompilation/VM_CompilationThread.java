@@ -67,19 +67,9 @@ class VM_CompilationThread extends VM_Thread {
       VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
     }
     
-    // Update compilation thread timing information to prepare for new run.
-    double now = VM_Time.now();
-    double start = updateStartAndTotalTimes(now);
-
     // Compile the method.
     int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
 
-    // Update compilation thread timing information and compute time 
-    // taken during this compilation.
-    now = VM_Time.now();
-    double end = updateStartAndTotalTimes(now);
-    double compileTime = (end - start) * 1000.0; // Convert seconds to milliseconds.
-      
     // transfer the samples from the old CMID to the new CMID.
     // scale the number of samples down by the expected speedup 
     // in the newly compiled method.
@@ -101,7 +91,6 @@ class VM_CompilationThread extends VM_Thread {
     }
 
     plan.setCMID(newCMID);
-    plan.setCompilationCPUTime(compileTime);
     plan.setTimeCompleted(VM_Controller.controllerClock);
     if (VM.LogAOSEvents) {
       if (newCMID == -1) {
@@ -110,12 +99,6 @@ class VM_CompilationThread extends VM_Thread {
 	VM_AOSLogging.recompilationCompleted(cp);
       }
     }
-  }
-
-  private double updateStartAndTotalTimes(double now) {
-    setCPUTotalTime(getCPUTotalTime() + (now - getCPUStartTime()));
-    setCPUStartTime(now);
-    return getCPUTotalTime();
   }
 
 }

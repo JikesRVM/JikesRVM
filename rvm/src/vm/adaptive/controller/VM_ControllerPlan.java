@@ -71,11 +71,6 @@ final class VM_ControllerPlan {
   private int timeCompleted = -1;
 
   /**
-   *  The CPU time it took for the compilation
-   */
-  private double compilationCPUTime;
-
-  /**
    *  The speedup we were expecting
    */
   private double expectedSpeedup;
@@ -195,14 +190,6 @@ final class VM_ControllerPlan {
 
 
   /**
-   * The CPU time in milliseconds actually consumed by the compilation
-   * thread to execute this plan. 
-   */
-  public double getCompilationCPUTime() { return compilationCPUTime; }
-  public void setCompilationCPUTime(double t) { compilationCPUTime = t; }
-
-
-  /**
    * CMID (compiled method id) associated with the code produced 
    * by executing this plan
    */
@@ -271,7 +258,6 @@ final class VM_ControllerPlan {
 	       +"\n\tCreated at "+ timeCreated
 	       +"\n\tInitiated at "+ timeInitiated
 	       +"\n\tCompleted at "+ timeCompleted
-	       +"\n\tCPU Time Consumed: "+ compilationCPUTime
 	       +"\n\tExpected Speedup: "+ expectedSpeedup
 	       +"\n\tPriority: "+ priority
 	       +"\n\tStatus: "+ getStatusString()

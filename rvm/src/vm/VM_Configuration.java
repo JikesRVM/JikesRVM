@@ -188,17 +188,6 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
-  // Operating system resource monitoring.
-  //
-  // Getting accurate compilation time information is critical for
-  // good adaptive system performance.
-  public static final boolean BuildForCpuMonitoring = 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
-        true;
-      //-#else
-        false;
-      //-#endif
-
   // Adaptive compilation.
   //
   public static final boolean LogAOSEvents =
