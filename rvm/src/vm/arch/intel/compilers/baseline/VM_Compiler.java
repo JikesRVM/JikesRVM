@@ -2912,25 +2912,31 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
                                                 VM.deterministicThreadSwitchInterval);
 
       if (whereFrom == VM_Thread.PROLOGUE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset()); 
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
       } else if (whereFrom == VM_Thread.BACKEDGE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset()); 
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
       } else { // EPILOGUE
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset()); 
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
       }
       fr1.resolve(asm);
     } else {
       // thread switch requested ??
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
-                                                     VM_Entrypoints.threadSwitchRequestedField.getOffset(),
+                                                     VM_Entrypoints.takeYieldpointField.getOffset(),
                                                      0);
-      VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
+      VM_ForwardReference fr1;
       if (whereFrom == VM_Thread.PROLOGUE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset()); 
+        // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+        fr1 = asm.forwardJcc(asm.EQ);
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset()); 
       } else if (whereFrom == VM_Thread.BACKEDGE) {
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset()); 
+        // Take yieldpoint if yieldpoint flag is >0
+        fr1 = asm.forwardJcc(asm.LE);
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset()); 
       } else { // EPILOGUE
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset()); 
+        // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+        fr1 = asm.forwardJcc(asm.EQ);
+        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset()); 
       }
       fr1.resolve(asm);
     }
@@ -3874,10 +3880,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
 
   //-#if RVM_WITH_OSR
-  protected final void emit_threadSwitch(int whereFrom) {
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset());
-  }
-
   /**
    * Emit code to invoke a compiled method (with known jtoc offset).
    * Treat it like a resolved invoke static, but take care of

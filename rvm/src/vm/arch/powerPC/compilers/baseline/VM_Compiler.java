@@ -3085,6 +3085,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLIntX      (scratch, counterIdx, counters);
     asm.emitADDI     (scratch, 1, scratch);
     asm.emitRLWINM  (scratch, scratch, 0, 1, 31);
+        if (VM.VerifyAssertions) VM._assert(false);
     asm.emitSTWX     (scratch, counterIdx, counters);
   }    
 
@@ -3103,17 +3104,22 @@ public class VM_Compiler extends VM_BaselineCompiler
         // If counter greater than 0, branch around call to yield
         asm.emitCMPI(S0, 0);
         fr = asm.emitForwardBC(GT);
-      } else { // yield if threadSwitchRequestedField lt 0.
-        asm.emitLInt(S0, VM_Entrypoints.threadSwitchRequestedField.getOffset(), PROCESSOR_REGISTER);
+      } else { // yield if takeYieldpoint is non-zero.
+        asm.emitLInt(S0, VM_Entrypoints.takeYieldpointField.getOffset(), PROCESSOR_REGISTER);
         asm.emitCMPI(S0, 0); 
-        fr = asm.emitForwardBC(GE);
       }
       if (whereFrom == VM_Thread.PROLOGUE) {
-        asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset(), JTOC);
+        // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+        fr = asm.emitForwardBC(EQ);
+        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromPrologueMethod.getOffset(), JTOC);
       } else if (whereFrom == VM_Thread.BACKEDGE) {
-        asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromBackedgeMethod.getOffset(), JTOC);
+        // Take yieldpoint if yieldpoint flag is >0
+        fr = asm.emitForwardBC(LE);
+        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromBackedgeMethod.getOffset(), JTOC);
       } else { // EPILOGUE
-        asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromEpilogueMethod.getOffset(), JTOC);
+        // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
+        fr = asm.emitForwardBC(EQ);
+        asm.emitLAddr(S0, VM_Entrypoints.yieldpointFromEpilogueMethod.getOffset(), JTOC);
       }
       asm.emitMTCTR(S0);
       asm.emitBCCTRL();
@@ -3308,14 +3314,6 @@ public class VM_Compiler extends VM_BaselineCompiler
 
 
   //-#if RVM_WITH_OSR
-  protected final void emit_threadSwitch(int whereFrom) {
-    if (whereFrom == VM_Thread.OSRBASE) {
-      asm.emitLAddr(S0, VM_Entrypoints.threadSwitchFromOsrBaseMethod.getOffset(), JTOC);
-      asm.emitMTCTR(S0);
-      asm.emitBCCTRL();
-    }
-  }
-
   protected final void emit_loadaddrconst(int bcIndex) {
     asm.emitBL(1, 0);
     asm.emitMFLR(T1);                   // LR +  0

@@ -13,7 +13,13 @@ V maxSystemTroubleRecursionDepth int  3
 If we get deeper than this in one of the System Trouble functions, try to die.
 
 
-V interruptQuantum int 10
+# NOTE: Although this option can be set to arbitrary values,
+#       setting it to a smaller quantum than what is actually supported
+#       by pthread nanosleep on the target platform will reduce the 
+#       effectiveness of the Adaptive System.  Therefore, this setting
+#       should be verified by running a relatively long running program
+#       on an unload machine and enabling -X:aos:reportInterruptStats=true
+V interruptQuantum int (VM.BuildForLinux&&VM.BuildForIA32)?20:10
 Timer interrupt scheduling quantum in ms
 
 
@@ -31,4 +37,5 @@ Trace every nth time a stack trace is created
 
 V EdgeCounterFile String null edgeCounterFile
 Input file of edge counter profile data
+
 

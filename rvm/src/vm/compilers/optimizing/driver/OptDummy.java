@@ -16,7 +16,6 @@ import com.ibm.JikesRVM.opt.*;
  */
 class OptDummy {
   static OPT_Compiler a;
-  static OPT_StaticInlineOracle f;
   VM_OptSaveVolatile g;
   static OPT_SpecializedMethodPool q;
 }

@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.opt.VM_OptCompiledMethod;
 
 /**
@@ -33,10 +34,8 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
    * @param filterOptLevel   filter out all opt-compiled methods that 
    *                         were compiled at this level or higher
    */
-  VM_MethodSampleOrganizer(VM_MethodListener listener, int filterOptLevel) {
-    this.listener         = listener;
+  VM_MethodSampleOrganizer(int filterOptLevel) {
     this.filterOptLevel   = filterOptLevel;
-    listener.setOrganizer(this);
     makeDaemon(true);
   }
 
@@ -47,8 +46,12 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
     if (VM.LogAOSEvents) 
       VM_AOSLogging.methodSampleOrganizerThreadStarted(filterOptLevel);
 
-    // Install my listener
-    VM_RuntimeMeasurements.installMethodListener((VM_MethodListener)listener);
+    int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
+    VM_MethodListener methodListener = new VM_MethodListener(numSamples);
+    listener = methodListener;
+    listener.setOrganizer(this);
+    
+    VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
   }
 
   /**

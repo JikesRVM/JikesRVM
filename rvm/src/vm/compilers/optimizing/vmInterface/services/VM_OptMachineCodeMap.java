@@ -136,33 +136,50 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   }
 
   /**
-   * This method searches the machine code maps and determines if
-   * there is a call instruction in the compiled code that corresponds to
-   * a source level call of <caller, bytecodeIndex>.
-   * It only returns true when the callsite is defintely present and
-   * is not the off-branch of a guarded inlining.
-   * 
-   * @param caller  the source-level caller method
-   * @param bcIndex the bci of the source-level call
+   * @return an arraylist of VM_CallSite objects representing all non-inlined
+   *         callsites in the method. Returns null if there are no such callsites.
    */
-  public boolean callsitePresent(VM_Method caller, 
-                                 int bcIndex) {
-    if (MCInformation == null) return false;
+  public java.util.ArrayList getNonInlinedCallSites() throws InterruptiblePragma {
+    java.util.ArrayList ans = null;
+    if (MCInformation == null) return ans;
     for (int entry = 0; entry < MCInformation.length;) {
-      if (getBytecodeIndex(entry) == bcIndex) {         // bytecode matches
-        int iei = getInlineEncodingIndex(entry);
-        if (iei != -1) {
-          int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-          if (mid == caller.getId()) {        // caller matches
-            int callInfo = getCallInfo(entry);
-            if (callInfo == IS_UNGUARDED_CALL) return true;
+      int callInfo = getCallInfo(entry);
+      if (callInfo == IS_UNGUARDED_CALL) {
+        int bcIndex = getBytecodeIndex(entry);
+        if (bcIndex != -1) {
+          int iei = getInlineEncodingIndex(entry);
+          if (iei != -1) {
+            int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+            VM_Method caller = VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+            if (caller != null) {
+              if (ans == null) ans = new java.util.ArrayList();
+              ans.add(new com.ibm.JikesRVM.adaptive.VM_CallSite(caller, bcIndex));
+            }
           }
         }
       }
       entry = nextEntry(entry);
     }
-    return false;
+    return ans;
   }
+  
+  /**
+   * This method searches the machine code maps and determines if
+   * the given call edge is definitely inlined into the method.
+   * NOTE: This current implementation may return false even if the
+   * edge actually was inlined.  This happens when no GC point occurs within
+   * the inlined body.  This is less than ideal; we need to fix this at some point.
+   * @param caller caller VM_Method
+   * @param bcIndex bytecode index of the caller method
+   * @param callee callee VM_Method
+   * @return true if the call edge is <em>definitely</em> inlined in this compiled method.
+   */
+  public boolean hasInlinedEdge(VM_Method caller, int bcIndex, VM_Method callee) {
+    if (MCInformation == null) return false;
+    if (inlineEncoding == null) return false;
+    return VM_OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
+  }
+  
 
   /**
    * Returns the GC map information for the GC map information entry passed

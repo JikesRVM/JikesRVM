@@ -225,15 +225,18 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
         break;
 
       case YIELDPOINT_PROLOGUE_opcode:
-        expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod);
+        expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod,
+                         OPT_IA32ConditionOperand.NE());
         break;
 
       case YIELDPOINT_EPILOGUE_opcode:
-        expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod);
+        expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod,
+                         OPT_IA32ConditionOperand.NE());
         break;
 
       case YIELDPOINT_BACKEDGE_opcode:
-        expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod);
+        expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod,
+                         OPT_IA32ConditionOperand.GT());
         break;
 
       //-#if RVM_WITH_OSR
@@ -348,7 +351,8 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 
   private static void expandYieldpoint(OPT_Instruction s,
                                        OPT_IR ir,
-                                       VM_Method meth) {
+                                       VM_Method meth,
+                                       OPT_IA32ConditionOperand ypCond) {
     if (VM.VerifyAssertions) VM._assert(ir.options.FIXED_JTOC);
 
     // split the basic block after the yieldpoint, create a new
@@ -380,10 +384,10 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
+    int tsr = VM_Entrypoints.takeYieldpointField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
-    thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),
+    thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, ypCond,
                                                       yieldpoint.makeJumpTarget(),
                                                       OPT_BranchProfileOperand.never()));
   }

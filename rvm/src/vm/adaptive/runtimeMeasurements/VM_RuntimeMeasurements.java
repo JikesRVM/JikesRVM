@@ -4,15 +4,11 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 import java.util.Vector;
 import java.util.Enumeration;
-import com.ibm.JikesRVM.VM;
-import org.vmmagic.unboxed.*;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Thread;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 
 /**
  * RuntimeMeasurements manages listeners, decayable objects, and 
@@ -32,156 +28,146 @@ import org.vmmagic.unboxed.*;
  *
  * A reportable object implements the Reportable interface, and 
  * is typically registered and used by the instrumentation subsystem. 
- * A reportReporableObject can be reset, and reported.
+ * A Reporable can be reset and reported.
  * 
  * @author Matthew Arnold
  * @author Stephen Fink
+ * @author Dave Grove
  * @modified Peter Sweeney
  */
 public abstract class VM_RuntimeMeasurements {
 
+  /////////////////////////////////////////////////////////////////////////
+  // Support for gathering profile data on timer ticks
+  /////////////////////////////////////////////////////////////////////////
+  
   /**
-   * listeners for methods
+   * listeners on timer ticks for methods
    */
-  static VM_MethodListener[] methodListeners = new VM_MethodListener[0];
-  /**
-   * listeners for contexts
-   */
-  static VM_ContextListener[] contextListeners = new VM_ContextListener[0];
-  /**
-   * listeners for nulls
-   */
-  static VM_NullListener[] nullListeners = new VM_NullListener[0];
+  private static VM_MethodListener[] timerMethodListeners = new VM_MethodListener[0];
 
-  private static int activateMethodListeners_count = 0;
-  private static int activateContextListeners_count = 0;
-  private static int activateNullListeners_count = 0;
   /**
-   * Install a method listener
+   * listeners on timer ticks for contexts
+   */
+  private static VM_ContextListener[] timerContextListeners = new VM_ContextListener[0];
+
+  /**
+   * listeners on timer ticks for nulls
+   */
+  private static VM_NullListener[] timerNullListeners = new VM_NullListener[0];
+
+  /**
+   * Install a method listener on timer ticks
    * @param s method listener to be installed
    */
-  static synchronized void installMethodListener(VM_MethodListener s) { 
-    int numListeners = methodListeners.length;
+  static synchronized void installTimerMethodListener(VM_MethodListener s) { 
+    int numListeners = timerMethodListeners.length;
     VM_MethodListener[] tmp = new VM_MethodListener[numListeners+1];
     for (int i=0; i<numListeners; i++) {
-      tmp[i] = methodListeners[i];
+      tmp[i] = timerMethodListeners[i];
     }
     tmp[numListeners] = s;
-    methodListeners = tmp;
+    timerMethodListeners = tmp;
   }
 
   /**
-   * Install a context listener
+   * Install a context listener on timer ticks
    * @param s context listener to be installed
    */
-  static synchronized void installContextListener(VM_ContextListener s) { 
-    int numListeners = contextListeners.length;
+  static synchronized void installTimerContextListener(VM_ContextListener s) { 
+    int numListeners = timerContextListeners.length;
     VM_ContextListener[] tmp = new VM_ContextListener[numListeners+1];
     for (int i=0; i<numListeners; i++) {
-      tmp[i] = contextListeners[i];
+      tmp[i] = timerContextListeners[i];
     }
     tmp[numListeners] = s;
-    contextListeners = tmp;
+    timerContextListeners = tmp;
   }
 
   /**
-   * Install a null listener
+   * Install a null listener on timer ticks
    * @param s null listener to be installed
    */
-  static synchronized void installNullListener(VM_NullListener s) { 
-    int numListeners = nullListeners.length;
+  static synchronized void installTimerNullListener(VM_NullListener s) { 
+    int numListeners = timerNullListeners.length;
     VM_NullListener[] tmp = new VM_NullListener[numListeners+1];
     for (int i=0; i<numListeners; i++) {
-      tmp[i] = nullListeners[i];
+      tmp[i] = timerNullListeners[i];
     }
     tmp[numListeners] = s;
-    nullListeners = tmp;
+    timerNullListeners = tmp;
   }
 
   /**
-   * Determine if at least one active method listener exists
-   * @return true if at least one active method listener
+   * Called from VM_Thread.yieldpoint every time it is invoked due to
+   * a timer interrupt. When invoked, the callstack must be as follows:
+   *   <..stuff..>
+   *   <method that executed the taken yieldpoint>
+   *   wrapper method
+   *   VM_Thread.yieldpoint
+   *   takeAOSTimerSample
    */
-  public static boolean hasMethodListener() throws UninterruptiblePragma { 
-    VM_Listener[] tmp = methodListeners; // side-step dangerous race condition
-    for (int i=0; i<tmp.length; i++) {
-      if (tmp[i].isActive()) return true;
-    }
-    return false;
-  }
-  /**
-   * Determine if at least one active context listener exists
-   * @return true if at least one active context listener
-   */
-  public static boolean hasContextListener() throws UninterruptiblePragma { 
-    VM_Listener[] tmp = contextListeners; // side-step dangerous race condition
-    for (int i=0; i<tmp.length; i++) {
-      if (tmp[i].isActive()) return true;
-    }
-    return false;
-  }
-  /**
-   * Determine if at least one active null listener exists
-   * @return true if at least one active null listener
-   */
-  public static boolean hasNullListener() throws UninterruptiblePragma { 
-    VM_Listener[] tmp = nullListeners; // side-step dangerous race condition
-    for (int i=0; i<tmp.length; i++) {
-      if (tmp[i].isActive()) return true;
-    }
-    return false;
-  }
+  public static void takeTimerSample(int whereFrom) throws UninterruptiblePragma {
+    // We use threadswitches as a rough approximation of time. 
+    // Every threadswitch is a clock tick.
+    // TODO: kill controller clock in favor of VM_Processor.reportedTimerTicks
+    VM_Controller.controllerClock++;
 
-  /**
-   * Notify RuntimeMeasurements that method listeners should be activated
-   *
-   * @param cmid a compiled method id
-   * @param callerCmid a compiled method id for the caller, -1 if none
-   * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *           EPILOGUE?
-   */
-  public static void activateMethodListeners(int cmid, int callerCmid, int whereFrom) throws UninterruptiblePragma {
-    activateMethodListeners_count++;     
-    VM_MethodListener[] tmp = methodListeners; // side-step dangerous race condition
-    for (int i=0; i<tmp.length; i++) {
-      if (tmp[i].isActive()) {
-        tmp[i].update(cmid, callerCmid, whereFrom);
+    //
+    // "The idle thread is boring, and does not deserve to be sampled"
+    //                           -- AOS Commandment Number 1
+    if (!VM_Thread.getCurrentThread().isIdleThread()) {
+      // Crawl stack to get to the frame in which the yieldpoint was taken
+      // NB: depends on calling structure described in method comment!!!
+      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
+      fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint          
+
+      // Get the cmid for the method in which the yieldpoint was taken.
+      int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
+
+      // Get the cmid for that method's caller.
+      Address ypTakenInCallerFP = VM_Magic.getCallerFramePointer(ypTakenInFP);
+      int ypTakenInCallerCMID = VM_Magic.getCompiledMethodID(ypTakenInCallerFP);
+      
+      // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
+      // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
+      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
+      //    Caller is a native method
+      VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
+      if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
+          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
+        ypTakenInCallerCMID = -1;  
+      } 
+
+      // Notify all registered listeners
+      VM_NullListener[] nl = timerNullListeners; // side-step dangerous race condition
+      for (int i=0; i<nl.length; i++) {
+        if (nl[i].isActive()) {
+          nl[i].update(whereFrom);
+        }
+      }
+      VM_MethodListener[] ml = timerMethodListeners; // side-step dangerous race condition
+      for (int i=0; i<ml.length; i++) {
+        if (ml[i].isActive()) {
+          ml[i].update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
+        }
+      }
+      if (ypTakenInCallerCMID != -1) {
+        VM_ContextListener[] cl = timerContextListeners; // side-step dangerous race condition
+        for (int i=0; i<cl.length; i++) {
+          if (cl[i].isActive()) {
+            cl[i].update(ypTakenInFP, whereFrom);
+          }
+        }
       }
     }
   }
 
-  /**
-   * Notify RuntimeMeasurements that context listeners should be activated.
-   *
-   * @param sfp         a pointer to a stack frame
-   * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *         EPILOGUE?
-   */
-  public static void activateContextListeners(Address sfp, int whereFrom) throws UninterruptiblePragma {
-    activateContextListeners_count++;     
-    VM_ContextListener[] tmp = contextListeners; // side-step dangerous race condition
-    for (int i=0; i<tmp.length; i++) {
-      if (tmp[i].isActive()) {
-        tmp[i].update(sfp, whereFrom);
-      }
-    }
-  }
-
-  /**
-   * Notify RuntimeMeasurements that null listeners should be activated.
-   * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *         EPILOGUE?
-   */
-  public static void activateNullListeners(int whereFrom) throws UninterruptiblePragma {
-    activateNullListeners_count++;     
-    VM_NullListener[] tmp = nullListeners; // side-step dangerous race condition
-    for (int i=0; i<tmp.length; i++) {
-      if (tmp[i].isActive()) {
-        tmp[i].update(whereFrom);
-      }
-    }
-  }
-
+  /////////////////////////////////////////////////////////////////////////
+  // Support for decay
+  /////////////////////////////////////////////////////////////////////////
+  
   /**
    * The currently registered decayable objects
    */
@@ -213,6 +199,10 @@ public abstract class VM_RuntimeMeasurements {
       obj.decay();
     }
   }
+
+  /////////////////////////////////////////////////////////////////////////
+  // Support for reportable objects
+  /////////////////////////////////////////////////////////////////////////
 
   /**
    * The currently registered reportable objects
@@ -253,9 +243,6 @@ public abstract class VM_RuntimeMeasurements {
     reportReportableObjects();
     
     if (VM.LogAOSEvents) {
-      VM_AOSLogging.listenerStatistics(activateMethodListeners_count,
-                                       activateContextListeners_count,
-                                       activateNullListeners_count);
       VM_AOSLogging.decayStatistics(decayEventCounter);
 
       for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
@@ -271,9 +258,9 @@ public abstract class VM_RuntimeMeasurements {
    * Stop the runtime measurement subsystem
    */
   static synchronized void stop() {
-    methodListeners = new VM_MethodListener[0];
-    contextListeners = new VM_ContextListener[0];
-    nullListeners = new VM_NullListener[0];
+    timerMethodListeners = new VM_MethodListener[0];
+    timerContextListeners = new VM_ContextListener[0];
+    timerNullListeners = new VM_NullListener[0];
   }
     
   /**

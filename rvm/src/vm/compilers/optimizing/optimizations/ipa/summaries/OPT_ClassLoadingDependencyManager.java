@@ -25,12 +25,15 @@ public final class OPT_ClassLoadingDependencyManager {
   ////////////////////////
   // Entrypoints from VM_Class
   ////////////////////////
-  public synchronized void classInitialized(VM_Class c) {
+  public synchronized void classInitialized(VM_Class c,
+                                            boolean writingBootImage) {
     // Process any dependencies on methods not being overridden.
-    if (DEBUG)
-      report("CLDM: " + c + " is about to be marked as initialized.\n");
-    handleOverriddenMethods(c);
-    handleSubclassing(c);
+    if (!writingBootImage) {
+      if (DEBUG)
+        report("CLDM: " + c + " is about to be marked as initialized.\n");
+      handleOverriddenMethods(c);
+      handleSubclassing(c);
+    }
     OPT_InterfaceHierarchy.notifyClassInitialized(c);
   }
 
@@ -77,23 +80,36 @@ public final class OPT_ClassLoadingDependencyManager {
     VM_Method[] c_methods = c.getVirtualMethods();
     for (int i = 0; i < sc_methods.length; i++) {
       if (sc_methods[i] != c_methods[i]) {
-        VM_Method overridden = sc_methods[i];
-        java.util.Iterator invalidatedMethods = 
-            db.invalidatedByOverriddenMethod(overridden);
-        if (invalidatedMethods != null) {
-          while (invalidatedMethods.hasNext()) {
-            int cmid = ((Integer)invalidatedMethods.next()).intValue();
-            VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
-            if (im != null) { // im == null implies that the code has been GCed already
-              invalidate(im);
-            }
-          }
-          db.removeNotOverriddenDependency(overridden);
+        processOverride(sc_methods[i]);
+      }
+    }
+    // for each interface implmented by c, note that c provides an overridding
+    // implementation
+    VM_Class[] interfaces = c.getAllImplementedInterfaces();
+    for (int i=0; i<interfaces.length; i++) {
+      VM_Method[] ms = interfaces[i].getVirtualMethods();
+      for (int j=0; j<ms.length; j++) {
+        processOverride(ms[j]);
+      }        
+    }
+  }
+  
+  private void processOverride(VM_Method overridden) {
+    java.util.Iterator invalidatedMethods = 
+      db.invalidatedByOverriddenMethod(overridden);
+    if (invalidatedMethods != null) {
+      while (invalidatedMethods.hasNext()) {
+        int cmid = ((Integer)invalidatedMethods.next()).intValue();
+        VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
+        if (im != null) { // im == null implies that the code has been GCed already
+          invalidate(im);
         }
       }
+      db.removeNotOverriddenDependency(overridden);
     }
   }
 
+  
   private void handleSubclassing(VM_Class c) {
     if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do
     VM_Class sc = c.getSuperClass();
@@ -145,7 +161,7 @@ public final class OPT_ClassLoadingDependencyManager {
   void report(String s) {
     if (VM.runningVM) {
       if (log == null) {
-        if (!VM.fullyBooted) {
+        if (true || !VM.fullyBooted) {
           VM.sysWriteln("CLDM: VM not fully booted ", s);
           return;
         }

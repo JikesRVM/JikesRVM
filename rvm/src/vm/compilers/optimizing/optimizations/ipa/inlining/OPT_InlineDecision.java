@@ -195,6 +195,8 @@ public final class OPT_InlineDecision {
       s = "DECIDE_YES"; 
     else if (code == GUARDED_YES)
       s = "GUARDED_YES";
+    if (testFailedOSR)
+      s += "(OSR off-branch)";
     s += ":" + rationale;
     if (targets != null) {
       for (int i = 0; i < targets.length; i++) {

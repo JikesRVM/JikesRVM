@@ -1219,6 +1219,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
+    if (VM.writingBootImage) {
+      //-#if RVM_WITH_OPT_COMPILER
+      OptCLDepManager.classInitialized(this, true);
+      //-#endif
+    }
+    
     
     VM_Callbacks.notifyClassResolved(this);
     MM_Interface.notifyClassResolved(this);
@@ -1340,14 +1346,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM_InterfaceInvocation.initializeDispatchStructures(this);
 
     if (VM.writingBootImage) { 
-      state = CLASS_INITIALIZED; 
+      state = CLASS_INITIALIZED;
     } else {
       state = CLASS_INSTANTIATED;
     }
 
     VM_Callbacks.notifyClassInstantiated(this);
-    if (VM.writingBootImage)
+    if (VM.writingBootImage) {
       VM_Callbacks.notifyClassInitialized(this);
+    }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (end)   instantiate " +this);
   }
@@ -1410,7 +1417,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // the opt compiler so it can invalidate speculative CHA optimizations
     // before an instance of this class could actually be created.
     //-#if RVM_WITH_OPT_COMPILER
-    OptCLDepManager.classInitialized(this);
+    OptCLDepManager.classInitialized(this, false);
     //-#endif
 
     state = CLASS_INITIALIZED;

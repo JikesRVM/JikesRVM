@@ -84,12 +84,6 @@ abstract class VM_RecompilationStrategy {
      OPT_CompilationPlan compPlan = 
        createCompilationPlan((VM_NormalMethod)method, optLevel, instPlan);
 
-     if (VM_Controller.options.ADAPTIVE_INLINING) {
-       OPT_InlineOracle inlineOracle = 
-         VM_AdaptiveInlining.getInlineOracle(method);
-       compPlan.setInlineOracle(inlineOracle);
-     }
-
      // Create the controller plan
      return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
                                   prevCMID, expectedSpeedup, expectedCompilationTime,

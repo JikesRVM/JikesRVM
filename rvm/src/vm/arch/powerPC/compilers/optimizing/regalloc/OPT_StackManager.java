@@ -414,11 +414,11 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * When this changes, this code should be modifed accordingly.
    * The desired sequence is:
    *  1    mflr    00  # return addr
-   *  2    l       S1 threadSwitchRequestedOffset(PR)         # setting cr2 for yield point
+   *  2    l       S1 takeYieldpointOffset(PR)                # setting TSR for yield point
    *  3    stu     FP -frameSize(FP)                          # buy frame, save caller's fp
    *  4    l       S0 stackLimitOffset(S0)                    # stack overflow check
    *  5    <save used non volatiles>
-   *  6    cmpi    cr2 S1 0x0                                 # setting cr2 for yield point (S1 is now free)
+   *  6    cmpi    TSR S1 0x0                                 # setting TSR for yield point (S1 is now free)
    *  7    lil     S1 CMID                                    # cmid
    *  8    st      00 STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)  # return addr (00 is now free)
    *  9    st      S1 STACKFRAME_METHOD_ID_OFFSET(FP)         # cmid
@@ -456,7 +456,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
  
     if (yp) {
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR),
-                                       IC(VM_Entrypoints.threadSwitchRequestedField.getOffset()))); // 2
+                                       IC(VM_Entrypoints.takeYieldpointField.getOffset()))); // 2
     }
 
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP),
@@ -582,7 +582,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // Threadswitch
     if (yp) {
       ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), 
-                                       IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                       IC(VM_Entrypoints.takeYieldpointField.getOffset())));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
     ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));

@@ -561,8 +561,11 @@ class GenerateInterfaceDeclarations {
     // fields in VM_Processor
     //
     int offset;
-    offset = VM_Entrypoints.threadSwitchRequestedField.getOffset();
-    p("static const int VM_Processor_threadSwitchRequested_offset = "
+    offset = VM_Entrypoints.timeSliceExpiredField.getOffset();
+    p("static const int VM_Processor_timeSliceExpired_offset = "
+        + offset + ";\n");
+    offset = VM_Entrypoints.takeYieldpointField.getOffset();
+    p("static const int VM_Processor_takeYieldpoint_offset = "
         + offset + ";\n");
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
@@ -571,9 +574,12 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.pthreadIDField.getOffset();
     p("static const int VM_Processor_pthread_id_offset = "
                      + offset + ";\n");
-    offset = VM_Entrypoints.epochField.getOffset();
-    p("static const int VM_Processor_epoch_offset = "
+    offset = VM_Entrypoints.timerTicksField.getOffset();
+    p("static const int VM_Processor_timerTicks_offset = "
                      + offset + ";\n");
+    offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
+    p("static const int VM_Processor_reportedTimerTicks_offset = "
+                    + offset + ";\n");
     offset = VM_Entrypoints.activeThreadField.getOffset();
     p("static const int VM_Processor_activeThread_offset = "
                      + offset + ";\n");

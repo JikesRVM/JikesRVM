@@ -127,7 +127,6 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
     // Be slightly more aggressive when building the boot image then we are normally.
     options.IC_MAX_TARGET_SIZE = 5*VM_NormalMethod.CALL_COST;
     options.IC_MAX_INLINE_DEPTH = 6;
-    OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
   }
 
   /**
@@ -177,7 +176,6 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * Call the static init functions for the OPT_Compiler subsystems
    */
   private static void initializeStatics () {
-    OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_InvokeeThreadLocalContext.init();
   }
 

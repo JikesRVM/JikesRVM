@@ -91,9 +91,9 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
           // Replace the yieldpoint instruction with a call to threadswitch 
           VM_Method m = null;
           if (inPrologue)
-            m = VM_Entrypoints.threadSwitchFromPrologueMethod;
+            m = VM_Entrypoints.yieldpointFromPrologueMethod;
           else
-            m = VM_Entrypoints.threadSwitchFromBackedgeMethod;
+            m = VM_Entrypoints.yieldpointFromBackedgeMethod;
           
           OPT_Instruction c = 
             Call.create0(CALL, null, new OPT_IntConstantOperand(m.getOffset()), OPT_MethodOperand.STATIC(m));

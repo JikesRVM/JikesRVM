@@ -223,7 +223,7 @@ pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 static bool systemExiting = false;
-
+    
 extern "C" void
 sysExit(int value)
 {
@@ -846,19 +846,27 @@ timeSlicerThreadMain(void *arg)
  * Actions to take on a timer tick
  */
 extern "C" void processTimerTick(void) {
+
+    VM_Address VmToc = (VM_Address) getJTOC();
+    
+    /*
+     * Increment VM_Processor.timerTicks
+     */
+    int* ttp = (int *) ((char *) VmToc + VM_Processor_timerTicks_offset);
+    *ttp = *ttp + 1;
+
     /* 
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
-    VM_Address VmToc = (VM_Address) getJTOC();
     int gcStatus = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset);
     if (gcStatus != 0) return;
 
     /*
-     * Increment VM_Processor.epoch
+     * Increment VM_Processor.reportedTimerTicks
      */
-    int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
-    *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+    int* rttp = (int *) ((char *) VmToc + VM_Processor_reportedTimerTicks_offset);
+    *rttp = *rttp + 1;
 
     /*
      * Turn on thread-switch flag in each virtual processor.
@@ -866,15 +874,15 @@ extern "C" void processTimerTick(void) {
      * interrupted C-library code, so we use boot image 
      * jtoc address (== VmToc) instead. 
      */
-    VM_Address *processors 
-        = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
+    VM_Address *processors = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
     for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
-        // During how many ticks has this VM_Processor ignored 
-        // a thread switch request? 
-        int val = (*(int *)((char *)processors[i] + 
-                            VM_Processor_threadSwitchRequested_offset))--;
+        // Set takeYieldpoint field to 1; decrement timeSliceExpired field;
+        // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
+        *(int *)((char *)processors[i] + VM_Processor_takeYieldpoint_offset) = 1;
+        int val = (*(int *)((char *)processors[i] + VM_Processor_timeSliceExpired_offset))--;
+        
         if (longest_stuck_ticks < (unsigned) -val)
             longest_stuck_ticks = -val;
     }
@@ -930,7 +938,7 @@ setTimeSlicer(int msTimerDelay)
                 Me, strerror(errorCode));
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#elif (defined RVM_FOR_LINUX)  || (defined __MACH__) 
+#elif (defined RVM_FOR_LINUX)  || (defined __MACH__)
     /* && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR */
 
     /* NOTE: This code is ONLY called if we have defined

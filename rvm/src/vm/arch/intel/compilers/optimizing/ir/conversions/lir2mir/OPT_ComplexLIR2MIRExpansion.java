@@ -734,14 +734,18 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
     s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
     
-    // get the correct method to be called for a thread switch
-    VM_Method meth = null;
+    // get the correct method and condition for a yieldpoint
+    VM_Method meth;
+    OPT_IA32ConditionOperand ypCond;
     if (s.getOpcode() == YIELDPOINT_PROLOGUE_opcode) {
       meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
+      ypCond = OPT_IA32ConditionOperand.NE();
     } else if (s.getOpcode() == YIELDPOINT_EPILOGUE_opcode) {
       meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
+      ypCond = OPT_IA32ConditionOperand.NE();
     } else { 
       meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
+      ypCond = OPT_IA32ConditionOperand.GT();
     }
 
     // split the basic block after the yieldpoint
@@ -777,11 +781,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
+    int tsr = VM_Entrypoints.takeYieldpointField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, IC(0));
     s.insertBefore(compare);
-    MIR_CondBranch.mutate(s, IA32_JCC, OPT_IA32ConditionOperand.NE(),
+    MIR_CondBranch.mutate(s, IA32_JCC, ypCond,
                           yieldpoint.makeJumpTarget(),
                           OPT_BranchProfileOperand.unlikely());
     return nextInstr;

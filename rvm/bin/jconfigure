@@ -2879,6 +2879,7 @@ com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent
 com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan
 com/ibm/JikesRVM/adaptive/OSR_OrganizerThread
+com/ibm/JikesRVM/adaptive/OSR_Listener
 EOF
     fi
 
@@ -2934,9 +2935,6 @@ com/ibm/JikesRVM/opt/OPT_MethodSummary
 EOF
 	fi
 
-	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	    echo com/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan
-	fi
     fi
 
     if (( RVM_WITH_HPM )) ; then

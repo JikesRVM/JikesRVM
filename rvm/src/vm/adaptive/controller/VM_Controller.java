@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_EdgeCounts;
+import com.ibm.JikesRVM.VM_Processor;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -101,7 +102,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public static VM_RecompilationStrategy recompilationStrategy;
 
   /**
-   *  a controller virtual clock, ticked every thread switch.
+   * Controller virtual clock, ticked every taken yieldpoint.
    */
   public static int controllerClock = 0;
 
@@ -111,10 +112,19 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public static VM_MethodCountData methodSamples;
 
   /**
+   * The dynamic call graph
+   */
+  public static VM_PartialCallGraph dcg;
+
+  /**
+   * Has the execution of boot completed successfully?
+   */
+  private static boolean booted = false;
+
+  /**
    * Initialize the controller subsystem (called from VM.boot)
    * This method is called AFTER the command line options are processed.
    */
-  private static boolean booted = false;
   public static void boot() {
     // Signal that the options and (optional) logging mechanism are set
     // VM_RuntimeCompiler checks this flag
@@ -123,9 +133,9 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     // Initialize the controller input queue
     controllerInputQueue = 
       new VM_BlockingPriorityQueue(new VM_BlockingPriorityQueue.CallBack() {
-                                       void aboutToWait() { controllerThread.aboutToWait(); }
-                                       void doneWaiting() { controllerThread.doneWaiting(); }
-                                     });
+          void aboutToWait() { controllerThread.aboutToWait(); }
+          void doneWaiting() { controllerThread.doneWaiting(); }
+        });
 
     compilationQueue = new VM_BlockingPriorityQueue();
 
@@ -265,12 +275,17 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM_Organizer organizer = (VM_Organizer)e.nextElement();
       organizer.report();
     }
-    if (options.DUMP_AI_DECISIONS) {
-      VM_AdaptiveInlining.report();
-    }
 
     if (options.FINAL_REPORT_LEVEL >= 2) {
       VM_EdgeCounts.dumpCounts();
+    }
+
+    if (options.REPORT_INTERRUPT_STATS) {
+      VM.sysWriteln("Timer Interrupt and Listener Stats");
+      VM.sysWriteln("\tTotal number of clock ticks ",VM_Processor.timerTicks);
+      VM.sysWriteln("\tReported clock ticks ",VM_Processor.reportedTimerTicks);
+      VM.sysWriteln("\tController clock ",controllerClock);
+      VM.sysWriteln("\tNumber of method samples taken ",(int)methodSamples.getTotalNumberOfSamples());
     }
 
     if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();

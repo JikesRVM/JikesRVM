@@ -196,7 +196,6 @@ public final class VM_ControllerPlan {
     // set the status of the plan accordingly
     if (newCMID != -1) {
       setStatus(VM_ControllerPlan.COMPLETED);
-      VM_AdaptiveInlining.clearNonInlinedEdges(prevCMID);
     } else {
       setStatus(VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
     }

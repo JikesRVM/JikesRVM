@@ -41,7 +41,14 @@ class VM_ControllerThread extends VM_Thread {
   }
   private Object sentinel;
 
+  /**
+   * There are several ways in which a dcg organizer might
+   * be created; keep track of it once it is created so that
+   * we only create one instance of it.
+   */
+  private VM_DynamicCallGraphOrganizer dcgOrg;
 
+  
   /**
    * This method is the entry point to the controller, it is called when
    * the controllerThread is created.
@@ -156,17 +163,26 @@ class VM_ControllerThread extends VM_Thread {
   }
 
   /**
-   * Create profiling entities that are NOT used for adaptive recompilation
+   * Create a dynamic call graph organizer of one doesn't already exist
+   */
+  private void createDynamicCallGraphOrganizer() {
+    if (dcgOrg == null) {
+      dcgOrg = new VM_DynamicCallGraphOrganizer(new VM_EdgeListener());
+      VM_Controller.organizers.addElement(dcgOrg);
+    }
+  }
+  
+  /**
+   * Create profiling entities that are independent of whether or not
+   * adaptive recompilation is actually enabled.
    */
   private void createProfilers() {
     VM_AOSOptions opts = VM_Controller.options;
 
     if (opts.GATHER_PROFILE_DATA) {
-      VM_MethodListener methodListener = 
-        new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
-      VM_Organizer methodOrganizer = 
-        new VM_AccumulatingMethodSampleOrganizer(methodListener);
-      VM_Controller.organizers.addElement(methodOrganizer);
+      VM_Controller.organizers.addElement(new VM_AccumulatingMethodSampleOrganizer());
+
+      createDynamicCallGraphOrganizer();
     }
   }
 
@@ -181,24 +197,17 @@ class VM_ControllerThread extends VM_Thread {
       // Primary backing store for method sample data
       VM_Controller.methodSamples = new VM_MethodCountData();
 
-      // Instal organizer to drive method recompilation 
-      VM_MethodListener methodListener = 
-        new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
-      VM_Organizer methodOrganizer = 
-        new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
-      VM_Controller.organizers.addElement(methodOrganizer);
-
-      // Decay runtime measurement data 
+      // Install organizer to drive method recompilation 
+      VM_Controller.organizers.addElement(new VM_MethodSampleOrganizer(opts.FILTER_OPT_LEVEL));
+      // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
         VM_Organizer decayOrganizer = 
           new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
         VM_Controller.organizers.addElement(decayOrganizer);
-      }
-    
-      if (opts.ADAPTIVE_INLINING) {
-        VM_Organizer AIOrganizer = 
-          new VM_AIByEdgeOrganizer(new VM_EdgeListener());
-        VM_Controller.organizers.addElement(AIOrganizer);
+        createDynamicCallGraphOrganizer();
+        // TODO: need a robust implementation of this, until we have it
+        //       the risks are larger than the benefit.
+        // VM_Controller.organizers.addElement(new VM_MissingHotCallEdgeOrganizer());
       }
     }    
 

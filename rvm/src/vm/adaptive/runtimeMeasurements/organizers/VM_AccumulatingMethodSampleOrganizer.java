@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.opt.VM_OptCompiledMethod;
 
 /**
@@ -26,9 +27,7 @@ final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
   /**
    * @param listener         the associated listener
    */
-  VM_AccumulatingMethodSampleOrganizer(VM_MethodListener listener) {
-    this.listener         = listener;
-    listener.setOrganizer(this);
+  VM_AccumulatingMethodSampleOrganizer() {
     makeDaemon(true);
   }
 
@@ -37,7 +36,12 @@ final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
    */
   public void initialize() {
     data = new VM_MethodCountData();
-    VM_RuntimeMeasurements.installMethodListener((VM_MethodListener)listener);
+
+    int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
+    VM_MethodListener methodListener = new VM_MethodListener(numSamples);
+    listener = methodListener;
+    listener.setOrganizer(this);
+    VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
   }
 
   /**

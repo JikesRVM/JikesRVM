@@ -619,7 +619,7 @@ public class VM_Runtime implements VM_Constants {
       VM.sysWrite("FORCING GC: in deliverHardwareException\n");
       MM_Interface.gc();
     }
-    
+
     Throwable exceptionObject;
     switch (trapCode) {
     case TRAP_NULL_POINTER:

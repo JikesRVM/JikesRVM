@@ -22,6 +22,7 @@ import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementTrigger;
 import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementEvent;
 import com.ibm.JikesRVM.OSR.OSR_PostThreadSwitch;
 import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
+import com.ibm.JikesRVM.adaptive.OSR_Listener;
 //-#endif
 
 /**
@@ -56,7 +57,6 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   public final static int NATIVE_EPILOGUE = 4;
 
   //-#if RVM_WITH_OSR
-  public final static int OSRBASE = 98;
   public final static int OSROPT  = 99;
   //-#endif
   
@@ -85,7 +85,6 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     }
     if (global_tid < VM_Scheduler.MAX_THREADS) {
       VM_Scheduler.hpm_threads[global_tid] = this;
-      //      VM_Magic.setObjectAtOffset(VM_Scheduler.hpm_threads,global_tid << LOG_BYTES_IN_ADDRESS, this);
     } else {
       // loose information!
     }
@@ -206,9 +205,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * thread when OSR is done).
    */
   public final void osrSuspend() {
-        suspendLock.lock();
-        suspendPending  = true;
-        suspendLock.unlock();
+    suspendLock.lock();
+    suspendPending  = true;
+    suspendLock.unlock();
   }
   //-#endif
   
@@ -289,228 +288,124 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   // for the baseline compiler, but I think this is the easiest way
   // to handle all the cases at reasonable runtime-cost. 
   /**
-   * Preempt execution of current thread.
-   * Called by compiler-generated yieldpoints approx. every 10ms.
+   * Yieldpoint taken in prologue
    */ 
-  public static void threadSwitchFromPrologue() {
-    threadSwitch(PROLOGUE);
+  public static void yieldpointFromPrologue() {
+    yieldpoint(PROLOGUE);
   }
 
   /**
-   * Preempt execution of current thread.
-   * Called by compiler-generated yieldpoints approx. every 10ms.
+   * Yieldpoint taken on backedge
    */ 
-  public static void threadSwitchFromBackedge() {
-    threadSwitch(BACKEDGE);
+  public static void yieldpointFromBackedge() {
+    yieldpoint(BACKEDGE);
   }
 
   /**
-   * Preempt execution of current thread.
-   * Called by compiler-generated yieldpoints approx. every 10ms.
+   * Yieldpoint taken in epilogue
    */ 
-  public static void threadSwitchFromEpilogue() {
-    threadSwitch(EPILOGUE);
+  public static void yieldpointFromEpilogue() {
+    yieldpoint(EPILOGUE);
   }
-
-  //-#if RVM_WITH_OSR
-  public static void threadSwitchFromOsrBase() {
-    threadSwitch(OSRBASE);
-  }
-  public static void threadSwitchFromOsrOpt() {
-    threadSwitch(OSROPT);
-  }
-  //-#endif
 
   /**
-   * Preempt execution of current thread.
-   * Called by compiler-generated yieldpoints approx. every 10ms.
+   * Process a taken yieldpoint.
+   * May result in threadswitch, depending on state of various control
+   * flags on the processor object.
    */ 
-  public static void threadSwitch(int whereFrom) throws NoInlinePragma {
-    VM_Processor.getCurrentProcessor().threadSwitchRequested   = 0;
+  public static void yieldpoint(int whereFrom) throws NoInlinePragma {
+    boolean threadSwitch = false;
+    int takeYieldpointVal = VM_Processor.getCurrentProcessor().takeYieldpoint;
 
+    VM_Processor.getCurrentProcessor().takeYieldpoint = 0;
+    
     //-#if RVM_FOR_POWERPC
-    /* give a chance to check the sync request
-     */
-    if (VM_Processor.getCurrentProcessor().needsSync) {
-      VM_Processor.getCurrentProcessor().needsSync = false;
+    // Process request for code-patch memory sync operation
+    if (VM_Processor.getCurrentProcessor().codePatchSyncRequested) {
+      VM_Processor.getCurrentProcessor().codePatchSyncRequested = false;
+      // TODO: Is this sufficient? Ask Steve why we don't need to sync icache/dcache. --dave
       // make sure not get stale data
       VM_Magic.isync();
       VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_Entrypoints.toSyncProcessorsField.getOffset(), 1);
     }
     //-#endif
 
+    // If thread is in critical section we can't switch right now, defer until later
     if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) { 
-      // thread in critical section: can't switch right now, defer 'till later
-      VM_Processor.getCurrentProcessor().threadSwitchPending = true;
+      if (VM_Processor.getCurrentProcessor().threadSwitchPending != 1) {
+        VM_Processor.getCurrentProcessor().threadSwitchPending = takeYieldpointVal;
+      }
       return;
     }
 
-    /*
-     * Thread switch only when interruptQuantumCounter == schedulingMultiplier.
-     * Otherwise sample HPM counter values and return.
-     * This code must go after checking for thread switch enabled to ensure that we don't
-     * interrupt thread switch disabled code!  In particular, the VM.write(String) method.
-     */
-    VM_Processor.getCurrentProcessor().interruptQuantumCounter++;
-    boolean threadSwitch = ! (VM_Processor.getCurrentProcessor().interruptQuantumCounter < VM.schedulingMultiplier);
+    // Process timer interrupt event
+    if (VM_Processor.getCurrentProcessor().timeSliceExpired != 0) {
+      VM_Processor.getCurrentProcessor().timeSliceExpired = 0;
+      
+      if (++VM_Processor.getCurrentProcessor().interruptQuantumCounter >= VM.schedulingMultiplier) {
+        threadSwitch = true;
+        VM_Processor.getCurrentProcessor().interruptQuantumCounter = 0;
 
-    //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
-      // sample HPM counter values at every interrupt or a thread switch.
-      if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-          ! VM_HardwarePerformanceMonitors.thread_group) {
-        captureCallChainCMIDs(true);
-        VM_Thread myThread = getCurrentThread();
-        VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, true, threadSwitch);
+	// Check various scheduling requests/queues that need to be polled periodically
+	if (VM_Scheduler.debugRequested && VM_Scheduler.allProcessorsInitialized) { 
+          // service "debug request" generated by external signal
+          VM_Scheduler.debuggerMutex.lock();
+          if (VM_Scheduler.debuggerQueue.isEmpty()) { 
+            // debugger already running
+            VM_Scheduler.debuggerMutex.unlock();
+          } else { // awaken debugger
+            VM_Thread t = VM_Scheduler.debuggerQueue.dequeue();
+            VM_Scheduler.debuggerMutex.unlock();
+            t.schedule();
+          }
+	}
+	if (VM_Scheduler.wakeupQueue.isReady()) {
+          VM_Scheduler.wakeupMutex.lock();
+          VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
+          VM_Scheduler.wakeupMutex.unlock();
+          if (t != null) {
+            t.schedule();
+          }
+	}
       }
-    }
-    //-#endif 
 
-    if (!threadSwitch) {
       //-#if RVM_WITH_HPM
-      // set start time of thread
-      getCurrentThread().startOfWallTime = VM_Magic.getTimeBase();
+      VM_HardwarePerformanceMonitors.takeHPMTimerSample(threadSwitch);
+      //-#endif
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
+      VM_RuntimeMeasurements.takeTimerSample(whereFrom);
       //-#endif
 
-      return;
+      //-#if RVM_WITH_OSR
+      threadSwitch |= OSR_Listener.checkForOSRPromotion(whereFrom);
+      //-#endif
     }
 
-    VM_Processor.getCurrentProcessor().interruptQuantumCounter = 0;
-
-    if (VM_Scheduler.debugRequested && VM_Scheduler.allProcessorsInitialized) { 
-      // service "debug request" generated by external signal
-      VM_Scheduler.debuggerMutex.lock();
-      if (VM_Scheduler.debuggerQueue.isEmpty()) { 
-        // debugger already running
-        VM_Scheduler.debuggerMutex.unlock();
-      } else { // awaken debugger
-        VM_Thread t = VM_Scheduler.debuggerQueue.dequeue();
-        VM_Scheduler.debuggerMutex.unlock();
-        t.schedule();
-      }
+    // Process request to initiate GC by forcing a thread switch.
+    if (VM_Processor.getCurrentProcessor().yieldToGCRequested) {
+      VM_Processor.getCurrentProcessor().yieldToGCRequested = false;
+      VM_Processor.getCurrentProcessor().takeYieldpoint = 0;
+      threadSwitch = true;
     }
-
-    if (VM_Scheduler.wakeupQueue.isReady()) {
-      VM_Scheduler.wakeupMutex.lock();
-      VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
-      VM_Scheduler.wakeupMutex.unlock();
-      if (t != null) {
-        // VM_Scheduler.trace("VM_Thread", 
-        // "threadSwitch: awaken ", t.getIndex());
-        t.schedule();
-      }
-    }
-
-
+    
     // Reset thread switch count for deterministic thread switching
-    if(VM.BuildForDeterministicThreadSwitching) 
+    if(VM.BuildForDeterministicThreadSwitching) {
+      VM._assert(false, "Make this work again in new scheme");
       VM_Processor.getCurrentProcessor().deterministicThreadSwitchCount = 
         VM.deterministicThreadSwitchInterval;
+    }
 
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // We use threadswitches as a rough approximation of time. 
-    // Every threadswitch is a clock tick.
-    VM_Controller.controllerClock++;
-
-    //
-    // "The idle thread is boring, and does not deserve to be sampled"
-    //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread) {
-
-      // First, get the cmid for the method in which the yieldpoint was taken.
-
-      // Get pointer to my caller's frame
-      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); 
-
-      // Skip over wrapper to "real" method
-      fp = VM_Magic.getCallerFramePointer(fp);                             
-      int ypTakenInCMID = VM_Magic.getCompiledMethodID(fp);
-
-      // Next, get the cmid for that method's caller.
-      fp = VM_Magic.getCallerFramePointer(fp);
-      int ypTakenInCallerCMID = VM_Magic.getCompiledMethodID(fp);
-
-      // Determine if ypTakenInCallerCMID actually corresponds to a real 
-      // Java stackframe.
-      boolean ypTakenInCallerCMIDValid = true;
-      VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
-
-      // Check for one of the following:
-      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
-      //    Caller is a native method
-      if (ypTakenInCallerCMID == INVISIBLE_METHOD_ID    ||
-          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
-        ypTakenInCallerCMIDValid = false;
-      } 
-
-      //-#if RVM_WITH_OSR   
-      // check if there are pending osr request
-      if ((VM_Controller.osrOrganizer != null) 
-          && (VM_Controller.osrOrganizer.osr_flag)) {
-        VM_Controller.osrOrganizer.activate(); 
-      }
-     
-      if (!VM_Thread.getCurrentThread().isSystemThread) {
-        boolean baseToOptOSR = false;
-        if (whereFrom == VM_Thread.BACKEDGE) {
-          if (ypTakenInCM.isOutdated()) {
-            baseToOptOSR = true;
-          }
-        }
-
-        if (baseToOptOSR || (whereFrom == VM_Thread.OSROPT)) {  
-          // get this fram pointer
-          Address tsFP = VM_Magic.getFramePointer();         
-          // Get pointer to my caller's frame
-          Address tsFromFP = VM_Magic.getCallerFramePointer(tsFP);
-          // Skip over wrapper to "real" method
-          Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
-          
-          Address stackbeg = VM_Magic.objectAsAddress(VM_Thread.getCurrentThread().stack);
-          
-          Offset tsFromFPoff = tsFromFP.diff(stackbeg);
-          Offset realFPoff = realFP.diff(stackbeg);
-          
-          OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, 
-                                                tsFromFPoff,
-                                                realFPoff,
-                                                whereFrom);
-        }
-      }
-      //-#endif
-
-      // Now that we have the basic information we need, 
-      // notify all currently registered listeners
-      if (VM_RuntimeMeasurements.hasMethodListener()){
-        // set the Caller CMID to -1 if invalid
-        if (!ypTakenInCallerCMIDValid) ypTakenInCallerCMID = -1;  
-        VM_RuntimeMeasurements.activateMethodListeners(ypTakenInCMID,
-                                                       ypTakenInCallerCMID, 
-                                                       whereFrom);
-      }
-
-      if (ypTakenInCallerCMIDValid && 
-          VM_RuntimeMeasurements.hasContextListener()) {
-        // Have to start over again in case an intervening GC has moved fp 
-        //    since the last time we did this.
-
-        // Get pointer to my caller's frame
-        fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
-
-        // Skip over wrapper to "real" method
-        fp = VM_Magic.getCallerFramePointer(fp);                         
-        VM_RuntimeMeasurements.activateContextListeners(fp, whereFrom);
-
-      }
-
-      if (VM_RuntimeMeasurements.hasNullListener()){
-        VM_RuntimeMeasurements.activateNullListeners(whereFrom);
-      }
+    //-#if RVM_WITH_OSR
+    if (VM_Processor.getCurrentProcessor().yieldToOSRRequested) {
+      VM_Processor.getCurrentProcessor().yieldToOSRRequested = false;
+      OSR_Listener.handleOSRFromOpt();
+      threadSwitch = true;
     }
     //-#endif
 
-    // VM_Scheduler.trace("VM_Thread", "threadSwitch");
-    timerTickYield(whereFrom);
+    if (threadSwitch) {
+      timerTickYield(whereFrom);
+    }
 
     //-#if RVM_WITH_OSR
     VM_Thread myThread = getCurrentThread();

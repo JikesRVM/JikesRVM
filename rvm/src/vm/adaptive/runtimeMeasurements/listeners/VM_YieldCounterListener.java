@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.*;
-import java.util.*;
 
 import org.vmmagic.pragma.*;
 

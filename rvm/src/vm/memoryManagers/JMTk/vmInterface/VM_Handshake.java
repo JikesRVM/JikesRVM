@@ -168,8 +168,7 @@ public class VM_Handshake {
     while (VM_Scheduler.collectorQueue.length() > 0) {
       VM_Thread t = VM_Scheduler.collectorQueue.dequeue();
       t.scheduleHighPriority();
-      VM_Processor p = t.processorAffinity;
-      p.threadSwitchRequested = -1; // set thread switch req condition in VP
+      t.processorAffinity.requestYieldToGC();
     }
     VM_Scheduler.collectorMutex.unlock();
   }

@@ -322,17 +322,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   double futureTimeForMethod(VM_HotMethodEvent hme) {
     VM_AOSOptions opts = VM_Controller.options;
     double numSamples = hme.getNumSamples();
-    double timePerSample;
-    if (!VM.UseEpilogueYieldPoints) { 
+    double timePerSample = (double)VM.interruptQuantum;
+    if (!VM.UseEpilogueYieldPoints) {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
       // as it actually deserves).
-      timePerSample = ((double)VM_Scheduler.schedulingQuantum) / 2.0;
-    } else {
-      // If we use epilogue yield points, we only have 1 sample per interrupt
-      //  prologue => calling method
-      //  backedge/epilogue => current method
-      timePerSample = ((double)VM_Scheduler.schedulingQuantum);
+      timePerSample /=  2.0;
     }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;

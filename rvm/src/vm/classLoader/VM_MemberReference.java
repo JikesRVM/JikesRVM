@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.VM;
 import org.vmmagic.pragma.*;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 
 /**
  * A class to represent the reference in a class file to some 
@@ -91,6 +93,36 @@ public abstract class VM_MemberReference {
     members[key.id] = key;
     dictionary.put(key, key);
     return key;
+  }
+
+
+  /**
+   * Given a StringTokenizer currently pointing to the start of a MemberReference
+   * (created by doing a toString() on a MemberReference), parse it
+   * and find/create the appropriate MemberReference. Consumes all of the tokens corresponding
+   * to the member reference.
+   */
+  public static VM_MemberReference parse(StringTokenizer parser) {
+    try {
+      parser.nextToken(); // discard <
+      String clName = parser.nextToken();
+      VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+      VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+      VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+      parser.nextToken(); // discard '>'
+      ClassLoader cl;
+      if (clName.equals("BootstrapCL")) {
+        cl = VM_SystemClassLoader.getVMClassLoader();
+      } else if (clName.equals("SystemAppCL")) {
+        cl = VM_ClassLoader.getApplicationClassLoader();
+      } else {
+        return null;
+      }
+      VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
+      return findOrCreate(tref, mn, md);
+    } catch (NoSuchElementException e) {
+      return null;
+    }
   }
 
   //BEGIN HRM
@@ -231,6 +263,6 @@ public abstract class VM_MemberReference {
   }
 
   public final String toString() {
-    return "< " + type.getClassLoader() + ", "+ type.getName() + ", " + name + ", " + descriptor + " >";
+    return "< " + type.getClassLoader() + ", " + type.getName() + ", " + name + ", " + descriptor + " >";
   }
 }

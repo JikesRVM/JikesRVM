@@ -9,8 +9,8 @@ DESCRIP
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERRY_NAME CMD_NAME"
 
-V INITIAL_SAMPLE_SIZE int 20
-Initial value of how many samples to take before reporting method hotness to controller
+V METHOD_SAMPLE_SIZE int 3
+How many timer ticks of method samples to take before reporting method hotness to controller
 
 
 E INITIAL_COMPILER byte IRC_BASE
@@ -43,24 +43,24 @@ V DECAY_FREQUENCY int 100
 After how many clock ticks should we decay
 
 
-V DECAY_RATE double 1.1
-What factor should we decay AI hotness by
+V DCG_DECAY_RATE double 1.1
+What factor should we decay call graph edges hotness by
 
 
-V AI_SAMPLE_SIZE int 200
-After how many samples do we update the weights in the dynamic call graph?
+V DCG_SAMPLE_SIZE int 20
+After how many timer interrupts do we update the weights in the dynamic call graph?
 
 
-V INITIAL_AI_THRESHOLD double 0.06
-What fraction (0.0 to 1.0) of total dynamic calls makes an edge hot, at program startup?
-
-
-V FINAL_AI_THRESHOLD double 0.01
-What fraction (0.0 to 1.0) of total dynamic calls makes an edge hot, in steady state?
+V AI_SEED_MULTIPLIER double 3
+Initial edge weight of call graph is set to AI_SEED_MULTIPLER * (1/AI_CONTROL_POINT)
 
 
 V AI_METHOD_HOTNESS_THRESHOLD double 0.0025
 What fraction (0.0 to 1.0) of total method samples makes a callee hot enough to consider for recompilation to inline a hot non-inlined call edge?
+
+
+V AI_MISSING_EDGE_FREQUENCY int 250
+At what interval (in timer interrupts) should the missing edge organizer look for opportunities?
 
 
 V MAX_EXPECTED_AI_BOOST double 0.2
@@ -86,4 +86,7 @@ Opt level for recompilation in invocation count based system
 V COUNTER_BASED_SAMPLE_INTERVAL int 1000
 What is the sample interval for counter-based sampling
 
+
+V AI_CONTROL_POINT double 0.01
+Tuning param for new inliner function
 

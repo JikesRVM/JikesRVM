@@ -1137,7 +1137,7 @@ public class VM_HardwarePerformanceMonitors
       //-#endif
     }
   }
-
+  
   /**
    * Public interface to report the group hardware events.  Also, stops the counters for the threads
    * in the group. The group HPM interface adds the hardware counters for multiple kernel threads.
@@ -1186,6 +1186,25 @@ public class VM_HardwarePerformanceMonitors
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMresetMyThread();
     //-#endif
+  }
+
+  /**
+   * Called from VM_Thread.yieldpoint if a timer-interrupt has fired
+   */
+  public static void takeHPMTimerSample(boolean threadSwitch) {
+    if (sample || threadSwitch) {
+      // sample HPM counter values at every interrupt or a thread switch.
+      if (VM.BuildForHPM && safe && !thread_group) {
+        VM_Thread.captureCallChainCMIDs(true);
+        VM_Thread myThread = VM_Thread.getCurrentThread();
+        VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, true, threadSwitch);
+      }
+    }
+
+    if (!threadSwitch) {
+      // set start time of thread
+      VM_Thread.getCurrentThread().startOfWallTime = VM_Magic.getTimeBase();
+    }
   }
 
 }

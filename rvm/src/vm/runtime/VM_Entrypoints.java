@@ -103,11 +103,13 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field deterministicThreadSwitchCountField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "deterministicThreadSwitchCount", "I");
 
   public static final VM_Field scratchStorageField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "scratchStorage", "D");
-  public static final VM_Field threadSwitchRequestedField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadSwitchRequested", "I");
+  public static final VM_Field timeSliceExpiredField      = getField("Lcom/ibm/JikesRVM/VM_Processor;", "timeSliceExpired", "I");
+  public static final VM_Field takeYieldpointField        = getField("Lcom/ibm/JikesRVM/VM_Processor;", "takeYieldpoint", "I");
   public static final VM_Field activeThreadField          = getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThread", "Lcom/ibm/JikesRVM/VM_Thread;");
   public static final VM_Field activeThreadStackLimitField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "activeThreadStackLimit", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field pthreadIDField             = getField("Lcom/ibm/JikesRVM/VM_Processor;", "pthread_id", "I");
-  public static final VM_Field epochField                 = getField("Lcom/ibm/JikesRVM/VM_Processor;", "epoch", "I");
+  public static final VM_Field timerTicksField            = getField("Lcom/ibm/JikesRVM/VM_Processor;", "timerTicks", "I");
+  public static final VM_Field reportedTimerTicksField    = getField("Lcom/ibm/JikesRVM/VM_Processor;", "reportedTimerTicks", "I");
   public static final VM_Field vpStatusField              = getField("Lcom/ibm/JikesRVM/VM_Processor;", "vpStatus", "I");
   public static final VM_Field threadIdField              = getField("Lcom/ibm/JikesRVM/VM_Processor;", "threadId", "I");
   //-#if RVM_FOR_IA32
@@ -121,15 +123,11 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
 
   /** Used in deciding which stack frames we can elide when printing. */
-  public static final VM_NormalMethod mainThreadRunMethod = 
-    getMethod("Lcom/ibm/JikesRVM/MainThread;", "run", "()V");
+  public static final VM_NormalMethod mainThreadRunMethod = getMethod("Lcom/ibm/JikesRVM/MainThread;", "run", "()V");
 
-  //-#if RVM_WITH_OSR
-  public static final VM_NormalMethod threadSwitchFromOsrBaseMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromOsrBase", "()V");
-  //-#endif
-  public static final VM_NormalMethod threadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromPrologue", "()V");
-  public static final VM_NormalMethod threadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromBackedge", "()V");
-  public static final VM_NormalMethod threadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromEpilogue", "()V");
+  public static final VM_NormalMethod yieldpointFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yieldpointFromPrologue", "()V");
+  public static final VM_NormalMethod yieldpointFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yieldpointFromBackedge", "()V");
+  public static final VM_NormalMethod yieldpointFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yieldpointFromEpilogue", "()V");
 
   public static final VM_NormalMethod threadRunMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "run", "()V");
   public static final VM_NormalMethod threadStartoffMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "startoff", "()V");
@@ -235,13 +233,13 @@ public class VM_Entrypoints implements VM_Constants {
 
 //-#if RVM_WITH_OSR
   public static final VM_Field osrOrganizerQueueLockField = getField("Lcom/ibm/JikesRVM/adaptive/OSR_OrganizerThread;", "queueLock", "I");
-  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromOsrOpt", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
 //-#endif
-  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromPrologue", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromBackedge", "()V");
-  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromEpilogue", "()V");
-  public static final VM_NormalMethod threadSwitchFromNativePrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromNativePrologue", "()V");
-  public static final VM_NormalMethod threadSwitchFromNativeEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_threadSwitchFromNativeEpilogue", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
+  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
+  public static final VM_NormalMethod yieldpointFromNativePrologueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
+  public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
   public static final VM_NormalMethod optResolveMethod                  = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
 
   public static final VM_NormalMethod optNewArrayArrayMethod            = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");

@@ -95,6 +95,29 @@ public abstract class VM_OptEncodedCallSiteTree implements Uninterruptible {
     else 
       return  index + encodedTree[index];
   }
+
+  public static boolean edgePresent(int desiredCaller, int desiredBCIndex, int desiredCallee, int[] encoding) {
+    if (encoding.length < 3) return false; // Why are we creating an encoding with no real data???
+    if (VM.VerifyAssertions) {
+      VM._assert(encoding[0] == -1);
+      VM._assert(encoding[2] == -2);
+    }
+    int idx = 3;
+    int parent = encoding[1];
+    while (idx < encoding.length) {
+      if (encoding[idx] < 0) {
+        parent = idx + encoding[idx];
+        idx++;
+      }
+      if (parent == desiredCaller) {
+        if (encoding[idx] == desiredBCIndex && encoding[idx+1] == desiredCallee) {
+          return true;
+        }
+      }
+      idx += 2;
+    }
+    return false;
+  }
 }
 
 

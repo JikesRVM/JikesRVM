@@ -125,6 +125,13 @@ public final class VM_MethodCountData implements VM_Reportable {
   }
 
   /**
+   * @return the total number of samples taken
+   */
+  public final double getTotalNumberOfSamples() {
+    return totalCountsTaken;
+  }
+  
+  /**
    * Reset (clear) the method counts
    */
   public final synchronized void reset() {

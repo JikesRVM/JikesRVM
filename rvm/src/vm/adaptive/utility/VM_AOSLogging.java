@@ -5,14 +5,8 @@
 
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.classloader.VM_NormalMethod;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_RuntimeCompiler;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.io.*;
 
@@ -161,24 +155,6 @@ public class VM_AOSLogging {
       synchronized (log) {
         log.println(getTime() 
                     +" Controller thread started");
-      }
-    }
-  }
-
-  /**
-   * Call this method to dump statistics on how often listeners are invoked.
-   * @param method method listener info
-   * @param context context listener info
-   * @param nll null listener info
-   */
-  public static void listenerStatistics(int method, int context, int nll) {
-    if (!booted) return; // fast exit
-    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() 
-                    +" Listeners called:"+
-                    "\n\t method "+method+"\n\t context "+context
-                    +"\n\t null "+nll);
       }
     }
   }
@@ -364,6 +340,17 @@ public class VM_AOSLogging {
       synchronized (log) {
         log.println(getTime() 
                     +" Adaptive Inlining (AI) by Edge Organizer thread started");
+      }
+    }
+  }
+
+  /**
+   * Call this method when the organizer thread initially begins executing
+   */
+  public static void DCGOrganizerThreadStarted() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.println(getTime() +" DCG Organizer thread started");
       }
     }
   }
@@ -590,39 +577,24 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method reports a bulk detection of hot max-opt-level methods to 
-   * have their call edges inspected.
-   *
-   * @param numMethods the total number of max opt level methods found to be hot
-   *                     and will have their call edges inspected
-   */
-  public static void AIorganizerFoundHotMethods(int numMethods) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() 
-                    +" AI organizer found "+numMethods
-                    +" hot max-opt-level methods, will inspect their call edges.");
-      }
-    }
-  }
-
-  /**
    * This method logs that the a hot call edge from an max-opt-level
    * method has been identified.
    * 
    * @param hotMethod   method to be recompiled,
-   * @param numSamples  number of samples attributed to the method 
-   * @param boost       expected boost factor
+   * @param numSamples  number of samples attributed to the method
+   * @param cs the call site to be inlined
+   * @param target the target method to be inlined.
    */
   public static void inliningOpportunityDetected(VM_CompiledMethod hotMethod,
-                                                 double numSamples, 
-                                                 VM_CallSiteTriple triple) {
+                                                 double numSamples,
+                                                 VM_CallSite cs,
+                                                 VM_MethodReference target) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
         log.println(getTime() 
                     +" AI organizer found method "+hotMethod.getMethod()+
                     " with "+numSamples+" samples that has an edge "+
-                    triple+" that can be inlined");
+                    cs+" ==> "+target+" that can be inlined");
       }
     }
   }

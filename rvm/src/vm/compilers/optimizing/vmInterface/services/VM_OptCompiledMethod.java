@@ -511,12 +511,11 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       VM_Scheduler.toSyncProcessors = VM_Scheduler.numProcessors - 1;
 
       synchronized(VM_Scheduler.syncObj) {
-        
         for (int i=0; i<VM_Scheduler.numProcessors; i++) {
           VM_Processor proc = VM_Scheduler.processors[i+1];
           // do not sync the current processor
           if (proc != VM_Processor.getCurrentProcessor()) {
-            proc.needsSync = true;
+            proc.requestPostCodePatchSync();
           }
         }
       }

@@ -153,7 +153,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.
             MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR), 
-                                 OPT_PowerPCConditionOperand.THREAD_SWITCH(), 
+                                 OPT_PowerPCConditionOperand.NOT_EQUAL(), 
                                  yieldpoint.makeJumpTarget());
             conditionalBranchCount++;
           }
@@ -166,14 +166,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register TSR = phys.getTSR();
             OPT_Register PR = phys.getPR();
             p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), 
-                                           IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                           IC(VM_Entrypoints.takeYieldpointField.getOffset())));
             p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.
             MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR), 
-                                 OPT_PowerPCConditionOperand.THREAD_SWITCH(), 
+                                 OPT_PowerPCConditionOperand.GREATER(), 
                                  yieldpoint.makeJumpTarget());
             conditionalBranchCount++;
           }
@@ -186,14 +186,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register TSR = phys.getTSR();
             OPT_Register PR = phys.getPR();
             p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), 
-                                           IC(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+                                           IC(VM_Entrypoints.takeYieldpointField.getOffset())));
             p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
             instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.
             MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR), 
-                OPT_PowerPCConditionOperand.THREAD_SWITCH(), 
+                OPT_PowerPCConditionOperand.NOT_EQUAL(), 
                 yieldpoint.makeJumpTarget());
             conditionalBranchCount++;
           }

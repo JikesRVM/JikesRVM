@@ -2255,7 +2255,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
   protected abstract void emit_threadSwitchTest(int whereFrom);
 
   //-#if RVM_WITH_OSR
-  protected abstract void emit_threadSwitch(int whereFrom);
   protected abstract void emit_deferred_prologue();
   //-#endif
 

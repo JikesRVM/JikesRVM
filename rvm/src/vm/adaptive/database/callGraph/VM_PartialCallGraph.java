@@ -1,166 +1,159 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.*;
+
+import java.util.*;
+import java.io.*;
 
 /**
- * A partial call graph (PCG) is implemented as a set of edges and each
- * edge is represented as a VM_CallSiteTriple object.
- * A PCG's internal representation is a HashMap of edges:
- *      hashCodeOf(E) -> E where 
- *             E is VM_CallSiteTriple<caller,bytecodeOffset,callee>
+ * A partial call graph (PCG) is a partial mapping from callsites
+ * to weighted targets.
  *
- * @author Peter F. Sweeney
- * @modified Michael Hind
- * @date   24 May 2000
+ * @author Dave Grove
  */
+public final class VM_PartialCallGraph implements VM_Decayable,
+                                                  VM_Reportable {
 
-public final class VM_PartialCallGraph implements VM_Decayable {
+  /**
+   * The dynamic call graph, which is a mapping from
+   * VM_CallSites to VM_WeightedCallTargets.
+   */
+  private final HashMap callGraph = new HashMap();
 
-  public static final boolean DEBUG = false;
+  /**
+   * sum of all edge weights in the call graph
+   */
+  private double totalEdgeWeights;
+
+  /**
+   * Initial seed weight; saved for use in the reset method
+   */
+  private final double seedWeight;
   
   /**
-   * Constructor
+   * Create a partial call graph.
+   * @param initialWeight an initial value for totalEdgeWeights.
+   *        Used by AOS to cause inlining based in the dynamic call graph
+   *        to initially be conservative until sufficient samples have
+   *        accumulated that there is more confidence in the accuracy
+   *        of the call graph.
    */
-  VM_PartialCallGraph() {
-    findTriples = new java.util.HashMap();
-    totalEdgeWeights = 0.0;
+  VM_PartialCallGraph(double initialWeight) {
+    seedWeight = initialWeight; // save for rest function
+    totalEdgeWeights = initialWeight;
+  }
+
+  /**
+   * Reset data
+   */
+  public synchronized void reset() {
+    callGraph.clear();
+    totalEdgeWeights = seedWeight;
   }
   
   /**
-   * Return an iterator over the edges in the PCG
-   *
-   * @return iterator over edges 
+   * @return sum of all edge weights in the partial call graph
    */
-  java.util.Iterator getEdges() {
-    return findTriples.values().iterator();
-  }
-  
+  double getTotalEdgeWeights() { return totalEdgeWeights; }
+
   /**
-   *  Visit each edge and decay its weight. 
+   * Visit the WeightedCallTargets for every call site send them the
+   * decay message.
    */
-  public void decay() { 
-    if (DEBUG) {VM.sysWrite(" Before decay\n");  dump(); }
-    
-    double rate = VM_Controller.options.DECAY_RATE;
-    
-    synchronized(findTriples) {
-      for (java.util.Iterator iterator = getEdges(); iterator.hasNext();) {
-        VM_CallSiteTriple triple = (VM_CallSiteTriple)iterator.next();
-        triple.decayWeight(rate);
-      }
-      totalEdgeWeights /= rate;
+  public synchronized void decay() { 
+    double rate = VM_Controller.options.DCG_DECAY_RATE;
+    for (Iterator iterator = callGraph.values().iterator(); iterator.hasNext();) {
+      VM_WeightedCallTargets ct = (VM_WeightedCallTargets)iterator.next();
+      ct.decay(rate);
     }
-    
-    if (DEBUG) {VM.sysWrite(" After decay\n");  dump(); }
+    totalEdgeWeights /= rate;
   }
   
+  /**
+   * @param caller caller method
+   * @param bxIndex bcIndex in caller method
+   * @return the VM_WeightedCallTargets currently associated with the
+   *         given caller bytecodeIndex pair.
+   */
+  public VM_WeightedCallTargets getCallTargets(VM_Method caller, int bcIndex) {
+    return getCallTargets(new VM_CallSite(caller, bcIndex));
+  }
+
+  /**
+   * @param callSite the callsite to look for
+   * @return the VM_WeightedCallTargets currently associated with callSite.
+   */
+  public synchronized VM_WeightedCallTargets getCallTargets(VM_CallSite callSite) {
+    return (VM_WeightedCallTargets)callGraph.get(callSite);
+  }
+
   /**
    * Increment the edge represented by the input parameters, 
-   * creating it if needed.
+   * creating it if it is not already in the call graph.
    *
    * @param caller   method making the call
    * @param bytecode call site, if -1 then no call site is specified.
    * @param callee   method called
    */
-  public void incrementEdge(VM_Method caller, int bcIndex, VM_Method callee) {
-    
-    VM_CallSiteTriple triple = findOrCreateEdge(caller, bcIndex, callee);
-    
-    triple.incrementWeight();
-    totalEdgeWeights += 1.0;
+  public synchronized void incrementEdge(VM_Method caller, int bcIndex, VM_Method callee) {
+    augmentEdge(caller, bcIndex, callee, 1);
   }
-  
-  /**
-   * Find the edge in the partial call graph, if not found add it.
-   *
-   * @param caller   method making the call
-   * @param bytecode call site, if -1 then no call site is specified.
-   * @param callee   method called
-   * @return         edge
-   */
-  public VM_CallSiteTriple findOrCreateEdge(VM_Method caller, 
-                                            int bcIndex, 
-                                            VM_Method callee) 
-  {
-    if (findTriples == null) {
-      VM.sysWrite("FIND TRIPLES NULL");
-    }
-    if(DEBUG)VM.sysWrite(" VM_PartialCallGraph.findEdge("+caller+", "+
-                         callee+", "+bcIndex+") entered\n");
-    if (caller == null) {
-      VM.sysWrite("***Error: VM_PartialCallGraph.findEdge("+caller+", "+
-                  callee+") has null caller!\n");
-      new Exception().printStackTrace();
-    }
-    if (callee == null) {
-      VM.sysWrite("***Error: VM_PartialCallGraph.findEdge("+caller+", "+
-                  callee+") has null callee!\n");
-      new Exception().printStackTrace();
-    }
-    VM_CallSiteTriple triple = new VM_CallSiteTriple(caller, bcIndex, callee);
-    
-    synchronized(findTriples) {
-      if (findTriples.containsKey(triple)) {
-        if(DEBUG) VM.sysWrite
-                    ("  VM_PartialCallGraph.findEdge() edge already called!\n");
-        triple = (VM_CallSiteTriple)findTriples.get(triple);
-      } else {
-        if(DEBUG) VM.sysWrite
-                    ("  VM_PartialCallGraph.findEdge() FIRST time edge called!\n");
-        findTriples.put(triple,triple);
+
+  private void augmentEdge(VM_Method caller,
+                           int bcIndex,
+                           VM_Method callee,
+                           double weight) {
+    VM_CallSite callSite = new VM_CallSite(caller, bcIndex);
+    VM_WeightedCallTargets targets = (VM_WeightedCallTargets)callGraph.get(callSite);
+    if (targets == null) {
+      targets = VM_WeightedCallTargets.create(callee, weight);
+      callGraph.put(callSite, targets);
+    } else {
+      VM_WeightedCallTargets orig = targets;
+      targets = targets.augmentCount(callee, weight);
+      if (orig != targets) {
+        callGraph.put(callSite, targets);
       }
     }
-    
-    if(DEBUG)VM.sysWrite(" VM_PartialCallGraph.increment() exit\n");
-    return triple;
+    totalEdgeWeights += weight;
   }
-  
+
   /**
    * Dump out set of edges in sorted order.
    */
-  public void dump() {
-    VM.sysWrite("VM_PartialCallGraph.dump()\n");
-    VM.sysWrite("  Number of edges "+findTriples.size()+", total weight: "+totalEdgeWeights+"\n");
-    java.util.TreeSet treeSet = new java.util.TreeSet(new VM_CallSiteTripleComparator(true));
-    try {
-      synchronized(findTriples) {
-        treeSet.addAll(findTriples.values());
-      }
-    } catch (ClassCastException e) {
-      VM.sysWrite("***VM_PartialCallGraph.dump(): addAll threw CallCastException!\n");
-      VM.sysExit(-1);
-    }
-    int i=0;
-    for (java.util.Iterator iterator = treeSet.iterator(); iterator.hasNext();) {
-      VM_CallSiteTriple triple = null;
-      try {
-        triple = (VM_CallSiteTriple)iterator.next();
-      } catch (java.util.NoSuchElementException e) {
-        VM.sysWrite("***OPT_PCG.dump(): iterator.next() returns NoSuchElementException!\n");
-        VM.sysExit(-1);
-      }
-      i++;
-      VM.sysWrite(i+": "+triple.toString()+"\n");
+  public synchronized void report() {
+    System.out.println("Partial Call Graph");
+    System.out.println("  Number of callsites "+callGraph.size()+
+                       ", total weight: "+totalEdgeWeights);
+    System.out.println();
+    
+    TreeSet tmp = new TreeSet(new Comparator() {
+        public int compare(Object o1, Object o2) {
+          if (o1.equals(o2)) return 0;
+          double w1 = ((VM_WeightedCallTargets)(callGraph.get(o1))).totalWeight();
+          double w2 = ((VM_WeightedCallTargets)(callGraph.get(o2))).totalWeight();
+          if (w1 < w2) { return 1; }
+          if (w1 > w2) { return -1; }
+          // equal weights; sort lexicographically
+          return o1.toString().compareTo(o2.toString());
+        }
+      });
+    tmp.addAll(callGraph.keySet());
+
+    for (Iterator i = tmp.iterator(); i.hasNext();) {
+      final VM_CallSite cs = (VM_CallSite)i.next();
+      VM_WeightedCallTargets ct = (VM_WeightedCallTargets)callGraph.get(cs);
+      ct.visitTargets(new VM_WeightedCallTargets.Visitor() {
+          public void visit(VM_Method callee, double weight) {
+            System.out.println(weight+" <"+cs.getMethod()+", "+cs.getBytecodeIndex()+", "+callee+">");
+          }
+        });
+      System.out.println();
     }
   }
-  
-  /**
-   * Get sum of all edge weights in the partial call graph
-   * @return edge weight sum
-   */
-  double getTotalEdgeWeights() { return totalEdgeWeights; }
-  /*
-   * hashcodeOf(callers,call site,callees) -> triple
-   */
-  private java.util.HashMap findTriples;
-  /*
-   * sum of all edge weights in the graph
-   */
-  private double totalEdgeWeights;
-  
 }
