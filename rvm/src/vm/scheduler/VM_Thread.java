@@ -1518,10 +1518,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   
   /** 
    * Value returned from {@link VM_Time#cycles()} when this thread 
-   * started running.
-   * (-1: has never run, 0: not currently running).
+   * started running. If not currently running, then it has the value 0.
    */
-  private long startCycle = -1; 
+  private long startCycle; 
 
   /**
    * Accumulated cycle count as measured by {@link VM_Time#cycles()} 
@@ -1555,10 +1554,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * executing.
    */
   void endQuantum(long now) {
-    // primordial thread: ignore first time slice when startCycle == -1
-    if (startCycle != -1) {
-      totalCycles += now - startCycle;
-    }
+    totalCycles += now - startCycle;
     startCycle = 0;
   }
 
