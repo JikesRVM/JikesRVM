@@ -50,7 +50,7 @@ export HOST_JAVA_HOME="$HOME/install/j2sdk1.4.1"
 export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
 
 # the JDK java executable
-export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+export HOST_VM_RT="$HOST_JAVA_HOME/bin/java"
 
 # the JDK javadoc executable
 export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"

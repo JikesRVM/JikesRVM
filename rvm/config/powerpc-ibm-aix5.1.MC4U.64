@@ -37,7 +37,7 @@ export RVM_WITH_HPM=1
 export HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
-export HOST_JAVA="${HOST_JAVA_HOME}/jre/bin/java"
+export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
 
 # the JDK javac executable
 export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"

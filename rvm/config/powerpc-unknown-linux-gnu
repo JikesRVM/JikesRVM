@@ -36,7 +36,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0x80000000
 export HOST_JAVA_HOME=/opt/j2sdk1.3.1
 
 # the JDK java executable
-export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+export HOST_VM_RT="$HOST_JAVA_HOME/bin/java"
 
 # the JDK Javadoc executable
 export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
