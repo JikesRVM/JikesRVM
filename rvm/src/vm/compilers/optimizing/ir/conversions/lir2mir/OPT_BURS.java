@@ -50,7 +50,7 @@ final class OPT_BURS implements OPT_Operators {
     NullTreeNode.setNumRegisters(0);
     IntConstant.setNumRegisters(0);
     //-#if RVM_FOR_IA32
-    IntConstantMinusOne.setNumRegisters(0);;
+    IntConstantMinusOne.setNumRegisters(0);
     IntConstantZero.setNumRegisters(0);
     IntConstantOne.setNumRegisters(0);
     //-#endif
@@ -58,7 +58,6 @@ final class OPT_BURS implements OPT_Operators {
     Register.setNumRegisters(1);
     BranchTarget.setNumRegisters(0);
   }
-
 
   OPT_IR ir;
   private OPT_Instruction lastInstr;
@@ -438,12 +437,7 @@ final class OPT_BURS implements OPT_Operators {
       // Must ensure that our parent has a superset of our
       // other out edges (ignoring trueDepEdge)
       // this avoids a problem with creating circular dependencies
-      // among tree roots.
-      // NOTE: I believe some classes of edges can be ignored here
-      //       because they can't possibly create a cycle.
-      //       In particular, MEM_ANTI, since store nodes will be a tree
-      //       root anyways.
-      // TODO: Above is not quite right in a naive implementation....fix it!
+      // among trees.
       for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
 	   out != null; 
 	   out = out.getNextOut()) {
@@ -457,13 +451,38 @@ final class OPT_BURS implements OPT_Operators {
 	      break;
 	    }
 	  }
-	  if (!match) return true;
+	  if (!match) {
+	    // However, there is one important exception to this rule.  
+	    //   If the target of the problem edge is reachable via register-true
+	    //   dependencies from the current tree, then the extra edge is redundant
+	    //   and can be ignored.
+	    //   But, this can be expensive to compute naively, so only ask
+	    //   the question if it is likely to get us a big benefit (IA32 & instr is a load).
+	    if (!(VM.BuildForIA32 && 
+		  instr.isExplicitLoad() && 
+		  isReachableViaTrueDep(out.toNode(), parent))) {
+	      return true;
+	    }
+	  }
 	}
       }
       return false;
     }
   }
 
+  // can be very expensive; use only when absolutely necessary!
+  private boolean isReachableViaTrueDep(OPT_SpaceEffGraphNode goal,
+					OPT_SpaceEffGraphNode n) {
+    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
+	 out != null; 
+	 out = out.getNextOut()) {
+      if (OPT_DepGraphEdge.isRegTrue(out)) {
+	OPT_SpaceEffGraphNode p = out.toNode();
+	if (p == goal || isReachableViaTrueDep(goal, p)) return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Initialize nextSorted for nodes in tree rooted at t i.e.
