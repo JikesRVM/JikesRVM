@@ -41,7 +41,6 @@ function do_install
 ##
 
 while [[ $# > 0 ]] ; do
-  echo $1
   case $1 in
     --installOnly) installOnly="y";;
     --help) usage 0;;
