@@ -50,7 +50,7 @@ class VM_CompilerDNA implements VM_Constants {
   private static final double[] speedupRates = {1.00, 4.11, 5.30, 5.58};
   //-#else
   /*
-   *  These numbers were from a shadow on April 26, 2002 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on May 18, 2002 on Linux/IA32 (turangalila)
    */
   private static final double[] speedupRates = {1.00, 3.51, 4.63, 4.36};
   //-#endif
