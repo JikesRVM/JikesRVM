@@ -192,7 +192,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
         public Object getResult() { return url; }
 
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
-          url = new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name);
+          url = new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name);
         }
 
         public void process(File file) throws Exception {
@@ -214,7 +214,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
         
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
           if (urls == null) urls = new Vector();
-          urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name));
+          urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name));
         }
 
         public void process(File file) throws Exception {
