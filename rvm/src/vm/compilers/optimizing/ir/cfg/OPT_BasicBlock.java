@@ -54,6 +54,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Mauricio J. Serrano
  * @author John Whaley
+ * @author Martin Trapp
  */
 
 class OPT_BasicBlock extends OPT_SortedGraphNode 
@@ -775,6 +776,19 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 
 
   /**
+   * Replace fall through in this block by an explicite goto
+   */
+  
+  public void killFallThrough () {
+    OPT_BasicBlock fallThrough = getFallThroughBlock();
+    if (fallThrough != null) {
+      lastInstruction().insertBefore
+	(Goto.create(GOTO,fallThrough.makeJumpTarget()));
+    }
+  }
+
+  
+  /**
    * Prepend instruction to this basic block by inserting it right after
    * the LABEL instruction in the instruction list.
    * 
@@ -1246,8 +1260,6 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * make a copy of b, and set up the CFG so that this block has
    * normal out edges to the copies.
    *
-   * TODO: This doesn't work yet for SWITCH instructions
-   *
    * WARNING: Use this method with caution.  See comment on 
    * BasicBlock.recomputeNormalOut() 
    *
@@ -1268,8 +1280,6 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * make a copy of b, and set up the CFG so that this block has
    * normal out edges to the copy.
    *
-   * TODO: This doesn't work yet for SWITCH instructions
-   *
    * WARNING: Use this method with caution.  See comment on 
    * BasicBlock.recomputeNormalOut() 
    *
@@ -1277,6 +1287,23 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @param b the block to replicate
    */
   final OPT_BasicBlock replicateThisOut (OPT_IR ir, OPT_BasicBlock b) {
+    return replicateThisOut (ir, b, this);
+  }
+  
+  /**
+   * For basic block b which has to be a "normal" successor of this,
+   * make a copy of b, and set up the CFG so that this block has
+   * normal out edges to the copy.
+   *
+   * WARNING: Use this method with caution.  See comment on 
+   * BasicBlock.recomputeNormalOut() 
+   *
+   * @param ir the governing IR
+   * @param b the block to replicate
+   * @param pred code order predecessor for new block
+   */
+  final OPT_BasicBlock replicateThisOut (OPT_IR ir, OPT_BasicBlock b,
+					 OPT_BasicBlock pred) {
     // don't replicate the exit node
     if (b.isExit()) return null;
       
@@ -1291,26 +1318,54 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       bCopy.appendInstruction(g);
     }
     bCopy.recomputeNormalOut(ir);
-
+    
     // 3. update the branch instructions in 'this' to point to bCopy
     redirectOuts (b, bCopy,ir);
     
-    // 4. link the new basic into the code order, immediately following this
-    OPT_BasicBlock fallThrough = getFallThroughBlock();
-    if (fallThrough != null) {
-      OPT_Instruction g = Goto.create(GOTO, fallThrough.makeJumpTarget());
-      appendInstruction(g);
-    }
-    OPT_BasicBlock next = nextBasicBlockInCodeOrder();
+    // 4. link the new basic into the code order, immediately following pred
+    pred.killFallThrough();
+    OPT_BasicBlock next = pred.nextBasicBlockInCodeOrder();
     if (next != null) {
-      ir.cfg.breakCodeOrder(this,next);
+      ir.cfg.breakCodeOrder(pred,next);
       ir.cfg.linkInCodeOrder(bCopy,next);
     }
-    ir.cfg.linkInCodeOrder(this,bCopy);
-            
+    ir.cfg.linkInCodeOrder(pred,bCopy);
+    
     return bCopy;
   }
+  
+  
+  /**
+   * Move me behind `pred'.
+   *
+   * @param pred my desired code order predecessor
+   * @param ir the governing IR
+   */
+  public void moveBehind (OPT_BasicBlock pred, OPT_IR ir) {
+    killFallThrough();
+    pred.killFallThrough();
+    OPT_BasicBlock thisPred = prevBasicBlockInCodeOrder();
+    OPT_BasicBlock thisSucc = nextBasicBlockInCodeOrder();
+    if (thisPred != null) {
+      thisPred.killFallThrough();
+      ir.cfg.breakCodeOrder(thisPred, this);
+    } 
+    if (thisSucc != null) ir.cfg.breakCodeOrder(this, thisSucc);
+    
+    if (thisPred != null && thisSucc != null)
+      ir.cfg.linkInCodeOrder (thisPred, thisSucc);
+    
+    thisPred = pred;
+    thisSucc = pred.nextBasicBlockInCodeOrder();
+    
+    if (thisSucc != null) {
+      ir.cfg.breakCodeOrder (thisPred, thisSucc);
+      ir.cfg.linkInCodeOrder (this, thisSucc);
+    }
+    ir.cfg.linkInCodeOrder (thisPred, this);
+  }
 
+  
   /**
    * Change all branches from this to b to branches that go to bCopy instead.
    * This method also handles this.fallThough, so `this' should still be in
