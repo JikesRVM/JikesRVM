@@ -54,9 +54,35 @@ mydir="${0%/*}"			# temporary; directory we were run from
 if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
+    # Scratch space:
+    suffix=libjconfigure.bash
+    f=$bin_dir/$suffix
+    if [[ ! -f $f ]]; then
+	echo >&2 "\
+$ME: Something is weird here.  I can't find a file named
+    \"${f##*/}\" in \"$f\",
+    but I was apparently run from the directory \"$bin_dir\".  
+    Please use a version of jconfigure in the same source tree that 
+    your sources are located in."
+	trap '' EXIT
+	exit 2
+    fi
 else
-    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
+    bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
+    # Scratch space:
+    suffix=rvm/bin/libjconfigure.bash
+    f=$bin_dir/$suffix
+    if [[ ! -f $f ]]; then
+	show_mesg >&2 "\
+$ME: I can't find a file named \"${f##*/}\" at 
+   RVM_ROOT/$suffix (that's 
+   $f).
+   You probably have RVM_ROOT set incorrectly.  Reset RVM_ROOT and try again."
+	trap '' EXIT
+	exit 2
+    fi
 fi
+
 
 function croak_nonusage () {
     show_mesg "$*"  >&2;
@@ -76,6 +102,48 @@ function load () {
     . "${fname}";
 }
 
+
+if [[ ${RVM_ROOT-UNSET} = UNSET ]]; then
+    echo >&2 "$ME: RVM_ROOT is not set.  Set it and try again."
+    trap '' EXIT
+    exit 2
+fi
+
+if [[ ${RVM_ROOT} = "" ]]; then
+    echo >&2 "$ME: RVM_ROOT set to the empty string.  Set it properly and try again."
+    trap '' EXIT
+    exit 2
+fi
+
+if [[ ${RVM_ROOT} != /* ]]; then
+    echo >&2 "\
+$ME: RVM_ROOT must be set to an absolute path 
+    (one starting with a /), not to
+    \"$RVM_ROOT\".  Please set it properly and try again."
+    trap '' EXIT
+    exit 2
+fi
+
+suffix="rvm/bin/libjconfigure.bash"
+f="$RVM_ROOT/$suffix"
+if [[ ! -f $f  ]]; then
+    echo >&2 "\
+$ME: Can't find a file named \"${f##*/}\" in 
+    RVM_ROOT/$suffix (that's 
+    \"$f\").  
+    RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
+    if [[ $bin_dir != $RVM_ROOT ]]; then
+	maybe_root=$bin_dir
+	if [[ $maybe_root != /* ]]; then
+	    $maybe_root=${PWD}/$maybe_root
+	fi
+	if [[ -d $maybe_root/rvm/_timestamp ]]; then
+	    echo >&2 "$ME: Try setting RVM_ROOT to \"$maybe_root\""
+	fi
+    fi
+    trap '' EXIT
+    exit 2
+fi
 
 load "${bin_dir}/sanity-envars.bash" ;  		# Defines checkenv()
 load "${bin_dir}/libjconfigure.bash" ;
@@ -112,12 +180,13 @@ load "${bin_dir}/libjconfigure.bash" ;
 ## This should be a no-op.  However, this works around the Bash 2.05b bug where
 ## it thinks midline was unset.
 echo ${midline-UNSET} > /dev/null
+# Also problems with this one :(
+echo ${have_function_relative_LINENO-UNSET} > /dev/null
 
 ## POSSIBLE FUTURE WORKAROUND:
-## # Do the same thing for the other global variable that is set inside 
+## # Do the same thing for the other global variable that are set inside 
 ## # libjconfigure.bash, just in case the Bash bug should manifest
 ## # itself again:  
-## echo ${have_function_relative_LINENO-UNSET} > /dev/null
 
 ## Place where source files reside.
 checkenv RVM_ROOT
@@ -395,8 +464,15 @@ JAVAC_WARNING_FLAGS=-nowarn
 #
 declare -x -i GENERATE_MAP=1
 
+f=$RVM_ROOT/rvm/_timestamp/timestamp
+if [[ ! -f  $f ]]; then
+    echo >&2 "$ME: RVM_ROOT is not set properly; I can't find a file named
+    \"$f\" (RVM_ROOT/rvm/_timestamp/timestamp)."
+    trap ''
+    exit 3
+fi
 # Current version of RVM
-CVS_TIMESTAMP=$(cat $RVM_ROOT/rvm/_timestamp/timestamp)
+CVS_TIMESTAMP=$(cat $f)
 JIKESRVM_VERSION="Jikes RVM 2.3.0.1+CVS"
 
 # Default values for RunBootImage constants.
