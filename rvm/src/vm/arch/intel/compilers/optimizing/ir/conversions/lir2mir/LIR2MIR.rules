@@ -598,6 +598,18 @@ EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
 EMIT(MIR_Compare.mutate(P(p), IA32_CMP, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))));
 
+r:	BOOLEAN_CMP(r,ZERO)
+EQ_NE(BooleanCmp.getCond(P(p)))?37:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())); \
+BOOLEAN_CMP(burs, P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+
+boolcmp:	BOOLEAN_CMP(r,ZERO)
+EQ_NE(BooleanCmp.getCond(P(p)))?11:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy()));
+
 r:	BOOLEAN_CMP(cz, ZERO)
 26
 EMIT_INSTRUCTION 
@@ -703,6 +715,13 @@ r:	CMOV(r, OTHER_OPERAND(riv, arg))
 (13 + 30)
 EMIT_INSTRUCTION
 CMOV_CMP(burs, P(p), CondMove.getVal1(P(p)), CondMove.getVal2(P(p))); \
+CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r:	CMOV(r, OTHER_OPERAND(ZERO, arg))
+EQ_NE(CondMove.getCond(P(p)))?(11 + 30):INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getVal1(P(p)).copy())); \
 CMOV_MOV(burs, P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
@@ -1077,11 +1096,26 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)),         \
 			  BinaryAcc.getValue(P(p))));
 
+szp:	INT_AND_ACC(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
+
 ### Memory operands ### 
 szpr:	INT_AND_ACC(r, load32)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)), consumeMO()));
+
+szp:	INT_AND_ACC(r, load32)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, BinaryAcc.getResult(P(p)), consumeMO()));
+
+szp:	INT_AND_ACC(load32, r)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, BinaryAcc.getValue(P(p)), consumeMO()));
 
 stm:	INT_STORE(INT_AND_ACC(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -3280,6 +3314,12 @@ stm:	INT_IFCMP(r,riv)
 26
 EMIT_INSTRUCTION
 IFCMP(burs, P(p), IfCmp.getVal1(P(p)), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)));
+
+stm:	INT_IFCMP(r, ZERO)
+EQ_NE(IfCmp.getCond(P(p)))?24:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.create(IA32_TEST, IfCmp.getVal1(P(p)), IfCmp.getVal1(P(p)).copy())); \
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(IfCmp.getCond(P(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
 
 # Because uload is only used for booleans (0/1) we can get away
 # with this for both signed and unsigned loads.
