@@ -468,85 +468,86 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	  trapInfo = gprs[(instruction & VM_Constants_ARRAY_INDEX_REG_MASK)
 			  >> VM_Constants_ARRAY_INDEX_REG_SHIFT];
 	  break;
-	}
-	else if ((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_MASK) == VM_Constants_CONSTANT_ARRAY_INDEX_TRAP) {
+	} else if ((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_MASK) == VM_Constants_CONSTANT_ARRAY_INDEX_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: array bounds trap\n");
 	  trapCode = VM_Runtime_TRAP_ARRAY_BOUNDS;
 	  trapInfo = ((int)((instruction & VM_Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
 	  break;
-	}
-	else if ((instruction & VM_Constants_DIVIDE_BY_ZERO_MASK) == VM_Constants_DIVIDE_BY_ZERO_TRAP) {
+	} else if ((instruction & VM_Constants_DIVIDE_BY_ZERO_MASK) == VM_Constants_DIVIDE_BY_ZERO_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: divide by zero trap\n");
 	  trapCode = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
 	  break;
-	}
-	else if ((instruction & VM_Constants_MUST_IMPLEMENT_MASK) == VM_Constants_MUST_IMPLEMENT_TRAP) {
+	} else if ((instruction & VM_Constants_MUST_IMPLEMENT_MASK) == VM_Constants_MUST_IMPLEMENT_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: must implement trap\n");
 	  trapCode = VM_Runtime_TRAP_MUST_IMPLEMENT;
 	  break;
-	}
-	else if ((instruction & VM_Constants_STORE_CHECK_MASK) == VM_Constants_STORE_CHECK_TRAP) {
+	} else if ((instruction & VM_Constants_STORE_CHECK_MASK) == VM_Constants_STORE_CHECK_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: objarray store check trap\n");
 	  trapCode = VM_Runtime_TRAP_STORE_CHECK;
 	  break;
-	}
-	else if ((instruction & VM_Constants_CHECKCAST_MASK ) == VM_Constants_CHECKCAST_TRAP) {
+	} else if ((instruction & VM_Constants_CHECKCAST_MASK ) == VM_Constants_CHECKCAST_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: checkcast trap\n");
 	  trapCode = VM_Runtime_TRAP_CHECKCAST;
 	  break;
-	}
-	else if ((instruction & VM_Constants_REGENERATE_MASK) == VM_Constants_REGENERATE_TRAP) {
+	} else if ((instruction & VM_Constants_REGENERATE_MASK) == VM_Constants_REGENERATE_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: regenerate trap\n");
 	  trapCode = VM_Runtime_TRAP_REGENERATE;
 	  break;
-	}
-	else if ((instruction & VM_Constants_NULLCHECK_MASK) == VM_Constants_NULLCHECK_TRAP) {
+	} else if ((instruction & VM_Constants_NULLCHECK_MASK) == VM_Constants_NULLCHECK_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: null pointer trap\n");
 	  trapCode = VM_Runtime_TRAP_NULL_POINTER;
 	  break;
-	}
-	else if ((instruction & VM_Constants_JNI_STACK_TRAP_MASK) == VM_Constants_JNI_STACK_TRAP) {
+	} else if ((instruction & VM_Constants_JNI_STACK_TRAP_MASK) == VM_Constants_JNI_STACK_TRAP) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: resize stack for JNI call\n");
 	  trapCode = VM_Runtime_TRAP_JNI_STACK;
+	  // We haven't actually bought the stackframe yet, so pretend that
+	  // we are actually trapping directly from the call instruction that invoked the 
+	  // native method that caused the stackoverflow trap.
+	  *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
 	  break;
-	}
-	else if ((instruction & VM_Constants_WRITE_BUFFER_OVERFLOW_MASK) == VM_Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
+	} else if ((instruction & VM_Constants_WRITE_BUFFER_OVERFLOW_MASK) == VM_Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
 	  //!!TODO: someday use logic similar to stack guard page to force a gc
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: write buffer overflow trap\n");
 	  fprintf(SysErrorFile,"vm: write buffer overflow trap\n");
 	  exit(1);
-	}
-	else if ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP) {
+	} else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP) ||
+		   ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP)) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: stack overflow trap\n");
 	  trapCode = VM_Runtime_TRAP_STACK_OVERFLOW;
+	  if ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP) {
+	    // We haven't actually bought the stackframe yet, so pretend that
+	    // we are actually trapping directly from the call instruction that invoked the 
+	    // method whose prologue caused the stackoverflow trap.
+	    *(VM_Address *)(oldFp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
+	  }
 
 	  // adjust stack limit downward to give exception handler some space in which to run
 	  //
 	  unsigned stackLimit = *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset);
 	  unsigned stackStart = *(unsigned *)((char *)thread + VM_Thread_stack_offset);
 	  stackLimit -= VM_Constants_STACK_SIZE_GUARD;
-	  if (stackLimit < stackStart)
-            { // double fault - stack overflow exception handler used too much stack space
-	      fprintf(SysErrorFile, "vm: stack overflow exception (double fault)\n");
+	  if (stackLimit < stackStart) { 
+	    // double fault - stack overflow exception handler used too much stack space
+	    fprintf(SysErrorFile, "vm: stack overflow exception (double fault)\n");
 	      
-	      // Go ahead and get all the stack space we need to generate the error dump (since we're crashing anyways)
-	      *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset) = 0;
+	    // Go ahead and get all the stack space we need to generate the error dump (since we're crashing anyways)
+	    *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset) = 0;
 	      
-	      // Things are very badly wrong anyways, so attempt to generate 
-	      // a useful error dump before exiting by returning to VM_Scheduler.dumpStackAndDie
-	      // passing it the fp of the offending thread.
-	      VM_Address dumpStack = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
-	      save->gpr[P0] = save->gpr[FP];
+	    // Things are very badly wrong anyways, so attempt to generate 
+	    // a useful error dump before exiting by returning to VM_Scheduler.dumpStackAndDie
+	    // passing it the fp of the offending thread.
+	    VM_Address dumpStack = *(VM_Address *)((char *)jtoc + DumpStackAndDieOffset);
+	    save->gpr[P0] = save->gpr[FP];
 #ifdef RVM_FOR_LINUX
-	      save->link = save->nip + 4; // +4 so it looks like a return address
-	      save->nip = dumpStack;
+	    save->link = save->nip + 4; // +4 so it looks like a return address
+	    save->nip = dumpStack;
 #endif
 #ifdef RVM_FOR_AIX
-	      save->lr = save->iar + 4; // +4 so it looks like a return address
+	    save->lr = save->iar + 4; // +4 so it looks like a return address
 	    save->iar = dumpStack;
 #endif
 	    return;
-            }
+	  }
 	  *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset) = stackLimit;
 	  *(unsigned *)(save->gpr[VM_Constants_PROCESSOR_REGISTER] + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
 	  

@@ -310,6 +310,8 @@ class GenerateInterfaceDeclarations {
           + VM_Constants.WRITE_BUFFER_OVERFLOW_TRAP + ";\n");
       System.out.print("static const int VM_Constants_STACK_OVERFLOW_MASK        = "
           + VM_Constants.STACK_OVERFLOW_MASK + ";\n");
+      System.out.print("static const int VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP = "
+          + VM_Constants.STACK_OVERFLOW_HAVE_FRAME_TRAP + ";\n");
       System.out.print("static const int VM_Constants_STACK_OVERFLOW_TRAP        = "
           + VM_Constants.STACK_OVERFLOW_TRAP + ";\n");
       System.out.print("static const int VM_Constants_CHECKCAST_MASK             = "
