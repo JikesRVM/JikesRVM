@@ -191,13 +191,6 @@ implements VM_Uninterruptible, VM_Constants {
       newThread.cpuStartTime = now;  // this thread has started running
     }
 
-    //-#if RVM_WITH_HPM
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.hpm_safe && 
-	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
-      hpm.updateHPMcounters(previousThread, newThread, timerTick);
-    }
-    //-#endif 
-
     //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
     //-#endif
