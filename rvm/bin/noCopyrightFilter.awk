@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2001, 2003, 2004
+# (C) Copyright IBM Corp. 2001, 2003, 2004, 2005
 #
 # $Id$
 
@@ -21,6 +21,7 @@
 /\/_timestamp\/timestamp/ { next }
 
 /\/doc\/userguide\// { next }
+/\/etc\/testing\// { next }
 
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ { next }
 /\/regression\/tests\/pseudojbb\/pseudojbb/ {next}

@@ -1,4 +1,4 @@
-# (C) Copyright IBM Corp. 2001, 2003
+# (C) Copyright IBM Corp. 2001, 2003, 2005
 #
 # $Id$
 
@@ -18,6 +18,7 @@
 /\/_timestamp\/timestamp/ { next }
 
 /\/doc\/userguide\// { next }
+/\/etc\/testing\// { next }
 
 /\/regression\/tests\/javalex\/qb1.lex.ref/ {next}
 /\/regression\/tests\/jBYTEmark\/jBYTEmark.java/ {next}
