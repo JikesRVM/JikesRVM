@@ -115,30 +115,37 @@ final class VMRuntime {
    * initialized.
    */
   static void insertSystemProperties(Properties p) {
-    p.put("java.version", "1.3.0"); // change to 1.4.2 ?
+    p.put("java.version", "1.4.2"); /* This is a lie, of course -- we don't 
+                                       really support all 1.4 features, such
+                                       as assertions.  However, it is a  
+                                       necessary lie, since Eclipse 3.0
+                                       explicitly tests java.version and
+                                       insists upon at least 1.4.1 to run. */
     p.put("java.vendor", "Jikes RVM Project");
     p.put("java.vm.vendor", "Jikes RVM Project");
     p.put("java.vendor.url", "http://oss.software.ibm.com");
     
     p.put("java.specification.name", "Java Platform API Specification");
     p.put("java.specification.vendor", "Sun Microsystems Inc.");
-    p.put("java.specification.version", "1.3"); // Change to 1.4?
+    p.put("java.specification.version", "1.4");
 
     p.put("java.vm.specification.name", "Java Virtual Machine Specification");
     p.put("java.vm.specification.vendor", "Sun Microsystems Inc.");
     p.put("java.vm.specification.version", "1.0");
 
-    p.put("java.specification.version", "1.3"); // change to 1.4.0 ?
-    p.put("java.specification.version", "1.3"); // change to 1.4.0 ?
-
-    p.put("java.class.version", "48.0");
+    p.put("java.class.version", "48.0"); /* 48.0 brings us through Java
+                                            version 1.4.  Java 1.5 bumps the
+                                            class file format up to 49.0.  I
+                                            don't have a reference to version
+                                            49.0 handy (yet).  
+                                            --augart, 13 Sept 2004 */
 
     p.put("file.separator", "/");
     p.put("path.separator", ":");
     p.put("line.separator", "\n");
         
     p.put("java.compiler", "JikesRVM");
-    p.put("java.vm.version", "1.3.0");
+    p.put("java.vm.version", "1.4.2");
     p.put("java.vm.name", "JikesRVM");
     p.put("file.encoding", "8859_1");
     p.put("java.io.tmpdir", "/tmp");
@@ -156,7 +163,8 @@ final class VMRuntime {
 
        I (Steve Augart) started a discussion about this on classpath@gnu.org
        on 23 March 2003.  Summary: we define user.timezone specifically in
-       order to pass that information to java.util.TimeZone, which initializes
+       order to pass that information to GNU Classpath's implementation of
+       java.util.TimeZone, which initializes 
        later on in the boot process.  It does not seem to be required by the
        spec, and it's the empty string in Blackdown 1.4.2.
 
@@ -169,7 +177,7 @@ final class VMRuntime {
     s = (s == null ) ? "" : s;  // Maybe it's silly to set it to the empty
                                 // string.  Well, this should never succeed
                                 // anyway, since we're always called by
-                                // runrvm.  
+                                // runrvm, which explicitly sets the value.
     p.put("user.timezone", s);
 
     /* java.library.path
@@ -209,8 +217,9 @@ final class VMRuntime {
 
 
     /* Now the rest of the special ones that we set on the command line.   Do
-     * this just in case they turn out to be needed earlier on in this
-     * process. */
+     * this just in case later revisions of GNU Classpath start to require
+     * some of them in the boot process; otherwise, we could wait for them to
+     * be set in VM_CommandLineArgs.lateProcessCommandLineArguments() */
     final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home", "rvm.root", "rvm.build"};
     
     for (int i = 0; i < clProps.length; ++i ) {
