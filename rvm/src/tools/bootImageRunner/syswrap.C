@@ -355,7 +355,10 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 /** Destroying the Java VM only makes sense if programs can create a VM
  * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
  * unloading virtual machine instances.  It is supposed to block until all
- * other user threads are gone, and then return an error code. */
+ * other user threads are gone, and then return an error code.
+ *
+ * TODO: Implement.
+ */
 static
 jint 
 DestroyJavaVM(JavaVM UNUSED * vm) 
@@ -367,7 +370,9 @@ DestroyJavaVM(JavaVM UNUSED * vm)
 /* "Trying to attach a thread that is already attached is a no-op".  We
  * implement that common case.  (In other words, it works like GetEnv()).
  * However, we do not implement the more difficult case of actually attempting
- * to attach a native thread that is not  currently attached to the VM.
+ * to attach a native thread that is not currently attached to the VM.
+ *
+ * TODO: Implement for actually attaching unattached threads.
  */
 static
 jint 
@@ -402,6 +407,8 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
     return retval;
 }
 
+
+/* TODO: Implement */
 static
 jint 
 DetachCurrentThread(JavaVM UNUSED *vm) 
@@ -442,6 +449,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 }
 
 /** JNI 1.4 */
+/* TODO: Implement */
 static
 jint 
 AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
