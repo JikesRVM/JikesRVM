@@ -330,7 +330,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
             subtoken = token + 4;
             initialHeapSize 
-                = parse_memory_size("initial heap size", "ms", "M", BYTES_IN_PAGE,
+                = parse_memory_size("initial heap size", "ms", "", BYTES_IN_PAGE,
                                     token, subtoken, fastExit);
             continue;
         }
@@ -338,7 +338,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
             subtoken = token + 4;
             maximumHeapSize 
-                = parse_memory_size("maximum heap size", "mx", "M", BYTES_IN_PAGE,
+                = parse_memory_size("maximum heap size", "mx", "", BYTES_IN_PAGE,
                                     token, subtoken, fastExit);
             continue;
         }
@@ -347,7 +347,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[SS_INDEX], 4)) {
             subtoken = token + 4;
             initialStackSize
-                = parse_memory_size("initial stack size", "ss", "K", 4, 
+                = parse_memory_size("initial stack size", "ss", "", 4, 
                                     token, subtoken, fastExit);
             continue;
         }
@@ -355,7 +355,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[SG_INDEX], 4)) {
             subtoken = token + 4;
             stackGrowIncrement
-                = parse_memory_size("stack growth increment", "sg", "K", 4, 
+                = parse_memory_size("stack growth increment", "sg", "", 4, 
                                     token, subtoken, fastExit);
             continue;
         }
@@ -363,7 +363,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[SX_INDEX], 4)) {
             subtoken = token + 4;
             maximumStackSize
-                = parse_memory_size("maximum stack size", "sx", "K", 4,
+                = parse_memory_size("maximum stack size", "sx", "", 4,
                                     token, subtoken, fastExit);
             continue;
         }
@@ -611,7 +611,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                                         */ 
                   const char *sizeFlag, // "-Xms" or "-Xmx" or
                                         // "-Xss" or "-Xsg" or "-Xsx" 
-                  const char *defaultFactor, // "M" or "K" are used
+                  const char *defaultFactor, // We now always default to bytes ("")
                   unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
                   const char *subtoken /* e.g., "200M" or "200" */,
@@ -647,21 +647,27 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     long double factor = 0.0;   // 0.0 is a sentinel meaning Unset
 
     if (*endp == '\0') {
-        /* no suffix.  Here, -Xms and -Xmx differ from the Sun JVM, by assuming
-           megabytes -- historical compat. with previous
-           Jikes RVM behaviour.  The Sun JVM assumes that no suffix implies
-           bytes.   Other flags specify their own default factors. */ 
-    } else if (strequal(endp, "c")) {
-        /* The "dd" Unix utility has used "c" for "characters" to mean what we
-           mean by bytes, so we go ahead and make "c" legal syntax.  This is
-           handled specially, since we don't want to treat "cib" or "cB" as
-           legal -- that would just be sick. */
+        /* no suffix.  Along with the Sun JVM, we now assume Bytes by
+           default. (This is a change from  previous Jikes RVM behaviour.)  */  
         factor = 1.0;
-    } else if (strequal(endp, "pages") || strequal(endp, "p")) {
+// Don't use C or c, since they are hexadecimal digits.
+//     } else if (strequal(endp, "c")) {
+//         /* The "dd" Unix utility has used "c" for "characters" to mean what we
+//            mean by bytes, so we go ahead and make "c" legal syntax.  This is
+//            handled specially, since we don't want to treat "cib" or "cB" as
+//            legal -- that would just be sick. */
+//         factor = 1.0;
+        // We don't use "p" for "pages" so that we can avoid conflicting with
+        // Petabytes one day.
+    } else if (strequal(endp, "pages") // || strequal(endp, "p")
+        ) {
         factor = BYTES_IN_PAGE;
     } else if (   /* Handle constructs like "M" and "K" */
                   endp[1] == '\0' 
-                  /* Handle constructs like "MiB" or "MB".*/
+                  /* Handle constructs like "MiB" or "MB".  We stand with
+                     common practice in the programming community and against
+                     ISO, by having KB of memory be units of 1024, not units of
+                     1000. */
                || strequal(endp + 2, "iB") || strequal(endp + 2, "ib") 
                || strequal(endp + 2, "B") || strequal(endp + 2, "b") ) {
         factorStr = endp;
@@ -680,9 +686,12 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
          * 2^40, and this only wastes a couple of instructions, once during
          * the program run.  When we go up to 64 bits, we'll be glad.  I
          * think. --steve augart */
-        if (e == 'e' || e == 'E') // Exbibytes
-            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
-        else if (e == 'p' || e == 'P') // Pebibytes
+
+//  Don't use E alone for now -- E is a hex digit.
+//         if (e == 'e' || e == 'E') // Exbibytes
+//             factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
+//         else 
+        if (e == 'p' || e == 'P') // Pebibytes
             factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
         else if (e == 't' || e == 'T') // Tebibytes
             /* We'll always recognize T and above, but we don't show those
@@ -695,17 +704,12 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
             factor = 1024.0 * 1024.0; // Mebibytes
         else if (e == 'k' || e == 'K')
             factor = 1024.0;    // Kibibytes
-        /* b for bytes.  Seems mnemonic.  Hotspot interprets the absence of a
-           suffix to mean bytes, but that conflicts with historic Jikes RVM
-           practice. 
-
-           Potential Conflict: 
-           "dd" uses "b" to mean "blocks", a factor of 512.  This makes sense
-           in a context of a disk utility, but little sense in a context of
-           VM memory sizes. */
-        else if (e == 'b' || e == 'B') 
+// We have gotten rid of the B suffix, since B is a hexadecimal digit.
+//         else if (e == 'b' || e == 'B') 
+//             factor = 1.0;
+        else if (e == '\0') {   // Absence of a suffix means Bytes.
             factor = 1.0;
-        else {
+        } else {
             fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
                     " unit of memory size\n", Me, token, factorStr);          
             *fastExit = true;
@@ -734,10 +738,10 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     }
 
     if (*fastExit) {
-        fprintf(SysTraceFile, "\tPlease specify %s size as follows:\n", 
+        fprintf(SysTraceFile, "\tPlease specify %s as follows:\n", 
                 sizeName);
         fprintf(SysTraceFile, 
-                "\t    in bytes, using \"-X%s<positive number>B\",\n",
+                "\t    in bytes, using \"-X%s<positive number>\",\n",
                 sizeFlag);
         fprintf(SysTraceFile, 
                 "\tor, in kilobytes (kibibytes), using \"-X%s<positive number>K\",\n",
@@ -761,14 +765,14 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         fprintf(SysTraceFile, 
                 "\tor, in petabytes (pebibytes), using \"-X%s<positive number>P\"",
                 sizeFlag);
-        fprintf(SysTraceFile, ",\n");
-        fprintf(SysTraceFile, 
-                "\tor, in exabytes (exbibytes), using \"-X%s<positive number>E\"",
-                sizeFlag);
+//         fprintf(SysTraceFile, ",\n");
+//         fprintf(SysTraceFile, 
+//                 "\tor, in exabytes (exbibytes), using \"-X%s<positive number>E\"",
+//                 sizeFlag);
 // #endif // RVM_FOR_64_ADDR
         fprintf(SysTraceFile, ".\n");
         fprintf(SysTraceFile,
-                "  <positive number> can be a floating point value or a hex value like 0xff.\n");
+                "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
         if (roundTo != 1) {
             fprintf(SysTraceFile,
                     "  The # of bytes will be rounded up to a multiple of");
