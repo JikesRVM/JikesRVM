@@ -875,12 +875,12 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   private int toBePatchedMCAddr;
   private int targetBCpc = -1;
   /* we have 5 bytes, opcode, imm */
-  final void registerLoadAddrConst(int target) {
+  final void registerLoadRetAddrConst(int target) {
     toBePatchedMCAddr = mi+1;
     targetBCpc = target;
   }
 
-  final void patchLoadAddrConst(int bIP) {
+  final void patchLoadRetAddrConst(int bIP) {
     if (bIP != targetBCpc) return;
     emitImm32(mi, toBePatchedMCAddr);
   }

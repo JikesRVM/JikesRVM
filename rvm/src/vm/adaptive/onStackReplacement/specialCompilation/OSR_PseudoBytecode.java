@@ -6,6 +6,8 @@
 package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM_SizeConstants;
+
+import org.vmmagic.unboxed.*;
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  *
@@ -39,6 +41,13 @@ public abstract class OSR_PseudoBytecode
     
     for (int i=7; i>=0; i--) {
       to[p++] = (byte)((value >>> (i<<LOG_BITS_IN_BYTE)) & 0x0FF);
+    }
+  }
+
+  public static void word2bytes(byte[] to, int p, Word value) {
+    
+    for (int i=BYTES_IN_ADDRESS-1; i>=0; i--) {
+      to[p++] = (byte)(value.rshl(i<<LOG_BITS_IN_BYTE).toInt() & 0x0FF);
     }
   }
 

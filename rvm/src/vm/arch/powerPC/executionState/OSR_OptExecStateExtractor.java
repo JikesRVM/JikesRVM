@@ -164,8 +164,6 @@ public final class OSR_OptExecStateExtractor
     VM_OptCompiledMethod tsfromCM = (VM_OptCompiledMethod)cm;
     
     int nvArea = osrFPoff + tsfromCM.getUnsignedNonVolatileOffset();
-    // stack word width in bytes.
-    int SW_WIDTH = 1 << LG_STACKWORD_WIDTH;
     
     WordArray gprs = registers.gprs;
     double[] fprs = registers.fprs;
@@ -173,7 +171,7 @@ public final class OSR_OptExecStateExtractor
     // temporarialy hold ct, xer, ctr register
     int cr = 0;
     int xer = 0;
-    int ctr = 0;
+    Word ctr = Word.zero();
 
     // enter critical section
     // precall methods potientially causing dynamic compilation
@@ -186,7 +184,7 @@ public final class OSR_OptExecStateExtractor
     for (int i=LAST_SCRATCH_GPR;
          i >= FIRST_VOLATILE_GPR;
          i--) {
-      lastVoffset -= SW_WIDTH;
+      lastVoffset -= BYTES_IN_STACKSLOT;
       gprs.set(i, VM_Magic.objectAsAddress(stack).add(lastVoffset).loadWord());
     }
             
@@ -196,23 +194,23 @@ public final class OSR_OptExecStateExtractor
            i<=LAST_NONVOLATILE_GPR;
            i++) {
         gprs.set(i, VM_Magic.objectAsAddress(stack).add(nvArea).loadWord());
-        nvArea += SW_WIDTH;
+        nvArea += BYTES_IN_STACKSLOT;
       }
     }
 
     // recover CR, XER, and CTR
     cr  = VM_Magic.getIntAtOffset(stack, nvArea);
-    nvArea += SW_WIDTH;
+    nvArea += BYTES_IN_STACKSLOT;
     xer = VM_Magic.getIntAtOffset(stack, nvArea);
-    nvArea += SW_WIDTH;
-    ctr = VM_Magic.getIntAtOffset(stack, nvArea);
-    nvArea += SW_WIDTH;
+    nvArea += BYTES_IN_STACKSLOT;
+    ctr = VM_Magic.getWordAtOffset(stack, nvArea);
+    nvArea += BYTES_IN_STACKSLOT;
 
     /*
     // it should be aligned ready
     // it may have a padding before FPRs.
     int offset = nvArea - osrFPoff;
-    offset = (offset + SW_WIDTH) & ~SW_WIDTH;
+    offset = (offset + BYTES_IN_STACKSLOT) & ~BYTES_IN_STACKSLOT;
     nvArea = osrFPoff + offset;
     */
 
@@ -222,7 +220,7 @@ public final class OSR_OptExecStateExtractor
          i++) {
       long lbits = VM_Magic.getLongAtOffset(stack, nvArea);
       fprs[i] = VM_Magic.longBitsAsDouble(lbits);
-      nvArea += 2*SW_WIDTH;
+      nvArea += BYTES_IN_DOUBLE;
     }   
 
     // convert addresses in registers to references 
@@ -271,9 +269,9 @@ public final class OSR_OptExecStateExtractor
      * it allocates many objects.
      */
 
-    // for the long type value which has two int parts.
-    // this hold the first part for LONG1.
-    long lpart_one = 0;
+    // for 64-bit type values which have two int parts.
+    // this holds the high part.
+    int lpart_one = 0;
 
     // now recover execution states
     OSR_MapIterator iterator = 
@@ -338,11 +336,11 @@ public final class OSR_OptExecStateExtractor
         break;
       }
       case FLOAT: {
-        float fv = getFloatFrom(vtype,
-                                value,
-                                stack,
-                                fpOffset,
-                                registers);
+        float fv = (float) getDoubleFrom(vtype,
+                                         value,
+                                         stack,
+                                         fpOffset,
+                                         registers);
         int ibits = VM_Magic.floatAsIntBits(fv);
         state.add(new OSR_VariableElement(kind,
                                          num,
@@ -350,27 +348,23 @@ public final class OSR_OptExecStateExtractor
                                          ibits));
         break;
       }
-      case LONG1: {
-        lpart_one = getIntBitsFrom(vtype,
-                                   value,
-                                   stack,
-                                   fpOffset,
-                                   registers);
+      case HIGH_64BIT: {
+        lpart_one = value;
         break;
       }
-      case LONG2: {
-        long lpart_two = getIntBitsFrom(vtype,
-                                        value,
-                                        stack,
-                                        fpOffset,
-                                        registers);
-        long lbits = (lpart_one << 32) | (lpart_two & 0x0FFFFFFFF);
+      case LONG: {
+        long lbits = getLongBitsFrom(vtype,
+                                     lpart_one,
+                                     value,
+                                     stack,
+                                     fpOffset,
+                                     registers);
+        lpart_one = 0;
         state.add(new OSR_VariableElement(kind,
                                          num,
                                          LONG,    // not use LONG2, 
                                          lbits));
 
-        lpart_one = 0;
         break;
       }
       case DOUBLE: {
@@ -389,7 +383,7 @@ public final class OSR_OptExecStateExtractor
       // I believe I did not handle return address correctly because
       // the opt compiler did inlining of JSR/RET.
       // To be VERIFIED.
-      case ADDR: {
+      case RET_ADDR: {
         int bcIndex  = getIntBitsFrom(vtype,
                                       value,
                                       stack,
@@ -414,6 +408,30 @@ public final class OSR_OptExecStateExtractor
                                          ref));
         break;
       }
+      case WORD: {
+        //-#if RVM_FOR_32_ADDR
+        int word = getIntBitsFrom(vtype,
+                               value,
+                               stack,
+                               fpOffset,
+                               registers);
+        //-#endif
+        //-#if RVM_FOR_64_ADDR
+        long word = getLongBitsFrom(vtype,
+                                lpart_one,
+                                value,
+                                stack,
+                                fpOffset,
+                                registers);
+        lpart_one = 0;
+        //-#endif
+
+        state.add(new OSR_VariableElement(kind,
+                                          num,
+                                          tcode,
+                                          word));
+        break;
+      }
       default:
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         break;
@@ -432,7 +450,7 @@ public final class OSR_OptExecStateExtractor
                                     int fpOffset,
                                     OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
-    if (vtype == ICONST) {
+    if (vtype == ICONST || vtype == ACONST) {
       return value;
 
     // for physical register type, it is the register number
@@ -455,27 +473,54 @@ public final class OSR_OptExecStateExtractor
     }
   }
 
-  private static float getFloatFrom(int vtype,
-                                    int value,
-                                    byte[] stack,
-                                    int fpOffset,
-                                    OSR_TempRegisters registers) {
-    if (vtype == PHYREG) {
-      // for FPRs, the index may be FIRST_DOUBLE + regnum
-      // it has been changed again
-//      return (float)registers.fprs[value - FIRST_DOUBLE];
-        return (float)registers.fprs[value];
-    } else if (vtype == SPILL) {
+  private static long getLongBitsFrom(int vtype,
+                                      int valueHigh,
+                                      int valueLow,
+                                      byte[] stack,
+                                      int fpOffset,
+                                      OSR_TempRegisters registers) {
 
-      int offset = fpOffset + value;
-      long lbits = VM_Magic.getLongAtOffset(stack, offset);
-      return (float)VM_Magic.longBitsAsDouble(lbits);
+    // for LCONST type, the value is the value
+    if (vtype == LCONST || vtype == ACONST) {
+      return ( (((long)valueHigh) << 32) | (((long)valueLow) & 0x0FFFFFFFF));
+    
+    } else if (VM.BuildFor32Addr) {
+      // for physical register type, it is the register number
+      // because all registers are saved in threadswitch's stack
+      // frame, we get value from it.
+      if (vtype == PHYREG) {
+        return ((((long)registers.gprs.get(valueHigh).toInt()) << 32) | 
+                (((long)registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL));
 
-    } else {
-      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-      return -1.0f;
-    }
-  }
+      // for spilled locals, the value is the spilled position
+      // it is on FOO's stackframe.
+      // ASSUMING, spill offset is offset to FP in bytes.
+      } else if (vtype == SPILL) {
+        int offset = fpOffset + valueHigh;
+        long lvalue = ((long)VM_Magic.getIntAtOffset(stack, offset)) << 32;
+
+        offset = fpOffset + valueLow;
+        return (lvalue | (((long)VM_Magic.getIntAtOffset(stack, offset)) & 0x0FFFFFFFFL));
+      }
+
+    } else if (VM.BuildFor64Addr) {
+      // for physical register type, it is the register number
+      // because all registers are saved in threadswitch's stack
+      // frame, we get value from it.
+      if (vtype == PHYREG) {
+        return registers.gprs.get(valueLow).toLong();
+      
+      // for spilled locals, the value is the spilled position
+      // it is on FOO's stackframe.
+      // ASSUMING, spill offset is offset to FP in bytes.
+      } else if (vtype == SPILL) {
+        int offset = fpOffset + valueLow;
+        return VM_Magic.getLongAtOffset(stack, offset);
+      }
+    } 
+     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+     return -1L;
+   }
 
   private static double getDoubleFrom(int vtype,
                                       int value,
@@ -499,10 +544,10 @@ public final class OSR_OptExecStateExtractor
                                             byte[] stack,
                                             int fpOffset,
                                             OSR_TempRegisters registers) {
-    if (vtype == ICONST) {
+    if ((vtype == ICONST) || (vtype == ACONST)) {
       // the only constant object is NULL, I believe.
       if (VM.VerifyAssertions) VM._assert(value == 0);
-      return VM_Magic.addressAsObject(Address.fromInt(value));
+      return VM_Magic.addressAsObject(Address.zero());
     } else if (vtype == PHYREG) {
       return registers.objs[value];
     } else if (vtype == SPILL) {
@@ -531,9 +576,10 @@ public final class OSR_OptExecStateExtractor
     VM.sysWrite("   first NV GPR "+cm.getFirstNonVolatileGPR()+"\n");
     VM.sysWrite("   first NV FPR "+cm.getFirstNonVolatileFPR()+"\n");
 
-    for (int i=0; i<upOffset-fpOffset; i+=4) {
-      int content = VM_Magic.getIntAtOffset(stack, i+fpOffset);
-      VM.sysWrite("    0x"+Integer.toHexString(content));
+    for (int i=0; i<upOffset-fpOffset; i+=BYTES_IN_STACKSLOT) {
+      Word content = VM_Magic.getWordAtOffset(stack, i+fpOffset);
+      VM.sysWrite("    0x");
+      VM.sysWrite(content);
       VM.sysWrite("      "+i+"\n");
     }
   }

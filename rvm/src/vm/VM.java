@@ -856,6 +856,7 @@ public class VM extends VM_Properties
   public static void sysWriteField (int w, int v)      throws NoInlinePragma { swLock(); writeField(w, v); swUnlock(); }
   public static void sysWriteField (int w, String s)   throws NoInlinePragma { swLock(); writeField(w, s); swUnlock(); }
   public static void sysWriteHex(int v)                throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
+  public static void sysWriteHex(long v)               throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
   public static void sysWriteHex(Address v)         throws NoInlinePragma { swLock(); writeHex(v); swUnlock(); }
   public static void sysWriteInt(int v)                throws NoInlinePragma { swLock(); writeInt(v); swUnlock(); }
   public static void sysWriteLong(long v)              throws NoInlinePragma { swLock(); write(v,false); swUnlock(); }

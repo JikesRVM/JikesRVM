@@ -24,7 +24,7 @@ public class OSR_TempRegisters implements VM_Constants {
   /* hold CR, XER, CTR */
   int    cr;
   int    xer;
-  int    ctr;
+  Word    ctr;
 
   /* if a GPR hold a reference to an object, we convert the raw memory
    * address to a reference. When objs[i] is null, the GPR[i] is not

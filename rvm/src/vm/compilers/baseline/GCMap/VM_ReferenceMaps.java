@@ -35,7 +35,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   private int MCSites[];
   final private int bitsPerMap;   // number of bits in each map
   private int mapCount;
-  final private int local0Offset; // distance from frame pointer to first Local area
+  final private int startLocal0Offset; // distance from frame pointer to start of the Local area
   private VM_JSRInfo jsrInfo;
 
   /*
@@ -51,7 +51,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     // save input information and compute related data
     this.bitsPerMap   = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
  
-    this.local0Offset = VM_Compiler.getFirstLocalOffset(method);
+    this.startLocal0Offset = VM_Compiler.getStartLocalOffset(method);
 
     if (VM.TraceStkMaps) {
       VM.sysWrite("VM_ReferenceMaps constructor. Method name is:");
@@ -61,7 +61,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       VM.sysWrite("\n");
       VM.sysWrite(" bytesPerMap = ", bytesPerMap());
       VM.sysWrite(" - bitsPerMap = ", bitsPerMap);
-      VM.sysWriteln(" - local0Offset = ", local0Offset);
+      VM.sysWriteln(" - startLocal0Offset = ", startLocal0Offset);
     }
 
     // define the basic blocks
@@ -933,7 +933,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     if (offset == 0) return 1; // initial call return first map bit
 
     // convert from offset to bitnumber
-    int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1 +1; // 1 for being 1 based +1 for jsr bit
+    int bitnum = ((startLocal0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) +1; // +1 for jsr bit
 
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertOffsetToBitnum- offset = ", offset, "  bitnum = ", bitnum);
@@ -947,14 +947,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    *   this routine determines the correspondig offset in the stack
    */ 
   private int convertBitNumToOffset(int bitnum)   {
-    // local0Offset is the distance from the frame pointer to the first local word
+    // startLocal0Offset is the distance from the frame pointer to the start of the local word area
     //   it includes the Linkage area ( 12 bytes)
     //               the Local area and
     //               the Java operand stack area
     //               and possibly a parameter spill area
 
     // convert from top of local words
-    int offset = local0Offset - ((bitnum -1 -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for being 1 based, minus 1 for jsrbit
+    int offset = startLocal0Offset - ((bitnum -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for jsrbit
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertBitnumToOffset- bitnum = ", bitnum, "  offset = ", offset);
     }
@@ -967,7 +967,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    */
   private int convertJsrBitNumToOffset(int bitnum)   {
     // convert from top of local words
-    int jsroffset = local0Offset - ((bitnum -1) <<LOG_BYTES_IN_ADDRESS); // minus 1 for being 1 based, no jsrbit here
+    int jsroffset = startLocal0Offset - (bitnum <<LOG_BYTES_IN_ADDRESS); // no jsrbit here
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertJsrBitnumToOffset- input bitnum = ", bitnum, "  offset = ", jsroffset);
     }
@@ -983,10 +983,10 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   private int convertJsrOffsetToBitNum(int offset)   {
     if (offset==0) return 1; // initial call return first map bit
 
-    int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1; // 1 for being 1 based; no jsr bit
+    int bitnum = ((startLocal0Offset - offset) >>>LOG_BYTES_IN_ADDRESS); // no jsr bit
 
     if (VM.TraceStkMaps) {
-      VM.sysWrite("convertJsrOffsetToBitnum- local0Offset = ", local0Offset);
+      VM.sysWrite("convertJsrOffsetToBitnum- startLocal0Offset = ", startLocal0Offset);
       VM.sysWrite("    Input offset = ", offset );
       VM.sysWriteln(  " jsr  bitnum = ", bitnum);
     }
@@ -1413,7 +1413,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
 
     VM.sysWrite(" MCSites.length = ", MCSites.length );
     VM.sysWrite(" mapCount = ", mapCount);
-    VM.sysWriteln(" local0Offset = ", local0Offset);
+    VM.sysWriteln(" startLocal0Offset = ", startLocal0Offset);
 
     for (int i=0; i<mapCount; i++) {
       VM.sysWrite("mapid = ", i);

@@ -177,7 +177,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   private int toBePatchedMCAddr;
   private int targetBCpc = -1;
  
-  final void registerLoadAddrConst(int target) {
+  final void registerLoadRetAddrConst(int target) {
     toBePatchedMCAddr = mIP;
     targetBCpc = target;
   }
@@ -193,7 +193,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
    * The third instruction should be patched with accurate relative address.
    * It is computed by (mIP - toBePatchedMCAddr + 1)*4;
    */
-  final void patchLoadAddrConst(int bIP){
+  final void patchLoadRetAddrConst(int bIP){
     if (bIP != targetBCpc) return;
  
     int offset = (mIP - toBePatchedMCAddr + 1)*4;

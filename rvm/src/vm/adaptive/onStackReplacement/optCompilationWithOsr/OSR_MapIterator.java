@@ -36,9 +36,8 @@ public class OSR_MapIterator implements OSR_Constants{
     this.curidx = index + 1;
     this.maps   = mapcode;
 
-    this.moreMethId = (mapcode[index] & NEXT_BIT) != 0;
-
-    if (hasMoreMethodId()) {
+    if ((mapcode[index] & NEXT_BIT) != 0) {
+      this.moreMethId = true;
       moveToNextMethodId();
     }
   }

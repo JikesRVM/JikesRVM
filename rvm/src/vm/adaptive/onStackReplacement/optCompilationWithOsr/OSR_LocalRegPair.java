@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.VM;
+import org.vmmagic.unboxed.*;
 
 /**
  * An OSR_LocalRegPair keeps the type information and localtion of 
@@ -42,11 +44,11 @@ public class OSR_LocalRegPair implements OSR_Constants {
   public int valueType;    
 
   /* The meaning of value field depends on valueType
-   * for ICONST, it is the value of the constant,
+   * for ICONST, ACONST and LCONST, it is the value of the constant,
    * for PHYREG, it is the register number,
    * for SPILL, it is the spill location.
    */ 
-  public int value;
+  public Word value;
 
   /* A LONG variable takes two symbolic registers, we need to know another
    * half part.
@@ -88,7 +90,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
     buf.append(operand+")");
 
     // for long type, append another half
-    if (tcode == LongTypeCode) {
+    if (VM.BuildFor32Addr && (tcode == LongTypeCode)) {
       buf.append("("+_otherHalf.valueType+" , ");
       buf.append(_otherHalf.value+")");
     }

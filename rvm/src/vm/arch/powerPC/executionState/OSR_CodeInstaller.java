@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.*;
  *
  * @author Feng Qian
  */
-public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
+public class OSR_CodeInstaller implements VM_BaselineConstants {
 
   /* install the newly compiled instructions. */
   public static boolean install(OSR_ExecutionState state, 

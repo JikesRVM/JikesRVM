@@ -3303,10 +3303,10 @@ public class VM_Compiler extends VM_BaselineCompiler
 
 
   //-#if RVM_WITH_OSR
-  protected final void emit_loadaddrconst(int bcIndex) {
+  protected final void emit_loadretaddrconst(int bcIndex) {
     asm.emitBL(1, 0);
     asm.emitMFLR(T1);                   // LR +  0
-    asm.registerLoadAddrConst(bcIndex);
+    asm.registerLoadRetAddrConst(bcIndex);
     asm.emitADDI (T1, bcIndex<<LOG_BYTES_IN_INT, T1);   
     pushAddr(T1);   // LR +  8
   }

@@ -974,7 +974,7 @@ public abstract class OPT_Operand {
           if ((rop1.scratchObject instanceof OPT_Operand) && 
               ((type2 == VM_TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
-               (type2.isWordType() && op2.asIntConstant().value == 0) ||
+               (type2.isWordType() && op2.asAddressConstant().value.isZero()) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             res = res.copyU2U();
             res.scratchObject = null;

@@ -73,16 +73,16 @@ public interface OSR_Constants extends VM_SizeConstants {
    */
   public static final int NEXT_BIT   = 0x80000000;
   /* kind of element */
-  public static final int KIND_MASK  = 0x00200000;
-  public static final int KIND_SHIFT = 21;
+  public static final int KIND_MASK  = 0x00400000;
+  public static final int KIND_SHIFT = 22;
   /* type code */
-  public static final int TCODE_MASK = 0x001C0000;
-  public static final int TCODE_SHIFT= 18;
+  public static final int TCODE_MASK = 0x00380000;
+  public static final int TCODE_SHIFT= 19;
   /* number */
-  public static final int NUM_MASK   = 0x0003fffc;
-  public static final int NUM_SHIFT  = 2;
+  public static final int NUM_MASK   = 0x0007fff8;
+  public static final int NUM_SHIFT  = 3;
   /* value type */
-  public static final int VTYPE_MASK = 0x00000003;
+  public static final int VTYPE_MASK = 0x00000007;
   public static final int VTYPE_SHIFT= 0;
 
 
@@ -96,23 +96,20 @@ public interface OSR_Constants extends VM_SizeConstants {
 
   /* the type code of the element, used in osr map encoding. */
   public static final int INT        = 0;
-  public static final int LONG1      = 1;
-  public static final int LONG2      = 2;
+  public static final int HIGH_64BIT = 1; //used to store the high bits of a 64-bit value
+  public static final int LONG       = 2;
   public static final int FLOAT      = 3;
   public static final int DOUBLE     = 4;
-  public static final int ADDR       = 5;
+  public static final int RET_ADDR   = 5;
   public static final int REF        = 6;
-
-  /* this is not on encoding, but for other purposes. */
-  public static final int LONG       = 7;
+  public static final int WORD       = 7;
 
   /* value type */
   public static final int ICONST     = 0;
+  public static final int ACONST     = 3;
+  public static final int LCONST     = 4;
   public static final int PHYREG     = 1;
   public static final int SPILL      = 2;
-
-
-  public static final int LG_STACKWORD_WIDTH = LOG_BYTES_IN_ADDRESS;
 
 
   /////////////////////////////////////////////////
@@ -125,26 +122,23 @@ public interface OSR_Constants extends VM_SizeConstants {
    * Compiler should construct constant values, and use VM_Magic to
    * convert INT to FLOAT, or LONG to DOUBLE.
    *
-   * LoadAddrConst followed by offset from the PC of this instruction.
+   * LoadRetAddrConst followed by offset from the PC of this instruction.
    *
    * InvokeStatic encoded with index into JTOC.
    *
-   * All value are signed except LoadAddrConst
+   * All value are signed except LoadRetAddrConst
    *
-   * LoadIntConst :  B, V0, V1, V2, V3
-   * LoadLongConst:  B, H0, H1, H2, H3, L0, L1, L2, L3
-   * LoadFloatConst: B, V0, V1, V2, V3
-   * LoadDoubleConst:B, H0, H1, H2, H3, L0, L1, L2, L3
-   * LoadAddrConst:  B, V0, V1, V2, V3
+   * LoadIntConst :             B, V0, V1, V2, V3
+   * LoadLongConst:             B, H0, H1, H2, H3, L0, L1, L2, L3
+   * LoadWordConst: on 32-bit:  B, V0, V1, V2, V3
+   * LoadWordConst: on 64-bit:  B, H0, H1, H2, H3, L0, L1, L2, L3
+   * LoadFloatConst:            B, V0, V1, V2, V3
+   * LoadDoubleConst:           B, H0, H1, H2, H3, L0, L1, L2, L3
+   * LoadRetAddrConst:          B, V0, V1, V2, V3
    *
    * All value are unsigned:
    *
-   * IntStore     :  B, L0, L1, L2, L3
-   * LongStore    :
-   * FloatStore   :
-   * DoubleStore  :
-   * RefStore     :
-   * InvokeStatic :
+   * InvokeStatic :             B, L0, L1, L2, L3
    *
    * The change of stack is pretty obvious.
    */
@@ -153,22 +147,17 @@ public interface OSR_Constants extends VM_SizeConstants {
   public static final int PSEUDO_LoadLongConst = 2;
   public static final int PSEUDO_LoadFloatConst = 3;
   public static final int PSEUDO_LoadDoubleConst = 4;
-  public static final int PSEUDO_LoadAddrConst = 5;
+  public static final int PSEUDO_LoadRetAddrConst = 5;
+  public static final int PSEUDO_LoadWordConst = 6;
 
-  public static final int PSEUDO_IntStore = 6;
-  public static final int PSEUDO_LongStore = 7;
-  public static final int PSEUDO_FloatStore = 8;
-  public static final int PSEUDO_DoubleStore = 9;
-  public static final int PSEUDO_RefStore = 10;
-
-  public static final int PSEUDO_InvokeStatic = 11;
-  public static final int PSEUDO_CheckCast = 12;
+  public static final int PSEUDO_InvokeStatic = 7;
+  public static final int PSEUDO_CheckCast = 8;
 
   /* followed by compiled method ID */
-  public static final int PSEUDO_InvokeCompiledMethod = 13;
+  public static final int PSEUDO_InvokeCompiledMethod = 9;
 
   /* indicate local initialization ends, for baselike compiler */
-  public static final int PSEUDO_ParamInitEnd = 14;
+  public static final int PSEUDO_ParamInitEnd = 10;
 
   /* special method id for PSEUDO_InvokeStatic, target must be listed here */
   public static final int GETREFAT   = 0;  // OSR_ObjectHolder.getRefAt
@@ -185,5 +174,6 @@ public interface OSR_Constants extends VM_SizeConstants {
   public static final byte FloatTypeCode   = (byte)'F';
   public static final byte DoubleTypeCode  = (byte)'D';
   public static final byte CharTypeCode    = (byte)'C';
-  public static final byte AddressTypeCode = (byte)'A';
+  public static final byte ReturnAddressTypeCode = (byte)'R';
+  public static final byte WordTypeCode    = (byte)'W';  //'A'
 }

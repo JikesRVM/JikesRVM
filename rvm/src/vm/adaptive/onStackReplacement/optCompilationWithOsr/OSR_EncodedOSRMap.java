@@ -12,6 +12,7 @@ import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /** 
  * OSR_EncodedOSRMap provides the samilar function as GC map
@@ -242,32 +243,16 @@ public class OSR_EncodedOSRMap
 
       boolean isLast = (j == m-1);
         
-      if (tuple.typeCode == LongTypeCode) {
-        processLongTuple(tuple, isLast);
-      } else {
-        processTuple(tuple, isLast, false);
-      }
+      processTuple(tuple, isLast);
       // mark the reg ref map
       if ( ((tuple.typeCode == ClassTypeCode) 
             ||(tuple.typeCode == ArrayTypeCode))
            &&(tuple.valueType == PHYREG)) {
         osrMaps[regMapIndex] = 
           setRegister(osrMaps[regMapIndex], 
-                      tuple.value);
+                      tuple.value.toInt());
       }
     }
-  }
-
-  /* long type local has another half for lower bits
-   */
-  private void processLongTuple(OSR_LocalRegPair tuple,
-                                boolean isLast) {
-    /* process the first half part, 
-     * it is not the last, and it is the first half. */
-    processTuple(tuple, false, true);
-    /* process the second half part,
-     * it may be the last, and it is not the first half.*/
-    processTuple(tuple._otherHalf, isLast, false);
   }
 
   /*
@@ -275,11 +260,9 @@ public class OSR_EncodedOSRMap
    * 
    * tuple, maps the local to register, spill
    * isLast, indicates to set NEXT_BIT
-   * isFirstLong, decides it is LONG1 or LONG2
    */
   private void processTuple(OSR_LocalRegPair tuple, 
-                            boolean isLast,
-                            boolean isFirstLong) {
+                            boolean isLast) {
 
     int first = (tuple.num << NUM_SHIFT) & NUM_MASK;
 
@@ -306,16 +289,38 @@ public class OSR_EncodedOSRMap
       first |= (DOUBLE << TCODE_SHIFT);
       break;
     case LongTypeCode:
-      if (isFirstLong) {
-        first |= (LONG1 << TCODE_SHIFT);
-      } else {
-        first |= (LONG2 << TCODE_SHIFT);
+      if (VM.BuildFor32Addr || (tuple.valueType == LCONST)) {
+        //split in two integer parts for OSR map
+        /* process the first half part, 
+         * it is not the last. */
+        first |= NEXT_BIT;
+        first |= (HIGH_64BIT << TCODE_SHIFT);
+       
+        // add first word
+        addIntToOsrMap(first);
+        // add the second word
+   
+        if (VM.BuildFor64Addr) {
+          addIntToOsrMap(tuple.value.rshl(32).toInt()); 
+        } else {
+          addIntToOsrMap(tuple.value.toInt()); 
+          tuple = tuple._otherHalf;
+        } 
+        /* process the second half part,
+         * it may be the last, and it is not the first half.*/
+        first = (tuple.num << NUM_SHIFT) & NUM_MASK;
+    
+        if (!isLast) first |= NEXT_BIT;
+       
+        first |= (tuple.kind << KIND_SHIFT);
+        first |= (tuple.valueType << VTYPE_SHIFT);
       }
+      first |= (LONG << TCODE_SHIFT);
       break;
-    case AddressTypeCode:
+    case ReturnAddressTypeCode:
 
       //-#if RVM_WITH_DEBUG
-      VM.sysWrite("address type for ");
+      VM.sysWrite("returnaddress type for ");
       if (tuple.kind == LOCAL) {
         VM.sysWrite("L"+tuple.num);
       } else {
@@ -324,7 +329,29 @@ public class OSR_EncodedOSRMap
       VM.sysWrite("\n");
       //-#endif
       
-      first |= (ADDR << TCODE_SHIFT);
+      first |= (RET_ADDR << TCODE_SHIFT);
+      break;
+    case WordTypeCode:
+      if (VM.BuildFor64Addr && (tuple.valueType == ICONST)) {//KV:TODO
+        //split in two integer parts for OSR map
+        /* process the first half part, 
+         * it is not the last. */
+        first |= NEXT_BIT;
+        first |= (HIGH_64BIT << TCODE_SHIFT);
+       
+        // add first word
+        addIntToOsrMap(first);
+        // add the second word
+        addIntToOsrMap(tuple.value.rshl(32).toInt());
+      
+        /* process the second half part,
+         * it may be the last, and it is not the first half.*/
+        first = (tuple.num << NUM_SHIFT) & NUM_MASK;
+        if (!isLast) first |= NEXT_BIT;
+        first |= (tuple.kind << KIND_SHIFT);
+        first |= (tuple.valueType << VTYPE_SHIFT);
+      } 
+      first |= (WORD << TCODE_SHIFT);
       break;
     case ClassTypeCode:
     case ArrayTypeCode:
@@ -335,7 +362,7 @@ public class OSR_EncodedOSRMap
     // add first word
     addIntToOsrMap(first);
     // add the second word
-    addIntToOsrMap(tuple.value); 
+    addIntToOsrMap(tuple.value.toInt()); 
   }
 
   /* add an int to osrMaps, expand the array if necessary.

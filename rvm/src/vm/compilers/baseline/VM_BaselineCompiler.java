@@ -413,7 +413,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       bytecodeMap[biStart] = asm.getMachineCodeIndex();
       asm.resolveForwardReferences(biStart);
       //-#if RVM_WITH_OSR
-      asm.patchLoadAddrConst(biStart);
+      asm.patchLoadRetAddrConst(biStart);
       //-#endif
       starting_bytecode();
       int code = bcodes.nextInstruction();
@@ -2046,6 +2046,31 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
           break;
         }
+        case PSEUDO_LoadWordConst: {
+          //-#if RVM_FOR_32_ADDR
+          int value = bcodes.readIntConst();
+
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
+          
+          int slot = VM_Statics.findOrCreateIntLiteral(value);
+          int offset = slot << LOG_BYTES_IN_INT;
+
+          emit_ldc(offset);
+          //-#endif
+
+          //-#if RVM_FOR_64_ADDR
+          long value = bcodes.readLongConst();
+
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
+          
+          int slot = VM_Statics.findOrCreateLongLiteral(value);
+          int offset = slot << LOG_BYTES_IN_INT;
+
+          emit_ldc2(offset);
+          emit_l2i(); //dirty hack
+          //-#endif
+          break;
+        }
         case PSEUDO_LoadFloatConst: {
           int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
           
@@ -2070,13 +2095,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
 
           break;
         }
-        case PSEUDO_LoadAddrConst: {
+        case PSEUDO_LoadRetAddrConst: {
           int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
 
-          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_addr", bcIndex);
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_retaddr", bcIndex);
           // for bytecode to get future bytecode's address
           // we register it and patch it later.
-          emit_loadaddrconst(bcIndex);
+          emit_loadretaddrconst(bcIndex);
 
           break;
         }
@@ -3240,7 +3265,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
   protected abstract void emit_monitorexit();
 
   //-#if RVM_WITH_OSR
-  protected abstract void emit_loadaddrconst(int bcIndex);
+  protected abstract void emit_loadretaddrconst(int bcIndex);
   //-#endif
 
 }

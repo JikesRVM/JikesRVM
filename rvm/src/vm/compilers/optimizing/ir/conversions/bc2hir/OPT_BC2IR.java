@@ -16,6 +16,7 @@ import java.util.*;
 //-#endif
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class translates from bytecode to HIR.
@@ -2300,6 +2301,24 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           pushDual(new OPT_LongConstantOperand(value, offset));
           break;
         }
+        case PSEUDO_LoadWordConst: {
+          Address a;
+          //-#if RVM_FOR_32_ADDR
+          a = Address.fromIntSignExtend(bcodes.readIntConst());
+          //-#endif
+          //-#if RVM_FOR_64_ADDR
+          a = Address.fromLong(bcodes.readLongConst());
+          //-#endif
+
+          push(new OPT_AddressConstantOperand(a));
+          
+          if (VM.TraceOnStackReplacement) 
+            VM.sysWrite("PSEUDO_LoadWordConst 0x");
+            VM.sysWrite(a);
+            VM.sysWriteln();
+
+          break;
+        }
         case PSEUDO_LoadFloatConst:
         {
           int ibits = bcodes.readIntConst();
@@ -2330,12 +2349,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           break;
         }
 
-        case PSEUDO_LoadAddrConst:
+        case PSEUDO_LoadRetAddrConst:
         {
           int value = bcodes.readIntConst();
 
-              if (VM.TraceOnStackReplacement) 
-                VM.sysWriteln("PSEUDO_LoadAddrConst "+value);
+          if (VM.TraceOnStackReplacement) 
+                VM.sysWriteln("PSEUDO_LoadRetAddrConst "+value);
 
           push(new ReturnAddressOperand(value));
           break;
@@ -2946,7 +2965,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return null;
     }
     boolean doConstantProp = false;
-    if (op1 instanceof OPT_NullConstantOperand) {
+    if ((op1 instanceof OPT_NullConstantOperand) ||
+      (op1 instanceof OPT_AddressConstantOperand)) {
       doConstantProp = true;
     }
     VM_TypeReference type = op1.getType();
@@ -4432,9 +4452,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         num_llocals++;
  
         if (op instanceof ReturnAddressOperand) {
-          ltypes[i] = AddressTypeCode;
+          ltypes[i] = ReturnAddressTypeCode;
         } else {
-          ltypes[i] = op.getType().getName().parseForTypeCode();
+          VM_TypeReference typ = op.getType();
+          if (typ.isWordType() || (typ == VM_TypeReference.NULL_TYPE)) {
+            ltypes[i] = WordTypeCode;
+          } else { 
+            ltypes[i] = typ.getName().parseForTypeCode();
+          }
         }
  
       } else {
@@ -4460,16 +4485,21 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         num_lstacks++;
  
         if (op instanceof ReturnAddressOperand) {
-          stypes[i] = AddressTypeCode;
+          stypes[i] = ReturnAddressTypeCode;
         } else {
-          /* for stack operand, reverse the order for long and double */
-          byte tcode = op.getType().getName().parseForTypeCode();
-          if ((tcode == LongTypeCode)
-              || (tcode == DoubleTypeCode)) {
-            stypes[i-1] = tcode;
-            stypes[i] = VoidTypeCode;
-          } else {
-            stypes[i] = op.getType().getName().parseForTypeCode();
+          VM_TypeReference typ = op.getType();
+          if (typ.isWordType() || (typ == VM_TypeReference.NULL_TYPE)) {
+            stypes[i] = WordTypeCode;
+          } else { 
+            /* for stack operand, reverse the order for long and double */
+            byte tcode = typ.getName().parseForTypeCode();
+            if ((tcode == LongTypeCode)
+                || (tcode == DoubleTypeCode)) {
+              stypes[i-1] = tcode;
+              stypes[i] = VoidTypeCode;
+            } else {
+              stypes[i] = tcode;
+            }
           }
         }
  

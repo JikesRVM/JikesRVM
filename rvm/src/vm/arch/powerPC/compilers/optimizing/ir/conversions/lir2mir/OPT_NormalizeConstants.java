@@ -94,24 +94,14 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
-              //KV:temp hack
-              if ((!VM.BuildFor64Addr) || (s.operator.opcode == YIELDPOINT_OSR_opcode)) {
+              if ((!VM.BuildFor64Addr)){
                 OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
                 use.clear();
                 s.insertBefore(Move.create(LONG_MOVE, rop, use));
                 s.putOperand(idx, rop.copyD2U());
               }
             } else if (use instanceof OPT_NullConstantOperand) {
-              //KV:temp hack
-              if (VM.BuildFor64Addr && (s.operator.opcode == YIELDPOINT_OSR_opcode)) { 
-                s.putOperand(idx, LC(0L));
-              } else
                 s.putOperand(idx, AC(Address.zero()));
-            } else if (use instanceof OPT_AddressConstantOperand) {
-              //KV:temp hack
-              if (VM.BuildFor64Addr && (s.operator.opcode == YIELDPOINT_OSR_opcode)) {
-                s.putOperand(idx, LC(use.asAddressConstant().value.toLong()));
-              }
             }
           }
         }

@@ -1242,7 +1242,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
           tupleList.add(tuple);
 
           // get another half of a long type operand
-          if (ls[i] == LongTypeCode) {
+          if (VM.BuildFor32Addr && (ls[i] == LongTypeCode)) {
             OPT_Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
             tuple._otherHalf = 
               new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], other_op);
@@ -1262,7 +1262,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
  
           tupleList.add(tuple);
 
-          if (ss[i] == LongTypeCode) {
+          if (VM.BuildFor32Addr && (ss[i] == LongTypeCode)) {
             tuple._otherHalf = 
               new OSR_LocalRegPair(OSR_Constants.STACK,
                                       i,

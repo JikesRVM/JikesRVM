@@ -583,7 +583,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         if (doDFS) ltypes[index] = tcode;
         
         // for ret address.
-        if (tcode == AddressTypeCode) {
+        if (tcode == ReturnAddressTypeCode) {
           retaddr[index] = addr;
           addr = -1;
         }
@@ -600,7 +600,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         if (doDFS) ltypes[index] = tcode;
         
         // for ret address.
-        if (tcode == AddressTypeCode) {
+        if (tcode == ReturnAddressTypeCode) {
           retaddr[index] = addr;
           addr = -1;
         }
@@ -952,7 +952,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         // branch to jsr subroutine
         // remember return address for ret.
         addr = pc + ((bcode == JBC_jsr)?3:5);     
-        S.push(AddressTypeCode);
+        S.push(ReturnAddressTypeCode);
         bytecodes.reset(target);
       }
         break;  
@@ -965,7 +965,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 
         if (doDFS) ltypes[index] = VoidTypeCode;
         
-        /* the ret address may be saved by a PSEUDO_LoadAddrConstant
+        /* the ret address may be saved by a PSEUDO_LoadRetAddrConstant
          */
         if (retaddr[index] != -1) {
           bytecodes.reset(retaddr[index]);
@@ -1280,7 +1280,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           if (doDFS) ltypes[index] = tcode;
         
           // for ret address.
-          if (tcode == AddressTypeCode) {
+          if (tcode == ReturnAddressTypeCode) {
             retaddr[index] = addr;
             addr = -1;
           }
@@ -1328,6 +1328,11 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           S.push(VoidTypeCode);
           S.push(LongTypeCode);
           break;
+        case PSEUDO_LoadWordConst:
+          if (VM.BuildFor32Addr) bytecodes.readIntConst();
+          else bytecodes.readLongConst(); // skip value
+          S.push(WordTypeCode);
+          break;
         case PSEUDO_LoadFloatConst:
           bytecodes.readIntConst(); // skip value
           S.push(FloatTypeCode);
@@ -1337,10 +1342,10 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           S.push(VoidTypeCode);
           S.push(DoubleTypeCode);
           break;
-        case PSEUDO_LoadAddrConst:        
+        case PSEUDO_LoadRetAddrConst:        
           // remember the address for ret.
           addr = bytecodes.readIntConst(); // get address         
-          S.push(AddressTypeCode);
+          S.push(ReturnAddressTypeCode);
           break;
         case PSEUDO_InvokeStatic: {
           int mid = bytecodes.readIntConst(); // get METHIDX

@@ -50,6 +50,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
   }
   
+  public static int getStartLocalOffset (VM_NormalMethod method) {
+    return getFirstLocalOffset(method) + WORDSIZE;
+  }
 
   /*
    * implementation of abstract methods of VM_BaselineCompiler
@@ -3875,8 +3878,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     genResultRegisterUnload(ref);
   }
 
-  protected final void emit_loadaddrconst(int bcIndex) {
-    asm.registerLoadAddrConst(bcIndex);
+  protected final void emit_loadretaddrconst(int bcIndex) {
+    asm.registerLoadRetAddrConst(bcIndex);
     asm.emitPUSH_Imm(bcIndex);
   }
 

@@ -45,14 +45,14 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   //-#if RVM_WITH_OSR
   /* To make a compiled method's local/stack offset independ of
-   * original method, we move 'getFirstLocalOffset' and 'getEmptyStackOffset'
+   * original method, we move 'getStartLocalOffset' and 'getEmptyStackOffset'
    * here.
    */
-  private int firstLocalOffset;
+  private int startLocalOffset;
   private int emptyStackOffset;
  
-  public int getFirstLocalOffset() {
-    return firstLocalOffset;
+  public int getStartLocalOffset() {
+    return startLocalOffset;
   }
  
   public int getEmptyStackOffset() {
@@ -62,7 +62,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
     VM_NormalMethod nm = (VM_NormalMethod)m;
-    this.firstLocalOffset = VM_Compiler.getFirstLocalOffset(nm);
+    this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
     this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
   }
   //-#else

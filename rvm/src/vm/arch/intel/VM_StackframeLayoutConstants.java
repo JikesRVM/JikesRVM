@@ -130,6 +130,9 @@ import org.vmmagic.unboxed.*;
  */
 public interface VM_StackframeLayoutConstants  {
 
+  public final static int LOG_BYTES_IN_STACKSLOT = VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
+  public final static int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
+
   /** offset of caller's return address from FP */
   static final int STACKFRAME_RETURN_ADDRESS_OFFSET   =  4;
   /** base of this frame */
