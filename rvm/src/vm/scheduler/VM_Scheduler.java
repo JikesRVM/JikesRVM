@@ -684,6 +684,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     }
   }  
 
+  private static boolean exitInProgress = false;
   /**
    * Dump state of a (stopped) thread's stack and exit the virtual machine.
    * @param fp address of starting frame
@@ -691,7 +692,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * This method is called from RunBootImage.C when something goes horrifically
    * wrong with exception handling and we want to die with useful diagnostics.
    */
-  private static boolean exitInProgress = false;
   public static void dumpStackAndDie(VM_Address fp) {
     if (!exitInProgress) {
       // This is the first time I've been called, attempt to exit "cleanly"
