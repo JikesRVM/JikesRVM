@@ -64,13 +64,21 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	|| method.isClassInitializer()            // will only run once: don't bother optimizing
 	|| VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse // exception in progress. can't use opt compiler: it uses exceptions and runtime doesn't support multiple pending (undelivered) exceptions [--DL]
 	|| method.isNative()                      // opt compiler doesn't support compiling the JNI stub needed to invoke native methods
-	)
-       {
+	) {
     // VM.sysWrite("VM_RuntimeCompiler: no opt compile for " + method + "\n");
        return fallback(method);
-       }
-    else
-       return VM_RuntimeOptCompilerInfrastructure.optCompileWithFallBack(method);
+    }
+    else {
+      if ( !preloadChecked ) {
+	preloadChecked = true;			// prevent subsequent calls
+	if ( options.PRELOAD_CLASS != null ) {
+	  compilationInProgress = true;		// use baseline during preload
+          OPT_Compiler.preloadSpecialClass( options );
+	  compilationInProgress = false;
+	}
+      }
+      return VM_RuntimeOptCompilerInfrastructure.optCompileWithFallBack(method);
+    }
   }
 
 }

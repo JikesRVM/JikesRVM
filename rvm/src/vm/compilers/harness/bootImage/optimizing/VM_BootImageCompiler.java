@@ -28,47 +28,7 @@ class VM_BootImageCompiler {
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
 
-      // Pick an optimization level
-      options.setOptLevel(3); 
-
-      // Disable things that we think are a bad idea in this context
-      options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
-
-      // would increase build time by some 25%
-      options.GCP = false;
-      options.TURN_WHILES_INTO_UNTILS = false;
-      options.GCSE=false;
-	 
-      // Pre-existence based inlining isn't supported for bootimage writing
-      // to avoid needing to stick the dependency database in the bootimage
-      // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
-      // TODO: fix this silliness and support these optimizations at bootimage writing time!
-      options.PREEX_INLINE = false;
-      options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
-
-      // We currently don't know where the JTOC is going to end up
-      // while we're compiling at bootimage writing 
-      // (not until the image is actually built and we're pickling it
-      //  does the current bootimage writer know where the JTOC will end up).
-      // TODO: Fix the bootimage writer so that the jtoc can be found at a 
-      // known location from the bootrecord.  Possibly by making the bootrecord
-      // reachable from a JTOC slot and then making the jtoc be the very first object
-      // in the bootimage (cost would be that at booting we would have 1 extra load 
-      // to acquire the bootrecord address from its jtoc slot).
-      options.FIXED_JTOC = false;
-
-      // Compute summaries of bootimage methods if we haven't encountered them yet.
-      // Does not handle unimplemented magics very well; disable until
-      // we can get a chance to either implement them on IA32 or fix the 
-      // analysis to not be so brittle.
-      // options.SIMPLE_ESCAPE_IPA = true;
-
-      // Static inlining controls. 
-      // Be more aggressive when building the boot image then we are normally.
-      options.IC_MAX_TARGET_SIZE = 5*VM_OptMethodSummary.CALL_COST;
-      options.IC_MAX_INLINE_DEPTH = 6;
-      options.IC_MAX_INLINE_EXPANSION_FACTOR = 7;
-      OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
+      OPT_Compiler.setBootOptions( options );
 
       // An unexpected error when building the opt boot image should be fatal
       options.ERRORS_FATAL = true;
@@ -114,7 +74,8 @@ class VM_BootImageCompiler {
       VM.sysFail(msg);
     }
   }
-   
+
+
   /** 
    * Compile a method.
    * @param method the method to compile

@@ -56,6 +56,15 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
       cm = baselineCompile(method);
       VM_ControllerMemory.incrementNumBase();
     } else {
+      if ( !preloadChecked ) {
+	preloadChecked = true;			// prevent subsequent calls
+	// N.B. This will use irc options
+	if ( options.PRELOAD_CLASS != null ) {
+	  compilationInProgress = true;		// use baseline during preload
+          OPT_Compiler.preloadSpecialClass( options );
+	  compilationInProgress = false;
+	}
+      }
       if (VM_Controller.options.optOnly()) {
 	if (// will only run once: don't bother optimizing
 	    method.isClassInitializer() || 
