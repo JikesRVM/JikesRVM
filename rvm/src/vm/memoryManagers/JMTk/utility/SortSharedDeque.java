@@ -2,8 +2,9 @@
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003.
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
+import org.mmtk.utility.heap.RawPageAllocator;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Lock;

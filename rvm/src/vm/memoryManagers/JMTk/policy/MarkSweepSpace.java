@@ -8,10 +8,8 @@ import org.mmtk.plan.MarkSweepHeader;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 

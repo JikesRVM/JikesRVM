@@ -4,16 +4,14 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AddressPairDeque;
 import org.mmtk.utility.Conversions;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.MemoryResource;
 import org.mmtk.utility.Options;
+import org.mmtk.utility.deque.*;
 import org.mmtk.utility.ReferenceProcessor;
-import org.mmtk.utility.Scan;
-import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;

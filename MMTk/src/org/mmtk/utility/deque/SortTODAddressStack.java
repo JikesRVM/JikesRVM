@@ -2,7 +2,7 @@
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
@@ -37,7 +37,7 @@ public class SortTODAddressStack extends LocalDeque
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
    */
-  SortTODAddressStack(SortTODSharedDeque queue) {
+  public SortTODAddressStack(SortTODSharedDeque queue) {
     super(queue);
   }
 

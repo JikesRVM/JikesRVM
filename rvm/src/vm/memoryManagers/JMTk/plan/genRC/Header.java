@@ -6,7 +6,7 @@
 package org.mmtk.plan;
 
 import org.mmtk.vm.VM_Interface;
-import org.mmtk.utility.MMType;
+import org.mmtk.utility.scan.MMType;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;

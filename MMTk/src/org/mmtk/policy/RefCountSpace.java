@@ -8,8 +8,8 @@ import org.mmtk.plan.RCBaseHeader;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.heap.MemoryResource;
+import org.mmtk.utility.heap.FreeListVMResource;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 

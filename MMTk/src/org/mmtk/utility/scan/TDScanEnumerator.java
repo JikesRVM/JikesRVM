@@ -3,7 +3,9 @@
  * Australian National University. 2003
  */
 //$Id$
-package org.mmtk.utility;
+package org.mmtk.utility.scan;
+
+import org.mmtk.utility.TrialDeletion;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -19,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $date: $
  */
-class TDScanEnumerator extends Enumerate implements VM_Uninterruptible {
+public class TDScanEnumerator extends Enumerate implements VM_Uninterruptible {
   private TrialDeletion td;
 
   /**
@@ -28,7 +30,7 @@ class TDScanEnumerator extends Enumerate implements VM_Uninterruptible {
    * @param plan The plan instance with respect to which the
    * enumeration will occur.
    */
-  TDScanEnumerator(TrialDeletion td) {
+  public TDScanEnumerator(TrialDeletion td) {
     this.td = td;
   }
 

@@ -4,11 +4,12 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package org.mmtk.utility;
+package org.mmtk.utility.heap;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
+import org.mmtk.utility.*;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;

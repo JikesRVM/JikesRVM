@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package org.mmtk.utility;
+package org.mmtk.utility.heap;
 
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;

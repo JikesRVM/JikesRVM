@@ -3,10 +3,11 @@
  *     Australian National University. 2002
  * (C) IBM Corp. 2002
  */
-package org.mmtk.utility;
+package org.mmtk.utility.heap;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.BasePlan;
+import org.mmtk.utility.Log;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;

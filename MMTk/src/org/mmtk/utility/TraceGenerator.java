@@ -5,6 +5,8 @@
 package org.mmtk.utility;
 
 import org.mmtk.plan.Plan;
+import org.mmtk.utility.deque.*;
+import org.mmtk.utility.scan.*;
 import org.mmtk.vm.TraceInterface;
 import org.mmtk.vm.VM_Interface;
 

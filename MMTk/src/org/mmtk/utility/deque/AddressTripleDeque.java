@@ -2,10 +2,10 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Constants;
-
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -19,7 +19,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-import org.mmtk.vm.VM_Interface;
 public class AddressTripleDeque extends LocalDeque implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
  

@@ -2,7 +2,7 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;

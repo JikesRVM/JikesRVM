@@ -7,8 +7,7 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.CopyingHeader;
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.VMResource;
-import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.heap.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 

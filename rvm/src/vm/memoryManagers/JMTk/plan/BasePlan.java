@@ -5,21 +5,15 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AddressPairDeque;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.HeapGrowthManager;
-import org.mmtk.utility.ImmortalVMResource;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.MonotoneVMResource;
 import org.mmtk.utility.Options;
-import org.mmtk.utility.RawPageAllocator;
+import org.mmtk.utility.deque.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TraceGenerator;
-import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 

@@ -7,6 +7,7 @@ package org.mmtk.utility.alloc;
 
 import org.mmtk.plan.*;
 import org.mmtk.utility.*;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;

@@ -8,10 +8,9 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.FreeListVMResource;
-import org.mmtk.utility.VMResource;
+import org.mmtk.utility.heap.FreeListVMResource;
+import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;

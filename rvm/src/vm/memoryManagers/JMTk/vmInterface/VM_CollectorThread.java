@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Options;
-import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.classloader.*;

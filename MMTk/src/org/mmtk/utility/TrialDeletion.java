@@ -4,11 +4,13 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.RCBaseHeader;
 import org.mmtk.policy.RefCountLocal;
 import org.mmtk.policy.RefCountSpace;
+import org.mmtk.utility.deque.*;
+import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
@@ -446,7 +448,7 @@ public final class TrialDeletion extends CycleDetector
     }
     return !abort;
   }
-  final void enumerateGrey(VM_Address object)
+  public final void enumerateGrey(VM_Address object)
     throws VM_PragmaInline {
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
       if (VM_Interface.VerifyAssertions)
@@ -488,7 +490,7 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  final void enumerateScan(VM_Address object) 
+  public final void enumerateScan(VM_Address object) 
     throws VM_PragmaInline {
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object))
       workQueue.push(object);
@@ -507,7 +509,7 @@ public final class TrialDeletion extends CycleDetector
       object = blackQueue.pop();
     }
   }
-  final void enumerateScanBlack(VM_Address object)
+  public final void enumerateScanBlack(VM_Address object)
     throws VM_PragmaInline {
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
       RCBaseHeader.unsyncIncRC(object);
@@ -540,7 +542,7 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  final void enumerateCollect(VM_Address object) 
+  public final void enumerateCollect(VM_Address object) 
     throws VM_PragmaInline {
     if (Plan.isRCObject(object)) {
       if (RCBaseHeader.isGreen(object))

@@ -3,7 +3,8 @@
  * Australian National University. 2002
  */
 //$Id$
-package org.mmtk.utility;
+
+package org.mmtk.utility.scan;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM_Interface;

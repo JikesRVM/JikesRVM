@@ -3,7 +3,7 @@
  * Australian National University. 2003
  */
 //$Id$
-package org.mmtk.utility;
+package org.mmtk.utility.scan;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;

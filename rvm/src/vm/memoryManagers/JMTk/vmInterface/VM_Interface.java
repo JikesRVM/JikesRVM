@@ -11,16 +11,12 @@ package org.mmtk.vm;
 import java.lang.ref.Reference;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AddressPairDeque;
 import org.mmtk.utility.Finalizer;
-import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.Options;
-import org.mmtk.utility.HeapGrowthManager;
-import org.mmtk.utility.Enumerate;
-import org.mmtk.utility.PreCopyEnumerator;
-import org.mmtk.utility.MMType;
-import org.mmtk.utility.Scan;
+import org.mmtk.utility.heap.*;
+import org.mmtk.utility.deque.*;
+import org.mmtk.utility.scan.*;
+import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.vm.SynchronizedCounter;
 import org.mmtk.vm.ReferenceGlue;
 

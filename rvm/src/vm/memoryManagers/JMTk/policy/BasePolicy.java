@@ -6,8 +6,8 @@
 
 package org.mmtk.policy;
 
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.VMResource;
+import org.mmtk.utility.heap.MemoryResource;
+import org.mmtk.utility.heap.VMResource;
 
 import com.ibm.JikesRVM.VM_Address;
 

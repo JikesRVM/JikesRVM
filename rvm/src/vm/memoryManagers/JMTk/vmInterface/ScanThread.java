@@ -6,8 +6,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AddressPairDeque;
+import org.mmtk.utility.deque.*;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.DebugUtil;

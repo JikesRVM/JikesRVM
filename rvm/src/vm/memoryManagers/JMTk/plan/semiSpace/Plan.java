@@ -13,15 +13,10 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.FreeListVMResource;
-import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.MemoryResource;
-import org.mmtk.utility.MonotoneVMResource;
-import org.mmtk.utility.MMType;
+import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Options;
-import org.mmtk.utility.Scan;
-import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;

@@ -11,7 +11,7 @@
 package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
-import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.heap.MonotoneVMResource;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 

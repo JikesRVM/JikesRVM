@@ -5,7 +5,7 @@
 
 package org.mmtk.vm;
 
-import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.deque.AddressDeque;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 

@@ -2,8 +2,10 @@
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003.
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
+import org.mmtk.utility.Log;
+import org.mmtk.utility.TracingConstants;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
@@ -62,7 +64,7 @@ public class TraceBuffer extends LocalQueue
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
    */
-  TraceBuffer(SharedDeque pool) {
+  public TraceBuffer(SharedDeque pool) {
     super(pool);
   }
 

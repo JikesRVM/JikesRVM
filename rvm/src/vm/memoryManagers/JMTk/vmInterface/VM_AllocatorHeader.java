@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.plan.Header;
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.MMType;
+import org.mmtk.utility.scan.MMType;
 
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;

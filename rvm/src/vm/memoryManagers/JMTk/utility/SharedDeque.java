@@ -2,8 +2,9 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
+import org.mmtk.utility.heap.RawPageAllocator;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
@@ -141,7 +142,7 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
     rpa.free(buf);
   }
 
-  final int enqueuedPages() throws VM_PragmaInline {
+  public final int enqueuedPages() throws VM_PragmaInline {
     return bufsenqueued<<LOG_PAGES_PER_BUFFER;
   }
 

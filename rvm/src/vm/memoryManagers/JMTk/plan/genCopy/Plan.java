@@ -9,9 +9,9 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.MMType;
-import org.mmtk.utility.MonotoneVMResource;
-import org.mmtk.utility.VMResource;
+import org.mmtk.utility.scan.MMType;
+import org.mmtk.utility.heap.MonotoneVMResource;
+import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;

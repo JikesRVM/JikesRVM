@@ -96,7 +96,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 
 
 import org.mmtk.vm.VM_Interface;
-final class GenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
+public final class GenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
   /****************************************************************************
@@ -107,10 +107,10 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
   /**
    * Constructor
    */
-  GenericFreeList(int units) {
+  public GenericFreeList(int units) {
     this(units, units);
   }
-  GenericFreeList(int units, int grain) {
+  public GenericFreeList(int units, int grain) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels

@@ -5,7 +5,9 @@
 
 package org.mmtk.utility;
 
+import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Constants;
+
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;

@@ -5,13 +5,10 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.MarkSweepHeader;
-import org.mmtk.utility.FreeListVMResource;
-import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Treadmill;
-import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;

@@ -6,10 +6,12 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
-import org.mmtk.utility.VMResource;
+import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
+
 import org.mmtk.utility.gcspy.TreadmillDriver;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;

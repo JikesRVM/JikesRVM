@@ -2,8 +2,9 @@
   * (C) Copyright Department of Computer Science,
   * Australian National University. 2004.
   */
-package org.mmtk.utility;
+package org.mmtk.utility.deque;
 
+import org.mmtk.utility.heap.RawPageAllocator;
 import org.mmtk.vm.TraceInterface;
 
 import com.ibm.JikesRVM.VM_Address;
