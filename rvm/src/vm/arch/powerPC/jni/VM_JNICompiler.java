@@ -697,37 +697,31 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         // NO: put it in the JNIRefs array and pass offset
         asmArg.emitSTAddrU(srcreg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);
         if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
-          //-#if RVM_FOR_LINUX
-          asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-          //-#else
           asmArg.emitSUBFC(nextOSArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-          //-#endif
         } else {
           asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
           asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS, FP);
-          //-#if RVM_FOR_LINUX
-          spillOffsetOS += BYTES_IN_ADDRESS;
-          //-#endif
         }
         VM_ForwardReference done = asmArg.emitForwardB();
         
         // YES: pass NULL (0)
         isNull.resolve(asmArg);
         if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
-          //-#if RVM_FOR_LINUX
-          asmArg.emitLVAL(nextOSArgReg++, 0);
-          //-#else
           asmArg.emitLVAL(nextOSArgReg, 0);
-          //-#endif
         } else {
           asmArg.emitSTAddr(srcreg, spillOffsetOS, FP);
-          //-#if RVM_FOR_LINUX
-          spillOffsetOS += BYTES_IN_ADDRESS;
-          //-#endif
         }
 
         // JOIN PATHS
         done.resolve(asmArg);
+        
+        //-#if RVM_FOR_LINUX
+        if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+          nextOSArgReg++;
+        } else {
+          spillOffsetOS += BYTES_IN_ADDRESS;
+        }
+        //-#endif
         
       } else {
         //-#if RVM_FOR_OSX
