@@ -10,7 +10,7 @@
 # to run all the tests 'make' or 'make sanity'
 # to run a single test 'make single ONE_TEST=<test_name>'
 #
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/jni
 BENCH_SOURCE_PATH=$(BENCH_HOME)

@@ -5,7 +5,7 @@
 
 # @author: Michael Hind
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+include		$(RVM_BUILD)/Make.rules.host
 
 default: 	$(GEN_FILES_DIR)/VM_AOSExternalOptions.java 
 

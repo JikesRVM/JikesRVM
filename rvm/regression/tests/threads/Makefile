@@ -6,7 +6,7 @@
 #
 # @author Julian Dolby
 #
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/threads
 BENCH_SOURCE_PATH=$(BENCH_HOME)

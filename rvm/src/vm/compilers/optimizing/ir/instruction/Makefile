@@ -4,7 +4,7 @@
 #$Id$
 #
 # @author David Grove
-include                 $(RVM_ROOT)/rvm/build.Make.rules
+include                 $(RVM_BUILD)/Make.rules.host
 
 default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_Operators.java \

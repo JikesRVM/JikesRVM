@@ -5,7 +5,7 @@
 #
 # @author Igor Pechtchanski
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+include		$(RVM_BUILD)/Make.rules.host
 
 MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
 

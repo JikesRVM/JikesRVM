@@ -5,7 +5,7 @@
 #
 # @author Peter Sweeney
 
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
  
 BENCH_NAME=pseudojbb
 include		$(JAL_ROOT)/rvm/regression/Local.rules

@@ -11,7 +11,7 @@
 #
 # @author Steven Augart
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+include		$(RVM_ROOT)/rvm/Make.rules.host
 
 YFLAGS=
 

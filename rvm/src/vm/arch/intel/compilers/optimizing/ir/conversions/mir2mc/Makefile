@@ -5,7 +5,7 @@
 
 # @author Julian Dolby
 
-include                 $(JAL_ROOT)/rvm/build.Make.rules
+include $(RVM_BUILD)/Make.rules.host
 
 ARCH_IFS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/InstructionFormatList.dat
 ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/OperatorList.dat

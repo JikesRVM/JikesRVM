@@ -7,7 +7,7 @@
 # @author Derek Lieber
 # @modified Steven Augart
 
-include $(RVM_ROOT)/rvm/build.Make.rules
+include $(RVM_BUILD)/Make.rules.host
 
 MakeTemplates: $(GEN_FILES_DIR)/VM_TypeReferenceVector.java \
 	       $(GEN_FILES_DIR)/VM_FieldVector.java \

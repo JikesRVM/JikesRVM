@@ -5,7 +5,7 @@
 # @author Derek Lieber
 # @modified Steven Augart
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+include		$(RVM_BUILD)/Make.rules.host
 
 # This only affects testing, since SCRATCH_DIR will only be reset 
 # if we don't have a value (whether command-line or from the environment).

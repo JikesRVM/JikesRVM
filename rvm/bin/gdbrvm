@@ -69,7 +69,7 @@ rvm_build=$RVM_BUILD
 # the originally-identical part of the runrvm program.
 
 # Load up where the RVM bootimage, booter, and runtime support files reside:
-env="$rvm_build/environment"
+env="$rvm_build/environment.target"
 [[ -f $env ]] || croak_nonusage "Cannot find a file named \"$env\"; have you set RVM_BUILD to a Jikes RVM build directory that was initialized by \"jconfigure\"?"
 [[ -r $env ]] || croak_nonusage "Cannot read the file named \"$env\"; some sort of permissions problem."
 . $env

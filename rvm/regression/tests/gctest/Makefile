@@ -11,7 +11,7 @@
 SUPPORT =Node2I2A
 TESTS =ReferenceTest FixedLive LargeAlloc Exhaust
 
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/gctest
 BENCH_SOURCE_PATH=$(BENCH_HOME)

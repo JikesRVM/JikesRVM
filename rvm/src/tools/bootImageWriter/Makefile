@@ -4,7 +4,7 @@
 #$Id$
 # @author Derek Lieber
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+include		$(RVM_BUILD)/Make.rules.host
 
 HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M

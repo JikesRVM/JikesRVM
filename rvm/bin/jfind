@@ -12,25 +12,8 @@
 cd $RVM_ROOT/rvm
 
 if [ $# = 0 ]; then
-   find src/vm -name CVS -prune -o -type f -not -name '*~' -print
+   find . -name CVS -prune -o -type f -not -name '*~' -print
 else
-   find src/vm -name CVS -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
+   find . -name CVS -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
 fi
 
-if [ $# = 0 ]; then
-   find src/tools -name CVS -prune -o -type f -not -name '*~' -print
-else
-   find src/tools -name CVS -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
-fi
-
-if [ $# = 0 ]; then
-   find src/include -name CVS -prune -o -type f -not -name '*~' -print
-else
-   find src/include -name CVS -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
-fi
-
-if [ $# = 0 ]; then
-   find bin -name CVS -prune -o -type f -not -name '*~' -print
-else
-   find bin -name CVS -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
-fi

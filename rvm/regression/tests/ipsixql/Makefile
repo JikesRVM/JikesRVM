@@ -6,7 +6,7 @@
 # @author Michael Hind
 #
 
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
 
 BENCH_NAME=ipsixql
 include		$(JAL_ROOT)/rvm/regression/Local.rules

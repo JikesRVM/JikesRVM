@@ -91,7 +91,7 @@ fi
 echo -n "$ME: "
 
 # pick up env
-. $RVM_BUILD/jbuild.environment || croak "Cannot load $RVM_BUILD/jbuild.environment"
+. $RVM_BUILD/environment.host || croak "Cannot load $RVM_BUILD/ennvironment.host"
 
 # be in dir such that the pathnames which find will produce will
 # match package names
