@@ -1018,7 +1018,14 @@ implements OPT_Operators {
 	moveESPBefore(s, MIR_UnaryNoRes.getVal(s).asIntConstant().value);
 	continue;
       }
-      
+
+      if (s.operator() == YIELDPOINT_PROLOGUE ||
+	  s.operator() == YIELDPOINT_BACKEDGE ||
+	  s.operator() == YIELDPOINT_EPILOGUE) {
+	moveESPBefore(s, 0);
+	continue;
+      }
+
       if (s.operator() == IA32_MOV) {
         rewriteMoveInstruction(s);
       }

@@ -715,12 +715,17 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
    *   and then jumps to the split basic block.
    * Before the yield point, test if thread switch flag is on.
    *  Mutate yield point to a conditional jump if true to yield point 
-   *  basic block
+   *  basic block. 
+   * If options.FIXED_JTOC, then we can delay the yieldpoint expansion
+   * until final mir expansion, since we can expand it without impacting
+   * register allocation.
    */
   private static OPT_Instruction yield_point(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    if (ir.options.FIXED_JTOC) return nextInstr; // defer expansion until later
+
     s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
     
-    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     // get the correct method to be called for a thread switch
     VM_Method meth = null;
     if (s.getOpcode() == YIELDPOINT_PROLOGUE_opcode) {
@@ -742,23 +747,16 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     ir.cfg.addLastInCodeOrder(yieldpoint);
     
     int offset = meth.getOffset();
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-    OPT_Operand guard = TG();
-    OPT_Operand target;
-    if (ir.options.FIXED_JTOC) {
-      target = OPT_MemoryOperand.D(offset + VM_Magic.objectAsAddress(VM_Magic.getJTOC()),
-				   (byte)4, loc, guard);
-    } else {
-      OPT_Operand jtoc = 
-	OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-			     VM_Entrypoints.jtocOffset, 
-			     (byte)4, null, TG());
-      OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
-      yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
-      target =
-	OPT_MemoryOperand.BD(regOp.copyD2U(), 
-			     offset, (byte)4, loc, guard);
-    }
+    OPT_Operand jtoc = 
+      OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
+			   VM_Entrypoints.jtocOffset, 
+			   (byte)4, null, TG());
+    OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
+    yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
+    OPT_Operand target =
+      OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, 
+			   new OPT_LocationOperand(offset), TG());
+    
     // call thread switch
     OPT_Instruction call = 
       MIR_Call.create0(CALL_SAVE_VOLATILE, null, null, target, 
