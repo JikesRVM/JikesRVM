@@ -103,11 +103,20 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
 	       ets.hasMoreElements();) {
 	    OPT_TypeOperand type = (OPT_TypeOperand)ets.nextElement();
 	    int catchOffset = eBlock.firstInstruction().getmcOffset();
-	    int eId = type.getVMType().getId();
 	    eTable[index + TRY_START] = currStartOff;
 	    eTable[index + TRY_END] = currEndOff;
 	    eTable[index + CATCH_START] = catchOffset;
-	    eTable[index + EX_TYPE] = eId;
+	    try {
+	      eTable[index + EX_TYPE] = type.getTypeRef().resolve().getId();
+	    } catch (ClassNotFoundException except) {
+	      // Yuck.  If this happens beatup Dave and make him do the right thing.
+	      // For now, we are forcing early loading of exception types to 
+	      // avoid a bunch of ugly issues in resolving the type when delivering
+	      // the exception.  The problem is that we currently can't allow a GC
+	      // while in the midst of delivering an exception and resolving the
+	      // type reference might entail calling arbitrary classloader code. 
+	      VM.sysFail("Unable to resolve caught exception type at compile time");
+	    }
 	    index += 4;
 	  }
 	}
