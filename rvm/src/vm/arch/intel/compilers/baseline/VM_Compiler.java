@@ -3522,16 +3522,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return;
     }
     
-    if (methodName == VM_MagicNames.pragmaInline) {
-      VM.sysWrite("  ignoring 'VM_Magic.pragmaInline'\n");
-      return;
-    }
-    
-    if (methodName == VM_MagicNames.pragmaNoInline) {
-      VM.sysWrite("  ignoring 'VM_Magic.pragmaNoInline'\n");
-      return;
-    }
-    
     if (methodName == VM_MagicNames.sync) {  // nothing required on IA32
       return;
     }
