@@ -368,6 +368,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify large object heap size (in megabytes) using \"-X:lh=<number>\"\n", me);
 	*fastExit = 1; break;
       }
+      JCLAs[n_JCLAs++]=token;
       continue;
     }
     if (!strncmp(token, "-X:nh=", 6)) {
