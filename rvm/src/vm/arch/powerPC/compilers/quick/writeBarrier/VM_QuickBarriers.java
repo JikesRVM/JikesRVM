@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.quick;
 
 import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class called from quick compiler to generate architecture specific
