@@ -1,24 +1,44 @@
 This is release 2.3.0 of the Jikes RVM. 
 
+There are a number of major changes and significant improvements in
+overall system stability and functionality over Jikes RVM 2.2.2. 
+
 Highlights of this release include:
- + improvements in build process to make it stop on errors
- + ksh => bash
- + syscall changes
- + logical configurations
- + growable heaps
- + preprocessor documented, and more robust
- + soft, weak, and phantom references
- + changes to runtime compiler (opt only in adaptive configs)
- + baseline compiler is re-entrant; parallel baseline compilation
-   is now enabled.
+ + Switched to classpath version 0.06
+   - lots of improved function in classpath
+   - fixes several critical defects in Jikes RVM
+ + Build process:
+   - ksh has been replaced with bash
+   - improved robustness and error detection in all build tools
+ + GC/Memory management:
+   - MarkSweep and CopyMS Plans are considered stable
+   - CopyMS is now recommended as the default memory manager
+   - heapsize now dynamically grows/shrinks
+   - implementation of soft, weak, and phantom references 
+   - numerous bug fixes and performance improvements
+   - numerous code cleanups from Robin Garner and Andrew Grey.
+ + Simplified configuration of Jikes RVM
+   - Added 4 logical configs to help new users pick a 'good' one
+   - All builds with opt compiler use adaptive system
+ + Baseline compiler is re-entrant; parallel baseline compilation enabled
+ + Some progress on port to 64 bit PowerPC
+    - Numerous code cleanups
+    - More use of VM_Address, VM_Word, etc.
+    - Complete reimplementation of syscalls (see VM_SysCall)
+ + Includes 9 user contributions since 2.2.2;
 
 Other notes:
+
+We fixed the 587 Javadoc warnings in the source code. 
+
+VM_Time.now replaced by VM_Time.cycles. Internal interval timing
+should now be done using hardware cycle counters (VM_Time.cycles)
+instead of getting the time of day. 
 
 A number of other miscellaneous bugs in version 2.2.2
 are fixed in the 2.3.0 release.  See the developerWorks bug 
 tracking software tool and CVS history for details.
 
-We fixed the 587 Javadoc warnings in the source code. 
 
 Expansions of some of the material above:
 
@@ -55,7 +75,7 @@ problem.
 
 We now handle them the way the spec says, instead of just treating
 soft and weak refs. as if they were regular (hard/strong) references.
-Yaay.
+This was a contribution from Chris Hoffman.
 
  + ksh => bash
 
