@@ -500,12 +500,17 @@ public final class OPT_BranchOptimizations
 
     // For now, do not generate CMOVs if the condition depends on
     // floating-point compares, with troublesome NaN semantics
-    if (IfCmp.getVal1(cb).isRegister() &&
-        IfCmp.getVal1(cb).asRegister().register.isFloatingPoint())
+    if (IfCmp.getVal1(cb).isRegister()) {
+      OPT_Register r = IfCmp.getVal1(cb).asRegister().register;
+      if (r.isFloatingPoint() || r.isLong()) return false;
+    } else if (IfCmp.getVal2(cb).isRegister()) { 
+      OPT_Register r = IfCmp.getVal2(cb).asRegister().register;
+      if (r.isFloatingPoint() || r.isLong()) return false;
+    }
+    // Don't generate CMOVs for branches that can be folded.
+    if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
       return false;
-    if (IfCmp.getVal2(cb).isRegister() &&
-        IfCmp.getVal2(cb).asRegister().register.isFloatingPoint())
-      return false;
+    }
     
     // For now, do not generate CMOVs for longs.
     if (hasLongDef(taken) || hasLongDef(notTaken)) {
@@ -782,8 +787,7 @@ public final class OPT_BranchOptimizations
           OPT_Instruction cmov = CondMove.create(op,def.asRegister(),
                                                  tempVal1.copy(),
                                                  tempVal2.copy(),
-                                                 cond.copy().asCondition().
-                                                 flipCode(),
+                                                 cond.copy().asCondition(),
                                                  def.copy(),
                                                  temp.copy());
           cb.insertBefore(cmov);
