@@ -57,10 +57,10 @@ class MainThread extends Thread {
       //
       VM_Class cls = null;
       try {
-	cls = (VM_Class) cl.loadClass(args[0], true).getVMType();
+	cls = (VM_Class)cl.loadClass(args[0], true).getVMType();
       } catch (ClassNotFoundException e) { 
 	// no such class
-	VM.sysWrite(e.getException() + "\n");
+	VM.sysWrite(e+"\n");
 	return;
       }
 
