@@ -89,11 +89,6 @@ system will compete with the product on short-running codes of a few seconds.
 VolanoMark.  However, if you have a code with many threads, each using
 JNI, Jikes RVM performance will suffer due to factors in the design of
 the current thread system.
-\index{on-stack replacement}
-\item Jikes RVM does {\em not} yet support on-stack replacement for
-optimizing methods.  The adaptive system will not optimize a single
-invocation of a long-running 
-method.
 \index{quasi-preemption}
 \item Performance on tight loops may suffer.  The Jikes RVM thread system
 relies on quasi-preemption; the optimizing compiler inserts a thread-switch
