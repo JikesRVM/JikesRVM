@@ -209,8 +209,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	  trace("VM_Scheduler.boot","created nativeDaemonProcessor with id",nativeDPndx);
       } else {
 	processors[nativeDPndx] = null;
-	//    if (VM.TraceThreads)
-	trace("VM_Scheduler.boot","NativeDaemonProcessor not created");
+	if (VM.TraceThreads)
+	  trace("VM_Scheduler.boot","NativeDaemonProcessor not created");
       }
     }
 
