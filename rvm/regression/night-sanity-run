@@ -263,7 +263,7 @@ fi >> $MSG
 
 if (( archived )); then
     # Describe where the archive information can be found
-    echo -e "\nOutput of this run is normally available (for 24 hours) at:" 
+    echo -e "\nOutput of this run is normally available (for one week) at:" 
     echo "http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME"
 fi >> $MSG
 echo "  Sanity tests are specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
