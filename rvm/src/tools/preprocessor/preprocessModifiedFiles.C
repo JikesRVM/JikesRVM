@@ -786,10 +786,8 @@ preprocess(const char *srcFile, const char *dstFile)
 	    fprintf(stderr, "%s: %s:%d: Internal error: scan() should never return token type %d\n", Me, SourceName, SourceLineNo, token_type);
 	    exit(13);
 	}
-	assert(false);
 	/* NOTREACHED */
     }
-    assert(false);
     /* NOTREACHED */
 }
 
