@@ -1384,6 +1384,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	  case JBC_astore: {
 	    currBBMap[index]=currBBMap[currBBStkTop];
 	    currBBStkTop--;
+	    break;
 	  }
 
 	  case JBC_iinc: {
