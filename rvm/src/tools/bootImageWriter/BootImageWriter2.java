@@ -43,7 +43,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
    * How much talking while we work?
    */
   private static int verbose = 0;
-  private static int depthCutoff = 5;  // how deeply in the recursive copy do we continue to blather
+  private static int depthCutoff = 200;  // how deeply in the recursive copy do we continue to blather
 
   /**
    * Places to look for classes when building bootimage.
@@ -1040,7 +1040,8 @@ public class BootImageWriter2 extends BootImageWriterMessages
     }
   }
 
-  private static final int LARGE_SIZE = 70000;
+  private static final int LARGE_ARRAY_SIZE = 16*1024;
+  private static final int LARGE_SCALAR_SIZE = 1024;
   private static int depth = -1;
   private static int jtocCount = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
@@ -1106,11 +1107,10 @@ public class BootImageWriter2 extends BootImageWriterMessages
 	      String tab = SPACES.substring(0,depth+1);
 	      if (depth == 0 && jtocCount >= 0)
 		  tab = tab + "jtoc #" + String.valueOf(jtocCount) + ": ";
+	      int arraySize = rvmArrayType.getInstanceSize(arrayCount);
 	      say(tab, "Copying array  ", jdkType.getName(), 
-		  "   length=", String.valueOf(arrayCount)
-		  // "   size=", String.valueOf(arraySize),
-		  // (arraySize >= LARGE_SIZE) ? "large object!!!" : ""
-		  );
+		  "   length=", String.valueOf(arrayCount),
+		  (arraySize >= LARGE_ARRAY_SIZE) ? " large object!!!" : "");
 	  }
       }
 
@@ -1223,10 +1223,10 @@ public class BootImageWriter2 extends BootImageWriterMessages
 	      String tab = SPACES.substring(0,depth+1);
 	      if (depth == 0 && jtocCount >= 0)
 		  tab = tab + "jtoc #" + String.valueOf(jtocCount) + " ";
-	      say(tab, "Copying object ", jdkType.getName()
-		  // "   size=", String.valueOf(scalarSize),
-		  //(scalarSize >= LARGE_SIZE) ? "large object!!!" : ""
-		  );
+	      int scalarSize = rvmScalarType.getInstanceSize();
+	      say(tab, "Copying object ", jdkType.getName(),
+		  "   size=", String.valueOf(scalarSize),
+		  (scalarSize >= LARGE_SCALAR_SIZE) ? " large object!!!" : "");
 	  }
       }
 
@@ -1297,8 +1297,11 @@ public class BootImageWriter2 extends BootImageWriterMessages
 		  int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
 		  int high = 0x10000000;  // we shouldn't have that many objects
 		  if (value > low && value < high) {
+		    String name = rvmField.toString();
+		    if (!name.equals("VM_Processor.vpStatusAddress LVM_Address;")) {
 		      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
 			  " written for field ", rvmField.toString());
+		    }
 		  }
 	      }
 	      bootImage.setFullWord(rvmFieldOffset, value);
@@ -1439,7 +1442,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
 	      say(tab, "Traversed array  ", jdkType.getName(), 
 		  "  length=", String.valueOf(arrayCount), 
 		  "  total size=", String.valueOf(size),
-		  (size >= LARGE_SIZE) ?"  large object!!!" : "");
+		  (size >= LARGE_ARRAY_SIZE) ?"  large object!!!" : "");
 	  }
       }
     } else {
@@ -1497,7 +1500,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
 		  tab = tab + "#" + String.valueOf(jtocCount);
 	      say(tab, "Traversed object ", jdkType.getName(), 
 		  "   total size=", String.valueOf(size),
-		  (size >= LARGE_SIZE) ? " large object!!!" : "");
+		  (size >= LARGE_SCALAR_SIZE) ? " large object!!!" : "");
 	  }
       }
     }
