@@ -44,11 +44,6 @@ final class OPT_LinearScanLiveAnalysis extends OPT_CompilerPhase
   
   static final private boolean debug = false;
 
-  /**
-   *  Used for experimentation
-   */
-  static final private boolean COMPUTE_FEATURES = false;
-  
   final boolean shouldPerform(OPT_Options options) { return true; }
   final String getName() { return "Live Interval Analysis"; }
   final boolean printingEnabled(OPT_Options options, boolean before) {
@@ -79,10 +74,6 @@ final class OPT_LinearScanLiveAnalysis extends OPT_CompilerPhase
       new OPT_LinearScanLiveInterval(null, 0, 0, ir);
     OPT_LinearScanLiveInterval liveOut = 
       new OPT_LinearScanLiveInterval(null, 0, 0, ir);
-    
-    if (COMPUTE_FEATURES) {
-      computeMaxNumberOfOverlaps();
-    }
     
     // visit each basic block in the ListOfBlocks list
     for (OPT_BasicBlock bb = ListOfBlocks; 
@@ -244,11 +235,6 @@ final class OPT_LinearScanLiveAnalysis extends OPT_CompilerPhase
       OPT_LinearScanLiveInterval newInterval = 
 	new OPT_LinearScanLiveInterval(reg, dfnBegin, dfnEnd, ir);
       
-      if (COMPUTE_FEATURES) {
-	// JC (8/15) set max overlap in live interval
-	newInterval.setMaxOverlap(live.getMaxOverlap());
-      }
-      
       // associate the interval with the register and it to list
       setLiveInterval(reg, newInterval);
       appendInterval(newInterval);
@@ -344,69 +330,6 @@ final class OPT_LinearScanLiveAnalysis extends OPT_CompilerPhase
     }
   }
   
-  /**
-   * JC (8/15) compute max number of overlapping live intervals
-   */
-  private void computeMaxNumberOfOverlaps() {
-    for (OPT_BasicBlock bb = ListOfBlocks; 
-	 bb !=null; 
-	 bb=(OPT_BasicBlock)bb.nextSorted) {
-      
-      int dfnBBbegin = getDFN(bb.firstInstruction());
-      int dfnBBend   = getDFN(bb.lastInstruction());
-      
-      OPT_Instruction last = bb.lastInstruction();
-      
-      for (OPT_Instruction inst = bb.firstInstruction().getNext();
-	   inst != last; 
-	   inst = inst.getNext()) {
-	
-	int instNum = getDFN(inst);
-	int numOverlap = 0;
-	
-	for (OPT_LiveIntervalElement live = bb.getFirstLiveIntervalElement();
-	     live != null; live = live.getNext()) {
-	  
-	  OPT_Instruction begin = live.getBegin();
-	  OPT_Instruction end   = live.getEnd();
-	  
-	  int dfnEnd = dfnBBend;
-	  if (end != null)
-	    dfnEnd   = getDFN(end);
-	  int dfnBegin = dfnBBbegin;
-	  if (begin != null)
-	    dfnBegin = getDFN(begin);
-	  
-	  if (dfnBegin <= instNum && instNum <= dfnEnd) 
-	    numOverlap++;
-	}
-	
-	for (OPT_LiveIntervalElement live=bb.getFirstLiveIntervalElement();
-	     live != null; 
-	     live = live.getNext()) {
-	  
-	  OPT_Instruction begin = live.getBegin();
-	  OPT_Instruction end   = live.getEnd();
-	  
-	  int dfnEnd = dfnBBend;
-	  if (end != null) {
-	    dfnEnd = getDFN(end);
-	  }
-
-	  int dfnBegin = dfnBBbegin;
-	  if (begin != null) {
-	    dfnBegin = getDFN(begin);
-	  }
-
-	  if (dfnBegin <= instNum && instNum <= dfnEnd) {
-	    if (live.getMaxOverlap() < (numOverlap-1))
-	      live.setMaxOverlap(numOverlap-1);
-	  }
-	} // for liveIntervalElement loop
-      } // each instruction
-    } // each basic block
-  }
-
   /**
    * @return the first live interval in sorted order
    */
@@ -532,38 +455,6 @@ final class OPT_LinearScanLiveAnalysis extends OPT_CompilerPhase
       } else {
 	li.setInstSpanned(li.dend - li.dbeg);
       }
-    }
-  }
-  
-  /**
-   * JC (8/15) check if liveInt1 max overlap less than the liveEle2 
-   *   and update as needed.
-   * @param liveInt1
-   * @param liveEle2
-   * @param newInt
-   */
-  private void checkMaxOverlap(OPT_LinearScanLiveInterval liveInt1,
-			       OPT_LiveIntervalElement liveEle2,
-			       OPT_LinearScanLiveInterval newInt) {
-    if (liveInt1.getMaxOverlap() < liveEle2.getMaxOverlap()) {
-      newInt.setMaxOverlap(liveEle2.getMaxOverlap());
-      liveInt1.setMaxOverlap(liveEle2.getMaxOverlap());
-    }
-    else {
-      newInt.setMaxOverlap(liveInt1.getMaxOverlap());
-    }
-  }
-
-  /**
-   * JC (8/15) check if live interval element (live) 
-   * has max overlap greater than the live interval (existingInterval)
-   * @param liveInt1
-   * @param liveEle2
-   */
-  private void checkMaxOverlap(OPT_LinearScanLiveInterval existingInterval,
-			       OPT_LiveIntervalElement live) {
-    if (existingInterval.getMaxOverlap() < live.getMaxOverlap()) {
-      existingInterval.setMaxOverlap(live.getMaxOverlap());
     }
   }
 }
