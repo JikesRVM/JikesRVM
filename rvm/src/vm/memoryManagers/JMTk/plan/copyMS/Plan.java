@@ -61,29 +61,36 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // virtual memory resources
   private static MonotoneVMResource nurseryVM;
   private static FreeListVMResource msVM;
+  private static FreeListVMResource losVM;
 
   // memory resources
   private static MemoryResource nurseryMR;
   private static MemoryResource msMR;
+  private static MemoryResource losMR;
 
   // Mark-sweep collector (mark-sweep space, large objects)
-  private static MarkSweepCollector msCollector;
+  private static MarkSweepSpace msSpace;
+  private static TreadmillSpace losSpace;
 
   // Allocators
   private static final byte NURSERY_SPACE = 0;
   private static final byte MS_SPACE = 1;
+  private static final byte LOS_SPACE = 2;
   public static final byte DEFAULT_SPACE = NURSERY_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
+  private static final EXTENT LOS_SIZE_THRESHOLD = 8<<10;
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT       NURSERY_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.0));
-  private static final EXTENT            MS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.0 * 2.0));
+  private static final EXTENT       NURSERY_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3));
+  private static final EXTENT            MS_SIZE = NURSERY_SIZE;
+  protected static final EXTENT          LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3 * 0.3));
   public  static final EXTENT           MAX_SIZE = MS_SIZE;
-  private static final VM_Address       MS_START = PLAN_START;
+  protected static final VM_Address    LOS_START = PLAN_START;
+  protected static final VM_Address      LOS_END = LOS_START.add(LOS_SIZE);
+  private static final VM_Address       MS_START = LOS_END;
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address  NURSERY_START = MS_END;
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
@@ -96,8 +103,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private BumpPointer nursery;
-  private MarkSweepAllocator ms;
-
+  private MarkSweepLocal ms;
+  private TreadmillLocal los;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -113,17 +120,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   static {
     nurseryMR = new MemoryResource("nur", POLL_FREQUENCY);
     msMR = new MemoryResource("ms", POLL_FREQUENCY);
-    nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-    msVM       = new FreeListVMResource(MS_SPACE, "MS",   MS_START,      MS_SIZE,      VMResource.IN_VM);
-    msCollector = new MarkSweepCollector(msVM, msMR);
+    losMR = new MemoryResource("los", POLL_FREQUENCY);
+    nurseryVM = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
+    msVM = new FreeListVMResource(MS_SPACE, "MS", MS_START, MS_SIZE, VMResource.IN_VM);
+    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
+    msSpace = new MarkSweepSpace(msVM, msMR);
+    losSpace = new TreadmillSpace(losVM, losMR);
+
+    addSpace(NURSERY_SPACE, "Nusery Space");
+    addSpace(MS_SPACE, "Mark-sweep Space");
+    addSpace(LOS_SPACE, "LOS Space");
   }
+
 
   /**
    * Constructor
    */
   public Plan() {
     nursery = new BumpPointer(nurseryVM);
-    ms = new MarkSweepAllocator(msCollector);
+    ms = new MarkSweepLocal(msSpace, this);
+    los = new TreadmillLocal(losSpace);
   }
 
   /**
@@ -132,7 +148,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final void boot()
     throws VM_PragmaInterruptible {
-    BasePlan.boot();
+    StopTheWorldGC.boot();
   }
 
 
@@ -155,11 +171,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
-      allocator = MS_SPACE;
+      allocator = LOS_SPACE;
     VM_Address region;
     switch (allocator) {
       case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
       case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
 	                   region = VM_Address.zero();
@@ -184,9 +201,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
       allocator = MS_SPACE;
     switch (allocator) {
-      case  NURSERY_SPACE: return;
-      case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+    case  NURSERY_SPACE: return;
+    case      LOS_SPACE: return;
+    case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+    case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+    default:
+      if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
   }
 
@@ -202,7 +222,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    return ms.allocCopy(isScalar, bytes);
+    return ms.alloc(isScalar, bytes);
   }
 
   /**  
@@ -231,7 +251,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? MS_SPACE : NURSERY_SPACE;
+    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : NURSERY_SPACE;
   }
 
   /**
@@ -262,18 +282,23 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final int getInitialHeaderValue(EXTENT bytes)
     throws VM_PragmaInline {
-    return msCollector.getInitialHeaderValue(bytes);
+    if (bytes > LOS_SIZE_THRESHOLD)
+      return losSpace.getInitialHeaderValue(bytes);
+    else
+      return msSpace.getInitialHeaderValue();
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == nursery) return NURSERY_SPACE;
     if (a == ms) return MS_SPACE;
+    if (a == los) return LOS_SPACE;
     return super.getSpaceFromAllocator(a);
   }
 
   protected final Allocator getAllocatorFromSpace (byte s) {
     if (s == NURSERY_SPACE) return nursery;
     if (s == MS_SPACE) return ms;
+    if (s == LOS_SPACE) return los;
     return super.getAllocatorFromSpace(s);
   }
 
@@ -326,8 +351,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void globalPrepare() {
     nurseryMR.reset();
-    msCollector.prepare(msVM, msMR);
+    msSpace.prepare(msVM, msMR);
     Immortal.prepare(immortalVM, null);
+    losSpace.prepare(losVM, losMR);
   }
 
   /**
@@ -341,6 +367,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   protected final void threadLocalPrepare(int count) {
     nursery.rebind(nurseryVM);
     ms.prepare();
+    los.prepare();
   }
 
   /**
@@ -362,6 +389,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
+    los.release();
   }
 
   /**
@@ -375,7 +403,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   protected final void globalRelease() {
     // release each of the collected regions
     nurseryVM.release();
-    msCollector.release();
+    losSpace.release();
+    msSpace.release();
     Immortal.release(immortalVM, null);
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)
@@ -401,16 +430,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final VM_Address traceObject(VM_Address obj) {
+    if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-	return Copy.traceObject(obj);
-      else if (addr.GE(MS_START))
-	return msCollector.traceObject(obj);
-      else if (addr.GE(BOOT_START))
-	return Immortal.traceObject(obj);
-    } // else this is not a heap pointer
-    return obj;
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+    case NURSERY_SPACE:   return Copy.traceObject(obj);
+    case MS_SPACE:        return msSpace.traceObject(obj, VMResource.getTag(addr));
+    case LOS_SPACE:       return losSpace.traceObject(obj);
+    case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
+    case BOOT_SPACE:	  return Immortal.traceObject(obj);
+    case META_SPACE:	  return obj;
+    default:
+      if (VM.VerifyAssertions) {
+	VM.sysWrite(addr);
+	VM.sysWriteln("Plan.traceObject: unknown space", space);
+	VM.sysFail("Plan.traceObject: unknown space");
+      }
+      return obj;
+    }
   }
 
   /**
@@ -454,7 +491,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case NURSERY_SPACE:   return Copy.isLive(obj);
-      case MS_SPACE:        return msCollector.isLive(obj);
+      case MS_SPACE:        return msSpace.isLive(obj);
+      case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
@@ -481,7 +519,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
 					     int forwardingPtr, int bytes) {
-    return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | msCollector.getInitialHeaderValue(bytes);
+    return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | msSpace.getInitialHeaderValue();
   }
 
 
@@ -498,12 +536,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    int pages = nurseryMR.reservedPages();
-    pages += pages;
-
-    pages += msMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    return pages;
+    return getPagesUsed() + nurseryMR.reservedPages();
   }
 
   /**
@@ -545,8 +578,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @return The mark sweep collector.
    */
-  public final MarkSweepCollector getMS() {
-    return msCollector;
+  public final MarkSweepSpace getMS() {
+    return msSpace;
   }
 
   /**
