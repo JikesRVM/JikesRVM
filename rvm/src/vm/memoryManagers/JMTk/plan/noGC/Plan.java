@@ -124,6 +124,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
+    case      LOS_SPACE:  // no los, so use default allocator
     case  DEFAULT_SPACE:  return def.alloc(isScalar, bytes);
     case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
     default:
@@ -147,6 +148,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                               boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
+    case      LOS_SPACE: // no los, so use default allocator
     case  DEFAULT_SPACE: Header.initializeHeader(ref, tib, bytes, isScalar); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
@@ -374,6 +376,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
+    case     LOS_SPACE:   return true;
     case DEFAULT_SPACE:   return true;
     case IMMORTAL_SPACE:  return true;
     case BOOT_SPACE:      return true;
