@@ -73,9 +73,9 @@ unsigned maximumHeapSize;  /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 
-/* See VM.exitStatusBogusCommandLineArg in VM.java.  
- * If you change this value, change it there too. */
-const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 98;
+#include "sys.h"		// EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
+
+
 
 static int DEBUG = 0;                   // have to set this from a debugger
 
@@ -299,8 +299,10 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
             subtoken = token + 5;
             fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", Me);
-            /* Does the arg finish with an M or m?  If so, don't stick on
-             * another one. */
+            /* Does the arg finish with a magnitude expression (a non-numeric
+             * character)?  If so, don't stick on 
+             * another one.   This is just parsing so that we generate a nicer
+             * warning message, by the way -- nothing magic goes on here.  */
             size_t sublen = strlen(subtoken); // length of subtoken
             /* Avoid examining subtoken[-1], not that we actually would care,
                but I like the idea of explicitly setting megaChar to '\0'
@@ -490,16 +492,12 @@ strnequal(const char *s1, const char *s2, size_t n)
     return strncmp(s1, s2, n) == 0;
 }
 
-
-#if 0
-static unsigned int parse_heap_sizeIntOnly(
-    const char *sizeName, const char *sizeFlag, 
-    const char *token, const char *subtoken, bool *fastExit);
-#endif
-
-
 /* TODO: Import BYTES_IN_PAGE from
    com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
+
+/** Return a # of bytes, rounded up to the next page size.  Setting fastExit
+    means trouble or failure.  If we set fastExit we'll also return the value
+    0U. */
 static unsigned int
 parse_heap_size(const char *sizeName, //  "initial" or "maximum"
                 const char *sizeFlag, // "ms" or "mx"
@@ -631,86 +629,3 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
     return tot;
 }
 
-#if 0
-
-/* TODO: Import BYTES_IN_PAGE from
-   com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
-static unsigned int
-parse_heap_sizeIntOnly(const char *sizeName, const char *sizeFlag, 
-                const char *token, const char *subtoken, bool *fastExit)
-{
-    const unsigned LOG_BYTES_IN_PAGE = 12;
-    const unsigned BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
-    
-    char *endp;
-    unsigned long factor = 1;   // multiplication factor; M for Megabytes, K
-                                // for kilobytes, etc.
-
-    errno = 0;
-    long heapsz = strtol(subtoken, &endp, 0);  // heap size number
-
-    // First, set the factor appropriately, and make sure there aren't extra
-    // characters at the end of the line.
-    if (*endp == '\0') {
-        // no suffix.  Here we differ from the Sun JVM, by assuming
-        // megabytes. (Historical compat.)  The Sun JVM would specify
-        // 1 here. 
-        factor = 1024UL * 1024UL;
-    } else if (endp[1] == '\0') {
-        if (*endp == 'm' || *endp == 'M')
-            factor = 1024UL * 1024UL; // megabytes
-        else if (*endp == 'k' || *endp == 'K')
-            factor = 1024UL;    // kilobytes
-        else if (*endp == 'b' || *endp == 'B')
-            factor = 1UL;       // Bytes.  Not avail. in Sun JVM
-        else {
-            goto bad_strtol;
-        }
-    } else {
-    bad_strtol:
-        fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a memory size\n", Me, token, subtoken);          
-        *fastExit = true;
-    }
-
-    if (!*fastExit) {
-        if (heapsz <= 0) {
-            fprintf(SysTraceFile, 
-                    "%s: You may not specify a %s initial heap size;", 
-                    Me, heapsz < 0 ? "negative" : "zero");
-            fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
-            *fastExit = true;
-        }
-    } 
-
-    if (!*fastExit) {
-        if ((unsigned long) heapsz > (UINT_MAX / factor) || errno == ERANGE)  {
-        // If message not already printed, print it.
-            fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
-            *fastExit = true;
-        }
-    }
-
-    if (*fastExit) {
-        size_t namelen = strlen(sizeName);
-        fprintf(SysTraceFile, "\tPlease specify %s heap size "
-                "(in megabytes) using \"-X%s<positive integer>M\",\n", 
-                sizeName, sizeFlag);
-        fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in kilobytes) using \"-X%s<positive integer>K\",\n",
-                (int) namelen, (int) namelen, " ", sizeFlag);
-        fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in bytes) using \"-X%s<positive integer>B\"\n",
-                (int) namelen, (int) namelen, " ", sizeFlag);
-        return 0U;              // Dummy.
-    } 
-    unsigned int tot = heapsz * factor;
-    if (tot % BYTES_IN_PAGE) {
-        unsigned newtot =  ((tot >> LOG_BYTES_IN_PAGE) + 1) << LOG_BYTES_IN_PAGE;
-        
-        fprintf(SysTraceFile, "%s: Rounding up %s heap size from %u to %u,"
-                " the next multiple of %u bytes\n", Me, sizeName, tot, newtot, BYTES_IN_PAGE);
-        tot = newtot;
-    }
-    return tot;
-}
-#endif
