@@ -1,7 +1,14 @@
-#! /bin/bash
-
+#! /usr/bin/env bash
+# -*- coding: iso-8859-1 ; mode: shell-script ;-*-
+# (C) Copyright © IBM Corp. 2004
+#
+# $Id$
+#
 ## This is a pretend "java" executable that will run Jikes RVM with
 ## settings that make it work to run Eclipse.
+#
+# @author Steven Augart
+# @date   19 December 2004
 
 ME="$(basename $0)"
 
