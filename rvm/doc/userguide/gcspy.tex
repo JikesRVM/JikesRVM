@@ -1,45 +1,42 @@
 \newcommand{\rvmRoot} {\texttt{\$RVM\_ROOT}}
 
-{\bf XXX} The GCspy support in the \jrvm{} CVS head does not work, as
-of this writing (April 9, 2004) .  There appears to be a version
-mismatch between the released version of GCspy (0.9) and the version
-required by the code that was merged into \jrvm{}.  We plan to
-rectify this before the 2.3.2 release.  \textbf{XXX}.
-
+\xname{gcspy_framework}
 \subsection{The GCspy Heap Visualisation Framework}
 
+\newcommand{\GCspyOOPSLATwoPaperURL}{http://www.cs.kent.ac.uk/pubs/2002/1426/}
 GCspy is a visualisation framework that allows developers to observe
 the behaviour of the heap and related data structures.  For details of
-the GCspy model see \textit{GCspy: An adaptable heap visualisation framework}
-by Tony Printezis and Richard Jones, OOPSLA'02.  (This paper is
-available from the GCspy download site, listed below.)  The framework
+the GCspy model, see \xlink{\textit{GCspy: An adaptable heap visualisation framework}
+by Tony Printezis and Richard Jones,
+OOPSLA'02}{\GCspyOOPSLATwoPaperURL}\texonly{, also available at \texttt{\GCspyOOPSLATwoPaperURL}}.   The framework
 comprises two components that communicate across a socket: a
 client-side visualiser (written in Java) and a server incorporated
 into the virtual machine of the system being visualised.
 
 GCspy is designed to be independent of the target system.  Instead, it
 requires the GC developer to describe their system in terms of four
-GCspy abstractions, spaces, streams and tiles.   \textit{\textbf{XXX} What is
-the fourth abstraction? \textbf{XXX}} This description in
+GCspy abstractions, spaces, streams, tiles, and events.
+This description is
 transmitted to the visualiser when it connects to the server. 
 
-A space is an abstraction of a component of the system; it may
+A \textit{space} is an abstraction of a component of the system; it may
 represent a memory region, a free-list, a remembered-set or whatever.
 Each space is divided into a number of blocks which are represented by
 the visualiser as tiles.  Each space will have a number of attributes
 --- streams --- such as the amount of space used, the number of
 objects it contains, the length of a free-list and so on. 
 
-In order to instrument a \jrvm{} collector with GCspy, it is necessary to:
+In order to instrument a \jrvm{} collector with GCspy:
 \begin{enumerate}
-   \item provide a \texttt{startGCSpyServer} method in \texttt{Plan.java} to initialise the GCspy server with the port on which to communicate and a list of event names, instantiate drivers for each space and then start the server;
-   \item gather data from each space for the tiles of each stream (e.g.\ before and after each collection);
-   \item  provide a driver for each space. 
+   \item Provide a \texttt{startGCSpyServer} method in that
+   collector's \texttt{Plan.java}.  That method initialises the GCspy server with the port on which to communicate and a list of event names, instantiates drivers for each space, and then starts the server.
+   \item  Gather data from each space for the tiles of each stream (e.g.\ before and after each collection).
+   \item  Provide a driver for each space. 
 \end{enumerate} 
 
-Space drivers handle communication between collectors and the GCspy
+\textit{Space drivers} handle communication between collectors and the GCspy
 infrastructure by mapping information collected by the memory manager
-to the space's streams.  Typically, a driver will:
+to the space's streams.  A typical space driver will:
 
 \begin{itemize}
    \item Create a number of streams.
@@ -48,24 +45,27 @@ to the space's streams.  Typically, a driver will:
    \item Send the tile data along with any summary or control information to the visualiser. 
 \end{itemize}
 
-The SemiSpace plan gives an example of how to instrument a collector.
-It provides GCspy spaces, streams and drivers for the semi-spaces, the
-immortal space and the large object space, and also illustrates how
-performance may be traded for the gathering of more detailed
-information.
+The \jrvm{} SemiSpace GC plan gives an example of how to instrument a
+collector.  It provides GCspy spaces, streams and drivers for the
+semi-spaces, the immortal space and the large object space, and also
+illustrates how performance may be traded for the gathering of more
+detailed information.
 
-\subsection{Installation}
+\xname{gcspy_install}
+\subsection{Installation of GCspy with \jrvm{}}
 
 
 \subsubsection{System Requirements}
 
-In order to run GCspy, your \jrvm{} build must interact properly with pthreads.
-See the \jrvm{} mailing lists for a discussion of this.  
-\textit{\textbf{XXX}
-I believe this is another way of saying that GCSpy will only work on a
-system where \texttt{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR} is 0.  I intend
-to verify that fact and remove this note before the 2.3.2 release goes
-out.  --Steve Augart \textbf{XXX} }
+The GCspy C server code needs a pthread (created in
+\texttt{gcspyStartserver()} in \texttt{sys.C}) in order to run.
+So, GCspy will only work on a system where you've build Jikes RVM with
+\texttt{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR} set to \texttt{0}.
+\texttt{jconfigure} will warn you if you try to configure such a build.
+(The RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR parameter is discussed
+  \link{elsewhere in this guide}[
+  (SubSubSection~\ref{single-virtual-processor-subsubsection},
+  item~\Ref, on page~\Pageref)]{single-virtual-processor-item}.)
 
 The discussion below assumes that you will place all the
 GCspy code and required libraries in \rvmRoot.  If you wish to change
@@ -88,22 +88,43 @@ The C infrastructure provides a GCspy server to \jrvm{}.
     ``Linux CLASSPATH Install''.   You will pull down a file named
     \texttt{jai-1\_1\_2-lib-linux-i586.tar.gz} 
 
-   \item  Unpack the GCSpy and JAI sources into \rvmRoot. You should
-     then have directories named  {\tt \rvmRoot/gcspy0.9 and
-       \rvmRoot/jai-1\_1\_2}.  
+   \item  Unpack the GCSpy and JAI sources into \rvmRoot. 
+
+\begin{verbatim}
+    $ cd $RVM_ROOT
+    $ tar xzf gcspy0.9.tar.gz
+    $ tar xzf jai-1_1_2-lib-linux-i586.tar.gz
+\end{verbatim}
+
+You should then have directories named  
+{\tt \rvmRoot/gcspy0.9} and
+{\tt \rvmRoot/jai-1\_1\_2}.  
+
 
 \end{enumerate}
 
 \paragraph{Building GCspy itself}
 
    Edit the file \rvmRoot/gcspy0.9/src/java/GNUmakefile and set the
-   value of \texttt{JDK} appropriately for your system.
+   value of \texttt{JDK} appropriately for your system.  The authors
+   of GCspy seem to have assumed that you will be using a Sun-style
+   JDK, such as the IBM, Sun, or Blackdown JDK.  If you have
+   \texttt{JAVA\_HOME} set in your environment, then you can probably
+   set \texttt{JDK} to \texttt{\$\{JAVA\_HOME\}}.
 
-   Copy the JAI \texttt{.jar} files into gcspy's \texttt{classes}
+   Copy the JAI \texttt{.jar} files into your JDK's \texttt{ext}
    directory:
 \begin{verbatim}
-    $ cp $RVM_ROOT/jai-1_1_2/lib/*.jar $RVM_ROOT/gcspy0.9/src/java/classes
+    $ cp $RVM_ROOT/jai-1_1_2/lib/*.jar $JAVA_HOME/jre/lib/ext/
 \end{verbatim}
+
+   You must apply a patch to the GCspy sources:
+
+\begin{verbatim}
+    $ cd $RVM_ROOT
+    $ patch -p0 < $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/gcspy.patch
+\end{verbatim}
+
 
    Make the GCspy visualiser and server:
 
@@ -155,6 +176,7 @@ The C infrastructure provides a GCspy server to \jrvm{}.
 %      The visualiser itself has not been tested on \jrvm{}.
 \end{itemize}
 
+\xname{gcspy_arguments}
 \subsection{Command line arguments}
 
 Additional GCSpy-related arguments to the \texttt{rvm} command:
