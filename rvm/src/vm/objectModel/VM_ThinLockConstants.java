@@ -29,8 +29,7 @@
 interface VM_ThinLockConstants {
 
   static final int NUM_BITS_TID        = VM_Scheduler.LOG_MAX_THREADS;
-  static final int NUM_BITS_RC         = VM_JavaHeader.NUM_THIN_LOCK_BITS
-    - NUM_BITS_TID;
+  static final int NUM_BITS_RC         = VM_JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;
 
   static final int TL_LOCK_COUNT_SHIFT = VM_JavaHeader.THIN_LOCK_SHIFT;
   static final int TL_THREAD_ID_SHIFT  = TL_LOCK_COUNT_SHIFT + NUM_BITS_RC;
