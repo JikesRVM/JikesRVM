@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001,2002
+ * (C) Copyright IBM Corp. 2001,2002,2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -934,7 +934,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     VM_Scheduler.threadCreationMutex.unlock();
     if (VM.VerifyAssertions) 
-      VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
+      VM._assert( (!VM.fullyBooted && terminateSystem )
+                 || VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
 
     if (terminateSystem) {
       if (myThread.dyingWithUncaughtException)
@@ -978,7 +979,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /**
    * Get this thread's id for use in lock ownership tests.
    */ 
-  public final int getLockingId() { return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; }
+  public final int getLockingId() { 
+    return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; 
+  }
   
   private static final boolean traceAdjustments = false;
   
@@ -990,7 +993,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * @return nothing (caller resumes execution on new stack)
    */ 
   public static void resizeCurrentStack(int newSize, 
-                                        VM_Registers exceptionRegisters) throws InterruptiblePragma {
+                                        VM_Registers exceptionRegisters) 
+    throws InterruptiblePragma 
+  {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (MM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
@@ -1008,7 +1013,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
   private static void transferExecutionToNewStack(byte[] newStack, 
                                                   VM_Registers 
-                                                  exceptionRegisters) throws NoInlinePragma {
+                                                  exceptionRegisters) 
+    throws NoInlinePragma 
+  {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 
@@ -1058,8 +1065,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     // install new stack
     //
     myThread.stack      = newStack;
-    myThread.stackLimit = VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD);
-    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
+    myThread.stackLimit = 
+      VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD);
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit =
+      myThread.stackLimit;
     
     // return to caller, resuming execution on new stack 
     // (original stack now abandoned)
@@ -1361,8 +1370,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
           */
          threadSlot = index;
          if (MM_Interface.NEEDS_WRITE_BARRIER)
-           MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, this);
-         VM_Magic.setObjectAtOffset(VM_Scheduler.threads,threadSlot << LOG_BYTES_IN_ADDRESS, this);
+           MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
+                                               threadSlot, this);
+         VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
+                                    threadSlot << LOG_BYTES_IN_ADDRESS, this);
          return;
          }
        }
@@ -1390,8 +1401,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
      *  store, but a reference counting collector sure does.
      */
     if (MM_Interface.NEEDS_WRITE_BARRIER)
-      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, null);
-    VM_Magic.setObjectAtOffset(VM_Scheduler.threads, threadSlot << LOG_BYTES_IN_ADDRESS, null);
+      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
+                                          threadSlot, null);
+    VM_Magic.setObjectAtOffset(VM_Scheduler.threads, 
+                               threadSlot << LOG_BYTES_IN_ADDRESS, null);
     VM_Scheduler.threadAllocationIndex = threadSlot;
     // ensure trap if we ever try to "become" this thread again
     if (VM.VerifyAssertions) threadSlot = -1; 
@@ -1404,9 +1417,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     dump(0);
   }
 
-  /** Dump this thread's info.  The <code>verbosity</code> argument is ignored.
+  /** Dump this thread's info.  
    * We do not use any spacing or newline characters.  Callers are responsible
-   * for space-separating or newline-terminating output. */
+   * for space-separating or newline-terminating output. 
+   *
+   * @param verbosity Ignored.
+   */
   public void dump(int verbosity) {
     VM.sysWriteInt(getIndex());   // id
     if (isDaemon)              
@@ -1430,6 +1446,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     // VM.sysWrite("\n");
   }
 
+  /** Dump info for all threads.  Each thread's info is newline-terminated.
+   *
+   * @param verbosity Ignored.
+   */
   public static void dumpAll(int verbosity) {
     for (int i=0; i<VM_Scheduler.threads.length; i++) {
       VM_Thread t = VM_Scheduler.threads[i];
@@ -1521,7 +1541,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * Place to save/restore this thread's monitor state during "wait" 
    * and "notify".
    */ 
-  Object waitObject; // object on which this thread is blocked, waiting for a notification
+  Object waitObject; // object on which this thread is blocked, waiting for a
+                     // notification 
   int    waitCount;  // lock recursion count for this thread's monitor
   
   /**
