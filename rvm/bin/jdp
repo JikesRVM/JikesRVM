@@ -63,8 +63,8 @@ if [[ $RVM_BUILD = "" ]]; then
    exit 1
 fi
 
-if [[ ! -a $RVM_BUILD/Jalapeno.map ]]; then
-   print "$ME: Jalapeno.map does not exist, make sure GENERATE_MAP=1 for your configuration in $RVM_ROOT/rvm/bin/jconfigure"
+if [[ ! -a $RVM_BUILD/RVM.map ]]; then
+   print "$ME: RVM.map does not exist, make sure GENERATE_MAP=1 for your configuration in $RVM_ROOT/rvm/bin/jconfigure"
    exit 1
 fi
 
@@ -72,15 +72,15 @@ fi
 # make sure all the debugger classes are built
 CURRENT_DIR=`pwd`
 
-if [[ ! -a $RVM_BUILD/Jalapeno.tools/jdp.class ]];
+if [[ ! -a $RVM_BUILD/RVM.tools/jdp.class ]];
   then
 
   echo "JDP classes are not compiled yet, compiling now ..."
 
-  if [[ ! -a $RVM_BUILD/Jalapeno.tools ]];
+  if [[ ! -a $RVM_BUILD/RVM.tools ]];
     then
     cd $RVM_BUILD
-    mkdir Jalapeno.tools
+    mkdir RVM.tools
   fi
 
   cd $RVM_ROOT/rvm/src/tools/jdp
@@ -90,7 +90,7 @@ if [[ ! -a $RVM_BUILD/Jalapeno.tools/jdp.class ]];
       echo "Could not copy jdp files."
       exit 1
   fi
-  cd $RVM_BUILD/Jalapeno.tools
+  cd $RVM_BUILD/RVM.tools
   $GNU_MAKE compile
   if [[ $? != 0 ]]
     then
@@ -104,16 +104,16 @@ fi
 #************************************************************
 # set up for jdp:  LIBPATH for JDK 1.18, LD_LIBRARY_PATH for JDK 1.2
 
-export LIBPATH=$RVM_BUILD/Jalapeno.tools:.
-export LD_LIBRARY_PATH=$RVM_BUILD/Jalapeno.tools:.
+export LIBPATH=$RVM_BUILD/RVM.tools:.
+export LD_LIBRARY_PATH=$RVM_BUILD/RVM.tools:.
 
-JDP_CLASSPATH=$RVM_BUILD/Jalapeno.tools:$RVM_BUILD/Jalapeno.scratch:$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/rvmrt.jar:.
+JDP_CLASSPATH=$RVM_BUILD/RVM.tools:$RVM_BUILD/RVM.scratch:$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar:.
 
 
 #****************************************************************************
 # Set default values
 #****************************************************************************
-BOOTER=$RVM_BUILD/Jalapeno
+BOOTER=$RVM_BUILD/RVMRunner
 if [[ $HOST_OS = "AIX" ]]
   then	  
   BOOTER_BREAKPOINT=`dump -t $BOOTER | fgrep .bootThread | grep -v Caller | awk '{ print $3 }' | sed s/0x//`
@@ -121,21 +121,21 @@ if [[ $HOST_OS = "AIX" ]]
   BOOTER_BREAKPOINT=`objdump -t $BOOTER | fgrep bootThread | awk '{ print $1 }' `
 fi
 
-CLASSESNEEDED=$RVM_BUILD/Jalapeno.primordials
+CLASSESNEEDED=$RVM_BUILD/RVM.primordials
 
-JALAPENO_IMAGE=$RVM_BUILD/Jalapeno.image
+RVM_IMAGE=$RVM_BUILD/RVM.image
 
 INTERPRETERMODE=""
 
 #************************************************************
-# process args for jalapeno:  pull all vm args to the front
+# process args for rvm:  pull all vm args to the front
 # remember to put all jdp args together before starting other args
 
 BOOTER_ARGS=""
 
-OTHER_ARGS="-X:vmClasses=$RVM_BUILD/Jalapeno.classes -classpath ."
+OTHER_ARGS="-X:vmClasses=$RVM_BUILD/RVM.classes -classpath ."
 
-JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $JALAPENO_IMAGE  -classpath $RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/rvmrt.jar:. "
+JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $RVM_IMAGE  -classpath $RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar:. "
 
 
 START_OF_APPLICATION_ARGS_SEEN=0

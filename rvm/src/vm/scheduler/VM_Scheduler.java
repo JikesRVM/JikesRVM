@@ -200,7 +200,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       primordialProcessor.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus)+
 	(primordialProcessor.vpStatusIndex<<2);
       // Create NativeDaemonProcessor as N+1st processor in the processors array.
-      // It is NOT included in "numProcessors" which is the index of the last Jalapeno processor.
+      // It is NOT included in "numProcessors" which is the index of the last RVM processor.
       //
       nativeDPndx = numProcessors + 1;		// the last entry in processors[]                                          
       if (!VM.BuildForSingleVirtualProcessor && BuildWithNativeDaemon) {
@@ -608,7 +608,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     writeString("\n-- Stack --\n");
     while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
 
-      // if code is outside of Jalapeno heap, assume it to be native code,
+      // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
       if ( (ip < VM_BootRecord.the_boot_record.startAddress) || 
 	   (ip > (VM_BootRecord.the_boot_record.largeStart

@@ -165,7 +165,7 @@ static int arrayIndexTrapParamOffset;
    // Instance Methods of VM_Thread
    //
    static int becomeNativeThreadOffset;
-   static int becomeJalapenoThreadOffset;
+   static int becomeRVMThreadOffset;
 
    // Fields of VM_Thread (offset of field within instance).
    //
@@ -420,7 +420,7 @@ static int arrayIndexTrapParamOffset;
       threadSwitchFromEpilogueOffset = VM.getMember("LVM_Thread;", "threadSwitchFromEpilogue", "()V").getOffset();
       threadYieldOffset              = VM.getMember("LVM_Thread;", "yield", "()V").getOffset();
       becomeNativeThreadOffset       = VM.getMember("LVM_Thread;", "becomeNativeThread", "()V").getOffset();
-      becomeJalapenoThreadOffset     = VM.getMember("LVM_Thread;", "becomeJalapenoThread", "()V").getOffset();
+      becomeRVMThreadOffset          = VM.getMember("LVM_Thread;", "becomeRVMThread", "()V").getOffset();
       stackLimitOffset               = VM.getMember("LVM_Thread;", "stackLimit", "I").getOffset();
       beingDispatchedOffset          = VM.getMember("LVM_Thread;", "beingDispatched", "Z").getOffset();
       threadSlotOffset               = VM.getMember("LVM_Thread;", "threadSlot", "I").getOffset();

@@ -3,9 +3,9 @@
  */
 /**
  * This class captures the type conversion between address and object reference
- * The JVM stores all statics as integer in the JTOC;  it uses this type 
+ * The RVM stores all statics as integer in the JTOC;  it uses this type 
  * conversion to go between int type and object reference type.
- * The Jalapeno runtime uses VM_Magic to do this type conversion.  This 
+ * The RVM runtime uses VM_Magic to do this type conversion.  This 
  * works since the compiler actually hijacks the call and generates direct 
  * machine code to get around the Java type safety.
  * However, under the JDK, this scheme is not available and the strict type
@@ -15,7 +15,7 @@
  * into two separate arrays so that we can use the JTOC under the JDK.
  * However, unlike the InterpreterStack which keeps the arrays coindexed, 
  * we cannot use the same index for our two arrays because we need to stay
- * compatible with the JVM scheme for remapping address (when the JVM picks
+ * compatible with the RVM scheme for remapping address (when the RVM picks
  * up a JTOC entry that is a reference, it will call addressAsObject() to 
  * do the type conversion).
  * Instead, the object will be inserted into the object array kept in this

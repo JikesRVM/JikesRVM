@@ -3,7 +3,7 @@ import java.util.zip.*;
 /**
   *
   * This is a conversion of the file 'unzip.cpp' found in the Jikes source.
-  * It will be used in conjuction with Jalapeno's ZipFileJpn to perform the
+  * It will be used in conjuction with RVM's ZipFileJpn to perform the
   * inflate algorithm needed to decompress its zip files.  
 
   * VM_InflateZip.java implements the algorithm discussed within RFC 1951, 

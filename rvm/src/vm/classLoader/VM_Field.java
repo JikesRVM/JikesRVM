@@ -134,7 +134,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   }
 
   /**
-    * Read one object ref from heap using jalapeno VM object model, GC safe.
+    * Read one object ref from heap using RVM object model, GC safe.
     * @param obj the object whose field is to be read, or null if the field is static.
     * @return the reference described by this VM_Field from the given object.
     */
@@ -239,7 +239,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   }
 
   /**
-   * assign one object ref from heap using jalapeno VM object model, GC safe.
+   * assign one object ref from heap using RVM object model, GC safe.
    * @param obj the object whose field is to be modified, or null if the field is static.
    * @param ref the object reference to be assigned.
    * @return void

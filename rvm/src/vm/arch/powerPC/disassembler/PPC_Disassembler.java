@@ -131,27 +131,27 @@ class PPC_Disassembler implements VM_BaselineConstants {
   }
 
   static String rname(int n) {
-    String jalapenoName;
+    String rvmName;
     if (n>=0 && n<=31)
-      jalapenoName = GPR_NAMES[n];
+      rvmName = GPR_NAMES[n];
     else if (n>=128 && n<=135)
-      jalapenoName = FPR_NAMES[n-128];
+      rvmName = FPR_NAMES[n-128];
     else 
       switch (n) {
-      case IAR:  jalapenoName = "IAR"; break;
-      case MSR:  jalapenoName = "MSR"; break;
-      case CR:   jalapenoName = "CR"; break;
-      case LR:   jalapenoName = "LR"; break;
-      case CTR:  jalapenoName = "CTR"; break;
-      case XER:  jalapenoName = "XER"; break;
-      case MQ:   jalapenoName = "MQ"; break;
-      case TID:  jalapenoName = "TID"; break;
-      case FPSCR:   jalapenoName = "FPSCR"; break;
-      case FPINFO:  jalapenoName = "FPINFO"; break;
-      case FPSCRX:  jalapenoName = "FPSCRX"; break;
-      default: jalapenoName = "r" + n; break;
+      case IAR:  rvmName = "IAR"; break;
+      case MSR:  rvmName = "MSR"; break;
+      case CR:   rvmName = "CR"; break;
+      case LR:   rvmName = "LR"; break;
+      case CTR:  rvmName = "CTR"; break;
+      case XER:  rvmName = "XER"; break;
+      case MQ:   rvmName = "MQ"; break;
+      case TID:  rvmName = "TID"; break;
+      case FPSCR:   rvmName = "FPSCR"; break;
+      case FPINFO:  rvmName = "FPINFO"; break;
+      case FPSCRX:  rvmName = "FPSCRX"; break;
+      default: rvmName = "r" + n; break;
       }
-    return jalapenoName;
+    return rvmName;
   }
 
   

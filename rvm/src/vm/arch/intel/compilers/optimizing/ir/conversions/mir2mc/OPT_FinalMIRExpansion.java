@@ -15,7 +15,7 @@ import instructionFormats.*;
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-class OPT_FinalMIRExpansion extends OPT_JalapenoIRTools {
+class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 
   /**
    * @param ir the IR to expand

@@ -462,13 +462,13 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants
       asm.emitBLRL  ();                                       // call native method
 
       // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
-      // in the call to becomeJalapenoThreadOffset
+      // in the call to becomeRVMThreadOffset
       asm.emitST    (T0, AIX_FRAME_HEADER_SIZE, FP);
       asm.emitST    (T1, AIX_FRAME_HEADER_SIZE+4, FP);
 
       // get the GC lockout lock on return from native code
       //
-      // restore jalapeno JTOC
+      // restore RVM JTOC
       int label1    = asm.currentInstructionOffset();	      // inst index in the machine code array of the following load instr.
       asm.emitL     (JTOC, 0, FP);                            // get previous frame
       asm.emitL     (JTOC, -4, JTOC);                         // get real jtoc address  
@@ -557,7 +557,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants
     asm.emitBLRL  ();                                       // call native method
     //
     // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
-    // in the call to becomeJalapenoThreadOffset
+    // in the call to becomeRVMThreadOffset
     asm.emitST    (T0, AIX_FRAME_HEADER_SIZE, FP);
     asm.emitST    (T1, AIX_FRAME_HEADER_SIZE+4, FP);
     //

@@ -37,7 +37,7 @@ public class VM_JNIEnvironment implements VM_JNIConstants, VM_RegisterConstants
   /**
    * These are thread specific information, such as:
    *  -the list of references passed to native code, for GC purpose
-   *  -saved Jalapeno system registers
+   *  -saved RVM system registers
    */
   int JNIEnvAddress;      // contain a pointer to the JNIFunctions array
   int savedTIreg;         // for saving thread index register on entry to native, to be restored on JNI call from native

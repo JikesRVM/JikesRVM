@@ -74,7 +74,7 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * The current implementation of write barriers in Jalapeno
+   * The current implementation of write barriers in RVM
    * generates the same sequence in all cases and only uses the ref parameter.
    * So, we share an internal implementation method...
    */

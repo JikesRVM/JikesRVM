@@ -8,7 +8,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
 
   // Processor modes
   //
-  static final int JALAPENO = 0;
+  static final int RVM = 0;
   static final int NATIVE   = 1;
   static final int NATIVEDAEMON   = 2;
 
@@ -77,7 +77,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
     this.idleQueue     = new VM_ThreadQueue(VM_EventLogger.IDLE_QUEUE);
     this.lastLockIndex = -1;
     this.isInSelect    = false;
-    this.processorMode = JALAPENO;
+    this.processorMode = RVM;
     this.djvDaemon     = false;
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS // alternate implementation of jni
@@ -417,8 +417,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
   }
 
   void dumpMode() {
-    if ( processorMode == JALAPENO)
-      VM_Scheduler.writeString("JALAPENO");
+    if ( processorMode == RVM)
+      VM_Scheduler.writeString("RVM");
     else if ( processorMode == NATIVE)
       VM_Scheduler.writeString("NATIVE");
     else if ( processorMode == NATIVEDAEMON)
@@ -619,7 +619,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
   }  // createNativeProcessor
 
   /***********
-  static VM_Processor getJalapenoProcessor () {
+  static VM_Processor getRVMProcessor () {
 
     // does current thread have a processor affinity
     //
@@ -859,7 +859,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
   // Start of GC stuff. //
   //--------------------//
 
-  //-#if RVM_WITH_JALAPENO_MEMORY_MANAGERS
+  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
 
   // An array of VM_SizeControl: used by noncopying memory managers;
   // by making one such array per processor, allocations can be performed

@@ -119,7 +119,7 @@ public class OPT_Compiler {
    * Call the static init functions for the OPT_Compiler subsystems
    */
   private static void initializeStatics () {
-    OPT_ClassLoaderProxy.proxy = new OPT_JalapenoClassLoaderProxy();
+    OPT_ClassLoaderProxy.proxy = new OPT_RVMClassLoaderProxy();
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_Entrypoints.init();
     OPT_Debug.init();

@@ -20,13 +20,13 @@
  * to interfere with the execution and scheduling of the other pthreads
  * we put the underlying pthread to wait with an AIX sigwait SVC.
  * <p>
- * When a thread blocked in native code is moved from a Jalapeno Processor
+ * When a thread blocked in native code is moved from a RVM Processor
  * to the native processor of this NativeIdleThread, it displaces the
- * NativeIdleThread as the activethread.  The Jalapeno Processor becomes
+ * NativeIdleThread as the activethread.  The RVM Processor becomes
  * the "returnAffinity" processor of the blocked thread.  The NativeIdleThread
- * is set to be the activeThread of that Jalapeno processor, although
+ * is set to be the activeThread of that RVM processor, although
  * its processor register will still point back to the native processor.
- * The pthread_id's of the native and jalapeno processors are also swapped.
+ * The pthread_id's of the native and RVM processors are also swapped.
  * After exchanging the active threads & pthread_id's, the NativeIdleThread,
  * in sigWait is signaled. When it returns from sigwait, it resets it processor
  * register, and then yields itself back to its associated native processor,
@@ -165,7 +165,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
     // Get the Native Processor this NativeIdleThread is running on. It will always
     // be associated with the same Native Processor, although it will "visit" 
-    // other Jalapeno Processors.
+    // other RVM Processors.
     //
     VM_Processor myNativeProcessor = VM_Magic.getProcessorRegister();
 
@@ -230,14 +230,14 @@ class VM_NativeIdleThread extends VM_IdleThread {
       // changing its vpStatus from BLOCKED_IN_NATIVE to IN_NATIVE, thus allowing
       // the "stuck in native" thread, previously moved to the native processor, to 
       // return from native, at which time it will find itself on a native processor
-      // and transfer to a jalapeno processor (as in red-blue threading)
+      // and transfer to a RVM processor (as in red-blue threading)
       //
       VM_Thread.yield(myNativeProcessor);
 
       // Waking up on the NativeProcessor, after the yield.
       //
       // The Java thread that was executing has reentered Java and transferred back to
-      // its "returnAffinity" Jalapeno Processor.  The osThread, left behind, has
+      // its "returnAffinity" RVM Processor.  The osThread, left behind, has
       // scheduled and is executing this NativeIdleThread.
       //
       // We go to the top of the run loop, to make this <processor, idleThread, osThread>

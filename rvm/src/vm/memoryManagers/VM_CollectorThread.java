@@ -38,11 +38,11 @@ class VM_CollectorThread extends VM_Thread
   
   private final static boolean trace = false; // emit trace messages?
 
-  /** When true, causes Jalapeno collectors to display heap configuration at startup */
+  /** When true, causes RVM collectors to display heap configuration at startup */
   static final boolean DISPLAY_OPTIONS_AT_BOOT = false;
   
   /**
-   * When true, causes Jalapeno collectors to measure time spent in each phase of
+   * When true, causes RVM collectors to measure time spent in each phase of
    * collection. Will also force summary statistics to be generated.
    */
   static final boolean TIME_GC_PHASES  = false;
@@ -213,7 +213,7 @@ class VM_CollectorThread extends VM_Thread
 
       //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
       //-#else
-      // the first Jalapeno VP will wait for all the native VPs not blocked in native
+      // the first RVM VP will wait for all the native VPs not blocked in native
       // to reach a SIGWAIT state
       //
       if( gcOrdinal == 1) {
@@ -347,7 +347,7 @@ class VM_CollectorThread extends VM_Thread
 	  }
 	}
 
-	// It is VERY unlikely, but possible that some jalapeno processors were
+	// It is VERY unlikely, but possible that some RVM processors were
 	// found in C, and were BLOCKED_IN_NATIVE, during the collection, and now
 	// need to be unblocked.
 	//
@@ -357,7 +357,7 @@ class VM_CollectorThread extends VM_Thread
 	  if ( VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE ) {
 	    VM_Processor.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_NATIVE;
 	    if (debug_native)
-	      VM_Scheduler.trace("VM_CollectorThread:", "unblocking Jalapeno Processor", vp.id);
+	      VM_Scheduler.trace("VM_CollectorThread:", "unblocking RVM Processor", vp.id);
 	  }
 	}
 
@@ -404,10 +404,10 @@ class VM_CollectorThread extends VM_Thread
 
     //-#else
     // if there are any attached processors (for user pthreads that entered the VM
-    // via an AttachJVM) we may be briefly IN_JAVA during transitions to a Jalapeno
+    // via an AttachJVM) we may be briefly IN_JAVA during transitions to a RVM
     // processor. Ususally they are either IN_NATIVE (having returned to the users 
     // native C code - or invoked a native method) or IN_SIGWAIT (the native code
-    // invoked a JNI Function, migrated to a Jalapeno processor, leaving the attached
+    // invoked a JNI Function, migrated to a RVM processor, leaving the attached
     // processor running its IdleThread, which enters IN_SIGWAIT and wait for a signal.
     //
     // We wait for the processor to be in either IN_NATIVE or IN_SIGWAIT and then 

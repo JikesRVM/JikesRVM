@@ -12,7 +12,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @modified Peter Sweeney
  */
-abstract class OPT_ComplexLIR2MIRExpansion extends OPT_JalapenoIRTools {
+abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
 
   /**
    * Converts the given IR to low level IA32 IR.

@@ -23,7 +23,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  */
 final class OPT_CallingConvention 
-    extends OPT_JalapenoIRTools
+    extends OPT_RVMIRTools
     implements OPT_Operators, VM_BaselineConstants,
     OPT_PhysicalRegisterConstants {
 
@@ -116,7 +116,7 @@ final class OPT_CallingConvention
       
       if (isSysCall) {
 	// set the stack pointer as if we had popped each parameter off 
-	// the stack. This is only required for sysCalls; a normal Jalapeno 
+	// the stack. This is only required for sysCalls; a normal RVM
 	// callee will do this subtraction as part of its epilogue.
 	call.insertAfter(MIR_BinaryAcc.create(IA32_ADD,R(phys.getESP()),
 					      I(-parameterBytes)));
@@ -428,7 +428,7 @@ final class OPT_CallingConvention
    * Explicitly copy parameters to a system call into the appropriate physical
    * registers as defined by the calling convention.  Note that for a system
    * call (ie., a call to C), the order of parameters on the stack is
-   * <em> reversed </em> compared to the normal jalapeno calling convention
+   * <em> reversed </em> compared to the normal RVM calling convention
    *
    * TODO: much of this code is exactly the same as in expandParametersToCall().
    *       factor out the common code.

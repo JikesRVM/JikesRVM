@@ -85,7 +85,7 @@ class VM_MagicNames {
   static VM_Atom addressAsThread;
   static VM_Atom objectAsThread;
   static VM_Atom objectAsProcessor;
-//-#if RVM_WITH_JALAPENO_MEMORY_MANAGERS
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   static VM_Atom addressAsBlockControl;
   static VM_Atom addressAsSizeControl;
   static VM_Atom addressAsSizeControlArray;
@@ -195,7 +195,7 @@ class VM_MagicNames {
     addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
     objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
     objectAsProcessor             = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
-  //-#if RVM_WITH_JALAPENO_MEMORY_MANAGERS
+  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
     addressAsBlockControl         = VM_Atom.findOrCreateAsciiAtom("addressAsBlockControl");
     addressAsSizeControl          = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControl");
     addressAsSizeControlArray     = VM_Atom.findOrCreateAsciiAtom("addressAsSizeControlArray");

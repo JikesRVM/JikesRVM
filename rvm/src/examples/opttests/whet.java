@@ -125,7 +125,7 @@ public static void run() {
 	pout(n6, j, k, e1[0], e1[1], e1[2], e1[3]);
 
 /* MODULE 7:  trig. functions */
-        /* NOT YET SUPPORTED BY JALAPENO
+        /* NOT YET SUPPORTED BY RVM
 	x = y = 0.5;
 
 	for(i = 1; i <= n7; i +=1) {
@@ -172,7 +172,7 @@ public static void run() {
 	pout(n10, j, k, x1, x2, x3, x4);
 
 /* MODULE11:  standard functions */
-        /* NOT YET SUPPORTED BY JALAPENO
+        /* NOT YET SUPPORTED BY RVM
 	x = 0.75;
 	for(i = 1; i <= n11; i +=1)
 		x = Math.sqrt( Math.exp( Math.log(x) / t1));

@@ -38,7 +38,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
   /**
    * Abstract method:  check if the system trap is to be ignored
-   * and passed directly to the Jalapeno VM
+   * and passed directly to the RVM
    * @param status the process status from the system
    * @return true if trap is to be ignored
    * @exception

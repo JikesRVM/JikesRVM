@@ -130,7 +130,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     } catch (Exception e) {
       System.out.println(e.getMessage());
       System.out.println("jdp error: Context thread ID should have been checked before saved");
-      System.out.println("contact your nearest Jalapeno customer service center");
+      System.out.println("contact your nearest Jikes RVM customer service center");
       return 0;
     }
   }
@@ -387,7 +387,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     if (reg==FPINFO)   return "FPINFO";
     if (reg==FPSCRX)   return "FPSCRX";
     
-    /* Any override for the special Jalapeno register */
+    /* Any override for the special RVM register */
     // if (reg==jvmFP)
     // 	 return "FP";
     // else if (reg==jvmJTOC)
@@ -395,7 +395,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     // else if (reg==jvmSP)
     // 	 return "SP";
     
-    // if no name in the Jalapeno convention, make it a 
+    // if no name in the RVM convention, make it a 
     // general purpose or floating point register */
     if ((reg>=FPR0) && (reg<=FPR31))
       return "fr" + (reg-FPR0);

@@ -75,7 +75,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *   | ...      |
    *   |nonvol 31 |                                         <- JNI_RVM_NONVOLATILE_OFFSET
    *   |savedSP   | SP is no longer saved & restored (11/21/00)  <- JNI_SP_OFFSET XXX
-   *   |savedJTOC | save Jalapeno JTOC for return           <- JNI_JTOC_OFFSET
+   *   |savedJTOC | save RVM JTOC for return                 <- JNI_JTOC_OFFSET
    *   |----------|   
    *   |  fp   	  | <- Java caller frame
    *   | mid   	  |
@@ -158,7 +158,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       // to start scanning this stack during GC, if top of stack is still executing in C
       asm.emitST(FP, VM_Entrypoints.JNITopJavaFPOffset, S0);           
 
-      // save the Jalapeno nonvolatile registers, to be scanned by GC stack mapper
+      // save the RVM nonvolatile registers, to be scanned by GC stack mapper
       // remember to skip past the saved JTOC and SP by starting with offset=-12
       //
       for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
@@ -275,12 +275,12 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitL(S0, VM_Entrypoints.jniEnvOffset, T0);             // get JNIEnvironment from activeThread
       asm.emitL (TI, VM_Entrypoints.JNIEnvSavedTIOffset, S0);     // and restore TI from JNIEnvironment  
 
-      // restore jalapeno JTOC
+      // restore RVM JTOC
       asm.emitL   (JTOC, frameSize - 4, FP);          
 
-      // Branch to becomeJalapenoThread:  we will yield and get rescheduled to execute 
+      // Branch to becomeRVMThread:  we will yield and get rescheduled to execute 
       // on a regular VM_Processor for Java code
-      asm.emitL   (S0, VM_Entrypoints.becomeJalapenoThreadOffset, JTOC);
+      asm.emitL   (S0, VM_Entrypoints.becomeRVMThreadOffset, JTOC);
       asm.emitMTLR(S0);
       asm.emitBLRL  ();
      
@@ -426,7 +426,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitST(0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);	// this was set up the first time by DynamicBridgeTo()
 
       asm.emitSTU (FP,  -frameSize, FP);                      // get transition frame on stack
-      asm.emitST  (JTOC, frameSize - JNI_JTOC_OFFSET, FP);    // save Jalapeno JTOC in frame
+      asm.emitST  (JTOC, frameSize - JNI_JTOC_OFFSET, FP);    // save RVM JTOC in frame
 
       asm.emitST  (PROCESSOR_REGISTER, frameSize - JNI_PR_OFFSET, FP);  // save PR in frame
 
@@ -447,7 +447,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       // to start scanning this stack during GC, if top of stack is still executing in C
       asm.emitST(FP, VM_Entrypoints.JNITopJavaFPOffset, S0);           
 
-      // save the Jalapeno nonvolatile registers, to be scanned by GC stack mapper
+      // save the RVM nonvolatile registers, to be scanned by GC stack mapper
       // remember to skip past the saved JTOC and SP by starting with offset=-12
       //
       for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
@@ -496,22 +496,22 @@ public class VM_JNICompiler implements VM_BaselineConstants {
      // at this point, test if in blue processor: if yes, return to
      // Java caller; by picking up at "check if GC..." below
      // if not, must transfer to blue processor by using
-     // become Jalapeno thread.
+     // become RVM thread.
 
      asm.emitL     (S0, VM_Entrypoints.processorModeOffset, PROCESSOR_REGISTER); // get processorMode
-     asm.emitCMPI  (S0, VM_Processor.JALAPENO);           // are we still on blue processor
+     asm.emitCMPI  (S0, VM_Processor.RVM)     ;           // are we still on blue processor
      asm.emitBEQ   (+8);                                  // br if equal; i.e., still on blue processor
 
       asm.emitL(T0, VM_Entrypoints.activeThreadOffset, PROCESSOR_REGISTER);  // get activeThread from Processor
       asm.emitL(S0, VM_Entrypoints.jniEnvOffset, T0);             // get JNIEnvironment from activeThread
       asm.emitL (TI, VM_Entrypoints.JNIEnvSavedTIOffset, S0);     // and restore TI from JNIEnvironment  
 
-      // restore jalapeno JTOC
+      // restore RVM JTOC
       asm.emitL   (JTOC, frameSize - 4, FP);          
 
-      // Branch to becomeJalapenoThread:  we will yield and get rescheduled to execute 
+      // Branch to becomeRVMThread:  we will yield and get rescheduled to execute 
       // on a regular VM_Processor for Java code
-      asm.emitL   (S0, VM_Entrypoints.becomeJalapenoThreadOffset, JTOC);
+      asm.emitL   (S0, VM_Entrypoints.becomeRVMThreadOffset, JTOC);
       asm.emitMTLR(S0);
       asm.emitBLRL  ();
      
@@ -617,7 +617,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
 //-#endif
 
-  // Map the arguments from Jalapeno convention to AIX convention,
+  // Map the arguments from RVM convention to AIX convention,
   // and replace all references with indexes into JNIRefs array.
   // Assumption on entry:
   // -TI, PROCESSOR_REGISTER and SP are available for use as scratch register
@@ -632,7 +632,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // skip past the 2 arguments to be added in front:  JNIenv and class or object pointer
     int spillOffsetAIX = AIX_FRAME_HEADER_SIZE + 8;
 
-    // offset to the spill area in the caller (Jalapeno frame), relative to the callee's FP
+    // offset to the spill area in the caller (RVM frame), relative to the callee's FP
     int spillOffsetVM = frameSize + STACKFRAME_HEADER_SIZE;
 
     VM_Type[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr
@@ -1002,7 +1002,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     }
 
     // moved from below....
-    // must also save these because of the call to becomeJalapenoThread and
+    // must also save these because of the call to becomeRVMThread and
     // because that will switch pthreads.
 
     // save the volatile registers into the spill area before calling
@@ -1084,10 +1084,10 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // load the previously saved TI register before calling Java JNI Function
     asm.emitL(TI, VM_Entrypoints.JNIEnvSavedTIOffset, T0);  
 
-    // Now we call VM_Thread.becomeJalapenoThread to get rescheduled on the Java VM_Processor
+    // Now we call VM_Thread.becomeRVMThread to get rescheduled on the Java VM_Processor
     // to run Java code   
     // Note that the PR is currently pointing the native VM_Processor
-    asm.emitL   (S0, VM_Entrypoints.becomeJalapenoThreadOffset, JTOC);
+    asm.emitL   (S0, VM_Entrypoints.becomeRVMThreadOffset, JTOC);
     asm.emitMTLR(S0);
     asm.emitBLRL  ();
 
@@ -1151,7 +1151,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // release lockoutProcessor lock acquiered in becomeNativeThread
     // now release the lockoutProcessor lock acquired in becomeNativeThread while
-    // running on the Jalapeno VM_Processor
+    // running on the RVM VM_Processor
     // use PROCESSOR_REGISTER as scratch reg.
     asm.emitL     (PROCESSOR_REGISTER, VM_Entrypoints.the_boot_recordOffset, JTOC);       // get boot record address
     asm.emitCAL  (FIRST_NONVOLATILE_GPR, 0, 0);                 // load 0 into T1
@@ -1226,7 +1226,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     }
 
     // Save AIX non-volatile GRPs and FPRs that will not be saved and restored
-    // by Jalapeno. These are GPR 13-16 & FPR 14-15.
+    // by RVM. These are GPR 13-16 & FPR 14-15.
     //
     offset = STACKFRAME_HEADER_SIZE + 80;   // skip 20 word volatile reg save area
     for (int i = 13; i <= 16; i++) {
@@ -1290,7 +1290,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       offset+=8;
     }
 
-    // note JTOC is the Jalapeno JTOC, set by native code when it branched thru the
+    // note JTOC is the RVM JTOC, set by native code when it branched thru the
     // JNI function pointer to this code
     asm.emitL     (SP, VM_Entrypoints.the_boot_recordOffset, JTOC); // get boot record address
     asm.emitCAL   (PROCESSOR_REGISTER, 0, JTOC);                    // save JTOC for later
@@ -1298,7 +1298,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitL     (TI,   VM_Entrypoints.sysVirtualProcessorYieldIPOffset, SP);  // load addr of function
     asm.emitMTLR  (TI);
     asm.emitBLRL();                                                 // call sysVirtualProcessorYield in sys.C
-    asm.emitCAL   (JTOC, 0,PROCESSOR_REGISTER);                     // restore Jalapeno JTOC
+    asm.emitCAL   (JTOC, 0,PROCESSOR_REGISTER);                     // restore RVM JTOC
 
     // restore the saved volatile GPRs 3-10 and FPRs 1-6
     offset = STACKFRAME_HEADER_SIZE;
@@ -1328,7 +1328,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // compute offset into this array, use this divieded by 2 as offset in threads array,
     // load VM_Thread, and from it load the jniEnv pointer.
     // ...use TI and PROCESSOR_REGISTER as temps for a while
-    // ...JTOC is now the Jalapeno JTOC
+    // ...JTOC is now the RVM JTOC
     //
     asm.emitL  (TI, VM_Entrypoints.JNIFunctionPointersOffset, JTOC);
     asm.emitSF (TI, TI, T0);                                         // TI <- byte offset into funcPtrs array
@@ -1351,14 +1351,14 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitL  (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPROffset, T0);  
 
     // check if now running on a native processor, if so we have to
-    // transfer back to a blue/jalapeno processor (via call to becomeJalapeno)
+    // transfer back to a blue/RVM processor (via call to becomeRVM)
     //
     asm.emitL     (S0, VM_Entrypoints.processorModeOffset, PROCESSOR_REGISTER); // get processorMode
-    asm.emitCMPI  (S0, VM_Processor.JALAPENO);           // are we still on blue processor
+    asm.emitCMPI  (S0, VM_Processor.RVM);                // are we still on blue processor
     asm.emitBEQ   (+(6+8+4+6+8+1));                      // skip transfer to blue if on blue
-                                                         // 1 + # instructions to ON_JALAPENO_VP
+                                                         // 1 + # instructions to ON_RVM_VP
 
-    // save volatile GPRs 3-10 and FPRs 1-6 before calling becomeJalapenoThread
+    // save volatile GPRs 3-10 and FPRs 1-6 before calling becomeRVMThread
     offset = STACKFRAME_HEADER_SIZE;
 
     // save volatile GPRS 3-10   ( 8 instructions )
@@ -1373,15 +1373,15 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       offset+=8;
     }
 
-    // Branch to becomeJalapenoThread:  we will yield and get rescheduled to execute 
+    // Branch to becomeRVMThread:  we will yield and get rescheduled to execute 
     // on a regular VM_Processor for Java code.  At this point PR, TI & JTOC
     // are valid for executing Java
     //
-    asm.emitLtoc2 (S0, VM_Entrypoints.becomeJalapenoThreadOffset);  // always 2 instructions
+    asm.emitLtoc2 (S0, VM_Entrypoints.becomeRVMThreadOffset);  // always 2 instructions
     asm.emitMTLR  (S0);
     asm.emitBLRL  ();
      
-    // At this point, we have resumed execution in a Jalapeno VM_Processor
+    // At this point, we have resumed execution in a RVM VM_Processor
     // The PR regirster now points to this VM_Processor.  TI & JTOC are still valid.
 
     // restore the saved volatile GPRs 3-10 and FPRs 1-6
@@ -1399,8 +1399,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       offset+=8;
     }
 
-    // ON_JALAPENO_VP:
-    // branch to here if making jni call on Jalapeno/blue processor	
+    // ON_RVM_VP:
+    // branch to here if making jni call on RVM/blue processor	
 
     // BRANCH TO THE PROLOG FOR THE JNI FUNCTION
 
@@ -1417,7 +1417,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // is this section must be reflected in the BL instruction above.
     // T0 & T1 (R3 & R4) or F1 contain the return value from the function - DO NOT USE
 
-    // assume: JTOC, TI, and PROCESSOR_REG are valid, and all Jalapeno non-volatile 
+    // assume: JTOC, TI, and PROCESSOR_REG are valid, and all RVM non-volatile 
     // GPRs and FPRs have been restored.  Our processor state should be ...IN_JAVA so 
     // it is OK to use saved refs to moveable objects (ie. PROCESSOR_REG)
 
@@ -1473,7 +1473,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitL (T3, offset+12, FP);
     asm.emitLFD (FIRST_AIX_VOLATILE_FPR, offset+16, FP);
 
-    // While in Java (JNI Function), on a Jalapeno Processor, we allow the thread to be migrated
+    // While in Java (JNI Function), on a RVM Processor, we allow the thread to be migrated
     // to a different Processor. Thus the current processor when returning from Java back
     // may be different from the processor when calling the Java JNI Function. We therefore
     // must update the saved processor registers, in the threads JNIEnvironment and in the
@@ -1493,7 +1493,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
 
     // change the state of the VP to "in Native". With default jni transitions to
-    // native C from Java ALWAYS start on a blue/Jalapeno Processor (status = IN_JAVA)
+    // native C from Java ALWAYS start on a blue/RVM Processor (status = IN_JAVA)
     // and are never "BLOCKED_IN_JAVA"
     //
     asm.emitL     (T3, VM_Entrypoints.vpStatusAddressOffset, PROCESSOR_REGISTER); // T3 gets addr vpStatus word
@@ -1502,7 +1502,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
 
     // Restore those AIX nonvolatile registers saved in the prolog above
-    // Here we only save & restore ONLY those registers not restored by Jalapeno
+    // Here we only save & restore ONLY those registers not restored by RVM
     //
     offset = STACKFRAME_HEADER_SIZE + 80;   // skip 20 word volatile reg save area
     for (int i = 13; i <= 16; i++) {

@@ -23,7 +23,7 @@ We have modified Iburg in two ways:
 our intermediate representation.
  (2) We modified it to produce Java code instead of C code.
 
-All bug reports related to the use of jburg in building Jalapeno
-should be reported to the Jalapeno group at IBM and _not_ to David
-R. Hanson.  Please report them using the the normal Jalapeno bug
+All bug reports related to the use of jburg in building RVM
+should be reported to the Jikes RVM group at IBM and _not_ to David
+R. Hanson.  Please report them using the the normal RVM bug
 reporting channels.

@@ -134,7 +134,7 @@ int AttachThreadRequestedOffset;
 //
 typedef void (*SIGNAL_HANDLER)(int);
 
-// pthread id of the main Jalapeno pthread
+// pthread id of the main RVM pthread
 pthread_t vm_pthreadid;
 
 
@@ -680,7 +680,7 @@ unsigned largeHeapSize = 0;                // megs
 unsigned nurserySize   = 10 * 1024 * 1024; // megs
 unsigned permanentHeapSize = 0;
 
-// name of program that will load and run Jalapeno
+// name of program that will load and run RVM
 char *me;
 
 int
@@ -1172,7 +1172,7 @@ createJVM(int vmInSeparateThread)
 
      // not reached
      //
-     fprintf(SysErrorFile, "Jalapeno startup thread\n");
+    fprintf(SysErrorFile, "RVM startup thread\n");
      return(1);
    }
 

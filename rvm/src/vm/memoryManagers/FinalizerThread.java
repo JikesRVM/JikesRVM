@@ -20,7 +20,7 @@
    public  static Object marker = new Object(); 
 
 
-   // Run the finalizer thread (one per Jalapeno)
+   // Run the finalizer thread (one per RVM)
    //
    public void
    run() //- overrides Thread

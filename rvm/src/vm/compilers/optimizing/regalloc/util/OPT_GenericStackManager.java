@@ -17,7 +17,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  * @author Michael Hind
  */
-abstract class OPT_GenericStackManager extends OPT_JalapenoIRTools 
+abstract class OPT_GenericStackManager extends OPT_RVMIRTools 
 implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   protected static final boolean debug = false;

@@ -7,12 +7,12 @@
  * 
  * its normal state is waiting for a (to be defined) signal
  * 
- * if all Jalapeno threads are "stuck" in C (unlikely but
+ * if all RVM threads are "stuck" in C (unlikely but
  * not impossible) it is available to field the timeslicer
  * interrupt.
  *
  * On timeslice end, timer interrupt handler checks each
- * Jalapeno processor to see if it is "stuck in C", i.e., 
+ * RVM processor to see if it is "stuck in C", i.e., 
  * has not yielded within VM_STUCK_TICKS timeslices.
  * 
  * if t.i.h. is executing on the daemon processor it raises
@@ -20,8 +20,8 @@
  * signal to the daemon processor.
  *
  * on receiving the SIGCONT signal, the run method loops 
- * through the Jalapeno processors;  it should have been 
- * signalled only if at least one Jalapeno processor is 
+ * through the RVM processors;  it should have been 
+ * signalled only if at least one RVM processor is 
  * stuck in C
  * if it is stuck in C 
  *   mark the associated vp "stuck in C"
@@ -118,9 +118,9 @@ class VM_NativeDaemonThread extends VM_Thread {
       }
 
       // GET HERE FROM A SIGNAL SENT FROM cSignalHandler in libvm.C -
-      // iff at least one Jalapeno vp has been found "stuck in C"
+      // iff at least one RVM vp has been found "stuck in C"
       //
-      // Count jalapeno processors that are stuck, and preallocate sufficient
+      // Count RVM processors that are stuck, and preallocate sufficient
       // native processors, so that transfers can be done without allocation.
 
       stuckCount = 0;   // counts threads observed stuck
@@ -159,7 +159,7 @@ class VM_NativeDaemonThread extends VM_Thread {
       // find the processor(s) stuck in C and move the blocked thread(s) 
       // (pthread and java thread) to native processors, and take the pthread
       // from the native processor to continue execution on the previously
-      // blocked jalapeno processor.
+      // blocked RVM processor.
 
       for (i = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID; i <= VM_Scheduler.numProcessors; i++) {
 	VM_Processor vp = VM_Scheduler.processors[i];

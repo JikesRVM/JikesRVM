@@ -2,8 +2,8 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# Search jalapeno source files for specified word.
-# If no word is specified, list names of all jalapeno source files.
+# Search rvm source files for specified word.
+# If no word is specified, list names of all rvm source files.
 
 if [ $# = 0 ]; then
    find $RVM_ROOT/rvm/src/vm -name CVS -prune \

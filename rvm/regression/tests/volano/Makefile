@@ -35,9 +35,9 @@ $(WORKING)/properties.txt:	$(BENCH_HOME)/properties.txt $(WORKING)
 	  < $(BENCH_HOME)/properties.txt \
 	  > $@
 
-$(RVM_BUILD)/Jalapeno.classes/java/util/Observable.class:	$(HOST_REPOSITORIES)
+$(RVM_BUILD)/RVM.classes/java/util/Observable.class:	$(HOST_REPOSITORIES)
 	@echo Work around java.util.Observable bug in Volano
-	@cd $(RVM_BUILD)/Jalapeno.classes/; unzip -qqoU $(HOST_REPOSITORIES) java/util/Observable.class
+	@cd $(RVM_BUILD)/RVM.classes/; unzip -qqoU $(HOST_REPOSITORIES) java/util/Observable.class
 
 client-check:
 ifneq ($(MODE),PERFORMANCE)
@@ -47,7 +47,7 @@ endif
 server-check:
 	@awk -f ignore.awk $(OUT) | diff - Volano.server.expected
 
-sanity:		$(WORKING)/properties.txt $(RVM_BUILD)/Jalapeno.classes/java/util/Observable.class
+sanity:		$(WORKING)/properties.txt $(RVM_BUILD)/RVM.classes/java/util/Observable.class
 	$(MAKE) server-sanity-check-rules
 
 do-gather-performance:

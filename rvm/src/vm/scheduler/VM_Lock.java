@@ -3,7 +3,7 @@
  */
 //$Id$
 /**
-   VM_Lock provides Jalapeno support for monitors and Java level 
+   VM_Lock provides RVM support for monitors and Java level 
    synchronization.
 
    <p>
@@ -31,8 +31,8 @@
    </p>
 
    <p> 
-   Locking in Jalapeno uses the locking bits of the {@link
-   VM_ObjectLayoutConstants status word} of the Jalapeno object
+   Locking in RVM uses the locking bits of the {@link
+   VM_ObjectLayoutConstants status word} of the RVM object
    header.  The first of these bits is called the <em>fat bit</em>.
    If it is set, the rest of the bit field is an index into a global
    array of heavy locks (VM_Lock objects).  If the fat bit is zero,

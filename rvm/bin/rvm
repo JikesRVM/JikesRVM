@@ -2,7 +2,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# Invoke jalapeno virtual machine that was created by "jbuild".
+# Invoke Jikes RVM virtual machine that was created by "jbuild".
 # See also: $RVM_ROOT/bin/jconfigure -help
 # 04 Feb 2000 Derek Lieber
 # 15 Jan 2001 Peter Sweeney eliminate dependence on option order.
@@ -11,7 +11,7 @@
 #
 ME=`basename $0`
 
-# Place where jalapeno bootimage, booter, and runtime support files reside.
+# Place where RVM bootimage, booter, and runtime support files reside.
 #
 if [[ $RVM_BUILD = "" ]]; then
    print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
@@ -21,11 +21,11 @@ fi
 if [[ X`uname` = X"CYGWIN_NT-5.0" ]]; then
   # need to kludge path to image because we use win32 api calls to mmap it.
   # other paths can be left in "unix" form; we use cygwin api calls for them.
-  ARGS="-X:i=`cygpath -p -w $RVM_BUILD/Jalapeno.image`"
-  ARGS="$ARGS -X:vmClasses=`cygpath -p -w $RVM_BUILD/Jalapeno.classes` -classpath ."
+  ARGS="-X:i=`cygpath -p -w $RVM_BUILD/RVM.image`"
+  ARGS="$ARGS -X:vmClasses=`cygpath -p -w $RVM_BUILD/RVM.classes` -classpath ."
 else
-  ARGS="-X:i=$RVM_BUILD/Jalapeno.image"
-  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/Jalapeno.classes -classpath ."
+  ARGS="-X:i=$RVM_BUILD/RVM.image"
+  ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes -classpath ."
 fi
 for arg in $*; do
    if   [[ $arg = --   ]]; then
@@ -35,5 +35,5 @@ done
 
 typeset -x LIBPATH=$LIBPATH:$RVM_BUILD
 typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RVM_BUILD
-exec $RVM_BUILD/Jalapeno $ARGS "$@"
+exec $RVM_BUILD/RVMRunner $ARGS "$@"
 

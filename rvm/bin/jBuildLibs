@@ -25,7 +25,7 @@ if [[ X$RVM_ROOT = "X" ]]; then
    exit 1
 fi
 
-# Place where jalapeno bootimage, booter, and runtime support files 
+# Place where RVM bootimage, booter, and runtime support files 
 # will be placed.
 #
 if [[ X$RVM_BUILD = "X" ]]; then
@@ -49,17 +49,17 @@ cd $RVM_BUILD
 ./jbuild.copy
 
 # Copy the library sources 
-cp -r $RVM_ROOT/support/lib/src/* $RVM_BUILD/Jalapeno.classes
+cp -r $RVM_ROOT/support/lib/src/* $RVM_BUILD/RVM.classes
 
 # Compile the RVM sources
 ./jbuild.compile
 
 # Compile the library sources
-cd $RVM_BUILD/Jalapeno.classes
+cd $RVM_BUILD/RVM.classes
 $FIND com -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
 $FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
 
-cd $RVM_BUILD/Jalapeno.classes
+cd $RVM_BUILD/RVM.classes
 # Create the file rvmrt.id, containing the date
 date > rvmrt.id
 

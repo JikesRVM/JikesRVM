@@ -9,9 +9,9 @@ include $(RVM_ROOT)/rvm/Make.rules
 JCOMPILE=$(JCOMPILE_RVM)
 
 # all compiled codes go here
-TOOLS_DIR:=$(RVM_BUILD)/Jalapeno.tools
+TOOLS_DIR:=$(RVM_BUILD)/RVM.tools
 
-CLASSPATH:=$(RVM_BUILD)/Jalapeno.scratch:$(RVM_BUILD)/Jalapeno.classes:$(RVM_BUILD)/Jalapeno.classes/rvmrt.jar
+CLASSPATH:=$(RVM_BUILD)/RVM.scratch:$(RVM_BUILD)/RVM.classes:$(RVM_BUILD)/RVM.classes/rvmrt.jar
 
 .SUFFIXES:	.java .class
 
@@ -95,7 +95,7 @@ copy_intel:
 	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/intel/disassembler/*.h $(TOOLS_DIR)/.
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
-	@cp -f $(RVM_BUILD)/Jalapeno.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
+	@cp -f $(RVM_BUILD)/RVM.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
 
 copy_powerPC:
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/Makefile $(TOOLS_DIR)/.
@@ -106,7 +106,7 @@ copy_powerPC:
 	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/powerPC/disassembler/*.java $(TOOLS_DIR)/.
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
-	@cp -f $(RVM_BUILD)/Jalapeno.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
+	@cp -f $(RVM_BUILD)/RVM.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
 
 
 compile:  $(CLASSES) $(NATIVECLASSES) lib_$(ARCH)

@@ -8,8 +8,8 @@
  *
  * An abstract class providing the interface to the decision making
  * component of the controller.  There are currently two types
- * recompilation strategies implemented for Jalapeno, (both discussed
- * in OOPSLA 2000 paper)
+ * recompilation strategies implemented for the Jikes RVM, 
+ * (both discussed in OOPSLA 2000 paper)
  *
  *  1) Multi-level adaptive strategy using an analytic model (see
  *     VM_AnalyticModel.java and VM_MultiLevelAdaptiveModel.java) 

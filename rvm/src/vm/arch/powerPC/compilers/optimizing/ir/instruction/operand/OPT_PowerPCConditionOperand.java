@@ -30,7 +30,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   static final int UNORDERED = (12 << 5) | 3;
   static final int NOT_UNORDERED = (4 << 5) | 3;
 
-  /* special jalapeno value */
+  /* special RVM value */
   static final int NO_THREAD_SWITCH = (4 << 5) | 0;             // same as !geq
   static final int THREAD_SWITCH = (12 << 5) | 0;               // same as less
   // --CTR == 0

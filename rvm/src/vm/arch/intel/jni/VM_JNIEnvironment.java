@@ -37,7 +37,7 @@ public class VM_JNIEnvironment implements VM_JNIConstants, VM_RegisterConstants 
   /**
    * These are thread specific information, such as:
    *  -the list of references passed to native code, for GC purpose
-   *  -saved Jalapeno system registers
+   *  -saved RVM system registers
    */
   int JNIEnvAddress;      // contain a pointer to the JNIFunctions array
   int savedTIreg;         // for saving thread index register on entry to native, to be restored on JNI call from native
@@ -68,7 +68,7 @@ public class VM_JNIEnvironment implements VM_JNIConstants, VM_RegisterConstants 
     // we have an address pointing to it.  This is necessary for thread creation
     // since the VM_JNIEnvironment object will contain a field pointing to this array
 
-    // An extra entry is allocated, to hold the Jalapeno JTOC 07/01 SES
+    // An extra entry is allocated, to hold the RVM JTOC 07/01 SES
 
     // JNIFunctions = new INSTRUCTION[FUNCTIONCOUNT][];
     // Why is INSTRUCTION not working?  getting filled with null
@@ -125,7 +125,7 @@ public class VM_JNIEnvironment implements VM_JNIConstants, VM_RegisterConstants 
       throw new InternalError("VM_JNIEnvironment fails to initialize, has the class been renamed\n");
     }
 
-    // store Jalapeno JTOC address in last (extra) entry in JNIFunctions array
+    // store RVM JTOC address in last (extra) entry in JNIFunctions array
     // to be restored when native C invokes JNI functions implemented in java
     //
     // following causes exception in checkstore, so forced to setMemoryWord instead

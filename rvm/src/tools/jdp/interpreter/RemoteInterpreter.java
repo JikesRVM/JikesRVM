@@ -13,7 +13,7 @@ import java.lang.reflect.*;
 
 class RemoteInterpreter extends InterpreterBase
 {
-  static String jbiFileName = "~/jvmBuild/Jalapeno.map";
+  static String jbiFileName = "~/jvmBuild/RVM.map";
 
   /**
    * Dummy constructor for the PublicizingClassLoader
@@ -21,7 +21,7 @@ class RemoteInterpreter extends InterpreterBase
   public RemoteInterpreter() {
     String buildDir = System.getProperty("buildDir");
     if (buildDir!=null) {
-      jbiFileName = buildDir + "/Jalapeno.map";
+      jbiFileName = buildDir + "/RVM.map";
     }
   }
 

@@ -203,7 +203,7 @@ public class JDPFileServer implements Runnable
 
   /**
    * finds the full path for a source file running
-   * in jalapeno given the classname, won't work if
+   * in RVM given the classname, won't work if
    * source file is not in classpath
    * @param className name of relevant class
    * @return File object corresponding to source file, or null if file not found

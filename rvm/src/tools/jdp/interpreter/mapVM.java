@@ -55,7 +55,7 @@ class mapVM {
   static final int PointerSize = 4;       // expect a pointer to be 4 bytes in the JVM side
   
   // TOC index for dictionaries
-  // these are extracted from Jalapeno.map at the beginning
+  // these are extracted from RVM.map at the beginning
   // they remain valid as long as the TOC is not unloaded or rearranged
   static int AtomDictionary_keys_index     ;  
   static int AtomDictionary_values_index   ;  
@@ -134,7 +134,7 @@ class mapVM {
 
 
   /**
-   * Extract the JGOC indices for the dictionaries from Jalapeno.map
+   * Extract the JGOC indices for the dictionaries from RVM.map
    * This can be done at the beginning since we are only reading a file 
    */
   static void init() {
@@ -201,7 +201,7 @@ class mapVM {
       Reader in = new FileReader(RemoteInterpreter.jbiFileName);      
       LineNumberReader lines = new LineNumberReader(in);
       System.out.println("Scanning "+ RemoteInterpreter.jbiFileName + " for dictionary bases . . . ");
-      /* In Jalapeno.map, entries for JTOC map has a number in the first field, format:
+      /* In RVM.map, entries for JTOC map has a number in the first field, format:
        *    slotIndex  hexOffset  textDescription  hexContents  fullAsciiName
        *    decimalIndex == 0x.. hexvalue fieldname type
        *    decimalIndex == 0x.. hexvalue null

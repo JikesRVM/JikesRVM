@@ -1,7 +1,7 @@
 /*
  * (c) Copyright IBM Corp. 1998, 1999 All Rights Reserved
  *
- * Adapted for Jalapeno
+ * Adapted for RVM
  * Ton Ngo, Steve Smith 4/12/00
  */
 
@@ -608,7 +608,7 @@ struct JNIEnv_ {
 };
 
   /****** 
-   * Arguments for Jalapeno VM  (Java 1.1 version)
+   * Arguments for RVM  (Java 1.1 version)
    * Default values set by calling JNI_GetDefaultJavaVMInitArgs(JDK1_1InitArgs *)
    */
   typedef struct JDK1_1InitArgs {
@@ -628,7 +628,7 @@ struct JNIEnv_ {
     jint enableVerboseGC;
     jint disableAsyncGC;
 
-    /* The following are Jalapeno specific */
+    /* The following are RVM specific */
     jint verbose;
     unsigned smallHeapSize;     /* specify with option "-h"          */
     unsigned largeHeapSize;     /* specify with option "-lh"         */

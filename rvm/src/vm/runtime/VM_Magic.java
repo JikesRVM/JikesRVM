@@ -8,7 +8,7 @@
  * operating system calls.
  * 
  * These are "inline assembler functions" that cannot be implemented in
- * java code. Their names are recognized by Jalapeno's compilers 
+ * java code. Their names are recognized by RVM's compilers 
  * and cause inline machine code to be generated instead of 
  * actual method calls.
  */
@@ -372,7 +372,7 @@ public class VM_Magic {
     return null;
   }
 
-//-#if RVM_WITH_JALAPENO_MEMORY_MANAGERS
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   /**
    * Cast object.
    * To allow noncopying collectors to treat blocks array as array

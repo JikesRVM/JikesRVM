@@ -41,8 +41,8 @@ vpath %.class		$(BENCH_CLASS_CP)
 #
 ALL_PATH = $(BENCH_SOURCE_PATH) \
 	   $(BENCH_CLASS_PATH) \
-	   $(JAL_BUILD)/Jalapeno.classes \
-	   $(JAL_BUILD)/Jalapeno.classes/rvmrt.jar \
+	   $(JAL_BUILD)/RVM.classes \
+	   $(JAL_BUILD)/RVM.classes/rvmrt.jar \
 	   $(HOST_REPOSITORIES)
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
@@ -53,13 +53,13 @@ ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 # how to run
 #
 
-# which vm to use (defaults to Jalapeno)
+# which vm to use (defaults to RVM)
 JVM?=rvm
 
 # what to run
 START_CLASS=$(shell echo $(START_NAME) | sed 's@\.@/@g').class
 
-# how to invoke Jalapeno
+# how to invoke RVM
 ifeq (x$(JBOOT),x)
   JBOOT = $(JAL_ROOT)/rvm/bin/rvm
 endif
@@ -93,7 +93,7 @@ bench-rvm:			$(START_CLASS) $(WORKING)
 	@echo "   $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS)"
 	@cd $(WORKING); $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
 		| tee $(OUT).raw \
-		| $(AWK) -f $(JAL_ROOT)/rvm/regression/JalapenoJunkFilter.awk \
+		| $(AWK) -f $(JAL_ROOT)/rvm/regression/RVMJunkFilter.awk \
 			> $(OUT)
 
 bench-jdk:			$(START_CLASS) $(WORKING)

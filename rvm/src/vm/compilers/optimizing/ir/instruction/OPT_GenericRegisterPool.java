@@ -248,8 +248,6 @@ abstract class OPT_GenericRegisterPool {
       return getInteger(spanBasicBlock);
   }
 
-
-  // Only needed for the MIR, and thus only when running on Jalapeno
   private JDK2_HashMap _regPairs = new JDK2_HashMap();
   /**
    * MIR: Get the other half of the register pair that is 

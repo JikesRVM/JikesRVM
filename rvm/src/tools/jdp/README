@@ -67,8 +67,8 @@ this JVM by:
 About jdp
 ---------
 
-  jdp, Jalapeno Debugger Primitive, is a debugger developed to support the
-Jalapeno VM effort.  Because no existing debugger satisfactorily meets the
+  jdp, Jikes RVM Debugger Primitive, is a debugger developed to support the
+Jikes RVM effort.  Because no existing debugger satisfactorily meets the
 need of our VM, jdp was written essentially from scratch, hence the
 name primitive.  jdp uses an interesting technique called Remote
 Reflection (see the related paper on the Jalapeno web page).  This
@@ -85,7 +85,7 @@ bytecodes in the reflection methods to obtain the internal values in
 the VM.
   
   jdp is not intended to be a general purpose debugger; it is driven
-by the needs of the Jalapeno VM group.  If jdp crashes or you would like to
+by the needs of the VM group.  If jdp crashes or you would like to
 request a new feature, email to jvm-coders@fury.watson.ibm.com
 
 
@@ -103,11 +103,11 @@ debugger in the appropriate mode.
 The debugger requires the following files:
 
 1. The JVM boot image:
-   This file is typically $RVM_BUILD/Jalapeno.image but it could have other
+   This file is typically $RVM_BUILD/RVM.image but it could have other
    names with the .image extension.  You can specify a different boot image
    name.
    jdp argument:	-i bootImageName
-   Default value:  	$RVM_BUILD/Jalapeno.image
+   Default value:  	$RVM_BUILD/RVM.image
 
 2. The symbol map:
    This file is a symbol map of the boot image.  It contains a listing of the JTOC
@@ -118,19 +118,19 @@ The debugger requires the following files:
    In the dynamic mode, the interpreter also uses this file to find the base 
    offset for the dictionaries for the remote reflection feature.
    jdp argument:  	(none)
-   Default value:	$RVM_BUILD/Jalapeno.map
+   Default value:	$RVM_BUILD/RVM.map
 
 3. The list of classes in the boot image:
-   jdp looks for this file $RVM_BUILD/Jalapeno.primordials
+   jdp looks for this file $RVM_BUILD/RVM.primordials
    jdp argument:	-n classListName
-   Default value: 	$RVM_BUILD/Jalapeno.primordials
+   Default value: 	$RVM_BUILD/RVM.primordials
 
 4. The program to load and run the JVM boot image:
-   This file is typically $RVM_BUILD/Jalapeno
+   This file is typically $RVM_BUILD/RVMRunner
    Normally you don't have to be concerned about this file since it rarely
    changes.
    jdp argument:	-r booterName
-   Default value: 	$RVM_BUILD/Jalapeno
+   Default value: 	$RVM_BUILD/RVMRunner
 
 
 

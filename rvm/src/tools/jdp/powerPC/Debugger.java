@@ -852,7 +852,7 @@ class Debugger implements jdpConstants {
   }
 
   /**
-   * progresses the jalapeno process to the beginning of the
+   * progresses the RVM process to the beginning of the
    * user main() method
    */
   private void goToMainMethod()

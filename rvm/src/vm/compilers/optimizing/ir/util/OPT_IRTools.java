@@ -11,8 +11,8 @@ import java.util.Enumeration;
  * performing operations on IR.
  *
  * All functions defined here should (1) not be specific to the MIR and
- * (2) not be specific to Jalapeno.  Any Jalapeno-specific or MIR specific 
- * helper functions should be declared on OPT_JalapenoIRTools.
+ * (2) not be specific to RVM.  Any RVM-specific or MIR specific 
+ * helper functions should be declared on OPT_RVMIRTools.
  * 
  * @author Jong-Deok Choi
  * @author Dave Grove

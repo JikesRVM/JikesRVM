@@ -1328,7 +1328,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  //	       embed fp literals in the instruction anyways
 	  //       (b) causes precision/rounding errors in some cases.
 	  //	1) field is resolved
-	  //	2) running Jalapeno
+	  //	2) running the VM
 	  // 	3) field is final
 	  //	4) declaring class is initialized
 	  //
@@ -1346,7 +1346,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 		  // optimize: change load to a move from a constant operand
 		  operator = OPT_IRTools.getMoveOp(field.getType(), false);
 		  OPT_ConstantOperand rhsOperand = 
-		    OPT_JalapenoIRTools.getStaticFieldValue(field);
+		    OPT_RVMIRTools.getStaticFieldValue(field);
 		  if (rhsOperand != null) {
 		    s = Move.create(operator, t, rhsOperand);
 		    s.position = gc.inlineSequence;

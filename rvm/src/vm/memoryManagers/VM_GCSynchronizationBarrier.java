@@ -79,7 +79,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
    * <p>
    * First rendezvous for a collection, called by all CollectorThreads that arrive
    * to participate in a collection.  Thread with gcOrdinal==1 is responsible for
-   * detecting Jalapeno processors stuck in Native C, blocking them in Native, and making
+   * detecting RVM processors stuck in Native C, blocking them in Native, and making
    * them non-participants in the collection (by setting their counters to -1).
    * Other arriving collector threads just wait until all have either arrived or
    * been declared non-participating.
@@ -87,7 +87,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
   void  startupRendezvous () {
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     int myNumber = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getGCOrdinal();
-    int numExcluded = 0;  // number of Jalapeno VPs NOT participating
+    int numExcluded = 0;  // number of RVM VPs NOT participating
 
     if (VM.VerifyAssertions) {
       if (entryCounts[myProcessorId]!=0) {
@@ -252,7 +252,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
   /**
    * method to give a waiting thread/processor something do without interferring
    * with other waiting threads or those trying to enter the rendezvous.
-   * Spins if running with fewer Jalapeno "processors" than physical processors.
+   * Spins if running with fewer RVM "processors" than physical processors.
    * Yields (to Operating System) if running with more "processors" than
    * real processors.
    *

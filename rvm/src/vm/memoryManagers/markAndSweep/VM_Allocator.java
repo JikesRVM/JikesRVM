@@ -1729,7 +1729,7 @@ tib));
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#else
 
@@ -1764,7 +1764,7 @@ tib));
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#else
 

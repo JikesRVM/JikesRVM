@@ -1327,7 +1327,7 @@ none
 
 
 ##########
-# 'Unary' operators for manipulating the Jalapeno object model
+# 'Unary' operators for manipulating the Jikes RVM object model
 ##########
 # Get the status word of an object (implements GetObjectStatus magic)
 GET_OBJ_STATUS

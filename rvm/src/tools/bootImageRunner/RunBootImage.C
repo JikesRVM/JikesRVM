@@ -312,19 +312,19 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     }
     if (!strcmp(token, "-version")) {
-      fprintf(SysTraceFile, "%s %s\n",jalapeno_configuration, jalapeno_version);
+      fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       *fastExit = 1; break;
     }
     if (!strcmp(token, "-fullversion")) {
-      fprintf(SysTraceFile, "%s %s\n",jalapeno_configuration, jalapeno_version);
+      fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       fprintf(SysTraceFile, "configurations: host %s\n\t target %s\n",
-	      jalapeno_host_configuration, jalapeno_target_configuration);
+	      rvm_host_configuration, rvm_target_configuration);
       fprintf(SysTraceFile, "small heap default size: %d MBytes\n",
 	      small_heap_default_size);
       *fastExit = 1; break;
     }
     if (!strcmp(token, "-showversion")) {
-      fprintf(SysTraceFile, "%s %s\n",jalapeno_configuration, jalapeno_version);
+      fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       continue;
     }
     if (!strncmp(token, "-X:h=", 5)) {

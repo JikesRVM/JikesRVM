@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.zip.*;
 
 /**
-  * Implements zip file reading for Jalapeno, replacing OTI
+  * Implements zip file reading for RVM, replacing OTI
   * native code
   */
 public class VM_ZipFile implements ZipConstants {

@@ -68,7 +68,7 @@ interface VM_RegisterConstants
 // alternate implementation of jni
 
    // saved offset to top java frame = 1 word
-   // Jalapeno link area = STACKFRAME_HEADER_SIZE
+   // RVM link area = STACKFRAME_HEADER_SIZE
    // volatile GPR3-5 save area = 3 words
    // vararg save area = 11 words      (partially shared for saving volatiles GPR6-10 and FPR1-3)
    // volatile FPR4-6 save area = 12 words
@@ -78,7 +78,7 @@ interface VM_RegisterConstants
      VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + ((1+3+11+12+19+36) * 4);
 
    // offset into the vararg save area within the native to Java glue frame
-   // right after the jalapeno link area and saved volatile R3-R5
+   // right after the RVM link area and saved volatile R3-R5
    static final int VARARG_AREA_OFFSET = VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*4);
 
      // use 3 words in the header
@@ -90,11 +90,11 @@ interface VM_RegisterConstants
 
      // Native code to JNI Function (Java) glue frame
      //
-     //   Jalapeno link area    -  STACKFRAME_HEADER_SIZE
+     //   RVM link area    -  STACKFRAME_HEADER_SIZE
      //   Volatile GPR 3-10 save area  -  8 words
      //   Volatile FPR 1-6  save area  - 12 words
-     //   Non-Volatile GPR 13-16 save area  4 words   for AIX non-vol GPR not restored by Jalapeno
-     //   Non-Volatile FPR 14-15 save area  4 words   for AIX non-vol FPR not restored by Jalapeno
+     //   Non-Volatile GPR 13-16 save area  4 words   for AIX non-vol GPR not restored by RVM
+     //   Non-Volatile FPR 14-15 save area  4 words   for AIX non-vol FPR not restored by RVM
      //   padding                           1 word
      //   offset to previous to java frame  1 word    the preceeding java to native transition frame
      //
@@ -105,7 +105,7 @@ interface VM_RegisterConstants
      // to saved regs GPR 6-10 & FPR 1-6, the volatile regs containing vararg arguments
      //
      static final int VARARG_AREA_OFFSET = 
-       VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*4);    // the jalapeno link area and saved GPR 3-5
+       VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + (3*4);    // the RVM link area and saved GPR 3-5
 
 //-#endif
 

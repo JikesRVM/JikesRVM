@@ -23,7 +23,7 @@ extern char **FPR_names;
 extern int    FPR_count; 
   
 
-/* convert a decimal register number to a string in Jalapeno convention */
+/* convert a decimal register number to a string in RVM convention */
 char *jvm_regname(char *regname, int reg)
 {
   strcpy(regname,""); 
@@ -65,7 +65,7 @@ char *jvm_regname(char *regname, int reg)
 /* convert a decimal register number to string */
 char *reg_itoa(char *regname, int reg)
 {
-  /* First try to give it a meaningful name in the Jalapeno convention */
+  /* First try to give it a meaningful name in the RVM convention */
   jvm_regname(regname, reg);
 
   /* if nothing, make it a general purpose or floating point register */

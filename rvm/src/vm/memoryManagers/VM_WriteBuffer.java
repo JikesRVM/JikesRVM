@@ -2,9 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 /**
- * Write buffers used by the initial set of Jalapeno generational collectors.
+ * Write buffers used by the initial set of RVM generational collectors.
  * <p>
- * The initial set of Jalapeno generational collectors all use the same write
+ * The initial set of RVM generational collectors all use the same write
  * barrier that adds to the write buffer references to "old" objects that have
  * had reference fields modified.  All the compilers generate the barrier code
  * to do this when the static final boolean flag "writeBarrier" in VM_Allocator
@@ -48,7 +48,7 @@ public class VM_WriteBuffer
    * buffers, and resets the pointers in VM_Processor used by the write
    * barrier to insert entries into the buffer.  Presently the additonal
    * buffers are allocated from the C heap via sysMalloc.  This may change
-   * to allcoate from the Jalapeno Large Object Heap in the future.
+   * to allcoate from the RVM Large Object Heap in the future.
    */
   static void
   growWriteBuffer ( ) {

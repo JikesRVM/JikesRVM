@@ -56,7 +56,7 @@ class VM_PassiveCollectorThread extends VM_Thread implements VM_Uninterruptible 
 	// CHANGE FOLLOWING TO USE MAGIC DIRECTLY - to avoid a method call
 	// ie another frame & prolog & epilog code that may use PROCESSOR_REG
 
-	// OS wait for a signal from VM_CollectorThread (on a Jalapeno processor).
+	// OS wait for a signal from VM_CollectorThread (on a RVM processor).
         VM.sysCall2(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 		  myProcessor.vpStatusAddress, VM_Processor.IN_SIGWAIT);
 		  

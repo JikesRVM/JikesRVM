@@ -61,7 +61,7 @@
  * </pre>
  * Collection is performed in parallel by multiple VM_CollectorThreads.
  * Typically one VM_CollectorThread executes on each of the VM_Processors
- * configured in the Jalapeno VM.  A load balancing work queue is
+ * configured in the RVM.  A load balancing work queue is
  * used to evenly distribute the workload over the multiple collector
  * threads.
  * <p>
@@ -938,7 +938,7 @@ public class VM_Allocator
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#else
 
@@ -980,7 +980,7 @@ public class VM_Allocator
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#else
 
@@ -1093,7 +1093,7 @@ public class VM_Allocator
       // local allocation pointers (before copying first object to ToSpace)
       gc_initProcessor();
  
-      // with the default jni implementation some Jalapeno VM_Processors may
+      // with the default jni implementation some RVM VM_Processors may
       // be blocked in native C and not participating in a collection.
       prepareNonParticipatingVPsForGC();
 

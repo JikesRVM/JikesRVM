@@ -368,7 +368,7 @@ public class VM_Thread implements VM_Constants, VM_BaselineConstants, VM_Uninter
   // threads in the queues of the current processor
   //
   // XXX WHAT IF...
-  // Java thread, once unblocked, completes the yield to a Jalapeno Processor
+  // Java thread, once unblocked, completes the yield to a RVM Processor
   // transfer queue, and native processor pthread tries to find work in its
   // queues, and the native idle thread is in its transfer queue BUT its
   // beingDispatched flag is still on because... Will the dispatch logic of
@@ -518,13 +518,13 @@ public class VM_Thread implements VM_Constants, VM_BaselineConstants, VM_Uninter
   }
 
   // Until the yield, we are in a native processor (avoid method calls)
-  static void becomeJalapenoThread () {
+  static void becomeRVMThread () {
 
     VM_Magic.getProcessorRegister().activeThread.returnAffinity.transferMutex.lock();
-    yield( VM_Thread.getCurrentThread().returnAffinity.transferQueue,  VM_Thread.getCurrentThread().returnAffinity.transferMutex); // morph to Jalapeno processor
+    yield( VM_Thread.getCurrentThread().returnAffinity.transferQueue,  VM_Thread.getCurrentThread().returnAffinity.transferMutex); // morph to RVM processor
     
     if (trace) {
-      VM.sysWrite("VM_Thread.becomeJalapenoThread- exit process = ");
+      VM.sysWrite("VM_Thread.becomeRVMThread- exit process = ");
       VM.sysWrite(VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
       VM.sysWrite("\n");
     }
@@ -620,7 +620,7 @@ public class VM_Thread implements VM_Constants, VM_BaselineConstants, VM_Uninter
       myThread.nativeAffinity    = null;          // clear native processor
       myThread.processorAffinity = null;          // clear processor affinity
       //-#if RVM_WITH_PURPLE_VPS
-      VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.JALAPENO_VP_GOING_TO_WAIT;
+      VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.RVM_VP_GOING_TO_WAIT;
       //-#endif
     }   
 

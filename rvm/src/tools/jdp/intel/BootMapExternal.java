@@ -12,7 +12,7 @@
 
 import java.util.*;
 import java.io.*;
-/* not needed for build in separate Jalapeno.tools directory */
+/* not needed for build in separate RVM.tools directory */
 /* import BootImageWriter2; */
 
 class BootMapExternal extends BootMap {

@@ -14,7 +14,7 @@
 public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
   // offsets to saved regs and addresses in java to C glue frames
-  // EDI (JTOC) and EBX are nonvolatile registers in Jalapeno
+  // EDI (JTOC) and EBX are nonvolatile registers in RVM
   //
   private static final int SAVED_GPRS = 4; 
   static final int EDI_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
@@ -94,7 +94,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
     // return here from VM_OutOfLineMachineCode upon return from native code
 
-    // PR and Jalapeno JTOC restored, T0,T1 contain return from native call
+    // PR and RVM JTOC restored, T0,T1 contain return from native call
 
     //If the return type is reference, look up the real value in the JNIref array 
     asm.emitMOV_Reg_RegDisp (S0, PR, VM_Entrypoints.activeThreadOffset);  // S0 <- VM_Thread
@@ -637,7 +637,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitPUSH_Imm (methodID); 
     asm.emitSUB_Reg_Imm (SP, WORDSIZE);  // leave room for saved -> preceeding java frame, set later
 
-    // save registers that will be used in Jalapeno, to be restored on return to C
+    // save registers that will be used in RVM, to be restored on return to C
     asm.emitPUSH_Reg(JTOC); 
     asm.emitPUSH_Reg(EBX);         
     asm.emitPUSH_Reg(S0);         
@@ -670,7 +670,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
     // Restore JTOC through the JNIEnv passed back from the C code as the first parameter:
-    // an extra entry at the end of the JNIFunctions array contains the Jalapeno JTOC
+    // an extra entry at the end of the JNIFunctions array contains the RVM JTOC
     //
     // NOTE - we need the JTOC here only to get the sysYield.. entry point out of the
     // bootrecord. we could alternatively also put the bootrecord address at the end
@@ -704,7 +704,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
     // status is now IN_JAVA. GC can not occur while we execute on a processor
     // in this state, so it is safe to access fields of objects
-    // JTOC reg has been restored to Jalapeno JTOC
+    // JTOC reg has been restored to RVM JTOC
 
     // done saving, bump SP to reserve room for the local variables
     // SP should now be at the point normally marked as emptyStackOffset
@@ -730,36 +730,36 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     // Restore the VM_Processor value saved on the Java to C transition
     asm.emitMOV_Reg_RegDisp (PR, EBX, VM_Entrypoints.JNIEnvSavedPROffset);
 
-    // Test if calling Java JNIFunction on a Jalapeno processor or a Native processor.
+    // Test if calling Java JNIFunction on a RVM processor or a Native processor.
     // at this point: JTOC and PR have been restored & processor status = IN_JAVA,
     // arguments for the call have been setup, space on the stack for locals
     // has been acquired.
 
-    // load mode of current processor for testing (JALPANEO or NATIVE)
+    // load mode of current processor for testing (RVM or NATIVE)
     asm.emitMOV_Reg_RegDisp(T0, PR, VM_Entrypoints.processorModeOffset);
-    asm.emitCMP_Reg_Imm (T0, VM_Processor.JALAPENO);      // test for JALAPENO
+    asm.emitCMP_Reg_Imm (T0, VM_Processor.RVM);           // test for RVM
     VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);     // Br if yes
 
     // If here, on a native processor, it is necessary to transfer back to a
-    // Jalapeno processor before executing the Java JNI Function.
+    // RVM processor before executing the Java JNI Function.
 
     // !!! what about saving regs, especially FPRs ??? (CHECK)
 
-    // branch to becomeJalapenoThread to make the transfer.
+    // branch to becomeRVMThread to make the transfer.
 
-    // If GC occurs while we are on the transfer queue of the Jalapeno processor,
+    // If GC occurs while we are on the transfer queue of the RVM processor,
     // what will the MapIterator do, will we appear to be in the prolog of the 
     // Java JNI Function? Will there be any refs to report? any saved regs to report?
 
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeJalapenoThreadOffset);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeRVMThreadOffset);
 
-    // execution here is now on the Jalapeno processor, and on a different
-    // os pThread. PR now points to the new Jalapeno processor we have
+    // execution here is now on the RVM processor, and on a different
+    // os pThread. PR now points to the new RVM processor we have
     // been transferred to.  JTOC was set when we were re-dispatched.
 
     // XXX Restoring regs? especially FPRs ??? (CHECK)
 
-    fr1.resolve(asm);  // branch to here if returning on a Jalapeno processor
+    fr1.resolve(asm);  // branch to here if returning on a RVM processor
 
     // finally proceed with the normal Java compiled code
     // skip the thread switch test for now, see VM_Compiler.genThreadSwitchTest(true)
@@ -770,7 +770,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
   static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {
 
-    // assume Jalapeno PR regs still valid. potentially T1 & T0 contain return
+    // assume RVM PR regs still valid. potentially T1 & T0 contain return
     // values and should not be modified. we use regs saved in prolog and restored
     // before return to do whatever needs to be done.  does not assume JTOC is valid,
     // and may use it as scratch reg.

@@ -6,7 +6,7 @@ include                 $(JAL_ROOT)/rvm/build.Make.rules
 ARCH_IFS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/InstructionFormatList.dat
 ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/OperatorList.dat
 
-SCRATCH_DIR=$(RVM_BUILD)/Jalapeno.scratch
+SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
 GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` GenerateFromTemplate
 

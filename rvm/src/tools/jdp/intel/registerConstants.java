@@ -32,7 +32,7 @@ interface registerConstants extends VM_RegisterConstants{
   // static final int EDI = 7;
   static final int EIP = 8;
 
-  // register index for Jalapeno convention
+  // register index for RVM convention
   static final int IAR	  = EIP;	         /* instruction address register*/
   // static final int SP	  = STACK_POINTER;       /* stack pointer		*/
   // static final int FP	  = FRAME_POINTER;	 /* Frame pointer 		*/

@@ -15,7 +15,7 @@ import  java.io.PrintWriter;
  * @author Vivek Sarkar
  */
 public class OPT_OptimizingCompilerException extends RuntimeException {
-  // When running in Jalapeno, typically optimizing compiler
+  // When running in the RVM, typically optimizing compiler
   // exceptions are caught, optionally a message is printed, and we 
   // fallback to using the baseline compiler.  However, this
   // may not be desirable when running regression testing because

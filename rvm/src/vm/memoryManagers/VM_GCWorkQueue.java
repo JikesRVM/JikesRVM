@@ -563,7 +563,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   /**
    * method to give a waiting thread/processor something do for a while
    * without interferring with others trying to access the synchronized block.
-   * Spins if running with fewer Jalapeno "processors" than physical processors.
+   * Spins if running with fewer RVM "processors" than physical processors.
    * Yields (to Operating System) if running with more "processors" than
    * real processors.
    *

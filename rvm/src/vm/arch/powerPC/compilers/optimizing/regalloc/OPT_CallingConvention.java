@@ -21,7 +21,7 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention extends OPT_JalapenoIRTools 
+final class OPT_CallingConvention extends OPT_RVMIRTools 
 implements OPT_PhysicalRegisterConstants {
 
   /**

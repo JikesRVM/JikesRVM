@@ -132,7 +132,7 @@ public class VM extends VM_Properties implements VM_Constants,
      
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 
-    // appear in fields that are unique to jalapeno implementation of 
+    // appear in fields that are unique to RVM implementation of 
     // standard class library (not part of standard jdk).
     // We discover the latter by observing "host has no field" and 
     // "object not part of bootimage" messages printed out by bootimage 

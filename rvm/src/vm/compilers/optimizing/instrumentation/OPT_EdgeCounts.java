@@ -89,7 +89,7 @@ implements OPT_Constants, OPT_Operators
    * Called when compilation is complete, so data structures can be
    * cleaned up.  Since blockes are cached based on basic blocks, the
    * whole IR would be leaked if the cache were not cleared.  If
-   * Jalapeno implemented weak references this would not be necessary.
+   * the Jikes RVM implemented weak references this would not be necessary.
    *
    */
   void compilationFinished() {

@@ -143,68 +143,68 @@ CONFIGURATION_FILE_SOURCE=$ROOT_DIRECTORY/rvm/config/build
 
 # Place to remember what configuration we've built.
 #
-CONFIGURATION_SUMMARY=$BUILD_DIRECTORY/Jalapeno.configuration
+CONFIGURATION_SUMMARY=$BUILD_DIRECTORY/RVM.configuration
 
 # Place to keep list of source directories to be scanned by preprocessor.
 #
-SOURCE_LIST=$BUILD_DIRECTORY/Jalapeno.sources
-SOURCE_LIST_STR=$BUILD_DIRECTORY_STR/Jalapeno.sources
+SOURCE_LIST=$BUILD_DIRECTORY/RVM.sources
+SOURCE_LIST_STR=$BUILD_DIRECTORY_STR/RVM.sources
 
 # Place to remember if cleansing pass should preceed build.
 #
-CLEANSE_STATUS=$BUILD_DIRECTORY'/Jalapeno.cleanseRequired'
-CLEANSE_STATUS_STR=$BUILD_DIRECTORY_STR'/Jalapeno.cleanseRequired'
+CLEANSE_STATUS=$BUILD_DIRECTORY'/RVM.cleanseRequired'
+CLEANSE_STATUS_STR=$BUILD_DIRECTORY_STR'/RVM.cleanseRequired'
 
 # Place to remember if preprocessor has yielded new/modified source files.
 #
-CLASSES_INVALID=$BUILD_DIRECTORY'/Jalapeno.classesInvalid'
-CLASSES_INVALID_STR=$BUILD_DIRECTORY_STR'/Jalapeno.classesInvalid'
+CLASSES_INVALID=$BUILD_DIRECTORY'/RVM.classesInvalid'
+CLASSES_INVALID_STR=$BUILD_DIRECTORY_STR'/RVM.classesInvalid'
 
 # Place to put preprocessed .java files and compiled .class files.
 #
-CLASSES_DIRECTORY=$BUILD_DIRECTORY/Jalapeno.classes
-CLASSES_DIRECTORY_STR=$BUILD_DIRECTORY_STR/Jalapeno.classes
+CLASSES_DIRECTORY=$BUILD_DIRECTORY/RVM.classes
+CLASSES_DIRECTORY_STR=$BUILD_DIRECTORY_STR/RVM.classes
 
 # Place to put source files that are machine generated
 #
-GENERATED_FILES_DIRECTORY=$BUILD_DIRECTORY/Jalapeno.generatedSources
-GENERATED_FILES_DIRECTORY_STR=$BUILD_DIRECTORY_STR/Jalapeno.generatedSources
+GENERATED_FILES_DIRECTORY=$BUILD_DIRECTORY/RVM.generatedSources
+GENERATED_FILES_DIRECTORY_STR=$BUILD_DIRECTORY_STR/RVM.generatedSources
    
 # Place to put compiled versions of build tools and other glop
 # generated during the build process.
 #
-SCRATCH_DIRECTORY=$BUILD_DIRECTORY/Jalapeno.scratch
-SCRATCH_DIRECTORY_STR=$BUILD_DIRECTORY_STR/Jalapeno.scratch
+SCRATCH_DIRECTORY=$BUILD_DIRECTORY/RVM.scratch
+SCRATCH_DIRECTORY_STR=$BUILD_DIRECTORY_STR/RVM.scratch
 
 # Place to put the debugger and other such tools
 #
-TOOL_DIRECTORY=$BUILD_DIRECTORY/Jalapeno.tools
-TOOL_DIRECTORY_STR=$BUILD_DIRECTORY_STR/Jalapeno.tools
+TOOL_DIRECTORY=$BUILD_DIRECTORY/RVM.tools
+TOOL_DIRECTORY_STR=$BUILD_DIRECTORY_STR/RVM.tools
 
 # Place to keep list of classes comprising the bootimage.
 #
-PRIMORDIAL_CLASSES=$BUILD_DIRECTORY/Jalapeno.primordials
-PRIMORDIAL_CLASSES_STR=$BUILD_DIRECTORY_STR/Jalapeno.primordials
+PRIMORDIAL_CLASSES=$BUILD_DIRECTORY/RVM.primordials
+PRIMORDIAL_CLASSES_STR=$BUILD_DIRECTORY_STR/RVM.primordials
 
 # Place to keep list of .class files to be excluded from bootimage.
 #
-EXCLUDED_CLASSES=$BUILD_DIRECTORY/Jalapeno.exclusions
-EXCLUDED_CLASSES_STR=$BUILD_DIRECTORY_STR/Jalapeno.exclusions
+EXCLUDED_CLASSES=$BUILD_DIRECTORY/RVM.exclusions
+EXCLUDED_CLASSES_STR=$BUILD_DIRECTORY_STR/RVM.exclusions
 
 # Place to put bootimage.
 #
-BOOTIMAGE=$BUILD_DIRECTORY/Jalapeno.image
-BOOTIMAGE_STR=$BUILD_DIRECTORY_STR/Jalapeno.image
+BOOTIMAGE=$BUILD_DIRECTORY/RVM.image
+BOOTIMAGE_STR=$BUILD_DIRECTORY_STR/RVM.image
 
 # Place to put bootimage map.
 #
-BOOTIMAGE_MAP=$BUILD_DIRECTORY/Jalapeno.map
-BOOTIMAGE_MAP_STR=$BUILD_DIRECTORY_STR/Jalapeno.map
+BOOTIMAGE_MAP=$BUILD_DIRECTORY/RVM.map
+BOOTIMAGE_MAP_STR=$BUILD_DIRECTORY_STR/RVM.map
 
 # Place to put booter.
 #
-BOOTER=$BUILD_DIRECTORY/Jalapeno
-BOOTER_STR=$BUILD_DIRECTORY_STR/Jalapeno
+BOOTER=$BUILD_DIRECTORY/RVMRunner
+BOOTER_STR=$BUILD_DIRECTORY_STR/RVMRunner
 
 # Variables to allow configuration files to alter the list of
 # directories and primordials.
@@ -250,8 +250,8 @@ export GENERATE_MAP=1
 #
 BOOTIMAGE_LOAD_ADDRESS="0x30000000"
 
-# Current version of Jalapeno
-JALAPENO_VERSION="Jalapeno Research VM for Java 2.0.0"
+# Current version of RVM
+JIKESRVM_VERSION="Jikes Research VM for Java 2.0.0"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -278,11 +278,11 @@ integer RVM_WITH_OPT_COMPILER=0
 integer RVM_WITH_ADAPTIVE_COMPILER=0 # superset of opt
 integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
-# The following must be set if using any of the Jalapeno memory managers
+# The following must be set if using any of the RVM memory managers
 #
-integer RVM_WITH_JALAPENO_MEMORY_MANAGERS=0
+integer RVM_WITH_JIKESRVM_MEMORY_MANAGERS=0
 
-# Here are the choices for jalapeno memory managers
+# Here are the choices for RVM memory managers
 #
 integer RVM_WITH_COPYING_GC=0
 integer RVM_WITH_HYBRID_GC=0
@@ -499,14 +499,14 @@ if [[ X"$CONFIGURATION_NAME" = "X" ]]; then
    exit 1
 fi
 
-# Temporarily default RVM_WITH_JALAPENO_MEMORY_MANAGERS to 1
+# Temporarily default RVM_WITH_JIKESRVM_MEMORY_MANAGERS to 1
 # eventually it should be specified for EACH configuration using
 # one of the distributed collectors and to 0 otherwise
 # ie if using GCTk collectors. Similarily RVM_WITH_GCTK will
 # need to be set to 0 or 1
 # Maria should know how to do this.
 #
-export RVM_WITH_JALAPENO_MEMORY_MANAGERS=1
+export RVM_WITH_JIKESRVM_MEMORY_MANAGERS=1
 
 # Now make our choices based on configuration mnemonic.
 #
@@ -1027,9 +1027,9 @@ function emitSourceList
    # Memory manager components.
    #
 
-   # common allocator and collector classes for jalapeno memory managers
+   # common allocator and collector classes for RVM memory managers
    #
-   if (( $RVM_WITH_JALAPENO_MEMORY_MANAGERS )); then
+   if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers
    fi
 
@@ -1690,7 +1690,7 @@ function emitImageLinker
       print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
       print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
       
-      # skip: java.lang.Thread jdk<->jalapeno interoperability problems
+      # skip: java.lang.Thread jdk<->RVM interoperability problems
       print "   print MainThread.class                 >> $EXCLUDED_CLASSES_STR"
       print "   print JNIServiceThread.class    >> $EXCLUDED_CLASSES_STR"
       
@@ -1715,7 +1715,7 @@ function emitImageLinker
       print "   print Dummy.class               >> $EXCLUDED_CLASSES_STR"
       print "   print OptDummy.class            >> $EXCLUDED_CLASSES_STR"
 
-      # skip: java.lang.Thread jdk<->jalapeno interoperability problems
+      # skip: java.lang.Thread jdk<->RVM interoperability problems
       print "   print MainThread.class          >> $EXCLUDED_CLASSES_STR"
       print "   print JNIServiceThread.class    >> $EXCLUDED_CLASSES_STR"
             
@@ -1995,7 +1995,7 @@ function emitImageLinker
    #
    print "cd $SCRATCH_DIRECTORY_STR &&\
           $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
-	  -classpath $BUILD_DIRECTORY_STR/Jalapeno.classes:$BUILD_DIRECTORY_STR/Jalapeno.classes/rvmrt.jar\
+	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
    # script to generate InterfaceDeclaration.h
@@ -2081,10 +2081,10 @@ function emitBooterLinker
    # Create RunBootImage.h file.
    print "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
    print "echo \"int small_heap_default_size = $SMALL_HEAP_DEFAULT_SIZE;\" >> RunBootImage.h"
-   print "echo \"char *jalapeno_version              = \\\"$JALAPENO_VERSION\\\";\" >> RunBootImage.h"
-   print "echo \"char *jalapeno_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
-   print "echo \"char *jalapeno_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"
-   print "echo \"char *jalapeno_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> RunBootImage.h"
+   print "echo \"char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> RunBootImage.h"
+   print "echo \"char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
+   print "echo \"char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"
+   print "echo \"char *rvm_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> RunBootImage.h"
    print ""
 
    if (( RVM_FOR_AIX )); then
@@ -2191,7 +2191,7 @@ function emitBooterLinker
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
-		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/Jalapeno.image\\\"\
+		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -2203,7 +2203,7 @@ function emitBooterLinker
       print ""
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-	     \$BOOTER_CC -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/Jalapeno.image\\\"\
+	     \$BOOTER_CC -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 	     -c -I$ROOT_DIRECTORY_STR/rvm/src/include\
 	     -o $SCRATCH_DIRECTORY_STR/libjni.o libjni.C"
       print "cd $SCRATCH_DIRECTORY_STR"
@@ -2305,9 +2305,9 @@ function emitToolCompiler
    print 'fi'
 
    if (( BUILD_RVMRT_JAR )); then 
-     print "CPATH=$BUILD_DIRECTORY_STR/Jalapeno.classes"
+     print "CPATH=$BUILD_DIRECTORY_STR/RVM.classes"
    else
-     print "CPATH=$BUILD_DIRECTORY_STR/Jalapeno.classes:$BUILD_DIRECTORY_STR/Jalapeno.classes/rvmrt.jar"
+     print "CPATH=$BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar"
    fi
    print 'if [[ $1 = -classpath ]]; then'
    print '   CPATH=$2:$CPATH'
@@ -2433,6 +2433,6 @@ if tty -s; then # keyboard is live (ie. this is not an automated build)
    print "$ME:    cd $BUILD_DIRECTORY"
    print "$ME:    ./jbuild"
    print "$ME: To execute it (from any directory) type:"
-   print "$ME:    jalapeno <vm-args> classname <application-args>"
+   print "$ME:    rvm <vm-args> classname <application-args>"
 fi
 

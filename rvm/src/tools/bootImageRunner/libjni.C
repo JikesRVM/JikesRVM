@@ -68,7 +68,7 @@ JNIEnv * lookupPair(JavaVM_ *, int);
  */
 #define JNI_ARG_INDEX 5
 #define PID_ARG_INDEX 6
-char *defaultStartUpProgramName[8] = {"-X:vmClasses=/u/tango/rvmBuild/Jalapeno.classes",
+char *defaultStartUpProgramName[8] = {"-X:vmClasses=/u/tango/rvmBuild/RVM.classes",
 				      "-X:processors=1",
 				      "-classpath", ".",
 				      "VM_JNIStartUp", 
@@ -122,7 +122,7 @@ jint JNI_GetDefaultJavaVMInitArgs(void *vm_args1) {
   }
 
   vm_args -> version           = JNI_VERSION_1_1;
-  vm_args -> classpath         = ".:~/rvmBuild/Jalapeno.classes";  // This doesn't seem to get picked up
+  vm_args -> classpath         = ".:~/rvmBuild/RVM.classes";  // This doesn't seem to get picked up
   vm_args -> verbose           = lib_verbose;
   vm_args -> smallHeapSize     = smallHeapSize;     
   vm_args -> largeHeapSize     = largeHeapSize;     
@@ -142,7 +142,7 @@ jint JNI_GetDefaultJavaVMInitArgs(void *vm_args1) {
 
 
 /*****************************************************************
- * Create a Jalapeno Virtual Machine
+ * Create an RVM Virtual Machine
  * Taken:     a structure holding the options for creating the VM 
  * Returned:  fill in the vm structure 
  *            fill in the address for the new JNI environment structure
@@ -155,7 +155,7 @@ jint JNI_CreateJavaVM(JavaVM **pvm, JNIEnv **penv, void *vm_args1) {
 #else
   JNIEnv *returnEnv = 0;
   JDK1_1InitArgs *vm_args = (JDK1_1InitArgs *) vm_args1;
-  sigset_t input_set, output_set;       /* set up SIGCOND for Jalapeno native thread */
+  sigset_t input_set, output_set;       /* set up SIGCOND for RVM native thread */
   int rc, i;
 
 
@@ -222,10 +222,10 @@ jint JNI_CreateJavaVM(JavaVM **pvm, JNIEnv **penv, void *vm_args1) {
     return -1;
   } else {
     if (trace)
-      fprintf(SysTraceFile, "JNI_CreateJavaVM: Jalapeno boot image is %s\n", bootFilename);
+      fprintf(SysTraceFile, "JNI_CreateJavaVM: RVM boot image is %s\n", bootFilename);
   }
 
-  /* Set up the special command line argument for Jalapeno to start */
+  /* Set up the special command line argument for RVM to start */
   char *envAddressArg = (char *) malloc(32);
   sprintf(envAddressArg, "-jni %d", &returnEnv);
   JavaArgs[JNI_ARG_INDEX] = envAddressArg;
@@ -274,7 +274,7 @@ jint JNI_CreateJavaVM(JavaVM **pvm, JNIEnv **penv, void *vm_args1) {
   *pvm = newvm;
 
   /*
-   * block the CONT signal:  this is necessary for the mechanism in Jalapeno
+   * block the CONT signal:  this is necessary for the mechanism in RVM
    * to put idle VM pthreads in pthread wait.   This makes the signal reach this
    * pthread only when then pthread does a sigwai().  
    */
@@ -322,7 +322,7 @@ jint JNI_CreateJavaVM(JavaVM **pvm, JNIEnv **penv, void *vm_args1) {
 
 
 /*****************************************************************
- *  Get the VM handle if the Jalapeno VM has been created
+ *  Get the VM handle if the RVM has been created
  * parameter pvm the address of a buffer to store the the VM handle into
  * parameter num the size of this buffer
  * parameter numVM the address where to store the number of VM handles returned
@@ -415,14 +415,14 @@ jint DestroyJavaVM(JavaVM *vm) {
     *flag = (char *) (&detachParms);
   }
 
-  /* Join with the Jalapeno main pthread:  block until it terminates
+  /* Join with the RVM main pthread:  block until it terminates
    */
   if (trace) {
     fprintf(SysTraceFile, "C lib: DestroyJavaVM waiting for the vm to exit \n");
   }
   pthread_join(vm_pthreadid, NULL);
 
-  /* Jalapeno VM has been taken down, unlock and 
+  /* RVM has been taken down, unlock and 
    * discard the pthread mutex for JNI service */
   pthread_mutex_unlock (&JNIserviceMutex);
   pthread_mutex_destroy(&JNIserviceMutex);
@@ -439,7 +439,7 @@ jint DestroyJavaVM(JavaVM *vm) {
 
 
 /*****************************************************************
- * Set up a Java thread in Jalapeno and associate it with the calling
+ * Set up a Java thread in RVM and associate it with the calling
  * pthread.  
  * Parameter:  vm
  * Parameter:  penv
@@ -477,7 +477,7 @@ jint AttachCurrentThread (JavaVM *vm, JNIEnv ** penv, void * args) {
   attachParms.pid         = pthread_self();
       
 
-  /* Only one attach is serviced by Jalapeno at a time
+  /* Only one attach is serviced by RVM at a time
    * so serialize all concurrent requests from the pthreads
    */
   pthread_mutex_lock(&JNIserviceMutex);
@@ -587,7 +587,7 @@ jint DetachCurrentThread(JavaVM *vm) {
   detachParms.env = &(penv);
   detachParms.pid = pthread_self();
   
-  /* Only one attach is serviced by Jalapeno at a time
+  /* Only one attach is serviced by RVM at a time
    * so serialize all concurrent requests from the pthreads
    */
   pthread_mutex_lock(&JNIserviceMutex);

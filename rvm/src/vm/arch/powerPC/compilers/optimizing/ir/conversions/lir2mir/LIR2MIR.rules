@@ -525,14 +525,14 @@ LONG_MUL(burs, P(p), Binary.getResult(P(p)),                      \
 r:	UBYTE_LOAD(r,INT_CONSTANT)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZ, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZ, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
                               Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	UBYTE_LOAD(r,r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -554,7 +554,7 @@ BYTE_LOAD(burs, P(p), PPC_LBZX, Load.getResult(P(p)),             \
 r:	INT_AND(BYTE_LOAD(r,r),INT_CONSTANT)
 IV(Binary.getVal2(P(p)))==0xff?10:INFINITE
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZX, Binary.getResult(P(p)),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZX, Binary.getResult(P(p)),        \
                               R(Load.getAddress(PL(p))),                      \
                               Load.getOffset(PL(p)), Load.getLocation(PL(p)), \
                               Load.getGuard(PL(p)))));
@@ -562,7 +562,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZX, Binary.getRes
 r:	INT_AND(BYTE_LOAD(r,INT_CONSTANT),INT_CONSTANT)
 IV(Binary.getVal2(P(p)))==0xff?10:INFINITE
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZ, Binary.getResult(P(p)),         \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZ, Binary.getResult(P(p)),         \
                               R(Load.getAddress(PL(p))),                      \
                               Load.getOffset(PL(p)), Load.getLocation(PL(p)), \
                               Load.getGuard(PL(p)))));
@@ -571,28 +571,28 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZ, Binary.getResu
 r:	USHORT_LOAD(r,INT_CONSTANT)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZ, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZ, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	USHORT_LOAD(r,r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	SHORT_LOAD(r,INT_CONSTANT)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHA, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHA, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	SHORT_LOAD(r,r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHAX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHAX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -600,7 +600,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHAX, Load.getResult
 r:	INT_LOAD(r,INT_CONSTANT)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -611,7 +611,7 @@ r:	INT_LOAD(r,INT_MOVE(INT_CONSTANT))
    OPT_Operand val = Move.getVal(PR(p));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),         \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)), CAL16(val),           \
 				 Load.getLocation(P(p)),                      \
                                  Load.getGuard(P(p)))));                      \
@@ -620,21 +620,21 @@ r:	INT_LOAD(r,INT_MOVE(INT_CONSTANT))
 r:	INT_LOAD(r,r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	INT_LOAD(INT_ADD(r,r),INT_CONSTANT)
 IV(Load.getOffset(P(p)))==0?11:INFINITE
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
                               R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	INT_LOAD(INT_ADD(r,INT_CONSTANT),INT_CONSTANT)
 SI16(IV(Load.getOffset(P(p)))+IV(Binary.getVal2(PL(p))))?14:INFINITE
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
                               R(Binary.getVal1(PL(p))),                       \
                               I(IV(Load.getOffset(P(p)))+IV(Binary.getVal2(PL(p)))), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
@@ -642,7 +642,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(
 r:	PREPARE(r, r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
 	                      R(Prepare.getAddress(P(p))), Prepare.getOffset(P(p)),           \
 			      Prepare.getLocation(P(p)),                  \
                               Prepare.getGuard(P(p)))));
@@ -676,7 +676,7 @@ LONG_LOAD_addx(burs, P(p), Load.getResult(P(p)),                  \
 r:	BYTE_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Store.getValue(P(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
                                Store.getLocation(P(p)),                       \
@@ -685,7 +685,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Store.getVal
 r:	BYTE_STORE(r,OTHER_OPERAND(r,r))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Store.getValue(P(p))),       \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -694,7 +694,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Store.getVa
 r:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(r,INT_CONSTANT))
 11
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Unary.getVal(PL(p))),         \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Unary.getVal(PL(p))),         \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -703,7 +703,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Unary.getVal
 r:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(r,r))
 11
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Unary.getVal(PL(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Unary.getVal(PL(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -713,7 +713,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Unary.getVa
 r:	SHORT_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Store.getValue(P(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -722,7 +722,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Store.getVal
 r:	SHORT_STORE(r,OTHER_OPERAND(r,r))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Store.getValue(P(p))),       \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -731,7 +731,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Store.getVa
 r:	SHORT_STORE(INT_2SHORT(r),OTHER_OPERAND(r,INT_CONSTANT))
 11
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -740,7 +740,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal
 r:	SHORT_STORE(INT_2SHORT(r),OTHER_OPERAND(r,r))
 11
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -749,7 +749,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVa
 r:	SHORT_STORE(INT_2USHORT(r),OTHER_OPERAND(r,INT_CONSTANT))
 11
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -758,7 +758,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal
 r:	SHORT_STORE(INT_2USHORT(r),OTHER_OPERAND(r,r))
 11
 3
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -768,7 +768,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVa
 r:	INT_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -781,7 +781,7 @@ r:	INT_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
    OPT_Operand val = Move.getVal(PRR(p));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),     \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),     \
                                   Move.getResult(PRR(p)), CAL16(val),         \
 				  Store.getLocation(P(p)),                    \
                                   Store.getGuard(P(p)))));                    \
@@ -791,7 +791,7 @@ r:	INT_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
 r:	INT_STORE(r,OTHER_OPERAND(r,r))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STWX, R(Store.getValue(P(p))),       \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STWX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -800,7 +800,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STWX, R(Store.getVa
 r:	INT_STORE(r,OTHER_OPERAND(INT_ADD(r,INT_CONSTANT),INT_CONSTANT))
 SI16(IV(Store.getOffset(P(p)))+IV(Binary.getVal2(PRL(p))))?14:INFINITE
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
                                R(Binary.getVal1(PRL(p))),                     \
                                I(IV(Store.getOffset(P(p))) +                  \
                                IV(Binary.getVal2(PRL(p)))),                   \
@@ -1082,7 +1082,7 @@ EMIT(MIR_Unary.mutate(P(p), PPC_FRSP, Unary.getResult(P(p)),                  \
 r:	FLOAT_LOAD(r,INT_CONSTANT)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -1093,7 +1093,7 @@ r:      FLOAT_LOAD(r,INT_MOVE(INT_CONSTANT))
    OPT_Operand val = Move.getVal(PR(p));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),         \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)), CAL16(val),           \
 			         Load.getLocation(P(p)),                      \
                                  Load.getGuard(P(p)))));                      \
@@ -1102,14 +1102,14 @@ r:      FLOAT_LOAD(r,INT_MOVE(INT_CONSTANT))
 r:	FLOAT_LOAD(r,r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFSX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFSX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
 r:	DOUBLE_LOAD(r,INT_CONSTANT)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),            \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -1120,7 +1120,7 @@ r:      DOUBLE_LOAD(r,INT_MOVE(INT_CONSTANT))
    OPT_Operand val = Move.getVal(PR(p));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),         \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)), CAL16(val),           \
 				 Load.getLocation(P(p)),                      \
                                  Load.getGuard(P(p)))));                      \
@@ -1129,7 +1129,7 @@ r:      DOUBLE_LOAD(r,INT_MOVE(INT_CONSTANT))
 r:	DOUBLE_LOAD(r,r)
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult(P(p)),           \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -1138,7 +1138,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult
 r:	FLOAT_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),       \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -1151,7 +1151,7 @@ r:      FLOAT_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
    OPT_Operand val = Move.getVal(PRR(p));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),    \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),    \
                                   Move.getResult(PRR(p)), CAL16(val),         \
 				  Store.getLocation(P(p)),                    \
                                   Store.getGuard(P(p)))));                    \
@@ -1160,7 +1160,7 @@ r:      FLOAT_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
 r:	FLOAT_STORE(r,OTHER_OPERAND(r,r))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFSX, R(Store.getValue(P(p))),      \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFSX, R(Store.getValue(P(p))),      \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -1169,7 +1169,7 @@ EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFSX, R(Store.getV
 r:	DOUBLE_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),       \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -1182,7 +1182,7 @@ r:      DOUBLE_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
    OPT_Operand val = Move.getVal(PRR(p));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),    \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),    \
                                   Move.getResult(PRR(p)), CAL16(val),         \
 				  Store.getLocation(P(p)),                    \
                                   Store.getGuard(P(p)))));                    \
@@ -1191,7 +1191,7 @@ r:      DOUBLE_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
 r:	DOUBLE_STORE(r,OTHER_OPERAND(r,r))
 11
 1
-EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFDX, R(Store.getValue(P(p))),      \
+EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFDX, R(Store.getValue(P(p))),      \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
@@ -1342,7 +1342,7 @@ r:	INT_IFCMP(ATTEMPT(r,r),INT_CONSTANT)
 1
 {                                                                             \
    OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
-   EMIT(OPT_JalapenoIRTools.nonPEIGC(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
+   EMIT(OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
                                   R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
 				  Attempt.getLocation(PL(p)),                \
                                   Attempt.getGuard(PL(p)))));                \

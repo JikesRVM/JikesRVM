@@ -7,7 +7,7 @@ HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M
 HOST_MEM_MIN=300M
 
-JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(JAL_BUILD)/Jalapeno.classes:$(JAL_BUILD)/Jalapeno.classes/rvmrt.jar
+JCOMPILE=$(HOST_JIKES) +F +Z +KINSTRUCTION=$(TARGET_INSTRUCTION_TYPE) +E -g +U -classpath $(JAL_BUILD)/RVM.classes:$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
 $SRCS=	BootImage.java \
 	BootImageChecker.java \
@@ -22,7 +22,7 @@ UTIL_KLUDGE_CLASSES = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES)
 UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
 UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
-$(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/Jalapeno.classes/rvmrt.jar
+$(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/RVM.classes/rvmrt.jar
 	cd $(SCRATCH_DIR); unzip -Uqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
 	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
 	@echo "(built workaround zip) "

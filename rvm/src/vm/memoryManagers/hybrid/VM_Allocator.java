@@ -28,11 +28,11 @@
  *  +-------------+----------------------------------------------+---------+
  *        heapStart^                                                 heapEnd^
  * </pre>
- * The Hybrid collector uses the default Jalapeno writebarrier
+ * The Hybrid collector uses the default RVM writebarrier
  * which puts references to objects, which had internal references
  * modified, into processor local writebuffers.  For minor collections, objects in
  * the writebuffers become part of the root set for the collection.
- * (The Jalapeno compilers generate the barrier code when the static final
+ * (The RVM compilers generate the barrier code when the static final
  * constant "writeBarrier" is set to true.)
  * 
  * @see vm/allocator/copyGCgenSmallN/VM_Allocator
@@ -1507,7 +1507,7 @@ public class VM_Allocator
       // local allocation pointers (before copying first object to ToSpace)
       gc_initProcessor();
    
-      // with the default jni implementation some Jalapeno VM_Processors may
+      // with the default jni implementation some RVM VM_Processors may
       // be blocked in native C and not participating in a collection.
       prepareNonParticipatingVPsForGC( false /*minor*/);
       
@@ -1944,7 +1944,7 @@ public class VM_Allocator
 	}
       }
 
-      // with the default jni implementation some Jalapeno VM_Processors may
+      // with the default jni implementation some RVM VM_Processors may
       // be blocked in native C and not participating in a collection.
       prepareNonParticipatingVPsForGC( true /*major*/);
 
@@ -2283,8 +2283,8 @@ public class VM_Allocator
       //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
       // alternate implementation of jni
 
-      // skip other GC threads, on Jalapeno VP, each will do its own
-      if ( t.isGCThread && t.processorAffinity.processorMode == VM_Processor.JALAPENO)
+      // skip other GC threads, on RVM VP, each will do its own
+      if ( t.isGCThread && t.processorAffinity.processorMode == VM_Processor.RVM)
         continue;
       
       // attempt to get control of this thread
@@ -2655,7 +2655,7 @@ public class VM_Allocator
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#endif
 
@@ -2710,7 +2710,7 @@ public class VM_Allocator
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#endif
 

@@ -57,7 +57,7 @@ public class OPT_Entrypoints
         "LVM_OptRCWriteBarrier;", 
         "unresolvedPutstatic", "(ILjava/lang/Object;)V");
     //-#else
-    // for JALAPENO and GCTk collectors use barrier methods & offsets
+    // for JIKESRVM and GCTk collectors use barrier methods & offsets
     // now in VM_Entrypoints
     //-#endif
     specializedMethodsField = (VM_Field)VM.getMember(

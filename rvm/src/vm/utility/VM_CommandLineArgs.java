@@ -47,7 +47,7 @@ class VM_CommandLineArgs {
   public static final int VERBOSE_CLS_ARG      =  5;
 
   // -----------------------------------------------//
-  // The following arguments are Jalapeno-specific. //
+  // The following arguments are RVM-specific. //
   // -----------------------------------------------//
   public static final int VM_CLASSES_ARG       =  6;
   public static final int CPUAFFINITY_ARG      =  7;
@@ -304,7 +304,7 @@ class VM_CommandLineArgs {
 	break;
 
 	// -----------------------------------------------//
-	// The following arguments are Jalapeno-specific. //
+	// The following arguments are RVM-specific. //
 	// -----------------------------------------------//
       case VM_CLASSES_ARG:
 	// (note: this argument was already processed earlier

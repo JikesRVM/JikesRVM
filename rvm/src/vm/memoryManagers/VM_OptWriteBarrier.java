@@ -53,7 +53,7 @@ class VM_OptWriteBarrier implements VM_Constants {
 
 
   /**
-   * The current implementation of write barriers in Jalapeno
+   * The current implementation of write barriers in RVM
    * generates the same sequence in all cases and only uses the ref parameter.
    * So, we share an internal implementation method...
    */

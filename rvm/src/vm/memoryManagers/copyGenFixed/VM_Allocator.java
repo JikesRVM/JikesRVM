@@ -7,7 +7,7 @@
  * Uses a writebarrier which puts references to objects, which had internal references
  * modified, into processor local writebuffers.  For minor collections, objects in
  * the writebuffers become part of the root set for the collection.
- * (The Jalapeno compilers generate the barrier code when the static final
+ * (The RVM compilers generate the barrier code when the static final
  * constant "writeBarrier" is set to true.)
  * <p>
  * Divides the heap into 2 mature semi-spaces and a fixed size nursery.
@@ -959,7 +959,7 @@ public class VM_Allocator
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#else
 
@@ -1014,7 +1014,7 @@ public class VM_Allocator
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
     // alternate implementation of jni
-    // all Jalapeno VM_Processors participate in every collection
+    // all RVM VM_Processors participate in every collection
     return;
     //-#else
 
@@ -1107,7 +1107,7 @@ public class VM_Allocator
       // local allocation pointers (before copying first object to ToSpace)
       gc_initProcessor();
 
-      // with the default jni implementation some Jalapeno VM_Processors may
+      // with the default jni implementation some RVM VM_Processors may
       // be blocked in native C and not participating in a collection.
       prepareNonParticipatingVPsForGC();
       

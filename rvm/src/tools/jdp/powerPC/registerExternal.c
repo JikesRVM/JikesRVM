@@ -170,7 +170,7 @@ JNIEXPORT jintArray JNICALL Java_Platform_getSystemThreadGPR1
     }
   }
 
-  /* if threadpointer is 0, the Jalapeno data structure is not 
+  /* if threadpointer is 0, the RVM data structure is not 
    * set up yet, so go straight to the current register */
   else {
 
@@ -228,7 +228,7 @@ JNIEXPORT jdoubleArray JNICALL Java_Platform_getSystemThreadFPR1
     }
   }
 
-  /* if threadpointer is 0, the Jalapeno data structure is not 
+  /* if threadpointer is 0, the RVM data structure is not 
    * set up yet, so go straight to the current register */
   else {
 
@@ -293,7 +293,7 @@ JNIEXPORT jintArray JNICALL Java_Platform_getSystemThreadSPR1
     }
   }
 
-  /* if threadpointer is 0, the Jalapeno data structure is not 
+  /* if threadpointer is 0, the RVM data structure is not 
    * set up yet, so go straight to the current register */
   else {
 

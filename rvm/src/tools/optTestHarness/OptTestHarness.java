@@ -13,7 +13,7 @@ import java.io.*;
  * debugging of the optimizing compiler.  
  * For example, the following command line:
  * <br>
- *   jalapeno -X:h=100 OptTestHarness -oc:O2 -oc:phases=true 
+ *   rvm -X:h=100 OptTestHarness -oc:O2 -oc:phases=true 
  *      -class hanoi -er hanoi run  -
  * <br>
  * invokes the opt compiler at Opt level 2 and phases=true to compile
@@ -129,7 +129,7 @@ class OptTestHarness {
   }
 
   static void printFormatString() {
-    System.err.println("Format: jalapeno OptTestHarness { <command> }");
+    System.err.println("Format: rvm OptTestHarness { <command> }");
   }
 
   private static void processClass(VM_Class klass, OPT_Options opts) {

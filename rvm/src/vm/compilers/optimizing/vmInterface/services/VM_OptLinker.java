@@ -72,7 +72,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       target = realMethod.getDeclaringClass().getMethodRef(constantPoolIndex);
       break;
     case JBC_invokeinterface:
-      // We believe that in Jalapeno this cannot cause dynamic linking
+      // We believe that in the RVM this cannot cause dynamic linking
     case JBC_invokespecial:       
       // We believe that this cannot cause dynamic linking
     default:

@@ -10,7 +10,7 @@
  */
 
 import java.util.*;
-/* not needed for build in separate Jalapeno.tools directory */
+/* not needed for build in separate RVM.tools directory */
 /* import PPC_Disassembler; */
 
 abstract class memory implements jdpConstants  

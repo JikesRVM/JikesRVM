@@ -14,7 +14,7 @@ export RVM_BUILD=$1
 PROCESSORS="$2"
 RVM_ARGS="$3"
 SUFFIX_STRING="$4"
-SUFFIX=`head -1 $RVM_BUILD/Jalapeno.configuration | cut -d" " -f3`
+SUFFIX=`head -1 $RVM_BUILD/RVM.configuration | cut -d" " -f3`
 
 function say
    {
@@ -24,7 +24,7 @@ function say
 # kill all processes involved in this test
 function killEveryone
    {
-#     RVM_PID=`/usr/bin/ps -e | /usr/bin/awk '/Jalapeno/{print $1}'`
+#     RVM_PID=`/usr/bin/ps -e | /usr/bin/awk '/RVMRunner/{print $1}'`
 #     RUN_PID=`/usr/bin/ps -Af | /usr/bin/awk '/Run100/{print $2}'`
 #     RVM_PID="$RUN_PID $RVM_PID"
 #     if [[ $RVM_PID != "" ]]; then
@@ -47,7 +47,7 @@ function killEveryone
 . $RVM_BUILD/environment
 
 # start test running
-( $GNU_MAKE SPECmark JBOOT="$RVM_ROOT/bin/jalapeno -X:i=$RVM_BUILD/Jalapeno.image" BOOTNAME=$SUFFIX RVM_ARGS="$RVM_ARGS" SUFFIX_STRING="$SUFFIX_STRING" PROCESSORS=$PROCESSORS )&
+( $GNU_MAKE SPECmark JBOOT="$RVM_ROOT/bin/jalapeno -X:i=$RVM_BUILD/RVM.image" BOOTNAME=$SUFFIX RVM_ARGS="$RVM_ARGS" SUFFIX_STRING="$SUFFIX_STRING" PROCESSORS=$PROCESSORS )&
 TESTER_PID=$!
 
 # start deadman timer to terminate execution of vm if test runs too long

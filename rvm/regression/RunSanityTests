@@ -2,7 +2,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-# Build and test various configurations of jalapeno virtual machine.
+# Build and test various configurations of RVM virtual machine.
 #
 # Invocation: RunSanityTests [ -output <directory> ] [ -configuration <configuration> ][ -test <TestDirectory> ][ -paranoid ][ -nobuild ][ -noclean][ -norun ][ -numprocs N] [-verbose]
 #
@@ -35,7 +35,7 @@ GENERATOR=$RVM_ROOT/rvm/bin
 if [[ ! -z "$RVM_SANITY" ]]; then
    GENERATED_IMAGES=$RVM_SANITY
 else
-   GENERATED_IMAGES=$HOME/JalapenoSanityTests
+   GENERATED_IMAGES=$HOME/RVMSanityTests
 fi
 
 # Build images by default
@@ -261,7 +261,7 @@ function setConfiguration
    {
      NAME=$1$2
 
-   # environment variable for use by "jbuild" and "jalapeno" commands
+   # environment variable for use by "jconfigure" and "rvm" commands
    export RVM_BUILD=$GENERATED_IMAGES/$1
 
    # set RVM_HOST_CONFIG if not already set
@@ -305,7 +305,7 @@ function doBuild
      fi
 
      say "building $NAME"
-     cd $RVM_BUILD && jbuild -trace >Jalapeno.trace 2>&1
+     cd $RVM_BUILD && jbuild -trace >RVM.trace 2>&1
 
      if [[ x$WAIT != x ]]; then
        # Leave a marker to signify the building is done.
@@ -385,8 +385,8 @@ function doRun
            JBOOT=$RVM_ROOT/rvm/bin/rvm\
            PROCESSORS="$NUM_PROCS"\
            RC_ARGS="$RC_ARGS $EXTRA_RC_ARGS"\
-           JAVA_PACKAGES=$RVM_BUILD/Jalapeno.classes\
-           RVMPATH=$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/rvmrt.jar \
+           JAVA_PACKAGES=$RVM_BUILD/RVM.classes\
+           RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
            clean sanity || say "$NAME: You are NOT sane in `pwd`"
 
     # done

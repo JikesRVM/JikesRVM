@@ -3365,7 +3365,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	methodName == VM_MagicNames.addressAsThread         ||
 	methodName == VM_MagicNames.objectAsThread          ||
 	methodName == VM_MagicNames.objectAsProcessor       ||
-//-#if RVM_WITH_JALAPENO_MEMORY_MANAGERS
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
 	methodName == VM_MagicNames.addressAsBlockControl   ||
 	methodName == VM_MagicNames.addressAsSizeControl    ||
 	methodName == VM_MagicNames.addressAsSizeControlArray   ||

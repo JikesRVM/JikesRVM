@@ -184,10 +184,10 @@ public class VM_JNIStartUp implements Runnable {
     int pthread_id = 0;
 
     if (trace) {
-      System.out.println("VM_JNIStartUp: starting Jalapeno ... ");
+      System.out.println("VM_JNIStartUp: starting RVM ... ");
     }
 
-    // Mark the flag indicating Jalapeno is running as a subsystem under C
+    // Mark the flag indicating RVM is running as a subsystem under C
     // so the VM won't exit the process when it terminates
     VM.runningAsSubsystem = true;
 
@@ -292,7 +292,7 @@ public class VM_JNIStartUp implements Runnable {
 
     VM_BootRecord.the_boot_record.bootCompleted = 1;
     if (trace) 
-      System.out.println("VM_JNIStartUp: Jalapeno is ready, main thread moving to native VM_Processor ... ");
+      System.out.println("VM_JNIStartUp: RVM is ready, main thread moving to native VM_Processor ... ");
 
 
     // take this main thread off the current VM_Processor

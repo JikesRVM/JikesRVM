@@ -218,7 +218,7 @@ class MethodInvocation {
   public Object virtualReturnObject(byte val0, char val1, short val2,  
 				  int val3, long val4, float val5,  
 				  double val6, Object val7, boolean val8) {
-    return new String("Jalapeno");
+    return new String("RVM");
   }
 
 

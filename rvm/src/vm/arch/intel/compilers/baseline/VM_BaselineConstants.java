@@ -25,7 +25,7 @@ interface VM_BaselineConstants extends VM_Constants {
 
   // Mnemonics corresponding to the above constants.
   //
-  static final String[] JALAPENO_GPR_NAMES =
+  static final String[] RVM_GPR_NAMES =
      {
      "T0", "S0", "T1", "XX", "SP", "FP", "PR", "JT"
      };

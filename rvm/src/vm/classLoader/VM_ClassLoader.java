@@ -16,7 +16,7 @@ import java.util.Hashtable;
  * 
  * TODO: Access to many of the VM_ClassLoader data structures currently must
  *       be serialized (access is controlled by VM_ClassLoader.lock).
- *       This is perhaps the biggest scalability problem in Jalapeno.
+ *       This is perhaps the biggest scalability problem in the Jikes RVM.
  *       We need to rewrite the data structures and move to a looser
  *       model that allows multiple concurrent readers and only serializes
  *       writers (possibly using multiple write locks, one for each data
@@ -708,7 +708,7 @@ public class VM_ClassLoader
     // Ask the VM to look in its cache.
     loadedClass = VM_SystemClassLoader.getVMClassLoader().findLoadedClassInternal(className);
 
-    /* parent classloaders not yet in Jalapeno
+    /* parent classloaders not yet in RVM
      *  // search in parent if not found
      *  if (loadedClass == null) {
      *    try {

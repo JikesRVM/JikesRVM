@@ -4,7 +4,7 @@
 /**
  * This class implements the 211 JNI functions
  * All methods here will be specially compiled with the necessary prolog to
- * perform the transition from native code (AIX convention) to Jalapeno
+ * perform the transition from native code (AIX convention) to RVM
  * For this reason, no Java methods (including the JNI methods here) can call 
  * any methods in this class from within Java.  These JNI methods are to 
  * be invoked from native C or C++

@@ -8,7 +8,7 @@ BEGIN {
 }
 
 #
-# Jalapeno startup messages
+# RVM startup messages
 #
 /^small heap = [0-9]*, large heap = [0-9]*$/ { next }
 /^vm: booting$/ { next }

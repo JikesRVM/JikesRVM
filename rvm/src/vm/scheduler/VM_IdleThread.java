@@ -19,7 +19,7 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     while (true) {
-      boolean jalapenoYield = false;
+      boolean rvmYield = false;
       if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
       VM_Processor myProcessor = VM_Processor.getCurrentProcessor(); // Tell load balancer that this processor needs work.
       if (VM_Scheduler.terminated) // the VM is terminating, exit idle thread
@@ -47,7 +47,7 @@ class VM_IdleThread extends VM_Thread {
             VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
             VM_Scheduler.wakeupMutex.unlock();
             if (t != null) {
-        	jalapenoYield = true;
+        	rvmYield = true;
         	t.schedule();
             }
         }
@@ -65,11 +65,11 @@ class VM_IdleThread extends VM_Thread {
       if (!myProcessor.readyQueue.isEmpty()    || // no more local work to do
           !myProcessor.transferQueue.isEmpty() || // no work yet transferred form other virtual processors
 	  !myProcessor.ioQueue.isEmpty())         // no work waiting on io is ready to process
-	 jalapenoYield = true;
+	 rvmYield = true;
 
       // Put ourself back on idle queue.
       //
-      if (jalapenoYield) 
+      if (rvmYield) 
 	VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
       else 
 	VM.sysVirtualProcessorYield();

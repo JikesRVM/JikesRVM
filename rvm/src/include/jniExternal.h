@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 /*
- * Jalapeno-specific external structure for JNI
+ * RVM-specific external structure for JNI
  *
  *
  * Ton Ngo, Steve Smith 5/20/00

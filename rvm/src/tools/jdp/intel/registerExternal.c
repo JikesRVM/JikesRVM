@@ -42,7 +42,7 @@
 /* Intel FP register is 10 bytes */
 #define INTEL_FPSIZE 10
 
-/* Jalapeno register convention, initialized in  */
+/* RVM register convention, initialized in  */
 extern int jvmFP;
 extern int jvmSP;
 extern int jvmTI;
@@ -351,7 +351,7 @@ JNIEXPORT jintArray JNICALL Java_Platform_getSystemThreadGPR1
     }
   }
 
-  /* if threadpointer is 0, the Jalapeno data structure is not 
+  /* if threadpointer is 0, the RVM data structure is not 
    * set up yet, so go straight to the current register */
   else {
 
@@ -414,7 +414,7 @@ JNIEXPORT jdoubleArray JNICALL Java_Platform_getSystemThreadFPR1
     }
   }
 
-  /* if threadpointer is 0, the Jalapeno data structure is not 
+  /* if threadpointer is 0, the RVM data structure is not 
    * set up yet, so go straight to the current register */
   else {
 
@@ -485,7 +485,7 @@ JNIEXPORT jintArray JNICALL Java_Platform_getSystemThreadSPR1
 #endif    
   }
 
-  /* if threadpointer is 0, the Jalapeno data structure is not 
+  /* if threadpointer is 0, the RVM data structure is not 
    * set up yet, so go straight to the current register */
   else {
 

@@ -864,7 +864,7 @@ class Debugger implements jdpConstants {
   }
 
   /**
-   * progresses the jalapeno process to the beginning of the
+   * progresses the RVM process to the beginning of the
    * user main() method
    */
   private void goToMainMethod()
@@ -2055,8 +2055,8 @@ class Debugger implements jdpConstants {
       for (int i=0; i<VM_BaselineConstants.FPR_NAMES.length; i++)
 	regname += VM_BaselineConstants.FPR_NAMES[i] + " ";
       ret.append(regname);
-      for (int i=0; i<VM_BaselineConstants.JALAPENO_GPR_NAMES.length; i++)
-	regname += VM_BaselineConstants.JALAPENO_GPR_NAMES[i] + " ";
+      for (int i=0; i<VM_BaselineConstants.RVM_GPR_NAMES.length; i++)
+	regname += VM_BaselineConstants.RVM_GPR_NAMES[i] + " ";
       ret.append(regname);
 
     } else if (command.equals("mem") || command.equals("m") || 

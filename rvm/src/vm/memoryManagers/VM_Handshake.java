@@ -9,7 +9,7 @@
  * will be participating in a collection.  This may not be all 
  * processors, if we exclude those executing in native code.
  *
- * Because the threading strategy within Jalapeno is currently
+ * Because the threading strategy within RVM is currently
  * under revision, the logic here is also changing and somewhat "messy".
  *
  * @see VM_CollectorThread
@@ -43,7 +43,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * dequeues the GC threads associated with those processors, and
    * schedules them for executing on their respective processors.
    * (Most of the time, all processors and thus all GC threads participate,
-   * but this is changing as the Jalapeno thread startegy changes.)
+   * but this is changing as the RVM thread startegy changes.)
    *
    * The collection actually starts when all participating GC threads
    * arrive at the first rendezvous in VM_CollectorThreads run method,
@@ -76,7 +76,7 @@ class VM_Handshake implements VM_Uninterruptible {
     // wait for all gc threads to finish preceeding collection cycle
 
     //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    // all Jalapeno Processors participate in all collections
+    // all RVM Processors participate in all collections
     // there is no NativeDaemon Processor
     maxCollectorThreads = VM_Scheduler.numProcessors;
 
@@ -146,7 +146,7 @@ class VM_Handshake implements VM_Uninterruptible {
     }
     //-#endif
 
-    // Dequeue and schedule collector threads on ALL Jalapeno Processors,
+    // Dequeue and schedule collector threads on ALL RVM Processors,
     // including those running system daemon threads (ex. NativeDaemonProcessor)
     //
     VM_Scheduler.collectorMutex.lock();

@@ -123,7 +123,7 @@ public class tClass
       for(int i = 0; i < methods.length; i++)
       { 
         // dont print the methods out, signitures are different in
-        // java and jalapeno libraries for java/lang/Object methods.
+        // java and RVM libraries for java/lang/Object methods.
         // System.out.println( methods[i] );
         if (methods[i].getName().equals("hello")) hello = methods[i];
         if (methods[i].getName().equals("iello")) iello = methods[i];

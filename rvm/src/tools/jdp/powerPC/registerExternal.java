@@ -126,7 +126,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
       // this means that the first call to cacheJTOC must be at a point when the JTOC register is valid
       if (cachedJTOC==0) {
 	if (Debugger.interpretMode)
-	  // in interpreted mode, get it from mapVM, which is read from the file Jalapeno.map
+	  // in interpreted mode, get it from mapVM, which is read from the file RVM.map
 	  cachedJTOC = mapVM.cachedJTOC;   
 	else
 	  // in boot only mode, get the value directly from the register when system comes up
@@ -194,7 +194,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
    * (GPR or IP)
    */
   public int getContextRegister(String regName) throws Exception {
-    // At the beginning, the Jalapeno thread structure is not yet setup
+    // At the beginning, the RVM thread structure is not yet setup
     // the context thread ID is kept as 0 to indicate this
     // In this case, go straight to the hardware registers
     if (contextThread==0) {

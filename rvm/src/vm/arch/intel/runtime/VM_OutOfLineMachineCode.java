@@ -387,7 +387,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (PR, FP, VM_JNICompiler.JNI_PR_OFFSET);
 
     // reload JTOC from processor NOTE: JTOC saved in glue frame may not be
-    // the Jalapeno JTOC 
+    // the RVM JTOC 
     asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset);
 
     asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.vpStatusAddressOffset);  // S0<-addr of statusword
@@ -411,30 +411,30 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // status is now IN_JAVA. GC can not occur while we execute on a processor
     // in this state, so it is safe to access fields of objects
 
-    // Test if returning to Java on a Jalapeno processor or a Native processor.
+    // Test if returning to Java on a RVM processor or a Native processor.
 
     asm.emitMOV_Reg_RegDisp(T0, PR, VM_Entrypoints.processorModeOffset);
-    asm.emitCMP_Reg_Imm (T0, VM_Processor.JALAPENO);      // test for JALAPENO
+    asm.emitCMP_Reg_Imm (T0, VM_Processor.RVM);           // test for RVM
     VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);     // Br if yes
 
     // If here, on a native processor, it is necessary to transfer back to a
-    // Jalapeno processor before returning to the Java calling method.
+    // RVM processor before returning to the Java calling method.
 
     // !!! volatile FPRs will be lost during the yield to the transfer
-    // queue of the jalapeno processor, and later redispatch on that processor.
+    // queue of the RVM processor, and later redispatch on that processor.
     // ADD A SAVE OF FPR return reg (top on FPR stack?) before trnsferring
-    // branch to becomeJalapenoThread to make the transfer
+    // branch to becomeRVMThread to make the transfer
 
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeJalapenoThreadOffset);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeRVMThreadOffset);
 
-    // execution here is now on the Jalapeno processor, and on a different
+    // execution here is now on the RVM processor, and on a different
     // os pThread. non-volatile GRPs & FPRs have been saved and restored
-    // during the transfer. PR now points to the Jalapeno processor we have
+    // during the transfer. PR now points to the RVM processor we have
     // been transferred to.
 
     // XXX Restore the saved FPR return reg, before returning
 
-    fr1.resolve(asm);  // branch to here if returning on a Jalapeno processor
+    fr1.resolve(asm);  // branch to here if returning on a RVM processor
 
     // pop return values off stack into expected regs before returning to caller
     asm.emitPOP_Reg(T1);

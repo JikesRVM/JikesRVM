@@ -6,7 +6,7 @@
  * for each GC_BLOCKSIZE (see VM_GCConstants.java in this directory)
  * bytes (aka one "chunk"
  * in the small object heap. The array of VM_BlockControls is 
- * allocated by VM_Allocator.boot() at Jalapeno startup. baseAddr
+ * allocated by VM_Allocator.boot() at RVM startup. baseAddr
  * is the address of the first byte of the chunk controlled by this
  * object.  It never changes, but is stored to avoid computing it 
  * repeatedly. slotsize is the size of each slot into which this 

@@ -1,7 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//BootImageWriter2.java
 //$Id$
 
 import java.util.Hashtable;
@@ -15,7 +14,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
 /**
- * Construct a jalapeno virtual machine bootimage.
+ * Construct a RVM virtual machine bootimage.
  * Invocation args:
  *    -n  <filename>           list of typenames to be written to bootimage
  *    -X:bc:<bcarg>            pass bcarg to bootimage compiler as command
