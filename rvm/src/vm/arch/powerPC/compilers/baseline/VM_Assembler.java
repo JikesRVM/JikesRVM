@@ -1808,11 +1808,102 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // -------------------------------------------------------------- //
   // The following section contains macros to handle address values //
   // -------------------------------------------------------------- //
-  public final void emitCMPAddr(int reg1, int reg2){                    
+  public final void emitCMPLAddr(int reg1, int reg2){                    
     if (VM.BuildFor64Addr)
       emitCMPLD(reg1, reg2);
     else
       emitCMPL(reg1, reg2);
+  }
+
+  public final void emitCMPAddr(int reg1, int reg2){                    
+    if (VM.BuildFor64Addr)
+      emitCMPD(reg1, reg2);
+    else
+      emitCMP(reg1, reg2);
+  }
+
+  public final void emitCMPAddrI (int RA, int V) {
+    if (VM.BuildFor64Addr)
+      emitCMPDI(RA, V);
+    else
+      emitCMPI(RA, V);
+  }
+
+  public final void emitSRAddr(int RA, int RS, int RB){                    
+    if (VM.BuildFor64Addr)
+      emitSRD(RA, RS, RB);
+    else
+      emitSRW(RA, RS, RB);
+  }
+
+  public final void emitSRA_Addr(int RA, int RS, int RB){                    
+    if (VM.BuildFor64Addr)
+      emitSRAD(RA, RS, RB);
+    else
+      emitSRAW(RA, RS, RB);
+  }
+
+  public final void emitSRA_AddrI(int RA, int RS, int SH){                    
+    if (VM.BuildFor64Addr)
+      emitSRADI(RA, RS, SH);
+    else
+      emitSRAWI(RA, RS, SH);
+  }
+
+  public final void emitSLAddr (int RA, int RS, int RB) {
+    if (VM.BuildFor64Addr)
+      emitSLD(RA, RS, RB);
+    else
+      emitSLW(RA, RS, RB);
+  }
+
+  public final void emitSLAddrI(int RA, int RS, int N){                    
+    if (VM.BuildFor64Addr)
+      emitSLDI(RA, RS, N);
+    else
+      emitSLWI(RA, RS, N);
+  }
+
+  public final void emitTAddrLT (int RA, int RB) {
+    if (VM.BuildFor64Addr)
+      emitTDLT(RA, RB);
+    else
+      emitTWLT(RA, RB);
+  }
+
+  public final void emitTAddrLE (int RA, int RB) {
+    if (VM.BuildFor64Addr)
+      emitTDLE(RA, RB);
+    else
+      emitTWLE(RA, RB);
+  }
+
+  public final void emitTAddrLLE (int RA, int RB) {
+    if (VM.BuildFor64Addr)
+      emitTDLLE(RA, RB);
+    else
+      emitTWLLE(RA, RB);
+  }
+
+  public final void emitTAddrI (int TO, int RA, int SI) {
+    if (VM.BuildFor64Addr)
+      emitTDI(T0, RA, SI);
+    else
+      emitTWI(T0, RA, SI);
+  }
+
+  public final void emitTAddrEQ0 (int RA) {
+    if (VM.BuildFor64Addr)
+      emitTDEQ0(RA);
+    else
+      emitTWEQ0(RA);
+  }
+
+  public final void emitTAddrWI (int SI) {
+    if (VM.BuildFor64Addr)
+      emitTDWI(SI);
+    else
+      emitTWWI(SI);
   }
 
   public final void emitSTAddr(int src_reg, int offset, int dest_reg){                    
@@ -1913,10 +2004,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   void emitStackOverflowCheck (int frameSize) {
     emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
-    if (VM.BuildFor64Addr)
-      emitTDLT (S0,  0);                                    // trap if new frame below guard page
-    else 
-      emitTWLT (S0,  0);                                    // trap if new frame below guard page
+    emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
   }
 
   // Emit baseline stack overflow instruction sequence for native method prolog.
@@ -1932,14 +2020,13 @@ public final class VM_Assembler implements VM_BaselineConstants,
     emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitLAddr   (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
     emitLInt   ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
-//Kris Venstermans :    change to Address?
     emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitCMPI ( 0, 0);                                 	 // check if S0 == 0 -> first native frame on stack
     VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
     emitLAddr  ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame pointer
-    emitTWLT (S0,  0);                                    // trap if new frame below guard page
+    emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
     VM_ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE 
@@ -1948,9 +2035,9 @@ public final class VM_Assembler implements VM_BaselineConstants,
     emitLVAL  (S0, STACK_SIZE_JNINATIVE);
     emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
 
-    emitCMPAddr(0, S0);
+    emitCMPLAddr(0, S0);
     VM_ForwardReference fr3 = emitForwardBC(LE);
-    emitTWWI ( 1 );                                    // trap if new frame pointer below guard page
+    emitTAddrWI ( 1 );                                    // trap if new frame pointer below guard page
     fr2.resolve(this);
     fr3.resolve(this);
   }

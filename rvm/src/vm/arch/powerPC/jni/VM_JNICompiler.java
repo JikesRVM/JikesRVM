@@ -268,11 +268,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLAddr (T2, VM_Entrypoints.JNIPendingExceptionField.getOffset(), S0);   // get pending exception from JNIEnv
     asm.emitLVAL  (T3, 0);                   // get a null value to compare
     asm.emitSTAddr(T3, VM_Entrypoints.JNIPendingExceptionField.getOffset(), S0); // clear the current pending exception
-    if (VM.BuildFor64Addr) {
-      asm.emitCMPD(T2, T3);
-    } else {
-      asm.emitCMP(T2, T3);
-    } 
+    asm.emitCMPAddr(T2, T3);
     VM_ForwardReference fr3 = asm.emitForwardBC(NE);
     asm.emitBCLR();                             // if no pending exception, proceed to return to caller
     fr3.resolve(asm);
@@ -1442,11 +1438,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTAddr(T3, VM_Entrypoints.JNITopJavaFPField.getOffset(), T2);     // store TopJavaFP back into JNIEnv
 
     // check to see if this frame address is the sentinel since there may be no further Java frame below
-    if (VM.BuildFor64Addr) {
-      asm.emitCMPDI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
-    } else {
-      asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
-    }
+    asm.emitCMPAddr(T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     asm.emitSTAddr(PROCESSOR_REGISTER, -JNI_PR_OFFSET, S0);  // store PR back into transition frame

@@ -1973,7 +1973,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_if_acmpeq(int bTarget) {
     popAddr(T1);
     popAddr(T0);
-    asm.emitCMPAddr(T0, T1);    // sets CR0  
+    asm.emitCMPLAddr(T0, T1);    // sets CR0  
     genCondBranch(EQ, bTarget);
   }
 
@@ -1984,7 +1984,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_if_acmpne(int bTarget) {
     popAddr(T1);
     popAddr(T0);
-    asm.emitCMPAddr(T0, T1);    // sets CR0
+    asm.emitCMPLAddr(T0, T1);    // sets CR0
     genCondBranch(NE, bTarget);
   }
 
@@ -1995,7 +1995,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_ifnull(int bTarget) {
     popAddr(T0);
     asm.emitLVAL(T1,  0);
-    asm.emitCMPAddr(T0, T1);  
+    asm.emitCMPLAddr(T0, T1);  
     genCondBranch(EQ, bTarget);
   }
 
@@ -2006,7 +2006,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_ifnonnull(int bTarget) {
     popAddr(T0);
     asm.emitLVAL(T1,  0);
-    asm.emitCMPAddr (T0, T1);  
+    asm.emitCMPLAddr (T0, T1);  
     genCondBranch(NE, bTarget);
   }
 
@@ -3002,7 +3002,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genEpilogue () {
     if (klass.isDynamicBridge()) {// Restore non-volatile registers.
       // we never return from a DynamicBridge frame
-      asm.emitTWWI(-1);
+      asm.emitTAddrWI(-1);
     } else {
 //       //-#if RVM_FOR_OSX
 //       if (klass.isBridgeFromNative()) {
@@ -3275,7 +3275,7 @@ public class VM_Compiler extends VM_BaselineCompiler
      peekDouble(0, stackIndex);
      asm.emitSTFD(0, spillOffset, FP);
      if (VM.BuildFor64Addr) {
-       spillOffset += BYTES_IN_STACKSLOT;		 		  
+       spillOffset += BYTES_IN_STACKSLOT;		 
      } else {
        spillOffset += 2*BYTES_IN_STACKSLOT;
      }
@@ -3878,26 +3878,17 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.wordLsh) {
       popInt(T0);
       popAddr(T1);
-      if (VM.BuildFor32Addr)
-	asm.emitSLW (T2, T1, T0);
-      else
-	asm.emitSLD (T2, T1, T0);
+	   asm.emitSLAddr (T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordRshl) {
       popInt(T0);
       popAddr(T1);
-      if (VM.BuildFor32Addr)
-	asm.emitSRW (T2, T1, T0);
-      else
-	asm.emitSRD (T2, T1, T0);
+	   asm.emitSRAddr (T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordRsha) {
       popInt(T0);
       popAddr(T1);
-      if (VM.BuildFor32Addr)
-	asm.emitSRAW (T2, T1, T0);
-      else
-	asm.emitSRAD (T2, T1, T0);
+	   asm.emitSRA_Addr (T2, T1, T0);
       pushAddr(T2);
     } else {
       return false;
@@ -3912,17 +3903,10 @@ public class VM_Compiler extends VM_BaselineCompiler
     popAddr(T1);
     popAddr(T0);
     asm.emitLVAL(T2,  1);
-    if (VM.BuildFor32Addr) {
-      if (signed)
-	asm.emitCMP(T0, T1);
-      else
-	asm.emitCMPL(T0, T1);
-    } else {
-      if (signed)
-	asm.emitCMPD(T0, T1);
-      else
-	asm.emitCMPLD(T0, T1);
-    } 
+    if (signed)
+	   asm.emitCMPAddr(T0, T1);
+    else
+	   asm.emitCMPLAddr(T0, T1);
     VM_ForwardReference fr = asm.emitForwardBC(cc);
     asm.emitLVAL(T2,  0);
     fr.resolve(asm);
