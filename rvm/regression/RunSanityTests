@@ -112,7 +112,7 @@ while [ $# != 0 ]; do
 	shift
     ;;
 
-    ## Should we put test results somewhere besides the shadow?
+    ## Should we put test results somewhere besides the default location?
     #
     -result)
 	RESULT=$2
@@ -151,7 +151,7 @@ while [ $# != 0 ]; do
 	BUILD="No"
     ;;
 
-    ## Should we avoid cleaning the shadow?
+    ## Should we avoid cleaning the build directory?
     # 
     -noclean)
 	CLEAN="No"
@@ -301,7 +301,7 @@ function doBuild
      $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null
 
      if [[ $CLEAN = "Yes" ]]; then
-        say "cleaning shadow"
+        say "cleaning build directory"
         cd $RVM_BUILD && jbuild -clean
      fi
 
