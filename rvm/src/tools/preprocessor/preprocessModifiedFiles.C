@@ -1,23 +1,19 @@
-// (C) Copyright IBM Corp. 2001, 2003
-//
-// $Id$
+/* (C) Copyright IBM Corp. 2001, 2003
 
-// Read the documentation for how this works:
+   $Id$
 
-#define _GNU_SOURCE 1		// so we get vsnprintf() guaranteed on gnu libc.
-#define _XOPEN_SOURCE 500	// the most extended version.  GNU explicitly
-				// tests for this being equal to 500.  Fun, eh?
-#include <stdio.h>
-char *Me; // name to appear in error messages
+   Documentation for this program is in the variables short_help_msg and
+   long_help_msg, immediately below.
+*/
 
-const char short_help_msg[] = ""
+static const char short_help_msg[] = ""
 "Usage: %s [--help]\n"
 "        [ --disable-modification-exit-status ] [--trace]\n"
 "        [ -D<name>[ =1 | =0 | =<string-value> ] ]... \n"
 "	 [ -- ] <output directory> [ <input file> ]...\n";
 
       
-const char long_help_msg[] = ""
+static const char long_help_msg[] = ""
 "   Preprocess source files that are new or have changed.\n"
 "\n"
 "   The timestamp of each input file is compared with that\n"
@@ -96,13 +92,24 @@ const char long_help_msg[] = ""
 "           just like the C preprocessor does.)\n"
 "\n"
 "     There is no equivalent to the C preprocessor's \"#define\" construct;\n"
-"     all constants are defined on the command line with \"-D\".\n"
-"\n"
+"     all constants are defined on the command line with \"-D\".\n";
+
+static const char authors[] =
 "   @author Derek Lieber\n"
 "   @date 13 Oct 1999\n"
 "   @modified Steven Augart\n"
 "   @date June, 2003\n";
 
+static const char license[] = 
+"Copyright ©IBM Corp. 2001, 2003.\n"
+"This software is redistributable under the terms of the Common Public License,\n"
+"an OSI-certified open-source license.\n";
+
+
+#define _GNU_SOURCE 1		// so we get vsnprintf() guaranteed on gnu libc.
+//#define _XOPEN_SOURCE 500	// the most extended version.  GNU explicitly
+// tests for this being equal to 500.  Fun, eh?
+#include <stdio.h>
 #include <errno.h>
 #include <string.h>     /* strcmp */
 #include <libgen.h>     /* basename */
@@ -119,6 +126,20 @@ const char long_help_msg[] = ""
 #include <stdarg.h>		// va_list, for snprintf()
 #include <sys/types.h>
 #include <sys/wait.h>
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
+char *Me; // name to appear in error messages
+
+bool const config_non_tf_directives_ok_in_conditions = true; /* historical behavior */
+// bool config_non_tf_directives_ok_in_conditions = false; /* Strict behaviour */
+bool const config_undefined_directives_ok_in_conditionals = true; /* Historical behavior */
+// bool config_undefined_directives_ok_in_conditionals = false; /* Strict behavior */
+bool exit_with_status_1_if_files_modified = true; /* Historical behavior */
+
+
+
 
 #ifndef DEBUG
 #define DEBUG 0
@@ -134,8 +155,26 @@ const char long_help_msg[] = ""
 
 // Preprocessor directives that have been set via "-D<name>".
 //
-const char *DirectiveName[MAXDIRECTIVES];   // <name>'s
-const char *DirectiveValue[MAXDIRECTIVES];  // values
+struct def {
+    const char *Name;
+    const char *Value;		// this is the value for the "value"
+				// construct.  "value" is only meaningful if
+				// this is non-null..
+    enum { UNINIT = 0, SET = 1, UNSET = -1} isset; // true or false; this is
+    // only sensible for the
+    // -D<Name>=0 and
+    // -D<Name>=1.    Otherwise
+    // it's UNINIT
+} Directive[MAXDIRECTIVES];
+
+// This kludge gets around the fact that an enum tag is scoped in its defining
+// context in C++, whereas in standard C, enum tags are global identifiers.
+#ifdef __cplusplus
+#define membof(o) o
+#else
+#define membof(o)
+#endif
+
 int   Directives;                    // number thereof
 
 // Source file currently being processed.
@@ -149,313 +188,296 @@ int   Value[MAXNESTING];     // has current block at current nesting level evalu
 int   Unmatched[MAXNESTING]; // line number of currently active #if, #elif, or #else at each level
 bool   PassLines;             // if true, pass lines through.   false --> don't
 
-bool exit_with_status_1_if_files_modified = true;
+char *PutIntoPackage = NULL;	// points to memory that's part of argv.
 
-char *PutIntoPackage = NULL;
-
-// Forward references.
-//
+// Forward references, and prototypes to shut up GCC's paranoid warning
+// settings. 
 int  preprocess(const char *srcFile, const char *destinationFile);
-void reviseState();
+void reviseState(void);
+#ifdef DEBUG
 void printState(FILE *fout, char *directive, char *line);
-bool  eval(char *p);
-int evalReplace(char *cursor);
+#endif
+bool eval(char *p);
+int  evalReplace(char *cursor);
+char *getToken(char **c);
+bool getBoolean(char **c);
 
 // Types of tokens returned by scan().
 //
 enum scan_token {
-	TT_TEXT         = 0,
-	TT_IF           = 1,
-	TT_ELIF         = 2,
-	TT_ELSE         = 3,
-	TT_ENDIF        = 4,
-	TT_REPLACE      = 5,
-	TT_UNRECOGNIZED = 6,
+    TT_TEXT         = 0,
+    TT_IF           = 1,
+    TT_ELIF         = 2,
+    TT_ELSE         = 3,
+    TT_ENDIF        = 4,
+    TT_REPLACE      = 5,
+    TT_UNRECOGNIZED = 6,
 };
-enum scan_token scan(const char *srcFile, char *line, int *value);
 
+enum scan_token scan(const char *srcFile, char *line, int *valuep);
 
 #define UNUSED_DECL_ARG __attribute__((__unused__))
 #define UNUSED_DEF_ARG __attribute__((__unused__))
 // The __signal__ attribute is only relevant on GCC on the AVR processor.
 // We don't (yet) work on the AVR, so this code will probably never be
-// #executed.,  
+// executed.  
 #ifdef __avr__
 #define SIGNAL_ATTRIBUTE    __attribute__((__signal__))
 #else
 #define SIGNAL_ATTRIBUTE
 #endif
 
-//static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG);
-static void delete_on_trouble(UNUSED_DECL_ARG int dummy_status , UNUSED_DECL_ARG void *dummy_arg ) 
-    SIGNAL_ATTRIBUTE;
 
-
-// Values of tokens returned by scan() for IF and ELIF.
+// Values of tokens returned by scan() (in *valuep) for IF and ELIF.
 // For some cases, an index into DirectiveValue is returned.
 #define VV_FALSE 0
 #define VV_TRUE  1
-
-/* These are like strcmp() and strncmp(), but with a more intuitive
-   interface (at least, more intuitive for those of us who did not grow
-   up using the FORTRAN Arithmetic IF!) */
-inline bool 
-strneql(const char *s, const char *t, size_t n) 
-{
-    return strncmp(s, t, n) == 0;
-}
-
-
-inline bool 
-streql(const char *s, const char *t) 
-{
-    return strcmp(s, t) == 0;
-}
 
 
 /* snprintf(), but with our own built-in error checks. */
 void xsnprintf(char *buf, size_t bufsize, const char *format, ...)
     __attribute__((__format__(__printf__, 3, 4)));
-// void xsnprintf(char *buf, size_t bufsize, const char *format, ...);
-
 void xsystem(const char *command);
+void inputErr(const char msg[], ...) 
+    __attribute__((noreturn))
+    __attribute__((__format__(__printf__, 1, 2)));
 
-const char *DeleteOnTrouble = NULL; // delete this file on trouble.
+static void set_up_trouble_handlers();
+bool  strneql(const char *s, const char *t, size_t n) ;
+bool  streql(const char *s, const char *t);
+static void shorthelp(FILE *out);
 
-/** GNU C++ (at least in 3.3) requires the __unused__ to be present here. */
-static void 
-delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *  dummy_arg )
-{
-    if (DeleteOnTrouble) {
-	// We're already in trouble, so might as well delete, no?
-	int err = unlink(DeleteOnTrouble);
-	if (err && errno != ENOENT) {
-	    fprintf(stderr, "%s: More Trouble -- unable to clean up by deleting  ", Me);
-	    perror(DeleteOnTrouble);
-	}
-	DeleteOnTrouble = NULL;
-    }
-}
-
-
-void
-shorthelp(FILE *out)
-{
-    fprintf(out,  short_help_msg, Me);
-    fprintf(out, "%s:   Use \"%s --help\" for more information.\n", Me, Me);
-}
-
-
-
+/** Delete this file on trouble.  This is the interface to
+ * delete_on_trouble().  */
+const char *DeleteOnTrouble = NULL;
 
 
 int
 main(int argc, char **argv) 
 {
-   Me = basename(*argv++); --argc;
+    Me = basename(*argv++); --argc;
 
-   if (on_exit(&delete_on_trouble, (void *) NULL)) {
-       perror("Unable to register delete_on_trouble() via on_exit.  This should never happen.\n");
-       exit(2);
-   }
+    set_up_trouble_handlers();
 
-   // gather arguments
-   //
-   int trace = 0;
-   int verbose = 0;
-   for (; **argv == '-'; ++argv, --argc) {
-      char *arg   = *argv;
-
-      if (streql(arg, "--")) {
-	  ++argv;
-	  break;
-      }
-      
-      if (strneql(arg, "--", 2)) {
-	  ++arg;       /* treat double-dash and single-dash the same way. */
-      }
+    // gather arguments
+    //
+    int trace = 0;
+    int verbose = 0;
+    for (; **argv == '-'; ++argv, --argc) {
+	char *arg   = *argv;
+	
+	if (streql(arg, "--")) {
+	    ++argv;
+	    break;
+	}
+	
+	if (strneql(arg, "--", 2)) {
+	    ++arg;       /* treat double-dash and single-dash the same way. */
+	}
 	  
-      if (streql(arg, "-help") || streql(arg, "-h")) {
-//	  shorthelp(stdout);
-	  printf(short_help_msg, Me);
-	  fputs(long_help_msg, stdout);
-	  exit(0);
-      }
+	if (streql(arg, "-help") || streql(arg, "-h")) {
+	    printf(short_help_msg, Me);
+	    fputs(long_help_msg, stdout);
+	    exit(0);
+	}
       
-      if (streql(arg, "-disable-modification-exit-status")) {
-	  exit_with_status_1_if_files_modified = false;
-	  continue;
-      }
+	if (streql(arg, "-disable-modification-exit-status")) {
+	    exit_with_status_1_if_files_modified = false;
+	    continue;
+	}
       
-      if (streql(arg, "-trace")) {
-         trace = 1;
-         continue;
-      }
-
-      if (streql(arg, "-verbose") || streql(arg, "-v")) {
-         trace = 1;
-         continue;
-      }
+	if (streql(arg, "-trace")) {
+	    trace = 1;
+	    continue;
+	}
+	
+	if (streql(arg, "-verbose") || streql(arg, "-v")) {
+	    trace = 1;
+	    continue;
+	}
 	  
-      if (strneql(arg, "-D", 2)) {
+	if (strneql(arg, "-D", 2)) {
+	    struct def *dp = Directive + Directives;
+	    arg += 2;
+	    
+	    dp->Name = arg;
+	    for ( ; *arg && *arg != '='; ++arg)
+		;
+	    char *val;
+	    if (*arg == '=') {
+		*arg = '\0';	// null-terminate the name.
+		val = arg + 1;
+	    } else {
+		assert(*arg == '\0');
+		val = NULL;	// Special sentinel value.
+	    }
+	    
+	    if (++Directives >= MAXDIRECTIVES) {
+		fprintf(stderr, "\
+%s: Too many (%d) -D directives; recompile with a larger\n" 
+			"value of MAXDIRECTIVES.\n",
+			Me, Directives);
+		exit(3);
+	    }
 
-         char *name = new char[strlen(arg) + 1];
-	 char *dst = name;
+	    // We used to ignore "-D<name>=0"; now we explicitly define it as
+	    // UNSET. 
+	    // accept "-D<name>" as "-D<name>=1" == SET
+	    // accept "-D<name>=<str>" for any other string
 
-         const char *src;
-	 for (src = arg + 2; *src && *src != '='; )
-	   *dst++ = *src++;
-         *dst = '\0';
-             
-         // ignore "-D<name>=0"
-         // accept "-D<name>" as "-D<name>=1"
-         // accept "-D<name>=<str>" for any other string
-	 //
-         if (*name == '\0') {
-	     fprintf(stderr, "%s: The -D<name>=<value> flag needs at least a <name>! Got argument: %s\n", Me, arg);
-	     shorthelp(stderr);
-	     exit(2);
-	 }
-            
-	 // -D<name>=0
-	 if (streql(src, "=0"))
-	     continue;		// ignore it (!)
+	    if (*(dp->Name) == '\0') {
+		fprintf(stderr, "%s: The -D<name>[=<value>] flag needs\n"
+			"at least a <name>!  None found in definition # %d.\n",
+			Me , Directives);
+		shorthelp(stderr);
+		exit(2);
+	    }
 
-	 // -D<name> with no =<value> is a special case.  
-	 // Treat it as if -D<name>=1.
-	 // -D<name>=1 is also a special case.
-	 if (*src == '\0' || streql(src, "=1")) {
-	     DirectiveName[Directives] = name;
-	     DirectiveValue[Directives] = NULL;
-	     if (++Directives >= MAXDIRECTIVES) {
-		 fprintf(stderr, "\
-%s: Too many (%d) -D directives; recompile with a larger value of MAXDIRECTIVES.\n",
-			 Me, Directives);
-		 exit(3);
-	     }
-	     continue;
-	 } 
+	    // -D<name> with no =<value> is a special case.  
+	    // Treat it as if -D<name>=1.
+	    // -D<name>=1 is also a special case.
+	    if (!val || streql(val, "1")) {
+		assert(dp->Value == NULL);
+		dp->isset = membof(dp->) SET;
+		continue;
+	    } 
 
-	 // Must be -D<name>=<value>
-	 assert(*src == '=');	// This replaces a former "if" that seems to me
-				// to represent a condition that must always
-				// be true.  I'll see if I'm wrong. 
-				// --steven augart 
-	 DirectiveName[Directives] = name;
-	 DirectiveValue[Directives] = src+1;
-	 if (++Directives >= MAXDIRECTIVES) {
-	     fprintf(stderr, "%s: Too many (%d) -D directives; recompile with a larger value of MAXDIRECTIVES.\n", Me, Directives);
-	     exit(3);
-	 }
-	 continue;
-      }
+	    // -D<name>=0.  Special case.   Used to be equivalent to never
+	    // setting. 
+	    if (streql(val, "0")) {
+		// should always be initialized to NULL, since Directives is
+		// global (BSS) space.
+		assert(dp->Value == NULL);
+		dp->isset = membof(dp->) UNSET;
+		continue;		// ignore it (!)
+	    }
+	   
+
+	    // Must be -D<name>=<value>
+	    dp->Value = val;
+	    // should always be initialized to UNINIT, since Directives is
+	    // global (BSS) space.
+	    assert(dp->isset == membof(dp->) UNINIT);
+	    continue;
+	}
+
+	/* We'll consider multiple -package declarations benign, and let
+	 * the last one win.. */
+	if (streql(arg, "-package")) {
+	    if (! *++argv ) {
+		fprintf(stderr, "%s: The -package flag requires an argument\n", Me);
+		shorthelp(stderr);
+		exit(2);
+	    }
+	    PutIntoPackage = *argv;
+	}
+
+	if (strneql(arg, "-package=", 9)) {
+	    PutIntoPackage = arg + 9;
+	    continue;
+	}
+
+	fprintf(stderr, "%s: unrecognized option: %s\n", Me, arg);
+	shorthelp(stderr);
+	exit(2);
+    }
+    
+    char *outputDirectory = *argv++; --argc;
+
+    // check timestamps and preprocess new/changed files
+    //
+    int examined     = 0;
+    int preprocessed = 0;
+    assert(argc >= 0);
+
+    if (argc == 0 && trace) {
+	fprintf(stderr, "%s: I won't preprocess any files, since you didn't\n"
+		"    specify any on the command line.", Me);
+    }
+    
+
+    while (argc != 0) {
+	char *source = *argv++; --argc;
+	char  destination[PATH_MAX + 1];
+	xsnprintf(destination, sizeof destination, "%s/%s", outputDirectory, basename(source));
+
+	struct stat info;
+	time_t      sourceTime;
+	time_t      destinationTime;
+	
+	if (stat(source, &info) < 0) {
+	    fprintf(stderr, "%s: a source file (%s) doesn't exist.  Aborting.\n",
+		    Me, source);
+	    exit(2);
+	}
+	sourceTime = info.st_mtime;
+
+	if (stat(destination, &info) < 0) {
+	    destinationTime = 0;
+	} else {
+	    destinationTime = info.st_mtime;
+	}
+      
+	if (sourceTime > destinationTime) {
+	    if (verbose) {
+		if (destinationTime == 0) {
+		    fprintf(stdout, "%s: \"%s\" has never been processed: processing\n", Me, basename(source));
+		} else {
+		    fprintf(stdout, "%s: \"%s\" changed since last time: reprocessing\n", Me, basename(source));
+		}
+	    }
+	  
+	    // file is new or has changed
          
-      if (strneql(arg, "-package", 8)) {
-	PutIntoPackage = strdup( (arg[8]=='=')? (char*)arg+9: (char*)++argv );
-	continue;
-      }
+	    // // make (previously preprocessed) output file writable
+	    // if (destinationTime != 0)
+	    //    chmod(destination, S_IREAD | S_IWRITE);
+	  
+	    if (preprocess(source, DeleteOnTrouble = destination) < 0) {
+		exit(2);             // treat as fatal error
+	    }
+	    DeleteOnTrouble = NULL;
+	  
 
-      fprintf(stderr, "%s: unrecognized option: %s\n", Me, arg);
-      shorthelp(stderr);
-      exit(2);
-   }
+	    // Move file to the right subdirectory if it is part of a package
+	    //
+	    if (*package != 0) {
+		// Should do error-checking of package
+		char command[PATH_MAX + 100];
+		char finalDir[PATH_MAX + 1];
+		char finalDstFile[PATH_MAX + 1];
+		// Convert "." in package to "/"
+		char *cur = package;
+		while ((cur = strchr(cur, '.')) != NULL) {
+		    *cur = '/';
+		}
+		xsnprintf(finalDir, sizeof finalDir, "%s/%s", outputDirectory, package);
+		xsnprintf(finalDstFile, sizeof finalDstFile, "%s/%s", finalDir, basename(source));
+		xsnprintf(command, sizeof command, "mkdir -p %s", finalDir);
+		//fprintf(stderr, "%s\n", command);
+		xsystem(command);
+		xsnprintf(command, sizeof command, "mv -f %s %s", destination, finalDstFile);
+		//fprintf(stderr, "%s\n", command);
+		xsystem(command);
+	    }
+
+	    // // make output file non-writable to discourage editing that will get clobbered by future preprocessing runs
+	    // chmod(destination, S_IREAD);
+         
+	    ++preprocessed;
+	    SHOW_PROGRESS("+");
+	}
+	else
+	    SHOW_PROGRESS(".");
+	++examined;
+    }
    
-   if (! *argv) {
-       shorthelp(stderr);
-       exit(2);
-   }
-
-
-
-   char *outputDirectory = *argv++; --argc;
-
-   // check timestamps and preprocess new/changed files
-   //
-   int examined     = 0;
-   int preprocessed = 0;
-   while (argc != 0) {
-      char *source = *argv++; --argc;
-      char  destination[PATH_MAX + 1];
-      xsnprintf(destination, sizeof destination, "%s/%s", outputDirectory, basename(source));
-
-      struct stat info;
-      time_t      sourceTime;
-      time_t      destinationTime;
-
-      if (stat(source, &info) < 0) {
-	  fprintf(stderr, "%s: a source file (%s) doesn't exist.  Aborting.\n",
-		  Me, source);
-	  exit(2);
-      }
-      sourceTime = info.st_mtime;
-
-      if (stat(destination, &info) < 0) {
-	  destinationTime = 0;
-      } else {
-	  destinationTime = info.st_mtime;
-      }
-      
-      if (sourceTime > destinationTime) {
-
-	  if (verbose) {
-	      if (destinationTime == 0) {
-		  fprintf(stdout, "%s: \"%s\" has never been processed: processing\n", Me, basename(source));
-	      } else {
-		  fprintf(stdout, "%s: \"%s\" changed since last time: reprocessing\n", Me, basename(source));
-	      }
-	  }
-	  
-	  // file is new or has changed
-         
-	  // // make (previously preprocessed) output file writable
-	  // if (destinationTime != 0)
-	  //    chmod(destination, S_IREAD | S_IWRITE);
-	  
-	  if (preprocess(source, DeleteOnTrouble = destination) < 0) {
-	      exit(2);             // treat as fatal error
-	  }
-	  DeleteOnTrouble = NULL;
-	  
-
-	  // Move file to the right subdirectory if it is part of a package
-	  //
-	  if (*package != 0) {
-	      // Should do error-checking of package
-	      char command[PATH_MAX + 100];
-	      char finalDir[PATH_MAX + 1];
-	      char finalDstFile[PATH_MAX + 1];
-	      // Convert "." in package to "/"
-	      char *cur = package;
-	      while ((cur = strchr(cur, '.')) != NULL) {
-		  *cur = '/';
-	      }
-	      xsnprintf(finalDir, sizeof finalDir, "%s/%s", outputDirectory, package);
-	      xsnprintf(finalDstFile, sizeof finalDstFile, "%s/%s", finalDir, basename(source));
-	      xsnprintf(command, sizeof command, "mkdir -p %s", finalDir);
-	      //fprintf(stderr, "%s\n", command);
-	      xsystem(command);
-	      xsnprintf(command, sizeof command, "mv -f %s %s", destination, finalDstFile);
-	      //fprintf(stderr, "%s\n", command);
-	      xsystem(command);
-	  }
-
-	  // // make output file non-writable to discourage editing that will get clobbered by future preprocessing runs
-	  // chmod(destination, S_IREAD);
-         
-	  ++preprocessed;
-	  SHOW_PROGRESS("+");
-      }
-      else
-	  SHOW_PROGRESS(".");
-      ++examined;
-   }
-   
-   if (verbose)
-       fprintf(stdout, "\n%s: %d of %d files required preprocessing\n", Me, preprocessed, examined);
-// SHOW_PROGRESS("\n");
-   if (exit_with_status_1_if_files_modified && preprocessed)
-       exit(1);
-   exit(0);
+    if (verbose)
+	fprintf(stdout, "\n%s: %d of %d files required preprocessing\n", Me, preprocessed, examined);
+    // SHOW_PROGRESS("\n");
+    if (exit_with_status_1_if_files_modified && preprocessed)
+	exit(1);
+    exit(0);
 }
 
 
@@ -463,7 +485,7 @@ main(int argc, char **argv)
 // Takes:    name of file to be read
 //           name of file to be written
 // Returns: 0 --> success
-//          -1 --> trouble
+//          -1 --> trouble (which leads to immediate aborting by the caller)
 int
 preprocess(const char *srcFile, const char *dstFile)
 {
@@ -485,8 +507,13 @@ preprocess(const char *srcFile, const char *dstFile)
     }
 
 #if DEBUG
-    for (int i = 0; i < Directives; ++i)
-	fprintf(fout, "[%s=%s]\n", DirectiveName[i], DirectiveValue[i] ? : "1");
+    for (int i = 0; i < Directives; ++i) {
+	struct def *dp = Directives + i;
+	fprintf(fout, "[%s=%s]\n", dp->Name, 
+		Directive[i].Value ? : 
+		( dp->isset == membof(dp->) SET ? "1 (*SET*)" : "0 (*UNSET*)"));
+    }
+	
 #endif
 
     SourceName = srcFile;
@@ -523,7 +550,7 @@ preprocess(const char *srcFile, const char *dstFile)
 		}
 
 		if (Nesting) {
-		    fprintf(stderr, "%s: No #endif matches line %d of `%s'\n", Me, Unmatched[Nesting], SourceName);
+		    fprintf(stderr, "%s: %s:%d: No matching #endif for this line\n", Me, SourceName, Unmatched[Nesting]);
 		    return Trouble;
 		}
 		return OK;
@@ -544,8 +571,7 @@ preprocess(const char *srcFile, const char *dstFile)
 	linelen = strlen(line);
 	assert(linelen > 0);	// otherwise we'd have gotten feof().
 	if (line[ linelen - 1 ] != '\n') {
-	    fprintf(stderr, "%s: %s:%d: Line too long (over %d characters).\n", Me, srcFile, SourceLine, linelen);
-	    return Trouble;
+	    inputErr("Line too long (over %d characters).\n", linelen);
 	}
 
 	++SourceLine;
@@ -566,7 +592,7 @@ preprocess(const char *srcFile, const char *dstFile)
 #if DEBUG
 	    printState(fout, "REPLACE ", line);
 #endif
-	    fputs(PassLines ? DirectiveValue[value] : "\n", fout);
+	    fputs(PassLines ? Directive[value].Value : "\n", fout);
 	    continue;
 
 	case TT_IF:
@@ -582,8 +608,7 @@ preprocess(const char *srcFile, const char *dstFile)
 
 	case TT_ELIF:
 	    if (Nesting == 0) {
-		fprintf(stderr, "%s: #elif with no corresponding #if at line %d of `%s'\n", Me, SourceLine, SourceName);
-		return Trouble;
+		inputErr("#elif with no corresponding #if");
 	    }
 	    --Nesting;
 	    
@@ -601,8 +626,7 @@ preprocess(const char *srcFile, const char *dstFile)
 
 	case TT_ELSE:
 	    if (Nesting == 0) {
-		fprintf(stderr, "%s: #else with no corresponding #if at line %d of `%s'\n", Me, SourceLine, SourceName);
-		return Trouble;
+		inputErr("#else with no corresponding #if");
 	    }
 	    --Nesting;
 	    if (TrueSeen[Nesting]) 
@@ -621,8 +645,7 @@ preprocess(const char *srcFile, const char *dstFile)
 
 	case TT_ENDIF:
 	    if (Nesting == 0) {
-		fprintf(stderr, "%s: #endif with no corresponding #if at line %d of `%s'\n", Me, SourceLine, SourceName);
-		return Trouble;
+		inputErr("#endif with no corresponding #if");
 	    }
 	    --Nesting;
 	    reviseState();
@@ -633,7 +656,7 @@ preprocess(const char *srcFile, const char *dstFile)
 	    continue;
 
 	case TT_UNRECOGNIZED:
-	    fprintf(stderr, "%s: %s:%d: unrecognized preprocessor directive: %s\n", Me, SourceName, SourceLine, line);
+	    inputErr("unrecognized preprocessor directive: %s", line);
 	    return Trouble; 
 
 	default:
@@ -642,8 +665,7 @@ preprocess(const char *srcFile, const char *dstFile)
 
 	}
     }
-   
-    return 0; // not reached
+    /* NOTREACHED */
 }
 
 // Compute new preprocessor state after scanning a directive.
@@ -651,12 +673,12 @@ preprocess(const char *srcFile, const char *dstFile)
 //           Nesting
 // Returned: PassLines
 //
-void reviseState() 
+void reviseState(void) 
 {
 
-   PassLines = true;
-   for (int i = 0; i < Nesting; ++i)
-      PassLines = PassLines && Value[i];
+    PassLines = true;
+    for (int i = 0; i < Nesting; ++i)
+	PassLines = PassLines && Value[i];
 }
 
 #if DEBUG
@@ -669,16 +691,16 @@ void reviseState()
 void
 printState(FILE *fout, char *directive, char *line)
 {
-   fprintf(fout, "[stack=");
+    fprintf(fout, "[stack=");
 
-   int i;
-   for (i = 0; i < Nesting; ++i) 
-      fprintf(fout, "%d ", Value[i]);
+    int i;
+    for (i = 0; i < Nesting; ++i) 
+	fprintf(fout, "%d ", Value[i]);
    
-   for (; i < 5; ++i)
-      fprintf(fout, "..");
+    for (; i < 5; ++i)
+	fprintf(fout, "..");
    
-   fprintf(fout, "%s] %s %s", PassLines ? "pass" : "hide", directive, line);
+    fprintf(fout, "%s] %s %s", PassLines ? "pass" : "hide", directive, line);
 }
 #endif
 
@@ -695,85 +717,84 @@ printState(FILE *fout, char *directive, char *line)
 //           TT_UNRECOGNIZED --> found unrecognized      directive
 // In some cases, value is modified.
 
-scan_token
-scan(const char *srcFile, char *line, int *value) 
+enum scan_token
+scan(const char *srcFile, char *line, int *valuep) 
 {
-
     // skip whitespace
     //
     char *p;
     for (p = line; *p && isspace(*p); ++p)
 	;
 
-   // look for "package [c.]*;"
-   //
-   if (strneql(p, "package ", 8)) {
-     if (PutIntoPackage)
-       fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
-     if (*package != 0)
-       fprintf(stderr, "WARNING: multiple package declaration in file %s", srcFile);
-     p += 8;
-     char *tmp = package;
-     while (*p != ';') {
-       if (*p == '\n') fprintf(stderr, "%s: Ill-formed package declaration: %s", srcFile, line);
-       *(tmp++) = *(p++);
-     }
-     *tmp = 0;
-     return TT_TEXT;
-   }
+    // look for "package [c.]*;"
+    //
+    if (strneql(p, "package ", 8)) {
+	if (PutIntoPackage)
+	    fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
+	if (*package != 0)
+	    fprintf(stderr, "WARNING: multiple package declaration in file %s", srcFile);
+	p += 8;
+	char *tmp = package;
+	while (*p != ';') {
+	    if (*p == '\n') fprintf(stderr, "%s: Ill-formed package declaration: %s", srcFile, line);
+	    *(tmp++) = *(p++);
+	}
+	*tmp = 0;
+	return TT_TEXT;
+    }
 
-   // look for "//-#"
-   //
-   if (*p++ != '/') return TT_TEXT;
-   if (*p++ != '/') return TT_TEXT;
-   if (*p++ != '-') return TT_TEXT;
-   if (*p++ != '#') return TT_TEXT;
+    // look for "//-#"
+    //
+    if (*p++ != '/') return TT_TEXT;
+    if (*p++ != '/') return TT_TEXT;
+    if (*p++ != '-') return TT_TEXT;
+    if (*p++ != '#') return TT_TEXT;
 
-   // look for "value "
-   //
-   if (strneql(p, "value", 5) && isspace(p[5])) {
-       p +=6;
-       while (isspace(*p))
-	   ++p;
+    // look for "value "
+    //
+    if (strneql(p, "value", 5) && isspace(p[5])) {
+	p +=6;
+	while (isspace(*p))
+	    ++p;
        
-       *value = evalReplace(p);
-       return TT_REPLACE;
-   }
+	*valuep = evalReplace(p);
+	return TT_REPLACE;
+    }
 
-   // look for "if "
-   //
-   if (strneql(p, "if", 2) && isspace(p[2])) {
-       p +=3;
-       while (isspace(*p))
-	   ++p;
-       *value = eval(p);
-       return TT_IF;
-   }
+    // look for "if "
+    //
+    if (strneql(p, "if", 2) && isspace(p[2])) {
+	p +=3;
+	while (isspace(*p))
+	    ++p;
+	*valuep = eval(p);
+	return TT_IF;
+    }
      
-   // look for "elif"
-   //
-   if (strneql(p, "elif", 4) && isspace(p[4])) {
-       p += 5;
-       while (isspace(*p))
-	   ++p;
+    // look for "elif"
+    //
+    if (strneql(p, "elif", 4) && isspace(p[4])) {
+	p += 5;
+	while (isspace(*p))
+	    ++p;
 
-       *value = eval(p);
-       return TT_ELIF;
-   }
+	*valuep = eval(p);
+	return TT_ELIF;
+    }
      
-   // look for "else"
-   //
-   if (strneql(p, "else", 4)) {
-       return TT_ELSE;
-   }
+    // look for "else"
+    //
+    if (strneql(p, "else", 4)) {
+	return TT_ELSE;
+    }
 
-   // look for "endif"
-   //
-   if (strneql(p, "endif", 5)) {
-       return TT_ENDIF;
-   }
+    // look for "endif"
+    //
+    if (strneql(p, "endif", 5)) {
+	return TT_ENDIF;
+    }
      
-   return TT_UNRECOGNIZED;
+    return TT_UNRECOGNIZED;
 }
 
 // Evaluate <name> appearing in an `if' or `elif' directive.
@@ -783,102 +804,135 @@ scan(const char *srcFile, char *line, int *value)
 //                    ^cursor
 //		where conditional is name <&& name> <|| name>
 //			(!name toggles the sense)
-//  Returns the name of the token.
-//    *c points to the cursor.
+//  Returns the name of the token, but NOT null terminated
+//    Upon return, *c points to the cursor, the character immediately after
+//       the end of the name 
+//    It will return the leading ! if one exists.
+//  
+//    The only characters forbidden to a token are '&', '|', and whitespace.
 char *
-getToken(char **c)
+getToken(char **cursorp)
 {
-   char *start, *cursor;
-   cursor = *c;
-   while (*cursor == ' ' || *cursor == '\t')	// skip white space
-      ++cursor;
-   start = cursor;
-   while (*cursor != ' ' && *cursor != '\t' && *cursor != '\n' && *cursor != '\v' && *cursor != '\r' && *cursor != '&' && *cursor != '|')
-      ++cursor;
-   *c = cursor;
-   return start;
+    char *start, *cursor;
+    cursor = *cursorp;
+    while (isspace(*cursor))
+	++cursor;
+    start = cursor;
+    while (*cursor && !isspace(*cursor) && *cursor != '&' && *cursor != '|')
+	++cursor;
+    *cursorp = cursor;
+    return start;
 }
 
 
-// Returned:  true  --> <conditional> is true
-//            false --> <conditional> is false
-//
+// Returned:  true  --> on top of a boolean operator ("||"
+//		    or "&&")
+//            false --> not on top of one.
+// Trims leading whitespace, leaves the cursor before the bool. operator.
 
-bool getBoolean(char **c)
+bool getBoolean(char **cursorp)
 {
-   char *cursor;
-   cursor = *c;
-   while (*cursor == ' ' || *cursor == '\t')	// skip white space
-      ++cursor;
-   *c = cursor;
-   return (cursor[0] == '|' && cursor[1] == '|') ||
-	  (cursor[0] == '&' && cursor[1] == '&');
+    while (isspace(**cursorp))
+	++*cursorp;
+
+    return ((*cursorp)[0] == '|' && (*cursorp)[1] == '|') 
+	|| ((*cursorp)[0] == '&' && (*cursorp)[1] == '&');
 }
 
 
-/* Returns an index into DirectiveValue. */
+/* Returns an index into Directive[i], which our caller derefs. for
+ * Directive[i].Value. */ 
 int 
 evalReplace(char *cursor) 
 {
-  char *name = getToken( &cursor );
-  assert(cursor >= name);
-  size_t len = cursor - name;
-  for (int i = 0; i < Directives; ++i) {
-    const char *directiveName = DirectiveName[i];
-    if (strlen(directiveName) == len && strneql(name, directiveName, len)) {
-      if (DirectiveValue[i] == NULL)
-	fprintf(stderr, "%s: %s:%d: //-#value used on non-value (true/false) directive '%s'\n", 
-		Me, SourceName, SourceLine, directiveName);
-      return i;
+    char *name = getToken( &cursor );
+    assert( ( cursor == name ) ? ( *name == '\0' ) : *name);
+    size_t len = cursor - name;
+    if (len == 0)
+	inputErr("The //-#value <name> preprocessor construct needs a <name>");
+	
+    for (int i = 0; i < Directives; ++i) {
+	const char *directiveName = Directive[i].Name;
+	if (strlen(directiveName) == len && strneql(name, directiveName, len))
+	{
+	    if (Directive[i].Value == NULL)
+		inputErr(
+		    "//-#value used on non-value (true/false) directive '%s'", 
+		    directiveName);
+	    return i;
+	}
     }
-  }
-  fprintf(stderr, "%s: %s:%d: Unknown value directive '%s'\n", 
-	  Me, SourceName, SourceLine, name);
-  exit(2);
+    inputErr("//-#value used on undefined directive '%*.*s'", len, len, name);
+    /* NOTREACHED */
 }
 
 
 bool
 eval(char *cursor) 
 {
-  int match;
-  while ( 1 ) {
-      match = 0;
-      char *name = getToken( &cursor );
-      int toggle = 0;
-      if ( name[0] == '!' ) {
-	toggle = 1;
-	name++;
-      }
-      assert(cursor >= name);
-      size_t len = cursor - name;
-      if (len == 0) {
-	  fprintf(stderr, "%s: %s:%d missing <name> in preprocessor directive\n", 
-		  Me, SourceName, SourceLine);
-	  exit(2);
+    int match;
+    for (;;) {
+	match = -1;
+	char *name = getToken( &cursor );
+	int toggle = 0;
+	if ( name[0] == '!' ) {
+	    toggle = 1;
+	    name++;
 	}
-      for (int i = 0; i < Directives; ++i)
+	assert(cursor >= name);
+	size_t len = cursor - name;
+	if (len == 0)
+	    inputErr("missing <name> in preprocessor conditional");
+	for (int i = 0; i < Directives; ++i)
 	{
-	  const char *directiveName = DirectiveName[i];
-	  if (strlen(directiveName) == len &&
-	      memcmp(directiveName, name, len) == 0) {
-	      match = 1;
-	      break;
-}
+	    struct def *dp = Directive + i;
+	    if (strlen(dp->Name) == len && memcmp(dp->Name, name, len) == 0) 
+	    {
+		/* Matched the token.  Now evaluate. */
+		if (dp->Value) {
+		    if (!config_non_tf_directives_ok_in_conditions)
+			inputErr(
+			    "The directive name %*.*s is a Value directive;\n"
+			    "     preprocessor conditionals require a"
+			    "True/False directive", len, len, dp->Name);
+		    match = 1;
+		} else {
+		    assert(!dp->Value);
+		    assert(dp->isset != membof(dp->) UNINIT);
+
+		    match = (dp->isset == membof(dp->) SET);
+		}
+		break;
+	    }
 	}
-      if ( toggle ) match = !match;
-      if ( !getBoolean( &cursor ) ) break;
-      if ( cursor[0] == '|' ) {
-	  if ( match ) 
-	      return true;
-	  
-      } else {
-	if ( !match ) 
-	    return false;
-      }
-      cursor += 2;		// skip && or ||
-  }
-  return match ? true : false;
+	if (match < 0) {
+	    if (! config_undefined_directives_ok_in_conditionals)
+		inputErr("Undefined directive name %*.*s"
+			 " in preprocessor conditional", len, len, name);
+	    match = 0;
+	}
+	
+	if ( toggle ) 
+	    match = !match;
+	if ( !getBoolean( &cursor ) ) 
+	    break;
+	if ( cursor[0] == '|' ) {
+	    if ( match ) 
+		return true;
+	} else {
+	    if ( !match ) 
+		return false;
+	}
+	cursor += 2;		// skip && or ||
+    }
+    while (*cursor && isspace(*cursor))
+	++cursor;
+    if (*cursor) {
+	inputErr("Garbage characters (\"%s\") are at the"
+		 "end of a preprocessor conditional.", cursor);
+	exit(2);
+    }
+    return match;
 }
 
 
@@ -894,11 +948,14 @@ xsnprintf(char *buf, size_t bufsize, const char *format, ...)
     va_end(ap);
     // Handle both the old and new GNU C library return values.
     if (n < 0 || n + 1 > (int) bufsize) {
-	fprintf(stderr, "%s: xsnprintf(): Ran out of space in a fixed-size buffer while printing a message starting with: \"%s\"", Me, buf);
+	fprintf(stderr, "%s: xsnprintf(): Ran out of space in a"
+		" fixed-size buffer while formatting a string"
+		" starting with: \"%s\"\n", Me, buf);
 	exit(4);
     }
     /* All is well. */
 }
+
 
 void
 xsystem(const char *command)
@@ -916,8 +973,6 @@ xsystem(const char *command)
     }
 
     fprintf(stderr, "%s: Trouble while running system(\"%s\").\n", Me, command);
-    fputs("     Aborting execution.\n", stderr);
-
     if (WIFEXITED(ret)) {
 	if (WEXITSTATUS(ret) == 127) {
 	    fputs("     The shell probably) could not be executed.\n", stderr);
@@ -931,7 +986,122 @@ xsystem(const char *command)
 	fprintf(stderr, "    !!! The system() function failed for some reason that we do not understand; return status was %d.  You should never see this message.  Aborting execution.\n", ret);
 	exit(13);
     }
+    fputs("     Aborting execution.\n", stderr);
     exit(5);
 }
 
     
+void
+shorthelp(FILE *out)
+{
+    fprintf(out, short_help_msg, Me);
+    fprintf(out, "%s:   Use --help for more information.\n", Me);
+}
+
+      
+static void delete_on_trouble(UNUSED_DECL_ARG int dummy_status , UNUSED_DECL_ARG void *dummy_arg ) 
+    SIGNAL_ATTRIBUTE;
+
+
+static void 
+delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *dummy_arg)
+{
+    if (DeleteOnTrouble) {
+	// We're already in trouble, so might as well delete, no?
+	int err = unlink(DeleteOnTrouble);
+	if (err && errno != ENOENT) {
+	    fprintf(stderr, "%s: More Trouble -- unable to clean up by deleting ", Me);
+	    perror(DeleteOnTrouble);
+	}
+	DeleteOnTrouble = NULL;
+    }
+}
+
+/* Signal handler for fatal signals. */
+static void 
+cleanup_and_die(int signum) 
+{
+    fprintf(stderr, "%s: Dying due to signal # %d; cleaning up.\n", signum);
+    delete_on_trouble(0, (void *) NULL);
+    signal(signum, SIG_DFL);
+    raise(signum);
+}
+
+
+/* These are like strcmp() and strncmp(), but with a more intuitive
+   interface (at least, more intuitive for those of us who did not grow
+   up using the FORTRAN Arithmetic IF!) */
+bool 
+strneql(const char *s, const char *t, size_t n) 
+{
+    return strncmp(s, t, n) == 0;
+}
+
+
+bool 
+streql(const char *s, const char *t) 
+{
+    return strcmp(s, t) == 0;
+}
+
+	    
+void 
+inputErr(const char msg[], ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    fprintf(stderr, "%s: %s:%d: ", Me, SourceName, SourceLine);
+    vfprintf(stderr, msg, ap);
+    va_end(ap);			/* silly to clean up; we're going to die
+				 * anyway.  */
+    fprintf(stderr, "\n%s: Aborting Execution.\n", Me);
+    exit(2);
+}
+
+static sighandler_t 
+xsignal(int signum, sighandler_t handler)
+{
+    sighandler_t ret = signal(signum, handler);
+    if (ret == SIG_ERR) {
+	fprintf(stderr, 
+		"%s: Trouble trying to set up a handler for signal %d: ",
+		Me, signum);
+	exit(3);
+    } else if (ret == SIG_IGN) {
+	/* Some shells may turn off handling of certain signals.  We shan't
+	   interfere. */
+	// ignore return value; nothing much to do anyway.
+	signal(signum, SIG_IGN);
+    }
+    return ret;
+}
+
+
+static void 
+set_up_trouble_handlers(void)
+{
+    if (on_exit(&delete_on_trouble, (void *) NULL)) {
+	fprintf(stderr,"%s: ", Me);
+	perror("Unable to register delete_on_trouble() via on_exit.  This should never happen");
+	exit(2);
+    }
+
+    xsignal(SIGINT, cleanup_and_die);
+    xsignal(SIGHUP, cleanup_and_die);
+    xsignal(SIGTERM, cleanup_and_die);
+    xsignal(SIGQUIT, cleanup_and_die);
+    xsignal(SIGPIPE, cleanup_and_die);
+    xsignal(SIGXFSZ, cleanup_and_die);
+    xsignal(SIGXCPU, cleanup_and_die);
+    xsignal(SIGFPE, cleanup_and_die);
+    xsignal(SIGILL, cleanup_and_die);
+    xsignal(SIGSEGV, cleanup_and_die);
+    xsignal(SIGBUS, cleanup_and_die);
+    xsignal(SIGABRT, cleanup_and_die);
+#ifdef SIGEMT
+    xsignal(SIGEMT, cleanup_and_die);
+#endif
+    xsignal(SIGSYS, cleanup_and_die);
+    
+}
+
