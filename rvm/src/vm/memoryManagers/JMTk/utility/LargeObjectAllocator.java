@@ -103,7 +103,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    */
   final protected VM_Address allocSlowOnce (boolean isScalar, int bytes,
                                             boolean inGC) {
-    int header = superPageHeaderSize() + cellHeaderSize();
+    int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of BYTES_IN_PARTICLE
     int pages = (bytes + header + BYTES_IN_PAGE - 1)>>LOG_BYTES_IN_PAGE;
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;

@@ -153,7 +153,9 @@ public final class RefCountLocal extends SegregatedFreeList
         int cells = avail/cellSize[sc];
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
-        blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES + RC_BLOCK_HEADER;
+        /*cells must start at multiple of BYTES_IN_PARTICLE
+           because cellSize is also supposed to be multiple, this should do the trick: */
+        blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
         if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
             ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
           break;

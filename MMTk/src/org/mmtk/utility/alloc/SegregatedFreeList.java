@@ -438,20 +438,38 @@ public abstract class SegregatedFreeList extends Allocator
 
     int sz1 = bytes - 1;
     int offset = 0;
-    if (COMPACT_SIZE_CLASSES)
-      return ((sz1 <=   31) ?      (sz1 >>  2): //    4 bytes apart
+    if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
+      if (COMPACT_SIZE_CLASSES) 
+        return ((sz1 <= 31) ?      (sz1 >>  2): //    4 bytes apart
               (sz1 <=   63) ?  4 + (sz1 >>  3): //    8 bytes apart
               (sz1 <=   95) ?  8 + (sz1 >>  4): //   16 bytes apart
               (sz1 <=  223) ? 14 + (sz1 >>  6): //   64 bytes apart
               (sz1 <=  734) ? 17 + (sz1 >>  8): //  256 bytes apart
                               20 + (sz1 >> 10));// 1024 bytes apart
-    else
-      return ((sz1 <=   63) ?      (sz1 >>  2): //    4 bytes apart
+      else 
+        return ((sz1 <=   63) ?    (sz1 >>  2): //    4 bytes apart
               (sz1 <=  127) ? 12 + (sz1 >>  4): //   16 bytes apart
               (sz1 <=  255) ? 16 + (sz1 >>  5): //   32 bytes apart
               (sz1 <=  511) ? 20 + (sz1 >>  6): //   64 bytes apart
               (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
                               32 + (sz1 >> 10));// 1024 bytes apart
+    } else { //64-bit 
+      if (COMPACT_SIZE_CLASSES) 
+        return ((sz1 <= 95) ?      (sz1 >>  3): //    8 bytes apart
+              (sz1 <=  127) ?  6 + (sz1 >>  4): //   16 bytes apart
+              (sz1 <=  191) ? 10 + (sz1 >>  5): //   32 bytes apart
+              (sz1 <=  383) ? 13 + (sz1 >>  6): //   64 bytes apart
+              (sz1 <=  511) ? 16 + (sz1 >>  7): //  128 bytes apart
+              (sz1 <= 1023) ? 19 + (sz1 >>  9): //  512 bytes apart
+                              20 + (sz1 >> 10));// 1024 bytes apart
+      else 
+        return ((sz1 <= 111) ?     (sz1 >>  3): //    8 bytes apart
+              (sz1 <=  223) ?  7 + (sz1 >>  4): //   16 bytes apart
+              (sz1 <=  319) ? 14 + (sz1 >>  5): //   32 bytes apart
+              (sz1 <=  575) ? 19 + (sz1 >>  6): //   64 bytes apart
+              (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
+                              32 + (sz1 >> 10));// 1024 bytes apart
+    }
   }
 
   /**
@@ -466,20 +484,38 @@ public abstract class SegregatedFreeList extends Allocator
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
-    if (COMPACT_SIZE_CLASSES)
-      return ((sc <  8) ? (sc +  1) <<  2:
-              (sc < 12) ? (sc -  3) <<  3:
-              (sc < 16) ? (sc -  7) <<  4:
-              (sc < 18) ? (sc - 13) <<  6:
-              (sc < 21) ? (sc - 16) <<  8:
-                          (sc - 19) << 10);
-    else
-      return ((sc < 16) ? (sc +  1) <<  2:
-              (sc < 20) ? (sc - 11) <<  4:
-              (sc < 24) ? (sc - 15) <<  5:
-              (sc < 28) ? (sc - 19) <<  6:
-              (sc < 34) ? (sc - 25) <<  8:
-                          (sc - 31) << 10);
+    if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
+      if (COMPACT_SIZE_CLASSES)
+        return ((sc <  8) ? (sc +  1) <<  2:
+                (sc < 12) ? (sc -  3) <<  3:
+                (sc < 16) ? (sc -  7) <<  4:
+                (sc < 18) ? (sc - 13) <<  6:
+                (sc < 21) ? (sc - 16) <<  8:
+                            (sc - 19) << 10);
+      else
+        return ((sc < 16) ? (sc +  1) <<  2:
+                (sc < 20) ? (sc - 11) <<  4:
+                (sc < 24) ? (sc - 15) <<  5:
+                (sc < 28) ? (sc - 19) <<  6:
+                (sc < 34) ? (sc - 25) <<  8:
+                            (sc - 31) << 10);
+    } else { //64-bit
+      if (COMPACT_SIZE_CLASSES)
+        return ((sc < 12) ? (sc +  1) <<  3:
+                (sc < 14) ? (sc -  5) <<  4:
+                (sc < 16) ? (sc -  9) <<  5:
+                (sc < 19) ? (sc - 12) <<  6:
+                (sc < 20) ? (sc - 15) <<  7:
+                (sc < 21) ? (sc - 18) <<  9:
+                            (sc - 19) << 10);
+      else
+        return ((sc < 14) ? (sc +  1) <<  3:        
+                (sc < 21) ? (sc -  6) <<  4:
+                (sc < 24) ? (sc - 13) <<  5:
+                (sc < 28) ? (sc - 18) <<  6:
+                (sc < 34) ? (sc - 25) <<  8:
+                            (sc - 31) << 10);
+    }
   }
 
   /****************************************************************************
