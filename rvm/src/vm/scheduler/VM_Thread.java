@@ -1397,23 +1397,32 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
  
   /**
    * Is an exception waiting to be delivered to this thread?
-   * A non-null value means next yield() should deliver specified 
-   * exception to this thread.
+   * A non-null value means the next {@link yield()} should deliver the
+   * specified exception to this thread.
    */ 
   Throwable externalInterrupt; 
 
   /**
-   * Should <code>VM_Thread.morph()</code> throw the external
+   * Should {@link VM_Thread.morph()} throw the external
    * interrupt object?
    */
   boolean throwInterruptWhenScheduled;
   
   /**
-   * Assertion checking while manipulating raw addresses - 
-   * see disableGC/enableGC.
+   * Assertion checking while manipulating raw addresses --
+   * see {@link VM.disableGC}/{@link VM.enableGC}.
    * A value of "true" means it's an error for this thread to call "new".
+   * This is only used for assertion checking; we do not bother to set it when
+   * {@link VM.VerifyAssertions} is false.
    */ 
   public boolean disallowAllocationsByThisThread; 
+
+  /**
+   * Counts the depth of outstanding calls to {@link VM.disableGC()}.  If this
+   * is set, then we should also have {@link disallowAllocationsByThisThread}
+   * set.  The converse also holds.  
+   */
+  int disableGCDepth = 0;
 
   /**
    * Execution stack for this thread.
