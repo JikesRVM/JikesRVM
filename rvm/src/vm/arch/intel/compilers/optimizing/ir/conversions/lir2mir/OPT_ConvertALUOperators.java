@@ -51,6 +51,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  *  (b) r100 does not span a basic block
  *  (c) r200 does not span a basic block
  *  (d) this instruction is the last use of r200
+ *  (e) r200 is ssa
  * These conditions are designed to be cheap to verify and 
  * cover those cases where it is advantegous from BURS's perspective to
  * coalesce the registers to avoid the move instruction.
@@ -221,7 +222,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op1.isRegister()) {
         OPT_RegisterOperand rop1 = op1.asRegister();
         if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
+              rop1.register.isSSA()) {
             OPT_DefUse.removeDef(result);
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
@@ -245,7 +247,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op2.isRegister()) {
         OPT_RegisterOperand rop2 = op2.asRegister();
         if (!rop2.register.spansBasicBlock() && isDead(rop2.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
+              rop2.register.isSSA()) {
             OPT_DefUse.removeUse(rop2);
             OPT_DefUse.removeDef(result);
             OPT_DefUse.recordDefUse(rop2);
@@ -301,7 +304,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op1.isRegister()) {
         OPT_RegisterOperand rop1 = op1.asRegister();
         if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
+              rop1.register.isSSA()) {
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.removeDef(result);
             OPT_DefUse.recordDefUse(rop1);
@@ -372,7 +376,8 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op1.isRegister()) {
         OPT_RegisterOperand rop1 = op1.asRegister();
         if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
+              rop1.register.isSSA()) {
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.removeDef(result);
             OPT_DefUse.recordDefUse(rop1);
