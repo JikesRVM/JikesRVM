@@ -6,6 +6,7 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
