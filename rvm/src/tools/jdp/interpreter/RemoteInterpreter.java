@@ -971,7 +971,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     String mthName = mth.getName().toString();
     if (traceExtension)     
       System.out.println("X_invokevirtual: " + mthName + " on " + mappedObj);
-    if (mappedObj.getType().getName().equals("VM_Atom") && 
+    if (mappedObj.getType().getName().equals("com.ibm.JikesRVM.VM_Atom") && 
 	mthName.equals("getBytes"))
        
     debug();

@@ -206,8 +206,6 @@ abstract class BootMap implements jdpConstants,
       supercls = supercls.getSuperClass();
     }
     
-System.out.println("CC");
-System.out.println("Field " + fieldName + " not found in class " + className);
     throw new BmapNotFoundException("Field " + fieldName + " not found in class " + className);
   }
 
@@ -1130,9 +1128,9 @@ System.out.println("Field " + fieldName + " not found in class " + className);
     typeAddr = owner.mem.readsafe(typeAddr);           // this should point to the VM_Type
 
     try {
-      VM_Field field = findVMField("VM_Type", "descriptor");
+      VM_Field field = findVMField("com.ibm.JikesRVM.VM_Type", "descriptor");
       stringAddr = owner.mem.readsafe(typeAddr + field.getOffset());    // the descriptor
-      field = findVMField("VM_Atom", "val");
+      field = findVMField("com.ibm.JikesRVN.VM_Atom", "val");
       stringAddr = owner.mem.readsafe(stringAddr + field.getOffset());  // the string array as byte
       size = owner.mem.readsafe(stringAddr + ARRAY_LENGTH_OFFSET);   // the string size
     } catch (BmapNotFoundException e) {

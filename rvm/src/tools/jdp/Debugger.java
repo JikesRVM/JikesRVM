@@ -851,7 +851,7 @@ class Debugger implements jdpConstants {
     // from MainThread
     try
     {
-      bp = user.bmap.findBreakpoint("VM.debugBreakpoint", null, user.reg.hardwareIP());
+      bp = user.bmap.findBreakpoint("com.ibm.JikesRVM.VM.debugBreakpoint", null, user.reg.hardwareIP());
     } 
     catch (BmapMultipleException e1)
     {

@@ -219,44 +219,44 @@ class mapVM implements JDPServiceInterface {
       	  String fieldName = z.nextToken();     // get the fullAsciiName
 	  
           // initialize the JTOC value
-      	  if (fieldName.equals("VM_Statics.slots")) {
+      	  if (fieldName.equals("com.ibm.JikesRVM.VM_Statics.slots")) {
 	    try {
 	      cachedJTOC = Integer.parseInt(hexAddress.substring(2), 16);
             } catch (NumberFormatException e) {
               System.out.println("mapVM:  cannot read VM_Statics.slots address");
             }
       	  // look for dictionary entries
-      	  } else if (fieldName.equals("VM_AtomDictionary.keys")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_AtomDictionary.keys")) {
       	    AtomDictionary_keys_index     = offset;  
-      	  } else if (fieldName.equals("VM_AtomDictionary.values")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_AtomDictionary.values")) {
       	    AtomDictionary_values_index   = offset;  
-      	  } else if (fieldName.equals("VM_AtomDictionary.nextId")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_AtomDictionary.nextId")) {
       	    AtomDictionary_nextId_index   = offset;  
-      	  } else if (fieldName.equals("VM_AtomDictionary.chains")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_AtomDictionary.chains")) {
       	    AtomDictionary_chains_index   = offset;  
-      	  } else if (fieldName.equals("VM_MethodDictionary.keys")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_MethodDictionary.keys")) {
       	    MethodDictionary_keys_index   = offset;  
-      	  } else if (fieldName.equals("VM_MethodDictionary.values")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_MethodDictionary.values")) {
       	    MethodDictionary_values_index = offset;  
-      	  } else if (fieldName.equals("VM_MethodDictionary.nextId")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_MethodDictionary.nextId")) {
       	    MethodDictionary_nextId_index = offset;  
-      	  } else if (fieldName.equals("VM_MethodDictionary.chains")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_MethodDictionary.chains")) {
       	    MethodDictionary_chains_index = offset;    
-      	  } else if (fieldName.equals("VM_TypeDictionary.keys")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_TypeDictionary.keys")) {
       	    TypeDictionary_keys_index = offset;
-      	  } else if (fieldName.equals("VM_TypeDictionary.values")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_TypeDictionary.values")) {
       	    TypeDictionary_values_index   = offset;  
-      	  } else if (fieldName.equals("VM_TypeDictionary.nextId")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_TypeDictionary.nextId")) {
       	    TypeDictionary_nextId_index   = offset;  
-      	  } else if (fieldName.equals("VM_TypeDictionary.chains")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_TypeDictionary.chains")) {
       	    TypeDictionary_chains_index   = offset;  
-	  } else if (fieldName.equals("VM_FieldDictionary.keys")) {
+	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_FieldDictionary.keys")) {
       	    FieldDictionary_keys_index = offset;
-      	  } else if (fieldName.equals("VM_FieldDictionary.values")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_FieldDictionary.values")) {
       	    FieldDictionary_values_index   = offset;  
-      	  } else if (fieldName.equals("VM_FieldDictionary.nextId")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_FieldDictionary.nextId")) {
       	    FieldDictionary_nextId_index   = offset;  
-      	  } else if (fieldName.equals("VM_FieldDictionary.chains")) {
+      	  } else if (fieldName.equals("com.ibm.JikesRVM.VM_FieldDictionary.chains")) {
       	    FieldDictionary_chains_index   = offset; 
 	  }
 
@@ -436,7 +436,7 @@ class mapVM implements JDPServiceInterface {
   }
 
   static boolean isMapped(String name){
-    if (name.startsWith("VM_")) 
+    if (name.startsWith("com.ibm.JikesRVM.VM_")) 
       return true;
     else
       return false;    
@@ -893,13 +893,13 @@ class mapVM implements JDPServiceInterface {
 		       Integer.toHexString(TypeDictionary_nextId));
     
     System.out.println("Offsets:  ");
-    System.out.println("VM_Field offset = " + VMFieldOffset_offset + 
+    System.out.println("com.ibm.JikesRVM.VM_Field offset = " + VMFieldOffset_offset + 
 		       ", type = " + VMFieldType_offset);
-    System.out.println("VM_Class constantPool = " + VMClassConstantPool_offset +
+    System.out.println("com.ibm.JikesRVM.VM_Class constantPool = " + VMClassConstantPool_offset +
 		       ", name = " + VMClassName_offset +
 		       ", superclass = " + VMClassSuper_offset);
-    System.out.println("VM_Atom val = " + VMAtomVal_offset);
-    System.out.println("VM_Type descriptor = " + VMTypeDescriptor_offset);
+    System.out.println("com.ibm.JikesRVM.VM_Atom val = " + VMAtomVal_offset);
+    System.out.println("com.ibm.JikesRVM.VM_Type descriptor = " + VMTypeDescriptor_offset);
   }
 
   /**
