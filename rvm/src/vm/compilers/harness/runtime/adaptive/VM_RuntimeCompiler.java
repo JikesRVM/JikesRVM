@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 // $Id$
+
 /**
  *
  * The adaptive version of the runtime compiler.
@@ -9,7 +10,6 @@
  * @author Michael Hind
  * @modified by Matthew Arnold
  */
-
 class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   static OPT_InlineOracle offlineInlineOracle;
 
@@ -54,8 +54,7 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
       // System still early in boot process; compile with baseline compiler
       cm = baselineCompile(method);
       VM_ControllerMemory.incrementNumBase();
-    } 
-    else {
+    } else {
       if (VM_Controller.options.optOnly()) {
 	if (// will only run once: don't bother optimizing
 	    method.isClassInitializer() || 
@@ -69,9 +68,7 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  // compile with baseline compiler
 	  cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();
-	} 
-	else { // compile with opt compiler
-
+	} else { // compile with opt compiler
 	  // Initialize an instrumentation plan.
 	  VM_AOSInstrumentationPlan instrumentationPlan = 
 	    new VM_AOSInstrumentationPlan(VM_Controller.options,
@@ -89,8 +86,7 @@ class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
 	  cm = optCompileWithFallBack(method, compPlan);
 	}
-      } 
-      else {
+      } else {
 	  // compile with baseline compiler
 	  cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();
