@@ -3,7 +3,7 @@
 #
 #$Id$
 
-# author Julian Dolby
+# @author Julian Dolby
 
 include                 $(JAL_ROOT)/rvm/build.Make.rules
 

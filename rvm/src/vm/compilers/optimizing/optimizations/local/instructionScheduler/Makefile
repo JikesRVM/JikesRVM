@@ -3,7 +3,7 @@
 #
 #$Id$
 #
-# author Igor Pechtchanski
+# @author Igor Pechtchanski
 
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
