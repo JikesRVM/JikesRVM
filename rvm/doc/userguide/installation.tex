@@ -494,8 +494,9 @@ understands.
 
 \subsection{Cross Platform Building}
 
-The RVM build process consists of two major phases: the building of a
-RVM {\em boot image}, and the building of a RVM {\em boot loader}.
+The Jikes\trademark RVM build process consists of two major phases:
+the building of a 
+{\em boot image}, and the building of a {\em boot loader}.
 The boot image is built using a Java\trademark program executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
@@ -553,15 +554,14 @@ via {\tt rsh} or {\tt ssh}, etc.  By setting {\tt RVM\_BUILD\_COPY}
 appropriately on the host platform, cross-platform building can become
 a stream-lined process.
 
-\JikesTMFooter
+\JikesAIXTMFooter
 
 \JavaTMFooter
 
-\AIXTMFooter
-
 \subsection{Building the libraries}
 
-Most RVM users will not need to rebuild the libraries; thus the default
+Most Jikes\trademark RVM users will not need to rebuild the libraries;
+thus the default 
 process described above provides a ``binary'' {\tt rvmrt.jar}.  However,
 the library source for the RVM is available at
 \xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  
@@ -581,24 +581,22 @@ patch 62 to
 the Jikes build to fix a problem with variable shadowing by inner classes. 
 We have
 successfully applied this patch to Jikes version 1.13 on both
-AIX\AIXTMFootnote and Linux/IA32.
+AIX\copyright and Linux/IA32.
 
-The {\tt jBuildLibs} script will prompt you, asking whether to install 
+The {\tt jBuildLibs} script will prompt you whether to install 
 the new {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.  
 If you answer {\tt 'y'}, future invocations of {\tt jbuild} will pick up
-the new library build.  However, note that by installing it, you will
-{\em overwrite} the original version of {\tt rvmrt.jar}, losing it.  Be
+the new library build.  However, this will
+{\em overwrite} the original version of {\tt rvmrt.jar}, so  be
 careful!
 
-\JikesTMFooter
+\JikesAIXTMFooter
 
-\AIXTMFooter
-
-\subsection{Building documentation}
+\subsection{Building Documentation}
 
 The {\tt \RVMTarFile} file contains a postscript version of this userguide
 in {\tt \$RVM\_ROOT/rvm/doc}.  Additionally, the 
-\xlink{developerWorks web page}{\RVMHomeURL} keeps an on-line version of
+\xlink{developerWorks web page}{\RVMHomeURL} keeps an online version of
 the userguide and javadoc API, corresponding to the latest HEAD of the CVS
 repository.
 
