@@ -159,6 +159,7 @@ final class RefCountLocal extends SegregatedFreeList
    * Finish up after a collection.
    */
   public final void release() {
+    flushFreeLists();
     if (Plan.verbose > 2) processIncBufsAndCount(); else processIncBufs();
     VM_CollectorThread.gcBarrier.rendezvous();
     if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
@@ -312,9 +313,9 @@ final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     VM_Address ref = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(ref);
-    if (space == Plan.LOS_SPACE)
+    if (space == Plan.LOS_SPACE) {
       los.free(ref);
-    else {
+    } else {
       byte tag = VMResource.getTag(ref);
       
       VM_Address block = BlockAllocator.getBlockStart(ref, tag);

@@ -40,12 +40,32 @@ public abstract class RCBaseHeader implements Constants {
   public static final int GC_BITS_MASK      = 0x3;
 
   public static final int SMALL_OBJECT_MASK = 0x1;  // ...01
+  private static final int      BARRIER_BIT = 1;
+  public static final int BARRIER_BIT_MASK  = 1<<BARRIER_BIT;  // ...10
 
   public static boolean isSmallObject(Object ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return (VM_Interface.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
   }
 
+  public static boolean attemptBarrierBitSet(Object ref)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int old = VM_Interface.readAvailableBitsWord(ref);
+    boolean rtn = ((old & BARRIER_BIT_MASK) == 0);
+    if (rtn) {
+      do {
+	old = VM_Interface.prepareAvailableBits(ref);
+	rtn = ((old & BARRIER_BIT_MASK) == 0);
+      } while(!VM_Interface.attemptAvailableBits(ref, old, 
+						 old | BARRIER_BIT_MASK)
+	      && rtn);
+    }
+    return rtn;
+  }
+  public static void clearBarrierBit(Object ref) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    VM_Interface.setAvailableBit(ref, BARRIER_BIT, false);
+  }
   /**
    * Perform any required initialization of the GC portion of the header.
    * 

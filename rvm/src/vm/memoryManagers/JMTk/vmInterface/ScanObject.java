@@ -82,8 +82,10 @@ public class ScanObject implements VM_Constants, Constants {
     // First process the TIB to relocate it.
     // Necessary only if the allocator/collector moves objects
     // and the object model is actually storing the TIB as a pointer.
-    // 
-    if (MM_Interface.MOVES_OBJECTS) 
+    //
+    // Since it is hidden, the TIB is not considered a "pointer" when
+    // enumerating pointers, so is not enumerated.
+    if (trace && MM_Interface.MOVES_OBJECTS)
       VM_ObjectModel.gcProcessTIB(objRef, root);
 
     Object obj = VM_Magic.addressAsObject(objRef);

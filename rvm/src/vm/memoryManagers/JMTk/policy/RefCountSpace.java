@@ -116,14 +116,12 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
-
     if (Plan.sanityTracing) 
       incrementTraceCount(object);
 
-    if (root) {
-      increment(object);
+    increment(object);
+    if (root)
       VM_Interface.getPlan().addToRootSet(object);
-    } // else we were called via the finalizer mechanism, we need to ignore
 
     return object;
   }
