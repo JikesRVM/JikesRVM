@@ -11,35 +11,30 @@
  */
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
+  private final int parameterWords;
+  private int firstLocalOffset;
+
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
   VM_Compiler(VM_Method m, int cmid) {
     super(m, cmid);
-    int bcLen = bytecodes.length;
-    stackHeights = new int[bcLen];
-    if (klass.isBridgeFromNative())
-      // JNIFunctions need space for bigger prolog & epilog
-      asm = new VM_Assembler(bcLen+10,shouldPrint);
-    else
-      asm = new VM_Assembler(bcLen,shouldPrint);
+    stackHeights = new int[bytecodes.length];
+    parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
   }
 
-
-  //-----------//
-  // interface //
-  //-----------//
-  
-  // The last true local
-  //
+  /**
+   * The last true local
+   */
   static int getEmptyStackOffset (VM_Method m) {
     return getFirstLocalOffset(m) - (m.getLocalWords()<<LG_WORDSIZE) + WORDSIZE;
   }
 
-  // This is misnamed.  It should be getFirstParameterOffset.
-  // It will not work as a base to access true locals.
-  // TODO!! make sure it is not being used incorrectly
-  //
+  /**
+   * This is misnamed.  It should be getFirstParameterOffset.
+   * It will not work as a base to access true locals.
+   * TODO!! make sure it is not being used incorrectly
+   */
   static int getFirstLocalOffset (VM_Method method) {
     if (method.getDeclaringClass().isBridgeFromNative())
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
@@ -48,14 +43,2337 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
 
+  /*
+   * implementation of abstract methods of VM_BaselineCompiler
+   */
+
+  /*
+   * Misc routines not directly tied to a particular bytecode
+   */
+
+  /**
+   * Emit the prologue for the method
+   */
+  protected final void emit_prologue() {
+    genPrologue();
+  }
+
+  /**
+   * Emit code to complete the dynamic linking of a
+   * prematurely resolved VM_Type.
+   * @param dictionaryId of type to link (if necessary)
+   */
+  protected final void emit_initializeClassIfNeccessary(int dictionaryId) {
+    asm.emitMOV_Reg_Imm (T0, dictionaryId);
+    asm.emitPUSH_Reg    (T0);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
+  }
+
+  /**
+   * Emit the code for a threadswitch tests (aka a yieldpoint).
+   * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
+   */
+  protected final void emit_threadSwitchTest(int whereFrom) {
+    genThreadSwitchTest(whereFrom);
+  }
+
+  /**
+   * Emit the code to implement the spcified magic.
+   * @param magicMethod desired magic
+   */
+  protected final void emit_Magic(VM_Method magicMethod) {
+    genMagic(magicMethod);
+  }
+
+
+  /*
+   * Loading constants
+   */
+
+
+  /**
+   * Emit code to load the null constant.
+   */
+  protected final void emit_aconst_null() {
+    asm.emitPUSH_Imm(0);
+  }
+
+  /**
+   * Emit code to load an int constant.
+   * @param val the int constant to load
+   */
+  protected final void emit_iconst(int val) {
+    asm.emitPUSH_Imm(val);
+  }
+
+  /**
+   * Emit code to load a long constant
+   * @param val the lower 32 bits of long constant (upper32 are 0).
+   */
+  protected final void emit_lconst(int val) {
+    asm.emitPUSH_Imm(0);  // high part
+    asm.emitPUSH_Imm(val);  //  low part
+  }
+
+  /**
+   * Emit code to load 0.0f
+   */
+  protected final void emit_fconst_0() {
+    asm.emitPUSH_Imm(0);
+  }
+
+  /**
+   * Emit code to load 1.0f
+   */
+  protected final void emit_fconst_1() {
+    asm.emitPUSH_Imm(0x3f800000);
+  }
+
+  /**
+   * Emit code to load 2.0f
+   */
+  protected final void emit_fconst_2() {
+    asm.emitPUSH_Imm(0x40000000);
+  }
+
+  /**
+   * Emit code to load 0.0d
+   */
+  protected final void emit_dconst_0() {
+    asm.emitPUSH_Imm(0x00000000);
+    asm.emitPUSH_Imm(0x00000000);
+  }
+
+  /**
+   * Emit code to load 1.0d
+   */
+  protected final void emit_dconst_1() {
+    asm.emitPUSH_Imm(0x3ff00000);
+    asm.emitPUSH_Imm(0x00000000);
+  }
+
+  /**
+   * Emit code to load a 32 bit constant
+   * @param offset JTOC offset of the constant 
+   */
+  protected final void emit_ldc(int offset) {
+    asm.emitPUSH_RegDisp(JTOC, offset);   
+  }
+
+  /**
+   * Emit code to load a 64 bit constant
+   * @param offset JTOC offset of the constant 
+   */
+  protected final void emit_ldc2(int offset) {
+    asm.emitPUSH_RegDisp(JTOC, offset+4); // high 32 bits 
+    asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
+  }
+
+
+  /*
+   * loading local variables
+   */
+
+
+  /**
+   * Emit code to load an int local variable
+   * @param index the local index to load
+   */
+  protected final void emit_iload(int index) {
+    int offset = localOffset(index);
+    asm.emitPUSH_RegDisp(ESP,offset);
+  }
+
+  /**
+   * Emit code to load a long local variable
+   * @param index the local index to load
+   */
+  protected final void emit_lload(int index) {
+    int offset = localOffset(index);
+    asm.emitPUSH_RegDisp(ESP, offset); // high part
+    asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
+  }
+
+  /**
+   * Emit code to local a float local variable
+   * @param index the local index to load
+   */
+  protected final void emit_fload(int index) {
+    int offset = localOffset(index);
+    asm.emitPUSH_RegDisp (ESP, offset);
+  }
+
+  /**
+   * Emit code to load a double local variable
+   * @param index the local index to load
+   */
+  protected final void emit_dload(int index) {
+    int offset = localOffset(index);
+    asm.emitPUSH_RegDisp(ESP, offset); // high part
+    asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
+  }
+
+  /**
+   * Emit code to load a reference local variable
+   * @param index the local index to load
+   */
+  protected final void emit_aload(int index) {
+    int offset = localOffset(index);
+    asm.emitPUSH_RegDisp(ESP, offset);
+  }
+
+
+  /*
+   * storing local variables
+   */
+
+
+  /**
+   * Emit code to store an int to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_istore(int index) {
+    int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+    asm.emitPOP_RegDisp (ESP, offset); 
+  }
+
+  /**
+   * Emit code to store a long to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_lstore(int index) {
+    int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+    asm.emitPOP_RegDisp(ESP, offset); // high part
+    asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
+  }
+
+  /**
+   * Emit code to store a float to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_fstore(int index) {
+    int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+    asm.emitPOP_RegDisp (ESP, offset);
+  }
+
+  /**
+   * Emit code to store an double  to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_dstore(int index) {
+    int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+    asm.emitPOP_RegDisp(ESP, offset); // high part
+    asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
+  }
+
+  /**
+   * Emit code to store a reference to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_astore(int index) {
+    int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+    asm.emitPOP_RegDisp (ESP, offset);
+  }
+
+
+  /*
+   * array loads
+   */
+
+
+  /**
+   * Emit code to load from an int array
+   */
+  protected final void emit_iaload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
+    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired int array element
+  }
+
+  /**
+   * Emit code to load from a long array
+   */
+  protected final void emit_laload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of desired long array element
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of desired long array element
+  }
+
+  /**
+   * Emit code to load from a float array
+   */
+  protected final void emit_faload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
+    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired float array element
+  }
+
+  /**
+   * Emit code to load from a double array
+   */
+  protected final void emit_daload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of double
+    asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of double
+  }
+
+  /**
+   * Emit code to load from a reference array
+   */
+  protected final void emit_aaload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
+    asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired object array element
+  }
+
+  /**
+   * Emit code to load from a byte/boolean array
+   */
+  protected final void emit_baload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                     // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);                     // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // complete popping the 2 args
+    asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, asm.BYTE, 0); // load byte and sign extend to a 32 bit word
+    asm.emitPUSH_Reg(T1);                                   // push sign extended byte onto stack
+  }
+
+  /**
+   * Emit code to load from a char array
+   */
+  protected final void emit_caload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
+    asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword without sign extend to a 32 bit word
+    asm.emitPUSH_Reg(T1);                                    // push char onto stack
+  }
+
+  /**
+   * Emit code to load from a short array
+   */
+  protected final void emit_saload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
+    asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword sign extend to a 32 bit word
+    asm.emitPUSH_Reg(T1);                                    // push sign extended short onto stack
+  }
+
+
+  /*
+   * array stores
+   */
+
+
+  /**
+   * Emit code to store to an int array
+   */
+  protected final void emit_iastore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the int value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
+  }
+
+  /**
+   * Emit code to store to a long array
+   */
+  protected final void emit_lastore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1);                                    // low part of long value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
+    asm.emitPOP_Reg(T1);                                    // high part of long value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
+  }
+
+  /**
+   * Emit code to store to a float array
+   */
+  protected final void emit_fastore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the float value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
+  }
+
+  /**
+   * Emit code to store to a double array
+   */
+  protected final void emit_dastore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
+    asm.emitPOP_Reg(T1);                                    // low part of double value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
+    asm.emitPOP_Reg(T1);                                    // high part of double value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
+  }
+
+  /**
+   * Emit code to store to a reference array
+   */
+  protected final void emit_aastore() {
+    asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
+    asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
+    genParameterRegisterLoad(2);                     // pass 2 parameter
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
+    if (VM_Collector.NEEDS_WRITE_BARRIER) 
+      VM_Barriers.compileArrayStoreBarrier(asm);
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
+    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
+  }
+
+  /**
+   * Emit code to store to a byte/boolean array
+   */
+  protected final void emit_bastore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
+    asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the byte value
+    asm.emitMOV_RegIdx_Reg_Byte(S0, T0, asm.BYTE, 0, T1); // [S0 + T0<<2] <- T1
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
+  }
+
+  /**
+   * Emit code to store to a char array
+   */
+  protected final void emit_castore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
+    asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the char value
+    asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
+  }
+
+  /**
+   * Emit code to store to a short array
+   */
+  protected final void emit_sastore() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
+    asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the short value
+    asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
+  }
+
+
+  /*
+   * expression stack manipulation
+   */
+
+
+  /**
+   * Emit code to implement the pop bytecode
+   */
+  protected final void emit_pop() {
+    asm.emitPOP_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the pop2 bytecode
+   */
+  protected final void emit_pop2() {
+    asm.emitPOP_Reg(T0);
+    asm.emitPOP_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the dup bytecode
+   */
+  protected final void emit_dup() {
+    asm.emitMOV_Reg_RegInd (T0, SP);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the dup_x1 bytecode
+   */
+  protected final void emit_dup_x1() {
+    asm.emitPOP_Reg(T0);
+    asm.emitPOP_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the dup_x2 bytecode
+   */
+  protected final void emit_dup_x2() {
+    asm.emitPOP_Reg(T0);
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T1);
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(T1);
+    asm.emitPUSH_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the dup2 bytecode
+   */
+  protected final void emit_dup2() {
+    asm.emitMOV_Reg_RegDisp (T0, SP, 4);
+    asm.emitMOV_Reg_RegInd (S0, SP);
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(S0);
+  }
+
+  /**
+   * Emit code to implement the dup2_x1 bytecode
+   */
+  protected final void emit_dup2_x1() {
+    asm.emitPOP_Reg(T0);
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T1);
+    asm.emitPUSH_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(T1);
+    asm.emitPUSH_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the dup2_x2 bytecode
+   */
+  protected final void emit_dup2_x2() {
+    asm.emitPOP_Reg(T0);
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T1);
+    asm.emitPOP_Reg(JTOC);                  // JTOC is scratch register
+    asm.emitPUSH_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(JTOC);
+    asm.emitPUSH_Reg(T1);
+    asm.emitPUSH_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+    // restore JTOC register
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+  }
+
+  /**
+   * Emit code to implement the swap bytecode
+   */
+  protected final void emit_swap() {
+    asm.emitPOP_Reg(T0);
+    asm.emitPOP_Reg(S0);
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(S0);
+  }
+
+
+  /*
+   * int ALU
+   */
+
+
+  /**
+   * Emit code to implement the iadd bytecode
+   */
+  protected final void emit_iadd() {
+    asm.emitPOP_Reg(T0);
+    asm.emitADD_RegInd_Reg(SP, T0);
+  }
+
+  /**
+   * Emit code to implement the isub bytecode
+   */
+  protected final void emit_isub() {
+    asm.emitPOP_Reg(T0);
+    asm.emitSUB_RegInd_Reg(SP, T0);
+  }
+
+  /**
+   * Emit code to implement the imul bytecode
+   */
+  protected final void emit_imul() {
+    asm.emitPOP_Reg (T0);
+    asm.emitIMUL2_Reg_RegInd(T0, SP);
+    asm.emitMOV_RegInd_Reg (SP, T0);
+  }
+
+  /**
+   * Emit code to implement the idiv bytecode
+   */
+  protected final void emit_idiv() {
+    asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+    asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+    asm.emitCDQ ();                      // sign extend EAX into EDX
+    asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
+    asm.emitPUSH_Reg(EAX);               // push result
+  }
+
+  /**
+   * Emit code to implement the irem bytecode
+   */
+  protected final void emit_irem() {
+    asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+    asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+    asm.emitCDQ ();                      // sign extend EAX into EDX
+    asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
+    asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
+    asm.emitPUSH_Reg(EDX);               // push remainder
+  }
+
+  /**
+   * Emit code to implement the ineg bytecode
+   */
+  protected final void emit_ineg() {
+    asm.emitNEG_RegInd(SP); // [SP] <- -[SP]
+  }
+
+  /**
+   * Emit code to implement the ishl bytecode
+   */
+  protected final void emit_ishl() {
+    asm.emitPOP_Reg(ECX);
+    asm.emitSHL_RegInd_Reg(SP, ECX);   
+  }
+
+  /**
+   * Emit code to implement the ishr bytecode
+   */
+  protected final void emit_ishr() {
+    asm.emitPOP_Reg (ECX);
+    asm.emitSAR_RegInd_Reg (SP, ECX);  
+  }
+
+  /**
+   * Emit code to implement the iushr bytecode
+   */
+  protected final void emit_iushr() {
+    asm.emitPOP_Reg (ECX);
+    asm.emitSHR_RegInd_Reg(SP, ECX); 
+  }
+
+  /**
+   * Emit code to implement the iand bytecode
+   */
+  protected final void emit_iand() {
+    asm.emitPOP_Reg(T0);
+    asm.emitAND_RegInd_Reg(SP, T0);
+  }
+
+  /**
+   * Emit code to implement the ior bytecode
+   */
+  protected final void emit_ior() {
+    asm.emitPOP_Reg(T0);
+    asm.emitOR_RegInd_Reg (SP, T0);
+  }
+
+  /**
+   * Emit code to implement the ixor bytecode
+   */
+  protected final void emit_ixor() {
+    asm.emitPOP_Reg(T0);
+    asm.emitXOR_RegInd_Reg(SP, T0);
+  }
+
+  /**
+   * Emit code to implement the iinc bytecode
+   * @param index index of local
+   * @param val value to increment it by
+   */
+  protected final void emit_iinc(int index, int val) {
+    int offset = localOffset(index);
+    asm.emitADD_RegDisp_Imm(ESP, offset, val);
+  }
+
+
+  /*
+   * long ALU
+   */
+
+
+  /**
+   * Emit code to implement the ladd bytecode
+   */
+  protected final void emit_ladd() {
+    asm.emitPOP_Reg(T0);                 // the low half of one long
+    asm.emitPOP_Reg(S0);                 // the high half
+    asm.emitADD_RegInd_Reg(SP, T0);          // add low halves
+    asm.emitADC_RegDisp_Reg(SP, WORDSIZE, S0);   // add high halves with carry
+  }
+
+  /**
+   * Emit code to implement the lsub bytecode
+   */
+  protected final void emit_lsub() {
+    asm.emitPOP_Reg(T0);                 // the low half of one long
+    asm.emitPOP_Reg(S0);                 // the high half
+    asm.emitSUB_RegInd_Reg(SP, T0);          // subtract low halves
+    asm.emitSBB_RegDisp_Reg(SP, WORDSIZE, S0);   // subtract high halves with borrow
+  }
+
+  /**
+   * Emit code to implement the lmul bytecode
+   */
+  protected final void emit_lmul() {
+    // 0: JTOC is used as scratch registers (see 14)
+    // 1: load value1.low temp0, i.e., save value1.low
+    // 2: eax <- temp0 eax is value1.low
+    // 3: edx:eax <- eax * value2.low (product of the two low halves)
+    // 4: store eax which is  result.low into place --> value1.low is destroyed
+    // 5: temp1 <- edx which is the carry of the product of the low halves
+    // aex and edx now free of results
+    // 6: aex <- temp0 which is still value1.low
+    // 7: pop into aex aex <- value2.low  --> value2.low is sort of destroyed
+    // 8: edx:eax <- eax * value1.hi  (value2.low * value1.hi)
+    // 9: temp1 += aex
+    // 10: pop into eax; eax <- value2.hi -> value2.hi is sort of destroyed
+    // 11: edx:eax <- eax * temp0 (value2.hi * value1.low)
+    // 12: temp1 += eax  temp1 is now result.hi
+    // 13: store result.hi
+    // 14: restore JTOC
+    if (VM.VerifyAssertions) VM.assert(S0 != EAX);
+    if (VM.VerifyAssertions) VM.assert(S0 != EDX);
+    asm.emitMOV_Reg_RegDisp (JTOC, SP, 8);          // step 1: JTOC is temp0
+    asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 2
+    asm.emitMUL_Reg_RegInd(EAX, SP);    // step 3
+    asm.emitMOV_RegDisp_Reg (SP, 8, EAX);           // step 4
+    asm.emitMOV_Reg_Reg (S0, EDX);              // step 5: S0 is temp1
+    asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 6
+    asm.emitPOP_Reg (EAX);                  // step 7: SP changed!
+    asm.emitIMUL1_Reg_RegDisp(EAX, SP, 8);// step 8
+    asm.emitADD_Reg_Reg (S0, EAX);      // step 9
+    asm.emitPOP_Reg (EAX);                  // step 10: SP changed!
+    asm.emitIMUL1_Reg_Reg(EAX, JTOC);    // step 11
+    asm.emitADD_Reg_Reg (S0, EAX);      // step 12
+    asm.emitMOV_RegDisp_Reg (SP, 4, S0);            // step 13
+    // restore JTOC register
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+  }
+
+  /**
+   * Emit code to implement the ldiv bytecode
+   */
+  protected final void emit_ldiv() {
+    // (1) zero check
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);
+    asm.emitOR_Reg_RegDisp(T0, SP, 4);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
+    asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);	// trap if divisor is 0
+    fr1.resolve(asm);
+    // (2) save RVM nonvolatiles
+    int numNonVols = NONVOLATILE_GPRS.length;
+    for (int i = 0; i<numNonVols; i++) {
+      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (3) Push args to C function (reversed)
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+    // (4) invoke C function through bootrecord
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongDivideIPField.getOffset());
+    // (5) pop space for arguments
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+    // (6) restore RVM nonvolatiles
+    for (int i = numNonVols-1; i >=0; i--) {
+      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (7) pop expression stack
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+    // (8) push results
+    asm.emitPUSH_Reg(T1);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the lrem bytecode
+   */
+  protected final void emit_lrem() {
+    // (1) zero check
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);
+    asm.emitOR_Reg_RegDisp(T0, SP, 4);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
+    asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);	// trap if divisor is 0
+    fr1.resolve(asm);
+    // (2) save RVM nonvolatiles
+    int numNonVols = NONVOLATILE_GPRS.length;
+    for (int i = 0; i<numNonVols; i++) {
+      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (3) Push args to C function (reversed)
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+    // (4) invoke C function through bootrecord
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongRemainderIPField.getOffset());
+    // (5) pop space for arguments
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+    // (6) restore RVM nonvolatiles
+    for (int i = numNonVols-1; i >=0; i--) {
+      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (7) pop expression stack
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+    // (8) push results
+    asm.emitPUSH_Reg(T1);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the lneg bytecode
+   */
+  protected final void emit_lneg() {
+    asm.emitNEG_RegDisp(SP, 4);    // [SP+4] <- -[SP+4] or high <- -high
+    asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
+    asm.emitSBB_RegDisp_Imm(SP, 4, 0); // [SP+4] += borrow or high += borrow
+  }
+
+  /**
+   * Emit code to implement the lshsl bytecode
+   */
+  protected final void emit_lshl() {
+    if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
+    if (VM.VerifyAssertions) VM.assert (ECX != T1);
+    if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
+    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
+    // 2: pop low half into T0
+    // 3: pop high half into T1
+    // 4: ECX <- JTOC, copy the shift count
+    // 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
+    // 6: branch to step 12 if results is zero
+    // the result is not zero --> the shift amount is greater than 32
+    // 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
+    // 8: T1 <- T0, or replace the high half with the low half.  This accounts for the 32 bit shift
+    // 9: shift T1 left by ECX bits
+    // 10: T0 <- 0
+    // 11: branch to step 14
+    // 12: shift left double from T0 into T1 by ECX bits.  T0 is unaltered
+    // 13: shift left T0, the low half, also by ECX bits
+    // 14: push high half from T1
+    // 15: push the low half from T0
+    // 16: restore the JTOC
+    asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
+    asm.emitPOP_Reg (T0);                   // pop low half 
+    asm.emitPOP_Reg (T1);                   // pop high half
+    asm.emitMOV_Reg_Reg (ECX, JTOC);
+    asm.emitAND_Reg_Imm (JTOC, 32);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);
+    asm.emitXOR_Reg_Reg (ECX, JTOC);
+    asm.emitMOV_Reg_Reg (T1, T0);               // low replaces high
+    asm.emitSHL_Reg_Reg (T1, ECX);
+    asm.emitXOR_Reg_Reg (T0, T0);
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);          // shift high half (step 12)
+    asm.emitSHL_Reg_Reg (T0, ECX);                   // shift low half
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(T1);                   // push high half (step 14)
+    asm.emitPUSH_Reg(T0);                   // push low half
+    // restore JTOC
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+  }
+
+  /**
+   * Emit code to implement the lshr bytecode
+   */
+  protected final void emit_lshr() {
+    if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
+    if (VM.VerifyAssertions) VM.assert (ECX != T1);
+    if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
+    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
+    // 2: pop low half into T0
+    // 3: pop high half into T1
+    // 4: ECX <- JTOC, copy the shift count
+    // 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
+    // 6: branch to step 13 if results is zero
+    // the result is not zero --> the shift amount is greater than 32
+    // 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
+    // 8: T0 <- T1, or replace the low half with the high half.  This accounts for the 32 bit shift
+    // 9: shift T0 right arithmetic by ECX bits
+    // 10: ECX <- 31
+    // 11: shift T1 right arithmetic by ECX=31 bits, thus exending the sigh
+    // 12: branch to step 15
+    // 13: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
+    // 14: shift right arithmetic T1, the high half, also by ECX bits
+    // 15: push high half from T1
+    // 16: push the low half from T0
+    // 17: restore JTOC
+    asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
+    asm.emitPOP_Reg (T0);                   // pop low half 
+    asm.emitPOP_Reg (T1);                   // pop high
+    asm.emitMOV_Reg_Reg (ECX, JTOC);
+    asm.emitAND_Reg_Imm (JTOC, 32);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);
+    asm.emitXOR_Reg_Reg (ECX, JTOC);
+    asm.emitMOV_Reg_Reg (T0, T1);               // replace low with high
+    asm.emitSAR_Reg_Reg (T0, ECX);                   // and shift it
+    asm.emitMOV_Reg_Imm (ECX, 31);
+    asm.emitSAR_Reg_Reg (T1, ECX);                   // set high half
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half (step 13)
+    asm.emitSAR_Reg_Reg (T1, ECX);                   // shift high half
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(T1);                   // push high half (step 15)
+    asm.emitPUSH_Reg(T0);                   // push low half
+    // restore JTOC
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+  }
+
+  /**
+   * Emit code to implement the lushr bytecode
+   */
+  protected final void emit_lushr() {
+    if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
+    if (VM.VerifyAssertions) VM.assert (ECX != T1);
+    if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
+    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
+    // 2: pop low half into T0
+    // 3: ECX <- JTOC, copy the shift count
+    // 4: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
+    // 5: branch to step 11 if results is zero
+    // the result is not zero --> the shift amount is greater than 32
+    // 6: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
+    // 7: pop high half into T0 replace the low half with the high 
+    //        half.  This accounts for the 32 bit shift
+    // 8: shift T0 right logical by ECX bits
+    // 9: T1 <- 0                        T1 is the high half
+    // 10: branch to step 14
+    // 11: pop high half into T1
+    // 12: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
+    // 13: shift right logical T1, the high half, also by ECX bits
+    // 14: push high half from T1
+    // 15: push the low half from T0
+    // 16: restore JTOC
+    asm.emitPOP_Reg(JTOC);                // original shift amount 6 bits
+    asm.emitPOP_Reg(T0);                  // pop low half 
+    asm.emitMOV_Reg_Reg(ECX, JTOC);
+    asm.emitAND_Reg_Imm(JTOC, 32);
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);
+    asm.emitXOR_Reg_Reg (ECX, JTOC);
+    asm.emitPOP_Reg (T0);                   // replace low with high
+    asm.emitSHR_Reg_Reg (T0, ECX);      // and shift it (count - 32)
+    asm.emitXOR_Reg_Reg (T1, T1);               // high <- 0
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPOP_Reg (T1);                   // high half (step 11)
+    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half
+    asm.emitSHR_Reg_Reg (T1, ECX);                   // shift high half
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(T1);                   // push high half (step 14)
+    asm.emitPUSH_Reg(T0);                   // push low half
+    // restore JTOC
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+  }
+
+  /**
+   * Emit code to implement the land bytecode
+   */
+  protected final void emit_land() {
+    asm.emitPOP_Reg(T0);        // low
+    asm.emitPOP_Reg(S0);        // high
+    asm.emitAND_RegInd_Reg(SP, T0);
+    asm.emitAND_RegDisp_Reg(SP, 4, S0);
+  }
+
+  /**
+   * Emit code to implement the lor bytecode
+   */
+  protected final void emit_lor() {
+    asm.emitPOP_Reg(T0);        // low
+    asm.emitPOP_Reg(S0);        // high
+    asm.emitOR_RegInd_Reg(SP, T0);
+    asm.emitOR_RegDisp_Reg(SP, 4, S0);
+  }
+
+  /**
+   * Emit code to implement the lxor bytecode
+   */
+  protected final void emit_lxor() {
+    asm.emitPOP_Reg(T0);        // low
+    asm.emitPOP_Reg(S0);        // high
+    asm.emitXOR_RegInd_Reg(SP, T0);
+    asm.emitXOR_RegDisp_Reg(SP, 4, S0);
+  }
+
+
+  /*
+   * float ALU
+   */
+
+
+  /**
+   * Emit code to implement the fadd bytecode
+   */
+  protected final void emit_fadd() {
+    asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
+    asm.emitFADD_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack += value1
+    asm.emitPOP_Reg   (T0);           // discard 
+    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the fsub bytecode
+   */
+  protected final void emit_fsub() {
+    asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
+    asm.emitFSUB_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack -= value2
+    asm.emitPOP_Reg   (T0);           // discard 
+    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the fmul bytecode
+   */
+  protected final void emit_fmul() {
+    asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
+    asm.emitFMUL_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack *= value1
+    asm.emitPOP_Reg   (T0);           // discard 
+    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the fdiv bytecode
+   */
+  protected final void emit_fdiv() {
+    asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
+    asm.emitFDIV_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack /= value2
+    asm.emitPOP_Reg   (T0);           // discard 
+    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the frem bytecode
+   */
+  protected final void emit_frem() {
+    asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2, or a
+    asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1, or b
+    asm.emitFPREM ();             // FPU reg. stack <- a%b
+    asm.emitFSTP_RegDisp_Reg(SP, WORDSIZE, FP0); // POP FPU reg. stack (results) onto java stack
+    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto java stack
+    asm.emitPOP_Reg   (T0);           // shrink the stack (T0 discarded)
+  }
+
+  /**
+   * Emit code to implement the fneg bytecode
+   */
+  protected final void emit_fneg() {
+    asm.emitFLD_Reg_RegInd (FP0, SP); // FPU reg. stack <- value1
+    asm.emitFCHS  ();      // change sign to stop of FPU stack
+    asm.emitFSTP_RegInd_Reg(SP, FP0); // POP FPU reg. stack onto stack
+  }
+
+
+  /*
+   * double ALU
+   */
+
+
+  /**
+   * Emit code to implement the dadd bytecode
+   */
+  protected final void emit_dadd() {
+    asm.emitFLD_Reg_RegInd_Quad (FP0, SP);        // FPU reg. stack <- value2
+    asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, 8);        // FPU reg. stack += value1
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);  // shrink the stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);        // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the dsub bytecode
+   */
+  protected final void emit_dsub() {
+    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
+    asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, 0);          // FPU reg. stack -= value2
+    asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the dmul bytecode
+   */
+  protected final void emit_dmul() {
+    asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2
+    asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, 8);          // FPU reg. stack *= value1
+    asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the ddiv bytecode
+   */
+  protected final void emit_ddiv() {
+    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
+    asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack /= value2
+    asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
+  }
+
+  /**
+   * Emit code to implement the drem bytecode
+   */
+  protected final void emit_drem() {
+    asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2, or a
+    asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 2*WORDSIZE); // FPU reg. stack <- value1, or b
+    asm.emitFPREM ();               // FPU reg. stack <- a%b
+    asm.emitFSTP_RegDisp_Reg_Quad(SP, 2*WORDSIZE, FP0); // POP FPU reg. stack (result) onto java stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);         // POP FPU reg. stack onto java stack
+    asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
+  }
+
+  /**
+   * Emit code to implement the dneg bytecode
+   */
+  protected final void emit_dneg() {
+    asm.emitFLD_Reg_RegInd_Quad (FP0, SP); // FPU reg. stack <- value1
+    asm.emitFCHS  ();      // change sign to stop of FPU stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // POP FPU reg. stack onto stack
+  }
+
+
+  /*
+   * conversion ops
+   */
+
+
+  /**
+   * Emit code to implement the i2l bytecode
+   */
+  protected final void emit_i2l() {
+    asm.emitPOP_Reg (EAX);
+    asm.emitCDQ ();
+    asm.emitPUSH_Reg(EDX);
+    asm.emitPUSH_Reg(EAX);
+  }
+
+  /**
+   * Emit code to implement the i2f bytecode
+   */
+  protected final void emit_i2f() {
+    asm.emitFILD_Reg_RegInd(FP0, SP);
+    asm.emitFSTP_RegInd_Reg(SP, FP0);
+  }
+
+  /**
+   * Emit code to implement the i2d bytecode
+   */
+  protected final void emit_i2d() {
+    asm.emitFILD_Reg_RegInd(FP0, SP);
+    asm.emitPUSH_Reg(T0);             // grow the stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+  }
+
+  /**
+   * Emit code to implement the l2i bytecode
+   */
+  protected final void emit_l2i() {
+    asm.emitPOP_Reg (T0); // low half of the long
+    asm.emitPOP_Reg (S0); // high half of the long
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the l2f bytecode
+   */
+  protected final void emit_l2f() {
+    asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
+    asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
+    asm.emitFSTP_RegInd_Reg(SP, FP0);
+  }
+
+  /**
+   * Emit code to implement the l2d bytecode
+   */
+  protected final void emit_l2d() {
+    asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+  }
+
+  /**
+   * Emit code to implement the f2i bytecode
+   */
+  protected final void emit_f2i() {
+    // (1) save RVM nonvolatiles
+    int numNonVols = NONVOLATILE_GPRS.length;
+    for (int i = 0; i<numNonVols; i++) {
+      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (2) Push arg to C function 
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
+    // (3) invoke C function through bootrecord
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
+    // (4) pop argument;
+    asm.emitPOP_Reg(S0);
+    // (5) restore RVM nonvolatiles
+    for (int i = numNonVols-1; i >=0; i--) {
+      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (6) put result on expression stack
+    asm.emitMOV_RegDisp_Reg(SP, 0, T0);
+  }
+
+  /**
+   * Emit code to implement the f2l bytecode
+   */
+  protected final void emit_f2l() {
+    // (1) save RVM nonvolatiles
+    int numNonVols = NONVOLATILE_GPRS.length;
+    for (int i = 0; i<numNonVols; i++) {
+      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (2) Push arg to C function 
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
+    // (3) invoke C function through bootrecord
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffset());
+    // (4) pop argument;
+    asm.emitPOP_Reg(S0);
+    // (5) restore RVM nonvolatiles
+    for (int i = numNonVols-1; i >=0; i--) {
+      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (6) put result on expression stack
+    asm.emitMOV_RegDisp_Reg(SP, 0, T1);
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the f2d bytecode
+   */
+  protected final void emit_f2d() {
+    asm.emitFLD_Reg_RegInd(FP0, SP);
+    asm.emitSUB_Reg_Imm(SP, WORDSIZE);                // grow the stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+  }
+
+  /**
+   * Emit code to implement the d2i bytecode
+   */
+  protected final void emit_d2i() {
+    // (1) save RVM nonvolatiles
+    int numNonVols = NONVOLATILE_GPRS.length;
+    for (int i = 0; i<numNonVols; i++) {
+      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (2) Push args to C function (reversed)
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    // (3) invoke C function through bootrecord
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffset());
+    // (4) pop arguments
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(S0);
+    // (5) restore RVM nonvolatiles
+    for (int i = numNonVols-1; i >=0; i--) {
+      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (6) put result on expression stack
+    asm.emitPOP_Reg(S0); // shrink stack by 1 word
+    asm.emitMOV_RegDisp_Reg(SP, 0, T0);
+  }
+
+  /**
+   * Emit code to implement the d2l bytecode
+   */
+  protected final void emit_d2l() {
+    // (1) save RVM nonvolatiles
+    int numNonVols = NONVOLATILE_GPRS.length;
+    for (int i = 0; i<numNonVols; i++) {
+      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (2) Push args to C function (reversed)
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+    // (3) invoke C function through bootrecord
+    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToLongIPField.getOffset());
+    // (4) pop arguments
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(S0);
+    // (5) restore RVM nonvolatiles
+    for (int i = numNonVols-1; i >=0; i--) {
+      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+    }
+    // (6) put result on expression stack
+    asm.emitMOV_RegDisp_Reg(SP, 4, T1);
+    asm.emitMOV_RegDisp_Reg(SP, 0, T0);
+  }
+
+  /**
+   * Emit code to implement the d2f bytecode
+   */
+  protected final void emit_d2f() {
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
+    asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
+    asm.emitFSTP_RegInd_Reg(SP, FP0);
+  }
+
+  /**
+   * Emit code to implement the i2b bytecode
+   */
+  protected final void emit_i2b() {
+    asm.emitPOP_Reg   (T0);
+    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);
+    asm.emitPUSH_Reg  (T0);
+  }
+
+  /**
+   * Emit code to implement the i2c bytecode
+   */
+  protected final void emit_i2c() {
+    asm.emitPOP_Reg   (T0);
+    asm.emitMOVZX_Reg_Reg_Word(T0, T0);
+    asm.emitPUSH_Reg  (T0);
+  }
+
+  /**
+   * Emit code to implement the i2s bytecode
+   */
+  protected final void emit_i2s() {
+    asm.emitPOP_Reg   (T0);
+    asm.emitMOVSX_Reg_Reg_Word(T0, T0);
+    asm.emitPUSH_Reg  (T0);
+  }
+
+
+  /*
+   * comparision ops
+   */
+
+
+  /**
+   * Emit code to implement the lcmp bytecode
+   */
+  protected final void emit_lcmp() {
+    asm.emitPOP_Reg(T0);        // the low half of value2
+    asm.emitPOP_Reg(S0);        // the high half of value2
+    asm.emitPOP_Reg(T1);        // the low half of value1
+    asm.emitSUB_Reg_Reg(T1, T0);        // subtract the low half of value2 from
+                                // low half of value1, result into T1
+    asm.emitPOP_Reg(T0);        // the high half of value 1
+    //  pop does not alter the carry register
+    asm.emitSBB_Reg_Reg(T0, S0);        // subtract the high half of value2 plus
+                                // borrow from the high half of value 1,
+                                // result in T0
+    asm.emitMOV_Reg_Imm(S0, -1);        // load -1 into S0
+    VM_ForwardReference fr1 = asm.forwardJcc(asm.LT); // result negative --> branch to end
+    asm.emitMOV_Reg_Imm(S0, 0);        // load 0 into S0
+    asm.emitOR_Reg_Reg(T0, T1);        // result 0 
+    VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ); // result 0 --> branch to end
+    asm.emitMOV_Reg_Imm(S0, 1);        // load 1 into S0
+    fr1.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(S0);        // push result on stack
+  }
+
+  /**
+   * Emit code to implement the fcmpl bytecode
+   */
+  protected final void emit_fcmpl() {
+    VM_ForwardReference fr1,fr2,fr3;
+    asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
+    asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
+    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
+    asm.emitFUCOMPP();                        // compare and pop FPU *2
+    asm.emitFNSTSW();                     // move FPU flags into (E)AX
+    asm.emitSAHF();                       // store AH into flags
+    fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
+    // ZF not set ->  neither equal nor unordered
+    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
+    fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
+    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
+    fr1.resolve(asm);                        // ZF set (equal or unordered)
+    fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
+    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
+    fr3.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(S0);                        // push result on stack
+  }
+
+  /**
+   * Emit code to implement the fcmpg bytecode
+   */
+  protected final void emit_fcmpg() {
+    VM_ForwardReference fr1,fr2,fr3;
+    asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
+    asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
+    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
+    asm.emitFUCOMPP();                        // compare and pop FPU *2
+    asm.emitFNSTSW();                     // move FPU flags into (E)AX
+    asm.emitSAHF();                       // store AH into flags
+    fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
+    // ZF not set ->  neither equal nor unordered
+    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
+    fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
+    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
+    fr1.resolve(asm);                        // ZF set (equal or unordered)
+    fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
+    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
+    fr3.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(S0);                        // push result on stack
+  }
+
+  /**
+   * Emit code to implement the dcmpl bytecode
+   */
+  protected final void emit_dcmpl() {
+    VM_ForwardReference fr1,fr2,fr3;
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
+    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
+    asm.emitFUCOMPP();                        // compare and pop FPU *2
+    asm.emitFNSTSW();                     // move FPU flags into (E)AX
+    asm.emitSAHF();                       // store AH into flags
+    fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
+    // ZF not set ->  neither equal nor unordered
+    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
+    fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
+    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
+    fr1.resolve(asm);                        // ZF set (equal or unordered)
+    fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
+    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
+    fr3.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(S0);                        // push result on stack
+  }
+
+  /**
+   * Emit code to implement the dcmpg bytecode
+   */
+  protected final void emit_dcmpg() {
+    VM_ForwardReference fr1,fr2,fr3;
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
+    if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
+    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
+    asm.emitFUCOMPP();                        // compare and pop FPU *2
+    asm.emitFNSTSW();                     // move FPU flags into (E)AX
+    asm.emitSAHF();                       // store AH into flags
+    fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
+    // ZF not set ->  neither equal nor unordered
+    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
+    fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
+    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
+    fr1.resolve(asm);                        // ZF set (equal or unordered)
+    fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
+    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
+    fr3.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Reg(S0);                        // push result on stack
+  }
+
+
+  /*
+   * branching
+   */
+
+
+  /**
+   * Emit code to implement the ifeg bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifeq(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ifne bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifne(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the iflt bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_iflt(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.LT, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ifge bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifge(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.GE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ifgt bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifgt(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.GT, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ifle bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifle(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.LE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_icmpeq bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_icmpeq(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_icmpne bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_icmpne(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_icmplt bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_icmplt(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.LT, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_icmpge bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_icmpge(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.GE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_icmpgt bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_icmpgt(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.GT, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_icmple bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_icmple(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.LE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_acmpeq bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_acmpeq(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the if_acmpne bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_if_acmpne(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ifnull bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifnull(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ifnonnull bytecode
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_ifnonnull(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the goto and gotow bytecodes
+   * @param bTarget target bytecode of the branch
+   */
+  protected final void emit_goto(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the jsr and jsrw bytecode
+   * @param bTarget target bytecode of the jsr
+   */
+  protected final void emit_jsr(int bTarget) {
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitCALL_ImmOrLabel(mTarget, bTarget);
+  }
+
+  /**
+   * Emit code to implement the ret bytecode
+   * @param index local variable containing the return address
+   */
+  protected final void emit_ret(int index) {
+    int offset = localOffset(index);
+    asm.emitJMP_RegDisp(ESP, offset); 
+  }
+
+  /**
+   * Emit code to implement the tableswitch bytecode
+   * @param defaultval bcIndex of the default target
+   * @param low low value of switch
+   * @param high high value of switch
+   */
+  protected final void emit_tableswitch(int defaultval, int low, int high) {
+    int bTarget = biStart + defaultval;
+    int mTarget = bytecodeMap[bTarget];
+    int n = high-low+1;                        // n = number of normal cases (0..n-1)
+    asm.emitPOP_Reg (T0);                          // T0 is index of desired case
+    asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
+    asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
+    asm.emitJCC_Cond_ImmOrLabel (asm.LGE, mTarget, bTarget);   // if not, goto default case
+    asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n<<LG_WORDSIZE) ); 
+    // jump around table, pushing address of 0th delta
+    for (int i=0; i<n; i++) {                  // create table of deltas
+      int offset = fetch4BytesSigned();
+      bTarget = biStart + offset;
+      mTarget = bytecodeMap[bTarget];
+      // delta i: difference between address of case i and of delta 0
+      asm.emitOFFSET_Imm_ImmOrLabel(i, mTarget, bTarget );
+    }
+    asm.emitPOP_Reg (S0);                          // S0 = address of 0th delta 
+    asm.emitADD_Reg_RegIdx (S0, S0, T0, asm.WORD, 0);     // S0 += [S0 + T0<<2]
+    asm.emitPUSH_Reg(S0);                          // push computed case address
+    asm.emitRET ();                            // goto case
+  }
+
+  /**
+   * Emit code to implement the lookupswitch bytecode.
+   * Uses linear search, one could use a binary search tree instead,
+   * but this is the baseline compiler, so don't worry about it.
+   * 
+   * @param defaultval bcIndex of the default target
+   * @param npairs number of pairs in the lookup switch
+   */
+  protected final void emit_lookupswitch(int defaultval, int npairs) {
+    asm.emitPOP_Reg(T0);
+    for (int i=0; i<npairs; i++) {
+      int match   = fetch4BytesSigned();
+      asm.emitCMP_Reg_Imm(T0, match);
+      int offset  = fetch4BytesSigned();
+      int bTarget = biStart + offset;
+      int mTarget = bytecodeMap[bTarget];
+      asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
+    }
+    int bTarget = biStart + defaultval;
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+  }
+
+
+  /*
+   * returns (from function; NOT ret)
+   */
+
+
+  /**
+   * Emit code to implement the ireturn bytecode
+   */
+  protected final void emit_ireturn() {
+    if (method.isSynchronized()) genMonitorExit();
+    asm.emitPOP_Reg(T0);
+    genEpilogue(4); 
+  }
+
+  /**
+   * Emit code to implement the lreturn bytecode
+   */
+  protected final void emit_lreturn() {
+    if (method.isSynchronized()) genMonitorExit();
+    asm.emitPOP_Reg(T1); // low half
+    asm.emitPOP_Reg(T0); // high half
+    genEpilogue(8);
+  }
+
+  /**
+   * Emit code to implement the freturn bytecode
+   */
+  protected final void emit_freturn() {
+    if (method.isSynchronized()) genMonitorExit();
+    asm.emitFLD_Reg_RegInd(FP0, SP);
+    asm.emitADD_Reg_Imm(SP, WORDSIZE); // pop the stack
+    genEpilogue(4);
+  }
+
+  /**
+   * Emit code to implement the dreturn bytecode
+   */
+  protected final void emit_dreturn() {
+    if (method.isSynchronized()) genMonitorExit();
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
+    asm.emitADD_Reg_Imm(SP, WORDSIZE<<1); // pop the stack
+    genEpilogue(8);
+  }
+
+  /**
+   * Emit code to implement the areturn bytecode
+   */
+  protected final void emit_areturn() {
+    if (method.isSynchronized()) genMonitorExit();
+    asm.emitPOP_Reg(T0);
+    genEpilogue(4); 
+  }
+
+  /**
+   * Emit code to implement the return bytecode
+   */
+  protected final void emit_return() {
+    if (method.isSynchronized()) genMonitorExit();
+    genEpilogue(0); 
+  }
+
+
+  /*
+   * field access
+   */
+
+
+  /**
+   * Emit code to implement a dynamically linked getstatic
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_unresolved_getstatic(VM_Field fieldRef) {
+    emitDynamicLinkingSequence(T0, fieldRef); 
+    if (fieldRef.getSize() == 4) { 
+      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, WORDSIZE); // get high part
+      asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get low part
+    }
+  }
+
+  /**
+   * Emit code to implement a getstatic
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_resolved_getstatic(VM_Field fieldRef) {
+    int fieldOffset = fieldRef.getOffset();
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitPUSH_RegDisp(JTOC, fieldOffset);
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
+      }
+      asm.emitPUSH_RegDisp(JTOC, fieldOffset+WORDSIZE); // get high part
+      asm.emitPUSH_RegDisp(JTOC, fieldOffset);          // get low part
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
+      }
+    }
+  }
+
+
+  /**
+   * Emit code to implement a dynamically linked putstatic
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_unresolved_putstatic(VM_Field fieldRef) {
+    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+      VM_Barriers.compileUnresolvedPutstaticBarrier(asm, fieldRef.getDictionaryId());
+    }
+    emitDynamicLinkingSequence(T0, fieldRef);
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);        // store low part
+      asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, WORDSIZE); // store high part
+    }
+  }
+
+  /**
+   * Emit code to implement a putstatic
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_resolved_putstatic(VM_Field fieldRef) {
+    int fieldOffset = fieldRef.getOffset();
+    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+      VM_Barriers.compilePutstaticBarrier(asm, fieldOffset);
+    }
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitPOP_RegDisp(JTOC, fieldOffset);
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
+      }
+      asm.emitPOP_RegDisp(JTOC, fieldOffset);          // store low part
+      asm.emitPOP_RegDisp(JTOC, fieldOffset+WORDSIZE); // store high part
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
+      }
+    }
+  }
+
+
+  /**
+   * Emit code to implement a dynamically linked getfield
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_unresolved_getfield(VM_Field fieldRef) {
+    emitDynamicLinkingSequence(T0, fieldRef);
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
+      asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
+      asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
+      asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
+      asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);               // push the low part of field value
+    }
+  }
+
+  /**
+   * Emit code to implement a getfield
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_resolved_getfield(VM_Field fieldRef) {
+    int fieldOffset = fieldRef.getOffset();
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
+      asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
+      asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
+      }
+      asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
+      asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
+      asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
+      asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
+      }
+    }
+  }
+
+
+  /**
+   * Emit code to implement a dynamically linked putfield
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_unresolved_putfield(VM_Field fieldRef) {
+    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+      VM_Barriers.compileUnresolvedPutfieldBarrier(asm, fieldRef.getDictionaryId());
+    }
+    emitDynamicLinkingSequence(T0, fieldRef);
+    if (fieldRef.getSize() == 4) {// field is one word
+      asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
+      asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
+      asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
+      asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
+      asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
+      // restore JTOC
+      VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+    }
+  }
+
+  /**
+   * Emit code to implement a putfield
+   * @param fieldRef the referenced field
+   */
+  protected final void emit_resolved_putfield(VM_Field fieldRef) {
+    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+      VM_Barriers.compilePutfieldBarrier(asm, fieldRef.getOffset());
+    }
+    int fieldOffset = fieldRef.getOffset();
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
+      asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
+      }
+      // TODO!! use 8-byte move if possible
+      asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
+      asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
+      asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
+      asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
+      asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
+      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
+	asm.emitPUSH_Reg        (T0);
+	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
+	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
+      }
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
+    }
+  }
+
+
+  /*
+   * method invocation
+   */
+
+  /**
+   * Emit code to implement a dynamically linked invokevirtual
+   * @param methodRef the referenced method
+   */
+  protected final void emit_unresolved_invokevirtual(VM_Method methodRef) {
+    emitDynamicLinkingSequence(T0, methodRef);
+    int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
+    int objectOffset = (methodRefparameterWords << 2) - 4;           // object offset into stack
+    asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);                  // S0 has "this" parameter
+    VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
+    asm.emitMOV_Reg_RegIdx (S0, S0, T0, asm.BYTE, 0);                // S0 has address of virtual method
+    genParameterRegisterLoad(methodRef, true);
+    asm.emitCALL_Reg(S0);                                      // call virtual method
+    genResultRegisterUnload(methodRef);                    // push return value, if any
+  }
+
+  /**
+   * Emit code to implement invokevirtual
+   * @param methodRef the referenced method
+   */
+  protected final void emit_resolved_invokevirtual(VM_Method methodRef) {
+    int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
+    int methodRefOffset = methodRef.getOffset();
+    int objectOffset = (methodRefparameterWords << 2) - WORDSIZE; // object offset into stack
+    asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);
+    VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
+    genParameterRegisterLoad(methodRef, true);
+    asm.emitCALL_RegDisp(S0, methodRefOffset);
+    genResultRegisterUnload(methodRef);
+  }
+
+
+  /**
+   * Emit code to implement a dynamically linked invokespecial
+   * @param methodRef the referenced method
+   * @param targetRef the method to invoke
+   */
+  protected final void emit_resolved_invokespecial(VM_Method methodRef, VM_Method target) {
+    if (target.isObjectInitializer()) {
+      genParameterRegisterLoad(methodRef, true);
+      asm.emitCALL_RegDisp(JTOC, target.getOffset());
+      genResultRegisterUnload(target);
+    } else {
+      if (VM.VerifyAssertions) VM.assert(!target.isStatic());
+      // invoke via class's tib slot
+      int methodRefOffset = target.getOffset();
+      asm.emitMOV_Reg_RegDisp (S0, JTOC, target.getDeclaringClass().getTibOffset());
+      genParameterRegisterLoad(methodRef, true);
+      asm.emitCALL_RegDisp(S0, methodRefOffset);
+      genResultRegisterUnload(methodRef);
+    }
+  }
+
+  /**
+   * Emit code to implement invokespecial
+   * @param methodRef the referenced method
+   */
+  protected final void emit_unresolved_invokespecial(VM_Method methodRef) {
+    emitDynamicLinkingSequence(S0, methodRef);
+    genParameterRegisterLoad(methodRef, true);
+    asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);  // call static method
+    genResultRegisterUnload(methodRef);
+  }
+
+
+  /**
+   * Emit code to implement a dynamically linked invokestatic
+   * @param methodRef the referenced method
+   */
+  protected final void emit_unresolved_invokestatic(VM_Method methodRef) {
+    emitDynamicLinkingSequence(S0, methodRef);
+    genParameterRegisterLoad(methodRef, false);          
+    asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0); 
+    genResultRegisterUnload(methodRef);
+  }
+
+  /**
+   * Emit code to implement invokestatic
+   * @param methodRef the referenced method
+   */
+  protected final void emit_resolved_invokestatic(VM_Method methodRef) {
+    int methodOffset = methodRef.getOffset();
+    genParameterRegisterLoad(methodRef, false);
+    asm.emitCALL_RegDisp(JTOC, methodOffset);
+    genResultRegisterUnload(methodRef);
+  }
+
+
+  /**
+   * Emit code to implement the invokeinterface bytecode
+   * @param methodRef the referenced method
+   * @param count number of parameter words (see invokeinterface bytecode)
+   */
+  protected final void emit_invokeinterface(VM_Method methodRef, int count) {
+    // (1) Emit dynamic type checking sequence if required to do so inline.
+    if (VM.BuildForIMTInterfaceInvocation || 
+	(VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+      VM_Method resolvedMethodRef = null;
+      try {
+	resolvedMethodRef = methodRef.resolveInterfaceMethod(false);
+      } catch (VM_ResolutionException e) {
+	// actually can't be thrown when we pass false for canLoad.
+      }
+      if (resolvedMethodRef == null) {
+	// might be a ghost ref. Call uncommon case typechecking routine to deal with this
+	asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                       // "this" object
+	asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // dict id of target
+	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
+	asm.emitPUSH_Reg(S0);
+	genParameterRegisterLoad(2);                                            // pass 2 parameter word
+	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
+      } else {
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
+	asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
+	asm.emitPUSH_RegDisp(T0, TIB_TYPE_INDEX << 2);                                // type of the interface method
+	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
+	asm.emitPUSH_Reg(S0);
+	genParameterRegisterLoad(2);                                          // pass 2 parameter word
+	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
+      }
+    }
+
+    // (2) Emit interface invocation sequence.
+    if (VM.BuildForIMTInterfaceInvocation) {
+      int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef.getName(), methodRef.getDescriptor());
+      int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
+          
+      // squirrel away signature ID
+      VM_ProcessorLocalState.emitMoveImmToField(asm, 
+						VM_Entrypoints.hiddenSignatureIdField.getOffset(),
+						signatureId);
+
+      asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                  // "this" object
+      VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
+      if (VM.BuildForIndirectIMT) {
+	// Load the IMT Base into S0
+	asm.emitMOV_Reg_RegDisp(S0, S0, TIB_IMT_TIB_INDEX << 2);
+      }
+      genParameterRegisterLoad(methodRef, true);
+      asm.emitCALL_RegDisp(S0, offset);                                             // the interface call
+    } else if (VM.BuildForITableInterfaceInvocation && 
+	       VM.DirectlyIndexedITables && 
+	       methodRef.getDeclaringClass().isResolved()) {
+      methodRef = methodRef.resolve();
+      VM_Class I = methodRef.getDeclaringClass();
+      asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
+      VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
+      asm.emitMOV_Reg_RegDisp (S0, S0, TIB_ITABLES_TIB_INDEX << 2);                     // iTables
+      asm.emitMOV_Reg_RegDisp (S0, S0, I.getInterfaceId() << 2);                        // iTable
+      genParameterRegisterLoad(methodRef, true);
+      asm.emitCALL_RegDisp(S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2); // the interface call
+    } else {
+      VM_Class I = methodRef.getDeclaringClass();
+      int itableIndex = -1;
+      if (false && VM.BuildForITableInterfaceInvocation) {
+	// get the index of the method in the Itable
+	if (I.isLoaded()) {
+	  itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef);
+	}
+      }
+      if (itableIndex == -1) {
+	// itable index is not known at compile-time.
+	// call "invokeInterface" to resolve object + method id into 
+	// method address
+	int methodRefId = methodRef.getDictionaryId();
+	asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
+	asm.emitPUSH_Imm(methodRefId);                 // id of method to call
+	genParameterRegisterLoad(2);               // pass 2 parameter words
+	asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceMethod.getOffset()); // invokeinterface(obj, id) returns address to call
+	asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
+	genParameterRegisterLoad(methodRef, true);
+	asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
+      } else {
+	// itable index is known at compile-time.
+	// call "findITable" to resolve object + interface id into 
+	// itable address
+	asm.emitMOV_Reg_RegDisp (T0, SP, (count-1) << 2);             // "this" object
+	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
+	asm.emitPUSH_Reg(S0);
+	asm.emitPUSH_Imm        (I.getInterfaceId());                // interface id
+	genParameterRegisterLoad(2);                                  // pass 2 parameter words
+	asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableMethod.getOffset()); // findItableOffset(tib, id) returns iTable
+	asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
+	genParameterRegisterLoad(methodRef, true);
+	asm.emitCALL_RegDisp    (S0, itableIndex << 2);               // the interface call
+      }
+    }
+    genResultRegisterUnload(methodRef);
+  }
+ 
+
+  /*
+   * other object model functions
+   */ 
+
+
+  /**
+   * Emit code to allocate a scalar object
+   * @param typeRef the VM_Class to instantiate
+   */
+  protected final void emit_resolved_new(VM_Class typeRef) {
+    int instanceSize = typeRef.getInstanceSize();
+    int tibOffset = typeRef.getOffset();
+    asm.emitPUSH_Imm(instanceSize);            
+    asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
+    asm.emitPUSH_Imm(typeRef.hasFinalizer()?1:0); // does the class have a finalizer?
+    genParameterRegisterLoad(3);                  // pass 3 parameter words
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.quickNewScalarMethod.getOffset());
+    asm.emitPUSH_Reg (T0);
+  }
+
+  /**
+   * Emit code to dynamically link and allocate a scalar object
+   * @param the dictionaryId of the VM_Class to dynamically link & instantiate
+   */
+  protected final void emit_unresolved_new(int dictionaryId) {
+    asm.emitPUSH_Imm(dictionaryId);
+    genParameterRegisterLoad(1);           // pass 1 parameter word
+    asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.newScalarMethod.getOffset());
+    asm.emitPUSH_Reg (T0);
+  }
+
+  /**
+   * Emit code to allocate an array
+   * @param array the VM_Array to instantiate
+   */
+  protected final void emit_newarray(VM_Array array) {
+    int width      = array.getLogElementSize();
+    int tibOffset  = array.getOffset();
+    int headerSize = VM_ObjectModel.computeHeaderSize(array);
+    // count is already on stack- nothing required
+    asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
+    asm.emitSHL_Reg_Imm (T0, width);              // compute array size
+    asm.emitADD_Reg_Imm(T0, headerSize);
+    asm.emitPUSH_Reg(T0);      
+    asm.emitPUSH_RegDisp(JTOC, tibOffset);        // put tib on stack    
+    genParameterRegisterLoad(3);          // pass 3 parameter words
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.quickNewArrayMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to allocate a multi-dimensional array
+   * @param typeRef the VM_Array to instantiate
+   * @param dimensions the number of dimensions
+   * @param dictionaryId, the dictionaryId of typeRef
+   */
+  protected final void emit_multianewarray(VM_Array typeRef, int dimensions, int dictionaryId) {
+    // setup parameters for newarrayarray routine
+    asm.emitPUSH_Imm (dimensions);                     // dimension of arays
+    asm.emitPUSH_Imm (dictionaryId);                   // type of array elements               
+    asm.emitPUSH_Imm ((dimensions + 5)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
+    // NOTE: 5 extra words- 3 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
+    genParameterRegisterLoad(3);                   // pass 3 parameter words
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayMethod.getOffset()); 
+    for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
+    asm.emitPUSH_Reg(T0);                              // push array ref on stack
+  }
+
+  /**
+   * Emit code to implement the arraylength bytecode
+   */
+  protected final void emit_arraylength() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                   // T0 is array reference
+    asm.emitMOV_Reg_RegDisp(T0, T0, VM_ObjectModel.getArrayLengthOffset()); // T0 is array length
+    asm.emitMOV_RegDisp_Reg(SP, 0, T0);                   // replace reference with length on stack
+  }
+
+  /**
+   * Emit code to implement the athrow bytecode
+   */
+  protected final void emit_athrow() {
+    genParameterRegisterLoad(1);          // pass 1 parameter word
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.athrowMethod.getOffset());
+  }
+
+  /**
+   * Emit code to implement the checkcast bytecode
+   * @param typeRef the LHS type
+   * @param target the method to invoke to implement this checkcast
+   */
+  protected final void emit_checkcast(VM_Type typeRef, VM_Method target) {
+    asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
+    asm.emitPUSH_Imm(typeRef.getTibOffset());        // JTOC index that identifies klass  
+    genParameterRegisterLoad(2);                     // pass 2 parameter words
+    asm.emitCALL_RegDisp (JTOC, target.getOffset()); // checkcast(obj, klass-identifier)
+  }
+
+  /**
+   * Emit code to implement the instanceof bytecode
+   * @param typeRef the LHS type
+   * @param target the method to invoke to implement this instanceof
+   */
+  protected final void emit_instanceof(VM_Type typeRef, VM_Method target) {
+    asm.emitPUSH_Imm(typeRef.getTibOffset());  
+    genParameterRegisterLoad(2);          // pass 2 parameter words
+    asm.emitCALL_RegDisp(JTOC, target.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to implement the monitorenter bytecode
+   */
+  protected final void emit_monitorenter() {
+    genParameterRegisterLoad(1);          // pass 1 parameter word
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());
+  }
+
+  /**
+   * Emit code to implement the monitorexit bytecode
+   */
+  protected final void emit_monitorexit() {
+    genParameterRegisterLoad(1);          // pass 1 parameter word
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());  
+  }
+
 
   //----------------//
   // implementation //
   //----------------//
   
-  protected final VM_MachineCode genCode (int compiledMethodId, VM_Method method) {
-    parameterWords       = method.getParameterWords();
-    parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
+  private final void genPrologue () {
+    if (shouldPrint) asm.comment("prologue for " + method);
     if (klass.isBridgeFromNative()) {
       // replace the normal prologue with a special prolog
       VM_JNICompiler.generateGlueCodeForJNIMethod (asm, method, compiledMethodId);
@@ -63,2628 +2381,85 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // firstLocalOffset is shifted down because more registers are saved
       firstLocalOffset = STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE) ;
     } else {
-      genPrologue(compiledMethodId);
-    }
-    for (bi=0; bi<bytecodes.length;) {
-      bytecodeMap[bi] = asm.getMachineCodeIndex();
-      asm.resolveForwardReferences(bi);
-      biStart = bi;
-      int code = fetch1ByteUnsigned();
-      switch (code) {
-      case 0x00: /* nop */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "nop");
-	break;
-      }
-      case 0x01: /* aconst_null */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aconst_null ");
-	asm.emitPUSH_Imm(0);
-	break;
-      }
-      case 0x02: /* iconst_m1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1 ");
-	asm.emitPUSH_Imm(-1);
-	break;
-      }
-      case 0x03: /* iconst_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_0 ");
-	asm.emitPUSH_Imm(0);
-	break;
-      }
-      case 0x04: /* iconst_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_1 ");
-	asm.emitPUSH_Imm(1);
-	break;
-      }
-      case 0x05: /* iconst_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_2 ");
-	asm.emitPUSH_Imm(2);
-	break;
-      }
-      case 0x06: /* iconst_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_3 ");
-	asm.emitPUSH_Imm(3);
-	break;
-      }
-      case 0x07: /* iconst_4 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_4 ");
-	asm.emitPUSH_Imm(4);
-	break;
-      }
-      case 0x08: /* iconst_5 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_5 ");
-	asm.emitPUSH_Imm(5);
-	break;
-      }
-      case 0x09: /* lconst_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lconst_0 ");  // floating-point 0 is long 0
-	asm.emitPUSH_Imm(0);
-	asm.emitPUSH_Imm(0);
-	break;
-      }
-      case 0x0a: /* lconst_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lconst_1 ");
-	asm.emitPUSH_Imm(0);  // high part
-	asm.emitPUSH_Imm(1);  //  low part
-	break;
-      }
-      case 0x0b: /* fconst_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fconst_0");
-	asm.emitPUSH_Imm(0);
-	break;
-      }
-      case 0x0c: /* fconst_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fconst_1");
-	asm.emitPUSH_Imm(0x3f800000);
-	break;
-      }
-      case 0x0d: /* fconst_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fconst_2");
-	asm.emitPUSH_Imm(0x40000000);
-	break;
-      }
-      case 0x0e: /* dconst_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dconst_0");
-	asm.emitPUSH_Imm(0x00000000);
-	asm.emitPUSH_Imm(0x00000000);
-	break;
-      }
-      case 0x0f: /* dconst_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dconst_1");
-	asm.emitPUSH_Imm(0x3ff00000);
-	asm.emitPUSH_Imm(0x00000000);
-	break;
-      }
-      case 0x10: /* bipush */ {
-	int val = fetch1ByteSigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "bipush " + VM_Lister.decimal(val));
-	asm.emitPUSH_Imm(val);
-	break;
-      }
-      case 0x11: /* sipush */ {
-	int val = fetch2BytesSigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "sipush " + VM_Lister.decimal(val));
-	asm.emitPUSH_Imm(val);
-	break;
-      }
-      case 0x12: /* ldc */ {
-	int index = fetch1ByteUnsigned();
-	int offset = klass.getLiteralOffset(index);
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc " + VM_Lister.decimal(index));
-	asm.emitPUSH_RegDisp(JTOC, offset);   
-	break;
-      }
-      case 0x13: /* ldc_w */ {
-	int index = fetch2BytesUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc_w " + VM_Lister.decimal(index));
-	int offset = klass.getLiteralOffset(index);
-	asm.emitPUSH_RegDisp(JTOC, offset);   
-	break;
-      }
-      case 0x14: /* ldc2_w */ {
-	int index = fetch2BytesUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w " + VM_Lister.decimal(index));
-	int offset = klass.getLiteralOffset(index);
-	asm.emitPUSH_RegDisp(JTOC, offset+4); // high part of the long
-	asm.emitPUSH_RegDisp(JTOC, offset);   // low part of the long
-	break;
-      }
-      case 0x15: /* iload */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "iload " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(ESP,offset);
-	break;
-      }
-      case 0x16: /* lload */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "lload " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x17: /* fload */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "fload " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x18: /* dload */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "dload " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x19: /* aload */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "aload " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(ESP, offset);
-	break;
-      }
-      case 0x1a: /* iload_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_0");
-	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x1b: /* iload_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_1");
-	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x1c: /* iload_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_2");
-	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x1d: /* iload_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_3");
-	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x1e: /* lload_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_0");
-	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x1f: /* lload_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_1");
-	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x20: /* lload_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_2");
-	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x21: /* lload_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_3");
-	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x22: /* fload_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_0");
-	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x23: /* fload_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_1");
-	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x24: /* fload_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_2");
-	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x25: /* fload_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_3");
-	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x26: /* dload_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_0");
-	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x27: /* dload_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_1");
-	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x28: /* dload_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_2");
-	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x29: /* dload_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_3");
-	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(ESP, offset); // high part
-	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x2a: /* aload_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_0");
-	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(ESP, offset);
-	break;
-      }
-      case 0x2b: /* aload_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_1");
-	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(ESP, offset);
-	break;
-      }           
-      case 0x2c: /* aload_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_2");
-	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(ESP, offset);
-	break;
-      }
-      case 0x2d: /* aload_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_3");
-	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(ESP, offset);
-	break;
-      } 
-      case 0x2e: /* iaload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iaload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
-	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired int array element
-	break;
-      }
-      case 0x2f: /* laload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "laload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of desired long array element
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of desired long array element
-	break;
-      }
-      case 0x30: /* faload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "faload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
-	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired float array element
-	break;
-      }
-      case 0x31: /* daload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "daload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);              // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);              // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);             // complete popping the 2 args
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, WORDSIZE); // load high part of double
-	asm.emitPUSH_RegIdx(S0, T0, asm.LONG, 0);        // load low part of double
-	break;
-      }
-      case 0x32: /* aaload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aaload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);       // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);       // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);      // complete popping the 2 args
-	asm.emitPUSH_RegIdx(S0, T0, asm.WORD, 0); // push desired object array element
-	break;
-      }
-      case 0x33: /* baload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "baload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                     // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                     // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // complete popping the 2 args
-	asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, asm.BYTE, 0); // load byte and sign extend to a 32 bit word
-	asm.emitPUSH_Reg(T1);                                   // push sign extended byte onto stack
-	break;
-      }
-      case 0x34: /* caload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "caload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
-	asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword without sign extend to a 32 bit word
-	asm.emitPUSH_Reg(T1);                                    // push char onto stack
-	break;
-      }
-      case 0x35: /* saload */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "saload");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                      // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 4);                      // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                     // complete popping the 2 args
-	asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, asm.SHORT, 0); // load halfword sign extend to a 32 bit word
-	asm.emitPUSH_Reg(T1);                                    // push sign extended short onto stack
-	break;
-      }
-      case 0x36: /* istore */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "istore " + VM_Lister.decimal(index));
-	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset); 
-	break;
-      }
-      case 0x37: /* lstore */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x38: /* fstore */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x39: /* dstore */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x3a: /* astore */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "astore " + VM_Lister.decimal(index));
-	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x3b: /* istore_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_0");
-	int offset = localOffset(0) - 4;
-	asm.emitPOP_RegDisp (ESP, offset); // pop computes EA after ESP has moved by 4!
-	break;
-      }
-      case 0x3c: /* istore_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_1");
-	int offset = localOffset(1) -4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x3d: /* istore_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_2");
-	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x3e: /* istore_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_3");
-	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x3f: /* lstore_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_0");
-	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x40: /* lstore_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_1");
-	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x41: /* lstore_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_2");
-	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      } 
-      case 0x42: /* lstore_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_3");
-	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x43: /* fstore_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_0");
-	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x44: /* fstore_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_1");
-	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x45: /* fstore_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_2");
-	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x46: /* fstore_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_3");
-	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x47: /* dstore_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_0");
-	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x48: /* dstore_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_1");
-	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x49: /* dstore_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_2");
-	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x4a: /* dstore_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_3");
-	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp(ESP, offset); // high part
-	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-	break;
-      }
-      case 0x4b: /* astore_0 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_0");
-	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x4c: /* astore_1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_1");
-	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset); 
-	break;
-      }
-      case 0x4d: /* astore_2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_2");
-	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x4e: /* astore_3 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_3");
-	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
-	asm.emitPOP_RegDisp (ESP, offset);
-	break;
-      }
-      case 0x4f: /* iastore */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iastore");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-	asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the int value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
-	break;
-      }
-      case 0x50: /* lastore */ { 
-	if (shouldPrint) asm.noteBytecode(biStart, "lastore"); 
-	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
-	asm.emitPOP_Reg(T1);                                    // low part of long value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
-	asm.emitPOP_Reg(T1);                                    // high part of long value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
-	break;
-      }
-      case 0x51: /* fastore */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fastore");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-	asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the float value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
-	break;
-      }
-      case 0x52: /* dastore */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dastore");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 8);                     // T0 is the array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 12);                    // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
-	asm.emitPOP_Reg(T1);                                    // low part of double value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, 0, T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.  
-	asm.emitPOP_Reg(T1);                                    // high part of double value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.LONG, WORDSIZE, T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e. 
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);                    // remove index and ref from the stack
-	break;
-      }
-      case 0x53: /* aastore */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "aastore");
-	asm.emitPUSH_RegDisp(SP, 2<<LG_WORDSIZE);        // duplicate array ref
-	asm.emitPUSH_RegDisp(SP, 1<<LG_WORDSIZE);        // duplicate object value
-	genParameterRegisterLoad(2);                     // pass 2 parameter
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
-        if (VM_Collector.NEEDS_WRITE_BARRIER) 
-          VM_Barriers.compileArrayStoreBarrier(asm);
-	asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-	asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
-	asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
-	break;
-      }
-      case 0x54: /* bastore */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "bastore");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-	asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the byte value
-	asm.emitMOV_RegIdx_Reg_Byte(S0, T0, asm.BYTE, 0, T1); // [S0 + T0<<2] <- T1
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
-	break;
-      }
-      case 0x55: /* castore */ {
-	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-	asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the char value
-	asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
-	break;
-      }
-      case 0x56: /* sastore */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "sastore");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 4);                   // T0 is array index
-	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                   // S0 is the array ref
-	genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-	asm.emitMOV_Reg_RegDisp(T1, SP, 0);                   // T1 is the short value
-	asm.emitMOV_RegIdx_Reg_Word(S0, T0, asm.SHORT, 0, T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                  // complete popping the 3 args
-	break;
-      }
-      case 0x57: /* pop */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "pop");
-	asm.emitPOP_Reg(T0);
-	break;
-      }
-      case 0x58: /* pop2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "pop2");
-	asm.emitPOP_Reg(T0);
-	asm.emitPOP_Reg(T0);
-	break;
-      }
-      case 0x59: /* dup */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup");
-	asm.emitMOV_Reg_RegInd (T0, SP);
-	asm.emitPUSH_Reg(T0);
-	break;
-      } 
-      case 0x5a: /* dup_x1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup_x1");
-	asm.emitPOP_Reg(T0);
-	asm.emitPOP_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x5b: /* dup_x2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup_x2");
-	asm.emitPOP_Reg(T0);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T1);
-	asm.emitPUSH_Reg(T0);
-	asm.emitPUSH_Reg(T1);
-	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x5c: /* dup2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup2");
-	asm.emitMOV_Reg_RegDisp (T0, SP, 4);
-	asm.emitMOV_Reg_RegInd (S0, SP);
-	asm.emitPUSH_Reg(T0);
-	asm.emitPUSH_Reg(S0);
-	break;
-      }
-      case 0x5d: /* dup2_x1 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup2_x1");
-	asm.emitPOP_Reg(T0);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T1);
-	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	asm.emitPUSH_Reg(T1);
-	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x5e: /* dup2_x2 */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup2_x2");
-	asm.emitPOP_Reg(T0);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T1);
-	asm.emitPOP_Reg(JTOC);                  // JTOC is scratch register
-	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	asm.emitPUSH_Reg(JTOC);
-	asm.emitPUSH_Reg(T1);
-	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-        // restore JTOC register
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-	break;
-      }
-      case 0x5f: /* swap */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "swap");
-	asm.emitPOP_Reg(T0);
-	asm.emitPOP_Reg(S0);
-	asm.emitPUSH_Reg(T0);
-	asm.emitPUSH_Reg(S0);
-	break;
-      }
-      case 0x60: /* iadd */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "iadd");
-	asm.emitPOP_Reg(T0);
-	asm.emitADD_RegInd_Reg(SP, T0);
-	break;
-      }
-      case 0x61: /* ladd */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "ladd");
-	asm.emitPOP_Reg(T0);                 // the low half of one long
-	asm.emitPOP_Reg(S0);                 // the high half
-	asm.emitADD_RegInd_Reg(SP, T0);          // add low halves
-	asm.emitADC_RegDisp_Reg(SP, WORDSIZE, S0);   // add high halves with carry
-	break;
-      }
-      case 0x62: /* fadd */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fadd");
-	asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
-	asm.emitFADD_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack += value1
-	asm.emitPOP_Reg   (T0);           // discard 
-	asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x63: /* dadd */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dadd");
-	asm.emitFLD_Reg_RegInd_Quad (FP0, SP);        // FPU reg. stack <- value2
-	asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, 8);        // FPU reg. stack += value1
-	asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);  // shrink the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);        // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x64: /* isub */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "isub");
-	asm.emitPOP_Reg(T0);
-	asm.emitSUB_RegInd_Reg(SP, T0);
-	break;
-      }
-      case 0x65: /* lsub */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lsub");
-	asm.emitPOP_Reg(T0);                 // the low half of one long
-	asm.emitPOP_Reg(S0);                 // the high half
-	asm.emitSUB_RegInd_Reg(SP, T0);          // subtract low halves
-	asm.emitSBB_RegDisp_Reg(SP, WORDSIZE, S0);   // subtract high halves with borrow
-	break;
-      }
-      case 0x66: /* fsub */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fsub");
-	asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
-	asm.emitFSUB_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack -= value2
-	asm.emitPOP_Reg   (T0);           // discard 
-	asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x67: /* dsub */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dsub");
-	asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
-	asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, 0);          // FPU reg. stack -= value2
-	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x68: /* imul */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "imul");
-	asm.emitPOP_Reg (T0);
-	asm.emitIMUL2_Reg_RegInd(T0, SP);
-	asm.emitMOV_RegInd_Reg (SP, T0);
-	break;
-      }
-      case 0x69: /* lmul */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lmul");
-	// 0: JTOC is used as scratch registers (see 14)
-	// 1: load value1.low temp0, i.e., save value1.low
-	// 2: eax <- temp0 eax is value1.low
-	// 3: edx:eax <- eax * value2.low (product of the two low halves)
-	// 4: store eax which is  result.low into place --> value1.low is destroyed
-	// 5: temp1 <- edx which is the carry of the product of the low halves
-	// aex and edx now free of results
-	// 6: aex <- temp0 which is still value1.low
-	// 7: pop into aex aex <- value2.low  --> value2.low is sort of destroyed
-	// 8: edx:eax <- eax * value1.hi  (value2.low * value1.hi)
-	// 9: temp1 += aex
-	// 10: pop into eax; eax <- value2.hi -> value2.hi is sort of destroyed
-	// 11: edx:eax <- eax * temp0 (value2.hi * value1.low)
-	// 12: temp1 += eax  temp1 is now result.hi
-	// 13: store result.hi
-	// 14: restore JTOC
-	if (VM.VerifyAssertions) VM.assert(S0 != EAX);
-	if (VM.VerifyAssertions) VM.assert(S0 != EDX);
-	asm.emitMOV_Reg_RegDisp (JTOC, SP, 8);          // step 1: JTOC is temp0
-	asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 2
-	asm.emitMUL_Reg_RegInd(EAX, SP);    // step 3
-	asm.emitMOV_RegDisp_Reg (SP, 8, EAX);           // step 4
-	asm.emitMOV_Reg_Reg (S0, EDX);              // step 5: S0 is temp1
-	asm.emitMOV_Reg_Reg (EAX, JTOC);            // step 6
-	asm.emitPOP_Reg (EAX);                  // step 7: SP changed!
-	asm.emitIMUL1_Reg_RegDisp(EAX, SP, 8);// step 8
-	asm.emitADD_Reg_Reg (S0, EAX);      // step 9
-	asm.emitPOP_Reg (EAX);                  // step 10: SP changed!
-	asm.emitIMUL1_Reg_Reg(EAX, JTOC);    // step 11
-	asm.emitADD_Reg_Reg (S0, EAX);      // step 12
-	asm.emitMOV_RegDisp_Reg (SP, 4, S0);            // step 13
-        // restore JTOC register
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-	break;
-      }
-      case 0x6a: /* fmul */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fmul");
-	asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2
-	asm.emitFMUL_Reg_RegDisp(FP0, SP, WORDSIZE); // FPU reg. stack *= value1
-	asm.emitPOP_Reg   (T0);           // discard 
-	asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x6b: /* dmul */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dmul");
-	asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2
-	asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, 8);          // FPU reg. stack *= value1
-	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x6c: /* idiv */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "idiv");
-	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
-	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
-	asm.emitCDQ ();                      // sign extend EAX into EDX
-	asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
-	asm.emitPUSH_Reg(EAX);               // push result
-	break;
-      }
-      case 0x6d: /* ldiv */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "ldiv");
-	// (1) zero check
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);
-	asm.emitOR_Reg_RegDisp(T0, SP, 4);
-	VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
-	asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);	// trap if divisor is 0
-	fr1.resolve(asm);
-	// (2) save RVM nonvolatiles
-	int numNonVols = NONVOLATILE_GPRS.length;
-	for (int i = 0; i<numNonVols; i++) {
-	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (3) Push args to C function (reversed)
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
-	// (4) invoke C function through bootrecord
-	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongDivideIPField.getOffset());
-	// (5) pop space for arguments
-	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
-	// (6) restore RVM nonvolatiles
-	for (int i = numNonVols-1; i >=0; i--) {
-	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (7) pop expression stack
-	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
-	// (8) push results
-	asm.emitPUSH_Reg(T1);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x6e: /* fdiv */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fdiv");
-	asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1
-	asm.emitFDIV_Reg_RegDisp(FP0, SP, 0);        // FPU reg. stack /= value2
-	asm.emitPOP_Reg   (T0);           // discard 
-	asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x6f: /* ddiv */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "ddiv");
-	asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 8);          // FPU reg. stack <- value1
-	asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack /= value2
-	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x70: /* irem */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "irem");
-	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
-	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
-	asm.emitCDQ ();                      // sign extend EAX into EDX
-	asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
-	asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
-	asm.emitPUSH_Reg(EDX);               // push remainder
-	break;
-      }
-      case 0x71: /* lrem */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lrem");
-	// (1) zero check
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);
-	asm.emitOR_Reg_RegDisp(T0, SP, 4);
-	VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
-	asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);	// trap if divisor is 0
-	fr1.resolve(asm);
-	// (2) save RVM nonvolatiles
-	int numNonVols = NONVOLATILE_GPRS.length;
-	for (int i = 0; i<numNonVols; i++) {
-	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (3) Push args to C function (reversed)
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
-	// (4) invoke C function through bootrecord
-	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongRemainderIPField.getOffset());
-	// (5) pop space for arguments
-	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
-	// (6) restore RVM nonvolatiles
-	for (int i = numNonVols-1; i >=0; i--) {
-	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (7) pop expression stack
-	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
-	// (8) push results
-	asm.emitPUSH_Reg(T1);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x72: /* frem */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "frem"); 
-	asm.emitFLD_Reg_RegInd (FP0, SP);        // FPU reg. stack <- value2, or a
-	asm.emitFLD_Reg_RegDisp (FP0, SP, WORDSIZE); // FPU reg. stack <- value1, or b
-	asm.emitFPREM ();             // FPU reg. stack <- a%b
-	asm.emitFSTP_RegDisp_Reg(SP, WORDSIZE, FP0); // POP FPU reg. stack (results) onto java stack
-	asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto java stack
-	asm.emitPOP_Reg   (T0);           // shrink the stack (T0 discarded)
-	break;
-      }
-      case 0x73: /* drem */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "drem");
-	asm.emitFLD_Reg_RegInd_Quad (FP0, SP);          // FPU reg. stack <- value2, or a
-	asm.emitFLD_Reg_RegDisp_Quad (FP0, SP, 2*WORDSIZE); // FPU reg. stack <- value1, or b
-	asm.emitFPREM ();               // FPU reg. stack <- a%b
-	asm.emitFSTP_RegDisp_Reg_Quad(SP, 2*WORDSIZE, FP0); // POP FPU reg. stack (result) onto java stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);         // POP FPU reg. stack onto java stack
-	asm.emitADD_Reg_Imm   (SP, 2*WORDSIZE); // shrink the stack
-	break;
-      }
-      case 0x74: /* ineg */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "ineg");
-	asm.emitNEG_RegInd(SP); // [SP] <- -[SP]
-	break;
-      }
-      case 0x75: /* lneg */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lneg");
-	asm.emitNEG_RegDisp(SP, 4);    // [SP+4] <- -[SP+4] or high <- -high
-	asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
-	asm.emitSBB_RegDisp_Imm(SP, 4, 0); // [SP+4] += borrow or high += borrow
-	break;
-      }
-      case 0x76: /* fneg */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fneg");
-	asm.emitFLD_Reg_RegInd (FP0, SP); // FPU reg. stack <- value1
-	asm.emitFCHS  ();      // change sign to stop of FPU stack
-	asm.emitFSTP_RegInd_Reg(SP, FP0); // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x77: /* dneg */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dneg");
-	asm.emitFLD_Reg_RegInd_Quad (FP0, SP); // FPU reg. stack <- value1
-	asm.emitFCHS  ();      // change sign to stop of FPU stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // POP FPU reg. stack onto stack
-	break;
-      }
-      case 0x78: /* ishl */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "ishl");
-	if (VM.VerifyAssertions) VM.assert(ECX != T0);
-	asm.emitPOP_Reg(ECX);
-	asm.emitSHL_RegInd_Reg(SP, ECX);   // shift T0 left ECX times;  ECX low order 5 bits
-	break;
-      }
-      case 0x79: /* lshl */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lshl");    // l >> n
-	if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
-	if (VM.VerifyAssertions) VM.assert (ECX != T1);
-	if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
-	// 1: pop shift amount into JTOC (JTOC must be restored at the end)
-	// 2: pop low half into T0
-	// 3: pop high half into T1
-	// 4: ECX <- JTOC, copy the shift count
-	// 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-	// 6: branch to step 12 if results is zero
-	// the result is not zero --> the shift amount is greater than 32
-	// 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-	// 8: T1 <- T0, or replace the high half with the low half.  This accounts for the 32 bit shift
-	// 9: shift T1 left by ECX bits
-	// 10: T0 <- 0
-	// 11: branch to step 14
-	// 12: shift left double from T0 into T1 by ECX bits.  T0 is unaltered
-	// 13: shift left T0, the low half, also by ECX bits
-	// 14: push high half from T1
-	// 15: push the low half from T0
-	// 16: restore the JTOC
-	asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
-	asm.emitPOP_Reg (T0);                   // pop low half 
-	asm.emitPOP_Reg (T1);                   // pop high half
-	asm.emitMOV_Reg_Reg (ECX, JTOC);
-	asm.emitAND_Reg_Imm (JTOC, 32);
-	VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);
-	asm.emitXOR_Reg_Reg (ECX, JTOC);
-	asm.emitMOV_Reg_Reg (T1, T0);               // low replaces high
-	asm.emitSHL_Reg_Reg (T1, ECX);
-	asm.emitXOR_Reg_Reg (T0, T0);
-	VM_ForwardReference fr2 = asm.forwardJMP();
-	fr1.resolve(asm);
-	asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);          // shift high half (step 12)
-	asm.emitSHL_Reg_Reg (T0, ECX);                   // shift low half
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(T1);                   // push high half (step 14)
-	asm.emitPUSH_Reg(T0);                   // push low half
-        // restore JTOC
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-	break;
-      }
-      case 0x7a: /* ishr */ {
-	// unit test by IArith
-	if (shouldPrint) asm.noteBytecode(biStart, "ishr");
-	if (VM.VerifyAssertions) VM.assert (ECX != T0);
-	asm.emitPOP_Reg (ECX);
-	asm.emitSAR_RegInd_Reg (SP, ECX);  // shift T0 right ECX times;  ECX low order 5 bits
-	break;
-      }
-      case 0x7b: /* lshr */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lshr");
-	if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
-	if (VM.VerifyAssertions) VM.assert (ECX != T1);
-	if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
-	// 1: pop shift amount into JTOC (JTOC must be restored at the end)
-	// 2: pop low half into T0
-	// 3: pop high half into T1
-	// 4: ECX <- JTOC, copy the shift count
-	// 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-	// 6: branch to step 13 if results is zero
-	// the result is not zero --> the shift amount is greater than 32
-	// 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-	// 8: T0 <- T1, or replace the low half with the high half.  This accounts for the 32 bit shift
-	// 9: shift T0 right arithmetic by ECX bits
-	// 10: ECX <- 31
-	// 11: shift T1 right arithmetic by ECX=31 bits, thus exending the sigh
-	// 12: branch to step 15
-	// 13: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
-	// 14: shift right arithmetic T1, the high half, also by ECX bits
-	// 15: push high half from T1
-	// 16: push the low half from T0
-	// 17: restore JTOC
-	asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
-	asm.emitPOP_Reg (T0);                   // pop low half 
-	asm.emitPOP_Reg (T1);                   // pop high
-	asm.emitMOV_Reg_Reg (ECX, JTOC);
-	asm.emitAND_Reg_Imm (JTOC, 32);
-	VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);
-	asm.emitXOR_Reg_Reg (ECX, JTOC);
-	asm.emitMOV_Reg_Reg (T0, T1);               // replace low with high
-	asm.emitSAR_Reg_Reg (T0, ECX);                   // and shift it
-	asm.emitMOV_Reg_Imm (ECX, 31);
-	asm.emitSAR_Reg_Reg (T1, ECX);                   // set high half
-	VM_ForwardReference fr2 = asm.forwardJMP();
-	fr1.resolve(asm);
-	asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half (step 13)
-	asm.emitSAR_Reg_Reg (T1, ECX);                   // shift high half
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(T1);                   // push high half (step 15)
-	asm.emitPUSH_Reg(T0);                   // push low half
-        // restore JTOC
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-	break;
-      }
-      case 0x7c: /* iushr */ {
-	// unit test by IArith
-	if (shouldPrint) asm.noteBytecode(biStart, "iushr");
-	if (VM.VerifyAssertions) VM.assert (ECX != T0);
-	asm.emitPOP_Reg (ECX);
-	asm.emitSHR_RegInd_Reg(SP, ECX);  // shift T0 right ECX times;  ECX low order 5 bits
-	break;
-      }
-      case 0x7d: /* lushr */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lushr");
-	if (VM.VerifyAssertions) VM.assert (ECX != T0); // ECX is constrained to be the shift count
-	if (VM.VerifyAssertions) VM.assert (ECX != T1);
-	if (VM.VerifyAssertions) VM.assert (ECX != JTOC);
-	// 1: pop shift amount into JTOC (JTOC must be restored at the end)
-	// 2: pop low half into T0
-	// 3: ECX <- JTOC, copy the shift count
-	// 4: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-	// 5: branch to step 11 if results is zero
-	// the result is not zero --> the shift amount is greater than 32
-	// 6: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-	// 7: pop high half into T0 replace the low half with the high 
-	//        half.  This accounts for the 32 bit shift
-	// 8: shift T0 right logical by ECX bits
-	// 9: T1 <- 0                        T1 is the high half
-	// 10: branch to step 14
-	// 11: pop high half into T1
-	// 12: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
-	// 13: shift right logical T1, the high half, also by ECX bits
-	// 14: push high half from T1
-	// 15: push the low half from T0
-	// 16: restore JTOC
-	asm.emitPOP_Reg(JTOC);                // original shift amount 6 bits
-	asm.emitPOP_Reg(T0);                  // pop low half 
-	asm.emitMOV_Reg_Reg(ECX, JTOC);
-	asm.emitAND_Reg_Imm(JTOC, 32);
-	VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);
-	asm.emitXOR_Reg_Reg (ECX, JTOC);
-	asm.emitPOP_Reg (T0);                   // replace low with high
-	asm.emitSHR_Reg_Reg (T0, ECX);      // and shift it (count - 32)
-	asm.emitXOR_Reg_Reg (T1, T1);               // high <- 0
-	VM_ForwardReference fr2 = asm.forwardJMP();
-	fr1.resolve(asm);
-	asm.emitPOP_Reg (T1);                   // high half (step 11)
-	asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half
-	asm.emitSHR_Reg_Reg (T1, ECX);                   // shift high half
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(T1);                   // push high half (step 14)
-	asm.emitPUSH_Reg(T0);                   // push low half
-        // restore JTOC
-        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-	break;
-      }
-      case 0x7e: /* iand */ {
-	// unit test by IArith
-	if (shouldPrint) asm.noteBytecode(biStart, "iand");
-	asm.emitPOP_Reg(T0);
-	asm.emitAND_RegInd_Reg(SP, T0);
-	break;
-      }
-      case 0x7f: /* land */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "land");
-	asm.emitPOP_Reg(T0);        // low
-	asm.emitPOP_Reg(S0);        // high
-	asm.emitAND_RegInd_Reg(SP, T0);
-	asm.emitAND_RegDisp_Reg(SP, 4, S0);
-	break;
-      }
-      case 0x80: /* ior */ {
-	// unit test by IArith
-	if (shouldPrint) asm.noteBytecode(biStart, "ior");
-	asm.emitPOP_Reg(T0);
-	asm.emitOR_RegInd_Reg (SP, T0);
-	break;
-      }
-      case 0x81: /* lor */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lor");
-	asm.emitPOP_Reg(T0);        // low
-	asm.emitPOP_Reg(S0);        // high
-	asm.emitOR_RegInd_Reg(SP, T0);
-	asm.emitOR_RegDisp_Reg(SP, 4, S0);
-	break;
-      }
-      case 0x82: /* ixor */ {
-	// unit test by IArith
-	if (shouldPrint) asm.noteBytecode(biStart, "ixor");
-	asm.emitPOP_Reg(T0);
-	asm.emitXOR_RegInd_Reg(SP, T0);
-	break;
-      }
-      case 0x83: /* lxor */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lxor");
-	asm.emitPOP_Reg(T0);        // low
-	asm.emitPOP_Reg(S0);        // high
-	asm.emitXOR_RegInd_Reg(SP, T0);
-	asm.emitXOR_RegDisp_Reg(SP, 4, S0);
-	break;
-      }
-      case 0x84: /* iinc */ {
-	int index = fetch1ByteUnsigned();
-	int val = fetch1ByteSigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "iinc " + VM_Lister.decimal(index) + " " + VM_Lister.decimal(val));
-	int offset = localOffset(index);
-	asm.emitADD_RegDisp_Imm(ESP, offset, val);
-	break;
-      }
-      case 0x85: /* i2l */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2l");
-	asm.emitPOP_Reg (EAX);
-	asm.emitCDQ ();
-	asm.emitPUSH_Reg(EDX);
-	asm.emitPUSH_Reg(EAX);
-	break;
-      }
-      case 0x86: /* i2f */ {
-	// unit test by FArith
-	if (shouldPrint) asm.noteBytecode(biStart, "i2f");
-	asm.emitFILD_Reg_RegInd(FP0, SP);
-	asm.emitFSTP_RegInd_Reg(SP, FP0);
-	break;
-      }
-      case 0x87: /* i2d */ {
-	// unit test by DArith
-	if (shouldPrint) asm.noteBytecode(biStart, "i2d");
-	asm.emitFILD_Reg_RegInd(FP0, SP);
-	asm.emitPUSH_Reg(T0);             // grow the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-	break;
-      }
-      case 0x88: /* l2i */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "l2i");
-	asm.emitPOP_Reg (T0); // low half of the long
-	asm.emitPOP_Reg (S0); // high half of the long
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x89: /* l2f */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "l2f");
-	asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
-	asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
-	asm.emitFSTP_RegInd_Reg(SP, FP0);
-	break;
-      }
-      case 0x8a: /* l2d */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "l2d");
-	asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-	break;
-      }
-      case 0x8b: /* f2i */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "f2i");
-	// (1) save RVM nonvolatiles
-	int numNonVols = NONVOLATILE_GPRS.length;
-	for (int i = 0; i<numNonVols; i++) {
-	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (2) Push arg to C function 
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
-	// (3) invoke C function through bootrecord
-	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
-	// (4) pop argument;
-	asm.emitPOP_Reg(S0);
-	// (5) restore RVM nonvolatiles
-	for (int i = numNonVols-1; i >=0; i--) {
-	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (6) put result on expression stack
-	asm.emitMOV_RegDisp_Reg(SP, 0, T0);
-	break;
-      }
-      case 0x8c: /* f2l */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "f2l");
-	// (1) save RVM nonvolatiles
-	int numNonVols = NONVOLATILE_GPRS.length;
-	for (int i = 0; i<numNonVols; i++) {
-	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (2) Push arg to C function 
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
-	// (3) invoke C function through bootrecord
-	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffset());
-	// (4) pop argument;
-	asm.emitPOP_Reg(S0);
-	// (5) restore RVM nonvolatiles
-	for (int i = numNonVols-1; i >=0; i--) {
-	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (6) put result on expression stack
-	asm.emitMOV_RegDisp_Reg(SP, 0, T1);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0x8d: /* f2d */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "f2d");
-	asm.emitFLD_Reg_RegInd(FP0, SP);
-	asm.emitSUB_Reg_Imm(SP, WORDSIZE);                // grow the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-	break;
-      }
-      case 0x8e: /* d2i */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "d2i");
-	// (1) save RVM nonvolatiles
-	int numNonVols = NONVOLATILE_GPRS.length;
-	for (int i = 0; i<numNonVols; i++) {
-	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (2) Push args to C function (reversed)
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	// (3) invoke C function through bootrecord
-	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffset());
-	// (4) pop arguments
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(S0);
-	// (5) restore RVM nonvolatiles
-	for (int i = numNonVols-1; i >=0; i--) {
-	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (6) put result on expression stack
-	asm.emitPOP_Reg(S0); // shrink stack by 1 word
-	asm.emitMOV_RegDisp_Reg(SP, 0, T0);
-	break;
-      }
-      case 0x8f: /* d2l */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "d2l");
-	// (1) save RVM nonvolatiles
-	int numNonVols = NONVOLATILE_GPRS.length;
-	for (int i = 0; i<numNonVols; i++) {
-	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (2) Push args to C function (reversed)
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
-	// (3) invoke C function through bootrecord
-	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToLongIPField.getOffset());
-	// (4) pop arguments
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(S0);
-	// (5) restore RVM nonvolatiles
-	for (int i = numNonVols-1; i >=0; i--) {
-	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-	}
-	// (6) put result on expression stack
-	asm.emitMOV_RegDisp_Reg(SP, 4, T1);
-	asm.emitMOV_RegDisp_Reg(SP, 0, T0);
-	break;
-      }
-      case 0x90: /* d2f */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "d2f");
-	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
-	asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
-	asm.emitFSTP_RegInd_Reg(SP, FP0);
-	break;
-      }
-      case 0x91: /* i2b */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2b");
-	//          asm.emitMOVSXb(T0, SP, 0); // load byte off top of the stack sign extended
-	//          asm.emitMOV   (SP, 0, T0); // store result back on the top of the stack
-	asm.emitPOP_Reg   (T0);
-	asm.emitMOVSX_Reg_Reg_Byte(T0, T0);
-	asm.emitPUSH_Reg  (T0);
-	break;
-      }
-      case 0x92: /* i2c */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2c");
-	//          asm.emitMOVZXh(T0, SP, 0); // load char off top of the stack sign extended
-	//          asm.emitMOV   (SP, 0, T0); // store result back on the top of the stack
-	asm.emitPOP_Reg   (T0);
-	asm.emitMOVZX_Reg_Reg_Word(T0, T0);
-	asm.emitPUSH_Reg  (T0);
-	break;
-      }
-      case 0x93: /* i2s */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2s");
-	//          asm.emitMOVSXh(T0, SP, 0); // load short off top of the stack sign extended
-	//          asm.emitMOV   (SP, 0, T0); // store result back on the top of the stack
-	asm.emitPOP_Reg   (T0);
-	asm.emitMOVSX_Reg_Reg_Word(T0, T0);
-	asm.emitPUSH_Reg  (T0);
-	break;
-      }
-      case 0x94: /* lcmp */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lcmp");  // a ? b
-	asm.emitPOP_Reg(T0);        // the low half of value2
-	asm.emitPOP_Reg(S0);        // the high half of value2
-	asm.emitPOP_Reg(T1);        // the low half of value1
-	asm.emitSUB_Reg_Reg(T1, T0);        // subtract the low half of value2 from
-                                // low half of value1, result into T1
-	asm.emitPOP_Reg(T0);        // the high half of value 1
-	//  pop does not alter the carry register
-	asm.emitSBB_Reg_Reg(T0, S0);        // subtract the high half of value2 plus
-                                // borrow from the high half of value 1,
-                                // result in T0
-	asm.emitMOV_Reg_Imm(S0, -1);        // load -1 into S0
-	VM_ForwardReference fr1 = asm.forwardJcc(asm.LT); // result negative --> branch to end
-	asm.emitMOV_Reg_Imm(S0, 0);        // load 0 into S0
-	asm.emitOR_Reg_Reg(T0, T1);        // result 0 
-	VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ); // result 0 --> branch to end
-	asm.emitMOV_Reg_Imm(S0, 1);        // load 1 into S0
-	fr1.resolve(asm);
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(S0);        // push result on stack
-	break;
-      }
-      case 0x95: /* fcmpl !!- */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
-	VM_ForwardReference fr1,fr2,fr3;
-	asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
-	asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
-	asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-	if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
-	asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-	asm.emitFUCOMPP();                        // compare and pop FPU *2
-	asm.emitFNSTSW();                     // move FPU flags into (E)AX
-	asm.emitSAHF();                       // store AH into flags
-	fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
-	// ZF not set ->  neither equal nor unordered
-	asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-	fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
-	asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-	fr1.resolve(asm);                        // ZF set (equal or unordered)
-	fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
-	asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-	fr3.resolve(asm);
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(S0);                        // push result on stack
-	break;
-      }
-      case 0x96: /* fcmpg !!- */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
-	VM_ForwardReference fr1,fr2,fr3;
-	asm.emitFLD_Reg_RegDisp(FP0, SP, WORDSIZE);          // copy value1 into FPU
-	asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
-	asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-	if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
-	asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-	asm.emitFUCOMPP();                        // compare and pop FPU *2
-	asm.emitFNSTSW();                     // move FPU flags into (E)AX
-	asm.emitSAHF();                       // store AH into flags
-	fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
-	// ZF not set ->  neither equal nor unordered
-	asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-	fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
-	asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-	fr1.resolve(asm);                        // ZF set (equal or unordered)
-	fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
-	asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-	fr3.resolve(asm);
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(S0);                        // push result on stack
-	break;
-      }
-      case 0x97: /* dcmpl !!- */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
-	VM_ForwardReference fr1,fr2,fr3;
-	asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
-	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
-	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-	if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
-	asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-	asm.emitFUCOMPP();                        // compare and pop FPU *2
-	asm.emitFNSTSW();                     // move FPU flags into (E)AX
-	asm.emitSAHF();                       // store AH into flags
-	fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
-	// ZF not set ->  neither equal nor unordered
-	asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-	fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
-	asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-	fr1.resolve(asm);                        // ZF set (equal or unordered)
-	fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
-	asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-	fr3.resolve(asm);
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(S0);                        // push result on stack
-	break;
-      }
-      case 0x98: /* dcmpg !!- */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
-	VM_ForwardReference fr1,fr2,fr3;
-	asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, WORDSIZE*2);        // copy value1 into FPU
-	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
-	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-	if (VM.VerifyAssertions) VM.assert(S0 != EAX);                        // eax is used by FNSTSW
-	asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-	asm.emitFUCOMPP();                        // compare and pop FPU *2
-	asm.emitFNSTSW();                     // move FPU flags into (E)AX
-	asm.emitSAHF();                       // store AH into flags
-	fr1 = asm.forwardJcc(asm.EQ);        // branch if ZF set (eq. or unord.)
-	// ZF not set ->  neither equal nor unordered
-	asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-	fr2 = asm.forwardJcc(asm.LLT);        // branch if CF set (val2 < val1)
-	asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-	fr1.resolve(asm);                        // ZF set (equal or unordered)
-	fr3 = asm.forwardJcc(asm.LGE);        // branch if CF not set (not unordered)
-	asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-	fr3.resolve(asm);
-	fr2.resolve(asm);
-	asm.emitPUSH_Reg(S0);                        // push result on stack
-	break;
-      }
-      case 0x99: /* ifeq */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
-	break;
-      }
-      case 0x9a: /* ifne */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
-	break;
-      }
-      case 0x9b: /* iflt */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "iflt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.LT, mTarget, bTarget);
-	break;
-      }
-      case 0x9c: /* ifge */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifge " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.GE, mTarget, bTarget);
-	break;
-      }
-      case 0x9d: /* ifgt */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifgt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.GT, mTarget, bTarget);
-	break;
-      }
-      case 0x9e: /* ifle */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifle " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.LE, mTarget, bTarget);
-	break;
-      }
-      case 0x9f: /* if_icmpeq */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
-	break;
-      }
-      case 0xa0: /* if_icmpne */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
-	break;
-      }
-      case 0xa1: /* if_icmplt */ {
-	// maria  backward brach test is TESTED
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmplt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.LT, mTarget, bTarget);
-	break;
-      }
-      case 0xa2: /* if_icmpge */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpge " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.GE, mTarget, bTarget);
-	break;
-      }
-      case 0xa3: /* if_icmpgt */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmpgt " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.GT, mTarget, bTarget);
-	break;
-      }
-      case 0xa4: /* if_icmple */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_icmple " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.LE, mTarget, bTarget);
-	break;
-      }
-      case 0xa5: /* if_acmpeq */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_acmpeq " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
-	break;
-      }
-      case 0xa6: /* if_acmpne */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "if_acmpne " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(S0);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Reg(T0, S0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
-	break;
-      }
-      case 0xa7: /* goto */ {
-	// unit test by IBack
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset; // bi has been bumped by 3 already
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "goto " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
-	break;
-      }
-      case 0xa8: /* jsr */ {
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "jsr " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] (" + VM_Lister.decimal(mTarget));
-	asm.emitCALL_ImmOrLabel(mTarget, bTarget);
-	break;
-      }
-      case 0xa9: /* ret */ {
-	int index = fetch1ByteUnsigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "ret " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitJMP_RegDisp(ESP, offset); 
-	break;
-      }
-      case 0xaa: /* tableswitch */ {
-	// unit test by Table
-	bi = (bi+3) & -4; // eat padding
-	int defaultval = fetch4BytesSigned();
-	int bTarget = biStart + defaultval;
-	int mTarget = bytecodeMap[bTarget];
-	int low = fetch4BytesSigned();
-	int high = fetch4BytesSigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "tableswitch [" + VM_Lister.decimal(low) + "--" + VM_Lister.decimal(high) + "] " + VM_Lister.decimal(defaultval));
-	int n = high-low+1;                        // n = number of normal cases (0..n-1)
-	asm.emitPOP_Reg (T0);                          // T0 is index of desired case
-	asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
-	asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
-	asm.emitJCC_Cond_ImmOrLabel (asm.LGE, mTarget, bTarget);   // if not, goto default case
-	asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n<<LG_WORDSIZE) ); 
-	// jump around table, pushing address of 0th delta
-	for (int i=0; i<n; i++) {                  // create table of deltas
-	  int offset = fetch4BytesSigned();
-	  bTarget = biStart + offset;
-	  mTarget = bytecodeMap[bTarget];
-	  // delta i: difference between address of case i and of delta 0
-	  asm.emitOFFSET_Imm_ImmOrLabel(i, mTarget, bTarget );
-	}
-	asm.emitPOP_Reg (S0);                          // S0 = address of 0th delta 
-	asm.emitADD_Reg_RegIdx (S0, S0, T0, asm.WORD, 0);     // S0 += [S0 + T0<<2]
-	asm.emitPUSH_Reg(S0);                          // push computed case address
-	asm.emitRET ();                            // goto case
-	break;
-      }
-      case 0xab: /* lookupswitch */ {
-	// unit test by Lookup
-	bi = (bi+3) & -4; // eat padding
-	int defaultval = fetch4BytesSigned();
-	int npairs = fetch4BytesSigned();
-	if (shouldPrint) asm.noteBytecode(biStart, "lookupswitch [<" + VM_Lister.decimal(npairs) + ">]" + VM_Lister.decimal(defaultval));
-	asm.emitPOP_Reg(T0);
-	for (int i=0; i<npairs; i++) {
-	  int match   = fetch4BytesSigned();
-	  asm.emitCMP_Reg_Imm(T0, match);
-	  int offset  = fetch4BytesSigned();
-	  int bTarget = biStart + offset;
-	  int mTarget = bytecodeMap[bTarget];
-	  asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
-	}
-	int bTarget = biStart + defaultval;
-	int mTarget = bytecodeMap[bTarget];
-	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
-	// TODO replace linear search loop with binary search
-	break;
-      }
-      case 0xac: /* ireturn */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "ireturn");
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	if (method.isSynchronized()) genMonitorExit();
-	asm.emitPOP_Reg(T0);
-	genEpilogue(4); 
-	break;
-      }
-      case 0xad: /* lreturn */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "lreturn");
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	if (method.isSynchronized()) genMonitorExit();
-	asm.emitPOP_Reg(T1); // low half
-	asm.emitPOP_Reg(T0); // high half
-	genEpilogue(8);
-	break;
-      }
-      case 0xae: /* freturn */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "freturn");
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	if (method.isSynchronized()) genMonitorExit();
-	asm.emitFLD_Reg_RegInd(FP0, SP);
-	asm.emitADD_Reg_Imm(SP, WORDSIZE); // pop the stack
-	genEpilogue(4);
-	break;
-      }
-      case 0xaf: /* dreturn */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "dreturn");
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	if (method.isSynchronized()) genMonitorExit();
-	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
-	asm.emitADD_Reg_Imm(SP, WORDSIZE<<1); // pop the stack
-	genEpilogue(8);
-	break;
-      }
-      case 0xb0: /* areturn */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "areturn");
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	if (method.isSynchronized()) genMonitorExit();
-	asm.emitPOP_Reg(T0);
-	genEpilogue(4); 
-	break;
-      }
-      case 0xb1: /* return */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "return");
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	if (method.isSynchronized()) genMonitorExit();
-	genEpilogue(0); 
-	break;
-      }
-      case 0xb2: /* getstatic */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + VM_Lister.decimal(constantPoolIndex)  + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !fieldRefClass.isInitialized() &&
-	    !(fieldRefClass == klass) &&
-	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)
-	    ) { // TODO!! rearrange the following code to backpatch after the first call
-	  asm.emitMOV_Reg_Imm (T0, fieldRefClass.getDictionaryId());
-	  asm.emitPUSH_Reg    (T0);
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
-	  classPreresolved = true;
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  emitDynamicLinkingSequence(T0, fieldRef); 
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get static field
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    // TODO!! use 8-byte move if possible
-	    asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, WORDSIZE); // get high part
-	    asm.emitPUSH_RegIdx (JTOC, T0, asm.BYTE, 0);        // get low part
-	  }
-	} else {
-          fieldRef = fieldRef.resolve();
-	  int fieldOffset = fieldRef.getOffset();
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPUSH_RegDisp(JTOC, fieldOffset);
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-	    }
-	    // TODO!! use 8-byte move if possible
-	    asm.emitPUSH_RegDisp(JTOC, fieldOffset+WORDSIZE); // get high part
-	    asm.emitPUSH_RegDisp(JTOC, fieldOffset);          // get low part
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-	    }
-	  }
-	}
-	break;
-      }
-      case 0xb3: /* putstatic */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	int fieldId = klass.getFieldRefId(constantPoolIndex);
-	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
-	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
-	if (VM_Collector.NEEDS_WRITE_BARRIER && 
-	    !fieldRef.getType().isPrimitiveType()) {
-	  if (fieldRef.needsDynamicLink(method))
-	    VM_Barriers.compileUnresolvedPutstaticBarrier(asm, fieldId);
-	  else
-	    VM_Barriers.compilePutstaticBarrier(asm, fieldRef.getOffset());
-	}
-	boolean classPreresolved = false;
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !fieldRefClass.isInitialized() &&
-	    !(fieldRefClass == klass) &&
-	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)
-	    ) { // TODO!! rearrange the following code to backpatch after the first call
-	  asm.emitMOV_Reg_Imm (T0, fieldRefClass.getDictionaryId());
-	  asm.emitPUSH_Reg    (T0);
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
-	  classPreresolved = true;
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  emitDynamicLinkingSequence(T0, fieldRef);
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);        // store low part
-	    asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, WORDSIZE); // store high part
-	  }
-	} else {
-          fieldRef = fieldRef.resolve();
-	  int fieldOffset = fieldRef.getOffset();
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_RegDisp(JTOC, fieldOffset);
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-	    }
-	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_RegDisp(JTOC, fieldOffset);          // store low part
-	    asm.emitPOP_RegDisp(JTOC, fieldOffset+WORDSIZE); // store high part
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-	    }
-	  }
-	}
-	break;
-      }
-      case 0xb4: /* getfield */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + VM_Lister.decimal(constantPoolIndex)  + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  emitDynamicLinkingSequence(T0, fieldRef);
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
-	    asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
-	    asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    // TODO!! use 8-byte move if possible 
-	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
-	    asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
-	    asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);               // push the low part of field value
-	  }
-	} else {
-          fieldRef = fieldRef.resolve();
-	  int fieldOffset = fieldRef.getOffset();
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
-	    asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
-	    asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-	    }
-	    // TODO!! use 8-byte move if possible
-	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
-	    asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
-	    asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
-	    asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-	    }
-	  }
-	}
-	break;
-      }
-      case 0xb5: /* putfield */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	int fieldId = klass.getFieldRefId(constantPoolIndex);
-	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
-	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + VM_Lister.decimal(constantPoolIndex) + " (" + fieldRef + ")");
-	if (VM_Collector.NEEDS_WRITE_BARRIER 
-	    &&  !fieldRef.getType().isPrimitiveType()) {
-	  if (fieldRef.needsDynamicLink(method))
-	    VM_Barriers.compileUnresolvedPutfieldBarrier(asm, fieldId);
-	  else
-	    VM_Barriers.compilePutfieldBarrier(asm, fieldRef.getOffset());
-	}
-	boolean classPreresolved = false;
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	    VM.assert(VM.NOT_REACHED); // TODO!! handle this case by emitting code that assumes the field is volatile
-	  emitDynamicLinkingSequence(T0, fieldRef);
-	  if (fieldRef.getSize() == 4) {// field is one word
-	    asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
-	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
-	    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    // TODO!! use 8-byte move if possible
-	    asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
-	    asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
-	    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
-	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
-            // restore JTOC
-            VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-	  }
-	} else {
-          fieldRef = fieldRef.resolve();
-	  int fieldOffset = fieldRef.getOffset();
-	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
-	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
-	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
-	    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
-	  } else { // field is two words (double or long)
-	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-	    }
-	    // TODO!! use 8-byte move if possible
-	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
-	    asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
-	    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
-	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
-	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	      asm.emitPUSH_Reg        (T0);
-              VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-	    }
-	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
-	  }
-	}
-	break;
-      }  
-      case 0xb6: /* invokevirtual */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
-          if (methodRef.getDeclaringClass().isAddressType()) {
-	      genMagic(methodRef);
-	      break;
-          } 
-	boolean classPreresolved = false;
-	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
-	  emitDynamicLinkingSequence(T0, methodRef);
-	  int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-	  int objectOffset = (methodRefparameterWords << 2) - 4;           // object offset into stack
-	  asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);                  // S0 has "this" parameter
-          VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
-	  asm.emitMOV_Reg_RegIdx (S0, S0, T0, asm.BYTE, 0);                // S0 has address of virtual method
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_Reg(S0);                                      // call virtual method
-	  genResultRegisterUnload(methodRef);                    // push return value, if any
-	} else {
-          methodRef = methodRef.resolve();
-	  int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-	  int methodRefOffset = methodRef.getOffset();
-	  int objectOffset = (methodRefparameterWords << 2) - WORDSIZE; // object offset into stack
-	  asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);
-          VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_RegDisp(S0, methodRefOffset);
-	  genResultRegisterUnload(methodRef);
-	}
-	break;
-      }
-      case 0xb7: /* invokespecial */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
-	VM_Method target;
-	VM_Class methodRefClass = methodRef.getDeclaringClass();
-          if (!methodRef.getDeclaringClass().isResolved() && VM.BuildForPrematureClassResolution && false) {
-	    try {
-	      methodRefClass.load();
-	      methodRefClass.resolve();
-	    } catch (Exception e) { 
-	      System.err.println("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	    } // report the exception at runtime
-	  }
-	  if (methodRef.getDeclaringClass().isResolved() && (target = VM_Class.findSpecialMethod(methodRef)) != null) {
-	  if (VM.VerifyAssertions) VM.assert(target.isObjectInitializer() || !target.isStatic());
-	  if (target.isObjectInitializer()) {
-	    genParameterRegisterLoad(methodRef, true);
-	    asm.emitCALL_RegDisp(JTOC, target.getOffset());
-	    genResultRegisterUnload(target);
-	  } else {
-	    if (VM.VerifyAssertions) VM.assert(!target.isStatic());
-	    // invoke via class's tib slot
-	    int methodRefOffset = target.getOffset();
-	    asm.emitMOV_Reg_RegDisp (S0, JTOC, target.getDeclaringClass().getTibOffset());
-	    genParameterRegisterLoad(methodRef, true);
-	    asm.emitCALL_RegDisp(S0, methodRefOffset);
-	    genResultRegisterUnload(methodRef);
-	  }
-	} else {
-	  emitDynamicLinkingSequence(S0, methodRef);
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);                             // call static method
-	  genResultRegisterUnload(methodRef);                                     // push return value, if any
-	}     
-	break;
-      }
-      case 0xb8: /* invokestatic */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
-	if (methodRef.getDeclaringClass().isMagicType() ||
-	    methodRef.getDeclaringClass().isAddressType()) {
-	  genMagic(methodRef);
-	  break;
-	}
-	boolean classPreresolved = false;
-	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !methodRefClass.isInitialized() &&
-	    !(methodRefClass == klass) &&
-	    !(methodRefClass.isInBootImage() && VM.writingBootImage)
-	    ) { // TODO!! rearrange the following code to backpatch after the first call
-	  asm.emitMOV_Reg_Imm (T0, methodRefClass.getDictionaryId());
-	  asm.emitPUSH_Reg    (T0);
-	  asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
-	  classPreresolved = true;
-	}
-	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
-	  emitDynamicLinkingSequence(S0, methodRef);
-	  genParameterRegisterLoad(methodRef, false);          
-	  asm.emitCALL_RegIdx(JTOC, S0, asm.BYTE, 0);                             // call static method
-	  genResultRegisterUnload(methodRef);                                     // push return value, if any
-	} else {
-          methodRef = methodRef.resolve();
-	  int methodOffset = methodRef.getOffset();
-	  genParameterRegisterLoad(methodRef, false);
-	  asm.emitCALL_RegDisp(JTOC, methodOffset);
-	  genResultRegisterUnload(methodRef);
-	}
-	break;
-      }
-      case 0xb9: /* invokeinterface --- */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
-	int count = fetch1ByteUnsigned();
-	fetch1ByteSigned(); // eat superfluous 0
-	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ") " + VM_Lister.decimal(count) + " 0");
+      /* paramaters are on the stack and/or in registers;  There is space
+       * on the stack for all the paramaters;  Parameter slots in the
+       * stack are such that the first paramater has the higher address,
+       * i.e., it pushed below all the other paramaters;  The return
+       * address is the topmost entry on the stack.  The frame pointer
+       * still addresses the previous frame.
+       * The first word of the header, currently addressed by the stack
+       * pointer, contains the return address.
+       */
 
-	// (1) Emit dynamic type checking sequence if required to do so inline.
-	if (VM.BuildForIMTInterfaceInvocation || 
-	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
-	  VM_Method resolvedMethodRef = null;
-	  try {
-	    resolvedMethodRef = methodRef.resolveInterfaceMethod(false);
-	  } catch (VM_ResolutionException e) {
-	    // actually can't be thrown when we pass false for canLoad.
-	  }
-	  if (resolvedMethodRef == null) {
-	    // might be a ghost ref. Call uncommon case typechecking routine to deal with this
-	    asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                       // "this" object
-	    asm.emitPUSH_Imm(methodRef.getDictionaryId());                          // dict id of target
-	    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
-	    asm.emitPUSH_Reg(S0);
-	    genParameterRegisterLoad(2);                                            // pass 2 parameter word
-	    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
-	  } else {
-	    asm.emitMOV_Reg_RegDisp (T0, JTOC, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
-	    asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
-	    asm.emitPUSH_RegDisp(T0, TIB_TYPE_INDEX << 2);                                // type of the interface method
-	    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
-	    asm.emitPUSH_Reg(S0);
-	    genParameterRegisterLoad(2);                                          // pass 2 parameter word
-	    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
-	  }
-	}
-
-	// (2) Emit interface invocation sequence.
-	if (VM.BuildForIMTInterfaceInvocation) {
-	  int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef.getName(), methodRef.getDescriptor());
-	  int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
-          
-          // squirrel away signature ID
-          VM_ProcessorLocalState.emitMoveImmToField(asm, 
-                                                    VM_Entrypoints.hiddenSignatureIdField.getOffset(),
-                                                    signatureId);
-
-	  asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                  // "this" object
-          VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
-          if (VM.BuildForIndirectIMT) {
-            // Load the IMT Base into S0
-            asm.emitMOV_Reg_RegDisp(S0, S0, TIB_IMT_TIB_INDEX << 2);
-          }
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_RegDisp(S0, offset);                                             // the interface call
-	} else if (VM.BuildForITableInterfaceInvocation && 
-		   VM.DirectlyIndexedITables && 
-		   methodRef.getDeclaringClass().isResolved()) {
-	  methodRef = methodRef.resolve();
-	  VM_Class I = methodRef.getDeclaringClass();
-	  asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
-          VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
-	  asm.emitMOV_Reg_RegDisp (S0, S0, TIB_ITABLES_TIB_INDEX << 2);                     // iTables
-	  asm.emitMOV_Reg_RegDisp (S0, S0, I.getInterfaceId() << 2);                        // iTable
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_RegDisp(S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2); // the interface call
-	} else {
-	  VM_Class I = methodRef.getDeclaringClass();
-	  int itableIndex = -1;
-	  if (false && VM.BuildForITableInterfaceInvocation) {
-	    // get the index of the method in the Itable
-	    if (I.isLoaded()) {
-	      itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef);
-	    }
-	  }
-	  if (itableIndex == -1) {
-	    // itable index is not known at compile-time.
-	    // call "invokeInterface" to resolve object + method id into 
-	    // method address
-	    int methodRefId = klass.getMethodRefId(constantPoolIndex);
-	    asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
-	    asm.emitPUSH_Imm(methodRefId);                 // id of method to call
-	    genParameterRegisterLoad(2);               // pass 2 parameter words
-	    asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceMethod.getOffset()); // invokeinterface(obj, id) returns address to call
-	    asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
-	    genParameterRegisterLoad(methodRef, true);
-	    asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
-	  } else {
-	    // itable index is known at compile-time.
-	    // call "findITable" to resolve object + interface id into 
-	    // itable address
-	    asm.emitMOV_Reg_RegDisp (T0, SP, (count-1) << 2);             // "this" object
-	    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
-	    asm.emitPUSH_Reg(S0);
-	    asm.emitPUSH_Imm        (I.getInterfaceId());                // interface id
-	    genParameterRegisterLoad(2);                                  // pass 2 parameter words
-	    asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableMethod.getOffset()); // findItableOffset(tib, id) returns iTable
-	    asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
-	    genParameterRegisterLoad(methodRef, true);
-	    asm.emitCALL_RegDisp    (S0, itableIndex << 2);               // the interface call
-	  }
-	}
-	genResultRegisterUnload(methodRef);
-	break;
-      }
-      case 0xba: /* unused */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "unused");
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-	break;
-      }
-      case 0xbb: /* new */ {
-	// unit test by NullCompare
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "new " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ")");
-	if (typeRef.isInitialized() || ((VM_Class) typeRef).isInBootImage()) { // call quick allocator
-	  VM_Class newclass = (VM_Class) typeRef;
-	  int instanceSize = newclass.getInstanceSize();
-	  int tibOffset = newclass.getOffset();
-	  asm.emitPUSH_Imm(instanceSize);            
-	  asm.emitPUSH_RegDisp (JTOC, tibOffset);        // put tib on stack    
-	  asm.emitPUSH_Imm(newclass.hasFinalizer()?1:0); // does the class have a finalizer?
-	  genParameterRegisterLoad(3);                   // pass 3 parameter words
-	  asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.quickNewScalarMethod.getOffset());
-	  asm.emitPUSH_Reg (T0);
-	} else { 
-	  asm.emitPUSH_Imm(klass.getTypeRefId(constantPoolIndex));            
-	  genParameterRegisterLoad(1);           // pass 1 parameter word
-	  asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.newScalarMethod.getOffset());
-	  asm.emitPUSH_Reg (T0);
-	}
-	break;
-      }
-      case 0xbc: /* newarray */ {
-	// unit test by PArray
-	int atype = fetch1ByteSigned();
-	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
-	array.resolve();
-	array.instantiate();
-	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + VM_Lister.decimal(atype) + "(" + array + ")");
-	int width      = array.getLogElementSize();
-	int tibOffset  = array.getOffset();
-	int headerSize = VM_ObjectModel.computeHeaderSize(array);
-	// count is already on stack- nothing required
-	asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
-	asm.emitSHL_Reg_Imm (T0, width);              // compute array size
-	asm.emitADD_Reg_Imm(T0, headerSize);
-	asm.emitPUSH_Reg(T0);      
-	asm.emitPUSH_RegDisp(JTOC, tibOffset);        // put tib on stack    
-	genParameterRegisterLoad(3);          // pass 3 parameter words
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.quickNewArrayMethod.getOffset());
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0xbd: /* anewarray */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Type elementTypeRef = klass.getTypeRef(constantPoolIndex);
-	VM_Array array = elementTypeRef.getArrayTypeForElementType();
-	// TODO!! Forcing early class loading may violate language spec.  FIX ME!!
-	array.load();
-	array.resolve();
-	array.instantiate();
-	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + VM_Lister.decimal(constantPoolIndex) + " (" + array + ")");
-	int width      = array.getLogElementSize();
-	int tibOffset  = array.getOffset();
-	int headerSize = VM_ObjectModel.computeHeaderSize(array);
-	// count is already on stack- nothing required
-	asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
-	asm.emitSHL_Reg_Imm (T0, width);              // compute array size
-	asm.emitADD_Reg_Imm(T0, headerSize);
-	asm.emitPUSH_Reg(T0);            
-	asm.emitPUSH_RegDisp(JTOC, tibOffset);        // put tib on stack    
-	genParameterRegisterLoad(3);          // pass 3 parameter words  
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.quickNewArrayMethod.getOffset());
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0xbe: /* arraylength */ { 
-	// unit test by PArray
-	if (shouldPrint) asm.noteBytecode(biStart, "arraylength");
-	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                   // T0 is array reference
-	asm.emitMOV_Reg_RegDisp(T0, T0,
-                                VM_ObjectModel.getArrayLengthOffset()); // T0 is array length
-	asm.emitMOV_RegDisp_Reg(SP, 0, T0);                   // replace reference with length on stack
-	break;
-      }
-      case 0xbf: /* athrow */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "athrow");  
- 	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
-	genParameterRegisterLoad(1);          // pass 1 parameter word
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.athrowMethod.getOffset());
-	break;
-      }
-      case 0xc0: /* checkcast */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ")");
-	asm.emitPUSH_RegInd (SP);                                // duplicate the object ref on the stack
-	asm.emitPUSH_Imm(typeRef.getTibOffset());                // JTOC index that identifies klass  
-	genParameterRegisterLoad(2);                         // pass 2 parameter words
-	asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.checkcastMethod.getOffset()); // checkcast(obj, klass-identifier)
-	break;
-      }
-      case 0xc1: /* instanceof */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	VM_Type typeRef = klass.getTypeRef(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + VM_Lister.decimal(constantPoolIndex)  + " (" + typeRef + ")");
-	int offset = VM_Entrypoints.instanceOfMethod.getOffset();
-	if (typeRef.isClassType() && typeRef.asClass().isLoaded() && typeRef.asClass().isFinal()) {
-	  offset = VM_Entrypoints.instanceOfFinalMethod.getOffset();
-	} else if (typeRef.isArrayType() && typeRef.asArray().getElementType().isPrimitiveType()) {
-	  offset = VM_Entrypoints.instanceOfFinalMethod.getOffset();
-	}
-	asm.emitPUSH_Imm(typeRef.getTibOffset());  
-	genParameterRegisterLoad(2);          // pass 2 parameter words
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);
-	break;
-      }
-      case 0xc2: /* monitorenter  */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");  
-	genParameterRegisterLoad(1);          // pass 1 parameter word
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockMethod.getOffset());
-	break;
-      }
-      case 0xc3: /* monitorexit */ {
-	if (shouldPrint) asm.noteBytecode(biStart, "monitorexit"); 
-	genParameterRegisterLoad(1);          // pass 1 parameter word
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());  
-	break;
-      }
-      case 0xc4: /* wide */ {
-	int widecode = fetch1ByteUnsigned();
-	int index = fetch2BytesUnsigned();
-	switch (widecode) {
-	case 0x15: /* --- wide iload --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide iload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(ESP,offset);
-	  break;
-	}
-	case 0x16: /* --- wide lload --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide lload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
-	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
-	  break;
-	}
-	case 0x17: /* --- wide fload --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide fload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp (ESP, offset);
-	  break;
-	}
-	case 0x18: /* --- wide dload --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide dload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
-	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
-	  break;
-	}
-	case 0x19: /* --- wide aload --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide aload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(ESP, offset);
-	  break;
-	}
-	case 0x36: /* --- wide istore --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide istore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
-	  asm.emitPOP_RegDisp (ESP, offset);
-	  break;
-	}
-	case 0x37: /* --- wide lstore --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide lstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
-	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of long
-	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
-	  break;
-	}
-	case 0x38: /* --- wide fstore --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide fstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
-	  asm.emitPOP_RegDisp (ESP, offset);
-	  break;
-	}
-	case 0x39: /* --- wide dstore --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide dstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
-	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of double
-	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
-	  break;
-	}
-	case 0x3a: /* --- wide astore --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide astore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
-	  asm.emitPOP_RegDisp (ESP, offset);
-	  break;
-	}
-	case 0x84: /* --- wide iinc --- */ {
-	  int val = fetch2BytesSigned();
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide inc " + VM_Lister.decimal(index) + " by " + VM_Lister.decimal(val));
-	  int offset = localOffset(index);
-	  asm.emitADD_RegDisp_Imm(ESP, offset, val);
-	  break;
-	}
-	case 0x9a: /* --- wide ret --- */ {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide ret " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitJMP_RegDisp(ESP, offset); 
-	  break;
-	}
-	default:
-	  if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-	}
-	break;
-      }
-      case 0xc5: /* multianewarray */ {
-	int constantPoolIndex = fetch2BytesUnsigned();
-	int dimensions        = fetch1ByteUnsigned();
-	VM_Type typeRef       = klass.getTypeRef(constantPoolIndex);
-	int dictionaryId      = klass.getTypeRefId(constantPoolIndex);
-	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray " + VM_Lister.decimal(constantPoolIndex) + " (" + typeRef + ") " + VM_Lister.decimal(dimensions));
-	// setup parameters for newarrayarray routine
-	asm.emitPUSH_Imm (dimensions);                     // dimension of arays
-	asm.emitPUSH_Imm (dictionaryId);                   // type of array elements               
-	asm.emitPUSH_Imm ((dimensions + 5)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
-	// NOTE: 5 extra words- 3 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
-	genParameterRegisterLoad(3);                   // pass 3 parameter words
-	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayMethod.getOffset()); 
-	for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
-	asm.emitPUSH_Reg(T0);                              // push array ref on stack
-	break;
-      }
-      case 0xc6: /* ifnull */ {
-	// unit test by NullCompare
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifnull " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
-	break;
-      }
-      case 0xc7: /* ifnonnull */ {
-	// unit test by NullCompare
-	int offset = fetch2BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "ifnonnull " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if (offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitPOP_Reg(T0);
-	asm.emitCMP_Reg_Imm(T0, 0);
-	asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
-	break;
-      }
-      case 0xc8: /* goto_w */ {
-	int offset = fetch4BytesSigned();
-	int bTarget = biStart + offset; // bi has been bumped by 5 already
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "goto_w " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	if(offset < 0) genThreadSwitchTest(VM_Thread.BACKEDGE);
-	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
-	break;
-      }
-      case 0xc9: /* jsr_w */ {
-	int offset = fetch4BytesSigned();
-	int bTarget = biStart + offset;
-	int mTarget = bytecodeMap[bTarget];
-	if (shouldPrint) asm.noteBytecode(biStart, "jsr_w " + VM_Lister.decimal(offset) + " [" + VM_Lister.decimal(bTarget) + "] ");
-	asm.emitCALL_ImmOrLabel(mTarget, bTarget);
-	break;
-      }
-      default:
-	VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Lister.hex(code) + "\n");
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-      }
-    }
-    return new VM_MachineCode(asm.getMachineCodes(), bytecodeMap);
-  }
-  
-  private final void genPrologue (int cmid) {
-    if (shouldPrint) asm.comment("prologue for " + method);
-    /* paramaters are on the stack and/or in registers;  There is space
-     * on the stack for all the paramaters;  Parameter slots in the
-     * stack are such that the first paramater has the higher address,
-     * i.e., it pushed below all the other paramaters;  The return
-     * address is the topmost entry on the stack.  The frame pointer
-     * still addresses the previous frame.
-     * The first word of the header, currently addressed by the stack
-     * pointer, contains the return address.
-     */
-
-    /* establish a new frame:
-     * push the caller's frame pointer in the stack, and
-     * reset the frame pointer to the current stack top,
-     * ie, the frame pointer addresses directly the word
-     * that contains the previous frame pointer.
-     * The second word of the header contains the frame
-     * point of the caller.
-     * The third word of the header contains the compiled method id of the called method.
-     */
-    asm.emitPUSH_RegDisp   (PR, VM_Entrypoints.framePointerField.getOffset());	// store caller's frame pointer
-    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), SP); // establish new frame
-    /*
-     * NOTE: until the end of the prologue SP holds the framepointer.
-     */
-    asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
-  
-    /*
-     * save registers
-     */
-    asm.emitMOV_RegDisp_Reg (SP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
+      /* establish a new frame:
+       * push the caller's frame pointer in the stack, and
+       * reset the frame pointer to the current stack top,
+       * ie, the frame pointer addresses directly the word
+       * that contains the previous frame pointer.
+       * The second word of the header contains the frame
+       * point of the caller.
+       * The third word of the header contains the compiled method id of the called method.
+       */
+      asm.emitPUSH_RegDisp   (PR, VM_Entrypoints.framePointerField.getOffset());	// store caller's frame pointer
+      VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), SP); // establish new frame
+      /*
+       * NOTE: until the end of the prologue SP holds the framepointer.
+       */
+      asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId);	// 3rd word of header
+      
+      /*
+       * save registers
+       */
+      asm.emitMOV_RegDisp_Reg (SP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
     
-    // establish the JTOC register
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+      // establish the JTOC register
+      VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
-    int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;	// default
-    /* handle "dynamic brige" methods:
-     * save all registers except FP, SP, PR, S0 (scratch), and
-     * JTOC saved above.
-     */
-    // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
-    if (klass.isDynamicBridge()) {
-      savedRegistersSize += 3 << LG_WORDSIZE;
-      asm.emitMOV_RegDisp_Reg (SP, T0_SAVE_OFFSET,  T0); 
-      asm.emitMOV_RegDisp_Reg (SP, T1_SAVE_OFFSET,  T1); 
-      asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX); 
-      asm.emitFNSAVE_RegDisp  (SP, FPU_SAVE_OFFSET);
-      savedRegistersSize += FPU_STATE_SIZE;
-    } 
+      int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;	// default
+      /* handle "dynamic brige" methods:
+       * save all registers except FP, SP, PR, S0 (scratch), and
+       * JTOC saved above.
+       */
+      // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
+      if (klass.isDynamicBridge()) {
+	savedRegistersSize += 3 << LG_WORDSIZE;
+	asm.emitMOV_RegDisp_Reg (SP, T0_SAVE_OFFSET,  T0); 
+	asm.emitMOV_RegDisp_Reg (SP, T1_SAVE_OFFSET,  T1); 
+	asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX); 
+	asm.emitFNSAVE_RegDisp  (SP, FPU_SAVE_OFFSET);
+	savedRegistersSize += FPU_STATE_SIZE;
+      } 
 
-    // copy registers to callee's stackframe
-    firstLocalOffset         = STACKFRAME_BODY_OFFSET - savedRegistersSize;
-    int firstParameterOffset = (parameterWords << LG_WORDSIZE) + WORDSIZE;
-    genParameterCopy(firstParameterOffset, firstLocalOffset);
+      // copy registers to callee's stackframe
+      firstLocalOffset         = STACKFRAME_BODY_OFFSET - savedRegistersSize;
+      int firstParameterOffset = (parameterWords << LG_WORDSIZE) + WORDSIZE;
+      genParameterCopy(firstParameterOffset, firstLocalOffset);
 
-    int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
-    asm.emitADD_Reg_Imm (SP, emptyStackOffset);		// set aside room for non parameter locals
-    /*
+      int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
+      asm.emitADD_Reg_Imm (SP, emptyStackOffset);		// set aside room for non parameter locals
+      /*
      * generate stacklimit check
      */
-    if (method.isInterruptible()) {
-      // S0<-limit
-       VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                                 VM_Entrypoints.activeThreadStackLimitField.getOffset());
+      if (method.isInterruptible()) {
+	// S0<-limit
+	VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+						  VM_Entrypoints.activeThreadStackLimitField.getOffset());
 
-      asm.emitSUB_Reg_Reg (S0, SP);                                   	// space left
-      asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE); 	// space left after this expression stack
-      VM_ForwardReference fr = asm.forwardJcc(asm.LT);	// Jmp around trap if OK
-      asm.emitINT_Imm ( VM_Runtime.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE );	// trap
-      fr.resolve(asm);
-    } else {
-      // TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page
+	asm.emitSUB_Reg_Reg (S0, SP);                                   	// space left
+	asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE); 	// space left after this expression stack
+	VM_ForwardReference fr = asm.forwardJcc(asm.LT);	// Jmp around trap if OK
+	asm.emitINT_Imm ( VM_Runtime.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE );	// trap
+	fr.resolve(asm);
+      } else {
+	// TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page
+      }
+
+      if (method.isSynchronized()) genMonitorEnter();
+
+      genThreadSwitchTest(VM_Thread.PROLOGUE);
+
+      asm.emitNOP();                                      // mark end of prologue for JDP
     }
-
-    if (method.isSynchronized()) genMonitorEnter();
-
-    genThreadSwitchTest(VM_Thread.PROLOGUE);
-
-    asm.emitNOP();                                      // mark end of prologue for JDP
   }
   
   private final void genEpilogue (int bytesPopped) {
@@ -2737,9 +2512,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
-    if ( options.ANNOTATIONS &&
-	 method.queryAnnotationForBytecode(biStart,
-					VM_Method.annotationBoundsCheck)) {
+    if (options.ANNOTATIONS &&
+	method.queryAnnotationForBytecode(biStart, VM_Method.annotationBoundsCheck)) {
       return;
     }
     asm.emitCMP_RegDisp_Reg(arrayRefReg,
@@ -2979,8 +2753,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
   /**
-   * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or
-   *       EPILOGUE?
+   * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
   private final void genThreadSwitchTest (int whereFrom) {
     if (!method.isInterruptible()) {
@@ -2994,7 +2767,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       
       // reset the count.
       VM_ProcessorLocalState.emitMoveImmToField(asm,VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(),
-                                                THREAD_SWITCH_LIMIT);
+						VM.deterministicThreadSwitchInterval);
 
       if (whereFrom == VM_Thread.PROLOGUE) {
         asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset()); 
@@ -3735,13 +3508,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     
   }
 
-  void generateAddrComparison(byte comparator) {
-      asm.emitPOP_Reg(S0);
-      asm.emitPOP_Reg(T0);
-      asm.emitCMP_Reg_Reg(T0, S0);
-      asm.emitSET_Cond_Reg_Byte(comparator, T0);
-      asm.emitMOVZX_Reg_Reg_Byte(T0, T0);   // Clear upper 3 bytes
-      asm.emitPUSH_Reg(T0);
+  private void generateAddrComparison(byte comparator) {
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T0);
+    asm.emitCMP_Reg_Reg(T0, S0);
+    asm.emitSET_Cond_Reg_Byte(comparator, T0);
+    asm.emitMOVZX_Reg_Reg_Byte(T0, T0);   // Clear upper 3 bytes
+    asm.emitPUSH_Reg(T0);
   }
 
   // Offset of Java local variable (off stack pointer)
@@ -3786,11 +3559,4 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitJMP_Imm (retryLabel);                          // reload reg with valid value
     fr.resolve(asm);                                       // come from Jcc above.
   }
-
-  private static final int THREAD_SWITCH_LIMIT = 100;
-
-  private VM_Assembler asm; 
-  private int          parameterWords;
-  private int          firstLocalOffset;
-  
 }
