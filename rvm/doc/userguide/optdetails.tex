@@ -6,8 +6,8 @@ implementation details for the RVM optimizing compiler.
 
 \index{command-line options}
 \index{OPT\_Options class}
-The command-line options to the optimizing compiler are
-stored as fields in an object of type {\tt OPT\_Options}.
+The RVM stores command-line options to the optimizing compiler 
+as fields in an object of type {\tt OPT\_Options}.
 The RVM build process generates the {\tt OPT\_Options.java} 
 file automatically from a template.  
 
@@ -25,9 +25,9 @@ system.
 \index{BooleanOptions.dat}
 
 The {\tt BooleanOptions.dat} file defines boolean options for
-the optimizing compiler.  Each command-line option is
-described by a two-line record, and each record is separated
-by a blank line.  Long lines can be partitioned using ``$\backslash$''.
+the optimizing compiler.  The file describes each command-line option 
+by a two-line record, and each record is separated
+by a blank line.  Long lines can be continued using ``$\backslash$''.
 {\bf NOTE:} blank lines {\em are} important!
 Lines starting with ``\#'' are ignored.
 
@@ -45,9 +45,11 @@ where
 \item {\tt SHORT\_NAME} is an optional field which defines a mnemonic by which the command-line processor recognizes this option.
 \end{itemize}
 
-The second line of each record must be a short textual description of
-the semantics of the option.  This description will be printed
-by {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
+The second line of each record must hold a short textual description of
+the semantics of the option. 
+The system will print this description 
+when so instructed 
+by the command-line option {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
 
 For example, the two line record in {\tt BooleanOptions.dat}
 that defines the option of whether
@@ -62,10 +64,10 @@ Perform local scalar replacement
 \index{ValueOptions.dat}
 
 The {\tt ValueOptions.dat} file defines non-boolean options for
-the optimizing compiler.  Each command-line option is
-described by a three-line record, and each record is separated
+the optimizing compiler.  The file describes each command-line option 
+with a three-line record, and each record is separated
 by a blank line.  As with {\tt BooleanOptions.dat},
-long lines can be broken by using ``$\backslash$'' and
+long lines can be continued using ``$\backslash$'' and
 blank lines are once again significant.
 Lines starting with ``\#'' are ignored.
 
@@ -84,12 +86,14 @@ where
 \item {\tt SHORT\_NAME} is an optional field which defines a mnemonic by which the command-line processor recognizes this option.
 \end{itemize}
 
-The second line of each record must be a short textual description of
-the semantics of the option.  This description will be printed
-by {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
+The second line of each record must hold a short textual description of
+the semantics of the option.  
+The system will print this description 
+when so instructed 
+by the command-line option {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
 
 The third line of each record is used for enumeration options, and must
-be left blank for other options.
+be left blank for non-enumeration options.
 
 For example, the three-line record in {\tt ValueOptions.dat}
 that defines the maximum inlining depth when using static inlining
@@ -102,7 +106,7 @@ Static inlining heuristic: Upper bound on depth of inlining
 
 Enumeration options provide a mechanism to define an option in terms of 
 a small fixed set of choices.  For an enumeration option, the third line
-of the record should contain a specification for each value that the
+of the record must contain a specification for each value that the
 enumeration can take.  Each such specification must have the following
 format:
 \begin{verbatim}
@@ -159,20 +163,23 @@ Various optimizing transformations are performed at each level of IR.
 An object of the class 
 \xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
 contains all the  
-information necessary to generate machine code for a method. Two
-important component of this class are the 
+information necessary to generate machine code for a method. 
+An instance of this class includes, among other fields, 
+the 
 \xlink{{\tt VM\_Method}}{\VMMethodURL} 
-to be
-compiled and the
-array of 
-\xlink{{\tt OPT\_OptimizationPlanElements}}{\OPTOptimizationPlanElementURL} to perform the compiling.
-When the {\tt execute} method  of this class is called, machine code
-is generated for the method as described by the 
+to be compiled and the array of 
+\xlink{{\tt OPT\_OptimizationPlanElements}}{\OPTOptimizationPlanElementURL} 
+which define the compilation steps.
+The {\tt execute} method of an
+\xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
+invokes the optimizing compiler to generate machine code for the method,
+executing the compiler phases as listed in the plan's
 {\tt OPT\_OptimizationPlanElement}s.
 
 \index{OPT\_OptimizationPlanner class}
-Another important class is 
+The 
 \xlink{{\tt OPT\_OptimizationPlanner}}{\OPTOptimizationPlannerURL}.  
+class defines the standard phases used in a compilation.
 This class
 contains a static field, called {\tt masterPlan}, which contains all
 possible {\tt OPT\_OptimizationPlanElement}s.
@@ -199,7 +206,7 @@ The master plan has the following general structure:
 
 
 \index{optimization plan}
-A specific optimization plan is constructed by including all the 
+A client (compiler driver) constructs a specific optimization plan by including all the 
 {\tt OPT\_OptimizationPlanElement}s contained in the master plan which are 
 appropriate for this compilation instance. 
 Whether or not an element should be part of a compilation plan is determined 
@@ -228,16 +235,20 @@ state is in the element.
 
 Every optimization plan consists of a selection of elements from the master 
 plan;
-thus though two optimization plans will be associated with different methods 
-they
-will share the same element objects. Clearly, it is not desirable that any state
-associated with a particular compilation phase should be shared between two
-different methods. In order to prevent this , the {\tt perform}
+thus two optimization plans associated with different methods 
+will share the same component element objects. 
+Clearly, it is undesirable to share state 
+associated with a particular compilation phase between two
+different method compilations. In order to prevent this, the {\tt perform}
 method of an atomic element creates a new instance of its phase immediately 
-before calling the phase's {\tt perform} method. In the case where the phase
+before calling the phase's {\tt perform} method. 
+In the case where the phase
 contains no state the {\tt newExecution} method of 
 {\tt OPT\_CompilerPhase} can be overridden to return the phase itself rather 
-than a clone of the phase.
+than a clone of the phase~\footnote{Since this coding pattern may result
+in unintended memory leaks, overriding {\tt newExecution} may be
+disallowed in future releases.}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{IR Operators}
@@ -301,7 +312,7 @@ for details.
 \index{instructionFormats.java}
 
 Every IR instruction fits one of the pre-defined {\em Instruction Formats}.
-The package {\tt instructionFormats.java} defines roughly 75 architecture-independent
+The Java package {\tt instructionFormats} defines roughly 75 architecture-independent
 instruction formats.  For each instruction format, the package includes a class
 that defines a set of static methods by which optimizing compiler
 code can access an instruction of that format.
@@ -532,13 +543,11 @@ compiler always uses the set of instructions that generate HIR; the
 instructions that generate assembly code are only invoked by the
 baseline compiler.}.
 
-When a call site
-is being compiled, and it is determined that the call target is one of these
-magic methods, control is transferred to the list of instructions which will
-generate the HIR for that method. The HIR for the magic method is always 
-inlined into the caller method.
+When the compiler determines that a call target is one of these
+magic methods, it inlines appropriate HIR for the magic method 
+into the caller method.
 
-As an RVM implementor, you must be {\em extremely careful} when writing
+An RVM implementor must be {\em extremely careful} when writing
 code that uses {\tt VM\_Magic} to circumvent the Java type
 system. The use of {\tt VM\_Magic.objectAsAddress} to perform various
 forms of pointer arithmetic is especially hazardous, since it can
@@ -585,7 +594,7 @@ The {\tt OptTestHarness} program provides even more control over the
 optimizing compiler.  This driver program allows you to invoke the
 optimizing compiler as an ``application'' running on top of the VM.
 The most useful configuration for this is probably {\tt
-BaseBaseOTHSemispace}; this image is a BaseBase image which includes just
+BaseBaseOTHSemispace}; this image provides a BaseBase configuration with just
 enough support to invoke the optimizing compiler through {\tt
 OptTestHarness}.  Like the {\tt BaseOpt} images, you can use {\tt jbuild
 -nolink} to skip a time-consuming boot image writing during development.
@@ -614,7 +623,7 @@ the command line.  Any arguments passed to {\tt OptTestHarness} via {\tt
 \begin{verbatim}
 % rvm OptTestHarness -oc:O1 -oc:print_final_hir=true -method Foo bar -
 \end{verbatim} 
-will invoke compile {\tt Foo.bar} at optimization level {\tt O1} and print
+will compile {\tt Foo.bar} at optimization level {\tt O1} and print
 the final HIR.
 
 One other useful option to {\tt OptTestHarness} is {\tt -longcommandline
