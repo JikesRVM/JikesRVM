@@ -205,7 +205,7 @@ public class VM_RuntimeOptCompilerInfrastructure
   public static VM_CompiledMethod
     recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
 
-    if (VM.VerifyAssertions) { VM._assert(plan.method.isForSpecialization());}
+    if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
 
     if (compilationInProgress) {
       return null;
@@ -214,7 +214,7 @@ public class VM_RuntimeOptCompilerInfrastructure
     try {
       compilationInProgress = true;
 
-      // the compiler will check if isForSpecialization of the method
+      // the compiler will check if isForOsrSpecialization of the method
       VM_CompiledMethod cm = optCompile(plan.method, plan);
 
       // we donot replace the compiledMethod of original method, 

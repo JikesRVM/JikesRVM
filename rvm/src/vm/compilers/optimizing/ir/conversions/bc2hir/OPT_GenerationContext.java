@@ -653,7 +653,7 @@ public final class OPT_GenerationContext
 //-#if RVM_WITH_OSR	
     // if this is a specialized method, no monitor enter at the beginging
 	// since it's the second time reenter
-	if (method.isForSpecialization()) {
+	if (method.isForOsrSpecialization()) {
 	  // do nothing
 	} else
 //-#endif
