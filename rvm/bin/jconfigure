@@ -1459,11 +1459,7 @@ if tracing preprocessor; then
 fi'
 
     # copy classpath jar file
-    if ! [[ $CLASSPATH_ROOT ]]; then
-	CPS="$RVM_ROOT/classpath"
-    else
-	CPS="${CLASSPATH_ROOT}"
-    fi
+    CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
     echo '
 SYSTEM_TYPE=$('$CPS'/classpath/config.guess)
 SRC='$CPS'/$SYSTEM_TYPE/lib/glibj.zip
@@ -2391,11 +2387,7 @@ function emitBooterLinker () {
     fi
 
     # copy native libraries
-    if [[ $CLASSPATH_ROOT ]]; then
-	CPS="$CLASSPATH_ROOT"
-    else
-	CPS="$RVM_ROOT/classpath"
-    fi
+    CPS="${CLASSPATH_ROOT-$RVM_ROOT/classpath}"
     echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     ## AIX requires that dynamically loaded libraries end in .a, 
     ## so that dlopen() will find them.  Also, the classpath builder, on AIX,
