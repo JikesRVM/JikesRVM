@@ -61,7 +61,7 @@ export CLASSPATH_SRC=/homes/meriadoc/jalapeno/contrib/classpath-0.05
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES="/homes/meriadoc/jalapeno/bin/power/jikes-1.18 -nowarn"
+export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.18
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"

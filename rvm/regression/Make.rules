@@ -113,13 +113,6 @@ bench-jdk:			$(START_CLASS) $(WORKING)
 		> $(OUT) 2>&1
 
 
-bench-j9:			$(START_CLASS) $(WORKING)
-	@echo
-	@echo "(Running $(START_NAME) on J9 for comparison)"
-	@cd $(WORKING); LD_LIBRARY_PATH=$(HOST_J9_LIBS) $(HOST_J9) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) \
-		> $(OUT) 2>&1
-
-
 bench:
 	$(MAKE) bench-$(JVM)
 ifeq ($(NON_DETERMINISTIC_OUTPUT_ORDER),YES)

@@ -54,7 +54,7 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES="/homes/meriadoc/jalapeno/bin/power/jikes-1.18 -nowarn"
+export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.18
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc-2.95.3 -w -O -Wa,-mppc"
