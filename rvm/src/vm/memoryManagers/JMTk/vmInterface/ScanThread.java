@@ -48,7 +48,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   static int DUMP_STACK_REFS = 0;
 
   // outputs names of methods as their frames are scanned
-  static boolean TRACE_STACKS = false;
+  private static boolean TRACE_STACKS = false;
 
   static int stackDumpCount = 0;
 
@@ -166,7 +166,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
    * @param rootLocations  set to store addresses containing roots
    * @param relocate_code  set to store addresses containing return addresses (if null, skip)
    */
-  public static void scanThreadInternal (AddressQueue rootLocations, AddressPairQueue codeLocations,
+  private static void scanThreadInternal (AddressQueue rootLocations, AddressPairQueue codeLocations,
 					 VM_Thread t, VM_Address top_frame) {
     
     VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -191,17 +191,17 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     
     if (TRACE_STACKS) VM.sysWriteln("Scanning thread ", t.getIndex());
 
-    if (!top_frame.isZero()) {
-      prevFp = top_frame;
-      // start scan at caller of passed in fp
-      ip = VM_Magic.getReturnAddress(top_frame);
-      fp = VM_Magic.getCallerFramePointer(top_frame);
-    }
-    else {
+    if (top_frame.isZero()) {
       prevFp = VM_Address.zero();
       // start scan using fp & ip in threads saved context registers
       ip = t.contextRegisters.getInnermostInstructionAddress();
       fp = t.contextRegisters.getInnermostFramePointer();
+    }
+    else {
+      prevFp = top_frame;
+      // start scan at caller of passed in fp
+      ip = VM_Magic.getReturnAddress(top_frame);
+      fp = VM_Magic.getCallerFramePointer(top_frame);
     }
 
     if (TRACE_STACKS) {
@@ -273,9 +273,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	if (false) {
 	  VM.sysWrite("--- FRAME DUMP of METHOD ");
 	  VM.sysWrite(method);
-	  VM.sysWrite(" at offset ");
-	  VM.sysWrite(offset);
-	  VM.sysWrite(".--- \n");
+	  VM.sysWriteln(" at offset ", offset);
 	  VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	  VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
 	  dumpStackFrame( fp, prevFp );
@@ -293,8 +291,8 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
 	      VM.sysWriteln(" at offset ", offset);
-	      VM.sysWrite(" fp = "); VM.sysWrite(fp);
-	      VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
+	      VM.sysWrite(" fp = ", fp);
+	      VM.sysWriteln(" ip = ", ip);
 	      // dump out bad ref
 	      VM.sysWrite(refaddr); VM.sysWrite(":"); VM_Interface.dumpRef(ref);
 	      // dump out contents of frame
@@ -337,9 +335,14 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 
 	  if (prevFp.isZero()) {
 	    // top-most stack frame, ip saved in threads context regs
-	      // VM.sysWriteln(" t.contextRegisters.ip    = ", t.contextRegisters.ip);
-	      // VM.sysWriteln("*t.contextRegisters.iploc = ", VM_Magic.getMemoryAddress(t.contextRegisters.getIPLocation()));
-	      codeLocationsPush(codeLocations, code, t.contextRegisters.getIPLocation(), 2, t);
+	      if (DUMP_STACK_REFS >= 2) {
+		VM.sysWriteln(" t.contextRegisters.ip    = ", t.contextRegisters.ip);
+		VM.sysWriteln("*t.contextRegisters.iploc = ", VM_Magic.getMemoryAddress(t.contextRegisters.getIPLocation()));
+	      }
+	      if (compiledMethodType != VM_CompiledMethod.JNI)
+		codeLocationsPush(codeLocations, code, t.contextRegisters.getIPLocation(), 2, t);
+	      else
+		VM.sysWriteln("XXXX SKIPPING return address for JNI code XXXX");
 	  }
 	  else {
               VM_Address returnAddressLoc = VM_Magic.getReturnAddressLocation(prevFp);
