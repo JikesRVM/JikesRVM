@@ -39,7 +39,7 @@
 
 /* Forward declaration of a function defined later on in this file.  Goes into
    the JNI dispatch table. */
-extern jint GetEnv(JavaVM *, void **, jint);
+static jint GetEnv(JavaVM *, void **, jint);
 
 #include "syswrap.h"
 
@@ -353,27 +353,31 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 //////////////////////////////////////////////////////////////
 
 /** Destroying the Java VM only makes sense if you can first attach it.  */
+static
 jint 
 DestroyJavaVM(JavaVM UNUSED * vm) 
 {
-    fprintf(stderr, "unimplemented DestroyJavaVM");
-    return 0;
+    fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
+    return JNI_ERR;
 }
 
+static
 jint 
 AttachCurrentThread(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
 {
-    fprintf(stderr, "unimplemented AttachCurrentThread");
-    return 0;
+    fprintf(stderr, "JikesRVM: Unimplemented JNI call AttachCurrentThread\n");
+    return JNI_ERR;
 }
 
+static
 jint 
 DetachCurrentThread(JavaVM UNUSED *vm) 
 {
-    fprintf(stderr, "unimplemented DetachCurrentThread");
-    return 0;
+    fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
+    return JNI_ERR;
 }
  
+static
 jint 
 GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
 { 
@@ -384,7 +388,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     // Return NULL if we are not on a VM pthread
     if (pthread_getspecific(IsVmProcessorKey) == NULL) {
         *penv = NULL;
-        return -1;
+        return JNI_EDETACHED;
     }
 #endif
 
@@ -405,11 +409,12 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 }
 
 /** JNI 1.4 */
+static
 jint 
 AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
 {
-    fprintf(stderr, "unimplemented AttachCurrentThreadAsDaemon");
-    return 0;
+    fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
+    return JNI_ERR;
 }
 
 struct JNIInvokeInterface_ externalJNIFunctions = {
@@ -424,6 +429,7 @@ struct JNIInvokeInterface_ externalJNIFunctions = {
 };
 
 
+static
 VM_Address 
 createJavaVM(void)
 {
