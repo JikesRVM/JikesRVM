@@ -41,14 +41,16 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     case JBC_getfield: case JBC_putfield: 
     case JBC_getstatic: case JBC_putstatic: 
       { 
-	VM_Field field = bcodes.getFieldReference();
-	VM_TableBasedDynamicLinker.resolveField(field.getDictionaryId());
+	int cpi = bcodes.getFieldReferenceIndex();
+	int fid = bcodes.declaringClass().getFieldRefId(cpi);
+	VM_TableBasedDynamicLinker.resolveField(fid);
       }
       break;
     case JBC_invokevirtual:case JBC_invokestatic:
       {
-	VM_Method method = bcodes.getMethodReference();
-	VM_TableBasedDynamicLinker.resolveMethod(method.getDictionaryId());
+	int cpi = bcodes.getMethodReferenceIndex();
+	int fid = bcodes.declaringClass().getMethodRefId(cpi);
+	VM_TableBasedDynamicLinker.resolveMethod(fid);
       }
       break;
     case JBC_invokeinterface:
