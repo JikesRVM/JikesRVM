@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 // $Id$
 package com.ibm.JikesRVM.opt;
@@ -121,7 +121,6 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 
   /** 
    *  Get address of the first spill location for the given frame ptr
-   *  @param the frame pointer
    *  @return the first spill location
    */
   public Address getFirstSpillLoc() {
@@ -130,7 +129,6 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
 
   /** 
    *  Get address of the last spill location for the given frame ptr
-   *  @param the frame pointer
    *  @return the last spill location
    */
   public Address getLastSpillLoc() {

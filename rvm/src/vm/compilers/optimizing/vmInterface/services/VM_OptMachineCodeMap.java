@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -126,7 +126,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  If no map is present, an error has occurred and VM_OptGCMap.ERROR
    *  is returned.
    *
-   *  @param MCOFfset the machine code offset to look for
+   *  @param MCOffset the machine code offset to look for
    *  @return         the GC map index or VM_OptGCMap.ERROR
    */
   public int findGCMapIndex(int MCOffset) {
@@ -183,7 +183,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
 
   /**
    * Returns the GC map information for the GC map information entry passed
-   * @param  entry     GCmap entry
+   * @param  index     GCmap entry 
    */
   public final int gcMapInformation(int index) {
     return VM_OptGCMap.gcMapInformation(index, gcMaps);
@@ -266,7 +266,6 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  the machine code mapping information for the entry.
    *  It is called during the compilation of the method, not at GC time.
    *  @param irMap  the irmap to translate from
-   *  @param gcMap  the VM_OptGCMap instance that is building the encoded GCMap
    */
   private void generateMCInformation(OPT_GCIRMap irMap) throws InterruptiblePragma {
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();

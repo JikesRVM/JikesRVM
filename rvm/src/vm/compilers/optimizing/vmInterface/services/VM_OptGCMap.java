@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -87,7 +87,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
 
   /**
    * Construct the GCMap for the argument GCIRMapElement
-   * @param the irMapElem to create a GCMap for
+   * @param irMapElem  The IR Map element to create a GCMap for
    * @return the GCMap index.
    */
   public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) throws InterruptiblePragma {
@@ -301,7 +301,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
 
   /**
    * Sets the register map information at the next available entry
-   * @param  bitmap    map entry
+   * @param  bitMap    map entry
+   * @return The index of that entry.
    */
   private final int setRegisterBitMap(int bitMap) throws InterruptiblePragma {
     // Set the appropriate bit, but make sure we preserve the NEXT bit!

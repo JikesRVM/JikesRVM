@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -77,9 +77,9 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
   /**
    * Initialize the iterator for another stack frame scan
-   * @param compiledMethod the compiled method we are interested in
-   * @param instructionOffset the place in the method we current are
-   * @param framePtr the current frame pointer
+   * @param cm                The compiled method we are interested in
+   * @param instructionOffset The place in the method where we currently are
+   * @param framePtr          The current frame pointer
    */
   public final void setupIterator(VM_CompiledMethod cm, 
                                   int instructionOffset, 
@@ -350,15 +350,14 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   abstract Address getStackLocation(Address framePtr, int offset);
 
   /** 
-   *  Get address of the first spill location for the given frame ptr
+   *  Get address of the first spill location
    *  (The location of spills varies among architectures.)
-   *  @param the frame pointer
    *  @return the first spill location
    */
   abstract Address getFirstSpillLoc();
 
   /** 
-   *  Get address of the last spill location for the given frame ptr
+   *  Get address of the last spill location
    *  (The location of spills varies among architectures.)
    *  @param the frame pointer
    *  @return the last spill location
@@ -415,8 +414,8 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * to determine if they look like heap points
    * If the first parameter is 0, it looks from the begining of the frame
    * until new.
-   * @param old the last spill found as a reference
-   * @param new the next spill found as a reference
+   * @param ref1 the last spill found as a reference
+   * @param ref2 the next spill found as a reference
    */
   final void checkForMissedSpills(Address ref1, Address ref2) {
     if (ref1.isZero()) {
