@@ -52,6 +52,8 @@ CLEAN_FLAG=""
 
 MFLAGS=--silent			# Pass this flag to the invocation of "make"
 
+
+
 ## ME: The name of this program, for purposes of printing error messages.
 ## This is supposed to be already set, but I'm setting it here so that it's
 ## easier to test libjconfigure.bash independently of the rest of jconfigure.
@@ -110,7 +112,7 @@ function tracing() {
 # Copy the file  $1 to $2.  Display a message, consisting of the remaining args
 # ($3 ... ), if given.  Feed $3 ... straight to "echo", which means we can 
 # accept -n and other echo flags.
-function copyIfNewer () {
+function copyIfNewer() {
     local SRC="$1"; shift;
     local DEST="$1"; shift;
     local -i copyit=0
@@ -145,21 +147,24 @@ function chdir() {
 
 ## Error Reporting 
 
-function config_gnufold () {
-    ## If we have gnu fold, we can use it in showing messages.  If not, we can't.
-    gnufold="/usr/bin/fold --width=65 --spaces"
-    $gnufold < /dev/null &> /dev/null || gnufold=cat
+function config_foldcmd() {
+    ## If we have a "fold" cmd that takes -w and -s, we can use it 
+    ## in showing messages.  If not, we can't. 
+    foldcmd="/usr/bin/fold --width=65 --spaces"
+    { $foldcmd < /dev/null &> /dev/null && return 0; } || :
+    foldcmd="/usr/bin/fold -w 65 -s"
+    { $foldcmd < /dev/null &> /dev/null && return 0; } || :
 }
 
 
-function show_mesg_raw () {
+function show_mesg_raw() {
     cleanline
-    [[ ${gnufold-''} ]] || config_gnufold
-    echo "$*" | $gnufold | sed -e '2,$s/^/     /';
+    [[ ${foldcmd-''} ]] || config_foldcmd
+    echo "$*" | $foldcmd | sed -e '2,$s/^/     /';
 }
 
 
-function show_mesg () {
+function show_mesg() {
     # Display a message.  If it's a multi-line error message, indent
     # the second and subsequent lines by a few spaces.  
     # Try to auto-wrap the message if we have GNU Fold.
@@ -168,7 +173,7 @@ function show_mesg () {
 }
 
 
-function do_cleanup () {
+function do_cleanup() {
     show_mesg >&2 "Cleaning up..."; 
     eval $CLEANUP
     if [[ "$CLEANUP" = ":" ]] ; then
@@ -197,10 +202,10 @@ trap 'unexpected_exit' EXIT
 declare -i have_function_relative_LINENO=0
 # declare -i have_negative_LINENO_bug=0
 
-function set_have_function_relative_LINENO () {
+function set_have_function_relative_LINENO() {
     # set_have_function_relative_LINENO depends upon its text being more 
     # than ten or so lines into the start of libjconfigure.bash.
-    function err_guinea_pig () {
+    function err_guinea_pig() {
 	local lineno="$1"; shift;
 	local fname="$1"; shift;
 	if (( lineno < 0 )); then
@@ -236,22 +241,40 @@ function set_have_function_relative_LINENO () {
 ## bug.
 eval $( set_have_function_relative_LINENO )
 
+## have_function_relative_LINENO may still be unset, due to bugs in
+## Bash 2.05b.  If so, we will do the best we can.  Set it if it's not
+## set.
+: ${have_function_relative_LINENO=0}
 
 ## For the ERR Trap.
-function err () {
+function err() {
     set +vx;			# turn off reporting here.
     local xited=$1; shift;
     local finalarg="$1"; shift;
     local lineno="$1"; shift;
     local funcname="$1"; shift;
 
+    ## have_function_relative_LINENO may still be unset, due to bugs in
+    ## Bash 2.05b.  If so, we will do the best we can.  Set it if it's not
+    ## set.
+    : ${have_function_relative_LINENO=0}
+
+
+    # A JikesRVM-researchers letter from Yoshiki Sato, on Dec 25, 2004, 
+    # shows an error that complains about problems in the function
+    # tracing(), and a further one that complains about problems running
+    # echo()!  These are clearly bogons.
+    if [[ $funcname = echo ]]  || [[ $funcname = tracing ]]; then
+	funcname=''
+    fi
+
     if  [[ ${lineno:-UNSET} = "UNSET" ]] || (( lineno <= 0 )); then
-	show_mesg_raw >&2 "\
-$ME: some command we just ran (probably with a final argument of \"$finalarg\") exited with status ${xited},  
-${funcname:+in the shell function \"}${funcname}${funcname:+\"}";
-    elif (( have_function_relative_LINENO )) && [[ ${funcname} ]]; then
 	show_mesg >&2 "\
-Some command we just ran (probably with a final argument of \"$finalarg\") exited with status ${xited}, in the shell function ${funcname}(), line # ${lineno}"
+Some command we just ran (probably with a final argument of \"$finalarg\") exited with status ${xited},  
+${funcname:+in the shell function \"}${funcname}${funcname:+\"}";
+    elif (( have_function_relative_LINENO )); then
+	show_mesg >&2 "\
+Some command we just ran (probably with a final argument of \"$finalarg\") exited with status ${xited}${funcname:+, in line # ${lineno} of the shell function ${funcname}()}"
 
     else	  # Have script-relative line #s, and have a real one.
 	show_mesg_raw >&2 "\
@@ -368,6 +391,154 @@ function cleanline() {
 }
 
 
+
+## The code in the rest of this file auto-detects the Bash version.
+## This will affect anyone who's not running Bash 2.05a or
+## newer (Bash 2.05a came out in 2001).
+
+## I'm auto-detecting the Bash version because of an old problem where
+## jconfigure would freeze up its Bash interpreter about one out of every
+## five times when it was run under Bash version 2.05 (2.05a and 2.05b
+## are OK.)
+## 
+## If you were running jconfigure under Bash version 2.03 or earlier, it
+## had been aborting its execution with error messages.  The version
+## detection code means that jconfigure instead exits with an
+## understandable message.  (Note that Bash 2.03 came out in 1998).
+## 
+## If you run jconfigure under Bash 2.05, you now get a message warning
+## you of the freeze-up problem.  If you have other Bash versions
+## available (the AIX machines at Watson have three different Bash
+## versions on them, in six different places in the file system), then
+## it tells you which versions are available and suggests you modify
+## your command search path to include one of them before the bad
+## version you're using.
+##
+## The message tells you at the end how you can permanently suppress it
+## if you don't care about it.  
+##
+## --Steve Augart
+
+
+## Show information about the bad Bash version and make
+## recommendations.
+## Display to standard output; the caller will redirect to stderr.
+function show_your_bad_bash_version() {
+    show_mesg "You are using Bash version ${BASH_VERSION-UNAVAILABLE}, found on your machine in ${BASH-UNAVAILABLE}."
+
+    # If we have any alternative versions, talk about them.
+    local -a bashes=($(type -a bash | awk '/^bash is / && (NF == 3) { print $3; }'))
+    if [[ "${bashes[*]}" != "${BASH-UNAVAILABLE}" ]]; then
+	show_mesg "There are alternative Bash versions available; you may want to reset your PATH variable so that the directory containing a newer version comes before the directory containing this version does.  Here are the versions of Bash you have available, in the order in which they appear in your PATH:"
+	for bash in "${bashes[@]}"; do
+	    echo "${bash} is:"
+	    # Indent the bash version by a few spaces for prettiness
+	    ${bash} --version 2>&1 | sed -e 's/^/   /' 
+	done
+    fi
+    show_mesg "In the mean time, this program will do the best it can.  You can shut up this warning message by invoking $ME with the -quiet command-line flag or by setting the environment variable RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION." 
+}
+
+function check_bash_version() {
+    # If we've already performed this check, do not do it again; too many error
+    # messages!
+    [[ ${RVM_CHECKED_BASH_VERSION-} ]] && return;
+    [[ ${RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION+is_set} ]] && return;
+
+    export RVM_CHECKED_BASH_VERSION=1
+
+    local -r recommend_bash="We recommend Bash 2.05a or later"
+
+    # First, look for Bash version 2.05 (or earlier).
+    if [[ ! $BASH_VERSINFO ]]; then
+	show_mesg "You are using a very old version of Bash, one that even lacks the BASH_VERSINFO variable.  Expect trouble.  ${recommend_bash}."
+	show_your_bad_bash_version;
+	return 0;
+    fi >&2
+
+    local -r tmpfile=/tmp/bash-vers.$$
+    
+    check_BASH_VERSINFO "${BASH_VERSINFO[@]}" > ${tmpfile}
+    local -i retcode=$?
+    local -r msg="$(< $tmpfile)"
+    rm -f $tmpfile
+
+    if (( retcode > 0 )); then
+	show_mesg "${msg}  ${recommend_bash}."
+    fi
+    if (( retcode == 2 )); then
+	show_mesg "Trouble may be on the way; I will not be able to do any sanity checking for a known good Bash version.  Please report this complete error message to the Jikes RVM project."
+	echo "  BASH_VERSINFO=(${BASH_VERSINFO[*]})"
+	echo "  BASH_VERSION='${BASH_VERSION}'"  
+    fi >&2
+    if (( retcode > 0 )); then
+	show_your_bad_bash_version >&2
+    fi
+}
+
+
+# Returns 2 if the Bash version is not parseable.
+# Return 1 (failure status) if we're running under a bad Bash version.
+# Return 0 if we're running under an OK Bash version.
+#
+# Passes this up to the caller so that the caller can print additional
+#  diagnostic messages and make suggestions.  
+
+# Error messages to stdout; the caller pastes them into a whole.
+
+function check_BASH_VERSINFO () {
+    if (( $# != 6 )); then
+	echo "You are using a version of Bash that does not have six components in the BASH_VERSINFO array variable.  This is not at all what this program expects."
+	return 2;
+    fi
+    
+    if (( $1 < 2 )); then
+	echo "You are using a very old version of Bash, from before version 2.00 came out.  Expect trouble."
+	return 1;
+    fi
+
+    if (( $1 > 2 )); then
+	# This is Bash 3.x or newer.  We'll assume there will be no problems.
+	return 0;
+    fi
+
+    ## Now known to be Bash version 2.
+
+    if [[ $2 == *" "* ]]; then
+#	insane_version_number
+#	return 1;
+	echo "The Bash minor version number contains spaces.  I do not understand Bash version numbers containing spaces."
+	return 2;
+    fi
+
+    ## Get the numbers and letters of the minor version.  We expect 
+    ## that this will have a form like:
+    ## "05" or "05a" or "05b".  We have already checked against the
+    ## minor version number containing spaces.
+    local minor_numbers=$(echo $2 | sed -e 's/[^0-9]//g')
+    local minor_letters=$(echo $2 | sed -e 's/[^a-z]//g')
+
+#    echo >&2 "DEBUG: minor_numbers='$minor_numbers', minor_letters='$minor_letters'"
+
+    if [[ $2 != "${minor_numbers}${minor_letters}" ]]; then
+# insane_version_number
+# return 1
+	echo "The Bash minor version number is '$2', which is in a format that this program does not understand."
+	return 2;
+    fi
+
+    if (( $minor_numbers < 5 )); then
+	echo "You are using an old version of Bash, from before version 2.05 came out."
+	return 1;
+    fi
+
+    if [[ $2 = 05 ]]; then
+	echo "You are using Bash 2.05, which goes into an infinite loop approximately one out of every five times we use it to run 'jconfigure'."
+	return 1
+    fi
+
+    return 0
+}
 
 
 ## END libjconfigure.bash
