@@ -16,6 +16,11 @@ work.  NOTE: porting of the optimizing compiler has not yet begun
 (contributions/collaborations welcome) and therefore no configuration
 with the optimizing compiler will work in 64 bit mode.
 
+** The default GC plan for the prototype, prototype-opt, development, 
+and production configurations has been changed from CopyMS to GenMS. 
+GenMS is a generational collector with an Appel-style nursery and a 
+mark-sweep mature space.
+
 **Source Code editing support
 There are now VIM and Emacs style files supporting the Jikes RVM coding
 style for C, Java, and C++.  See rvm/etc/README.  (This should have
