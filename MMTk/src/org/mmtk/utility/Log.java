@@ -33,18 +33,22 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * characters in the write buffer for the caller's message.  This
-   * does not inlcude characters reserved for the overflow message.
+   * does not include characters reserved for the overflow message.
+   *
+   * This needs to be large because Jikes RVM's implementation of Lock.java
+   * logs a lot of information when there is potential GC deadlock.
    */
-  private static final int MESSAGE_BUFFER_SIZE = 1000;
+  private static final int MESSAGE_BUFFER_SIZE = 3000;
 
   /** message added when the write buffer has overflown */
   private static final String OVERFLOW_MESSAGE =
-    "... WARNING: Text truncated.";
+    "... WARNING: Text truncated.\n";
 
   private static final char OVERFLOW_MESSAGE_FIRST_CHAR =
     OVERFLOW_MESSAGE.charAt(0);
 
-  /** characters in the overflow message */
+  /** characters in the overflow message, including the (optional) final
+   * newline  */ 
   private static final int OVERFLOW_SIZE = OVERFLOW_MESSAGE.length();
 
   /**
@@ -99,6 +103,10 @@ public class Log implements Constants, Uninterruptible {
   
   /** <code>true</code> if the buffer has overflown */
   private boolean overflow = false;
+  
+  /** The last character that was written by #addToBuffer(char).  This is
+      used to check whether we want to newline-terminate the text. */
+  private char overflowLastChar = '\0';
 
   /** <code>true</code> if a thread id will be prepended */
   private boolean threadIdFlag = false;
@@ -735,8 +743,10 @@ public class Log implements Constants, Uninterruptible {
   private void addToBuffer(char c) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE)
       Barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
-    else
+    else {
       overflow = true;
+      overflowLastChar = c;
+    }
   }
 
   /**
@@ -750,6 +760,9 @@ public class Log implements Constants, Uninterruptible {
                                                     MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
+        // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
+        // MMTk method that lets us peek into a string.  Anyway, it's just a
+        // convenience to get the newline right.
         Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
                                        OVERFLOW_MESSAGE_FIRST_CHAR); 
         bufferIndex--;
@@ -762,7 +775,9 @@ public class Log implements Constants, Uninterruptible {
    * flushes the buffer
    */
   private void flushBuffer() {
-    int totalMessageSize = overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE
+    int newlineAdjust = overflowLastChar == NEW_LINE_CHAR ? 0 : -1;
+    int totalMessageSize = 
+      overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust
       : bufferIndex;
     if (threadIdFlag)
       Strings.writeThreadId(buffer, totalMessageSize);
@@ -770,6 +785,7 @@ public class Log implements Constants, Uninterruptible {
       Strings.write(buffer, totalMessageSize);
     threadIdFlag = false;
     overflow = false;
+    overflowLastChar = '\0';
     bufferIndex = 0;
   }
 

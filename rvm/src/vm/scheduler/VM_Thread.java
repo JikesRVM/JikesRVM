@@ -1354,9 +1354,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * @param verbosity Ignored.
    */
   public void dump(int verbosity) {
-    char[] buf = dumpBuffer;
+    char[] buf = grabDumpBuffer();
     int offset = dump(buf, 0);
     VM.sysWrite(buf, offset);
+    releaseDumpBuffer();
   }
 
   /** Dump this thread's info via the MMTk Log class.
@@ -1366,13 +1367,11 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    *  allocation. 
    */
   public void dumpToLog() {
-    char[] buf = dumpBuffer;
+    char[] buf = grabDumpBuffer();
     int offset = dump(buf, 0);
     Log.write(buf, offset);
+    releaseDumpBuffer();
   }
-
-  /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
-  private char[] dumpBuffer = new char[MAX_DUMP_LEN];
 
   /** Dump this thread's info, for debugging.  
    *  Copy the info about it into a destination char
@@ -1429,6 +1428,38 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    */
   final static public int MAX_DUMP_LEN = 
     10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
+
+  /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
+  private static char[] dumpBuffer = new char[MAX_DUMP_LEN];
+
+  private static int dumpBufferLock = 0;
+  /** Reset at boot time. */
+  private static int dumpBufferLockOffset = -1;
+
+  private static char[] grabDumpBuffer() {
+    if (dumpBufferLockOffset != -1) {
+      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), 
+                                            dumpBufferLockOffset, 1)) 
+        ;
+    }
+    return dumpBuffer;
+  }
+
+  private static void releaseDumpBuffer() {
+    if (dumpBufferLockOffset != -1) {
+      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), 
+                                       dumpBufferLockOffset, 0);  
+    }
+  }
+
+  /** Called during the boot sequence, any time before we go multi-threaded.
+      We do this so that we can leave the lockOffsets set to -1 until the VM 
+      actually needs the locking (and is running multi-threaded).
+      */
+  public static void boot() {
+    dumpBufferLockOffset = VM_Entrypoints.dumpBufferLockField.getOffset();
+    intBufferLockOffset = VM_Entrypoints.intBufferLockField.getOffset();
+  }
 
   /** Copy a String into a character array.
    *
@@ -1539,8 +1570,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     boolean negative = l < 0;
     int nextDigit;
     char nextChar;
-    int index = TEMP_BUFFER_SIZE - 1;
-    char [] intBuffer = getIntBuffer();
+    int index = INT_BUFFER_SIZE - 1;
+    char [] intBuffer = grabIntBuffer();
     
     nextDigit = (int)(l % 10);
     nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
@@ -1563,13 +1594,17 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     if (negative)
       Barriers.setArrayNoBarrier(intBuffer, index--, '-');
     
-    return sprintf(dest, offset, intBuffer, index+1, TEMP_BUFFER_SIZE);
+    int newOffset = 
+      sprintf(dest, offset, intBuffer, index+1, INT_BUFFER_SIZE);
+    releaseIntBuffer();
+    return newOffset;
   }
   
   /**
    * map of hexadecimal digit values to their character representations
    *
-   * XXX We currently only use '0' through '9'
+   * XXX We currently only use '0' through '9'.  The rest are here pending
+   * possibly merging this code with the similar code in Log.java.
    */
   private static final char [] hexDigitCharacter =
   { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
@@ -1583,24 +1618,36 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * extra character may be required for a minus sign (-).  So the
    * maximum number of characters is 20.
    */
-  private static final int TEMP_BUFFER_SIZE = 20;
+  private static final int INT_BUFFER_SIZE = 20;
 
   /** buffer for building string representations of longs */
-  private char [] tempBuffer = new char[TEMP_BUFFER_SIZE];
+  private static char [] intBuffer = new char[INT_BUFFER_SIZE];
+
+  private static int intBufferLock = 0;
+  /** Reset at boot time. */
+  private static int intBufferLockOffset = -1;
 
   /**
-   * gets the buffer for building string representations of integers.
-   * There is one of these buffers for each VM_Thread.
+   * gets exclusive access to the buffer for building string representations
+   * of integers. 
    */
-  private static char [] getIntBuffer() {
-    return getCurrentThread().getTempBuffer();
+  private static char [] grabIntBuffer() {
+    if (intBufferLockOffset != -1) {
+      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), 
+                                            intBufferLockOffset, 1)) 
+        ;
+    }
+    return intBuffer;
   }
 
   /**
-   * gets the buffer for building string representations of integers.
+   * Release the buffer for building string representations of integers.
    */
-  private char [] getTempBuffer() {
-    return tempBuffer;
+  private static void releaseIntBuffer() {
+    if (intBufferLockOffset != -1) {
+      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), 
+                                       intBufferLockOffset, 0);  
+    }
   }
 
   /** Dump info for all threads.  Each thread's info is newline-terminated.

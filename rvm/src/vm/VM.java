@@ -124,6 +124,11 @@ public class VM extends VM_Properties
         VM_SysCall.sysPthreadSelf();
     }
 
+    // Set up buffer locks used by VM_Thread for logging and status dumping.
+    //    This can happen at any point before we start running
+    //    multi-threaded.  
+    VM_Thread.boot();
+
     // Initialize memory manager's virtual processor local state.
     // This must happen before any putfield or arraystore of object refs
     // because the buffer is accessed by compiler-generated write barrier code.
