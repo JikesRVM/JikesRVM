@@ -302,7 +302,7 @@ public class VM_FileSystem {
     // looks like the fd is ready.
 
     boolean hasTimeout = (totalWaitTime >= 0.0);
-    double lastWaitTime = hasTimeout ? VM_Time.now() : 0.0;
+    double lastWaitTime = hasTimeout ? now() : 0.0;
 
     if (!blockingReadHack(fd))
       return -2;
@@ -350,7 +350,7 @@ public class VM_FileSystem {
 	  // Fd appears to be ready, so update the wait time (if necessary)
 	  // and try the read again.
 	  if (hasTimeout) {
-	    double now = VM_Time.now();
+	    double now = now();
 	    totalWaitTime -= (now - lastWaitTime);
 	    if (totalWaitTime < 0.0)
 	      throw new VM_TimeoutException("read timed out");
@@ -363,6 +363,12 @@ public class VM_FileSystem {
 	// Read returned an error
 	return -2;
     }
+  }
+
+  // TODO: Think about getting rid of this function and switching
+  //       this whole layer over to cycles instead.
+  private static double now() {
+    return ((double)VM_Time.currentTimeMicros())/100000;
   }
 
   /**

@@ -141,7 +141,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       : VM_ThreadEventConstants.WAIT_INFINITE;
 
     int connectionFd;
-    double waitStartTime = hasTimeout ? VM_Time.now() : 0.0;
+    double waitStartTime = hasTimeout ? now() : 0.0;
 
     // Main loop; keep trying to accept a connection until we succeed,
     // the timeout (if any) is reached, or an error occurs.
@@ -175,7 +175,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 	// Update timeout, and make sure it hasn't become negative
 	// (which the IO queue treats as infinite).
 	if (hasTimeout) {
-	  double nextWaitStartTime = VM_Time.now();
+	  double nextWaitStartTime = now();
 	  totalWaitTime -= (nextWaitStartTime - waitStartTime);
 	  if (totalWaitTime < 0.0)
 	    throw new SocketTimeoutException("socket operation timed out");
@@ -206,6 +206,12 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 
     // put accepted connection into given SocketImpl.
     newSocket.native_fd = connectionFd;
+  }
+
+  // TODO: Think about getting rid of this function and switching
+  //       this whole layer over to cycles instead.
+  private static double now() {
+    return ((double)VM_Time.currentTimeMicros())/100000;
   }
 
   /**

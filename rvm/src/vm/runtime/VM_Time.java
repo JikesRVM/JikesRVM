@@ -8,8 +8,8 @@ package com.ibm.JikesRVM;
  * Primitives from which to build interval and absolute timers.
  * 
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
- * @modified Dave Grove
  */
 public class VM_Time implements VM_Uninterruptible {
 
@@ -105,15 +105,6 @@ public class VM_Time implements VM_Uninterruptible {
   }
 
   /**
-   * Time in seconds (epoch Jan 1 1970), to nanosecond resolution.
-   */
-  public static double now() {
-    long currentTime = VM_SysCall.sysGetTimeOfDay();
-    double time = ((double) currentTime) / 1000000D;
-    return time;
-  }
-
-  /**
    * Time in microseconds (epoch Jan 1 1970).
    */ 
   public static long currentTimeMicros() {
@@ -132,25 +123,5 @@ public class VM_Time implements VM_Uninterruptible {
    */ 
   public static long currentTimeSecs() {
     return currentTimeMicros() / 1000000;
-  }
-
-  /**
-   * Scale a double (presumably representing the deltas/sums of VM.now values)
-   * by a 1000000 and convert to an int so it can be safely printed 
-   * with VM.sysWrite
-   * even when GC and/or dynamic class loading is disabled
-   */
-  public static int toMicroSecs(double time) {
-    return (int)(time*1000000.0);
-  }
-
-  /**
-   * Scale a double (presumably representing the deltas/sums of VM.now values)
-   * by a 1000 and convert to an int so it can be safely printed with 
-   * VM.sysWrite
-   * even when GC and/or dynamic class loading is disabled
-   */
-  public static int toMilliSecs(double time) {
-    return (int)(time*1000.0);
   }
 }
