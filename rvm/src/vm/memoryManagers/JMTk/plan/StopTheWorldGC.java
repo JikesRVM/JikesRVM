@@ -171,30 +171,36 @@ public abstract class StopTheWorldGC extends BasePlan
     processAllWork(); 
     if (designated) Statistics.scanTime.stop();
 
-    if (designated) ReferenceProcessor.moveSoftReferencesToReadyList();
-    if (designated) ReferenceProcessor.moveWeakReferencesToReadyList();
+    if (!Options.noReferenceTypes) {
+      if (designated) Statistics.refTypeTime.start();
+      if (designated) ReferenceProcessor.moveSoftReferencesToReadyList();
+      if (designated) ReferenceProcessor.moveWeakReferencesToReadyList();
+      if (designated) Statistics.refTypeTime.stop();
+    }
  
     if (Options.noFinalizer) {
-
-	    if (designated) Finalizer.kill();
-    }
-    
-    else {
-    if (designated) Statistics.finalizeTime.start();
-    if (designated) Finalizer.moveToFinalizable(); 
-    VM_CollectorThread.gcBarrier.rendezvous();
-    if (designated) Statistics.finalizeTime.stop();
-
-    if (designated) ReferenceProcessor.movePhantomReferencesToReadyList();
-
-    if (designated) Statistics.scanTime.start();
-    processAllWork();
-    if (designated) Statistics.scanTime.stop();
+      if (designated) Finalizer.kill();
+    } else {
+      if (designated) Statistics.finalizeTime.start();
+      if (designated) Finalizer.moveToFinalizable(); 
+      VM_CollectorThread.gcBarrier.rendezvous();
+      if (designated) Statistics.finalizeTime.stop();
+      
+      if (!Options.noReferenceTypes) {
+	if (designated) Statistics.refTypeTime.start();
+	if (designated) ReferenceProcessor.movePhantomReferencesToReadyList();
+	if (designated) Statistics.refTypeTime.stop();
+      }
+      
+      if (designated) Statistics.scanTime.start();
+      processAllWork();
+      if (designated) Statistics.scanTime.stop();
     }
 
     if (designated) Statistics.finishTime.start();
     release();
     if (designated) Statistics.finishTime.stop();
+    if (designated) printStats();
   }
 
   /**
@@ -313,29 +319,6 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseGlobalRelease() {
     globalRelease();
     gcInProgress = false;    // GC is in progress until after release!
-    gcStopTime = VM_Interface.now();
-    if ((verbose == 1) || (verbose == 2)) {
-      VM_Interface.sysWrite("-> ");
-      VM_Interface.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10," KB   ");
-      if (verbose == 1)
-	VM_Interface.sysWriteln(1000 * (gcStopTime - gcStartTime)," ms]");
-      else
-	VM_Interface.sysWriteln("End ",1000 * (gcStopTime - bootTime)," ms]");
-    }
-    if (verbose > 2) {
-      VM_Interface.sysWrite("   After Collection: ");
-      MemoryResource.showUsage(MB);
-      if (verbose >= 4) {
-	  VM_Interface.sysWrite("                     ");
-	  MemoryResource.showUsage(PAGES);
-      }
-      VM_Interface.sysWrite("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
-      VM_Interface.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
-      VM_Interface.sysWriteln();
-      VM_Interface.sysWrite("    Collection time: ");
-      VM_Interface.sysWrite(gcStopTime - gcStartTime,3);
-      VM_Interface.sysWriteln(" seconds");
-    }
     valuePool.reset();
     locationPool.reset();
     rootLocationPool.reset();
@@ -402,4 +385,58 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected void flushRememberedSets() {}
 
+  /**
+   * Print out plan-specific timing info
+   */
+  protected void printPlanTimes() {}
+
+  /**
+   * Print out statistics for last GC
+   */
+  private final void printStats() {
+    gcStopTime = VM_Interface.now();
+    if ((verbose == 1) || (verbose == 2)) {
+      VM_Interface.sysWrite("-> ");
+      VM_Interface.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10," KB   ");
+      if (verbose == 1)
+	VM_Interface.sysWriteln(1000 * (gcStopTime - gcStartTime)," ms]");
+      else
+	VM_Interface.sysWriteln("End ",1000 * (gcStopTime - bootTime)," ms]");
+    }
+    if (verbose > 2) {
+      VM_Interface.sysWrite("   After Collection: ");
+      MemoryResource.showUsage(MB);
+      if (verbose >= 4) {
+	  VM_Interface.sysWrite("                     ");
+	  MemoryResource.showUsage(PAGES);
+      }
+      VM_Interface.sysWrite("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      VM_Interface.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
+      VM_Interface.sysWriteln();
+      VM_Interface.sysWrite("    Collection time: ");
+      VM_Interface.sysWrite(gcStopTime - gcStartTime,3);
+      VM_Interface.sysWriteln(" seconds");
+    }
+    if (Options.verboseTiming) {
+      VM_Interface.sysWrite("<");
+      VM_Interface.sysWrite("pre: ");
+      VM_Interface.sysWrite(Statistics.initTime.last()*1000);
+      VM_Interface.sysWrite(" root: ");
+      VM_Interface.sysWrite(Statistics.rootTime.last()*1000);
+      VM_Interface.sysWrite(" scan: ");
+      VM_Interface.sysWrite(Statistics.scanTime.last()*1000);
+      if (!Options.noReferenceTypes) {
+	VM_Interface.sysWrite(" refs: ");
+	VM_Interface.sysWrite(Statistics.refTypeTime.last()*1000);
+      }
+      if (!Options.noFinalizer) {
+	VM_Interface.sysWrite(" final: ");
+	VM_Interface.sysWrite(Statistics.finalizeTime.last()*1000);
+      }
+      printPlanTimes();
+      VM_Interface.sysWrite(" post: ");
+      VM_Interface.sysWrite(Statistics.finishTime.last()*1000);
+      VM_Interface.sysWrite(" ms>\n");
+    }
+  }
 }

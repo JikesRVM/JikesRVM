@@ -16,7 +16,8 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 interface CycleDetector {
   public final static String Id = "$Id$"; 
 
-  public void collectCycles();
+  public boolean collectCycles(boolean time);
   public void possibleCycleRoot(VM_Address object);
   public void enumeratePointer(VM_Address object);
+  public void printTimes();
 }

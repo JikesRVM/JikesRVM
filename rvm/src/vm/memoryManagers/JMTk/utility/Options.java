@@ -33,13 +33,19 @@ public class Options implements VM_Uninterruptible, Constants {
   public static boolean genCycleDetection = false;
   public static boolean fragmentationStats = false;
   public static boolean verboseFragmentationStats = false;
+  public static boolean verboseTiming = false;
 
-  static boolean noFinalizer = false;
+  public static boolean noFinalizer = false;
+  public static boolean noReferenceTypes = false;
 
   public static void process (String arg) throws VM_PragmaInterruptible {
     if (arg.startsWith("noFinalizer")) {
 	VM_Interface.sysWriteln("NO MORE FINALIZER!");
 	noFinalizer = true;
+    }
+    else if (arg.equals("noReferenceTypes")) {
+      VM_Interface.sysWriteln("NO MORE REFERENCE TYPE PROCESSING!");
+      noReferenceTypes = true;
     }
     else if (arg.equals("ignoreSystemGC")) {
       ignoreSystemGC = true;
@@ -50,6 +56,9 @@ public class Options implements VM_Uninterruptible, Constants {
     else if (arg.equals("verboseFragmentationStats")) {
       fragmentationStats = true;
       verboseFragmentationStats = true;
+    }
+    else if (arg.equals("verboseTiming")) {
+      verboseTiming = true;
     }
     else if (arg.startsWith("initial=")) {
       String tmp = arg.substring(8);

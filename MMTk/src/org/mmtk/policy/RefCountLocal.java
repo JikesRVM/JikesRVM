@@ -39,6 +39,8 @@ final class RefCountLocal extends SegregatedFreeList
   private static SharedQueue rootPool;
   private static SharedQueue tracingPool;
 
+  private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
+  private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -150,7 +152,7 @@ final class RefCountLocal extends SegregatedFreeList
   /**
    * Prepare for a collection.
    */
-  public final void prepare() { 
+  public final void prepare(boolean time) { 
     flushFreeLists();
     if (Plan.verbose > 2) processRootBufsAndCount(); else processRootBufs();
   }
@@ -158,14 +160,20 @@ final class RefCountLocal extends SegregatedFreeList
   /**
    * Finish up after a collection.
    */
-  public final void release() {
+  public final void release(boolean time) {
     flushFreeLists();
+    if (time) Statistics.rcIncTime.start();
     if (Plan.verbose > 2) processIncBufsAndCount(); else processIncBufs();
+    if (time) Statistics.rcIncTime.stop();
     VM_CollectorThread.gcBarrier.rendezvous();
-    if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
+    if (time) Statistics.rcDecTime.start();
+    processDecBufs();
+    if (time) Statistics.rcDecTime.stop();
     if (Plan.refCountCycleDetection) {
-      cycleDetector.collectCycles();
-      if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
+      if (time) Statistics.cdTime.start();
+      if (cycleDetector.collectCycles(time)) 
+	processDecBufs();
+      if (time) Statistics.cdTime.stop();
     }
     restoreFreeLists();
     
@@ -198,25 +206,20 @@ final class RefCountLocal extends SegregatedFreeList
    * Process the decrement buffers
    */
   private final void processDecBufs() {
-    VM_Address tgt;
-    decrementPhase = true;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-      decrement(tgt);
-    }
-    decrementPhase = false;
-  }
-
-  /**
-   * Process the decrement buffers and maintain statistics
-   */
-  private final void processDecBufsAndCount() {
-    VM_Address tgt;
+    VM_Address tgt = VM_Address.zero();
+    double tc = Plan.getTimeCap();
+    double remaining =  tc - VM_Interface.now();
+    double limit = tc - (remaining * (1 - DEC_TIME_FRACTION));
     decrementPhase = true;
     decCounter = 0;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-      decrement(tgt);
-      decCounter++;
-    }
+    do {
+      int count = 0;
+      while (count < DEC_COUNT_QUANTA && !(tgt = decBuffer.pop()).isZero()) {
+	decrement(tgt);
+	count++;
+      } 
+      decCounter += count;
+    } while (!tgt.isZero() && VM_Interface.now() < limit);
     decrementPhase = false;
   }
 
@@ -436,5 +439,25 @@ final class RefCountLocal extends SegregatedFreeList
       VM_Interface.sysWriteInt(purpleCounter); VM_Interface.sysWrite(" purple");
     }
     VM_Interface.sysWrite(">\n");
+  }
+
+
+  /**
+   * Print out timing info for last GC
+   */
+  public final void printTimes() {
+    VM_Interface.sysWrite(" rcpre: ");
+    VM_Interface.sysWrite(Statistics.rcPrepareTime.last()*1000);
+    VM_Interface.sysWrite(" inc: ");
+    VM_Interface.sysWrite(Statistics.rcIncTime.last()*1000);
+    VM_Interface.sysWrite(" dec: ");
+    VM_Interface.sysWrite(Statistics.rcDecTime.last()*1000);
+    if (Plan.refCountCycleDetection) {
+      VM_Interface.sysWrite(" cd: ");
+      VM_Interface.sysWrite(Statistics.cdTime.last()*1000);
+    }
+    VM_Interface.sysWrite(" rcpost: ");
+    VM_Interface.sysWrite(Statistics.rcReleaseTime.last()*1000);
+    cycleDetector.printTimes();
   }
 }

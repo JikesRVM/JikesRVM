@@ -371,7 +371,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * space allocators.
    */
   protected final void threadLocalPrepare(int count) {
-    rc.prepare();
+    rc.prepare(Options.verboseTiming && count==1);
   }
 
   /**
@@ -393,7 +393,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    rc.release();
+    rc.release(Options.verboseTiming && count==1);
     if (GATHER_WRITE_BARRIER_STATS) { 
       // This is printed independantly of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
@@ -730,6 +730,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final double getTimeCap() {
     return gcStartTime + ((double) Options.gcTimeCap)/1000;
+  }
+
+  /**
+   * Print out timing info
+   */
+  protected final void printPlanTimes() {
+    rc.printTimes();
   }
 }
 

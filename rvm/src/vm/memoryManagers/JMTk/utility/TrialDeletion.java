@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 
 import com.ibm.JikesRVM.VM_Magic;
@@ -101,6 +102,7 @@ final class TrialDeletion
   private AddressQueue cycleBufferB;
   private AddressQueue freeBuffer;
 
+  private boolean collectedCycles = false;
   private int phase = MARK_GREY;
   private int visitCount = 0;
 
@@ -143,52 +145,48 @@ final class TrialDeletion
     freeBuffer = new AddressQueue("free buffer", freePool);
   }
 
-  public final void collectCycles() {
+  public final boolean collectCycles(boolean time) {
+    collectedCycles = false;
     double filterStart = VM_Interface.now();
     filterPurpleBufs();
     processFreeBufs();
-    if (collectCycles(false)) {
+    if (shouldCollectCycles(false)) {
       double cycleStart = VM_Interface.now();
       double filterTime = cycleStart - filterStart;
       double filterLimit = ((double)Options.gcTimeCap)/FILTER_TIME_FACTOR;
       if ((cycleStart < Plan.getTimeCap()) || (filterTime > filterLimit)) {
+	collectedCycles = true;
 	double remaining = Plan.getTimeCap() - cycleStart;
 	double start = 0;
 	if (Plan.verbose > 0) { 
 	  start = cycleStart; VM_Interface.sysWrite("(CD "); 
 	}
+	if (time) Statistics.cdGreyTime.start();
 	doMarkGreyPhase(cycleStart + (remaining/2), (purpleBufferAisOpen) ? purpleBufferA : purpleBufferB); // grey phase => 1/2 of remaining
-
-	if (collectCycles(true)) {
+	if (shouldCollectCycles(true)) {
 	  remaining = Plan.getTimeCap() - cycleStart;
-// 	  if (Plan.verbose > 0) {
-// 	    if (Plan.getPagesAvail() < Options.cycleDetectionPages)
-// 	      VM_Interface.sysWrite("P");
-// 	    if (Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages)
-// 	      VM_Interface.sysWrite("C");
-// 	    if (Plan.getMetaDataPagesUsed() > (0.8 * Options.metaDataPages))
-// 	      VM_Interface.sysWrite("M");
-// 	    VM_Interface.sysWrite("* ");
-// 	  }
 	  doMarkGreyPhase(cycleStart + (remaining/2), (maturePurpleBufferAisOpen) ? maturePurpleBufferA : maturePurpleBufferB); // grey phase => 1/2 of remaining
 	}
-	if (Plan.verbose > 0) start = timePhase(start, "G");
+	if (time) Statistics.cdGreyTime.stop();
+	if (time) Statistics.cdScanTime.start();
 	doScanPhase();
-	if (Plan.verbose > 0) start = timePhase(start, "S");
+	if (time) Statistics.cdScanTime.stop();
+	if (time) Statistics.cdCollectTime.start();
 	doCollectPhase();
-	if (Plan.verbose > 0) start = timePhase(start, "C");
+	if (time) Statistics.cdCollectTime.stop();
+	if (time) Statistics.cdFreeTime.start();
 	processFreeBufs();
-	if (Plan.verbose > 0) start = timePhase(start, "F");
+	if (time) Statistics.cdFreeTime.stop();
 	if (Plan.verbose > 0) {
-	  VM_Interface.sysWrite("= ");
 	  VM_Interface.sysWrite((VM_Interface.now() - cycleStart)*1000);
 	  VM_Interface.sysWrite(" ms)");
 	}
       }
     }
+    return collectedCycles;
   }
 
-  private final boolean collectCycles(boolean fullHeap) {
+  private final boolean shouldCollectCycles(boolean fullHeap) {
     boolean major, minor;
     major = ((Plan.getPagesAvail() < Options.cycleDetectionPages) ||
 	     (Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages) ||
@@ -429,5 +427,17 @@ final class TrialDeletion
   }
   public int getVisitCount() throws VM_PragmaInline {
     return visitCount;
+  }
+  public final void printTimes() {
+    if (collectedCycles) {
+      VM_Interface.sysWrite(" grey: ");
+      VM_Interface.sysWrite(Statistics.cdGreyTime.last()*1000);
+      VM_Interface.sysWrite(" scan: ");
+      VM_Interface.sysWrite(Statistics.cdScanTime.last()*1000);
+      VM_Interface.sysWrite(" coll: ");
+      VM_Interface.sysWrite(Statistics.cdCollectTime.last()*1000);
+      VM_Interface.sysWrite(" free: ");
+      VM_Interface.sysWrite(Statistics.cdFreeTime.last()*1000);
+    }
   }
 }
