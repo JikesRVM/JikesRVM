@@ -10,10 +10,14 @@ Highlights of this release include:
    pragma mechanism, contributed by Chapman Flack.  The 
    system now relies on this mechanism for method-level 
    pragmas for uninterruptibility and inlining directives.
+ - Restructuring of baseline compiler to increase the 
+   amount of platform-independent shared code.
  - Stricter enforcement of uninterruptibility rules.
  - Improvements to SSA optimization package to reduce 
    register pressure.  These changes make O2 profitable
    for use by the adaptive system on IA32.
+ - The VM_CompilerInfo classes were folded into the 
+   VM_CompiledMethod classes. 
 
 NOTE: VM_Magic.pragmaInline and VM_Magic.pragmaNoInline 
 are deprecated, and will not be supported in the 2.1.2 
