@@ -102,6 +102,19 @@ fi
 # stuff checked out into this dir
 cd classpath
 
+# set up the directory for building if needed
+if [[ ! -e $DEST_DIR/classpath/configure ]]; then
+    echo "Setting up source tree"
+    if [[ `uname -m` = i686 ]]; then
+      aclocal
+    else
+      aclocal -I $RVM_ROOT/rvm/config/m4
+    fi
+    autoheader
+    automake
+    autoconf
+fi
+
 # configure and build library
 system_type=$($DEST_DIR/classpath/config.guess)
 if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
