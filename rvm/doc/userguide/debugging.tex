@@ -10,7 +10,8 @@ usefulness.
 
 
 The future plan for debugging Jikes RVM consists of two main pieces of
-work. 
+work:
+
 \begin{itemize}
 \item Implement {\bf JDWP} support in Jikes RVM. If Jikes RVM
 implemented the standard Java debugging wire protocol (JDWP), then a
@@ -19,10 +20,12 @@ would support most debugging tasks, but would obviously not work if
 Jikes RVM itself was crashing or corrupted.
 
 \item Low level debugging of Jikes RVM itself would be performed using
-{\bf gdb}.  Work could be done to either or both of gdb and Jikes RVM
-to make this more pleasant.  For example, Jikes RVM could be extended to
-generate basic {\tt stabs} information for the bootimage.
+the GNU {\bf gdb} debugger.  Work could be done to either or both of
+{\tt gdb} and Jikes RVM to make this more pleasant.  For example,
+Jikes RVM could be extended to generate basic {\tt stabs} information
+for the boot image.
 \end{itemize}
+
 Contributions from the community along either of these fronts would be
 greatly appreciated.  Some prototyping of JDWP support for Jikes RVM
 was done at IBM during the summer of 2002; we can make this code

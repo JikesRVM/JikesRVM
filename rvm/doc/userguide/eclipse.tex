@@ -19,18 +19,22 @@ fragmentation and implementation-specific resource limits.
 \item Under Linux, use the Eclipse builds for the GTK windowing
 toolkit.  There are Linux builds for the Motif toolkit, but we never
 test these and work on Eclipse seems to focus on the GTK version.
+
 \item We strongly recommend Eclipse 2.1.1, currently the latest release
 from \xlink{{\tt \eclipseURL}}{\eclipseURL}; this is what we use and
 test at Watson.  We have also successfully run Eclipse 2.1.0; Eclipse 2.0.x releases may also work.  Do not try to
 use Eclipse 1.x versions.
+
 \item The Eclipse debugging support for Java programs --- which relies
 on talking JDWP to the VM --- will not work because
 Jikes RVM has yet to implement this protocol.  (It's on our TODO list, though.)
+
 \item Running Eclipse requires that you build Jikes RVM with
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0. The
 select-interception mechanism (which is required to run Eclipse on
 Jikes RVM) currently does not work if this variable is set to 1 (see
 defect \# 3583).
+
 \item As of this writing (August 11, 2003), 
 Jikes RVM defect \# 2046 is still outstanding:
 Jikes RVM's {\tt VM\_IdleThread} chews up CPU time when waiting for
@@ -38,6 +42,7 @@ something to happen.  This idle thread ends up competing for CPU time
 with any activities you're engaged in outside of the Jikes RVM process
 running Eclipse.  In other words, your web browser will slow down,
 etc.  We plan to have this fixed soon.
+
 \end{itemize}
 
 Given these caveats, Eclipse has been running on Jikes RVM at
@@ -74,7 +79,7 @@ support for Eclipse to use Jikes RVM
 
 \index{rvmeclipse}
  Once you have done this, you will be able to run Eclipse on Jikes RVM
-using the {\tt RVM\_ROOT/rvm/bin/rvmeclipse} command.  This wrapper
+using the {\tt \$RVM\_ROOT/rvm/bin/rvmeclipse} command.  This wrapper
 calls the normal Eclipse command, instructing it to use Jikes RVM to
 run Eclipse.  Set RVM\_ROOT and RVM\_BUILD before you
 invoke {\tt rvmeclipse}.

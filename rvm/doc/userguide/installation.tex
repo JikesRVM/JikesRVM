@@ -15,6 +15,9 @@ to run Jikes RVM.  The following instructions describe how to install
 and build Jikes RVM for this platform:
 \begin{enumerate}
 
+\index{Blackdown Java Virtual Machine}
+\index{Java Virtual Machine (JVM)}
+\index{JVM (Java Virtual Machine)}
 \item Download and install a Java Virtual Machine if you have not
 already done so.  We currently recommend the Blackdown VM v1.4.1. 
 For versions of Jikes RVM prior to 2.2.2, we recommend
@@ -22,30 +25,37 @@ the Blackdown VM, v1.3.1.  You can download these VMs from
 from \xlink{{\tt \BlackdownURL}} {\BlackdownURL}. 
 It is possible to use other 1.3 or 1.4 JVMs to build Jikes RVM,
 however building Jikes RVM is a good way to find bugs in a JVM.
+{\index IBM JVM on Linux}
 JVMs that are known to fail on Linux/IA32 include the IBM 1.3.1 and
 1.4.0.  People have reported some success with the IBM 1.4.1 (let us
 know if you have success/problems with IBM 1.4.1). Also, please note
 that RedHat 8.x does have a `java' command, but that does not invoke a
 JVM and will not suffice for building Jikes RVM.
 
+\index{Jikes compiler}
 \item Download and install the Jikes (Java source to bytecode)
 compiler, if you have not already 
 done so (it is not included in standard RedHat installs).  You can
 obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL}.
-Use the pre-built rpm file for jikes-1.18 or higher.   (jikes-1.15 in
+Use the pre-built rpm file for {\tt jikes-1.18} or higher.   
+
+{\tt jikes-1.15} in
 particular --- installed by default with SuSE Linux 8.1 --- has a
 byte-code generation bug that will cause Jikes RVM to crash with an
-{\tt ArrayIndexOutOfBounds} exception.  jikes-1.13, as of the last
-time we tried it (August 8, 2003) also works.)
+{\tt ArrayIndexOutOfBounds} exception.  {\tt jikes-1.13}, as of the last
+time we tried it (August 8, 2003) works fine.
 
 \item Download Jikes RVM from developerWorks and unpack it.  We shall
-hereinafter call the location of the RVM distribution RVM\_ROOT/rvm.
+hereinafter call the location of the RVM distribution {\tt \$RVM\_ROOT/rvm}.
 
+\index{GNU Classpath libraries}
+\index{classpath libraries, GNU}
 \item Download version \classpathversion\ of the GNU Classpath
 libraries from 
 \xlink{{\tt \classpathftp}}{\classpathftp}. 
 Unpack the tar file and rename the
-directory to classpath (instead of classpath-\classpathversion). Don't
+directory to {\tt classpath} (instead of {\tt
+classpath-\classpathversion}). Don't 
 configure or install the package; the Jikes RVM build process will
 handle this automatically.  Note, you can skip this step and have the
 Jikes RVM build process download classpath for you automatically,
@@ -58,14 +68,15 @@ the {\tt CLASSPATH\_ROOT} variable to be the directory that contains the
 classpath directory you just created.  
 
 \item Edit a configuration file so that it fits your machine.  One of
-the i686-pc-linux files in RVM\_ROOT/rvm/config will probably be
+the i686-pc-linux files in {\tt \$RVM\_ROOT/rvm/config} will probably be
 more-or-less right to begin with.  On Linux, most standard commands
 (and Jikes) are in /usr/bin.  Hereinafter, we will call your edited
-file RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine
+file {\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}
 
+\index{environment variables}
 \item Setup your environment with definitions required by Jikes RVM.
 There are four of these that you must use; in addition,
-RVM\_ROOT/rvm/bin should be in your path.
+{\tt \$RVM\_ROOT/rvm/bin} should be in your path.
 \begin{description}
 
 \item[RVM\_ROOT] is the location of the Jikes RVM distribution.  It
@@ -73,20 +84,20 @@ must be RVM\_ROOT as given above.
 
 \item[RVM\_HOST\_CONFIG] is the configuration file of the machine
 building Jikes RVM.  It must be
-RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine.
+{\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}.
 
 \item[RVM\_TARGET\_CONFIG] is the configuration of the machine running
-Jikes RVM.  It must be RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine.
+Jikes RVM.  It must be {\tt \$RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine}.
 
 \item[RVM\_BUILD] is the location where Jikes RVM is to be built.  It
 can be anywhere.
 \end{description}
 
-\item Setup a build directory with `jconfigure prototype', or
+\item Setup a build directory with ``{\tt jconfigure prototype}'', or
 use some other configuration if you prefer. See Section~\ref{configs}
 for information about the various configurations.
 
-\item Build Jikes RVM: go to RVM\_BUILD and type `./jbuild'
+\item Build Jikes RVM: go to RVM\_BUILD and type ``{\tt ./jbuild}''
 
 \end{enumerate}
 
@@ -115,10 +126,10 @@ have those.
 \multicolumn{3}{|c|}{\em All platforms}                     \\ \hline
 GNU make       & 3.79+    & \xlink{\tt \makeURL}{\makeURL}         \\ 
 GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\ 
-automake       & 1.6.3+   & \xlink{\tt \automakeURL}{\automakeURL} \\
-autoconf       & 2.53+    & \xlink{\tt \autoconfURL}{\autoconfURL} \\
-gcc            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
-unzip          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
+{\tt automake}       & 1.6.3+   & \xlink{\tt \automakeURL}{\automakeURL} \\
+{\tt autoconf}       & 2.53+    & \xlink{\tt \autoconfURL}{\autoconfURL} \\
+{\tt gcc}            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
+{\tt unzip}          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
 Jikes Compiler & 1.18+    & \xlink{\tt \jikesURL}{\jikesURL}       \\
 \hline
 \multicolumn{3}{|c|}{\em Linux/IA32}                      \\ \hline
@@ -138,7 +149,7 @@ GNU classpath libaries from classpath CVS. If you instead download a
 tagged pre-built GNU Classpath release as recommended, then you don't need
 these.
 \item {\tt glibc} for Linux/IA32 must use the GS register for
-thread-local state.  See the build instructions for glibc for details;
+thread-local state.  See the build instructions for {\tt glibc} for details;
 if that scares you, use a recent RedHat Linux distribution.
 \item It is possible to use 2.2 Linux kernels with multiprocessor
 support disabled in Jikes RVM.  We do not recommend this; if you
@@ -230,23 +241,25 @@ directory such as
 \end{verbatim}
 
 \index{environment variables}
-\index{RVM\_ROOT}
-\index{RVM\_BUILD}
 \index{PATH}
 \item {\bf Set up environment variables.}
 
 You need to set up the following shell environment variables:
 
 \begin{description}
+\index{RVM\_ROOT}
 \item [{\tt RVM\_ROOT}] the directory that contains the extracted
 distribution 
+\index{RVM\_BUILD}
 \item [{\tt RVM\_BUILD}] the directory where you would like the build
 process to generate an executable Jikes RVM configuration
 
+\index{RVM\_HOST\_CONFIG}
 \item [{\tt RVM\_HOST\_CONFIG}] the configuration file used to specify
 the software environment on which the system is generated; i.e., where the
 boot image is generated.
 
+\index{RVM\_TARGET\_CONFIG}
 \item [{\tt RVM\_TARGET\_CONFIG}] the configuration file used to specify
 the software environment where the system support is generated; i.e., where
 the ``booter'' and ``C runtime'' will be generated.
@@ -368,13 +381,13 @@ populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
 first choose a Jikes RVM configuration.
 
 For quick turnaround time while modifying Jikes RVM, you will usually
-want to use the baseline compiler to build the Jikes RVM bootimage.
+want to use the baseline compiler to build the Jikes RVM boot image.
 A typical configuration that builds very quickly (but performs poorly)
 is {\tt prototype}: a non-adaptive system that uses the
 baseline compiler everywhere.
 
 To obtain reasonable performance from Jikes RVM, you will need to use
-the optimizing compiler to build the bootimage.  This takes longer,
+the optimizing compiler to build the boot image.  This takes longer,
 but generates a Jikes RVM image with reasonable runtime performance.
 We recommend either the {\tt development} or {\tt production} images
 depending on whether or not you want VM assertion checking enabled. (A
@@ -437,6 +450,7 @@ affect system viability.
 
 \subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
+\index{build configurations}
 
 This section describes Jikes\trademark RVM's build configurations.
 The various build configurations are defined by files in {\tt
@@ -601,15 +615,15 @@ the rest of the build.  This can either be done transparently via a
 network file system, or by copying the build directory from the first
 host to the target.  Of course {\tt RVM\_ROOT}, {\tt RVM\_BUILD }
 and {\tt PATH} need not be explicitly set each time: they could have
-been set in your {\tt .cshrc}.
+been set in your {\tt .cshrc}, {\tt .bashrc}, or other shell startup file.
 
 More advanced users can experiment with the {\tt RVM\_BUILD\_COPY}
-environment variable.  If this is set, then the {\tt
-  jbuild.linkBooter} phase of the build process is replaced by the
+environment variable.  If this is set, then the 
+{\tt jbuild.linkBooter} phase of the build process is replaced by the
 execution of {\tt `\$RVM\_BUILD\_COPY`}.  This opens up a lot of
-possibilities, including: copying the build directory to a target
+possibilities, such as copying the build directory to a target
 machine and executing {\tt jbuild.linkBooter} remotely on the target
-via {\tt rsh} or {\tt ssh}, etc.  By setting {\tt RVM\_BUILD\_COPY}
+via {\tt rsh} or {\tt ssh}.  By setting {\tt RVM\_BUILD\_COPY}
 appropriately on the host platform, cross-platform building can become
 a stream-lined process.
 
@@ -619,7 +633,7 @@ a stream-lined process.
 
 \subsection{Building Documentation}
 
-The {\tt \RVMTarFile} file contains a postscript version of this userguide
+The {\tt \RVMTarFile} file contains a PostScript version of this userguide
 in {\tt \$RVM\_ROOT/rvm/doc}.  Additionally, the 
 \xlink{developerWorks web page}{\RVMHomeURL} keeps an online version of
 the userguide and Javadoc API, corresponding to the latest HEAD of the CVS

@@ -10,7 +10,7 @@ RVM will almost always be {\tt production}.  Unless you really know
 what you are doing, don't use any other configuration to do a
 performance evaluation of Jikes RVM. 
 
-Any bootimage you use for performance evaluation must have the
+Any boot image you use for performance evaluation must have the
 following characteristics for the results to be meaningful:
 \begin{itemize} 
 \item {\tt RVM\_WITHOUT\_ASSERTIONS=1}. Unless this is set, the runtime
@@ -19,16 +19,16 @@ checking. This introduces significant runtime overhead. By convention,
 a configuration with the {\tt Fast} prefix disables assertion
 checking.
 \item {\tt RVM\_WITH\_OPT\_BOOTIMAGE\_COMPILER=1}. Unless this is set, the
-bootimage will be compiled with the baseline compiler and virtual
+boot image will be compiled with the baseline compiler and virtual
 machine performance will be abysmal.  Jikes RVM has been designed
 under the assumption that aggressive inlining and optimization will be
 applied to the VM source code. 
 \item Any configuration that performs opt compilation at runtime (
 {\tt RVM\_WITH\_ADAPTIVE\_SYSTEM=1} should be built with {\tt
 RVM\_WITH\_ALL\_CLASSES=1}.  This includes the optimizing compiler and
-associated support classes in the bootimage where they can be
-optimized by the bootimage compiler. By convention, configurations
-that include the opt compiler in the bootimage have the {\tt Full} or
+associated support classes in the boot image where they can be
+optimized by the boot image compiler. By convention, configurations
+that include the opt compiler in the boot image have the {\tt Full} or
 {\tt Fast} prefix.  Configurations where {\tt RVM\_WITH\_ALL\_CLASSES}
 is not set to 1 that use the optimizing compiler will dynamically load
 it (which will force it to be baseline compiled).

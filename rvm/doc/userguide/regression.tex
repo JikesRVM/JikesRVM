@@ -212,7 +212,7 @@ must be one that is understood by jconfigure.  With the {\tt
 -test-list} options, you can provide a filename that the set of tests
 to run.  Similar to the configuration list file, this file is plain
 text, and has one test name per line.  Both types of file should be
-placed in the \$RVM\_ROOT/rvm/regression/config directory; when placed
+placed in the {\tt \$RVM\_ROOT/rvm/regression/config} directory; when placed
 there, you can refer to them with an unqualified file name on the
 RunSanityTests command line.  You can use files from other places as
 control files, but those require an absolute path (i.e. one beginning
@@ -239,10 +239,10 @@ sections will be discussed below.
 
 \begin{description}
 \item[Include the environment rules from the current build directory]
-This is simply the include statement given below.  It is required so
+This is simply the include statement given below. It is required so
 that subsequent portions of the makefile can find Jikes RVM itself
 and information needed from the boot image directory.  This section
-always the one line shown below.
+is always the one line shown below:
 \begin{verbatim}
 include         $(RVM_BUILD)/Make.rules.target
 \end{verbatim}
@@ -398,16 +398,16 @@ situation is a program (such as the SPECjvm98 benchmarks)
 that does not provide the ability to specify where to look for input
 files; the files simply must be in the working directory.  In that
 case, you will need rules to copy any needed input files into the
-directory WORKING, where the program is actually run.  See the SPECjvm98
+directory {\tt WORKING}, where the program is actually run.  See the SPECjvm98
 benchmark makefiles for examples of this.  Another case we have
 encountered is needing explicit dependencies telling the test harness
-that some .class files are located in a .jar file.
+that some {\tt .class} files are located in a {\tt .jar} file.
 
 \end{description}
 
 \subsubsection{Night Sanity Support}
 
- One common use of regression tests is running them periodically to
+One common use of regression tests is running them periodically to
 keep track of system state over time; the Jikes RVM test harness
 provides a {\tt{NightSanityDriver}} to simplify this process.  This
 script is a wrapper around {\tt{RunSanityTests}} that takes a
@@ -428,7 +428,7 @@ discussed below.
 {\tt{RunSanityTests}} as instructed on each line of the config file,
 appending the common options, if any.
 
-\paragraph{The {\tt{NightSanityDriver}} Config File}
+\paragraph{The {\tt{NightSanityDriver}} Configuration File}
 
  The config file for {\tt{NightSanityDriver}} specifies a series of
 invocations of {\tt{RunSanityTests}}, one per line of the file.  Each
@@ -508,15 +508,15 @@ FastAdaptiveMarkSweep            -test-list nightly-tests-short
 \end{verbatim}
 
  To make all of this run every night, it is necessary merely to put a
-NightSanityDriver invocation in a crontab; we actually use a more
-involved setup, which we distribute in the night-sanity-build and
-night-sanity-run scripts.  These are somewhat specific to what we want
+{\tt NightSanityDriver} invocation in a {\tt crontab}; we actually use a more
+involved setup, which we distribute in the {\tt night-sanity-build} and
+{\tt night-sanity-run scripts}.  These are somewhat specific to what we want
 to test, but they will hopefully make a good model.
 
 \subsection{Mauve tests}
 Mauve is an open source test suite for class libraries.  The directory 
 {\tt{\$RVM\_ROOT/rvm/regression/tests/mauve}} contains a file
-mauve-jikesrvm that contains the current KEYS used to run mauve tests
+{\tt mauve-jikesrvm} that contains the current KEYS used to run mauve tests
 on Jikes RVM. 
 
 \JikesTMFooter

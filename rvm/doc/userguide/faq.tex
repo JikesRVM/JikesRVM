@@ -173,12 +173,14 @@ the boot image.
 
 \subsubsection{Can I monitor progress during jbuild?}
 
-Yes.  Use {\tt jbuild -trace} to see detailed progress. 
+Yes.  Use {\tt jbuild -trace} to see detailed progress.  Use {\tt
+jbuild -help} to see a list of sub-options you can give to the {\tt
+-trace} flag.
 
 \subsubsection{How can I include my own classes in the boot image?}
 
 The {\tt jconfigure} script defines which classes go in the boot image, by
-spitting out the file {\$RVM\_BUILD/RVM.primordials}.  By default, any
+spitting out the file {\tt \$RVM\_BUILD/RVM.primordials}.  By default, any
 class with the {\tt VM\_} prefix in a defined directory set, goes in the
 boot image.
 
