@@ -89,7 +89,7 @@ public abstract class Generational extends StopTheWorldGC
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_MIN_NURSERY = (512*1024)>>LOG_PAGE_SIZE;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
+  protected static final EXTENT LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
