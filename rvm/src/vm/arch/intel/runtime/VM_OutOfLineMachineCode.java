@@ -39,25 +39,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     invokeNativeFunctionInstructions           = generateInvokeNativeFunctionInstructions();
   }
 
-  static INSTRUCTION[] getReflectiveMethodInvokerInstructions() {
-    return reflectiveMethodInvokerInstructions;
-  }
-   
-  static INSTRUCTION[] getSaveThreadStateInstructions() {
-    return saveThreadStateInstructions;
-  }
-   
-  static INSTRUCTION[] getThreadSwitchInstructions() {
-    return threadSwitchInstructions;
-  }
-   
-  static INSTRUCTION[] getRestoreHardwareExceptionStateInstructions() {
-    return restoreHardwareExceptionStateInstructions;
-  }
-
-  // there is no getInvokeNativeFunctionInstrucions since
-  // we do not wish that this code be ever inlined.
-
   //----------------//
   // implementation //
   //----------------//
@@ -121,7 +102,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *
   */
   private static INSTRUCTION[] generateReflectiveMethodInvokerInstructions() {
-
     VM_Assembler asm = new VM_Assembler(100);
 
     /* write at most 2 parameters from registers in the stack.  This is
@@ -221,7 +201,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // T0/T1 have returned value
 
     /* and get out */
-    asm.emitMOV_Reg_Reg (SP, FP);
+    // NOTE: RVM callee has popped the params, so we can simply
+    //       add back in the initial SP to FP delta to get SP to be a framepointer again!
+    asm.emitADD_Reg_Imm (SP, -STACKFRAME_BODY_OFFSET + 4); 
     asm.emitPOP_Reg     (FP);
     
     // so hardware trap handler can always find it 
