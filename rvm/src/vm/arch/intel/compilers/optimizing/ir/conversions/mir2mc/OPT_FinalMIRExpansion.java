@@ -231,6 +231,13 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
       case YIELDPOINT_BACKEDGE_opcode:
 	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromBackedgeMethod);
 	break;
+
+      case IR_ENDPROLOGUE_opcode:
+	// Remember where the end of prologue is for jdp
+	p.remove();
+	ir.MIRInfo.instAfterPrologue = next;
+	break;
+
       }
     }
     return 0;

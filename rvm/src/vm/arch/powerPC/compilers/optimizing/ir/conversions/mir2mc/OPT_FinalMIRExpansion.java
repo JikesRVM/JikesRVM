@@ -228,6 +228,16 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
             conditionalBranchCount++;
           }
           break;
+        case IR_ENDPROLOGUE_opcode:
+          {
+	    // Remember where the end of prologue is for jdp
+	    OPT_Instruction next = p.nextInstructionInCodeOrder();
+	    ir.MIRInfo.instAfterPrologue = next;
+	    p.remove();
+	    p = next.prevInstructionInCodeOrder();
+	  }
+	  break;
+
       default:
 	if (p.operator().isConditionalBranch())
 	  conditionalBranchCount++; 

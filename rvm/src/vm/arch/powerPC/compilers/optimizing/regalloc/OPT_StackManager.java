@@ -428,6 +428,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
     ptr.insertBefore(nonPEIGC(MIR_Store.create(PPC_STW, R(S1), R(FP), 
 		       I(STACKFRAME_METHOD_ID_OFFSET)))); // 9
 
+    ptr.insertBefore(MIR_Empty.create(IR_ENDPROLOGUE));
+
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TW, OPT_PowerPCTrapOperand.LESS(), R(FP), R(S0),
@@ -521,6 +523,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 			I(VM_Entrypoints.threadSwitchRequestedOffset))));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(R0), I(0)));
     }
+    ptr.insertBefore(MIR_Empty.create(IR_ENDPROLOGUE));
   }
 
   /**
@@ -956,6 +959,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       // except remove the prologue instruction and return 0.
       OPT_Instruction s = ir.firstInstructionInCodeOrder().getNext();
       if (VM.VerifyAssertions) VM.assert(s.getOpcode() == IR_PROLOGUE_opcode);
+      s.insertAfter(MIR_Empty.create(IR_ENDPROLOGUE));
       s.remove();
       return 0; 
     }

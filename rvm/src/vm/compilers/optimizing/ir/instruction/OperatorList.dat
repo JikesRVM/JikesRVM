@@ -1320,6 +1320,13 @@ immedPEI
 
 
 
+# a pseudo instruction to represent the end of the prologue
+IR_ENDPROLOGUE
+Empty
+none
+
+
+
 # handles unresolved methods, fields, and others ...
 RESOLVE
 CacheOp

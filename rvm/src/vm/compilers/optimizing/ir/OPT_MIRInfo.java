@@ -60,6 +60,8 @@ final class OPT_MIRInfo {
    * backedge.
    */
   OPT_BasicBlock backedgeYieldpointBlock = null;
+
+  OPT_Instruction instAfterPrologue;
   
   OPT_MIRInfo(OPT_IR ir) {
     info = new VM_OptCompilerInfo(ir.method);

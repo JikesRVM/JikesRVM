@@ -205,6 +205,22 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
     _method = meth;
   }
 
+  /**
+   * Get the offset for the end of the prologue
+   * 
+   */
+  final int getEndPrologueOffset() {
+    return endPrologueOffset;
+  }
+
+  /**
+   * Get the offset for the end of the prologue
+   * *param  int endPrologue
+   */
+  final void setEndPrologueOffset(int endPrologue) {
+    this.endPrologueOffset = endPrologue;
+  }
+
   //----------------//
   // implementation //
   //----------------//
@@ -224,6 +240,9 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   //-#if RVM_FOR_IA32
   private int[] patchMap;
   //-#endif
+  // Used with jdp to locate instruction after prologue
+  private int endPrologueOffset;  
+
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
@@ -254,7 +273,6 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   
   private static final int NO_INTEGER_ENTRY = (int)(INTEGER_MASK >>> INTEGER_SHIFT);
   private static final int NO_FLOAT_ENTRY   = (int)(FLOAT_MASK >>> FLOAT_SHIFT);
-  
 
   final int getUnsignedNonVolatileOffset() {
     return (int)((_bits & NONVOLATILE_MASK) >>> NONVOLATILE_SHIFT);
@@ -387,11 +405,13 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
 
   /**
    * Create the final machine code map for the compiled method.
+   * Remember the offset for the end of prologue too for jdp
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */
   public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) {
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
+    setEndPrologueOffset(ir.MIRInfo.instAfterPrologue.getmcOffset());
   }
 
   /**
