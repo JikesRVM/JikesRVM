@@ -9,7 +9,7 @@
 #
 ME="${0##*/}"
 
-trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || echo >&2 "$ME: This shell can not trap ERR.  We will go on anyway."
+trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || :
 set -e
 
 
