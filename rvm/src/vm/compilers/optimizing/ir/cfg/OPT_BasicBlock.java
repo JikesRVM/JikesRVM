@@ -1251,6 +1251,9 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 	 s != lastInstruction(); 
 	 s=s.getNext())
       newBlock.appendInstruction(s.copyWithoutLinks());
+
+    // copy other properties of the block.
+    newBlock.flags = flags;
     
     return newBlock;
   }
@@ -1385,40 +1388,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     for (OPT_InstructionEnumeration ie = enumerateBranchInstructions();
 	 ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
-      if (IfCmp.conforms(s)) {
-	if (IfCmp.getTarget(s).similar(bTarget))
-	  IfCmp.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (IfCmp2.conforms(s)) {
-	if (IfCmp2.getTarget1(s).similar(bTarget))
-	  IfCmp2.setTarget1(s,(OPT_BranchOperand)copyTarget.copy());
-	if (IfCmp2.getTarget2(s).similar(bTarget))
-	  IfCmp2.setTarget2(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (MethodIfCmp.conforms(s)) {
-	if (MethodIfCmp.getTarget(s).similar(bTarget))
-	  MethodIfCmp.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (TypeIfCmp.conforms(s)) {
-	if (TypeIfCmp.getTarget(s).similar(bTarget))
-	  TypeIfCmp.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (Goto.conforms(s)) {
-	if (Goto.getTarget(s).similar(bTarget))
-	  Goto.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (TableSwitch.conforms(s)) {
-	if (TableSwitch.getDefault(s).similar(bTarget))
-	  TableSwitch.setDefault(s, (OPT_BranchOperand)copyTarget.copy());
-	for(int i = 0; i < TableSwitch.getNumberOfTargets(s); i++)
-	  if (TableSwitch.getTarget(s, i).similar(bTarget))
-	    TableSwitch.setTarget(s,i,(OPT_BranchOperand)copyTarget.copy());
-      } else if (LowTableSwitch.conforms(s)) {
-	for(int i = 0; i < LowTableSwitch.getNumberOfTargets(s); i++)
-	  if (LowTableSwitch.getTarget(s, i).similar(bTarget))
-	    LowTableSwitch.setTarget(s,i,(OPT_BranchOperand)copyTarget.copy());
-      } else if (LookupSwitch.conforms(s)) {
-	if (LookupSwitch.getDefault(s).similar(bTarget))
-	  LookupSwitch.setDefault(s, (OPT_BranchOperand)copyTarget.copy());
-	for(int i = 0; i < LookupSwitch.getNumberOfTargets(s); i++)
-	  if (LookupSwitch.getTarget(s, i).similar(bTarget))
-	    LookupSwitch.setTarget(s, i, (OPT_BranchOperand)copyTarget.copy());
-      }
+      s.replaceSimilarOperands(bTarget, copyTarget);
     }
 
     // 2. if this falls through to b, make it jump to bCopy
