@@ -60,7 +60,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    VM.sysFail("Out of Memory - inconsistent with memory resource or vm range too small?");
+    VM.sysFail("Out of Memory after multiple retries");
     return VM_Address.zero();
   }
 
