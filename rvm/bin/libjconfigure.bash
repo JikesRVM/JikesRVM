@@ -108,19 +108,24 @@ function copyIfNewer () {
 	$CLEANUP
 	run cp -f "$SRC" "$DEST"
 	CLEANUP=""
-	(( $# == 0 )) || echo "$@"
+	(( $# == 0 )) || echo >&2 "$@"
     fi
 }
 
 function run() {
-    ! tracing make || echo "$@"
+    ! tracing make || echo >&2 "$@"
     "$@"
 }
 
 function chdir() {
     # Generate information useful for GNU Emacs.
-    ! tracing make || echo "$ME[0]: Entering directory \`$PWD'"
+    if tracing make; then
+	echo >&2 "$ME: Leaving directory \`$PWD'"
+    fi
     \cd "$1"
+    if tracing make; then
+	echo >&2 "$ME: Entering directory \`$PWD'"
+    fi
 }
 
 ## Error Reporting 
