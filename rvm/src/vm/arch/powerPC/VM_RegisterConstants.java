@@ -23,9 +23,9 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int JTOC_POINTER               =  2; // AIX is 2
   static final int FIRST_VOLATILE_GPR         =  3; // AIX is 3
   //                                            ...
-  static final int LAST_VOLATILE_GPR          = 12; // AIX is 10
-  static final int FIRST_SCRATCH_GPR          = 13; // AIX is 11
-  static final int LAST_SCRATCH_GPR           = 14; // AIX is 12
+  static final int LAST_VOLATILE_GPR          = 10; // AIX is 10
+  static final int FIRST_SCRATCH_GPR          = 11; // AIX is 11
+  static final int LAST_SCRATCH_GPR           = 12; // AIX is 12
   //                                           .... // some stuff we aren't using!
   static final int KLUDGE_TI_REG              = 15; // migration aid while getting rid of TI register
   static final int PROCESSOR_REGISTER         = 16;
