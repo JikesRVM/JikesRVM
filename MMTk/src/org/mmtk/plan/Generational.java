@@ -397,7 +397,7 @@ public abstract class Generational extends StopTheWorldGC
       // This is printed independently of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
       // will know---it will have a noticable performance hit...
-      VM.sysWrite("<GC ", gcCount); VM.sysWrite(" "); 
+      VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
       VM.sysWrite(wbFastPathCounter, false); VM.sysWrite(" wb-fast, ");
       VM.sysWrite(wbSlowPathCounter, false); VM.sysWrite(" wb-slow>\n");
       wbFastPathCounter = wbSlowPathCounter = 0;
