@@ -66,27 +66,31 @@ executing in native code. When a collection starts, threads in native
 code are blocked from returning to Java code for the duration of that
 collection.
 
-\subsection{Plans} \label{sssec:plans}
-\index{garbage collection}
-\index{stop-the-world garbage collection}
+\subsection{Plans}%
+        \label{sssec:plans}%
+        \index{garbage collection}%
+        \index{stop-the-world garbage collection}
 
+\IndexttClass{BasePlan}%
 All plans inherit from \xlink{\texttt{BasePlan}}{\BumpPointerURL},
 and all plans in this release are ``stop-the-world'' collectors, so
 they all inherit from
+\IndexttClass{StopTheWorldGC}%
 \xlink{\texttt{StopTheWorldGC}}{\StopTheWorldGCURL}, which implements
 basic stop the world GC functionality.  The two generational
 collectors both inherit from
+\IndexttClass{Generational}%
 \xlink{\texttt{Generational}}{\GenerationalURL}, which includes
 common nursery and write barrier implementations.
 
 All JMTk plans support parallel allocation and collection (with the
-exception of \texttt{RefCount}, which does not perform parallel
+exception of \IndexTexttt{RefCount}, which does not perform parallel
 collection).  To minimize synchronization overheads, unsynchronized
 \emph{thread-local} actions are distinguished from \emph{global}
 actions, which must only be performed by a single thread.  Global
 state is held in each plan's class variables, while instance variables
 reflect thread-local state, each \texttt{Plan} instance bound to a
-\xlink{\texttt{VM\_Processor}}{\VMProcessorURL} instance.
+\xlink{\IndexTexttt{VM\_Processor}}{\VMProcessorURL} instance.
 
 The basic functions of each plan include:
 \begin{itemize}
@@ -117,14 +121,14 @@ plans and understand the significance of the differences.
 
 The basic steps are:
 
-\index{jconfigure script}
-\index{Plan class}
+\cindex[jconfigure script]{\texttt{jconfigure} script}%
+\IndexttClass{Plan}%
 \begin{enumerate}
-\item Create a new directory within the plan subdirectory, such as
-  ``NewGC''.
+\item Create a new directory within the \texttt{plan} subdirectory, such as
+  ``\texttt{NewGC}''.
 \item Add a new configuration in \texttt{\$RVM\_ROOT/rvm/config/build}
   which includes your new directory in the build.  Name it
-  appropriately, such as ``BaseBaseNewGC''.
+  appropriately, such as ``\texttt{BaseBaseNewGC}''.
 \item Modify \texttt{\$RVM\_ROOT/rvm/bin/jconfigure} to handle the new
   collector sub-directory.
 \item Copy the contents of some existing plan directory into your new
