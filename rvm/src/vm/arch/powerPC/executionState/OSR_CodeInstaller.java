@@ -23,7 +23,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
 			 VM_CompiledMethod cm) {
 
     VM_Thread thread = state.getThread();
-    int[] stack = thread.stack;
+    byte[] stack = thread.stack;
 
     int tsfromFPOffset = state.getTSFPOffset();
     int fooFPOffset    = state.getFPOffset();

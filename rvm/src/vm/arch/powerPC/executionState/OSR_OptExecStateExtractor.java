@@ -43,7 +43,7 @@ public final class OSR_OptExecStateExtractor
    * the register save area of '<tsfrom>' method.
    */
 
-    int[] stack = thread.stack;
+    byte[] stack = thread.stack;
 
     // get registers for the caller ( real method )
     OSR_TempRegisters registers = 
@@ -153,7 +153,7 @@ public final class OSR_OptExecStateExtractor
    *
    *   GPR 3 -- 14 15 16 17 -- 31, cr, xer, ctr, FPR 0 -- 15
    */
-  private void restoreValuesFromOptSaveVolatile(int[] stack,
+  private void restoreValuesFromOptSaveVolatile(byte[] stack,
 						int osrFPoff,
 						OSR_TempRegisters registers,
 						int regmap,
@@ -241,7 +241,7 @@ public final class OSR_OptExecStateExtractor
   
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
-						  int[] stack,
+						  byte[] stack,
 						  int   ipOffset,
 						  int   fpOffset,
 						  int   cmid,
@@ -426,7 +426,7 @@ public final class OSR_OptExecStateExtractor
    */
   private static int getIntBitsFrom(int vtype,
 				    int value,
-				    int[] stack,
+				    byte[] stack,
 				    int fpOffset,
 				    OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
@@ -455,7 +455,7 @@ public final class OSR_OptExecStateExtractor
 
   private static float getFloatFrom(int vtype,
 				    int value,
-				    int[] stack,
+				    byte[] stack,
 				    int fpOffset,
 				    OSR_TempRegisters registers) {
     if (vtype == PHYREG) {
@@ -477,7 +477,7 @@ public final class OSR_OptExecStateExtractor
 
   private static double getDoubleFrom(int vtype,
 				      int value,
-				      int[] stack,
+				      byte[] stack,
 				      int fpOffset,
 				      OSR_TempRegisters registers) {
     if (vtype == PHYREG) {
@@ -494,7 +494,7 @@ public final class OSR_OptExecStateExtractor
 
   private static final Object getObjectFrom(int vtype,
 					    int value,
-					    int[] stack,
+					    byte[] stack,
 					    int fpOffset,
 					    OSR_TempRegisters registers) {
     if (vtype == ICONST) {
@@ -513,7 +513,7 @@ public final class OSR_OptExecStateExtractor
     }
   }
 
-  private static void dumpStackContent(int[] stack, int fpOffset) {
+  private static void dumpStackContent(byte[] stack, int fpOffset) {
     VM.disableGC();
     VM_Address upper = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(fpOffset));
     int upOffset = upper.diff(VM_Magic.objectAsAddress(stack)).toInt();
@@ -538,7 +538,7 @@ public final class OSR_OptExecStateExtractor
 
   /* walk on stack frame, print out methods
    */
-  private static void walkOnStack(int[] stack, int fpOffset) {
+  private static void walkOnStack(byte[] stack, int fpOffset) {
     int cmid = STACKFRAME_SENTINEL_FP.toInt();
     do {
       cmid = VM_Magic.getIntAtOffset(stack, 

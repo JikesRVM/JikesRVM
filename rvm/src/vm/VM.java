@@ -1185,7 +1185,7 @@ public class VM extends VM_Properties implements VM_Constants,
     // 1.
     //
     if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
-      VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GCDISABLED >> 2), null);
+      VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GCDISABLED, null);
     }
 
     // 2.

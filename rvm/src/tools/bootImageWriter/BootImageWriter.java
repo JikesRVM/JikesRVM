@@ -551,13 +551,13 @@ public class BootImageWriter extends BootImageWriterMessages
 
     int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
     VM_Thread startupThread = VM_Scheduler.processors[initProc].activeThread;
-    int[] startupStack = startupThread.stack;
+    byte[] startupStack = startupThread.stack;
     VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = VM_Address.fromIntZeroExtend(bootImageAddress +
 							  BootImageMap.getImageOffset(startupStack) +
-							  (startupStack.length << LOG_BYTES_IN_INT));
+							  startupStack.length);
     bootRecord.ipRegister  = VM_Address.fromIntZeroExtend(bootImageAddress +
 							  BootImageMap.getImageOffset(startupCode.getBacking()));
 
@@ -1049,11 +1049,22 @@ public class BootImageWriter extends BootImageWriterMessages
       // execution.
       //
       int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
-      VM_Thread startupThread = new VM_Thread(new int[STACK_SIZE_BOOT >> 2]);
+      VM_Thread startupThread = new VM_Thread(new byte[STACK_SIZE_BOOT]);
       VM_Scheduler.processors[initProc].activeThread = startupThread;
       // sanity check for bootstrap loader
-      startupThread.stack[(STACK_SIZE_BOOT >> 2) - 1] = 0xdeadbabe;
-
+      int idx = startupThread.stack.length - 1;
+      if (VM.LittleEndian) {
+        startupThread.stack[idx--] = (byte)0xde;
+        startupThread.stack[idx--] = (byte)0xad;
+        startupThread.stack[idx--] = (byte)0xba;
+        startupThread.stack[idx--] = (byte)0xbe;
+      } else {
+        startupThread.stack[idx--] = (byte)0xbe;
+        startupThread.stack[idx--] = (byte)0xba;
+        startupThread.stack[idx--] = (byte)0xad;
+        startupThread.stack[idx--] = (byte)0xde;
+      }        
+      
       //
       // Tell rvm where to find itself at execution time.
       // This may not be the same place it was at build time, ie. if image is

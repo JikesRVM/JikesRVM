@@ -121,7 +121,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method threadYieldMethod              = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "yield", "()V");
 
   public static final VM_Method threadStartoffMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "startoff", "()V");
-  public static final VM_Field threadStackField                = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stack", "[I");
+  public static final VM_Field threadStackField                = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stack", "[B");
   public static final VM_Field stackLimitField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stackLimit", "Lcom/ibm/JikesRVM/VM_Address;");
 
   public static final VM_Field beingDispatchedField            = getField("Lcom/ibm/JikesRVM/VM_Thread;", "beingDispatched", "Z");

@@ -926,7 +926,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   
   /**
    * Change size of currently executing thread's stack.
-   * @param newSize    new size (in words)
+   * @param newSize    new size (in bytes)
    * @param exceptionRegisters register state at which stack overflow trap 
    * was encountered (null --> normal method call, not a trap)
    * @return nothing (caller resumes execution on new stack)
@@ -936,26 +936,26 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (MM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
-    int[] newStack = MM_Interface.newStack(newSize << 2, false);
+    byte[] newStack = MM_Interface.newStack(newSize, false);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     if (traceAdjustments) {
       VM_Thread t = getCurrentThread();
       VM.sysWrite("VM_Thread: resized stack ", t.getIndex());
-      VM.sysWrite(" to ", (t.stack.length << LOG_BYTES_IN_ADDRESS)/1024);
+      VM.sysWrite(" to ", t.stack.length/1024);
       VM.sysWrite("k\n");
     }
   }
 
-  private static void transferExecutionToNewStack(int[] newStack, 
+  private static void transferExecutionToNewStack(byte[] newStack, 
                                                   VM_Registers 
                                                   exceptionRegisters) throws VM_PragmaNoInline {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 
     VM_Thread myThread = getCurrentThread();
-    int[]     myStack  = myThread.stack;
+    byte[]     myStack  = myThread.stack;
 
     // initialize new stack with live portion of stack we're 
     // currently running on
@@ -972,8 +972,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //       +-------------------+---------------+
     //        ^newStack           ^newFP          ^newTop
     //
-    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << LOG_BYTES_IN_ADDRESS);
-    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << LOG_BYTES_IN_ADDRESS);
+    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length);
+    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length);
 
     VM_Address myFP    = VM_Magic.getFramePointer();
     VM_Offset  myDepth = myTop.diff(myFP);
@@ -1084,7 +1084,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param fp    pointer to its innermost frame
    * @param delta displacement to be applied to all its interior references
    */
-  private static void adjustStack(int[] stack, VM_Address fp, VM_Offset delta) {
+  private static void adjustStack(byte[] stack, VM_Address fp, VM_Offset delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
 
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
@@ -1119,12 +1119,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    *        ^newStack           ^newFP          ^newTop
    *  </pre>
    */ 
-  private static VM_Offset copyStack (int[] newStack) {
+  private static VM_Offset copyStack (byte[] newStack) {
     VM_Thread myThread = getCurrentThread();
-    int[]     myStack  = myThread.stack;
+    byte[]     myStack  = myThread.stack;
 
-    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << LOG_BYTES_IN_ADDRESS);
-    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << LOG_BYTES_IN_ADDRESS);
+    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length);
+    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length);
     VM_Address myFP    = VM_Magic.getFramePointer();
     VM_Offset myDepth  = myTop.diff(myFP);
     VM_Address newFP   = newTop.sub(myDepth);
@@ -1168,7 +1168,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Create a thread.
    * @param stack stack in which to execute the thread
    */ 
-  public VM_Thread (int[] stack) {
+  public VM_Thread (byte[] stack) {
     this.stack = stack;
 
     chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0); // for load balancing
@@ -1206,7 +1206,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // initialize thread registers
     //
     VM_Address ip = VM_Magic.objectAsAddress(instructions);
-    VM_Address sp = VM_Magic.objectAsAddress(stack).add(stack.length << LOG_BYTES_IN_ADDRESS);
+    VM_Address sp = VM_Magic.objectAsAddress(stack).add(stack.length);
     VM_Address fp = STACKFRAME_SENTINEL_FP;
 
 //-#if RVM_FOR_IA32 
@@ -1412,7 +1412,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Execution stack for this thread.
    */ 
-  public int[] stack;      // machine stack on which to execute this thread
+  public byte[] stack;      // machine stack on which to execute this thread
   public VM_Address   stackLimit; // address of stack guard area
   
   /**

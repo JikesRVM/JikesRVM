@@ -576,17 +576,17 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param immortal  Is the stack immortal and non-moving?
    * @return The stack
    */ 
-  public static int[] newStack(int bytes, boolean immortal)
+  public static byte[] newStack(int bytes, boolean immortal)
     throws VM_PragmaInline, VM_PragmaInterruptible {
     if (!immortal || !VM.runningVM)
-      return new int[bytes >> 2];
+      return new byte[bytes];
 
     int logAlignment = 12;
     int alignment = 1 << logAlignment; // 4096
-    VM_Array stackType = VM_Array.IntArray;
+    VM_Array stackType = VM_Array.ByteArray;
     Object [] stackTib = stackType.getTypeInformationBlock();
     int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
-    int arraySize = stackType.getInstanceSize(bytes >> 2);
+    int arraySize = stackType.getInstanceSize(bytes);
     int fullSize = arraySize + alignment;  // somewhat wasteful
     if (VM.VerifyAssertions) VM._assert(alignment > offset);
     AllocAdvice advice = VM_Interface.getPlan().getAllocAdvice(null, fullSize, null, null);
@@ -594,9 +594,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Address tmp = fullRegion.add(alignment);
     VM_Word mask = VM_Word.one().lsh(logAlignment).sub(VM_Word.one()).not();
     VM_Address region = tmp.toWord().and(mask).sub(VM_Word.fromIntSignExtend(offset)).toAddress();
-    Object result = VM_ObjectModel.initializeArray(region, stackTib, bytes >> 2, arraySize);
+    Object result = VM_ObjectModel.initializeArray(region, stackTib, bytes, arraySize);
     VM_Interface.getPlan().postAlloc(VM_Magic.objectAsAddress(result), stackTib, arraySize, false, Plan.IMMORTAL_SPACE);
-    return (int []) result;
+    return (byte []) result;
   }
 
   /**

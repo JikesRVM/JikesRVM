@@ -44,7 +44,7 @@ public final class OSR_OptExecStateExtractor
    * from the register save area of '<tsfrom>' method.
    */
 
-    int[] stack = thread.stack;
+    byte[] stack = thread.stack;
 
     // get registers for the caller ( real method )
     OSR_TempRegisters registers = 
@@ -52,7 +52,7 @@ public final class OSR_OptExecStateExtractor
 
     if (VM.VerifyAssertions) {
       int foocmid = VM_Magic.getIntAtOffset(stack, 
-				methFPoff + STACKFRAME_METHOD_ID_OFFSET);
+                                            methFPoff + STACKFRAME_METHOD_ID_OFFSET);
       if (foocmid != cmid) {
 	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	VM.sysWriteln("unmatch method, it should be "+cm.getMethod());
@@ -98,7 +98,7 @@ public final class OSR_OptExecStateExtractor
 
     {
       int bufCMID = VM_Magic.getIntAtOffset(stack,
-				 osrFPoff + STACKFRAME_METHOD_ID_OFFSET);
+                                            osrFPoff + STACKFRAME_METHOD_ID_OFFSET);
       VM_CompiledMethod bufCM = 
 	VM_CompiledMethods.getCompiledMethod(bufCMID);
 
@@ -161,7 +161,7 @@ public final class OSR_OptExecStateExtractor
    *    |__________|  ___ FP
    * 
    */
-  private void restoreValuesFromOptSaveVolatile(int[] stack,
+  private void restoreValuesFromOptSaveVolatile(byte[] stack,
 						int osrFPoff,
 						OSR_TempRegisters registers,
 						int regmap,
@@ -231,7 +231,7 @@ public final class OSR_OptExecStateExtractor
   }  
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
-						  int[] stack,
+						  byte[] stack,
 						  int   ipOffset,
 						  int   fpOffset,
 						  int   cmid,
@@ -435,7 +435,7 @@ public final class OSR_OptExecStateExtractor
    */
   private static int getIntBitsFrom(int vtype,
 				    int value,
-				    int[] stack,
+				    byte[] stack,
 				    int fpOffset,
 				    OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
@@ -464,7 +464,7 @@ public final class OSR_OptExecStateExtractor
 
   private static float getFloatFrom(int vtype,
 				    int value,
-				    int[] stack,
+				    byte[] stack,
 				    int fpOffset,
 				    OSR_TempRegisters registers) {
     if (vtype == PHYREG) {
@@ -484,7 +484,7 @@ public final class OSR_OptExecStateExtractor
 
   private static double getDoubleFrom(int vtype,
 				      int value,
-				      int[] stack,
+				      byte[] stack,
 				      int fpOffset,
 				      OSR_TempRegisters registers) {
     if (vtype == PHYREG) {
@@ -504,7 +504,7 @@ public final class OSR_OptExecStateExtractor
 
   private static final Object getObjectFrom(int vtype,
 					    int value,
-					    int[] stack,
+					    byte[] stack,
 					    int fpOffset,
 					    OSR_TempRegisters registers) {
     if (vtype == ICONST) {
@@ -528,14 +528,13 @@ public final class OSR_OptExecStateExtractor
     }
   }
 
-  private static void dumpStackContent(int[] stack, int fpOffset) {
+  private static void dumpStackContent(byte[] stack, int fpOffset) {
     VM.disableGC();
     VM_Address upper = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(fpOffset));
     VM.enableGC();
     int upOffset = upper.diff(VM_Magic.objectAsAddress(stack)).toInt();
 
-    int cmid = VM_Magic.getIntAtOffset(stack, 
-		 fpOffset + STACKFRAME_METHOD_ID_OFFSET);
+    int cmid = VM_Magic.getIntAtOffset(stack, fpOffset + STACKFRAME_METHOD_ID_OFFSET);
     VM_OptCompiledMethod cm = 
       (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
 
@@ -566,7 +565,7 @@ public final class OSR_OptExecStateExtractor
 
   /* walk on stack frame, print out methods
    */
-  private static void walkOnStack(int[] stack, int fpOffset) {
+  private static void walkOnStack(byte[] stack, int fpOffset) {
     VM.disableGC();
     
     VM_Address fp = VM_Magic.objectAsAddress(stack).add(fpOffset);

@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
  */
 class VM_StartupThread extends VM_Thread
    {
-   VM_StartupThread(int[] stack)
+   VM_StartupThread(byte[] stack)
       {
       super(stack);
       makeDaemon(true);

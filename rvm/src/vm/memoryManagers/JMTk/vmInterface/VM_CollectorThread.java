@@ -158,7 +158,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @param processorAffinity The processor with which this thread is
    * associated.
    */
-  VM_CollectorThread(int[] stack, boolean isActive, 
+  VM_CollectorThread(byte[] stack, boolean isActive, 
 		     VM_Processor processorAffinity)
     throws VM_PragmaInterruptible {
     super(stack);
@@ -203,7 +203,7 @@ public class VM_CollectorThread extends VM_Thread {
    */
   public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) 
     throws VM_PragmaInterruptible {
-    int[] stack =  MM_Interface.newStack(STACK_SIZE_COLLECTOR, true);
+    byte[] stack =  MM_Interface.newStack(STACK_SIZE_COLLECTOR, true);
     return new VM_CollectorThread(stack, true, processorAffinity);
   }
   
@@ -218,7 +218,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @param processorAffinity processor to run on
    * @return a new non-particpating collector thread
    */
-  static VM_CollectorThread createPassiveCollectorThread(int[] stack,
+  static VM_CollectorThread createPassiveCollectorThread(byte[] stack,
 							 VM_Processor processorAffinity) 
     throws VM_PragmaInterruptible {
     return new VM_CollectorThread(stack, false, processorAffinity);

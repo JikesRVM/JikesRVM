@@ -22,13 +22,13 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
   public static boolean install(OSR_ExecutionState state,
 			 VM_CompiledMethod cm) {
     VM_Thread thread = state.getThread();
-    int[] stack = thread.stack;
+    byte[] stack = thread.stack;
     
     int tsfromFPOffset = state.getTSFPOffset();
     int fooFPOffset    = state.getFPOffset();
 
     int foomid = VM_Magic.getIntAtOffset(stack,
-			   fooFPOffset + STACKFRAME_METHOD_ID_OFFSET);
+                                         fooFPOffset + STACKFRAME_METHOD_ID_OFFSET);
 
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();

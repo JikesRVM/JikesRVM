@@ -34,8 +34,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
       } else {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + (stackNeededInBytes >> LOG_BYTES_IN_ADDRESS),
-                                     null); 
+        VM_Thread.resizeCurrentStack(myThread.stack.length + stackNeededInBytes, null); 
       }
     }
 

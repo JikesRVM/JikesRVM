@@ -56,7 +56,7 @@ public final class OSR_BaselineExecStateExtractor
     }
 
     VM_Registers contextRegisters = thread.contextRegisters;
-    int[] stack = thread.stack;
+    byte[] stack = thread.stack;
 
     if (VM.VerifyAssertions) {
       int fooCmid     = VM_Magic.getIntAtOffset(stack, 
@@ -171,7 +171,7 @@ public final class OSR_BaselineExecStateExtractor
   }
   
   /* go over local/stack array, and build OSR_VariableElement. */
-  private static void getVariableValue(int[] stack,
+  private static void getVariableValue(byte[] stack,
 				       int   offset,
 				       byte[] types,
 				       VM_BaselineCompiledMethod compiledMethod,

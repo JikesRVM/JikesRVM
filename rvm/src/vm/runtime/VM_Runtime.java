@@ -605,9 +605,9 @@ public class VM_Runtime implements VM_Constants {
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
+	VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
       } else {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
+	VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GROW, exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;

@@ -63,11 +63,11 @@ public final class OSR_BaselineExecStateExtractor
     }
 
     VM_Registers contextRegisters = thread.contextRegisters;
-    int[] stack = thread.stack;
+    byte[] stack = thread.stack;
 
     if (VM.VerifyAssertions) {
-      int fooCmid     = VM_Magic.getIntAtOffset(stack, 
-			      methFPoff + STACKFRAME_METHOD_ID_OFFSET);
+      int fooCmid  = VM_Magic.getIntAtOffset(stack, 
+                                             methFPoff + STACKFRAME_METHOD_ID_OFFSET);
 
       if (VM.TraceOnStackReplacement) {
 	VM.sysWriteln("fooCmid = " + fooCmid);
@@ -99,10 +99,10 @@ public final class OSR_BaselineExecStateExtractor
     if (VM.VerifyAssertions) {
       if (bcIndex == -1) {      
 
-	VM.sysWriteln("osrFPoff = " + (osrFPoff>>2));
+	VM.sysWriteln("osrFPoff = " + osrFPoff);
 	VM.sysWriteln("instr_beg = " + instr_beg);
 
-	for (int i=(osrFPoff>>2)-10; i<(osrFPoff>>2)+10; i++)
+	for (int i=(osrFPoff)-10; i<(osrFPoff)+10; i++)
 	  VM.sysWriteln("  stack["+i+"] = "+stack[i]);
 
 	VM.sysWriteln("ipIndex : " + ipIndex);
@@ -196,7 +196,7 @@ public final class OSR_BaselineExecStateExtractor
   }
   
   /* go over local/stack array, and build OSR_VariableElement. */
-  private static void getVariableValue(int[] stack,
+  private static void getVariableValue(byte[] stack,
 				       int   offset,
 				       byte[] types,
 				       VM_BaselineCompiledMethod compiledMethod,
