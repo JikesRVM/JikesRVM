@@ -727,7 +727,7 @@ class BootMapExternal extends BootMap {
    */
   public int getCompiledMethodID(int fp, int address) {
     
-    if (!isInJVMspace(address)) {
+    if (!isInRVMspace(address)) {
       return NATIVE_METHOD_ID;
     }
 
@@ -922,7 +922,7 @@ class BootMapExternal extends BootMap {
     int methodArrayAddress = owner.mem.readTOC(compiledMethodTable_offset);
     int numMethods;
 
-    if (!isInJVMspace(address)) {
+    if (!isInRVMspace(address)) {
       return NATIVE_METHOD_ID;
     }
 
