@@ -1,7 +1,6 @@
 #!/bin/sh
-
 # 
-# (C) Copyright IBM Corp. 2003
+# (C) Copyright IBM Corp. 2003, 2004
 #
 # $Id$
 #
@@ -10,6 +9,16 @@
 
 . $RVM_BUILD/environment.target
 
-cd $ECLIPSE_INSTALL_DIR
+# If ECLIPSE_INSTALL_DIR is not set to something sane, then just ignore it.
+[[ ${ECLIPSE_INSTALL_DIR-} ]] && [[ -d ${ECLIPSE_INSTALL_DIR} ]] && cd $ECLIPSE_INSTALL_DIR
 
-./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xmx200
+# Debugging options you can add: 
+#     -X:vm:verboseStackTrace=1
+#     -X:vm:stackTraceAtExit=true
+#
+# -Dosgi.locking=null: Present because GNU Classpath 0.10 does not implement
+# some of the java.nio package's locking functions.  This means that
+# we have to tell Eclipse 3.0 not to try to perform locking.
+# (The osgi.locking system property is new with Eclipse 3.0)
+#
+./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xmx200 -Dosgi.locking=none 
