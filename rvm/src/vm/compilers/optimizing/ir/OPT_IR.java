@@ -580,7 +580,7 @@ final class OPT_IR implements OPT_Operators {
     if (hasReachableExceptionHandlers()) {
       for (Enumeration e = getBasicBlocks(); e.hasMoreElements(); ) {
         OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
-        bb.pruneExceptionalOut();
+        bb.pruneExceptionalOut(this);
       } 
     }      
   }

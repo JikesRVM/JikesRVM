@@ -690,7 +690,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final boolean hasReturn() {
     if (isEmpty()) return false;
-    return Return.conforms(lastRealInstruction());
+    return Return.conforms(lastRealInstruction()) || 
+           MIR_Return.conforms(lastRealInstruction());
   }
 
   /**
@@ -710,9 +711,6 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   /**
    * Does this basic block contain an explicit athrow instruction?  
    *
-   * NOTE: This method does NOT catch the case where the athrow has
-   * been converted to a call to method VM_Runtime.athrow().
-   *
    * @return <code>true</code> if the block ends in an explicit Athrow
    *         instruction or <code>false</code> if it does not 
    */
@@ -720,7 +718,29 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     if (isEmpty()) return false;
     OPT_Instruction s = lastRealInstruction();
 
-    return Athrow.conforms(s);
+    //-#if RVM_FOR_IA32
+    if (s.operator == ADVISE_ESP) {
+      s = s.getPrev();
+    }
+    //-#endif
+
+    if (Athrow.conforms(s)) return true;
+    else if (MIR_Call.conforms(s)) {
+      OPT_MethodOperand mop = MIR_Call.getMethod(s);
+      if (mop != null) {
+        if (mop.method == VM_Entrypoints.athrowMethod) {
+          return true;
+        }
+      }
+    } else if (Call.conforms(s)) {
+      OPT_MethodOperand mop = Call.getMethod(s);
+      if (mop != null) {
+        if (mop.method == VM_Entrypoints.athrowMethod) {
+          return true;
+        }
+      }
+    } 
+    return false;
   }
 
   /**
@@ -1540,7 +1560,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       if (expOuts.hasMoreElements() && e.hasMoreElements()) {
 	OPT_BasicBlock next = splitNodeWithLinksAt(s, ir);
 	next.unfactor(ir);
-	pruneExceptionalOut();
+	pruneExceptionalOut(ir);
 	return;
       }
     }
@@ -1549,7 +1569,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * Prune away exceptional out edges that are not reachable given this
    * block's instructions.
    */
-  final void pruneExceptionalOut() {
+  final void pruneExceptionalOut(OPT_IR ir) {
     int n = getNumberOfExceptionalOut();
     if (n > 0) {
       ComputedBBEnum handlers = new ComputedBBEnum(n);
@@ -1571,6 +1591,12 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 	insertOut(b);
       }
     }
+    
+    // Since any edge to an exception handler is an "exceptional" edge,
+    // the previous procedure has thrown away any "normal" CFG edges to
+    // exception handlers.  So, recompute normal edges to recover them.
+    recomputeNormalOut(ir);
+
   }
   // helper function for unfactor
   private final void deleteExceptionalOut() {

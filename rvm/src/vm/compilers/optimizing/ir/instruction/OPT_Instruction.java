@@ -1352,7 +1352,15 @@ public final class OPT_Instruction
       } else if (MIR_CondBranch2.conforms(this)) {
 	e.addElement(MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
 	e.addPossiblyDuplicateElement(MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
-      } else {
+      //-#if RVM_FOR_IA32
+      // TODO: should factor the MIR-specific stuff into an arch-specific
+      // file.  Too lazy to do it today (SJF).
+      } else if (MIR_LowTableSwitch.conforms(this)) {
+          for(int i = 0; i < MIR_LowTableSwitch.getNumberOfTargets(this); i++) 
+    	    e.addPossiblyDuplicateElement(MIR_LowTableSwitch.getTarget(this,i).
+                                          target.getBasicBlock());
+      //-#endif
+      } else if (MIR_CondBranch2.conforms(this)) {
 	throw new OPT_OptimizingCompilerException("getBranchTargets()",
 						  "operator not implemented",
 						  operator().toString());
