@@ -43,7 +43,8 @@ INPUT_FILES = 	userguide.tex \
 		regression.tex \
 		running.tex \
 		remark.tex \
-		vmdetails.tex
+		vmdetails.tex \
+		aosdetails.tex
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex
 
