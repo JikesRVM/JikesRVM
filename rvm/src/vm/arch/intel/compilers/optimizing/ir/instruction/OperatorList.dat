@@ -317,6 +317,23 @@ none
 
 
 ####################
+# Special instructions to introduce live ranges to constrain register
+# allocation.
+####################
+DUMMY_DEF
+MIR_Nullary
+none
+
+
+
+####################
+DUMMY_USE
+MIR_UnaryNoRes
+none
+
+
+
+####################
 # A special FMOV instruction which ends the live range of the RHS.
 ####################
 IA32_FMOV_ENDING_LIVE_RANGE
