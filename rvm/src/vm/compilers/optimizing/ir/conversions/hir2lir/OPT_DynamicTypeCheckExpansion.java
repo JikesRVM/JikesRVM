@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-
+import org.vmmagic.unboxed.Address;
 /**
  * Expansion of Dynamic Type Checking operations.
  *
@@ -518,9 +518,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                              TG());
           OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int,
                                                  entry, IC(interfaceMask));
-          s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, result, 
+			 //save to use the cheaper ADDR version of BOOLEAN_CMP
+          s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, result, 
                                            bit,
-                                           IC(0),
+                                           AC(Address.zero()),
                                            OPT_ConditionOperand.NOT_EQUAL(),
                                            new OPT_BranchProfileOperand()));
 
@@ -528,9 +529,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             OPT_RegisterOperand doesImplLength = 
               InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copy(), TG());
             OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, boundscheck, 
+			   //save to use the cheaper ADDR version of BOOLEAN_CMP
+            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, boundscheck, 
                                              doesImplLength,
-                                             IC(interfaceIndex),
+                                             AC(Address.fromIntSignExtend(interfaceIndex)),
                                              OPT_ConditionOperand.GREATER(),
                                              new OPT_BranchProfileOperand()));
             s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 
@@ -561,9 +563,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                superclassIds, LHSDepth << 1, 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
-            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, result, 
+			   //save to use the cheaper ADDR version of BOOLEAN_CMP
+            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, result, 
                                              refCandidate, 
-                                             IC(LHSId), 
+                                             AC(Address.fromIntZeroExtend(LHSId)), 
                                              OPT_ConditionOperand.EQUAL(),
                                              new OPT_BranchProfileOperand()));
             if (VM_DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
@@ -571,9 +574,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                 InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, 
                                    superclassIds.copyD2U(), TG());
               OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-              s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, boundscheck, 
+			     //save to use the cheaper ADDR version of BOOLEAN_CMP
+              s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, boundscheck, 
                                                superclassIdsLength, 
-                                               IC(LHSDepth), 
+                                               AC(Address.fromIntSignExtend(LHSDepth)), 
                                                OPT_ConditionOperand.GREATER(),
                                                new OPT_BranchProfileOperand()));
               s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 

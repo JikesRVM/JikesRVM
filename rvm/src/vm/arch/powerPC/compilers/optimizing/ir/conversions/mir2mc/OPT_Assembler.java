@@ -297,7 +297,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = OPT_PowerPCTrapOperand.LOWER;
           int op1 = ((OPT_RegisterOperand)NullCheck.getRef(p)).register.number & REG_MASK;
           int op2 = 1;
+          //-#if RVM_FOR_64_ADDR
+          inst = PPC64_TDI.instTemplate;
+          //-#else
           inst = PPC_TWI.instTemplate;
+			 //-#endif
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }

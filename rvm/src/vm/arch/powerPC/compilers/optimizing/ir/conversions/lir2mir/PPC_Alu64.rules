@@ -11,6 +11,14 @@
 # that are specific to PPC with 64 bit GPRs
 #
 # See PPC_Common.rules for the format of this file
+#####
+# IR_PROLOGUE:
+#####
+stm:	IR_PROLOGUE
+11
+EMIT_INSTRUCTION
+EMIT(P(p));
+
 ##################################
 # Basic Long ALU operations 
 ##################################
@@ -227,18 +235,31 @@ EMIT_INSTRUCTION
 }
 
 #####
-# ADDR_2LONG
+# INT_2ADDRZerExt
 #####
-r:	ADDR_2LONG(r)
+r:	INT_2ADDRZerExt(r)
 10
 EMIT_INSTRUCTION
-ADDR_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+INT_2ADDRZerExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
 
-#####
-# LONG_2ADDR
-#####
-r:	LONG_2ADDR(r)
-10
+r: INT_2ADDRZerExt(INT_LOAD(r,INT_CONSTANT))
+11
 EMIT_INSTRUCTION
-LONG_2ADDR(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+EMIT(MIR_Load.mutate(PL(p), PPC_LWZ, Move.getResult(P(p)),            \
+                     R(Load.getAddress(PL(p))), Load.getOffset(PL(p)), \
+                     Load.getLocation(PL(p)), Load.getGuard(PL(p))));
+
+r: INT_2ADDRZerExt(INT_LOAD(r,r))
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(PL(p), PPC_LWZX, Move.getResult(P(p)),           \
+                     R(Load.getAddress(PL(p))), Load.getOffset(PL(p)), \
+                     Load.getLocation(PL(p)), Load.getGuard(PL(p))));
+
+r: INT_2ADDRZerExt(INT_LOAD(REF_ADD(r,INT_CONSTANT),INT_CONSTANT))
+SI16(VLR(p)+VLLR(p)) ? 14 : INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(PL(p), PPC_LWZ, Move.getResult(P(p)),            \
+                              R(Binary.getVal1(PLL(p))), IC(VLR(p)+VLLR(p)), \
+                              Load.getLocation(PL(p)), Load.getGuard(PL(p))));
 

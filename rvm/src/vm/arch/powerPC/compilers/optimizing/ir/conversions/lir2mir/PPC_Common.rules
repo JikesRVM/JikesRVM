@@ -8,6 +8,9 @@
 # @modified Kris Venstermans
 #
 # BURS rules that are common to PPC32 and PPC64
+# !!!warning: pay attention to rules that set condition bits !!! 
+# Mostly these are mode dependant and do NOT have the same behavior on 32-bit and 64-bit.
+# E.g. ADDr, ADDIC, ANDr are not OK to use here. SLWr and ANDIr on the other hand can be used.
 #
 # The format of PRODUCTION is 'non-terminal:	rule'
 PRODUCTION
@@ -155,14 +158,6 @@ stm:	NULL_CHECK(r)
 11
 EMIT_INSTRUCTION
 EMIT(P(p)); 
-
-#####
-# IR_PROLOGUE:
-#####
-stm:	IR_PROLOGUE
-11
-EMIT_INSTRUCTION
-PROLOGUE(P(p));
 
 ###########
 # Rules for exceptions
@@ -1409,6 +1404,12 @@ EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_SRAWIr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
+stm:	INT_IFCMP(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
+(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
+EMIT_INSTRUCTION
+CMP_ZERO(P(p), PPC_ANDIr, Binary.getResult(PL(p)),         \
+                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
+
 # IfCmp(boolcmp, 0/1)
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
 VR(p) == 0 && IfCmp.getCond(P(p)).isNOT_EQUAL()?20:INFINITE
@@ -1577,25 +1578,4 @@ r:      ATTEMPT_INT(r, r)
 11
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
-
-#####
-# INT_2ADDR
-#####
-r:	INT_2ADDRSigExt(r)
-10
-EMIT_INSTRUCTION
-INT_2ADDRSigExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
-
-r:	INT_2ADDRZerExt(r)
-10
-EMIT_INSTRUCTION
-INT_2ADDRZerExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
-
-#####
-# ADDR_2INT
-#####
-r:	ADDR_2INT(r)
-10
-EMIT_INSTRUCTION
-ADDR_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 

@@ -195,4 +195,7 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
    protected final int VRLR(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child2).value;
    }
+   protected final int VLRL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child1).value;
+   }
 }

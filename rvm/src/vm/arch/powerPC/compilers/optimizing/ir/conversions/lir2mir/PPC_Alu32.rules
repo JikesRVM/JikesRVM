@@ -11,6 +11,14 @@
 # that are specific to PPC with 32 bit GPRs
 #
 # See PPC_Common.rules for the format of this file
+#####
+# IR_PROLOGUE:
+#####
+stm:	IR_PROLOGUE
+11
+EMIT_INSTRUCTION
+PROLOGUE(P(p));
+
 ##################################
 # Basic Long ALU operations 
 ##################################
@@ -269,12 +277,6 @@ EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ADDICr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-CMP_ZERO(P(p), PPC_ANDIr, Binary.getResult(PL(p)),         \
-                     R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
-
 stm:	INT_IFCMP(REF_AND(r,REF_NOT(r)),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
@@ -286,14 +288,6 @@ stm:	INT_IFCMP(REF_OR(r,REF_NOT(r)),INT_CONSTANT)
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ORCr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Unary.getVal(PLR(p)), IfCmp.getCond(P(p)));
-
-#####
-# ADDR_2LONG
-#####
-r:	ADDR_2LONG(r)
-20
-EMIT_INSTRUCTION
-ADDR_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
 # REF_AND, cases not valid on 64-bit, due to zero extension of ANDIS
