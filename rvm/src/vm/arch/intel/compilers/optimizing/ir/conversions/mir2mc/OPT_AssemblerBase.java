@@ -661,7 +661,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   /**
    * Debugging support (return a printable representation of the machine code).
    *
-   * @param instr, an integer to be interpreted as a PowerPC instruction
+   * @param instr  An integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
    *
    */
