@@ -77,6 +77,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     if (VM.TraceStkMaps || TRACE_ALL ) {
       VM.sysWrite("VM_BaselineGCMapIterator setupIterator mapId = ");
       VM.sysWrite(mapId);
+      VM.sysWrite(" for ");
+      VM.sysWrite(compiledMethod.getMethod());
       VM.sysWrite(".\n");
     }
       
@@ -124,6 +126,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   public void reset() {
     mapOffset = 0;
+    finishedWithRegularMap = false;
 
     // setup map to report EBX if this method is holding the base of counter array in it.
     counterArrayBase                 = currentMethod.hasCounterArray();
@@ -141,33 +144,54 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // A zero return indicates that no more references exist.
   //
   public VM_Address getNextReferenceAddress() {
-    if (counterArrayBase) {
-      counterArrayBase = false;
-      return registerLocations.get(EBX).toAddress();
-    }
-    if (mapId < 0) {
-      mapOffset = maps.getNextJSRRef(mapOffset);
-    } else {
-      mapOffset = maps.getNextRef(mapOffset, mapId);
-    }
-    if (VM.TraceStkMaps || TRACE_ALL) {
-      VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = ");
-      VM.sysWriteHex(mapOffset);
-      VM.sysWrite(".\n");
-      VM.sysWrite("Reference is ");
-      VM.sysWriteHex ( VM_Magic.getMemoryInt ( framePtr.add(mapOffset) ) );
-      VM.sysWrite(".\n");
-      if (mapId < 0) 
-        VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+    if (!finishedWithRegularMap) {
+      if (counterArrayBase) {
+        counterArrayBase = false;
+        return registerLocations.get(EBX).toAddress();
+      }
+      if (mapId < 0) {
+        mapOffset = maps.getNextJSRRef(mapOffset);
+      } else {
+        mapOffset = maps.getNextRef(mapOffset, mapId);
+      }
+      
+      if (mapOffset != 0) {
+        if (VM.TraceStkMaps || TRACE_ALL) {
+          VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = ");
+          VM.sysWriteHex(mapOffset);
+          VM.sysWrite(".\n");
+          VM.sysWrite("Reference is ");
+        }
+        if (bridgeParameterMappingRequired) {
+          if (VM.TraceStkMaps || TRACE_ALL) {
+            VM.sysWriteHex ( VM_Magic.getMemoryInt ( framePtr.add(mapOffset - BRIDGE_FRAME_EXTRA_SIZE) ) );
+            VM.sysWrite(".\n");
+            if (mapId < 0) {
+              VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+            }
+          }
+          
+          // TODO  clean this
+          return (framePtr.add(mapOffset - BRIDGE_FRAME_EXTRA_SIZE ));
+        }
+        else {
+          if (VM.TraceStkMaps || TRACE_ALL) {
+            VM.sysWriteHex ( VM_Magic.getMemoryInt ( framePtr.add(mapOffset) ) );
+            VM.sysWrite(".\n");
+            if (mapId < 0) {
+              VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+            }
+          }
+          return (framePtr.add(mapOffset) );
+        }
+      } else {
+        // remember that we are done with the map for future calls, and then
+        //   drop down to the code below 
+        finishedWithRegularMap = true;
+      }
     }
 
-    if (mapOffset != 0) {
-      if (bridgeParameterMappingRequired)
-        // TODO  clean this
-        return (framePtr.add(mapOffset - BRIDGE_FRAME_EXTRA_SIZE ));
-      else
-        return (framePtr.add(mapOffset) );
-    } else if (bridgeParameterMappingRequired) {
+    if (bridgeParameterMappingRequired) {
       if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
         VM.sysWrite("getNextReferenceAddress: bridgeTarget="); VM.sysWrite(bridgeTarget); VM.sysWrite("\n");
       }         
@@ -316,6 +340,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
   private boolean        bridgeRegistersLocationUpdated; // have the register location been updated
+  private boolean        finishedWithRegularMap;         // have we processed all the values in the regular map yet?
   private int            bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
   private int            bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
   private int            bridgeRegisterIndex;            // gpr register it lives in
