@@ -71,13 +71,6 @@ public class VM_Allocator
   static final boolean COMPILE_FOR_TIMING_RUN = true;     
   
   /**
-   * When true (the default), no zeroing is done at the end of a collection.
-   * Instead, each VM_Processor zeros the chunks of heap it acquires inorder
-   * to satisfy allocation requests. Requires PROCESSOR_LOCAL_ALLOCATE be ON.
-   */
-  static final boolean ZERO_BLOCKS_ON_ALLOCATION = true;
-  
-  /**
    * When true, causes time spent in each phase of collection to be measured.
    * Forces summary statistics to be generated. See VM_CollectorThread.TIME_GC_PHASES.
    */
@@ -189,8 +182,8 @@ public class VM_Allocator
       }
       VM.sysWrite("  DELTA for triggering major GC = "); VM.sysWrite(MAJOR_GC_DELTA / 1024); VM.sysWriteln(" Kb");
 
-      if (VM.ParanoidGCCheck)             VM.sysWriteln("  Compiled with ParanoidGCCheck on ");      
-      if (ZERO_BLOCKS_ON_ALLOCATION)       VM.sysWriteln("  Compiled with ZERO_BLOCKS_ON_ALLOCATION on ");
+      if (VM.ParanoidGCCheck)              VM.sysWriteln("  Compiled with ParanoidGCCheck on ");      
+      if (ZERO_CHUNKS_ON_ALLOCATION)       VM.sysWriteln("  Compiled with ZERO_CHUNKS_ON_ALLOCATION");
       if (PROCESSOR_LOCAL_ALLOCATE)        VM.sysWriteln("  Compiled with PROCESSOR_LOCAL_ALLOCATE on ");
       if (PROCESSOR_LOCAL_MATURE_ALLOCATE) VM.sysWriteln("  Compiled with PROCESSOR_LOCAL_MATURE_ALLOCATE on ");	  
   }
@@ -306,8 +299,8 @@ public class VM_Allocator
       return largeHeap.allocateArray(numElements, size, tib);
     } else {
       VM_Address region = allocateRawMemory(size);
-      Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
       profileAlloc(region, size, tib);
+      Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
       return newObj;
     }
   }
@@ -1032,7 +1025,7 @@ public class VM_Allocator
 	if (majorCollection) 
 	    fromHeap.protect();
     }
-    if ( ! ZERO_BLOCKS_ON_ALLOCATION ) {
+    if ( ! ZERO_CHUNKS_ON_ALLOCATION ) {
 	// let the one processor executing gc_finish zero the nursery
 	VM_Memory.zeroPages( nurseryHeap.start, nurseryHeap.size );
     }
