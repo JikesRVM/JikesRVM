@@ -6,6 +6,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Memory;
@@ -33,8 +35,9 @@ public class Lock implements VM_Uninterruptible {
   private static int LOCKED = 1;
 
   // Debugging
-  private static double REPORT_SLOW_LOCK = 0.0; // 0.0 to disable
-  private static int MAX_RETRY = 10000000; // -1 to disable
+  private static final boolean REPORT_SLOW_LOCK = false; // has overhead when on
+  private static double SLOW_LOCK_THRESHOLD = 0.001; // in seconds
+  private static int MAX_RETRY = 10000000; // -1 to disable - overhead probably masked by contention
   public static int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
@@ -50,10 +53,6 @@ public class Lock implements VM_Uninterruptible {
     lock = UNLOCKED; 
     name = str;
     id = lockCount++;
-  }
-
-  public void checkpoint(int w) {
-    where = w;
   }
 
   // Try to acquire a lock and spin-wait until acquired.
@@ -78,23 +77,28 @@ public class Lock implements VM_Uninterruptible {
 	double end = VM_Time.now();
 	VM.sysWrite("\nPossible deadlock: failed to acquire lock ", id);
 	VM.sysWrite(" ", name);
-	VM.sysWrite(" after trying ", retryCount);
+	VM.sysWrite(" after trying ");
+	VM.sysWrite(retryCount, false);
 	VM.sysWrite(" times or ");
 	VM.sysWrite(1000000.0 * (end - localStart));
 	VM.sysWriteln(" micro-seconds");
-	VM.sysWrite("Locking thread: "); thread.dump(1); VM.sysWriteln(" at position ", where);
+	if (thread == null) 
+	  VM.sysWriteln("Locking thread unknown");
+	else {
+	  VM.sysWrite("Locking thread: "); thread.dump(1); VM.sysWriteln(" at position ", where);
+	}
 	VM.sysWrite("Locked out thread: "); VM_Thread.getCurrentThread().dump(1); VM.sysWriteln();
-	VM.sysWriteln("Will now spin without trying to acquire lock");
+	VM.sysWriteln("Will now spin for one second and die");
         VM_Scheduler.dumpStack();
-	while (true)
-	  ;
+	VM_Interface.busyWait(1.0);
+	VM.sysFail("Deadlock or someone holding on to lock for too long");
       }
     }
 
-    //    start = VM_Time.now();
-    //    thread = VM_Thread.getCurrentThread();
-    setStart(VM_Time.now());
-    setThread(VM_Thread.getCurrentThread());
+    if (REPORT_SLOW_LOCK) {
+      setStart(VM_Time.now());
+      setThread(VM_Thread.getCurrentThread());
+    }
 
     if (verbose > 1) {
       VM.sysWrite("Thread ");
@@ -105,6 +109,24 @@ public class Lock implements VM_Uninterruptible {
     VM_Magic.isync();
   }
 
+  public void check(int w) {
+    if (!REPORT_SLOW_LOCK) return;
+    if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread() == thread);
+    double diff = (REPORT_SLOW_LOCK) ? VM_Time.now() - start : 0.0;
+    boolean show = (verbose > 1) || (diff > SLOW_LOCK_THRESHOLD);
+    if (show) {
+      VM.sysWrite("Thread ");
+      thread.dump();
+      VM.sysWrite(" reached point ", w);
+      VM.sysWrite(" while holding lock ", id);
+      VM.sysWrite(" ", name);
+      VM.sysWrite(" at ");
+      VM.sysWrite(1000000.0 * diff);
+      VM.sysWriteln(" micro-seconds");
+    }
+    where = w;
+  }
+
   // Release the lock with an atomic instruction.
   // (1) The sync is needed to flush changes made while the lock is held and also prevent 
   //        instructions floating into the critical section.
@@ -112,8 +134,8 @@ public class Lock implements VM_Uninterruptible {
   //
   public void release() {
     if (VM.VerifyAssertions) VM._assert(lock == LOCKED);
-    double diff = (REPORT_SLOW_LOCK > 0) ? VM_Time.now() - start : -1.0;
-    boolean show = (verbose > 1) || (diff > REPORT_SLOW_LOCK);
+    double diff = (REPORT_SLOW_LOCK) ? VM_Time.now() - start : 0.0;
+    boolean show = (verbose > 1) || (diff > SLOW_LOCK_THRESHOLD);
     if (show) {
       VM.sysWrite("Thread ");
       thread.dump();
@@ -124,19 +146,22 @@ public class Lock implements VM_Uninterruptible {
       VM.sysWriteln(" micro-seconds");
     }
 
-    setThread(null);
+    if (REPORT_SLOW_LOCK) {
+      setStart(0.0);
+      setThread(null);
+      where = -1;
+    }
     VM_Magic.sync();
     boolean success = VM_Synchronization.tryCompareAndSwap(this, lockFieldOffset, LOCKED, UNLOCKED); // guarantees flushing
     if (VM.VerifyAssertions) VM._assert(success);
   }
 
   // want to avoid generating a putfield so as to avoid write barrier recursion
-  private final void setStart(double start) 
-    throws VM_PragmaInline {
+  private final void setStart(double start) throws VM_PragmaInline {
     VM_Magic.setDoubleAtOffset(this, startFieldOffset, start);
   }
-  private final void setThread(VM_Thread thread)
-    throws VM_PragmaInline {
+  private final void setThread(VM_Thread thread) throws VM_PragmaInline {
     VM_Magic.setObjectAtOffset(this, threadFieldOffset, (Object) thread);
   }
+
 }
