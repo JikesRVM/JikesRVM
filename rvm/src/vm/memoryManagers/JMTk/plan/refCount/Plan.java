@@ -422,12 +422,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     ImmortalSpace.release(immortalVM, null);
     if (Options.verbose > 2) rc.printStats();
     lastRCPages = rcMR.committedPages();
-    if (getPagesReserved() + required >= getTotalPages()) {
-      if (!progress)
-	VM_Interface.sysFail("Out of memory");
-      progress = false;
-    } else
-      progress = true;
   }
 
   ////////////////////////////////////////////////////////////////////////////

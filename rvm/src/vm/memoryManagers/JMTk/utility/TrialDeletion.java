@@ -180,7 +180,8 @@ final class TrialDeletion extends CycleDetector
 	  double cycleStart = VM_Interface.now();
 	  remaining = finishTarget - cycleStart;
 	  boolean abort = false;
-	  while (!abort && maturePurplePool.enqueuedPages() > 0 &&
+	  while ((maturePurplePool.enqueuedPages() > 0 ||
+		  unfilteredPurplePool.enqueuedPages() > 0) && !abort &&
 		 remaining > (((double) Options.gcTimeCap)/1000)/CYCLE_TIME_FRACTION) {
 	    abort = collectSomeCycles(time, finishTarget);
 	    remaining = finishTarget - VM_Interface.now();
@@ -207,7 +208,7 @@ final class TrialDeletion extends CycleDetector
     double start = VM_Interface.now();
     double remaining = finishTarget - start;
     double targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
-    //    VM_Interface.sysWrite("<"); VM_Interface.sysWrite(remaining*1000); VM_Interface.sysWrite(" "); VM_Interface.sysWrite((targetTime-((int) targetTime))*1000); 
+//     VM_Interface.sysWrite("<"); VM_Interface.sysWrite(remaining*1000); VM_Interface.sysWrite(" "); VM_Interface.sysWrite((targetTime-((int) targetTime))*1000); 
     boolean abort = doMarkGreyPhase(targetTime);
     if (time) Statistics.cdGreyTime.stop();
     if (time) Statistics.cdScanTime.start();
@@ -219,7 +220,7 @@ final class TrialDeletion extends CycleDetector
     if (time) Statistics.cdFreeTime.start();
     processFreeBufs();
     if (time) Statistics.cdFreeTime.stop();
-    //    VM_Interface.sysWrite(" "); VM_Interface.sysWrite(visitCount); VM_Interface.sysWrite(">");
+//     VM_Interface.sysWrite(" "); VM_Interface.sysWrite(visitCount); VM_Interface.sysWrite(">");
     return abort;
   }
 
@@ -273,6 +274,7 @@ final class TrialDeletion extends CycleDetector
   private final void filterPurpleBufs(double timeCap) {
     int p = filterPurpleBufs(unfilteredPurpleBuffer, maturePurpleBuffer,
 			     timeCap);
+    maturePurpleBuffer.flushLocal();
     rc.setPurpleCounter(p);
   }
   private final void filterMaturePurpleBufs() {
