@@ -161,13 +161,13 @@ public class VM_LargeHeap extends VM_Heap
     int ij;
     int page_num = (tref.diff(start)) >>> 12;
     boolean result = (largeSpaceMark[page_num] != 0);
-    if (result) return true;	// fast, no synch case
+    if (result) return false;	// fast, no synch case
     
     spaceLock.lock();		// get sysLock for large objects
     result = (largeSpaceMark[page_num] != 0);
     if (result) {	// need to recheck
       spaceLock.release();
-      return true;	
+      return false;	
     }
     int temp = largeSpaceAlloc[page_num];
     if (temp == 1) 
@@ -186,7 +186,7 @@ public class VM_LargeHeap extends VM_Heap
     }
 
     spaceLock.unlock();	// INCLUDES sync()
-    return false;
+    return true;
   }
 
 

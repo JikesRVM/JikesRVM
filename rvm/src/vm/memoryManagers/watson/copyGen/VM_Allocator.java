@@ -428,28 +428,6 @@ public class VM_Allocator
   private static final boolean TRACE_STACKS = false;
   private static final boolean GCDEBUG_CHECKWB = false;   // causes repeated checks of writebuffer
   
-  // FromSpace object are "marked" if mark bit in statusword == MARK_VALUE
-  // if "marked" == 0, then storing aa aligned forwarding ptr also "marks" the
-  // original FromSpace copy of the object (ie. GC's go faster
-  // if "marked" == 1, then allocation of new objects do not require a store
-  // to set the markbit on (unmarked), but returning a forwarding ptr requires
-  // masking out the mark bit ( ie allocation faster, GC slower )
-  //
-  // This collector only supports MARK_VALUE = 1. The semi-space
-  // collector supports optional builds where MARK_VALUE = 0.
-  //
-  static final int MARK_VALUE = 1;        // DO NOT CHANGE !!
-  
-  // following is bit pattern written into status word during forwarding
-  // right bit should indicate "marked" next bit indicates "busy"
-  // if (MARK_VALUE==0) use -2 which has low-order 2 bits (10)
-  // if (MARK_VALUE==1) use -5 which has low-order 2 bits (11)
-  // ...could use -1, but that is too common, -5 will be more recognizable  
-  // following produces -2 or -5
-  static final int BEING_FORWARDED_PATTERN = -2 - (3*MARK_VALUE);
-  
-  private static int BOOT_MARK_VALUE = 0;   // to mark bootimage objects during major GCs
-  
   // ------- End of Statics --------
   
   static void gcSetup ( int numSysThreads ) {
@@ -804,11 +782,9 @@ public class VM_Allocator
 
 	VM_GCWorkQueue.workQueue.reset();  // setup shared common work queue -shared data
 	
-	// during major collections we do a full mark-sweep, and mark and scan live
-	// bootImage objects. invert sense of mark flag in boot objects so that the
-	// objects marked during the last major collection now appear "unmarked"
-	
-	BOOT_MARK_VALUE = BOOT_MARK_VALUE ^ VM_AllocatorHeader.GC_MARK_BIT_MASK; 
+	// initialize the other heaps for collection
+	bootHeap.startCollect();
+	immortalHeap.startCollect();
 	
 	// re-initialize the large object space mark array
 	if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "preparing large space",gcMajorCount);
@@ -1413,41 +1389,37 @@ public class VM_Allocator
     if (ref.isZero()) return ref;
     
     // always process objects in the Nursery (forward if not already forwarded)
-    if ( nurseryHeap.refInHeap(ref) ) 
+    if (nurseryHeap.refInHeap(ref)) 
       return copyAndScanObject(ref, true);  // return new reference
 
     // fromspace objects processed only on major GC
-    if ( fromHeap.refInHeap(ref) ) {
-	if (!majorCollection) return ref;
-	return copyAndScanObject(ref, true);  // return new reference
+    if (fromHeap.refInHeap(ref)) {
+      if (!majorCollection) return ref;
+      return copyAndScanObject(ref, true);  // return new reference
     }
 
-    // boot/immortal objects processed only on major GC
-    if ( immortalHeap.refInHeap (ref) ||
-	 bootHeap.refInHeap (ref) ) {
-	if (!majorCollection) return ref;
-	if (!VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), BOOT_MARK_VALUE) )
-	    return ref;   // object already marked with current mark value
-	// marked a previously unmarked object, put to work queue for later scanning
-	VM_GCWorkQueue.putToWorkBuffer( ref );
-	return ref;
-    }
-
-    // large objects processed only on major GC
-    if (largeHeap.refInHeap (ref)) {
-        if (!majorCollection) return ref;
-	if (!largeHeap.mark(ref)) 
-	    VM_GCWorkQueue.putToWorkBuffer( ref ); 	// we marked it, so put to workqueue
+    // bootHeap objects processed only on major GC
+    if (bootHeap.refInHeap(ref)) {
+      if (majorCollection && bootHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
       return ref;
     }
 
-    if (toHeap.refInHeap (ref)) 
-	return ref;
+    // immortalHeap objects processed only on major GC
+    if (immortalHeap.refInHeap(ref)) {
+      if (majorCollection && immortalHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+      return ref;
+    }
+
+    // large objects processed only on major GC
+    if (largeHeap.refInHeap(ref)) {
+      if (majorCollection && largeHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+      return ref;
+    }
+
+    if (toHeap.refInHeap (ref)) return ref;
 
     VM.sysWriteln("processPtrValue encountered bad reference = ", ref);
     VM.assert(false);
     return null;
-  } // processPtrValue
-  
-
-}   // VM_Allocator
+  }
+} 

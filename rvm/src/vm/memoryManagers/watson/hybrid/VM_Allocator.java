@@ -277,8 +277,6 @@ public class VM_Allocator extends VM_GCStatistics
   static final boolean  writeBarrier = true;      // MUST BE TRUE FOR THIS STORAGE MANAGER
   static final boolean  movesObjects = true;
 
-  static final int MARK_VALUE = 1;               // designates "marked" objects in Nursery
-
   static final int SMALL_SPACE_MAX = 2048;       // largest object in small heap
 
   static int verbose = 0;
@@ -298,8 +296,6 @@ public class VM_Allocator extends VM_GCStatistics
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
   private static VM_MallocHeap mallocHeap        = new VM_MallocHeap();
   private static VM_SegregatedListHeap smallHeap = new VM_SegregatedListHeap("Small Object Heap", mallocHeap);
-
-  static int OBJECT_GC_MARK_VALUE = 0;   // toggles between 0 and VM_AllocatorHeader.GC_MARK_BIT_MASK;
 
   /**
   * getter function for gcInProgress
@@ -628,16 +624,11 @@ public class VM_Allocator extends VM_GCStatistics
       //
       VM_GCWorkQueue.workQueue.initialSetup(VM_CollectorThread.numCollectors());
 
-      // invert the mark_flag value, used for marking BootImage objects
-      if (OBJECT_GC_MARK_VALUE == 0)
-	OBJECT_GC_MARK_VALUE = VM_AllocatorHeader.GC_MARK_BIT_MASK;
-      else
-	OBJECT_GC_MARK_VALUE = 0;
-
-      // Now initialize the large object space mark array
+      // Initialize heaps for collection
+      bootHeap.startCollect();
+      immortalHeap.startCollect();
+      mallocHeap.startCollect();
       largeHeap.startCollect();
-
-      // Initialize collection in the small heap
       smallHeap.startCollect();
 
       // some RVM VM_Processors may
@@ -1095,21 +1086,24 @@ public class VM_Allocator extends VM_GCStatistics
       if (VM.VerifyAssertions) VM.assert(!nurseryHeap.refInHeap(ref));
       
       if (smallHeap.refInHeap(ref)) {
-	if (!smallHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+	if (smallHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
 	return ref;
       } 
 
       if (largeHeap.refInHeap(ref) ) {
-	if (!largeHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+	if (largeHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
 	return ref;
       } 
 
-      if (bootHeap.refInHeap(ref) || immortalHeap.refInHeap(ref) ) {
-	if (VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), OBJECT_GC_MARK_VALUE)) {
-	  VM_GCWorkQueue.putToWorkBuffer(ref);
-	}
+      if (bootHeap.refInHeap(ref) ) {
+	if (bootHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
 	return ref;
-      }
+      } 
+
+      if (immortalHeap.refInHeap(ref) ) {
+	if (immortalHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+	return ref;
+      } 
 
       // If its not in the malloc heap, then it is a bad reference
       if (VM.VerifyAssertions) {

@@ -263,7 +263,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     int  offset   = tref.diff(this_block.baseAddr); 
     int  slotndx  = offset/this_block.slotsize;
     
-    if (this_block.mark[slotndx] != 0) return true;
+    if (this_block.mark[slotndx] != 0) return false;
     
     if (false) {
       // store byte into byte array
@@ -274,7 +274,7 @@ final class VM_SegregatedListHeap extends VM_Heap
       do  {
 	// get word with proper byte from map
 	temp1 = VM_Magic.prepare(this_block.mark, ((slotndx>>2)<<2));
-	if (this_block.mark[slotndx] != 0) return true;
+	if (this_block.mark[slotndx] != 0) return false;
 	//-#if RVM_FOR_IA32    
 	int index = slotndx%4; // get byte in word - little Endian
 	//-#else 
@@ -285,11 +285,8 @@ final class VM_SegregatedListHeap extends VM_Heap
       }  while (!VM_Magic.attempt(this_block.mark, ((slotndx>>2)<<2), temp1, temp));
     }
 
-    // TODO: move this code to generic GC code!
-    // if (VM_Allocator.GC_COUNT_LIVE_OBJECTS) VM_Processor.getCurrentProcessor().small_live++;
-
     this_block.live  = true;
-    return  false;
+    return  true;
   }
 
 

@@ -13,6 +13,7 @@ final class VM_ImmortalHeap extends VM_Heap
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
 
   private VM_Address allocationCursor;
+  private int markValue;
 
   /**
    * Initialize for boot image - called from init of various collectors or spaces
@@ -47,6 +48,31 @@ final class VM_ImmortalHeap extends VM_Heap
   }
 
 
+  /**
+   * Mark an object in the boot heap
+   * @param ref the object reference to mark
+   * @return whether or not the object was already marked
+   */
+  public boolean mark(VM_Address ref) {
+    return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
+  }
+
+  /**
+   * Is the object reference live?
+   */
+  public boolean isLive(VM_Address ref) {
+    Object obj = VM_Magic.addressAsObject(ref);
+    return VM_AllocatorHeader.testMarkBit(obj, markValue);
+  }
+
+  /**
+   * Work to do before collection starts
+   */
+  public void startCollect() {
+    // flip the sense of the mark bit.
+    markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
+  }    
+  
   /**
    * Allocate a chunk of memory of a given size.
    *   @param size Number of bytes to allocate
@@ -104,6 +130,7 @@ final class VM_ImmortalHeap extends VM_Heap
       VM_ObjectModel.initializeAvailableByte(newObj); 
       VM_AllocatorHeader.setBarrierBit(newObj);
     }    
+    VM_AllocatorHeader.writeMarkBit(newObj, markValue);
   }
 
 

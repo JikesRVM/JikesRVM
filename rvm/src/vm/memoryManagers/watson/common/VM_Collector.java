@@ -112,7 +112,6 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
     VM_Allocator.setupProcessor(p);
   }
 
-  static final int MARK_VALUE = VM_Allocator.MARK_VALUE;
   static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
   static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
   static boolean useMemoryController = false;

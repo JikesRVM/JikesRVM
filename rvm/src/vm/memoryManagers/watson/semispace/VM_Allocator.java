@@ -326,17 +326,6 @@ public class VM_Allocator extends VM_GCStatistics
 
   static boolean gcInProgress;      // true if collection in progress, initially false
 
-  // FromSpace object are "marked" if mark bit in statusword == MARK_VALUE
-  // if "marked" == 0, then storing an aligned forwarding ptr also "marks" the
-  // original FromSpace copy of the object (ie. GC's go faster
-  // if "marked" == 1, then allocation of new objects do not require a store
-  // to set the markbit on (unmarked), but returning a forwarding ptr requires
-  // masking out the mark bit ( ie allocation faster, GC slower )
-  //
-  static final int MARK_VALUE = 1;        // to mark new/young objects already forwarded
-  
-  private static int BOOT_MARK_VALUE = 0;   // to mark bootimage objects during major GCs
-  
   // ------- End of Statics --------
 
   static void gcSetup ( int numSysThreads ) {
@@ -440,10 +429,9 @@ public class VM_Allocator extends VM_GCStatistics
       gcInProgress = true;
       gcDone = false;
 
-      // invert the mark_flag value, used for marking BootImage objects
-      BOOT_MARK_VALUE = BOOT_MARK_VALUE ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
- 
-      // Now prepare large space for collection - clears out mark array
+      // Prepare the other spaces for collection
+      bootHeap.startCollect();
+      immortalHeap.startCollect();
       largeHeap.startCollect();
 
       if (VM.ParanoidGCCheck) toHeap.unprotect();
@@ -902,31 +890,32 @@ public class VM_Allocator extends VM_GCStatistics
     if (ref.isZero()) return ref;
   
     // in FromSpace, if not marked, mark, copy & queue for scanning
-    if (fromHeap.refInHeap(ref)) 
+    if (fromHeap.refInHeap(ref)) {
       return copyAndScanObject(ref, true);
+    }
 
-    if (bootHeap.refInHeap(ref) || 
-	immortalHeap.refInHeap(ref)) {
-	if (  !VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), BOOT_MARK_VALUE) )
-	    return ref;   // object already marked with current mark value
-	// we marked a previously unmarked object - add object ref to GC work queue
-	VM_GCWorkQueue.putToWorkBuffer(ref);
-	return ref;
+    if (bootHeap.refInHeap(ref)) {
+      if (bootHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+      return ref;
+    }
+
+    if (immortalHeap.refInHeap(ref)) {
+      if (immortalHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+      return ref;
     }
 
     if (largeHeap.refInHeap(ref)) {
-	if (!largeHeap.mark(ref))                   // if not previously marked, 
-	    VM_GCWorkQueue.putToWorkBuffer(ref);     //    need to scan later
-	return ref;
+      if (largeHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+      return ref;
     }
 
     if (toHeap.refInHeap(ref)) 
-	return ref;
+      return ref;
 
     if (VM.VerifyAssertions) {
-	VM.sysWriteln("procesPtrValue: ref value not in any known heap: ", ref);
-	showParameter();
-	VM.sysFail("procesPtrValue: ref value not in any known heap");
+      VM.sysWriteln("procesPtrValue: ref value not in any known heap: ", ref);
+      showParameter();
+      VM.sysFail("procesPtrValue: ref value not in any known heap");
     }
 
     return VM_Address.zero();

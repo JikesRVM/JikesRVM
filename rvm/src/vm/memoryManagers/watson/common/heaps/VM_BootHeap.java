@@ -14,6 +14,11 @@ final class VM_BootHeap extends VM_Heap
   }
 
   /**
+   * the current mark value
+   */
+  private int markValue;
+
+  /**
    * Allocate size bytes of raw memory.
    * Size is a multiple of wordsize, and the returned memory must be word aligned
    * 
@@ -33,4 +38,30 @@ final class VM_BootHeap extends VM_Heap
   protected void postAllocationProcessing(Object newObj) { 
     // nothing to do in this heap
   }
+
+
+  /**
+   * Mark an object in the boot heap
+   * @param ref the object reference to mark
+   * @return whether or not the object was already marked
+   */
+  public boolean mark(VM_Address ref) {
+    return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
+  }
+
+  /**
+   * Is the object reference live?
+   */
+  public boolean isLive(VM_Address ref) {
+    Object obj = VM_Magic.addressAsObject(ref);
+    return VM_AllocatorHeader.testMarkBit(obj, markValue);
+  }
+
+  /**
+   * Work to do before collection starts
+   */
+  public void startCollect() {
+    // flip the sense of the mark bit.
+    markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
+  }    
 }

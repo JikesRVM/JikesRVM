@@ -24,8 +24,7 @@ public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(Object ref, Object[] tib, int size, boolean isScalar) {
-    // set mark bit in status word, if initial (unmarked) value is not 0      
-    if (VM_Allocator.MARK_VALUE==0) writeMarkBit(ref, GC_MARK_BIT_MASK);
+    // nothing to do (no bytes of GC header)
   }
 
   /**

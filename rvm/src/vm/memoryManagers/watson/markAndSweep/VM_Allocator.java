@@ -41,7 +41,6 @@ public class VM_Allocator extends VM_GCStatistics
   static VM_Address interesting_ref = VM_Address.zero();
 
   // following are referenced from elsewhere in VM
-  static final int    MARK_VALUE = 1;              
   static final boolean movesObjects = false;
   static final boolean writeBarrier = false;
   static final int    SMALL_SPACE_MAX = 2048;      // largest object in small heap
@@ -65,7 +64,6 @@ public class VM_Allocator extends VM_GCStatistics
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
 
   static boolean gcInProgress = false;
-  static int OBJECT_GC_MARK_VALUE = 0;  // changes between this and 0
 
   /** "getter" function for gcInProgress
   */
@@ -273,11 +271,9 @@ public class VM_Allocator extends VM_GCStatistics
       // setup common workqueue for num VPs participating
       VM_GCWorkQueue.workQueue.initialSetup(VM_CollectorThread.numCollectors());
 
-      // invert the mark_flag value, used for marking BootImage objects
-      if (OBJECT_GC_MARK_VALUE == 0)
-	OBJECT_GC_MARK_VALUE = VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
-      else
-	OBJECT_GC_MARK_VALUE = 0;
+      bootHeap.startCollect();
+      immortalHeap.startCollect();
+      mallocHeap.startCollect();
 
       // Now initialize the large object space mark array
       largeHeap.startCollect();
@@ -518,9 +514,10 @@ public class VM_Allocator extends VM_GCStatistics
   }
 
   static boolean gc_isLive (VM_Address ref) {
-    if (bootHeap.refInHeap(ref) || immortalHeap.refInHeap(ref) ) {
-      Object obj = VM_Magic.addressAsObject(ref);
-      return VM_AllocatorHeader.testMarkBit(obj, OBJECT_GC_MARK_VALUE);
+    if (bootHeap.refInHeap(ref)) {
+      return bootHeap.isLive(ref);
+    } else if (immortalHeap.refInHeap(ref)) {
+      return immortalHeap.isLive(ref);
     } else if (smallHeap.refInHeap(ref)) {
       return smallHeap.isLive(ref);
     } else if (largeHeap.refInHeap(ref)) {
@@ -589,21 +586,22 @@ public class VM_Allocator extends VM_GCStatistics
     if (ref.isZero()) return ref;  // TEST FOR NULL POINTER
 
     if (smallHeap.refInHeap(ref)) {
-      if (!smallHeap.mark(ref)) {
-	VM_GCWorkQueue.putToWorkBuffer(ref);
-      }
+      if (smallHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
       return ref;
     } 
 
     if (largeHeap.refInHeap(ref)) {
-      if (!largeHeap.mark(ref))
-	VM_GCWorkQueue.putToWorkBuffer(ref);
+      if (largeHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
       return ref;
     }
 
-    if (bootHeap.refInHeap(ref) || immortalHeap.refInHeap(ref) ) {
-      if (VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), OBJECT_GC_MARK_VALUE))
-	VM_GCWorkQueue.putToWorkBuffer(ref);
+    if (bootHeap.refInHeap(ref)) {
+      if (bootHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
+      return ref;
+    }
+
+    if (immortalHeap.refInHeap(ref)) {
+      if (immortalHeap.mark(ref)) VM_GCWorkQueue.putToWorkBuffer(ref);
       return ref;
     }
 
