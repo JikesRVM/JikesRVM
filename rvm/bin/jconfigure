@@ -1362,50 +1362,50 @@ function emitExpander () {
 	    exit 0
 	fi
 	# Make the tools that we need to do template expansion
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool
 	EOF
     fi
     cat <<- EOF
 	# build command line options for core VM
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
 	# build command line options for JMTk
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_FOR_IA32 )); then
 	cat <<- EOF
         # build VM_Assembler on Intel
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/assembler GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_OPT_COMPILER )); then
 	echo "\
-run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
+run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}"
 	fi
     fi
     cat <<- EOF
 	# Do the expansion
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/classLoader MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/classLoader MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/baseline MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
-		run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing MakeTemplates ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	if (( RVM_WITH_EXTREME_ASSERTIONS )); then
 	    cat <<- EOF
-		run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing/ir/instruction fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/compilers/optimizing/ir/instruction fatalInstructionFormat ARCH_DIR=${ARCH_DIR} GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 	fi
     fi
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
 	cat <<- EOF
-		run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+		run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
     fi
     cat <<EOF
@@ -1477,7 +1477,7 @@ function emitCopier () {
 	fi
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Make the preprocessor
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 	copyIfNewer "${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles" "${BUILD_DIRECTORY_STR}/jbuild.prep.host" -n "(set up jbuild.prep.host) "
 
 	# This may be reset in the loop below.
@@ -2356,7 +2356,7 @@ EOF
 	# in, if the user wants directory-changing information.
 	cd $BOOTIMAGE_WRITER_DIR_STR
 
-	run $GNU_MAKE_STR CFLAGS='' CXXFLAGS='' -f $BOOTIMAGE_WRITER_MAKEFILE \$MFLAGS \${VERBOSE_STR} \
+	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' -f $BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
 		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar \
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
 		RVM_BOOTIMAGE=$BOOTIMAGE_STR \
@@ -2559,10 +2559,10 @@ neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
 	echo >&2  -n '(classpath native libraries copied) '
 	CONFIG_H_DIR=${SCRATCH_DIRECTORY_STR}/Config.target
 
-	run ${GNU_MAKE_STR} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/configuring CONFIG_H_DIR=\${CONFIG_H_DIR} 
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/configuring CONFIG_H_DIR=\${CONFIG_H_DIR} 
 
 	# Make a target platform preprocessor for use in gctest
-	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} 
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} 
 	copyIfNewer "${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles" "${BUILD_DIRECTORY_STR}/jbuild.prep.target"  -n '(set up jbuild.prep.target) '
 	## Create RunBootImage.h file.
 EOF
@@ -2586,7 +2586,7 @@ EOF_RUNBOOTIMAGE_H
 	chdir ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
 EOF
     DEST="${BUILD_DIRECTORY_STR}/libjpnexec${shlib_suffix}"
-    echo "run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
+    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
 
     if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
@@ -2605,7 +2605,7 @@ EOF
     else
 	# Build the blocking system call wrapper library, if requested
 	DEST="$BUILD_DIRECTORY_STR/libsyswrap"${shlib_suffix}
-	echo "run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
+	echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
     fi
 
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
