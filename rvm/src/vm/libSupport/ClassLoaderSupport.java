@@ -167,6 +167,26 @@ public class ClassLoaderSupport {
   }
 
   /**
+   * Attempts to find and return a class which has already
+   * been loaded by the virtual machine. Note that the class
+   * may not have been linked and the caller should call
+   * resolveClass() on the result if necessary.
+   *
+   * @return 		java.lang.Class
+   *					the class or null.
+   * @param 		className String
+   *					the name of the class to search for.
+   */
+  public static Class findLoadedClass (ClassLoader cl, String className)
+  {
+    UnimplementedError.unimplemented("findLoadedClass");
+    return null;
+  }
+
+
+
+
+  /**
    * Returns the system class loader.  This is the parent
    * for new ClassLoader instances, and is typically the
    * class loader used to start the application.

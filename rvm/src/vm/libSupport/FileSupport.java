@@ -17,7 +17,7 @@ public class FileSupport {
   // options for open()
   public static final int OPEN_READ   = 0; // open for read/only  access
   public static final int OPEN_WRITE  = 1; // open for read/write access, create if doesn't already exist, 
-                                           // truncate if already exists
+  // truncate if already exists
   public static final int OPEN_MODIFY = 2; // open for read/write access, create if doesn't already exist
   public static final int OPEN_APPEND = 3; // open for read/write access, create if doesn't already exist, append writes
 
@@ -34,6 +34,33 @@ public class FileSupport {
   public static final int STAT_IS_WRITABLE   = 4;
   public static final int STAT_LAST_MODIFIED = 5;
   public static final int STAT_LENGTH        = 6;
+
+  private static final String pathSeparator =
+    System.getProperty("path.separator") == null ? ";" :
+    System.getProperty("path.separator");
+  private static final String separator =
+    System.getProperty("file.separator") == null ? "\\" :
+    System.getProperty("file.separator");
+  private static final char separatorChar = separator.charAt(0);
+  private static final char pathSeparatorChar = pathSeparator.charAt(0);
+
+  /**
+   * Return the value for java.io.File.pathSeparator
+   */
+  public static String getPathSeparator() { return pathSeparator; }
+  /**
+   * Return the value for java.io.File.separator
+   */
+  public static String getSeparator() { return separator; }
+  /**
+   * Return the value for java.io.File.separatorChar
+   */
+  public static char getSeparatorChar() { return separatorChar; }
+  /**
+   * Return the value for java.io.File.pathSeparatorChar
+   */
+  public static char getPathSeparatorChar() { return pathSeparatorChar; }
+
 
   /**
    * Call <code>sync</code> on a file descriptor.
@@ -67,14 +94,220 @@ public class FileSupport {
   }
 
   /**
+   * Close a FileInputStream.
+   *
+   * @exception 	java.io.IOException	If an error occurs attempting to close this FileInputStream.
+   */
+  public static void close(FileInputStream f) throws IOException {    
+    FileDescriptor fd = f.fd;
+    f.fd = null;
+    if (fd != null) {
+      fd.deref();
+      if (fd.dead()) {
+        int rc = FileSupport.close(fd.fd);
+        if (rc == -2)
+          // !!TODO: what additional details to supply?
+          throw new IOException(); 
+      }
+    }
+  }
+
+  /**
+   * Close a FileOutputStream.  This implementation closes the underlying OS resources allocated
+   * to represent this stream.
+   *
+   * @exception 	java.io.IOException	If an error occurs attempting to close this FileOutputStream.
+   */
+  public static void close(FileOutputStream f) throws IOException {
+    FileDescriptor fd = f.fd;
+    f.fd = null;
+    if (fd != null) {
+      fd.deref();
+      if (fd.dead()) {
+        int rc = FileSupport.close(fd.fd);
+        if (rc == -2)
+          // !!TODO: what additional details to supply?
+          throw new IOException(); 
+      } else {
+        FileSupport.sync(fd.fd);
+      }
+    }  
+  }
+  /**
+   * Frees any resources allocated to represent a FileOutputStream before it is garbage collected.
+   *
+   * @exception 	java.io.IOException	If an error occurs attempting to finalize this FileOutputStream.
+   */
+  public static void finalize(FileOutputStream f) throws IOException {
+    // in UNIX, fds 0, 1 and 2 tend to be special
+    if (f.fd != null)
+      if (f.fd.fd > 2) 
+        close(f);
+      else
+        FileSupport.sync( f.fd.fd );
+  }
+
+  /**
+   * Writes <code>count</code> <code>bytes</code> from the byte array
+   * <code>buffer</code> starting at <code>offset</code> to this
+   * FileOutputStream.
+   *
+   * @param		buffer		the buffer to be written
+   * @param		offset		offset in buffer to get bytes
+   * @param		count		number of bytes in buffer to write
+   *
+   * @throws 	java.io.IOException	If an error occurs attempting to write to this FileOutputStream.
+   * @throws	java.lang.IndexOutOfBoundsException If offset or count are outside of bounds.
+   * @throws	java.lang.NullPointerException If buffer is <code>null</code>.
+   */
+  public static void write(FileOutputStream f, byte[] buffer, int offset, int count) throws IOException {
+    int rc = FileSupport.writeBytes(f.fd.fd, buffer, offset, count);
+    if (rc != count)
+      throw new IOException();
+  }
+
+
+
+
+  /**
    * Get file status.
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
    * @return desired info (-1 -> error)
    */ 
-  public static int stat(String fileName, int kind) {
+  private static int stat(String fileName, int kind) {
     return VM_FileSystem.stat(fileName,kind);
   }
+
+  /**
+   * Answers a boolean indicating whether or not the current context i
+   * allowed to read this File.
+   *
+   * @return		<code>true</code> if this File can be read, <code>false</code> otherwise.
+   *
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static boolean canRead(File f) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    return stat(f.getAbsolutePath(), STAT_IS_READABLE) == 1;
+  }
+
+
+  /**
+   * Answers a boolean indicating whether or not the current context is
+   * allowed to write to this File.
+   *
+   * @return		<code>true</code> if this File can be written, <code>false</code> otherwise.
+   *
+   * @see			java.lang.SecurityManager#checkWrite()
+   */
+  public static boolean canWrite(File f) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkWrite(f.getPath());
+    return stat(f.getAbsolutePath(), STAT_IS_WRITABLE) == 1;
+  }
+
+  /**
+   * Answers a boolean indicating whether or not this File can be found on the
+   * underlying file system.
+   *
+   * @return		<code>true</code> if this File exists, <code>false</code> otherwise.
+   *
+   * @see			#getPath
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static boolean exists(File f) {
+    if (f.getPath().length() == 0) return false;
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    return stat(f.getAbsolutePath(), STAT_EXISTS) == 1;
+  }
+
+  /**
+   * Answers if this File represents a <em>directory</em> on the underlying file system.
+   *
+   * @return		<code>true</code> if this File is a directory, <code>false</code> otherwise.
+   *
+   * @see			#getPath
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static boolean isDirectory(File f) {
+    if (f.getPath().length() == 0) return false;
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    return stat(f.getAbsolutePath(), STAT_IS_DIRECTORY) == 1;
+  }
+
+  /**
+   * Answers if this File is an absolute pathname. Whether a pathname is absolute
+   * is platform specific.  On UNIX it is if the path starts with the character '/',
+   * on Windows it is absolute if either it starts with '\', '/', '\\' (to represent
+   * a file server), or a letter followed by a colon.
+   *
+   * @return		<code>true</code> if this File is absolute, <code>false</code> otherwise.
+   *
+   * @see			#getPath
+   */
+  public static boolean isAbsolute(File f) {
+    return f.getPath().charAt(0) == '/';
+  }
+
+
+  /**
+   * Answers if this File represents a <em>file</em> on the underlying file system.
+   *
+   * @return		<code>true</code> if this File is a file, <code>false</code> otherwise.
+   *
+   * @see			#getPath
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static boolean isFile(File f) {
+    if (f.getPath().length() == 0) return false;
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    return stat(f.getAbsolutePath(), STAT_IS_FILE) == 1;
+  }
+
+  /**
+   * Answers the time this File was last modified.
+   *
+   * @return		the time this File was last modified.
+   *
+   * @see			#getPath
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static long lastModified(File f) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    return stat(f.getAbsolutePath(), STAT_LAST_MODIFIED);
+  }
+
+  /**
+   * Answers the length of this File in bytes.
+   *
+   * @return		the number of bytes in the file.
+   *
+   * @see			#getPath
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static long length(File f) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    int rc = stat(f.getAbsolutePath(), STAT_LENGTH);
+    if (rc < 0)
+      return 0;
+    return rc;
+  }
+
+
 
   /**
    * How many bytes available to read from a socket or file?
@@ -91,6 +324,28 @@ public class FileSupport {
    */ 
   public static String[] list(String dirName) {
     return VM_FileSystem.list(dirName);
+  }
+  /**
+   * Answers an array of Strings representing the file names in the
+   * directory represented by this File.  If this File is not a directory
+   * the result is <code>null</code>.
+   * <p>
+   * The entries <code>.</code> and <code>..</code> representing current directory
+   * and parent directory are not returned as part of the list.
+   *
+   * @return		an array of Strings or <code>null</code>.
+   *
+   * @see			#getPath
+   * @see			#isDirectory
+   * @see			java.lang.SecurityManager#checkRead()
+   */
+  public static String[] list(File f) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null)
+      security.checkRead(f.getPath());
+    if (!isDirectory(f))
+      return null;
+    return list(f.getAbsolutePath());
   }
 
   /**
@@ -174,4 +429,152 @@ public class FileSupport {
   public static int writeByte(int fd, int b) {
     return VM_FileSystem.writeByte(fd,b);
   }
+/**
+ * Close a RandomAccessFile.
+ *
+ * @exception 	java.io.IOException	If an error occurs attempting to close this RandomAccessFile.
+ */
+public static void close(RandomAccessFile f) throws IOException {
+    FileDescriptor fd = f.fd;
+    f.fd = null;
+    if (fd != null) {
+	fd.deref();
+	if (fd.dead()) {
+	    int rc = close(fd.fd);
+	    if (rc == -2)
+		// !!TODO: what additional details to supply?
+		throw new IOException(); 
+	} else {
+	    sync( fd.fd );
+	}
+    }  
+}
+/**
+ * Answers the current position within a RandomAccessFile.  All reads and writes
+ * take place at the current file pointer position.
+ *
+ * @return		the current file pointer position.
+ *
+ * @exception 	java.io.IOException	If an error occurs attempting to get the file pointer position
+ *									of this RandomAccessFile.
+ */
+public static long getFilePointer(RandomAccessFile f) throws IOException
+   {
+   int curpos = seek(f.fd.fd, 0, SEEK_CUR);
+   if (curpos == -1)
+      throw new IOException();
+   return curpos;
+   }
+
+/**
+ * Answers the current length of a RandomAccessFile in bytes.
+ *
+ * @return		the current file length in bytes.
+ *
+ * @exception 	java.io.IOException	If an error occurs attempting to get the file length
+ *									of this RandomAccessFile.
+ */
+public static long length(RandomAccessFile f) throws IOException
+   {
+   //!!TODO - probably an fstat() would be faster than three lseeks()...
+   //!!TODO - also, this computation is not thread safe if
+   //         multiple threads do read/write/seek on file simultaneously
+   int oldpos = seek(f.fd.fd, 0,      FileSupport.SEEK_CUR);
+   int endpos = seek(f.fd.fd, 0,      FileSupport.SEEK_END);
+   int newpos = seek(f.fd.fd, oldpos, FileSupport.SEEK_SET);
+
+   if (oldpos == -1 || endpos == -1 || newpos != oldpos)
+      throw new IOException();
+
+   return endpos;
+   }
+/**
+ * Reads a single byte from a RandomAccessFile and returns the result as
+ * an int.  The low-order byte is returned or -1 of the end of file was
+ * encountered.
+ *
+ * @return 		the byte read or -1 if end of file.
+ *
+ * @exception 	java.io.IOException	If an error occurs attempting to read from this RandomAccessFile.
+ *
+ * @see 		#write(byte[])
+ * @see 		#write(byte[], int, int)
+ * @see 		#write(int)
+ */
+public static int read(RandomAccessFile f) throws IOException {
+	if (f.fd != null)
+		{
+		  int rc = readByte(f.fd.fd);
+		  if (rc < -1)	throw new IOException();
+		  else		return rc;
+		}
+	throw new IOException();
+}
+
+/**
+ * Seeks to the position <code>pos</code> in a RandomAccessFile.  All read/write/skip
+ * methods sent will be relative to <code>pos</code>.
+ *
+ * @param 		pos			the desired file pointer position
+ *
+ * @exception 	java.io.IOException 	If the stream is already closed or another IOException occurs.
+ */
+public static void seek(RandomAccessFile f, long pos) throws IOException
+   {
+   if (seek(f.fd.fd, (int)pos, SEEK_SET) == -1)
+      throw new IOException();
+   }
+/**
+ * Writes <code>count</code> bytes from the byte array
+ * <code>buffer</code> starting at <code>offset</code> to this
+ * RandomAccessFile starting at the current file pointer..
+ *
+ * @param		buffer		the bytes to be written
+ * @param		offset		offset in buffer to get bytes
+ * @param		count		number of bytes in buffer to write
+ *
+ * @exception 	java.io.IOException	If an error occurs attempting to write to this RandomAccessFile.
+ *
+ * @see 		#read()
+ * @see 		#read(byte[])
+ * @see 		#read(byte[], int, int)
+ *
+ * @exception	java.lang.ArrayIndexOutOfBoundsException If offset or count are outside of bounds.
+ */
+public static void write(RandomAccessFile f, byte[] buffer, int offset, int count) throws IOException {
+	if (f.fd != null)
+		{
+		  int rc = writeBytes(f.fd.fd, buffer, offset, count);
+		  if (rc != count) throw new IOException();
+		  return;
+		}
+	else throw new IOException();
+}
+
+/**
+ * Writes the specified byte <code>oneByte</code> to this RandomAccessFile
+ * starting at the current file pointer. Only the low order byte of
+ * <code>oneByte</code> is written.
+ *
+ * @param		oneByte		the byte to be written
+ *
+ * @exception 	java.io.IOException	If an error occurs attempting to write to this RandomAccessFile.
+ *
+ * @see 		#read()
+ * @see 		#read(byte[])
+ * @see 		#read(byte[], int, int)
+ */
+public static void write(RandomAccessFile f, int oneByte) throws IOException {
+	if (f.fd != null)
+		{
+		  if (FileSupport.writeByte(f.fd.fd, oneByte) == -1)
+		    throw new IOException();
+		  return;
+		}
+	else throw new IOException();
+}
+
+
+
+
 }

@@ -28,6 +28,7 @@ import VM_SystemClassLoader;
 import VM_Type;
 import VM_UnimplementedError;
 import java.lang.reflect.*;
+import java.io.*;
 
 public class ReflectionSupport {
 
@@ -202,6 +203,48 @@ public class ReflectionSupport {
   {
     return C.type.isPrimitiveType();
   }
+  /**
+   * Return true if the typecode <code>typecode<code> describes a primitive type
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		typecode		a char describing the typecode
+   * @return		<code>true</code>
+   *					if the typecode represents a primitive type
+   *				<code>false</code>
+   *					if the typecode represents an Object type (including arrays)
+   * @see			hashCode
+   */
+  static boolean isPrimitiveType(char typecode) {
+    return !(typecode == '[' || typecode == 'L');
+  }
+
+  /**
+   * Answers true if the argument is non-null and can be
+   * cast to the type of the receiver. This is the runtime
+   * version of the <code>instanceof</code> operator.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @return		<code>true</code>
+   *					the argument can be cast to the type of the receiver
+   *              <code>false</code>
+   *					the argument is null or cannot be cast to the
+   *					type of the receiver
+   *
+   * @param		object Object
+   *					the object to test
+   */
+  public static boolean isInstance(Class C, Object object)
+  {
+    if (object == null)     return false;
+    if (C.isPrimitive()) return false;
+    return isAssignableFrom(C,object.getClass());
+  }
+
+
 
   /**
    * Answers true if the parameter represents an array type.
@@ -1370,6 +1413,65 @@ public class ReflectionSupport {
   }
 
   /**
+   * Attempts to run private instance method <code>readObject</code> defined in class <code>theClass</code> having
+   * object <code>obj</code> as receiver. If no such method exists, return false. If
+   * the method is run, returns true.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Method). Otherwise Serialization could not run private methods, except
+   * by the use of a native method like this one.
+   *
+   * @param	obj			receiver for the readObject() message
+   * @param	theClass	Class where method readObject() must have been defined
+   *
+   * @return		<code>true</code>
+   *					if the method was found and run
+   *				<code>false</code>
+   *					if the method was not found and therefore not run
+   *
+   */
+  public static boolean executeReadObject(ObjectInputStream ois, Object obj, Class theClass) {
+    Method method;
+
+    // need type of arg to writeObject, which is ObjectInputStream
+    Class[] argTypes = new Class[1];
+    //argTypes[0] = this.getClass();
+    try {
+      argTypes[0] = Class.forName("java.io.ObjectInputStream");
+    }
+    catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    // get Method, if it exists
+    try {
+      method = theClass.getDeclaredMethod("readObject", argTypes);
+    }
+    catch ( NoSuchMethodException e ) {
+      return false;  // tells caller method not defined for the class
+    }
+    catch ( SecurityException e ) {
+      System.out.println("SecurityException in ObjectInputStream.executeReadObject");
+      return false;
+    }
+
+    Object[] methodArgs = new Object[1];
+    methodArgs[0] = ois;   // arg to writeObject is this stream
+
+    try {
+      method.setAccessible( true );     // allow access to private method
+      method.invoke( obj, methodArgs );
+    }
+    catch ( Exception e ) {
+      System.out.println("unexpected exception in .executeReadObject = " + e );
+      return false;
+    }
+
+    return true;    // tells caller method exists & was invoked
+  }
+
+  /**
    * Compare parameter lists for agreement.
    */ 
   private static boolean parametersMatch(VM_Type[] lhs, Class[] rhs) {
@@ -1417,6 +1519,863 @@ public class ReflectionSupport {
 
     return false;
   }
+  /**
+   * Initialize a stream for reading primitive data stored in <code>byte[] data</code>
+   *
+   * @param		data		The primitive data as raw bytes.
+   * @exception	IOException		If an IO exception happened when creating internal streams to hold primitive data
+   *
+   * @see			write, readBoolean, readChar, readInt, readByte, readLong, readFloat, readDouble
+   */
+  public static void initPrimitiveTypes(ObjectInputStream ois, byte[] data) throws IOException {
+    ois. primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
+  }
+  /**
+   * Reads a collection of field descriptors (name, type name, etc) for the class descriptor
+   * <code>cDesc</code> (an <code>ObjectStreamClass</code>)
+   *
+   * @param		cDesc	The class descriptor (an <code>ObjectStreamClass</code>) for which to write field information
+   *
+   * @exception	IOException	If an IO exception happened when reading the field descriptors.
+   * @exception	ClassNotFoundException	If a class for one of the field types could not be found
+   *
+   * @see			readFieldValues
+   */
+  public static void readFieldDescriptors(ObjectInputStream ois, ObjectStreamClass cDesc) throws ClassNotFoundException, IOException {
+    ObjectStreamField f;
+    short numFields = ois.input.readShort();
+    ObjectStreamField[] fields = new ObjectStreamField [numFields];
+
+    // We set it now, but each element will be inserted in the array further down
+    cDesc.setLoadFields (fields);
+
+    // Check ObjectOutputStream.writeFieldDescriptors
+    for (short i = 0 ; i < numFields; i++) {
+      char typecode = (char) ois.input.readByte();
+      String fieldName = ois.input.readUTF();
+      boolean isPrimType = isPrimitiveType(typecode);
+      String classSig;
+      if (isPrimType) {
+        char [] oneChar = new char[1];
+        oneChar[0]=typecode;
+        classSig = new String (oneChar);
+
+        Class typeClass;
+        switch (typecode) {
+          case 'Z' :
+            typeClass = boolean.class;
+            break;
+          case 'B' :
+            typeClass = byte.class;
+            break;
+          case 'C' :
+            typeClass = char.class;
+            break;
+          case 'S' :
+            typeClass = short.class;
+            break;
+          case 'I' :
+            typeClass = int.class;
+            break;
+          case 'J' :
+            typeClass = long.class;
+            break;
+          case 'F' :
+            typeClass = float.class;
+            break;
+          case 'D' :
+            typeClass = double.class;
+            break;
+          default :
+            throw new IOException("Invalid Typecode " + typecode);
+        }
+
+        f = new ObjectStreamField(fieldName, typeClass);
+
+      } else {
+        // The spec says it is a UTF, but experience shows they dump this String
+        // using writeObject (unlike the field name, which is saved with writeUTF)
+        classSig = (String) ois.readObject ();
+
+        // strip off leading L and trailing ; to get class name
+        if (classSig.charAt(0) == 'L')
+          classSig = classSig.substring(1,classSig.length()-1);
+
+        f = new ObjectStreamField(fieldName, Class.forName(classSig));
+      }
+
+      fields [i] = f;
+    }
+  }
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>byte</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField(Object instance, Class declaringClass, String fieldName, byte value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setByte(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,byte): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>char</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField(Object instance, Class declaringClass, String fieldName, char value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setChar(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,char): " + e );
+    }
+  }
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>double</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField(Object instance, Class declaringClass, String fieldName, double value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setDouble(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,double): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>float</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField (Object instance, Class declaringClass, String fieldName, float value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setFloat(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,float): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>int</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField (Object instance, Class declaringClass, String fieldName, int value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setInt(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,int): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>long</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField (Object instance, Class declaringClass, String fieldName, long value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setLong(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,long): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		declaringClass	Class which delares the field
+   * @param		fieldName		Name of the field to set
+   * @param		fieldTypeName	Name of the class defining the type of the field
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField (Object instance, Class declaringClass, String fieldName, String fieldTypeName, Object value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.set(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,Object): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>short</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField (Object instance, Class declaringClass, String fieldName, short value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setShort(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,short): " + e );
+    }
+  }
+
+  /**
+   * Set a given declared field named <code>fieldName</code> of <code>instance</code> to
+   * the new <code>boolean</code> value <code>value</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not set private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance		Object whose field to set
+   * @param		fieldName		Name of the field to set
+   * @param		value			New value for the field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static void setField (Object instance, Class declaringClass, String fieldName, boolean value) throws NoSuchFieldError {
+
+    try {
+      // following may throw NoSuchFieldError;
+      Field f = declaringClass.getDeclaredField( fieldName );
+
+      f.setAccessible( true );     // to allow access to private fields
+      f.setBoolean(instance,value);
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectInputStream.setField(..,boolean): " + e );
+    }
+  }
+
+  /**
+   * Executes the private, instance method <code>writeObject</code> defined in class
+   * <code>theClass</code> having <code>obj</code> as receiver.
+   * a boolean.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Method). Otherwise Serialization could not run private methods, except
+   * by the use of a native method like this one.
+   *
+   * @param		obj					Receiver object for method <code>writeObject</code>
+   * @param		theClass			The class that declares the method <code>writeObject</code>
+   *
+   * @return		boolean, indicating whether the method was found and executed or not.
+   */
+  public static boolean executeWriteObject (ObjectOutputStream oos, Object obj, Class theClass) {
+    Method method;
+
+    // need type of arg to writeObject, which is ObjectOutputStream
+    Class[] argTypes = new Class[1];
+    //argTypes[0] = this.getClass();
+    try {
+      argTypes[0] = Class.forName("java.io.ObjectOutputStream");
+    }
+    catch ( ClassNotFoundException e ) {
+      return false;
+    }
+
+    // get Method, if it exists
+    try {
+      method = theClass.getDeclaredMethod("writeObject", argTypes);
+    }
+    catch ( NoSuchMethodException e ) {
+      return false;  // tells caller method not defined for the class
+    }
+    catch ( SecurityException e ) {
+      System.out.println("SecurityException in ObjectOutputStream.executeWriteObject");
+      return false;
+    }
+
+    Object[] methodArgs = new Object[1];
+    methodArgs[0] = oos;   // arg to writeObject is this stream
+
+    try {
+      method.setAccessible( true );     // allow access to private method
+      method.invoke( obj, methodArgs );
+    }
+    catch ( Exception e ) {
+      System.out.println("unexpected exception in ObjectOutputStream.executeWriteObject = " + e );
+      return false;
+    }
+
+    return true;    // tells caller method exists & was invoked
+  }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a boolean.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static boolean getFieldBool (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      boolean b = true;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        b = f.getBoolean(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldBool(): " + e );
+      }
+
+      return b;
+    }
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a byte
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static byte getFieldByte (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      byte b = 0;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        b = f.getByte(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldByte(): " + e );
+      }
+
+      return b;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a char.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static char getFieldChar (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      char c = '0';
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        c = f.getChar(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldChar(): " + e );
+      }
+
+      return c;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a double.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static double getFieldDouble (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      double d = 0.0;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        d = f.getDouble(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldDouble(): " + e );
+      }
+
+      return d;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a float.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static float getFieldFloat (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      float ff = (float)0.0;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        ff = f.getFloat(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldFloat(): " + e );
+      }
+
+      return ff;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * an int.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static int getFieldInt (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      int i = 0;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        i = f.getInt(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldInt(): " + e );
+      }
+
+      return i;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a long.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static long getFieldLong (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      long l = 0;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        l = f.getLong(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldLong(): " + e );
+      }
+
+      return l;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * an Object type whose name is <code>fieldTypeName</code>.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   * @param		fieldTypeName		Name of the class that defines the type of this field
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static Object getFieldObj (Object instance, Class declaringClass, String fieldName, String fieldTypeName)
+    throws NoSuchFieldError {
+
+      Object obj = null;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        f.setAccessible( true );     // to allow access to private fields
+        obj = f.get(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldObj(): " + e );
+      }
+
+      return obj;
+    }
+
+  /**
+   * Get the value of field named <code>fieldName<code> of object <code>instance</code>. The
+   * field is declared by class <code>declaringClass</code>. The field is supposed to be
+   * a short.
+   *
+   * This method could be implemented non-natively on top of java.lang.reflect implementations
+   * that support the <code>setAccessible</code> API, at the expense of extra object creation
+   * (java.lang.reflect.Field). Otherwise Serialization could not fetch private fields, except
+   * by the use of a native method like this one.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		instance			Object whose field value we want to fetch
+   * @param		declaringClass		The class that declares the field
+   * @param		fieldName			Name of the field we want to fetch
+   *
+   * @exception	NoSuchFieldError	If the field does not exist.
+   */
+  public static short getFieldShort (Object instance, Class declaringClass, String fieldName)
+    throws NoSuchFieldError {
+
+      short s = 0;
+
+      try {
+        // following may throw NoSuchFieldError;
+        Field f = declaringClass.getDeclaredField( fieldName );
+
+        // call setAccessible here, to get access to private field values
+        f.setAccessible( true );     // to allow access to private fields
+        s = f.getShort(instance);
+      }
+      catch ( Exception e ) {
+        System.out.println( "exception in ObjectOutputStream.getFieldShort(): " + e );
+      }
+
+      return s;
+    }
+
+  /**
+   * Return a String representing the signature for a Constructor <code>c</code>.
+   *
+   * @author		OTI
+   * @version		initial
+   *
+   * @param		c		a java.lang.reflect.Constructor for which to compute the signature
+   * @return		String 	The constructor's signature
+   *
+   */
+  public static String getConstructorSignature (Constructor c) {
+    String signature = null;
+
+    try {
+      c.setAccessible( true );     // to allow access to private fields
+      signature = c.getSignature();
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectStreamClass.getConstructorSignature(): " + e );
+    }
+
+    return signature;
+  }
+
+  /**
+   * Return a String representing the signature for a field <code>f</code>.
+   *
+   * @param		f		a java.lang.reflect.Field for which to compute the signature
+   * @return		String 	The field's signature
+   *
+   */
+  public static String getFieldSignature (Field f) {
+    String signature = null;
+
+    try {
+      f.setAccessible( true );     // to allow access to private fields
+      signature = f.getSignature();
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectStreamClass.getFieldSignature(): " + e );
+    }
+
+    return signature;
+  }
+
+  /**
+   * Return a String representing the signature for a method <code>m</code>.
+   *
+   * @param		m		a java.lang.reflect.Method for which to compute the signature
+   * @return		String 	The method's signature
+   *
+   */
+  public static String getMethodSignature (Method m) {
+    String signature = null;
+
+    try {
+      m.setAccessible( true );     // to allow access to private fields
+      signature = m.getSignature();
+    }
+    catch ( Exception e ) {
+      System.out.println( "exception in ObjectStreamClass.getMethodSignature(): " + e );
+    }
+
+    return signature;
+  }
+  /**
+   * Return true if the given class <code>cl</code> has the compiler-generated method <code>clinit</code>.
+   * Even though it is compiler-generated, it is used by the serialization code
+   * to compute SUID. This is unfortunate, since it may depend on compiler optimizations
+   * in some cases.
+   *
+   * @param		cl		a java.lang.Class which to test
+   * @return		<code>true</code>
+   *					if the class has <clinit>
+   *				<code>false</code>
+   *					if the class does not have <clinit>
+   */
+  public static boolean hasClinit(Class cl) {
+    try {
+      // following will either return Method or throw exception
+      Method method = cl.getDeclaredMethod("<clinit>", null);
+    } catch (NoSuchMethodException nsm) {
+      return false;
+    }
+    return true;  // no exception thrown, clint was found
+  }
+
 
   /**
    * Convert from "vm" type system to "jdk" type system.
