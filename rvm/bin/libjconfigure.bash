@@ -391,7 +391,6 @@ function cleanline() {
 }
 
 
-
 ## The code in the rest of this file auto-detects the Bash version.
 ## This will affect anyone who's not running Bash 2.05a or
 ## newer (Bash 2.05a came out in 2001).
