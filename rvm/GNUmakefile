@@ -32,13 +32,13 @@ all:
 
 
 ifdef RVM_BUILD
-   GENSRC:=$(RVM_BUILD)/RVM.generatedSources $(RVM_BUILD)/RVM.scratch
+   GENSRC:=$(RVM_BUILD)/RVM.generatedSources
 else
    GENSRC:=
 endif
 
 find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
-find_match_junk_names:=-name Old -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
+find_match_junk_names:=-name Old -prune -o -name '*.[ao]' -prune -o -name \*.so -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
 append_java_templates=find src -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs -0 etags $(EFLAGS) --language=java --append --output=$@ 
 
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
@@ -56,11 +56,17 @@ FORCE:
 TAGS: FORCE
 	$(RM) $@
 	$(FIND) -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+ifdef RVM_BUILD
+	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+endif
 	${append_java_templates}
 
 TAGS.ALL: FORCE
 	$(RM) $@
 	$(FINDALL) ! -name \*.template -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+ifdef RVM_BUILD
+	find  $(RVM_BUILD)/RVM.scratch \( -name \*.C -o -name \*.java -o -name \*.h -o -name \*.c -o -name \*.y \) -type f -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+endif
 	${append_java_templates}
 
 TAGS.Makefiles: FORCE
