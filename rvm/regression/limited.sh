@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# (C) Copyright IBM Corp. 2002
+# (C) Copyright IBM Corp. 2002, 2003
 #
 # $Id$
 #
@@ -32,7 +32,7 @@ if [ "x$command" = xkill ] ; then
         # Think about a portable way to stop $pid from spawning new processes
         # (note: done in the Bash version) --Steve Augart
         # find kids and call script recursiveley
-	if [[ `uname` == Darwin ]]; then
+	if [[ `uname` = Darwin ]]; then
             children="$(ps -wwajx | awk '$3~/'$pid'/{print $2}')"
 	else
             children="$(ps -ef | awk '$3~/'$pid'/{print $2}')"
