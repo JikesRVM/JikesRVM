@@ -1,0 +1,14 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+package org.vmmagic.unboxed;
+
+/**
+ * @author Dave Grove 
+ */
+public class Offset {
+  public static Offset fromIntSignExtend(int x) {
+    return null;
+  }
+}
