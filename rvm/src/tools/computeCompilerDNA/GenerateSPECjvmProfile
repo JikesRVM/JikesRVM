@@ -1,0 +1,20 @@
+#!/bin/ksh
+
+#
+# (C) Copyright IBM Corp. 2002
+#
+# $Id$
+
+# This script will run the system on the SPECjvm98 benchmarks, 
+# and collect profile data, dumped to a file.
+#
+# @author Stephen Fink
+
+cd
+mkdir -p $RVM_ROOT/support/profileData
+FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
+PERF_FILE=/tmp/xxx
+
+RunSanityTests -performance $PERF_FILE -configuration FastBaseAdaptiveSemispace -test SPECjvm98 \
+-rc-args "-X:aos:primary_strategy=baseonly -X:aos:base:edge_counter_file=$FILE" \
+-nobuild
