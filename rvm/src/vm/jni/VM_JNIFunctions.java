@@ -1,3 +1,4 @@
+
 /*
  * (C) Copyright IBM Corp 2001,2002,2004
  */
@@ -5365,7 +5366,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * RegisterNatives: registers implementation of native methods
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class to register native methods in
-   * @param methodsAddress the address of array of native methods to be registered
+   * @param methodsAddress the address of an array of native methods to be registered
    * @param nmethods the number of native methods in the array
    * @return 0 is successful -1 if failed
    * @exception NoSuchMethodError if a specified method cannot be found or is not native
