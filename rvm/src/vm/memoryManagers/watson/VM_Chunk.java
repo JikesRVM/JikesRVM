@@ -23,6 +23,18 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    */
   private static final int CHUNK_SIZE = 64 * 1024;
 
+  /**
+   * Some accessor functions.
+   */
+  public static VM_Address currentChunk1() {
+      return VM_Processor.getCurrentProcessor().currentChunk1;
+  }
+
+  public static VM_Address currentChunk2() {
+      return VM_Processor.getCurrentProcessor().currentChunk2;
+  }
+
+
   /** 
    * Allocate raw memory of size bytes.
    * Memory will be allocated from local chunk1.
@@ -148,6 +160,14 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
     st.backingHeapChunk2 = heap;
   }
 
+
+  public static boolean unusedChunk1(VM_Processor st) {
+      return st.startChunk1 == st.currentChunk1;
+  }
+
+  public static boolean unusedChunk2(VM_Processor st) {
+      return st.startChunk2 == st.currentChunk2;
+  }
 
   /**
    * How much free space is left in the chunk1's?
