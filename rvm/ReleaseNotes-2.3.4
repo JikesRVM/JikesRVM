@@ -24,4 +24,7 @@ VM.  Set it as you would set the CLASSPATH environment variable.
 **The JNI AttachCurrentThread function now returns proper error status if it
 cannot complete properly.  It used to (incorrectly) always return
 JNI_OK.
+**Class.getResourceAsStream() and Class.getResource() would fail 
+with a NullPointerException when invoked on a Class object that was
+loaded by the Bootstrap Class Loader. 
 

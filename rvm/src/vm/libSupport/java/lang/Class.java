@@ -508,7 +508,7 @@ public final class Class implements java.io.Serializable {
   }
 
   public URL getResource(String resName) {
-    ClassLoader loader = getClassLoader();
+    ClassLoader loader = type.getClassLoader();
     if (loader == VM_SystemClassLoader.getVMClassLoader())
       return ClassLoader.getSystemResource(toResourceName(resName));
     else
@@ -516,7 +516,7 @@ public final class Class implements java.io.Serializable {
   }
 
   public InputStream getResourceAsStream(String resName) {
-    ClassLoader loader = getClassLoader();
+    ClassLoader loader = type.getClassLoader();
     if (loader == VM_SystemClassLoader.getVMClassLoader())
       return ClassLoader.getSystemResourceAsStream(toResourceName(resName));
     else
