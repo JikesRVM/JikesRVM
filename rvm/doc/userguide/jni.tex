@@ -34,7 +34,7 @@ associated tests) would be greatly appreciated.
 The functions are defined in the class {\tt VM\_JNIFunctions}. Methods
 of this class are compiled with special prologues/epilogues that
 translate from native calling conventions to Java calling conventions
-and handle other details of the transition related to m-to-n
+and handle other details of the transition related to $m$-to-$n$
 threading.  Currently the optimizing compiler 
 does not support these specialized prologue/epilogue sequences so all
 methods in this class are baseline compiled.  The prologue/epilogue
@@ -65,9 +65,9 @@ thread system implements recovery mechanisms to deal with JNI methods
 that block or otherwise fail to return to Java code promptly.  A JNI call
 is a GC-safe point, since JNI code cannot freely modify the Java heap.
 
-\subsection{Interactions with m-to-n Threading}
+\subsection{Interactions with $m$-to-$n$ Threading}
 See section~\ref{sec:threads} for more details on the thread system
-and m-to-n threading in Jikes RVM. 
+and $m$-to-$n$ threading in Jikes RVM. 
 
 There are two ways to execute native code: {\tt syscalls} and JNI.
 A Java thread that calls native code by either mechanism will never
@@ -102,7 +102,7 @@ implementing both mechanisms on both platforms.  We hope to do this in
 the future.
 
 \subsection{Implementation Details}
-Supporting the combination of blocking native code and m-to-n
+Supporting the combination of blocking native code and $m$-to-$n$
 threading is inherently complicated.  Unfortunately the Jikes RVM
 implementation is further complicated by the fact that too much of the
 control logic for transitions between C and Java code is embedded in

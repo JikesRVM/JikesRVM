@@ -8,9 +8,6 @@
 % Unicode: Trademark sign is 0x2122 or <super> 0x0054 0x004D
 % TS1 (the Cork encoding) uses 0227 (octal)
 
-%% The \*heading{} forms of the macros are for inside
-%% LaTeX \section{} and \subsection{} commands.
-
 %% First, define a symbol for TM and for (R), both in HTML and in LaTeX
 %% I wonder what \texttrademark does normally.
 \T \newcommand{\trademark}{\ensuremath{%
@@ -22,25 +19,28 @@
 \W \newcommand{\trademark}{\xmlsym{##8482}}
 \W \newcommand{\registeredTrademark}{\xml{sup}\xml{small}\xmlsym{reg}\xml{/small}\xml{/sup}}
 
+
+%% The \*heading*{} forms of the macros are for inside
+%% LaTeX \section{} and \subsection{} commands.
+
+%% The \*web*{} forms of the macros will only appear in web pages.
+%% The scoop here is that each web page which refers to a trademark
+%% should have some reference to the trademarked status of that
+%% same trademark.  Hyperlatex breaks our document into web pages on
+%% subsection boundaries, so somewhere in each subsection where we
+%% refer to a trademark, there has to be a TM or (R) in that
+%% subsection, but ONLY in the HTML version.  For the printed book,
+%% one or two attributions at the beginning are enough.  Those get
+%% the \*both*{} forms of the macros.
+
 %% Use the defined symbols to generate \TM and \R macros.
 
-\newcommand{\TM}{\link{\trademark}{trademarks}\xspace}
-\newcommand{\TMweb}{\htmlonly{\TM}\xspace}
-\newcommand{\TMheading}{\trademark\xspace}
+\newcommand{\TMboth}{\link{\trademark}{trademarks}\xspace}
+\newcommand{\TMweb}{\htmlonly{\TMboth}\xspace}
+%\newcommand{\TMheading}{\trademark\xspace}
 \newcommand{\TMheadingweb}{\htmlonly{\TMheading}\xspace}
 
-\newcommand{\R}{\link{\registeredTrademark}{trademarks}\xspace}
-\newcommand{\Rweb}{\htmlonly{\R}\xspace}
-\newcommand{\Rheading}{\registeredTrademark\xspace}
+\newcommand{\Rboth}{\link{\registeredTrademark}{trademarks}\xspace}
+\newcommand{\Rweb}{\htmlonly{\Rboth}\xspace}
+%\newcommand{\Rheading}{\registeredTrademark\xspace}
 \newcommand{\Rheadingweb}{\htmlonly{\Rheading}\xspace}
-
-
-%% Footers (Blank for this version.)
-%% TODO: Remove these.
-\newcommand{\JikesTMFooter}{}
-\newcommand{\AIXTMFooter}{}
-\newcommand{\PowerPCTMFooter}{}
-\newcommand{\JavaTMFooter}{}
-\newcommand{\AIXPPCTMFooter}{}
-\newcommand{\JikesAIXTMFooter}{}
-\newcommand{\AIXPPCJikesTMFooter}{}

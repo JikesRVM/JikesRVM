@@ -16,7 +16,7 @@ flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
 choices.  Jikes RVM executes Java\TMweb\ programs useful for research on
 fundamental virtual machine design issues.
-It runs on AIX\TMweb{}/PowerPC\TMweb{},
+It runs on AIX\TMweb{}/PowerPC\TMweb{}, Mac OS X/PowerPC,
 Linux\Rweb{}/PowerPC, and Linux/IA-32, 
 and exhibits industry-strength performance for many benchmark programs
 on these platforms.  Jikes RVM includes the latest VM
@@ -66,10 +66,6 @@ We currently have the following four mailing lists:
 Information about contributing bug fixes or extensions to the system
 can be found at
 \xlink{{\tt \RVMContribURL}}{\RVMContribURL}.   
-
-\JavaTMFooter
-
-\AIXPPCJikesTMFooter
 
 \subsection{Getting \jrvm{} and Documentation}
 
@@ -132,6 +128,7 @@ preferred values for RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR are as
 follows: 
 \begin{itemize}
 \item {\tt AIX/PowerPC}: 0 (SMP is supported)
+\item {\tt OSX/PowerPC}:  1 (SMP is not supported)
 \item {\tt Linux/PowerPC}:  1 (SMP is not supported)
 \item {\tt Linux 2.2/IA32}: 1 (SMP is not supported)
 \item {\tt Linux 2.4/IA32}: 0 (SMP is supported), but with the
@@ -146,7 +143,7 @@ it is run.
 
 \subsubsection{Which version of {\tt jikes} should I use?}
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
-to compile the RVM source on both Linux\Rweb{} and AIX\TMweb. Previously we
+to compile the RVM source on Linux\Rweb{} and AIX\TMweb. Previously we
 were using version 1.13. Version 1.14 through 1.17 do not entirely
 work with Jikes RVM.  For versions of Jikes RVM before 2.2.0, you must
 use jikes 1.13.
@@ -179,8 +176,6 @@ You may choose to add more classes to the primordial list.  One way to do
 this is to edit {\tt jconfigure}; look at the function {\tt
 emitImageLinker}.  You will see that the script already puts certain other
 non-VM classes in the primordial list (eg. {\tt java.lang.Object}).
-
-\AIXTMFooter
 
 \subsection{Runtime implementation}
 
@@ -330,10 +325,6 @@ used for various purposes by the RVM GC system.
 
 No. There is nothing in RVM that remotely resembles HPI.
 
-\JavaTMFooter
-
-\AIXPPCTMFooter
-
 \subsection{Libraries}
 
 \subsubsection{Why don't you use the GNU Classpath libraries?}
@@ -472,4 +463,3 @@ suites, although universities do get a discount.
 However, because the license is institution-wide, you may want to check with
 other researchers at your institution to see if they already have a license.
 
-\JavaTMFooter

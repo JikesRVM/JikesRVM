@@ -7,8 +7,8 @@ running Eclipse on Jikes RVM.
 
 \subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.x, or SuSE Linux 8.x for~Intel~x86}
 
-Red Hat\TM{} Linux\R{} for Intel\R{} IA32 (Intel x86) has emerged as the 
-primary platform for Jikes RVM.  SuSE\R{} Linux is also in daily use
+Red Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA32 (Intel x86) has emerged as the 
+primary platform for Jikes RVM.  SuSE\Rboth{} Linux is also in daily use
 by one of the Jikes RVM core team members.
 If you have either a developer or full install of Red~Hat
 Linux~7.3 or later, your system has almost everything you need
@@ -159,6 +159,11 @@ AIX            & 4.3+     & %   \center{---}
 JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
 \hline \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
+\hline \multicolumn{3}{|c|}{\em Mac OS X}                     \\ \hline
+
+\multicolumn{3}{|c|}{\hrulefill
+         No Special Requirements Known \hrulefill
+} \\
 \hline\hline 
 \end{tabular}
 %\end{center}%and end the resizebox:
@@ -254,8 +259,6 @@ build directory.
 
 The remainder of this section describes the process in greater detail.
 
-\JikesTMFooter
-
 \subsubsection{Installation Steps}
 
 \begin{enumerate}
@@ -329,9 +332,8 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 These two variables point to the same file when the type of system  
 doing the build is the same as where you are going 
 the execute Jikes RVM.  To cross build a system
-e.g., build on AIX\TMweb/PowerPC\TMweb\ for a
-Linux/IA32 platform, see the section on Cross 
-Platform Building.
+(e.g., build on Linux/IA32 for an AIX\TMweb/PowerPC\TMweb
+platform, see \link{\SectionName{Cross Platform Building}}[ (sub-section~\Ref)]{cross-platform-building}.
 
 \item {\bf Edit configuration scripts.}
 
@@ -348,7 +350,8 @@ variables in this file will be picked up by the installation scripts.
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
 whether or not the platform will support SMP-builds of Jikes RVM. 
-For operating system, define one of RVM\_FOR\_LINUX or RVM\_FOR\_AIX
+For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_OSX,
+or RVM\_FOR\_AIX 
 to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR to 0 (SMP supported) or 1 (SMP not
@@ -357,6 +360,7 @@ RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR:
 \begin{description}
 \item[AIX/PowerPC] {\tt 0 }
 \item[Linux/PowerPC] {\tt 1}
+\item[OSX/PowerPC] {\tt 1}
 \item[Linux/IA32] {\tt 0}\footnote{You must use 1 here if you do not
 have a 2.4 kernel and {\tt glibc} compiled to use the GS segment register to
 access pthread-specific state.  We do not recommend such a setup.}
@@ -419,7 +423,7 @@ AMD Athlon 700 processor with 512 MB of RAM.
 
 \item {\tt LDSHARED} how to link a shared C++ library.
 
-\item {\em various basic Unix\R{} utilities} e.g., {\tt grep}, {\tt xargs}, etc.
+\item {\em various basic Unix\Rboth{} utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 
 \end{description}
 
@@ -500,8 +504,6 @@ Note: The jbuild process may produce warning messages; these should not
 affect system viability.
 
 \end{enumerate}
-
-\AIXPPCJikesTMFooter
 
 \subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
@@ -627,9 +629,7 @@ understands, or type:
 % jconfigure --help
 \end{verbatim}
 
-\JikesTMFooter
-
-\subsection{Cross Platform Building}
+\subsection{Cross Platform Building}\label{cross-platform-building}
 
 The Jikes\TMweb{} RVM build process consists of two major phases:
 the building of a 
@@ -691,10 +691,6 @@ machine and executing {\tt jbuild.linkBooter} remotely on the target
 via {\tt rsh} or {\tt ssh}.  By setting {\tt RVM\_BUILD\_COPY}
 appropriately on the host platform, cross-platform building can become
 a stream-lined process.
-
-\JikesAIXTMFooter
-
-\JavaTMFooter
 
 \subsection{Building Documentation}
 
