@@ -70,7 +70,7 @@ class VM_IdleThread extends VM_Thread {
   }
 
   /**
-   * @return true, if their appears to be a runnable thread for the processor to execute
+   * @return true, if there appears to be a runnable thread for the processor to execute
    */
   private static boolean availableWork ( VM_Processor p ) {
     if (!p.readyQueue.isEmpty())        return true;

@@ -890,7 +890,7 @@ setTimeSlicer(int msTimerDelay)
         perror(NULL);
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#else  /* RMV_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
+#else  /* RVM_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
           defined __MACH__ */
     // fetch system timer
     //
