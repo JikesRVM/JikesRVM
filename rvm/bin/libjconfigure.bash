@@ -5,17 +5,19 @@
 #
 # $Id$
 #
-# N.B.: This is an auxiliary set of library functions for loading.
+# N.B.: This is an auxiliary set of library functions.  It is loaded
+#       by "jconfigure" and by the "jbuild" and "jbuild."* scripts
+#       that "jconfigure" generates.
+
 #       We do not execute this script directly; the `#! /bin/bash'
-#	is just there to give a hint to the text editor (or at least to
-#	Emacs) about what mode to go into.
+#	is just there to give a hint to the Emacs text editor about which
+#	variant of Shell-script mode it should use.
 #
 # @author Steven Augart
 # @date  Tuesday, September 9, 2003
 # @modified  Monday, September 15, 2003
+# @modified  Wednesday, January 21, 2004
 
-
-# tracing() takes 0 or 1 arguments.
 
 # The trace argument can be:
 # -trace		 (gets most things but skips the thousands of
@@ -23,7 +25,7 @@
 # -trace=ant		# Just ant is of interest
 # -trace=jbuild		# high-level
 # 
-# This is then converted to:
+# This is then converted to appropriate values for TRACE_FLAG (q.v., below.)
 # TRACE_FLAG: (empty)  # only if nothing was said
 # TRACE_FLAG: ,no-all,
 # TRACE_FLAG: ,-trace,
@@ -33,21 +35,33 @@
 #	most,all
 # See the help message in "jbuild -help" for more info.
 
-# Returns true (exit 0) if we are tracing
-# Returns false (exit 1) if we are not.
+# "jbuild" and its children access TRACE_FLAG through the shell
+# function tracing().
 
-# Variables we'll refer to in jconfigure
-TRACE_FLAG=""
-VFLAG=""
-XFLAG=""
+# Variables we'll refer to in jconfigure and in jbuild*:
+#       
+TRACE_FLAG=""			# Arguments to the -trace command-line
+				# argument flag.
+
+VFLAG=""			# Set to -v if we want to call "set -v" 
+				#  in a shell script.
+
+XFLAG=""			# Like VFLAG, but contains "-x"
+
 CLEAN_FLAG=""
-MFLAGS=--silent
+
+MFLAGS=--silent			# Pass this flag to the invocation of "make"
 
 ## ME: The name of this program, for purposes of printing error messages.
 ## This is supposed to be already set, but I'm setting it here so that it's
 ## easier to test libjconfigure.bash independently of the rest of jconfigure.
 [[ "${ME-}" != "" ]] || ME="${0##*/}"
 
+# tracing() takes 0 or 1 arguments.
+# Returns true (exit 0) if we are tracing
+# Returns false (exit 1) if we are not.
+# tracing() also turns off the -v and -x flags, if they're on, so
+# that we don't get spammed with junk output.
 function tracing() {
     set +vx
     # We go through some skulduggery here so that running jbuild
@@ -93,7 +107,7 @@ function tracing() {
     { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return $dflt; }
 }
 
-# Copy $1 to $2.  Display a message, consisting of the remaining args
+# Copy the file  $1 to $2.  Display a message, consisting of the remaining args
 # ($3 ... ), if given.  Feed $3 ... straight to "echo", which means we can 
 # accept -n and other echo flags.
 function copyIfNewer () {
@@ -258,8 +272,8 @@ function enable_exit_on_error() {
     # other means instead... this is only active during development.)
     [[ $- == *i* ]] || set -e;
     # We've enabled it.  Reset the ERR trap, too
-    # If we do not have the ERR trap, then the EXIT trap will have to serve double-duty
-    ## as an err trap as well.
+    # If we do not have the ERR trap, then the EXIT trap will have 
+    # to serve double-duty as an ERR trap as well.
     trap 'err $? "$_" $LINENO "${FUNCNAME-}"' ERR 2> /dev/null ||     trap 'err_with_unexpected_exit $? "$_" $LINENO "${FUNCNAME-}"' EXIT 
 }
 
@@ -275,7 +289,7 @@ function err_with_unexpected_exit () {
 
 enable_exit_on_error;
 CLEANUP=":"
-# This is a safety guard routine. Trap any unexpected exits, although we don't
+# This is a safety guard routine.  Trap any unexpected exits, although we don't
 # anticipate any!
 
 function signalled() {
