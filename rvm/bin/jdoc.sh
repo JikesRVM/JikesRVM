@@ -97,35 +97,18 @@ echo -n "$ME: "
 # match package names
 cd $RVM_BUILD/RVM.classes || croak "Unable to change directory to $RVM_BUILD/RVM.classes; something is badly broken."
 
-if [[ -f sources-processed ]]; then
-    echo "(sources already processed) "
-    
-else
-    # Strip out INSTRUCTION typedef and remove all .java files that
-    # were not actually compiled in this build.
-    ## uname -m is "machine type" -- the processor's architecture.
-    if [[ $(uname -m) == i?86 ]]; then
-	INSTRUCTION_TYPE=byte
-    else
-	INSTRUCTION_TYPE=int
+# Only generate javadoc for files that are actually really in this build
+for f in $($FIND . -name \*.java); do
+    if [[ ! -e ${f%.java}.class ]]; then
+        ## delete anything that wasn't compiled for this build.
+        rm $f
     fi
-
-    ADDRESS_TYPE=int
-
-    for f in $($FIND . -name \*.java); do
-	# Preprocess and preserve only the files we compiled for this build
-	if [[ -e ${f%.java}.class ]]; then
-	    # strip INSTRUCTION typedef; it causes Java to complain.
-	    $SED -e 's/\<INSTRUCTION\>/'$INSTRUCTION_TYPE'/g' $f > $f.tmp
-	    mv -f $f.tmp $f
-	else
-	    ## delete anything that wasn't compiled for this build.
-	    rm $f
-	fi
-    done
-    touch sources-processed
-    echo -n "(sources processed) "
+done
+# ignore these files; we don't want them in the javadoc
+if [[ -e Dummy.java ]]; then
+    rm Dummy.java OptDummy.java
 fi
+echo -n "(sources processed) "
     
 
 # collect the JikesRVM packages; for these packages we want all files, so
@@ -145,30 +128,19 @@ PACKAGES=$(
     done
 );
 
-# collect the files in the java.* packages; for these packages we want only our files
-FILES=$($FIND java -name '*.java')
-
 #run javadoc
 rm -f $DEST_DIR/javadoc.out
 
 # xargs -t: means be verbose; print out the cmd. line before executing it.
 # NB: do NOT quote $PACKAGES in the following:
 ## We use -breakiterator to be forward-compatible.
-$FIND . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -breakiterator -tag date:a:"Last (significant) modification:" -tag author:a:"Author:" -tag modified:a:"Modified by:" -J-Xmx200M -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES $FILES >> $DEST_DIR/javadoc.out 2>&1
+$FIND . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -breakiterator -tag date:a:"Last (significant) modification:" -tag author:a:"Author:" -tag modified:a:"Modified by:" -J-Xmx200M -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES >> $DEST_DIR/javadoc.out 2>&1
 
 echo -n "(javadoc complete) "
 
 # no more need for build dir
 # AIX won't let us rm the directory while we are sill in it...
 cd $DEST_DIR
-
-if [[ "$DEBUG" ]] || [[ -t 0 ]]; then
-    echo ""
-    echo >&2 "$ME: Because we're debugging, the directory $RVM_BUILD is remaining untouched."
-    echo -n "$ME:"
-else
-    rm -rf $RVM_BUILD
-fi
 
 # post-process if desired
 cd $DEST_DIR
