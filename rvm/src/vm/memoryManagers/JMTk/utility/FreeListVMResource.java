@@ -61,6 +61,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
     int page = freeList.alloc(pages);
     if (page == -1) {
       unlock();
+      mr.release(pages);
       return VM_Address.zero();
     }
     pagetotal += pages;
