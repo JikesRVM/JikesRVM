@@ -8,92 +8,82 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
- * A list of method/instructionOffset pairs that describe the
- * state of the call stack at a particular instant.
+ * A list of compiled method and instructionOffset pairs that describe 
+ * the state of the call stack at a particular instant.
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
 public class VM_StackTrace implements VM_Constants {
-   //-----------//
-   // interface //
-   //-----------//
 
-  /** 
-   * Create a trace (walkback) of our own call stack.
-   * @return list of stackframes that called us
+  static int verboseTracePeriod = 0;
+  static int verboseTraceIndex = 0;
+
+  /**
+   * The compiled methods that comprise the trace
    */
-   public static VM_StackTrace[] create() {
-     // count number of frames comprising stack
-     //
-     int stackFrameCount = 0;
-     VM.disableGC(); // so fp & ip don't change under our feet
-     VM_Address fp = VM_Magic.getFramePointer();
-     VM_Address ip = VM_Magic.getReturnAddress(fp);
-     fp = VM_Magic.getCallerFramePointer(fp);
-     while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
-       stackFrameCount++;
-       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-       if (compiledMethodId!=INVISIBLE_METHOD_ID) {
-	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	 if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
-	   if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
-	     // skip native frames, stopping at last native frame preceeding the
-	     // Java To C transition frame
-	     fp = VM_Runtime.unwindNativeStackFrame(fp);	 
-	   }
-	 } 
-       }
-       ip = VM_Magic.getReturnAddress(fp);
-       fp = VM_Magic.getCallerFramePointer(fp);
-     }
-     VM.enableGC();
+  private VM_CompiledMethod[] compiledMethods;
 
-     // allocate space in which to record stacktrace
-     //
-     VM_StackTrace[] stackTrace = new VM_StackTrace[stackFrameCount];
-     for (int i = 0; i < stackFrameCount; ++i) {
-       stackTrace[i] = new VM_StackTrace();
-     }
+  /**
+   * The instruction offsets within those methods.
+   */
+  private int[] offsets;
+  
+  /**
+   * Create a trace of the current call stack
+   */
+  public VM_StackTrace(int skip) {
+    // (1) Count the number of frames compirsing the stack.
+    int numFrames = walkFrames(false, skip+1);
+    compiledMethods = new VM_CompiledMethod[numFrames];
+    offsets = new int[numFrames];
+    walkFrames(true, skip+1);
+    
+    if (verboseTracePeriod > 0) {
+      if ((verboseTraceIndex++ % verboseTracePeriod) == 0) {
+	VM.disableGC();
+	VM_Scheduler.dumpStack();
+	VM.enableGC();
+      }
+    }
+  }
 
-     // rewalk stack and record stacktrace
-     //
-     VM.disableGC(); // so fp & ip don't change under our feet
-     fp = VM_Magic.getFramePointer();
-     ip = VM_Magic.getReturnAddress(fp);
-     fp = VM_Magic.getCallerFramePointer(fp);
-     for (int i = 0; i < stackFrameCount; ++i) {
-       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-       if (compiledMethodId!=INVISIBLE_METHOD_ID) {
-	 VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	 stackTrace[i].compiledMethod = compiledMethod;
-	 if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
-	   stackTrace[i].instructionOffset = 0;
-	 } else {
-	   stackTrace[i].instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
-	   if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
-	     // skip native frames, stopping at last native frame preceeding the
-	     // Java To C transition frame
-	     fp = VM_Runtime.unwindNativeStackFrame(fp);
-	   }       
-	 }
-       }
-       ip = VM_Magic.getReturnAddress(fp);
-       fp = VM_Magic.getCallerFramePointer(fp);
-     }
-     VM.enableGC();
-      
-     if (verboseTracePeriod > 0) {
-	 if ((verboseTraceIndex++ % verboseTracePeriod) == 0) {
-	     VM.disableGC();
-	     VM_Scheduler.dumpStack();
-	     VM.enableGC();
-	 }
-     }
-
-     return stackTrace;
-   }
-
+  private int walkFrames(boolean record, int skip) {
+    int stackFrameCount = 0;
+    VM.disableGC(); // so fp & ip don't change under our feet
+    VM_Address fp = VM_Magic.getFramePointer();
+    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    for (int i=0; i<skip; i++) {
+      fp = VM_Magic.getCallerFramePointer(fp);
+      ip = VM_Magic.getReturnAddress(fp);
+    }
+    fp = VM_Magic.getCallerFramePointer(fp);
+    while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
+      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+	VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+	if (record) compiledMethods[stackFrameCount] = compiledMethod;
+	if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
+	  if (record) {
+	    VM_Address start = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+	    offsets[stackFrameCount] = ip.diff(start).toInt();
+	  }
+	  if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+	    // skip native frames, stopping at last native frame preceeding the
+	    // Java To C transition frame
+	    fp = VM_Runtime.unwindNativeStackFrame(fp);	 
+	  }
+	} 
+      }
+      stackFrameCount++;
+      ip = VM_Magic.getReturnAddress(fp);
+      fp = VM_Magic.getCallerFramePointer(fp);
+    }
+    VM.enableGC();
+    return stackFrameCount;
+  }
+  
 
   /**
    * Print stack trace.
@@ -103,23 +93,22 @@ public class VM_StackTrace implements VM_Constants {
    * @param stackTrace stack trace to be printed
    * @param out        stream to print on
    */
-  public static void print(VM_StackTrace[] stackTrace, PrintStream out) {
-    for (int i = 0, n = stackTrace.length; i < n; ++i) {
+  public void print(PrintStream out) {
+    for (int i = 0, n = compiledMethods.length; i < n; i++) {
       if (i == 50) { 
 	// large stack - suppress excessive output
 	int oldIndex = i;
-	int newIndex = n - 50;
+	int newIndex = n - 10;
 	if (newIndex > oldIndex) {
 	  i = newIndex;
 	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
 	}
       }
-         
-      VM_CompiledMethod compiledMethod = stackTrace[i].compiledMethod;
-      if (compiledMethod == null) {
+      VM_CompiledMethod cm = compiledMethods[i];
+      if (cm == null) {
 	out.println("\tat <invisible method>");
       } else {
-	compiledMethod.printStackTrace(stackTrace[i].instructionOffset, out);
+	cm.printStackTrace(offsets[i], out);
       }
     }
   }
@@ -132,32 +121,23 @@ public class VM_StackTrace implements VM_Constants {
    * @param stackTrace stack trace to be printed
    * @param out        printwriter to print on
    */
-   public static void print(VM_StackTrace[] stackTrace, PrintWriter out) {
-     for (int i = 0, n = stackTrace.length; i < n; ++i) {
-       if (i == 50) { // large stack - suppress excessive output
-	 int oldIndex = i;
-	 int newIndex = n - 10;
-	 if (newIndex > oldIndex) {
-	   i = newIndex;
-	   out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
-	 }
-       }
-         
-       VM_CompiledMethod compiledMethod = stackTrace[i].compiledMethod;
-       if (compiledMethod == null) 
-	 out.println("\tat <invisible method>");
-       else 
-	 compiledMethod.printStackTrace(stackTrace[i].instructionOffset, out);
-     }
-   }
+  public void print(PrintWriter out) {
+    for (int i = 0, n = compiledMethods.length; i < n; ++i) {
+      if (i == 50) { // large stack - suppress excessive output
+	int oldIndex = i;
+	int newIndex = n - 10;
+	if (newIndex > oldIndex) {
+	  i = newIndex;
+	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
+	}
+      }
 
-  //----------------//
-  // implementation //
-  //----------------//
-
-  static int verboseTracePeriod = 0;
-  static int verboseTraceIndex = 0;
-
-  VM_CompiledMethod compiledMethod;
-  public int               instructionOffset;
+      VM_CompiledMethod cm = compiledMethods[i];
+      if (cm == null) {
+	out.println("\tat <invisible method>");
+      } else {
+	cm.printStackTrace(offsets[i], out);
+      }
+    }
+  }
 }

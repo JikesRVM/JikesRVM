@@ -1644,7 +1644,6 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_MemberReference;'>> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Type;'           >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;'  >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/VM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_Heap;' >> $PRIMORDIAL_CLASSES_STR"
