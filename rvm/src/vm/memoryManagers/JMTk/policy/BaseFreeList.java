@@ -55,8 +55,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
   BaseFreeList(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
-    superPageFreeList = new VM_Address[SIZE_CLASSES];
-    superPageUsedList = new VM_Address[SIZE_CLASSES];
+    superPageFreeList = new int[SIZE_CLASSES];
+    superPageUsedList = new int[SIZE_CLASSES];
   }
 
   /**
@@ -161,7 +161,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * @param isScalar Is the object to be allocated a scalar (or array)?
    * @param bytes The number of bytes allocated
    * @param copy Is this object being copied (or is it a regular allocation?)
-   * @return The address of the first byte of the allocated cell
+   * @return The address of the first byte of the allocated cell  Will not return zero.
    */
   private final VM_Address alloc(boolean isScalar, EXTENT bytes, boolean copy) 
     throws VM_PragmaInline {
@@ -169,10 +169,12 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     boolean large = isLarge(sizeClass);
     boolean small = isSmall(sizeClass);
     VM_Address cell;
-    if (large)
-      cell = allocLarge(isScalar, bytes);
-    else
-      cell = allocCell(isScalar, sizeClass);
+    for (int count = 0; ; count++) {
+      cell = large ? allocLarge(isScalar, bytes) : allocCell(isScalar, sizeClass);
+      if (!cell.isZero()) break;
+      VM_Interface.getPlan().poll(true, memoryResource);
+      if (count > 2) VM.sysFail("Out of memory in BaseFreeList.alloc");
+    }
     postAlloc(cell, isScalar, bytes, small, large, copy);
     VM_Memory.zero(cell, bytes);
     return cell;
@@ -236,6 +238,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * @param sizeClass The size class of the cell.
    * @return The address of the start of a newly allocted cell of
    * size at least sufficient to accommodate <code>sizeClass</code>.
+   * May return zero if unable to acquire cell.
    */
   private final VM_Address allocCell(boolean isScalar, int sizeClass) 
     throws VM_PragmaInline {
@@ -243,11 +246,15 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(!isLarge(sizeClass));
 
     // grab a freelist entry, expanding if necessary
-    if (superPageFreeList[sizeClass].isZero())
-      expandSizeClass(sizeClass);
-    
+    VM_Address head = VM_Address.fromInt(superPageFreeList[sizeClass]);
+    if (head.isZero())
+      if (expandSizeClass(sizeClass)) 
+	head = VM_Address.fromInt(superPageFreeList[sizeClass]);
+      else
+	return VM_Address.zero();
+
     // take off free list
-    VM_Address sp = superPageFreeList[sizeClass];
+    VM_Address sp = head;
     VM_Address cell = getSuperPageFreeList(sp);
     if (VM.VerifyAssertions)
       VM._assert(sp.EQ(getSuperPage(cell, isSmall(sizeClass))));
@@ -277,6 +284,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     bytes += superPageHeaderSize(LARGE_SIZE_CLASS) + cellHeaderSize(false);
     int pages = (bytes + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
     VM_Address sp = allocSuperPage(pages, LARGE_SIZE_CLASS);
+    if (sp.isZero()) return sp;
     linkToSuperPageList(sp, LARGE_SIZE_CLASS, true);
     setSizeClass(sp, LARGE_SIZE_CLASS);
     return initializeCell(sp.add(superPageHeaderSize(LARGE_SIZE_CLASS)), sp, false, true);
@@ -291,11 +299,13 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * superpage list for that sizeclass.
    *
    * @param sizeClass The size class that needs to be repopulated.
+   * @return Whether it was able to acquire underlying memory to expand.
    */
-  private final void expandSizeClass(int sizeClass) {
+  private final boolean expandSizeClass(int sizeClass) {
     // grab superpage
     int pages = pagesForClassSize(sizeClass);
     VM_Address sp = allocSuperPage(pages, sizeClass);
+    if (sp.isZero()) return false;
     int subclassHeader = superPageHeaderSize(sizeClass)-BASE_SP_HEADER_SIZE;
     if (subclassHeader != 0)
       VM_Memory.zero(sp.add(BASE_SP_HEADER_SIZE), subclassHeader);
@@ -325,6 +335,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     postExpandSizeClass(sp, sizeClass);
     if (VM.VerifyAssertions)
       VM._assert(!lastCell.isZero());
+    return true;
   }
 
   /**
@@ -501,7 +512,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * Allocate a super page.
    *
    * @param pages The size of the superpage in pages.
-   * @return The address of the first word of the superpage.
+   * @return The address of the first word of the superpage.  May return zero.
    */
   private final VM_Address allocSuperPage(int pages, int sizeClass) {
     return vmResource.acquire(pages, memoryResource);
@@ -537,7 +548,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    */
   private final boolean isOnSuperPageList(VM_Address sp, int sizeClass,
 					  boolean free) {
-    VM_Address next = free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass];
+    VM_Address next = VM_Address.fromInt(free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass]);
     while (!next.isZero()) {
       if (next.EQ(sp))
 	return true;
@@ -563,7 +574,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 		 (free && !getSuperPageFreeList(sp).isZero()) ||
 		 (!free && getSuperPageFreeList(sp).isZero()));
     }
-    VM_Address next = free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass];
+    VM_Address next = VM_Address.fromInt(free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass]);
     setNextSuperPage(sp, next);
     setPrevSuperPage(sp, VM_Address.zero());
     if (!next.isZero()) {
@@ -592,7 +603,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     VM_Address prev = getPrevSuperPage(sp);
 
     if (VM.VerifyAssertions) {
-      VM_Address head = free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass];
+      VM_Address head = VM_Address.fromInt(free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass]);
       VM._assert(!head.EQ(sp) || prev.isZero());
     }
     if (!prev.isZero())
@@ -805,8 +816,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 
   protected final void dump() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      dump(superPageFreeList[sizeClass]);
-      dump(superPageUsedList[sizeClass]);
+      dump(VM_Address.fromInt(superPageFreeList[sizeClass]));
+      dump(VM_Address.fromInt(superPageUsedList[sizeClass]));
     }
   }
   private final void dump(VM_Address sp) {
@@ -874,8 +885,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 
   protected FreeListVMResource vmResource;
   protected MemoryResource memoryResource;
-  protected VM_Address[] superPageFreeList;
-  protected VM_Address[] superPageUsedList;
+  protected int[] superPageFreeList;  // should be VM_Address [] 
+  protected int[] superPageUsedList;  // should be VM_Address []
 
   ////////////////////////////////////////////////////////////////////////////
   //

@@ -55,16 +55,16 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   public final VM_Address acquire(int pages, MemoryResource mr) {
 
     if (VM.VerifyAssertions) VM._assert(mr != null);
-
-    pagetotal += pages;
     while (!mr.acquire(pages));
+
     lock();
     int page = freeList.alloc(pages);
-    unlock();
-    if (VM.VerifyAssertions) {
-      if (page == -1) VM.sysWriteln("page = -1");
-      VM._assert(page != -1);
+    if (page == -1) {
+      unlock();
+      return VM_Address.zero();
     }
+    pagetotal += pages;
+    unlock();
     VM_Address rtn = start.add(Conversions.pagesToBytes(page));
     LazyMmapper.ensureMapped(rtn, Conversions.pagesToBlocks(pages));
     return rtn;
