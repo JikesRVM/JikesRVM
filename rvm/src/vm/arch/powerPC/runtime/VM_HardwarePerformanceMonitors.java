@@ -192,7 +192,7 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_trace = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:trace={true|false} is the correct syntax");
-	  VM.shutdown(VM.exitStatusBogusCommandLineArg)
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
       } else if (name2.equals("trace_verbose")) {
 	String value = arg.substring(split+1);
@@ -243,7 +243,7 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_list_selected_events = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:events={true|false} is the correct syntax");
-	  VM.shutdown(VM.exitStatusBogusCommandLineArg)
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
       } else if (name2.equals("threadGroup")) {
 	// not tested
