@@ -307,7 +307,7 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Class type, Object[] tib, int tibWord) {
+				  VM_Class type, int tibWord) {
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
       VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(numBytes + SCALAR_PADDING_BYTES);
@@ -337,7 +337,8 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, Object[] tib, int tibWord) {
+				  VM_Array type, int tibWord) {
+    VM_Magic.pragmaInline();
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
       VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(ARRAY_HEADER_SIZE);

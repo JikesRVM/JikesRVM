@@ -171,8 +171,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Copy an object to the given raw storage address
    */
-  public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Class type, Object[] tib, int availBitsWord) {
+  public static Object moveObject(VM_Address toAddress, Object fromObj, 
+				  int numBytes, VM_Class type, int availBitsWord) {
+    VM_Magic.pragmaInline();
     if (ADDRESS_BASED_HASHING) {
       int hashState = availBitsWord & HASH_STATE_MASK;
       if (hashState == HASH_STATE_UNHASHED) {
@@ -212,7 +213,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, Object[] tib, int availBitsWord) {
+				  VM_Array type, int availBitsWord) {
+    VM_Magic.pragmaInline();
     if (ADDRESS_BASED_HASHING) {
       int hashState = availBitsWord & HASH_STATE_MASK;
       if (hashState == HASH_STATE_UNHASHED) {

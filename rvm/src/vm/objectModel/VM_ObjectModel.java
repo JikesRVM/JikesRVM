@@ -206,16 +206,16 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Copy a scalar object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Class type, Object[] tib, int availBitsWord) {
-    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, tib, availBitsWord);
+				  VM_Class type, int availBitsWord) {
+    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, Object[] tib, int availBitsWord) {
-    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, tib, availBitsWord);
+				  VM_Array type, int availBitsWord) {
+    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
   }
 
   /**

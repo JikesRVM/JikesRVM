@@ -1606,14 +1606,14 @@ public class VM_Allocator
       VM_Class classType = type.asClass();
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
       VM_Address region = gc_getMatureSpace(numBytes);
-      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, tib, forwardingPtr);
+      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
       VM_Address region = gc_getMatureSpace(numBytes);
-      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, tib, forwardingPtr);
+      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.CodeType) {
 	// sync all arrays of ints - must sync moved code instead of sync'ing chunks when full

@@ -2377,7 +2377,7 @@ public class VM_Allocator
 	return fromRef;
       }
       forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;     // set barrier bit 
-      toObj = VM_ObjectModel.moveObject(toAddress, fromObj, numBytes, classType, tib, forwardingPtr);
+      toObj = VM_ObjectModel.moveObject(toAddress, fromObj, numBytes, classType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
     } else {
       VM_Array arrayType = type.asArray();
@@ -2396,7 +2396,7 @@ public class VM_Allocator
 	return fromRef;
       }
       forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;     // set barrier bit 
-      toObj = VM_ObjectModel.moveObject(toAddress, fromObj, numBytes, arrayType, tib, forwardingPtr);
+      toObj = VM_ObjectModel.moveObject(toAddress, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.CodeType) {
 	// sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
