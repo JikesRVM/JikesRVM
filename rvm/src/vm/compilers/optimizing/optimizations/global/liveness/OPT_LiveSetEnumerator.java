@@ -7,32 +7,38 @@ import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 
 /**
+ * An enumeration over live set lists
+ *
  * @author Michael Hind
  */
-class OPT_LiveSetEnumerator
-    implements Enumeration {
+class OPT_LiveSetEnumerator implements Enumeration {
 
   /**
-   * put your documentation comment here
+   *  the current element on this list
+   */
+
+  private OPT_LiveSetElement current;
+  /**
+   * The constructor
    * @param   OPT_LiveSetElement list
    */
-  OPT_LiveSetEnumerator (OPT_LiveSetElement list) {
+  OPT_LiveSetEnumerator(OPT_LiveSetElement list) {
     current = list;
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * Are there any more elements?
+   * @return whether there are any more elements?
    */
-  public boolean hasMoreElements () {
+  public boolean hasMoreElements() {
     return  current != null;
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * Returns the next element, if one exists, otherwise throws an exception
+   * @return the next element, if one exists, otherwise throws an exception
    */
-  public Object nextElement () {
+  public Object nextElement() {
     if (current != null) {
       OPT_LiveSetElement ret = current;
       current = current.getNext();
@@ -42,7 +48,6 @@ class OPT_LiveSetEnumerator
       throw  new NoSuchElementException("OPT_LiveSetEnumerator");
     }
   }
-  private OPT_LiveSetElement current;
 }
 
 
