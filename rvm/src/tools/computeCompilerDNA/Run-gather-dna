@@ -27,15 +27,60 @@
 #
 #  @author Michael Hind, Oct 30, 2001
 #  @author Stephen Fink
+#  @modified Peter F Sweeney 8/13/2003 get to run with new command line options
+
+if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
+  more <<EOF
+   
+ This script will run the system on the SPECjvm98 benchmarks using various 
+ compilers to determine their "DNA", i.e., their compilation rate and 
+ speedup.
+
+ The perl script computeDNA.pl will process the output of this script to 
+ produce a summary of the results    
+
+ Preconditions
+   1) You must first build the following images
+        FastAdaptiveCopyMS (for compilation rates and O2 performance)
+        FastBaseAdaptiveCopyMS (for baseline compiler performance)
+        FastOpt0CopyMS (for Opt 0 performance)
+       FastOpt1CopyMS (for Opt 1 performance)
+     The script BuildImages (in this directory) does this step
+  
+   2) Run this script in the SPECjvm98 directory redirecting the output 
+       to a file
+
+   3) Run computeDNA.pl on this file from step 2
+
+  Normally it is invoked as:
+    $0  builddir
+
+  Where 
+    builddir      where to find Jikes RVM images
+    
+EOF
+exit 1
+fi
+
+if [[ $RVM_ROOT = "" ]]; then
+   echo "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
+   exit 1
+fi
+if [[ $RVM_SPECJVM98 = "" ]]; then
+   echo "$0: RVM_SPECJVM98 environment variable  is not set.  Setting to /homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98."
+   RVM_SPECJVM98="/homes/meriadoc/jalalpeno/contrib/benchmarks/SPECjvm98"
+fi
+
+rvm="$RVM_ROOT/rvm/bin/rvm"
+# parent of build diectories is command line argument to the script
+BUILDDIR=$1
 
 # Generate SPECjvm98 profile data
 mkdir -p $RVM_ROOT/support/profileData
 PROFILE_FILE=$RVM_ROOT/support/profileData/edgeCounts.SPECjvm98
-$RVM_ROOT/rvm/src/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE
+$RVM_ROOT/rvm/src/tools/computeCompilerDNA/GenerateSPECjvmProfile $PROFILE_FILE $BUILDDIR
 PROFILE_ARG="-X:vm:edgeCounterFile=$PROFILE_FILE"
-
-# parent of build diectories is command line argument to the script
-BUILDDIR=$1
+cp="-classpath $RVM_SPECJVM98"
 
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
@@ -56,11 +101,11 @@ do
 
 # Compilation rates first
   export RVM_BUILD=$BUILDDIR/FastAdaptiveCopyMS
-  rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base SpecApplication $appcompoptions -a $benchmark
+  $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appcompoptions -a $benchmark
 
   for optLevel in $OPTLEVELS
   do
-    rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:$optLevel SpecApplication $appcompoptions  -a $benchmark
+    $rvm $jvmcompoptions -X:processors=$PROCS -X:aos:logging_level=0 -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:$optLevel $cp SpecApplication $appcompoptions  -a $benchmark
   done
 
 done
@@ -69,15 +114,15 @@ for benchmark in $all
 do
 # Performance next
    export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveCopyMS
-   rvm $jvmoptions -X:processors=$PROCS SpecApplication $appperfoptions  -a $benchmark
+    $rvm $jvmoptions -X:processors=$PROCS $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastOpt0CopyMS
-   rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O0 SpecApplication $appperfoptions  -a $benchmark
+   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O0 $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastOpt1CopyMS
-   rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O1 SpecApplication $appperfoptions  -a $benchmark
+   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O1 $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastAdaptiveCopyMS
-   rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O2 SpecApplication $appperfoptions  -a $benchmark
+   $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O2 $cp SpecApplication $appperfoptions  -a $benchmark
 
 done
