@@ -201,7 +201,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
       }
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.writeFileOutputStream(",length,") throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-VM.exitStatusMiscTrouble;
+      e.printStackTrace(); VM.shutdown(-VM.exitStatusMiscTrouble);
     }
   }
   /*
