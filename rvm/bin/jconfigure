@@ -2074,7 +2074,7 @@ function emitBooterLinker
                 $ROOT_DIRECTORY_STR/rvm/src/tools/hardwarePerformanceMonitors/hpm.c"
         print "cd $SCRATCH_DIRECTORY_STR &&\
                 \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS\
-                hpm.o -L\\\"$RVM_HPM_DIR\\\" -lpmapi"
+                hpm.o -L$RVM_HPM_DIR -lpmapi"
       else
         print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
   		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
@@ -2092,7 +2092,7 @@ function emitBooterLinker
 	     -o $SCRATCH_DIRECTORY_STR/libjni.o libjni.C"
       print "cd $SCRATCH_DIRECTORY_STR"
       if (( $RVM_WITH_HPM )); then
-        print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o hpm.o -L\\\"$RVM_HPM_DIR\\\" -lpmapi \$CCLIBS"
+        print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o hpm.o -L$RVM_HPM_DIR -lpmapi \$CCLIBS"
       else
         print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o \$CCLIBS"
       fi
@@ -2297,16 +2297,6 @@ if [[ -e $BUILD_DIRECTORY ]]; then # old directory exists
    ( cd $BUILD_DIRECTORY && rm -rf * )
 fi
 
-# Only allow hardware performance monitor support for PowerPC
-#
-. $RVM_TARGET_CONFIG
-if (( RVM_WITH_HPM && !RVM_FOR_POWERPC )); then
-    echo
-    echo "***Hardware Performance monitor support is only provided for PowerPC architecture!***"
-    echo
-    exit 1
-fi 
-
 # Create output directory structure.
 #
 mkdir -p $BUILD_DIRECTORY
@@ -2346,16 +2336,6 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.compile
 
 emitImageLinker               >$BUILD_DIRECTORY/jbuild.linkImage
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkImage
-
-if ((RVM_WITH_HPM)); then
-  if [[ $RVM_HPM_DIR = "" ]]; then
-    echo
-    echo "***Environment variable RVM_HPM_DIR must be set with RVM_WITH_HPM option"
-    echo "  Trying \"/usr/lpp/pmtoolkit/lib\"."
-    RVM_HPM_DIR=/usr/lpp/pmtoolkit/lib
-#    exit 1
-  fi
-fi
 
 emitBooterLinker              >$BUILD_DIRECTORY/jbuild.linkBooter
 chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.linkBooter
