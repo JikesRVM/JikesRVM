@@ -110,6 +110,7 @@ public class VM extends VM_Properties implements VM_Constants,
     MM_Interface.boot(VM_BootRecord.the_boot_record);
     
     // Start calculation of cycles to millsecond conversion factor
+    if (verboseBoot >= 1) VM.sysWriteln("Stage one of booting VM_Time");
     VM_Time.bootStageOne();
 
     // Reset the options for the baseline compiler to avoid carrying 
@@ -148,6 +149,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
+    if (verboseBoot >= 1) VM.sysWriteln("Stage two of booting VM_Time");
     VM_Time.bootStageTwo();
 
     // Initialize statics that couldn't be placed in bootimage, either 
