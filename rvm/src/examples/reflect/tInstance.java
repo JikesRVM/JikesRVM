@@ -20,25 +20,19 @@ public class tInstance
 
    public int iuserFunction(int i)
       {
-      System.out.print("before gc:"); 
       gc();
-      System.out.println("after  gc:"); 
       return ifield+i;
       }
 
    public double duserFunction(double d)
       {
-      System.out.print("before gc:"); 
       gc();
-      System.out.println("after  gc:"); 
       return d+dfield;
       }
 
    public boolean buserFunction(boolean x)
       {
-      System.out.print("before gc:"); 
       gc();
-      System.out.println("after  gc:"); 
       if (x)
         return bfield;
       else
@@ -47,17 +41,13 @@ public class tInstance
 
    public Object ouserFunction(String s)
       {
-      System.out.print("before gc:"); 
       gc();
-      System.out.println("after  gc:"); 
       ofield = new String(s+"abc");
       return ofield;
       }
 
    public void vuserFunction(int i, Integer x) {
-      System.out.print("before gc:"); 
       gc();
-      System.out.println("after  gc:"); 
       ifield = ifield + i + x.intValue();
    }
 
