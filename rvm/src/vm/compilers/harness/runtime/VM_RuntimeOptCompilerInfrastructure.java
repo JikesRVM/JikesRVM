@@ -237,7 +237,7 @@ OPT_CompilationPlan plan) {
 	  e.printStackTrace();
 	  VM.sysFail(msg);
 	} else {
-	  VM.sysWrite(msg);
+	  // VM.sysWrite(msg);
 	}
 	return -1;
       } finally {
