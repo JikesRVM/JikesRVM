@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.adaptive.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -24,8 +25,6 @@ import com.ibm.JikesRVM.opt.ir.*;
 class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
-  static final boolean DEBUG = false;
-
   public final boolean shouldPerform(OPT_Options options) {
     return VM_Controller.options.INSERT_METHOD_COUNTERS_OPT;
   }
@@ -38,10 +37,11 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
    * @param ir the governing IR
    */
   final public void perform(OPT_IR ir) {
-    // Don't insert counters in uninterruptible methods, 
-    // or when instrumentation is disabled
+    // Don't insert counters in uninterruptible or
+    // save volatile methods, or when instrumentation is disabled
     if (!ir.method.isInterruptible() ||
-	!VM_Instrumentation.instrumentationEnabled())
+	!VM_Instrumentation.instrumentationEnabled() ||
+	ir.method.getDeclaringClass().isSaveVolatile())
       return;
     
     OPT_BasicBlock firstBB = ir.cfg.entry();
@@ -59,4 +59,3 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
     firstBB.prependInstructionRespectingPrologue(c);
   }
 }
-
