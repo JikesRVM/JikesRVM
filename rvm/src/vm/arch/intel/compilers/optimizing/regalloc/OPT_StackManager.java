@@ -81,6 +81,13 @@ implements OPT_Operators {
   private static boolean USE_LINEAR_SCAN = true;
 
   /**
+   * Should we allow the stack pointer to float in order to avoid scratch
+   * registers in move instructions.  Note: as of Feb. 02, we think this
+   * is a bad idea.
+   */
+  private static boolean FLOAT_ESP = false;
+
+  /**
    * We may rely on information from linear scan to choose scratch registers.
    * If so, the following holds a pointer to some information from linear
    * scan analysis.
@@ -689,6 +696,10 @@ implements OPT_Operators {
    */
   private boolean isScratchFreeMove(OPT_Instruction s) {
     if (s.operator() != IA32_MOV) return false;
+
+    // if we don't allow ESP to float, we will always use scratch
+    // registers in these move instructions.
+    if (!FLOAT_ESP) return false;
 
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand value = MIR_Move.getValue(s);
