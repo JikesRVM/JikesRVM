@@ -337,16 +337,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 			      VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1
 			      (CALL, null, null, mo, bc2ir.popRef()));
-    } else if (methodName == VM_MagicNames.getTime) {
-      OPT_RegisterOperand val = gc.temps.makeTempDouble();
-      OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "getTimeInstructions", 
-					   INSTRUCTION_ARRAY_SIGNATURE), 
-			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.getTimeInstructionsField.getOffset());
-      bc2ir.appendInstruction(Call.create1(CALL, val, null, mo, bc2ir.popRef()));
-      bc2ir.push(val.copyD2U(), VM_Type.DoubleType);
     } else if (methodName == VM_MagicNames.prepare) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand base = bc2ir.popRef();

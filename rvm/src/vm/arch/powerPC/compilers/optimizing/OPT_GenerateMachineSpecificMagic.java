@@ -119,6 +119,16 @@ class OPT_GenerateMachineSpecificMagic
 					   callerFP, 
 					   new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET),
 					   null));
+    } else if (methodName == VM_MagicNames.getTime) {
+      OPT_RegisterOperand val = gc.temps.makeTempDouble();
+      OPT_MethodOperand mo = 
+	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
+					   "getTimeInstructions", 
+					   "[I"), 
+			      OPT_MethodOperand.STATIC, 
+			      VM_Entrypoints.getTimeInstructionsField.getOffset());
+      bc2ir.appendInstruction(Call.create1(CALL, val, null, mo, bc2ir.popRef()));
+      bc2ir.push(val.copyD2U(), VM_Type.DoubleType);
     } else if (methodName == VM_MagicNames.sysCall0) {
       OPT_Operand toc = bc2ir.popInt();
       OPT_Operand ip = bc2ir.popInt();
