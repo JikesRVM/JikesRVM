@@ -53,7 +53,7 @@ class Queue implements Constants, VM_Uninterruptible {
   //
   // Private and protected static final fields (aka constants)
   //
-  private static final int LOG_PAGES_PER_BUFFER = 0;
+  protected static final int LOG_PAGES_PER_BUFFER = 0;
   protected static final int PAGES_PER_BUFFER = 1<<LOG_PAGES_PER_BUFFER;
   private static final int LOG_BUFFER_SIZE = (LOG_PAGE_SIZE + LOG_PAGES_PER_BUFFER);
   protected static final int BUFFER_SIZE = 1<<LOG_BUFFER_SIZE;

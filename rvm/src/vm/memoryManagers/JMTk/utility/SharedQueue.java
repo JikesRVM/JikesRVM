@@ -44,13 +44,13 @@ public class SharedQueue extends Queue
     completionFlag = 0;
   }
 
-  public final boolean complete() {
+  final boolean complete() {
     return completionFlag == 1;
   }
 
-  public final int getArity() throws VM_PragmaInline { return arity; }
+  final int getArity() throws VM_PragmaInline { return arity; }
 
-  public final void enqueue(VM_Address buf, int arity, boolean toTail) {
+  final void enqueue(VM_Address buf, int arity, boolean toTail) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
 
@@ -70,14 +70,14 @@ public class SharedQueue extends Queue
       setNext(buf, head);
       head = buf;
     } 
+    bufsenqueued++;
     if (VM_Interface.VerifyAssertions) {
-      bufsenqueued++;
       VM_Interface._assert(checkQueueLength(bufsenqueued));
     }
     unlock();
   }
 
-  public final void flushQueue(int arity) {
+  final void flushQueue(int arity) {
     VM_Address buf = dequeue(arity);
     while (!buf.isZero()) {
       free(bufferStart(buf));
@@ -85,13 +85,13 @@ public class SharedQueue extends Queue
     }
   }
 
-  public final VM_Address dequeue(int arity) {
+  final VM_Address dequeue(int arity) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
     return dequeue(false);
   }
 
-  public final VM_Address dequeueAndWait(int arity) {
+  final VM_Address dequeueAndWait(int arity) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
     VM_Address buf = dequeue(false);
@@ -101,28 +101,32 @@ public class SharedQueue extends Queue
     return buf;  
   }
 
-  public final void reset() {
+  final void reset() {
     setNumClientsWaiting(0);
     setCompletionFlag(0);
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(head.isZero() && tail.isZero());
   }
 
-  public final void newClient() {
+  final void newClient() {
     setNumClients(numClients + 1);
   }
 
-  public final VM_Address alloc() throws VM_PragmaInline {
+  final VM_Address alloc() throws VM_PragmaInline {
     VM_Address rtn = rpa.alloc(PAGES_PER_BUFFER);
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
-  public final void free(VM_Address buf) throws VM_PragmaInline {
+  final void free(VM_Address buf) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rpa.free(buf);
+  }
+
+  final int enqueuedPages() throws VM_PragmaInline {
+    return bufsenqueued<<LOG_PAGES_PER_BUFFER;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -159,8 +163,7 @@ public class SharedQueue extends Queue
 	setTail(VM_Address.zero());
 	if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
       }
-      if (VM_Interface.VerifyAssertions)
-	setBufsEnqueued(bufsenqueued - 1);
+      bufsenqueued--;
       if (waiting)
 	setNumClientsWaiting(numClientsWaiting - 1);
     }
@@ -242,10 +245,4 @@ public class SharedQueue extends Queue
   private final void setTail(VM_Address newTail) throws VM_PragmaInline {
     tail = newTail;
   }
-
-  private final void setBufsEnqueued(int newBE) throws VM_PragmaInline {
-    bufsenqueued = newBE;
-  }
-
-  
 }
