@@ -1,52 +1,48 @@
-
-Currently, the Jikes\trademark RVM has two types of configurations:
-the adaptive configurations that contain the adaptive optimization 
-system (AOS),
-and the non-adaptive configurations that do not.  
-This section describes the non-standard Jikes RVM command-line options that 
-provide the mechanism to specify AOS, baseline compiler, and optimizing compiler options
-for the different types of configurations; and 
-how to add a new non-standard command-line option.
+Currently, Jikes\trademark RVM has two types of configurations:
+the adaptive configurations that contain the adaptive optimization
+system (AOS), and the non-adaptive configurations that do not.  This
+section describes the non-standard Jikes RVM command-line options that
+provide the mechanism to specify AOS, baseline compiler, and
+optimizing compiler options for the different types of configurations;
+and how to add a new non-standard command-line option.
 
 \subsection{Command-Line Options in Non-Adaptive Configurations}
 \label{subsection:nonadaptive:cmdline}
 
-This section describes how non-standard Jikes\trademark RVM command line options are 
-specified for a non-adaptive configuration of Jikes RVM.
-In a non-adaptive configuration, the command line options modify
-the behavior of the baseline or optimizing compiler. 
-Different prefixes can be used to direct the option to one of following: the initial runtime 
-compiler ({\tt -X:irc:}), 
-% the bootimage compiler ({\tt -X:bc:}),
-the baseline compiler ({\tt -X:base:}) and the optimizing
-compiler ({\tt -X:opt:}). 
+This section describes how non-standard Jikes\trademark RVM command
+line options are specified for a non-adaptive configuration of Jikes
+RVM.  In a non-adaptive configuration, the command line options modify
+the behavior of the baseline or optimizing compiler.  Different
+prefixes can be used to direct the option to one of following:
+the initial runtime compiler ({\tt -X:irc:}),
+the baseline compiler ({\tt -X:base:}) 
+and the optimizing compiler ({\tt -X:opt:}). 
 Some prefixes are only allowed with some configurations.
 Depending on the configuration selected, the initial runtime compiler is 
 either the baseline or the optimizing compiler. 
 
-Consider the case where the initial runtime compiler is the optimizing 
-compiler. In that case either of the 
-prefixes {\tt -X:irc:} or {\tt -X:opt:} can be used to pass options to
-the optimizing compiler. 
-For example, to perform global array bounds check elimination on demand
-when a method is initially compiled with the optimizing compiler,
-use the {\tt -X:irc:global\_bounds=true} directive.
-In such a configuration the baseline compiler will
-still be present and will be used for some compilations. 
-The prefix {\tt -X:base:} must be used to pass an option to the 
-baseline compiler in configurations when the initial runtime compiler is 
-the optimizing compiler.
+Consider the case where the initial runtime compiler is the optimizing
+compiler. In that case either of the prefixes {\tt -X:irc:} or {\tt
+-X:opt:} can be used to pass options to the optimizing compiler.  For
+example, to perform global array bounds check elimination on demand
+when a method is initially compiled with the optimizing compiler, use
+the {\tt -X:irc:global\_bounds=true} directive.  In such a
+configuration the baseline compiler will still be present and will be
+used for some compilations.  The prefix {\tt -X:base:} must be used to
+pass an option to the baseline compiler in configurations when the
+initial runtime compiler is the optimizing compiler.
 
-When the initial runtime compiler is the baseline compiler, the optimizing
-compiler will not be part of the system, so the prefix {\tt -X:opt:} should
-not be used. Also, with such a configuration, options specified with the prefix
-{\tt -X:irc:} must be options recognized by the baseline compiler.
+When the initial runtime compiler is the baseline compiler, the
+optimizing compiler will not be part of the system, so the prefix {\tt
+-X:opt:} should not be used. Also, with such a configuration, options
+specified with the prefix {\tt -X:irc:} must be options recognized by
+the baseline compiler.
 
-All of the above non-standard VM options must occur before 
-the application class name and application's command-line options.
+All of the above non-standard VM options must occur before the
+application class name and application's command-line options.
 
-For the following discussion, we assume that the appropriate prefix has been
-prepended to the option and only discuss the option.
+For the following discussion, we assume that the appropriate prefix
+has been prepended to the option and only discuss the option.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Optimizing Compiler Command-Line Options}
@@ -89,77 +85,53 @@ When a {\tt printOptions} directive is found, the setting of the
 compiler options will reflect only those compiler options
 that have preceded the {\tt printOptions} directive.  
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Implementing Baseline Compiler Command-Line Options}
-
-This section provides some information on various
-implementation details for baseline compiler command-line options.
-
-\index{baseline compiler command-line options}
-\index{VM\_BaseOptions class}
-The command-line options to the baseline compiler are
-stored as fields in an object of type {\tt VM\_BaseOptions}.
-The Jikes\trademark RVM build process generates the {\tt VM\_BaseOptions.java} 
-file automatically from a template.  
-
-\index{BooleanOptions.dat}
-\index{ValueOptions.dat}
-To add or modify the command-line options in {\tt VM\_BaseOptions.java},
-you must modify either {\tt BooleanOptions.dat}, or {\tt ValueOptions.dat}.
-You should describe your desired command-line option in a format 
-described below in Section~\ref{section:optdetails:options}, which 
-also provides the details for the optimizing compiler's command-line options.
-
-\JikesTMFooter
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Command-Line Options in Adaptive Configurations}
 \label{subsection:adaptive:cmdline}
 
-This section describes how non-standard Jikes\trademark RVM command line options are 
-specified for an adaptive configuration.
-In an adaptive configuration, the command line options modifies
-the behavior of the adaptive optimization system,
-the optimizing compiler or the baseline compiler.
-A command-line directive is constructed by concatenating an option 
-with a prefix which identifies the desired destiny for that option.
+This section describes how non-standard Jikes\trademark RVM command
+line options are specified for an adaptive configuration.  In an
+adaptive configuration, the command line options modifies the behavior
+of the adaptive optimization system, the optimizing compiler or the
+baseline compiler.  A command-line directive is constructed by
+concatenating an option with a prefix which identifies the desired
+destiny for that option.
 
-All options in an adaptive configuration are prefixed with {\tt -X:aos}.
-To pass an option to the adaptive optimization system, use the {\tt -X:aos:} 
-prefix. 
-For example, to set the logging level of AOS to one, use the directive
-{\tt -X:aos:logging\_level=1}.
-Unlike a nonadaptive configuration, an adaptive configuration may 
-conceptually have many optimizing compilers that are available at runtime,
-each with its own set of option values.
-We present a mechanism to address each conceptual optimizing compiler.
-To pass options to the opt compiler that recompiles a method
-use the {\tt -X:aos:opt[?]} prefix where the {\tt ?} is optional and 
-if specified is an integer that identifies the optimization level.
-For example, {\tt -X:aos:opt2:global\_bounds=true} performs 
-global array bounds check elimination on demand when a method is 
-optimized at optimization level 2.
-If no optimization level is specified, the option applies to all 
-optimization levels of the optimizing compiler that recompiles methods.
-For example, {\tt -X:aos:opt:global\_bounds=true} performs 
-global array bounds check elimination on demand whenever a method is 
-recompiled with optimization.
-Like a nonadaptive configuration, there is an initial runtime compiler.
-In the default adaptive configurations, the 
-initial runtime compiler is the baseline compiler.
-Options are passed to the initial runtime compiler
-by prefixing each option with {\tt -X:aos:irc:}.
-For example, to perform global array bounds check elimination on demand
-when a method is initially compiled with the optimizing compiler,
-use the {\tt -X:aos:irc:global\_bounds=true} directive.
-See Section~\ref{subsection:nonadaptive:cmdline} for a discussion of the
-optimizing and baseline compiler command-line options that are available.
+All options in an adaptive configuration are prefixed with {\tt
+-X:aos}.  To pass an option to the adaptive optimization system, use
+the {\tt -X:aos:} prefix.  For example, to set the logging level of
+AOS to one, use the directive {\tt -X:aos:logging\_level=1}.  Unlike a
+nonadaptive configuration, an adaptive configuration may conceptually
+have many optimizing compilers that are available at runtime, each
+with its own set of option values.  We present a mechanism to address
+each conceptual optimizing compiler.  To pass options to the opt
+compiler that recompiles a method use the {\tt -X:aos:opt[?]} prefix
+where the {\tt ?} is optional and if specified is an integer that
+identifies the optimization level.  For example, 
+{\tt -X:aos:opt2:global\_bounds=true} performs global array bounds check
+elimination on demand when a method is optimized at optimization level
+2.  If no optimization level is specified, the option applies to all
+optimization levels of the optimizing compiler that recompiles
+methods.  For example, {\tt -X:aos:opt:global\_bounds=true} performs
+global array bounds check elimination on demand whenever a method is
+recompiled with optimization.  Like a nonadaptive configuration, there
+is an initial runtime compiler.  In the default adaptive
+configurations, the initial runtime compiler is the baseline compiler.
+Options are passed to the initial runtime compiler by prefixing each
+option with {\tt -X:aos:irc:}.  For example, to perform global array
+bounds check elimination on demand when a method is initially compiled
+with the optimizing compiler, use the {\tt
+-X:aos:irc:global\_bounds=true} directive.  See
+Section~\ref{subsection:nonadaptive:cmdline} for a discussion of the
+optimizing and baseline compiler command-line options that are
+available.
 
-Finally, the prefix {\tt -X:aos:share[?]:o=v} is a short hand for passing a
-option value pair, {\tt o=v}, to both the AOS and to the different "conceptual"
-optimizing compilers.  If the optimization level is specified, then only that 
-optimization level for recompilation is affected.  Otherwise, the option is set
-for AOS and all optimization levels for method recompilation.
+Finally, the prefix {\tt -X:aos:share[?]:o=v} is a short hand for
+passing a option value pair, {\tt o=v}, to both the AOS and to the
+different "conceptual" optimizing compilers.  If the optimization
+level is specified, then only that optimization level for
+recompilation is affected.  Otherwise, the option is set for AOS and
+all optimization levels for method recompilation.
 
 All of the above non-standard VM options must occur before 
 the application class name and application's command-line options.
@@ -170,88 +142,54 @@ prepended to the option and only discuss the option.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Adaptive Optimization System (AOS) Command-Line Options}
 
-To see a description of the command-line options to the
-AOS, use {\tt -X:aos:help}.
-As of this writing, this command produces the following output:
+To see a description of the command-line options to the AOS, use 
+{\tt -X:aos:help}.  As of this writing, this command produces the
+following output:
 
 \T \begin{tiny}
 \input{adaptive_options}
 \T \end{tiny}
 
-The {\tt primary\_strategy} option determines what strategy is used to compile
-methods.
-The default strategy is {\tt adaptive} which allows a method to be
-recompiled multiple times at different optimization levels.
-The other strategies allow an adaptive configuration to behave as a
-just-in-time compiler (JIT) by determining what compiler will compile a method.
-For example, the {\tt optonly} strategy compiles a method once with the 
-optimizing compiler. This has the effect of making the initial runtime compiler
-be the optimizing compiler (and no recompilations will take place), so 
-subsequent options in the command line that are prefixed with {\tt -X:aos:irc:}
-will be passed to the optimizing compiler. Since no recompilation will take
-place options prefixed with {\tt -X:aos:opt} will have no effect.
-For example to optimize compile a method at optimization level 1,
-when the {\tt optonly} strategy is specified, use the {\tt -X:aos:irc:O1} option.
-(Note that to obtain the functionality of a JIT at optimization level 1, 
-{\tt -X:primary\_strategy=optonly -X:aos:irc:O1}, in a nonadaptive configuration
-would be achieved with the command-line option {\tt -X:irc:O1}.)
-Currently, the {\tt quickonly} primary strategy is not supported.
-
-
-Another interesting combination of command-line option that allow single level
-adaptive recompilation is 
-{\tt -X:aos:adaptive\_recompilation=false -X:aos:default\_opt\_level=1} 
-which will recompile hot methods at optimization level 1 only.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Implementing AOS Command-Line Options}
-
-This section provides some information on various
-implementation details for AOS command-line options.
-
-\index{AOS command-line options}
-\index{VM\_AOSOptions class}
-The command-line options to AOS are
-stored as fields in an object of type {\tt VM\_AOSOptions}.
-The Jikes\trademark RVM build process generates the {\tt VM\_AOSOptions.java} 
-file automatically from a template.  
-
-\index{BooleanOptions.dat}
-\index{ValueOptions.dat}
-To add or modify the command-line options in {\tt VM\_AOSOptions.java},
-you must modify either {\tt BooleanOptions.dat}, {\tt ValueOptions.dat},
-{\tt ShareBooleanOptions.dat}, or {\tt ShareValueOptions.dat}.
-You should describe your desired command-line option in a format 
-described below in Section~\ref{section:optdetails:options}.
-The options in the {\tt ShareBooleanOptions.dat} and {\tt ShareValueOptions.dat}
-files are defined as both AOS and optimizing compiler options.
-
-\JikesTMFooter
+The {\tt primary\_strategy} option determines what strategy is used to
+compile methods.  The default strategy is {\tt adaptive} which allows
+a method to be recompiled multiple times at different optimization
+levels.  The other strategies allow an adaptive configuration to
+behave as a just-in-time compiler (JIT) by determining what compiler
+will compile a method.  For example, the {\tt optonly} strategy
+compiles a method once with the optimizing compiler. This has the
+effect of making the initial runtime compiler be the optimizing
+compiler (and no recompilations will take place), so subsequent
+options in the command line that are prefixed with {\tt -X:aos:irc:}
+will be passed to the optimizing compiler. Since no recompilation will
+take place options prefixed with {\tt -X:aos:opt} will have no effect.
+For example to optimize compile a method at optimization level 1, when
+the {\tt optonly} strategy is specified, use the {\tt -X:aos:irc:O1}
+option.  (Note that to obtain the functionality of a JIT at
+optimization level 1, {\tt -X:primary\_strategy=optonly
+-X:aos:irc:O1}, in a nonadaptive configuration would be achieved with
+the command-line option {\tt -X:irc:O1}.) 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Adding Jikes RVM Non-Standard Command-Line Options}
-This section states how non-standard Jikes\trademark RVM command-line options can be added
-to Jikes RVM.  
-Non-standard Jikes RVM command-line options are those options that are specific
-to Jikes RVM.
-The format of a non-standard Jikes RVM option is {\tt -X:o=v} where {\tt o} is the 
-option and {\tt v} is the value it is to be set to.
-Adherence to this format is important to keep command-line options processing
-from becoming unwieldy.
+This section states how non-standard Jikes\trademark RVM command-line
+options can be added to Jikes RVM.  Non-standard Jikes RVM
+command-line options are those options that are specific to Jikes RVM.
+The format of a non-standard Jikes RVM option is {\tt -X:o=v} where
+{\tt o} is the option and {\tt v} is the value it is to be set to.
+Adherence to this format is important to keep command-line options
+processing from becoming unwieldy.
 
-Jikes RVM command-line options are processed in two places: {\tt
-RunBootImage.C} and 
-{\tt VM\_CommandLineArgs.java}.  
-{\tt RunBootImage.C} is called first before the boot image is loaded,
-and {\tt VM\_CommandLineArgs.java} is called after.
-In addition to processing any option which does not require the Jikes
-RVM boot image 
+Jikes RVM command-line options are processed in two places: 
+{\tt RunBootImage.C} and {\tt VM\_CommandLineArgs.java}.  
+{\tt RunBootImage.C} is called first before the boot image is loaded, and
+{\tt VM\_CommandLineArgs.java} is called after.  In addition to
+processing any option which does not require the Jikes RVM boot image
 to be loaded (such as {\tt help} and {\tt version}), 
-{\tt RunBootImage.C} processes any non-standard option that impacts either 
-heap size, message output, or where to find the boot image.
-To allow unrestricted Jikes RVM option orders and 
-since command-line processing stops at the first option that is not 
-recognized as a Jikes RVM option, all other options must be recognized by
-{\tt RunBootImage.C} and passed on.
+{\tt RunBootImage.C} processes any non-standard option that impacts either
+heap size, message output, or where to find the boot image.  To allow
+unrestricted Jikes RVM option orders and since command-line processing
+stops at the first option that is not recognized as a Jikes RVM
+option, all other options must be recognized by {\tt RunBootImage.C}
+and passed on.
 
 \JikesTMFooter
