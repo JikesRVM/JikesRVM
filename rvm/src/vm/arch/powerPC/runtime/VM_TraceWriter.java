@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 import java.io.*;
 
 /**
- * A VM_TraceWriter offloads interruptible work during a thread switch.
+ * A VM_TraceWriter thread offloads interruptible work when in uninterruptible code.
  * Because a trace record is procuced when Jikes RVM is in the midst of a 
  * thread switch, the operations that can be perform are limited.
  * More complicated operations, such as IO, must be off loaded to the VM_TraceWriter.
@@ -41,11 +41,39 @@ import java.io.*;
  * @author Peter Sweeney
  * @date 2/6/2003
  */
-class VM_TraceWriter extends VM_ThreadSwitchConsumer 
-implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
-            VM_Callbacks.AppStartMonitor,    VM_Callbacks.AppCompleteMonitor,
-         VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor
+class VM_TraceWriter extends VM_Thread 
+  implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
+              VM_Callbacks.AppStartMonitor,    VM_Callbacks.AppCompleteMonitor,
+           VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor
 {
+
+  /**
+   * The producer associated with this consumer.
+   * May be null if the consumer has no associated producer.
+   */
+  private  VM_HardwarePerformanceMonitor producer;
+
+  /**
+   * A queue to hold the consumer thread when it isn't executing
+   */
+  private   VM_ThreadQueue tq = new VM_ThreadQueue(0);
+
+  /**
+   * Called when thread is scheduled.
+   */
+  public void run() {
+    initialize();
+    while (true) {
+      passivate(); // wait until externally scheduled to run
+      try {
+	thresholdReached();       // we've been scheduled; do our job!
+      } catch (Exception e) {
+	e.printStackTrace();
+	VM.sysFail("Exception in VM_ConsumerThread "+this);
+      }
+    } 
+  }
+
   /*
    * output trace file
    */
@@ -57,12 +85,61 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   // Flag for when to close the trace file.
   // At notifyExit time, producer sets flag to true.
   public boolean notifyExit = false;
+
+  /**
+   * Start consuming.
+   * Called (by producer) to activate the consumer thread (i.e. schedule it for execution).
+   */
+  public void activate() throws VM_PragmaUninterruptible 
+  {
+    if (active == true) {
+      if (notifyExit) {
+	// handled in thresholdReached
+	return;
+      }
+      VM.sysWriteln("***VM_TraceWriter.activate() active == true!  PID ",
+		    ((VM_TraceWriter)this).getPid(),"***");
+      VM.shutdown(VM.exitStatusMiscTrouble);
+    }
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.activate()");
+    active = true;
+    VM_Thread org = tq.dequeue();
+    if (VM.VerifyAssertions) VM._assert(org != null);
+    org.schedule();
+  }
+  /**
+   * The field active (manipulated by producer) determines when we consume
+   */
+  protected boolean active = false;
+  /*
+   * Let the outside world know if I am active?
+   */
+  public final boolean isActive() throws VM_PragmaUninterruptible
+  { 
+    return active; 
+  }
+
+  /*
+   * Stop consuming.
+   * Called (by consumer in run()) to stop consuming.
+   * Can access the thread queue without locking because 
+   * only producer and consumer operate on the thread queue and the
+   * producer uses its own protocol to ensure that exactly 1 
+   * thread will attempt to activate the consumer.
+   */
+  private void passivate() throws VM_PragmaUninterruptible 
+  {
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.passivate()");
+    active = false;
+    VM_Thread.yield(tq);
+  }
+
   /**
    * Consumer Constructor
    *
    * @param producer         the associated producer
    */
-  VM_TraceWriter(VM_ThreadSwitchProducer producer, int pid) 
+  VM_TraceWriter(VM_HardwarePerformanceMonitor producer, int pid) 
   { 
     if(VM_HardwarePerformanceMonitors.verbose>=2) {
       VM.sysWriteln("VM_TraceWriter(",pid,") constructor");
@@ -85,7 +162,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   }
 
   /**
-   * An abstract VM_ThreadSwitchConsumer method.
+   * An abstract VM_HPM_Consumer method.
    *
    * Called when:
    * 1) the trace buffer is full.
@@ -113,6 +190,9 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
       int    index  = hpm.getFullIndex();
       writeFileOutputStream(buffer, index);
       hpm.resetFull();    
+      if (notifyExit == true) {
+	thresholdReached();
+      }
     }
   }
 
@@ -228,7 +308,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 
     trace_file = null;
 
-    if(VM_HardwarePerformanceMonitors.verbose>=3){
+    if(VM_HardwarePerformanceMonitors.verbose>=2){
       ((VM_HardwarePerformanceMonitor)producer).dumpStatistics();
     }
   }
