@@ -876,7 +876,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * benchmark, such as a full heap collection, turning on
    * instrumentation, etc.
    */
-  public static void harnessBegin() {
+  public static void harnessBegin() throws VM_PragmaInterruptible {
     Plan.harnessBegin();
   }
 
