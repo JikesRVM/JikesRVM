@@ -234,24 +234,20 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     if (VM_CollectorThread.MEASURE_WAIT_TIMES && (gcCount>0)) {
       double totalBufferWait = 0.0;
       double totalFinishWait = 0.0;
-      double totalRendezvousWait = 0.0;
-      int avgBufferWait=0, avgFinishWait=0, avgRendezvousWait=0;
+      int avgBufferWait=0, avgFinishWait=0;
 
-      VM_CollectorThread ct;
+
       for (int i=1; i <= np; i++ ) {
-        ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
+	VM_CollectorThread ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
         totalBufferWait += ct.totalBufferWait;
         totalFinishWait += ct.totalFinishWait;
-        totalRendezvousWait += ct.totalRendezvousWait;
       }
       avgBufferWait = ((int)((totalBufferWait/(double)gcCount)*1000000.0))/np;
       avgFinishWait = ((int)((totalFinishWait/(double)gcCount)*1000000.0))/np;
-      avgRendezvousWait = ((int)((totalRendezvousWait/(double)gcCount)*1000000.0))/np;
 
       VM.sysWrite("Average Wait Times For Each Collector Thread In A Collection:\n");
       VM.sysWrite("Buffer Wait ", avgBufferWait, " (us) Finish Wait ");
-      VM.sysWrite( avgFinishWait, " (us) Rendezvous Wait ");
-      VM.sysWrite( avgRendezvousWait, " (us)\n\n");
+      VM.sysWrite( avgFinishWait, " (us)\n\n");
     }
     if (COUNT_ALLOCATIONS) {
       long bytes = 0, objects = 0, syncObjects = 0;
