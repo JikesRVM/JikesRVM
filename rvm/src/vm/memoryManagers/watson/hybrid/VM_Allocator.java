@@ -1178,7 +1178,7 @@ public class VM_Allocator extends VM_GCStatistics
       else return;   // quit - error
     }
     
-    if (outOfLargeSpaceFlag || (smallHeap.freeMemory() < majorCollectionThreshold)) {
+    if (outOfLargeSpaceFlag || (smallHeap.freeBlocks() < majorCollectionThreshold)) {
       if (verbose >= 1 && myThread.gcOrdinal == 1) {
 	if (outOfLargeSpaceFlag)
 	  VM_Scheduler.trace("Major Collection Necessary:", "To reclaim Large Space");
@@ -1192,11 +1192,10 @@ public class VM_Allocator extends VM_GCStatistics
 
       if (myThread.gcOrdinal == 1) {
 	if (verbose >= 1) {
-	  long free = smallHeap.freeMemory();
-	  VM.sysWriteln((free < majorCollectionThreshold) ? 
+	  VM.sysWriteln((smallHeap.freeBlocks() < majorCollectionThreshold) ? 
 			"After Major Collection: VERY LITTLE smallHeap free memory = " :
 			"After Major Collection: smallHeap free memory = ",
-			free);
+			smallHeap.freeMemory());
 	}
 	majorCollection = false;
 	outOfSmallHeapSpace = false;
