@@ -1156,7 +1156,8 @@ emitStackOp() {
     regCode=$4
     memCode=$5
     memExt=$6
-    imm32Code=$7
+    imm8Code=$7
+    imm32Code=$8
     cat >> $FILENAME <<EOF
   // $op1 dstReg, SP $op2 4
   public final void emit${acronym}_Reg (byte dstReg) {
@@ -1211,8 +1212,13 @@ EOF
   // $op1 imm, SP $op2 4
   public final void emit${acronym}_Imm(int imm) {
     int miStart = mi;
-    setMachineCodes(mi++, (byte) ${imm32Code});
-    emitImm32(imm);
+    if (fits(imm, 8)) {
+      setMachineCodes(mi++, (byte) ${imm8Code});
+      emitImm8(imm);
+    } else {
+      setMachineCodes(mi++, (byte) ${imm32Code});
+      emitImm32(imm);
+    }
     if (lister != null) lister.I(miStart, "${acronym}", imm);
   }
 
@@ -1220,8 +1226,8 @@ EOF
     fi
 }
 
-emitStackOp POP pop -= 0x58 0x8F 0x0 none
-emitStackOp PUSH push += 0x50 0xFF 0x6 0x68
+emitStackOp POP pop -= 0x58 0x8F 0x0 none none
+emitStackOp PUSH push += 0x50 0xFF 0x6 0x6A 0x68
 
 emitFloatMemAcc() {
     local acronym=$1
