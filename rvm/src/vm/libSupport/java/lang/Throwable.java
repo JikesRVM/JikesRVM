@@ -11,6 +11,11 @@ import com.ibm.JikesRVM.VM_StackTrace;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.PrintLN;
 import com.ibm.JikesRVM.PrintContainer;
+import com.ibm.JikesRVM.classloader.VM_Atom;
+import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
+import com.ibm.JikesRVM.VM_ObjectModel;
+
 
 
 /**
@@ -44,16 +49,7 @@ public class Throwable implements java.io.Serializable {
     
   public Throwable () {
     super();
-    try {
-      fillInStackTrace();
-    } catch (OutOfMemoryError e) {
-      tallyOutOfMemoryError();
-      VM.sysWriteln("Cannot fill in a stack trace; out of memory!\n");
-	
-    } catch (Throwable t) {
-      tallyWeirdError();
-      VM.sysWriteln("Cannot fill in a stack trace; got a weird Throwable\n");
-    }
+    fillInStackTrace();		// fillInStackTrace() catches its own errors.
   }
     
   public Throwable (String detailMessage) {
@@ -102,7 +98,21 @@ public class Throwable implements java.io.Serializable {
   public Throwable fillInStackTrace() {
     /* We collect the whole stack trace, and we strip out the cause of the
        exception later on at printing time, in printStackTrace(). */
-    stackTrace = new VM_StackTrace(0);
+    try {
+      tallyOutOfMemoryError();
+      stackTrace = new VM_StackTrace(0);
+    } catch (OutOfMemoryError t) {
+      stackTrace = null;
+      VM.sysWriteln("Throwable.fillInStackTrace(): Cannot fill in a stack trace; out of memory!");
+    } catch (Throwable t) {
+      stackTrace = null;
+      tallyWeirdError();
+      VM.sysWrite("Throwable.fillInStackTrace(): Cannot fill in a stack trace; got a weird Throwable when I tried to:\n\t");
+      t.sysWriteln();
+      VM.sysWriteln("Throwable.fillInStackTrace: [ BEGIN Trying to dump THAT stack trace:");
+      t.sysWriteStackTrace();
+      VM.sysWriteln("Throwable.fillInStackTrace(): END of dumping recursive stack trace ]");
+    }
     return this;
   }
 
@@ -131,6 +141,10 @@ public class Throwable implements java.io.Serializable {
     return this;
   }
     
+  public void sysWriteStackTrace() {
+    printStackTrace(PrintContainer.readyPrinter);
+  }
+
   public void printStackTrace () {
     // boolean useSysWrite = false;
     boolean useSysWrite = true || VM.stackTraceVMSysWrite;
@@ -162,28 +176,46 @@ public class Throwable implements java.io.Serializable {
     
   public synchronized void printStackTrace(PrintLN err) {
     //    err.println("This is a call to printStackTrace()"); // DEBUG
+    int step = 0;
     try {
       /* A routine to avoid OutOfMemoryErrors, which I think we will never see
 	 anyway.  But let's encapsulate potentially memory-allocating
 	 operations. */ 
-      printJustThisThrowableNoStackTrace(err);
+      printlnJustThisThrowableNoStackTrace(err);
+      ++step;
       /* Old call.  This won't elide stack frames as nicely, but otherwise will
 	 work fine. */
       // stackTrace.print(err);
       /* new call: */
-      stackTrace.print(err, this);
+      if (stackTrace == null) {
+	err.println("{ Throwable.printStackTrace(): No stack trace available to display; sorry! }");
+      } else {
+	stackTrace.print(err, this);
+      }
+      ++step;
       if (cause != null) {
 	err.print("Caused by: ");
 	cause.printStackTrace(err);
       }
+      ++step;
     } catch (OutOfMemoryError dummy) {
       tallyOutOfMemoryError();
-      VM.sysWriteln("Throwable.printStackTrace(PrintLN) is out of memory, in an unexpected way.  Giving up on the stack trace printing.");
+      VM.sysWriteln("Throwable.printStackTrace(PrintLN) is out of memory");
     } catch (Throwable dummy) {
       tallyWeirdError();
-      VM.sysWriteln("Throwable.printStackTrace(PrintLN) caught an unexpected exception while printing a stack trace.  It won't print any more of the stack trace.");
-      VM.sysWrite("The exception we caught was: ");
-      VM.sysWriteln(dummy.toString());
+      VM.sysWrite("Throwable.printStackTrace(PrintLN) caught an unexpected Throwable: ");
+      dummy.sysWriteln();
+      VM.sysWriteln("[ BEGIN (possibly recursive) sysWrite() of stack trace for that unexpected Throwable");
+      dummy.sysWriteStackTrace();
+      VM.sysWriteln(" END (possibly recursive) sysWrite() of stack trace for that unexpected Throwable ]");
+    }
+    if (step < 3) {
+      if (err.isSysWrite()) {
+	VM.sysWriteln("Throwable.printStackTrace(PrintContainer.WithSysWriteln): Can't proceed any further.");
+      } else {
+	VM.sysWriteln("Throwable.printStackTrace(PrintContainer): Resorting to sysWrite() methods.");
+	this.sysWriteStackTrace();
+      }
     }
   }
 
@@ -239,7 +271,7 @@ public class Throwable implements java.io.Serializable {
     throw new VM_UnimplementedError(); // if we run out of memory, so be it. 
   }
 
-  void printJustThisThrowableNoStackTrace(PrintLN err) {
+  void printlnJustThisThrowableNoStackTrace(PrintLN err) {
       /** We have carefully crafted toString, at least for this exception, to
        * dump the errors properly.  But someone below us could override it.
        * If so, we'll throw a recursive OutOfMemoryException. */ 
@@ -247,14 +279,28 @@ public class Throwable implements java.io.Serializable {
   }
   
   public void sysWrite() {
-    VM.sysWriteln(this.toString());
+    if (false) {
+      VM.sysWrite(this.toString()); // avoid toString(); no concat or funny
+				    // stuff this way!
+    } else {
+      sysWriteClassName();
+      VM.sysWrite(": ");
+      VM.sysWriteln(detailMessage);
+    }
   }
 
-//   printJustThisThrowableNoStackTrace(PrintLN err) {
-//     // Safer version!
-    
-//   }
-  
+  public void sysWriteln() {
+    sysWrite();
+    VM.sysWriteln();
+  }
+
+  public void sysWriteClassName() {
+    VM_Type me_type = VM_ObjectModel.getObjectType(this);
+    VM_TypeReference me_tRef = me_type.getTypeRef();
+    VM_Atom me_name = me_tRef.getName();
+    me_name.sysWrite();
+  }
+
   /* We could make this more functional in the face of running out of memory,
    * but probably not worth the hassle. */
   public String toString() {
