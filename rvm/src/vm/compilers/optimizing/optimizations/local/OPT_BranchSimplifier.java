@@ -49,16 +49,18 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	  OPT_Operand val2 = IfCmp.getVal2(s);
 	  if (val2.isConstant()) {
 	    // constant fold
-	    if (IfCmp.getCond(s).evaluate(val1, val2)) {
-	      // branch taken
+	    int cond = IfCmp.getCond(s).evaluate(val1, val2);
+	    if (cond == OPT_ConditionOperand.TRUE) {  // branch taken
 	      insertTrueGuard (s, guard);
 	      Goto.mutate(s, GOTO, IfCmp.getTarget(s));
 	      removeBranchesAfterGotos(bb);
-	    } else {
+	    } else if (cond == OPT_ConditionOperand.FALSE) {  // branch taken
 	      // branch not taken
 	      insertTrueGuard (s, guard);
 	      s.remove();
 	    }
+	    else
+	      VM.sysFail("comparison irreducible");
 	    // hack. Just start over since Enumeration has changed.
 	    branches = bb.enumerateBranchInstructions();
 	    bb.recomputeNormalOut(ir);
@@ -103,21 +105,26 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	  OPT_Operand val2 = IfCmp2.getVal2(s);
 	  if (val2.isConstant()) {
 	    // constant fold
-	    if (IfCmp2.getCond1(s).evaluate(val1, val2)) {
+	    int cond1 = IfCmp2.getCond1(s).evaluate(val1, val2);
+	    int cond2 = IfCmp2.getCond2(s).evaluate(val1, val2);
+	    if (cond1 == OPT_ConditionOperand.TRUE) {
 	      // target 1 taken
 	      insertTrueGuard (s, guard);
 	      Goto.mutate(s, GOTO, IfCmp2.getTarget1(s));
 	      removeBranchesAfterGotos(bb);
-	    } else if (IfCmp2.getCond2(s).evaluate(val1, val2)) {
+	    } else if (cond2 == OPT_ConditionOperand.TRUE) {
 	      // target 2 taken
 	      insertTrueGuard (s, guard);
 	      Goto.mutate(s, GOTO, IfCmp2.getTarget2(s));
 	      removeBranchesAfterGotos(bb);
-	    } else {
+	    } else if (cond1 != OPT_ConditionOperand.UNKNOWN &&
+		       cond2 != OPT_ConditionOperand.UNKNOWN) {
 	      // not taken
 	      insertTrueGuard (s, guard);
 	      s.remove();
 	    }
+	    else 
+	      VM.sysFail("comparison irreducible");
 	    // hack. Just start over since Enumeration has changed.
 	    branches = bb.enumerateBranchInstructions();
 	    bb.recomputeNormalOut(ir);

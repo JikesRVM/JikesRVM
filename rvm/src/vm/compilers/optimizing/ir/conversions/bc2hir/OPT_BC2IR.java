@@ -3375,12 +3375,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (offset == 3)
       return null;             // remove frivolous IFs
     if (CF_INTIF && op0 instanceof OPT_IntConstantOperand) {
-      if (cond.evaluate(((OPT_IntConstantOperand)op0).value, 0)) {
+      int c = cond.evaluate(((OPT_IntConstantOperand)op0).value, 0);
+      if (c == OPT_ConditionOperand.TRUE) {
         if (DBG_CF)
           db(cond + ": changed branch to goto because predicate (" + op0
 	     + ") is constant true");
         return _gotoHelper(offset);
-      } else {
+      } else if (c == OPT_ConditionOperand.FALSE) {
         if (DBG_CF)
           db(cond + ": eliminated branch because predicate (" + op0 + 
 	     ") is constant false");
@@ -3621,13 +3622,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (CF_INTIFCMP && 
 	(op0 instanceof OPT_IntConstantOperand) && 
 	(op1 instanceof OPT_IntConstantOperand)) {
-      if (cond.evaluate(((OPT_IntConstantOperand)op0).value, 
-			((OPT_IntConstantOperand)op1).value)) {
+      int c = cond.evaluate(((OPT_IntConstantOperand)op0).value, 
+			    ((OPT_IntConstantOperand)op1).value);
+      if (c == OPT_ConditionOperand.TRUE) {
         if (DBG_CF)
           db(cond + ": changed branch to goto because predicate (" + op0
 	     + ", " + op1 + ") is constant true");
         return _gotoHelper(offset);
-      } else {
+      } else if (c == OPT_ConditionOperand.FALSE) {
         if (DBG_CF)
           db(cond + ": eliminated branch because predicate (" + op0 + 
 	     "," + op1 + ") is constant false");

@@ -533,15 +533,17 @@ public final class OPT_BranchOptimizations
       int value = ((OPT_IntConstantOperand)val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1))
         throw  new OPT_OptimizingCompilerException("Invalid boolean value");
-      if (cond.evaluate(value, 0)) {
+      int c = cond.evaluate(value, 0);
+      if (c == OPT_ConditionOperand.TRUE) {
         Unary.mutate(cb, BOOLEAN_NOT, res, val1);
-      } else {
+	return;
+      } else if (c == OPT_ConditionOperand.FALSE) {
         Move.mutate(cb, INT_MOVE, res, val1);
+	return;
       }
-    } else {
-      BooleanCmp.mutate(cb, BOOLEAN_CMP, res, val1, val2, cond,
-			new OPT_BranchProfileOperand());
-    }
+    } 
+    BooleanCmp.mutate(cb, BOOLEAN_CMP, res, val1, val2, cond,
+		      new OPT_BranchProfileOperand());
   }
 
   /**

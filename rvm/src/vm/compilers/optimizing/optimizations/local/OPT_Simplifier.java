@@ -113,15 +113,15 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     case TRAP_IF_opcode:
       { 
 	OPT_Operand op1 = TrapIf.getVal1(s);
+	OPT_Operand op2 = TrapIf.getVal2(s);
 	if (op1.isIntConstant()) {
-	  OPT_Operand op2 = TrapIf.getVal2(s);
 	  if (op2.isIntConstant()) {
-	    boolean willTrap = TrapIf.getCond(s).evaluate(op1, op2);
-	    if (willTrap) {
+	    int willTrap = TrapIf.getCond(s).evaluate(op1, op2);
+	    if (willTrap == OPT_ConditionOperand.TRUE) {
 	      Trap.mutate(s, TRAP, TrapIf.getClearGuardResult(s), 
 			  TrapIf.getClearTCode(s));
 	      return TRAP_REDUCED;
-	    } else {
+	    } else if (willTrap == OPT_ConditionOperand.FALSE) {
 	      Move.mutate(s, GUARD_MOVE, TrapIf.getClearGuardResult(s), TG());
 	      return MOVE_FOLDED;
 	    }
@@ -264,15 +264,18 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     case INT_COND_MOVE_opcode:
       {
 	OPT_Operand val1 = CondMove.getVal1(s);
+	OPT_Operand val2 = CondMove.getVal2(s);
 	if (val1.isConstant()) {
-	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -312,11 +315,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -339,11 +345,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -366,11 +375,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+		                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -393,11 +405,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+                                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -420,11 +435,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  OPT_Operand val2 = CondMove.getVal2(s);
 	  if (val2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
-	    OPT_Operand val = 
-	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
-	    Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
-	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    int cond = CondMove.getCond(s).evaluate(val1, val2);
+	    if (cond == OPT_ConditionOperand.UNKNOWN) {
+	      OPT_Operand val = 
+		(cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) 
+                                                    : CondMove.getClearFalseValue(s);
+	      Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
+	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	    }
 	  } else {	      
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
@@ -461,13 +479,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
     case BOOLEAN_CMP_opcode:
       if (CF_INT) {
 	OPT_Operand op1 = BooleanCmp.getVal1(s);
+	OPT_Operand op2 = BooleanCmp.getVal2(s);
 	if (op1.isConstant()) {
-	  OPT_Operand op2 = BooleanCmp.getVal2(s);
 	  if (op2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
-	    Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
-			BooleanCmp.getCond(s).evaluate(op1, op2) ? I(1):I(0));
-	    return MOVE_FOLDED;
+	    int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
+	    if (cond != OPT_ConditionOperand.UNKNOWN) {
+	      Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
+			  (cond == OPT_ConditionOperand.TRUE) ? I(1):I(0));
+	      return MOVE_FOLDED;
+	    }
 	  } else {
 	    // Cannonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = BooleanCmp.getClearVal1(s);
