@@ -18,18 +18,19 @@
 .TH "RVM" "1" "April 2004" "Jikes RVM @VERSION@" "User Commands"
 .SH NAME
 rvm \- run Java programs with Jikes RVM
-./ rvm \- execute Java programs on the Jikes RVM Virtual Machine
+.
 .
 .SH SYNOPSIS
 .
 .B rvm
-[--installation] [OPTION] ClassName [ARGS...]
+[--installation] [OPTION...] ClassName [ARGS...]
 .br
 .B rvm
-[--installation] [OPTION] -jar jarfile [ARGS...]
+[--installation] [OPTION...] -jar jarfile [ARGS...]
+.
 .
 .SH DESCRIPTION
-Jikes RVM is a free runtime environment for Java.  
+Jikes RVM is a free runtime environment and virtual machine for Java.  
 .
 With the 
 .B rvm 
@@ -51,6 +52,7 @@ You can type
 .RB \*(lq "rvm -help" \*(rq
 to get a list of arguments.   
 .
+.
 .SH ENVIRONMENT
 .
 This version of the 
@@ -64,14 +66,14 @@ environment variables are set.
 This is for backwards compatibility
 with the 
 .B rvm
-command normally provided in Jikes RVM's development kit (as 
-\fBRVM_ROOT\fR\fI/rvm/bin/rvm\fR)
+command normally provided in Jikes RVM's development kit
 and used when one is developing Jikes RVM itself.  
 Indeed, this version of the 
 .B rvm
-command is just a wrapper around the one in the Jikes RVM 
+command is just a wrapper around the one in Jikes RVM's
 .B RVM_ROOT
-directory.
+directory
+(as \fBRVM_ROOT\fR\fI/rvm/bin/rvm\fR).
 If 
 .B RVM_BUILD
 is unset, it defaults to
@@ -104,6 +106,7 @@ with the same arguments that this program was invoked with, and
 matters proceed as described in the 
 User's Guide.
 .
+.
 .SH "REPORTING BUGS"
 .
 The 
@@ -111,11 +114,13 @@ Jikes RVM
 bug tracking system is at 
 .IR http://oss.software.ibm.com/jikesrvm/solutions .
 .
+.
 .SH "BUGS"
 Jikes RVM
 does not implement all of the Java API.
 .
-This is because there is no complete set of free Java class libraries.
+This is because there is no set of free Java class libraries that
+implements the entire Java API;
 Jikes RVM uses the (incomplete) class libraries provided by the GNU
 Classpath project.  
 .
@@ -125,14 +130,18 @@ systems) cannot pass Sun's full Java Compatibility Tests, and
 therefore legally cannot call itself Java.  However, the subset of 
 the Java class libraries that Jikes RVM implements does seem to be
 adequate for running most popular Java applications, including
-.BR Ant and
+.BR Ant 
+and
 .BR Eclipse .
+.
 .
 .SH COPYRIGHT
 Jikes RVM is copyright (C) 2004 by IBM Corp.  Jikes RVM is free
 software; see the file 
 .I @DOC_DIR@/LICENSE
 for copying conditions.
+.
+.
 .SH "SEE ALSO"
 .I http://oss.software.ibm.com/jikesrvm
 is the 
