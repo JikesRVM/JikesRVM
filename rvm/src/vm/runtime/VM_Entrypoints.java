@@ -28,6 +28,15 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
+  public static final VM_Field threadLocalValueMap = 
+    getField("Ljava/lang/ThreadLocal;", "valueMap", "Ljava/util/Map;");
+
+  //-#if !RVM_WITH_OWN_JAVA_LANG_CLASS && RVM_WITH_CLASSPATH_0_10_OR_LATER && !RVM_WITH_CLASSPATH_0_11_OR_LATER
+  public static final VM_Field javaLangClassProtectionDomain =
+    getField("Ljava/lang/Class;", "pd", "Ljava/security/ProtectionDomain;");
+  //-#endif
+
+
   // Allocation-related entry points
   //
   public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIII)Ljava/lang/Object;");
@@ -267,7 +276,12 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field cbsResetValueField   = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterBasedSampling;","resetValue", "I");
   //-#endif
 
-  public static final VM_Field classLoaderDefinedPackages = getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
+  public static final VM_Field classLoaderDefinedPackages =
+    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
+    //-#else
+    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
+    //-#endif
 
   static {
 
