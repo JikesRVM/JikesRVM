@@ -16,7 +16,7 @@
  */
 import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
 
-public final class VM_JNIGCMapIterator extends MM.VM_GCMapIterator 
+public final class VM_JNIGCMapIterator extends com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator
     implements VM_BaselineConstants, VM_Uninterruptible {
 
   // Java to Native C transition frame...(see VM_JNICompiler)
