@@ -272,6 +272,48 @@ none
 
 
 
+# float/double addition
+FP_ADD
+Binary
+none
+
+
+
+# float/double subtraction
+FP_SUB
+Binary
+none
+
+
+
+# float/double multiplication
+FP_MUL
+Binary
+none
+
+
+
+# float/double division
+FP_DIV
+Binary
+none
+
+
+
+# float/double negation (sign change)
+FP_NEG
+Unary
+none
+
+
+
+# float/double remainder
+FP_REM
+Binary
+none
+
+
+
 ####################
 # A call whose target is in a class that implements 
 # the VM_SaveVolatile interface.  Therefore, this

@@ -142,8 +142,14 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             OPT_Register r = rop.register;
 
             // if we see a physical FPR, update the MIR state.
-            if (r.isPhysical() && r.isFloatingPoint()) {
+            if (r.isPhysical() && r.isFloatingPoint() &&
+		s.operator() != DUMMY_DEF && 
+		s.operator() != DUMMY_USE) {
               int n = phys.getFPRIndex(r);
+	      if (fpStackOffset != 0) {
+		n += fpStackOffset;
+		rop.register = phys.getFPR(n);
+	      }
               ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight,
                                                   n+1);
             }
@@ -160,8 +166,12 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
               }
               rop.register = p;
             }
-          }
-        }
+          } else if (op instanceof OPT_BURSManagedFPROperand) {
+	    int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
+	    s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), 
+							 VM_Type.DoubleType));
+	  }
+	}
         // account for any effect s has on the floating point stack
         // position.
         if (s.operator().isFpPop()) {

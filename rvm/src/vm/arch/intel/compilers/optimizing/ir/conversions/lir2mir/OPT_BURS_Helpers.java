@@ -146,6 +146,14 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     return getIR().regpool.getPhysicalRegisterSet().getFPR(n);
   }
 
+  OPT_Operand myFP0() {
+    return new OPT_BURSManagedFPROperand(0);
+  }
+  OPT_Operand myFP1() {
+    return new OPT_BURSManagedFPROperand(1);
+  }
+
+
   // support to remember an address being computed in a subtree
   private static final class AddrStackElement {
     OPT_RegisterOperand base;
@@ -487,16 +495,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
     burs.append(MIR_Move.create(IA32_MOV, sl, value));
-    burs.append(MIR_Move.mutate(s, IA32_FILD, D(getFPR(0)), sl.copy()));
-    // This is tricky.  Note that FILD pushed a value on the FP stack.
-    // So, we cannot use an FMOV instruction until we pop the stack, since
-    // the FMOV expansion relies on having a free stack slot (possibly
-    // just consumed by FILD).  So: pop the result back to the stack, and
-    // then move it into the result register. Alternatively, we could
-    // introduce a new temporary symbolic FPR to hold the result ... (SJF)
-    burs.append(MIR_Move.create(IA32_FSTP, sl.copy(), D(getFPR(0))));
-    // OK, the FP stack is kosher again.  It's OK to emit an FMOV.
-    burs.append(MIR_Move.create(IA32_FMOV, result, sl.copy()));
+    burs.append(MIR_Move.mutate(s, IA32_FILD, myFP0(), sl.copy()));
+    burs.append(MIR_Move.create(IA32_FSTP, result, myFP0()));
   }
 
 
@@ -602,11 +602,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_CondMove.create(IA32_CMOV, isNegative.copy(), one.copy(),
                                     OPT_IA32ConditionOperand.LLT()));
     // push round(x) into FP(0).
-    burs.append(MIR_Move.create(IA32_FILD, D(getFPR(0)), sl.copy()));
+    burs.append(MIR_Move.create(IA32_FILD, myFP0(), sl.copy()));
     // addee == 1 iff round(x) < x
     // subtractee == 1 iff round(x) > x
-    burs.append(MIR_Compare.create(IA32_FCOMIP, D(getFPR(0)),
-                                   D(getFPR(1))));
+    burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), D(getFPR(0))));
     OPT_RegisterOperand addee = burs.ir.regpool.makeTempInt();
     OPT_RegisterOperand subtractee = burs.ir.regpool.makeTempInt();
     burs.append(MIR_Move.create(IA32_MOV, addee.copy() , I(0)));
@@ -1221,77 +1220,91 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
 
   /**
-   * Expansion of FLOAT_ADD, DOUBLE_ADD,
-   * FLOAT_SUB, DOUBLE_SUB, FLOAT_MUL, DOUBLE_MUL,
-   * FLOAT_DIV, DOUBLE_DIV 
+   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
+   * FP_SUB_ACC, and FP_DIV_ACC.
+   * Moves first value into fp0,
+   * accumulates second value into fp0 using op,
+   * moves fp0 into result.
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
+   * @param op the floating point op to use
+   * @param result the result operand
    * @param val1 the first operand
    * @param val2 the second operand
    */
-  final void FPOP(OPT_BURS burs, OPT_Instruction s,
-		  OPT_Operator op,
-		  OPT_Operand val1,
-		  OPT_Operand val2) {
+  final void FP_MOV_OP_MOV(OPT_BURS burs, OPT_Instruction s,
+			   OPT_Operator op,
+			   OPT_Operand result,
+			   OPT_Operand val1,
+			   OPT_Operand val2) {
+    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
+    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
+    burs.append(MIR_Move.create(IA32_FMOV, result, D(getFPR(0))));
+  }
+  /**
+   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
+   * FP_SUB_ACC, and FP_DIV_ACC.
+   * Moves first value into fp0,
+   * accumulates second value into fp0 using op.
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to expand
+   * @param op the floating point op to use
+   * @param val1 the first operand
+   * @param val2 the second operand
+   */
+  final void FP_MOV_OP(OPT_BURS burs, OPT_Instruction s,
+			   OPT_Operator op,
+			   OPT_Operand val1,
+			   OPT_Operand val2) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1));
     burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
   }
   /**
-   * Expansion of FLOAT_ADD, DOUBLE_ADD,
-   * FLOAT_SUB, DOUBLE_SUB, FLOAT_MUL, DOUBLE_MUL,
-   * FLOAT_DIV, DOUBLE_DIV 
+   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
+   * FP_SUB_ACC, and FP_DIV_ACC.
+   * apply op to val1 and val2
+   * move val1 to result using movop
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param val the value to combine with fp0
-   */
-  final void FPOP(OPT_BURS burs, OPT_Instruction s,
-		  OPT_Operator op,
-		  OPT_Operand val) {
-    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val));
-  }
-
-
-  /**
-   * Expansion of FLOAT_ADD, DOUBLE_ADD,
-   * FLOAT_SUB, DOUBLE_SUB, FLOAT_MUL, DOUBLE_MUL,
-   * FLOAT_DIV, DOUBLE_DIV using a popping insturction.
-   * NB: in popping instructions the result is not FP0!
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
+   * @param op the floating point op to use
+   * @param movop the move op to use
    * @param result the result operand
-   * @param val the value to combine with fp0
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
-  final void FPOP_POP(OPT_BURS burs, OPT_Instruction s,
-		      OPT_Operator op,
-		      OPT_Operand result,
-		      OPT_Operand val) {
-    burs.append(MIR_Move.create(IA32_FMOV, result, val));
-    burs.append(MIR_BinaryAcc.mutate(s, op, result.copy(), D(getFPR(0))));
+  final void FP_OP_MOV(OPT_BURS burs, OPT_Instruction s,
+		       OPT_Operator op,
+		       OPT_Operator movop,
+		       OPT_Operand result,
+		       OPT_Operand val1,
+		       OPT_Operand val2) {
+    burs.append(MIR_BinaryAcc.mutate(s, op, val1, val2));
+    burs.append(MIR_Move.create(movop, result, val1.copy()));
   }
-
   /**
-   * Expansion of FLOAT_ADD, DOUBLE_ADD,
-   * FLOAT_SUB, DOUBLE_SUB, FLOAT_MUL, DOUBLE_MUL,
-   * FLOAT_DIV, DOUBLE_DIV using a popping insturction.
-   * NB: in popping instructions the result is not FP0!
-   *
+   * Expansion of FP_ADD_ACC, FP_MUL_ACC, 
+   * FP_SUB_ACC, and FP_DIV_ACC.
+   * apply op to val1 and val2.
+   * NOTE: either val1 or val2 must be either FPR0 or ST(0)!
+   * 
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param val the value to combine with fp1, result is put in fp1 (fp0 after the pop)
+   * @param op the floating point op to use
+   * @param val1 the first operand
+   * @param val2 the second operand
    */
-  final void FPOP_POP(OPT_BURS burs, OPT_Instruction s,
-		      OPT_Operator op,
-		      OPT_Operand val) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val));
-    burs.append(MIR_BinaryAcc.mutate(s, op, D(getFPR(1)), D(getFPR(0))));
+  final void FP_OP(OPT_BURS burs, OPT_Instruction s,
+		   OPT_Operator op,
+		   OPT_Operand val1,
+		   OPT_Operand val2) {
+    burs.append(MIR_BinaryAcc.mutate(s, op, val1, val2));
   }
 
-
   /**
-   * Expansion of FLOAT_REM and DOUBLE_REM
+   * Expansion of FP_REM 
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
@@ -1306,7 +1319,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
   }
   /**
-   * Expansion of FLOAT_REM and DOUBLE_REM
+   * Expansion of FP_REM
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
@@ -1319,7 +1332,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
   /**
-   * Expansion of FLOAT_NEG and DOUBLE_NEG
+   * Expansion of FP_NEG
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
@@ -1331,7 +1344,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_UnaryAcc.mutate(s,IA32_FCHS, D(getFPR(0))));
   }
   /**
-   * Expansion of FLOAT_NEG and DOUBLE_NEG
+   * Expansion of FP_NEG
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand by negating fp0

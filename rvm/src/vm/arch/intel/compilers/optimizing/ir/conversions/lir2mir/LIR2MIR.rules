@@ -222,28 +222,6 @@ fpload:	DOUBLE_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), QW_S, QW));
 
-# disable until regalloc fixed
-# loads that are the first half of a popping alu operation
-#fld0:	FLOAT_LOAD(r, riv)
-#11
-#EMIT_INSTRUCTION
-#EMIT(MIR_Move.create(IA32_FLD, F(getFPR(0)), MO_L(P(p), DW)));
-#
-#fld0:	FLOAT_ALOAD(r, riv)
-#11
-#EMIT_INSTRUCTION
-#EMIT(MIR_Move.create(IA32_FLD, F(getFPR(0)), MO_AL(P(p), DW_S, DW)));
-#
-#fld0:	DOUBLE_LOAD(r, riv)
-#11
-#EMIT_INSTRUCTION
-#EMIT(MIR_Move.create(IA32_FLD, F(getFPR(0)), MO_L(P(p), QW)));
-#
-#fld0:	DOUBLE_ALOAD(r, riv)
-#11
-#EMIT_INSTRUCTION
-#EMIT(MIR_Move.create(IA32_FLD, F(getFPR(0)), MO_AL(P(p), QW_S, QW)));
-#
 ##################################
 # Various integer computations for pointer arithmetic
 ##################################
@@ -981,472 +959,191 @@ EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NOT, MO_AS(P(p), DW_S, DW)));
 # Basic Floating-Point ALU operations 
 ##################################
 #####
-# FLOAT_ADD
+# FP_ADD (handles both float and double; both are 80 bit anyways...)
 #####
-# rules that leave the result in accumulator (fp0)
-fp0:	FLOAT_ADD(r, r)
+fp0:	FP_ADD(r, r)
+p.child1.isREGISTERNode()?43:26
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+fp0:	FP_ADD(r, r)
+p.child2.isREGISTERNode()?43:26
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+fp0:	FP_ADD(r, fpload)
+p.child1.isREGISTERNode()?45:28
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), consumeMO());
+
+fp0:	FP_ADD(fpload, r)
+p.child2.isREGISTERNode()?45:28
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)), consumeMO());
+
+fp0:	FP_ADD(pfp0, r)
+p.child2.isREGISTERNode()?48:31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_MOV_OP(burs, P(p), IA32_FADDP, Binary.getVal2(P(p)), myFP0());
+
+fp0:	FP_ADD(r, pfp0)
+p.child1.isREGISTERNode()?48:31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_MOV_OP(burs, P(p), IA32_FADDP, Binary.getVal1(P(p)), myFP0());
+
+fp0:	FP_ADD(fp0, r)
+13
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, D(getFPR(0)), Binary.getVal2(P(p)));
+
+fp0:	FP_ADD(r, fp0)
+13
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, D(getFPR(0)), Binary.getVal1(P(p)));
+
+fp0:	FP_ADD(fp0, fpload)
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, D(getFPR(0)), consumeMO());
+
+fp0:	FP_ADD(fpload, fp0)
+15
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, D(getFPR(0)), consumeMO());
+
+pfp0:	FP_ADD(r, r)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FLD, myFP0(), Binary.getVal1(P(p)))); \
+FP_OP(burs, P(p), IA32_FADD, myFP0(), Binary.getVal2(P(p)));
+
+pfp0:	FP_ADD(pfp0, r)
+13
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, myFP0(), Binary.getVal2(P(p)));
+
+pfp0:	FP_ADD(r, pfp0)
+13
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, myFP0(), Binary.getVal1(P(p)));
+
+pfp0:	FP_ADD(pfp0, fpload)
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, myFP0(), consumeMO());
+
+pfp0:	FP_ADD(fpload, pfp0)
+15
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FADD, myFP0(), consumeMO());
+
+r:	FP_ADD(r, r)
+p.child1.isREGISTERNode()?56:39
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FADD, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r:	FP_ADD(r, r)
+p.child2.isREGISTERNode()?56:39
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FADD, Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+r:	FP_ADD(r, fpload)
+p.child1.isREGISTERNode()?58:41
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FADD, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r:	FP_ADD(fpload, r)
+p.child2.isREGISTERNode()?58:41
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FADD, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+r:	FP_ADD(r, fp0)
 26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	FLOAT_ADD(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)));
-
-fp0:	FLOAT_ADD(r, fp0)
-13
 EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)));
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), Binary.getVal1(P(p)));
 
-fp0:	FLOAT_ADD(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	FLOAT_ADD(fp0, fpload)
-15
+r:	FP_ADD(fp0, r)
+26
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, consumeMO());
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), Binary.getVal2(P(p)));
 
-fp0:	FLOAT_ADD(fpload, r)
+r:	FP_ADD(fpload, fp0)
 28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	FLOAT_ADD(fpload, fp0)
-15
 EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, consumeMO());
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), consumeMO());
 
-# disable until regalloc fixed
-#fp0:	FLOAT_ADD(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getVal2(P(p)));
-#
-#fp0:	FLOAT_ADD(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FLOAT_ADD(r, r)
+r:	FP_ADD(fp0, fpload)
+28
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), consumeMO());
+
+r:	FP_ADD(r, pfp0)
+31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FSTP, Binary.getResult(P(p)), myFP0(), Binary.getVal1(P(p)));
+
+r:	FP_ADD(pfp0, r)
+31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FSTP, Binary.getResult(P(p)), myFP0(), Binary.getVal2(P(p)));
+
+r:	FP_ADD(fpload, pfp0)
+31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FSTP, Binary.getResult(P(p)), myFP0(), consumeMO());
+
+r:	FP_ADD(pfp0, fpload)
+31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FADD, IA32_FSTP, Binary.getResult(P(p)), myFP0(), consumeMO());
+
+#####
+# FP_MUL (handles both float and double; both are 80 bit anyways...)
+#####
+r:	FP_MUL(r, r)
 39
 EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
+FP_MOV_OP_MOV(burs, P(p), IA32_FMUL, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_ADD(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_ADD(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_ADD(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_ADD(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_ADD(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_ADD(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	FLOAT_ADD(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	FLOAT_ADD(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
 #####
-# FLOAT_SUB
+# FP_SUB (handles both float and double; both are 80 bit anyways...)
 #####
-# rules that leave the result in accumulator (fp0)
-fp0:	FLOAT_SUB(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	FLOAT_SUB(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal2(P(p)));
-
-fp0:	FLOAT_SUB(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal1(P(p)));
-
-fp0:	FLOAT_SUB(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	FLOAT_SUB(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUB, consumeMO());
-
-fp0:	FLOAT_SUB(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	FLOAT_SUB(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUBR, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	FLOAT_SUB(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBRP, Binary.getVal2(P(p)));
-#
-#fp0:	FLOAT_SUB(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FLOAT_SUB(r, r)
+r:	FP_SUB(r, r)
 39
 EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
+FP_MOV_OP_MOV(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_SUB(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_SUB(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_SUB(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_SUB(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_SUB(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_SUB(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUBR, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	FLOAT_SUB(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBRP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	FLOAT_SUB(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBRP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
 #####
-# FLOAT_MUL
+# FP_DIV_ACC (handles both float and double; both are 80 bit anyways...)
 #####
-# rules that leave the result in accumulator (fp0)
-fp0:	FLOAT_MUL(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	FLOAT_MUL(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)));
-
-fp0:	FLOAT_MUL(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)));
-
-fp0:	FLOAT_MUL(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	FLOAT_MUL(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, consumeMO());
-
-fp0:	FLOAT_MUL(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	FLOAT_MUL(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	FLOAT_MUL(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getVal2(P(p)));
-#
-#fp0:	FLOAT_MUL(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FLOAT_MUL(r, r)
+r:	FP_DIV(r, r)
 39
 EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
+FP_MOV_OP_MOV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-r:	FLOAT_MUL(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_MUL(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_MUL(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_MUL(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_MUL(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_MUL(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	FLOAT_MUL(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	FLOAT_MUL(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
 #####
-# FLOAT_DIV
+# FP_REM (handles both float and double; both are 80 bit anyways...)
 #####
 # rules that leave the result in accumulator (fp0)
-fp0:	FLOAT_DIV(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	FLOAT_DIV(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal2(P(p)));
-
-fp0:	FLOAT_DIV(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal1(P(p)));
-
-fp0:	FLOAT_DIV(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	FLOAT_DIV(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIV, consumeMO());
-
-fp0:	FLOAT_DIV(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	FLOAT_DIV(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIVR, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	FLOAT_DIV(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVRP, Binary.getVal2(P(p)));
-#
-#fp0:	FLOAT_DIV(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FLOAT_DIV(r, r)
-39
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_DIV(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_DIV(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_DIV(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_DIV(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_DIV(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	FLOAT_DIV(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIVR, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	FLOAT_DIV(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVRP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	FLOAT_DIV(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
-#####
-# FLOAT_REM
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	FLOAT_REM(r, r)
+fp0:	FP_REM(r, r)
 39
 EMIT_INSTRUCTION
 FP_REM(burs, P(p), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
-fp0:	FLOAT_REM(fp0, r)
+fp0:	FP_REM(fp0, r)
 26
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 FP_REM(burs, P(p), Binary.getVal2(P(p)));
 
 # rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FLOAT_REM(r, r)
+r:	FP_REM(r, r)
 52
 EMIT_INSTRUCTION
 OPT_RegisterOperand res = Binary.getResult(P(p)); \
 FP_REM(burs, P(p), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \
 EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
 
-r:	FLOAT_REM(fp0, r)
+r:	FP_REM(fp0, r)
 52
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 OPT_RegisterOperand res = Binary.getResult(P(p)); \
@@ -1454,530 +1151,29 @@ FP_REM(burs, P(p), Binary.getVal2(P(p))); \
 EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
 
 #####
-# FLOAT_NEG
+# FP_NEG (handles both float and double; both are 80 bit anyways...)
 #####
+# TODO: rules for pfp0
 # rules that leave the result in accumulator (fp0)
-fp0:	FLOAT_NEG(r)
+fp0:	FP_NEG(r)
 26
 EMIT_INSTRUCTION
 FP_NEG(burs, P(p), Unary.getVal(P(p)));
 
-fp0:	FLOAT_NEG(fp0)
+fp0:	FP_NEG(fp0)
 13
 EMIT_INSTRUCTION
 FP_NEG(burs, P(p));
 
 # rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FLOAT_NEG(r)
+r:	FP_NEG(r)
 39
 EMIT_INSTRUCTION
 OPT_RegisterOperand res = Unary.getResult(P(p)); \
 FP_NEG(burs, P(p), Unary.getVal(P(p))); \
 EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
 
-r:	FLOAT_NEG(fp0)
-26
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Unary.getResult(P(p)); \
-FP_NEG(burs, P(p)); \
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-#####
-# DOUBLE_ADD
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	DOUBLE_ADD(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_ADD(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_ADD(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)));
-
-fp0:	DOUBLE_ADD(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	DOUBLE_ADD(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, consumeMO());
-
-fp0:	DOUBLE_ADD(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	DOUBLE_ADD(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FADD, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	DOUBLE_ADD(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getVal2(P(p)));
-#
-#fp0:	DOUBLE_ADD(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	DOUBLE_ADD(r, r)
-39
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_ADD(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_ADD(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_ADD(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_ADD(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_ADD(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_ADD(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FADD, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	DOUBLE_ADD(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	DOUBLE_ADD(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FADDP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
-#####
-# DOUBLE_SUB
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	DOUBLE_SUB(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_SUB(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_SUB(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal1(P(p)));
-
-fp0:	DOUBLE_SUB(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	DOUBLE_SUB(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUB, consumeMO());
-
-fp0:	DOUBLE_SUB(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	DOUBLE_SUB(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FSUBR, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	DOUBLE_SUB(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBRP, Binary.getVal2(P(p)));
-#
-#fp0:	DOUBLE_SUB(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	DOUBLE_SUB(r, r)
-39
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_SUB(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_SUB(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_SUB(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_SUB(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUB, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_SUB(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUBR, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_SUB(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FSUBR, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	DOUBLE_SUB(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBRP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	DOUBLE_SUB(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FSUBRP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
-#####
-# DOUBLE_MUL
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	DOUBLE_MUL(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_MUL(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_MUL(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)));
-
-fp0:	DOUBLE_MUL(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	DOUBLE_MUL(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, consumeMO());
-
-fp0:	DOUBLE_MUL(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	DOUBLE_MUL(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FMUL, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	DOUBLE_MUL(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getVal2(P(p)));
-#
-#fp0:	DOUBLE_MUL(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	DOUBLE_MUL(r, r)
-39
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_MUL(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_MUL(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_MUL(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_MUL(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_MUL(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_MUL(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FMUL, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	DOUBLE_MUL(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	DOUBLE_MUL(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FMULP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
-#####
-# DOUBLE_DIV
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	DOUBLE_DIV(r, r)
-26
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_DIV(fp0, r)
-13
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_DIV(r, fp0)
-13
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal1(P(p)));
-
-fp0:	DOUBLE_DIV(r, fpload)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), consumeMO());
-
-fp0:	DOUBLE_DIV(fp0, fpload)
-15
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIV, consumeMO());
-
-fp0:	DOUBLE_DIV(fpload, r)
-28
-EMIT_INSTRUCTION
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal2(P(p)), consumeMO());
-
-fp0:	DOUBLE_DIV(fpload, fp0)
-15
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-FPOP(burs, P(p), IA32_FDIVR, consumeMO());
-
-# disable until regalloc fixed
-#fp0:	DOUBLE_DIV(fld0, r)
-#11
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVRP, Binary.getVal2(P(p)));
-#
-#fp0:	DOUBLE_DIV(r, fld0)
-#11
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVP, Binary.getVal1(P(p)));
-#
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	DOUBLE_DIV(r, r)
-39
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_DIV(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal2(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_DIV(r, fp0)
-26
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal1(P(p)));\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_DIV(r, fpload)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_DIV(fp0, fpload)
-28
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIV, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_DIV(fpload, r)
-41
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIVR, Binary.getVal2(P(p)), consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_DIV(fpload, fp0)
-28
-EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FPOP(burs, P(p), IA32_FDIVR, consumeMO());\
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-# disable until regalloc fixed
-#r:	DOUBLE_DIV(fld0, r)
-#26
-#EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVRP, Binary.getResult(P(p)), Binary.getVal2(P(p)));
-#
-#r:	DOUBLE_DIV(r, fld0)
-#26
-#EMIT_INSTRUCTION | LEFT_CHILD_FIRST
-#FPOP_POP(burs, P(p), IA32_FDIVP, Binary.getResult(P(p)), Binary.getVal1(P(p)));
-#
-#####
-# DOUBLE_REM
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	DOUBLE_REM(r, r)
-39
-EMIT_INSTRUCTION
-FP_REM(burs, P(p), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-fp0:	DOUBLE_REM(fp0, r)
-26
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-FP_REM(burs, P(p), Binary.getVal2(P(p)));
-
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	DOUBLE_REM(r, r)
-52
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FP_REM(burs, P(p), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \
-EMIT(MIR_Move.create(IA32_FMOV, res, D(getFPR(0))));
-
-r:	DOUBLE_REM(fp0, r)
-52
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-OPT_RegisterOperand res = Binary.getResult(P(p)); \
-FP_REM(burs, P(p), Binary.getVal2(P(p))); \
-EMIT(MIR_Move.create(IA32_FMOV, res, D(getFPR(0))));
-
-#####
-# DOUBLE_NEG
-#####
-# rules that leave the result in accumulator (fp0)
-fp0:	DOUBLE_NEG(r)
-26
-EMIT_INSTRUCTION
-FP_NEG(burs, P(p), Unary.getVal(P(p)));
-
-fp0:	DOUBLE_NEG(fp0)
-13
-EMIT_INSTRUCTION
-FP_NEG(burs, P(p));
-
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	DOUBLE_NEG(r)
-39
-EMIT_INSTRUCTION
-OPT_RegisterOperand res = Unary.getResult(P(p)); \
-FP_NEG(burs, P(p), Unary.getVal(P(p))); \
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
-
-r:	DOUBLE_NEG(fp0)
+r:	FP_NEG(fp0)
 26
 EMIT_INSTRUCTION
 OPT_RegisterOperand res = Unary.getResult(P(p)); \
@@ -2305,7 +1501,7 @@ NOFLAGS
 # FLOAT_MOVE
 ######
 r:	FLOAT_MOVE(r)
-13
+p.child1.isREGISTERNode()?30:13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Move.getResult(P(p)), Move.getVal(P(p))));
 
@@ -2314,11 +1510,31 @@ r:	FLOAT_MOVE(fp0)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Move.getResult(P(p)), F(getFPR(0))));
 
+fpload:	FLOAT_MOVE(fpload)
+0
+NOFLAGS
+// nothing to do
+
+fp0:	FLOAT_MOVE(fp0)
+0
+NOFLAGS
+// nothing to do
+
+pfp0:	FLOAT_MOVE(pfp0)
+0
+NOFLAGS
+// nothing to do
+
+fp0:	FLOAT_MOVE(pfp0)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, F(getFPR(0)), myFP0()));
+
 ######
 # DOUBLE_MOVE
 ######
-r:	DOUBLE_MOVE(riv)
-13
+r:	DOUBLE_MOVE(r)
+p.child1.isREGISTERNode()?30:13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Move.getResult(P(p)), Move.getVal(P(p))));
 
@@ -2326,6 +1542,26 @@ r:	DOUBLE_MOVE(fp0)
 13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Move.getResult(P(p)), D(getFPR(0))));
+
+fpload:	DOUBLE_MOVE(fpload)
+0
+NOFLAGS
+// nothing to do
+
+fp0:	DOUBLE_MOVE(fp0)
+13
+NOFLAGS
+// nothing to do
+
+pfp0:	DOUBLE_MOVE(pfp0)
+0
+NOFLAGS
+// nothing to do
+
+fp0:	DOUBLE_MOVE(pfp0)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
 
 #####
 # LONG_MOVE
@@ -2559,22 +1795,37 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW
 # FLOAT_LOAD
 #####
 r:	FLOAT_LOAD(r, riv)
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Load.getResult(P(p)), MO_L(P(p), DW)));
 
 fp0:	FLOAT_LOAD(r, riv)
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_L(P(p), DW)));
+
+pfp0:	FLOAT_LOAD(r, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_L(P(p), DW)));
 
 #####
 # FLOAT_ALOAD
 #####
 r:	FLOAT_ALOAD(r, riv)
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));
+
+fp0:	FLOAT_ALOAD(r, riv)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_AL(P(p), DW_S, DW)));
+
+pfp0:	FLOAT_ALOAD(r, riv)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_AL(P(p), DW_S, DW)));
 
 #####
 # LONG_LOAD
@@ -2602,17 +1853,37 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_AL(P(p), QW_S, DW)));
 # DOUBLE_LOAD
 #####
 r:	DOUBLE_LOAD(r, riv)
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Load.getResult(P(p)), MO_L(P(p), QW)));
+
+fp0:	DOUBLE_LOAD(r, riv)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, D(getFPR(0)), MO_L(P(p), QW)));
+
+pfp0:	DOUBLE_LOAD(r, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_L(P(p), QW)));
 
 #####
 # DOUBLE_ALOAD
 #####
 r:	DOUBLE_ALOAD(r, riv)
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
+
+fp0:	DOUBLE_ALOAD(r, riv)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, D(getFPR(0)), MO_AL(P(p), QW_S, QW)));
+
+pfp0:	DOUBLE_ALOAD(r, riv)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, myFP0(), MO_AL(P(p), QW_S, QW)));
 
 #####
 # PREPARE (just a normal load on IA32)
@@ -2963,27 +2234,37 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)
 # FLOAT_STORE
 #####
 stm:	FLOAT_STORE(r, OTHER_OPERAND(r, riv))
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), Store.getValue(P(p))));
 
 stm:	FLOAT_STORE(fp0, OTHER_OPERAND(r, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), F(getFPR(0))));
+EMIT(MIR_Move.mutate(P(p), IA32_FST, MO_S(P(p), DW), F(getFPR(0))));
+
+stm:	FLOAT_STORE(pfp0, OTHER_OPERAND(r, riv))
+20
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), DW), myFP0()));
 
 #####
 # FLOAT_ASTORE
 #####
 stm:	FLOAT_ASTORE(r, OTHER_OPERAND(r, riv))
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));
 
 stm:	FLOAT_ASTORE(fp0, OTHER_OPERAND(r, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), F(getFPR(0))));
+EMIT(MIR_Move.mutate(P(p), IA32_FST, MO_AS(P(p), DW_S, DW), F(getFPR(0))));
+
+stm:	FLOAT_ASTORE(pfp0, OTHER_OPERAND(r, riv))
+20
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_AS(P(p), DW_S, DW), myFP0()));
 
 #####
 # LONG_STORE
@@ -3025,27 +2306,37 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), I(val.lower32())));
 # DOUBLE_STORE
 #####
 stm:	DOUBLE_STORE(r, OTHER_OPERAND(r, riv))
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), QW), Store.getValue(P(p))));
 
 stm:	DOUBLE_STORE(fp0, OTHER_OPERAND(r, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), QW), D(getFPR(0))));
+EMIT(MIR_Move.mutate(P(p), IA32_FST, MO_S(P(p), QW), D(getFPR(0))));
+
+stm:	DOUBLE_STORE(pfp0, OTHER_OPERAND(r, riv))
+20
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), QW), myFP0()));
 
 #####
 # DOUBLE_ASTORE
 #####
 stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(r, riv))
-15
+30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
 
 stm:	DOUBLE_ASTORE(fp0, OTHER_OPERAND(r, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), QW_S, QW), D(getFPR(0))));
+EMIT(MIR_Move.mutate(P(p), IA32_FST, MO_AS(P(p), QW_S, QW), D(getFPR(0))));
+
+stm:	DOUBLE_ASTORE(pfp0, OTHER_OPERAND(r, riv))
+20
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_AS(P(p), QW_S, QW), myFP0()));
 
 ##################################
 # Control flow
@@ -3371,6 +2662,13 @@ stm:	RETURN(fp0)
 11
 EMIT_INSTRUCTION
 OPT_RegisterOperand res = Return.getVal(P(p)).isDouble() ? D(getFPR(0)) : F(getFPR(0)); \
+EMIT(MIR_Return.mutate(P(p), IA32_RET, null, res, null));
+
+stm:	RETURN(pfp0)
+26
+EMIT_INSTRUCTION
+OPT_RegisterOperand res = Return.getVal(P(p)).isDouble() ? D(getFPR(0)) : F(getFPR(0)); \
+EMIT(MIR_Move.create(IA32_FSTP, res.copy(), myFP0())); \
 EMIT(MIR_Return.mutate(P(p), IA32_RET, null, res, null));
 
 #####
