@@ -1,11 +1,9 @@
-XXXXXXX WORK IN PROGRESS XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXX RESTRICT TEXT TO 60 COLUMNS!    XXXXXXXXXXXXXXXXXXXX
 This is release 2.1.0 of the Jikes RVM. This release 
 provides some significant refactoring and new functionality,
 as well as bug fixes.
 
 IMPORTANT: new prerequisite!  The Jikes RVM now requires 
-JazzLib.  (TODO: update this with appropriate text).
+  JazzLib. The jconfigure script will download it automatically.
 
 IMPORTANT NOTE: We are aware of a bug in the IBM DK for 
   Linux/IA32 v1.3.1 when building Jikes RVM.  Stick with 
@@ -53,6 +51,7 @@ fixed in 2.1.0:
  2359: update RunSanityTests default
  2739: static synchronized methods in boot image
  2763: jdp 'thread' command broken
+ 2772: IA32: problems with physical registers in LIR
  2794: Classes resolved but not in boot image
  2806: IA32: genThreadSwitchTest for deterministic thread
        switching
