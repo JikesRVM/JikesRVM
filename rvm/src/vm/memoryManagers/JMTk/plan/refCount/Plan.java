@@ -34,7 +34,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // Class variables
   //
   public static final boolean needsWriteBarrier = true;
-  public static final boolean needsReadBarrier = false;
+  public static final boolean needsPutStaticWriteBarrier = false;
+  public static final boolean needsTIBStoreWriteBarrier = false;
   public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
   public static final boolean sanityTracing = false;

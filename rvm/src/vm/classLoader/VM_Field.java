@@ -205,7 +205,7 @@ public final class VM_Field extends VM_Member {
    */
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (MM_Interface.NEEDS_WRITE_BARRIER)
+      if (MM_Interface.NEEDS_PUTSTATIC_WRITE_BARRIER)
 	MM_Interface.putstaticWriteBarrier(offset, ref);
       else
 	VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);

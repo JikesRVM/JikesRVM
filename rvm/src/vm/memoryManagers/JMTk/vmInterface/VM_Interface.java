@@ -104,13 +104,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     // VM_Scheduler.dumpStack();
-    if ((Plan.verbose == 1) && (why == EXTERNALLY_TRIGGERED_GC)) {
+    if ((Plan.verbose == 1 || Plan.verbose == 2) 
+	&& (why == EXTERNALLY_TRIGGERED_GC)) {
       VM.sysWrite("[Forced GC]");
     }
-    if (Plan.verbose >= 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
+    if (Plan.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
-    if (Plan.verbose >= 2) VM.sysWriteln("Collection finished (ms): ", 
+    if (Plan.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
 					(int) (System.currentTimeMillis() - start));
     if (Plan.isLastGCFull()) {
         double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());

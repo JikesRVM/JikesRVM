@@ -105,9 +105,9 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void putstaticWriteBarrier(int offset, Object value)
     throws VM_PragmaInline { 
     // putstatic barrier currently unimplemented
-//     if (VM.VerifyAssertions) VM._assert(false);
-//     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
-//     VM_Interface.getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
+    if (VM.VerifyAssertions) VM._assert(false);
+    //     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
+    //     VM_Interface.getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
 
   public static void arrayStoreWriteBarrier(Object ref, int index,Object value)
@@ -181,7 +181,8 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static final boolean NEEDS_WRITE_BARRIER = Plan.needsWriteBarrier;
-  public static final boolean NEEDS_RC_WRITE_BARRIER = Plan.needsRefCountWriteBarrier;
+  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Plan.needsPutStaticWriteBarrier;
+  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = Plan.needsTIBStoreWriteBarrier;
   public static final boolean MOVES_OBJECTS = Plan.movesObjects;
   public static final boolean RC_CYCLE_DETECTION = Plan.refCountCycleDetection;
 

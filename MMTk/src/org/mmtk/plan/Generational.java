@@ -58,7 +58,8 @@ public abstract class Generational extends StopTheWorldGC
   // Class variables
   //
   public static final boolean needsWriteBarrier = true;
-  public static final boolean needsRefCountWriteBarrier = false;
+  public static final boolean needsPutStaticWriteBarrier = false;
+  public static final boolean needsTIBStoreWriteBarrier = false;
   public static final boolean refCountCycleDetection = false;
   public static final boolean movesObjects = true;
 

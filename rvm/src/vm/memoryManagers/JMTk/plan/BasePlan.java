@@ -294,7 +294,11 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void putFieldWriteBarrier(VM_Address src, int offset,
-				   VM_Address tgt){}
+				   VM_Address tgt) {
+    // Either: barriers are used and this is overridden, or 
+    //         barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+  }
 
   /**
    * A new reference is about to be created by a aastore bytecode.
@@ -309,7 +313,11 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void arrayStoreWriteBarrier(VM_Address ref, int index, 
-				     VM_Address value) {}
+				     VM_Address value) {
+    // Either: write barriers are used and this is overridden, or 
+    //         write barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+  }
 
   /**
    * A new reference is about to be created by a putStatic bytecode.
@@ -321,7 +329,8 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
-    // putstatic barrier currently unimplemented
+    // Either: write barriers are used and this is overridden, or 
+    //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
