@@ -27,8 +27,7 @@ import instructionFormats.*;
  *
  * @see OPT_SSA
  */
-class OPT_SSADictionary
-    implements OPT_Operators {
+final class OPT_SSADictionary implements OPT_Operators {
 
   /**
    * Flag to turn on debugging
@@ -43,7 +42,7 @@ class OPT_SSADictionary
    * @param uphi Should we use uphi functions? (ie. loads create a new
    *                             name for heap arrays)
    */
-  OPT_SSADictionary (java.util.Set heapTypes, boolean uphi, boolean insertPEIDeps,
+  OPT_SSADictionary (Set heapTypes, boolean uphi, boolean insertPEIDeps,
 		     OPT_IR ir) {
     this.heapTypes = heapTypes;
     this.uphi = uphi;
@@ -201,8 +200,8 @@ class OPT_SSADictionary
    * @return an iterator over all instructions that use this heap
    * variable
    */
-  public java.util.Iterator iterateHeapUses (OPT_HeapVariable A) {
-    java.util.HashSet u = (java.util.HashSet)UseChain.get(A);
+  public Iterator iterateHeapUses (OPT_HeapVariable A) {
+    HashSet u = (HashSet)UseChain.get(A);
     return  u.iterator();
   }
 
@@ -226,9 +225,9 @@ class OPT_SSADictionary
    * @return an iteration of all instructions that used this heap
    * variable, prior to renaming for SSA
    */
-  public java.util.Iterator iterateOriginalHeapUses (OPT_HeapVariable A) {
+  public Iterator iterateOriginalHeapUses (OPT_HeapVariable A) {
     Object type = A.getHeapType();
-    java.util.HashSet set = findOrCreateOriginalUses(type);
+    HashSet set = findOrCreateOriginalUses(type);
     return  set.iterator();
   }
 
@@ -241,9 +240,9 @@ class OPT_SSADictionary
    * @return an iteration of all instructions that defined this heap
    * variable, prior to renaming for SSA
    */
-  public java.util.Iterator iterateOriginalHeapDefs (OPT_HeapVariable A) {
+  public Iterator iterateOriginalHeapDefs (OPT_HeapVariable A) {
     Object type = A.getHeapType();
-    java.util.HashSet set = findOrCreateOriginalDefs(type);
+    HashSet set = findOrCreateOriginalDefs(type);
     return  set.iterator();
   }
 
@@ -256,16 +255,16 @@ class OPT_SSADictionary
    * @return the set of all instructions that used this heap
    * variable, prior to renaming for SSA
    */
-  public java.util.HashSet findOrCreateOriginalUses (Object type) {
-    java.util.HashSet result = (java.util.HashSet)originalUses.get(type);
+  public HashSet findOrCreateOriginalUses (Object type) {
+    HashSet result = (HashSet)originalUses.get(type);
     if (result != null)
       return  result;
     // not found: create a new set
-    result = new java.util.HashSet(2);
+    result = new HashSet(2);
     for (Enumeration e = getHeapVariables(); e.hasMoreElements();) {
       OPT_HeapVariable B = (OPT_HeapVariable)e.nextElement();
       if (B.getHeapType().equals(type)) {
-        java.util.HashSet u = (java.util.HashSet)UseChain.get(B);
+        HashSet u = (HashSet)UseChain.get(B);
         result.addAll(u);
       }
     }
@@ -283,12 +282,12 @@ class OPT_SSADictionary
    * @return the set of all instructions that defined this heap
    * variable, prior to renaming for SSA
    */
-  public java.util.HashSet findOrCreateOriginalDefs (Object type) {
-    java.util.HashSet result = (java.util.HashSet)originalDefs.get(type);
+  public HashSet findOrCreateOriginalDefs (Object type) {
+    HashSet result = (HashSet)originalDefs.get(type);
     if (result != null)
       return  result;
     // not found: create a new set
-    result = new java.util.HashSet(2);
+    result = new HashSet(2);
     for (Enumeration e = getHeapVariables(); e.hasMoreElements();) {
       OPT_HeapVariable B = (OPT_HeapVariable)e.nextElement();
       if (B.getHeapType().equals(type)) {
@@ -309,7 +308,7 @@ class OPT_SSADictionary
    * @return the number of uses of the heap variable
    */
   public int getNumberOfUses (OPT_HeapVariable A) {
-    java.util.HashSet u = (java.util.HashSet)UseChain.get(A);
+    HashSet u = (HashSet)UseChain.get(A);
     return  u.size();
   }
 
@@ -337,7 +336,7 @@ class OPT_SSADictionary
    * @return true or false as appropriate
    */
   public boolean isExposedOnExit (OPT_HeapVariable H) {
-    for (java.util.Iterator i = iterateHeapUses(H); i.hasNext();) {
+    for (Iterator i = iterateHeapUses(H); i.hasNext();) {
       OPT_HeapOperand op = (OPT_HeapOperand)i.next();
       OPT_Instruction s = op.instruction;
       if (exits.contains(s)) {
@@ -353,27 +352,27 @@ class OPT_SSADictionary
    * def chains
    */
   public void recomputeArrayDU () {
-    UseChain = new java.util.HashMap(2);
-    DefChain = new java.util.HashMap(2);
+    UseChain = new HashMap(2);
+    DefChain = new HashMap(2);
     // create a set of uses for each heap variable
     for (Enumeration e = getHeapVariables(); e.hasMoreElements();) {
       OPT_HeapVariable H = (OPT_HeapVariable)e.nextElement();
-      java.util.HashSet u = new java.util.HashSet(2);
+      HashSet u = new HashSet(2);
       UseChain.put(H, u);
     }
     // populate the use chain with each use registered
-    for (java.util.Iterator e = uses.values().iterator(); e.hasNext();) {
+    for (Iterator e = uses.values().iterator(); e.hasNext();) {
       OPT_HeapOperand[] H = (OPT_HeapOperand[])e.next();
       if (H == null)
         continue;
       for (int i = 0; i < H.length; i++) {
         OPT_HeapVariable v = H[i].getHeapVariable();
-        java.util.HashSet u = (java.util.HashSet)UseChain.get(v);
+        HashSet u = (HashSet)UseChain.get(v);
         u.add(H[i]);
       }
     }
     // record the unique def for each heap variable
-    for (java.util.Iterator e = defs.values().iterator(); e.hasNext();) {
+    for (Iterator e = defs.values().iterator(); e.hasNext();) {
       OPT_HeapOperand[] H = (OPT_HeapOperand[])e.next();
       if (H == null)
         continue;
@@ -440,7 +439,7 @@ class OPT_SSADictionary
   public void registerExit (OPT_Instruction s, OPT_BasicBlock b) {
     // setup an array of all heap variables
     // TODO: for efficiency, cache a copy of 'all' 
-    java.util.Iterator vars = heapVariables.values().iterator();
+    Iterator vars = heapVariables.values().iterator();
     OPT_HeapOperand[] all = new OPT_HeapOperand[heapVariables.size()];
     for (int i = 0; i < all.length; i++) {
       all[i] = new OPT_HeapOperand((OPT_HeapVariable)vars.next());
@@ -465,7 +464,7 @@ class OPT_SSADictionary
   public void registerUnknown (OPT_Instruction s, OPT_BasicBlock b) {
     // setup an array of all heap variables
     // TODO: for efficiency, cache a copy of 'all' 
-    java.util.Iterator vars = heapVariables.values().iterator();
+    Iterator vars = heapVariables.values().iterator();
     OPT_HeapOperand[] all = new OPT_HeapOperand[heapVariables.size()];
     for (int i = 0; i < all.length; i++) {
       all[i] = new OPT_HeapOperand((OPT_HeapVariable)vars.next());
@@ -590,27 +589,27 @@ class OPT_SSADictionary
    * operands (an <code> OPT_HeapOperand[]</code>) that this instruction
    * uses
    */
-  private java.util.HashMap uses = new java.util.HashMap();            
+  private HashMap uses = new HashMap();            
 
   /**
    * A mapping from <code> OPT_Instruction </code> to the set of heap
    * operands (an <code> OPT_HeapOperand[]</code>) that this instruction
    * defines
    */
-  private java.util.HashMap defs = new java.util.HashMap(); 
+  private HashMap defs = new HashMap(); 
 
   /**
    * A mapping from <code> HeapKey </code> to the set of heap
    * variables introduced for this IR
    */
-  private java.util.HashMap heapVariables = new java.util.HashMap();
+  private HashMap heapVariables = new HashMap();
 
   /**
    * A mapping from heap variable type to <code> Integer </code>
    * This structure holds the next number to assign when creating
    * a new heap variable name for a given type
    */
-  private java.util.HashMap nextNumber = new java.util.HashMap();         
+  private HashMap nextNumber = new HashMap();         
 
   /**
    * A mapping from <code> OPT_BasicBlock </code> to <code> Vector
@@ -618,7 +617,7 @@ class OPT_SSADictionary
    * This map holds the list of heap phi instructions stored as
    * lookaside for each basic block.
    */
-  private java.util.HashMap heapPhi = new java.util.HashMap(10);          
+  private HashMap heapPhi = new HashMap(10);          
 
   /**
    * An empty vector, used for utility.
@@ -626,47 +625,47 @@ class OPT_SSADictionary
   private Vector emptyVector = new Vector();
 
   /**
-   * A mapping from <code> OPT_HeapVariable </code> to <code> java.util.HashSet
+   * A mapping from <code> OPT_HeapVariable </code> to <code> HashSet
    * </code> of <code> OPT_HeapOperand </code>.  
    * This map holds the set of heap operands which use each heap
    * variable.
    */
-  private java.util.HashMap UseChain = new java.util.HashMap(10);
+  private HashMap UseChain = new HashMap(10);
 
   /**
-   * A mapping from <code> OPT_HeapVariable </code> to <code> java.util.HashSet
+   * A mapping from <code> OPT_HeapVariable </code> to <code> HashSet
    * </code> of <code> OPT_HeapOperand </code>.  
    * This map holds the set of heap operands which define each heap
    * variable.
    */
-  private java.util.HashMap DefChain = new java.util.HashMap(10);     
+  private HashMap DefChain = new HashMap(10);     
 
   /**
    * The set of instructions which have been registered to potentially
    * exit the procedure 
    */
-  private java.util.HashSet exits = new java.util.HashSet(10);     // set of registered
+  private HashSet exits = new HashSet(10);     // set of registered
 
   /**
-   * A mapping from a heap variable type to a <code> java.util.HashSet
+   * A mapping from a heap variable type to a <code> HashSet
    * </code> of <code> OPT_Instruction </code>.  
    * The set of all uses of a heap variable type
    * <em> before </em> we performed renaming for SSA.
    */
-  private java.util.HashMap originalUses = new java.util.HashMap(10);
+  private HashMap originalUses = new HashMap(10);
 
   /**
-   * A mapping from a heap variable type to a <code> java.util.HashSet
+   * A mapping from a heap variable type to a <code> HashSet
    * </code> of <code> OPT_Instruction </code>.  
    * The set of all definitions of a heap variable type
    * <em> before </em> we performed renaming for SSA.
    */
-  private java.util.HashMap originalDefs = new java.util.HashMap(10);
+  private HashMap originalDefs = new HashMap(10);
 
   /**
    * The set of type to build heap array variables for
    */
-  private java.util.Set heapTypes;   // the set of types to build heap arrays for
+  private Set heapTypes;   // the set of types to build heap arrays for
   
   /**
    * Should the heap array SSA form constructed include uphi functions?
@@ -1198,7 +1197,7 @@ class OPT_SSADictionary
    * This class represents the name of a heap variable in the heap array
    * SSA form.
    */
-  class HeapKey {
+  final class HeapKey {
     /** 
      * The number and type comprise the name of a heap variable in array SSA
      * form 
@@ -1255,7 +1254,7 @@ class OPT_SSADictionary
    * for heap variables, which are stored only in this lookaside
    * structure.*/
 
-  class AllInstructionEnumeration
+  final class AllInstructionEnumeration
       implements Enumeration {
 
     /**
