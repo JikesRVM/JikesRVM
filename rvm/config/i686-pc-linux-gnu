@@ -20,13 +20,12 @@ export RVM_FOR_32_ADDR=1
 # target OS is Linux
 export RVM_FOR_LINUX=1
 
-# Default to 1, since having a hardware SMP running a 2.4 kernal 
-# with the appropriate pthread library is currently somewhat unusual.
+# This is now quite common. For example, Red Hat 7 and later.
 # NOTE: the key requirement for setting this to 0 (ie having SMP support)
 #       is that you have a 2.4 kernel and that glibc is compiled 
 #       to use the GS segment register to access pthread-local storage.  
 #       See discussion in rvm-researchers archive and the userguide FAQ.
-export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
 export BOOTIMAGE_LOAD_ADDRESS=0x43000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
