@@ -15,7 +15,7 @@ final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
       // 1. Prepare for the allocation
       new OPT_OptimizationPlanAtomicElement(new RegisterAllocPreparation()), 
       // 2. Perform the allocation, using the live information
-      new OPT_OptimizationPlanAtomicElement(new OPT_LinearScan())
+      new OPT_LinearScan()
     });
   }
   

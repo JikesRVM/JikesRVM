@@ -56,6 +56,11 @@ final class OPT_MIRInfo {
    */
   OPT_BasicBlock backedgeYieldpointBlock = null;
 
+  /**
+   * Information needed for linear scan. 
+   */
+  OPT_LinearScan.LinearScanState linearScanState = null;
+
   OPT_Instruction instAfterPrologue;
   
   OPT_MIRInfo(OPT_IR ir) {

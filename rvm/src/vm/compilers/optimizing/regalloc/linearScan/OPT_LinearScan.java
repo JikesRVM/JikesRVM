@@ -9,12 +9,25 @@ import java.util.*;
 /**
  * Main driver for linear scan register allocation.
  *
- * @author Mauricio Serrano
- * @author Michael Hind
  * @author Stephen Fink
+ * @author Michael Hind
+ * @author Mauricio Serrano
  */
-final class OPT_LinearScan extends OPT_CompilerPhase implements
-OPT_PhysicalRegisterConstants, OPT_Operators {
+final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
+
+  /**
+   * Build this phase as a composite of others.
+   */
+  OPT_LinearScan() {
+    super("Linear Scan Composite Phase", new OPT_OptimizationPlanElement[] {
+          new OPT_OptimizationPlanAtomicElement(new IntervalAnalysis()),
+          new OPT_OptimizationPlanAtomicElement(new RegisterRestrictions()),
+          new OPT_OptimizationPlanAtomicElement(new LinearScan()),
+          new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps1()),
+          new OPT_OptimizationPlanAtomicElement(new SpillCode()),
+          new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps2())
+          });
+  }
 
   /**
    * Mark FMOVs that end a live range?
@@ -22,22 +35,14 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   private final static boolean MUTATE_FMOV = true;
 
   /**
-   * The live interval information, a set of Basic Intervals 
-   * sorted by increasing start point
-   * Used by ClassWriter so needs to be public
+   * Attempt to coalesce to eliminate register moves?
    */
-  public IntervalSet intervals;
+  final static boolean COALESCE_MOVES = true;
 
   /**
-   * An object which manages spill location assignments.
+   * Attempt to coalesce stack locations?
    */
-  private SpillLocationManager spillManager;
-
-  /**
-   * The governing IR
-   * Also used by ClassWriter
-   */
-  public OPT_IR ir;
+  private final static boolean COALESCE_SPILLS = true;
 
   /**
    * debug flags
@@ -55,331 +60,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   }
 
   final String getName() { 
-    return "Linear Scan"; 
+    return "Linear Scan Composite Phase"; 
   }
 
   final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
-  }
-
-  /**
-   *  Perform the linear scan register allocation algorithm
-   *  See TOPLAS 21(5), Sept 1999, p 895-913
-   *  @param ir the IR
-   */
-  void perform(OPT_IR ir) {
-
-    this.ir = ir;
-
-    // TODO: consider making a composite phase.  Can we share state
-    // between elements of a composite phase??
-    new IntervalAnalysis().perform(ir); 
-
-    //  The registerManager has already been initialized
-    OPT_GenericStackManager sm = ir.stackManager;
-
-    // Set up register restrictions
-    sm.computeRestrictions(ir);
-    OPT_RegisterRestrictions restrict = sm.getRestrictions();
-
-    // Create the object that manages spill locations
-    spillManager = new SpillLocationManager(ir);
-
-    // Create an (empty) set of active intervals.
-    ActiveSet active = new ActiveSet(ir,spillManager);
-
-    // Intervals sorted by increasing start point
-    for (Iterator e = intervals.getIntervals(); e.hasNext(); ) {
-
-      BasicInterval bi = (BasicInterval)e.next();
-
-      active.expireOldIntervals(bi);
-
-      // If the interval does not correspond to a physical register
-      // then we process it.
-      if (!bi.getRegister().isPhysical()) {
-        // Update register allocation based on the new interval.
-        active.allocate(bi);
-      } 
-      active.insert(bi);
-    }
-
-    // update GC maps.
-    updateGCMaps(ir);
-
-    replaceSymbolicRegisters(ir);
-
-    // Generate spill code if necessary
-    if (ir.hasSysCall() || active.spilledSomething()) {	
-      OPT_StackManager stackMan = (OPT_StackManager)sm;
-      stackMan.insertSpillCode(active);
-//      stackMan.insertSpillCode();
-    }
-
-    rewriteFPStack(ir);
-
-    // update GC maps again, to account for changes induced by spill code.
-    updateGCMaps2(ir);
-  }
-
-  /**
-   *  Iterate over the IR and replace each symbolic register with its
-   *  allocated physical register.
-   *  Also used by ClassWriter
-   */
-  public void replaceSymbolicRegisters(OPT_IR ir) {
-    for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
-	 inst.hasMoreElements();) {
-      OPT_Instruction s = inst.next();
-      for (OPT_OperandEnumeration ops = s.getOperands(); 
-	   ops.hasMoreElements(); ) {
-	OPT_Operand op = ops.next();
-	if (op.isRegister()) {
-	  OPT_RegisterOperand rop = op.asRegister();
-	  OPT_Register r = rop.register;
-	  if (r.isSymbolic() && !r.isSpilled()) {
-	    OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
-	    if (VM.VerifyAssertions) VM.assert(p!=null);
-	    rop.register = p;
-	  }
-	}
-      }
-    }
-  } 
-
-  /**
-   *  Rewrite floating point registers to reflect changes in stack
-   *  height induced by BURS. 
-   * 
-   *  Side effect: update the fpStackHeight in MIRInfo
-   */
-  private void rewriteFPStack(OPT_IR ir) {
-    //-#if RVM_FOR_IA32
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
-      OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
-      
-      // The following holds the floating point stack offset from its
-      // 'normal' position.
-      int fpStackOffset = 0;
-
-      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
-           inst.hasMoreElements();) {
-        OPT_Instruction s = inst.next();
-        for (OPT_OperandEnumeration ops = s.getOperands(); 
-	     ops.hasMoreElements(); ) {
-          OPT_Operand op = ops.next();
-          if (op.isRegister()) {
-            OPT_RegisterOperand rop = op.asRegister();
-            OPT_Register r = rop.register;
-
-            // Update MIR state for every phyiscal FPR we see
-            if (r.isPhysical() && r.isFloatingPoint() &&
-		s.operator() != DUMMY_DEF && 
-		s.operator() != DUMMY_USE) {
-              int n = phys.getFPRIndex(r);
-	      if (fpStackOffset != 0) {
-		n += fpStackOffset;
-		rop.register = phys.getFPR(n);
-	      }
-	      ir.MIRInfo.fpStackHeight = 
-		Math.max(ir.MIRInfo.fpStackHeight, n+1);
-            }
-          } else if (op instanceof OPT_BURSManagedFPROperand) {
-	    int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
-	    s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), 
-							 VM_Type.DoubleType));
-	  }
-	}
-        // account for any effect s has on the floating point stack
-        // position.
-        if (s.operator().isFpPop()) {
-          fpStackOffset--;
-        } else if (s.operator().isFpPush()) {
-          fpStackOffset++;
-        }
-        if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
-      }
-    }
-    //-#endif
-  }
-
-  /**
-   *  Iterate over the IR-based GC map collection and for each entry
-   *  replace the symbolic reg with the real reg or spill it was allocated
-   */
-  private void updateGCMaps(OPT_IR ir) {
-
-    for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
-         GCenum.hasMoreElements(); ) {
-      OPT_GCIRMapElement GCelement = GCenum.next();
-      OPT_Instruction GCinst = GCelement.getInstruction();
-      if (gcdebug) { 
-        VM.sysWrite("GCelement " + GCelement);
-      }
-
-      for (OPT_RegSpillListEnumerator regEnum = 
-           GCelement.regSpillListEnumerator();
-           regEnum.hasMoreElements(); ) {
-        OPT_RegSpillListElement elem = regEnum.next();
-        OPT_Register symbolic = elem.getSymbolicReg();
-
-        if (gcdebug) { 
-          VM.sysWrite("get location for "+symbolic+'\n'); 
-        }
-
-        if (symbolic.isAllocated()) {
-          OPT_Register ra = OPT_RegisterAllocatorState.getMapping(symbolic);
-          elem.setRealReg(ra);
-          if (gcdebug) {  VM.sysWrite(ra+"\n"); }
-
-        } else if (symbolic.isSpilled()) {
-          int spill = symbolic.getSpillAllocated();
-          elem.setSpill(spill);
-          if (gcdebug) {   VM.sysWrite(spill+"\n"); }
-        } else {
-          OPT_OptimizingCompilerException.UNREACHABLE( "LinearScan", 
-                                                       "register not alive:", 
-                                                       symbolic.toString());
-        }
-      } 
-    } 
-  } 
-
-  /**
-   * Update GC Maps again, to account for changes induced by spill code.
-   */
-  private void updateGCMaps2(OPT_IR ir) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_ScratchMap scratchMap = ir.stackManager.getScratchMap();
-
-    if (gcdebug) {
-      System.out.println("SCRATCH MAP:\n" + scratchMap);
-    }
-    if (scratchMap.isEmpty()) return;
-
-    // Walk over each instruction that has a GC point.
-    for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
-         GCenum.hasMoreElements(); ) {
-      OPT_GCIRMapElement GCelement = GCenum.next();
-      
-      // new elements to add to the gc map
-      HashSet newElements = new HashSet();
-
-      OPT_Instruction GCinst = GCelement.getInstruction();
-
-      // Get the linear-scan DFN for this instruction.
-      int dfn = GCinst.scratch;
-
-      if (gcdebug) { 
-        VM.sysWrite("GCelement at " + dfn + " , " + GCelement);
-      }
-
-      // a set of elements to delete from the GC Map
-      HashSet toDelete = new HashSet(3);
-      
-      // For each element in the GC Map ...
-      for (OPT_RegSpillListEnumerator regEnum = 
-           GCelement.regSpillListEnumerator();
-           regEnum.hasMoreElements(); ) {
-        OPT_RegSpillListElement elem = regEnum.next();
-        if (gcdebug) { 
-          VM.sysWrite("Update " + elem + "\n");
-        }
-        if (elem.isSpill()) {
-          // check if the spilled value currently is cached in a scratch
-          // register     
-          OPT_Register r = elem.getSymbolicReg();
-          OPT_Register scratch = scratchMap.getScratch(r,dfn);
-          if (scratch != null) {
-            if (gcdebug) { 
-              VM.sysWrite("cached in scratch register " + scratch + "\n");
-            }
-            // we will add a new element noting that the scratch register
-            // also must be including in the GC map
-            OPT_RegSpillListElement newElem = new OPT_RegSpillListElement(r);
-            newElem.setRealReg(scratch);
-            newElements.add(newElem);
-            // if the scratch register is dirty, then delete the spill
-            // location from the map, since it doesn't currently hold a
-            // valid value
-            if (scratchMap.isDirty(GCinst,r)) {
-              toDelete.add(elem);
-            }
-          }
-        } else {
-          // check if the physical register is currently spilled.
-          int n = elem.getRealRegNumber();
-          OPT_Register r = phys.get(n); 
-          if (scratchMap.isScratch(r,dfn)) {
-            // The regalloc state knows where the physical register r is
-            // spilled.
-            if (gcdebug) { 
-              VM.sysWrite("CHANGE to spill location " + 
-                          OPT_RegisterAllocatorState.getSpill(r) + "\n"); 
-            }
-            elem.setSpill(OPT_RegisterAllocatorState.getSpill(r));
-          }
-        }
-
-      } 
-      // delete all obsolete elements
-      for (Iterator i = toDelete.iterator(); i.hasNext(); ) {
-        OPT_RegSpillListElement deadElem = (OPT_RegSpillListElement)i.next();
-        GCelement.deleteRegSpillElement(deadElem);
-      }
-      
-      // add each new Element to the gc map
-      for (Iterator i = newElements.iterator(); i.hasNext(); ) {
-        OPT_RegSpillListElement newElem = (OPT_RegSpillListElement)i.next();
-        GCelement.addRegSpillElement(newElem);
-      }
-    } 
-
-  }
-
-  /**
-   *  Print the DFN numbers associated with each instruction
-   */
-  void printDfns() {
-    System.out.println("DFNS: **** " + ir.getMethod() + "****");
-    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
-         inst != null;
-         inst = inst.nextInstructionInCodeOrder()) {
-      System.out.println(getDFN(inst) +" "+ inst);
-    }
-  }
-
-  /**
-   * Return the Depth-first-number of the end of the live interval.
-   * Return the dfn for the end of the basic block if the interval is
-   * open-ended.
-   */
-  int getDfnEnd(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
-    OPT_Instruction end  = live.getEnd();
-    int dfnEnd;
-    if (end != null) {
-      dfnEnd = getDFN(end);
-    } else {
-      dfnEnd = getDFN(bb.lastInstruction());
-    }
-    return dfnEnd;
-  }
-
-  /**
-   * Return the Depth-first-number of the beginnin of the live interval.
-   * Return the dfn for the beginning of the basic block if the interval is
-   * open-ended.
-   */
-  int getDfnBegin(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
-    OPT_Instruction begin = live.getBegin();
-    int dfnBegin;
-    if (begin != null) {
-      dfnBegin = getDFN(begin);
-    } else {
-      dfnBegin = getDFN(bb.firstInstruction());
-    }
-    return dfnBegin;
   }
 
   /**
@@ -421,13 +106,182 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   }
 
   /**
+   *  Print the DFN numbers associated with each instruction
+   */
+  static void printDfns(OPT_IR ir) {
+    System.out.println("DFNS: **** " + ir.getMethod() + "****");
+    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
+         inst != null;
+         inst = inst.nextInstructionInCodeOrder()) {
+      System.out.println(getDFN(inst) +" "+ inst);
+    }
+  }
+
+  /**
+   * Return the Depth-first-number of the end of the live interval.
+   * Return the dfn for the end of the basic block if the interval is
+   * open-ended.
+   */
+  static int getDfnEnd(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
+    OPT_Instruction end  = live.getEnd();
+    int dfnEnd;
+    if (end != null) {
+      dfnEnd = getDFN(end);
+    } else {
+      dfnEnd = getDFN(bb.lastInstruction());
+    }
+    return dfnEnd;
+  }
+
+  /**
+   * Return the Depth-first-number of the beginning of the live interval.
+   * Return the dfn for the beginning of the basic block if the interval is
+   * open-ended.
+   */
+  static int getDfnBegin(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
+    OPT_Instruction begin = live.getBegin();
+    int dfnBegin;
+    if (begin != null) {
+      dfnBegin = getDFN(begin);
+    } else {
+      dfnBegin = getDFN(bb.firstInstruction());
+    }
+    return dfnBegin;
+  }
+
+
+  final static class LinearScanState {
+    /**
+     * The live interval information, a set of Basic Intervals 
+     * sorted by increasing start point
+     * Used by ClassWriter so needs to be public
+     */
+    public IntervalSet intervals;
+
+    /**
+     * Was any register spilled?
+     */
+    public boolean spilledSomething = false;
+
+    /**
+     * Analysis information used by linear scan.
+     */
+    public ActiveSet active;
+  }
+
+  /**
+   * A phase to compute register restrictions.
+   */
+  final static class RegisterRestrictions extends OPT_CompilerPhase {
+
+    final boolean shouldPerform(OPT_Options options) { 
+      return true; 
+    }
+
+    final String getName() { 
+      return "Register Restrictions"; 
+    }
+
+    final boolean printingEnabled(OPT_Options options, boolean before) {
+      return false;
+    }
+
+    /**
+     *  @param ir the IR
+     */
+    void perform(OPT_IR ir) {
+
+      //  The registerManager has already been initialized
+      OPT_GenericStackManager sm = ir.stackManager;
+
+      // Set up register restrictions
+      sm.computeRestrictions(ir);
+    }
+  }
+
+  final static class LinearScan extends OPT_CompilerPhase implements
+    OPT_PhysicalRegisterConstants, OPT_Operators {
+
+      /**
+       * An object which manages spill location assignments.
+       */
+      private SpillLocationManager spillManager;
+
+      /**
+       * The governing IR
+       * Also used by ClassWriter
+       */
+      public OPT_IR ir;
+
+      /**
+       * Register allocation is required
+       */
+      final boolean shouldPerform(OPT_Options options) { 
+        return true; 
+      }
+
+      final String getName() { 
+        return "Linear Scan"; 
+      }
+
+      final boolean printingEnabled(OPT_Options options, boolean before) {
+        return false;
+      }
+
+      /**
+       *  Perform the linear scan register allocation algorithm
+       *  See TOPLAS 21(5), Sept 1999, p 895-913
+       *  @param ir the IR
+       */
+      void perform(OPT_IR ir) {
+
+        this.ir = ir;
+
+        //  The registerManager has already been initialized
+        OPT_GenericStackManager sm = ir.stackManager;
+
+        // Get register restrictions
+        OPT_RegisterRestrictions restrict = sm.getRestrictions();
+
+        // Create the object that manages spill locations
+        spillManager = new SpillLocationManager(ir);
+
+        // Create an (empty) set of active intervals.
+        ActiveSet active = new ActiveSet(ir,spillManager);
+        ir.MIRInfo.linearScanState.active = active;
+
+        // Intervals sorted by increasing start point
+        IntervalSet intervals = ir.MIRInfo.linearScanState.intervals;
+        for (Iterator e = intervals.getIntervals(); e.hasNext(); ) {
+
+          BasicInterval bi = (BasicInterval)e.next();
+
+          active.expireOldIntervals(bi);
+
+          // If the interval does not correspond to a physical register
+          // then we process it.
+          if (!bi.getRegister().isPhysical()) {
+            // Update register allocation based on the new interval.
+            active.allocate(bi);
+          } 
+          active.insert(bi);
+        }
+
+        // update the state.
+        if (active.spilledSomething()) {
+          ir.MIRInfo.linearScanState.spilledSomething = true;
+        }
+      }
+
+    }
+  /**
    * Implements a basic live interval (no holes), which is a pair
    *   begin    - the starting point of the interval
    *   end      - the ending point of the interval
    *
    *   Begin and end are numbers given to each instruction by a numbering pass
    */
-  final class BasicInterval extends OPT_DoublyLinkedListElement {
+  final static class BasicInterval extends OPT_DoublyLinkedListElement {
 
     /**
      * DFN of the beginning instruction of this interval
@@ -594,7 +448,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
    * Implements a live interval with holes; ie; a list of basic live
    * intervals.
    */
-  class CompoundInterval {
+  static class CompoundInterval {
 
     /**
      * A sorted linked list of basic intervals which together comprise this
@@ -701,8 +555,10 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      *
      * @param live the new live range
      * @param bb the basic block for live
+     * @param intervals the master set of intervals being processed
      */
-    void addRange(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
+    void addRange(OPT_LiveIntervalElement live, OPT_BasicBlock bb,
+                  IntervalSet intervals) {
 
       if (shouldConcatenate(live,bb)) {
         // concatenate with the last basic interval
@@ -713,6 +569,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
                                                       getDfnEnd(live,bb),
                                                       this);
         basicIntervals.append(newInterval);
+
         // add the new interval to the master list of all intervals
         intervals.insert(newInterval);
       }
@@ -770,8 +627,10 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
     /**
      * Assign this compound interval to a free spill location.
+     *
+     * @param spillManager governing spill location manager
      */
-    void spill() {
+    void spill(SpillLocationManager spillManager) {
       spillInterval = spillManager.findOrCreateSpillLocation(this);
       OPT_RegisterAllocatorState.setSpill(reg,spillInterval.getOffset());
       OPT_RegisterAllocatorState.clearOneToOne(reg);
@@ -1009,98 +868,12 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       return str;
     }
   }
-
-  /**
-   * Implements a set of Basic Intervals, sorted by either start or end number.
-   */
-  class IntervalSet {
-
-    private TreeSet sortedIntervals;
-
-    private boolean sortByStart = true;
-
-    private class EndComparator implements Comparator {
-      public int compare(Object o1, Object o2) {
-        BasicInterval b1 = (BasicInterval)o1;
-        BasicInterval b2 = (BasicInterval)o2;
-        int result = b1.getEnd() - b2.getEnd();
-        if (result == 0) {
-          result = b1.getBegin() - b2.getBegin();
-        }
-        if (result == 0) {
-          result = b1.getRegister().getNumber() -
-            b2.getRegister().getNumber();
-        }
-        return result;
-      }
-    }
-
-    private class StartComparator implements Comparator {
-      public int compare(Object o1, Object o2) {
-        BasicInterval b1 = (BasicInterval)o1;
-        BasicInterval b2 = (BasicInterval)o2;
-        int result = b1.getBegin() - b2.getBegin();
-        if (result == 0) {
-          result = b1.getEnd() - b2.getEnd();
-        }
-        if (result == 0) {
-          result = b1.getRegister().getNumber() -
-            b2.getRegister().getNumber();
-        }
-        return result;
-      }
-    }
-
-    /**
-     * Create an interval set sorted by increasing start or end number
-     */
-    IntervalSet(boolean sortByStart) {
-      this.sortByStart = sortByStart;
-      if (sortByStart) {
-        sortedIntervals = new TreeSet(new StartComparator());
-      } else {
-        sortedIntervals = new TreeSet(new EndComparator());
-      }
-    }
-
-    /**
-     * Return a linked list of intervals
-     */
-    Iterator getIntervals() {
-      return sortedIntervals.iterator();
-    }
-
-    /**
-     * Add a new interval to the list, maintaining sorted order.
-     */
-    void insert(BasicInterval b) {
-      sortedIntervals.add(b);
-    }
-
-    /**
-     * Return a String representation
-     */
-    public String toString() {
-      String result = "";
-      for (Iterator e = getIntervals(); e.hasNext();) {
-        BasicInterval b = (BasicInterval)e.next();
-        result = result + "(" + b.getRegister() + ")" + b + "\n";
-      }
-      return result;
-    }
-  }
-
   /**
    * "Active set" for linear scan register allocation.
    * This version is maintained sorted in order of increasing
    * live interval end point.
    */
-  final class ActiveSet extends IntervalSet {
-
-    /**
-     * Attempt to coalesce to eliminate register moves?
-     */
-    final static boolean COALESCE_MOVES = true;
+  final static class ActiveSet extends IntervalSet {
 
     /**
      * Governing ir
@@ -1222,7 +995,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     void allocate(BasicInterval newInterval) {
 
       if (verboseDebug) System.out.println("Allocate " + newInterval + " " +
-                                    newInterval.getRegister());
+                                           newInterval.getRegister());
 
       CompoundInterval container = newInterval.getContainer();
       OPT_Register r = newInterval.getRegister();
@@ -1242,18 +1015,18 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             // Update the live ranges of phys to include the new basic
             // interval
             if (verboseDebug) System.out.println("Previously assigned to " + phys +
-                                          " " + container + 
-                                          " phys interval " +
-                                          getInterval(phys));
+                                                 " " + container + 
+                                                 " phys interval " +
+                                                 getInterval(phys));
             updatePhysicalInterval(phys,newInterval);
             if (verboseDebug) System.out.println(" now phys interval " + 
-                                          getInterval(phys));
+                                                 getInterval(phys));
             return;
           } else {
             // The previous assignment is not OK, since the physical
             // register is now in use elsewhere.  
             if (debug) System.out.println(
-                         "Previously assigned, " + phys + " " + container);
+                                          "Previously assigned, " + phys + " " + container);
             // first look and see if there's another free register for
             // container. 
             if (verboseDebug) System.out.println( "Looking for free register");
@@ -1269,42 +1042,42 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
               double costA = spillCost.getCost(container.getRegister());
               double costB = spillCost.getCost(currentAssignment.getRegister());
               if (verboseDebug) System.out.println( "Current assignment " +
-                                             currentAssignment + " cost "
-                                             + costB);
+                                                    currentAssignment + " cost "
+                                                    + costB);
               if (verboseDebug) System.out.println( "Cost of spilling" +
-                                             container + " cost "
-                                             + costA);
+                                                    container + " cost "
+                                                    + costA);
               CompoundInterval toSpill = (costA < costB) ? container : 
                 currentAssignment;
               // spill it.
               OPT_Register p = toSpill.getAssignment();
-              toSpill.spill();
+              toSpill.spill(spillManager);
               spilled=true;
               if (verboseDebug) System.out.println("Spilled " + toSpill+
-                                            " from " + p);
+                                                   " from " + p);
               CompoundInterval physInterval = getInterval(p);
               physInterval.removeIntervals(toSpill);
               if (verboseDebug) System.out.println("  after spill phys" + getInterval(p));
               if (toSpill != container) updatePhysicalInterval(p,newInterval);       
               if (verboseDebug) System.out.println(" now phys interval " + 
-                                            getInterval(p));
+                                                   getInterval(p));
             } else {
               // found a free register for container! use it!
               if (debug) System.out.println("Switch container " 
-                                          + container + "from " + phys + " to " + freeR); 
+                                            + container + "from " + phys + " to " + freeR); 
               CompoundInterval physInterval = getInterval(phys);
               if (debug) System.out.println("Before switch phys interval"
                                             + physInterval);
               physInterval.removeIntervals(container);
               if (debug) System.out.println("Intervals of " 
-                                          + phys + " now " +
-                                          physInterval); 
+                                            + phys + " now " +
+                                            physInterval); 
 
               container.assign(freeR);
               updatePhysicalInterval(freeR,container,newInterval);
               if (verboseDebug) System.out.println("Intervals of " 
-                                          + freeR + " now " +
-                                          getInterval(freeR)); 
+                                                   + freeR + " now " +
+                                                   getInterval(freeR)); 
             }
           }
         } else {
@@ -1336,23 +1109,23 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             if (spillCandidate != container) {
               // spill a previously allocated interval.
               phys = spillCandidate.getAssignment();
-              spillCandidate.spill();
+              spillCandidate.spill(spillManager);
               spilled=true;
               if (verboseDebug) System.out.println("Spilled " + spillCandidate +
-                                            " from " + phys);
+                                                   " from " + phys);
               CompoundInterval physInterval = getInterval(phys);
               if (verboseDebug) System.out.println(" assigned " 
-                                            + phys + " to " + container);
+                                                   + phys + " to " + container);
               physInterval.removeIntervals(spillCandidate);
               if (verboseDebug) System.out.println("  after spill phys" + getInterval(phys));
               updatePhysicalInterval(phys,newInterval);       
               if (verboseDebug) System.out.println(" now phys interval " + 
-                                            getInterval(phys));
+                                                   getInterval(phys));
               container.assign(phys);
             } else {
               // spill the new interval.
               if (verboseDebug) System.out.println("spilled " + container);
-              container.spill();
+              container.spill(spillManager);
               spilled=true;
             }
           }
@@ -1424,7 +1197,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       }
       OPT_OptimizingCompilerException.UNREACHABLE("getCurrentInterval",
                                                   "Not Currently Active ",
-                                                   r.toString());
+                                                  r.toString());
       return null;
     }
 
@@ -1491,7 +1264,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
       // Return null if no affinities.
       if (node == null) return null;
-      
+
       // walk through all in edges of the node, searching for affinity
       for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
         OPT_CoalesceGraph.Edge edge = (OPT_CoalesceGraph.Edge)in.nextElement();
@@ -1717,7 +1490,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    * phase to compute linear scan intervals.
    */
-  final class IntervalAnalysis extends OPT_CompilerPhase {
+  final static class IntervalAnalysis extends OPT_CompilerPhase implements
+  OPT_Operators {
     /**
      * the governing ir
      */
@@ -1741,7 +1515,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     /**
      * a name for this phase.
      */
-    final String getName() { return "linear scan interval analysis"; }
+    final String getName() { return "Interval Analysis"; }
 
     /**
      * should we print the ir?
@@ -1764,7 +1538,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       this.ir = ir;
       OPT_ControlFlowGraph cfg = ir.cfg;
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      intervals = new IntervalSet(true);
+      LinearScanState state = new LinearScanState();
+      ir.MIRInfo.linearScanState = state;
+      state.intervals = new IntervalSet(true);
 
       // create topological list and a reverse topological list
       // the results are on listOfBlocks and reverseTopFirst lists
@@ -1810,7 +1586,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       // debug support
       if (verboseDebug) {
         VM.sysWrite("**** start of interval dump "+ir.method+" ****\n");
-        VM.sysWrite(intervals.toString());
+        VM.sysWrite(state.intervals.toString());
         VM.sysWrite("**** end   of interval dump ****\n");
       }
     }
@@ -1873,7 +1649,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         }
       }
 
-      if (debug) {  printDfns();  }
+      if (debug) {  printDfns(ir);  }
     }
 
     /**
@@ -1947,16 +1723,17 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         if (verboseDebug) System.out.println("created a new interval " + newInterval);
 
         // associate the interval with the register 
-        OPT_LinearScan.setInterval(reg, newInterval);
+        setInterval(reg, newInterval);
 
         // add the new interval to the sorted set of intervals.  
-        intervals.insert(newInterval.getFirstBasicInterval());
+        ir.MIRInfo.linearScanState.intervals.insert(newInterval.getFirstBasicInterval());
 
         return newInterval;
 
       } else {
         // add the new live range to the existing interval
-        existingInterval.addRange(live,bb);
+        IntervalSet intervals = ir.MIRInfo.linearScanState.intervals;
+        existingInterval.addRange(live,bb,intervals);
         if (verboseDebug) System.out.println("Extended old interval " + reg); 
         if (verboseDebug) System.out.println(existingInterval);
 
@@ -1968,12 +1745,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
   /**
    * The following class manages allocation and reuse of spill locations.
    */
-  class SpillLocationManager implements OPT_PhysicalRegisterConstants {
-
-    /**
-     * Attempt to coalesce stack locations?
-     */
-    private final static boolean COALESCE_SPILLS = true;
+  static class SpillLocationManager implements OPT_PhysicalRegisterConstants {
 
     /**
      * The governing IR
@@ -2048,7 +1820,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
     /**
      * Constructor.
      */
-    SpillLocationManager (OPT_IR ir) {
+    SpillLocationManager(OPT_IR ir) {
       this.ir = ir;
     }
 
@@ -2069,7 +1841,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
       OPT_CoalesceGraph graph = ir.stackManager.getPreferences().getGraph();
       OPT_SpaceEffGraphNode node = graph.findNode(r);
-      
+
       // Return null if no affinities.
       if (node == null) return null;
 
@@ -2098,7 +1870,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
           }
         }
       }
-      
+
       // walk through all out edges of the node, searching for spill
       // location affinity
       for (Enumeration in = node.inEdges(); in.hasMoreElements(); ) {
@@ -2144,7 +1916,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
    * The following represents the intervals assigned to a particular spill
    * location
    */
-  class SpillLocationInterval extends CompoundInterval {
+  static class SpillLocationInterval extends CompoundInterval {
     /**
      * The spill location, an offset from the frame pointer
      */
@@ -2170,5 +1942,370 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       return super.toString() + "<Offset:" + frameOffset + "," + size +
         ">"; 
     }
+  }
+  /**
+   * Implements a set of Basic Intervals, sorted by either start or end number.
+   */
+  static class IntervalSet {
+
+    private TreeSet sortedIntervals;
+
+    private boolean sortByStart = true;
+
+    private class EndComparator implements Comparator {
+      public int compare(Object o1, Object o2) {
+        BasicInterval b1 = (BasicInterval)o1;
+        BasicInterval b2 = (BasicInterval)o2;
+        int result = b1.getEnd() - b2.getEnd();
+        if (result == 0) {
+          result = b1.getBegin() - b2.getBegin();
+        }
+        if (result == 0) {
+          result = b1.getRegister().getNumber() -
+            b2.getRegister().getNumber();
+        }
+        return result;
+      }
+    }
+
+    private class StartComparator implements Comparator {
+      public int compare(Object o1, Object o2) {
+        BasicInterval b1 = (BasicInterval)o1;
+        BasicInterval b2 = (BasicInterval)o2;
+        int result = b1.getBegin() - b2.getBegin();
+        if (result == 0) {
+          result = b1.getEnd() - b2.getEnd();
+        }
+        if (result == 0) {
+          result = b1.getRegister().getNumber() -
+            b2.getRegister().getNumber();
+        }
+        return result;
+      }
+    }
+
+    /**
+     * Create an interval set sorted by increasing start or end number
+     */
+    IntervalSet(boolean sortByStart) {
+      this.sortByStart = sortByStart;
+      if (sortByStart) {
+        sortedIntervals = new TreeSet(new StartComparator());
+      } else {
+        sortedIntervals = new TreeSet(new EndComparator());
+      }
+    }
+
+    /**
+     * Return a linked list of intervals
+     */
+    Iterator getIntervals() {
+      return sortedIntervals.iterator();
+    }
+
+    /**
+     * Add a new interval to the list, maintaining sorted order.
+     */
+    void insert(BasicInterval b) {
+      sortedIntervals.add(b);
+    }
+
+    /**
+     * Return a String representation
+     */
+    public String toString() {
+      String result = "";
+      for (Iterator e = getIntervals(); e.hasNext();) {
+        BasicInterval b = (BasicInterval)e.next();
+        result = result + "(" + b.getRegister() + ")" + b + "\n";
+      }
+      return result;
+    }
+  }
+
+  /**
+   * Update GC maps after register allocation but before inserting spill
+   * code.
+   */
+  final static class UpdateGCMaps1 extends OPT_CompilerPhase {
+
+    final boolean shouldPerform(OPT_Options options) { 
+      return true; 
+    }
+
+    final String getName() { 
+      return "Update GCMaps 1"; 
+    }
+
+    final boolean printingEnabled(OPT_Options options, boolean before) {
+      return false;
+    }
+
+    /**
+     *  Iterate over the IR-based GC map collection and for each entry
+     *  replace the symbolic reg with the real reg or spill it was allocated
+     *  @param ir the IR
+     */
+    void perform(OPT_IR ir) {
+
+      for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
+           GCenum.hasMoreElements(); ) {
+        OPT_GCIRMapElement GCelement = GCenum.next();
+        OPT_Instruction GCinst = GCelement.getInstruction();
+        if (gcdebug) { 
+          VM.sysWrite("GCelement " + GCelement);
+        }
+
+        for (OPT_RegSpillListEnumerator regEnum = 
+             GCelement.regSpillListEnumerator();
+             regEnum.hasMoreElements(); ) {
+          OPT_RegSpillListElement elem = regEnum.next();
+          OPT_Register symbolic = elem.getSymbolicReg();
+
+          if (gcdebug) { 
+            VM.sysWrite("get location for "+symbolic+'\n'); 
+          }
+
+          if (symbolic.isAllocated()) {
+            OPT_Register ra = OPT_RegisterAllocatorState.getMapping(symbolic);
+            elem.setRealReg(ra);
+            if (gcdebug) {  VM.sysWrite(ra+"\n"); }
+
+          } else if (symbolic.isSpilled()) {
+            int spill = symbolic.getSpillAllocated();
+            elem.setSpill(spill);
+            if (gcdebug) {   VM.sysWrite(spill+"\n"); }
+          } else {
+            OPT_OptimizingCompilerException.UNREACHABLE( "LinearScan", 
+                                                         "register not alive:", 
+                                                         symbolic.toString());
+          }
+        } 
+      } 
+    }
+  }
+  /**
+   * Update GC Maps again, to account for changes induced by spill code.
+   */
+  final static class UpdateGCMaps2 extends OPT_CompilerPhase {
+
+    final boolean shouldPerform(OPT_Options options) { 
+      return true; 
+    }
+
+    final String getName() { 
+      return "Update GCMaps 2"; 
+    }
+
+    final boolean printingEnabled(OPT_Options options, boolean before) {
+      return false;
+    }
+
+    /**
+     *  @param ir the IR
+     */
+    void perform(OPT_IR ir) {
+      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      OPT_ScratchMap scratchMap = ir.stackManager.getScratchMap();
+
+      if (gcdebug) {
+        System.out.println("SCRATCH MAP:\n" + scratchMap);
+      }
+      if (scratchMap.isEmpty()) return;
+
+      // Walk over each instruction that has a GC point.
+      for (OPT_GCIRMapEnumerator GCenum = ir.MIRInfo.gcIRMap.enumerator(); 
+           GCenum.hasMoreElements(); ) {
+        OPT_GCIRMapElement GCelement = GCenum.next();
+
+        // new elements to add to the gc map
+        HashSet newElements = new HashSet();
+
+        OPT_Instruction GCinst = GCelement.getInstruction();
+
+        // Get the linear-scan DFN for this instruction.
+        int dfn = GCinst.scratch;
+
+        if (gcdebug) { 
+          VM.sysWrite("GCelement at " + dfn + " , " + GCelement);
+        }
+
+        // a set of elements to delete from the GC Map
+        HashSet toDelete = new HashSet(3);
+
+        // For each element in the GC Map ...
+        for (OPT_RegSpillListEnumerator regEnum = 
+             GCelement.regSpillListEnumerator();
+             regEnum.hasMoreElements(); ) {
+          OPT_RegSpillListElement elem = regEnum.next();
+          if (gcdebug) { 
+            VM.sysWrite("Update " + elem + "\n");
+          }
+          if (elem.isSpill()) {
+            // check if the spilled value currently is cached in a scratch
+            // register     
+            OPT_Register r = elem.getSymbolicReg();
+            OPT_Register scratch = scratchMap.getScratch(r,dfn);
+            if (scratch != null) {
+              if (gcdebug) { 
+                VM.sysWrite("cached in scratch register " + scratch + "\n");
+              }
+              // we will add a new element noting that the scratch register
+              // also must be including in the GC map
+              OPT_RegSpillListElement newElem = new OPT_RegSpillListElement(r);
+              newElem.setRealReg(scratch);
+              newElements.add(newElem);
+              // if the scratch register is dirty, then delete the spill
+              // location from the map, since it doesn't currently hold a
+              // valid value
+              if (scratchMap.isDirty(GCinst,r)) {
+                toDelete.add(elem);
+              }
+            }
+          } else {
+            // check if the physical register is currently spilled.
+            int n = elem.getRealRegNumber();
+            OPT_Register r = phys.get(n); 
+            if (scratchMap.isScratch(r,dfn)) {
+              // The regalloc state knows where the physical register r is
+              // spilled.
+              if (gcdebug) { 
+                VM.sysWrite("CHANGE to spill location " + 
+                            OPT_RegisterAllocatorState.getSpill(r) + "\n"); 
+              }
+              elem.setSpill(OPT_RegisterAllocatorState.getSpill(r));
+            }
+          }
+
+        } 
+        // delete all obsolete elements
+        for (Iterator i = toDelete.iterator(); i.hasNext(); ) {
+          OPT_RegSpillListElement deadElem = (OPT_RegSpillListElement)i.next();
+          GCelement.deleteRegSpillElement(deadElem);
+        }
+
+        // add each new Element to the gc map
+        for (Iterator i = newElements.iterator(); i.hasNext(); ) {
+          OPT_RegSpillListElement newElem = (OPT_RegSpillListElement)i.next();
+          GCelement.addRegSpillElement(newElem);
+        }
+      } 
+    }
+  }
+  /**
+   * Insert Spill Code after register assignment.
+   */
+  final static class SpillCode extends OPT_CompilerPhase implements
+    OPT_Operators{
+
+    final boolean shouldPerform(OPT_Options options) { 
+      return true; 
+    }
+
+    final String getName() { 
+      return "Spill Code"; 
+    }
+
+    final boolean printingEnabled(OPT_Options options, boolean before) {
+      return false;
+    }
+
+    /**
+     *  @param ir the IR
+     */
+    void perform(OPT_IR ir) {
+      replaceSymbolicRegisters(ir);
+
+      // Generate spill code if necessary
+      if (ir.hasSysCall() || ir.MIRInfo.linearScanState.spilledSomething) {	
+        OPT_StackManager stackMan = (OPT_StackManager)ir.stackManager;
+        stackMan.insertSpillCode(ir.MIRInfo.linearScanState.active);
+        //      stackMan.insertSpillCode();
+      }
+
+      rewriteFPStack(ir);
+    }
+    /**
+     *  Iterate over the IR and replace each symbolic register with its
+     *  allocated physical register.
+     *  Also used by ClassWriter
+     */
+    public void replaceSymbolicRegisters(OPT_IR ir) {
+      for (OPT_InstructionEnumeration inst = ir.forwardInstrEnumerator(); 
+           inst.hasMoreElements();) {
+        OPT_Instruction s = inst.next();
+        for (OPT_OperandEnumeration ops = s.getOperands(); 
+             ops.hasMoreElements(); ) {
+          OPT_Operand op = ops.next();
+          if (op.isRegister()) {
+            OPT_RegisterOperand rop = op.asRegister();
+            OPT_Register r = rop.register;
+            if (r.isSymbolic() && !r.isSpilled()) {
+              OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
+              if (VM.VerifyAssertions) VM.assert(p!=null);
+              rop.register = p;
+            }
+          }
+        }
+      }
+    } 
+
+    /**
+     *  Rewrite floating point registers to reflect changes in stack
+     *  height induced by BURS. 
+     * 
+     *  Side effect: update the fpStackHeight in MIRInfo
+     */
+    private void rewriteFPStack(OPT_IR ir) {
+      //-#if RVM_FOR_IA32
+      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
+        OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
+
+        // The following holds the floating point stack offset from its
+        // 'normal' position.
+        int fpStackOffset = 0;
+
+        for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
+             inst.hasMoreElements();) {
+          OPT_Instruction s = inst.next();
+          for (OPT_OperandEnumeration ops = s.getOperands(); 
+               ops.hasMoreElements(); ) {
+            OPT_Operand op = ops.next();
+            if (op.isRegister()) {
+              OPT_RegisterOperand rop = op.asRegister();
+              OPT_Register r = rop.register;
+
+              // Update MIR state for every phyiscal FPR we see
+              if (r.isPhysical() && r.isFloatingPoint() &&
+                  s.operator() != DUMMY_DEF && 
+                  s.operator() != DUMMY_USE) {
+                int n = phys.getFPRIndex(r);
+                if (fpStackOffset != 0) {
+                  n += fpStackOffset;
+                  rop.register = phys.getFPR(n);
+                }
+                ir.MIRInfo.fpStackHeight = 
+                  Math.max(ir.MIRInfo.fpStackHeight, n+1);
+              }
+            } else if (op instanceof OPT_BURSManagedFPROperand) {
+              int regNum = ((OPT_BURSManagedFPROperand)op).regNum;
+              s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), 
+                                                           VM_Type.DoubleType));
+            }
+          }
+          // account for any effect s has on the floating point stack
+          // position.
+          if (s.operator().isFpPop()) {
+            fpStackOffset--;
+          } else if (s.operator().isFpPush()) {
+            fpStackOffset++;
+          }
+          if (VM.VerifyAssertions) VM.assert(fpStackOffset >= 0);
+        }
+      }
+      //-#endif
+    }
+
   }
 }
