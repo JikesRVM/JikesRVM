@@ -59,18 +59,14 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 {
 
   // TIB + STATUS + OTHER_HEADER_BYTES
-  private static final int SCALAR_HEADER_SIZE = 2*BYTES_IN_ADDRESS + OTHER_HEADER_BYTES;
+  private static final int SCALAR_HEADER_SIZE = BYTES_IN_ADDRESS + BYTES_IN_INT + OTHER_HEADER_BYTES;
   // SCALAR_HEADER + ARRAY LENGTH;
-  private static final int ARRAY_HEADER_SIZE = BYTES_IN_ADDRESS + 2*BYTES_IN_INT + OTHER_HEADER_BYTES;
+  private static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + BYTES_IN_INT;
 
   private static final int ARRAY_HEADER_SIZE_ALIGNED = VM_Memory.alignUp(ARRAY_HEADER_SIZE,BYTES_IN_ADDRESS);
   
-  // note that the pointer to a scalar actually points 4 bytes above the
-  // scalar object (on the 32 bit architecture)
-  private static final int SCALAR_PADDING_BYTES = VM.BuildFor64Addr? 0 : BYTES_IN_INT;
-
-  private static final int STATUS_OFFSET  = -2*BYTES_IN_INT;
-  private static final int TIB_OFFSET     = -BYTES_IN_ADDRESS - 2*BYTES_IN_INT ;
+  private static final int TIB_OFFSET     = -BYTES_IN_ADDRESS;
+  private static final int STATUS_OFFSET  = TIB_OFFSET - BYTES_IN_INT;
 
   private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);
 
@@ -103,7 +99,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * For use by VM_ObjectModel.layoutInstanceFields
    */
   public static int objectEndOffset(VM_Class klass) {
-    return - klass.getInstanceSizeInternal() - SCALAR_PADDING_BYTES;
+    return - klass.getInstanceSizeInternal();
   }
 
   /**
@@ -164,8 +160,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * how many bytes are needed when the array object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
-	 int headersize = VM_ObjectModel.computeArrayHeaderSize(type) ; 
-	 int size = VM_Memory.alignUp(type.getInstanceSize(numElements) - headersize , BYTES_IN_ADDRESS); //align elmnts to right, assuming elmnts start aligned
+    int headersize = VM_ObjectModel.computeArrayHeaderSize(type) ; 
+    int size = VM_Memory.alignUp(type.getInstanceSize(numElements) - headersize , BYTES_IN_ADDRESS); //align elmnts to right, assuming elmnts start aligned
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
       if (hashState != HASH_STATE_UNHASHED) {
@@ -175,35 +171,35 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     return VM_Memory.alignUp(size+headersize,BYTES_IN_ADDRESS); //align header on left
   }
 
+  /**
+   * Map from the object ref to the lowest address of the storage
+   * associated with the object
+   */
   public static VM_Address objectStartRef(VM_Address obj) throws VM_PragmaInline {
     Object[] tib = VM_ObjectModel.getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
-    VM_Address rtn;
     if (type.isClassType()) {
-//       VM.sysWrite(", scalar cell: ");
-      VM_Class classType = type.asClass();
-      int bytes = VM_ObjectModel.bytesRequiredWhenCopied(obj, classType);
-      rtn = obj.sub(VM_JavaHeader.SCALAR_PADDING_BYTES + bytes);
+      VM_Class klass = type.asClass();
+      int instanceSize = klass.getInstanceSize();
+      return obj.sub(instanceSize);
     } else {
-//       VM.sysWrite(", array cell: ");
-      rtn = obj.add(VM_ObjectModel.getHeaderEndOffset(null));
+      return obj.sub(ARRAY_HEADER_SIZE);
     }
-//     VM.sysWrite(rtn); VM.sysWrite(" m\n");
-    return rtn;
   }
 
   /**
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
-				  int numBytes, VM_Class type, int availBitsWord) throws VM_PragmaInline {
+				  int numBytes, VM_Class type, 
+				  int availBitsWord) throws VM_PragmaInline {
     int objectEndOffset;
     int hashState = HASH_STATE_UNHASHED;
     if (ADDRESS_BASED_HASHING) hashState = availBitsWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
-      objectEndOffset =  -numBytes - SCALAR_PADDING_BYTES;
+      objectEndOffset = -numBytes;
     } else {
-      objectEndOffset =  -numBytes;
+      objectEndOffset = -numBytes + HASHCODE_BYTES;
     }
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).add(objectEndOffset);
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
@@ -230,7 +226,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     if (hashState == HASH_STATE_UNHASHED) {
       headersizeAligned = ARRAY_HEADER_SIZE_ALIGNED; 
     } else {
-      headersizeAligned = VM_Memory.alignUp(ARRAY_HEADER_SIZE + HASHCODE_BYTES,BYTES_IN_ADDRESS ); 
+      headersizeAligned = VM_Memory.alignUp(ARRAY_HEADER_SIZE + HASHCODE_BYTES, BYTES_IN_ADDRESS);
     }
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(headersizeAligned);
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
@@ -420,7 +416,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * object reference that could refer to an object in the region.
    */
   public static VM_Address minimumObjectRef (VM_Address regionBaseAddr) {
-    return regionBaseAddr.add(ARRAY_HEADER_SIZE);
+    return regionBaseAddr.add(SCALAR_HEADER_SIZE);
   }
 
   /**
@@ -428,7 +424,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * object reference that could refer to an object in the region.
    */
   public static VM_Address maximumObjectRef (VM_Address regionHighAddr) {
-    return regionHighAddr.add(SCALAR_PADDING_BYTES);
+    return regionHighAddr;
   }
 
   /**
@@ -453,7 +449,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static Object initializeScalarHeader(VM_Address ptr, Object[] tib, int size) {
     // (TIB set by VM_ObjectModel)
-    Object ref = VM_Magic.addressAsObject(ptr.add(size + SCALAR_PADDING_BYTES));
+    Object ref = VM_Magic.addressAsObject(ptr.add(size));
     return ref;
   }
 
@@ -466,7 +462,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static int initializeScalarHeader(BootImageInterface bootImage, int ptr, 
 					   Object[] tib, int size) throws VM_PragmaInterruptible {
-    int ref = ptr + size + SCALAR_PADDING_BYTES;
+    int ref = ptr + size;
     // (TIB set by BootImageWriter2)
 
     //    if (MM_Interface.NEEDS_WRITE_BARRIER) {

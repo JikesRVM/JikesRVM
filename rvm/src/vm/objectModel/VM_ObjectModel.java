@@ -39,16 +39,16 @@ import com.ibm.JikesRVM.opt.ir.*;
  * |<- lo memory                                        hi memory ->|
  *
  * scalar-object layout:
- * +------+------+------+------+------------+----------+------------+- - - +
- * |fldN-1| fldx | fld1 | fld0 | MiscHeader | GCHeader | JavaHeader |      |
- * +------+------+------+------+------------+----------+------------+- - - +
- *                             .                       ^ JHEND      .      ^objref
+ * +------+------+------+------+------------+----------+------------+
+ * |fldN-1| fldx | fld1 | fld0 | MiscHeader | GCHeader | JavaHeader |
+ * +------+------+------+------+------------+----------+------------+
+ *                             .                       ^ JHEND      ^objref
  *                             .  <----------- header ----------->  .      
  *  array-object layout:       .                                    .
- *                             +------------+----------+------------+------+------+------+------+------+
- *                             | MiscHeader | GCHeader | JavaHeader | len  | elt0 | elt1 | ...  |eltN-1|
- *                             +------------+----------+------------+------+------+------+------+------+
- *                                                     ^ JHEND             ^objref
+ *                       +-----+------------+----------+------------+------+------+------+------+
+ *                       | len | MiscHeader | GCHeader | JavaHeader | elt0 | elt1 | ...  |eltN-1|
+ *                       +-----+------------+----------+------------+------+------+------+------+
+ *                                                     ^ JHEND      ^objref
  * </pre>
  *
  * Assumptions: 
@@ -61,8 +61,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  *      The GCHeader should use buts 0..i, MiscHeader should use bits i..k.
  * <li> In a given configuration, the GCHeader and MiscHeader are a fixed number of words for 
  *      all objects.
- * <li> JHEND is a constant for a given configuration (if the Java Header is variable size, it must grow
- *      'away' from the object.
+ * <li> JHEND is a constant for a given configuration.
  * </ul>
  * 
  * This model allows efficient array access: the array pointer can be
@@ -77,10 +76,10 @@ import com.ibm.JikesRVM.opt.ir.*;
  * mapped to the current process, loads/stores through such a pointer will cause a 
  * trap that we can catch with a unix signal handler.<p>
  * 
- * Note: On Linux we can actually protect low memory as well as high memory, 
- * so a future todo item would be to switch the Linux/IA32 object model to look 
- * like the following to simplify some GC implementations without losing any of
- * the other advantages of the original JikesRVM object layout:
+ * Note: On Linux (as opposed to AIX) we can actually protect low memory as well 
+ * as high memory, so a future todo item would be to switch the Linux/IA32 object 
+ * model to look like the following to simplify some GC implementations without 
+ * losing any of the other advantages of the original JikesRVM object layout:
  * <pre>
  *         +------------+----------+------------+------+------+------+------+
  *         | JavaHeader | GCHeader | MiscHeader | fld0 | fld1 + .... | fldN |
@@ -122,16 +121,6 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   public static int hashTransition2 = 0; 
 
   /**
-   * Given a reference to an object of a given class, 
-   * what is the offset in bytes to the bottom word of
-   * the header?
-   */
-  public static int getHeaderEndOffset(VM_Class klass) {
-    return JAVA_HEADER_END - VM_AllocatorHeader.NUM_BYTES_HEADER - VM_MiscHeader.NUM_BYTES_HEADER;
-  }
-
-
-  /**
    * Layout the instance fields declared in this class.
    */
   public static void layoutInstanceFields(VM_Class klass) throws VM_PragmaInterruptible {
@@ -141,23 +130,23 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
       VM_Field field = fields[i];
       if (!field.isStatic()) {
 	int fieldSize = field.getType().getSize();
-//-#if RVM_FOR_64_ADDR
+	//-#if RVM_FOR_64_ADDR
 	if (fieldSize == BYTES_IN_INT ) { 
-		if (klass.getAlignOffset() == 0) { //create a new unused slot of 4 bytes
-			field.setOffset(fieldOffset - BYTES_IN_INT);
-			fieldOffset -= BYTES_IN_ADDRESS; 
-			klass.increaseInstanceSizeAndSetAlignOffset(BYTES_IN_ADDRESS);
-		} else { //use an unused slot of 4 bytes
-			field.setOffset(klass.getAlignOffset());
-			klass.resetAlignOffset();
-		}
+	  if (klass.getAlignOffset() == 0) { //create a new unused slot of 4 bytes
+	    field.setOffset(fieldOffset - BYTES_IN_INT);
+	    fieldOffset -= BYTES_IN_ADDRESS; 
+	    klass.increaseInstanceSizeAndSetAlignOffset(BYTES_IN_ADDRESS);
+	  } else { //use an unused slot of 4 bytes
+	    field.setOffset(klass.getAlignOffset());
+	    klass.resetAlignOffset();
+	  }
 	} else 
-//-#endif 		
-	{			
-	fieldOffset -= fieldSize; // lay out fields 'backwards'
-	field.setOffset(fieldOffset);
-	klass.increaseInstanceSize(fieldSize);
-	}
+        //-#endif 		
+	  {			
+	    fieldOffset -= fieldSize; // lay out fields 'backwards'
+	    field.setOffset(fieldOffset);
+	    klass.increaseInstanceSize(fieldSize);
+	  }
       }
     }
   }
@@ -224,12 +213,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     VM_JavaHeader.gcProcessTIB(ref, root);
   }
 
-//   public static int bytesRequiredWhenCopied(Object object) {
-//     return VM_JavaHeader.bytesRequiredWhenCopied(object);
-//   }
-
   public static int bytesRequiredWhenCopied(Object obj) {
-    Object[] tib = VM_ObjectModel.getTIB(obj);
+    Object[] tib = getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
       return bytesRequiredWhenCopied(obj, type.asClass());
@@ -250,6 +235,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
     return VM_JavaHeader.bytesRequiredWhenCopied(fromObj, type, numElements);
+  }
+
+  /**
+   * Map from the object ref to the lowest address of the storage
+   * associated with the object
+   */
+  public static VM_Address objectStartRef(VM_Address obj) throws VM_PragmaInline {
+    return VM_JavaHeader.objectStartRef(obj);
   }
 
   /**
@@ -441,8 +434,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Compute the header size of an object 
    */
   public static int computeHeaderSize(Object ref) throws VM_PragmaInterruptible {
-    VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(ref.getClass());
-    return computeHeaderSize(type);
+    return computeHeaderSize(getObjectType(ref));
   }
 
   /**
