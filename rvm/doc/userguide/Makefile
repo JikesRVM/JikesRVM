@@ -79,11 +79,12 @@ userguide.dvi:	$(TEX_FILES) main.bib
 		$(LATEX) userguide
 
 html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
-	rm -rf HTML
+	rm -rf $(HTML_DIR)
 	$(HYPERLATEX) userguide
 	cp ${NAV_GIFS} ${HTML_GRAPHICS} ${HTML_DIR}
 	cd ${HTML_DIR} && ln -sf userguide.html index.html
 	chmod -Rf u+rwX ${HTML_DIR}
+	chmod -Rf g+rwX ${HTML_DIR}
 
 
 %.gif:	%.ps
