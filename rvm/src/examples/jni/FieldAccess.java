@@ -1,31 +1,34 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test static and instance field access from native code
-// The following JNI calls are tested:
-//	GetStaticIntField          SetStaticIntField         
-//	GetStaticBooleanField	   SetStaticBooleanField     
-//	GetStaticByteField	   SetStaticByteField        
-//	GetStaticCharField	   SetStaticCharField        
-//	GetStaticShortField	   SetStaticShortField       
-//	GetStaticLongField	   SetStaticLongField        
-//	GetStaticFloatField	   SetStaticFloatField       
-//	GetStaticDoubleField	   SetStaticDoubleField      
-//	GetStaticObjectField	   SetStaticObjectField      
-//				   			     
-//	GetIntField		   SetIntField               
-//	GetBooleanField		   SetBooleanField           
-//	GetByteField		   SetByteField              
-//	GetCharField		   SetCharField              
-//	GetShortField		   SetShortField             
-//	GetLongField		   SetLongField              
-//	GetFloatField		   SetFloatField             
-//	GetDoubleField		   SetDoubleField            
-//	GetObjectField             SetObjectField            
-//
-//
-// Ton Ngo, Steve Smith 1/25/00
-
+//$Id$ 
+/**
+ * Test static and instance field access from native code
+ * The following JNI calls are tested:
+ *	GetStaticIntField          SetStaticIntField         
+ *	GetStaticBooleanField	   SetStaticBooleanField     
+ *	GetStaticByteField	   SetStaticByteField        
+ *	GetStaticCharField	   SetStaticCharField        
+ *	GetStaticShortField	   SetStaticShortField       
+ *	GetStaticLongField	   SetStaticLongField        
+ *	GetStaticFloatField	   SetStaticFloatField       
+ *	GetStaticDoubleField	   SetStaticDoubleField      
+ *	GetStaticObjectField	   SetStaticObjectField      
+ *				   			     
+ *	GetIntField		   SetIntField               
+ *	GetBooleanField		   SetBooleanField           
+ *	GetByteField		   SetByteField              
+ *	GetCharField		   SetCharField              
+ *	GetShortField		   SetShortField             
+ *	GetLongField		   SetLongField              
+ *	GetFloatField		   SetFloatField             
+ *	GetDoubleField		   SetDoubleField            
+ *	GetObjectField             SetObjectField            
+ *
+ *
+ * @author Ton Ngo, Steve Smith 
+ * @date   1/25/00
+ */
 class FieldAccess {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;

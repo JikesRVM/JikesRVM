@@ -1,9 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test native method
-// 
-
+//$Id$
+/**
+ * Test native method
+ *
+ * @author unascribed
+ */
 
 class tNative
 {

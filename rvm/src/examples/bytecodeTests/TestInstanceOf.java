@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestInstanceOf
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestInstanceOf
    {
    public static void main(String args[])

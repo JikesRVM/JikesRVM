@@ -1,7 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/*
+//$Id$
+/**
  *      Whetstone benchmark in C.  This program is a translation of the
  *	original Algol version in "A Synthetic Benchmark" by H.J. Curnow
  *      and B.A. Wichman in Computer Journal, Vol  19 #1, February 1976.
@@ -11,6 +12,8 @@
  *	Compile by:		cc -O -s -o whet whet.c
  *	or:			cc -O -DPOUT -s -o whet whet.c
  *	if output is desired.
+ *
+ * @author unascribed
  */
 
 import java.lang.*;

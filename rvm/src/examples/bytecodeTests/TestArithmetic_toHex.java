@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestArithmetic_toHex
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestArithmetic_toHex
    {
    public static void main(String args[])

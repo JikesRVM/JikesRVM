@@ -11,7 +11,7 @@
 # fed into the VM_CompilerDNA.java file in the adaptive system.
 
 # Note:  I am a Perl novice.  Feel free to improve the quality of this code!
-# Michael Hind, 10/30/01
+# @author Michael Hind, 10/30/01
 #
 
 $NUM_COMPILERS=4;

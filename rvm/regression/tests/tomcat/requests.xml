@@ -1,3 +1,10 @@
+<!-- 
+  (C) Copyright IBM Corp. 2001
+
+  $Id$
+
+  @author Julian Dolby
+-->
 <request-set>
  <get-request url="http://localhost:8080/examples/servlet/HelloWorldExample" 
               desired="expected/HelloWorldExample" />

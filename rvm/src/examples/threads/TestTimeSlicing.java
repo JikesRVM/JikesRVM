@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test Time Slicing
-//
-
+//$Id$
+/**
+ * @author unascribed
+ */
 
 class Task extends Thread
    {

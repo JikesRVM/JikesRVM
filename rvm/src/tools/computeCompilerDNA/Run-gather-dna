@@ -23,7 +23,7 @@
 #
 #   3) Run computeDNA.pl on this file
 #
-#  Michael Hind, Oct 30, 2001
+#  @author Michael Hind, Oct 30, 2001
 
 # parent of build diectories is command line argument to the script
 BUILDDIR=$1

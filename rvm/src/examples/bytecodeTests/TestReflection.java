@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestReflection
+//$Id$
+/*
+ * @author unascribed
+ */
 
 import java.lang.reflect.*;
 

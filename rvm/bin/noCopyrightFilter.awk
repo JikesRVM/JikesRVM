@@ -14,6 +14,8 @@
 /\/tools\/jburg\/COPYRIGHT/ { next }
 /\/tools\/jdp\/sanityTest.jdp/ { next }
 
+/\/tests\/javalex\/qb1.lex.ref/ { next }
+
 /\/rmvrt.stamp/ { next }
 
 /\/userguide\// { next }

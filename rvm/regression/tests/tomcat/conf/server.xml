@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- 
+  (C) Copyright IBM Corp. 2001
+
+  $Id$
+
+  @author Julian Dolby
+-->
 
 <Server>
     <!-- Debug low-level events in XmlMapper startup 

@@ -1,9 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 import java.io.ObjectOutputStream;
 
+/**
+ * @author unascribed
+ */
 class TestWrite
 {
   public static void main(String args[]) {

@@ -1,10 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Test GC with Native frames on stack
  *
- * Ton Ngo, Steve Smith 3/29/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   3/29/00
  */
 
 class TestGC {

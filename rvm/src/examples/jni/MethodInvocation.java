@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  *  Method invocation in JNI:  test the following JNI functions
  *    CallStaticBooleanMethodA    CallStaticBooleanMethodV  CallStaticBooleanMethod 
@@ -36,10 +37,9 @@
  *    CallNonvirtualVoidMethodA	     CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
  *    CallNonvirtualObjectMethodA    CallNonvirtualObjectMethodV    CallNonvirtualObjectMethod
  *
- *
- * Ton Ngo, Steve Smith 2/11/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   2/11/00
  */
-
 
 class MethodInvocation {
 

@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// simple version of hanoi
+//$Id$
+/**
+ * @author unascribed
+ */
 
 import java.io.*;
 

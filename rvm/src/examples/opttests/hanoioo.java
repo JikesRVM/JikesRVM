@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// object oriented version of hanoi
+//$Id$
+/**
+ * @author unascribed
+ */
 
 class Globals {
         static public int NumDisks;

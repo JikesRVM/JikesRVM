@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestAll
-//
+//$Id$
+/*
+ * @author unascribed
+ */
+
 class TestAll
    {
    public static void main(String args[])

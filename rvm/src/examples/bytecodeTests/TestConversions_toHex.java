@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestConversions_toHex
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestConversions_toHex
    {
    public static void main(String args[])

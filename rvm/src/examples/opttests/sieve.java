@@ -1,9 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Eratosthenes Sieve Prime-Number Program from BYTE
  * January 1983
+ *
+ * @author unascribed
  */
  
 class sieve { 

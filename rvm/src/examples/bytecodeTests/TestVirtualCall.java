@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestVirtualCall
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestVirtualA
    {
    int f() { return 1; }

@@ -1,17 +1,18 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
-// Generates DeBruijn sequences of arbitrary length.
-
-// Tests a conjecture that I have about DeBruijn sequences:
-// You can always construct a DeBruijn sequence by simply adding a 1 when it
-// will not give you a subsequence that you have already encountered.
-
-// I'm not sure how to prove this -- any suggestions ?
-
-// John Whaley
-// jwhaley@mit.edu
+//$Id$
+/**
+ * Generates DeBruijn sequences of arbitrary length.
+ *
+ * Tests a conjecture that I have about DeBruijn sequences:
+ * You can always construct a DeBruijn sequence by simply adding a 1 when it
+ * will not give you a subsequence that you have already encountered.
+ *
+ * I'm not sure how to prove this -- any suggestions ?
+ *
+ * @author John Whaley
+ */
 
 class DeBruijn {
   static boolean run() {

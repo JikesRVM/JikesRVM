@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestMath_toHex
+//$Id$
+/*
+ * @author unascribed
+ */
 
 class TestMath_toHex
    {

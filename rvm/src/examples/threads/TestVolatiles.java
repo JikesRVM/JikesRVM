@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class TestVolatiles extends Thread {
 
   public static void main (String args[]) throws Exception {

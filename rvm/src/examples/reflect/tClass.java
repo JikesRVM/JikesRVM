@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 import java.util.*;
 import java.lang.reflect.*;
 
+/**
+ * @author unascribed
+ */
 public class tClass
    {
    public static void gc()

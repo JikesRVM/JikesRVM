@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class utf8test {
   static String test[] = { 
   "\000\001\002\003\004\005\006\007\010\011\012" +

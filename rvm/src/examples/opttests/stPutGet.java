@@ -1,7 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// unresolved putstatic/getstatic test
+//$Id$
+/**
+ * unresolved putstatic/getstatic test
+ *
+ * @author unascribed
+ */
 import java.io.*;
 
 public class stPutGet {

@@ -1,6 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+/**
+ * @author unascribed
+ */
 class NativeThreadsWorker extends Thread
    {
 ///static VM_ProcessorLock mutex = new VM_ProcessorLock();

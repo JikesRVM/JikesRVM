@@ -1,12 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test stack resize with native methods, various scenarios:
-//  -first entry to native code:  first resize
-//  -second nested entry to native code: no resize
-//  -fill up stack and make another entry to native code:  second resize
-// Ton Ngo 9/6/01
-
+//$Id$
+/**
+ * Test stack resize with native methods, various scenarios:
+ *  -first entry to native code:  first resize
+ *  -second nested entry to native code: no resize
+ *  -fill up stack and make another entry to native code:  second resize
+ *
+ * @author Ton Ngo 
+ * @date   9/6/01
+ */
 
 class StackResize
 {

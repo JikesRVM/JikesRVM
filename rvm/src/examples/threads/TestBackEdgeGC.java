@@ -1,15 +1,20 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test Back Edge GC
-//
-//    The classes in thi sfile test the back edge call to GC
-//
-
-//
-// An object of this class loops creates a Call GC object
-//     then loops until a GC is done by a different object
-//        then it starts the GC object that it created
+//$Id$
+/**
+ * Test Back Edge GC
+ *
+ *    The classes in thi sfile test the back edge call to GC
+ *
+ *
+ *
+ * An object of this class loops creates a Call GC object
+ *     then loops until a GC is done by a different object
+ *        then it starts the GC object that it created
+ *
+ * @author unascribed
+ */
 class Looper extends Thread
    {
    static int gccomplete = 0;
@@ -52,9 +57,9 @@ class Looper extends Thread
    }
 
 }
-//
-// Objects of this class invokes GC and exit
-// 
+/**
+ * Objects of this class invokes GC and exit
+ */ 
 class CallGC extends Thread
    {
 
@@ -83,13 +88,14 @@ class CallGC extends Thread
 
 }
 
-//  
-// Create the Looper object and start 
-//   Create the GC object
-//   wait until the looper object is started
-//     start the GC object
-//      wait for the GC object to complete, then exit
-//  
+/**  
+ * Create the Looper object and start 
+ *   Create the GC object
+ *   wait until the looper object is started
+ *     start the GC object
+ *      wait for the GC object to complete, then exit
+ *  
+ */
 class TestBackEdgeGC
    {
    public static void 

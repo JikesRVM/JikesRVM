@@ -3,6 +3,9 @@
  *
  *$Id$
  */
+/*
+ * @author unascribed
+ */
 
 #ifndef jniport_h
 #define jniport_h

@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestClassInitializer
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 class TestClassInitializerA
    {
    static         { SystemOut.println("clinit called for TestClassInitializerA"); }

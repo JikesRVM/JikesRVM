@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Test miscellaneous query functions:
  *     GetSuperClass
@@ -10,9 +11,9 @@
  *     AllocObject
  *
  *
- * Ton Ngo, Steve Smith 3/21/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   3/21/00
  */
-
 import MethodInvocation;
 import MethodInvocationSub;
 

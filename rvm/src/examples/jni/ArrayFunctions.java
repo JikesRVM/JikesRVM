@@ -1,20 +1,23 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test JNI Functions dealing with Array
-// The following JNI calls are tested:
-//      New<type>Array
-//      Get<type>ArrayRegion
-//      Set<type>ArrayRegion
-//      Get<type>ArrayElements
-//      Set<type>ArrayElements
-//      GetArrayLength
-//      GetObjectArrayElement
-//      SetObjectArrayElement
-//
-//
-// Ton Ngo, Steve Smith 3/9/00
-
+//$Id$
+/**
+ * Test JNI Functions dealing with Array
+ * The following JNI calls are tested:
+ *      New<type>Array
+ *      Get<type>ArrayRegion
+ *      Set<type>ArrayRegion
+ *      Get<type>ArrayElements
+ *      Set<type>ArrayElements
+ *      GetArrayLength
+ *      GetObjectArrayElement
+ *      SetObjectArrayElement
+ *
+ *
+ * @author Ton Ngo Steve Smith 
+ * @date   3/9/00
+ */
 class ArrayFunctions {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;

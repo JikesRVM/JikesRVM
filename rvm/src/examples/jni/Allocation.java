@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$:
+/*
+ * @author Ton Ngo
+ */
 
 class Allocation {
   static boolean verbose = true;         // set to true to get messages for each test

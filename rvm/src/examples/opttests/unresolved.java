@@ -1,7 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// unresolved static invocation test.
+//$Id$
+/**
+ * unresolved static invocation test.
+ *
+ * @author unascribed
+ */
 
 import java.io.*;
 

@@ -2,25 +2,27 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-// C runtime support for virtual machine.
-//
-// This file deals with loading of the vm boot image into a memory segment and
-// branching to its startoff code. It also deals with interrupt and exception
-// handling.
-// The file "sys.C" contains the o/s support services required by the java
-// class libraries.
-//
-// 03 Feb 1998 Derek Lieber
-// 17 Oct 2000 The system code (everything except command line parsing in main)
-//             are moved into libvm.C to accomodate the JNI call CreateJVM
-//             (Ton Ngo)
-// 05 Jan 2001 Peter Sweeney
-//	       Add support to recognize quotes in command line arguments,
-//	       standardize command line arguments with JDK 1.3.
-//	       Eliminate order dependence on command line arguments
-//	       To add a new VM directive, 
-//	       add the directive to processCommandLineArguments()
-//
+/*
+ * C runtime support for virtual machine.
+ *
+ * This file deals with loading of the vm boot image into a memory segment and
+ * branching to its startoff code. It also deals with interrupt and exception
+ * handling.
+ * The file "sys.C" contains the o/s support services required by the java
+ * class libraries.
+ *
+ * @author Derek Lieber 03 Feb 1998
+ * 17 Oct 2000 The system code (everything except command line parsing in main)
+ *             are moved into libvm.C to accomodate the JNI call CreateJVM
+ *             (Ton Ngo)
+ * @modified Peter Sweeney 05 Jan 2001
+ *	       Add support to recognize quotes in command line arguments,
+ *	       standardize command line arguments with JDK 1.3.
+ *	       Eliminate order dependence on command line arguments
+ *	       To add a new VM directive, 
+ *	       add the directive to processCommandLineArguments()
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef __CYGWIN__

@@ -1,13 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Test JNI functions that provide direct pointer
-// to Java internal memory such as array, string
-// These functions are added for Java 2.
-//
-// Ton Ngo, Steve Smith 6/19/00
-
-
+//$Id$
+/**
+ * Test JNI functions that provide direct pointer
+ * to Java internal memory such as array, string
+ * These functions are added for Java 2.
+ *
+ * @author Ton Ngo, Steve Smith 
+ * @date   6/19/00
+ */
 
 class CriticalCopy {
   static boolean verbose = true;         // set to true to get messages for each test

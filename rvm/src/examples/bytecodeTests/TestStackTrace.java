@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestStackTrace
+//$Id$
+/*
+ * @author unascribed
+ */
 
 import java.io.*;
    

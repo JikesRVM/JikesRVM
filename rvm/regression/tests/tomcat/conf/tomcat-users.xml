@@ -1,3 +1,10 @@
+<!-- 
+  (C) Copyright IBM Corp. 2001
+
+  $Id$
+
+  @author Julian Dolby
+-->
 <tomcat-users>
   <user name="tomcat" password="tomcat" roles="tomcat" />
   <user name="role1"  password="tomcat" roles="role1"  />

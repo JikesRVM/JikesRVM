@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
+/**
+ * @author unascribed
+ */
 class utf8testdriver {
 
     public static void main(String[] args) {

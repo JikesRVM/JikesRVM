@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestSpecialCall
-//
+//$Id$
+/**
+ * @author unascribed
+ */
 
 class TestCall
    {

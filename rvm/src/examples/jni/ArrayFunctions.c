@@ -1,10 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
+ *
+ * $Id$
  */
-/* Test JNI Functions related to Array
+/*
+ * Test JNI Functions related to Array
  * Implement native methods from ArrayFunctions.java 
  * 
- * Ton Ngo, Steve Smith 3/9/00
+ * @author Ton Ngo, Steve Smith 
+ * @date   3/9/00
  */
 
 #include <stdio.h>

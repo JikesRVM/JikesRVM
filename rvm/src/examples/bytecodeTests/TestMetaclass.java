@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestMetaclass
-//
+//$Id$
+/*
+ * @author unascribed
+ */
 // Class.forName
 // Class.newInstance
 //

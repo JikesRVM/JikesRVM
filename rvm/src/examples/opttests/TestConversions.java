@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// TestConversions
-//
+//$Id$
+/**
+ * @author unascribed
+ */
 class TestConversions
 {
   public static void main(String args[])
