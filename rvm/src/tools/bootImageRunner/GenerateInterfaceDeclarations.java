@@ -112,7 +112,7 @@ class GenerateInterfaceDeclarations {
     p("GenerateInterfaceDeclarations.java: DO NOT EDIT");
     p("------*/\n\n");
 
-    pln("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
+    pln("#if defined NEED_BOOT_RECORD_DECLARATIONS || defined NEED_VIRTUAL_MACHINE_DECLARATIONS");
     pln("#include <inttypes.h>");
     if (VM.BuildFor32Addr) {
       pln("#define VM_Address uint32_t");
@@ -121,6 +121,10 @@ class GenerateInterfaceDeclarations {
       pln("#define VM_Address uint64_t");
       pln("#define JavaObject_t uint64_t");
     }
+    pln("#endif NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS");
+    pln();
+
+    pln("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
     emitBootRecordDeclarations();
     pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS */");
     pln();
