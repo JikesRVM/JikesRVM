@@ -127,25 +127,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       printVerboseOutputLine(GCType);
       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
         VM_CollectorThread.printThreadWaitTimes();
-      else {
-        if (WorkQueue.MEASURE_WAIT_TIMES) {
-          VM.sysWrite("*** Wait Times for Scanning \n");
-          WorkQueue.printAllWaitTimes();
-          WorkQueue.saveAllWaitTimes();
-          VM.sysWrite("*** Wait Times for Finalization \n");
-          WorkQueue.printAllWaitTimes();
-          WorkQueue.resetAllWaitTimes();
-        }
-      }
-
-      if (WorkQueue.WORKQUEUE_COUNTS) {
-        VM.sysWrite("*** Work Queue Counts for Scanning \n");
-        WorkQueue.printAllCounters();
-        WorkQueue.saveAllCounters();
-        VM.sysWrite("*** WorkQueue Counts for Finalization \n");
-        WorkQueue.printAllCounters();
-        WorkQueue.resetAllCounters();
-      }
 
       if (VM_CollectorThread.SHOW_RENDEZVOUS_TIMES) 
         VM_CollectorThread.gcBarrier.printRendezvousTimes();

@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
+// import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 
 import com.ibm.JikesRVM.classloader.*;
@@ -266,7 +266,7 @@ public class VM_CollectorThread extends VM_Thread {
       //
       // setup common workqueue for num VPs participating, used to be called once.
       // now count varies for each GC, so call for each GC
-      if ( gcOrdinal == 1 ) WorkQueue.workQueue.initialSetup(participantCount[0]);
+      // if ( gcOrdinal == 1 ) WorkQueue.workQueue.initialSetup(participantCount[0]);
     
       if (trace > 2) VM_Scheduler.trace("VM_CollectorThread", "starting collection");
       if (getThis().isActive) 
@@ -296,8 +296,7 @@ public class VM_CollectorThread extends VM_Thread {
 	handshake.reset();
 
 	// schedule the FinalizerThread, if there is work to do & it is idle
-	// THIS NOW HAPPENS DURING GC - SWITCH TO DOING IT HERE 
-	// VM_Finalizer.schedule();
+	VM_Interface.scheduleFinalizerThread();
       } 
       
       // wait for other collector threads to arrive here
@@ -667,7 +666,7 @@ public class VM_CollectorThread extends VM_Thread {
       ct.stoppingTime = 0.0;
       ct.startingTime = 0.0;
       ct.rendezvousWaitTime = 0.0;
-      WorkQueue.resetWaitTimes(ct);
+      // WorkQueue.resetWaitTimes(ct);
     }
   }
 }

@@ -123,10 +123,6 @@ public class VM_Handshake {
     }
     VM_Scheduler.collectorMutex.unlock();
 
-    if (debug_native) {
-      VM_Scheduler.writeString("after waiting:"); VM_Scheduler.collectorQueue.dump();
-    }
-    
     // Acquire global lockout field (at fixed address in the boot record).
     // This field will be released when gc completes
     while (true) {
