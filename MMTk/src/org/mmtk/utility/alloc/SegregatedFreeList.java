@@ -272,6 +272,7 @@ abstract class SegregatedFreeList extends Allocator
       cellCount++;
     }
     cellsInUse[sizeClass] = 0;
+    setSizeClass(block, sizeClass);
     postExpandSizeClass(block, sizeClass);
     
     if (VM.VerifyAssertions)
