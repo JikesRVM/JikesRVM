@@ -571,6 +571,11 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.socketImplPortField.getOffset();
     System.out.print("static const int java_net_SocketImpl_port_offset = "
 		     + offset + ";\n");
+
+    // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
+    offset = VM_Entrypoints.gcInProgressField.getOffset();
+    System.out.print("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcInProgressOffset = "
+		     + offset + ";\n");
   }
 
 

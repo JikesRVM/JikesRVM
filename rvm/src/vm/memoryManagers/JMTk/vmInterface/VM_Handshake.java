@@ -146,9 +146,7 @@ public class VM_Handshake {
 
     /* Acquire global lockout field inside the boot record.  Will be
      * released when gc completes. */
-    if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.initiateCollection acquiring lockout field");
-    acquireLockoutLock(LOCKOUT_GC_WORD, true);
-    if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.initiateCollection acquired lockout field");
+    VM_CollectorThread.gcThreadRunning = true;
 
     /* reset counter for collector threads arriving to participate in
      * the collection */
@@ -159,24 +157,8 @@ public class VM_Handshake {
      * of CollectorThread */
     VM_CollectorThread.gcBarrier.resetRendezvous();
 
-    /* scan all the native Virtual Processors and attempt to block
-     * those executing native C, to prevent returning to java during
-     * collection.  the first collector thread will wait for those not
-     * blocked to reach the SIGWAIT state.  (see
-     * VM_CollectorThread.run) */
-    for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
-      if (VM.VerifyAssertions)
-	VM._assert(VM_Processor.nativeProcessors[i] != null);
-      VM_Processor.nativeProcessors[i].lockInCIfInC();
-      if (verbose >= 1) {
-        int newStatus =  VM_Processor.nativeProcessors[i].vpStatus;
-        VM.sysWriteln("GC Message: VM_Handshake.initiateCollection:  Native Processor ", i, " newStatus = ", newStatus);
-      }
-    }
-
-    /* Deque and schedule collector threads on ALL RVM Processors,
-     * including those running system daemon threads
-     * (ex. NativeDaemonProcessor) */
+    /* Deque and schedule collector threads on ALL RVM Processors.
+     */
     if (verbose >= 1) 
       VM.sysWriteln("GC Message: VM_Handshake.initiateCollection: scheduling collector threads");
     VM_Scheduler.collectorMutex.lock();
@@ -196,8 +178,7 @@ public class VM_Handshake {
   /**
    * Wait for all GC threads to complete previous collection cycle.
    *
-   * @return The number of GC threads, including
-   * NativeDaemonProcessors.
+   * @return The number of GC threads.
    */
   private int waitForPrecedingGC() throws VM_PragmaUninterruptible {
     /*
@@ -206,9 +187,6 @@ public class VM_Handshake {
      * allow builds without a NativeDaemon (see VM_Scheduler)
      */
     int maxCollectorThreads = VM_Scheduler.numProcessors;
-    if (!VM.BuildForSingleVirtualProcessor && 
-	VM_Scheduler.processors[VM_Scheduler.nativeDPndx] != null )
-      maxCollectorThreads++;
     
     /* Wait for all gc threads to finish preceeding collection cycle */
     if (verbose >= 1) {
@@ -290,79 +268,6 @@ public class VM_Handshake {
     complete();
     completionFlag = true;
     lock.release();
-  }
-
-
-  /***********************************************************************
-   *
-   * Lockout lock manipulation
-   */
-
-  /**
-   * Acquire LockoutLock.  Accepts a value to store into the
-   * lockoutlock word when it becomes available (value == 0). If not
-   * available when called, a passed flag indicates either spinning or
-   * yielding until the word becomes available.
-   *
-   * @param value    Value to store into lockoutlock word
-   * @param spinwait flag to cause spinning (if true) or yielding
-   */
-  public static void acquireLockoutLock(int value, boolean spinwait)
-    throws VM_PragmaUninterruptible {
-    int lockoutOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
-    while (true) {
-      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
-					   lockoutOffset);
-      if (lockoutVal == 0) {
-	if (VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
-				lockoutOffset, 0, value))
-	  break;
-      } else if (!spinwait) {
-	/* no spin wait: yield until lockout word is available (0),
-	 * then attempt to set */
-	if (verbose >= 1) VM.sysWriteln("GC Message: Handshake.acquireLockoutLock yielding with lockoutVal =", lockoutVal);
-	VM_Thread.yield();
-	continue;
-      }
-    }
-  }
-  
-  /**
-   * Release the LockoutLock by setting the lockoutlock word to 0.
-   * The expected current value that should be in the word can be
-   * passed in, and is verified if not 0.
-   *
-   * @param value Value that should currently be in the lockoutlock word
-   */
-  public static void releaseLockoutLock(int value)
-    throws VM_PragmaUninterruptible {
-    int lockoutOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
-    while (true) {
-      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
-					   lockoutOffset);
-      /* check that current value is as expected */
-      if (VM.VerifyAssertions && (value!=0)) VM._assert( lockoutVal == value );
-      /* OK, reset to zero */
-      if(VM_Magic.attemptInt(VM_BootRecord.the_boot_record,
-			     lockoutOffset, lockoutVal, 0))
-	break;
-    }
-  }
-
-  /**
-   * Return the current contents of the lockoutLock word
-   *
-   * @return current lockoutLock word
-   */
-  public static int queryLockoutLock() throws VM_PragmaUninterruptible {
-    int lockoutOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
-    while (true) {
-      int lockoutVal = VM_Magic.prepareInt(VM_BootRecord.the_boot_record,
-					   lockoutOffset);
-      if (VM_Magic.attemptInt(VM_BootRecord.the_boot_record, lockoutOffset,
-			      lockoutVal, lockoutVal))
-	return lockoutVal;
-    }
   }
 }
 

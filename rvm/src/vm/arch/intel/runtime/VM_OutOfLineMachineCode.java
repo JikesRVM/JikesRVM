@@ -438,32 +438,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // fr1.resolve(asm);
     //-#endif
 
-    // Test if returning to Java on a RVM processor or a Native processor.
-
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
-                                              VM_Entrypoints.processorModeField.getOffset());
-    asm.emitCMP_Reg_Imm (T0, VM_Processor.RVM);           // test for RVM
-    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);     // Br if yes
-
-    // If here, on a native processor, it is necessary to transfer back to a
-    // RVM processor before returning to the Java calling method.
-
-    // !!! volatile FPRs will be lost during the yield to the transfer
-    // queue of the RVM processor, and later redispatch on that processor.
-    // ADD A SAVE OF FPR return reg (top on FPR stack?) before trnsferring
-    // branch to becomeRVMThread to make the transfer
-
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeRVMThreadMethod.getOffset());
-
-    // execution here is now on the RVM processor, and on a different
-    // os pThread. non-volatile GRPs & FPRs have been saved and restored
-    // during the transfer. PR now points to the RVM processor we have
-    // been transferred to.
-
-    // XXX Restore the saved FPR return reg, before returning
-
-    fr1.resolve(asm);  // branch to here if returning on a RVM processor
-
     // pop return values off stack into expected regs before returning to caller
     asm.emitPOP_Reg(T1);
     asm.emitPOP_Reg(T0);

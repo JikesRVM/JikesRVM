@@ -705,8 +705,6 @@ sysSetFdCloseOnExec(int fd)
 // System timer operations. //
 //--------------------------//
 
-// Appears unused. --Steve Augart, July 2003
-// extern int VmBottom, VmTop;
 #ifdef _AIX
 #include <mon.h>
 #endif
@@ -755,6 +753,54 @@ timeSlicerThreadMain(void *arg)
     // NOTREACHED
 }
 #endif
+
+/*
+ * Actions to take on a timer tick
+ */
+extern "C" void processTimerTick(void) {
+    /* 
+     * Check to see if a gc is in progress.
+     * If it is then simply return (ignore timer tick).
+     */
+    unsigned VmToc = (unsigned)getJTOC();
+    int gcInProgress = *(int *) ((char *) VmToc + com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcInProgressOffset);
+    if (gcInProgress != 0) return;
+
+    /*
+     * Increment VM_Processor.epoch
+     */
+    int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
+    *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+
+    /*
+     * Turn on thread-switch flag in each virtual processor.
+     * Note that "jtoc" is not necessarily valid, because we might have
+     * interrupted C-library code, so we use boot image 
+     * jtoc address (== VmToc) instead. 
+     */
+    unsigned *processors = *(unsigned **) ((char *) VmToc + getProcessorsOffset());
+    unsigned cnt = getArrayLength(processors);
+    unsigned longest_stuck_ticks = 0;
+    for (int i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
+      // During how many ticks has this VM_Processor ignored 
+      // a thread switch request? 
+      int val = (*(int *)((char *)processors[i] + 
+			  VM_Processor_threadSwitchRequested_offset))--;
+      if (longest_stuck_ticks < (unsigned) -val)
+	longest_stuck_ticks = -val;
+    }
+    
+    /* 
+     * After 500 timer intervals (often == 5 seconds), print a message
+     * every 50 timer intervals (often == 1/2 second), so we don't
+     * just appear to be hung. 
+     */
+    if (longest_stuck_ticks >= 500 && (longest_stuck_ticks % 50) == 0) {
+      fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", Me, getTimeSlice_msec() * longest_stuck_ticks);
+      fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
+    }
+}
+
 
 // Start/stop interrupt generator for thread timeslicing.
 // The interrupt will be delivered to whatever virtual processor

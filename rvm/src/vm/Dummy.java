@@ -25,7 +25,6 @@ class Dummy {
   static VM_SaveVolatile            i;
   static MM_Interface               l;
   static VM_JNIFunctions            m;
-  static VM_JNIStartUp              n;
   static VM_RecompilationManager    o;
   static VM_MultianewarrayHelper    r;
   static VM_Address                 s;

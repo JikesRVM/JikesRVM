@@ -173,17 +173,6 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  /** Capture threads that have gone Native (JNI) and not come back.  Issolate
-      them in Native.  Create a new (Native) virtual processor for them.  And
-      create (or revive) new pThreads to run the old virtual processors.
-  */
-  public static final boolean BuildWithNativeDaemonProcessor = 
-    //-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
-    !BuildForSingleVirtualProcessor;
-    //-#else
-    false;
-    //-#endif
-
   /** The following configuration objects are final when disabled, but
       non-final when enabled. */
   

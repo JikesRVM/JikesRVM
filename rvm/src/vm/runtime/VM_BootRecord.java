@@ -192,15 +192,6 @@ public class VM_BootRecord {
    * jtoc offset of VM_Scheduler.attachThreadRequested
    */
   int attachThreadRequestedOffset;    
-  /**
-   * set when GC starts; reset at end
-   */
-  int globalGCInProgressFlag;        
-  static final int GC_IN_PROGRESS = 1;   
-  /**
-   * used during GC and transfers to and from native processors
-   */
-  int lockoutProcessor; 
 
   // Host operating system entrypoints - see "sys.C"
   //

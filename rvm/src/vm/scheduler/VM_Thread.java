@@ -506,8 +506,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    *
    * @param whereFrom  backedge, prologue, epilogue?
    */ 
-  public static void timerTickYield (int whereFrom) 
-  {
+  public static void timerTickYield (int whereFrom) {
     VM_Thread myThread = getCurrentThread();
     // thread switch
     myThread.beingDispatched = true;
@@ -711,51 +710,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     morph(false);
   }
 
-  // Suspend execution of current thread in favor of some other thread.
-  // Taken: VM_Processor of Native processor.
-  //
-  // Place current thread onto transfer queue of native processor.
-  // Unblock that processor by changing vpStatus to IN_NATIVE (from BLOCKED_IN_NATIVE)
-  // morph() so that executing os thread starts executing other java
-  // threads in the queues of the current processor
-  //
-  // XXX WHAT IF...
-  // Java thread, once unblocked, completes the yield to a RVM Processor
-  // transfer queue, and native processor pthread tries to find work in its
-  // queues, and the native idle thread is in its transfer queue BUT its
-  // beingDispatched flag is still on because... Will the dispatch logic of
-  // the native processor get upset, for ex. skip the idle thread in the
-  // transfer queue, look at its idle queue, and find it empty, and barf???
-  //
-  static void yield (VM_Processor p) throws VM_PragmaNoInline {
-    //BEGIN HRM
-    //-#if RVM_WITH_HPM
-    captureCallChainCMIDs(false);
-    // sample HPM counter values at every yield
-    if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-	! VM_HardwarePerformanceMonitors.hpm_thread_group) {
-      VM_Thread myThread = getCurrentThread();
-      VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
-    }
-    //-#endif
-    //END HRM
-    VM_Thread myThread = getCurrentThread();
-    if (VM.VerifyAssertions) {
-      VM._assert(p.processorMode==VM_Processor.NATIVE);
-      VM._assert(p.vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
-      VM._assert(myThread.isNativeIdleThread==true);
-    }
-    myThread.beingDispatched = true;
-    p.transferMutex.lock();
-    p.transferQueue.enqueue(myThread);
-    p.vpStatus = VM_Processor.IN_NATIVE;
-    p.transferMutex.unlock();
-    morph(false);
-  }
-
   static void morph () {
     morph(false);
   }
+
   /**
    * Current thread has been placed onto some queue. Become another thread.
    * @param timerTick   timer interrupted if true
@@ -782,75 +740,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
   }
 
-
   private static void postExternalInterrupt(VM_Thread myThread) throws VM_PragmaLogicallyUninterruptible {
     Throwable t = myThread.externalInterrupt;
     myThread.externalInterrupt = null;
     myThread.throwInterruptWhenScheduled = false;
     t.fillInStackTrace();
     VM_Runtime.athrow(t);
-  }
-
-  /**
-   * transfer execution of the current thread to a "nativeAffinity"
-   * Processor (system thread).  Used when making transitions from
-   * java to native C (call to native from java or return to native
-   * from java.
-   * 
-   * After the yield, we are in a native processor (avoid method calls)
-   */
-  static void becomeNativeThread () {
-
-    int lockoutId;
-
-    if (trace) {
-      VM.sysWrite("VM_Thread.becomeNativeThread entry -process = ");
-      VM.sysWrite(VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
-      VM.sysWrite("\n");
-      VM.sysWrite("Thread id ");
-      VM.sysWrite(VM_Magic.getThreadId() );
-      VM.sysWrite("\n");
-    }
-
-    VM_Processor p = VM_Thread.getCurrentThread().nativeAffinity;
-    if (VM.VerifyAssertions) VM._assert( p != null, "null nativeAffinity, should have been recorded by C caller\n");
-    
-    // ship the thread to the native processor
-    p.transferMutex.lock();
-    
-    VM_SysCall.sysPthreadSignal(p.pthread_id);
-
-    yield(p.transferQueue, p.transferMutex); // morph to native processor
-
-
-    // if (VM_Magic.getMemoryWord(lockoutAddr) != lockoutId)
-    //   VM_Scheduler.trace("!!!bad lock contents", " contents =", VM_Magic.getMemoryWord(lockoutAddr));
-    
-    if (trace){
-      VM.sysWrite("VM_Thread.becomeNativeThread exit -process = ");
-      VM.sysWrite(VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
-      VM.sysWrite("\n");
-    }
-  }
-
-  /**
-   * Until the yield, we are in a native processor (avoid method calls)
-   */
-  static void becomeRVMThread () {
-
-    VM_Processor currentProcessor = VM_ProcessorLocalState.getCurrentProcessor();
-    currentProcessor.activeThread.returnAffinity.transferMutex.lock();
-
-    // morph to RVM processor
-    yield( VM_Thread.getCurrentThread().returnAffinity.transferQueue,  
-           VM_Thread.getCurrentThread().returnAffinity.transferMutex); 
-    
-    if (trace) {
-      VM.sysWrite("VM_Thread.becomeRVMThread- exit process = ");
-      VM.sysWrite(VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
-      VM.sysWrite("\n");
-    }
-
   }
 
   //----------------------------------//

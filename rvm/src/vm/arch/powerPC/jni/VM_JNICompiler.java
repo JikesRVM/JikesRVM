@@ -104,14 +104,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
     if (VM.VerifyAssertions) VM._assert(S0 < S1 && S1 <= LAST_SCRATCH_GPR); // need 2 scratch
 
-    VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
-    int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
-    VM_Address lockoutLockAddress = bootRecordAddress.add(lockoutLockOffset);
-    int sysTOCOffset      = VM_Entrypoints.sysTOCField.getOffset();
-    int sysYieldIPOffset  = VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset();
-
-    VM_Address gCFlagAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record).add(VM_Entrypoints.globalGCInProgressFlagField.getOffset());
-
     VM_Address nativeIP  = method.getNativeIP();
     VM_Address nativeTOC = method.getNativeTOC();
 
@@ -205,39 +197,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitBCLRL  ();
 
     // restore PR, saved in this glue frame before the call. If GC occurred, this saved
-    // VM_Processor reference was relocated while scanning this stack. If while in native,
-    // the thread became "stuck" and was moved to a Native Processor, then this saved
-    // PR was reset to point to that native processor
+    // VM_Processor reference was relocated while scanning this stack.
     //
     asm.emitLAddr(PROCESSOR_REGISTER, frameSize - JNI_PR_OFFSET, FP);  
 
-    // at this point, test if in blue processor: if yes, return to
-    // Java caller; by picking up at "check if GC..." below
-    // if not, must transfer to blue processor by using
-    // become RVM thread.
-
-    asm.emitLWZ    (S0, VM_Entrypoints.processorModeField.getOffset(), PROCESSOR_REGISTER); // get processorMode
-    asm.emitCMPI  (S0, VM_Processor.RVM)     ;           // are we still on blue processor
-    VM_ForwardReference frBlue = asm.emitForwardBC(EQ);
-
-    asm.emitLAddr(T0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);  // get activeThread from Processor
-    asm.emitLAddr(S0, VM_Entrypoints.jniEnvField.getOffset(), T0);             // get JNIEnvironment from activeThread
-    asm.emitLAddr(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), S0);     // and restore TI from JNIEnvironment  
-
-    // restore RVM JTOC
-    asm.emitLAddr(JTOC, frameSize - JNI_JTOC_OFFSET, FP);          
-
-    // Branch to becomeRVMThread:  we will yield and get rescheduled to execute 
-    // on a regular VM_Processor for Java code
-    asm.emitLAddr(S0, VM_Entrypoints.becomeRVMThreadMethod.getOffset(), JTOC);
-    asm.emitMTLR(S0);
-    asm.emitBCLRL  ();
-     
-    // At this point, we have resumed execution in the regular Java VM_Processor
-    // so the PR contains the correct values for this VM_Processor.  TI is also correct
-
-    // branch to here if on blue processor	
-    //
     // check if GC has occurred, If GC did not occur, then 
     // VM NON_VOLATILE regs were restored by AIX and are valid.  If GC did occur
     // objects referenced by these restored regs may have moved, in this case we
@@ -245,7 +208,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // where any object references would have been relocated during GC.
     // use T2 as scratch (not needed any more on return from call)
     //
-    frBlue.resolve(asm);
     asm.emitLWZ(T2, frameSize - JNI_GC_FLAG_OFFSET, FP);
     asm.emitCMPI(T2,0);
     VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
@@ -269,8 +231,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTW(T2, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), S0);   // store new offset for JNIRefs frame ptr into JNIEnv
 
     // Restore the return value R3-R4 saved in the glue frame spill area before the migration
-    if (VM.BuildFor64Addr) asm.emitLD(T0, NATIVE_FRAME_HEADER_SIZE, FP);
-    else {
+    if (VM.BuildFor64Addr) {
+      asm.emitLD(T0, NATIVE_FRAME_HEADER_SIZE, FP);
+    } else {
       asm.emitLWZ(T0, NATIVE_FRAME_HEADER_SIZE, FP);
       asm.emitLWZ(T1, NATIVE_FRAME_HEADER_SIZE+BYTES_IN_STACKSLOT, FP);
     }
@@ -1104,57 +1067,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLAddr(TI, VM_Entrypoints.JNIEnvSavedTIField.getOffset(), T0);  
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), T0);  
 
-    // check if now running on a native processor, if so we have to
-    // transfer back to a blue/RVM processor (via call to becomeRVM)
-    //
-    asm.emitLWZ    (S0, VM_Entrypoints.processorModeField.getOffset(), PROCESSOR_REGISTER); // get processorMode
-    asm.emitCMPI  (S0, VM_Processor.RVM);                // are we still on blue processor
-    VM_ForwardReference frBlue2 = asm.emitForwardBC(EQ); // skip transfer to blue if on blue
-
-    // save volatile GPRs 3-10 and FPRs 1-6 before calling becomeRVMThread
-    offset = STACKFRAME_HEADER_SIZE;
-
-    // save volatile GPRS 3-10 
-    for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-      asm.emitSTAddr(i, offset, FP);
-      offset+=BYTES_IN_ADDRESS;
-    }
-
-    // save volatile FPRS 1-6
-    for (int i = FIRST_OS_PARAMETER_FPR; i <= LAST_OS_VARARG_PARAMETER_FPR; i++) {
-      asm.emitSTFD (i, offset, FP);
-      offset+=BYTES_IN_DOUBLE;
-    }
-
-    // Branch to becomeRVMThread:  we will yield and get rescheduled to execute 
-    // on a regular VM_Processor for Java code.  At this point PR, TI & JTOC
-    // are valid for executing Java
-    //
-    asm.emitLAddrToc  (S0, VM_Entrypoints.becomeRVMThreadMethod.getOffset());  // always 2 instructions
-    asm.emitMTLR  (S0);
-    asm.emitBCLRL  ();
-     
-    // At this point, we have resumed execution in a RVM VM_Processor
-    // The PR register now points to this VM_Processor.  TI & JTOC are still valid.
-
-    // restore the saved volatile GPRs 3-10 and FPRs 1-6
-    offset = STACKFRAME_HEADER_SIZE;
-
-    // restore volatile GPRS 3-10
-    for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-      asm.emitLAddr (i, offset, FP);
-      offset+=BYTES_IN_ADDRESS;
-    }
-
-    // restore volatile FPRS 1-6
-    for (int i = FIRST_OS_PARAMETER_FPR; i <= LAST_OS_VARARG_PARAMETER_FPR; i++) {
-      asm.emitLFD (i, offset, FP);
-      offset+=BYTES_IN_DOUBLE;
-    }
-
-    // branch to here if making jni call on RVM/blue processor	
-    frBlue2.resolve(asm);
-
     // BRANCH TO THE PROLOG FOR THE JNI FUNCTION
     VM_ForwardReference frNormalPrologue = asm.emitForwardBL();
 
@@ -1182,61 +1094,16 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // stuck (and blocked) in native C, ie. GC starts scanning the threads stack at that frame.
     
     // AIX -4, LINUX -8
-    asm.emitLWZ (T3, JNI_GLUE_FRAME_SIZE + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP);             // load offset from FP to top java frame
+    asm.emitLWZ (T3, JNI_GLUE_FRAME_SIZE + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP); // load offset from FP to top java frame
     asm.emitADD  (T3, FP, T3);                                    // T3 <- address of top java frame
     asm.emitSTAddr(T3, VM_Entrypoints.JNITopJavaFPField.getOffset(), T2);     // store TopJavaFP back into JNIEnv
 
-    // Check if nativeAffinity is set:  
-    // -if yes, the caller is via CreateJavaVM or AttachCurrentThread
-    //  from an external pthread and control must be returned to the C program there
-    // -If no, return to C can be done on the current processor
-    asm.emitLAddr(S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // T2 <- activeThread of PR
-    asm.emitLWZ(S0, VM_Entrypoints.nativeAffinityField.getOffset(), S0);                 // T2 <- nativeAffinity 
-    asm.emitCMPI (S0, 0);
-    VM_ForwardReference fr6 = asm.emitForwardBC(EQ);
-
     // check to see if this frame address is the sentinel since there may be no further Java frame below
-    if (VM.BuildFor64Addr) asm.emitCMPDI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
-    else asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
-    VM_ForwardReference fr5 = asm.emitForwardBC(NE);
-    
-    // save result GPRS 3-4  and FPRS 1
-    offset = STACKFRAME_HEADER_SIZE;
-    asm.emitSTAddr(T0, offset, FP);
-    asm.emitSTAddr(T1, offset+BYTES_IN_STACKSLOT, FP);
-    asm.emitSTAddr(T2, offset+2*BYTES_IN_STACKSLOT, FP);
-    asm.emitSTAddr(T3, offset+3*BYTES_IN_STACKSLOT, FP);
-    asm.emitSTFD (FIRST_OS_PARAMETER_FPR, offset+4*BYTES_IN_STACKSLOT, FP);
-
-    // Branch to becomeNativeThread:  we will yield and get rescheduled to execute 
-    // on a VM_Processor for the external pthread code.
-    //
-    asm.emitLAddrToc  (S0, VM_Entrypoints.becomeNativeThreadMethod.getOffset());  // always 2 instructions
-    asm.emitMTLR  (S0);
-    asm.emitBCLRL  ();
-
-    // restore result GPRS 3-4  and FPRS 1
-    offset = STACKFRAME_HEADER_SIZE;
-    asm.emitLAddr(T0, offset, FP);
-    asm.emitLAddr(T1, offset+BYTES_IN_STACKSLOT, FP);
-    asm.emitLAddr(T2, offset+2*BYTES_IN_STACKSLOT, FP);
-    asm.emitLAddr(T3, offset+3*BYTES_IN_STACKSLOT, FP);
-    asm.emitLFD (FIRST_OS_PARAMETER_FPR, offset+4*BYTES_IN_STACKSLOT, FP);
-
-    // While in Java (JNI Function), on a RVM Processor, we allow the thread to be migrated
-    // to a different Processor. Thus the current processor when returning from Java back
-    // may be different from the processor when calling the Java JNI Function. We therefore
-    // must update the saved processor registers, in the threads JNIEnvironment and in the
-    // preceeding "Java to C" transition frame.
-    // Note: must be done after the possible call to becomeNativeThread to pick up the right PR value
-    //
-    // update the saved PR of the frame if TopJavaFP is valid (branch here from check above)
-    fr6.resolve(asm);
-    fr5.resolve(asm);
-    
-    // check to see if this frame address is the sentinel since there may be no further Java frame below
-    if (VM.BuildFor64Addr) asm.emitCMPDI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
-    else asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
+    if (VM.BuildFor64Addr) {
+      asm.emitCMPDI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
+    } else {
+      asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
+    }
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     asm.emitSTAddr(PROCESSOR_REGISTER, -JNI_PR_OFFSET, S0);  // store PR back into transition frame
@@ -1249,7 +1116,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // and are never "BLOCKED_IN_JAVA"
     //
     asm.emitLAddr(T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr vpStatus word
-    asm.emitADDI(S0,  VM_Processor.IN_NATIVE, 0 );              // S0  <- new status value
+    asm.emitADDI(S0,  VM_Processor.IN_NATIVE, 0);              // S0  <- new status value
     asm.emitSTW(S0,  0, T3);                                   // change state to native
 
     // Restore those AIX nonvolatile registers saved in the prolog above

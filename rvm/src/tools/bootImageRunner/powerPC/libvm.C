@@ -159,46 +159,6 @@ sigcontext* getLinuxSavedContext(int signum, void* arg3) {
 #endif
 
 
-extern "C" void processTimerTick() {
-  
-   // if gc in progress, return
-   if ((*theBootRecord).lockoutProcessor == 0x0CCCCCCC) return;     
-      
-   // Turn on thread-switch flag in each virtual processor.
-   // Note that "jtoc" is not necessarily valid, because we might have interrupted
-   // C-library code, so we use boot image jtoc address (== VmToc) instead.
-   // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-   // For now, we assume table is fixed in boot image and never moves.
-   //
-   unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
-   unsigned  cnt        =  getArrayLength(processors);
-   cnt = cnt - 1;       // line added here - ndp is now the last processor = and cnt includes it
-   int *epochLoc = (int *) ((char *) VmToc + VM_Processor_epoch_offset);
-   (*epochLoc)++;
-
-   int	   i;
-   int       sendit = 0;
-   int       MISSES = -2;			// tuning parameter
-   for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i) {
-     int *tsrLoc = (int *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset);
-     if (*tsrLoc <= MISSES) sendit++;
-     (*tsrLoc)--;
-   }
-   if (sendit != 0) { // some processor "stuck in native"
-     if (processors[i] != VM_NULL) {  // Have a NativeDaemon Processor (the last one)
- #if (defined RVM_FOR_LINUX) && (!defined __linuxsmp__)
-       // we're hosed because we don't support pthreads
-       fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
-       exit(-1);
-#else
-       int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
-       pthread_t thread = (pthread_t) pthread_id;
-       pthread_kill(thread, SIGCONT);
-#endif
-     }
-   }
-}
-
 // Handle software signals.
 // Note: this code runs in a small "signal stack" allocated by "sigstack()" (see later).
 // Therefore care should be taken to keep the stack depth small. If mysterious
@@ -238,14 +198,11 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
       // Turn on debug-request flag.
       // Note that "jtoc" is not necessarily valid, because we might have interrupted
       // C-library code, so we use boot image jtoc address (== VmToc) instead.
-      // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-      // For now, we assume table is fixed in boot image and never moves.
       //
       unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
       if (*flag) {
 	fprintf(SysTraceFile, "%s: debug request already in progress, please wait\n", Me);
-      }
-      else {
+      } else {
 	fprintf(SysTraceFile, "%s: debug requested, waiting for a thread switch\n", Me);
 	*flag = 1;
       }
@@ -260,8 +217,6 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
      // it the fp of the current thread.
      // Note that "jtoc" is not necessarily valid, because we might have interrupted
      // C-library code, so we use boot image jtoc address (== VmToc) instead.
-     // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-     // For now, we assume table is fixed in boot image and never moves.
      //
      VM_Address dumpStack = *(VM_Address *)((char *)VmToc + DumpStackAndDieOffset);
      save->gpr[VM_Constants_FIRST_VOLATILE_GPR] =

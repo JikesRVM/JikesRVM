@@ -42,7 +42,6 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) VM._assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
     main: while (true) {
       if (VM_Scheduler.terminated) VM_Thread.terminate();

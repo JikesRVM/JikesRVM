@@ -556,10 +556,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * <code>false</code> otherwise
    */
   public static boolean isNonParticipating(Plan plan) {
-    VM_Processor vp = (VM_Processor) plan;
+    VM_Processor vp = (VM_Processor)plan;
     int vpStatus = vp.vpStatus;
-    return  ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) 
-	     || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
+    return vpStatus == VM_Processor.BLOCKED_IN_NATIVE;
   }
 
   /**
@@ -575,16 +574,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_Processor vp = (VM_Processor) p;
     int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions)
-      VM._assert((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
-    if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) { 
-      // processor & its running thread are blocked in C for this GC.  
-      // Its stack needs to be scanned, starting from the "top" java frame, which has
-      // been saved in the running threads JNIEnv.  Put the saved frame pointer
-      // into the threads saved context regs, which is where the stack scan starts.
-      //
-      VM_Thread t = vp.activeThread;
-      t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
-    }
+      VM._assert(vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
+
+    // processor & its running thread are blocked in C for this GC.  
+    // Its stack needs to be scanned, starting from the "top" java frame, which has
+    // been saved in the running threads JNIEnv.  Put the saved frame pointer
+    // into the threads saved context regs, which is where the stack scan starts.
+    //
+    VM_Thread t = vp.activeThread;
+    t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
   }
 
   /**

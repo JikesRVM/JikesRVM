@@ -776,39 +776,10 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     // arguments for the call have been setup, space on the stack for locals
     // has been acquired.
 
-    // load mode of current processor for testing (RVM or NATIVE)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
-                                              VM_Entrypoints.processorModeField.getOffset());
-
-    asm.emitCMP_Reg_Imm (T0, VM_Processor.RVM);           // test for RVM
-    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);     // Br if yes
-
-    // If here, on a native processor, it is necessary to transfer back to a
-    // RVM processor before executing the Java JNI Function.
-
-    // !!! what about saving regs, especially FPRs ??? (CHECK)
-
-    // branch to becomeRVMThread to make the transfer.
-
-    // If GC occurs while we are on the transfer queue of the RVM processor,
-    // what will the MapIterator do, will we appear to be in the prolog of the 
-    // Java JNI Function? Will there be any refs to report? any saved regs to report?
-
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeRVMThreadMethod.getOffset());
-
-    // execution here is now on the RVM processor, and on a different
-    // os pThread. PR now points to the new RVM processor we have
-    // been transferred to.  JTOC was set when we were re-dispatched.
-
-    // XXX Restoring regs? especially FPRs ??? (CHECK)
-
-    fr1.resolve(asm);  // branch to here if returning on a RVM processor
-
     // finally proceed with the normal Java compiled code
     // skip the thread switch test for now, see VM_Compiler.genThreadSwitchTest(true)
 
     asm.emitNOP(); // end of prologue marker
-
   }
 
   static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {

@@ -357,7 +357,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
 
     VM_Assembler asm = new VM_Assembler(0);
-    int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
     //
     // store the return address to the Java to C glue prolog, which is now in LR
     // into transition frame. If GC occurs, the JNIGCMapIterator will cause
@@ -382,7 +381,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     asm.emitLAddr  (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0); 
     asm.emitLWZ    (S1, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // S1 gets addr vpStatus word
-    asm.emitADDI   (S0,  VM_Processor.IN_NATIVE, 0) ;              // S0  <- new status value
+    asm.emitADDI   (S0,  VM_Processor.IN_NATIVE, 0);               // S0  <- new status value
     asm.emitSTW    (S0,  0, S1);                                   // change state to native
 
     // set word following JNI function ptr to addr of current processors vpStatus word
@@ -408,10 +407,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     int label1    = asm.getMachineCodeIndex();                            // inst index of the following load
     asm.emitLAddr    (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
-	//-#if RVM_FOR_LINUX
-	// mimi (1) FP -> mimi(2) FP -> java caller
-	asm.emitLAddr   (PROCESSOR_REGISTER, 0, PROCESSOR_REGISTER);
-	//-#endif
+    //-#if RVM_FOR_LINUX
+    // mimi (1) FP -> mimi(2) FP -> java caller
+    asm.emitLAddr   (PROCESSOR_REGISTER, 0, PROCESSOR_REGISTER);
+    //-#endif
     asm.emitLAddr  (JTOC, -JNI_JTOC_OFFSET, PROCESSOR_REGISTER);                         // load JTOC reg
     asm.emitLAddr  (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
     asm.emitLAddr  (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
@@ -438,16 +437,15 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // return to caller
     //
     asm.emitLAddr  (T3, 0 , FP);                                // get previous frame
-	//-#if RVM_FOR_LINUX
-	asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T3);
-	//-#endif
-	//-#if RVM_FOR_AIX
-	asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
+    //-#if RVM_FOR_LINUX
+    asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T3);
     //-#endif
-	asm.emitMTLR  (S0);
+    //-#if RVM_FOR_AIX
+    asm.emitLAddr(S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
+    //-#endif
+    asm.emitMTLR  (S0);
     asm.emitBCLR   ();
-    //
-    return asm.makeMachineCode().getInstructions();
 
-  }  // generateInvokeNativeFunctionInstructions
+    return asm.makeMachineCode().getInstructions();
+  }
 }

@@ -21,13 +21,10 @@ extends Plan
 //-#endif
 implements VM_Uninterruptible, VM_Constants {
 
-  // Processor modes
-  //
-  static final int RVM = 0;
-  static final int NATIVE   = 1;
-  static final int NATIVEDAEMON   = 2;
-
-  private static final boolean debug_native = false;
+  // definitions for VP status for implementation of jni
+  public static final int IN_JAVA                 = 1;
+  public static final int IN_NATIVE               = 2;
+  public static final int BLOCKED_IN_NATIVE       = 3;
 
   /**
    * For builds where thread switching is deterministic rather than timer driven
@@ -42,20 +39,11 @@ implements VM_Uninterruptible, VM_Constants {
    */
   public int processor_cbs_counter;
 
-
-  // fields to track native processors - processors created for java threads 
-  // found blocked in native code
-  //
-  public static int            numberNativeProcessors   = 0;
-  public static VM_Synchronizer nativeProcessorCountLock = new VM_Synchronizer();
-  public static VM_Processor[] nativeProcessors         = new VM_Processor[100];
-
   // fields to track attached processors - processors created for user
   // pthreads that "enter" the VM via attachJVM.
   //
   public static int            numberAttachedProcessors   = 0;
   public static VM_Processor[] attachedProcessors         = new VM_Processor[100];
-
 
   //-#if RVM_WITH_HPM
   // Keep HPM information for each Virtual Processor.
@@ -63,8 +51,7 @@ implements VM_Uninterruptible, VM_Constants {
   //-#endif
 
   // How many times timer interrupt has occurred since last thread switch
-  public  int interruptQuantumCounter = 0;
-
+  public int interruptQuantumCounter = 0;
 
   /**
    * Create data object to be associated with an o/s kernel thread 
@@ -72,8 +59,7 @@ implements VM_Uninterruptible, VM_Constants {
    * @param id id that will be returned by getCurrentProcessorId() for 
    * this processor.
    */ 
-  VM_Processor (int id,  int processorType ) {
-
+  VM_Processor (int id) {
     //-#if RVM_FOR_IA32
     // presave JTOC register contents 
     // (so lintel compiler can us JTOC for scratch)
@@ -90,8 +76,6 @@ implements VM_Uninterruptible, VM_Constants {
     this.idleQueue         = new VM_ThreadQueue();
     this.lastLockIndex     = -1;
     this.isInSelect        = false;
-    this.processorMode     = processorType;
-
     this.vpStatusAddress = VM_Magic.objectAsAddress(this).add(VM_Entrypoints.vpStatusField.getOffset());
     this.vpStatus = IN_JAVA;
 
@@ -169,8 +153,7 @@ implements VM_Uninterruptible, VM_Constants {
     activeThread   = newThread;
 
     if (!previousThread.isDaemon && 
-        idleProcessor != null && !readyQueue.isEmpty() 
-        && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
+        idleProcessor != null && !readyQueue.isEmpty()) {
       // if we've got too much work, transfer some of it to another 
       // processor that has nothing to do
       // don't schedule when switching away from a daemon thread...
@@ -217,18 +200,6 @@ implements VM_Uninterruptible, VM_Constants {
         transferMutex.lock();
         transferQueue.enqueue(t);
         transferMutex.unlock();
-        if (processorMode == NATIVE) {
-          // increase loop counter so this thread will be looked at 
-          // again - isbeingdispatched goes off when dispatcher stops
-          // running on the RVM processor, using this thread's stack.
-          // RARE CASE: the stuck thread has returned from this native
-          // processor, but being dispatched in the nativeidlethread has not
-          // yet gone off because its stack is still being used by dispatcher
-          // on the RVM	
-          i++;
-          if (loopcheck++ >= 1000000) break;
-          if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread,"VM_Processor.getRunnableThread() assert t.isNativeIdleThread");
-        }
       } else {
         if (VM.TraceThreadScheduling > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
         readyQueue.enqueue(t);
@@ -358,178 +329,6 @@ implements VM_Uninterruptible, VM_Constants {
     return VM_Scheduler.processors[t.chosenProcessorId];
   }
 
-  //--------------------------//
-  // Native Virtual Processor //
-  //--------------------------//
-
-
-  // definitions for VP status for implementation of jni
-  public static final int IN_JAVA                 = 1;
-  public static final int IN_NATIVE               = 2;
-  public static final int BLOCKED_IN_NATIVE       = 3;
-  public static final int IN_SIGWAIT              = 4;
-  public static final int BLOCKED_IN_SIGWAIT      = 5;
-
-  static int generateNativeProcessorId () throws VM_PragmaInterruptible {
-    int r;
-    synchronized (nativeProcessorCountLock) {
-      r = ++numberNativeProcessors;
-    }
-    return -r;
-  }
-
-
-  /**
-   *  For JNI createJVM and attachCurrentThread: create a VM_Processor 
-   * structure to represent a pthread that has been created externally 
-   * It will have:
-   *   -the normal idle queue with a VM_NativeIdleThread
-   * It will not have:
-   *   -a newly created pthread as in the normal case
-   * The reference to this VM_Processor will be held in two places:
-   *   -as nativeAffinity in the Java thread created by the JNI call
-   *   -as an entry in the attachedProcessors array for use by GC
-   *
-   */
-  static VM_Processor createNativeProcessorForExistingOSThread(VM_Thread withThisThread) 
-    throws VM_PragmaInterruptible {
-
-      VM_Processor newProcessor = new VM_Processor(generateNativeProcessorId(), NATIVE);
-      // create idle thread for this native processor, running in attached mode
-      VM_Thread t = new VM_NativeIdleThread(newProcessor, true);
-      t.start(newProcessor.idleQueue);
-
-      // Make the current thread the active thread for this native VP
-      newProcessor.activeThread = withThisThread;
-      newProcessor.activeThreadStackLimit = withThisThread.stackLimit;
-
-      // Because the start up thread will not be executing to 
-      // initialize itself as in the
-      // normal case, we have set the isInitialized flag for the processor here
-      newProcessor.isInitialized = true;
-
-      // register this VP for GC purpose
-      if (registerAttachedProcessor(newProcessor) != 0)
-        return newProcessor;
-      else
-        return null;                // out of space to hold this new VP
-    }
-
-  static int registerAttachedProcessor(VM_Processor newProcessor) throws VM_PragmaInterruptible {
-
-    if (numberAttachedProcessors == 100) {
-      // VM.sysWrite("VM_Processor.registerAttachedProcessor: no more room\n");
-      return 0;
-    }
-
-    // entry 0 is kept empty
-    for (int i=1; i<attachedProcessors.length; i++) {
-      if (attachedProcessors[i]==null) {
-        attachedProcessors[i] = newProcessor;
-        numberAttachedProcessors ++;
-        // VM.sysWrite("VM_Processor.registerAttachedProcessor: ");
-        // VM.sysWrite(i); VM.sysWrite("\n");
-        return i;
-      }
-    }
-    // VM.sysWrite("VM_Processor.registerAttachedProcessor: no more room\n");
-    return 0;
-  }
-
-  static int unregisterAttachedProcessor(VM_Processor pr) throws VM_PragmaInterruptible {
-    // entry 0 is kept empty
-    for (int i=1; i<attachedProcessors.length; i++) {
-      if (attachedProcessors[i]!=pr) {
-        attachedProcessors[i] = null;
-        numberAttachedProcessors --;
-        return i;
-      }
-    }
-    return 0;
-  }
-
-
-  // create a native processor for default implementation of jni
-  //
-  static VM_Processor createNativeProcessor () throws VM_PragmaInterruptible {
-
-    //-#if RVM_FOR_IA32
-
-    // NOT YET IMPLEMENTED !!!
-    VM.sysWrite("VM_Processor createNativeProcessor NOT YET IMPLEMENTED for IA32\n");
-    VM.sysExit(VM.exitStatusUnsupportedInternalOp);
-
-    return null;
-
-    //-#else
-
-    // create native processor object without id - set later
-    VM_Processor newProcessor = new VM_Processor(0, NATIVE);
-
-    VM.disableGC();
-    // add to native Processors array-  note: GC will see it now
-    synchronized (nativeProcessorCountLock) {  
-      int processId = generateNativeProcessorId();
-      newProcessor.id = processId;  
-      nativeProcessors[-processId] = newProcessor;
-      if (debug_native) {
-        VM_Scheduler.trace( "VM_Processor", 
-                            "created native processor", processId);
-      }
-    }
-    VM.enableGC();
-
-    // create idle thread for processor - with affinity to native processor.
-    // ?? will this affinity be a problem when idle thread temporarily migrates
-    // ?? to a blue processor ??
-    VM_Thread t = new VM_NativeIdleThread(newProcessor);
-    t.start(newProcessor.transferQueue);
-
-    // create VM_Thread for virtual cpu to execute
-    //
-    VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>VM_SizeConstants.LOG_BYTES_IN_ADDRESS));
-
-    // create virtual cpu and wait for execution to enter target's code/stack.
-    // this is done with gc disabled to ensure that garbage 
-    // collector doesn't move
-    // code or stack before the C startoff function has a chance
-    // to transfer control into vm image.
-
-    VM.disableGC();
-
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    // Need to set startuplock here
-    VM_SysCall.sysInitializeStartupLocks(1);
-    //-#endif
-    newProcessor.activeThread = target;
-    newProcessor.activeThreadStackLimit = target.stackLimit;
-    target.registerThread(); // let scheduler know that thread is active.
-    // NOTE: it is critical that we acquire the tocPointer explicitly
-    //       before we start the SysCall sequence. This prevents 
-    //       the opt compiler from generating code that passes the AIX 
-    //       sys toc instead of the RVM jtoc. --dave
-    VM_Address toc = VM_Magic.getTocPointer();
-    VM_SysCall.sysVirtualProcessorCreate(toc,
-					 VM_Magic.objectAsAddress(newProcessor),
-					 target.contextRegisters.gprs.get(VM.THREAD_ID_REGISTER).toAddress(),
-					 target.contextRegisters.getInnermostFramePointer());
-    while (!newProcessor.isInitialized)
-      VM.sysVirtualProcessorYield();
-    VM.enableGC();
-
-    if (debug_native) {
-      VM_Scheduler.trace("VM_Processor", "started native processor", 
-                         newProcessor.id);
-      VM_Scheduler.trace("VM_Processor", "native processor pthread_id", 
-                         newProcessor.pthread_id);
-    }
-
-    return newProcessor;
-
-    //-#endif
-
-  } // createNativeProcessor
-
   //----------------------------------//
   // System call interception support //
   //----------------------------------//
@@ -578,34 +377,13 @@ implements VM_Uninterruptible, VM_Constants {
       oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
       if (oldState != IN_NATIVE) {
-        if (VM.VerifyAssertions) 
-          VM._assert((oldState==IN_JAVA)||(oldState==IN_SIGWAIT)) ;
+        if (VM.VerifyAssertions) VM._assert(oldState==IN_JAVA);
         return false;
       }
     } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
                                 0, oldState, BLOCKED_IN_NATIVE)));
     return true;
   }
-
-  // sets the VP state to BLOCKED_IN_SIGWAIT if it is currently IN_SIGWAIT
-  // returns true if locked in BLOCKED_IN_SIGWAIT
-  //
-  public boolean blockInWaitIfInWait () {
-    int oldState;
-    boolean result = true;
-    do {
-      oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
-      if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_SIGWAIT) ;
-      if (oldState != IN_SIGWAIT) {
-        if (VM.VerifyAssertions) VM._assert(oldState==IN_JAVA);
-        result = false;
-        break;
-      }
-    } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
-                                0, oldState, BLOCKED_IN_SIGWAIT)));
-    return result;
-  }
-
 
   //----------------//
   // Implementation //
@@ -639,7 +417,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * thread currently running on this processor
    */
-  public VM_Thread        activeThread;    
+  public VM_Thread activeThread;
 
   /**
    * cached activeThread.stackLimit;
@@ -658,19 +436,19 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * Thread id of VM_Thread currently executing on the processor
    */
-  public int    threadId;
+  public int threadId;
   /**
    * FP for current frame
    */
-  VM_Address  framePointer;        
+  VM_Address framePointer;        
   /**
    * "hidden parameter" for interface invocation thru the IMT
    */
-  int    hiddenSignatureId;   
+  int hiddenSignatureId;   
   /**
    * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
    */
-  int    arrayIndexTrapParam; 
+  int arrayIndexTrapParam; 
   //-#endif
 
   //-#if !RVM_WITH_JMTK_INLINE_PLAN
@@ -725,7 +503,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * thread previously running on this processor
    */
-  public VM_Thread        previousThread;  
+  public VM_Thread previousThread;  
 
   /**
    * threads to be added to ready queue
@@ -736,7 +514,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * threads waiting for a timeslice in which to run
    */
-  VM_ThreadQueue   readyQueue;    
+  VM_ThreadQueue readyQueue;
 
   /**
    * Threads waiting for a subprocess to exit.
@@ -760,14 +538,12 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * thread to run when nothing else to do
    */
-  public VM_ThreadQueue   idleQueue;     
+  public VM_ThreadQueue idleQueue;
 
-  // The following are conditionalized by "if (VM.VerifyAssertions)"
-  //
   /**
-   * number of processor locks currently held (for._assertion checking)
+   * number of processor locks currently held (for assertion checking)
    */
-  public int              lockCount;     
+  public int lockCount;
 
   /**
    * Is the processor doing a select with a wait option
@@ -782,10 +558,6 @@ implements VM_Uninterruptible, VM_Constants {
    */ 
   public VM_Processor next; 
 
-
-  // Type of Virtual Processor
-  //
-  int    processorMode;
 
   // count timer interrupts to round robin early checks to ioWait queue.
   // This is also used to activate checking of the processWaitQueue.
@@ -803,8 +575,7 @@ implements VM_Uninterruptible, VM_Constants {
 
   /**
    * Status of the processor.
-   * Always one of IN_JAVA, IN_NATIVE, BLOCKED_IN_NATIVE,
-   * IN_SIGWAIT or BLOCKED_IN_SIGWAIT.
+   * Always one of IN_JAVA, IN_NATIVE or BLOCKED_IN_NATIVE.
    */
   public int vpStatus;
 
@@ -862,16 +633,11 @@ implements VM_Uninterruptible, VM_Constants {
     if (processWaitQueue!=null) processWaitQueue.dump();
     VM.sysWrite(" idleQueue:");
     if (idleQueue!=null) idleQueue.dump();
-    if ( processorMode == RVM) VM.sysWrite(" mode: RVM\n");
-    else if ( processorMode == NATIVE) VM.sysWrite(" mode: NATIVE\n");
-    else if ( processorMode == NATIVEDAEMON) VM.sysWrite(" mode: NATIVEDAEMON\n");
     VM.sysWrite(" status: "); 
     int status = vpStatus;
     if (status ==  IN_NATIVE) VM.sysWrite("IN_NATIVE\n");
     if (status ==  IN_JAVA) VM.sysWrite("IN_JAVA\n");
     if (status ==  BLOCKED_IN_NATIVE) VM.sysWrite("BLOCKED_IN_NATIVE\n");
-    if (status ==  IN_SIGWAIT) VM.sysWrite("IN_SIGWAIT\n");
-    if (status ==  BLOCKED_IN_SIGWAIT)  VM.sysWrite("BLOCKED_IN_SIGWAIT\n");
     VM.sysWrite(" threadSwitchRequested: ");
     VM.sysWriteInt(threadSwitchRequested); 
     VM.sysWrite("\n");

@@ -70,10 +70,8 @@ extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler rout
 #endif
 
 // These are defined in libvm.C.
-#if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
 extern void *getJTOC(void);
 extern int getProcessorsOffset(void);
-#endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 
 /* These are defined in sys.C; used in syswrap.C */
 extern pthread_key_t VmProcessorIdKey;
@@ -81,9 +79,8 @@ extern pthread_key_t IsVmProcessorKey;
 
 // Defined in sys.C.; used in libvm.C
 extern void sysSyncCache(caddr_t, int size);
-// Defined in libvm.C.  Used in sys.C.
+// Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
-
 
 #ifdef __cplusplus
 }
