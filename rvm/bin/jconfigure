@@ -667,6 +667,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang
       print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/ref
       print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/lang/reflect
+      print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/net
       print $RVM_ROOT/rvm/src/vm/GNUClasspathSupport/java/io
    else
       print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/lang/reflect
@@ -1291,6 +1292,11 @@ function emitCompiler
    print "   $FIND . -name '*.class' | xargs $HOST_JAR_STR uvf0 jksvm.jar > /dev/null 2>&1"
    print '   print -n "(jksvm.jar built) "'
    print ""
+   print "   rm -f jksvmsrc.jar"
+   print "   $HOST_JAR_STR cvf jksvmsrc.jar Dummy.java > /dev/null 2>&1"
+   print "   $FIND . -name '*.java' | xargs $HOST_JAR_STR uvf jksvmsrc.jar > /dev/null 2>&1"
+   print '   print -n "(jksvmsrc.jar built) "'
+   print ""
    print 'else'
    print '   if [[ $TRACE_FLAG = -trace ]]; then'
    print '      print -n "(nothing needed to be compiled) "'
@@ -1359,6 +1365,8 @@ function emitImageLinker
    
    # skip: needed to build bootimage, but not to run it
 #   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
+   print "   print BootImageInterface               > $EXCLUDED_CLASSES_STR"
+   print "   print JDPServiceInterface              >> $EXCLUDED_CLASSES_STR"
    print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
    print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
 
@@ -1369,6 +1377,11 @@ function emitImageLinker
    # skip: InetAddress and Process load native library; so don't load unless needed
    print "   print VM_InetAddress.class             >> $EXCLUDED_CLASSES_STR"
    print "   print VM_Process.class                 >> $EXCLUDED_CLASSES_STR"
+   print "   print JikesRVMSocketImpl               >> $EXCLUDED_CLASSES_STR"
+
+   # skip: don't put application class loader in, due to static data issues
+   #
+   print "   print ApplicationClassLoader.class     >> $EXCLUDED_CLASSES_STR"
 
    # Add the configuration specific exclusions
    #
@@ -1446,21 +1459,16 @@ function emitImageLinker
 
    # software runtime errors
    #
-   if (( RVM_WITH_ALL_CLASSES )); then
-       print "   print 'Ljava/lang/IncompatibleClassChangeError;' >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/ClassCastException;'           >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/ArrayStoreException;'          >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/NegativeArraySizeException;'   >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/AbstractMethodError;'          >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/StringIndexOutOfBoundsException;' >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/UnsatisfiedLinkError;'         >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/InternalError;'                >> $PRIMORDIAL_CLASSES_STR"
-       print "   print 'Ljava/lang/IllegalMonitorStateException;' >> $PRIMORDIAL_CLASSES_STR"
-   fi
+   print "   print 'Ljava/lang/IncompatibleClassChangeError;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/ClassCastException;'           >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/ArrayStoreException;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/NegativeArraySizeException;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/AbstractMethodError;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/StringIndexOutOfBoundsException;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/UnsatisfiedLinkError;'         >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/InternalError;'                >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/lang/IllegalMonitorStateException;' >> $PRIMORDIAL_CLASSES_STR"
 
-   if (( RVM_WITH_GNU_CLASSPATH )); then
-    print "   print 'Ljava/lang/StringIndexOutOfBoundsException;'    >> $PRIMORDIAL_CLASSES_STR"
-   fi
 
    # primitive wrapper types
    #
@@ -1499,6 +1507,8 @@ function emitImageLinker
    print "   print 'Ljava/util/Hashtable;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/List;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/ListResourceBundle;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/PropertyResourceBundle;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/util/MissingResourceException;'  >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Properties;'        >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/ResourceBundle;'    >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/util/Vector;'            >> $PRIMORDIAL_CLASSES_STR"
@@ -1511,7 +1521,6 @@ function emitImageLinker
     print "   print 'Ljava/util/HashMap\$2;'    	    >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/HashMap\$3;'    	    >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/Hashtable\$HashEntry;'      >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/util/MissingResourceException;'  >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/ResourceBundle\$Security;'  >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/ResourceBundle\$1;'         >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/Stack;'		            >> $PRIMORDIAL_CLASSES_STR"
@@ -1525,9 +1534,10 @@ function emitImageLinker
     print "   print 'Ljava/util/HashMapEntry;'                     >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/util/MapEntry;'                         >> $PRIMORDIAL_CLASSES_STR"
     print "   print '[Ljava/util/HashMapEntry;'                    >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Map;'                               >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/Map\$Entry;'                        >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/util/ResourceBundle\$Hash;'              >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/Map;'                               >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/Map\$Entry;'                        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ResourceBundle\$Hash;'              >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/util/ResourceBundle\$MissingBundle;'     >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    print "   print 'Lcom/ibm/JikesRVM/DebuggerThread;' >> $PRIMORDIAL_CLASSES_STR"
@@ -1618,44 +1628,43 @@ function emitImageLinker
        print "   print 'Ljava/util/jar/Manifest;' >> $PRIMORDIAL_CLASSES_STR"
    fi
 
-   print "   print 'Ljava/io/FileOutputStream;'   >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/BufferedOutputStream;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/BufferedInputStream;' >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/RandomAccessFile;'   >> $PRIMORDIAL_CLASSES_STR"
-   print "   print 'Ljava/io/PrintStream;'        >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/BufferedInputStream;'  >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/ByteArrayInputStream;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/FileOutputStream;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/PrintStream;'          >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/io/RandomAccessFile;'     >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_GNU_CLASSPATH )); then
     print "   print 'Ljava/io/PrintWriter;'        >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/io/OutputStreamWriter;'        >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/io/InputStreamReader;'        >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/io/ByteArrayInputStream;'        >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/io/OutputStreamWriter;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/io/InputStreamReader;'  >> $PRIMORDIAL_CLASSES_STR"
    fi
    if (( RVM_WITH_GNU_CLASSPATH )); then
-    print "   print 'Lgnu/java/io/EncodingManager;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/Decoder8859_1;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/Decoder8859_2;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/Decoder8859_3;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/Decoder8859_4;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/Decoder8859_5;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/DecoderEightBitLookup;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/decode/DecoderUTF8;'       >> $PRIMORDIAL_CLASSES_STR"
-
-    print "   print 'Lgnu/java/io/encode/Encoder8859_1;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/encode/Encoder8859_2;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/encode/Encoder8859_3;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/encode/Encoder8859_4;'       >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/encode/Encoder8859_5;'       >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/EncodingManager;'              >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_1;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_2;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_3;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_4;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/Decoder8859_5;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/DecoderEightBitLookup;' >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/decode/DecoderUTF8;'           >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_1;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_2;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_3;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_4;'         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/Encoder8859_5;'         >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lgnu/java/io/encode/EncoderEightBitLookup;' >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/io/encode/EncoderUTF8;'         >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/lang/SystemClassLoader;'        >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/lang/ref/Reference;'                >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Ljava/lang/ref/ReferenceQueue;'           >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/io/encode/EncoderUTF8;'           >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/ref/Reference;'                  >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/lang/ref/ReferenceQueue;'             >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lgnu/java/security/provider/DefaultPolicy;' >> $PRIMORDIAL_CLASSES_STR"
-    print "   print 'Lgnu/java/locale/Calendar_en;'            >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lgnu/java/locale/Calendar_en;'              >> $PRIMORDIAL_CLASSES_STR"
    else
     print "   print 'Lcom/ibm/oti/io/CharacterConverter;'      >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/oti/io/CharacterConverter_8859_1;' >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/oti/io/CharacterConverter_UTF8;' >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/oti/util/Msg;'                   >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/oti/util/Msg\$1;'                >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
@@ -2090,23 +2099,6 @@ function emitBooterLinker
 
       fi
       print 'print -n "(booter linked)"'
-      print ""
-
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-	     \$BOOTER_CC -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
-	     -c -I$ROOT_DIRECTORY_STR/rvm/src/include\
-	     -o $SCRATCH_DIRECTORY_STR/libjni.o libjni.C"
-      print "cd $SCRATCH_DIRECTORY_STR"
-      if (( $RVM_WITH_HPM )); then
-        print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o hpm.o -L$RVM_HPM_DIR -lpmapi \$CCLIBS"
-      else
-        print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o \$CCLIBS"
-      fi
-      print "ar r libjni.a libjni.so"
-      print "cp -p $SCRATCH_DIRECTORY_STR/libjni.a $BUILD_DIRECTORY_STR"
-      print 'print -n "(JNI libraries linked)"'
-      print ""
-
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\

@@ -64,6 +64,7 @@ final class VMSecurityManager
       while(b.hasMoreFrames() && b.getClassLoader() == VM_SystemClassLoader.getVMClassLoader())
 	  b.up();
 
+      VM.enableGC();
       return b.hasMoreFrames()? b.getClassLoader(): null;
   }
 

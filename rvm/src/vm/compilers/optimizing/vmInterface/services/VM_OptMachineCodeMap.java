@@ -70,7 +70,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       for (OPT_Instruction i = ir.firstInstructionInCodeOrder(); 
 	   i != null; 
 	   i = i.nextInstructionInCodeOrder())
-        System.out.println(i.getmcOffset() + "\t" + i);
+        VM.sysWrite(i.getmcOffset() + "\t" + i);
     }
   }
 
@@ -281,9 +281,9 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       // retrieve the machine code offset (in bytes) from the instruction,
       int mco= instr.getmcOffset();
       if (mco < 0) {
-        System.out.println("Negative machine code MCOffset found:" + mco);
+        VM.sysWrite("Negative machine code MCOffset found:" + mco);
         OPT_Instruction i = irMapElem.getInstruction();
-        System.out.println(i.bcIndex+", "+i+", "+i.getmcOffset()+"\n");
+        VM.sysWrite(i.bcIndex+", "+i+", "+i.getmcOffset()+"\n");
 	throw new OPT_OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI

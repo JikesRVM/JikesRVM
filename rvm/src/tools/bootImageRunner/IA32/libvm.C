@@ -28,6 +28,7 @@
 #if (defined __linuxsmp__)
 #include <pthread.h>
 #endif
+#include <jni.h>
 
 extern pthread_key_t VmProcessorKey;
 

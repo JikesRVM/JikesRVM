@@ -471,9 +471,12 @@ public class ReflectionSupport {
   public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
     SecurityManager security = System.getSecurityManager();
     boolean DEBUG = false;
+
+    /*
     if (security != null)
       throw new VM_UnimplementedError("Classloading with security manager");
-      
+    */
+
     if ( (initialize == true) 
 	 && ( (classLoader == null) 
 	      || (classLoader instanceof VM_SystemClassLoader) ) ) {
@@ -1442,7 +1445,7 @@ public class ReflectionSupport {
       return false;  // tells caller method not defined for the class
     }
     catch ( SecurityException e ) {
-      System.out.println("SecurityException in ObjectInputStream.executeReadObject");
+      VM.sysWrite("SecurityException in ObjectInputStream.executeReadObject");
       return false;
     }
 
@@ -1454,7 +1457,7 @@ public class ReflectionSupport {
       method.invoke( obj, methodArgs );
     }
     catch ( Exception e ) {
-      System.out.println("unexpected exception in .executeReadObject = " + e );
+      VM.sysWrite("unexpected exception in .executeReadObject = " + e );
       return false;
     }
 
@@ -1629,7 +1632,7 @@ public class ReflectionSupport {
       f.setByte(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,byte): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,byte): " + e );
     }
   }
 
@@ -1658,7 +1661,7 @@ public class ReflectionSupport {
       f.setChar(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,char): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,char): " + e );
     }
   }
   /**
@@ -1689,7 +1692,7 @@ public class ReflectionSupport {
       f.setDouble(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,double): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,double): " + e );
     }
   }
 
@@ -1721,7 +1724,7 @@ public class ReflectionSupport {
       f.setFloat(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,float): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,float): " + e );
     }
   }
 
@@ -1753,7 +1756,7 @@ public class ReflectionSupport {
       f.setInt(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,int): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,int): " + e );
     }
   }
 
@@ -1785,7 +1788,7 @@ public class ReflectionSupport {
       f.setLong(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,long): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,long): " + e );
     }
   }
 
@@ -1819,7 +1822,7 @@ public class ReflectionSupport {
       f.set(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,Object): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,Object): " + e );
     }
   }
 
@@ -1851,7 +1854,7 @@ public class ReflectionSupport {
       f.setShort(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,short): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,short): " + e );
     }
   }
 
@@ -1883,7 +1886,7 @@ public class ReflectionSupport {
       f.setBoolean(instance,value);
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectInputStream.setField(..,boolean): " + e );
+      VM.sysWrite( "exception in ObjectInputStream.setField(..,boolean): " + e );
     }
   }
 
@@ -1923,7 +1926,7 @@ public class ReflectionSupport {
       return false;  // tells caller method not defined for the class
     }
     catch ( SecurityException e ) {
-      System.out.println("SecurityException in ObjectOutputStream.executeWriteObject");
+      VM.sysWrite("SecurityException in ObjectOutputStream.executeWriteObject");
       return false;
     }
 
@@ -1935,7 +1938,7 @@ public class ReflectionSupport {
       method.invoke( obj, methodArgs );
     }
     catch ( Exception e ) {
-      System.out.println("unexpected exception in ObjectOutputStream.executeWriteObject = " + e );
+      VM.sysWrite("unexpected exception in ObjectOutputStream.executeWriteObject = " + e );
       return false;
     }
 
@@ -1971,7 +1974,7 @@ public class ReflectionSupport {
         b = f.getBoolean(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldBool(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldBool(): " + e );
       }
 
       return b;
@@ -2008,7 +2011,7 @@ public class ReflectionSupport {
         b = f.getByte(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldByte(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldByte(): " + e );
       }
 
       return b;
@@ -2046,7 +2049,7 @@ public class ReflectionSupport {
         c = f.getChar(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldChar(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldChar(): " + e );
       }
 
       return c;
@@ -2084,7 +2087,7 @@ public class ReflectionSupport {
         d = f.getDouble(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldDouble(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldDouble(): " + e );
       }
 
       return d;
@@ -2122,7 +2125,7 @@ public class ReflectionSupport {
         ff = f.getFloat(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldFloat(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldFloat(): " + e );
       }
 
       return ff;
@@ -2160,7 +2163,7 @@ public class ReflectionSupport {
         i = f.getInt(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldInt(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldInt(): " + e );
       }
 
       return i;
@@ -2198,7 +2201,7 @@ public class ReflectionSupport {
         l = f.getLong(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldLong(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldLong(): " + e );
       }
 
       return l;
@@ -2237,7 +2240,7 @@ public class ReflectionSupport {
         obj = f.get(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldObj(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldObj(): " + e );
       }
 
       return obj;
@@ -2276,7 +2279,7 @@ public class ReflectionSupport {
         s = f.getShort(instance);
       }
       catch ( Exception e ) {
-        System.out.println( "exception in ObjectOutputStream.getFieldShort(): " + e );
+        VM.sysWrite( "exception in ObjectOutputStream.getFieldShort(): " + e );
       }
 
       return s;
@@ -2300,7 +2303,7 @@ public class ReflectionSupport {
       signature = c.getSignature();
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectStreamClass.getConstructorSignature(): " + e );
+      VM.sysWrite( "exception in ObjectStreamClass.getConstructorSignature(): " + e );
     }
 
     return signature;
@@ -2321,7 +2324,7 @@ public class ReflectionSupport {
       signature = f.getSignature();
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectStreamClass.getFieldSignature(): " + e );
+      VM.sysWrite( "exception in ObjectStreamClass.getFieldSignature(): " + e );
     }
 
     return signature;
@@ -2342,7 +2345,7 @@ public class ReflectionSupport {
       signature = m.getSignature();
     }
     catch ( Exception e ) {
-      System.out.println( "exception in ObjectStreamClass.getMethodSignature(): " + e );
+      VM.sysWrite( "exception in ObjectStreamClass.getMethodSignature(): " + e );
     }
 
     return signature;

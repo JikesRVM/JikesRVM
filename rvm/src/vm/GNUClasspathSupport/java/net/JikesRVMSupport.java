@@ -10,14 +10,14 @@ package java.net;
  * @author Julian Dolby
  *
  */
-class JikesRVMSupport {
+public class JikesRVMSupport {
 
-    int[] toArrayForm(int address) {
-	int[] addr = new int[4];
-	addr[0] = (address>>24) & 0xff;
-	addr[1] = (address>>16) & 0xff;
-	addr[2] = (address>>8) & 0xff;
-	addr[3] = address & 0xff;
+    private static byte[] toArrayForm(int address) {
+	byte[] addr = new byte[4];
+	addr[0] = (byte)((address>>24) & 0xff);
+	addr[1] = (byte)((address>>16) & 0xff);
+	addr[2] = (byte)((address>>8) & 0xff);
+	addr[3] = (byte)(address & 0xff);
 	return addr;
     }
 

@@ -193,8 +193,25 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean hasNoInlinePragma (VM_Method callee, 
 					   OPT_CompilationState state) {
+
+    // Ugh.  Inlining this method into boot image classes potentially
+    // allows invalidations, and this method is called in many places
+    // where invalidations are not possible (i.e. VM_Runtime.deliverExceptions)
+    // The solution for now is to not inline it.
+    if (VM.writingBootImage && 
+	callee.getDeclaringClass() == 
+	    OPT_ClassLoaderProxy.JavaLangThrowableType &&
+	callee.getName() == printStackTraceName &&
+	callee.getDescriptor() == printStackTraceDescriptor)
+	return true;
+
     return callee.hasNoInlinePragma();
   }
+
+    private static final VM_Atom printStackTraceName =
+	VM_Atom.findOrCreateAsciiAtom("printStackTrace");
+    private static final VM_Atom printStackTraceDescriptor =
+	VM_Atom.findOrCreateAsciiAtom("()V");
 }
 
 

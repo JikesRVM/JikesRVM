@@ -52,7 +52,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       return vmClassLoader;
   }
 
-  static class Timer {
+  private static final class Timer {
     private double startTime; 
     private double endTime;   
 
@@ -96,7 +96,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     return loadedClass;
   }
 
-  static class Report {
+  private static final class Report {
     final String name;
     final Class klass;
     final double time;
@@ -144,7 +144,6 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
   protected Class findClass (String className) throws ClassNotFoundException {
-
       // array types: recursively load element type
       if (className.startsWith("[")) {
 	  Class eltClass = loadClass( className.substring(1), false );

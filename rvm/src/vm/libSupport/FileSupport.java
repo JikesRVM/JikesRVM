@@ -613,6 +613,7 @@ public class FileSupport {
 	}
      });
   }
+  //-#endif
 
   /**
    * Registration hook for new FileDescriptor objects.
@@ -625,5 +626,4 @@ public class FileSupport {
   public static void onCreateFileDescriptor(FileDescriptor fd, boolean shared) {
     VM_FileSystem.onCreateFileDescriptor(JikesRVMSupport.getFd(fd), shared);
   }
-  //-#endif
 }

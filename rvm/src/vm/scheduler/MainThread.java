@@ -6,6 +6,10 @@ package com.ibm.JikesRVM;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.Socket;
+import java.net.SocketImpl;
+import java.net.ServerSocket;
+import java.net.SocketImplFactory;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileDescriptor;
@@ -71,6 +75,20 @@ class MainThread extends Thread {
 	  }
 	}
       });
+
+    //-#if RVM_WITH_GNU_CLASSPATH
+    // set up JikesRVM socket I/O
+    try {
+	Socket.setSocketImplFactory(new SocketImplFactory() {
+	    public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
+	});
+	ServerSocket.setSocketFactory(new SocketImplFactory() {
+	    public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
+	});
+    } catch (java.io.IOException e) {
+	VM.sysWrite("trouble setting socket impl factories");
+    }
+    //-#endif
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // initialize the controller and runtime measurement subsystems

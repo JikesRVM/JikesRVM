@@ -2069,7 +2069,7 @@ sysNetSocketAccept(int fd, void *connectionObject) {
    int remoteAddress = MANGLE32(info.sin_addr.s_addr);
    int remotePort    = MANGLE16(info.sin_port);
 
-// fprintf(SysTraceFile, "sys: %d accept %d from %d.%d.%d.%d:%d\n", fd, connectionFd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, remotePort & 0x0000ffff);
+   fprintf(SysTraceFile, "sys: %d accept %d from %d.%d.%d.%d:%d\n", fd, connectionFd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, remotePort & 0x0000ffff);
    
    void *addressObject = *(void **)((char *)connectionObject + java_net_SocketImpl_address_offset);
    int  *familyField   =  (int   *)((char *)addressObject    + java_net_InetAddress_family_offset);
@@ -2788,5 +2788,9 @@ sysHPMtest()
 #endif
 }
 
+extern int createJavaVM();
 
+extern "C" int sysCreateJavaVM() {
+  return createJavaVM();
+}
 

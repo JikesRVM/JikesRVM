@@ -1538,8 +1538,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
        break;
      }  // case JBC_wide : {
      default : {
-       System.out.println("Unknown opcode:" + opcode);
-       System.exit(10);
+       VM.sysWriteln("Unknown opcode:" + opcode);
+       VM.sysExit(10);
      }
 
      }  // end switch (opcode)

@@ -1127,7 +1127,15 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final OPT_BasicBlockEnumeration getReachableExceptionHandlers() {
     if (hasExceptionHandlers()) {
-      ComputedBBEnum ans = new ComputedBBEnum(getNumberOfExceptionalOut());
+      int count = 0;
+      for (OPT_BasicBlockEnumeration inScope = getExceptionHandlers(); 
+	   inScope.hasMoreElements(); 
+	   inScope.next()) {
+	  count++;
+      }
+
+      ComputedBBEnum ans = new ComputedBBEnum( count );
+   
       for (OPT_BasicBlockEnumeration inScope = getExceptionHandlers(); 
 	   inScope.hasMoreElements(); ) {
 	OPT_BasicBlock cand = inScope.next();

@@ -51,11 +51,11 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Get current thread's JNI environment.
    */ 
-  public VM_JNIEnvironment getJNIEnv() {
+  public final VM_JNIEnvironment getJNIEnv() {
     return jniEnv;
   }
 
-  public void initializeJNIEnv() throws VM_PragmaInterruptible {
+  public final void initializeJNIEnv() throws VM_PragmaInterruptible {
       jniEnv = new VM_JNIEnvironment( threadSlot );
   }
 
@@ -65,7 +65,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @return false during the prolog of the first Java to C transition
    *        true afterward
    */
-  public boolean hasNativeStackFrame() {
+  public final boolean hasNativeStackFrame() {
     if (jniEnv!=null)
       if (jniEnv.alwaysHasNativeFrame || jniEnv.JNIRefsTop!=0)
         return true;
@@ -94,7 +94,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Suspend execution of current thread until it is resumed.
    * Call only if caller has appropriate security clearance.
    */ 
-  public void suspend () {
+  public final void suspend () {
     suspendLock.lock();
     suspendPending = true;
     suspendLock.unlock();
@@ -601,7 +601,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Update internal state of Thread and Scheduler to indicate that
    * a thread is about to start
    */
-  void registerThread() {
+  final void registerThread() {
     isAlive = true; 
     VM_Scheduler.threadCreationMutex.lock();
     VM_Scheduler.numActiveThreads += 1;
@@ -624,7 +624,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Precondition: If the queue is global, caller must have the appropriate mutex.
    * @param q the VM_ThreadQueue on which to enqueue this thread.
    */
-  void start(VM_ThreadQueue q) {
+  final void start(VM_ThreadQueue q) {
     registerThread();
     q.enqueue(this);
   }

@@ -6867,13 +6867,22 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     }
   }
 
+  // this is the address of the malloc'ed JavaVM struct (one per VM)
+  private static VM_Address JavaVM; 
 
-  private static int GetJavaVM(int envHandler) {
-    if (verboseJNI) VM.sysWrite("JNI called: GetJavaVM \n");
+  private static int GetJavaVM(int envJREF, VM_Address StarStarJavaVM) {
+     VM.sysWrite("JNI called: GetJavaVM \n");
 
-    VM_Scheduler.traceback("JNI ERROR: GetJavaVM not implemented yet.");
-    VM.sysExit(200);
-    return GETJAVAVM ; 
+    if (JavaVM == null) {
+	int addr = VM.sysCall0(VM_BootRecord.the_boot_record.sysCreateJavaVMIP);
+	JavaVM = VM_Address.fromInt( addr );
+	VM.sysWriteln(addr);
+    }
+    
+    VM.sysWriteln(StarStarJavaVM.toInt());
+    VM_Magic.setMemoryWord(StarStarJavaVM, JavaVM.toInt());
+
+    return 0;
   }
 
   /*******************************************************************

@@ -20,12 +20,15 @@
 # include <pthread.h>
 #endif
 #include <unistd.h>
+#include <stdlib.h>
 #include <dlfcn.h>
 #include <stdio.h> // XXX
 #include <jni.h>
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include "InterfaceDeclarations.h"
+
+extern jint GetEnv(JavaVM *, void **, jint);
 
 #include "syswrap.h"
 
@@ -67,7 +70,7 @@ static void *getFieldAsAddress(void *objPtr, int fieldOffset)
 }
 
 // Get the JNI environment object from the VM_Processor.
-static JNIEnv *getJniEnvFromVmProcessor(void *vmProcessorPtr)
+JNIEnv *getJniEnvFromVmProcessor(void *vmProcessorPtr)
 {
   if (vmProcessorPtr == 0)
     return 0; // oops
@@ -248,24 +251,9 @@ extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
   if (!isLongWait(timeout))
     return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
 
-  // Get VM_Processor id.
-  int vmProcessorId =
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    VmProcessorId;
-#else
-    (int) pthread_getspecific(VmProcessorIdKey);
-#endif
-  //fprintf(stderr, "got vm_processor id = %d\n", vmProcessorId);
-
-  // Find the VM_Processor object.
-  //fprintf(stderr, "jtoc address = %p, processors offset = %d\n", Jtoc, ProcessorsOffset);
-  unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
-  void *vmProcessorPtr = (void*) (processors[vmProcessorId]);
-  //fprintf(stderr, "vm_processor address = %p\n", vmProcessorPtr);
-
-
   // Get the JNIEnv from the VM_Processor object
-  JNIEnv *env = getJniEnvFromVmProcessor(vmProcessorPtr);
+  JNIEnv *env;
+  GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
 
   // Build int arrays to describe file descriptor sets
   jintArray readArr = fdSetToIntArray(env, readFdSet, maxFd);
@@ -299,3 +287,71 @@ extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 
   return readyCount;
 }
+
+
+//////////////////////////////////////////////////////////////
+// JNI stuff
+//////////////////////////////////////////////////////////////
+
+jint DestroyJavaVM(JavaVM *vm) {
+  fprintf(stderr, "unimplemented DestroyJavaVM");
+  return 0;
+}
+
+jint AttachCurrentThread(JavaVM *vm, JNIEnv **penv, void *args) {
+  fprintf(stderr, "unimplemented AttachCurrentThread");
+  return 0;
+}
+
+jint DetachCurrentThread(JavaVM *vm) {
+  fprintf(stderr, "unimplemented DetachCurrentThread");
+  return 0;
+}
+ 
+jint GetEnv(JavaVM *vm, void **penv, jint version) { 
+
+  // Java 1.2 is not supported yet
+  if (version == JNI_VERSION_1_2)
+    return JNI_EVERSION;
+  
+  // Get VM_Processor id.
+  int vmProcessorId =
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    VmProcessorId;
+#else
+    (int) pthread_getspecific(VmProcessorIdKey);
+#endif
+
+  // ** MUST CHECK FOR BOGUS THREADS SOMEHOW **
+
+  // Find the VM_Processor object.
+  unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
+  void *vmProcessorPtr = (void*) (processors[vmProcessorId]);
+
+  // Get the JNIEnv from the VM_Processor object
+  JNIEnv *env = getJniEnvFromVmProcessor(vmProcessorPtr);
+ 
+  *penv = env;
+
+  return JNI_OK;
+}
+
+struct JNIInvokeInterface_ externalJNIFunctions = {
+  NULL,
+  NULL,
+  NULL,
+  DestroyJavaVM,
+  AttachCurrentThread,
+  DetachCurrentThread,
+  GetEnv
+};
+
+extern int createJavaVM() {
+  JavaVM *theJikesRVM = (struct JavaVM_ *) malloc (sizeof(struct JavaVM_));
+  theJikesRVM->functions = &externalJNIFunctions;
+
+  fprintf(stderr, "vm at %x\n", theJikesRVM);
+ 
+  return (int) theJikesRVM;
+}
+

@@ -32,25 +32,25 @@ export BOOTIMAGE_LOAD_ADDRESS="0x61000000"
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/opt/IBMJava2-13"
+export HOST_JAVA_HOME="/opt/j2sdk1.3.1"
 
 # the JDK java executable
-export HOST_JAVA="/opt/IBMJava2-13/bin/java"
+export HOST_JAVA="/opt/j2sdk1.3.1/bin/java"
 
 # the JDK javadoc executable
-export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
+export HOST_JAVADOC="/opt/j2sdk1.3.1/bin/javadoc"
 
 # the JDK javac executable
-export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
+export HOST_JAVAC="/opt/j2sdk1.3.1/bin/javac"
 
 # the JDK jar executable
-export HOST_JAR="/opt/IBMJava2-13/bin/jar"
+export HOST_JAR="/opt/j2sdk1.3.1/bin/jar"
 
 # the JDK standard library jar files
-export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
+export HOST_REPOSITORIES="/opt/j2sdk1.3.1/jre/lib/rt.jar"
 
 # the JDK tools jar
-export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
+export HOST_TOOLS="/opt/j2sdk1.3.1/lib/tools.jar"
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"

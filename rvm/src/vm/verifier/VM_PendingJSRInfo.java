@@ -17,7 +17,7 @@ package com.ibm.JikesRVM;
  */
 
 
-class VM_PendingJSRInfo{
+final class VM_PendingJSRInfo{
 
   /** the number of successors of this subroutine */
   public int successorLength;

@@ -7,8 +7,8 @@
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
 HOST_JDK_FLAGS=
-HOST_MEM_MAX=325M
-HOST_MEM_MIN=325M
+HOST_MEM_MAX=500M
+HOST_MEM_MIN=500M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
@@ -55,7 +55,8 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 # Classpath, we need to put the classpath jar on the boot class path
 # as well, so that the boot image writing JVM will pick up needed classes
 # from that jar (i.e. classes brought in by those in libyuck) without
-# getting security exceptions.  ugh.
+# getting security exceptions.  That is what command line flag 
+# -Xbootclasspath/a:$(LIB_JAR) does.  ugh.
 #
 # Note: $(UTIL_KLUDGE_JAR) is now *also* used as a hack to provide
 # RVM-compatible classes for jdp's use, even if jdp is running in

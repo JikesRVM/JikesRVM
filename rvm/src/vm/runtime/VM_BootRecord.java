@@ -363,6 +363,8 @@ public class VM_BootRecord {
 
   public int sysSprintfIP;
 
+  public int sysCreateJavaVMIP;
+
   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   //-#else
   // system startup pthread sync. primitives

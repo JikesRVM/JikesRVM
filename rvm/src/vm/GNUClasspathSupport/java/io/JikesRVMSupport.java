@@ -4,6 +4,8 @@
 //$Id$
 package java.io;
 
+import com.ibm.JikesRVM.librarySupport.FileSupport;
+
 /**
  * Library support interface of Jikes RVM
  *
@@ -21,8 +23,10 @@ public class JikesRVMSupport {
      *   other processes, false if not
      * @return the new <code>FileDescriptor</code> object
      */
-    public static FileDescriptor createFileDescriptor(int fd, boolean shared) {
-	return new FileDescriptor(fd);
+    public static FileDescriptor createFileDescriptor(int unixFd, boolean shared) {
+	FileDescriptor javaFd = new FileDescriptor(unixFd);
+	FileSupport.onCreateFileDescriptor(javaFd, shared);
+	return javaFd;
     }
 
     /**

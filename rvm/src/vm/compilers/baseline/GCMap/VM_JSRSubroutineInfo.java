@@ -13,7 +13,7 @@ package com.ibm.JikesRVM;
  * 
  * @author Anthony Cocchi
  */
-class VM_JSRSubroutineInfo {
+final class VM_JSRSubroutineInfo {
 
   public int subroutineByteCodeStart;
   public byte[] startReferenceMap;

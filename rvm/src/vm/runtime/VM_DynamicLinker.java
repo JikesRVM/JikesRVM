@@ -40,7 +40,6 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     throw new UnsatisfiedLinkError(targMethod.toString());
   }
 
-
   /**
    * Helper class that does the real work of resolving method references
    * and compiling a lazy method invocation.  In separate class so
@@ -55,6 +54,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Returned:    VM_DynamicLink that describes call site.
      */
     static VM_DynamicLink resolveDynamicInvocation() throws VM_ResolutionException, VM_PragmaNoInline {
+
       // find call site 
       //
       VM.disableGC();
@@ -70,6 +70,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       //
       VM_DynamicLink dynamicLink = new VM_DynamicLink();
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
+
       return dynamicLink;
     }
 

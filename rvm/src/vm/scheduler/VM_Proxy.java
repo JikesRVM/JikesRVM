@@ -20,7 +20,7 @@ package com.ibm.JikesRVM;
  * @author Susan Flynn Hummel
  * @author Bowen Alpern
  */
-class VM_Proxy implements VM_Uninterruptible {
+final class VM_Proxy implements VM_Uninterruptible {
   
   VM_Thread        patron;
   VM_Proxy         waitingNext;

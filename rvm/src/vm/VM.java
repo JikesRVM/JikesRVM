@@ -958,6 +958,7 @@ public class VM extends VM_Properties
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
+
   public static void disableGC() throws VM_PragmaInline, VM_PragmaInterruptible  { 
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
@@ -973,6 +974,8 @@ public class VM extends VM_Properties
     //    (because an allocation attempt might trigger a collection that
     //    would invalidate the addresses we're holding)
     //
+
+      // VM_Scheduler.dumpStack();
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
 

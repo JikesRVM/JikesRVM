@@ -60,23 +60,28 @@ public class JikesRVMInstallType extends AbstractVMInstallType {
 
   public LibraryLocation[] getDefaultLibraryLocations(File installLocation) {
 
-    // Location of the OTI libraries
-    File support = new File(installLocation, "support");
+    // libs
+    String buildPath = System.getProperty("rvm.build") + "/RVM.classes";
+    Path rvmrtLib = new Path(buildPath + "/rvmrt.jar");
+    Path jksvmLib = new Path(buildPath + "/jksvm.jar");
 
-    // lib
-    File supportLib = new File(support, "lib");
-    File lib = new File(supportLib, "rvmrt.jar");
-    
-    // src
-    File supportSrc = new File(support, "src");
-    File src = new File(supportSrc, "src.zip");
+    // srcs
+    File supportLibs = new File(installLocation, "/support/lib/");
+    Path rvmrtSrc = new Path(supportLibs.getPath() + "/classpathsrc.jar");
+    Path jksvmSrc = new Path(buildPath + "/jksvmsrc.jar");
 
-    // path TODO: what the hell is this???
-    IPath libPath = new Path(lib.getAbsolutePath());
-    IPath srcPath = new Path(src.getAbsolutePath());
-    IPath thePath = new Path("");
+    // path within src jars
+    IPath thePath = Path.EMPTY;
     
-    return new LibraryLocation[]{ new LibraryLocation(libPath, srcPath, thePath) };
+    System.err.println( rvmrtLib );
+    System.err.println( jksvmLib );
+    System.err.println( rvmrtSrc );
+    System.err.println( jksvmSrc );
+
+    return new LibraryLocation[]{ 
+	new LibraryLocation(rvmrtLib, rvmrtSrc, thePath),
+	new LibraryLocation(jksvmLib, jksvmSrc, thePath) 
+    };
   }
 
   /**

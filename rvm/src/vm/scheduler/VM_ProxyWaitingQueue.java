@@ -10,7 +10,7 @@ package com.ibm.JikesRVM;
  * @author Susan Flynn Hummel
  * @author Bowen Alpern
  */
-class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   private VM_Proxy tail;
   private VM_Proxy head;
