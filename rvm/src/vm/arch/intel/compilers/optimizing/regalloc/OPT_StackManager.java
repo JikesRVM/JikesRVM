@@ -45,13 +45,6 @@ implements OPT_Operators {
   private static boolean FLOAT_ESP = true;
 
   /**
-   * We may rely on information from linear scan to choose scratch registers.
-   * If so, the following holds a pointer to some information from linear
-   * scan analysis.
-   */
-  private OPT_NewLinearScan.ActiveSet activeSet = null;
-
-  /**
    * Return the size of the fixed portion of the stack.
    * (in other words, the difference between the framepointer and
    * the stackpointer after the prologue of the method completes).

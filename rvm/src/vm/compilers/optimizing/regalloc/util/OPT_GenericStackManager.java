@@ -12,8 +12,6 @@ import java.util.Iterator;
  * the stackframe.
  * <p>
  *
- * TODO: Much clean-up still required.
- *
  * @author Dave Grove
  * @author Mauricio J. Serrano
  * @author Stephen Fink
@@ -162,7 +160,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * If so, the following holds a pointer to some information from linear
    * scan analysis.
    */
-  private OPT_NewLinearScan.ActiveSet activeSet = null;
+  private OPT_LinearScan.ActiveSet activeSet = null;
 
   /**
    * Return the size of a type of value, in bytes.
@@ -170,6 +168,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    *
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
    */
+  /*
   private static byte getSizeOfType(byte type) {
     switch(type) {
       case INT_VALUE:
@@ -181,6 +180,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         return 0;
     }
   }
+  */
 
   /**
    * Replace all occurences of register r1 in an instruction with register
@@ -387,13 +387,13 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   boolean isDeadBefore(OPT_Register r, OPT_Instruction s) {
 
-    OPT_NewLinearScan.BasicInterval bi = activeSet.getBasicInterval(r,s);
+    OPT_LinearScan.BasicInterval bi = activeSet.getBasicInterval(r,s);
     // If there is no basic interval containing s, then r is dead before
     // s.
     if (bi == null) return true;
     // If the basic interval begins at s, then r is dead before
     // s.
-    else if (bi.getBegin() == OPT_NewLinearScan.getDFN(s)) return true;
+    else if (bi.getBegin() == OPT_LinearScan.getDFN(s)) return true;
     else return false;
   }
 
@@ -961,7 +961,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    *
    * @param set information from linear scan analysis
    */
-  void insertSpillCode(OPT_NewLinearScan.ActiveSet set) {
+  void insertSpillCode(OPT_LinearScan.ActiveSet set) {
     if (USE_LINEAR_SCAN) {
       activeSet = set;
     }
@@ -1358,18 +1358,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
 
   protected OPT_IR ir;
-  /*
-  protected int spillLocNumber; // = 0;  (by default)
-  */
   protected int frameSize;      // = 0;  (by default)
   protected boolean allocFrame; // = false;  (by default)
-  /*
-  private boolean catchSeen;  // = false;  (by default)
-  */
-
-  /*
-  SpillRecord spillList[] = new SpillRecord[NUMBER_TYPE];
-  */
 
   /**
    * Set up register restrictions
@@ -1377,32 +1367,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   final void computeRestrictions(OPT_IR ir) {
     restrict.init(ir);
   }
-  
-  /**
-   * NOTE: calling conventions must be expanded before calling this.
-   * @param ir the IR
-   */
-  /*
-  final protected void initPools(OPT_IR ir) {
-    this.ir = ir;
-    
-    // mapping from symbolic register to register/spill/param
-    for (Enumeration e = ir.regpool.getPhysicalRegisterSet().enumerateAll();
-         e.hasMoreElements(); ) {
-      OPT_Register reg = (OPT_Register)e.nextElement();
-      reg.clearAllocationFlags();
-      reg.mapsToRegister = null; // mapping from real to symbolic
-      OPT_RegisterAllocatorState.putPhysicalRegResurrectList(reg, null);
-      OPT_RegisterAllocatorState.setSpill(reg, 0);
-      reg.useCount       = Integer.MAX_VALUE;
-    }
-    for (OPT_Register symbReg = ir.regpool.getFirstRegister();
-         symbReg != null; symbReg = symbReg.getNext()) {
-      symbReg.clearSpill();
-      symbReg.mapsToRegister = null;
-    }
-  }
-  */
 
   /**
    *  Find an volatile register to allocate starting at the reg corresponding
@@ -1427,42 +1391,26 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   }
 
   /**
-   *  Try to allocate a specific register if possible 
-   *  @param realReg 
-   *  @param symbReg 
-   *  @return the allocated register or null
-   */
-  final OPT_Register allocateStartingFromRegister(OPT_Register realReg, 
-                                                  OPT_Register symbReg) {
-    if (realReg.isVolatile()) {
-      for (; realReg != null; realReg = realReg.getNext()) {
-        if (realReg.isAvailable()) {
-          realReg.allocateToRegister(symbReg);
-          if (debug) { VM.sysWrite(" volat."+realReg+" to symb "+symbReg+'\n'); }
-          return realReg;
-        }
-      }
-    }
-    return allocateNonVolatileRegister(symbReg);
-  }
-
-  /**
    * Is this symbolic register passed allocated and not spilled?
    * @param symbReg the symbolic register
    * @return if the passed register is allocated and not spilled
    */
+  /*
   final boolean allocated(OPT_Register symbReg) {
     return !symbReg.isSpilled() &&
       (OPT_RegisterAllocatorState.getMapping(symbReg) != null);
   }
+  */
 
   /**
    * @param symbReg the symbolic register
    * @return 
    */
+  /*
   final boolean spilledParam(OPT_Register symbReg) {
     return OPT_RegisterAllocatorState.getSpill(symbReg) < 0;
   }
+  */
 
   /**
    * Marks the passed symbolic register as being spilled at the location
@@ -1470,11 +1418,13 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @param spill a spill location
    * @param symbReg a symbolic register
    */
+  /*
   final void putSpillLocation(int spill, OPT_Register symbReg) {
     symbReg.spillRegister();
     symbReg.mapsToRegister = null;
     OPT_RegisterAllocatorState.setSpill(symbReg, spill);
   }
+  */
 
   /**
    * Given a symbolic register, return a code that indicates the type
@@ -1527,22 +1477,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   }
 
   /**
-   *  This version is used to support LinearScan, and is only called
-   *  from OPT_LinearScanLiveInterval.java
-   *
-   *  @param symbReg the symbolic register to allocate
-   *  @param li the linear scan live interval
-   *  @return the allocated register or null
-   */
-  /*
-  final OPT_Register allocateRegister(OPT_Register symbReg,
-                                      OPT_LinearScanLiveInterval live) {
-    OPT_OptimizingCompilerException.UNREACHABLE("not used by new linear scan");
-    return null;
-  }
-  */
-
-  /**
    * Class to represent a physical register currently allocated as a
    * scratch register.
    */
@@ -1585,20 +1519,4 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         dirtyString + ">";
     }
   }
-
-  /**
-   * An element in a list of free spill locations.
-   */
-  /*
-  static class SpillRecord {
-    int location;
-    SpillRecord next;
-
-    SpillRecord(int Location, SpillRecord Next) {
-      location = Location;
-      next     = Next;
-    }
-  }
-  */
 }
-

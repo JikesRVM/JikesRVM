@@ -555,7 +555,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/local
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/local/depGraph
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/local/instructionScheduler
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/regalloc/development
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/regalloc/linearScan
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/regalloc/util
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util
