@@ -7,7 +7,7 @@ include:
 
 
 \subsection{Java} 
-($\approx 1045$ source files as of this writing)  This is
+($\approx 1041$ source files as of this writing, on July 17, 2003)  This is
 the vast majority of the code.  The names of Java source files always end in
 `{\tt .java}''.   We discuss Java coding style in
 section~\ref{section:javacodingstyle}. 
@@ -31,7 +31,7 @@ indenting.
 
 \subsection{C++} 
 
-($\approx 14$ source files)  The file names always end in
+($\approx 13$ source files)  The file names always end in
 ``{\tt .C}''.   The material discussed for C applies here as well.
 
 \subsection{Bourne Shell (Bash)}
@@ -76,8 +76,8 @@ rvm/bin/jconfigure}.
 \paragraph{Subshells}
 
 {\tt -e} and {\tt ERR} do not apply to commands executed within
-subshells.  So, if you want to execute Make in a particular directory,
-{\it directory-name}, it's easier to use:
+subshells.  So, if you want to execute Make in the directory
+{\it directory-name}, it's more robust to use:
 \begin{example}
 \tt{}make -C {\it directory-name} {\it{}make-target}
 \end{example}
