@@ -1,9 +1,9 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-include		$(RVM_ROOT)/build.Make.rules
+include		$(RVM_ROOT)/rvm/build.Make.rules
 
-MIR_IR_DIR = $(RVM_ROOT)/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
+MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
 
 default:  $(GEN_FILES_DIR)/OPT_OperatorClass.java
 

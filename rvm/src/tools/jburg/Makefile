@@ -3,7 +3,7 @@
 #
 #$Id$
 
-include		$(RVM_ROOT)/build.Make.rules
+include		$(RVM_ROOT)/rvm/build.Make.rules
 
 YFLAGS=
 

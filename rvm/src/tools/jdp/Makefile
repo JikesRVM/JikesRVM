@@ -4,7 +4,7 @@
 # This Makefile is to be called from the jdp script file where the appropriate
 # environment variables are set for the platform
 
-include $(RVM_ROOT)/Make.rules
+include $(RVM_ROOT)/rvm/Make.rules
 
 JCOMPILE=$(JCOMPILE_RVM)
 
@@ -84,26 +84,26 @@ EXTRA_C_MODULES = OsProcessExternal.o \
 #	@$(MAKE) -f Makefile.tmp all_1
 
 copy_intel: 
-	@cp -f $(RVM_ROOT)/src/tools/jdp/Makefile $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/intel/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/intel/*.c $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/interpreter/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/vm/arch/intel/disassembler/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/vm/arch/intel/disassembler/*.C $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/vm/arch/intel/disassembler/*.c $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/vm/arch/intel/disassembler/*.h $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/Makefile $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/intel/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/intel/*.c $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/interpreter/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/intel/disassembler/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/intel/disassembler/*.C $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/intel/disassembler/*.c $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/intel/disassembler/*.h $(TOOLS_DIR)/.
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
 	@cp -f $(RVM_BUILD)/Jalapeno.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java
 
 copy_powerPC:
-	@cp -f $(RVM_ROOT)/src/tools/jdp/Makefile $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/powerPC/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/powerPC/*.c $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/tools/jdp/interpreter/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/src/vm/arch/powerPC/disassembler/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/Makefile $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/powerPC/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/powerPC/*.c $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/interpreter/*.java $(TOOLS_DIR)/.
+	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/powerPC/disassembler/*.java $(TOOLS_DIR)/.
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
 	@cp -f $(RVM_BUILD)/Jalapeno.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java

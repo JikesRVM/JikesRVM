@@ -43,7 +43,7 @@ fi
 #
 if [[ $RVM_HOST_CONFIG = "" ]]; then
    print "$ME: please set your RVM_HOST_CONFIG environment variable"
-   print " eg. $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0"
+   print " eg. $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0"
    exit 1
 fi
 
@@ -51,7 +51,7 @@ fi
 #
 if [[ $RVM_TARGET_CONFIG = "" ]]; then
    print "$ME: please set your RVM_TARGET_CONFIG environment variable"
-   print " eg. $RVM_ROOT/config/i686-pc-linux"
+   print " eg. $RVM_ROOT/rvm/config/i686-pc-linux"
    exit 1
 fi
 
@@ -872,15 +872,15 @@ PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_FOR'  | se
 # Place where bootimage runner lives.
 #
 if (( RVM_FOR_POWERPC )); then
-   BOOTIMAGE_RUNNER_DIR="$RVM_ROOT/src/tools/bootImageRunner"
-   BOOTIMAGE_RUNNER_DIR_STR="$ROOT_DIRECTORY_STR/src/tools/bootImageRunner"
-   BOOTIMAGE_RUNNER_SUBDIR="$RVM_ROOT/src/tools/bootImageRunner/powerPC"
-   BOOTIMAGE_RUNNER_SUBDIR_STR="$ROOT_DIRECTORY_STR/src/tools/bootImageRunner/powerPC"
+   BOOTIMAGE_RUNNER_DIR="$RVM_ROOT/rvm/src/tools/bootImageRunner"
+   BOOTIMAGE_RUNNER_DIR_STR="$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner"
+   BOOTIMAGE_RUNNER_SUBDIR="$RVM_ROOT/rvm/src/tools/bootImageRunner/powerPC"
+   BOOTIMAGE_RUNNER_SUBDIR_STR="$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner/powerPC"
 elif (( RVM_FOR_IA32 )); then
-   BOOTIMAGE_RUNNER_DIR="$RVM_ROOT/src/tools/bootImageRunner"
-   BOOTIMAGE_RUNNER_DIR_STR="$ROOT_DIRECTORY_STR/src/tools/bootImageRunner"
-   BOOTIMAGE_RUNNER_SUBDIR="$RVM_ROOT/src/tools/bootImageRunner/IA32"
-   BOOTIMAGE_RUNNER_SUBDIR_STR="$ROOT_DIRECTORY_STR/src/tools/bootImageRunner/IA32"
+   BOOTIMAGE_RUNNER_DIR="$RVM_ROOT/rvm/src/tools/bootImageRunner"
+   BOOTIMAGE_RUNNER_DIR_STR="$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner"
+   BOOTIMAGE_RUNNER_SUBDIR="$RVM_ROOT/rvm/src/tools/bootImageRunner/IA32"
+   BOOTIMAGE_RUNNER_SUBDIR_STR="$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner/IA32"
 else
    BOOTIMAGE_RUNNER_DIR="UNKNOWN_BOOTIMAGE_RUNNER_DIRECTORY"
    BOOTIMAGE_RUNNER_DIR_STR="UNKNOWN_BOOTIMAGE_RUNNER_DIRECTORY"
@@ -888,8 +888,8 @@ fi
 
 # Place where bootimage writer lives.
 #
-BOOTIMAGE_WRITER_DIR="$RVM_ROOT/src/tools/bootImageWriter"
-BOOTIMAGE_WRITER_DIR_STR="$ROOT_DIRECTORY_STR/src/tools/bootImageWriter"
+BOOTIMAGE_WRITER_DIR="$RVM_ROOT/rvm/src/tools/bootImageWriter"
+BOOTIMAGE_WRITER_DIR_STR="$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageWriter"
 
 #--------------------------------------#
 # SECTION 5 - DEFINITIONS OF FUNCTIONS #
@@ -909,26 +909,26 @@ function emitSourceList
    
    # Common components.
    #
-   print $RVM_ROOT/src/vm
-   print $RVM_ROOT/src/vm/arch/$ARCH_DIR
-   print $RVM_ROOT/src/vm/arch/$ARCH_DIR/runtime
-   print $RVM_ROOT/src/vm/classLoader
-   print $RVM_ROOT/src/vm/runtime
-   print $RVM_ROOT/src/vm/scheduler
-   print $RVM_ROOT/src/vm/profiler                #!!TEMP kludge to resolve VM_Timer, VM_EventLogger references
-   print $RVM_ROOT/src/vm/utility
+   print $RVM_ROOT/rvm/src/vm
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/runtime
+   print $RVM_ROOT/rvm/src/vm/classLoader
+   print $RVM_ROOT/rvm/src/vm/runtime
+   print $RVM_ROOT/rvm/src/vm/scheduler
+   print $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_Timer, VM_EventLogger references
+   print $RVM_ROOT/rvm/src/vm/utility
    
-   print $RVM_ROOT/src/vm/arch/$ARCH_DIR/jni
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
 
    # Baseline compiler components (always part of bootimage).
    #
-   print $RVM_ROOT/src/vm/compilers/baseline           # architecture independent
-   print $RVM_ROOT/src/vm/compilers/baseline/GCMap     # architecture independent
-   print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/baseline    # architecture dependent
-   print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/baseline/GCMap
-   if [[ -e $RVM_ROOT/src/vm/arch/$ARCH_DIR/assembler ]]; then
-     print $RVM_ROOT/src/vm/arch/$ARCH_DIR/assembler # architecture dependent
+   print $RVM_ROOT/rvm/src/vm/compilers/baseline           # architecture independent
+   print $RVM_ROOT/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline    # architecture dependent
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/GCMap
+   if [[ -e $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler ]]; then
+     print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler # architecture dependent
    fi
 
    # Optimizing compiler components.
@@ -937,91 +937,91 @@ function emitSourceList
       
       # core components
       #
-      print $RVM_ROOT/src/vm/compilers/optimizing
-      print $RVM_ROOT/src/vm/compilers/optimizing/driver
-      print $RVM_ROOT/src/vm/compilers/optimizing/instrumentation
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/cfg
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/conversions/bc2hir
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/conversions/hir2lir
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/conversions/lir2mir
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/conversions/mir2mc
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/gcmap
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/instruction
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/instruction/operand
-      print $RVM_ROOT/src/vm/compilers/optimizing/ir/util
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/control
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/control/codeReorder
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/control/dominators
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/coalesce
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/liveness
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/simpleSSA
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/ssa/abcd
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/ssa/builder
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/ssa/codePlacement
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/ipa/inlining
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/ipa/specialization
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/ipa/summaries
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/local
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/local/depGraph
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/local/instructionScheduler
-      print $RVM_ROOT/src/vm/compilers/optimizing/regalloc/development
-      print $RVM_ROOT/src/vm/compilers/optimizing/regalloc/linearScan
-      print $RVM_ROOT/src/vm/compilers/optimizing/regalloc/util
-      print $RVM_ROOT/src/vm/compilers/optimizing/util
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/dataflowUtil
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/exception
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/graph
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/graph/vis
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/graph/vis/vcg
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/graph/vis/dot
-#      print $RVM_ROOT/src/vm/compilers/optimizing/util/jdk2
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/list
-      print $RVM_ROOT/src/vm/compilers/optimizing/util/set
-      print $RVM_ROOT/src/vm/compilers/optimizing/vmInterface/classLoader
-      print $RVM_ROOT/src/vm/compilers/optimizing/vmInterface/services
-      print $RVM_ROOT/src/vm/compilers/optimizing/vmInterface
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/driver
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/instrumentation
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/cfg
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/bc2hir
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/hir2lir
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/mir2mc
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/gcmap
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction/operand
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/util
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/codeReorder
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/abcd
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/builder
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/codePlacement
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/specialization
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/summaries
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/local
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/local/depGraph
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/local/instructionScheduler
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/regalloc/development
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/regalloc/linearScan
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/regalloc/util
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/dataflowUtil
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/exception
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
+#      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/jdk2
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/list
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/set
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/services
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface
 
 
       # architecture-specific components
       #
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/instruction
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/instruction/operand
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/conversions/lir2mir
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/conversions/mir2mc
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/regalloc
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/services
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/instruction
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/instruction/operand
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/conversions/lir2mir
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/conversions/mir2mc
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/regalloc
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/services
 
       # other components
       #
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/disassembler
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/disassembler
    fi
 
    # Testing harnesses
    #
    if (( RVM_WITH_OPT_TEST_HARNESS )); then
-      print $RVM_ROOT/src/tools/optTestHarness
+      print $RVM_ROOT/rvm/src/tools/optTestHarness
    fi
       
    # Adaptive compiler components.
    #
    if (( RVM_WITH_ADAPTIVE_COMPILER )); then
-      print $RVM_ROOT/src/vm/adaptive/controller
-      print $RVM_ROOT/src/vm/adaptive/recompilation
-      print $RVM_ROOT/src/vm/adaptive/runtimeMeasurements
-      print $RVM_ROOT/src/vm/adaptive/runtimeMeasurements/listeners
-      print $RVM_ROOT/src/vm/adaptive/runtimeMeasurements/organizers
-      print $RVM_ROOT/src/vm/adaptive/database
-      print $RVM_ROOT/src/vm/adaptive/database/methodSamples
-      print $RVM_ROOT/src/vm/adaptive/database/callGraph
-      print $RVM_ROOT/src/vm/adaptive/recompilation/instrumentation
-      print $RVM_ROOT/src/vm/adaptive/runtimeMeasurements/instrumentation
-      print $RVM_ROOT/src/vm/adaptive/utility
+      print $RVM_ROOT/rvm/src/vm/adaptive/controller
+      print $RVM_ROOT/rvm/src/vm/adaptive/recompilation
+      print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements
+      print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/listeners
+      print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/organizers
+      print $RVM_ROOT/rvm/src/vm/adaptive/database
+      print $RVM_ROOT/rvm/src/vm/adaptive/database/methodSamples
+      print $RVM_ROOT/rvm/src/vm/adaptive/database/callGraph
+      print $RVM_ROOT/rvm/src/vm/adaptive/recompilation/instrumentation
+      print $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation
+      print $RVM_ROOT/rvm/src/vm/adaptive/utility
    fi
 
    # Memory manager components.
@@ -1030,67 +1030,67 @@ function emitSourceList
    # common allocator and collector classes for jalapeno memory managers
    #
    if (( $RVM_WITH_JALAPENO_MEMORY_MANAGERS )); then
-      print $RVM_ROOT/src/vm/memoryManagers
+      print $RVM_ROOT/rvm/src/vm/memoryManagers
    fi
 
    # architecture specific writebarrier support for baseline compilers
    #
-   print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
 
    # collector specific classes
    #
    if (( $RVM_WITH_COPYING_GC )); then
       if (( $RVM_WITH_GENERATIONAL_GC )); then
          if (( $RVM_WITH_FIXED_NURSERY_GC )); then
-            print $RVM_ROOT/src/vm/memoryManagers/copyGenFixed
+            print $RVM_ROOT/rvm/src/vm/memoryManagers/copyGenFixed
 	 else
-            print $RVM_ROOT/src/vm/memoryManagers/copyGenVariable
+            print $RVM_ROOT/rvm/src/vm/memoryManagers/copyGenVariable
 	 fi   
       else
-         print $RVM_ROOT/src/vm/memoryManagers/semispace
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/semispace
       fi
    elif (( $RVM_WITH_HYBRID_GC )); then
-         print $RVM_ROOT/src/vm/memoryManagers/hybrid
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/hybrid
    elif (( $RVM_WITH_NONCOPYING_GC )); then
-      print $RVM_ROOT/src/vm/memoryManagers/markAndSweep
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/markAndSweep
    elif (( $RVM_WITH_CONCURRENT_GC )); then
-      print $RVM_ROOT/src/vm/memoryManagers/refcount
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/refcount
    elif (( $RVM_WITH_NO_GC )); then
-      print $RVM_ROOT/src/vm/memoryManagers/noGC
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/noGC
    fi
 
 
    # Bootimage compiler components.
    #
    if (( $RVM_WITH_BASE_BOOTIMAGE_COMPILER )); then
-      print $RVM_ROOT/src/vm/compilers/harness/bootImage/baseline
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/baseline
    elif (( $RVM_WITH_OPT_BOOTIMAGE_COMPILER )); then
-      print $RVM_ROOT/src/vm/compilers/harness/bootImage/optimizing
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/optimizing
    fi
 
    # Runtime compiler components.
    #
-   print $RVM_ROOT/src/vm/compilers/harness/runtime
+   print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime
    if (( $RVM_WITH_BASE_RUNTIME_COMPILER )); then
-      print $RVM_ROOT/src/vm/compilers/harness/runtime/baseline
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/baseline
    elif (( $RVM_WITH_OPT_RUNTIME_COMPILER )); then
-      print $RVM_ROOT/src/vm/compilers/harness/runtime/optimizing
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/optimizing
    elif (( $RVM_WITH_ADAPTIVE_RUNTIME_COMPILER )); then
-      print $RVM_ROOT/src/vm/compilers/harness/runtime/adaptive
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
    fi
 
    if (( RVM_WITH_ESCAPE_ANALYSIS )); then
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/ipa/escapeAnalysis
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/escapeAnalysis
    fi
    if (( RVM_WITH_DATARACE_ANALYSIS )); then
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/ipa/dataRace
-      print $RVM_ROOT/src/vm/profiler/dyndatarace
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/dataRace
+      print $RVM_ROOT/rvm/src/vm/profiler/dyndatarace
    fi
 
    if (( $RVM_WITH_SPECIALIZATION )); then
-      print $RVM_ROOT/src/vm/compilers/optimizing/optimizations/ipa/gnosys
-      print $RVM_ROOT/src/vm/compilers/optimizing/vmInterface/specialization
-      print $RVM_ROOT/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/specialization
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/gnosys
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/specialization
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/specialization
    fi
 
    # Add the configuration specific directories
@@ -1353,32 +1353,32 @@ function emitExpander
 
    # Make the tools that we need to do template expansion
    if (( RVM_WITH_OPT_COMPILER )); then
-   print "   (cd $ROOT_DIRECTORY_STR/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-   print "   (cd $ROOT_DIRECTORY_STR/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
    if (( RVM_WITH_ADAPTIVE_COMPILER )); then
-   print "   (cd $ROOT_DIRECTORY_STR/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
 
    # build VM_Assembler on Intel
    if (( RVM_FOR_IA32 )); then
-     print "   (cd $ROOT_DIRECTORY/src/vm/arch/intel/assembler; $GNU_MAKE_STR \$SILENT_MAKE GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
+     print "   (cd $ROOT_DIRECTORY/rvm/src/vm/arch/intel/assembler; $GNU_MAKE_STR \$SILENT_MAKE GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
      if (( RVM_WITH_OPT_COMPILER )); then
-       print "   (cd $ROOT_DIRECTORY/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc; $GNU_MAKE_STR \$SILENT_MAKE GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
+       print "   (cd $ROOT_DIRECTORY/rvm/src/vm/arch/intel/compilers/optimizing/ir/conversions/mir2mc; $GNU_MAKE_STR \$SILENT_MAKE GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
      fi
    fi
 
    # Do the expansion
-   print "(cd $ROOT_DIRECTORY_STR/src/vm/classLoader && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
+   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/classLoader && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
 
    if (( RVM_WITH_OPT_COMPILER )); then
-      print "(cd $ROOT_DIRECTORY_STR/src/vm/compilers/optimizing && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_COMPILER)"
+      print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_COMPILER)"
       if (( RVM_WITH_EXTREME_ASSERTIONS )); then
-     print "(cd $ROOT_DIRECTORY_STR/src/vm/compilers/optimizing/ir/instruction && $GNU_MAKE_STR \$SILENT_MAKE fatalInstructionFormat ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+     print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing/ir/instruction && $GNU_MAKE_STR \$SILENT_MAKE fatalInstructionFormat ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
       fi
    fi
    if (( RVM_WITH_ADAPTIVE_COMPILER )); then
-   print "(cd $ROOT_DIRECTORY_STR/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_COMPILER)"
+   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_COMPILER)"
    fi
    
    print 'print ""'
@@ -1418,7 +1418,7 @@ function emitCopier
    print ''
    
    # Make the preprocessor
-   print "   (cd $ROOT_DIRECTORY_STR/src/tools/preprocessor && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+   print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/preprocessor && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
 if ((RVM_FOR_CYGWIN)); then 
    print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles.exe $BUILD_DIRECTORY_STR/jbuild.prep"
 else
@@ -1503,144 +1503,7 @@ fi
    print ''
 
    # preprocess the necessary interpreter file for the debugger jdp
-   print 'FILES=`/bin/ls' $RVM_ROOT'/src/tools/jdp/interpreter/mapVM.java`'
-   print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
-
-
-   # TEMP: remove JDK2_ renaming hack from opt compiler
-   # We are now using a JDK2 library, so maybe we dont need this hack anymore
-   #
-   print 'for f in `find' $CLASSES_DIRECTORY_STR '-name '*.java'`; do'
-   print "  sed 's/JDK2_/java.util./g' < \$f > \$f.tmp"
-   print "  chmod a+rw \$f"
-   print "  mv -f \$f.tmp \$f"
-   print "done"
-
-   # Remember if any new (or modified) source files were discovered.
-   #
-   print 'if [[ $FILES_HAVE_CHANGED = 1 ]]; then'
-   print "   touch $CLASSES_INVALID_STR"
-   print 'fi'
-   }
-   
-# Emit script to build the rvmrt.jar library
-#
-function emitLibraryBuilder
-   {
-   print '#!/bin/ksh'
-   print '# Build rvmrt.jar.'
-   print 'set -e'
-   print 'ME=`basename $0`'
-
-   print 'TRACE_FLAG=-trace' # always on, for now
-   print 'if [[ $1 = -trace ]]; then'
-   print '   TRACE_FLAG=-trace'
-   print '   shift'
-   print 'fi'
-
-   print ''
-   print '. ./jbuild.environment'
-   print ''
-
-   print 'if [[ $1 = -clean ]]; then'
-   print '   print -n "$ME: "'
-   print '   cd' $CLASSES_DIRECTORY_STR
-   print '   find java com ! -type d -print | fgrep .java | xargs rm -f'
-   print '   rm -f rvmrt.jar'
-   print '   touch' $CLASSES_INVALID_STR
-   print '   print "(sources cleaned)"'
-   print '   exit 0'
-   print 'fi'
-   print ''
-   
-   # Make the preprocessor
-   print "   (cd $ROOT_DIRECTORY_STR/src/tools/preprocessor && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-if ((RVM_FOR_CYGWIN)); then 
-   print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles.exe $BUILD_DIRECTORY_STR/jbuild.prep"
-else
-   print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles $BUILD_DIRECTORY_STR/jbuild.prep"
-   print ''
-fi
-
-   print 'FILES_HAVE_CHANGED=0'
-
-   # Update from directories containing sources that implement virtual machine.
-   #
-   print 'for d in `cat' $SOURCE_LIST_STR '`; do'
-   print '   if [[ $TRACE_FLAG = -trace ]]; then'
-   print '      print -n "$ME: $d"'
-   print '   fi'
-   print '   if [ X"`/bin/ls $d/*.java 2>/dev/null`" != X ]; then'
-   print '     FILES=`/bin/ls $d/*.java`'
-   print '   fi'
-   print '   if [ X"`/bin/ls $d/*.pizza 2>/dev/null`" != X ]; then'
-   print '     FILES2=`/bin/ls $d/*.pizza`'
-   print '   fi'
-   print '   set +e'
-   print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR '$FILES $FILES2'
-   print '   RC=$?'
-   print '   if [[ $RC = 1 ]]; then'
-   print '      FILES_HAVE_CHANGED=1'
-   print '   elif [[ $RC != 0 ]]; then'
-   print '      exit 1'
-   print '   fi'
-   print '   set -e'
-   print '   print ""'
-   print '   FILES='
-   print '   FILES2='
-   print 'done'
-
-
-   # Update from directories containing machine generated source files
-   # Do this after we copy the "normal" files to allow us to
-   # overwrite any dummy versions of the files we have sitting
-   # around in the shadow (telling people that the file is generated).
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR/'"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
-   print 'RC=$?'
-   print 'if [[ $RC = 1 ]]; then'
-   print '   FILES_HAVE_CHANGED=1'
-   print 'elif [[ $RC != 0 ]]; then'
-   print '   exit 1'
-   print 'fi'
-   print 'set -e'
-   print 'print ""'
-if (( RVM_WITH_OPT_COMPILER )); then
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/instructionFormats $FILES'
-   print 'RC=$?'
-   print 'if [[ $RC = 1 ]]; then'
-   print '   FILES_HAVE_CHANGED=1'
-   print 'elif [[ $RC != 0 ]]; then'
-   print '   exit 1'
-   print 'fi'
-   print 'set -e'
-   print 'print ""'
-   print ''
-fi
-
-   # script to preprocess GenerateInterfaceDeclarations.java
-   #
-   print ''
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$BOOTIMAGE_RUNNER_DIR_STR'"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $BOOTIMAGE_RUNNER_DIR_STR'/GenerateInterfaceDeclarations.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
-   print 'print ""'
-   print ''
-
-   # preprocess the necessary interpreter file for the debugger jdp
-   print 'FILES=`/bin/ls' $RVM_ROOT'/src/tools/jdp/interpreter/mapVM.java`'
+   print 'FILES=`/bin/ls' $RVM_ROOT'/rvm/src/tools/jdp/interpreter/mapVM.java`'
    print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
 
 
@@ -1735,37 +1598,37 @@ function emitCompiler
 # These are required to read a zip file
    if (( !BUILD_RVMRT_JAR )); then 
      print "cd $CLASSES_DIRECTORY_STR"
-     print 'unzip -U -n -x rvmrt.jar java/util/HashMap.class'
-     print 'unzip -U -n -x rvmrt.jar java/util/AbstractMap.class'
-     print 'unzip -U -n -x rvmrt.jar java/io/OutputStream.class'
-     print 'unzip -U -n -x rvmrt.jar java/io/BufferedInputStream.class'
-     print 'unzip -U -n -x rvmrt.jar java/io/FilterOutputStream.class'
-     print 'unzip -U -n -x rvmrt.jar java/io/BufferedOutputStream.class'
+     print 'unzip -U -n -x rvmrt.jar java/util/HashMap.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/util/AbstractMap.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/io/OutputStream.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/io/BufferedInputStream.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/io/FilterOutputStream.class 2> /dev/null'
+     print 'unzip -U -n -x rvmrt.jar java/io/BufferedOutputStream.class 2> /dev/null'
 
        if (( RVM_WITH_JAZZLIB )); then
-         print 'unzip -U -n -x rvmrt.jar java/util/Calendar.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/GregorianCalendar.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/Locale.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/Locale\$1.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/Date.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone\$1.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/SimpleTimeZone.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/StringTokenizer.class'
-           print 'unzip -U -n -x rvmrt.jar java/lang/Cloneable.class'
-           print 'unzip -U -n -x rvmrt.jar java/security/AccessController.class'
-           print 'unzip -U -n -x rvmrt.jar java/security/PrivilegedAction.class'
-           print 'unzip -U -n -x rvmrt.jar java/io/Serializable.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/PropertyPermission.class'
-           print 'unzip -U -n -x rvmrt.jar java/security/BasicPermission.class'
-           print 'unzip -U -n -x rvmrt.jar java/security/Permission.class'
-           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en_US.class'
-           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en.class'
-           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/ListResourceBundle.class'
-           print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermission.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/AbstractSet.class'
-           print 'unzip -U -n -x rvmrt.jar java/util/HashSet.class'
+         print 'unzip -U -n -x rvmrt.jar java/util/Calendar.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/GregorianCalendar.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/Locale.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/Locale\$1.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/Date.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone\$1.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/SimpleTimeZone.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/StringTokenizer.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/lang/Cloneable.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/security/AccessController.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/security/PrivilegedAction.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/io/Serializable.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/PropertyPermission.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/security/BasicPermission.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/security/Permission.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en_US.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/ListResourceBundle.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermission.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/AbstractSet.class 2> /dev/null'
+           print 'unzip -U -n -x rvmrt.jar java/util/HashSet.class 2> /dev/null'
        fi
      fi 
 
@@ -1835,10 +1698,10 @@ function emitImageLinker
       # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
       print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
       if (( RVM_WITH_ESCAPE_ANALYSIS )); then
-        print "   print $ROOT_DIRECTORY_STR/src/vm/compilers/optimizing/optimizations/ipa/escapeAnalysis/*.java       | xargs ls | sed 's@.*/\(.*\)\.java@\1.class@' >> $EXCLUDED_CLASSES_STR"
+        print "   print $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing/optimizations/ipa/escapeAnalysis/*.java       | xargs ls | sed 's@.*/\(.*\)\.java@\1.class@' >> $EXCLUDED_CLASSES_STR"
       fi
       if (( RVM_WITH_DATARACE_ANALYSIS )); then
-        print "   print $ROOT_DIRECTORY_STR/src/vm/compilers/optimizing/optimizations/ipa/dataRace/*.java       | xargs ls | sed 's@.*/\(.*\)\.java@\1.class@' >> $EXCLUDED_CLASSES_STR"
+        print "   print $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing/optimizations/ipa/dataRace/*.java       | xargs ls | sed 's@.*/\(.*\)\.java@\1.class@' >> $EXCLUDED_CLASSES_STR"
       fi
 
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
@@ -2235,7 +2098,7 @@ function emitBooterLinker
    print""
 
    # build the JNI code for heavyweight networking calls
-   print 'cd $JAL_ROOT/src/tools/bootImageRunner/'
+   print 'cd $JAL_ROOT/rvm/src/tools/bootImageRunner/'
    if (( RVM_FOR_AIX )); then
       print '$GNU_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a'
     else
@@ -2321,7 +2184,7 @@ function emitBooterLinker
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
 	     \$BOOTER_CC -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/Jalapeno.image\\\"\
-	     -c -I$ROOT_DIRECTORY_STR/src/include\
+	     -c -I$ROOT_DIRECTORY_STR/rvm/src/include\
 	     -o $SCRATCH_DIRECTORY_STR/libjni.o libjni.C"
       print "cd $SCRATCH_DIRECTORY_STR"
       print "\$LDSHARED -o libjni.so libjni.o libvm.o sys.o bootThread.o \$CCLIBS"
@@ -2344,12 +2207,12 @@ function emitBooterLinker
 		-o $SCRATCH_DIRECTORY_STR/bootThread.o bootThread.S"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-                -I$ROOT_DIRECTORY_STR/src/vm/arch/intel/disassembler\
+                -I$ROOT_DIRECTORY_STR/rvm/src/vm/arch/intel/disassembler\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
-      print "cd $ROOT_DIRECTORY_STR/src/vm/arch/intel/disassembler &&\
+      print "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/intel/disassembler &&\
 		\$BOOTER_CC -funsigned-bitfields -c -I$SCRATCH_DIRECTORY_STR\
 		-o $SCRATCH_DIRECTORY_STR/disasm.o disasm.C"
-      print "cd $ROOT_DIRECTORY_STR/src/vm/arch/intel/disassembler &&\
+      print "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/intel/disassembler &&\
 		\$BOOTER_CC -funsigned-bitfields -c -I$SCRATCH_DIRECTORY_STR\
 		-o $SCRATCH_DIRECTORY_STR/ihnpdsm.o ihnpdsm.C"
       print "cd $SCRATCH_DIRECTORY_STR &&\
@@ -2487,7 +2350,7 @@ fi
 print -n "(directories created) "
 
 if (( ! BUILD_RVMRT_JAR )); then
-  cp $RVM_ROOT/../rvmSupport/lib/rvmrt.jar $CLASSES_DIRECTORY
+  cp $RVM_ROOT/rvmSupport/lib/rvmrt.jar $CLASSES_DIRECTORY
 fi
 
 print -n "(rvmrt.jar copied) "

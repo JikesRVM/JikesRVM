@@ -1,7 +1,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-include                 $(RVM_ROOT)/build.Make.rules
+include                 $(RVM_ROOT)/rvm/build.Make.rules
 
 default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_Operators.java \
@@ -13,9 +13,9 @@ GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath `$(HOST_JAVA_PATH_ADJUST) $(S
 # make trickiness to allow generation of HIR/LIR without specifying an MIR.
 # used in the opt compiler on JikesBT configuration
 ifneq ($(ARCH_DIR),NONE)
-ARCH_OPS = $(RVM_ROOT)/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/OperatorList.dat
-ARCH_IFS = $(RVM_ROOT)/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/InstructionFormatList.dat
-ARCH_IR_DIR = $(RVM_ROOT)/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/
+ARCH_OPS = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/OperatorList.dat
+ARCH_IFS = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/InstructionFormatList.dat
+ARCH_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction/
 ARCHITECTURE = $(ARCH_DIR)
 else
 ARCH_OPS =

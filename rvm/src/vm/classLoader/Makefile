@@ -1,7 +1,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-include			$(RVM_ROOT)/build.Make.rules
+include			$(RVM_ROOT)/rvm/build.Make.rules
 
 MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
 			$(GEN_FILES_DIR)/VM_TypeDictionary.java \

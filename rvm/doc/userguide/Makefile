@@ -4,15 +4,15 @@ HOST_JAVA := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_JAVA)
 HOST_JAVAC := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_JAVAC)
 HOST_REPOSITORIES := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_REPOSITORIES)
 
-GENERATOR_DIR := $(RVM_ROOT)/src/tools/templateExpander
+GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
-OPTION_DIR := $(RVM_ROOT)/src/vm/compilers/optimizing/driver
+OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
 OPT_BOOLEAN_DAT_FILES := ${OPTION_DIR}/BooleanOptions.dat
 OPT_VALUE_DAT_FILES := ${OPTION_DIR}/ValueOptions.dat
 OPT_DAT_FILES := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
-ADAPT_OPTION_DIR := $(RVM_ROOT)/src/vm/adaptive/utility/
+ADAPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
 ADAPT_BOOLEAN_DAT_FILES := ${ADAPT_OPTION_DIR}/BooleanOptions.dat \
 			   ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat
 ADAPT_VALUE_DAT_FILES := ${ADAPT_OPTION_DIR}/ValueOptions.dat \

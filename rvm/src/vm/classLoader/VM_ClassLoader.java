@@ -483,9 +483,9 @@ public class VM_ClassLoader
       vmRepositories = new String[2];
       vmRepositories[0] = vmClasses;
       //-#if RVM_FOR_CYGWIN
-      vmRepositories[1] = vmClasses + "\\classes.zip";
+      vmRepositories[1] = vmClasses + "\\rvmrt.jar";
       //-#else
-      vmRepositories[1] = vmClasses + "/classes.zip";
+      vmRepositories[1] = vmClasses + "/rvmrt.jar";
       //-#endif
     }
 
