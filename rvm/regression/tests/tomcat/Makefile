@@ -44,7 +44,7 @@ LHEAPSIZE=200
 # the stress-test client
 #
 CLIENT_NAME=TestClient.Start
-CLIENT_ARGS="-requests $(TOMCAT_TEST_HOME)/requests.xml -clients 10 -count 100"
+CLIENT_ARGS="-requests $(TOMCAT_TEST_HOME)/requests.xml -clients 10 -count 1000"
 
 CLIENT_SOURCES=$(foreach FILE, $(notdir $(wildcard $(JAL_ROOT)/rvm/src/examples/tomcat/TestClient/*.java)), TestClient/$(FILE))
 CLIENT_CLASSES=$(patsubst %.java,%.class,$(CLIENT_SOURCES))
@@ -73,14 +73,14 @@ endif
 
 $(WORKING)/conf/%.xml:	$(TOMCAT_TEST_HOME)/conf/%.xml $(WORKING)/conf
 ifneq ($(WORKING),.)
-	cp $< $@
+	cp -f $< $@
 endif
 
 $(WORKING)/webapps:
 	mkdir -p $@
 
 $(WORKING)/webapps/%.war:	$(BENCH_HOME)/webapps/%.war $(WORKING)/webapps
-	cp $< $@
+	cp -f $< $@
 
 org/apache/tomcat/startup/Tomcat.class:	
 
@@ -88,11 +88,20 @@ TestClient/Start.class:	$(CLIENT_CLASSES)
 
 input:
 	mkdir -p $(WORKING)/expected
-	cp -f $(TOMCAT_TEST_HOME)/expected/*Example $(WORKING)/expected 
+	cp -f $(TOMCAT_TEST_HOME)/expected/*Example* $(WORKING)/expected 
+
+start:			input $(WAR_FILES) $(WORKING)/conf/server.xml $(WORKING)/conf/tomcat-users.xml
 
 sanity:			input $(WAR_FILES) $(WORKING)/conf/server.xml $(WORKING)/conf/tomcat-users.xml
-	$(MAKE) server-sanity-self-checking
+	$(MAKE) server-sanity-check-rules
 
 client-check:
+	$(FGREP) -q "Downloaded 7225060 bytes in 10000 requests" $(OUT)
+	$(FGREP) -q "Verified 5430 requests" $(OUT)
 
 server-check:
+	sleep 10
+	$(FGREP) -qe '- ContextManager: Removing context Ctx(  )' $(OUT)
+	$(FGREP) -qe '- ContextManager: Removing context Ctx( /admin )' $(OUT)
+	$(FGREP) -qe '- ContextManager: Removing context Ctx( /examples )' $(OUT)
+	$(FGREP) -qe '- ContextManager: Removing context Ctx( /test )' $(OUT)
