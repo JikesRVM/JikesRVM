@@ -3241,14 +3241,6 @@ public class VM_Allocator
     VM_ScanObject.scanObjectOrArray(ref);
   }
   
-  public static boolean
-  inRange(int ref)
-  {
-    return ((ref >= minBootRef) && (ref <= largeHeapEndAddress));
-  }
-
-  // added for VM_GCUtil 080101 SES
-
   /**
    * Process an object reference field during collection.
    *

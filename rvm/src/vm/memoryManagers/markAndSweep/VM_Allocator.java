@@ -3600,14 +3600,6 @@ tib));
     VM.shutdown(-5);
   }
 
-  public static boolean
-	inRange(int ref) 
-  {
-		return ((ref >= bootStartAddress) && (ref <= largeHeapEndAddress));
-	}
-
-  // added for VM_GCUtil 080101 SES
-
   /**
    * Process an object reference field during collection.
    *

@@ -4233,12 +4233,6 @@ public class VM_Allocator
     return i;
   }
 
-  public static boolean
-  inRange(int ref)
-  {
-    return ((ref >= bootStartAddress) && (ref <= largeHeapEndAddress));
-  }
-
   private static void
   freeSmallSpaceDetails (boolean details) {
     int i, next;

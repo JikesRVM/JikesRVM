@@ -3225,13 +3225,6 @@ public class VM_Allocator
   static final void    processPtrField( int location ) {}
   static final int     processPtrValue( int reference ) { return 0; }
 
-  public static boolean
-  inRange(int address)
-  {
-    return VM_GCUtil.addressInVM( address );
-  }
-
-
 }   // VM_Allocator
 
 
