@@ -28,6 +28,9 @@ public class VM_StackTrace implements VM_Constants {
       afresh. */
   public final int traceIndex;
   static int lastTraceIndex = 0; 
+
+  public int printingMaxDepth = 10;
+
   private static synchronized int getNextTraceIndex() {
     return ++lastTraceIndex;
   }
@@ -204,8 +207,7 @@ public class VM_StackTrace implements VM_Constants {
    * Print the stack trace.  This is a safety net around print4Real(), a
    * private method that does the actual work.  Here we just catch any stray
    * OutOfMemoryError or other Throwables that we didn't think of when we
-   * wrote this 
-   * code.
+   * wrote this code.
    *
    * @param out PrintLN to print on.
    *
@@ -216,12 +218,14 @@ public class VM_StackTrace implements VM_Constants {
    *
    *  @param effect A <code>Throwable</code> whose details we've presumably
    *  already printed, meaning that we can elide the stack frames someone has
-   *  already seen.  <b>TODO:</b> Implement the elision.  As of this writing,
-   *  it's unused.
-   *  
-   *  
+   *  already seen. May be <code>null</code>
+   *  <p>
+   *  <b>TODO:</b> Implement the elision.  As of this writing,
+   *  it's unused.  
+   *
+   *  @param depth How deep is our current stack of recursive printings?
    */
-  public void print(PrintLN out, Throwable trigger, Throwable effect) {
+  public void print(PrintLN out, Throwable trigger, Throwable Effect, int depth) {
     boolean printed = false;
     try {
       VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
@@ -245,7 +249,7 @@ public class VM_StackTrace implements VM_Constants {
         VM.enableGC();
       }
 
-      print4Real(out, trigger);
+      print4Real(out, trigger, depth);
       printed = true;
     } catch (OutOfMemoryError e) {
       trigger.tallyOutOfMemoryError();
@@ -254,9 +258,9 @@ public class VM_StackTrace implements VM_Constants {
       trigger.tallyWeirdError();
       VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* Throwable while displaying stack trace # ", traceIndex);
       VM.sysWrite("    The Throwable was: ");
-      e.sysWrite();
+      e.sysWrite(depth + 1);
       VM.sysWriteln("VM_StackTrace.print(): And its stack trace was:");
-      e.sysWriteStackTrace();
+      e.sysWriteStackTrace(depth + 1);
     } finally {
       if (printed)
         return;                 // all is well
@@ -266,8 +270,12 @@ public class VM_StackTrace implements VM_Constants {
       }
       VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex,
                     "; using sysWrite(), this time ]");
-      print4Real(PrintContainer.readyPrinter, trigger);
+      print4Real(PrintContainer.readyPrinter, trigger, depth);
     }
+  }
+
+  public void print(PrintLN out, Throwable trigger){
+    print(out, trigger, null, 0);
   }
 
   /**
@@ -286,9 +294,13 @@ public class VM_StackTrace implements VM_Constants {
    *  methods used internally to gather the stack trace.
    */
   
-  private void print4Real(PrintLN out, Throwable trigger) {
+  private void print4Real(PrintLN out, Throwable trigger, int depth) {
     //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
 
+    if (depth > printingMaxDepth) {
+      VM.sysWriteln("VM_StackTrace.print4Real(): Already ", depth, " levels deep in a recursive stack trace; won't show trace # ", traceIndex);
+      return;                   // feign success
+    }
     /** Where'd we find the trigger? */
     int foundTriggerAt = -1;    // -1 is a sentinel value; important in code
                                 // below. 
