@@ -328,8 +328,8 @@ sysBytesAvailable(int fd)
 
 extern "C" int sysSyncFile(int fd) {
   if (fsync(fd) != 0) {
-    fprintf(SysErrorFile, "vm: syncing file %d failed with error %d (%s)\n", fd, errno, strerror( errno ));
-
+    // some kinds of files cannot be sync'ed, so don't print error message
+    // however, do return error code in case some application cares
     return -1;
   }
 
