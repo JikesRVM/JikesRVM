@@ -149,6 +149,7 @@ class VM_Entrypoints implements VM_Constants
    static VM_Field oneFloat;
    static int oneOffset;         //  1.0F
    static VM_Field zeroDouble;   //  0.0
+   static int zeroDoubleOffset;  //  0.0
    static VM_Field oneDouble;    //  1.0
    static int oneDoubleOffset;   
    static VM_Field twoFloat;
@@ -450,6 +451,7 @@ class VM_Entrypoints implements VM_Constants
       two32Offset                 = VM.getMember("LVM_Math;", "two32", "F").getOffset();
       half32Offset                = VM.getMember("LVM_Math;", "half32", "F").getOffset();
       zeroDouble                  = (VM_Field)VM.getMember("LVM_Math;", "zeroD", "D");
+      zeroDoubleOffset            = zeroDouble.getOffset();
       oneDouble                   = (VM_Field)VM.getMember("LVM_Math;", "oneD", "D");
       oneDoubleOffset             = oneDouble.getOffset();
       billionthOffset             = VM.getMember("LVM_Math;", "billionth", "D").getOffset();
