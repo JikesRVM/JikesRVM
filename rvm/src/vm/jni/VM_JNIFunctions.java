@@ -80,7 +80,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
     VM_Scheduler.traceback("JNI ERROR: DefineClass not implemented yet.");
     VM.sysExit(200);
-    return DEFINECLASS ; 
+    return DEFINECLASS; 
   }
 
 
@@ -108,8 +108,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Class matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
       return env.pushJNIRef(matchedClass);  
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-
       if (traceJNI) e.printStackTrace( System.err );
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(new NoClassDefFoundError(classString));
@@ -5143,12 +5141,13 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 
       Object newArray[] = (Object [])ReflectionSupport.newInstance(cls, length);
 
-      for (int i=0; i<length; i++) {
-        newArray[i] = initElement;
+      if (initElement != null) {
+	for (int i=0; i<length; i++) {
+	  newArray[i] = initElement;
+	}
       }
 
       return env.pushJNIRef(newArray);  
-
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
