@@ -776,24 +776,6 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 	}
 	break;
 
-      case PPC_MFCR_opcode:
-	{
-	  int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
-	  machinecodes[mi++] = (inst | (op0 << 21));
-	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-	}
-	break;
-
-      case PPC_MTCR_opcode:
-	{
-	  int op0 = MIR_Move.getValue(p).register.number & REG_MASK;
-	  // exclude THREAD_SWITCH_REGISTER
-	  int mask = 0xff & ~(0x80 >> THREAD_SWITCH_REGISTER);
-	  machinecodes[mi++] = (inst | (mask << 12) | (op0 << 21));
-	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-	}
-	break;
-
       case PPC_SYNC_opcode:
       case PPC_ISYNC_opcode:
 	{

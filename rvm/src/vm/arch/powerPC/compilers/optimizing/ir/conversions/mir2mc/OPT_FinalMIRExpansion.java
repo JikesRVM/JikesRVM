@@ -164,15 +164,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
                                         VM_Thread.BACKEDGE);                    
             OPT_Register zero = phys.getGPR(0);
             OPT_Register TSR = phys.getTSR();
-            if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
-              OPT_Register PR = phys.getPR();
-              p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
-                             R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
-              p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
-                             I(0)));
-              instructionCount += 2;
-            }
+	    OPT_Register PR = phys.getPR();
+	    p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
+					   R(PR), 
+					   I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+	    p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
+	    instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.
@@ -188,14 +185,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
                                         VM_Thread.EPILOGUE);                    
             OPT_Register zero = phys.getGPR(0);
             OPT_Register TSR = phys.getTSR();
-            if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
-              OPT_Register PR = phys.getPR();
-              p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
-					     R(PR), 
-					     I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
-	      p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
-              instructionCount += 2;
-            }
+	    OPT_Register PR = phys.getPR();
+	    p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
+					   R(PR), 
+					   I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+	    p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
+	    instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.

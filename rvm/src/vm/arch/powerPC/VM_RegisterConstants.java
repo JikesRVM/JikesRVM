@@ -20,15 +20,8 @@ public interface VM_RegisterConstants {
   static final int    LG_INSTRUCTION_WIDTH = 2;           // log2 of instruction width in bytes, powerPC
   static final String INSTRUCTION_ARRAY_SIGNATURE = "[I"; // for powerPC
 
-   // Condition register thread switch bit (must be a field of a non-volatile condition register).
-   //
-  static final int THREAD_SWITCH_BIT = 8; // field 0 of condition register 2 [ I think. Bowen, is this right? --DL ]
-  // TODO: change to define THREAD_SWITCH_BIT in terms of the following
-  static final int THREAD_SWITCH_REGISTER = THREAD_SWITCH_BIT >> 2;
-  static final int THREAD_SWITCH_FIELD = THREAD_SWITCH_BIT & 3;
-
-   // General purpose register usage. (GPR's are 32 bits wide).
-   //
+  // General purpose register usage. (GPR's are 32 bits wide).
+  //
   static final int REGISTER_ZERO              =  0; // special instruction semantics on this register
   static final int FRAME_POINTER              =  1; // AIX is 1
   static final int JTOC_POINTER               =  2; // AIX is 2
@@ -44,8 +37,8 @@ public interface VM_RegisterConstants {
   static final int LAST_NONVOLATILE_GPR       = 31; // AIX is 31
   static final int NUM_GPRS                   = 32;
 
-   // Floating point register usage. (FPR's are 64 bits wide).
-   //
+  // Floating point register usage. (FPR's are 64 bits wide).
+  //
   static final int FIRST_SCRATCH_FPR          =  0; // AIX is 0
   static final int LAST_SCRATCH_FPR           =  0; // AIX is 0
   static final int FIRST_VOLATILE_FPR         =  1; // AIX is 1

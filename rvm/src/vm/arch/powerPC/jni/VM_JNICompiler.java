@@ -1011,17 +1011,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitST  (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     asm.emitST  (0, JNI_GLUE_FRAME_SIZE + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
 
-    //-#if RVM_FOR_AIX
-    int CR_OFFSET = 4; // Save CR in caller's frame; see page 162 of PPC Compiler Writer's Guide
-    asm.emitMFCR (S0);
-    asm.emitST (S0, JNI_GLUE_FRAME_SIZE + CR_OFFSET, FP);
-    //-#endif
-
-    //-#if RVM_FOR_LINUX
-    // TODO: 
-    // no space for linux to save CR in header, it should be saved in register save area
-    //-#endif
-
     // change the vpStatus of the current Processor to "in Java", if GC has started 
     // and we are "blocked_in_native" then loop doing sysYields until GC done and the
     // processor is unblocked.  With default jni, we can also be "blocked_in_native"
@@ -1272,11 +1261,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitL     (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr vpStatus word
     asm.emitCAL   (S0,  VM_Processor.IN_NATIVE, 0 );              // S0  <- new status value
     asm.emitST    (S0,  0, T3);                                   // change state to native
-
-    //-#if RVM_FOR_AIX
-    asm.emitL     (S0, JNI_GLUE_FRAME_SIZE + CR_OFFSET, FP);
-    asm.emitMTCRF (0xff, S0);
-    //-#endif
 
     // Restore those AIX nonvolatile registers saved in the prolog above
     // Here we only save & restore ONLY those registers not restored by RVM

@@ -762,14 +762,6 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int MFCRtemplate = 31<<26 | 19<<1;
-
-  final void emitMFCR (int RT) {
-    INSTRUCTION mi = MFCRtemplate | RT<<21;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-  
   static final int MFSPRtemplate = 31<<26 | 339<<1;
 
   final void emitMFSPR (int RT, int SPR) {
@@ -785,15 +777,6 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mIP++;
     mc.addInstruction(mi);
   }
-
-  static final int MTCRFtemplate = 31<<26 | 144<<1;
-
-  final void emitMTCRF (int mask, int RS) {
-    INSTRUCTION mi = MTCRFtemplate | mask<<12 | RS<<21;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
 
   static final int MTCTRtemplate = 31<<26 | 0x09<<16 | 467<<1;
 
@@ -1134,16 +1117,6 @@ public final class VM_Assembler implements VM_BaselineConstants,
     INSTRUCTION mi = NOPtemplate;
     mIP++;
     mc.addInstruction(mi);
-  }
-
-  // branch conditional -- don't thread switch
-  static final int BNTStemplate = BCtemplate | GE | THREAD_SWITCH_BIT<<16;
-  final VM_ForwardReference emitBNTS () {
-    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
-    INSTRUCTION mi = BNTStemplate;
-    mIP++;
-    mc.addInstruction(mi);
-    return fr;
   }
 
   final void emitLoffset(int RT, int RA, int offset) {

@@ -3503,11 +3503,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.clearThreadSwitchBit) { // nothing to do
-      // ignore obsolete magic
-      return true;
-    }
-
     if (methodName == VM_MagicNames.getTime) {
       VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTime in " + method + "\n");
       asm.emitMOV_RegInd_Imm(SP, 0);  // TEMP!! for now, return 0

@@ -95,22 +95,6 @@ public abstract class VM_Configuration {
 	//-#endif
 	//-#endif
 
-  // Normally, a word in memory is used to signal need for a thread switch
-  // On PowerPC a control register can be used (and will be set by the interrupt handler).
-  // However, this distribution of virtual processors interrupted is very unfair on a multiprocessor.
-  // Therefore, the control register is only used for single-virtual-processor builds.
-  //
-  public static final boolean BuildForThreadSwitchUsingControlRegisterBit = 
-	//-#if RVM_FOR_POWERPC
-	//-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-          false;
-        //-#else
-          false;
-	//-#endif
-	//-#else
-          false;
-	//-#endif
-
   // Does this build include support for Hardware Performance Monitors
   public static final boolean BuildForHPM = 
     //-#if RVM_WITH_HPM

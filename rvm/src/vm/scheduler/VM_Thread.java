@@ -270,7 +270,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Called by compiler-generated yieldpoints approx. every 10ms.
    */ 
   public static void threadSwitch(int whereFrom) throws VM_PragmaNoInline {
-    if (VM.BuildForThreadSwitchUsingControlRegisterBit) VM_Magic.clearThreadSwitchBit();
     VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
 
     //-#if RVM_FOR_POWERPC

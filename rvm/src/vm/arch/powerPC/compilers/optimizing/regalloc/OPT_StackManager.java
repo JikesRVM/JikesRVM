@@ -23,10 +23,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
   implements OPT_Operators {
   
   /**
-   * stack locaiton to save the CR register
-   */
-  private int saveCRLocation;
-  /**
    * stack locaiton to save the XER register
    */
   private int saveXERLocation;
@@ -117,14 +113,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
-    if (type == CONDITION_VALUE) {
-      s.insertBack(MIR_Move.create(PPC_MFCR,
-                                   R(phys.getTemp()),
-                                   R(phys.getCR())));
-      s.insertBack(MIR_Store.create(PPC_STW,
-				    R(phys.getTemp()), R(FP),
-				    I(location)));
-    } else if (type == FLOAT_VALUE) {
+    if (type == FLOAT_VALUE) {
       s.insertBack(MIR_Store.create(PPC_STFS, F(r), R(FP),
 				    I(location)));
     } else if (type == DOUBLE_VALUE) {
@@ -173,9 +162,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register temp = phys.getTemp();
       s.insertBack(MIR_Load.create(PPC_LWZ, R(temp), R(FP),
 				   I(location)));
-      // CR2 is used by the thread scheduler
-      s.insertBack(MIR_Move.create(PPC_MTCR,
-                                   R(phys.getCR()), R(temp)));
     } else if (type == DOUBLE_VALUE) {
 	s.insertBack(MIR_Load.create(PPC_LFD, D(r), R(FP), I(location)));
     } else if (type == FLOAT_VALUE) {
@@ -248,10 +234,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // 3. Save some special registers
     OPT_Register temp = phys.getTemp();
     
-    // cr2 is used by the thread scheduler
-    inst.insertBack(MIR_Move.create(PPC_MFCR, R(temp), R(phys.getCR())));
-    inst.insertBack(MIR_Store.create(PPC_STW, R(temp), R(FP),I(saveCRLocation)));
-
     inst.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getXER()) ));
     inst.insertBack(MIR_Store.create(PPC_STW, R(temp), R(FP),I(saveXERLocation)));
 
@@ -395,11 +377,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     }
     // 3. Restore some special registers
     OPT_Register temp = phys.getTemp();
-    // cr2 is used by the thread scheduler
-    inst.insertBack(MIR_Load.create(PPC_LWZ, R(temp), R(FP), I(saveCRLocation)));
-    inst.insertBack(MIR_Move.create(PPC_MTCR,
-                                 R(phys.getCR()), R(temp)));
-
     inst.insertBack(MIR_Load.create(PPC_LWZ, R(temp), R(FP), I(saveXERLocation)));
     inst.insertBack(MIR_Move.create(PPC_MTSPR,
                                  R(phys.getXER()), R(temp)));
@@ -417,9 +394,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * then R0 is the only available scratch register.
    * The "normal" prologue must perform the following tasks:
    *    stack overflow check         
-   *    set cr2 for the yieldpoint   
-   *      (when !VM.BuildForThreadSwitchUsingControlRegisterBit && 
-   *                            there is a prologue yieldpoint instruction)
+   *    set cr2 for the yieldpoint if there is a prologue yieldpoint instruction)
    *    save lr
    *    store cmid
    *    buy stack frame
@@ -453,8 +428,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
     boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
-    boolean yp = !VM.BuildForThreadSwitchUsingControlRegisterBit && 
-      ir.stackManager.hasPrologueYieldpoint();
+    boolean yp = ir.stackManager.hasPrologueYieldpoint();
 
     int frameFixedSize = getFrameFixedSize();
     ir.compiledMethod.setFrameFixedSize(frameFixedSize);
@@ -533,8 +507,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
     boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
-    boolean yp = !VM.BuildForThreadSwitchUsingControlRegisterBit && 
-      ir.stackManager.hasPrologueYieldpoint();
+    boolean yp = ir.stackManager.hasPrologueYieldpoint();
 
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
@@ -661,9 +634,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
         nonVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);      
       }
       
-      
       // Map some special registers to spill locations.
-      saveCRLocation = allocateNewSpillLocation(INT_REG);
       saveXERLocation = allocateNewSpillLocation(INT_REG);
       saveCTRLocation = allocateNewSpillLocation(INT_REG);
       i=0;

@@ -1892,18 +1892,6 @@ SYSCALL(P(p));
 ###########
 # Rules for special registers
 ###########
-# ORC(x,x) always produces 1
-stm:	SET_THREAD_SWITCH_BIT
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Condition.create(PPC_CRORC, I(THREAD_SWITCH_BIT), I(0), I(0)));
-
-# ANDC(x,x) always produces 0
-stm:	CLEAR_THREAD_SWITCH_BIT
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Condition.create(PPC_CRANDC, I(THREAD_SWITCH_BIT), I(0), I(0)));
-
 r:	GET_TIME_BASE
 11
 EMIT_INSTRUCTION

@@ -46,10 +46,6 @@ class OPT_GenerateMachineSpecificMagic
       OPT_RegisterOperand TIOp = 
 	new OPT_RegisterOperand(phys.getTI(),VM_TypeReference.Int);
       bc2ir.push(TIOp);
-    } else if (methodName == VM_MagicNames.setThreadSwitchBit) {
-      bc2ir.appendInstruction(Empty.create(SET_THREAD_SWITCH_BIT));
-    } else if (methodName == VM_MagicNames.clearThreadSwitchBit) {
-      bc2ir.appendInstruction(Empty.create(CLEAR_THREAD_SWITCH_BIT));
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);

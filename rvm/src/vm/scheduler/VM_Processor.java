@@ -110,7 +110,7 @@ implements VM_Uninterruptible, VM_Constants {
     if (VM.VerifyAssertions) VM._assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
 
-    if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
+    if (VM.BuildForDeterministicThreadSwitching) { // where we yield every N yieldpoints executed
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
     }
 

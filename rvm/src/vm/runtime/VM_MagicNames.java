@@ -77,9 +77,6 @@ public class VM_MagicNames {
   public static final VM_Atom prepare                       = VM_Atom.findOrCreateAsciiAtom("prepare");
   public static final VM_Atom attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
 
-  public static final VM_Atom setThreadSwitchBit            = VM_Atom.findOrCreateAsciiAtom("setThreadSwitchBit");
-  public static final VM_Atom clearThreadSwitchBit          = VM_Atom.findOrCreateAsciiAtom("clearThreadSwitchBit");
-    
   public static final VM_Atom saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
   public static final VM_Atom threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
   public static final VM_Atom restoreHardwareExceptionState = VM_Atom.findOrCreateAsciiAtom("restoreHardwareExceptionState");

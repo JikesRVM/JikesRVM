@@ -2595,24 +2595,19 @@ public class VM_Compiler extends VM_BaselineCompiler
   private void genThreadSwitchTest (int whereFrom) {
     if (isInterruptible) {
       VM_ForwardReference fr;
-      // alternate ways of setting the thread switch bit
-      if (VM.BuildForDeterministicThreadSwitching) { // set THREAD_SWITCH_BIT every N method calls
-	
+      // alternate yieldpoint implementations
+      if (VM.BuildForDeterministicThreadSwitching) { // yield every N yieldpoints.
 	// Decrement counter
-	asm.emitL  (T2, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
-	asm.emitCAL(T2, -1, T2);  // decrement it
-	asm.emitST (T2, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
-        
-	// If counter reaches zero, set threadswitch bit
-	asm.emitCMPI(T2, 0);
+	asm.emitL  (S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
+	asm.emitCAL(S0, -1, S0);  // decrement it
+	asm.emitST (S0, VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(), PROCESSOR_REGISTER);
+	// If counter greater than 0, branch around call to yield
+	asm.emitCMPI(S0, 0);
 	fr = asm.emitForwardBC(GT);
-	asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0); // set thread switch bit
-      } else if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
+      } else { // yield if threadSwitchRequestedField lt 0.
 	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedField.getOffset(), PROCESSOR_REGISTER);
-	asm.emitCMPI(THREAD_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_SWITCH_REGISTER, S0, 0); // set THREAD_SWITCH_BIT in CR
-	fr = asm.emitBNTS(); // skip, unless THREAD_SWITCH_BIT in CR is set
-      } else { // else rely on the timer interrupt to set the THREAD_SWITCH_BIT
-	fr = asm.emitBNTS(); // skip, unless THREAD_SWITCH_BIT in CR is set
+	asm.emitCMPI(S0, 0); 
+	fr = asm.emitForwardBC(GE);
       }
       if (whereFrom == VM_Thread.PROLOGUE) {
 	asm.emitL   (S0, VM_Entrypoints.threadSwitchFromPrologueMethod.getOffset(), JTOC);

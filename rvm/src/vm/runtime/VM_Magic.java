@@ -118,16 +118,6 @@ public class VM_Magic {
     return -1;
   }
 
-  /** Set bit in thread switch condition register. */ // TODO: remove me!
-  public static void setThreadSwitchBit() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
-  /** Clear bit in thread switch condition register. */
-  public static void clearThreadSwitchBit() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-     
   //---------------------------------------//
   //       Stackframe Manipulation         //
   //---------------------------------------//

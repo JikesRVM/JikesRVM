@@ -193,10 +193,6 @@ class GenerateInterfaceDeclarations {
     System.out.print("#define RVM_WITH_DEDICATED_NATIVE_PROCESSORS\n");
     //-#endif
 
-    System.out.print("static const int VM_Configuration_BuildForThreadSwitchUsingControlRegisterBit = "
-        + (VM.BuildForThreadSwitchUsingControlRegisterBit ? 1 : 0)
-        + ";\n");
-
     // load address for the boot image
     //
     System.out.print("static const int bootImageAddress                        = 0x"
@@ -216,8 +212,6 @@ class GenerateInterfaceDeclarations {
           + VM_Constants.PROCESSOR_REGISTER + ";\n");
       System.out.print("static const int VM_Constants_FIRST_VOLATILE_GPR         = "
           + VM_Constants.FIRST_VOLATILE_GPR + ";\n");
-      System.out.print("static const int VM_Constants_THREAD_SWITCH_BIT          = "
-          + VM_Constants.THREAD_SWITCH_BIT + ";\n");
       System.out.print("static const int VM_Constants_DIVIDE_BY_ZERO_MASK        = "
           + VM_Constants.DIVIDE_BY_ZERO_MASK + ";\n");
       System.out.print("static const int VM_Constants_DIVIDE_BY_ZERO_TRAP        = "

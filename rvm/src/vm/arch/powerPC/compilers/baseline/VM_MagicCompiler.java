@@ -297,10 +297,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 	fr.resolve(asm);
 	asm.emitSTU   (T0,  12, SP);  // push success of conditional store
       }
-    } else if (methodName == VM_MagicNames.setThreadSwitchBit) {
-      asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0);
-    } else if (methodName == VM_MagicNames.clearThreadSwitchBit) {
-      asm.emitCRANDC(THREAD_SWITCH_BIT, 0, 0);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       asm.emitL   (T0, 0, SP); // T0 := address of VM_Registers object
       asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
