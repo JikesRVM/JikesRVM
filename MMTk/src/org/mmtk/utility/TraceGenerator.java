@@ -21,6 +21,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+
 /**
  * Class that supports scanning Objects and Arrays for references
  * during tracing, handling those references, and computing death times
@@ -43,15 +44,15 @@ public final class TraceGenerator
   public  static final boolean MERLIN_ANALYSIS = true;
 
   /* Fields for tracing */
-  private static SortSharedDeque tracePool;     // Buffers to hold raw trace
+  private static SortTODSharedDeque tracePool;     // Buffers to hold raw trace
   private static TraceBuffer trace;
   private static boolean       traceBusy;     // If we are building the trace
   private static VM_Word       lastGC;        // Last time GC was performed
   private static VM_AddressArray objectLinks; // Lists of active objs
 
   /* Fields needed for Merlin lifetime analysis */
-  private static SortSharedDeque workListPool;  // Holds objs to process
-  private static SortAddressStack worklist;     // Objs to process
+  private static SortTODSharedDeque workListPool;  // Holds objs to process
+  private static SortTODAddressStack worklist;     // Objs to process
   private static VM_Word    agePropagate;  // Death time propagating
 
   static {
@@ -73,13 +74,13 @@ public final class TraceGenerator
    * death time propagation
    * @param trace_ The dequeue used to store and then output the trace
    */
-  public static final void init(SortSharedDeque worklist_, 
-				SortSharedDeque trace_)
+  public static final void init(SortTODSharedDeque worklist_, 
+				SortTODSharedDeque trace_)
     throws VM_PragmaInterruptible {
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
-      worklist = new SortAddressStack(workListPool);
+      worklist = new SortTODAddressStack(workListPool);
       workListPool.newClient();
     }
 

@@ -8,12 +8,13 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Lock;
 
+import com.ibm.JikesRVM.VM_MiscHeader;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_MiscHeader;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -30,7 +31,9 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-public class SortSharedDeque extends SharedDeque implements VM_Uninterruptible {
+public abstract class SortSharedDeque extends SharedDeque 
+  implements VM_Uninterruptible {
+
   public final static String Id = "$Id$"; 
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
@@ -62,12 +65,10 @@ public class SortSharedDeque extends SharedDeque implements VM_Uninterruptible {
   /**
    * Return the sorting key for the object passed as a parameter.
    *
-   * @param ref The address of the object whose key is wanted
+   * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
-  private static final VM_Word getKey(VM_Address ref) {
-    return VM_MiscHeader.getDeathTime(ref);
-  }
+  abstract protected VM_Word getKey(VM_Address obj);
   
   private final static VM_Word mask16 = VM_Word.fromIntZeroExtend(0xffff0000);
   private final static VM_Word mask8 = VM_Word.fromIntZeroExtend(0x0000ff00);
@@ -139,7 +140,7 @@ public class SortSharedDeque extends SharedDeque implements VM_Uninterruptible {
    * Sort objects using radix exchange sort. An explicit stack is 
    *  maintained to avoid using recursion.
    */
-  public final void sort() {
+  public void sort() {
     VM_Address startPtr, startLink, endPtr, endLink;
     VM_Word bitMask;
     if (!head.EQ(HEAD_INITIAL_VALUE)) {

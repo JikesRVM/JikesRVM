@@ -25,7 +25,7 @@ import org.mmtk.utility.MMType;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.RawPageAllocator;
 import org.mmtk.utility.Scan;
-import org.mmtk.utility.SortSharedDeque;
+import org.mmtk.utility.SortTODSharedDeque;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
@@ -160,8 +160,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                       TRACE_START, TRACE_SIZE,
                                       VMResource.META_DATA);
     traceRPA = new RawPageAllocator(traceVM, traceMR);
-    SortSharedDeque workList = new SortSharedDeque(traceRPA, 1);
-    SortSharedDeque traceBuf = new SortSharedDeque(traceRPA, 1); 
+    SortTODSharedDeque workList = new SortTODSharedDeque(traceRPA, 1);
+    SortTODSharedDeque traceBuf = new SortTODSharedDeque(traceRPA, 1); 
     TraceGenerator.init(workList, traceBuf);
 
     /* Now initialize the normal program heap */

@@ -5,13 +5,14 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Constants;
-
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
 /**
  * This supports <i>unsynchronized</i> pushing and popping of addresses. 
  * In addition, this can sort the entries currently on the shared stack.
@@ -20,10 +21,9 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-import org.mmtk.vm.VM_Interface;
-public class SortAddressStack extends LocalDeque 
+public class SortTODAddressStack extends LocalDeque 
   implements Constants, VM_Uninterruptible {
-   public final static String Id = "$Id$"; 
+  public final static String Id = "$Id$"; 
  
   /****************************************************************************
    *
@@ -37,7 +37,7 @@ public class SortAddressStack extends LocalDeque
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
    */
-  SortAddressStack(SortSharedDeque queue) {
+  SortTODAddressStack(SortTODSharedDeque queue) {
     super(queue);
   }
 
@@ -46,7 +46,7 @@ public class SortAddressStack extends LocalDeque
    */ 
   public final void sort() {
     flushLocal();  
-    ((SortSharedDeque)queue).sort();
+    ((SortTODSharedDeque)queue).sort();
   }
 
   /**
