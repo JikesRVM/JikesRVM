@@ -111,6 +111,20 @@ class DebuggerThread extends VM_Thread implements VM_Uninterruptible
          else
             VM.sysWrite("please specify a thread id\n");
          return;
+	 
+         case 'p': // print object 
+	 if (tokens.length == 2) {
+            int addr = Integer.parseInt(tokens[1], 16);
+
+            VM.sysWrite("Object at addr 0x");
+	    VM.sysWriteHex(addr);
+	    VM.sysWrite(": ");
+	    VM_ObjectModel.describeObject(VM_Address.fromInt(addr));
+	    VM.sysWriteln();
+	 }
+         else
+            VM.sysWriteln("Please specify an address\n");
+         return;
 
          case 'd': // dump virtual machine state
          VM_Scheduler.dumpVirtualMachine();
@@ -181,6 +195,7 @@ class DebuggerThread extends VM_Thread implements VM_Uninterruptible
             VM.sysWrite("Try one of:\n");
             VM.sysWrite("   t                - display all threads\n");
             VM.sysWrite("   t <threadIndex>  - display specified thread\n");
+            VM.sysWrite("   p <hex addr>     - print (describe) object at given address\n");
             VM.sysWrite("   d                - dump virtual machine state\n");
             VM.sysWrite("   e                - enable/disable event logging\n");
             VM.sysWrite("   l                - write event log to a file\n");
@@ -284,34 +299,18 @@ class DebuggerThread extends VM_Thread implements VM_Uninterruptible
          {
          char ch = line.charAt(i);
          
-         if (isLetter(ch))
-            {
-            String identifier = new String();
-            while (isLetter(ch) || isDigit(ch))
-               {
-               identifier += ch;
+         if (isLetter(ch) || isDigit(ch)) {
+            String alphaNumericToken = new String();
+            while (isLetter(ch) || isDigit(ch)) {
+	       alphaNumericToken += ch;
                if (++i == n) break;
                ch = line.charAt(i);
-               }
+	    }
             --i;
-            tokens.addElement(identifier);
+            tokens.addElement(alphaNumericToken);
             continue;
-            }
+	 }
 
-         if (isDigit(ch))
-            {
-            String number = new String();
-            while (isDigit(ch))
-               {
-               number += ch;
-               if (++i == n) break;
-               ch = line.charAt(i);
-               }
-            --i;
-            tokens.addElement(number);
-            continue;
-            }
-         
          if (ch != ' ' && ch != '\r' && ch != '\t')
             {
             String symbol = new String();
