@@ -72,7 +72,7 @@ and $m$-to-$n$ threading in Jikes RVM.\@
 
 There are two ways to execute native code: {\tt syscall}s and JNI.\@
 A Java thread that calls native code by either mechanism will never
-be preempted by \jrvm{}.  As far as \jrvm{} is concerned, a Java thread that
+be preempted by \jrvm{}.\@  As far as \jrvm{} is concerned, a Java thread that
 enters native code has exclusive access to the underlying {\tt
 VM\_Processor} (pthread) until it returns to Java.  Of course the OS may preempt the underlying
 pthread; this falls beyond \jrvm{}'s control.
@@ -87,18 +87,18 @@ operations that return fairly soon.  Note that a {\tt syscall} is
 {\em not} a GC-safe point.
 
 If the native code is JNI (outside RVM control), then the thread system
-will wait for a while, eventually declare the underlying pthread "out to
-lunch", and continue execution with the remaining pthreads.  Note that 
+will wait for a while, eventually declare that the underlying pthread is ``out to lunch,''
+and continue execution with the remaining pthreads.  Note that 
 JNI code is a GC safe point; non-malicious correct native code cannot
 perturb the Java heap without notifying the RVM through a JNI method
 invocation.  Note that this preemption mechanism is currently only
 implemented on AIX.\@
 
 On Linux/x86, Jikes RVM ``hijacks'' certain blocking system calls and
-reflects them back into the VM.\@ The VM then uses nonblocking
+reflects them back into the VM.\@  The VM then uses nonblocking
 equivalents. This handles many of the common cases of blocking native
 code without requiring the full complexity of the timer-based
-preemption mechanism used on AIX.\@ A complete solution would consist of
+preemption mechanism used on AIX.\@  A complete solution would consist of
 implementing both mechanisms on both platforms.  We hope to do this in
 the future.
 
