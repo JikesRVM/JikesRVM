@@ -44,28 +44,81 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    *  -the list of references passed to native code, for GC purpose
    *  -saved RVM system registers
    */
-  VM_Address JNIEnvAddress;      // contain a pointer to the JNIFunctions array
-  int savedTIreg;         // for saving thread index register on entry to native, to be restored on JNI call from native
-  VM_Processor savedPRreg; // for saving processor register on entry to native, to be restored on JNI call from native
-  boolean alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
+  private VM_Address JNIEnvAddress;      // contain a pointer to the JNIFunctions array
+  private int savedTIreg;         // for saving thread index register on entry to native, to be restored on JNI call from native
+  private VM_Processor savedPRreg; // for saving processor register on entry to native, to be restored on JNI call from native
+  private boolean alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
 
-  public int[] JNIRefs;          // references passed to native code
-  int   JNIRefsTop;       // -> address of current top ref in JNIRefs array 
-  int   JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
-  int   JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
-  public VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
+  private int[] JNIRefs;          // references passed to native code
+  private int   JNIRefsTop;       // -> address of current top ref in JNIRefs array 
+  private int   JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
+  private int   JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
+  private VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
 
-  Throwable pendingException = null;
+  private Throwable pendingException = null;
 
   // Saved context for thread attached to external pthread.  This context is
   // saved by the JNIService thread and points to the point in JNIStartUp thread
   // where it yields to the queue in the native VM_Processor.
   // When DetachCurrentThread is called, the JNIService thread restores this context 
   // to allow the thread to run VM_Thread.terminate on its original stack.
-  VM_Registers savedContextForTermination;
+  private VM_Registers savedContextForTermination;
 
   // temporarily use a fixed size array for JNI refs, later grow as needed
-  static final int JNIREFS_ARRAY_LENGTH = 100;
+  private static final int JNIREFS_ARRAY_LENGTH = 100;
+
+  // sometimes we put stuff onto the jnirefs array bypassing the code
+  // that makes sure that it does not overflow (evil assemble code in the
+  // jni stubs that would be painful to fix).  So, we keep some space 
+  // between the max value in JNIRefsMax and the actual size of the
+  // array.  How much is governed by this field.
+  private static final int JNIREFS_FUDGE_LENGTH = 50;
+
+  /*
+   * accessor methods
+   */
+  public boolean hasNativeStackFrame() throws VM_PragmaUninterruptible  {
+    return alwaysHasNativeFrame || JNIRefsTop != 0;
+  }
+
+  public VM_Address topJavaFP() throws VM_PragmaUninterruptible  {
+      return JNITopJavaFP;
+  }
+
+  public int[] refsArray() throws VM_PragmaUninterruptible {
+      return JNIRefs;
+  }
+
+  public int refsTop() throws VM_PragmaUninterruptible  {
+      return JNIRefsTop;
+  }
+   
+  public int savedRefsFP() throws VM_PragmaUninterruptible  {
+      return JNIRefsSavedFP;
+  }
+
+  public void setTopJavaFP(VM_Address topJavaFP) throws VM_PragmaUninterruptible  {
+      JNITopJavaFP = topJavaFP;
+  }
+
+  public void setSavedPRreg(VM_Processor vp) throws VM_PragmaUninterruptible  {
+      savedPRreg = vp;
+  }
+
+  public void setSavedTerminationContext(VM_Registers regs) throws VM_PragmaUninterruptible  {
+      savedContextForTermination = regs;
+  }
+
+  public VM_Registers savedTerminationContext() throws VM_PragmaUninterruptible  {
+      return savedContextForTermination;
+  }
+
+  public void setFromNative(VM_Address topJavaFP, VM_Processor nativeVP, int threadId) throws VM_PragmaUninterruptible  {
+      alwaysHasNativeFrame = true;
+      JNITopJavaFP = topJavaFP;
+      savedPRreg = nativeVP;
+      savedTIreg = threadId;
+  }
 
   public static void init() {
 
@@ -132,11 +185,11 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
-    JNIRefs = new int[JNIREFS_ARRAY_LENGTH];
+    JNIRefs = new int[JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH];
     JNIRefs[0] = 0;                       // 0 entry for bottom of stack
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIRefs.length - 1) * 4;   // byte offset to last entry
+    JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) * 4;   // byte offset to last entry
 
     // initially TOP and SavedFP -> entry 0 containing 0
 
@@ -149,12 +202,23 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   // Returned: offset of entry in JNIRefs stack
   // 
   public int pushJNIRef( Object ref ) {
-    if (ref == null) return 0;
-    if (VM.VerifyAssertions) VM._assert( VM_Interface.validRef( VM_Magic.objectAsAddress(ref) ) );
+    if (ref == null)
+	return 0;
+
+    if (VM.VerifyAssertions) 
+	VM._assert( VM_Interface.validRef( VM_Magic.objectAsAddress(ref) ) );
+
+    if (JNIRefsTop>>2 >= JNIRefs.length)
+	VM.sysFail("unchecked pushes exceeded fudge length!");
+
     JNIRefsTop += 4;
-    if (JNIRefsTop >> 2 >= JNIRefs.length) {
-	int[] newrefs = new int[ JNIRefs.length * 2 ];
-	for(int i = 0; i < JNIRefs.length; i++) newrefs[i] = JNIRefs[i];
+    if (JNIRefsTop >= JNIRefsMax) {
+	JNIRefsMax *= 2;
+	int[] newrefs = new int[ (JNIRefsMax>>2) + JNIREFS_FUDGE_LENGTH ];
+	for(int i = 0; i < JNIRefs.length; i++)
+	    newrefs[i] = JNIRefs[i];
+	for(int i = JNIRefs.length; i < newrefs.length; i++)
+	    newrefs[i] = 0;
 	JNIRefs = newrefs;
     }
     JNIRefs[ JNIRefsTop >> 2 ] = VM_Magic.objectAsAddress(ref).toInt();

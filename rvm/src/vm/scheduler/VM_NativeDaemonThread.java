@@ -76,7 +76,7 @@ class VM_NativeDaemonThread extends VM_Thread {
     // which will cause this (NativeIdleThread) thread to have its stack scanned
     // starting at this frame
     //
-    VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+    VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
     // remember status word index for executing processor. It will remain valid
     // even if GC moves the processor object
@@ -92,7 +92,7 @@ class VM_NativeDaemonThread extends VM_Thread {
       // which will cause this (NativeIdleThread) thread to have its stack scanned
       // starting at this frame, if it is in a sigwait syscall during a collection.
       //
-      VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+      VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
@@ -286,8 +286,9 @@ if (stuckEnv == null) {
       native_vp.dumpProcessorState();
 			VM.sysFail("quitting in switchpthread");
 }
-    stuckEnv.savedPRreg = native_vp;
-    VM_Address topJavaFP = stuckEnv.JNITopJavaFP;
+
+    stuckEnv.setSavedPRreg( native_vp );
+    VM_Address topJavaFP = stuckEnv.topJavaFP();
 //-#if RVM_FOR_IA32
     VM_Magic.setMemoryAddress(topJavaFP.add(VM_JNICompiler.JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#else 

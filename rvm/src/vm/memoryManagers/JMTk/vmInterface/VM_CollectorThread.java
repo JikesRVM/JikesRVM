@@ -257,7 +257,7 @@ public class VM_CollectorThread extends VM_Thread {
 	    //
 	    VM_Thread t = VM_Processor.nativeProcessors[i].activeThread;
 	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.JNITopJavaFP;
-	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.JNITopJavaFP );
+	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.topJavaFP() );
 	  }
         }
 
@@ -432,7 +432,7 @@ public class VM_CollectorThread extends VM_Thread {
 	  // set running threads context regs ip & fp to where scan of threads 
 	  // stack should start.
 	  VM_Thread at = vp.activeThread;
-	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.JNITopJavaFP );
+	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.topJavaFP() );
 	  break;
 	}
 	

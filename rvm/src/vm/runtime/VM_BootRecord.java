@@ -244,6 +244,9 @@ public class VM_BootRecord {
   public VM_Address sysRenameIP;
   public VM_Address sysMkDirIP;
   public VM_Address sysBytesAvailableIP;
+  public VM_Address sysIsValidFDIP;
+  public VM_Address sysLengthIP;
+  public VM_Address sysSetLengthIP;
   public VM_Address sysSyncFileIP;
   public VM_Address sysIsTTYIP;
   public VM_Address sysSetFdCloseOnExecIP;

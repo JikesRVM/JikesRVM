@@ -170,6 +170,12 @@ public abstract class StopTheWorldGC extends BasePlan
     processAllWork(); 
     if (designated) Statistics.scanTime.stop();
 
+    if (Options.noFinalizer) {
+
+	    if (designated) Finalizer.kill();
+    }
+    
+    else {
     if (designated) Statistics.finalizeTime.start();
     if (designated) Finalizer.moveToFinalizable(); 
     VM_CollectorThread.gcBarrier.rendezvous();
@@ -178,6 +184,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (designated) Statistics.scanTime.start();
     processAllWork();
     if (designated) Statistics.scanTime.stop();
+    }
 
     if (designated) Statistics.finishTime.start();
     release();

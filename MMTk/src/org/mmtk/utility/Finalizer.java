@@ -156,6 +156,11 @@ public class Finalizer implements VM_Uninterruptible {
   }
 
 
+  public final static void kill () {
+      candidateEnd = 0; 
+  }
+
+
   /**
    * Scan the array for objects which have become garbage
    * and move them to the Finalizable class

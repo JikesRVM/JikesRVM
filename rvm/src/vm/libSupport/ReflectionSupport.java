@@ -310,7 +310,9 @@ public class ReflectionSupport {
       try {
 	VM_Runtime.initializeClassForDynamicLink(cls);
       } catch (Throwable e) {
-	throw new InstantiationException();
+	InstantiationException ex = new InstantiationException();
+	ex.initCause( e );
+	throw ex;
       }
     }
 
@@ -799,8 +801,7 @@ public class ReflectionSupport {
     try {
       return VM_Reflection.invoke(method, receiver, args);
     } catch (Throwable e) {
-      e.printStackTrace( System.err );
-      throw new InvocationTargetException(e);
+	throw new InvocationTargetException(e);
     }
   }
 
@@ -1271,10 +1272,16 @@ public class ReflectionSupport {
       cons = getDeclaredConstructor(C, new Class[0]);
       return cons.newInstance(new Object[0]);
     } catch (java.lang.reflect.InvocationTargetException e) {
+      InstantiationException ex = new InstantiationException(e.getMessage());
+
       e.printStackTrace();
-      throw new InstantiationException(e.getMessage());
+
+      ex.initCause(e);
+      throw ex;
     } catch (NoSuchMethodException e) {
-      throw new IllegalAccessException(e.getMessage());
+      IllegalAccessException ex = new IllegalAccessException(e.getMessage());
+      ex.initCause(e);
+      throw ex;
     }
   }
 

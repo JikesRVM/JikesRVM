@@ -460,7 +460,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       ScanObject.rootScan(VM_Magic.objectAsAddress(th.stack));
       if (th.jniEnv != null) {
 	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv));
-	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv.JNIRefs));
+	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv.refsArray()));
       }
       ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters));
       ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
@@ -498,7 +498,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       // into the threads saved context regs, which is where the stack scan starts.
       //
       VM_Thread t = vp.activeThread;
-      t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.JNITopJavaFP);
+      t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
     }
   }
 

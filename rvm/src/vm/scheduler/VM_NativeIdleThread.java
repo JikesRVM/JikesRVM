@@ -97,7 +97,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
     // which will cause this (NativeIdleThread) thread to have its stack scanned
     // starting at this frame, if it is in a sigwait syscall during a collection.
     //
-    VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+    VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
     // Get the Native Processor this NativeIdleThread is running on. 
     // It will always

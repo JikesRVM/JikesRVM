@@ -432,6 +432,43 @@ sysBytesAvailable(int fd)
    return count;
    }
 
+extern "C" int
+sysIsValidFD(int fd)
+   {
+     int rc;
+     struct stat sb;
+
+     rc = fstat(fd, &sb);
+     if (rc == -1)
+       return -1;
+     else
+       return 0;
+   }
+
+extern "C" int
+sysLength(int fd)
+   {
+     int rc;
+     struct stat sb;
+
+     rc = fstat(fd, &sb);
+     if (rc == -1)
+       return -1;
+     else
+       return sb.st_size;
+   }
+
+extern "C" int
+sysSetLength(int fd, int len)
+   {
+     int rc = ftruncate(fd, len);
+     if (rc == -1)
+       return -1;
+     else
+       return 0;
+   }
+
+
 extern "C" int sysSyncFile(int fd) {
   if (fsync(fd) != 0) {
     // some kinds of files cannot be sync'ed, so don't print error message
@@ -2008,6 +2045,8 @@ sysSlibclean()
 // Network operations. //
 //---------------------//
 
+// #define DEBUG_NET
+
 #ifdef IBM_AIX
 // Work around header file differences: AIX 4.1 vs AIX 4.2 vs AIX 4.3
 //
@@ -2052,8 +2091,12 @@ sysNetLocalHostName(char *buf, int limit)
       }
 
    for (int i = 0; i < limit; ++i)
-      if (buf[i] == 0)
-         return i;
+     if (buf[i] == 0) {
+#ifdef DEBUG_NET
+       fprintf(SysErrorFile, "got hostname %s\n", buf);
+#endif
+       return i;
+     }
 
    return -1;
    }
@@ -2195,7 +2238,10 @@ sysNetSocketCreate(int isStream)
       return -1;
       }
 
-// fprintf(SysTraceFile, "sys: create socket %d\n", fd);
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: create socket %d\n", fd);
+#endif
+
    return fd;
    }
 
@@ -2220,7 +2266,11 @@ sysNetSocketPort(int fd)
       fprintf(SysErrorFile, "vm: getsockname on %d failed (errno=%d (%s))\n", fd, errno, strerror( errno ));
       return -1;
       }
-// fprintf(SysTraceFile, "sys: socket %d using port %d\n", fd, MANGLE16(info.sin_port));
+
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: socket %d using port %d\n", fd, MANGLE16(info.sin_port));
+#endif
+
    return MANGLE16(info.sin_port);
    }
    
@@ -2245,7 +2295,11 @@ sysNetSocketLocalAddress(int fd)
       fprintf(SysErrorFile, "vm: getsockname on %d failed (errno=%d (%s))\n", fd, errno, strerror( errno ));
       return -1;
       }
-// fprintf(SysTraceFile, "sys: socket %d using address %d\n", fd, MANGLE32(info.sin_addr.s_addr));
+
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: socket %d using address %d\n", fd, MANGLE32(info.sin_addr.s_addr));
+#endif
+
    return MANGLE32(info.sin_addr.s_addr);
    }
    
@@ -2270,7 +2324,11 @@ sysNetSocketFamily(int fd)
       fprintf(SysErrorFile, "vm: getsockname on %d failed (errno=%d (%s))\n", fd, errno, strerror( errno ));
       return -1;
       }
-// fprintf(SysTraceFile, "sys: socket %d using family %d\n", fd, info.sin_family);
+
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: socket %d using family %d\n", fd, info.sin_family);
+#endif
+
    return info.sin_family;
    }
    
@@ -2287,7 +2345,11 @@ sysNetSocketListen(int fd, int backlog)
       fprintf(SysErrorFile, "vm: socket listen on %d failed (errno=%d)\n", fd, errno);
       return -1;
       }
-// fprintf(SysTraceFile, "sys: listen on socket %d (backlog %d)\n", fd, backlog);
+
+#ifdef DEBUG_NET
+ fprintf(SysTraceFile, "sys: listen on socket %d (backlog %d)\n", fd, backlog);
+#endif
+
    return 0;
    }
 
@@ -2314,8 +2376,11 @@ sysNetSocketBind(int fd, int family, unsigned int localAddress, unsigned int loc
       fprintf(SysErrorFile, "vm: socket bind on %d for port %d failed (errno=%d, %s)\n", fd, localPort, errno, strerror( errno ));
       return -1;
       }
-   
-// fprintf(SysTraceFile, "sys: bind %d to %d.%d.%d.%d:%d\n", fd, (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, localPort & 0x0000ffff);
+
+#ifdef DEBUG_NET   
+   fprintf(SysTraceFile, "sys: bind %d to %d.%d.%d.%d:%d\n", fd, (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, localPort & 0x0000ffff);
+#endif
+
    return 0;
    }
 
@@ -2351,16 +2416,20 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
 	       continue;
 	   }
 
-	   else if (errno == EINPROGRESS || errno == EALREADY) {
-	     // fprintf(SysTraceFile, "sys: connect on %d failed: %s \n", fd, strerror( errno ));	       
-	       return -2;
+	   else if (errno == EINPROGRESS) {
+#ifdef DEBUG_NET
+	     fprintf(SysTraceFile, "sys: connect on %d failed: %s \n", fd, strerror( errno ));	       
+#endif
+	     return -2;
 	   }
 
 	   else if (errno == EISCONN) {
 	       // connection was "in progress" due to previous call.
 	       // This (retry) call has succeeded.
-	     // fprintf(SysTraceFile, "sys: connect on %d: %s\n", fd, strerror( errno ));
-	       goto ok;
+#ifdef DEBUG_NET
+	     fprintf(SysTraceFile, "sys: connect on %d: %s\n", fd, strerror( errno ));
+#endif
+	     goto ok;
 	   }
 
 	   else if (errno == ECONNREFUSED) {
@@ -2385,6 +2454,10 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
 	   fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", interruptsThisTime);
        }
 
+#ifdef DEBUG_NET
+       fprintf(SysTraceFile, "sys: connect %d to %d.%d.%d.%d:%d\n", fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, remotePort & 0x0000ffff);
+#endif
+       
        return 0;
    }
 }
@@ -2408,7 +2481,11 @@ sysNetSocketAccept(int fd, void *connectionObject) {
    #ifdef __linux__
    socklen_t len;
    #endif
-       
+   
+   #ifdef DEBUG_NET
+   fprintf(SysTraceFile, "accepting for socket %d, 0x%x\n", fd, connectionObject);
+   #endif
+
    len = sizeof(info);
    for (;;) {
        connectionFd = accept(fd, (sockaddr *)&info, &len);
@@ -2427,23 +2504,33 @@ sysNetSocketAccept(int fd, void *connectionObject) {
 	   }
 
 	   else if (errno == EAGAIN) {
-	       // fprintf(SysTraceFile, "sys: accept on %d would have blocked: needs retry\n", fd);
-	       return -2;
+#ifdef DEBUG_NET
+	     fprintf(SysTraceFile, "sys: accept on %d would have blocked: needs retry\n", fd);
+#endif
+	     return -2;
 	   }
 
 	   else {
-	       // fprintf(SysErrorFile, "vm: socket accept on %d failed (errno=%d, %s)\n", fd, errno, strerror( errno ));
-	       return -3;
+#ifdef DEBUG_NET
+	     fprintf(SysTraceFile, "vm: socket accept on %d failed (errno=%d, %s)\n", fd, errno, strerror( errno ));
+#endif
+	     return -3;
 	   }
        }
    }
+
+   #ifdef DEBUG_NET
+   fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n", connectionFd, fd, connectionObject);
+   #endif
 
    int remoteFamily  = info.sin_family;
    int remoteAddress = MANGLE32(info.sin_addr.s_addr);
    int remotePort    = MANGLE16(info.sin_port);
 
+#ifdef DEBUG_NET
    fprintf(SysTraceFile, "sys: %d accept %d from %d.%d.%d.%d:%d\n", fd, connectionFd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, remotePort & 0x0000ffff);
-   
+#endif
+
    void *addressObject = *(void **)((char *)connectionObject + java_net_SocketImpl_address_offset);
    int  *familyField   =  (int   *)((char *)addressObject    + java_net_InetAddress_family_offset);
    int  *addressField  =  (int   *)((char *)addressObject    + java_net_InetAddress_address_offset);
@@ -2476,7 +2563,9 @@ extern "C" int
 sysNetSocketLinger(int fd, int enable, int timeout)
    {
 
-// fprintf(SysTraceFile, "sys: linger socket=%d enable=%d timeout=%d\n", fd, enable, timeout);
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: linger socket=%d enable=%d timeout=%d\n", fd, enable, timeout);
+#endif
 
    linger info;
    info.l_onoff  = enable;
@@ -2500,10 +2589,14 @@ sysNetSocketNoDelay(int fd, int enable)
    {
    int value = enable;
 
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: nodelay socket=%d value=%d\n", fd, value);
+#endif
 
-// fprintf(SysTraceFile, "sys: nodelay socket=%d value=%d\n", fd, value);
    int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
-   if (rc == -1) fprintf(SysErrorFile, "vm: TCP_NODELAY on %d failed (errno=%d)\n", fd, errno);
+   if (rc == -1)
+     fprintf(SysErrorFile, "vm: TCP_NODELAY on %d failed (%s, errno=%d)\n", fd, strerror(errno), errno);
+
    return rc;
    }
 
@@ -2520,13 +2613,17 @@ sysNetSocketNoBlock(int fd, int enable)
    {
    int value = enable;
 
-// fprintf(SysTraceFile, "sys: noblock socket=%d value=%d\n", fd, value);
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: noblock socket=%d value=%d\n", fd, value);
+#endif
+
    int rc = ioctl(fd, FIONBIO, &value);
    if (rc == -1)
       {
-      fprintf(SysErrorFile, "vm: FIONBIO on %d failed (errno=%d)\n", fd, errno);
+      fprintf(SysErrorFile, "vm: FIONBIO on %d failed (%s, errno=%d)\n", fd, strerror(errno), errno);
       return -1;
       }
+
    return 0;
    }
 
@@ -2539,7 +2636,9 @@ sysNetSocketNoBlock(int fd, int enable)
 extern "C" int
 sysNetSocketClose(int fd)
    {
-// fprintf(SysTraceFile, "sys: close socket=%d\n", fd);
+#ifdef DEBUG_NET
+   fprintf(SysTraceFile, "sys: close socket=%d\n", fd);
+#endif
 
    // shutdown (disable sends and receives on) socket then close it
 
@@ -2570,6 +2669,12 @@ sysNetSocketClose(int fd)
 //   0 if success, -1 on error
 extern "C" int sysNetSocketShutdown(int fd, int how)
 {
+#ifdef DEBUG_NET
+  fprintf(SysTraceFile, "sys: shutdown socket %d for %s\n",
+	  fd,
+	  (how==0)? "input": "output");
+#endif
+
   return shutdown(fd, how);
 }
 

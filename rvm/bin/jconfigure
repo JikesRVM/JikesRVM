@@ -296,10 +296,13 @@ integer RVM_WITH_NO_GC=0
 integer RVM_WITH_BOOT_HEAP_ONLY=0
 integer RVM_WITH_HPM=0
 
-# Use the GNU CLASSPATH library?
+# GNU CLASSPATH library configuration
 #
 integer RVM_WITH_GNU_CLASSPATH=1
 export RVM_WITH_GNU_CLASSPATH
+
+integer RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
+export RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH
 
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
@@ -1568,6 +1571,9 @@ function emitImageLinker
    print "   print 'Ljava/io/InputStream;'       >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/FileInputStream;'   >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/FileDescriptor;'    >> $PRIMORDIAL_CLASSES_STR"
+   if (( RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH )); then
+     print "   print 'Ljava/io/VMFileDescriptor;'>> $PRIMORDIAL_CLASSES_STR"
+   fi
 
    # class loading from zip files
    #

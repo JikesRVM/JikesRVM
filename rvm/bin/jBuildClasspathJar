@@ -10,6 +10,15 @@
 ## constants
 ##
 TOP_LEVEL_PACKAGES="java javax gnu"
+CVS_SPIN_ATTEMPTS=5
+CVS_SLEEP_ATTEMPTS=5
+
+##
+## read local config
+##
+
+. $RVM_HOST_CONFIG
+
 
 ##
 ## defaults
@@ -112,9 +121,27 @@ if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     cd $DEST_DIR
 
     if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
-      $CVS -Q -d $CLASSPATH_CVS_ROOT co classpath
+      CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co classpath"
     else
-      $CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath
+      CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath"
+
+      # ugh.  we sometimes have trouble with subversions.gnu.org, so we
+      # retry a few times.
+      done=false
+      sleep=0
+      while test $sleep -lt $CVS_SLEEP_ATTEMPTS -a $done == "false"; do
+	  spin=0
+	  while test $spin -lt $CVS_SPIN_ATTEMPTS -a $done == "false"; do
+	      if $CVS_CMD; then
+		  done="true"
+              fi
+
+	      spin=`expr $spin + 1`
+          done
+
+          sleep=`expr $sleep + 1`
+      done
+
       cp $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp
     fi 
   else

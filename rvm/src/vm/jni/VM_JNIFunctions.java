@@ -357,6 +357,9 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     try {
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
       env.deleteJNIRef(objJREF);
+    } catch (ArrayIndexOutOfBoundsException e) {
+	VM.sysWrite("JNI refs array confused.  Fatal Error!");
+	VM.sysExit( -1 );
     } catch (Throwable whatever) {
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(whatever);
@@ -4145,7 +4148,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   private static void CallStaticVoidMethodV(int envJREF, int classJREF, int methodID, VM_Address argAddress) 
     throws Exception {
       if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodV  \n");
-
 
       VM_JNIEnvironment env;
       try {

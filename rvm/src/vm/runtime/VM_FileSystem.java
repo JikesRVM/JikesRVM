@@ -302,15 +302,33 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     if (!blockingReadHack(fd))
       return -2;
 
+    int read = 0;
     for (;;) {
       int rc = VM.sysCall3(bootRecord.sysReadBytesIP, fd,
                          VM_Magic.objectAsAddress(buf).add(off).toInt(), cnt);
 
-      if (rc >= 0)
-	// Read succeeded, or EOF was reached
-	return rc;
+      if (rc == 0) {
+	  // EOF
+	  return read;
+      } else if (rc > 0) {
+	  // Read succeeded, perhaps partially
+	  read += rc;
+	  off += rc;
+	  cnt -= rc;
+	  if (cnt == 0)
+	      return read;
+	  else 
+	      // did not get everything, let's try again
+	      continue;
+      }
       else if (rc == -1) {
-	// Read would have blocked: put thread on IO wait queue
+	// last read would have blocked
+
+	// perhaps we have read some stuff already, if so, return just that
+	if (read != 0)
+	    return read;
+
+	// Put thread on IO wait queue
 	if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
 	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
 
@@ -546,6 +564,21 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   public static int bytesAvailable(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall1(bootRecord.sysBytesAvailableIP, fd);
+  }	   
+
+  public static boolean isValidFD(int fd) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    return VM.sysCall1(bootRecord.sysIsValidFDIP, fd) == 0;
+  }	   
+
+  public static int length(int fd) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    return VM.sysCall1(bootRecord.sysLengthIP, fd);
+  }	   
+
+  public static int setLength(int fd, int len) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    return VM.sysCall2(bootRecord.sysSetLengthIP, fd, len);
   }	   
 
   /**

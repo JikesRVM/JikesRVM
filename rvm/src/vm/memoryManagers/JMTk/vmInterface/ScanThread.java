@@ -95,7 +95,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
 	  VM._assert(t.jniEnv == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
-	  VM._assert(t.jniEnv == null || t.jniEnv.JNIRefs == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.JNIRefs)));
+	  VM._assert(t.jniEnv == null || t.jniEnv.refsArray() == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.refsArray())));
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
 	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));

@@ -28,8 +28,14 @@ public class Options implements VM_Uninterruptible, Constants {
   static int stressTest       = MAX_INT;  // default to never
   public static boolean ignoreSystemGC = false;
 
+  static boolean noFinalizer = false;
+
   public static void process (String arg) throws VM_PragmaInterruptible {
-    if (arg.equals("ignoreSystemGC")) {
+    if (arg.startsWith("noFinalizer")) {
+	VM.sysWriteln("NO MORE FINALIZER!");
+	noFinalizer = true;
+    }
+    else if (arg.equals("ignoreSystemGC")) {
       ignoreSystemGC = true;
     }
     else if (arg.startsWith("initial=")) {

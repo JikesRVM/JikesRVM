@@ -93,10 +93,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    *        true afterward
    */
   public final boolean hasNativeStackFrame() {
-    if (jniEnv!=null)
-      if (jniEnv.alwaysHasNativeFrame || jniEnv.JNIRefsTop!=0)
-        return true;
-    return false;
+      return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
 
   public String toString() throws VM_PragmaInterruptible {

@@ -142,7 +142,7 @@ class JNIServiceThread extends VM_Thread   {
 
 	// restore the original Java context and stack to run the termination code
 	// (discard the current context since this thread is exiting)
-	attachedThread.contextRegisters = attachedThread.getJNIEnv().savedContextForTermination;
+	attachedThread.contextRegisters = attachedThread.getJNIEnv().savedTerminationContext();
 
 	// // First adjust the context of the Java thread to resume execution on this stack
 	// // point the FP register into the old stack frame
