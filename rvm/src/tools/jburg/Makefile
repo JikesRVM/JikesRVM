@@ -48,13 +48,17 @@ jburg:	jburg.o gram.o
 ## into y.tab.c, so that we do not face the same problem..
 
 gram.c: gram.y
+ifdef BISON
+	$(BISON) --output=$@ $<
+else
 	$(YACC) $<
 	$(RM) $@
 	sed -e 's/"y\.tab\.c"/"gram.c"/' y.tab.c > $@
 	$(RM) y.tab.c
 	chmod -w $@
+endif
 
 clean:
-	$(RM) gram.c *.o jburg OPT_BURS_*.java BURS_State.template
+	$(RM) gram.c *.o jburg OPT_BURS_*.java BURS_State.template y.tab.c
 
 .PHONY:	tool clean
