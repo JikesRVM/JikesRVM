@@ -808,14 +808,6 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int MFSPRtemplate = 31<<26 | 339<<1;
-
-  final void emitMFSPR (int RT, int SPR) {
-    int mi = MFSPRtemplate | RT<<21 | SPR<<16;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
   public final void emitMTLR (int RS) {
