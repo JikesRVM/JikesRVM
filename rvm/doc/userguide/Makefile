@@ -34,6 +34,8 @@ ifneq (${RVM_HOST_CONFIG},)
 endif
 
 
+.DELETE_ON_ERROR:  # Clean up.
+
 GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
