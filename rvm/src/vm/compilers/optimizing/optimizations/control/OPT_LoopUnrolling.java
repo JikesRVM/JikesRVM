@@ -113,7 +113,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       OPT_BasicBlock b = loopBlocks.next();
       blocks++;
       // check infrequency
-      if (b.getInfrequent()) {
+      if (false && b.getInfrequent()) {
         report("no unrolling in infrequent code\n"); return false;
       }
       
@@ -500,6 +500,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     tmp.insertBefore
     (Goto.create (GOTO, succBlock.makeJumpTarget()));
 
+    mainHeader.prependInstruction (Empty.create (YIELDPOINT_BACKEDGE));
+    
     // recompute normal outs
     guardBlock0.recomputeNormalOut(ir);
     guardBlock1.recomputeNormalOut(ir);
@@ -556,7 +558,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       for (int k = 0;  k < body.length;  ++k) {
 	seqLast = copyAndLinkBlock (ir, seqLast, body[k]);
 	if (body[k] == t.header) {
-	  OPT_CFGTransformations.removeYieldPoint(seqLast);
 	  if (firstHeaderCopy == null) {
 	    firstHeaderCopy = seqLast;
 	  }
@@ -812,6 +813,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_BasicBlock copy = block.copyWithoutLinks(ir);
     ir.cfg.linkInCodeOrder (seqLast, copy);
     block.scratchObject = copy;
+    OPT_CFGTransformations.removeYieldPoint(copy);
     return copy;
   }
   
