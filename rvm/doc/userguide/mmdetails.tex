@@ -1,5 +1,5 @@
 This section provides additional information on the implementation
-of the memory management component of RVM runtime system.
+of the memory management component of Jikes\trademark RVM runtime system.
  
 \subsection{Directory Structure} \label{sssec:directories}
 The classes related to memory management are contained in the 
@@ -21,13 +21,13 @@ a non-generational mark-sweep collector (in {\tt markSweep}),
 and a generational hybrid collector in which the nursery is managed by copying collection
 and the older generation is managed by mark-sweep collection (in {\tt hybrid}).
 
-Each RVM configuration specifies a memory management strategy, 
+Each Jikes RVM configuration specifies a memory management strategy, 
 and the  {\tt jconfigure}   command will include in the build all the
 common classes in the {\tt memoryManagers/watson} directory and 
 all the classes in the sub-directory comprising the specified memory management strategy.
 
 \subsection{Choosing a Garbage Collector} \label{ssec:choosinggc}
-Depending on your purposes, you may choose to build RVM with a
+Depending on your purposes, you may choose to build Jikes RVM with a
 semispace copying, mark-sweep noncopying, or hybrid collector.  For
 programs that do not perform many collections, the copying collector
 will most likely perform best, since object allocation path lengths
@@ -66,7 +66,7 @@ and modify it, choosing one that has similar properties, such as copying or
 non-copying.  If you want to start from scratch, use {\tt VM\_Allocator.java} in noGC.
 This file provides simple implementations of the required object allocation
 methods, and stubs for the other fields and methods expected by the rest
-of the RVM runtime (not all will be needed in any one implementation).
+of the Jikes RVM runtime (not all will be needed in any one implementation).
 A single class {\tt VM\_Allocator} implements both
 the methods that perform object allocation and the methods that perform
 garbage collections.
@@ -96,7 +96,7 @@ processors, better load balancing has been observed with smaller buffer sizes ({
 \index{object header}
 Jikes RVM provides a class {\tt VM\_WriteBarrier} to support generational garbage collection.
 When the static final field {\tt VM\_Allocator.writeBarrier} is true,
-the RVM compilers will generate write barriers by calling or inlining the methods in
+the Jikes RVM compilers will generate write barriers by calling or inlining the methods in
 {\tt VM\_WriteBarrier}.
 
 Currently, the generational collectors are the only ones requiring a write barrier
@@ -111,7 +111,7 @@ Otherwise, the object has already been added to some write buffer and no action 
 It is important for a garbage collector to set the barrier bits so that
 subsequent stores into the object will not be lost.
 
-The RVM generational collectors treat all objects which survive one garbage collection as old
+The Jikes RVM generational collectors treat all objects which survive one garbage collection as old
 and performs {\it en masse} promotion.  Thus, they do not need to maintain ``remembered sets''
 of old objects to record intergenerational references between collections.
 
@@ -138,7 +138,7 @@ rendezvous.  During the initial rendezvous, one of the collector threads detects
 processors whose executing thread is blocked in native code, and makes
 these processors ``non-participating'' for that collection.
 Collection begins when all ``participating'' collector threads
-have arrived at the initial rendezvous.  At all but the the first rendezvous,
+have arrived at the initial rendezvous.  At all but the first rendezvous,
 it is known how many processors are expected to arrive at the barrier.
 Collection proper begins when the participating collector threads
 call the {\tt collect} method of {\tt VM\_Allocator}.  They execute
@@ -156,7 +156,7 @@ it will be necessary to modify or extend the {\tt VM\_Handshake} and {\tt VM\_Co
 \index{VM\_Allocator class}
 When the ''{\tt -verbose:gc}'' command line argument is specified, the time
 spent in each collection will be written out after each collection.
-In addition, summary statistics are generated when RVM exits.  These include
+In addition, summary statistics are generated when VM exits.  These include
 the number of collections, and the average and maximum collection times.
 For generational collectors, the times are grouped by minor and major collections.
 Some collectors provide additional information.  For example,
@@ -169,7 +169,7 @@ At verbosity level 2, the collector will show the time spent in each
 of the phases of garbage collection, such as stopping mutators,
 finding roots, marking reachable objects, and finalization.  For each
 phase the time is shown at the end of each collection and the summary
-statistics shown when the RVM exits.  Since the cost of timing phases
+statistics shown when the VM exits.  Since the cost of timing phases
 is minimal, it is always performed.
 
 Compile-time flags can be set to cause additional information, at additional
@@ -184,7 +184,7 @@ the collector will measure the time each collector thread
 spends waiting during a collection.  This includes time waiting for buffers while
 processing the work queue, and time waiting in rendezvous between phases of the
 collection process. Turning on this flag will cause
-the summary statistics, with average wait times, to be generated when RVM exits.  
+the summary statistics, with average wait times, to be generated when VM exits.  
 If ``{\tt -verbose:gc}'' is specified the output is generated after each collection.
 % will cause necessary flags in {\tt VM\_Allocator} and {\tt VM\_GCWorkQueue} to be set.
 

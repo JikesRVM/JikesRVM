@@ -1,11 +1,14 @@
 This section provides some information on various
-implementation details for the Jikes RVM runtime system.
+implementation details for the Jikes\trademark RVM runtime system.
+
+\JikesTMFooter
 
 \subsection{Object Model} \label{sssec:objects}
 \index{object model}
 An {\em object model} dictates how to represent objects in storage;
 the best object model will maximize efficiency of frequent language
-operations while minimizing storage overhead. Jikes RVM's object model
+operations while minimizing storage overhead. Jikes\trademark RVM's
+object model 
 is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
 
 \paragraph{Overview}
@@ -17,7 +20,7 @@ Objects are logically composed of two primary sections: an object
 header (described in more detail below) and the object's instance
 fields (or array elements). 
 
-The RVM object model is governed by the following criteria:
+The Jikes RVM object model is governed by the following criteria:
 \begin{description}
 \item{}
 instance field and array accesses should be as fast as possible,
@@ -47,7 +50,7 @@ scaled index addressing.
 \index{NullPointerException}
 The Java programming language requires that an attempt to access an
 object through a {\tt null} 
-object reference generate a NullPointerException.  In the RVM, references
+object reference generate a NullPointerException.  In the Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
 The AIX\AIXTMFootnote operating system permits loads from low memory,
 but accesses 
@@ -125,6 +128,8 @@ oneWordIndexTIB} to work with any of the Jikes RVM memory managers.
 
 \JavaTMFooter
 
+\JikesTMFooter
+
 \subsection{Methods and Fields}\label{sssec:methods}
 \index{methods}
 \index{JTOC}
@@ -145,21 +150,21 @@ methods.
 \hbox{\psfig{file=jtoc.ps,height=3.5in}}
 }\hfil
 \end{gif}
-\caption{The RVM Table Of Contents and other objects.}
+\caption{The Jikes RVM Table Of Contents and other objects.}
 \label{fig:jtoc}
 \end{figure}
 \index{literals}
 \index{constants}
 \index{dynamic type checking}
-All of RVM's global data structures are stored in the JTOC. 
+All of Jikes\trademark RVM's global data structures are stored in the JTOC. 
 Literals, numeric
 constants and references to String constants, are also stored there.
 The JTOC also
 contains references to the TIB for each class in the system.  
 Since these 
 structures can have many types and the JTOC is declared to be an array of 
-{\tt int}s  
-RVM uses a descriptor array, co-indexed with the JTOC, 
+{\tt int}s,  
+Jikes RVM uses a descriptor array, co-indexed with the JTOC, 
 to identify the entries containing references.
 The JTOC
 is depicted in figure~\ref{fig:jtoc}.  
@@ -168,7 +173,7 @@ is depicted in figure~\ref{fig:jtoc}.
 \index{virtual methods}
 A TIB contains pointers to the compiled method 
 bodies (executable code) for the virtual methods of its class. 
-Thus, the TIB serves as RVM's virtual method table.
+Thus, the TIB serves as Jikes RVM's virtual method table.
 A virtual method dispatch entails loading the TIB pointer from 
 the object reference, loading the address of the method
 body at a given offset off the TIB pointer, and making an indirect
@@ -218,6 +223,8 @@ hidden parameter to dispatch to the desired interface method.
 For more details, see
 \xlink{{\tt VM\_InterfaceInvocation.java}}{\VMInterfaceInvocationURL}.
 
+\JikesTMFooter
+
 \subsection{VM Conventions}
 
 %% footnotes not allowed in section headings, so we specialize
@@ -229,10 +236,10 @@ For more details, see
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that apply to 
-RVM on PowerPC\PowerPCTMFootnote.
+Jikes RVM on PowerPC\PowerPCTMFootnote.
 
 Stackframe layout and calling conventions may evolve as our understanding
-of the RVM's performance improves.  Where possible API's should be used
+of the Jikes RVM's performance improves.  Where possible API's should be used
 to protect code against such changes.  In particular, we may move to
 the AIX conventions at a later date.  Where code differs from the AIX
 conventions, it should be marked with a comment to that effect containing
@@ -364,7 +371,7 @@ The layout of the stackframe appears in a block comment in
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that
-apply to RVM on Linux/IA32.  {\em Linux/IA32 conventions are still
+apply to Jikes RVM on Linux/IA32.  {\em Linux/IA32 conventions are still
 changing; be sure to check the relevant files for the most accurate
 information!}
 
@@ -431,14 +438,13 @@ The first two areas of the callee's stackframe (see above) have been
 
 \JavaTMFooter
 
-\AIXTMFooter
-
-\PowerPCTMFooter
+\AIXPPCTMFooter
 
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
-RVM implements the Java\trademark programming language's dynamic class
+Jikes\trademark RVM implements the Java\trademark programming
+language's dynamic class 
 loading. While a class is being loaded it 
 can be in one of five states. These are
 \begin{description}
@@ -501,6 +507,8 @@ In this state the superclass has been initialized. The class initializer has
 been run. 
 
 \JavaTMFooter
+
+\JikesTMFooter
 
 \subsection{Thread System}\label{sec:threads}
 

@@ -1,6 +1,8 @@
 This section provides information on ``magic'' which is an escape
-hatch that RVM provide in order to implement functionality that is not
-possible in pure Java\trademark.  For example, the RVM garbage collectors and
+hatch that Jikes\trademark RVM provides to implement
+functionality that is not 
+possible in pure Java\trademark.  For example, the Jikes RVM garbage
+collectors and 
 runtime system must, on occasion, access memory or perform unsafe
 casts.  Users are {\it strongly} discourage from using magic in their code
 except where absolutely necessary.  
@@ -10,6 +12,8 @@ section.  The first is a collection of magical methods
 that are static methods of the class {\tt VM\_Magic}.  The second is the magical class
 {\tt VM\_Address} used in parts of the runtime and garbage collector.
 
+\JikesTMFooter
+
 \subsection{VM\_Magic}
 \index{magic methods}
 \index{VM\_Magic}
@@ -18,7 +22,8 @@ Certain methods in the class \xlink{{\tt VM\_Magic}}{\VMMagicURL}
 are treated differently by the compiler. Because these methods access
 raw memory or other machine state, perform unsafe casts, 
 or are operating system calls, they cannot be implemented in Java
-code.  An RVM implementor must be {\em extremely careful} when writing
+code.  A Jikes\trademark RVM implementor must be {\em extremely
+careful} when writing 
 code that uses {\tt VM\_Magic} to circumvent the Java type
 system.  The use of {\tt VM\_Magic.objectAsAddress} to perform various
 forms of pointer arithmetic is especially hazardous, since it can
@@ -41,6 +46,8 @@ compiler always uses the set of instructions that generate HIR; the
 instructions that generate assembly code are only invoked by the
 baseline compiler.}.  Whenever the compiler encounters a call to one of these
 magic methods, it inlines appropriate code for the magic method into the caller method.
+
+\JikesTMFooter
 
 \subsection{VM\_Address}
 \index{VM\_Address}

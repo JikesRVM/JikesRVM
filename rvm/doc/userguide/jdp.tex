@@ -1,4 +1,5 @@
-This section provides information regarding {\tt jdp}, the RVM
+This section provides information regarding {\tt jdp}, the
+Jikes\trademark RVM
 debugger.
 \index{debugging}
 \index{jdp}
@@ -6,12 +7,12 @@ debugger.
 \subsection{About {\tt jdp}}
 
 \index{Remote Reflection}
-{\tt jdp}, the RVM Debugger Primitive, is a low-level symbolic debugger 
-developed to support the
+{\tt jdp}, the Jikes RVM Debugger Primitive, is a low-level symbolic debugger 
+developed to support the Jikes
 RVM effort.  Because no existing debugger satisfactorily meets the
-needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
+needs of our VM, {\tt jdp} was written essentially from scratch, hence the
 name primitive.  {\tt jdp} uses a technique called Remote
-Reflection (see the related paper on the RVM 
+Reflection (see the related paper on the Jikes RVM 
 \xlink{web page}{\RVMPubsURL}).  This
 allows {\tt jdp} to run out-of-process, yet it uses reflection extensively to
 access the internal data structures as if it resides inside the RVM.
@@ -22,12 +23,13 @@ uses the
 AIXTMFootnote {\tt ptrace} interface and the standard Unix process
 support (fork, wait, ...).  
 Since {\tt jdp} and
-the RVM being debugged are two separate processes, an interpreter is
-used to connect {\tt jdp} with the RVM:  it maps the access bytecodes in the
-reflection methods to obtain the internal values in the RVM.
+the Jikes RVM being debugged are two separate processes, an interpreter is
+used to connect {\tt jdp} with the Jikes RVM:  it maps the access
+bytecodes in the 
+reflection methods to obtain the internal values in the VM.
   
 {\tt jdp} is not intended to be a general purpose debugger; it is 
-customized for RVM but is easily extendable.  
+customized for Jikes RVM, but is easily extendable.  
 
 Because the optimizing compiler does not currently provide all of
 the mapping support required, {\tt jdp} functionality is limited in
@@ -46,12 +48,12 @@ free to contribute.
 \subsection{Getting started}
 
   You can use {\tt jdp} in one of three modes: debugging the boot image only, 
-general debugging, and debugging a RVM that is already running:
+general debugging, and debugging a Jikes RVM that is already running:
 
 \begin{enumerate}
 \item Use the boot image only mode if you are only debugging code
 in the boot image since this is faster and the debugger is more stable
-(even when the RVM becomes corrupted):
+(even when the VM becomes corrupted):
 \begin{verbatim}
 jdp -jdpbootonly myProgram myArguments
 \end{verbatim}
@@ -65,12 +67,12 @@ dynamically loaded:
 jdp myProgram myArguments
 \end{verbatim}
    This mode is slower because there are two levels of interpretation
-and the debugger can get lost if the dictionaries in the RVM become 
+and the debugger can get lost if the dictionaries in the Jikes RVM become 
 corrupted.
 
 
-\item If the RVM is already running and appears to be hung, you can attach 
-{\tt jdp} to this RVM by:
+\item If the VM is already running and appears to be hung, you can attach 
+{\tt jdp} to this VM by:
 \begin{verbatim}
 jdp -jdpattach<processID>
 \end{verbatim}
@@ -79,8 +81,8 @@ jdp -jdpattach<processID>
    "{\tt -jdpattach}".  The effect is that the debugger is faster and more
    stable, but it will only show methods in the boot image.
 
-\item If there is an error in the RVM initialization, you can start debugging
- at a point where the boot image has been loaded but the RVM has not begun
+\item If there is an error in the VM initialization, you can start debugging
+ at a point where the boot image has been loaded but the VM has not begun
  executing yet. Specify the option:
 \begin{verbatim}
 jdp -jdpviewboot
@@ -103,7 +105,7 @@ debugger in the appropriate mode.
 The debugger requires the following files:
 
 \begin{enumerate}
-\item The RVM boot image:
+\item The VM boot image:
    This file is typically {\tt \$RVM\_BUILD/RVM.image} but it could
    have other names with the {\tt .image extension}.  You can specify a
    different boot image name.
@@ -139,7 +141,7 @@ The debugger requires the following files:
 \item   Default value:  {\tt \$RVM\_BUILD/RVM.primordials}
 \end{itemize}
 
-\item The program to load and run the RVM boot image:
+\item The program to load and run the Jikes RVM boot image:
    This file is typically {\tt \$RVM\_BUILD/JikesRVM}.
    Normally you don't have to be concerned about this file since it rarely
    changes.
@@ -154,15 +156,15 @@ In addition to these files, the following setting can be made:
 \begin{enumerate}
 \index{breakpoints}
 \item Initial breakpoint:  
-   This is where the RVM will stop first.  By default, {\tt jdp} stops
+   This is where the Jikes RVM will stop first.  By default, {\tt jdp} stops
    after the prologue of the user's main method.  However, this point
-   comes after the RVM has executed for a significant amount of time.
-   If there is an error in the initialization of the RVM, {\tt jdp} can stop
-   before the RVM begins execution by specifying the argument {\tt -jdpviewboot}.
+   comes after the VM has executed for a significant amount of time.
+   If there is an error in the initialization of the VM, {\tt jdp} can stop
+   before the VM begins execution by specifying the argument {\tt -jdpviewboot}.
    In this case, {\tt jdp} sets the initial breakpoint at a point after the
    first 4 instructions in the assembler procedure .bootThread in:
         {\tt \$RVM\_ROOT/rvm/src/tools/bootImageRunner/bootThread.c}.
-   This is after the RVM boot image has been loaded into memory and
+   This is after the Jikes RVM boot image has been loaded into memory and
    the 4 registers jtoc, proc, thread index and FP have been initialized.
    At this point, only one thread is running and the stack has only 
    one frame pointing to the booting C code.
@@ -172,7 +174,7 @@ In addition to these files, the following setting can be made:
 \end{itemize}
 
 \item Process ID:
-   This is used for attaching {\tt jdp} to a currently running RVM.  After 
+   This is used for attaching {\tt jdp} to a currently running Jikes RVM.  After 
    initializing itself, {\tt jdp} will send an interrupt to the running process 
    to gain control.  The process ID is from the "{\tt ps}" command in AIX\AIXTMFootnote.
 \begin{itemize}
@@ -358,7 +360,7 @@ This should be convenient for:
 
 
 \item Getting to low level string:
-  Strings are stored as {\tt VM\_Atom}s in the RVM.     
+  Strings are stored as {\tt VM\_Atom}s in the Jikes RVM.     
   To print the string as character, print the memory at the address of
   the field {\tt VM\_Atom.val}:
 
@@ -380,7 +382,7 @@ This should be convenient for:
 
 \item Restarting your program:
   If your program runs to completion and you want to re-execute it,
-  type "run" in {\tt jdp}.  A new RVM will be loaded and started in a new
+  type "run" in {\tt jdp}.  A new Jikes RVM will be loaded and started in a new
   process.  The existing breakpoints will be saved and set again 
   when the boot image has been loaded.
 
@@ -409,11 +411,11 @@ This should be convenient for:
   The format preference can be changed back by specifying x, d or f
   as appropriate.
 
-\item Interrupting a hung RVM:  If the RVM is running under the debugger
+\item Interrupting a hung Jikes RVM:  If the VM is running under the debugger
   and appears to be hung, you can interrupt it by going to a different
-  window and killing the RVM process.  This will send a signal to the
-  RVM process and {\tt jdp} will catch the signal before it gets to
-  the RVM process.  Hitting control-c in the jdp window will kill 
+  window and killing the VM process.  This will send a signal to the
+  VM process and {\tt jdp} will catch the signal before it gets to
+  the VM process.  Hitting control-c in the jdp window will kill 
   {\tt jdp} itself.
 
 
@@ -423,7 +425,7 @@ This should be convenient for:
   displays the C procedure names in the stack traceback and stepping by 
   machine code is possible.  You can also view the raw C stack frame and 
 id  its registers, but native variables and line numbers are not available.
-  For C program that creates the RVM via the JNI\_CreateJavaVM call, 
+  For the C program that creates the Jikes RVM via the JNI\_CreateJavaVM call, 
   {\tt jdp} can be used by specifying the initial breakpoint (see the 
   {\tt jdp} script).
 
@@ -436,8 +438,8 @@ id  its registers, but native variables and line numbers are not available.
 \begin{itemize}
 \item [{\tt "CAUTION, address not accessible: 0x80620420"}]
         This means that {\tt jdp} got an error when it reads an address
-        in the RVM space.  This may have occurred because {\tt jdp} is 
-        dereferencing an object from a bad address, or the RVM has
+        in the VM space.  This may have occurred because {\tt jdp} is 
+        dereferencing an object from a bad address, or the VM has
         become corrupted.  This message does not mean that {\tt jdp}
         has crashed; you should be able to continue debugging.
 

@@ -1,9 +1,12 @@
 This section contains information on how an adaptive configuration of
-RVM can be used to profile an application and the VM.  The first
+Jikes\trademark RVM can be used to profile an application and the VM.
+The first 
 mechanism provides a coarse-grain profile, giving the percentage of
 execution time spent in the hottest methods.  The second method
 provides a mechanism to insert counters to count the frequency of 
 specific events. 
+
+\JikesTMFooter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Profiling An Application}
@@ -25,7 +28,7 @@ Here's how.
 \end{verbatim}
 
 \item Run the application using the opt compiler as the runtime compiler and
-instructing RVM to gather profile data.
+instructing Jikes RVM to gather profile data.
 \begin{verbatim}
 % rvm -X:aos:primary_strategy=optonly -X:aos:gather_profile_data=true <classfile>
 \end{verbatim}
@@ -34,7 +37,8 @@ instructing RVM to gather profile data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Instrumented Event Counters}
 \label{counting_events}
-This section describes how the RVM optimizing compiler can be used to
+This section describes how the Jikes\trademark RVM optimizing compiler
+can be used to 
 insert counters in the optimized code to count the frequency of
 specific events.  Infrastructure for counting events is in place that
 hides many of the implementation details of the counters, so that
@@ -48,6 +52,9 @@ adaptive/recompilation/instrumentation}.
 Section~\ref{existing_phases} describes existing instrumentation
 phases and how to run them, and Section~\ref{adding_phases}
 describes the details of how a new phase can be added.
+
+\JikesTMFooter
+
 \subsubsection{Existing instrumentation phases}
 \label{existing_phases}
 There several existing instrumentation phases.  For now,

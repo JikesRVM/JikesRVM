@@ -1,5 +1,5 @@
 This section provides some information on various
-implementation details for the RVM optimizing compiler.
+implementation details for the Jikes\trademark RVM optimizing compiler.
 
 %%%%%%%%%%%%%%%%%%%%
 \subsection{Options}
@@ -7,9 +7,9 @@ implementation details for the RVM optimizing compiler.
 
 \index{command-line options}
 \index{OPT\_Options class}
-The RVM stores command-line options to the optimizing compiler 
+The Jikes RVM stores command-line options to the optimizing compiler 
 as fields in an object of type {\tt OPT\_Options}.
-The RVM build process generates the {\tt OPT\_Options.java} 
+The Jikes RVM build process generates the {\tt OPT\_Options.java} 
 file automatically from a template.  
 
 \index{BooleanOptions.dat}
@@ -20,6 +20,8 @@ you must modify either {\tt BooleanOptions.dat} or
 command-line option in a format described below.
 Your option will be generated the next time you build the
 system.
+
+\JikesTMFooter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{BooleanOptions.dat}
@@ -50,7 +52,7 @@ The second line of each record must hold a short textual description of
 the semantics of the option. 
 The system will print this description 
 when so instructed 
-by the command-line option {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
+by the command-line option {\tt -X:irc:help} (see Appendix~\ref{appendix:nonadaptive:cmdline}).
 
 For example, the two line record in {\tt BooleanOptions.dat}
 that defines the option of whether
@@ -122,7 +124,7 @@ where
 The quotes are important, and the specifications should be
 space-separated.
 
-For example, RVM supports a choice of three options for floating-point
+For example, Jikes RVM supports a choice of three options for floating-point
 optimization rules.  The three-line record describing these options is:
 \begin{verbatim}
 E FP_MODE byte FP_STRICT
@@ -133,7 +135,8 @@ Selection of strictness level for floating point computations
 \end{verbatim}
 Notice how the third line was broken up by using ``$\backslash$''.
 
-So, by default, RVM uses the {\em strict} floating-point semantics.  To use
+So, by default, Jikes RVM uses the {\em strict} floating-point
+semantics.  To use 
 the option that allows fused multiply-add instructions, 
 specify {\tt -X:irc:allow\_fma} on the command-line.
 Given an {\tt OPT\_Options} object called {\tt options}, your code can
@@ -148,7 +151,7 @@ query if fma is allowed by testing {\tt options.allowFMA()}.
 \index{HIR}
 \index{LIR}
 \index{MIR}
-The fundamental unit for optimization in RVM is a single method. 
+The fundamental unit for optimization in the Jikes RVM is a single method. 
 The optimization of a method consists of a series of 
 compiler phases performed on the method. These 
 phases transform the  

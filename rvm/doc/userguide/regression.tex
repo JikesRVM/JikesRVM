@@ -22,6 +22,8 @@ top of actual sanity testing support to ease the task of running and
 monitoring the tests periodically.  Each of the these portions is now
 described in more detail.
 
+\JikesTMFooter
+
 \subsubsection{Testing Support}
 
   The top-level driver for running sanity tests is called
@@ -48,7 +50,7 @@ your preferred selection of boot images, test programs, and options.
 what tests to run, what boot images to build, how many processors to
 use, where to put generated boot images and results, whether to run
 sanity or performance tests, what optimization levels to use for opt
-compiler tests, and options to pass to the RVM runtime.  These
+compiler tests, and options to pass to the Jikes RVM runtime.  These
 command-line options are detailed below:
 
 \begin{itemize}
@@ -281,7 +283,7 @@ sanity checking and benchmark invocation.
 
  The general setup options control source and class paths, the heap
 sizes needed by the benchmark and any extra boot time arguments to
-RVM.  These variables are as follows:
+Jikes RVM.  These variables are as follows:
 \begin{description}
 \item[BENCH\_SOURCE\_PATH] is a list of directories in which to find
 Java\trademark source files that are used by this benchmark.  This is not a
@@ -321,13 +323,15 @@ variables depending upon whether the benchmark is a stand-alone program
 or a client-server one.  For stand-alone programs, the variables are as
 follows: 
 \begin{description}
-\item[START\_CLASS] is the name of the class to give when invoking RVM
+\item[START\_CLASS] is the name of the class to give when invoking
+Jikes RVM
 for this benchmark; this is a normal class name, not a descriptor, so
 it expects dots rather than slashes for package names.
-\item[START\_ARGS] is a string of arguments to pass when invoking RVM
+\item[START\_ARGS] is a string of arguments to pass when invoking
+Jikes RVM
 for this benchmark.  These arguments are passed after the class name,
 so they are arguments to the Java program itself, not boot time
-arguments to RVM.
+arguments to Jikes RVM.
 \end{description}
 
  The client-server programs require more variables since they must
@@ -376,7 +380,7 @@ differ in how they check for correctness:
 \item[sanity-diff] uses the EXPECTED file to check correctness.  This
 is only supported for stand-alone programs.
 \item[sanity-compare] runs the same program with the JDK and compares
-the results with those obtained from RVM.  This is only supported for
+the results with those obtained from Jikes RVM.  This is only supported for
 stand-alone programs. 
 \item[sanity-check-rule] invokes the ``check'' make rule, which must be
 defined by the test program makefile.  The ``check'' rule can assume
