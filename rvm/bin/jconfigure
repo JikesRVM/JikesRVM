@@ -1078,10 +1078,8 @@ function unsetEnvironment() {
     ## Turn off all of the environment variables that we get when we 
     ## source config files but that might not be set if we were to source
     ## a different such file.
-    unset HOST_JAVA_LD_LIBRARY_PATH
-    unset CPP
-    unset $HOST_CPP_STR1
-    unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT
+    unset HOST_JAVA_LD_LIBRARY_PATH CPP $HOST_CPP_STR1 || :
+    unset BISON ANT_CMD ECLIPSE_INSTALL_DIR CLASSPATH_ROOT || :
 }
 
 
@@ -1812,11 +1810,9 @@ EOF
     echo "    cd ${CLASSES_DIRECTORY_STR}"
     
     declare -i save_temps=0	# You might set save_temps=1 when debugging.
-    CLEANUP='if (( ! save_temps )); then
-		rm $PRIMORDIAL_CLASSES_STR.1
-		rm $PRIMORDIAL_CLASSES_STR.2
-		rm $PRIMORDIAL_CLASSES_STR.3
-	    fi';
+    if (( ! save_temps )); then
+	CLEANUP='rm -f $PRIMORDIAL_CLASSES_STR.1 $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3'
+    fi
 
     # Start a subshell where the output from a series of commands will go to
     # one output stream.
@@ -3202,16 +3198,15 @@ then
 	## && [[ ! $EMACS ]] 
 	## It would be nice to test whether we are running under EMACS's 
 	## M-x compile mode.   But I do not know how to do that. 
- 	got_EOF=""
-	response="unset"
-	status=0
+	declare -i got_EOF=0
+	response="UNSET"
 	if ! read -n 1 -p "${ME}: ${BUILD_DIRECTORY} already exists, replace it? (y/n) --> " response; then
 	    # Shell does not let us distinguish EOF from I/O errors.
 	    got_EOF=1
 	fi
 	# finish the line since our user did not type a newline' for us.
 	echo ""
-	if [[ $got_EOF ]]; then
+	if (( $got_EOF )); then
 	    show_mesg >&2 "Got EOF (End of File).  We will not write anything."
 	    response=EOF
 	fi
