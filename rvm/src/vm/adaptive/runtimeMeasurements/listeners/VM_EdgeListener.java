@@ -5,7 +5,7 @@
 
 import java.util.*;
 
-/*
+/**
  * A VM_EdgeListener defines a listener 
  * that computes a call graph edge from the call stack.
  * After a parameterized number of edges are collected, 

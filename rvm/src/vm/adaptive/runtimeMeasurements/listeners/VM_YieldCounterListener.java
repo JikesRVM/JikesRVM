@@ -3,7 +3,7 @@
  */
 //$Id$
 
-/*
+/**
  * A VM_YieldCounterListener samples yield points, and
  * notifies an Organizer when a threshold is reached.
  *

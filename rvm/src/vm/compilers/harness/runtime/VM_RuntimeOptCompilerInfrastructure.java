@@ -3,7 +3,8 @@
  */
 //$Id$
 
-/* A place to put code common to all runtime compilers that use the OPT
+/**
+ * A place to put code common to all runtime compilers that use the OPT
  * compiler, such as the adaptive and optimizing-only runtime compilers.
  *
  * @author Michael Hind

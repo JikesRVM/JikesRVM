@@ -3,7 +3,7 @@
  */
 //$Id$
 
-/*
+/**
  * Iterator for stack frame  built by the Baseline compiler
  * An Instance of this class will iterate through a particular 
  * reference map of a method returning the offsets of any refereces

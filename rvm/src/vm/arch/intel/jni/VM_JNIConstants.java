@@ -3,7 +3,7 @@
  */
 //$Id$
 
-/*
+/**
  * Constants for JNI support
  *
  * @author Ton Ngo
