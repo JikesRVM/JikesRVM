@@ -56,7 +56,8 @@ public class ScanObject implements VM_Constants, Constants {
 
   /**
    * Enumerate the pointers in an object, calling back to a given plan
-   * for each pointer encountered.
+   * for each pointer encountered. <i>NOTE</i> that only the "real"
+   * pointer fields are enumerated, not the TIB.
    *
    * @param object The object to be scanned.
    * @param plan The plan with respect to which the callback should be made.
