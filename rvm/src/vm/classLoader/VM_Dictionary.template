@@ -51,7 +51,7 @@ class CCC {
   //           value to associate with key, if key isn't already in dictionary
   // Returned: id for use by getKey(), setValue(), and getValue()
   //
-  static int findOrCreateId(KKK key, VVV value) {
+  static synchronized int findOrCreateId(KKK key, VVV value) {
     // check for null/zero first, so we can later use null/zero as an end of chain sentinal
     if (key == keys[0])
       return 0;
@@ -114,7 +114,7 @@ class CCC {
   // Taken:    key sought
   // Returned: id for use by getKey(), setValue(), and getValue(), or 0 if not found
   //
-  static int findId(KKK key) {
+  static synchronized int findId(KKK key) {
     // check for null/zero first, so we can later use null/zero as an end of chain sentinal
     if (key == keys[0])
       return -1;
@@ -153,7 +153,7 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: value
   //
-  static void setValue(int id, VVV value) {
+  static synchronized void setValue(int id, VVV value) {
     values[id] = value;
   }
    
@@ -167,7 +167,7 @@ class CCC {
    
   // Retrieve all keys currently stored in the dictionary.
   //
-  static KKK[] getKeys() {
+  static synchronized KKK[] getKeys() {
     KKK[] tmp = new KKK[nextId];
     for (int i = 0; i < nextId; ++i)
       tmp[i] = keys[i];
@@ -176,7 +176,7 @@ class CCC {
       
   // Retrieve all values currently stored in the dictionary.
   //
-  static VVV[] getValues() {
+  static synchronized VVV[] getValues() {
     VVV[] tmp = new VVV[nextId];
     for (int i = 0; i < nextId; ++i)
       tmp[i] = values[i];
