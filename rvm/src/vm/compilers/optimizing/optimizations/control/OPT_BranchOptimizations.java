@@ -493,6 +493,25 @@ public final class OPT_BranchOptimizations
     if (taken != null && hasCMTaboo(taken)) return false;
     if (notTaken != null && hasCMTaboo(notTaken)) return false;
 
+    // if we must generate FCMOV, make sure the condition code is OK
+    if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
+      if (!fpConditionOK(IfCmp.getCond(cb))) return false;
+    }
+
+    // For now, do not generate CMOVs if the condition depends on
+    // floating-point compares, with troublesome NaN semantics
+    if (IfCmp.getVal1(cb).isRegister() &&
+        IfCmp.getVal1(cb).asRegister().register.isFloatingPoint())
+      return false;
+    if (IfCmp.getVal2(cb).isRegister() &&
+        IfCmp.getVal2(cb).asRegister().register.isFloatingPoint())
+      return false;
+    
+    // For now, do not generate CMOVs for longs.
+    if (hasLongDef(taken) || hasLongDef(notTaken)) {
+      return false;
+    }
+    
     // count the number of expression evaluations in each side of the
     // diamond
     int takenCost = 0;
@@ -511,6 +530,51 @@ public final class OPT_BranchOptimizations
     return true;
   }
 
+  /**
+   * Is a specified condition operand OK to transfer into an FCMOV
+   * instruction?
+   */
+  private boolean fpConditionOK(OPT_ConditionOperand c) {
+    // For now, we never say it's OK to generate an FCMOV. 
+    // We don't have support yet in case either operand of the condition
+    // is a NaN.
+    return false;
+  }
+
+  /**
+   * Do any of the instructions in a basic block define a floating-point
+   * register?
+   */
+  private boolean hasFloatingPointDef(OPT_BasicBlock bb) {
+    for (Enumeration e = bb.forwardRealInstrEnumerator();
+         e.hasMoreElements(); ) {
+      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
+        OPT_Operand def = (OPT_Operand)d.nextElement();
+        if (def.isRegister()) {
+          if (def.asRegister().register.isFloatingPoint()) return true;
+        }
+      }
+    }
+    return false;
+  }
+  /**
+   * Do any of the instructions in a basic block define a long
+   * register?
+   */
+  private boolean hasLongDef(OPT_BasicBlock bb) {
+    for (Enumeration e = bb.forwardRealInstrEnumerator();
+         e.hasMoreElements(); ) {
+      OPT_Instruction s = (OPT_Instruction)e.nextElement();
+      for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
+        OPT_Operand def = (OPT_Operand)d.nextElement();
+        if (def.isRegister()) {
+          if (def.asRegister().register.isLong()) return true;
+        }
+      }
+    }
+    return false;
+  }
   /**
    * Do any of the instructions in a basic block preclude eliminating the
    * basic block with conditional moves?
@@ -729,10 +793,17 @@ public final class OPT_BranchOptimizations
       }
     }
 
-    // Finally, mutate the conditional branch into a GOTO and recompute
-    // CFG.
+    // Mutate the conditional branch into a GOTO.
     OPT_BranchOperand target = diamond.getBottom().makeJumpTarget();
     Goto.mutate(cb,GOTO,target);
+    
+    // Delete a potential GOTO after cb.
+    OPT_Instruction next = cb.getNext();
+    if (next.operator != BBEND) {
+      next.remove();
+    }
+
+    // Recompute the CFG.
     diamond.getTop().recomputeNormalOut(ir); // fix the CFG 
   }
 

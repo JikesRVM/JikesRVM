@@ -593,6 +593,21 @@ r:	INT_COND_MOVE(riv,arg)
 EMIT_INSTRUCTION
 INT_COND_MOVE(burs, P(p));
 
+r:	REF_COND_MOVE(riv,arg)
+65
+EMIT_INSTRUCTION
+INT_COND_MOVE(burs, P(p));
+
+r:	DOUBLE_COND_MOVE(riv,arg)
+65
+EMIT_INSTRUCTION
+FPR_COND_MOVE(burs, P(p));
+
+r:	FLOAT_COND_MOVE(riv,arg)
+65
+EMIT_INSTRUCTION
+FPR_COND_MOVE(burs, P(p));
+
 ##################################
 # Basic Integer ALU operations 
 ##################################
