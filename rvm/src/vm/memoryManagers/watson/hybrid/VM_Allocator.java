@@ -2717,7 +2717,7 @@ public class VM_Allocator
       VM_Processor vp = VM_Scheduler.processors[i];
       if (vp == null) continue;   // the last VP (nativeDeamonProcessor) may be null
       int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
-      if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.IN_SIGWAIT)) {
+      if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT)) {
 	if ( major )
 	  setupAllocation(vp);
 	else {
