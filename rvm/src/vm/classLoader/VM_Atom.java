@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001, 2003
+ * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -529,9 +529,11 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
 
-  private static final byte[][] systemClassPrefixes 
+  private static final byte[][] bootstrapClassPrefixes 
     = { "Ljava/".getBytes(), 
         "Lcom/ibm/JikesRVM/".getBytes(),
+        "Lgnu/java/".getBytes(),
+        "Lgnu/classpath/".getBytes(),
         "Lorg/vmmagic/".getBytes(),
         "Lorg/mmtk/".getBytes()};
 
@@ -541,13 +543,13 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
         "Lorg/mmtk/".getBytes()};
 
   /**
-   * @return true if this is a class descriptor of a system class
-   * (ie a class that must be loaded by the system class loader
+   * @return true if this is a class descriptor of a bootstrap class
+   * (ie a class that must be loaded by the bootstrap class loader)
    */
-  public final boolean isSystemClassDescriptor() {
+  public final boolean isBootstrapClassDescriptor() {
   outer:
-    for (int i = 0; i < systemClassPrefixes.length; i++) {
-      byte[] test = systemClassPrefixes[i];
+    for (int i = 0; i < bootstrapClassPrefixes.length; i++) {
+      byte[] test = bootstrapClassPrefixes[i];
       if (test.length > val.length) continue outer;
       for (int j = 0; j < test.length; j++) {
         if (val[j] != test[j]) 
@@ -560,8 +562,9 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     
 
   /**
-   * @return true if this is a class descriptor of a system class
-   * (ie a class that must be loaded by the system class loader
+   * @return true if this is a class descriptor of a RVM core class.  This is
+   * defined as one that it would be unwise to invalidate, since invalidating
+   * it might make it impossible to recompile.
    */
   public final boolean isRVMDescriptor() {
   outer:
