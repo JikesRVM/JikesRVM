@@ -1401,6 +1401,34 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				      IfCmp.getBranchProfile(s)));
   }
 
+  /**
+   * Generate code for a conditional move that can be folded at
+   * compile-time.
+   * 
+   * @param burs and OPT_BURS object
+   * @param s the conditional move instruction 
+   */
+  final void foldIntCondMove(OPT_BURS burs, OPT_Instruction s) {
+    OPT_Operand val1 = CondMove.getVal1(s);
+    OPT_Operand val2 = CondMove.getVal2(s);
+    OPT_ConditionOperand cond = CondMove.getCond(s);
+    OPT_RegisterOperand result = CondMove.getResult(s);
+    OPT_Operand trueValue = CondMove.getTrueValue(s);
+    OPT_Operand falseValue = CondMove.getFalseValue(s);
+
+    if (VM.VerifyAssertions) {
+      VM.assert(val1.isConstant());
+      VM.assert(val2.isConstant());
+    }
+
+    if (cond.evaluate(val1,val2)) {
+      // branch is taken.
+      burs.append(MIR_Move.mutate(s, IA32_MOV, result, trueValue));
+    } else {
+      // branch is not taken.
+      burs.append(MIR_Move.mutate(s, IA32_MOV, result, falseValue));
+    }
+  }
 
   /**
    * Generate a conditional move sequence.
@@ -1416,6 +1444,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Operand trueValue = CondMove.getTrueValue(s);
     OPT_Operand falseValue = CondMove.getFalseValue(s);
 
+    // first try to constant fold
+    if (val1.isConstant() && val2.isConstant()) {
+      foldIntCondMove(burs,s);
+    }
+    
     // generate the condition codes.
     if (val1.isRegister() && val1.asRegister().register.isFloatingPoint()) {
       if (VM.VerifyAssertions) {
