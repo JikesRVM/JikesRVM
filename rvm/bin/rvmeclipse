@@ -1,0 +1,7 @@
+#!/bin/sh
+
+. $RVM_BUILD/environment
+
+cd $ECLIPSE_INSTALL_DIR
+
+./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -X:h=200
