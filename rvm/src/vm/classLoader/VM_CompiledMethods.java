@@ -77,7 +77,7 @@ public class VM_CompiledMethods {
   static VM_CompiledMethod findMethodForInstruction(VM_Address ip) {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
-      if (compiledMethod == null)
+      if (compiledMethod == null || !compiledMethod.isCompiled())
 	continue; // empty slot
 
       INSTRUCTION[] instructions = compiledMethod.getInstructions();
