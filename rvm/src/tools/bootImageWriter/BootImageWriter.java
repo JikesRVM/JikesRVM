@@ -1975,46 +1975,31 @@ public class BootImageWriter extends BootImageWriterMessages
           details  = getRvmStaticFieldName(jtocSlot);
           break;
 
-        case VM_Statics.STRING_LITERAL:
+        case VM_Statics.STRING_LITERAL: 
+	  category = "literal";
+  	  contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+	  details  = "\"" + ((String) BootImageMap.getObject(getIVal(jtocSlot))).replace('\n', ' ') +"\"";
+	  break;
+	  
         case VM_Statics.REFERENCE_FIELD:
-        case VM_Statics.METHOD:
-        case VM_Statics.TIB:
-          if (VM.BuildFor32Addr) {
-	    ival = VM_Statics.getSlotContentsAsInt(jtocSlot);
-	  } else { 
-	    ival = (int)VM_Statics.getSlotContentsAsLong(jtocSlot); // just a cookie 
-	  }
-	  int addr = ival;
-	  if (ival != 0) {
-	    Object jdkObject = BootImageMap.getObject(ival);
-	    if (jdkObject instanceof VM_CodeArray) {
-	      jdkObject = ((VM_CodeArray)jdkObject).getBacking();
-	    }
-	    addr = BootImageMap.getImageAddress(bootImageAddress, jdkObject);
-	  }
-	  contents = VM.intAsHexString(addr) + pad;
+	  category = "field  ";
+  	  contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+	  details  = getRvmStaticFieldName(jtocSlot);
+	  break;
 
-	  switch (description) {
-	  case VM_Statics.STRING_LITERAL: 
-	    category = "literal";
-	    details  = "\"" + ((String) BootImageMap.getObject(ival)).replace('\n', ' ') +"\"";
-	    break;
-	  case VM_Statics.REFERENCE_FIELD:  
-	    category = "field  ";
-	    details  = getRvmStaticFieldName(jtocSlot);
-	    break;
-	  case VM_Statics.TIB:
-	    category = "tib    ";
-	    VM_Type type = findTypeOfTIBSlot(jtocSlot);
-	    details = (type == null) ? "?" : type.toString();
-	    break;
-	  case VM_Statics.METHOD:
-	    category = "code   ";
-	    VM_CompiledMethod m = findMethodOfCode(BootImageMap.getObject(ival));
-	    details = m == null ? "<?>" : m.getMethod().toString();
-	    break;
-	  }
-          break;
+        case VM_Statics.METHOD:
+	  category = "code   ";
+  	  contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+	  VM_CompiledMethod m = findMethodOfCode(BootImageMap.getObject(getIVal(jtocSlot)));
+	  details = m == null ? "<?>" : m.getMethod().toString();
+	  break;
+
+        case VM_Statics.TIB:
+  	  contents = VM.intAsHexString(getReferenceAddr(jtocSlot)) + pad;
+	  category = "tib    ";
+	  VM_Type type = findTypeOfTIBSlot(jtocSlot);
+	  details = (type == null) ? "?" : type.toString();
+	  break;
 	  
         default:
           break;
@@ -2052,5 +2037,28 @@ public class BootImageWriter extends BootImageWriterMessages
     out.println("EOF-EOF-EOF");
     out.flush();
     out.close();
+  }
+
+  private static int getIVal(int jtocSlot) {
+    int ival;
+    if (VM.BuildFor32Addr) {
+      ival = VM_Statics.getSlotContentsAsInt(jtocSlot);
+    } else { 
+      ival = (int)VM_Statics.getSlotContentsAsLong(jtocSlot); // just a cookie 
+    }
+    return ival;
+  }
+
+  private static int getReferenceAddr(int jtocSlot) {
+    int ival = getIVal(jtocSlot);
+    int addr = ival;
+    if (ival != 0) {
+      Object jdkObject = BootImageMap.getObject(ival);
+      if (jdkObject instanceof VM_CodeArray) {
+	jdkObject = ((VM_CodeArray)jdkObject).getBacking();
+      }
+      addr = BootImageMap.getImageAddress(bootImageAddress, jdkObject);
+    }
+    return addr;
   }
 }
