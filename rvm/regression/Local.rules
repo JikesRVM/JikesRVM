@@ -50,6 +50,11 @@ Servlet_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/jakarta-servleta
 Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
 
 #
+# Jigsaw webserver
+#
+Jigsaw_HOME=/homes/fury5/jalapeno/contrib/benchmarks/jigsaw_2.2.1
+
+#
 # Borland InterClient JDBC Driver
 #
 InterClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/interclient
