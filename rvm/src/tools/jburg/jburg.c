@@ -199,11 +199,13 @@ stringf(const char *fmt, ...)
 {
     va_list ap;
     char buf[512];
+    int r;
+    size_t nwrote;
 
     va_start(ap, fmt);
-    int r = vsnprintf(buf, sizeof buf, fmt, ap);
+    r = vsnprintf(buf, sizeof buf, fmt, ap);
     assert(r > 0);
-    size_t nwrote = r;
+    nwrote = r;
     assert(nwrote < sizeof buf);
     va_end(ap);
     return strcpy(alloc(nwrote + 1), buf);
@@ -1139,8 +1141,9 @@ cwd(void)
     size_t bufsz = 512;
 
     for (;;) {
+	char *ret;
 	buf = alloc(bufsz);
-	char *ret = getcwd(buf, bufsz);
+	ret = getcwd(buf, bufsz);
 	if (ret)
 	    return ret;
 	if (errno == ERANGE) {

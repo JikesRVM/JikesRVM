@@ -123,12 +123,14 @@ yylex(void)
 
     if (code) {
 	char *p;
+	size_t len;
+	
 	bp += strspn(bp, " \t\f");
 	p = strchr(bp, '\n');
 	while (p > bp && isspace(p[-1]))
 	    p--;
 	assert(p >= bp);
-	unsigned len = p - bp;
+	len = p - bp;
 	yylval.string = alloc(len + 1);
 	strncpy(yylval.string, bp, len);
 	yylval.string[len] = '\0';
@@ -157,14 +159,16 @@ yylex(void)
 	    bp += 5;
 	    return START;
 	} else if (c == '"') {
+	    size_t len;
 	    char *p = strchr(bp, '"');
+	    
 	    if (p == NULL) {
 		yyerror("missing \" in assembler template\n");
 		p = strchr(bp, '\n');
 	    }
 	    assert(p);
 	    assert(p >= bp);
-	    size_t len = p - bp;
+	    len = p - bp;
 	    yylval.string = alloc(len + 1);
 	    strncpy(yylval.string, bp, len);
 	    yylval.string[len] = '\0';
@@ -186,13 +190,15 @@ yylex(void)
 	    return INT;
 	} else if (isalpha(c)) {
 	    char *p = bp - 1;
+	    size_t len;
+	    
 	    while (isalpha(c) || isdigit(c) || c == '_' || c=='$')
 		c = get();
 	    // Note: get() increments bp.
 	    bp--;
 	    assert(p <= bp);
 
-	    unsigned len = bp - p;
+	    len = bp - p;
 	    yylval.string = alloc(len + 1);
 	    strncpy(yylval.string, p, len);
 	    yylval.string[len] = 0;
