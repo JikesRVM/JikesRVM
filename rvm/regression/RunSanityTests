@@ -393,7 +393,7 @@ function doRun
     # record status
     test_status=$?
     total_tests=`expr $total_tests + 1`
-    if [ test_status = 0 ]; then 
+    if [ test_status -eq 0 ]; then 
        passed_tests=`expr $passed_tests + 1`
     fi
 
