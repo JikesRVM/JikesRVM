@@ -76,7 +76,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    */
   public boolean defsHeapVariable (OPT_Instruction s) {
     // special case code for Phi instructions
-    if (Phi.conforms(s)) {
+    if (s.operator == PHI) {
       OPT_Operand result = Phi.getResult(s);
       return  (result instanceof OPT_HeapOperand);
     }
@@ -90,8 +90,17 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @return an array of the heap operands this instruction uses
    */
-  public OPT_HeapOperand[] getHeapUses (OPT_Instruction s) {
-    return  (OPT_HeapOperand[])uses.get(s);
+  public OPT_HeapOperand[] getHeapUses(OPT_Instruction s) {
+    if (s.operator == PHI) {
+      if (!usesHeapVariable(s)) return null;
+      OPT_HeapOperand[] result = new OPT_HeapOperand[Phi.getNumberOfValues(s)];
+      for (int i=0; i<result.length; i++) {
+        result[i] = (OPT_HeapOperand)Phi.getValue(s,i);
+      }
+      return result;
+    } else {
+      return  (OPT_HeapOperand[])uses.get(s);
+    }
   }
 
   /** 
@@ -101,6 +110,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @return an array of the heap operands this instruction defs
    */
   public OPT_HeapOperand[] getHeapDefs (OPT_Instruction s) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     return  (OPT_HeapOperand[])defs.get(s);
   }
 
@@ -127,32 +137,44 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @return the new heap variables that the instruction defines
    */
   public OPT_HeapOperand[] replaceDefs (OPT_Instruction s, OPT_BasicBlock b) {
-    // get old heap operands defined by this instruction
-    OPT_HeapOperand[] oldH = (OPT_HeapOperand[])defs.get(s);
-    OPT_HeapOperand[] newH = new OPT_HeapOperand[oldH.length];
-    // for each old heap variable ..
-    for (int i = 0; i < oldH.length; i++) {
-      // create a new heap variable 
-      int number = getNextHeapVariableNumber(oldH[i].getHeapType());
-      newH[i] = new OPT_HeapOperand(new OPT_HeapVariable(oldH[i].getHeapType(), 
-                                    number,ir));
-      newH[i].setInstruction(s);
-      // record the new heap definition
-      newH[i].getHeapVariable().registerDef(b);
-      if (DEBUG)
-        System.out.println("New heap def " + newH[i] + " for " + s);
-      // store the new heap variable in relevant data structures
-      HeapKey key = new HeapKey(number, oldH[i].getHeapType());
-      heapVariables.put(key, newH[i].getHeapVariable());
-    }
-    // record the new heap variables this instruction defs
-    defs.put(s, newH);
-    // update PHI instruction, if appropriate. Note that a PHI
-    // instruction defs exactly one heap variable, newH[0]
     if (s.operator() == PHI) {
+      // Note that a PHI
+      // instruction defs exactly one heap variable, newH[0]
+      OPT_HeapOperand oldDef = (OPT_HeapOperand)Phi.getResult(s);
+      int number = getNextHeapVariableNumber(oldDef.getHeapType());
+      OPT_HeapOperand[] newH = new OPT_HeapOperand[1];
+      newH[0] = new OPT_HeapOperand(new OPT_HeapVariable(oldDef.getHeapType(), number,ir));
+      newH[0].setInstruction(s);
       Phi.setResult(s, newH[0]);
+      // record the new heap definition
+      newH[0].getHeapVariable().registerDef(b);
+      if (DEBUG) System.out.println("New heap def " + newH[0] + " for " + s);
+      // store the new heap variable in relevant data structures
+      HeapKey key = new HeapKey(number, oldDef.getHeapType());
+      heapVariables.put(key, newH[0].getHeapVariable());
+      return newH;
+    } else {
+      // get old heap operands defined by this instruction
+      OPT_HeapOperand[] oldH = (OPT_HeapOperand[])defs.get(s);
+      OPT_HeapOperand[] newH = new OPT_HeapOperand[oldH.length];
+      // for each old heap variable ..
+      for (int i = 0; i < oldH.length; i++) {
+        // create a new heap variable 
+        int number = getNextHeapVariableNumber(oldH[i].getHeapType());
+        newH[i] = new OPT_HeapOperand(new OPT_HeapVariable(oldH[i].getHeapType(), 
+                                                           number,ir));
+        newH[i].setInstruction(s);
+        // record the new heap definition
+        newH[i].getHeapVariable().registerDef(b);
+        if (DEBUG) System.out.println("New heap def " + newH[i] + " for " + s);
+        // store the new heap variable in relevant data structures
+        HeapKey key = new HeapKey(number, oldH[i].getHeapType());
+        heapVariables.put(key, newH[i].getHeapVariable());
+      }
+      // record the new heap variables this instruction defs
+      defs.put(s, newH);
+      return  newH;
     }
-    return  newH;
   }
 
   /**
@@ -363,8 +385,7 @@ final class OPT_SSADictionary implements OPT_Operators {
     // populate the use chain with each use registered
     for (Iterator e = uses.values().iterator(); e.hasNext();) {
       OPT_HeapOperand[] H = (OPT_HeapOperand[])e.next();
-      if (H == null)
-        continue;
+      if (H == null) continue;
       for (int i = 0; i < H.length; i++) {
         OPT_HeapVariable v = H[i].getHeapVariable();
         HashSet u = (HashSet)UseChain.get(v);
@@ -374,11 +395,26 @@ final class OPT_SSADictionary implements OPT_Operators {
     // record the unique def for each heap variable
     for (Iterator e = defs.values().iterator(); e.hasNext();) {
       OPT_HeapOperand[] H = (OPT_HeapOperand[])e.next();
-      if (H == null)
-        continue;
+      if (H == null) continue;
       for (int i = 0; i < H.length; i++) {
         OPT_HeapVariable v = H[i].getHeapVariable();
         DefChain.put(v, H[i]);
+      }
+    }
+    // handle each HEAP PHI function.
+    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      for (Enumeration hp = getHeapPhiInstructions(bb); hp.hasMoreElements() ; ) {
+        OPT_Instruction phi = (OPT_Instruction)hp.nextElement(); 
+        OPT_HeapOperand H = (OPT_HeapOperand)Phi.getResult(phi);
+        OPT_HeapVariable v = H.getHeapVariable();
+        DefChain.put(v,H);
+        for (int i = 0; i < Phi.getNumberOfValues(phi); i++) {
+          OPT_HeapOperand Hu = (OPT_HeapOperand)Phi.getValue(phi,i);
+          OPT_HeapVariable vu = H.getHeapVariable();
+          HashSet u = (HashSet)UseChain.get(vu);
+          u.add(Hu);
+        }
       }
     }
   }
@@ -392,10 +428,12 @@ final class OPT_SSADictionary implements OPT_Operators {
    */
   void createHeapPhiInstruction (OPT_BasicBlock bb, OPT_HeapVariable H) {
     OPT_Instruction s = makePhiInstruction(H, bb);
+    /*
     OPT_HeapOperand[] Hprime = new OPT_HeapOperand[1];
     Hprime[0] = new OPT_HeapOperand(H);
     Hprime[0].setInstruction(s);
     defs.put(s, Hprime);
+    */
     Vector heapPhis = (Vector)heapPhi.get(bb);
     if (heapPhis == null) {
       heapPhis = new Vector(2);
@@ -412,6 +450,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param H the set of heap operands which s uses
    */
   public void replaceUses (OPT_Instruction s, OPT_HeapOperand[] H) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     uses.put(s, H);
     for (int i = 0; i < H.length; i++) {
       H[i].setInstruction(s);
@@ -462,6 +501,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param b the basic block containing s
    */
   public void registerUnknown (OPT_Instruction s, OPT_BasicBlock b) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // setup an array of all heap variables
     // TODO: for efficiency, cache a copy of 'all' 
     Iterator vars = heapVariables.values().iterator();
@@ -587,14 +627,16 @@ final class OPT_SSADictionary implements OPT_Operators {
   /**
    * A mapping from <code> OPT_Instruction </code> to the set of heap
    * operands (an <code> OPT_HeapOperand[]</code>) that this instruction
-   * uses
+   * uses.  Note that PHI instructions <STRONG> do not </STRONG> appear in
+   * this mapping.
    */
   private HashMap uses = new HashMap();            
 
   /**
    * A mapping from <code> OPT_Instruction </code> to the set of heap
    * operands (an <code> OPT_HeapOperand[]</code>) that this instruction
-   * defines
+   * defines.  Note that PHI instructions <STRONG> do not </STRONG> appear in
+   * this mapping.
    */
   private HashMap defs = new HashMap(); 
 
@@ -857,7 +899,9 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param b the basic block containing s
    */
   private void phiHelper (OPT_Instruction s, OPT_BasicBlock b) {
-    // for phi function, we register implicit defs and uses
+    // for phi function, we dont' register implicit defs and uses
+    // since they're explicit in the instruction
+    /*
     Object result = Phi.getResult(s);
     if (!(result instanceof OPT_HeapOperand))
       return;
@@ -890,6 +934,7 @@ final class OPT_SSADictionary implements OPT_Operators {
         registerUse(s, a);
       }
     }
+  */
   }
 
 
@@ -958,6 +1003,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the type of the heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Type t) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -981,6 +1027,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction uses
    */
   private void registerUse (OPT_Instruction s, VM_Field f) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1004,6 +1051,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Field f) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1027,6 +1075,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction uses
    */
   private void registerUse (OPT_Instruction s, VM_Atom a) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1050,6 +1099,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param t the field heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Atom a) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1092,6 +1142,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param b s's basic block
    */
   private void addExceptionStateToDefs (OPT_Instruction s, OPT_BasicBlock b) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     OPT_HeapVariable H = findOrCreateHeapVariable(exceptionState);
     H.registerDef(b);
     OPT_HeapOperand[] Hprime = extendHArray ((OPT_HeapOperand[]) defs.get(s));
@@ -1107,6 +1158,7 @@ final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    */
   private void addExceptionStateToUses (OPT_Instruction s) {
+    if (VM.VerifyAssertions) VM.assert(s.operator != PHI);
     OPT_HeapVariable H = findOrCreateHeapVariable(exceptionState);
     OPT_HeapOperand[] Hprime = extendHArray ((OPT_HeapOperand[]) uses.get(s));
     Hprime[0] = new OPT_HeapOperand(H);
@@ -1314,6 +1366,3 @@ final class OPT_SSADictionary implements OPT_Operators {
     private Object labelInstruction;
   }
 }
-
-
-

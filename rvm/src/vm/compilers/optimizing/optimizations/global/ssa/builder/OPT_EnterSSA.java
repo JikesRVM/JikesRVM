@@ -869,7 +869,7 @@ implements OPT_Operators, OPT_Constants {
     OPT_BasicBlock entry = ir.cfg.entry();
     numPredProcessed = new int[ir.getMaxBasicBlockNumber()];
     search2(entry, stacks);
-    registerRenamedHeapPhis(ir);
+    // registerRenamedHeapPhis(ir);
   }
 
   /**
@@ -885,11 +885,9 @@ implements OPT_Operators, OPT_Constants {
   private void search2(OPT_BasicBlock X, HashMap stacks) {
     if (DEBUG) System.out.println("SEARCH2 " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
-    for (Enumeration ie = dictionary.getAllInstructions(X); 
-         ie.hasMoreElements();) {
+    for (Enumeration ie = dictionary.getAllInstructions(X); ie.hasMoreElements();) {
       OPT_Instruction A = (OPT_Instruction)ie.nextElement();
-      if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A))
-        continue;
+      if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A)) continue;
       if (A.operator() != PHI) {
         // replace the Heap variables USED by this instruction
         OPT_HeapOperand[] uses = dictionary.getHeapUses(A);
@@ -906,15 +904,21 @@ implements OPT_Operators, OPT_Constants {
         }
       }
       // replace any Heap variable DEF
-      OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
-      if (defs != null) {
-        OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
-        for (int i = 0; i < r.length; i++) {
-          Stack S = (Stack)stacks.get(r[i].getHeapType());
-          S.push(r[i]);
-          if (DEBUG)
-            System.out.println("PUSH " + r[i] + " FOR " + r[i].getHeapType());
+      if (A.operator() != PHI) {
+        OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
+        if (defs != null) {
+          OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
+          for (int i = 0; i < r.length; i++) {
+            Stack S = (Stack)stacks.get(r[i].getHeapType());
+            S.push(r[i]);
+            if (DEBUG) System.out.println("PUSH " + r[i] + " FOR " + r[i].getHeapType());
+          }
         }
+      } else {
+        OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
+        Stack S = (Stack)stacks.get(r[0].getHeapType());
+        S.push(r[0]);
+        if (DEBUG) System.out.println("PUSH " + r[0] + " FOR " + r[0].getHeapType());
       }
     } // end of first loop
 
@@ -938,18 +942,24 @@ implements OPT_Operators, OPT_Constants {
       search2(v.getBlock(), stacks);
     } // end of third loop
 
-    for (Enumeration a = dictionary.getAllInstructions(X); 
-         a.hasMoreElements();) {
+    for (Enumeration a = dictionary.getAllInstructions(X); a.hasMoreElements();) {
       OPT_Instruction A = (OPT_Instruction)a.nextElement();
+      if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A)) continue;
       // retrieve the Heap Variables defined by A
-      OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
-      if (defs != null) {
-        for (int i = 0; i < defs.length; i++) {
-          Stack S = (Stack)stacks.get(
-                                      defs[i].getHeapType());
-          S.pop();
-          if (DEBUG) System.out.println("POP " + defs[i].getHeapType());
+      if (A.operator != PHI) {
+        OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
+        if (defs != null) {
+          for (int i = 0; i < defs.length; i++) {
+            Stack S = (Stack)stacks.get(defs[i].getHeapType());
+            S.pop();
+            if (DEBUG) System.out.println("POP " + defs[i].getHeapType());
+          }
         }
+      } else {
+        OPT_HeapOperand H = (OPT_HeapOperand)Phi.getResult(A);
+        Stack S = (Stack)stacks.get(H.getHeapType());
+        S.pop();
+        if (DEBUG) System.out.println("POP " + H.getHeapType());
       }
     } // end of fourth loop
     if (DEBUG) System.out.println("END SEARCH2 " + X);
@@ -961,6 +971,7 @@ implements OPT_Operators, OPT_Constants {
    * 
    * @param ir the governing IR
    */
+  /*
   private void registerRenamedHeapPhis (OPT_IR ir) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration e1 = ir.getBasicBlocks(); e1.hasMoreElements();) {
@@ -980,6 +991,7 @@ implements OPT_Operators, OPT_Constants {
       }
     }
   }
+  */
 
   /**
    * Store a copy of the Heap variables each instruction defs.
