@@ -35,10 +35,13 @@ else
 fi
 
 if [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
-    export CLASSPATH_CONFIG_ARGS="--enable-portable-native-sync"
+    #export CLASSPATH_CONFIG_ARGS="--enable-portable-native-sync"
+    echo "$ME: KLUDGE DISABLING GTK SUPPORT; our function vector is out-of-date"
+    export CLASSPATH_CONFIG_ARGS="--disable-gtk-peer"
 else
     export CLASSPATH_CONFIG_ARGS="--disable-gtk-peer"
 fi
+
 
 ##
 ## process arguments
