@@ -494,7 +494,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     } else {
       OPT_Operand jtoc = 
 	OPT_MemoryOperand.BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
-			     VM_Entrypoints.jtocOffset, 
+			     VM_Entrypoints.jtocField.getOffset(), 
 			     (byte)4, null, TG());
       OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
       burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
@@ -577,10 +577,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_Move.create(IA32_FMOV, doubleVal, value));
 
     // Call VM_Math.doubleToInt
-    int offset = VM_Entrypoints.doubleToIntOffset;
+    int offset = VM_Entrypoints.doubleToIntMethod.getOffset();
     OPT_Operand targetAddr = loadFromJTOC(burs, offset);
-    OPT_MethodOperand targetMeth = 
-      OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToIntMethod);
+    OPT_MethodOperand targetMeth = OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToIntMethod);
     burs.append(CPOS(s, MIR_Call.mutate1(s, IA32_CALL, result, null, 
 					 targetAddr, targetMeth, 
 					 doubleVal)));
@@ -679,15 +678,15 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       burs.append(MIR_Move.create(IA32_MOV, 
 				  R(jtoc), 
 				  MO_BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
-					VM_Entrypoints.jtocOffset, DW, null, null)));
+					VM_Entrypoints.jtocField.getOffset(), DW, null, null)));
     }
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Entrypoints.maxintOffset + VM_Magic.getTocPointer(),
+      M = OPT_MemoryOperand.D(VM_Entrypoints.maxintField.getOffset() + VM_Magic.getTocPointer(),
 			      QW, null, null);
     } else {
-      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintOffset, QW, null, null);
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintField.getOffset(), QW, null, null);
     }
     burs.append(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
@@ -701,10 +700,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
     if (burs.ir.options.FIXED_JTOC) {
-      M = OPT_MemoryOperand.D(VM_Entrypoints.minintOffset + VM_Magic.getTocPointer(),
+      M = OPT_MemoryOperand.D(VM_Entrypoints.minintField.getOffset() + VM_Magic.getTocPointer(),
 			      QW, null, null);
     } else {
-      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintOffset, QW, null, null);
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintField.getOffset(), QW, null, null);
     }
     burs.append(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MIN_VALUE; myFP1 = value
@@ -798,14 +797,14 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     // load the JTOC into a register
     OPT_RegisterOperand PR = R(burs.ir.regpool.getPhysicalRegisterSet().
                                getPR());
-    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocOffset, 
+    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocField.getOffset(), 
                                             DW, null, null);
     OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
     burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
 
     // Store the FPU Control Word to a JTOC slot
     OPT_MemoryOperand M = OPT_MemoryOperand.BD
-      (regOp.copyRO(), VM_Entrypoints.FPUControlWordOffset, W, null, null);
+      (regOp.copyRO(), VM_Entrypoints.FPUControlWordField.getOffset(), W, null, null);
     burs.append(MIR_UnaryNoRes.create(IA32_FNSTCW, M));
     // Set the bits in the status word that control round to zero.
     // Note that we use a 32-bit and, even though we only care about the

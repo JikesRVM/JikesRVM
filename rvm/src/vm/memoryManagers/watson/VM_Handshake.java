@@ -108,10 +108,10 @@ class VM_Handshake implements VM_Uninterruptible {
     // This field will be released when gc completes
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
-					VM_Entrypoints.lockoutProcessorOffset);
+					VM_Entrypoints.lockoutProcessorField.offset);
       if ( lockoutVal == 0) {
 	if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
-			    VM_Entrypoints.lockoutProcessorOffset,
+			    VM_Entrypoints.lockoutProcessorField.offset,
 			    0, LOCKOUT_GC_WORD))
 	  break;
       }
@@ -234,10 +234,10 @@ class VM_Handshake implements VM_Uninterruptible {
     if (spinwait) {
       while (true) {
 	int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
-					  VM_Entrypoints.lockoutProcessorOffset);
+					  VM_Entrypoints.lockoutProcessorField.offset);
 	if ( lockoutVal == 0) {
 	  if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
-			      VM_Entrypoints.lockoutProcessorOffset,
+			      VM_Entrypoints.lockoutProcessorField.offset,
 			      0, value))
 	    break;
 	}
@@ -250,7 +250,7 @@ class VM_Handshake implements VM_Uninterruptible {
 
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
-					VM_Entrypoints.lockoutProcessorOffset);
+					VM_Entrypoints.lockoutProcessorField.offset);
       if ( lockoutVal != 0) {
 	if (debug_native) VM_Scheduler.trace("Handshake:acquireLockOutLock",
 					  "yielding: lockoutVal =",lockoutVal);
@@ -259,7 +259,7 @@ class VM_Handshake implements VM_Uninterruptible {
       }
       else {
 	if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
-			    VM_Entrypoints.lockoutProcessorOffset,
+			    VM_Entrypoints.lockoutProcessorField.offset,
 			    0, value))
 	  break;
       }
@@ -278,12 +278,12 @@ class VM_Handshake implements VM_Uninterruptible {
   {
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
-					VM_Entrypoints.lockoutProcessorOffset);
+					VM_Entrypoints.lockoutProcessorField.offset);
       // check that current value is as expected
       if (VM.VerifyAssertions && (value!=0)) VM.assert( lockoutVal == value );
       // OK, reset to zero
       if(VM_Magic.attempt(VM_BootRecord.the_boot_record,
-			  VM_Entrypoints.lockoutProcessorOffset,
+			  VM_Entrypoints.lockoutProcessorField.offset,
 			  lockoutVal, 0))
 	break;
     }
@@ -300,9 +300,9 @@ class VM_Handshake implements VM_Uninterruptible {
     int lockoutVal;
     while (true) {
       lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
-				    VM_Entrypoints.lockoutProcessorOffset);
+				    VM_Entrypoints.lockoutProcessorField.offset);
       if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
-			   VM_Entrypoints.lockoutProcessorOffset,
+			   VM_Entrypoints.lockoutProcessorField.offset,
 			   lockoutVal, lockoutVal))
 	break;
     }

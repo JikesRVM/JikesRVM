@@ -2119,7 +2119,7 @@ class VM_Assembler implements VM_BaselineConstants {
   // After:    R0, S0 destroyed
   //
   void emitStackOverflowCheck (int frameSize) {
-    emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitOffset, PROCESSOR_REGISTER);   // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame
     emitTLT (S0,  0);                                    // trap if new frame below guard page
     }
@@ -2134,19 +2134,19 @@ class VM_Assembler implements VM_BaselineConstants {
   // After:    R0, S0 destroyed
   //
   void emitNativeStackOverflowCheck (int frameSize) {
-    emitL    (S0, VM_Entrypoints.activeThreadOffset, PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitL    (S0, VM_Entrypoints.jniEnvOffset, S0);      // S0 := thread.jniEnv
-    emitL    ( 0, VM_Entrypoints.JNIRefsTopOffset,S0);   // R0 := thread.jniEnv.JNIRefsTop
-    emitL    (S0, VM_Entrypoints.activeThreadOffset, PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitL    (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
+    emitL    ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
+    emitL    (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
     emitCMPI ( 0, 0);                                 	 // check if S0 == 0 -> first native frame on stack
     emitBEQ(5);                                      	 // skip 4 instructions forward
     // check for enough space for requested frame size
-    emitL   ( 0,  VM_Entrypoints.stackLimitOffset, S0);  // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame pointer
     emitTLT (S0,  0);                                    // trap if new frame below guard page
     emitB(8);                                      	 // branch 5 instructions forward    
     // check for enough space for STACK_SIZE_JNINATIVE 
-    emitL   ( 0,  VM_Entrypoints.stackLimitOffset, S0);  // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
     emitLIL(S0, 1);
     emitSLI(S0, S0, STACK_LOG_JNINATIVE);
     emitSF (S0, S0, FP);             // S0 := &new frame pointer

@@ -105,9 +105,9 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  OPT_Instruction load = 
 	    Load.create(INT_LOAD, tempReg.copyRO(), 
 			ir.regpool.makePROp(),
-			OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountOffset),
+			OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountField.getOffset()),
 			new OPT_LocationOperand(VM_Entrypoints.
-						deterministicThreadSwitchCountOffset));
+						deterministicThreadSwitchCountField.getOffset()));
 	  // Insert the call followed by the load
 	  i.insertBefore(c);
 	  c.insertAfter(load);
@@ -126,9 +126,9 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  load = 
 	    Load.create(INT_LOAD, tempReg.copyRO(), 
 			ir.regpool.makePROp(),
-			OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountOffset),
+			OPT_IRTools.I(VM_Entrypoints.deterministicThreadSwitchCountField.getOffset()),
 			new OPT_LocationOperand(VM_Entrypoints.
-						deterministicThreadSwitchCountOffset));
+						deterministicThreadSwitchCountField.getOffset()));
 	  
 	  
 	  //	  beforeYP.appendInstruction(load);
@@ -159,9 +159,9 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 			 tempReg.copyRO(),
 			 ir.regpool.makePROp(),
 			 OPT_IRTools.I(VM_Entrypoints.
-				       deterministicThreadSwitchCountOffset),
+				       deterministicThreadSwitchCountField.getOffset()),
 			 new OPT_LocationOperand(VM_Entrypoints.
-						 deterministicThreadSwitchCountOffset));
+						 deterministicThreadSwitchCountField.getOffset()));
 
 	  //	  afterYP.prependInstruction(store);
 	  dummy.insertBefore(store);

@@ -179,7 +179,7 @@ public class VM_Allocator
     // need address of areaCurrentAddress (in JTOC) for atomic fetchAndAdd()
     // when JTOC moves, this must be reset
     // offset of areaCurrentAddress in JTOC is set (in JDK side) in VM_EntryPoints
-    addrAreaCurrentAddress = VM_Magic.getTocPointer() + VM_Entrypoints.areaCurrentAddressOffset;
+    addrAreaCurrentAddress = VM_Magic.getTocPointer() + VM_Entrypoints.areaCurrentAddressField.getOffset();
 
     // first ref in bootimage
     minBootRef = bootrecord.startAddress-OBJECT_HEADER_OFFSET;   

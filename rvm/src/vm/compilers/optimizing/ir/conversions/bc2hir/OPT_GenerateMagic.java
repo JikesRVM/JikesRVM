@@ -305,7 +305,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   "reflectiveMethodInvokerInstructions",
 					   INSTRUCTION_ARRAY_SIGNATURE), 
 			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.reflectiveMethodInvokerInstructionsOffset);
+			      VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
       OPT_Instruction s = Call.create4(CALL, res, null, met, Code, gprs, 
 				       fprs, spills);
       bc2ir.appendInstruction(s);
@@ -316,7 +316,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   "saveThreadStateInstructions", 
 					   INSTRUCTION_ARRAY_SIGNATURE), 
 			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.saveThreadStateInstructionsOffset);
+			      VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1(CALL, null, null, mo, p1));
     } else if (methodName == VM_MagicNames.threadSwitch) {
       OPT_Operand p2 = bc2ir.popRef();
@@ -326,7 +326,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   "threadSwitchInstructions",
 					   INSTRUCTION_ARRAY_SIGNATURE), 
 			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.threadSwitchInstructionsOffset);
+			      VM_Entrypoints.threadSwitchInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create2(CALL, null, null, mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
       OPT_MethodOperand mo = 
@@ -334,7 +334,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   "restoreHardwareExceptionStateInstructions", 
 					   INSTRUCTION_ARRAY_SIGNATURE), 
 			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.restoreHardwareExceptionStateInstructionsOffset);
+			      VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1
 			      (CALL, null, null, mo, bc2ir.popRef()));
     } else if (methodName == VM_MagicNames.getTime) {
@@ -344,7 +344,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 					   "getTimeInstructions", 
 					   INSTRUCTION_ARRAY_SIGNATURE), 
 			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.getTimeInstructionsOffset);
+			      VM_Entrypoints.getTimeInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1(CALL, val, null, mo, bc2ir.popRef()));
       bc2ir.push(val.copyD2U(), VM_Type.DoubleType);
     } else if (methodName == VM_MagicNames.prepare) {

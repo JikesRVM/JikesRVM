@@ -94,7 +94,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       }
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, pr.copy(),
 					  new
-                                          OPT_IntConstantOperand(VM_Entrypoints.threadIdOffset),
+                                          OPT_IntConstantOperand(VM_Entrypoints.threadIdField.getOffset()),
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {

@@ -14,7 +14,7 @@ class VM_RCBarriers implements VM_BaselineConstants {
 
     private static void emitBufferStores (VM_Assembler asm, int spSaveAreaOffset, int Told, int Tnew, int Ttmp) {
 	// Get pointer to mutation buffer
-	asm.emitL    (Ttmp, VM_Entrypoints.incDecBufferTopOffset, PROCESSOR_REGISTER);
+	asm.emitL    (Ttmp, VM_Entrypoints.incDecBufferTopField.getOffset(), PROCESSOR_REGISTER);
 	// If increment value is non-null, store in buffer 
 	asm.emitCMPI (Tnew, 0);
 	asm.emitBEQ  (+2);
@@ -25,14 +25,14 @@ class VM_RCBarriers implements VM_BaselineConstants {
 	asm.emitCAL  (Told, VM_RCBuffers.DECREMENT_FLAG, Told);
 	asm.emitSTU  (Told, 4, Ttmp);
 	// Store updated mutation buffer pointer
-	asm.emitST   (Ttmp, VM_Entrypoints.incDecBufferTopOffset, PROCESSOR_REGISTER);
+	asm.emitST   (Ttmp, VM_Entrypoints.incDecBufferTopField.getOffset(), PROCESSOR_REGISTER);
 
 	// Check for mutation buffer overflow
-	asm.emitL    (Told, VM_Entrypoints.incDecBufferMaxOffset, PROCESSOR_REGISTER);
+	asm.emitL    (Told, VM_Entrypoints.incDecBufferMaxField.getOffset(), PROCESSOR_REGISTER);
 	asm.emitCMP  (Ttmp, Told);
 	asm.emitBLE  (VM_Assembler.CALL_INSTRUCTIONS + 3);
 	// Buffer overflowed; call function to expand it.
-	asm.emitL    (S0, VM_Entrypoints.processIncDecBufferOffset, JTOC);
+	asm.emitL    (S0, VM_Entrypoints.processIncDecBufferField.getOffset(), JTOC);
 	asm.emitMTLR (S0);
 	asm.emitCall (spSaveAreaOffset);
     }

@@ -88,7 +88,7 @@ class VM_InterfaceMethodConflictResolver implements VM_Constants {
       // a leaf case; can simply invoke the method directly.
       asm.emitJMP_RegDisp(ECX, l.method.getOffset());
     } else {
-      int disp = VM_Entrypoints.hiddenSignatureIdOffset;
+      int disp = VM_Entrypoints.hiddenSignatureIdField.getOffset();
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, disp, l.signatureId);
       if (low < middle) {
 	asm.emitJCC_Cond_Label(asm.LT, bcIndices[(low+middle-1)/2]);

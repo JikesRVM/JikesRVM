@@ -15,7 +15,7 @@
  * here, out of line.
  * 
  * <p>These code blocks can be shared by all compilers. They can be branched to
- * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsOffset).
+ * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsField).
  * 
  * <p> 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000 
  * by somebody)
@@ -108,6 +108,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      * logically equivalent to ParamaterRegisterUnload in the compiler
      */
     int gprs;
+    int fpOffset = VM_Entrypoints.framePointerField.getOffset();
     byte T = T0;
     gprs = NUM_PARAMETER_GPRS;
     int offset = 4 << LG_WORDSIZE;		// we have exactly 4 paramaters
@@ -124,8 +125,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
 
     /* push a new frame */
-    asm.emitPUSH_RegDisp(PR, VM_Entrypoints.framePointerOffset); // link this frame with next
-    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerOffset, SP); // establish base of new frame
+    asm.emitPUSH_RegDisp(PR, fpOffset); // link this frame with next
+    VM_ProcessorLocalState.emitMoveRegToField(asm, fpOffset, SP); // establish base of new frame
     asm.emitPUSH_Imm    (INVISIBLE_METHOD_ID);
     asm.emitADD_Reg_Imm (SP, STACKFRAME_BODY_OFFSET);
     
@@ -137,8 +138,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      * T1 length
      * T0 scratch
      */
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-					      VM_Entrypoints.framePointerOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, PARAMS_FP_OFFSET);// S0 <- Parameters
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- Parameters.length()
     asm.emitCMP_Reg_Imm     (T1, 0);			// length == 0 ?
@@ -154,8 +154,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     fr1.resolve(asm);					// end of the loop
     
     /* write fprs onto fprs registers */
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-					      VM_Entrypoints.framePointerOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, FPRS_FP_OFFSET);	// S0 <- FPRs
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- FPRs.length()
     asm.emitSHL_Reg_Imm (T1, LG_WORDSIZE + 1 );		// length in bytes
@@ -173,8 +172,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
 
     /* write gprs: S0 = Base address of GPRs[], T1 = GPRs.length */
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-					      VM_Entrypoints.framePointerOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, GPRS_FP_OFFSET);	// S0 <- GPRs
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- GPRs.length()
     asm.emitCMP_Reg_Imm (T1, 0);			// length == 0 ?
@@ -188,8 +186,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     fr4.resolve(asm);
 
     /* branch to method.  On a good day we might even be back */
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-					      VM_Entrypoints.framePointerOffset);
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, CODE_FP_OFFSET);	// S0 <- code
     asm.emitCALL_Reg (S0);				// go there
     // T0/T1 have returned value
@@ -198,7 +195,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // NOTE: RVM callee has popped the params, so we can simply
     //       add back in the initial SP to FP delta to get SP to be a framepointer again!
     asm.emitADD_Reg_Imm (SP, -STACKFRAME_BODY_OFFSET + 4); 
-    asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerOffset);
+    asm.emitPOP_RegDisp (PR, fpOffset);
 
     asm.emitRET_Imm(4 << LG_WORDSIZE);			// again, exactly 4 parameters
 
@@ -224,7 +221,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     VM_Assembler asm = new VM_Assembler(0);
     int   fpOffset = VM.getMember("LVM_Registers;",   "fp",  "I").getOffset();
     int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerOffset); 
+    asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffset()); 
     asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);        // registers.fp := pr.framePointer
     asm.emitPOP_Reg        (T1);                      // T1 := return address 
     asm.emitADD_Reg_Imm    (SP, 4);                   // throw away space for registers parameter (in T0)
@@ -265,7 +262,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // (1) Save hardware state of thread we are switching off of.
     asm.emitMOV_Reg_RegDisp  (S0, T0, regsOffset);      // S0 = T0.contextRegisters
     asm.emitPOP_RegDisp      (S0, ipOffset);            // T0.contextRegisters.ip = returnAddress
-    asm.emitPUSH_RegDisp     (PR, VM_Entrypoints.framePointerOffset); // push PR.framePointer
+    asm.emitPUSH_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffset()); // push PR.framePointer
     asm.emitPOP_RegDisp      (S0, fpOffset);            // T0.contextRegisters.fp = pushed framepointer
     asm.emitADD_Reg_Imm      (SP, 8);                   // discard 2 words of parameters (T0, T1)
     asm.emitMOV_Reg_RegDisp  (S0, S0, gprsOffset);      // S0 = T0.contextRegisters.gprs;
@@ -275,11 +272,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     }
 
     // (2) Set currentThread.beingDispatched to false
-    asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedOffset, 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
+    asm.emitMOV_RegDisp_Imm(T0, VM_Entrypoints.beingDispatchedField.getOffset(), 0); // previous thread's stack is nolonger in use, so it can now be dispatched on any virtual processor 
     
     // (3) Restore hardware state of thread we are switching to.
     asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := restoreRegs.fp
-    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerOffset, S0); // PR.framePointer = restoreRegs.fp
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), S0); // PR.framePointer = restoreRegs.fp
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := restoreRegs.gprs[]
     asm.emitMOV_Reg_RegDisp(SP, S0, SP<<LG_WORDSIZE); // SP := restoreRegs.gprs[#SP]
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
@@ -308,12 +305,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     int ipOffset   = VM.getMember("LVM_Registers;", "ip", "I").getOffset();
     int fpOffset   = VM.getMember("LVM_Registers;", "fp",  "I").getOffset();
     int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset(); //TODO!
 
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, fpOffset); 
     VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerOffset,
+                                              VM_Entrypoints.framePointerField.getOffset(),
                                               S0);
 
     // Restore SP
@@ -366,7 +362,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // change processor status to IN_NATIVE
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, 
-                                              VM_Entrypoints.vpStatusAddressOffset);
+                                              VM_Entrypoints.vpStatusAddressField.getOffset());
     asm.emitMOV_RegInd_Imm(T0, VM_Processor.IN_NATIVE);
 
     // make the call...
@@ -389,19 +385,19 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // reload JTOC from processor NOTE: JTOC saved in glue frame may not be
     // the RVM JTOC 
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
-                                              VM_Entrypoints.jtocOffset);
+                                              VM_Entrypoints.jtocField.getOffset());
 
     // S0<-addr of statusword
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.vpStatusAddressOffset);
+                                              VM_Entrypoints.vpStatusAddressField.getOffset());
 
     asm.emitMOV_Reg_RegInd(T0,S0);                         // T0<-contents of statusword 
     asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // jmp if still IN_NATIVE
     VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip 3 instructions
 
     // blocked in native, do pthread yield
-    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordOffset);  // T0<-bootrecord addr
-    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPOffset);
+    asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
+    asm.emitCALL_RegDisp(T0, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
     asm.emitJMP_Imm (retryLabel);                          // retry from beginning
 
     fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
@@ -418,7 +414,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // Test if returning to Java on a RVM processor or a Native processor.
 
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
-                                              VM_Entrypoints.processorModeOffset);
+                                              VM_Entrypoints.processorModeField.getOffset());
     asm.emitCMP_Reg_Imm (T0, VM_Processor.RVM);           // test for RVM
     VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);     // Br if yes
 
@@ -430,7 +426,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // ADD A SAVE OF FPR return reg (top on FPR stack?) before trnsferring
     // branch to becomeRVMThread to make the transfer
 
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeRVMThreadOffset);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.becomeRVMThreadMethod.getOffset());
 
     // execution here is now on the RVM processor, and on a different
     // os pThread. non-volatile GRPs & FPRs have been saved and restored

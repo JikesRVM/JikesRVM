@@ -121,7 +121,7 @@ class JNIServiceThread extends Thread   {
 	// the associated VM_Thread.
 	// (compute with VM_Entrypoints.JNIFunctionPointersOffset because JNIFunctionPointers is private)
        	int threadOffset = externalJNIEnv - 
-	  VM_Magic.getMemoryWord(VM_Magic.getTocPointer() + VM_Entrypoints.JNIFunctionPointersOffset);
+	  VM_Magic.getMemoryWord(VM_Magic.getTocPointer() + VM_Entrypoints.JNIFunctionPointersField.getOffset());
 	
 	if (trace)
 	  VM.sysWrite("JNIServiceThread:  externalJNIEnv = " + 

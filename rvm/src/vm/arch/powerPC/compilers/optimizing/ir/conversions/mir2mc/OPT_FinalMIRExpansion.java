@@ -190,7 +190,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
               OPT_Register PR = phys.getPR();
               p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
                              R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedOffset))));
+                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
               p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
                              I(0)));
               instructionCount += 2;
@@ -214,7 +214,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
               OPT_Register PR = phys.getPR();
               p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
                              R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedOffset))));
+                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
               p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
                              I(0)));
               instructionCount += 2;

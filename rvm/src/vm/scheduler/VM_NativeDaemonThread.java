@@ -66,8 +66,6 @@ class VM_NativeDaemonThread extends VM_Thread {
 
     if (trace) VM_Scheduler.trace(" Entering run method of NDT ", "  ");
     VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor();
-    int lockoutAddr = VM_Magic.objectAsAddress( VM_BootRecord.the_boot_record) + 
-                                                VM_Entrypoints.lockoutProcessorOffset;
     int i, transferCount=0, stuckCount=0;
 
     //  make sure Opt compiler does not compile this method

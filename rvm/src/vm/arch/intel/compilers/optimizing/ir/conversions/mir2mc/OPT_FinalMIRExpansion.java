@@ -142,7 +142,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 	    }
 	    OPT_MemoryOperand mo = 
 	      OPT_MemoryOperand.BD(R(phys.getPR()),
-				   VM_Entrypoints.arrayIndexTrapParamOffset,
+				   VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
 				   (byte)4, 
 				   null, 
 				   null);
@@ -369,7 +369,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.threadSwitchRequestedOffset;
+    int tsr = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, I(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),

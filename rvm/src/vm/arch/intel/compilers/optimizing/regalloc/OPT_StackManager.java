@@ -376,7 +376,7 @@ implements OPT_Operators {
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitOffset, 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
 			   (byte)WORDSIZE, null, null);
 
     //    Trap if ESP <= active Thread Stack Limit
@@ -412,7 +412,7 @@ implements OPT_Operators {
 
     //    ECX := active Thread Stack Limit
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitOffset, 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
 			   (byte)WORDSIZE, null, null);
     plg.insertBefore(MIR_Move.create(IA32_MOV, R(ECX), M));
 
@@ -444,7 +444,7 @@ implements OPT_Operators {
     OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome = 
       OPT_MemoryOperand.BD(R(PR),
-			   VM_Entrypoints.framePointerOffset,
+			   VM_Entrypoints.framePointerField.getOffset(),
 			   (byte)WORDSIZE, null, null);
 
     // inst is the instruction immediately after the IR_PROLOGUE
@@ -645,7 +645,7 @@ implements OPT_Operators {
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(frameSize)));
     OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerOffset,
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffset(),
 			   (byte)WORDSIZE, null, null);
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }

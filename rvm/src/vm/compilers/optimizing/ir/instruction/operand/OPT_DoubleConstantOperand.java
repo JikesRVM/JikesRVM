@@ -33,9 +33,9 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand {
     value = v;
     offset= -1;
     if (v == 0.) {
-       offset = VM_Entrypoints.zeroDouble.getOffset() >> 2;
+       offset = VM_Entrypoints.zeroDoubleField.getOffset() >> 2;
     } else if (v == 1.) {
-       offset = VM_Entrypoints.oneDouble.getOffset() >> 2;
+       offset = VM_Entrypoints.oneDoubleField.getOffset() >> 2;
     }
   }
 

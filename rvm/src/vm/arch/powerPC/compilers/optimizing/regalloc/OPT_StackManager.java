@@ -397,7 +397,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
                                      R(phys.getLR()))); // 1
     if (yp) {
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1), R(PR),
-			I(VM_Entrypoints.threadSwitchRequestedOffset)))); // 2
+			I(VM_Entrypoints.threadSwitchRequestedField.getOffset())))); // 2
     }
 
     ptr.insertBefore(nonPEIGC(MIR_StoreUpdate.create(PPC_STWU, R(FP), R(FP),
@@ -406,7 +406,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     if (stackOverflow) {
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S0),
                                                 R(phys.getPR()), 
-			I(VM_Entrypoints.activeThreadStackLimitOffset)))); // 4
+			I(VM_Entrypoints.activeThreadStackLimitField.getOffset())))); // 4
     }
 
     // Now add any instructions to save the nonvolatiles (5)
@@ -474,7 +474,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 			I(STACKFRAME_NEXT_INSTRUCTION_OFFSET))));
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1),
                                                 R(phys.getPR()), 
-			I(VM_Entrypoints.activeThreadStackLimitOffset))));
+			I(VM_Entrypoints.activeThreadStackLimitField.getOffset()))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, R(R0), R(S1), 
 			I(frameSize)));
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1), R(FP), 
@@ -520,7 +520,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // Threadswitch
     if (yp) {
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(R0), R(PR), 
-			I(VM_Entrypoints.threadSwitchRequestedOffset))));
+			I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(R0), I(0)));
     }
     ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));

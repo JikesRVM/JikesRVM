@@ -302,7 +302,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  // Get the java.lang.Class object from the VM_Type object
 	  // TODO: Valid location operand?
 	  Load.mutate(s, REF_LOAD, Unary.getClearResult(s), type.copyD2U(), 
-		      I(VM_Entrypoints.classForTypeOffset), null);
+		      I(VM_Entrypoints.classForTypeField.getOffset()), null);
 	}
 	break;
       default:

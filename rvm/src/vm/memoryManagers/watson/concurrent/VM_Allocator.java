@@ -631,7 +631,7 @@ public class VM_Allocator
 	    int slotndx = (rawaddr - the_block.baseAddr) / the_block.slotsize;
 	    the_block.alloc[slotndx] = 1;
 	    //	    the_block.allocCount++;	// should use atomic fetch and add on MP
-	    VM_Synchronization.fetchAndAdd(the_block, VM_Entrypoints.allocCountOffset,1);
+	    VM_Synchronization.fetchAndAdd(the_block, VM_Entrypoints.allocCountField.getOffset(),1);
 	}
 
 	// Initialize reference count and enqueue mutation buffer operations
@@ -2805,7 +2805,7 @@ public class VM_Allocator
 
 	    this_block.alloc[slotndx] = 0;
 	    //	    this_block.allocCount--;
-	    VM_Synchronization.fetchAndDecrement(this_block, VM_Entrypoints.allocCountOffset,1);
+	    VM_Synchronization.fetchAndDecrement(this_block, VM_Entrypoints.allocCountField.getOffset(),1);
 
 	} else if (tref >= largeHeapStartAddress && tref <  largeHeapEndAddress) {
 	    // object allocated in large object runtime heap

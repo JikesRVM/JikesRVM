@@ -383,9 +383,7 @@ class VM_CollectorThread extends VM_Thread
 	}
 	//-#endif
 
-	int lockoutAddr = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record)
-	  + VM_Entrypoints.lockoutProcessorOffset;
-	VM_Magic.setMemoryWord(lockoutAddr, 0);      // clear the GC flag
+	VM_Magic.setIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset(), 0); // clear the GC flag
       }
 
       if (MEASURE_WAIT_TIMES) resetWaitTimers();  // reset for next GC

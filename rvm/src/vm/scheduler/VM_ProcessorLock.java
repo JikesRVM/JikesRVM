@@ -99,17 +99,18 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
     VM_Processor p;
     int attempts = 0;
     int retries = 0;
+    int latestContenderOffset = VM_Entrypoints.latestContenderField.offset;
     do {
-      p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepare(this, VM_Entrypoints.latestContenderOffset)));
+      p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepare(this, latestContenderOffset)));
       if (p == null) { // nobody owns the lock
-	if (VM_Magic.attempt(this, VM_Entrypoints.latestContenderOffset, 0, VM_Magic.objectAsAddress(i))) {
+	if (VM_Magic.attempt(this, latestContenderOffset, 0, VM_Magic.objectAsAddress(i))) {
 	  VM_Magic.isync(); // so subsequent instructions wont see stale values
 	  return; 
 	} else {
 	  continue; // don't handle contention
 	}
       } else if (MCS_Locking && VM_Magic.objectAsAddress(p) != IN_FLUX) { // lock is owned, but not being changed
-	if (VM_Magic.attempt(this, VM_Entrypoints.latestContenderOffset, VM_Magic.objectAsAddress(p), IN_FLUX)) {
+	if (VM_Magic.attempt(this, latestContenderOffset, VM_Magic.objectAsAddress(p), IN_FLUX)) {
 	  VM_Magic.isync(); // so subsequent instructions wont see stale values
 	  break; 
 	}
@@ -126,7 +127,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
       p.contenderLink = i;
     }
     VM_Magic.sync(); // so other contender will see updated contender chain
-    VM_Magic.setObjectAtOffset(this, VM_Entrypoints.latestContenderOffset, i);  // other processors can get at the lock
+    VM_Magic.setObjectAtOffset(this, latestContenderOffset, i);  // other processors can get at the lock
     do { // spin, waiting for the lock
       VM_Magic.isync(); // to make new value visible as soon as possible
     } while (i.awaitingProcessorLock == this);
@@ -138,9 +139,10 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
    */
   boolean tryLock () {
     if (VM.BuildForSingleVirtualProcessor) return true;
-    if (VM_Magic.prepare(this, VM_Entrypoints.latestContenderOffset) == 0) {
+    int latestContenderOffset = VM_Entrypoints.latestContenderField.offset;
+    if (VM_Magic.prepare(this, latestContenderOffset) == 0) {
       int cp = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor());
-      if (VM_Magic.attempt(this, VM_Entrypoints.latestContenderOffset, 0, cp)) {
+      if (VM_Magic.attempt(this, latestContenderOffset, 0, cp)) {
 	VM_Magic.isync(); // so subsequent instructions wont see stale values
 	return true; 
       }
@@ -154,22 +156,23 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
   public void unlock () {
     if (VM.BuildForSingleVirtualProcessor) return;
     VM_Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that acquires the lock
+    int latestContenderOffset = VM_Entrypoints.latestContenderField.offset;
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (!MCS_Locking) {
       if (VM.VerifyAssertions) i.lockCount -= 1;
-      VM_Magic.setIntAtOffset(this, VM_Entrypoints.latestContenderOffset, 0);  // latestContender = null;
+      VM_Magic.setIntAtOffset(this, latestContenderOffset, 0);  // latestContender = null;
       return;
     }
     VM_Processor p;
     int retries = 0;
     do {
-      p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepare(this, VM_Entrypoints.latestContenderOffset)));
+      p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepare(this, latestContenderOffset)));
       if (p == i) { // nobody is waiting for the lock
-	if (VM_Magic.attempt(this, VM_Entrypoints.latestContenderOffset, VM_Magic.objectAsAddress(p), 0)) {
+	if (VM_Magic.attempt(this, latestContenderOffset, VM_Magic.objectAsAddress(p), 0)) {
 	  break;
 	}
       } else if (VM_Magic.objectAsAddress(p) != IN_FLUX) { // there are waiters, but the contention chain is not being chainged
-	if (VM_Magic.attempt(this, VM_Entrypoints.latestContenderOffset, VM_Magic.objectAsAddress(p), IN_FLUX)) {
+	if (VM_Magic.attempt(this, latestContenderOffset, VM_Magic.objectAsAddress(p), IN_FLUX)) {
 	  break; 
 	}
       } else { // in flux
@@ -182,12 +185,12 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
 	q.awaitingProcessorLock = null; // q now owns the lock
 	VM_Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
 	// other contenders can get at the lock:
-	VM_Magic.setObjectAtOffset(this, VM_Entrypoints.latestContenderOffset, q); // latestContender = q; 
+	VM_Magic.setObjectAtOffset(this, latestContenderOffset, q); // latestContender = q; 
       } else { // more than one processor waiting for the lock
 	p.contenderLink = q.contenderLink; // remove q from the chain
 	q.awaitingProcessorLock = null; // q now owns the lock
 	VM_Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
-        VM_Magic.setObjectAtOffset(this, VM_Entrypoints.latestContenderOffset, p); // other contenders can get at the lock
+        VM_Magic.setObjectAtOffset(this, latestContenderOffset, p); // other contenders can get at the lock
       }
     }
     if (VM.VerifyAssertions) i.lockCount -= 1;

@@ -216,9 +216,9 @@ public class VM_Allocator
     // need address of areaCurrentAddress (in JTOC) for atomic fetchAndAdd()
     // when JTOC moves, this must be reset
     // offset of areaCurrentAddress in JTOC is set (in JDK side) in VM_EntryPoints 
-    addrAreaCurrentAddress = VM_Magic.getTocPointer() + VM_Entrypoints.areaCurrentAddressOffset;
+    addrAreaCurrentAddress = VM_Magic.getTocPointer() + VM_Entrypoints.areaCurrentAddressField.getOffset();
     // likewise for matureCurrentAddress
-    addrMatureCurrentAddress = VM_Magic.getTocPointer() + VM_Entrypoints.matureCurrentAddressOffset;
+    addrMatureCurrentAddress = VM_Magic.getTocPointer() + VM_Entrypoints.matureCurrentAddressField.getOffset();
     
     if (COMPILE_FOR_TIMING_RUN) {
       // touch all heap pages, to avoid pagefaults overhead during timing runs

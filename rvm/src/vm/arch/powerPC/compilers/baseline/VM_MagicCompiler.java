@@ -294,7 +294,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          asm.emitL  (T0, 0, SP); // t0 := address of VM_Processor object
          asm.emitCAL(SP, 4, SP); // pop arg
          
-         asm.emitLtoc(S0, VM_Entrypoints.getTimeInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
          asm.emitMTLR(S0);
          asm.emitCall(spSaveAreaOffset);             // call out of line machine code
 
@@ -488,7 +488,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          {
          asm.emitL   (T0, 0, SP); // T0 := address of VM_Registers object
          
-         asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
          asm.emitMTLR(S0);
          asm.emitCall(spSaveAreaOffset); // call out of line machine code
          
@@ -501,7 +501,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          asm.emitL(T0, 4, SP); // T0 := address of previous VM_Thread object
          asm.emitL(T1, 0, SP); // T1 := address of VM_Registers of new thread
          
-         asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
          asm.emitMTLR(S0);
 	 asm.emitCall(spSaveAreaOffset);
 
@@ -513,7 +513,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          {
          asm.emitL(T0, 0, SP); // T0 := address of VM_Registers object
 
-         asm.emitLtoc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
          asm.emitMTLR(S0);
          asm.emitBLR(); // branch to out of line machine code (does not return)
          return;
@@ -713,7 +713,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 
       // fetch parameters and generate call to method invoker
       //
-      asm.emitLtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsOffset);
+      asm.emitLtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
       asm.emitL    (T0, 12, SP);        // t0 := code
       asm.emitMTLR (S0);
       asm.emitL    (T1,  8, SP);        // t1 := gprs

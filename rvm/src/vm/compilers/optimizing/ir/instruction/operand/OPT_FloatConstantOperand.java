@@ -30,11 +30,11 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
   OPT_FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
-       offset = VM_Entrypoints.zeroFloat.getOffset() >> 2;
+       offset = VM_Entrypoints.zeroFloatField.getOffset() >> 2;
     } else if (v == 1.f) {
-       offset = VM_Entrypoints.oneFloat.getOffset() >> 2;
+       offset = VM_Entrypoints.oneFloatField.getOffset() >> 2;
     } else if (v == 2.f) {
-       offset = VM_Entrypoints.twoFloat.getOffset() >> 2;
+       offset = VM_Entrypoints.twoFloatField.getOffset() >> 2;
     }
   }
 

@@ -776,8 +776,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForSingleVirtualProcessor) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
-      int processorId = VM_Magic.prepare(VM_Magic.getJTOC(), VM_Entrypoints.outputLockOffset);
-      if (processorId == 0 && VM_Magic.attempt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockOffset, 0, VM_Processor.getCurrentProcessorId())) {
+      int processorId = VM_Magic.prepare(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
+      if (processorId == 0 && VM_Magic.attempt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), 0, VM_Processor.getCurrentProcessorId())) {
         break; 
       }
     } while (true);
@@ -790,9 +790,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (true) outputLock = 0; // TODO!! this ought to work, but doesn't?
     else {
       do {
-        int processorId = VM_Magic.prepare(VM_Magic.getJTOC(), VM_Entrypoints.outputLockOffset);
+        int processorId = VM_Magic.prepare(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
         if (VM.VerifyAssertions && processorId != VM_Processor.getCurrentProcessorId()) VM.sysExit(664);
-        if (VM_Magic.attempt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockOffset, processorId, 0)) {
+        if (VM_Magic.attempt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), processorId, 0)) {
           break; 
         }
       } while (true);
