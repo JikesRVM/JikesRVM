@@ -114,7 +114,7 @@ for benchmark in $all
 do
 # Performance next
    export RVM_BUILD=$BUILDDIR/FastBaseAdaptiveCopyMS
-    $rvm $jvmoptions -X:processors=$PROCS $cp SpecApplication $appperfoptions  -a $benchmark
+    $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=base $cp SpecApplication $appperfoptions  -a $benchmark
 
    export RVM_BUILD=$BUILDDIR/FastOpt0CopyMS
    $rvm $jvmoptions -X:processors=$PROCS -X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:opt:O0 $cp SpecApplication $appperfoptions  -a $benchmark
