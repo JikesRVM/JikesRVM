@@ -101,6 +101,14 @@ public abstract class VM_Configuration {
           false;
 	//-#endif
 
+  // Is this an adaptive build?
+  public static final boolean BuildForAdaptiveSystem =
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
+        true;
+      //-#else
+        false;
+      //-#endif
+
   // Dynamic type checking implementations.
   // We have two:
   //  (1) FastDynamicTypeCheck as described in Alpern, Cocchi, & Grove JVM'01
