@@ -21,21 +21,24 @@ class FixedLive {
       System.out.println("No argument.  Assuming base");
     if (args[0].compareTo("opt") == 0 ||
 	args[0].compareTo("perf") == 0)
-      base = true;
+      base = false;
     liveSize = base ? 30 : 100;
+    exclude = base ? 0 : 2;
+    sampleCount = -exclude;
     if (liveSize < 0)
       System.out.println("Amount of live data must be positive");
     runTest();
   }
 
+  static double setupTime = 0.0;
   static double sumTraceTime = 0.0;
   static double sumAllocTime = 0.0;
   static double sumTraceRate = 0.0;
   static double squaredSumTraceRate = 0.0;
   static double sumAllocRate = 0.0;
   static double squaredSumAllocRate = 0.0;
-  public static int exclude = 2;  // skips first two GCs
-  static int sampleCount = -exclude; 
+  public static int exclude;  // skips first two GCs
+  static int sampleCount;
 
   public static void addSample(double traceElapsed, double allocElapsed,
 			       double traceRate, double allocRate) {
@@ -92,14 +95,15 @@ class FixedLive {
   public static void showResults() {
     updateStats();
     System.out.println();
-    System.out.print("Overall Rate:           tracing    rate = " + avgTraceRate + " Mb/s");
+    System.out.print("Overall:           tracing    rate = " + avgTraceRate + " Mb/s");
     System.out.println("   allocation     rate = " + avgAllocRate + " Mb/s");
-    System.out.print("Standard Deviation:     tracing   sigma = " + rmsTraceRate + " Mb/s");
+    System.out.print("Overall:     tracing   sigma = " + rmsTraceRate + " Mb/s");
     System.out.println("   allocation    sigma = " + rmsAllocRate + " Mb/s");
-    System.out.print("Z Score:                tracing z-score = " + zTraceRate);
+    System.out.print("Overall:           tracing z-score = " + zTraceRate);
     System.out.println("           allocation z-score = " + zAllocRate);
-    System.out.println("Total Allocation Time = " + sumAllocTime + " s");
-    System.out.println("Total Tracing    Time = " + sumTraceTime + " s");
+    System.out.println("Overall:  Total Setup      Time = " + setupTime + " s");
+    System.out.println("Overall:  Total Allocation Time = " + sumAllocTime + " s");
+    System.out.println("Overall:  Total Tracing    Time = " + sumTraceTime + " s");
   }
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
@@ -144,14 +148,17 @@ class FixedLive {
 
     System.out.println("FixedLive running with " + liveSize + " Mb fixed live data\n");
     
+    long start = System.currentTimeMillis();
     Node2I2A.computeObjectSize();
     System.out.println("Estimated object size of a 4-field object (2 int, 2 ref) is " + Node2I2A.objectSize + " bytes");
 
     int count = (int) (liveSize << 20) / Node2I2A.objectSize;
     System.out.println("Creating live data: tree with " + count + " nodes");
     root = Node2I2A.createTree(count);
+    long end = System.currentTimeMillis();
+    setupTime = (end - start) / 1000.0;
 
-    allocateDie(5, 2048, 350.0);
+    allocateDie(5, 2048, 200.0);
   }
 
 

@@ -26,7 +26,7 @@ class LargeAlloc {
     if (args[0].compareTo("opt") == 0 ||
 	args[0].compareTo("perf") == 0)
       base = true;
-    allocSize = base ? 1000 : 3000;
+    allocSize = base ? 500 : 3000;
     runTest();
   }
 
@@ -41,8 +41,12 @@ class LargeAlloc {
     Plan.verbose = 3;
     //-#endif
 
+    long lastUsed = 0;
     long used = 0;
     long limit = allocSize * 1024 * 1024;
+    long start = System.currentTimeMillis();
+    System.gc();
+    long startUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     while (used < limit) {
       int curSize = itemSize;
       for (int i=0; i<sizeCount; i++) {
@@ -50,10 +54,17 @@ class LargeAlloc {
 	used += itemSize;
 	curSize = (int) (curSize * sizeRatio);
       }
+      if (used - lastUsed > 100 * 1024 * 1024) {
+	long cur = System.currentTimeMillis();
+	System.out.println("Allocated " + (used >> 20) + " Mb at time " + ((cur - start) / 1000.0) + " sec");
+	lastUsed = used;
+      }
     }
-
+    System.gc();
+    long endUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    System.out.print("\nOverall: after allocation, usedMemory has increased by ");
+    System.out.println(((endUsed - startUsed) / (1024.0 * 1024.0)) + " Mb");
   }
-
 
 
 }
