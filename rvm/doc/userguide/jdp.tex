@@ -207,6 +207,11 @@ For Linux/Intel, it is:
 
 \subsection {{\tt jdp} commands}
 
+   This section gives a list of the jdp commands. To see a particular command's
+syntax and a more detailed description, please use "help commandname" on the
+jdp command prompt.
+
+
 \begin{tabular}{|l|l|l|} \hline
 Command       & Shortcut & Description     \\ \hline
 step          & s   & step current thread by instruction, into method           \\ 
@@ -214,6 +219,7 @@ stepbr        & sbr & step current thread by instruction, over method           
 stepline      & sl  & step current thread by source line, into method   \\ 
 steplineover  & slo & step current thread by source line, over method   \\ 
 creturn       & cr  & continue to calling method (up one stack frame)           \\ 
+cthread       & ct  & continue only the current thread                  \\ 
 cont          & c   & continue all threads                                      \\ 
 kill          & k   & terminate program                                         \\ 
 run           & run & start new program                                         \\ 
@@ -230,7 +236,7 @@ wmem          & wm  & write memory                                              
 reg           & r   & display registers                                         \\ 
 wreg          & wr  & write register                                            \\ 
 printclass    & pc  & print the class statics or the type of an object address  \\ 
-ymacroprint         & p   & print local variables or cast an address as an object     \\ 
+print         & p   & print local variables or cast an address as an object     \\ 
 listi         & li  & list machine instruction                                  \\ 
 listt         & lt  & list threads                                              \\ \hline 
 
@@ -242,11 +248,13 @@ verbose       & v   & toggle verbose mode                                       
 (enter)       &   & repeat last command                                         \\ \hline 
 \end{tabular}
 
-To get more information on a specific command, type: 
+If you see the prompt:
 \begin{verbatim}
-        help thiscommand
+   jid>
 \end{verbatim}
-
+this means that the interpreter within the debugger had encountered an internal
+error and has entered its own internal debugging mode. At this point, you 
+can type "w" to see the interpreter stack and report the problem.
 
 \subsection{ {\tt jdp} Macros}
 A jdp macro is a text file that has the {\tt .jdp} suffix and contains a sequence of normal {\tt jdp} commands
@@ -419,14 +427,14 @@ id  its registers, but native variables and line numbers are not available.
   What these messages mean:
 
 \begin{itemize}
-\item {\tt "CAUTION, address not accessible: 0x80620420"}
+\item [{\tt "CAUTION, address not accessible: 0x80620420"}]
         This means that {\tt jdp} got an error when it reads an address
         in the RVM space.  This may have occurred because {\tt jdp} is 
         dereferencing an object from a bad address, or the RVM has
         become corrupted.  This message does not mean that {\tt jdp}
         has crashed; you should be able to continue debugging.
 
-\item {\tt j}:
+\item [{\tt jid>}:]
         In the general debugging mode (running with the interpreter),
         this means that the interpreter has encountered an internal 
         error and has entered its own internal debugging mode.  At this 
