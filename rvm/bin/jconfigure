@@ -2346,7 +2346,7 @@ function emitCheckIfIAmTheTarget () {
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
    elif (( RVM_FOR_OSX )); then
-	echo 'if [[ `uname` != Darwin ]]; then'
+	echo "if [[ \$(uname) != Darwin ]]; then"
 	echo '   echo "please run me on Darwin/OSX"'
 	echo '   exit 1'
 	echo 'fi'
