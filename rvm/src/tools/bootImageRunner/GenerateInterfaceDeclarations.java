@@ -210,7 +210,7 @@ class GenerateInterfaceDeclarations {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
         // e. g.,
-        // extern "C" void sysSprintf();
+        // extern "C" void sysFOOf();
         System.out.print("extern \"C\" int " + functionName + "();\n");
       }
     }
@@ -230,11 +230,11 @@ class GenerateInterfaceDeclarations {
         String functionName = fieldName.substring(0, suffixIndex);
         if (VM.BuildForAix)
           // e. g.,
-          // sysSprintfIP = ((AixLinkageLayout *)&sysSprintf)->ip;
+          // sysFOOIP = ((AixLinkageLayout *)&sysFOO)->ip;
           System.out.print("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->ip;\n"); 
         else 
           // e. g.,
-          //sysSprintfIP = (int) sysSprintf; 
+          //sysFOOIP = (int) sysFOO; 
           System.out.print("  br->" + fieldName + " = (int) " + functionName + ";\n");
       }
 
