@@ -1566,8 +1566,10 @@ EOF
 
     if (( RVM_FOR_32_ADDR )); then
 	echo "RVM_FOR_32_ADDR := 1"
+	echo "ADDRESS_SIZE := 32"
     elif (( RVM_FOR_64_ADDR )); then
 	echo "RVM_FOR_64_ADDR := 1"
+	echo "ADDRESS_SIZE := 64"
     else
 	croak_nonusage "The configuration must specify one of RVM_FOR_32_ADDR or RVM_FOR_64_ADDR; it does not."
     fi
