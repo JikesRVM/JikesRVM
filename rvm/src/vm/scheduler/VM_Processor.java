@@ -326,39 +326,36 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_Baseli
 
     // if thread wants to stay on specified processor, put it there
     if (t.processorAffinity != null) {
-      if (trace) 
-        VM_Scheduler.trace("VM_Processor.scheduleThread", 
-                           "outgoing to specific processor:", t.getIndex());
+      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
       t.processorAffinity.transferThread(t);
       return;
     }
 
     if (VM.BuildForConcurrentGC) { 
       // currently don't move threads around - so keep on same processor
-      if (trace) 
-        VM_Scheduler.trace("VM_Processor.scheduleThread", 
-                           " staying on same processor");
+      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", " staying on same processor");
       VM_Processor.getCurrentProcessor().transferThread(t);
       return;
     }
 
+    // if t is this thread and is the only (runable) thread on this processor, stay here
+    if (t == VM_Thread.getCurrentThread() && readyQueue.isEmpty() && transferQueue.isEmpty()) {
+      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "staying on same processor:", t.getIndex());
+      readyQueue.enqueue(t);
+      return;
+    }
+
     // if a processor is idle, put thread there
-    //
     VM_Processor idle = idleProcessor;
     if (idle != null) {
       idleProcessor = null;
-      if (trace) 
-        VM_Scheduler.trace("VM_Processor.scheduleThread", 
-                           "outgoing to idle processor:", t.getIndex());
+      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to idle processor:", t.getIndex());
       idle.transferThread(t);
       return;
     }
 
     // otherwise round robin
-    //
-    if (trace) 
-      VM_Scheduler.trace("VM_Processor.scheduleThread", 
-                         "outgoing to round-robin processor:", t.getIndex());
+    if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "outgoing to round-robin processor:", t.getIndex());
     VM_Scheduler.processors[nextTransferId].transferThread(t);
     if (++nextTransferId > VM_Scheduler.numProcessors)
       nextTransferId = 1 ;
