@@ -453,7 +453,7 @@ public class VM_Allocator
 	// threads work buffers so the referenced objects will be scanned.
 	VM_WriteBuffer.moveToWorkQueue(vp);
 	}
-      }
+    }
   
     // in case native processors have writebuffer entries, move them also.
     for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
@@ -482,9 +482,12 @@ public class VM_Allocator
 	// Reset chunk space to the new fromSpace, but don't acquire a chunk
 	// since we might never use it.
 	if (PROCESSOR_LOCAL_ALLOCATE) 
-	  VM_Chunk.resetChunk1(vp, fromHeap, false);
+	  VM_Chunk.resetChunk1(vp, nurseryHeap, false);
       }
     }
+
+    // nothing for native processors which cannot allocate
+
   }
 
 
@@ -1122,8 +1125,7 @@ public class VM_Allocator
   // For Debugging - Checks that writeBuffer attached to the running GC threads
   // current processor is empty, if not print diagnostics & reset
   //
-  static void
-    gc_checkWriteBuffers () {
+  static void gc_checkWriteBuffers () {
     VM_WriteBuffer.checkForEmpty(VM_Processor.getCurrentProcessor());
   }
   
@@ -1143,8 +1145,8 @@ public class VM_Allocator
 	// change entry in threads array to point to new copy of thread
 	VM_Magic.setObjectAtOffset(VM_Scheduler.threads, i*4, t);
       }
-    } 
-  } 
+    }
+  }
 
   // initProcessor is called by each GC thread to copy the processor object of the
   // processor it is running on, and reset it processor register, and update its
@@ -1415,4 +1417,6 @@ public class VM_Allocator
     VM.assert(false);
     return null;
   }
+
+
 } 
