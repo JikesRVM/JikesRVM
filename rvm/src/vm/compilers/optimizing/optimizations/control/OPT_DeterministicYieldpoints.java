@@ -55,9 +55,8 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
     OPT_RegisterOperand tempReg = ir.regpool.makeTemp(VM_Type.IntType);
 
     // For each basic block
-    for (OPT_BasicBlockEnumeration allBB = ir.getBasicBlocks(); 
-	 allBB.hasMoreElements(); ) {
-      OPT_BasicBlock bb = allBB.next();
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
+	 bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
 
       boolean inPrologue = (bb == ir.cfg.entry());
 
@@ -178,6 +177,9 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 
 	  // Matt, don't you need a recomputeNormalOut?
 	  afterYP.recomputeNormalOut(ir);
+
+	  bb = ypBB;			// will resume with afterYP BB
+	  break;
 	}
       }
     }
