@@ -233,6 +233,10 @@ class OPT_SSA
 	  dst++;
 	}
       }
+      for (int i=dst; i<numPairs; i++) {
+	Phi.setValue(s, i, null);
+	Phi.setValue(s, i, null);
+      }
     }
   }
 }
