@@ -1042,7 +1042,6 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
 	    "%s: sysHPMsetEventX(%d,%d,%d,%d) called: no support for Linux\n", 
 	    Me, e5,e6,e7,e8);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;			// NOTREACHED
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
@@ -1056,7 +1055,6 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
 	    "%s: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
 	    Me, e5,e6,e7,e8);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1075,7 +1073,6 @@ sysHPMsetMode(int mode)
     fprintf(stderr, "%s: sysHPMsetMode(%d) called: no support for Linux\n",
 	    Me, mode);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
@@ -1088,7 +1085,6 @@ sysHPMsetMode(int mode)
 	    "%s: sysHPMsetMode(%d) called: not compiled for HPM\n",
 	    Me, mode);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1109,7 +1105,6 @@ sysHPMsetProgramMyThread()
 	    "%s: sysHPMsetProgramMyThread() called: no support for Linux\n", 
 	    Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
@@ -1122,7 +1117,6 @@ sysHPMsetProgramMyThread()
 	    "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
 	    Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1141,7 +1135,6 @@ sysHPMsetProgramMyGroup()
 	    "%s: sysHPMsetProgramMyGroup() called: no support for Linux\n", 
 	    Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
@@ -1152,7 +1145,6 @@ sysHPMsetProgramMyGroup()
 #else
     fprintf(SysErrorFile, "%s: sysHPMsetProgramMyGroup() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1168,7 +1160,6 @@ sysHPMstartMyThread()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMstartMyThread() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
@@ -1180,7 +1171,6 @@ sysHPMstartMyThread()
     fprintf(SysTraceFile, 
 	    "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1197,7 +1187,6 @@ sysHPMstartMyGroup()
     fprintf(stderr, 
 	    "%s: sysHPMstartMyGroup() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
@@ -1208,7 +1197,6 @@ sysHPMstartMyGroup()
 #else
     fprintf(SysErrorFile, "%s: sysHPMstartMyGroup() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1224,7 +1212,6 @@ sysHPMstopMyThread()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMstopMyThread() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
     // fprintf(SysErrorFile, "%s: sysHPMstopMyThread() called\n", Me);
@@ -1233,7 +1220,6 @@ sysHPMstopMyThread()
 #else
     fprintf(SysErrorFile, "%s: sysHPMstopMyThread() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1249,7 +1235,6 @@ sysHPMstopMyGroup()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMstopMyGroup() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
     rc = hpm_stop_mygroup();
@@ -1257,7 +1242,6 @@ sysHPMstopMyGroup()
 #else
     fprintf(SysErrorFile, "%s: sysHPMstopMyGroup() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1273,7 +1257,6 @@ sysHPMresetMyThread()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMresetMyThread() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
     rc = hpm_reset_mythread();
@@ -1281,7 +1264,6 @@ sysHPMresetMyThread()
 #else
     fprintf(SysErrorFile, "%s: sysHPMresetMyThread() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1297,7 +1279,6 @@ sysHPMresetMyGroup()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMresetMyGroup() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
     rc = hpm_reset_mygroup();
@@ -1305,7 +1286,6 @@ sysHPMresetMyGroup()
 #else
     fprintf(SysErrorFile, "%s: sysHPMresetMyGroup() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1325,13 +1305,11 @@ sysHPMgetCounterMyThread(int counter)
     fprintf(stderr, "%s: sysHPMgetCounterMyThread(%d) called: no support for Linux\n", Me,
 	    counter);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     return hpm_get_counter_mythread(counter);
 #else
     fprintf(SysErrorFile, "%s: sysHPMgetCounterMyThread(%d) called: not compiled for HPM\n", Me,counter);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1351,13 +1329,11 @@ sysHPMgetCounterMyGroup(int counter)
     fprintf(stderr, "%s: sysHPMgetCounterMyGroup(%d) called: no support for Linux\n", Me,
 	    counter);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     return hpm_get_counter_mygroup(counter);
 #else
     fprintf(SysErrorFile, "%s: sysHPMgetCounterMyGroup(%d) called: not compiled for HPM\n", Me,counter);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1375,7 +1351,6 @@ sysHPMgetNumberOfCounters()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMgetNumberofCounters() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
 #ifdef DEBUG_SYS
@@ -1386,7 +1361,6 @@ sysHPMgetNumberOfCounters()
 #else
     fprintf(SysErrorFile, "%s: sysHPMgetNumberofCounters() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1401,7 +1375,6 @@ sysHPMtest()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMtest() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
     rc = hpm_test();
@@ -1409,7 +1382,6 @@ sysHPMtest()
 #else
     fprintf(SysErrorFile, "%s: sysHPMtest() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1423,7 +1395,6 @@ sysHPMprintMyGroup()
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMprintMyGroup() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #elif defined RVM_WITH_HPM
     int rc;
     rc = hpm_print_mygroup();
@@ -1431,7 +1402,6 @@ sysHPMprintMyGroup()
 #else
     fprintf(SysErrorFile, "%s: sysHPMprintMyGroup() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return 0;
 #endif
 }
 
@@ -1445,7 +1415,6 @@ sysVirtualProcessorCreate(int jtoc, int pr, int ti_or_ip, int fp)
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return (0);
 #else
     int           *sysVirtualProcessorArguments;
     pthread_attr_t sysVirtualProcessorAttributes;
@@ -1648,7 +1617,6 @@ sysPthreadSelf()
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return -1; // will never execute
 #else
     int thread;
     sigset_t input_set, output_set;
@@ -1768,7 +1736,6 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return -1; // will never execute
 #else
     sigset_t input_set, output_set;
     int      sig;
@@ -2934,8 +2901,7 @@ sysNetSocketNoBlock(int fd, int enable)
 #endif
 
     int rc = ioctl(fd, FIONBIO, &value);
-    if (rc == -1)
-    {
+    if (rc == -1) {
 	fprintf(SysErrorFile, "%s: FIONBIO on %d failed (%s, errno=%d)\n", Me, fd, strerror(errno), errno);
 	return -1;
     }
@@ -2960,17 +2926,18 @@ sysNetSocketClose(int fd)
 
     int rc = shutdown(fd, 2);
 
-    if (rc == 0)
-    { // shutdown succeeded
+    if (rc == 0) { 
+	// shutdown succeeded
 	return sysClose(fd);
     }
 
-    if (errno == ENOTCONN)
-    { // socket wasn't connected so shutdown error is meaningless
+    if (errno == ENOTCONN) { 
+	// socket wasn't connected so shutdown error is meaningless
 	return sysClose(fd);
     }
 
-    fprintf(SysErrorFile, "%s: socket shutdown on %d failed (errno=%d (%s))\n", Me, fd, errno, strerror(errno));
+    fprintf(SysErrorFile, "%s: socket shutdown on %d failed (errno=%d (%s))\n",
+	    Me, fd, errno, strerror(errno));
 
     sysClose(fd);
     return -2; // shutdown (and possibly close) error
