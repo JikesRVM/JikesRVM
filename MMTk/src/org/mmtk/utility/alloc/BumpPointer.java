@@ -83,7 +83,7 @@ final class BumpPointer extends Allocator implements Constants, VM_Uninterruptib
    * @param bytes The number of bytes allocated
    * @return The address of the first byte of the allocated region
    */
-  final public VM_Address alloc(boolean isScalar, EXTENT bytes) throws VM_PragmaInline {
+  final public VM_Address alloc (boolean isScalar, int bytes) throws VM_PragmaInline {
     VM_Address oldCursor = cursor;
     VM_Address newCursor = oldCursor.add(bytes);
     if (useLimit) {
@@ -99,7 +99,7 @@ final class BumpPointer extends Allocator implements Constants, VM_Uninterruptib
     return oldCursor;
   }
 
-  final protected VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes) {
+  final protected VM_Address allocSlowOnce (boolean isScalar, int bytes) {
     int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
@@ -130,7 +130,7 @@ final class BumpPointer extends Allocator implements Constants, VM_Uninterruptib
   //
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_PAGE_SIZE + 3;
   private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
-  private static final EXTENT TRIGGER = CHUNK_SIZE - 1;
+  private static final int TRIGGER = CHUNK_SIZE - 1;
   private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromInt(TRIGGER);
   private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
   private static final boolean useLimit = true;

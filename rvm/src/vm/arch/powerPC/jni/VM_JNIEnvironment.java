@@ -54,7 +54,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   VM_Processor savedPRreg;         // for saving processor register on entry to native, to be restored on JNI call from native
   boolean      alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
 
-  public int[]       JNIRefs;          // references passed to native code
+  public VM_AddressArray JNIRefs;          // references passed to native code
   int         JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int         JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int         JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
@@ -211,11 +211,11 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
 
-    JNIRefs = new int[JNIREFS_ARRAY_LENGTH];
-    JNIRefs[0] = 0;                                        // 0 entry for bottom of stack
+    JNIRefs = VM_AddressArray.create(JNIREFS_ARRAY_LENGTH);
+    JNIRefs.set(0, VM_Address.zero());                                        // 0 entry for bottom of stack
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIRefs.length - 1) * 4;   // byte offset to last entry
+    JNIRefsMax = (JNIRefs.length() - 1) * BYTES_IN_ADDRESS;   // byte offset to last entry
 
     // initially TOP and SavedFP -> entry 0 containing 0
 
@@ -229,8 +229,8 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   // Returned: offset of entry in JNIRefs stack
   // 
   public int pushJNIRef( Object ref ) {
-    JNIRefsTop += 4;
-    JNIRefs[ JNIRefsTop >> 2 ] = VM_Magic.objectAsAddress(ref).toInt();
+    JNIRefsTop += BYTES_IN_ADDRESS;
+    JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, VM_Magic.objectAsAddress(ref));
     return JNIRefsTop;
   }
 

@@ -48,7 +48,7 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
   public final void insert(VM_Address addr) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(!addr.isZero());
     checkInsert(1);
-    uncheckedInsert(addr.toInt());
+    uncheckedInsert(addr);
   }
 
   /**
@@ -59,7 +59,7 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
   public final void push(VM_Address addr) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(!addr.isZero());
     checkPush(1);
-    uncheckedPush(addr.toInt());
+    uncheckedPush(addr);
   }
 
   /**

@@ -138,7 +138,7 @@ final class MarkSweepLocal extends SegregatedFreeList
    * @param bytes The size of the cell in bytes
    */
   protected final void postAlloc(VM_Address cell, VM_Address block,
-				 int sizeClass, EXTENT bytes) 
+				 int sizeClass, int bytes) 
     throws VM_PragmaInline {
 
     // establish bitmask & offset for this cell in the block
@@ -365,10 +365,10 @@ final class MarkSweepLocal extends SegregatedFreeList
 
     // set the mark bit (this method is unsynchroinzed, so need explicit sync)
     VM_Address tgt = block.add(MARK_BITMAP_BASE + offset);
-    VM_Word oldValue, newValue;
 //     VM.sysWrite("mi["); VM.sysWrite(sizeClass); VM.sysWrite(" "); VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(VM_Magic.getMemoryWord(VM_Address.fromInt(0x5bca0048)));  VM.sysWrite(" "); VM.sysWrite(tgt); VM.sysWrite(" "); VM.sysWrite(index); VM.sysWrite(" "); VM.sysWrite(offset); VM.sysWrite(" "); VM.sysWrite(block); 
     if (VM.VerifyAssertions)
       VM._assert((MARK_BITMAP_BASE + offset) < blockHeaderSize[sizeClass]);
+    VM_Word oldValue, newValue;
     do {
       oldValue = VM_Word.fromInt(VM_Magic.prepareInt(tgt, 0));
       newValue = oldValue.or(mask);

@@ -108,6 +108,13 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     //    if (VM.VerifyAssertions) enqueued++;
   }
 
+  protected final void uncheckedInsert(VM_Address value) throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= BYTES_IN_WORD);
+    tail = tail.sub(BYTES_IN_WORD);
+    VM_Magic.setMemoryAddress(tail, value);
+    //    if (VM.VerifyAssertions) enqueued++;
+  }
+
   /**
    * In the case where a tail buffer must be flushed before being
    * filled (either to the queue or to the head), the entries must be

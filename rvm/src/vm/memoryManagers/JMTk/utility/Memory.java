@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -27,10 +28,10 @@ public class Memory implements VM_Uninterruptible {
   // into moving a get_obj_tib into the interruptible region where the tib is being
   // installed via an int_store
   //
-  private static boolean isSetHelper(VM_Address start, EXTENT size, boolean verbose, int v) throws VM_PragmaNoInline {
+  private static boolean isSetHelper(VM_Address start, int size, boolean verbose, int v) throws VM_PragmaNoInline {
     if (VM.VerifyAssertions) VM._assert(size == (size & (~3)));
     for (int i=0; i<size; i+=4) 
-      if (VM_Magic.getMemoryAddress(start.add(i)).toInt() != v) {
+      if (VM_Magic.getMemoryInt(start.add(i)) != v) {
 	if (verbose) {
 	    VM.psysWriteln("Memory range does not contain only value ", v);
 	    VM.sysWriteln("Non-zero range: ", start, " .. ", start.add(size));
@@ -42,35 +43,43 @@ public class Memory implements VM_Uninterruptible {
     return true;
   }
 
-  public static boolean IsZeroed(VM_Address start, EXTENT size) throws VM_PragmaInline {
+  public static boolean IsZeroed(VM_Address start, int size) throws VM_PragmaInline {
     return isSetHelper(start, size, false, 0);
   }
 
-  public static boolean assertIsZeroed(VM_Address start, EXTENT size) throws VM_PragmaInline {
+  public static boolean assertIsZeroed(VM_Address start, int size) throws VM_PragmaInline {
     return isSetHelper(start, size, true, 0);
   }
 
-  public static boolean assertIsSet(VM_Address start, EXTENT size, int v) throws VM_PragmaInline {
+  public static boolean assertIsSet(VM_Address start, int size, int v) throws VM_PragmaInline {
     return isSetHelper(start, size, true, v);
   }
 
-  // start and len must both be 4-byte aligned
-  //
-  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
-    if (len > 256)
-      VM_Memory.zero(start, len);
-    else
-      zeroSmall(start, len);
+  public static void zeroSmall(VM_Address start, VM_Extent len) throws VM_PragmaInline {
+    for (int i=0; VM_Extent.fromInt(i).LT(len); i+=4) 
+	VM_Magic.setMemoryInt(start.add(i), 0);
   }
 
   public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
-    for (int i=0; i<len; i+=4) 
-      VM_Magic.setMemoryInt(start.add(i), 0);
+      zeroSmall(start, VM_Extent.fromInt(len));
   }
 
   public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
     for (int i=0; i<len; i+=4) 
       VM_Magic.setMemoryInt(start.add(i), v);
+  }
+
+  // start and len must both be 4-byte aligned
+  //
+  public static void zero(VM_Address start, VM_Extent len) throws VM_PragmaInline {
+    if (len.GT(VM_Extent.fromInt(256))) 
+	VM_Memory.zero(start, len);
+    else
+	zeroSmall(start, len);
+  }
+
+  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
+      zero(start, VM_Extent.fromInt(len));
   }
 
   // start and len must both be OS-page aligned

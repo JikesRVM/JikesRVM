@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -70,12 +71,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  private static final EXTENT LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
+  private static final VM_Extent LOS_SIZE_THRESHOLD = VM_Extent.fromInt(8 * 1024); // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT            RC_SIZE = Conversions.roundDownMB((int)(AVAILABLE * 0.7));
-  private static final EXTENT           LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE * 0.3));
+  private static final VM_Extent         RC_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.7)));
+  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.3)));
   public  static final int              MAX_SIZE = RC_SIZE;
 
   public  static final VM_Address       RC_START = PLAN_START;
@@ -168,7 +169,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc (EXTENT bytes, boolean isScalar, int allocator,
+  public final VM_Address alloc (int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
@@ -194,7 +195,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
+  public final void postAlloc(Object ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
@@ -216,7 +217,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param isScalar True if the object occupying this space will be a scalar
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
+  public final VM_Address allocCopy(VM_Address original, int bytes,
 				    boolean isScalar) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(false);
     // return VM_Address.zero();  this trips some Intel assembler bug
@@ -231,7 +232,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(Object ref, Object[] tib, EXTENT bytes,
+  public final void postCopy(Object ref, Object[] tib, int bytes,
 			     boolean isScalar) {} // do nothing
 
   /**
@@ -247,7 +248,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
+  public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
     return RC_SPACE;
   }
@@ -277,7 +278,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
+  public final AllocAdvice getAllocAdvice(Type type, int bytes,
 					  CallSite callsite,
 					  AllocAdvice hint) {
     return null;
@@ -289,7 +290,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(EXTENT bytes) 
+  public static final int getInitialHeaderValue(int bytes) 
     throws VM_PragmaInline {
     return rcSpace.getInitialHeaderValue(bytes);
   }

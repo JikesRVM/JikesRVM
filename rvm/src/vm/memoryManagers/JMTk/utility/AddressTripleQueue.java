@@ -51,9 +51,9 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
     if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
     if (VM.VerifyAssertions) VM._assert(!addr3.isZero());
     checkInsert(3);
-    uncheckedInsert(addr1.toInt());
-    uncheckedInsert(addr2.toInt());
-    uncheckedInsert(addr3.toInt());
+    uncheckedInsert(addr1);
+    uncheckedInsert(addr2);
+    uncheckedInsert(addr3);
   }
   /**
    * Push an address pair onto the address queue.
@@ -67,9 +67,9 @@ public class AddressTripleQueue extends LocalQueue implements Constants, VM_Unin
     if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
     if (VM.VerifyAssertions) VM._assert(!addr3.isZero());
     checkPush(3);
-    uncheckedPush(addr3.toInt());
-    uncheckedPush(addr2.toInt());
-    uncheckedPush(addr1.toInt());
+    uncheckedPush(addr3);
+    uncheckedPush(addr2);
+    uncheckedPush(addr1);
   }
 
   /**

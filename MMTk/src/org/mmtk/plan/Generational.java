@@ -90,7 +90,7 @@ public abstract class Generational extends StopTheWorldGC
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_MIN_NURSERY = (512*1024)>>LOG_PAGE_SIZE;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final EXTENT LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
+  protected static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
@@ -170,8 +170,8 @@ public abstract class Generational extends StopTheWorldGC
   //
   // Allocation
   //
-  abstract VM_Address matureAlloc(boolean isScalar, EXTENT bytes);
-  abstract VM_Address matureCopy(boolean isScalar, EXTENT bytes);
+  abstract VM_Address matureAlloc(boolean isScalar, int bytes);
+  abstract VM_Address matureCopy(boolean isScalar, int bytes);
 
   /**
    * Allocate space (for an object)
@@ -182,7 +182,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator,
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
@@ -202,7 +202,7 @@ public abstract class Generational extends StopTheWorldGC
     return region;
   }
 
-  public final VM_Address alloc2(int allocator, EXTENT bytes, boolean isScalar) throws VM_PragmaNoInline {
+  public final VM_Address alloc2(int allocator, int bytes, boolean isScalar) throws VM_PragmaNoInline {
       VM_Address region;
     switch (allocator) {
 	 case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
@@ -225,7 +225,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
+  public final void postAlloc(Object ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
@@ -249,7 +249,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param isScalar True if the object occupying this space will be a scalar
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
+  public final VM_Address allocCopy(VM_Address original, int bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes < LOS_SIZE_THRESHOLD);
@@ -280,7 +280,7 @@ public abstract class Generational extends StopTheWorldGC
    * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
+  public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
     return (bytes >= LOS_SIZE_THRESHOLD) ? (Plan.usesLOS ? LOS_SPACE : MATURE_SPACE) : NURSERY_SPACE;
   }
@@ -312,7 +312,7 @@ public abstract class Generational extends StopTheWorldGC
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
+  public final AllocAdvice getAllocAdvice(Type type, int bytes,
 					  CallSite callsite,
 					  AllocAdvice hint) {
     return null;

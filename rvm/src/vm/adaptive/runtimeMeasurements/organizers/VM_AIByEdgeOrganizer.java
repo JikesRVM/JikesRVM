@@ -139,7 +139,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	    (VM_BaselineCompiledMethod)compiledMethod;
 	  // note: the following call expects the offset in INSTRUCTIONS!
 	  bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
-	    (MCOffset.toInt()>>VM.LG_INSTRUCTION_WIDTH);
+	    (MCOffset.toInt()>>>VM.LG_INSTRUCTION_WIDTH);
 	  caller = stackFrameCaller;
 	}
 	break;
@@ -154,20 +154,23 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	      // to a runtimeSerivce routine. 
 	      // We aren't setup to inline such methods anyways, 
 	      // so skip the sample.
-	      if (DEBUG) {VM.sysWrite("  *** SKIP SAMPLE "+
-				     		stackFrameCaller+"@"+compiledMethod+
-	 				      " at MC offset ", MCOffset.toInt());
-				     VM.sysWrite(" calling "+callee+" due to invalid bytecodeIndex\n");}
+	      if (DEBUG) {
+		  VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());
+		  VM.sysWrite("@",compiledMethod.toString());
+		  VM.sysWrite(" at MC offset ", MCOffset);
+		  VM.sysWrite(" calling ", callee.toString());
+		  VM.sysWriteln(" due to invalid bytecodeIndex");
+	      }
 	      continue; // skip sample.
 	    }
 	  } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-	    VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset.toInt());
-		 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-	    e.printStackTrace(); caller = stackFrameCaller;
-	    continue;  // skip sample
+	      VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
+	      VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+	      e.printStackTrace(); caller = stackFrameCaller;
+	      continue;  // skip sample
 	  } catch (OPT_OptimizingCompilerException e) {
 	    VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
-			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset.toInt());
+			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
 		 VM.sysWrite("!\n");
 	    continue;  // skip sample
 	  }
@@ -175,19 +178,19 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	  try {
 	    caller = mc_map.getMethodForMCOffset(MCOffset);
 	  } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset.toInt());
+	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
 		 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
 	    e.printStackTrace(); caller = stackFrameCaller;
 	    continue;
 	  } catch (OPT_OptimizingCompilerException e) {
 	    VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
-			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset.toInt());
+			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
 		 VM.sysWrite("!\n");
 	    continue;  // skip sample
 	  }
 
 	  if (caller == null) {
-	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset.toInt());
+	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
 		 VM.sysWrite(") returned null!\n");
 	    caller = stackFrameCaller;
 	    continue;  // skip sample

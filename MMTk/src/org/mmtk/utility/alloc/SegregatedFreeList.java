@@ -127,7 +127,7 @@ abstract class SegregatedFreeList extends Allocator
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address alloc (boolean isScalar, EXTENT bytes) 
+  public final VM_Address alloc (boolean isScalar, int bytes) 
     throws VM_PragmaInline {
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
@@ -153,7 +153,7 @@ abstract class SegregatedFreeList extends Allocator
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address allocFast (boolean isScalar, EXTENT bytes) 
+  public final VM_Address allocFast (boolean isScalar, int bytes) 
     throws VM_PragmaInline {
 
     int sizeClass = getSizeClass(bytes);
@@ -169,7 +169,7 @@ abstract class SegregatedFreeList extends Allocator
   }
 
   abstract void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-			  EXTENT bytes);
+			  int bytes);
 
   /**
    * Allocate <code>bytes</code> contigious bytes of non-zeroed memory.
@@ -410,7 +410,7 @@ abstract class SegregatedFreeList extends Allocator
    * the request will not be satisfied by the freelist, but must be
    * dealt with explicitly as a large object.
    */
-  protected static final int getSizeClass(EXTENT bytes)
+  protected static final int getSizeClass(int bytes)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert((bytes > 0) && (bytes <= 8192));
 

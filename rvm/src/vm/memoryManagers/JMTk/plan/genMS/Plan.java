@@ -115,7 +115,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(boolean isScalar, EXTENT bytes) 
+  protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
     return mature.alloc(isScalar, bytes);
   }
@@ -128,7 +128,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(boolean isScalar, EXTENT bytes) 
+  protected final VM_Address matureCopy(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
     return mature.alloc(isScalar, bytes);
   }
@@ -140,7 +140,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public final static int getInitialHeaderValue(EXTENT bytes)
+  public final static int getInitialHeaderValue(int bytes)
     throws VM_PragmaInline {
     if (bytes > LOS_SIZE_THRESHOLD)
       return losSpace.getInitialHeaderValue(bytes);

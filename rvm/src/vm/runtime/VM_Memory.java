@@ -299,6 +299,11 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
     VM_SysCall.call_I_A_I(bootRecord.sysZeroIP, start, len);
   }
 
+  public static void zero(VM_Address start, VM_Extent len) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    VM_SysCall.call_I_A_I(bootRecord.sysZeroIP, start, len.toInt());
+  }
+
   /**
    * Zero a range of pages of memory.
    * Taken:    start address       (must be a page address)

@@ -25,14 +25,14 @@ public class Conversions implements Constants, VM_Uninterruptible {
 
   // Round up (if necessary)
   //
-  public static int MBToPages(EXTENT megs) {
+  public static int MBToPages(int megs) {
     if (VMResource.LOG_PAGE_SIZE <= LOG_MBYTE_SIZE)
       return (megs << (LOG_MBYTE_SIZE - VMResource.LOG_PAGE_SIZE));
     else
       return (megs + ((VMResource.PAGE_SIZE >>> LOG_MBYTE_SIZE) - 1)) >>> (VMResource.LOG_PAGE_SIZE - LOG_MBYTE_SIZE);
   }
 
-  public static int bytesToMmapChunksUp(EXTENT bytes) {
+  public static int bytesToMmapChunksUp(int bytes) {
     return (bytes + (LazyMmapper.MMAP_CHUNK_SIZE - 1)) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
   }
 

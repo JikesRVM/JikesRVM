@@ -121,17 +121,46 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
   }
 
   /**
+   * Push a value onto the buffer.  This is <i>unchecked</i>.  The
+   * caller must first call <code>checkPush()</code> to ensure the
+   * buffer can accommodate the insertion.
+   *
+   * @param value the value to be inserted.
+   */
+  protected final void uncheckedPush(VM_Address value) throws VM_PragmaInline {
+    if (VM.VerifyAssertions) 
+      VM._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
+    VM_Magic.setMemoryAddress(head, value);
+    head = head.add(BYTES_IN_WORD);
+    //    if (VM.VerifyAssertions) enqueued++;
+  }
+
+  /**
    * Pop a value from the buffer.  This is <i>unchecked</i>.  The
    * caller must first call <code>checkPop()</code> to ensure the
    * buffer has sufficient values.
    *
-   * @return the next value in the buffer
+   * @return the next int in the buffer
    */
   protected final int uncheckedPop() throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bufferOffset(head) >= WORD_SIZE);
     head = head.sub(WORD_SIZE);
     // if (VM.VerifyAssertions) enqueued--;
     return VM_Magic.getMemoryInt(head);
+  }
+
+  /**
+   * Pop a value from the buffer.  This is <i>unchecked</i>.  The
+   * caller must first call <code>checkPop()</code> to ensure the
+   * buffer has sufficient values.
+   *
+   * @return the next address in the buffer
+   */
+  protected final VM_Address uncheckedPopAddress() throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(bufferOffset(head) >= BYTES_IN_WORD);
+    head = head.sub(BYTES_IN_WORD);
+    // if (VM.VerifyAssertions) enqueued--;
+    return VM_Magic.getMemoryAddress(head);
   }
 
   ////////////////////////////////////////////////////////////////////////////

@@ -418,10 +418,10 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 //-#endif
 
     for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORD_SIZE)) {
-      VM.sysWrite(loc.diff(start).toInt(), " ");
-      VM.sysWrite(loc); VM.sysWrite(" ");
+      VM.sysWrite(loc.diff(start));
+      VM.sysWrite(" ", loc);
       VM_Address value = VM_Magic.getMemoryAddress(loc);
-      VM.sysWrite(value);
+      VM.sysWrite(" ", value);
       VM.sysWrite(" ");
       if (DUMP_STACK >= 3 && VM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
 	VM_Interface.dumpRef(value);

@@ -388,7 +388,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
           VM_Memory.alignUp(addr, BYTES_IN_WORD).NE(addr)) {
         VM.sysWrite("Non word size aligned region allocated ");
         VM.sysWrite("size is ", size);
-        VM.sysWriteln(" address is ", addr.toInt());
+        VM.sysWriteln(" address is ", addr);
         VM.sysFail("...exiting VM");
       }
     }
@@ -398,8 +398,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
         int val = VM_Magic.getMemoryInt(addr.add(i));
         if (val != 0) {
           VM.sysWrite("Non-zeroed memory allocated ");
-          VM.sysWriteln("\taddress is ",addr.toInt());
-          VM.sysWriteln("\tnon-zero address is ", addr.add(i).toInt());
+          VM.sysWriteln("\taddress is ",addr);
+          VM.sysWriteln("\tnon-zero address is ", addr.add(i));
           VM.sysWriteln("\tvalue is ", val);
           VM.sysFail("...exiting VM");
         }

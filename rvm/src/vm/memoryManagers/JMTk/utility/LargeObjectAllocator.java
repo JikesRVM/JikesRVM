@@ -79,8 +79,8 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @param bytes The number of bytes allocated
    * @return The address of the first byte of the allocated cell
    */
-  public final VM_Address alloc(boolean isScalar, EXTENT bytes) 
-    throws VM_PragmaInline {
+  public final VM_Address alloc (boolean isScalar, int bytes) 
+    throws VM_PragmaNoInline {
     return alloc(isScalar, bytes, false);
   }
 
@@ -91,7 +91,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @param bytes The number of bytes allocated
    * @return The address of the first byte of the allocated cell
    */
-  public final VM_Address allocCopy(boolean isScalar, EXTENT bytes) 
+  public final VM_Address allocCopy(boolean isScalar, int bytes) 
     throws VM_PragmaInline {
     return alloc(isScalar, bytes, true);
   }
@@ -105,7 +105,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  private final VM_Address alloc(boolean isScalar, EXTENT bytes, boolean copy) 
+  private final VM_Address alloc(boolean isScalar, int bytes, boolean copy) 
     throws VM_PragmaInline {
     VM_Address cell = allocSlow(isScalar, bytes);
     postAlloc(cell);
@@ -124,7 +124,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  final protected VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes) {
+  final protected VM_Address allocSlowOnce (boolean isScalar, int bytes) {
     int header = superPageHeaderSize() + cellHeaderSize();
     int pages = (bytes + header + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
     VM_Address sp = allocSuperPage(pages);

@@ -48,8 +48,8 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
     if (VM.VerifyAssertions) VM._assert(!addr1.isZero());
     if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
     checkInsert(2);
-    uncheckedInsert(addr1.toInt());
-    uncheckedInsert(addr2.toInt());
+    uncheckedInsert(addr1);
+    uncheckedInsert(addr2);
   }
  
   /**
@@ -62,8 +62,8 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
     if (VM.VerifyAssertions) VM._assert(!addr1.isZero());
     if (VM.VerifyAssertions) VM._assert(!addr2.isZero());
     checkPush(2);
-    uncheckedPush(addr2.toInt());
-    uncheckedPush(addr1.toInt());
+    uncheckedPush(addr2);
+    uncheckedPush(addr1);
   }
 
   /**

@@ -128,7 +128,7 @@ final class RefCountLocal extends SegregatedFreeList
   // Allocation
   //
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-			      EXTENT bytes) throws VM_PragmaInline {}
+			      int bytes) throws VM_PragmaInline {}
   protected final void postExpandSizeClass(VM_Address block, int sizeClass){}
   protected final void advanceToBlock(VM_Address block, int sizeClass){}
 
