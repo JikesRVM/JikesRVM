@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002,2003
+ * (C) Copyright IBM Corp 2001,2002,2003,2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -192,6 +192,14 @@ public class VM_SysCall implements Uninterruptible {
    * 
    */
   public static int sysPrimitiveParseInt(byte[] buf) { return 0; }
+
+  /** Parse memory sizes passed as command-line arguments.
+   */
+  public static long sysParseMemorySize(byte[] sizeName, byte[] sizeFlag,
+                                        byte[] defaultFactor, int roundTo,
+                                        byte[] argToken, byte[] subArg) {
+    return -1;
+  }
 
   // time
   public static long sysGetTimeOfDay() { return 0; }
