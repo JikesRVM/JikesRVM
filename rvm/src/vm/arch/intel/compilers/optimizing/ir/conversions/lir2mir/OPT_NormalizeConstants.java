@@ -67,6 +67,9 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               s.putOperand(idx, rop.copyD2U());
 	    } else if (use instanceof OPT_NullConstantOperand) {
 	      s.putOperand(idx, new OPT_IntConstantOperand(0));
+	    } else if (use instanceof OPT_AddressConstantOperand) {
+	      int v = ((OPT_AddressConstantOperand)use).value.toInt();
+              s.putOperand(idx, new OPT_IntConstantOperand(v));
 	    }
 	  }
         }

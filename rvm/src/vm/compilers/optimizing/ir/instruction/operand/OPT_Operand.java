@@ -120,6 +120,17 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Is the operand an {@link OPT_AddressConstantOperand}?
+   * 
+   * @return <code>true</code> if <code>this</code> is an
+   *         <code>instanceof</code> an {@link OPT_AddressConstantOperand}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isAddressConstant() { 
+    return this instanceof OPT_AddressConstantOperand; 
+  }
+
+  /**
    * Is the operand an {@link OPT_FloatConstantOperand}?
    * 
    * @return <code>true</code> if <code>this</code> is an
@@ -279,6 +290,15 @@ public abstract class OPT_Operand {
    */
   public final OPT_IntConstantOperand asIntConstant() { 
     return (OPT_IntConstantOperand)this; 
+  }
+
+  /**
+   * Cast to an {@link OPT_AddressConstantOperand}.
+   * 
+   * @return <code>this</code> cast as an {@link OPT_AddressConstantOperand}
+   */
+  public final OPT_AddressConstantOperand asAddressConstant() { 
+    return (OPT_AddressConstantOperand)this; 
   }
 
   /**
@@ -478,7 +498,7 @@ public abstract class OPT_Operand {
    *         or <code>false</code> if it is not.
    */
   public final boolean isAddress() {
-    return (isRegister() && asRegister().type.isWordType());
+    return isAddressConstant() || (isRegister() && asRegister().type.isWordType());
   }
   /**
    * Does the operand definitely represent <code>null</code>?
@@ -521,9 +541,10 @@ public abstract class OPT_Operand {
       return asRegister().type;
     if (isType())
       return OPT_ClassLoaderProxy.VM_Type_type;
-    if (isIntConstant()) {
-      return ((OPT_IntConstantOperand) this).type;
-    }
+    if (isIntConstant()) 
+      return ((OPT_IntConstantOperand) this).getSpeculativeType();
+    if (isAddressConstant())
+      return OPT_ClassLoaderProxy.AddressType;
     if (isNullConstant())
       return OPT_ClassLoaderProxy.NULL_TYPE;
     if (isStringConstant())

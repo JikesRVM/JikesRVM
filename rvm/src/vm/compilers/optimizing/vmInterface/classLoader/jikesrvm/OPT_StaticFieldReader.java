@@ -34,11 +34,11 @@ public abstract class OPT_StaticFieldReader {
     if (fieldType == VM_Type.AddressType) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (VM_Address) obj;
-      return new OPT_IntConstantOperand(val.toInt(), VM_Type.AddressType);
+      return new OPT_AddressConstantOperand(val);
     } else if (fieldType == VM_Type.WordType) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
-      return new OPT_IntConstantOperand(val.toInt(), VM_Type.WordType);
+      return new OPT_AddressConstantOperand(VM_Address.fromInt(val.toInt()));
     } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);

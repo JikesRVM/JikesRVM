@@ -465,23 +465,23 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     }
     else if (methodName == VM_MagicNames.wordZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0, VM_Type.AddressType)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(0))));
       bc2ir.push(op0.copyD2U());
     }
     else if (methodName == VM_MagicNames.wordMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1, VM_Type.AddressType)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(-1))));
       bc2ir.push(op0.copyD2U());
     }
     else if (methodName == VM_MagicNames.wordIsZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(0, VM_Type.AddressType)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(0))));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond, op0);
     }
     else if (methodName == VM_MagicNames.wordIsMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_IntConstantOperand(-1, VM_Type.AddressType)));
+      bc2ir.appendInstruction(Move.create(INT_MOVE, op0, new OPT_AddressConstantOperand(VM_Address.fromInt(-1))));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond, op0);
     }

@@ -38,6 +38,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
    * @param ir IR to normalize
    */
   static void perform(OPT_IR ir) {
+
     // This code assumes that INT/LONG constant folding in OPT_Simplifier is enabled.
     // This greatly reduces the number of cases we have to worry about below.
     if (!(OPT_Simplifier.CF_INT && OPT_Simplifier.CF_LONG)) {
@@ -98,11 +99,13 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_NullConstantOperand) {
               s.putOperand(idx, I(0));
+            } else if (use instanceof OPT_AddressConstantOperand) {
+              s.putOperand(idx, I(((OPT_AddressConstantOperand)use).value.toInt()));
             }
-          }
-        }
+	  }
+	}
       }
-      
+
       // Calling OPT_Simplifier.simplify ensures that the instruction is 
       // in normalized form. This reduces the number of cases we have to 
       // worry about (and does last minute constant folding on the off chance

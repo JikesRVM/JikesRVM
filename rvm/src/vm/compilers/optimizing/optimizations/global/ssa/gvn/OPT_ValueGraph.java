@@ -600,7 +600,9 @@ class OPT_ValueGraph implements OPT_Operators {
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
-    if (op.isIntConstant()) {
+    if (op.isAddressConstant()) {
+      name = new Integer(op.asAddressConstant().value.toInt());
+    } else if (op.isIntConstant()) {
       name = new Integer(op.asIntConstant().value);
     } else if (op.isFloatConstant()) {
       name = new Float(op.asFloatConstant().value);
