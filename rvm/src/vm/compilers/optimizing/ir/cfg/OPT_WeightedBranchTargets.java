@@ -80,7 +80,9 @@ public final class OPT_WeightedBranchTargets {
 	OPT_BranchProfileOperand prof = TableSwitch.getDefaultBranchProfile(s);
 	float taken = prob * prof.takenProbability;
 	total += prof.takenProbability;
-	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total + ": "+s);
+	if (VM.VerifyAssertions && !epsilon(total, 1f)) {
+	  VM.sysFail("Total outflow ("+total+") does not sum to 1 for: "+s);
+	}
 	addEdge(target, taken);
       } else if (LowTableSwitch.conforms(s)) {
 	int number = LowTableSwitch.getNumberOfTargets(s);
@@ -92,7 +94,9 @@ public final class OPT_WeightedBranchTargets {
 	  total += prof.takenProbability;
 	  addEdge(target, taken);
 	}
-	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total + ": "+s);
+	if (VM.VerifyAssertions && !epsilon(total, 1f)) {
+	  VM.sysFail("Total outflow ("+total+") does not sum to 1 for: "+s);
+	}
       } else if (LookupSwitch.conforms(s)) {
 	int number = LookupSwitch.getNumberOfTargets(s);
 	float total = 0f;
@@ -107,7 +111,9 @@ public final class OPT_WeightedBranchTargets {
 	OPT_BranchProfileOperand prof = LookupSwitch.getDefaultBranchProfile(s);
 	float taken = prob * prof.takenProbability;
 	total += prof.takenProbability;
-	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total + ": "+s);
+	if (VM.VerifyAssertions && !epsilon(total, 1f)) {
+	  VM.sysFail("Total outflow ("+total+") does not sum to 1 for: "+s);
+	}
 	addEdge(target, taken);
       } else {
 	throw new OPT_OptimizingCompilerException("TODO "+s+"\n");
