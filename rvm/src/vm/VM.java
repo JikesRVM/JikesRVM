@@ -230,8 +230,10 @@ public class VM extends VM_Properties
     VM_Lock.boot();
     
     // set up HPM
+    //-#if RVM_WITH_HPM
     if (verbose>=1) VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
     if (BuildForHPM) VM_HardwarePerformanceMonitors.boot();
+    //-#endif
 
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
@@ -243,8 +245,8 @@ public class VM extends VM_Properties
 
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
-    //-#endif
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
+    //-#endif
 
     // Run class intializers that require fully booted VM
     runClassInitializer("java.lang.Double");

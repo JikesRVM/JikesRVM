@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
+//-#if RVM_WITH_HPM
 import com.ibm.JikesRVM.Java2HPM;
 /**
  * This class provides support to hardware performance monitors
@@ -505,4 +506,4 @@ public class VM_HardwarePerformanceMonitors {
     //-#endif
   }
 }
-
+//-#endif
