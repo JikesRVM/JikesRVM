@@ -354,7 +354,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   public static final boolean isMappedObject(Address object)
     throws InlinePragma {
-    return getSpaceForObject(object) != null;
+    return !object.isZero() && (getSpaceForObject(object) != null);
   }
 
   /**

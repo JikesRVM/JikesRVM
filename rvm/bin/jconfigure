@@ -1365,11 +1365,14 @@ EOF
     #
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/statistics
+	$RVM_ROOT/MMTk/src/org/mmtk/plan
+	$RVM_ROOT/MMTk/src/org/mmtk/policy
+	$RVM_ROOT/MMTk/src/org/mmtk/utility
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
 
     # Local projects (template)
     #
@@ -2012,8 +2015,8 @@ EOF
 	# Build the command line options for the core VM
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
-	# Build the command line options for JMTk
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/memoryManagers/JMTk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	# Build the command line options for MMTk
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/MMTk/src/org/mmtk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_FOR_IA32 )); then
