@@ -955,7 +955,7 @@ implements VM_Uninterruptible, VM_Constants {
   private double   scratchSeconds;
   private double   scratchNanoseconds;
 
-  public void dumpProcessorState() {
+  public void dumpProcessorState() throws VM_PragmaInterruptible {
     VM_Scheduler.writeString("Processor "); 
     VM_Scheduler.writeDecimal(id);
     if (this == VM_Processor.getCurrentProcessor()) VM_Scheduler.writeString(" (me)");

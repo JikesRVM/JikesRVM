@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
  *
  * @author David Hovemeyer
  */
-public abstract class VM_ThreadEventWaitDataVisitor {
+public abstract class VM_ThreadEventWaitDataVisitor implements VM_Uninterruptible {
 
   /**
    * Visit a VM_ThreadIOWaitData object.

@@ -209,6 +209,13 @@ public final class VM_Method extends VM_Member {
   }
 
   /**
+   * Is this method a compiler-generated object initializer helper?
+   */
+  public final boolean isObjectInitializerHelper() throws VM_PragmaUninterruptible { 
+    return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName; 
+  }
+
+  /**
    * Type of this method's return value.
    */
   public final VM_Type getReturnType() throws VM_PragmaUninterruptible {
@@ -347,7 +354,7 @@ public final class VM_Method extends VM_Member {
    * @param dynamicLink the dynamicLink object to initialize
    * @param bcIndex the bcIndex of the invoke instruction
    */
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
@@ -404,6 +411,8 @@ public final class VM_Method extends VM_Member {
    * A method is Uninterruptible if 
    * <ul>
    * <li> It is not a <clinit> or <init> method.
+   * <li> It is not the synthetic 'this' method used by jikes to
+   *      factor out default initializers for <init> methods.
    * <li> it throws the <CODE>VM_PragmaUninterruptible</CODE> exception.
    * <li> it's declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
    *      interface and the method does not throw the <CODE>VM_PragmaInterruptible</CODE>
@@ -412,6 +421,7 @@ public final class VM_Method extends VM_Member {
    */
   public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
+    if (isObjectInitializerHelper()) return true;
     if (VM_PragmaInterruptible.declaredBy(this)) return true;
     if (VM_PragmaUninterruptible.declaredBy(this)) return false;
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();

@@ -1092,7 +1092,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
   }
 
-  public void dumpJniRefsStack () {
+  public void dumpJniRefsStack () throws VM_PragmaUninterruptible {
     int jniRefOffset = JNIRefsTop;
     VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
     VM.sysWrite("* JNIRefs = ");

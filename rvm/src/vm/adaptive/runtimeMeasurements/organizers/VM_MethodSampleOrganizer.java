@@ -33,8 +33,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
    * @param filterOptLevel   filter out all opt-compiled methods that 
    *                         were compiled at this level or higher
    */
-  VM_MethodSampleOrganizer(VM_BasicMethodListener listener, 
-			   int filterOptLevel) {
+  VM_MethodSampleOrganizer(VM_MethodListener listener, int filterOptLevel) {
     this.listener         = listener;
     this.filterOptLevel   = filterOptLevel;
     listener.setOrganizer(this);

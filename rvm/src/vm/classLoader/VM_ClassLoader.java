@@ -135,10 +135,10 @@ public class VM_ClassLoader implements VM_Constants,
    * @param dictId the dictionaryId of a type
    * @return the corresponding VM_Type object
    */
-  public static VM_Type getTypeFromId(int id) {
+  public static VM_Type getTypeFromId(int id) throws VM_PragmaUninterruptible {
     return VM_TypeDictionary.getValue(id);
   }
-  public static int numTypes() {
+  public static int numTypes() throws VM_PragmaUninterruptible {
     return VM_TypeDictionary.getNumValues();
   }
   public static VM_Type[] getTypes() {
@@ -251,6 +251,8 @@ public class VM_ClassLoader implements VM_Constants,
   public static VM_Atom StandardObjectInitializerMethodName;       // "<init>"
   public static VM_Atom StandardObjectInitializerMethodDescriptor; // "()V"
 
+  public static VM_Atom StandardObjectInitializerHelperMethodName;       // "this"
+
   static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
   static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
 
@@ -295,6 +297,8 @@ public class VM_ClassLoader implements VM_Constants,
 
     StandardObjectInitializerMethodName       = VM_Atom.findOrCreateAsciiAtom("<init>");
     StandardObjectInitializerMethodDescriptor = VM_Atom.findOrCreateAsciiAtom("()V");
+
+    StandardObjectInitializerHelperMethodName = VM_Atom.findOrCreateAsciiAtom("this");
 
     StandardObjectFinalizerMethodName         = VM_Atom.findOrCreateAsciiAtom("finalize");
     StandardObjectFinalizerMethodDescriptor   = VM_Atom.findOrCreateAsciiAtom("()V");

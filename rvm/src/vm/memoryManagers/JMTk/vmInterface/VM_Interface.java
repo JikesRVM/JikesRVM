@@ -391,7 +391,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return VM_Address.zero();     // getPlan().allocCopy()...  FIXME
   }
 
-  public static void addFinalizer(Object obj) {
+  public static void addFinalizer(Object obj) throws VM_PragmaInterruptible {
     VM_Finalizer.addCandidate(obj);
   }
 

@@ -61,17 +61,7 @@ public abstract class VM_Configuration {
         //-#endif
 
   // Verify that Uninterruptible methods actually cannot be interrupted.
-  // Disabled generally for just a little longer since we get too many false positives
-  // Enabled for BaseBase configurations.
-  //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
-  //-#if RVM_WITH_BASE_RUNTIME_COMPILER
-  public static final boolean VerifyUnint = false && VerifyAssertions;
-  //-#else
-  public static final boolean VerifyUnint = false && VerifyAssertions;
-  //-#endif
-  //-#else
-  public static final boolean VerifyUnint = false && VerifyAssertions;
-  //-#endif
+  public static final boolean VerifyUnint = VerifyAssertions;
 
   // Ignore supression pragma and print all warning messages.
   public static final boolean ParanoidVerifyUnint = false;

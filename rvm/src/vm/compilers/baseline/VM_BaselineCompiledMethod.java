@@ -306,7 +306,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     bitField1 |= HAS_COUNTERS;
   }
 
-  boolean hasCounterArray() {
+  boolean hasCounterArray() throws VM_PragmaUninterruptible {
     return (bitField1 & HAS_COUNTERS) != 0;
   }
 

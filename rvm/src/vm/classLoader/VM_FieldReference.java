@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * A class to represent the reference in a class file to a field.
@@ -39,14 +40,14 @@ public final class VM_FieldReference extends VM_MemberReference {
   /**
    * @return the type of the field
    */
-  public final VM_Type getType() {
+  public final VM_Type getType() throws VM_PragmaUninterruptible {
     return type;
   }
 
   /**
    * Get size of the field's value, in bytes.
    */ 
-  public final int getSize() {
+  public final int getSize() throws VM_PragmaUninterruptible {
     return type.getStackWords() << 2;
   }
 

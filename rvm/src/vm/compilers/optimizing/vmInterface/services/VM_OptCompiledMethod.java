@@ -258,7 +258,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 //-#if RVM_WITH_OSR
   private OSR_EncodedOSRMap _osrMap;
 
-  public void createFinalOSRMap(OPT_IR ir) {
+  public void createFinalOSRMap(OPT_IR ir) throws VM_PragmaInterruptible {
     this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
   }
 

@@ -346,10 +346,7 @@ public final class SynchronizationBarrier {
     VM_Thread ct = vp.transferQueue.dequeueGCThread(null);
     vp.transferMutex.unlock();
     if (VM.VerifyAssertions) {
-      if (ct==null) {
-	VM_Scheduler.trace("removeProcessor", "no collector thread - dumping vp");
-	vp.dumpProcessorState();
-      }
+      VM._assert(ct != null);
       VM._assert(ct.isGCThread == true);
     }
 

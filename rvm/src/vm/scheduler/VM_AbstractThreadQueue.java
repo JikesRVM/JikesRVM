@@ -32,5 +32,5 @@ abstract class VM_AbstractThreadQueue implements VM_Uninterruptible {
   // For debugging.
   //
   abstract boolean contains(VM_Thread t);
-  abstract void    dump();
+  abstract void    dump() throws VM_PragmaInterruptible;
 }

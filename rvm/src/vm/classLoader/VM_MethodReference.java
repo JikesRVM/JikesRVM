@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Runtime;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * A class to represent the reference in a class file to a field.
@@ -55,14 +56,14 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * @return return type of the method
    */
-  public final VM_Type getReturnType() {
+  public final VM_Type getReturnType() throws VM_PragmaUninterruptible {
     return returnType;
   }
 
   /**
    * @return parameter types of the method
    */
-  public final VM_Type[] getParameterTypes() {
+  public final VM_Type[] getParameterTypes() throws VM_PragmaUninterruptible {
     return parameterTypes;
   }
 
@@ -70,7 +71,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Space required by method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final int getParameterWords() {
+  public final int getParameterWords() throws VM_PragmaUninterruptible {
     return parameterWords;
   }
 
@@ -117,6 +118,14 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final boolean isResolved() {
     return resolvedMember != null;
+  }
+
+  /**
+   * Get the member this reference has been resolved to, if 
+   * it has already been resolved. Does NOT force resolution.
+   */
+  public final VM_Method getResolvedMember() throws VM_PragmaUninterruptible {
+    return resolvedMember;
   }
 
   /**

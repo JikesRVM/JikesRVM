@@ -13,6 +13,7 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
 /**
  * This class implements a virtual memory resource.  The unit of
@@ -99,7 +100,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
       statusTable[blk] = 0;
   }
 
-  public static void boot() {
+  public static void boot() throws VM_PragmaInterruptible {
     resourceTable = new VMResource[NUM_BLOCKS];
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];

@@ -152,13 +152,11 @@ class VM_ControllerThread extends VM_Thread {
     VM_AOSOptions opts = VM_Controller.options;
 
     if (opts.GATHER_PROFILE_DATA) {
-      VM_MethodCountData tmp = new VM_MethodCountData();
-      VM_RuntimeMeasurements.registerReportableObject(tmp);
       VM_MethodListener methodListener = 
-        new VM_AccumulatingMethodListener(opts.INITIAL_SAMPLE_SIZE, 
-					  false, tmp);
-      VM_RuntimeMeasurements.installMethodListener(methodListener);
-      methodListener.activate();
+	new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
+      VM_Organizer methodOrganizer = 
+	new VM_AccumulatingMethodSampleOrganizer(methodListener);
+      VM_Controller.organizers.addElement(methodOrganizer);
     }
   }
 
@@ -173,8 +171,8 @@ class VM_ControllerThread extends VM_Thread {
     VM_Controller.methodSamples = new VM_MethodCountData();
 
     // Instal organizer to drive method recompilation 
-    VM_BasicMethodListener methodListener = 
-      new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
+    VM_MethodListener methodListener = 
+      new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
     VM_Organizer methodOrganizer = 
       new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
     VM_Controller.organizers.addElement(methodOrganizer);

@@ -393,7 +393,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
                 || (VM_ThinLockConstants.TL_LOCK_ID_MASK==-1));
   }
   
-  static void growLocks() throws VM_PragmaInterruptible {
+  static void growLocks() throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
     VM_Lock [] oldLocks = VM_Scheduler.locks;
     int newSize = 2 * oldLocks.length;
     if (newSize > MAX_LOCKS + 1)
@@ -413,7 +413,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the code is prepared to lose control when it allocates a lock -- dave */ {
+  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {

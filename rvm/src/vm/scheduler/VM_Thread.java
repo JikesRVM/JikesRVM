@@ -132,7 +132,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Resume execution of a thread that has been suspended.
    * Call only if caller has appropriate security clearance.
    */ 
-  public void resume () {
+  public void resume () throws VM_PragmaInterruptible {
     suspendLock.lock();
     suspendPending = false;
     if (suspended) { // this thread is not on any queue
@@ -582,12 +582,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // respond to interrupt sent to this thread by some other thread
     //
     if (myThread.externalInterrupt != null && myThread.throwInterruptWhenScheduled) {
-      Throwable t = myThread.externalInterrupt;
-      myThread.externalInterrupt = null;
-      myThread.throwInterruptWhenScheduled = false;
-      t.fillInStackTrace();
-      VM_Runtime.athrow(t);
+      postExternalInterrupt(myThread);
     }
+  }
+
+
+  private static void postExternalInterrupt(VM_Thread myThread) throws VM_PragmaLogicallyUninterruptible {
+    Throwable t = myThread.externalInterrupt;
+    myThread.externalInterrupt = null;
+    myThread.throwInterruptWhenScheduled = false;
+    t.fillInStackTrace();
+    VM_Runtime.athrow(t);
   }
 
   /**
@@ -1473,11 +1478,11 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     return isGCThread;
   }
 
-  public boolean isDaemonThread() {
+  public boolean isDaemonThread() throws VM_PragmaInterruptible {
     return isDaemon;
   }
 
-  public boolean isAlive() {
+  public boolean isAlive() throws VM_PragmaInterruptible {
     return isAlive;
   }
 

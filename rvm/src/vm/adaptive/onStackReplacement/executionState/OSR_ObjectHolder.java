@@ -19,7 +19,7 @@ public class OSR_ObjectHolder implements VM_Uninterruptible {
 
   private static Object[][] refs; 
 
-  public static void boot(){
+  public static void boot() throws VM_PragmaInterruptible {
     refs = new Object[POOLSIZE][];
     
     // exercise the method to avoid lazy compilation in the future
@@ -36,7 +36,7 @@ public class OSR_ObjectHolder implements VM_Uninterruptible {
   /**
    * The JVM scope descriptor extractor can hand in an object here
    */
-  public final static int handinRefs(Object[] objs) {    
+  public final static int handinRefs(Object[] objs) throws VM_PragmaInterruptible {    
     int n = refs.length;
     for (int i=0; i<n; i++) {
       if (refs[i] == null) {
@@ -67,14 +67,14 @@ public class OSR_ObjectHolder implements VM_Uninterruptible {
   }
 
   /**
-   *  Clean objects. This method is called by specialized bytecode prologue
+   * Clean objects. This method is called by specialized bytecode prologue
+   * Uses magic because it must be uninterruptible
    */
   public final static void cleanRefs(int i) 
     throws VM_PragmaInline {
-	if (VM.TraceOnStackReplacement) {
-	  VM.sysWriteln("OSR_ObjectHolder cleanRefs");
-	}
-    refs[i] = null;
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OSR_ObjectHolder cleanRefs");
+    }
+    VM_Magic.setObjectAtOffset(refs, i<<2, null); // refs[i] = null;
   }
-
 }

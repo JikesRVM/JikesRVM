@@ -14,6 +14,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
@@ -69,7 +70,7 @@ public class VM_Finalizer implements VM_Uninterruptible {
   //
   // (SJF: This method must NOT be inlined into an inlined allocation sequence, since it contains a lock!)
   //
-  public static final void addCandidate(Object item) throws VM_PragmaNoInline {
+  public static final void addCandidate(Object item) throws VM_PragmaNoInline, VM_PragmaInterruptible  {
     lock.acquire();
     if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ", " addElement called, count = ", candidateEnd);
     if (candidateEnd >= candidate.length) {
