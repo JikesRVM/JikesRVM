@@ -590,9 +590,11 @@ declare -i HAS_DLCOMPAT=0
 function unsetEnvironment() {
     local flags="$-"
     set +e
-    # disable ERR Trap.  This only affects this function, not the 
+    # Disable ERR Trap.  This only affects this function, not the 
     # global environment.
-    trap '' ERR
+    # As before, we redirect error messages to /dev/null.  This is because
+    # some older Bash versions do not support the ERR trap.
+    trap '' ERR 2> /dev/null || :
     ## Turn off all of the environment variables that we get when we 
     ## source config files but that might not be set if we were to source
     ## a different such config file.
