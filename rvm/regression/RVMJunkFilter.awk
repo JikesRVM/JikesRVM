@@ -51,8 +51,10 @@ kill_next==yes { kill_next = no; next }
 
 /--- METHOD ---/ && gc_mess==yes { next }
 /fp = [0-9a-fx]* ip = [0-9a-fx]*/ && gc_mess==yes { next }
-/Heap Size [0-9]*  Large Object Heap Size [0-9]*/ && gc_mess==yes { next }
+/Heap Size [0-9]*/ && gc_mess==yes { next }
+/<GC [0-9]*>/ && gc_mess==yes { next }
 /[0-9]* Collections: avgTime [0-9]*/ && gc_mess==yes { next }
+/GC Summary:/ && gc_mess==yes { next }
 
 gc_mess==yes { gc_mess = no }
 
