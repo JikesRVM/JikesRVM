@@ -25,7 +25,7 @@ CLIENT_NAME=COM.volano.Test
 CLIENT_ARGS="-rooms 10 -users 10 -loops 5 -run"
 endif
 
-include		$(JAL_ROOT)/regression/Make.rules
+include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 $(WORKING)/properties.txt:	$(BENCH_HOME)/properties.txt $(WORKING)
 	@echo Generating properties.txt

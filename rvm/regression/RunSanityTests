@@ -28,7 +28,7 @@ ME=`basename $0`
 
 # Place where configuration generator resides.
 #
-GENERATOR=$RVM_ROOT/bin
+GENERATOR=$RVM_ROOT/rvm/bin
 
 # Default place where generated boot images and runtime files will reside.
 #
@@ -65,7 +65,7 @@ VERBOSE=NO
 
 ## Do all tests by default
 #
-TEST_LIST=`cat $RVM_ROOT/regression/config/nightly-tests`
+TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/nightly-tests`
 
 ## Default configurations
 #
@@ -129,7 +129,7 @@ while [ $# != 0 ]; do
         ;;
 
 	*)
-	  TEST_LIST=`cat $RVM_ROOT/regression/config/$2`
+	  TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/$2`
 	;;
 	esac
 	shift
@@ -192,7 +192,7 @@ while [ $# != 0 ]; do
 	  CONFIG_LIST=`cat $2`
         ;;
 	*)
-	  CONFIG_LIST=`cat $RVM_ROOT/regression/config/$2`
+	  CONFIG_LIST=`cat $RVM_ROOT/rvm/regression/config/$2`
         ;;
         esac
 	shift
@@ -267,9 +267,9 @@ function setConfiguration
    # set RVM_HOST_CONFIG if not already set
    if [[ X$RVM_HOST_CONFIG = X ]]; then
      if [[ X`uname` = X"Linux" ]]; then
-       export RVM_HOST_CONFIG=$RVM_ROOT/config/i686-pc-linux.turangalila
+       export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux.turangalila
      elif [[ X`uname` = X"AIX" ]]; then
-       export RVM_HOST_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix4.3.3.0.watson
+       export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0.watson
      else
        print "$ME: could not guess RVM_HOST_CONFIG environment variable"
        exit 1
@@ -279,9 +279,9 @@ function setConfiguration
    # set RVM_TARGET_CONFIG if not already set
    if [[ X$RVM_TARGET_CONFIG = X ]]; then
      if [[ X`uname` = X"Linux" ]]; then
-       export RVM_TARGET_CONFIG=$RVM_ROOT/config/i686-pc-linux.turangalila
+       export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux.turangalila
      elif [[ X`uname` = X"AIX" ]]; then
-       export RVM_TARGET_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix4.3.3.0.watson
+       export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0.watson
      else
        print "$ME: could not guess RVM_TARGET_CONFIG environment variable"
        exit 1
@@ -380,13 +380,13 @@ function doRun
     fi
 
     . $RVM_BUILD/environment
-    $RVM_ROOT/regression/limited.ksh $LIMIT $GNU_MAKE -ks \
+    $RVM_ROOT/rvm/regression/limited.ksh $LIMIT $GNU_MAKE -ks \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
-           JBOOT=$RVM_ROOT/bin/jalapeno\
+           JBOOT=$RVM_ROOT/rvm/bin/rvm\
            PROCESSORS="$NUM_PROCS"\
            RC_ARGS="$RC_ARGS $EXTRA_RC_ARGS"\
            JAVA_PACKAGES=$RVM_BUILD/Jalapeno.classes\
-           RVMPATH=$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/classes.zip\
+           RVMPATH=$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/rvmrt.jar \
            clean sanity || say "$NAME: You are NOT sane in `pwd`"
 
     # done
@@ -403,7 +403,7 @@ function doRun
 #
 function doTests {
    for test in $TEST_LIST; do
-     cd $RVM_ROOT/regression/tests/$test && doRun
+     cd $RVM_ROOT/rvm/regression/tests/$test && doRun
    done
 }
    

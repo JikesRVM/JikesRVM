@@ -5,13 +5,13 @@
 #
 include		$(RVM_BUILD)/Make.rules
 
-BENCH_HOME=$(JAL_ROOT)/src/examples/OPTBench
+BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/OPTBench
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=200
 LARGEHEAPSIZE=100
 START_NAME=TestDriver
 
-include		$(JAL_ROOT)/regression/Make.rules
+include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 # Compile Hello World
 #

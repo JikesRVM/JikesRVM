@@ -13,14 +13,14 @@ ALL_TESTS	= fibo tak_int tak_long tak_fp tak_db table TestLookupSwitch \
 
 include		$(RVM_BUILD)/Make.rules
 
-BENCH_HOME=$(JAL_ROOT)/src/examples/opttests
+BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/opttests
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE = 80
 EXPECTED=Tests.expected
 START_NAME=InvokeReflect
 START_ARGS=$(ALL_TESTS)
 
-include		$(JAL_ROOT)/regression/Make.rules
+include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 sanity: 	$(foreach NAME, $(ALL_TESTS), $(NAME).class)
 	$(MAKE) sanity-diff

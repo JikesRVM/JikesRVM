@@ -16,7 +16,7 @@ else
   LHEAPSIZE=50
 endif
 
-include 	$(JAL_ROOT)/regression/Make.rules
+include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
 TESTS=_200_check _201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack
 
@@ -27,8 +27,8 @@ $(WORKING)/spec:	$(WORKING)
 $(WORKING)/props:	$(WORKING)
 	ln -fs $(BENCH_HOME)/props $(WORKING)/props
 
-$(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/regression/tests/SPECjvm98/Makefile
-	cp -f $(JAL_ROOT)/regression/tests/SPECjvm98/Makefile $(WORKING)/Makefile
+$(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/rvm/regression/tests/SPECjvm98/Makefile
+	cp -f $(JAL_ROOT)/rvm/regression/tests/SPECjvm98/Makefile $(WORKING)/Makefile
 
 check:
 	@$(FGREP) -v "**NOT" $(OUT) > /dev/null
@@ -40,7 +40,7 @@ sanity:	$(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
 	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m5 -M5 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
 
 do-gather-performance:
-	$(JAL_ROOT)/regression/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
+	$(JAL_ROOT)/rvm/regression/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
 
 else
 

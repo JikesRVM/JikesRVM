@@ -3,13 +3,13 @@
 #
 include		$(RVM_BUILD)/Make.rules
 
-BENCH_HOME=$(JAL_ROOT)/src/examples/threads
+BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/threads
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=80
 LARGEHEAPSIZE=100
 NON_DETERMINISTIC_OUTPUT_ORDER=YES
 
-include		$(JAL_ROOT)/regression/Make.rules
+include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 TESTS=TestNotification TestStop TestDispatch TestTimedWait
 

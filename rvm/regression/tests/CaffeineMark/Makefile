@@ -9,7 +9,7 @@ BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=200
 START_NAME=TestDriver
 
-include		$(JAL_ROOT)/regression/Make.rules
+include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 ## These two rules were used with the ExecuteOpt interface
 ##

@@ -16,7 +16,7 @@ START_NAME=spec.jbb.JBBmain
 HEAPSIZE=500
 LHEAPSIZE=300
 
-include		$(JAL_ROOT)/regression/Make.rules
+include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 #
 # sanity test support

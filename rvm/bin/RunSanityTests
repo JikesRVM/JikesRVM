@@ -3,4 +3,4 @@
 # (C) Copyright IBM Corp. 2001
 #
 # $Id$
-exec $RVM_ROOT/regression/RunSanityTests "$@"
+exec $RVM_ROOT/rvm/regression/RunSanityTests "$@"

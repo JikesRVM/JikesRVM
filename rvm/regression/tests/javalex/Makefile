@@ -11,7 +11,7 @@ BENCH_CLASS_PATH=$(JAVACUP_HOME)
 HEAPSIZE=200
 START_NAME=JLex.Main
 
-include			$(JAL_ROOT)/regression/Make.rules
+include			$(JAL_ROOT)/rvm/regression/Make.rules
 
 ifeq ($(WORKING),.)
 $(WORKING)/%.lex:	$(QBCJ_HOME)/qb1.lex
