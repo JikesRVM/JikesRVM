@@ -83,7 +83,7 @@ class MainThread extends Thread {
       cls.resolve();
       cls.instantiate();
       cls.initialize();
-    } catch (ClassNotFoundException e) { 
+    } catch (NoClassDefFoundError e) { 
       // no such class
       VM.sysWrite(e+"\n");
       return;

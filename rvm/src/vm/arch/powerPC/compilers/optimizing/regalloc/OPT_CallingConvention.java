@@ -75,11 +75,7 @@ implements OPT_PhysicalRegisterConstants {
     if (Call.getMethod(s) != null) {
       OPT_MethodOperand nat = Call.getClearMethod(s);
       VM_Field target = null;
-      try {
-	target = nat.getMemberRef().asFieldReference().resolve();
-      } catch (ClassNotFoundException e) {
-	VM.sysFail("Cannot happen");
-      }
+      target = nat.getMemberRef().asFieldReference().resolve();
       ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1.copyRO(), target);
     } else {
       ip = (OPT_RegisterOperand)Call.getClearAddress(s);

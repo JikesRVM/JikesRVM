@@ -126,11 +126,7 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   public Class getType() {
-    try {
-      return field.getType().resolve().getClassForType();
-    } catch (ClassNotFoundException e) {
-      throw new InternalError("How can this happen??");
-    }
+    return field.getType().resolve().getClassForType();
   }
 
   public int hashCode() {
@@ -149,10 +145,12 @@ public final class Field extends AccessibleObject implements Member {
       VM_Type fieldType;
       try {
 	fieldType = type.resolve();
-      } catch (ClassNotFoundException e) {
+      } catch (NoClassDefFoundError e) {
 	throw new IllegalArgumentException("field type mismatch");
       }
-      if (fieldType != valueType && !VM_Runtime.isAssignableWith(fieldType, valueType)) {
+      if (fieldType != valueType 
+	  && !VM_Runtime.isAssignableWith(fieldType, valueType))
+      {
 	throw new IllegalArgumentException("field type mismatch");
       }
       field.setObjectValueUnchecked(object, value);

@@ -109,18 +109,18 @@ public class VM_Verifier
   private VM_Type resolve(VM_TypeReference tr) {
     try {
       return tr.resolve();
-    } catch (ClassNotFoundException e) {
+    } catch (NoClassDefFoundError e) {
       verificationFailure("Unable to resolve a VM_TypeReference named " + tr, e);
       return null;		// this will never be executed.
     }
   }
   private VM_Field resolve(VM_FieldReference fr) {
-    try {
+    //    try {
       return fr.resolve();
-    } catch (ClassNotFoundException e) {
-      verificationFailure("Unable to resolve a VM_FieldReference named " + fr, e);
-      return null;		// this will never be executed.
-    }
+      //    } catch (ClassNotFoundException e) {
+      //      verificationFailure("Unable to resolve a VM_FieldReference named " + fr, e);
+      //      return null;		// this will never be executed.
+      //    }
   }
 
   private VM_Method resolve(VM_MethodReference mr) {
@@ -1379,8 +1379,8 @@ public class VM_Verifier
 	    
 	    try {
 	      cls = (VM_Class) VM_TypeReference.getTypeRef(typeId).resolve();
-	    } catch (ClassNotFoundException cnf) {
-	      verificationFailure("Unable to find the class of an 'athrow' instruction's argument: " + cnf.getMessage(), cnf);
+	    } catch (NoClassDefFoundError ncdf) {
+	      verificationFailure("Unable to find the class of an 'athrow' instruction's argument: " + ncdf, ncdf);
 	    } catch (ClassCastException cce) {
 	      verificationFailure("We tried to get the class of an 'athrow' instruction's argument, but it wasn't a class: " + cce.getMessage(), cce);
 	    }

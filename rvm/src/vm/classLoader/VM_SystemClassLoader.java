@@ -56,11 +56,15 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   /**
    * Backdoor for use by VM_TypeReference.resolve when !VM.runningVM.
+   * As of this writing, it is not used by any other classes. 
+   * @throws NoClassDefFoundError
    */
-  synchronized VM_Type loadVMClass(String className) throws ClassNotFoundException {
+  synchronized VM_Type loadVMClass(String className) 
+    throws NoClassDefFoundError	// does not need to be declared.
+  {
     try {	    
       InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
-      if (is == null) throw new ClassNotFoundException(className);
+      if (is == null) throw new NoClassDefFoundError(className);
       DataInputStream dataInputStream = new DataInputStream(is);
       VM_Type type = null;
       try {
@@ -73,16 +77,19 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	} catch (IOException e) { }
       }
       return type;
-    } catch (ClassNotFoundException e) {
+    } catch (NoClassDefFoundError e) {
       throw e;
     } catch (Throwable e) {
       // We didn't find the class, or it wasn't valid, etc.
-      throw new ClassNotFoundException(className);
+      NoClassDefFoundError ncdf = new NoClassDefFoundError(className);
+      ncdf.initCause(e);
+      throw ncdf;
     }
   }
 
   public synchronized Class loadClass(String className, boolean resolveClass)
-    throws ClassNotFoundException {
+    throws ClassNotFoundException 
+  {
 
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length()-2);

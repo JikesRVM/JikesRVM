@@ -176,7 +176,7 @@ class GenerateInterfaceDeclarations {
     VM_Class bootRecord = null;
     try {
       bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
-    } catch (ClassNotFoundException e) {
+    } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
       System.exit(-1);
     }
@@ -194,7 +194,7 @@ class GenerateInterfaceDeclarations {
     VM_Class bootRecord = null;
     try {
       bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
-    } catch (ClassNotFoundException e) {
+    } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
       System.exit(-1);
     }

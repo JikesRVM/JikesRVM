@@ -493,15 +493,10 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public final VM_Array getArrayTypeForElementType() {
     if (cachedElementType == null) {
       VM_TypeReference tr = typeRef.getArrayTypeForElementType();
-      try {
-	cachedElementType = tr.resolve().asArray();
-      } catch (ClassNotFoundException e) {
-	// can't happen because the element type already exists (it is 'this')
-	// and the VM creates array types itself without any possibility of 
-	// error if the element type is already loaded.
-	if (VM.VerifyAssertions) VM._assert(false);
-	return null;
-      }
+      cachedElementType = tr.resolve().asArray();
+      /*  Can't fail to resolve the type, because the element type already
+	  exists (it is 'this') and the VM creates array types itself without
+	  any possibility of error if the element type is already loaded. */
     }
     return cachedElementType;
   }

@@ -3516,14 +3516,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       generateMethodInvocation(); // call method
       pushAddr(T0);       // push result
     } else if (methodName == VM_MagicNames.addressArrayCreate) {
-      try {
-	VM_Array type = methodToBeCalled.getType().resolve().asArray();
-	emit_resolved_newarray(type);
-      } catch (ClassNotFoundException e) {
-	InternalError ex = new InternalError();
-	e.initCause(ex);
-	throw ex;
-      }
+      VM_Array type = methodToBeCalled.getType().resolve().asArray();
+      emit_resolved_newarray(type);
     } else if (methodName == VM_MagicNames.addressArrayLength) {
       emit_arraylength();
     } else if (methodName == VM_MagicNames.addressArrayGet) {

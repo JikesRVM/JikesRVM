@@ -265,7 +265,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
 
-  static void init() throws ClassNotFoundException {
+  static void init() {
     BooleanArray = (VM_Array)VM_TypeReference.BooleanArray.resolve();
     CharArray    = (VM_Array)VM_TypeReference.CharArray.resolve();
     FloatArray   = (VM_Array)VM_TypeReference.FloatArray.resolve();

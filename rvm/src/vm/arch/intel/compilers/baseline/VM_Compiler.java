@@ -3281,13 +3281,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.addressArrayCreate) {
-      try {
-	emit_resolved_newarray(m.getType().resolve().asArray());
-      } catch (ClassNotFoundException e) {
-	InternalError ex = new InternalError();
-	e.initCause(ex);
-	throw ex;
-      }
+      // no resolution problem possible.
+      emit_resolved_newarray(m.getType().resolve().asArray());
       return true;
     }
 

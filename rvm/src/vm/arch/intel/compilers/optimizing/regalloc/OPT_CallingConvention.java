@@ -445,11 +445,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       OPT_RegisterOperand t1 = 
 	OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
       VM_Field target = null;
-      try {
-	target = sysM.getMemberRef().asFieldReference().resolve();
-      } catch (ClassNotFoundException e) {
-	VM.sysFail("Cannot happen");
-      }
+      target = sysM.getMemberRef().asFieldReference().resolve();
       ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, target);
     } else {
       ip = (OPT_RegisterOperand)Call.getClearAddress(s);

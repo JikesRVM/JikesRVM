@@ -31,8 +31,8 @@ public class VM_MultianewarrayHelper {
    */
   static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
     throws NegativeArraySizeException, 
-	   OutOfMemoryError,
-	   ClassNotFoundException {
+	   OutOfMemoryError
+  {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];

@@ -476,26 +476,48 @@ public class VM_TypeReference implements VM_SizeConstants{
    * if a required class file hasn't been loaded before.
    *
    * @return the VM_Type instance that this references resolves to.
+   * @throws NoClassDefFoundError When it cannot resolve a class.  
+   *	    we go to the trouble of converting the class loader's
+   *	    <code>ClassNotFoundException </code> into this error, 
+   *	    since we need to be able to throw NoClassDefFoundError for classes
+   *	    that we're loading whose existence was compile-time checked.
    */
-  public final synchronized VM_Type resolve() throws ClassNotFoundException {
+  public final synchronized VM_Type resolve() 
+    //    throws ClassNotFoundException
+    throws NoClassDefFoundError	// doesn't need declaring.
+  {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {
       VM_Type ans; 
       if (VM.runningVM) {
-	Class klass = classloader.loadClass(name.classNameFromDescriptor());
+	Class klass;
+	String myName = name.classNameFromDescriptor();
+
+	try {
+	  klass = classloader.loadClass(myName);
+	} catch (ClassNotFoundException cnf) {
+	  NoClassDefFoundError ncdfe 
+	    = new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
+	  ncdfe.initCause(cnf);	// in dubious taste, but helps us debug Jikes
+				// RVM 
+	  throw ncdfe;
+	}
+
 	ans = java.lang.JikesRVMSupport.getTypeForClass(klass);
       } else {
-	// Use a special purpose backdoor to avoid creating java.lang.Class 
-	// objects when not running the VM (we get host JDK Class objects and 
-	// that just doesn't work).
+	// Use a special purpose backdoor to avoid creating java.lang.Class
+	// objects when not running the VM (we get host JDK Class objects
+	// and that just doesn't work).
 	ans = ((VM_SystemClassLoader)classloader).loadVMClass(name.classNameFromDescriptor());
       }
-      if (VM.VerifyAssertions) VM._assert(resolvedType == null || resolvedType == ans);
+      if (VM.VerifyAssertions) 
+	VM._assert(resolvedType == null || resolvedType == ans);
       resolvedType = ans;
     } else if (isArrayType()) {
       if (isWordArrayType() || isCodeArrayType()) {
-	// Ensure that we only create one VM_Array object for each pair of names for this type.
-	// Do this by resolving VM_AddressArray to [VM_Addresss
+	// Ensure that we only create one VM_Array object for each pair of
+	// names for this type. 
+	// Do this by resolving VM_AddressArray to [VM_Address
 	resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();
       } else {
 	VM_Type elementType = getArrayElementType().resolve();

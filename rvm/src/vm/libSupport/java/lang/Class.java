@@ -67,7 +67,9 @@ public final class Class implements java.io.Serializable {
     throw new VM_UnimplementedError();
   }
   
-  public static Class forName(String typeName) throws ClassNotFoundException {
+  public static Class forName(String typeName) 
+    throws ClassNotFoundException 
+  {
     ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
     return forNameInternal(typeName, true, parentCL);
   }
@@ -113,15 +115,9 @@ public final class Class implements java.io.Serializable {
       if (declaredClasses != null) {
 	for (int i=0; i<declaredClasses.length; i++) {
 	  if (declaredClasses[i] != null) {
-	    try {
-	      VM_Class dc = declaredClasses[i].resolve().asClass();
-	      if (dc.isPublic()) {
-		publicClasses.add(dc.getClassForType());
-	      }
-	    } catch (ClassNotFoundException e) {
-	      InternalError e2 = new InternalError();
-	      e2.initCause(e);
-	      throw e2;
+	    VM_Class dc = declaredClasses[i].resolve().asClass();
+	    if (dc.isPublic()) {
+	      publicClasses.add(dc.getClassForType());
 	    }
 	  }
 	}
@@ -215,11 +211,7 @@ public final class Class implements java.io.Serializable {
     count = 0;
     for (int i = 0; i < length; ++i) {
       if (declaredClasses[i] != null) {
-	try {
-	  result[count++] = declaredClasses[i].resolve().getClassForType();
-	} catch (ClassNotFoundException e) {
-	  throw new InternalError();
-	}
+	result[count++] = declaredClasses[i].resolve().getClassForType();
       }
     }
     
@@ -346,11 +338,7 @@ public final class Class implements java.io.Serializable {
     if (!type.isClassType()) return null;
     VM_TypeReference dc = type.asClass().getDeclaringClass();
     if (dc == null) return null;
-    try {
-      return dc.resolve().getClassForType();
-    } catch (ClassNotFoundException e) {
-      throw new InternalError();
-    }
+    return dc.resolve().getClassForType();
   }
 
   public Field getField(String name) throws NoSuchFieldException, SecurityException {
@@ -679,40 +667,35 @@ public final class Class implements java.io.Serializable {
 	   LinkageError,
 	   ExceptionInInitializerError 
   {
-    if (className.startsWith("[")) {
-      if (!validArrayDescriptor(className)) 
-	throw new ClassNotFoundException("Could not look up a class named \"" 
-					 + className + "\" since that's not a valid array descriptor");
-    }
-    VM_Atom descriptor = VM_Atom
-      .findOrCreateAsciiAtom(className.replace('.','/'))
-      .descriptorFromClassName();
-    VM_TypeReference tRef 
-      = VM_TypeReference.findOrCreate(classLoader, descriptor);
-    VM_Type ans = tRef.resolve();
-    VM_Callbacks.notifyForName(ans);
-    if (initialize && !ans.isInitialized()) {
-      ans.resolve();
-      ans.instantiate();
-//       try {
+    try {
+      if (className.startsWith("[")) {
+	if (!validArrayDescriptor(className)) 
+	  throw new ClassNotFoundException(
+ 	       "Could not look up a class named \"" + className 
+	       + "\"; starts with '[', but it's not a valid array descriptor");
+      }
+      VM_Atom descriptor = VM_Atom
+	.findOrCreateAsciiAtom(className.replace('.','/'))
+	.descriptorFromClassName();
+      VM_TypeReference tRef 
+	= VM_TypeReference.findOrCreate(classLoader, descriptor);
+      VM_Type ans = tRef.resolve();
+      VM_Callbacks.notifyForName(ans);
+      if (initialize && !ans.isInitialized()) {
+	ans.resolve();
+	ans.instantiate();
 	ans.initialize();
-	//      } catch (ClassNotFoundException cnf) {
-// 	// This is a dubious interpretation of the documentation, but it is
-// 	// the one that we suspect Eclipse depends upon.  
-// 	// --Steve Augart and David Grove
-// 	throw cnf;
-// 	// // Subclass of LinkageError; reduce code bloat.
-// 	//      } catch (ExceptionInInitializerError eiie) {
-// 	// // ditto
-// 	// throw eiie;		// io
-//       } catch (LinkageError le) {
-// 	// ditto
-// 	throw le;
-//       } catch (Exception e) {
-//  	throw new ExceptionInInitializerError(e);
-//       }
+      }
+      return ans.getClassForType();
+    } catch (NoClassDefFoundError ncdfe) {
+      Throwable cause2 = ncdfe.getCause();
+      ClassNotFoundException cnf;
+      if (cause2 instanceof ClassNotFoundException)
+	cnf = (ClassNotFoundException) cause2;
+      else
+	cnf = new ClassNotFoundException(className, ncdfe);
+      throw cnf;
     }
-    return ans.getClassForType();
   }
 
 
@@ -812,12 +795,8 @@ public final class Class implements java.io.Serializable {
 
     for (int i = 0, n = lhs.length; i < n; ++i) {
       if (rhs[i] == null) return false;
-      try {
-	if (lhs[i].resolve() != rhs[i].type) {
-	  return false;
-	}
-      } catch (ClassNotFoundException e) {
-	throw new InternalError();
+      if (lhs[i].resolve() != rhs[i].type) {
+	return false;
       }
     }	
     return true;

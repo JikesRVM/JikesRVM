@@ -22,11 +22,7 @@ public class JikesRVMSupport {
   static Class[] typesToClasses(VM_TypeReference[] types) {
     Class[] classes = new Class[types.length];
     for (int i = 0; i < types.length; i++) {
-      try {
-	classes[i] = types[i].resolve().getClassForType();
-      } catch (ClassNotFoundException e) {
-	throw new InternalError(e.toString()); // Should never happen.
-      }
+      classes[i] = types[i].resolve().getClassForType();
     }
     return classes;
   }

@@ -92,11 +92,7 @@ public final class Constructor extends AccessibleObject implements Member {
 	throw new IllegalArgumentException("argument count mismatch");
       }
       for (int i = 0; i < parameterTypes.length; i++) {
-	try {
-	  args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
-	} catch (ClassNotFoundException e) {
-	  throw new InternalError(e.toString()); // Should never happen.
-	}
+	args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
       }
     }
     
