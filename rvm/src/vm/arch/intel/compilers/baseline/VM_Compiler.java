@@ -2290,15 +2290,39 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  genParameterRegisterLoad(methodRef, true);
 	  asm.emitCALL_RegDisp(S0, I.getITableIndex(methodRef) << 2);                       // the interface call
 	} else {
-	  // call "invokeInterface" to resolve object + method id into method address
-	  int methodRefId = klass.getMethodRefId(constantPoolIndex);
-	  asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
-	  asm.emitPUSH_Imm(methodRefId);                 // id of method to call
-	  genParameterRegisterLoad(2);               // pass 2 parameter words
-	  asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceOffset); // invokeinterface(obj, id) returns address to call
-	  asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
-	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
+	  VM_Class I = methodRef.getDeclaringClass();
+	  int itableIndex = -1;
+	  if (false && VM.BuildForITableInterfaceInvocation) {
+	    // get the index of the method in the Itable
+	    if (I.isLoaded()) {
+	      itableIndex = I.getITableIndex(methodRef);
+	    }
+	  }
+	  if (itableIndex == -1) {
+	    // itable index is not known at compile-time.
+	    // call "invokeInterface" to resolve object + method id into 
+	    // method address
+	    int methodRefId = klass.getMethodRefId(constantPoolIndex);
+	    asm.emitPUSH_RegDisp(SP, (count-1)<<LG_WORDSIZE);  // "this" parameter is obj
+	    asm.emitPUSH_Imm(methodRefId);                 // id of method to call
+	    genParameterRegisterLoad(2);               // pass 2 parameter words
+	    asm.emitCALL_RegDisp(JTOC,  VM_Entrypoints.invokeInterfaceOffset); // invokeinterface(obj, id) returns address to call
+	    asm.emitMOV_Reg_Reg (S0, T0);                      // S0 has address of method
+	    genParameterRegisterLoad(methodRef, true);
+	    asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
+	  } else {
+	    // itable index is known at compile-time.
+	    // call "findITable" to resolve object + interface id into 
+	    // itable address
+	    asm.emitMOV_Reg_RegDisp (S0, SP, (count-1) << 2);             // "this" object
+	    asm.emitPUSH_RegDisp    (S0, OBJECT_TIB_OFFSET);              // tib of "this" object
+	    asm.emitPUSH_Imm        (I.getDictionaryId());                // interface id
+	    genParameterRegisterLoad(2);                                  // pass 2 parameter words
+	    asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableOffset); // findItableOffset(tib, id) returns iTable
+	    asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
+	    genParameterRegisterLoad(methodRef, true);
+	    asm.emitCALL_RegDisp    (S0, itableIndex << 2);               // the interface call
+	  }
 	}
 	genResultRegisterUnload(methodRef);
 	break;
