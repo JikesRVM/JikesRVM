@@ -9,29 +9,23 @@
 #
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
-
-export HOST_JAVA_HOME="/usr/lib/jdk1.3"
+`
+export HOST_JAVA_HOME="/opt/IBMJava2-13"
 
 # the JDK java executable
-export HOST_JAVA="/usr/lib/jdk1.3/bin/java"
+export HOST_JAVA="/opt/IBMJava2-13/bin/java"
 
 # the JDK javac executable
-export HOST_JAVAC="/usr/lib/jdk1.3/bin/javac"
+export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
+
+# the JDK jar executable
+export HOST_JAR="/opt/IBMJava2-13/bin/javac"
 
 # the JDK standard library jar files
-export HOST_REPOSITORIES="/usr/lib/jdk1.3/jre/lib/rt.jar"
+export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
 
 # the JDK standard library jar files
-export HOST_TOOLS="/usr/lib/jdk1.3/lib/tools.jar"
-
-# the JDK 1.1.8 java executable
-export HOST_1_1_8_JAVA="/usr/lib/jdk1.1.8/bin/java"
-
-# the JDK 1.1.8 java executable
-export HOST_1_1_8_JAVAC="/usr/lib/jdk1.1.8/bin/javac"
-
-# the JDK 1.1.8 standard library jar files
-export HOST_1_1_8_REPOSITORIES="/usr/lib/jdk1.1.8/lib/classes.zip"
+export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
@@ -65,6 +59,7 @@ export PS="/bin/ps"
 export BASH="/bin/bash"
 export SED="/bin/sed"
 export DIFF="/usr/bin/diff"
+export TAR="/bin/tar"
 
 # where to find Jazzlib
 export JAZZLIBDIR=~dolby/stuff/jazzlib-0.02
