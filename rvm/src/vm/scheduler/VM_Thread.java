@@ -146,11 +146,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   //-#if RVM_WITH_OSR
   /**
-   * Suspends the thread which is wait for OSR (waiting for scheduling now).
+   * Suspends the thread waiting for OSR (rescheduled by recompilation
+   * thread when OSR is done).
    */
   public final void osrSuspend() {
 	suspendLock.lock();
-	suspendPending = true;
+	suspendPending  = true;
 	suspendLock.unlock();
   }
   //-#endif
@@ -376,25 +377,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
         ypTakenInCallerCMIDValid = false;
       } 
 
-      //-#if RVM_WITH_OSR                                                       
+      //-#if RVM_WITH_OSR   
+      // check if there are pending osr request
+      if ((VM_Controller.osrOrganizer != null) 
+		&& (VM_Controller.osrOrganizer.osr_flag)) {
+	VM_Controller.osrOrganizer.activate(); 
+      }
+     
       if (!VM_Thread.getCurrentThread().isSystemThread) {
         boolean baseToOptOSR = false;
-		if (whereFrom == VM_Thread.BACKEDGE) {
-		  if (ypTakenInCM.isOutdated()) {
-			baseToOptOSR = true;
-		  }
-		}
-		/* this has to be changed to make all calls without threadSwitch */
-		/*
-        // check for base-to-opt OSR triggered by adaptive system               
-        if (whereFrom == VM_Thread.BACKEDGE) {
-          if (VM_ControllerMemory.requestedOSR(ypTakenInCMID)) {
-            baseToOptOSR = true;
-          }
-        }
-		*/
-	if (baseToOptOSR || (whereFrom == VM_Thread.OSROPT)) {
-	
+	if (whereFrom == VM_Thread.BACKEDGE) {
+	  if (ypTakenInCM.isOutdated()) {
+	    baseToOptOSR = true;
+	  }
+	}
+
+	if (baseToOptOSR || (whereFrom == VM_Thread.OSROPT)) {	
 	  // get this fram pointer
 	  VM_Address tsFP = VM_Magic.getFramePointer(); 	
 	  // Get pointer to my caller's frame
@@ -1493,16 +1491,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   protected boolean isSystemThread = true;
 
   public OSR_OnStackReplacementEvent onStackReplacementEvent;
-  //  OSR_DeoptimizationEvent deOptimizationEvent;
- 
+
+  ///////////////////////////////////////////////////////////
+  // flags should be packaged or replaced by other solutions
+
   // the flag indicates whether this thread is waiting for on stack replacement
   // before being rescheduled.
   public boolean isWaitingForOsr = false;
  
-  // before call newInstructions, we need a bridge to recover register
+  // before call new instructions, we need a bridge to recover register
   // states from the stack frame.
   public INSTRUCTION[] bridgeInstructions = null;
   public int fooFPOffset = 0;
   public int tsFPOffset = 0;
+
+  // flag to synchronize with osr organizer, the trigger sets osr requests
+  // the organizer clear the requests
+  public boolean requesting_osr = false;
   //-#endif 
 }

@@ -89,14 +89,14 @@ public final class OSR_OnStackReplacementEvent
 
     if (succeeded) {
       if (VM.LogAOSEvents) {
-	VM_AOSLogging.logOsrEvent("OSR insert compilation plan successfully!");
+	VM_AOSLogging.logOsrEvent("OSR inserts compilation plan successfully!");
       }
     } else {
       if (VM.LogAOSEvents) {
-	VM_AOSLogging.logOsrEvent("OSR unable to insert compilation plan ;=(");
+	VM_AOSLogging.logOsrEvent("OSR was unable to insert compilation plan");
       }
       if (VM.TraceOnStackReplacement) {
-	VM.sysWriteln("OSR unable to insert compilation plan ;=(");
+	VM.sysWriteln("OSR was unable to insert compilation plan");
       }
       suspendedThread.resume();
     }

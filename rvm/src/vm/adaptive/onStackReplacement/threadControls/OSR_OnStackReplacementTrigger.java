@@ -37,9 +37,15 @@ public class OSR_OnStackReplacementTrigger {
     thread.onStackReplacementEvent.tsFromFPoff = tsFromFPoff;
     thread.onStackReplacementEvent.ypTakenFPoff = ypTakenFPoff;
 
-    boolean succeeded = VM_Controller.controllerInputQueue.prioritizedInsert(5.0, thread.onStackReplacementEvent);
-    if (succeeded) {
-      thread.osrSuspend();
+    // consumer:
+    thread.requesting_osr = true;
+	
+	// osr organizer must be initialized already
+    if (VM_Controller.osrOrganizer.osr_flag == false) {
+      VM_Controller.osrOrganizer.osr_flag = true;
+      VM_Controller.osrOrganizer.activate();
     }
+
+    thread.osrSuspend();
   }
 }

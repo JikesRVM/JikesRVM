@@ -140,7 +140,6 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       	OSR_CodeInstaller.install(state, newCM);
 	if (VM.LogAOSEvents) 
 	  VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
-        VM_AOSLogging.debug("New cmid " + newCM.getId());
       }
     }
 

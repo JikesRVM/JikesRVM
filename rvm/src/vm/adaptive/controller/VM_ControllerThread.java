@@ -201,6 +201,11 @@ class VM_ControllerThread extends VM_Thread {
       VM_Organizer o = (VM_Organizer)e.nextElement();
       o.start();
     }
+
+	//-#if RVM_WITH_OSR
+	VM_Controller.osrOrganizer = new OSR_OrganizerThread();
+	VM_Controller.osrOrganizer.start();
+	//-#endif
   }
 
 
