@@ -16,7 +16,7 @@ import java.util.Vector;
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-class VM_MachineCode {
+final class VM_MachineCode {
 
   /**
    * Get the instructions comprising this block of machine code.
