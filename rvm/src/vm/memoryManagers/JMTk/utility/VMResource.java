@@ -135,7 +135,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
       VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
     int which = Conversions.addressToPagesDown(addr);
 //-#if RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_64_ADDR
-    if (which >= resourceTable.length))
+    if (which >= resourceTable.length)
        return null; 
 //-#endif
     return resourceTable[which];
