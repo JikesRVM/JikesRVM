@@ -767,6 +767,7 @@ function emitEnvironmentKsh
    print "export TAR='$TAR'"  
    print "export GNU_TAR='$GNU_TAR'"  
    print "export MD5SUM='$MD5SUM'"  
+   print "export CVS='$CVS'"  
    }
 
 #
@@ -821,6 +822,7 @@ function emitEnvironmentPerl
    print "\$ENV{AR} = '$TAR';"  
    print "\$ENV{NU_TAR} = '$GNU_TAR';"  
    print "\$ENV{D5SUM} = '$MD5SUM';"  
+   print "\$ENV{VS} = '$CVS';"  
 }
 
 #
