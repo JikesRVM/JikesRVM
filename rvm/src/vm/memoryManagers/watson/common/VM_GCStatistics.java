@@ -71,7 +71,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
   static int collisionCount = 0;
 
   // more statistics
-  static final boolean COUNT_BY_TYPE     = true;
+  static final boolean COUNT_BY_TYPE     = false;
   static final boolean COUNT_ALLOCATIONS = false;
 
   // verify that all allocations are word size aligned
