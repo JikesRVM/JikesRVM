@@ -896,6 +896,7 @@ public class VM_Runtime implements VM_Constants {
     }
   }
 
+
   /**
    * The current frame is expected to be one of the JNI functions 
    * called from C, 
@@ -920,7 +921,7 @@ public class VM_Runtime implements VM_Constants {
     } while (!MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
-      if (VM.BuildForSVR4ABI) {
+      if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
         // for SVR4 convention, a Java-to-C frame has two mini frames,
         // stop before the mini frame 1 whose ip is in VM (out of line machine
         // code), in the case of sentinel fp, it has to return the callee's fp
@@ -939,6 +940,36 @@ public class VM_Runtime implements VM_Constants {
     }
   }
 
+  //-#if RVM_WITH_MACH_O_ABI
+  /**
+   * The current frame is expected to be one of the JNI functions 
+   * called from C, 
+   * below which is one or more native stack frames
+   * Skip over all frames below which do not contain any object
+   * references. 
+   */
+  public static VM_Address unwindNativeStackFrameForGC(VM_Address currfp) throws VM_PragmaUninterruptible {
+    // Unlike on AIX, there are two glue frames. The frame the
+    // VM_JNICompiler refers to as "glue frame 1" will contain saved
+    // volatile GPRs, so we must return that frame pointer and let a
+    // JNIGCMapIterator have a chance to examine it.
+    VM_Address ip, callee_fp;
+    VM_Address fp = VM_Magic.getCallerFramePointer(currfp);
+
+    do {
+      callee_fp = fp;
+      ip = VM_Magic.getReturnAddress(fp);
+      fp = VM_Magic.getCallerFramePointer(fp);
+    } while (!MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
+
+    return callee_fp;
+  }
+  //-#else
+  public static VM_Address unwindNativeStackFrameForGC(VM_Address currfp) throws VM_PragmaUninterruptible {
+    return unwindNativeStackFrame(currfp);
+  }
+  //-#endif
+  
   /**
    * Unwind stack frame for an <invisible method>.
    * See also: VM_ExceptionDeliverer.unwindStackFrame()

@@ -400,7 +400,7 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
       if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
         // skip native frames, stopping at last native frame PRECEEDING the
         // Java To C transition frame
-        fp = VM_Runtime.unwindNativeStackFrame(fp);
+        fp = VM_Runtime.unwindNativeStackFrameForGC(fp);
         
         if (DUMP_STACK >= 1) VM.sysWrite("scanStack skipping native C frames\n");
       }       
