@@ -1,0 +1,138 @@
+This section describes a set of coding style guidelines that we
+recommend for all code added to the \jp\  system.  
+
+Regrettably, much code in the current system does not follow any consistent
+coding style.  This unfortunate residue of the system's evolution 
+make editing sometimes unpleasant, and prevent javadoc from formatting comments
+in
+many files.  To alleviate this problem, we present this style guide 
+(which consists of a small tweak of the style guide advanced by Sun) 
+for new code. 
+
+\index{javadoc}
+Most code in the optimizing compiler has been formatted to at least obey 
+the indentation rule, 80 columns, and javadoc comments.  Most other \jp\ code
+has not been so formatted. We ask that all new code introduced
+into the system, at least for the optimizing compiler, follow the 
+guidelines unless compelling factors dictate otherwise.  
+
+\subsection {Coding style description}
+
+The \jp\ coding style guidelines are defined as a reference to an Sun
+Microsystems ``Code Conventions for the Java\trademark Programming Language'',
+with a few exceptions listed below.  The Sun coding
+conventions can be found at 
+\xlink{http://java.sun.com/docs/codeconv} 
+{http://java.sun.com/docs/codeconv} in HTML,
+postscript, and PDF.  Most of the style guide is intuitive; 
+however, please read through the document or look at its sample code.
+
+We have adopted one revision to the Sun code conventions:
+\begin{enumerate}
+\index{indenting}
+\item {\bf Two space indenting} The Sun coding convention suggests 4
+space indenting, however with 80 column lines and 4 space indenting,
+there is very little room left for code.  Thus, we recommend using 2
+spaces indenting.
+
+\end{enumerate}
+
+\subsection {Javadoc requirements}
+\index{javadoc}
+
+All files should contain descriptive comments
+in Javadoc form (
+\xlink{{\tt http://java.sun.com/j2se/javadoc/index.html}}
+{http://java.sun.com/j2se/javadoc/index.html}
+) so
+that documentation can be generated automatically.  Of course,
+additional non-javadoc source code comments should appear as
+appropriate.
+For javadoc, at a minimum,
+
+\begin{enumerate}
+\item All classes and methods should have a block comment describing
+them
+\item All methods contain a short description of their arguments
+(using {\tt @param}), the return value (using {\tt @return}) and the
+exceptions they may throw (using {\tt @throws}).
+\item Each class should include {\tt @see} and {\tt @link} 
+references as appropriate.
+\end{enumerate}
+
+\subsection {Useful tools/hints}
+\index{editing source code}
+\index{vi}
+\index{emacs}
+
+This section describes helpful hints for conforming with the style
+guide.  Below are suggestions on how to setup the two most common
+editors, emacs and vi. 
+%\remark{If we find a pretty-print code processor, we
+%can describe it in this section.}
+
+\subsubsection{emacs} 
+
+The following tells {\tt emacs} to indent 2 spaces:
+\begin{verbatim}
+;; You have to do it in this complicated way because of the
+;; strange way the cc-mode initializes the value of `c-basic-offset'.
+(add-hook 'c-mode-hook (lambda () (setq c-basic-offset 2)))
+(add-hook 'java-mode-hook (lambda () (setq c-basic-offset 2)))
+\end{verbatim}
+If you want {\tt emacs} to truncate long lines instead of wrapping them, add
+the following to your c/java mode hook:
+\begin{verbatim}
+(setq truncate-lines 't)
+\end{verbatim}
+
+\subsubsection{vi}\label{options:vi/vim}
+
+If you are more comfortable with {\tt vi}, it is recommended that you
+use a {\tt vi} clone called {\tt vim} (\xlink{{\tt http://www.vim.org/}}{http://www.vim.org}).  It
+contains all of {\tt vi}'s commands and is fully backward compatible,
+but is much more configurable than {\tt vi}.  Hints for {\tt vi}
+diehards who absolutely refuse to use {\tt vim} are provided at the end
+of this subsection (\ref{options:vi}).
+
+\paragraph{vim}\label{options:vim}
+
+Add the following to your {\tt .vimrc} for formatting:
+\begin{verbatim}
+set shiftwidth=2           " for indenting and shifting
+set expandtab              " to replace tab characters by spaces
+set smarttab               " to allow the use of <Tab> for indenting
+set formatoptions-=t2croq  " reset formatting
+set formatoptions+=croq    " format comments
+set textwidth=0            " don't wrap text
+set wrapmargin=0           " ditto
+" Java mode setup
+augroup java
+   autocmd!
+   autocmd BufEnter *.java set cindent
+   autocmd BufEnter *.java set cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,ps,ts,c3,+s,(0,u0,)20,*30,gs,hs
+   autocmd BufEnter *.java set cinwords=if,else,while,do,for,switch,static,new
+   autocmd BufLeave *.java set nocindent
+augroup END
+\end{verbatim}
+If you want {\tt vim} to truncate long lines instead of wrapping them, add
+the following to your {\tt .vimrc}:
+\begin{verbatim}
+set formatoption+=t " to allow autowrap text
+set textwidth=74    " to allow autowrap text at 74th column
+\end{verbatim}
+
+\paragraph{vi}\label{options:vi}
+
+Standard {\tt vi} options that would approximate Java formatting are:
+\begin{verbatim}
+set shiftwidth=2  " for indenting and shifting
+set autoindent    " automatically indent new lines to the start of previous
+\end{verbatim}
+and the approximation for wrapping long lines is
+\begin{verbatim}
+set wrapmargin=6  " to allow autowrap text at 74th column
+\end{verbatim}
+
+% LocalWords:  Javadoc param
+

@@ -1,0 +1,100 @@
+$$$$ IF USE_OPT_LEVELS == "YES"
+% From OPT_Options.template
+$$$$ ELSE
+% From VM_AOSOptions.template
+$$$$ END IF
+\begin{verbatim}
+$$$$ IF USE_OPT_LEVELS == "YES"
+OPTPREFIX[:help]			Print brief description of opt compiler's command-line arguments
+OPTPREFIX:printOptions		Print the current values of the active opt compiler options
+OPTPREFIX:O0			Select optimization level 0, minimal optimizations
+OPTPREFIX:O1			Select optimization level 1, modest optimizations
+OPTPREFIX:O2			Select optimization level 2
+OPTPREFIX:O3			Select optimization level 3
+$$$$ ELSE
+OPTPREFIX[:help]       Print a brief description of AOS command-line options
+OPTPREFIX:printOptions Print the current option values of AOS
+OPTPREFIX:o=v          Pass the option-value pair, o=v, to AOS
+OPTPREFIX:opt[:help]   Print a brief description of optimizing compiler's command-line options that recompiles a method
+OPTPREFIX:irc[:help]   Print a brief description of optimizing compiler's command-line options that initially compiles a method
+OPTPREFIX:share[?]:o=v Pass the option-value pair, o=v, to AOS and to the optimizing compiler.  If the optimization level is specified, then only that optimization level is affected when recompiling a method
+$$$$ END IF
+
+Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
+$$$$ IF USE_OPT_LEVELS == "YES"
+option                      OptLevel Description
+$$$$ ELSE
+option                               Description
+$$$$ END IF
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
+     $$$$ LET PRETTY_LEVEL @IF(OPT_LEVEL == -1, "       ", @PAD(OPT_LEVEL,7," "))
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+CMD_NAME PRETTY_LEVEL OPTION.DESCRIP
+     $$$$ END LET CMD_NAME
+     $$$$ END LET PRETTY_LEVEL
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+
+Value Options (OPTPREFIX<option>=<value>)
+option                         Type    Description
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+          $$$$ LET TNAME @PAD("TYPE", 7, " ")
+CMD_NAME TNAME OPTION.DESCRIP
+          $$$$ END LET TYPE_NAME
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+
+Selection Options (set option to one of an enumeration of possible values)
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+		OPTION.DESCRIP
+	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+          $$$$ EVAL
+          $$$$ LET DOLLARS "$$$$"
+          $$$$ COUNT ENUMS_NUM OPTION.ENUMS
+            DOLLARS LET I_0 "MAIN_CMD_NAME"
+               $$$$ LOOP CONSTNAME OPTION.ENUMS
+                    $$$$ LET VARNUM CONSTNAME.INDEX+1
+                    $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+            DOLLARS LET I_VARNUM "I_CONSTNAME.INDEX"`"CMD_NAME "
+                    $$$$ END SPLIT CONSTNAME
+                    $$$$ END LET VARNUM
+               $$$$ END LOOP CONSTNAME
+I_ENUMS_NUM
+               $$$$ LOOP VARNUM 0..ENUMS_NUM
+            DOLLARS END LET
+               $$$$ END LOOP VARNUM
+          $$$$ END COUNT ENUMS_NUM
+          $$$$ END LET DOLLARS
+          $$$$ END EVAL
+          $$$$ END LET MAIN_CMD_NAME
+     $$$$ END IF TAG == E
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+
+Set Options (option is a set of values)
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == S
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+CMD_NAME OPTION.DESCRIP
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == S
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+\end{verbatim}

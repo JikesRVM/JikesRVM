@@ -1,0 +1,102 @@
+This section provides some tips on collecting performance numbers with
+\jp.
+
+\index{boot image}
+\index{configurations}
+\subsection{Which boot image should I use?}
+
+To make a long story short, use the
+\begin{itemize}
+\item {\tt Fast} configuration for performance runs that invoke the optimizing compiler on every method, and
+\item {\tt FastAdaptivecopyingGC} configuration for performance runs that use the adaptive compilation system.
+\end{itemize}
+
+These two configurations share the following characteristics:
+
+\begin{itemize}
+\item The code placed in the boot image is optimized.
+\item The optimizing compiler and associated support are in
+the boot image.  Other
+configurations with this characteristic begin with the prefix {\tt Full}.
+See {\tt \$RVM\_ROOT/tools/builder/jconfigure} for more details.
+If you do not use a {\tt Fast<...>} or {\tt Full<...>} configuration, 
+the optimizing
+compiler loads at runtime, and the optimizing compiler itself will be
+baseline compiled and run slowly.
+\item Both configurations set the final static boolean
+{\tt VM.VerifyAssertions = false}.  This flag avoids expensive assertion
+checking at runtime.
+\index{garbage collection}
+\item Both configurations use the non-generational, copying (semi-space) 
+collector.  This collector has the fastest allocation sequence.  
+Naturally, GC research will need to build configurations with other
+collectors.
+\end{itemize}
+
+\subsection{What commmand-line arguments should I use?}
+
+For best performance we recommend the following:
+
+\begin{itemize}
+\item {\tt -processors all}: By default, \jp\ uses only one processor.  Setting this option tells the runtime system to utilize all available processors.
+\item {\tt -X:irc:O2}: For non-adaptive configurations, this command-line option tells the optimizing compiler to use our highest level of optimization.
+\item Set the heap and large heap sizes generously.  We typically set the heap size to at least half the physical memory on a machine.
+\item Use a dedicated machine with no other users.  The \jp\ thread and synchronization implementation do not play well with others.
+\item Try some experimental optimizations.  Contact your friends in Hawthorne
+for details.  Currently, the following experimental optimizations will 
+probably run your code correctly: {\tt -X:irc:unwhile=true} and {\tt -X:irc:gcp=true}.
+\end{itemize}
+
+\subsection{\jp\ is really slow! What am I doing wrong?}
+
+Perhaps you are not seeing stellar \jp\ performance.  If \jp\ as described
+above is not competitive with the IBM AIX product JDK, we recommend
+you test your installation with the SPECjvm98 benchmarks.
+We expect \jp\ performance to be competitive with the IBM AIX product JDK 1.3.0 on the SPECjvm98 benchmarks. 
+%
+%With our FastAdaptivecopyingGC configuration, 
+%\jp\ performs about 20\% faster on these benchmarks than the product. The
+%Fast configuration runs about 15\% faster than the product JVM.
+
+Of course, SPECjvm98 does not guarantee that \jp\ runs all codes
+well.  We have also tested various flavors of pBOB and the Volano
+benchmarks, and see superior or competitive performance.
+
+Some classes of codes will not run fast on \jp.  Known issues include:
+\begin{itemize}
+\item RVM start-up is slow compared to the IBM product JVM.
+\item Remember that the non-adaptive configurations (eg. Fast) opt-compile
+{\em every} method the first time it executes.  With aggressive optimization
+levels, opt-compiling will severely slow down the first execution of
+each method.  For many benchmarks, it is possible to test the quality
+of generated code by either running for several iterations and ignoring
+the first, or by building a warm-up period into the code.  The SPEC benchmarks
+already use these strategies.  The adaptive configuration does not
+have this problem; however, we cannot stipulate that the adaptive
+system will compete with the product on short-running codes of a few seconds.
+\item We expect \jp\ to perform well on codes with many threads, such as
+VolanoMark.  However, if you have a code with many threads, each using
+JNI, \jp\ performance will suffer due to factors in the design of
+the current thread system.
+\index{on-stack replacement}
+\item \jp\ does {\em not} yet support on-stack replacement for
+optimizing methods.  The adaptive system will not optimize a single
+invocation of a long-running 
+method.
+\index{quasi-preemption}
+\item Performance on tight loops may suffer.  The \jp\ thread system
+relies on quasi-preemption; the optimizing compiler inserts a thread-switch
+test on every back edge.  This will hurt tight loops, including many
+simple microbenchmarks.  We should someday alleviate this problem by
+strip-mining and hoisting the yield point out of hot loops.
+\item The thread system currently uses a spinning idle thread. If a \jp\ virtual processor (ie., pthread) has no work to do, it spins chewing up cpu cycles.  Thus, \jp\ will only perform well if there is no other activity on the machine.
+\item The load balancing in the system is naive and unfair.  This can hurt some styles of codes, including bulk-synchronous parallel programs.
+\index{hash codes}
+\item The default hash codes assigned by the system are currently only 8
+bits.  If you observed this as a problem, let us know in order to motivate
+us to fix this.
+\end{itemize}
+
+The \jp\ developers wish to ensure that \jp\ delivers competitive performance.
+If you can isolate reproducible performance problems, please let us
+know. 

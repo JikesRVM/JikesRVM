@@ -1,0 +1,106 @@
+
+this section lists some missing functionality and known bugs
+in \jp.
+
+\subsection{Unsupported features}
+\index{unsupported features}
+\begin{description}
+\index{compressed files}
+\index{jar files}
+\index{zip files}
+\item [Compressed {\tt jar/zip} files] we're working on it.  As a temporary workaround, unjar class repositories as needed.
+\index{native methods}
+\index{unsupported libraries}
+\item [Missing library support]  Support for the standard Java\trademark libraries
+is incomplete.  If you try to execute an unimplemented native method, you
+may get a "NativeMethodNotImplemented" exception.  Furthermore, many
+libraries are not supported at all, including the following:
+\begin{itemize}
+\item {\tt java.sql}
+\item {\tt java.rmi}
+\item {\tt java.beans}
+\item {\tt java.applet}
+\item {\tt java.awt}
+\end{itemize}
+\index{graphics}
+In some cases, you can get away with using the Sun libraries with \jp\ .  However, some functions (like graphics) will not work.  
+\index{class loaders}
+\item [User-defined class loaders] we don't implement separate namespaces for classloaders
+\index{security}
+\item [Java\trademark 2 security model] unsupported
+\item [Weak references and friends] unsupported
+\item [Unsupported Magic] some internal VM routines will not be optimized, since they rely on special Magic interfaces the optimizing compiler does not yet support.
+\index{security}
+\item [VM security] There is no barrier implemented to stop any application code from calling arbitrary VM routines.  This may be a small security hole. Please do not use \jp\ for any applications vital to our national security.
+\item [Thread priority scheduling] unsupported
+\index{class file verification}
+\item [Class file verification] unsupported
+\item [Startup callback] The callback on the startup of the RVM is currently
+unimplemented.
+\index{JNI}
+\item [Unimplemented JNI functions]: the following are not yet implemented
+\begin{itemize}
+\item   DefineClass         
+\item   NewGlobalRef        
+\item   DeleteGlobalRef     
+\item   DeleteLocalRef      
+\item   RegisterNatives     
+\item   UnregisterNatives   
+\item   GetJavaVM           
+\item   DeleteWeakGlobalRef             
+\item   EnsureLocalCapacity          
+\item   ExceptionCheck              
+\item   FromReflectedField         
+\item   FromReflectedMethod       
+\item   GetPrimitiveArrayCritical   
+\item   GetStringCritical          
+\item   GetStringRegion          
+\item   GetStringUTFRegion      
+\item   NewLocalRef            
+\item   NewWeakGlobalRef      
+\item   PopLocalFrame                 
+\item   PushLocalFrame               
+\item   ReleasePrimitiveArrayCritical 
+\item   ReleaseStringCritical        
+\item   ToReflectedField            
+\item   ToReflectedMethod          
+\end{itemize}
+\end{description}
+
+
+\subsection{Known bugs}
+\index{bugs}
+\begin{description}
+\item [Reflection access control] we do not correctly observe access properties during reflective operations, such as newInstance.
+\item [Native stack via JNI]  there is no safety mechanism if a JNI call overflows its stack.
+The right long-term solution, in one man's opinion, is to eventually move
+to separate virtual Java\trademark and native stacks, forming one logical discontiguous stack.
+\item[frem and drem fringe cases] we get the wrong answers in some
+NaN and infinity cases.
+\item[64k limitation on stackframe size] 
+\index{memory model}
+\item[Java\trademark Memory Model issues] We do not always obey the Java\trademark memory model.  Issues include:
+\begin{description}
+\item [Reads kill] by default, the optimizing compiler does not constrain optimizations with the reads-kill property.  To override this behavior, pass the optimizing compiler the {\tt jmm = true} option.
+\item [Non-atomic reads and writes of volatile longs] Reads and writes of volatile longs are not atomic.
+\item [Volatile reads after writes]  We do not treat every read and write of a volatile as a memory barrier.  Due to the PowerPC's write reorder buffer, you may
+not see sequential consistency of volatiles.
+\end{description}
+\item[Invokevirtual on null reference] By spec, this should force dynamic class loading.  It doesn't.
+\index{JNI}
+\item[JNI name mangling]  We haven't implemented the complete
+  rule for converting a native method name in Java\trademark to the C procedure
+  name yet.  The symptom is an {\tt UnsatisfiedLinkError} even when the 
+  library is loaded correctly with the expected C procedure.
+%\item[{\tt monitorenter} in LIR] There's a nondeterminstic optimizing
+%compiler bug that, in the adaptive system, sometimes generates the
+%following error:
+%\begin{verbatim}
+%OPT_OptimizingCompilerException: ERROR produced in module:BURS
+%    terminal not in grammar: monitorenter            
+%\end{verbatim}
+%This is a non-fatal error; the adaptive system will bail out of the
+%optimizing compilation, and fall back to the previously compiled version
+%of the method.
+
+\end{description}

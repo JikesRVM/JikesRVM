@@ -1,0 +1,93 @@
+\begin{center}
+{\bf \jp\ Frequently Asked Questions}
+\end{center}
+
+{\bf Basic Java\trademark Questions}
+\begin{description}
+\item [Q1:] How do I create a {\tt .class} file from a {\tt .java} file?
+\item [A:] Use the {\tt javac} compiler.  eg. {\tt \% javac foo.java} \\
+\item [Q2:] How can I read the bytecodes from a {\tt .class} file?
+\item [A:] Use the {\tt javap} tool.  eg. {\tt \% javap -c foo}.
+\end{description}
+
+{\bf \jp\ Questions}
+\begin{description}
+\item [Q3:] 
+Boot image writing seems to be the most time-consuming step in the
+Jalapeno build process.  Has anybody tried to or thought about
+creating an incremental boot image writer? It might speed up the
+development cycle quite a bit (I guess the standard reply to this will
+be that I better keep the stuff I'm working on out of the boot image).
+
+\item [A:]
+Incremental boot image building is not a trivial problem.  One big
+issue is: if we change the implementation of one class in the boot image,
+what other parts of the VM image must be invalidated?  One example: which
+methods must be recompiled to reflect the new implementation?  We have no
+mechanism in place to trace these kinds of dependencies.  There are other
+examples, too.  In summary: incremental boot image writing would be nice,
+but it's not easy to support, and it hasn't been at the top of our
+priorities.
+
+\item [Q4:]
+I would like to modify and run the opt compiler without actually
+executing the generated machine code (that is, I don't need the VM
+stuff; I just want to look at the IR in various phases). What is the
+best approach in (re)building the opt compiler and running it?  Is
+there a specific configuration I should use or start with?
+
+I saw OptOptEOCcopyingGC, which sets RVM\_WITH\_EXECUTE\_OPT\_CODE=1. I
+don't really understand that configuration yet, though. I see it makes use of
+{\tt .../src/tools/executeOptCode},
+which actually explicitly invokes {\tt OPT\_Compiler.compile()}.
+
+\item [A:]
+We have a number of ways to
+work on the optimizing compiler without paying the whole cost of boot-image
+building each time.  The two most useful are:
+\begin{enumerate}
+\item  {\tt jbuild -nolink}:  Passing the -nolink flag to jbuild
+recompiles all the 
+Jalapeno sources, but avoids the most time-consuming step of rebuilding the
+boot image.  So if you do not place the opt-compiler in the boot image
+(say, use OptOptcopyingGC), then you can
+modify the opt-compiler sources and use {\tt jbuild -nolink} to pick up the
+changes in the build directory.  We've found this development strategy not
+too burdensome.
+
+\item {\tt ExecuteOptCode}:  This is a useful (although messy
+and technically unsupported) driver  tool to run the opt-compiler without
+executing the resultant code.  You probably want to use the
+{\tt BaseBaseEOCcopyingGC} image.  If you build this configuration, and have a
+class {\tt A.class}, then
+\begin{verbatim}
+     % jalapeno ExecuteOptCode -class A
+\end{verbatim}
+will invoke the opt-compiler on every method in class A.
+\begin{verbatim}
+     % jalapeno ExecuteOptCode -method A foo -
+\end{verbatim}
+will invoke the opt-compiler on the first method A.foo() the driver finds.
+Also,
+\begin{verbatim}
+     % jalapeno ExecuteOptCode -class A -er A main -
+\end{verbatim}
+will compile class {\tt A}, and then execute (via reflection) the first method
+{\tt A.main()} found.
+
+To pass command-line options to the opt-compiler via {\tt ExecuteOptCode}, use
+{\tt -X:eoc:<option>}.  Pass other command line options directly to jalapeno.
+For example:
+\begin{verbatim}
+     % jalapeno -X:h=200 ExecuteOptCode -X:eoc:hir=true -class A
+\end{verbatim}
+will run in a 200MB heap and print the HIR during compilation.
+
+Finally, use {\tt jbuild -nolink} to pick up your edits to the
+opt-compiler into the {\tt BaseBaseEOCcopyingGC} system; you won't need to
+re-link the boot image if you only edit opt-compiler sources.
+
+\end{enumerate}
+\end{description}
+
+

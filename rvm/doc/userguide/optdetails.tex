@@ -1,0 +1,522 @@
+This section provides some information on various
+implementation details for the \jp\ optimizing compiler.
+
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Options}
+
+\index{command-line options}
+\index{OPT\_Options class}
+The command-line options to the optimizing compiler are
+stored as fields in an object of type {\tt OPT\_Options}.
+The \jp\ build process generates the {\tt OPT\_Options.java} 
+file automatically from a template.  
+
+\index{BooleanOptions.dat}
+\index{ValueOptions.dat}
+To add or modify the command-line options in {\tt OPT\_Options.java},
+you must modify either {\tt BooleanOptions.dat} or 
+{\tt ValueOptions.dat}.  You should describe your desired
+command-line option in a format described below.
+Your option will be generated the next time you build the
+system.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{BooleanOptions.dat}
+\index{BooleanOptions.dat}
+
+The {\tt BooleanOptions.dat} file defines boolean options for
+the optimizing compiler.  Each command-line option is
+described by a two-line record, and each record is separated
+by a blank line.  Long lines can be partitioned using ``$\backslash$''.
+{\bf NOTE:} blank lines {\em are} important!
+Lines starting with ``\#'' are ignored.
+
+The first line must have the following format
+\begin{quote}
+\begin{verbatim}
+FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
+\end{verbatim}
+\end{quote}
+where
+\begin{itemize}
+\item {\tt FULL\_NAME} gives the name of the boolean field in {\tt OPT\_Options.java}
+\item {\tt OPT\_LEVEL} gives the minimum optimization level that automatically sets this field true
+\item {\tt DEFAULT\_VALUE} of {\tt true} or {\tt false}
+\item {\tt SHORT\_NAME} is an optional field which defines a mnemonic by which the command-line processor recognizes this option.
+\end{itemize}
+
+The second line of each record must be a short textual description of
+the semantics of the option.  This description will be printed
+by {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
+
+For example, the two line record in {\tt BooleanOptions.dat}
+that defines the option of whether
+to perform local scalar replacement is
+\begin{verbatim}
+LOCAL_SCALAR_REPLACEMENT 1 true local_sr
+Perform local scalar replacement
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{ValueOptions.dat}
+\index{ValueOptions.dat}
+
+The {\tt ValueOptions.dat} file defines non-boolean options for
+the optimizing compiler.  Each command-line option is
+described by a three-line record, and each record is separated
+by a blank line.  As with {\tt BooleanOptions.dat},
+long lines can be broken by using ``$\backslash$'' and
+blank lines are once again significant.
+Lines starting with ``\#'' are ignored.
+
+The first line must have the following format
+\begin{quote}
+\begin{verbatim}
+TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+\end{verbatim}
+\end{quote}
+where
+\begin{itemize}
+\item {\tt TAG} is 'E' for an Enumeration type, and 'V' for a value type.  Further instructions for Enumeration types appear below.
+\item {\tt FULL\_NAME} gives the name of the field in {\tt OPT\_Options.java}
+\item {\tt TYPE} is one of 'byte', 'int', or 'String', and gives the primitive datatype for the value in OPT\_Options.java
+\item {\tt DEFAULT\_VALUE} is the default value for the option
+\item {\tt SHORT\_NAME} is an optional field which defines a mnemonic by which the command-line processor recognizes this option.
+\end{itemize}
+
+The second line of each record must be a short textual description of
+the semantics of the option.  This description will be printed
+by {\tt -X:irc:help} (see Section~\ref{appendix:nonadaptive:cmdline}).
+
+The third line of each record is used for enumeration options, and must
+be left blank for other options.
+
+For example, the three-line record in {\tt ValueOptions.dat}
+that defines the maximum inlining depth when using static inlining
+heuristics is
+\begin{verbatim}
+V IC_MAX_INLINE_DEPTH int 5
+Static inlining heuristic: Upper bound on depth of inlining
+<blank line>
+\end{verbatim}
+
+Enumeration options provide a mechanism to define an option in terms of 
+a small fixed set of choices.  For an enumeration option, the third line
+of the record should contain a specification for each value that the
+enumeration can take.  Each such specification must have the following
+format:
+\begin{verbatim}
+"ITEM_NAME QUERY_NAME CMD_NAME"
+\end{verbatim}
+where
+\begin{itemize}
+\item {\tt ITEM\_NAME} gives the name of the enumeration value in {\tt OPT\_Options.java}
+\item {\tt QUERY\_NAME} gives the name of an accessor function which returns {\tt true} iff the enumeration takes the value {\tt ITEM\_NAME}.
+\item {\tt CMD\_NAME} is the name to pass on the command-line to set the enumeration to this value.
+\end{itemize}
+The quotes are important, and the specifications should be
+space-separated.
+
+For example, \jp\ supports a choice of three options for floating-point
+optimization rules.  The three-line record describing these options is:
+\begin{verbatim}
+E FP_MODE byte FP_STRICT
+Selection of strictness level for floating point computations
+"FP_STRICT strictFP strict" \
+"FP_ALLOW_FMA allowFMA allow_fma" \
+"FP_LOOSE allowAssocFP allow_assoc"
+\end{verbatim}
+Notice how the third line was broken up by using ``$\backslash$''.
+
+So, by default, \jp\ uses the {\em strict} floating-point semantics.  To use
+the option that allows fused multiply-add instructions, 
+specify {\tt -X:irc:allow\_fma} on the command-line.
+Given an {\tt OPT\_Options} object called {\tt options}, your code can
+query if fma is allowed by testing {\tt options.allowFMA()}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Method Compilation}
+\index{compilation}
+\index{optimizations}
+\index{IR}
+\index{HIR}
+\index{LIR}
+\index{MIR}
+The fundamental unit for optimization in \jp\ is a single method. 
+The optimization of a method consists of a series of 
+compiler phases performed on the method. These 
+phases transform the  
+IR (intermediate representation) from bytecodes through 
+HIR (high-level intermediate representation), 
+LIR (low-level intermediate representation), and 
+MIR (machine intermediate representation) and finally into machine code. 
+Various optimizing transformations are performed at each level of IR.
+
+\index{OPT\_CompilationPlan class}
+\index{VM\_Method class}
+\index{OPT\_OptimizationPlanElement class}
+An object of the class {\tt OPT\_CompilationPlan} contains all the  
+information necessary to generate machine code for a method. Two
+important component of this class are the {\tt VM\_Method} to be
+compiled and the
+array of {\tt OPT\_OptimizationPlanElement}s to perform the compiling.
+When the {\tt execute} method  of this class is called, machine code
+is generated for the method as described by the 
+{\tt OPT\_OptimizationPlanElement}s.
+
+\index{OPT\_OptimizationPlanner class}
+Another important class is {\tt OPT\_OptimizationPlanner}.  This class
+contains a static field, called {\tt masterPlan}, which contains all
+possible {\tt OPT\_OptimizationPlanElement}s.
+The structure of the master plan is 
+a tree. Any element may either be an atomic element (a leaf of the 
+tree), or an aggregate element (an internal node of the tree).
+The master plan has the following general structure:
+
+\begin{itemize}
+\item elements which convert bytecodes to HIR
+\item elements which perform optimization transformations on the HIR
+   \begin{itemize}
+   \item elements which perform optimization transformations using SSA form
+   \end{itemize}
+\item elements which convert HIR to LIR
+\item elements which perform optimization transformations on the LIR
+   \begin{itemize}
+   \item elements which perform optimization transformations using SSA form
+   \end{itemize}
+\item elements which convert LIR to MIR
+\item elements which perform optimization transformations on MIR 
+\item elements which convert MIR to machine code
+\end{itemize}
+
+
+\index{optimization plan}
+A specific optimization plan is constructed by including all the 
+{\tt OPT\_OptimizationPlanElement}s contained in the master plan which are 
+appropriate for this compilation instance. 
+Whether or not an element should be part of a compilation plan is determined 
+by its {\tt shouldPerform} method. For each atomic element, the values in the
+{\tt OPT\_Options} object are generally used to determine whether the element
+should be included in the compilation plan. Each aggregate element must be 
+included when any of its component elements must be included. 
+
+Each element must have a {\tt perform} method defined which takes the IR as
+a parameter. It is expected, but not required, that the {\tt perform}
+method will modify the IR. 
+The perform method of an aggregate element will invoke the 
+perform methods of its elements.
+
+\index{OPT\_CompilerPhase class}
+Each atomic element is an object of the final class 
+{\tt OPT\_OptimizationPlanAtomicElement}. The main work of this class
+is performed by its {\em phase}, an object of type {\tt OPT\_CompilerPhase}. The
+{\tt OPT\_CompilerPhase} class is not final; each phase overrides this class,
+in particular it overrides the {\tt perform} method, which is invoked by its 
+enclosing element's {\tt perform} method. All the state associated with 
+the element
+is contained in the {\tt OPT\_CompilerPhase}; no
+state is in the element.
+
+Every optimization plan consists of a selection of elements from the master 
+plan;
+thus though two optimization plans will be associated with different methods 
+they
+will share the same element objects. Clearly, it is not desirable that any state
+associated with a particular compilation phase should be shared between two
+different methods. In order to prevent this , the {\tt perform}
+method of an atomic element creates a new instance of its phase immediately 
+before calling the phase's {\tt perform} method. In the case where the phase
+contains no state the {\tt newExecution} method of 
+{\tt OPT\_CompilerPhase} can be overridden to return the phase itself rather 
+than a clone of the phase.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IR Operators}
+\index{IR}
+\index{instructions}
+\index{operators}
+
+The optimizing compiler intermediate representation (IR) includes a list
+of instructions.  Each instruction includes an operator and zero or
+more operands.
+
+\index{OPT\_Operators class}
+\index{OperatorList.dat}
+The IR operators are defined by the class {\tt OPT\_Operators}, which in
+turn is automatically generated from a template by a driver.  The input to the
+driver are two files, both called {\tt OperatorList.dat}.  One input
+file resides in {\tt vm/optimizingCompiler/IR} and defines machine-independent
+operators.  The other resides in {\tt vm/arch/\{arch\}/optimizingCompiler/IR}
+and defines machine-dependent operators, where \{arch\} is the
+specific architecture of interest, such as powerPC.
+
+Each operator in {\tt OperatorList.dat} is defined by a five-line record,
+consisting of:
+\begin{itemize}
+\item {\tt SYMBOL}: a static symbol to identify the operator
+\item {\tt INSTRUCTION\_FORMAT}: the instruction format class that accepts this operator.  See Section~\ref{iformats} for more information.
+\item {\tt TRAITS}: a set of characteristics of the operator, composed with a bit-wise or ($|$) operator.  See {\tt OPT\_Operator.java} for a list of valid traits.
+\item {\tt IMPLDEFS}: set of registers implicitly defined by this operator; usually applies only to machine-dependent operators
+\item {\tt IMPLUSES}: set of registers implicitly used by this operator; usually applies only to machine-dependent operators
+\end{itemize}
+
+For example, the entry in {\tt OperatorList.dat} that defines the integer
+addition operator is
+\begin{verbatim}
+INT_ADD
+Binary
+none
+<blank line>
+<blank line>
+\end{verbatim}
+
+The operator for a conditional branch based on values of two references is
+defined by
+\begin{verbatim}
+REF_IFCOMP
+IntIfCmp
+branch | conditional
+<blank line>
+<blank line>
+\end{verbatim}
+
+Additionally,  the machine-specific {\tt OperatorList.dat} file contains 
+another line of information for use by the assembler.  See the file for details.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Instruction Formats}\label{iformats}
+\index{instructions}
+\index{instructionFormats.java}
+
+Every IR instruction fits one of the pre-defined {\em Instruction Formats}.
+The package {\tt instructionFormats.java} defines roughly 75 architecture-independent
+instruction formats.  For each instruction format, the package includes a class
+that defines a set of static methods by which optimizing compiler
+code can access an instruction of that format.
+
+For example, {\tt INT\_MOVE} instructions conform to the {\tt Move}
+instruction format.  The following code fragment shows code that uses the
+{\tt OPT\_Operators} interface and the {\tt Move} instruction format:
+\begin{verbatim}
+import instructionFormats.*;
+class X {
+  void foo(OPT_Instruction s) {
+    if (Move.conforms(s)) {     // if this instruction fits the Move format
+      OPT_RegisterOperand r1 = Move.getResult(s);
+      OPT_Operand r2 = Move.getVal(s);
+      System.out.println("Found a move instruction: " + r1 + " := " + r2);
+    } else {
+      System.out.println(s + " is not a MOVE");
+    }
+  }
+}
+\end{verbatim}
+
+This example shows just a subset of the access functions defined for the
+Move format.  Other static access functions can set each operand 
+(in this case, {\tt Result} and {\tt Val}), query each operand for
+nullness, clear operands, create Move instructions, mutate other
+instructions into Move instructions, and check the index of a particular
+operand field in the instruction.  See the javadoc reference for a complete
+description of the API.
+
+\index{InstructionFormatList.dat}
+Each fixed-length instruction format is defined in the text file 
+{\tt \$RVM\_ROOT/optimizingCompiler/IR/InstructionFormatList.dat}.
+Each record in this file has four lines:
+\begin{itemize}
+\item {\tt NAME}: the name of the instruction format
+\item {\tt SIZES}: the number of operands defined, defined and used, and used 
+\item {\tt SIG}: a description of each operand, each description given
+by
+\begin{itemize}
+\item {\tt D/DU/U}: Is this operand a def, use, or both?
+\item {\tt NAME}: the unique name to identify the operand
+\item {\tt TYPE}: the type of the operand (a subclass of {\tt OPT\_Operand}
+\item {\tt [opt]}: is this operand optional?
+\end{itemize}
+\item {\tt VARSIG}: a description of repeating operands, used for
+variable-length instructions.
+\end{itemize}
+
+So for example, the record that defines the {\tt Move} instruction format
+is
+\begin{verbatim}
+Move
+1 0 1
+"D Result OPT_RegisterOperand" "U Val OPT_Operand"
+<blank line>
+\end{verbatim}
+
+This specifies that the {\tt Move} format has two operands, one def and one
+use.  The def is called {\tt Result} and must be of
+type {\tt OPT\_RegisterOperand}.
+The use is called {\tt Val} and must be of type {\tt OPT\_Operand}.
+
+A few instruction formats have variable number of operands.  The
+format for these records is given at the top of {\tt InstructionFormatList.dat}.
+For example, the record for the variable-length {\tt Call} instruction
+format is: 
+\begin{verbatim}
+Call
+1 0 3 1 U 4
+"D Result OPT_RegisterOperand" \
+"U Address OPT_Operand" "U Method OPT_MethodOperand" "U Guard OPT_Operand opt"
+"Param OPT_Operand"
+\end{verbatim}
+This record defines the {\tt Call} instruction format.  The second line
+indicates that this format always has at least 4 operands (1 def and 3 uses),
+plus a variable number of uses of one other type.  The trailing
+4 on line 2 tells the template generator to generate special constructors
+for cases of having 1, 2, 3, or 4 of the extra operands.
+Finally, the record names the {\tt Call} instruction operands and
+constrains the types.  The final line specifies the name and
+types of the variable-numbered operands.  In this case, a {\tt Call}
+instruction has a variable number of (use) operands called {\tt Param}.
+Client code can access the {\tt i}th parameter operand of a {\tt Call}
+instruction {\tt s} by calling {\tt Call.getParam(s,i)}.
+
+A number of instruction formats share operands of 
+the same semantic meaning and name.  For convenience in accessing
+like instruction formats, the template generator supports four
+common operand access types:
+\begin{itemize}
+\item {\tt ResultCarrier}: provides access to an operand of type {\tt OPT\_RegisterOperand} named {\tt Result}.
+\item {\tt GuardResultCarrier}: provides access to an operand of type {\tt OPT\_RegisterOperand} named {\tt GuardResult}.
+\item {\tt LocationCarrier}: provides access to an operand of type {\tt OPT\_LocationOperand} named {\tt Location}.
+\item {\tt GuardCarrier}: provides access to an operand of type {\tt OPT\_Operand} named {\tt Guard}.
+\end{itemize}
+
+For example, for any instruction {\tt s} that carries a {\tt Result} operand
+(eg. {\tt Move}, {\tt Binary}, and {\tt Unary} formats), client code can call
+{\tt ResultCarrier.conforms(s)} and {\tt ResultCarrier.getResult(s)} to access
+the {\tt Result} operand.
+
+Finally, a note on rationale.  Religious object-oriented philosophers will
+cringe at the InstructionFormats.  Instead, all this functionality could
+be implemented more cleanly with a hierarchy of
+instruction types exploiting inheritance.  We rejected the class hierarchy 
+approach due to efficiency concerns of frequent virtual method dispatch
+and type checks.  Recent improvements in our dynamic type checking
+algorithms may alleviate this concern.
+
+%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{BURS Rules}\label{burs}
+\index{BURS}
+\index{instruction selection}
+
+The optimizing compiler uses the Bottom-Up Rewrite System (BURS) for
+instruction selection.  BURS is essentially a tree pattern matching
+system derived from Iburg by David R.\ Hanson.   (See ``Engineering a
+Simple, Efficient Code-Generator Generator'' by Fraser, Hanson, and
+Proebsting, LOPLAS 1(3), Sept.\ 1992.)
+The instruction selection rules for each architecture are specified in an
+architecture-specific file called {\tt LIR2MIR.rules}, which resides in
+{\tt vm/arch/\{arch\}/optimizingCompiler/ConvertLIR2MIR}, where \{arch\} is the
+specific architecture of interest, such as powerPC.  The rules are
+used in generating a parser, which transforms the IR.
+
+Each rule in {\tt LIR2MIR.rules} is defined by a four-line record,
+consisting of:
+\begin{itemize}
+\item {\tt PRODUCTION}: the tree pattern to be matched.  The format of each
+pattern is explained below.
+\item {\tt COST}: the cost of matching the pattern as opposed to skipping
+it.  It is a Java\trademark expression that evaluates to an integer.
+\item {\tt FLAGS}: specifies whether the rule actually represents a sequence
+of instructions (1) or a transformation of operands (0)
+\item {\tt TEMPLATE}: Java\trademark code to emit
+\end{itemize}
+
+Each production has a {\em non-terminal}, which denotes a value, followed
+by a colon (``:''), followed by a dependence tree that produces that value.
+For example, the rule resulting in memory add on the INTEL architecture is
+expressed in the following way:
+\begin{verbatim}
+stm:    INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+1
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, MO_S(P(p), DW), \
+                          BinaryAcc.getValue(PL(p))));
+\end{verbatim}
+The production in this rule represents the following tree:
+\begin{verbatim}
+         r     riv
+          \    /
+         INT_LOAD  riv
+             \     /
+           INT_ADD_ACC  r  riv
+                    \   |  /
+                   INT_STORE
+\end{verbatim}
+where {\tt r} is a non-terminal that represents a register or a tree
+producing a register, {\tt riv} is a non-terminal that represents a register
+(or a tree producing one) or an immediate value, and {\tt INT\_LOAD},
+{\tt INT\_ADD\_ACC} and {\tt INT\_STORE} are operators ({\em terminals}).
+{\tt OTHER\_OPERAND} is just an abstraction to make the tree binary.
+
+There are multiple helper functions that can be used in Java\trademark code (both cost
+expressions and generation templates).  In all code sequences the name
+{\tt p} is reserved for the current tree node.  Some of the helper methods
+are shortcuts for accessing properties of tree nodes:
+\begin{itemize}
+\item {\tt P(p)} is used to access the instruction associated with the
+current (root) node,
+\item {\tt PL(p)} is used to access the instruction associated with the left
+child of the current (root) node (provided it exists),
+\item {\tt PR(p)} is used to access the instruction associated with the
+right child of the current (root) node (provided it exists),
+\item similarly, {\tt PLL(p)}, {\tt PLR(p)}, {\tt PRL(p)} and {\tt PRR(p)}
+are used to access the instruction associated with the
+left child of the left child, right child of the left child, left child of
+the right child and right child of the right child, respectively, of the
+current (root) node (provided they exist).
+\end{itemize}
+
+What the above rule basically reads is the following:\\
+If a tree shown above is seen, evaluate the cost expression (which, in this
+case, calls a helper function to test whether the addresses in the
+{\tt STORE} ({\tt P(p)}) and the {\tt LOAD} ({\tt PLL(p)}) instructions are
+equal.  The function returns 17 if they are, and a special value
+{\tt INFINITE} if not), and if the cost is acceptable, emit the {\tt STORE}
+instruction ({\tt P(p)}) mutated in place into a machine-dependent
+add-accumulate instruction ({\tt IA32\_ADD}) that adds a given value to the
+contents of a given memory location.
+
+The rules file is used to generate a file called {\tt ir.brg}, which, in
+turn, is used to produce a file called {\tt OPT\_BURS\_STATE.java}.
+
+For more information on helper functions look at
+{\tt vm/arch/\{arch\}/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS\_Helpers.java}.
+For more information on the BURS algorithm see
+{\tt vm/optimizingCompiler/ConvertLIR2MIR/OPT\_BURS.java}.
+
+%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{"Magic" Methods}\label{magic}
+\index{magic methods}
+\index{VM\_Magic}
+\index{semantic inlining}
+Certain methods, known as "magic" methods and declared as static methods of 
+{\tt VM\_Magic}, are treated differently by the 
+compiler. Because these methods access raw memory (such as portions of 
+object headers) or registers, or are operating system calls they cannot be
+implemented in Java\trademark code. Instead, for each of these methods, the Java\trademark 
+instructions to generate the code is stored in 
+{\tt OPT\_GenerateMagic} (to generate HIR) and {\tt VM\_MagicCompiler}
+(to generate assembly code)\footnote{The optimizing compiler always uses the set
+of instructions that generate HIR; the instructions that generate assembly code
+are only invoked by the baseline compiler.}.
+
+When a call site
+is being compiled, and it is determined that the call target is one of these
+magic methods, control is transferred to the list of instructions which will
+generate the HIR for that method. The HIR for the magic method is always 
+inlined into the caller method.
+
+Magic macro methods are so called not because they are compiled as explained 
+above, but because they are methods that consist mostly of calls to magic 
+methods. Magic macro methods are compiled in the normal fashion, but their
+magic methods are compiled as explained above. All magic macro methods are
+inlined by the compiler.
+
+

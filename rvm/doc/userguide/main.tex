@@ -1,0 +1,157 @@
+\documentclass{article}
+%\documentstyle[fullpage]{article}
+\usepackage{hyperlatex}
+\usepackage{epsfig}
+\usepackage{xspace}
+\usepackage{verbatim}
+\usepackage{makeidx}
+\W\usepackage{longtable}
+\W\usepackage{jframes}
+\W\usepackage{jalapeno}
+
+\T \newcommand{\trademark}{\texttrademark}
+\W \newcommand{\trademark}{\xmlsym{##8482}}
+
+
+%Define macros
+%%  Releases
+%%     Jan, 2001: 1.0, 1.0a
+%%     Apr, 2001: 1.1
+\newcommand{\version}{1.1}
+\newcommand{\jp}{Jalape\~{n}o}
+\newcommand{\jjvm}{\jp\ RVM}
+\newcommand{\ignore}[1]{{}}
+\newcommand{\spec}{SPECjvm98}
+
+%% Html declarations: Output directory and filenames, node title
+%\htmlcss{http://www.w3.org/StyleSheets/Core/Steely}
+\htmltitle{\jp\ User's Guide v\version}
+\W \htmldirectory{HTML}
+\W \renewcommand{\HlxIcons}{}
+\W \renewcommand{\htmlpanelfield}[3][\link]{\HlxAppend{\HlxPanelFields}%
+  {\xml*{td bgcolor="###99ccff" align="center"}%
+    #1{#2}{#3}\xml*{/td}}}
+\W \htmlpanelfield[\xlink]{Home}{http://www-124.ibm.com/developerworks/oss/jalapeno" target="_top}
+\W \htmlpanelfield[\xlink]{Project}{http://www-124.ibm.com/developerworks/projects/jalapeno" target="_top}
+\W \htmlpanelfield{\contentsname}{hlxtoc}
+\W \htmlpanelfield{\indexname}{hlxindex}
+%\setcounter{secnumdepth}{3}
+\setcounter{htmldepth}{3}
+\xmlattributes{table}{border}
+\xmlattributes{ul}{compact}
+\xmlattributes{body}{bgcolor=white}
+\xmlattributes{a}{style="text-decoration: none"}
+
+\W\begin{iftex}
+\sloppy
+%% These definitions work reasonably for A4 and letter paper
+\oddsidemargin 0mm
+\evensidemargin 0mm
+\topmargin 0mm
+\textwidth 15cm
+\textheight 22cm
+\advance\textheight by -\topskip
+\count255=\textheight\divide\count255 by \baselineskip
+\textheight=\the\count255\baselineskip
+\advance\textheight by \topskip
+\W\end{iftex}
+
+
+% Use \remark{...text...} to add a remark (todo item).
+\T \input{remark}
+\T \remarktrue
+\W \newcommand{\remark}[1]{}
+
+
+\title{\texonly{\vfill} {\huge \jp\ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill}}
+\author{{\huge The \jp\ Team}} 
+
+\makeindex
+
+\begin{document}
+
+\maketitle
+\date{}
+
+\T \newpage
+\label{hlxtoc}
+\T \tableofcontents
+\T \listoffigures
+\W \htmlmenu{6}
+
+\T \newpage
+\section{Introduction}
+\input{intro}
+
+\T \newpage
+\section{Installation Guide} \label{section:installation}
+\input{installation}
+
+\T \newpage
+\section{Running \jp} \label{section:running}
+\input{running}
+
+\T \newpage
+\section{Runtime Implementation Details}
+\input{vmdetails}
+
+\T \newpage
+\section{Optimizing Compiler Implementation Details}
+\label{section:optdetails}
+\input{optdetails}
+
+\T \newpage
+\section{Adaptive Optimization Subsystem Details}
+\label{section:aosdetails}
+\input{aosdetails}
+
+\T \newpage
+\section{Memory Management Details}
+\input{mmdetails}
+
+\T \newpage
+\section{JDP: the \jp\ debugger}
+\input{jdp}
+
+\T \newpage
+\section{Using \jp\ to Profile an Application}
+\input{profiling}
+
+\T \newpage
+\section{Experimental Guidelines}
+\input{performance}
+
+\T \newpage
+\section{Coding Style Guidelines}
+\input{codingstyle}
+
+\T \newpage
+\section{Unsupported Features}
+\input{unsupported}
+
+\T \newpage
+\section{FAQ}
+\input{faq}
+
+\T \newpage
+\section*{Acknowledgements}
+\input{ack}
+
+\T \newpage
+\T \bibliographystyle{abbrv}
+\T \bibliography{main}
+
+\T \newpage
+\section{Appendix A: \jp\ command-line directives}
+\label{appendix:nonadaptive:cmdline}
+\input{cmdline}
+
+\T \newpage 
+\section{Appendix B: Directory Structure Roadmap}
+\label{directories}
+\input{directories}
+
+\W \section*{\indexname}\label{hlxindex}
+\W \htmlprintindex
+\T \printindex
+\end{document}

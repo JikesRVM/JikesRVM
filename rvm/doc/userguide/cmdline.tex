@@ -1,0 +1,191 @@
+
+Currently, the Jalapeno RVM has two types of configurations:
+the adaptive configurations contain the adaptive optimization system (AOS),
+and the nonadaptive configurations that do not.  
+This section describes the nonstandard RVM command-line directives that 
+provide the mechanism to specify adaptive optimization system and optimizing
+compiler options.
+Section~\ref{subsection:nonadaptive:cmdline} describes how command-line 
+directives are specified in a nonadaptive configuration, and 
+Section~\ref{subsection:adaptive:cmdline} describes how command-line 
+directives are specified in a adaptive configuration.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Command-Line Directives in Nonadaptive Configurations}
+\label{subsection:nonadaptive:cmdline}
+
+This section describes how nonstandard RVM command line options are 
+specified for a nonadaptive configuration of \jp.
+In a nonadaptive configuration, the command line options modifies
+the behavior of the initial runtime compile when this compiler
+is the optimizing compiler.
+
+To pass an option to the optimizing compiler, the option is prefixed
+with {\tt -X:irc:}.
+For example, to perform global array bounds check elimination on demand
+when a method is initially compiled with the optimizing compiler,
+use the {\tt -X:irc:global\_bounds=true} directive.
+
+Please note that a particular nonadaptive configuration (such as
+OptBasecopyingGC) may not use the 
+optimizing compiler as the initial runtime compiler, but rather use the 
+baseline compiler.
+Therefore, the validity of the prefix to access the optimizing compiler
+as the initial runtime compiler depends on how the configuration is built.
+
+All of the above nonstandard VM directives must occur before 
+the application class name and application's command-line options.
+
+For the following discussion, we assume that the appropriate prefix has been
+prepended to the option and only discuss the option.
+
+To see descriptions of command-line arguments to the optimizing system, use
+the {\tt help} option; that is, {\tt -X:irc:help}.  
+As of this writing, this command produces the following output:
+
+\include{opt_options}
+
+The {\tt printOptions} command-line optimizing compiler option will print
+the current setting of optimizing compiler's options.  Please note that the 
+order of the {\tt printOptions} command-line directive with respect to other
+optimizing compiler command-line directives is important.  
+When a {\tt printOptions} directive is found, the setting of the optimizing 
+compiler options will reflect only those optimizing compiler directives
+that have preceded the {\tt printOptions} directive.  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Command-Line Directives in Adaptive Configurations}
+\label{subsection:adaptive:cmdline}
+
+This section describes how nonstandard RVM command line options are 
+specified for an adaptive configuration.
+In an adaptive configuration, the command line options modifies
+the behavior of either the adaptive optimization system or 
+the optimizing compiler.
+A command line directive is constructed by concatenating an option 
+with a prefix which identifies the desired destiny for that option.
+
+All options in an adaptive configuration are prefixed with {\tt -X:aos}.
+To pass an option to the adaptive optimization system, use the {\tt -X:aos:} 
+prefix. 
+For example, to set the logging level of AOS to one, use the directive
+{\tt -X:aos:logging\_level=1}.
+Unlike a nonadaptive configuration, an adaptive configuration may 
+conceptually have many optimizing compilers that are available at runtime,
+each with its own set of option values.
+We present a mechanism to address each conceptual optimizing compiler.
+To pass options to the opt compiler that recompiles a methods
+use the {\tt -X:aos:opt[?]} prefix where the {\tt ?} is optional and 
+if specified is an integer that identifies the optimization level.
+For example, {\tt -X:aos:opt2:global\_bounds=true} performs 
+global array bounds check elimination on demand when a method is 
+optimized at optimization level 2.
+If no optimization level is specified, the option applies to all 
+optimization levels of the optimizing compiler that recompiles methods.
+For example, {\tt -X:aos:opt:global\_bounds=true} performs 
+global array bounds check elimination on demand whenever a method is 
+recompiled with optimization.
+Like a nonadaptive configuration, the optimizing compiler may be used
+as the initial runtime compiler in an adaptive configuration.
+If so, options are passed to the initial runtime compile by prefixing
+each option with {\tt -X:aos:irc:}.
+For example, to perform global array bounds check elimination on demand
+when a method is initially compiled with the optimizing compiler,
+use the {\tt -X:aos:irc:global\_bounds=true} directive.
+See Section~\ref{subsection:nonadaptive:cmdline} for a discussion of the
+optimizing compiler command-line options that are available.
+
+Please note that a particular adaptive configuration may not use the 
+optimizing compiler as the initial runtime compiler, but rather use the 
+baseline compiler.
+Therefore, the validity of the prefix to access the optimizing compiler
+as the initial runtime compiler depends on the configuration.
+
+Finally, the prefix {\tt -X:aos:share[?]:o=v} is a short hand for passing a
+option value pair, {\tt o=v}, to both the AOS and to the different "conceptual"
+optimizing compilers.  If the optimization level is specified, then only that 
+optimization level for recompilation is affected.  Otherwise, the option is set
+for the initial runtime optimizing compiler and all optimization levels for
+method recompilation.
+
+All of the above nonstandard VM directives must occur before 
+the application class name and application's command-line options.
+
+For the following discussion, we assume that the appropriate prefix has been
+prepended to the option and only discuss the option.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Adaptive Optimization System (AOS) Command-Line Directives}
+
+To see a description of the command-line directives to the
+AOS, use {\tt -X:aos:help}.
+As of this writing, this command produces the following output:
+
+\include{adaptive_options}
+
+The {\tt primary\_strategy} option determines what strategy is used to compile
+methods.
+The default strategy is {\tt adaptive} which allows a method to be
+recompiled multiple times at different optimization levels.
+The other strategies allow an adaptive configuration to behave as a
+just-in-time compiler (JIT) by determining what compiler will compile a method.
+For example, the {\tt optonly} strategy compiles a method once with the 
+optimizing compiler.  To optimize compile a method at optimization level 1,
+use the {\tt -X:aos:irc:O1} option.
+(Note that to obtain the functionality of a JIT at optimization level 1, 
+{\tt -X:primary\_strategy=optonly -X:aos:irc:O1}, in a nonadaptive configuration
+would be achieved with the command-line option {\tt -X:irc:O1}.)
+Currently, the {\tt quickonly} primary strategy is not supported.
+
+
+Another interesting combination of command-line option that allow single level
+adaptive recompilation is 
+{\tt -X:aos:adaptive\_recompilation=false -X:aos:default\_opt\_level=1} 
+which will recompile hot methods at optimization level 1 only.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Implementing AOS command-line options}
+
+This section provides some information on various
+implementation details for AOS command-line options.
+
+\index{AOS command-line options}
+\index{VM\_AOSOptions class}
+The command-line options to AOS are
+stored as fields in an object of type {\tt VM\_AOSOptions}.
+The \jp\ build process generates the {\tt VM\_AOSOptions.java} 
+file automatically from a template.  
+
+\index{BooleanOptions.dat}
+\index{ValueOptions.dat}
+To add or modify the command-line options in {\tt VM\_AOSOptions.java},
+you must modify either {\tt BooleanOptions.dat}, {\tt ValueOptions.dat},
+{\tt ShareBooleanOptions.dat}, or {\tt ShareValueOptions.dat}.
+You should describe your desired command-line option in a format 
+described below in Section~\ref{section:optdetails}.
+The options in the {\tt ShareBooleanOptions.dat} and {\tt ShareValueOptions.dat}
+files are defined as both AOS and optimizing compiler options.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Adding \jp\ RVM Nonstandard Command-Line Options}
+
+This section states how nonstandard RVM command-line options can be added
+to \jp.  
+Nonstandard RVM command-line options are those options that are specific to \jp.
+The format of a nonstandard RVM option is {\tt -X:o=v} where {\tt o} is the 
+option and {\tt v} is the value it is to be set to.
+Adherence to this format is important to keep command-line options processing
+from becoming unweildy.
+
+\jp\ command-line options are processed in two places: {\tt RunBootImage.C} and
+{\tt VM\_CommandLineArgs.java}.  
+{\tt RunBootImage.C} is called first before the \jp\ boot image is loaded,
+and {\tt VM\_CommandLineArgs.java} is called after.
+In addition to processing any option which does not require \jp\ boot image
+to be loaded (such as {\tt help} and {\tt version}), 
+{\tt RunBootImage.C} processes any nonstandard option that impacts either 
+heap size, message output, or where to find the boot image.
+To allow unrestricted RVM option orders and 
+since command line processing stops at the first option that is not 
+recognized as a RVM option, all other options must be reconized by
+{\tt RunBootImage.C} and passed on.

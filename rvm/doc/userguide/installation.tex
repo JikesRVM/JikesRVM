@@ -1,0 +1,518 @@
+So you've gotten the \jp\ distribution.  Now what?  This section gives
+instructions on how to install and run \jp\ for the new \jp\ user.
+
+\subsection{System Prerequisites}
+To build on any platform you will need the following:
+\begin{itemize}
+\item GNU make. You can download this from
+\xlink{{\tt http://www.gnu.org/software/make/make.html}}
+           {http://www.gnu.org/software/make/make.html}.
+
+\item The Jikes\trademark Java\trademark compiler (there is no longer a dependence on
+version 0.47). A recent binary version for AIX is located in the
+{\tt contrib} directory of the distribution.
+
+You can also download this from
+\xlink{{\tt http://oss.software.ibm.com/developerworks/opensource/jikes}}
+           {http://oss.software.ibm.com/developerworks/opensource/jikes}.
+You can use any of the pre-compiled binaries, or build it yourself from the
+source.
+
+\item GNU tar is needed to extract the distribution tar file.  We have
+experienced problems with the AIX tar program truncating file names.
+
+\end{itemize}
+
+\subsubsection{AIX/PowerPC}
+In addition to the software mentioned above, to install, build, and
+run \jp\ on a AIX/PowerPC environment, 
+you will need 
+\begin{itemize}
+\item a PowerPC processor
+\item AIX 4.3 or later, and
+\item (recommended) 512MB of memory.
+\item the IBM AIX Developer Kit for Java\trademark version 1.3.0.  You can download this from
+\xlink{{\tt http://www.ibm.com/java/jdk/aix/index.html}}
+           {http://www.ibm.com/java/jdk/aix/index.html}.
+\end{itemize}
+
+\subsubsection{Linux/IA32}
+In addition to the software mentioned above, to install, build, and
+run \jp\ on a Linux Intel environment, you will need 
+\begin{itemize}
+\item an Intel Architecture 32 bit processor
+\item Linux  (we have run on RedHat 6.0 and 7.0)
+\item The system has run in 386MB. No work has been done to determine 
+an optimum size of memory, especially since the system has not been fully developed.
+\item the IBM Developer Kit (at least version 2.1.3).  You can download this from
+\xlink{{\tt http://www.ibm.com/java/jdk/Linux}}
+           {http://www.ibm.com/java/jdk/Linux}.
+\item {\tt ksh}. This must be installed in {\tt /bin/ksh}.
+\end{itemize}
+
+\subsubsection{Win32 and Cygwin/IA32}
+In addition to the software mentioned above, to install, build, and
+run \jp\ on a Win32/Cygwin Intel environment, you will need 
+\begin{itemize}
+\item an Intel Architecture 32 bit processor
+\item a Win32 operating system (we have only tried it on Windows 2000).
+\item Cygwin. You can download this from 
+\xlink{{\tt http://www.cygwin.com}}
+           {http://www.cygwin.com}. (I used dll version 1.1.8).
+\item The system has run in 256MB on Windows 2000. No work has been
+done to determine an optimum size of memory or if it will run on other
+Cygwin/Win32 combinations.
+\item the IBM Developer Kit (at least version 2.1.3).  You can download this from
+\xlink{{\tt http://www.ibm.com/java/jdk/}}
+           {http://www.ibm.com/java/jdk/}.
+In a standard ``client for e-business'' you should already have this
+installed.
+\item ksh.  One alternative is pdksh from 
+\xlink{{\tt http://www.cs.mun.ca/\~{}michael/pdksh}}
+       {http://www.cs.mun.ca/\~{}michael/pdksh}.
+\end{itemize}
+Currently this option for running \jp\ is even less functional than
+the Linux/IA32 configuration. In particular,
+\begin{itemize}
+\item We haven't managed to successfully install a handler for hardware traps,
+so the first hardware exception (eg a {\tt NullPointerException}) will cause
+an ugly core dump.
+\item Cygwin itself handles Samba-mounted DFS file
+systems and one can thus build from a DFS-mounted shadow
+directory. However, something about them (most likely the 
+$\backslash\backslash$ ) is
+still confusing \jp.  Therefore, your build directories and all class
+files for the programs you want to run must be on your local file
+system. Failure to do this will result in a class-not-found error.
+\item Spaces in directory names aren't handled by jconfigure and the
+other jalapeno scripts.  Use cygwin's mount command to avoid them (in
+particular the config file assumes that
+C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
+\end{itemize}
+
+
+\subsection{Installation Overview}
+The \jp\ distribution consists of a directory structure, which shadows a
+CVS repository at Watson. 
+\index{shadow}
+We will refer to your own private copy of the 
+directory tree as your {\em shadow}.  The shadow holds the \jp\ 
+source files, tools needed to build \jp, and the sources of standard
+library files. 
+A more complete description of the shadow directory structure
+is provided in Section~\ref{rvmroot}.
+
+\jp\ can be configured in various ways. Multiple versions of \jp,
+corresponding to different configurations, can be generated from 
+one shadow. See Section~\ref{configs} for information about the various 
+configurations.
+\index{configurations}
+The \jp\  {\em boot image} and other files generated during the 
+configuration process
+\index{boot image}
+are stored in a {\em build directory} which is logically separate from 
+the shadow. See Section~\ref{rvmbuild} for a detailed description of the
+files in the build directory.
+\index{build directory}
+
+In order to install \jp\  you must:
+\begin{enumerate}
+\item Obtain the shadow
+\item Set various environment variables
+\item Edit two \jp\ environment scripts
+\item Choose a configuration and run the configuration script to write
+the appropriate directory and configuration specific files to the
+build directory
+\item Build an executable version of \jp
+\end{enumerate}
+
+The remainder of this section describes the process in greater detail.
+
+\subsection{Installation Steps}
+
+\begin{enumerate}
+\item Obtain the shadow
+
+Extract the \jp\ distribution into
+a directory such as {\tt \$HOME/jalapeno-1.1}
+
+\index{environment variables}
+\index{RVM\_ROOT}
+\index{RVM\_BUILD}
+\index{PATH}
+\item Set up environment variables
+
+You need to set up the following shell environment variables:
+
+\begin{description}
+\item [{\tt RVM\_ROOT}] the directory that contains the extracted
+distribution 
+\item [{\tt RVM\_BUILD}] the directory where you would like the build
+process to generate an executable \jp\ configuration
+
+\item [{\tt RVM\_HOST\_CONFIG}] the configuration file used to specify
+the software environment on which the system is generated i.e. where the
+boot image is generated.
+
+\item [{\tt RVM\_TARGET\_CONFIG}] the configuration file used to specify
+the software environment where the system support is generated. i.e. where
+the ``booter'' and ``C runtime'' will be generated.
+
+\item[{\tt PATH}] your path should contain {\tt \$RVM\_ROOT/bin} in
+order to pick up various scripts and utilities
+\end{description}
+
+The following environment variables specify the machine architecture and
+the operating system on which the system is to run.
+\begin{description}
+
+\item [{\tt RVM\_TARGET\_ARCH}].specifies on what architecture
+the RVM will run e.g.  powerpc, IA32 (for intel 32 bit)
+
+\item [{\tt RVM\_TARGET\_OS}] specifies on what Operating System
+the RVM will run e.g. aix, linux
+
+\end{description}
+
+Because the ARCH and OS  variables default to the system on which the ``build'' is
+currently executing, they usually do not need to be 
+explicitly set.
+
+
+We recommend you set up the following variables in your shell configuration
+file.  For example, for {\tt csh}, you might insert the
+following into your {\tt .cshrc} file:
+
+\begin{verbatim}
+setenv RVM_ROOT $HOME/jalapeno-1.0   # <--define your shadow directory 
+setenv RVM_BUILD $HOME/rvmBuild     # <--define your current build directory 
+setenv PATH $RVM_ROOT/bin:$PATH
+setenv RVM_HOST_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
+setenv RVM_TARGET_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
+\end{verbatim}
+
+For a Linux-Intel environment, the  exports
+would be replaced with the following:
+
+\begin{verbatim}
+setenv RVM_HOST_CONFIG $RVM_ROOT/config/i686-pc-linux-gnu
+setenv RVM_TARGET_CONFIG $RVM_ROOT/config/i686-pc-linux-gnu
+\end{verbatim}
+
+For a Cygwin-Intel environment, the  exports
+would be replaced with the following:
+
+\begin{verbatim}
+setenv RVM_HOST_CONFIG $RVM_ROOT/config/i686-pc-cygwin
+setenv RVM_TARGET_CONFIG $RVM_ROOT/config/i686-pc-cygwin
+\end{verbatim}
+
+These two variables point to the same file when the type of system  
+doing the build is the same as where  you are going 
+the execute the RVM. To cross build a system
+e.g build on AIX-powerpc for a Linux-Intel platform, see the section on Cross
+Platform Building.
+
+\item Edit configuration scripts
+
+You must edit two scripts in the {\tt \$RVM\_ROOT/config}  directory to set 
+up variables used by the installation process.  
+
+First, edit the files that define the host and target configuration
+environments in the {\tt \$RVM\_ROOT/config} directory.  You do not need to {\em
+source} these variables in your working shell; variables in this file will be 
+picked up by the installation scripts.  You must set the following
+variables in this file:
+\begin{description}
+\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM
+\item {\tt HOST\_JAVA} the executable command for the JDK JVM
+\item {\tt HOST\_JAVAC} the {\tt javac} executable for the JDK  
+\item {\tt HOST\_REPOSITORIES} the {\tt rt.jar} archive for the JDK  
+\item {\tt GNU\_MAKE} the GNU {\tt make} executable
+\item {\tt JIKES} the Jikes\trademark {\tt jikes} executable.
+\item {\tt CC} how to invoke the C/C++ compiler.
+\item {\tt LDSHARED} how to link a shared C++ library.
+\end{description}
+
+A few additional environment variables that define the location of
+the grep, fgrep and find command are also located in this file and
+may need definitions.
+
+
+\index{configurations}
+\index{jconfigure script}
+\item Choose configuration and populate your build directory
+
+You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/bin}) to
+populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
+first choose a \jp\ configuration.
+
+For novice users, two configurations are recommended.  (A discussion
+of \jp\ configurations is contained in Section~\ref{configs}.)
+
+\begin{itemize}
+\item {\tt BaseBasecopyingGC}: a non-adaptive system that uses the
+baseline  compiler everywhere, with the copying collector
+\item {\tt OptOptcopyingGC}: a non-adaptive system that uses the
+optimizing compiler everywhere, with the copying collector
+\end{itemize}
+
+Depending on your purposes (See Section~\ref{sssec:choosinggc}.) you
+may want to choose another configuration, e.g.,
+\begin{itemize}
+\item {\tt OptOptnoncopyingGC}: a non-adaptive system that uses the
+optimizing  compiler everywhere, with the noncopying (mark-sweep) collector
+\end{itemize}
+
+Run the {\tt jconfigure} script to set up the {\tt \$RVM\_BUILD}
+directory for the configuration you desire.  This step creates
+build scripts for your configuration and otherwise formats your
+{\tt \$RVM\_BUILD} directory.
+The {\tt jconfigure} script takes one argument, the name of the
+configuration desired: 
+
+\begin{verbatim}
+% jconfigure <configuration>
+\end{verbatim}
+
+For example, to configure a build 
+directory for the {\tt OptOptcopyingGC} configuration, type
+the following command:
+
+\begin{verbatim}
+% jconfigure OptOptcopyingGC
+\end{verbatim}
+
+\index{jbuild script}
+\index{boot image}
+\index{RVM\_BUILD}
+\item Build an executable version of \jp\ .  
+
+Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
+to build an executable system.  This script copies source files into
+{\tt \$RVM\_BUILD/Jalapeno.classes}, preprocesses these files, generates
+some code with template expansions, builds an executable C program to
+start the RVM, and writes the \jp\ boot image.  The boot image is the
+binary image of a ready-to-go instance of the RVM.
+
+The {\tt jbuild} script must be run from the {\tt \$RVM\_BUILD}
+directory. It prints a copious report of its operation which you may
+save for future reference by redirecting standard out and err.
+
+\begin{verbatim}
+% cd $RVM_BUILD
+% jbuild
+\end{verbatim}
+
+
+After the {\tt jbuild} script has completed successfully you should be able 
+to run \jp.  (See Section~\ref{section:running}.)
+
+Note: The jbuild for Linux/Intel currently produces approximately 13 error
+messages, most pertaining to the fact that Reflection is not implemented.
+They do not affect the operation of the system.
+
+\end{enumerate}
+
+\subsection{\jp\ Configurations}\label{configs}
+\index{configuration names}
+
+This section describes the \jp\ build configurations.
+
+The standard \jp\ configurations follow the following naming scheme
+\begin{verbatim}
+       <boot image compiler> <runtime compiler> <garbage collector>
+\end{verbatim}
+
+\index{boot image compiler}
+\index{runtime compiler}
+where
+\begin{itemize}
+\item the {\em boot image compiler} is the compiler used to compile the \jp\ boot image.
+\item the {\em runtime compiler} is the ``compiler'' used to compile
+the classes loaded at runtime.  
+\item the {\em garbage collector} is the garbage collection scheme used.
+\end{itemize}
+
+The types of compilers -- the baseline compiler, the quick compiler, and 
+the optimizing compiler -- are designated by the names {\em Base},
+{\em Quick},  and {\em Opt} respectively.  In these configurations,
+all classes loaded at runtime are compiled once, by the specified
+compiler.  This is different than the adaptive configurations,
+discussed in Section~\ref{adaptive-configs}.
+
+The garbage collector names follow the following format
+\begin{verbatim}
+           <type> [modifier]
+\end{verbatim}
+
+A garbage collector may have any of the following types:
+
+\begin{description}
+\item[noGC] no garbage collection is performed
+\item[copyingGC] a copying semi-space collector
+\item[noncopyingGC] a mark-and-sweep (non copying) collector
+\item[hybridGC] a hybrid collector, semi-space for the nursery and
+mark-and-sweep for the mature space
+%%\item[refcountGC] a reference counting garbage collector
+\end{description}
+
+To indicate that a garbage collector is a generational garbage collector 
+the modifier {\em gen} may be appended to the garbage collector name.
+
+For example, to specify a compiler with a baseline-compiled boot image
+that will 
+compile classes loaded at runtime using the optimizing compiler and that uses
+a non-generational copying garbage collector use the name 
+{\em BaseOptcopyingGC}.
+
+The standard configurations may be modified in the following manner. 
+\begin{itemize}
+\item The word 
+{\em Full} at the beginning of the configuration name identifies a 
+configuration
+such that all the \jp\ classes are included in the boot image (by default
+a small subset of the \jp\ classes are included in the boot image). 
+\item The word
+{\em Fast} at the beginning of the configuration name identifies a Full
+configuration where all assertion checking has been turned off. 
+\end{itemize}
+A boot image with
+either of these modifications is likely to run faster than without
+(the opt compiler will be opt compiled),
+but take longer to build.  The {\tt
+Fast} configuration is a pseudonym for FastOptOptcopyingGC, and is
+recommended for most non-adaptive performance runs.
+
+\subsubsection{Adaptive Configurations} \label{adaptive-configs}
+\index{adaptive configurations}
+In the non-adaptive configurations, all classes
+loaded at runtime are compiled once by the specified
+compiler: base or opt.  Another option is to build one configuration,
+an adaptive configuration,
+where the runtime compiler is either
+\begin{itemize}
+\item specified on the command line (base or opt), or
+\item selected automatically as the application runs
+\end{itemize}
+
+The first choice allows an adaptive configuration to provide the same
+functionality as a non-adaptive configuration.  One image is built,
+and the runtime compiler can be specified at the command line as
+follows:
+\begin{verbatim}
+  jalapeno -X:aos:primary_strategy=baseonly
+            or
+  jalapeno -X:aos:primary_strategy=optonly
+\end{verbatim}
+
+The second choice intially compiles all methods with the
+baseline compiler and then automatically selects hot methods for
+recompilation by the opt compiler at an appropriate optimization
+level. Further details are provided in Section~\ref{section:aosdetails}.
+
+The adaptive configurations follow the following naming scheme
+\begin{verbatim}
+           [boot image compiler] Adaptive  <garbage collector>
+\end{verbatim}
+
+For example, to configure a build 
+directory for an adaptive configuration, where the Opt compiler is 
+used to compile the boot image (but is not included in the boot image
+and assertions are turned on), and the copyingGC garbage collector is
+used, use the following command:
+
+\begin{verbatim}
+% jconfigure OptAdaptivecopyingGC
+\end{verbatim}
+
+Section~\ref{section:running} describes how this image can be used in
+the manner mentioned above.
+
+To view a complete list of configurations see 
+{\tt \$RVM\_ROOT/bin/jconfigure}.
+Some configurations may not be available at your site. 
+
+\subsection{Cross Platform Building}
+
+The \jp\ build process consists of two major phases: the building of a
+\jp\ {\em boot image}, and the building of a \jp\ {\em boot loader}.
+The boot image is build using a Java\trademark program executed within a host
+JVM and is therefore platform-neutral.  By contrast, the boot loader
+is written in C, and must be compiled on the target platform.
+
+Because the building of the boot image can be a relatively lengthy
+process, it can be advantageous to perform that task somewhere other
+than the target platform.  By default, the build process will target
+the operating system and architecture on which the {\tt jconfigure}
+script is run.  
+    Two environment variables can be used to
+override this behavior and explicitly specify a different target: {\tt
+  RVM\_TARGET\_ARCH } and {\tt RVM\_TARGET\_OS }. The current valid target
+architectures are ``powerpc'' and ``IA32'' (intel). The current valid
+Operating systems are ``aix'' and ``linux''.
+
+    Two additional environment variables are used to describe the 
+environment on which the boot image is to be built RVM\_HOST\_CONFIG  and where
+the boot image loader  RVM\_TARGET\_CONFIG is to be built. These variables
+each point to a file where additional environmnet variables the location
+of software components like javac, Jikes\trademark, and the C compiler. This distribution
+contains examples of such files in the {\tt \$RVM\_ROOT/config} directory.   
+
+For example, to build a BaseBasecopyingGC system for AIX {\em on a Linux
+host}:
+\begin{verbatim}
+% setenv RVM_ROOT $HOME/rvmRoot
+% setenv RVM_BUILD $HOME/rvmBuild
+% setenv PATH $RVM_ROOT/bin:$PATH
+% setenv RVM_TARGET_ARCH powerpc
+% setenv  RVM_TARGET_OS aix
+% setenv RVM_TARGET_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
+% setenv RVM_HOST_CONFIG=$RVM_ROOT/config/i686-pc-linux-gnu
+% jconfigure BaseBasecopyingGC
+% cd $RVM_BUILD
+% jbuild
+\end{verbatim}
+
+This phase of the build process will complete with the words ``{\tt
+  please run me on AIX}''.
+
+
+The build process is then completed by building just the boot loader {\em
+  on an AIX host}:
+
+\begin{verbatim}
+% setenv RVM_ROOT $HOME/rvmRoot
+% setenv RVM_BUILD $HOME/rvmBuild
+% setenv PATH $RVM_ROOT/bin:$PATH
+% jbuild -booter
+\end{verbatim}
+
+After the {\tt jbuild -booter} script has completed successfully you should be able 
+to run \jp. 
+
+The building of the boot loader must occur in the same directory as
+the rest of the build.  This can either be done transparently via a
+network file system, or by copying the build directory from the first
+host to the target.  Of course {\tt RVM\_ROOT}, {\tt RVM\_BUILD }
+and {\tt PATH} need not be explicitly set each time: they could have
+been set in your {\tt .cshrc}.
+
+More advanced users can experiment with the {\tt RVM\_BUILD\_COPY}
+environment variable.  If this is set, then the {\tt
+  jbuild.linkBooter} phase of the build process is replaced by the
+execution of {\tt `\$RVM\_BUILD\_COPY`}.  This opens up a lot of
+possibilities, including: copying the build directory to a target
+machine and executing {\tt jbuild.linkBooter} remotely on the target
+via {\tt rsh} or {\tt ssh}, etc.  By setting {\tt RVM\_BUILD\_COPY}
+appropriately on the host platform, cross-platform building can become
+a stream-lined process.
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,407 @@
+This section provides information regarding {\tt jdp}, the \jp\
+debugger.
+\index{debugging}
+\index{jdp}
+
+\subsection{About {\tt jdp}}
+
+\index{Remote Reflection}
+  {\tt jdp}, the \jp\ Debugger Primitive, is a low-level symbolic debugger 
+developed to support the
+RVM effort.  Because no existing debugger satisfactorily meets the
+needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
+name primitive.  {\tt jdp} uses a technique called Remote
+Reflection (see the related paper on the \jp\ 
+\xlink{web page}{http://www.research.ibm.com/jalapeno}.  This
+allows {\tt jdp} to run out-of-process, yet it uses reflection extensively to
+access the internal data structures as if it resides inside the RVM.
+
+   {\tt jdp} is written in Java\trademark and JNI with native code in C.  {\tt jdp}
+uses the
+AIX {\tt ptrace} interface and the standard Unix process support (fork,
+wait, ...).  When porting to another platform, this native portion
+(called from Platform.java) will have to be rewritten.  Since {\tt jdp} and
+the RVM being debugged are two separate processes, an interpreter is
+used to connect {\tt jdp} with the RVM:  it maps the access bytecodes in the
+reflection methods to obtain the internal values in the RVM.
+  
+  {\tt jdp} is not intended to be a general purpose debugger; it is driven
+by the needs of the \jp\ group.  
+
+   Because the optimizing compiler does not currently provide all of
+   the mapping support required, {\tt jdp} functionality is limited in
+   opt-compiled code. 
+
+\subsection{Getting started}
+
+   You can use {\tt jdp} in one of three modes: debugging the boot image only, 
+general debugging, and debugging a RVM that is already running:
+
+\begin{enumerate}
+\item Use the boot image only mode if you are only debugging code
+in the boot image since this is faster and the debugger is more stable
+(even when the RVM becomes corrupted):
+\begin{verbatim}
+jdp -jdpbootonly myProgram myArguments
+\end{verbatim}
+   In this mode, methods of classes outside the boot image appear
+as "unknown method" and you cannot set breakpoint for these methods.
+
+
+\item Use the general mode if you are debugging codes in classes that are 
+dynamically loaded:
+\begin{verbatim}
+jdp myProgram myArguments
+\end{verbatim}
+   This mode is slower because there are two levels of interpretation
+and the debugger can get lost if the dictionaries in the RVM become 
+corrupted.
+
+
+\item If the RVM is already running and appears to be hung, you can attach 
+{\tt jdp} to this RVM by:
+\begin{verbatim}
+jdp -jdpattach<processID>
+\end{verbatim}
+   The process ID is obtained from the "ps" command.  
+   The option "{\tt -jdpbootonly}" can be used in conjunction with 
+   "{\tt -jdpattach}".  The effect is that the debugger is faster and more
+   stable, but it will only show methods in the boot image.
+
+\end{enumerate}
+
+
+\subsection{{\tt jdp} environment}
+
+   This section describes the files and settings that the debugger
+needs.  The {\tt jdp} command is a {\tt ksh} script that does some preliminary
+argument parsing and fills in default arguments before invoking the
+debugger in the appropriate mode.
+
+The debugger requires the following files:
+
+\begin{enumerate}
+\item The RVM boot image:
+   This file is typically {\tt \$RVM\_BUILD/Jalapeno.image} but it could
+   have other names with the {\tt .image extension}.  You can specify a
+   different boot image name.
+\begin{itemize}
+\item    {\tt jdp} argument:    {-i bootImageName}
+\item   Default value:          {\tt \$RVM\_BUILD/Jalapeno.image}
+\end{itemize}
+
+\index{JTOC}
+\index{symbol map}
+\index{jconfigure script}
+\index{configurations}
+\item The symbol map:
+   This file is a symbol map of the boot image.  It contains a listing of the 
+   JTOC and the compiled methods.  It is generated when the build configuration 
+   in {\tt \$RVM\_ROOT/tools/builder/jconfigure} contains the flag:
+        {\tt export GENERATE\_MAP=1}
+
+   {\tt jdp} uses offset 
+   values from this file to find all symbols in the boot image.
+   In the dynamic mode, the interpreter also uses this file to find the base 
+   offset for the dictionaries for the remote reflection feature.
+\begin{itemize}
+\item   {\tt jdp} argument:     (none)
+\item    Default value: {\tt \$RVM\_BUILD/Jalapeno.map}
+\end{itemize}
+
+\item The list of classes in the boot image:
+   {\tt jdp} looks for the file {\tt \$RVM\_BUILD/Jalapeno.primordials}
+
+\begin{itemize}
+\item   {\tt jdp} argument:     {\tt -n classListName}
+\item   Default value:  {\tt \$RVM\_BUILD/Jalapeno.primordials}
+\end{itemize}
+
+\item The program to load and run the RVM boot image:
+   This file is typically {\tt \$RVM\_BUILD/Jalapeno}.
+   Normally you don't have to be concerned about this file since it rarely
+   changes.
+\begin{itemize}
+\item   {\tt jdp} argument:     {\tt -jdpbootrunner booterName}
+\item   Default value:  {\tt \$RVM\_BUILD/Jalapeno}
+\end{itemize}
+\end{enumerate}
+
+In addition to these files, the following setting can be made:
+
+\begin{enumerate}
+\index{breakpoints}
+\item Initial breakpoint:  
+   This is where the RVM will stop first.  By default, {\tt jdp}
+   stops at line 24 in the assembler procedure:
+        {\tt \$RVM\_ROOT/src/tools/bootImageRunner/bootThread.s}.
+   This is after the RVM boot image has been loaded into memory and
+   the 4 registers jtoc, proc, thread index and FP have been initialized.
+   At this point, only one thread is running and the stack has only 
+   one frame pointing to the booting C code.
+\begin{itemize}
+\item   {\tt jdp} argument:     {\tt -jdpbreakpoint breakpointHexValue}
+\item    Default value:         bootThread
+\end{itemize}
+
+\item Process ID:
+   This is used for attaching {\tt jdp} to a currently running RVM.  After 
+   initializing itself, {\tt jdp} will send an interrupt to the running process 
+   to gain control.  The process ID is from the "{\tt ps}" command in AIX.
+\begin{itemize}
+\item   {\tt jdp} argument:     {\tt -jdpattachXXXX} where XXXX is the process ID
+\item    Default value:         (none)
+\end{itemize}
+\end{enumerate}
+
+
+Finally, jdp assumes the following conventions in navigating within the 
+boot image (they arise from the base line compiler):
+
+\begin{enumerate}
+\item The method ID is saved a the end of the instruction block for each
+   method.
+
+\item The end of the prolog of the instruction block is marked by a code pattern.
+For AIX/PowerPC, it is:
+\begin{verbatim}
+          4ffffb82      
+\end{verbatim}
+   which is the instruction:
+
+\begin{verbatim}
+         cror   0x1f,0x1f,0x1f
+\end{verbatim}
+For Linux/Intel, it is:
+\begin{verbatim}
+          90
+\end{verbatim}
+   which is the NOP instruction:
+\end{enumerate}
+
+
+\subsection {{\tt jdp} commands}
+
+\begin{tabular}{|l|l|l|} \hline
+Command       & Shortcut & Description     \\ \hline
+step          & s   & step current thread by instruction, into method           \\ 
+stepbr        & sbr & step current thread by instruction, over method           \\ 
+stepline      & sl  & step current thread by source line, into method   \\ 
+steplineover  & slo & step current thread by source line, over method   \\ 
+creturn       & cr  & continue to calling method (up one stack frame)           \\ 
+cont          & c   & continue all threads                                      \\ 
+kill          & k   & terminate program                                         \\ 
+run           & run & start new program                                         \\ 
+break         & b   & list/set breakpoint                                       \\ 
+clearbreak    & cb  & clear breakpoints                                         \\ 
+
+thread        & th  & select or turn off thread context                         \\ 
+where         & w   & print short stack trace                                   \\ 
+whereframe    & wf  & print full stack trace                                    \\ 
+stack         & f   & display formatted stack                                   \\ 
+mem           & m   & display memory                                            \\ 
+memraw        & mraw & display actual memory (jdp breakpoints are visible)      \\ 
+wmem          & wm  & write memory                                              \\ 
+reg           & r   & display registers                                         \\ 
+wreg          & wr  & write register                                            \\ 
+printclass    & pc  & print the class statics or the type of an object address  \\ 
+print         & p   & print local variables or cast an address as an object     \\ 
+listi         & li  & list machine instruction                                  \\ 
+listt         & lt  & list threads                                              \\ \hline 
+
+quit          & q   & exit debugger                                             \\ 
+preference    & pref & set user preference                                      \\ 
+verbose       & v   & toggle verbose mode                                       \\ 
+(macro name)  &   & load and execute this macro (a text file with suffix .jdp)  \\ 
+(enter)       &   & repeat last command                                         \\ \hline 
+\end{tabular}
+
+To get more information on a specific command, type: 
+\begin{verbatim}
+        help thiscommand
+\end{verbatim}
+
+
+\subsection{ {\tt jdp} Macros}
+A jdp macro is a text file that has the {\tt .jdp} suffix and contains a sequence of normal {\tt jdp} commands
+
+\begin{itemize}
+\item When you type {\tt mymacro} at the command line, {\tt jdp} will look for 
+{\tt mymacro.jdp}
+ in the normal class path and execute each line in the macro file as if 
+ they are entered at the command line.
+\item On entry to {\tt jdp}, if the file {\tt startup.jdp} exists in the current directory, 
+ it will be loaded and executed automatically.
+\end{itemize}
+
+This should be convenient for:
+\begin{itemize}
+\item Short cut to repeat a series of commands to get a debugging point
+\item Regression testing:  redirect the output and compare with previous 
+ results.  This is specifically intended for regression testing of {\tt jdp} 
+ itself but  may be useful for other tests as well, especially if the test 
+ needs to inspect specific runtime values in registers, memory.
+\end{itemize}
+
+\subsection{Debugging tips}
+
+\begin{itemize}
+\item Compiling the system with local variables:
+  The default boot image is built without the local variable tables.
+  To get local variables, set this flag to true in your local shadow:
+\begin{verbatim}
+        VM_Control.LoadLocalVariableTables
+\end{verbatim}
+  This will increase the boot image size by about 10\%.
+
+\index{breakpoints}
+\item Setting breakpoint:
+  Sometimes a breakpoint cannot be set.  In the boot image only mode, {\tt jdp}
+  cannot find code outside the boot image.  In the general mode, {\tt jdp} cannot
+  find codes for classes that have not been loaded and compiled, simply
+  because they don't exist yet.  To get around these
+  situations, the boot image contains a dummy method which {\tt jdp} can always
+  find:
+        {\tt VM.debugBreakpoint}.  
+  You can insert a call to this method in the code where you want to stop.
+  Then set a breakpoint on this method, proceed to this breakpoint, then
+  continue to the caller to reach your method:
+\begin{verbatim}
+        b VM.debugBreakpoint
+        c
+        cr
+\end{verbatim}
+  In the general debugging mode, when {\tt jdp} stops at this breakpoint, the 
+  class containing the calling method has been loaded and you can set then
+  breakpoints in any method of this class.
+
+
+\index{breakpoints}
+\item Setting breakpoint in the prolog:
+  Normally, {\tt jdp} skips past the prolog code when it sets a breakpoint in
+  a method.  To force {\tt jdp} to set a breakpoint at the beginning of the
+  method prolog, specify 0 as the line number:
+\begin{verbatim}
+        b myclass.mymethod:0
+\end{verbatim}
+
+
+\item Expanding expression:
+  Symbolic expression for printing class static variable and stack local
+  variable can be nested arbitrarily
+\begin{verbatim}
+        pc VM_Scheduler.threads[1].contextRegisters
+        p 0:myLocalVar.field1.field2
+\end{verbatim}
+
+
+\item Casting an address as an object:
+  If you have the address of an object and you know the class name,
+  you can cast the address to print the object:
+\begin{verbatim}
+        p (className) xxxxxxxx
+\end{verbatim}
+  This can also be used to print a concrete object of an abstract class.
+  If the casting is not correct, you will see messages such as:
+\begin{verbatim}
+        CAUTION, address not accessible: 0x80620420
+\end{verbatim}
+
+
+\item Getting the class name of an object address:
+  If you have the address of an object and want to know the type:
+\begin{verbatim}
+        pc xxxxxxxx
+\end{verbatim}
+
+
+\item Getting to low level string:
+  Strings are stored as {\tt VM\_Atom}s in the RVM.     
+  To print the string as character, print the memory at the address of
+  the field {\tt VM\_Atom.val}:
+
+\begin{verbatim}
+        jdp:0>p (VM_Atom) 30266638
+        VM_Atom = 
+          VM_Atom @0x30266638
+            val = {100, 101, 98, 117, 103, 66, 114, 101, 97, 107, 112, 111, 105, 110, 116} @0x30269628
+            hash = 1544209252  @0x30266624
+
+        jdp:0>m 30269628
+          0x30269628: 64 65 62 75    d e b u
+          0x3026962c: 67 42 72 65    g B r e
+          0x30269630: 61 6b 70 6f    a k p o
+          0x30269634: 69 6e 74 00    i n t .
+          0x30269638: 30 05 67 90    0 . g .
+\end{verbatim}
+
+
+\item Restarting your program:
+  If your program runs to completion and you want to reexecute it,
+  type "run" in {\tt jdp}.  A new RVM will be loaded and started in a new
+  process.  The existing breakpoints will be saved and set again 
+  when the boot image has been loaded.
+
+
+\item Display number in hex or decimal:
+  Integers are normally displayed in decimal for variables and
+  in hex for stack.  Sometimes variables contain addresses as 
+  integer and stack entries contain small integer values.    In
+  these cases, it may be more convenient to view in the alternate
+  format.
+  To change the display format for variables to hex:
+\begin{verbatim}
+        pref int x
+\end{verbatim}
+  To change the display format for stack to decimal:
+\begin{verbatim}
+        pref stack d
+\end{verbatim}
+  Likewise, floating point registers are displayed as float, but
+  to compare the actual values without any rounding, it may be more
+  convenient to view the hex values.  To change the format to hex:
+\begin{verbatim}
+        pref fpr x
+\end{verbatim}
+
+  The format preference can be changed back by specifying x, d or f
+  as appropriate.
+
+\item Interrupting a hung RVM:  If the RVM is running under the debugger
+  and appears to be hung, you can interrupt it by going to a different
+  window and killing the Jalapeno process.  This will send a signal to the
+  Jalapeno process and {\tt jdp} will catch the signal before it gets to
+  the Jalapeno process.  Hitting control-c in the jdp window will kill 
+  {\tt jdp} itself.
+
+
+\index{JNI}
+\item Debugging with native code:  {\tt jdp} provides limited debugging
+  for native codes that are interspersed via JNI.  {\tt jdp}
+  displays the C procedure names in the stack traceback and stepping by 
+  machine code is possible.  You can also view the raw C stack frame and 
+  its registers, but native variables and line numbers are not available.
+
+
+
+
+\item Debugger error messages:
+  What these messages mean:
+
+\begin{itemize}
+\item {\tt "CAUTION, address not accessible: 0x80620420"}
+        This means that {\tt jdp} got an error when it reads an address
+        in the RVM space.  This may have occurred because {\tt jdp} is 
+        dereferencing an object from a bad address, or the RVM has
+        become corrupted.  This message does not mean that {\tt jdp}
+        has crashed; you should be able to continue debugging.
+
+\item {\tt jid}:
+        In the general debugging mode (running with the interpreter),
+        this means that the interpreter has encountered an internal 
+        error and has entered its own internal debugging mode.  At this 
+        point, you can type "w" to see the interpreter stack and report
+        the problem.
+\end{itemize}
+\end{itemize}
+

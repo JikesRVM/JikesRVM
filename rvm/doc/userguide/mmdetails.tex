@@ -1,0 +1,261 @@
+This Section provides additional information on the implementation
+of the memory management component of \jp\ runtime system.
+ 
+\subsection{Directory Structure} \label{sssec:directories}
+The classes related to memory management are contained in the 
+src/vm/allocator directory.  Sub-directories of allocator 
+contain classes for a specific memory management strategy.
+For example, the allocator/copyingGC directory implements a
+simple semi-space copying allocator and collector.
+
+A \jp\ configuration specifies a memory management strategy, 
+and the jconfigure command will include in the build all the
+classes in the allocator directory and all the classes in the
+sub-directory for the specified memory management strategy.
+The allocator directory contains classes common to multiple
+configurations, such as the load balancing work queue (see
+VM\_GCWorkQueue.java) which is used by all of the \jp\
+garbage collectors.
+
+\subsection{Choosing an Allocator/Collector} \label{sssec:choosinggc}
+Depending on your purposes, you may choose to build \jp\
+with a copying, noncopying (mark-sweep), or hybrid collector.
+For programs which do not perform many collections, the
+copying collector will most likely perform best, since object
+allocation path lengths are shortest for this collector.  To
+minimize garbage collection delays, the hybrid collector may
+be used, since it allows a small nursery for which minor collections
+can be quite fast, and major collections are noncopying.  
+
+Generally, the noncopying (mark-sweep)
+collector requires smaller heap storage for a given application	
+than a copying collector, which in \jp\ uses a semispace structure.
+Also, major collections are faster with a noncopying collector,
+since objects are not moved.  The best performance for a particular	
+application should be determined by experiment.
+
+\subsection{Adding A New Allocator/Collector} \label{sssec:newalloc}
+\index{garbage collection}
+\index{stop-the-world garbage collection}
+It is not difficult to add your own Allocator/Collector to \jp\,
+especially if it uses the same ``stop the world'' parallel collection
+strategy used by all the collectors in this release.  The basic steps
+are:
+\index{jconfigure script}
+\index{VM\_Allocator class}
+\begin{enumerate}
+\item Create a new directory for the Allocator/Collector, such as ``newGC''.
+\item Modify bin/jconfigure to add a stanza(s) for your new Allocator/Collector,
+which includes your new directory in the build.  Name it appropriately, such as
+``BaseBasenewGC''.
+\item Copy some existing VM\_Allocator.java file into your new directory,
+and modify it, choosing one that has similar properties, such as copying or
+non-copying.  If you want to start from scratch, start with VM\_Allocator in noGC.
+This file provides simple implementations of the required object allocation
+methods, and stubs for the other fields and methods expected by the rest
+of the \jp\ runtime (not all will be needed in any one implementation).
+\end{enumerate}
+
+The provided collectors contain a number of common methods which you
+will want to use (``use'' presently means copy into your VM\_Allocator file).
+Some of them are:
+\begin{description}
+\item[scanStatics] which scans all class static variables (in the JTOC) and
+reports all references.
+\item[scanObjectOrArray] which scans an object or array and reports any references
+in that object or array.
+\item[scanStack] which scans a threads stack and reports any references in
+local variables or saved registers.  This will use make use of the compiler
+specific StackMapIterators and the compiler generated stack maps for GC safe points.
+All threads, except the executing collector threads, will be stopped a safe points.
+\end{description}
+
+\subsection{Load Balancing Work Queue} \label{sssec:workqueue}
+\index{VM\_GCWorkQueue class}
+\index{finalizable objects}
+\index{finalizer method}
+The class VM\_GCWorkQueue, implements a load balancing workqueue
+which is used by all the \jp\ collectors to find all references reachable from
+some initial set of references.  It is used to find all objects reachable
+from roots, and also to find all objects reachable from finalizable objects
+that are made live in order to execute their finalizer methods.
+
+The work queue is implemented using thread local ``get'' and ``put'' buffers
+and a shared pool of buffers needing to be processed.  The performance of the
+work queue is affected by the size of these buffers.  The default size is 1024 
+entries, but can be altered by the command line argument ``-X:wbsize=nnn'' where
+nnn is the maximum number of entries in the buffer.  When running with multiple
+processors, better load balancing has been observed with smaller buffers, for
+example with 256 entries per buffer.  
+
+\subsection{Generational Write Barrier} \label{sssec:writebarrier}
+\index{VM\_WriteBuffer class}
+\index{write buffer}
+\index{write barrier}
+\index{object header}
+\jp\ provides a class VM\_WriteBarrier to support generational garbage 
+collection. When the static final field VM\_Allocator.writeBarrier is true,
+all \jp\ compilers generate write barrier code, which tests a specified
+bit in the object header of an object into which a ref is being stored,
+and, if the bit is set to one, makes an entry into a write buffer of the 
+address of the object, and sets the bit to zero.  Thus generational 
+collectors can use this class to 
+identify objects which may contain pointers to objects 
+younger than themselves.  During garbage collection, collectors should
+turn the bit back to one, so that subsequent mutator execution that stores
+refs into such objects will be recorded.
+
+Currently, \jp\ copying generational and hybrid 
+`collectors treat all objects which
+survive one garbage collection as old.  The noncopying (mark-sweep) 
+generational contains an as yet very experimental capability to require
+objects to survive more than one collection before being treated as old.
+(The constants GC\_OLD, GC\_STEPS, and GC\_THRESHHOLD) used in this 
+collector is part of the implementation.)
+
+
+\subsection{Starting Garbage Collection} \label{sssec:startgc}
+\index{VM\_Handshake class}
+\index{VM\_CollectorThread class}
+\index{stop-the-world garbage collection}
+\index{concurrent garbage collection}
+The stopping of mutator threads and the scheduling of the collector
+threads is handled by the classes VM\_Handshake and VM\_CollectorThread.
+Mutator threads initiate collection by calling the collect method
+of VM\_CollectorThread.  It causes collector threads to be scheduled
+on all the VM\_Processors, and then yields, to allow the collector thread
+on the executing processor to be scheduled. When all collector threads
+arrive at the first Rendezvous, in the run method of VM\_CollectorThread,
+the collection begins.
+All collector threads 
+call the gc\_collect method of VM\_Allocator.  They execute
+in parallel in this method until collection is complete.  By default,
+there is one collector thread for each VM\_Processor (system thread).
+While collection is in progress, all non-collector threads are suspended
+in queues of the VM\_Processors waiting to be re-dispatched.
+
+If you want something other than stop-the-world parallel collection 
+(such as a concurrent collector) then it will be necessary to modify
+or extend the VM\_Handshake and VM\_CollectorThread classes.
+
+\subsection{Measuring Collector Performance} \label{sssec:verbosegc}
+\index{command-line arguments}
+\index{VM\_Allocator class}
+When the ``-verbose:gc'' command line argument is specified, the time
+spent in each collection will be written out after each collection.
+In addition, summary statistics are generated when \jp\ exits, which
+specify the number of collections, and average and maximum collection times.
+For generational collectors, this is given for Minor and Major collections.
+Some collectors provide additional information, that can be measured
+with minimal cost, such a number of bytes copied for the copying collectors.
+
+Compile time flags can be set to cause additional information, at additional
+cost, to be measured and reported.  Some of the more useful ones are
+described here, others are described in the various VM\_Allocator
+source files.
+
+\paragraph{TIME\_GC\_PHASES}
+This flag will cause the collector to measure the time spent in each
+of the phases of garbage collection, such as stopping mutators, finding roots,
+marking reachable objects, and finalization.  Turning on this flag will cause
+the summary statistics, with average times in each phase, to be generated 
+when \jp\ exits.  If -verbose:gc is specified the output is generated after
+each collection. Turning on TIME\_GC\_PHASES in the common VM\_CollectorThread
+class will cause it to be set in what ever VM\_Allocator is being used.
+
+\paragraph{MEASURE\_WAIT\_TIMES}
+This flag will cause the collector to measure the time each collector thread
+spends waiting during a collection.  This is time waiting for buffers while
+processing the Work Queue, and time waiting in Rendezvous between phases of the
+collection process. Turning on this flag will cause
+the summary statistics, with average wait times, to be generated 
+when \jp\ exits.  If -verbose:gc is specified the output is generated after
+each collection, for each collector thread.
+Turning on MEASURE\_WAIT\_TIMES in the common VM\_CollectorThread
+class will cause necessary flags in VM\_Allocator and VM\_GCWorkQueue to be set.
+
+\begin{description}
+\item[RENDEZVOUS\_TIMES] prints per thread entrance and exit times for the
+rendezvous during each collection.
+\item[GC\_COUNT\_BY\_TYPES] prints counts of the number of live objects grouped
+by type.
+\item[WORK\_QUEUE\_COUNTS] counts work queue buffers processed by each collector
+thread (in VM\_GCWorkQueue). 
+\item[COUNT\_GETS\_AND\_PUTS] counts object references processed by each collector
+thread (in VM\_GCWorkQueue). 
+\end{description}
+Not all flags are available in all VM\_Allocator files.
+
+\subsection{Expected Revisions} \label{sssec:revisions}
+At the time of this release, some revisions to the
+memory management component of \jp\
+are being planned.  It is likely that they will appear in
+the next release.
+
+\paragraph{Revised Directory Structure}
+With the current directory structure, all files in the allocator
+directory get compiled and included in all builds, even though
+only some subset will get used in any particular build.  The 
+files in the allocator directory will probably be moved into strategy
+specific subdirectories, such as for copying and non-copying 
+collectors, so that builds of \jp\ need only include the files
+needed in a specific build.
+
+\paragraph{Factoring Out Common Code}
+The strategy specific VM\_Allocator files have much code in common,
+particularly for the different copying collectors.  This common code
+will be factored out into separate classes, and moved into a
+separate directory, where it can be shared by the different collectors.
+
+\paragraph{Splitting Allocation and Collection}
+Presently the VM\_Allocator files contain both the support for
+object allocation and garbage collection.  It is likely that
+the methods implementing collection will be split out into
+a separate VM\_Collector class.  All the VM\_Allocator classes use
+the same implementation for Large Object Space, and it is likely
+that this will also be split out into a separate class.
+
+\subsection{Optional Builds} \label{ssses:optionalbuilds}
+Some of the memory management classes have internal compile
+time flags that can be modified to alter the way allocation 
+and collection is performed.
+(Note that the optional builds have not been recently tested)
+
+\paragraph{Thread Private Work Queues}
+\jp\ originally used private work queues for each collector thread
+participating in collection.  This has been replaced by the current
+load balancing work queue strategy.  It is possible to build \jp\
+with the old thread private queues by setting the flag
+USE\_OLD\_PRIVATE\_WORKQUEUE in VM\_GCWorkQueue.java to true.
+(This is not recommended, but can be used to observe the relative
+performance of the two approaches)
+
+\paragraph{Turn Off Local Allocation} 
+By default, VM\_Processors allocate objects from local ``chunks'', without
+needing to synchronize with other VM\_Processors, except when acquiring
+an additional chunk from the shared global heap.  Flags in the
+copying allocators allow one to turn this off, causing all allocations
+to be synchronized. 
+The PROCESSOR\_LOCAL\_ALLOCATES flag controls processor local object
+allocations, and the PROCESSOR\_LOCAL\_MATURE\_ALLOCATES flag controls
+collector thread local allocation of space for marked objects being
+copied. (These should only be turned off if one is trying to observe
+the impact of cache contention on a multi-processor computer)
+
+\paragraph{Alternatives For Zeroing Memory}
+By default, VM\_Processors zero chunks of memory, when the chunks are
+acquired from the shared global heap, rather than zeroing freed
+space at the end of collection.  In some of the copying Collectors,
+compile time flags can be set to alter when and how the zeroing is
+done.  The options are:
+\begin{description}
+\item[Zero Chunks When Allocated] (the default)
+\item[Zero Nursery In Parallel] The collector threads divide up the
+Nursery (free space) and zero their assigned portion in parallel.
+This occurs at the end of collection.
+\item[One Thread Zeros] One collector thread zeros the entire Nursery
+at the end of collection. (A bad idea, but shows how long zeroing can take)
+\end{description}
+
+
+

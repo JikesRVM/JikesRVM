@@ -1,0 +1,69 @@
+\subsection {Welcome to \jp}
+
+\jp\ is a Research Virtual Machine for Java\trademark developed at the IBM T.J.\ Watson 
+Research Center.  Key features of \jp\ include 
+\begin{itemize}
+\item the entire virtual machine (VM) is implemented in the
+  Java\trademark  programming language,
+\item the VM utilizes two compilers and no interpreter,
+\item a family of parallel, type-exact garbage collectors,
+\item a lightweight thread package with compiler-supported preemption,
+\item an aggressive optimizing compiler, and 
+\item a flexible online adaptive compilation infrastructure.
+\end{itemize}
+
+A significant body of information about \jp\ appears in our published
+papers.  For overviews of \jp\ structure, including the runtime system,
+optimizing compiler, and adaptive systems, see the published papers
+available from the \jp\ web page:
+\begin{quote}
+\xlink{{\tt http://www.research.ibm.com/jalapeno}}{http://www.research.ibm.com/jalapeno}
+\end{quote}
+
+The best paper for a general introduction to \jp\ is 
+the 
+\xlink{IBM Systems Journal, January 2000
+paper
+\T~\cite{jalapeno-ibmsj-00}
+}{http://www.research.ibm.com/jalapeno/publication.html\#ibmsj00}.  
+For introductions to the
+optimizing compiler and adaptive system, see the 
+\xlink{1999 ACM Java Grande\begin{iftex}~\cite{jalapeno-opt-grande-99}\end{iftex}}
+{http://www.research.ibm.com/jalapeno/publication.html\#grande99}
+ and 
+ \xlink{2000 OOPSLA\begin{iftex}~\cite{jalapeno-adaptive-00}\end{iftex}}
+{http://www.research.ibm.com/jalapeno/publication.html\#oopsla00\_aos}  
+papers, respectively.
+
+As you know, \jp\ is a bleeding-edge research project.  You will find that
+some of the code and most of documentation does not live up to product or 
+even open-source quality standards. Don't hesitate to help rectify this by
+contributing clean-ups, bug fixes, and missing documentation to your
+contact at Watson.  
+
+\subsection {About this document}
+
+This document provides \jp\ information that is not covered in
+our published papers.  For high-level overviews, algorithms, and
+structures, you will find the published papers to be the best starting
+place. This document supplements
+the \jp\ distribution, focusing on implementation
+details of how to build, run, and add functionality to \jp.
+
+The \jp\ distribution also includes javadoc API documentation for the 
+source code in the directory {\tt doc/api}.  This html should be the
+primary reference for individual classes.  The javadoc for the optimizing
+compiler classes contains at least some description for most classes,
+while most other classes provide javadoc with only a minimal API.
+
+This version of the user's guide is for use with the university
+release.  You may find sections missing or incomplete. We intend this
+document to live as a continual work-in-progress, hopefully growing
+and maturing as good Samaritans volunteer to edit and add to the
+guide.  Please accept this invitation (plea) to contribute.
+
+Please send feedback, bug fixes, and text contributions to Stephen Fink,
+{\tt sjfink@us.ibm.com}.  Constructive criticism will be cheerfully 
+accepted. 
+
+\input{whatsnew}

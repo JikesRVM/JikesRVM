@@ -1,0 +1,113 @@
+This section describes how to run a \jp\ image built from the previous
+section. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Running \jp}
+
+\index{jikes}
+\index{jalapeno script}
+\jp\ executes bytecodes from {\tt .class} files. It does {\em not} compile
+Java\trademark source code. Therefore, all files 
+required by your program must have already been compiled into bytecode
+files by a Java\trademark compiler.  We recommend you use the IBM Jikes\trademark compiler.
+The current distribution includes an executable version of Jikes\trademark in
+{\tt contrib/jikes}.
+
+For example, to run class {\tt foo} with source code in file {\tt foo.java}:
+\begin{verbatim}
+% jikes foo.java
+% jalapeno foo 
+\end{verbatim}
+
+The general syntax is
+\begin{verbatim}
+jalapeno [rvm options] class [args]
+\end{verbatim}
+
+\index{command-line options}
+You may choose from myriad options for the \jp\ command-line.  
+Options fall into two categories: {\em standard} and {\em
+non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Command-Line Options}
+
+We currently support a subset of the JDK 1.3 standard options.  Below
+is a list of all options and their descriptions.  Unless otherwise noted each
+option is supported in \jp.
+\begin{description}
+\item[{\tt -cp -classpath <directories and zip/jar files separated by :>}]
+set search path for application classes and resources
+
+\item[{\tt -verbose[:gc|:jni|:class]}]
+enable verbose output; currently ``jni'' is not supported
+
+\item[{\tt -version}] print current VM version and terminate
+
+\item[{\tt -showversion}] print current VM version and continue
+
+\item[{\tt -?} or {\tt -help}] print help message
+
+\item[{\tt -X}] print help on non-standard options
+
+\item[{\tt -jar}] not supported
+
+\end{description}
+
+The non-standard options are
+
+\begin{description}
+\item[{\tt -X:h=<number>}]
+allocate {\tt <number>} megabytes of small object heap (default=20)
+
+\item[{\tt -X:mx<number>}]
+allocate {\tt <number>} megabytes of small object heap (default=20)
+
+\item[{\tt -X:lh=<number>}]
+allocate {\tt <number>} megabytes of large object heap (default=10)
+
+\item[{\tt -X:nh=<number>}]
+allocate {\tt <number>} megabytes of nursery object heap (default=10,
+ignored if no nursery)
+
+\item[{\tt -X:ph=<number>}]
+allocate {\tt <number>} megabytes of permanent object heap (default=0)
+
+\item[{\tt -X:i=<filename>}]
+read boot image from {\tt <filename>}
+
+\item[{\tt -X:sysLogfile=<filename>}]
+writes standard error message to {\tt <filename>}
+
+\item[{\tt -X:rvmClasses=<filename>}]
+load classes from {\tt <filename>}
+
+\item[{\tt -X:cpuAffinity=<int>}]
+physical cpu to which first virtual processor is bound
+
+\item[{\tt -X:processors=<int|``all''>}]
+number of processors to use on a multiprocessor
+
+\item[{\tt -X:verbose}]
+print out additional information for GC
+
+\item[{\tt -X:irc[:help]}]
+print options supported by runtime compiler when in a non-adaptive configuration 
+
+\item[{\tt -X:irc<option>}]
+pass {\tt <option>} to the runtime compiler when in a non-adaptive configuration 
+
+\item[{\tt -X:aos[:help]}]
+print options supported by adaptive optimization system when in an
+adaptive configuration
+
+\item[{\tt -X:aos<option>}]
+pass {\tt <option>} to the adaptive optimization system when in an adaptive configuration
+
+\end{description}
+
+See section~\ref{appendix:nonadaptive:cmdline} for more details on 
+command-line options, including the list of options supported by the 
+optimizing compiler and adaptive optimization system.
+
+
