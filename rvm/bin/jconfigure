@@ -618,17 +618,21 @@ declare -i HAS_DLCOMPAT=0
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
 #---------------------------------------#
 
+## Turn off all of the environment variables that might be set by
+## sourcing a configuration file, but that might not be set if we were
+## to source a different such configuration file.  
 function unsetEnvironment() {
     local flags="$-"
     set +e
     # Disable ERR Trap.  This only affects this function, not the 
-    # global environment.
+    # global environment.  We do this (disable the ERR trap) in order to avoid
+    # any errors that may arise from unsetting variables that are not already
+    # set.
+    #
     # As before, we redirect error messages to /dev/null.  This is because
     # some older Bash versions do not support the ERR trap.
     trap '' ERR 2> /dev/null || :
-    ## Turn off all of the environment variables that we get when we 
-    ## source config files but that might not be set if we were to source
-    ## a different such config file.
+
     unset HOST_JIKES $HOST_JIKES_STR1
     unset HOST_JAVA $HOST_JAVA_STR1 
     unset HOST_JAVAC $HOST_JAVAC_STR1
