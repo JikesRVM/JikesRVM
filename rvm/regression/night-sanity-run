@@ -65,8 +65,6 @@ echo "\n\nRunning the sanity tests as specified in $CONFIG_DIR/$1 \n" >> $RUN_LO
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
-. $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
-
 # performance runs
 echo "\n\nRunning the performance tests as specified in $CONFIG_DIR/$2\n" >> $RUN_LOG
 
