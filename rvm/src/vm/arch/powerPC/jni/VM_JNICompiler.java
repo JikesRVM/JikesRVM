@@ -994,8 +994,39 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    */ 
   public static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_Method mth) {
     int offset;
+    boolean usesVarargs;
+    int varargAmount = 0;
+    
+    String mthName = mth.getName().toString();
+    if ((mthName.startsWith("Call") && mthName.endsWith("Method")) ||
+        mthName.equals("NewObject"))
+      usesVarargs = true;
+    else
+      usesVarargs = false;
 
-    asm.emitSTAddrU(FP,-JNI_GLUE_FRAME_SIZE,FP);     // buy the glue frame
+    //-#if RVM_WITH_MACH_O_ABI
+    // Find extra amount of space that needs to be added to the frame
+    //to hold copies of the vararg values. This calculation is
+    //overkill since some of these values will be in registers and
+    //already stored. But then either 3 or 4 of the parameters don't
+    //show up in the signature anyway (JNIEnvironment, class, method
+    //id, instance object).
+    if (usesVarargs) {
+      VM_TypeReference[] argTypes = mth.getParameterTypes();
+      int argCount = argTypes.length;
+    
+      for (int i=0; i<argCount; i++) {
+        if (argTypes[i].isLongType() || argTypes[i].isDoubleType()) 
+          varargAmount += 2 * BYTES_IN_ADDRESS;
+        else
+          varargAmount += BYTES_IN_ADDRESS;
+      }
+    }
+    //-#endif
+      
+    int glueFrameSize = JNI_GLUE_FRAME_SIZE + varargAmount;
+      
+    asm.emitSTAddrU(FP,-glueFrameSize,FP);     // buy the glue frame
 
     // we may need to save CR in the previous frame also if CR will be used
     // CR is to be saved at FP+4 in the previous frame
@@ -1012,9 +1043,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // If we are compiling such a JNI Function, then emit the code to store
     // GPR 4-10 and FPR 1-6 into the volatile save area.
 
-    String mthName = mth.getName().toString();
-    if ((mthName.startsWith("Call") && mthName.endsWith("Method")) ||
-        mthName.equals("NewObject")) {
+    if (usesVarargs) {
 
       //-#if RVM_WITH_POWEROPEN_ABI
       offset = STACKFRAME_HEADER_SIZE + 3*BYTES_IN_STACKSLOT;   // skip over slots for GPR 3-5
@@ -1027,7 +1056,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         asm.emitSTFD (i, offset, FP);
         offset+=BYTES_IN_DOUBLE;
       }
-      //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+      //-#elif RVM_WITH_SVR4_ABI 
       // save all parameter registers
       offset = STACKFRAME_HEADER_SIZE + 0;
       for (int i=FIRST_OS_PARAMETER_GPR; i<=LAST_OS_PARAMETER_GPR; i++) {
@@ -1037,6 +1066,13 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       for (int i =FIRST_OS_PARAMETER_FPR; i<=LAST_OS_PARAMETER_FPR; i++) {
         asm.emitSTFD(i, offset, FP);
         offset += BYTES_IN_DOUBLE;
+      }
+      //-#elif RVM_WITH_MACH_O_ABI
+      // save all gpr parameter registers
+      offset = STACKFRAME_HEADER_SIZE + 0;
+      for (int i=FIRST_OS_PARAMETER_GPR; i<=LAST_OS_PARAMETER_GPR; i++) {
+        asm.emitSTAddr(i, offset, FP);
+        offset += BYTES_IN_ADDRESS;
       }
       //-#endif
     } else {
@@ -1063,7 +1099,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLVAL(S0, INVISIBLE_METHOD_ID);
     asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTW (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    asm.emitSTAddr(REGISTER_ZERO, JNI_GLUE_FRAME_SIZE + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
     // 
@@ -1154,7 +1190,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLAddr (S0, VM_Entrypoints.JNITopJavaFPField.getOffset(), T0);       // get addr of top java frame from JNIEnv
     asm.emitSUBFC (S0, FP, S0);                                                 // S0 <- offset from current FP
     // AIX -4, LINUX - 8
-    asm.emitSTW(S0, JNI_GLUE_FRAME_SIZE + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP);  // store offset at end of glue frame
+    asm.emitSTW(S0, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP);  // store offset at end of glue frame
 
     // BRANCH TO THE PROLOG FOR THE JNI FUNCTION
     VM_ForwardReference frNormalPrologue = asm.emitForwardBL();
@@ -1182,7 +1218,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // stuck (and blocked) in native C, ie. GC starts scanning the threads stack at that frame.
     
     // AIX -4, LINUX -8
-    asm.emitLInt (T3, JNI_GLUE_FRAME_SIZE + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP); // load offset from FP to top java frame
+    asm.emitLInt (T3, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP); // load offset from FP to top java frame
     asm.emitADD  (T3, FP, T3);                                    // T3 <- address of top java frame
     asm.emitSTAddr(T3, VM_Entrypoints.JNITopJavaFPField.getOffset(), T2);     // store TopJavaFP back into JNIEnv
 
@@ -1211,7 +1247,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     }
 
     // pop frame
-    asm.emitADDI(FP, JNI_GLUE_FRAME_SIZE, FP);
+    asm.emitADDI(FP, glueFrameSize, FP);
 
     // load return address & return to caller
     // T0 & T1 (or F1) should still contain the return value

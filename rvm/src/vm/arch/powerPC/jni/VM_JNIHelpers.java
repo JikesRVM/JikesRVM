@@ -93,9 +93,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, AIX_VARARG);
 
-    //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+    //-#elif RVM_WITH_SVR4_ABI
     VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
+    //-#elif RVM_WITH_MACH_O_ABI
+    VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
+    return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, OSX_DOTARG);
     //-#endif
   }
 
@@ -117,9 +120,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, AIX_VARARG);
 
-    //-#elif RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+    //-#elif RVM_WITH_SVR4_ABI 
     VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
+    //-#elif RVM_WITH_MACH_O_ABI
+    VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
+    return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, OSX_DOTARG);
     //-#endif
   }
 
@@ -215,6 +221,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
+  //-#if !RVM_WITH_MACH_O_ABI
   private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, VM_PragmaNoInline {
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
@@ -297,6 +304,77 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     return varargAddress;
 
   }
+  //-#else   // RVM_WITH_MACH_O_ABI
+  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, VM_PragmaNoInline {
+
+
+    // get the FP for this stack frame and traverse 2 frames to get to the glue frame
+    VM_Address currentfp = VM_Magic.getFramePointer(); 
+    VM_Address gluefp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    VM_Address gluecallerfp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    // compute the offset into the spill area of the native caller frame, 
+    // skipping the args which are not part of the arguments for the target method
+
+    // VM.sysWrite("pushVarArgToSpillArea:  var arg at " + 
+    //             VM.intAsHexString(varargAddress) + "\n");
+ 
+    VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+
+    int argSize = 0;
+
+    // The the arguments that fit in registers (r3-r10) have been
+    // saved in the spill area of the glue frame Any remaining
+    // parameters are stored in the frame of the caller of the glue method.
+
+    int registerBlock = (1+LAST_OS_PARAMETER_GPR-FIRST_OS_PARAMETER_GPR) *
+      BYTES_IN_ADDRESS;
+    
+
+    for (int i=0; i<argCount; i++) {
+      if (argTypes[i].isDoubleType() || argTypes[i].isLongType())
+        argSize += 2 * BYTES_IN_ADDRESS;
+      else
+        argSize +=  BYTES_IN_ADDRESS;
+    }
+
+    // The first 3 or 4 registers contain the JNIEnvironment ptr,
+    // class id, method id, object instance. These are *not* passed to
+    // the Java method itself:
+    
+    VM_Address targetAddress = gluefp.add(STACKFRAME_HEADER_SIZE+
+                                          ((skip4Args?4:3))* BYTES_IN_ADDRESS);
+
+    int spillRequiredAtOffset = registerBlock -
+      ((skip4Args?4:3))* BYTES_IN_ADDRESS;
+
+    if (argSize > spillRequiredAtOffset) {
+      VM_Word word;
+      int targetOffset = 0;
+      int srcOffset = 0;
+      // gcc puts the extra var arg information is 14 words into the caller
+      // frame: 3 for standard header, 8 register spill, and 3
+      // unknown.
+      
+      VM_Address srcAddress = gluecallerfp.add(14 * BYTES_IN_ADDRESS);
+
+      for (targetOffset = spillRequiredAtOffset;
+           targetOffset <= argSize;
+           srcOffset += BYTES_IN_ADDRESS, targetOffset += BYTES_IN_ADDRESS) {
+        word = VM_Magic.getMemoryWord(srcAddress.add(srcOffset));
+        VM_Magic.setMemoryWord(targetAddress.add(targetOffset), word);
+      }
+    }
+
+
+    // At this point, all the vararg values should be in the spill area in the caller frame
+    // return the address of the beginning of the vararg to use in invoking the target method
+    return targetAddress;
+  }
+  //-#endif
 
   /**
    * Common code shared by the JNI functions CallStatic<type>MethodV
@@ -370,6 +448,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   public static final int JVALUE_ARG  = 2;         // javlue
   public static final int SVR4_VARARG = 3;         // Linux/PPC SVR4 vararg
   public static final int AIX_VARARG  = 4;         // AIX vararg
+  public static final int OSX_DOTARG  = 5;         // Darwin normal
 
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
@@ -415,7 +494,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     Object[] argObjectArray;
     
     switch (argtype) {
-      //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
+      //-#if RVM_WITH_SVR4_ABI
     case SVR4_DOTARG:
       // argAddress is the glue frame pointer
       argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
@@ -430,7 +509,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       break;
       //-#endif
       //-#if RVM_WITH_MACH_O_ABI
+    case SVR4_DOTARG:
     case SVR4_VARARG:
+      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
+      break;
+    case OSX_DOTARG:
       argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
       break;
       //-#endif
@@ -520,7 +603,6 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   //
   // -- Feng
   //
-  // XXX CJH TODO:
   static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, VM_Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
