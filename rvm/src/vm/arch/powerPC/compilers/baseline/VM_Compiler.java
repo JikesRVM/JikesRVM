@@ -1958,9 +1958,9 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_invokevirtual(VM_Method methodRef) {
     int methodRefParameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     int objectOffset = (methodRefParameterWords << 2) - 4;
+    emitDynamicLinkingSequence(methodRef); // leaves method offset in T2
     asm.emitL   (T0, objectOffset,      SP); // load this
     VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0); // load TIB
-    emitDynamicLinkingSequence(methodRef); // leaves method offset in T2
     asm.emitLX  (T2, T2, T1);  
     asm.emitMTLR(T2);
     genMoveParametersToRegisters(true, methodRef);
