@@ -2690,7 +2690,17 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	  \${IMAGE} -DRVM_BOOTIMAGE=\"${BOOTIMAGE_STR}\" \
 	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
 
-	\${BOOTER_CXX} -Wno-float-equal \
+#	f=${SCRATCH_DIRECTORY_STR}/gcc-sys.C-flags
+#	touch \$f
+#        gcc_vers=\$(\${BOOTER_CC} --version | sed -n -e '1s/^[^23]*\\([23]\\)/\\1/p' )
+#	case $gcc_vers in
+#	    3.3|3.3.*)
+#		SYS_C_FLAGS=-Wno-missing-noreturn
+#	esac
+#	
+#	SYS_C_FLAGS=\$(< \$f)
+	# -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1
+	\${BOOTER_CXX} -Wno-missing-noreturn \
 	  -c -I${SCRATCH_DIRECTORY_STR} \
 	  -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
 
