@@ -60,9 +60,6 @@ interface OPT_IRGenOptions {
   /** Control on constant folding during IR generation */
   static final boolean CF_DOUBLECMP = true;
 
-  /** Control on using byte code annotations during IR generation */
-  static final boolean BC_ANNOTATIONS = true;
-
   //////////////////////////////////////////
   // Debugging support (messaging controls)
   //////////////////////////////////////////
