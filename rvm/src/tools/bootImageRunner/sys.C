@@ -781,7 +781,7 @@ extern "C" void processTimerTick(void) {
     unsigned *processors = *(unsigned **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
-    for (int i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
+    for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
       // During how many ticks has this VM_Processor ignored 
       // a thread switch request? 
       int val = (*(int *)((char *)processors[i] + 
