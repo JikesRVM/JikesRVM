@@ -21,6 +21,7 @@ import com.ibm.JikesRVM.opt.*;
  *
  * @author Bowen Alpern
  * @author Derek Lieber
+ * PFS added calls to set HPM settings and start counting.
  */
 public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
@@ -260,6 +261,16 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (cpuAffinity != NO_CPU_AFFINITY)
       VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+
+    //-#if RVM_WITH_HPM
+    // set up HPM settings for current virtual processor
+    if (VM_HardwarePerformanceMonitors.enabled()) {
+      if (VM.TraceThreads)      
+	trace("VM_Scheduler.boot()","call to sysHPMsetSettings() and sysHPMstartCounting()\n");
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMsetSettingsIP);
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
+    }
+    //-#endif
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
