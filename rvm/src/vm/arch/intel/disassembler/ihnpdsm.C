@@ -192,12 +192,12 @@ static const TABLE reg16[] =  {
 /* 32-bit register names                                                    */
 /****************************************************************************/
 static const TABLE reg32[] =  {
-    TinitShort("T0"),
-    TinitShort("S0"),
-    TinitShort("T1"),
+    TinitShort("eax"),
+    TinitShort("ecx"),
+    TinitShort("edx"),
     TinitShort("ebx"),
-    TinitShort("SP"),
-    TinitShort("FP"),
+    TinitShort("esp"),
+    TinitShort("ebp"),
     TinitShort("PR"),
     TinitShort("JTOC"),
     0
