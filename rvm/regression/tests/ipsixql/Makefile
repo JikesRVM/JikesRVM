@@ -26,7 +26,7 @@ endif
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 $(WORKING)/william.pdom:	$(WORKING)
-	echo $(ipsixql_HOME) ;  cp -f $(BENCH_SOURCE_PATH)/william.pdom $(WORKING)/william.pdom
+	 cp -f $(BENCH_SOURCE_PATH)/william.pdom $(WORKING)/william.pdom
 
 sanity: 	$(WORKING)/william.pdom sanity-check-rule
 
