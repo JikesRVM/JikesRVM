@@ -47,17 +47,13 @@ extern "C" int sched_yield();
 #include <sched.h>
 #endif
 
-#elif __CYGWIN__
-
 /* AIX/PowerPC */
 #else
 #include <sys/cache.h>
 #include <sys/ioctl.h>
 #endif
 
-#ifndef __CYGWIN__
 #include <sys/shm.h>        /* disclaim() */
-#endif
 #include <strings.h>        /* bzero() */
 #include <sys/mman.h>       /* mmap & munmap() */
 #include <sys/shm.h>
@@ -378,11 +374,6 @@ sysMkDir(char *name)
 extern "C" int
 sysBytesAvailable(int fd)
    {
-#if __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else
    int count = 0;
    if (ioctl(fd, FIONREAD, &count) == -1)
       {
@@ -391,7 +382,6 @@ sysBytesAvailable(int fd)
       }
 // fprintf(SysTraceFile, "sys: available fd=%d count=%d\n", fd, count);
    return count;
-#endif
    }
 
 extern "C" int sysSyncFile(int fd) {
@@ -573,8 +563,6 @@ sysWriteBytes(int fd, char *buf, int cnt)
        fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
        sysExit(1);
        }
- #elif __CYGWIN__
-    fprintf(SysErrorFile, "vm: skipping call to incinterval\n");
  #else
     // fetch system timer
     //
@@ -678,9 +666,6 @@ sysWriteBytes(int fd, char *buf, int cnt)
       #elif RVM_FOR_IA32
       numpc = get_nprocs_conf();
       #endif
-    #elif __CYGWIN__
-      fprintf(SysTraceFile, "\nuntested system call: sysNumProcessors()\n");
-      numpc = 1; // bogus.
     #else
       numpc = _system_configuration.ncpus;
     #endif
@@ -1126,14 +1111,9 @@ sysFree(void *location)
 // Zero a range of memory bytes.
 //
 extern "C" void
-sysZero(void *dst, int cnt)
-   {
-#ifdef __CYGWIN__
-   bzero((char*)dst, cnt);
-#else
+sysZero(void *dst, int cnt) {
    bzero(dst, cnt);
-#endif
-   }
+}
 
 // Zero a range of memory pages.
 // Taken:    start of range (must be a page boundary)
@@ -1155,11 +1135,7 @@ sysZeroPages(void *dst, int cnt)
    // Disadvantage: more page faults during collection, at least until
    //               steady state working set is achieved
    //
-#ifdef __CYGWIN__
-   bzero((char*)dst, cnt);
-#else
    bzero(dst, cnt);
-#endif
    #endif
 
    #if (STRATEGY == 2)
@@ -1409,8 +1385,6 @@ sysMAdvise(char *start, char *length, int advice)
    {
 #ifdef __linux__
    return -1; // unimplemented in Linux
-#elif __CYGWIN__
-   return -1; // unimplemented in Cygwin
 #else
    return madvise(start, (size_t)(length), advice);
 #endif
@@ -1566,10 +1540,6 @@ sysNetRemoteHostName(int internetAddress, char *buf, int limit)
       buf[i] = name[i];
       }
    return -1;
-#elif __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
 #else
    hostent      results; memset(&results, 0, sizeof(results));
    hostent_data data;    memset(&data, 0, sizeof(data));
@@ -1602,15 +1572,6 @@ sysNetRemoteHostName(int internetAddress, char *buf, int limit)
 //           -1: addresses didn't fit, buffer too small
 //           -2: network error
 //
-#ifdef __CYGWIN__
-extern "C" int
-sysNetHostAddresses(char *hostname, char **buf, int limit) 
-  {
-     fprintf(SysTraceFile, "\nunimplemented system call: sysNetHostAddresses\n");
-     sysExit(1);                  
-  }
-#endif
-
 #ifdef _AIX
 extern "C" int
 sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
@@ -1697,11 +1658,6 @@ sysNetSocketCreate(int isStream)
 extern "C" int
 sysNetSocketPort(int fd)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else   
    sockaddr_in info;
    #ifdef IBM_AIX
    int len;
@@ -1718,7 +1674,6 @@ sysNetSocketPort(int fd)
       }
 // fprintf(SysTraceFile, "sys: socket %d using port %d\n", fd, MANGLE16(info.sin_port));
    return MANGLE16(info.sin_port);
-#endif
    }
    
 // Obtain local address associated with a socket.
@@ -1728,11 +1683,6 @@ sysNetSocketPort(int fd)
 extern "C" int
 sysNetSocketLocalAddress(int fd)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else   
    sockaddr_in info;
    #ifdef IBM_AIX
    int len;
@@ -1749,7 +1699,6 @@ sysNetSocketLocalAddress(int fd)
       }
 // fprintf(SysTraceFile, "sys: socket %d using address %d\n", fd, MANGLE32(info.sin_addr.s_addr));
    return MANGLE32(info.sin_addr.s_addr);
-#endif
    }
    
 // Obtain family associated with a socket.
@@ -1759,11 +1708,6 @@ sysNetSocketLocalAddress(int fd)
 extern "C" int
 sysNetSocketFamily(int fd)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else   
    sockaddr_in info;
    #ifdef IBM_AIX
    int len;
@@ -1780,7 +1724,6 @@ sysNetSocketFamily(int fd)
       }
 // fprintf(SysTraceFile, "sys: socket %d using family %d\n", fd, info.sin_family);
    return info.sin_family;
-#endif
    }
    
 // Make a socket into a "listener" so we can later accept() connections on it.
@@ -1811,11 +1754,6 @@ sysNetSocketListen(int fd, int backlog)
 extern "C" int
 sysNetSocketBind(int fd, int family, unsigned int localAddress, unsigned int localPort)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else
    sockaddr_in address;
 
    memset(&address, 0, sizeof(address));
@@ -1831,7 +1769,6 @@ sysNetSocketBind(int fd, int family, unsigned int localAddress, unsigned int loc
    
 // fprintf(SysTraceFile, "sys: bind %d to %d.%d.%d.%d:%d\n", fd, (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, localPort & 0x0000ffff);
    return 0;
-#endif
    }
 
 // Associate a remote address and port with a socket.
@@ -1848,11 +1785,6 @@ sysNetSocketBind(int fd, int family, unsigned int localAddress, unsigned int loc
 //
 extern "C" int
 sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else
    int interruptsThisTime = 0;
    for (;;) {
        sockaddr_in address;
@@ -1907,7 +1839,6 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
 
        return 0;
    }
-#endif
 }
 
 // Wait for connection to appear on a socket.
@@ -1920,11 +1851,6 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
 //
 extern "C" int
 sysNetSocketAccept(int fd, void *connectionObject) {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-   return 0;
-#else
    int interruptsThisTime = 0;
    int connectionFd = -1;
    sockaddr_in info;
@@ -1985,7 +1911,6 @@ sysNetSocketAccept(int fd, void *connectionObject) {
    }
 
    return connectionFd;
-#endif
 }
 
 // Set "linger" option for a socket.
@@ -2025,10 +1950,6 @@ sysNetSocketLinger(int fd, int enable, int timeout)
 extern "C" int
 sysNetSocketNoDelay(int fd, int enable)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-#else
    int value = enable;
 
 
@@ -2036,7 +1957,6 @@ sysNetSocketNoDelay(int fd, int enable)
    int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
    if (rc == -1) fprintf(SysErrorFile, "vm: TCP_NODELAY on %d failed (errno=%d)\n", fd, errno);
    return rc;
-#endif
    }
 
 // Enable non-blocking i/o on this socket.
@@ -2050,10 +1970,6 @@ sysNetSocketNoDelay(int fd, int enable)
 extern "C" int
 sysNetSocketNoBlock(int fd, int enable)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-#else
    int value = enable;
 
 // fprintf(SysTraceFile, "sys: noblock socket=%d value=%d\n", fd, value);
@@ -2064,7 +1980,6 @@ sysNetSocketNoBlock(int fd, int enable)
       return -1;
       }
    return 0;
-#endif
    }
 
 // Close a socket.
@@ -2076,10 +1991,6 @@ sysNetSocketNoBlock(int fd, int enable)
 extern "C" int
 sysNetSocketClose(int fd)
    {
-#ifdef __CYGWIN__
-   fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   sysExit(-1);
-#else
 // fprintf(SysTraceFile, "sys: close socket=%d\n", fd);
 
    // shutdown (disable sends and receives on) socket then close it
@@ -2100,7 +2011,6 @@ sysNetSocketClose(int fd)
 
    sysClose(fd);
    return -2; // shutdown (and possibly close) error
-#endif
    }
 
 // Test list of sockets to see if an i/o operation would proceed without blocking.

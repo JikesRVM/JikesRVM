@@ -25,22 +25,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __CYGWIN__
-#include <libgen.h> // basename()
-#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/signal.h>
 #include <strings.h> /* bzero */
+#include <libgen.h>     /* basename */
 #ifdef __linux__
 #include <asm/cache.h>
 #include <ucontext.h>
 #include <signal.h>
-//#define NGPRS 32 // wrong on IA32 -- dave
-//#define NFPRS  0
-#elif __CYGWIN__
 #else
 #include <sys/cache.h>
 #include <sys/context.h>
@@ -472,18 +467,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 
   return Arguments;
 }
-
-#ifdef __CYGWIN__
-// is a shell builtin, but doesn't seem to be in C lib.
-static char*
-basename (char* name) {
-  char* base = name;
-  while (*name) 
-    if ((*name++ == '/')||(name[-1] == '\\')||(name[-1] == ':'))
-      base = name;
-  return base;
-}
-#endif
 
 /*
  * Parse command line arguments to find those arguments that 

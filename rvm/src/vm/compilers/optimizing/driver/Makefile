@@ -24,9 +24,9 @@ $(GEN_FILES_DIR)/OPT_Options.java:	OPT_Options.template \
 					MasterOptionsTemplate.template \
 					$(BOOLEAN_DAT_FILES) \
 					$(VALUE_DAT_FILES)
-	$(HOST_JAVA) -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` \
+	$(HOST_JAVA) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate OPT_Options.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_Options.java` \
+	$(GEN_FILES_DIR)/OPT_Options.java \
         BOOLEAN_DAT_FILES="$(BOOLEAN_DAT_FILES)" \
 	VALUE_DAT_FILES="$(VALUE_DAT_FILES)" \
 	MYTYPE="OPT_Options"

@@ -274,7 +274,6 @@ integer RVM_FOR_IA32=0     # also implies linux
 #
 integer RVM_FOR_AIX=0	   # also implies ppc
 integer RVM_FOR_LINUX=0	   # 
-integer RVM_FOR_CYGWIN=0   # 
 
 # Here are the choices for compiler components and extensions.
 # Note: baseline compiler is always built into bootimage: its presence is not controlled by any flags.
@@ -842,12 +841,6 @@ function emitMakefile
    print ""
    print "$HOST_JIKES_STR1 = $JIKES"
    print ""
-   if ((RVM_FOR_CYGWIN)); then 
-     print "HOST_JAVA_PATH_ADJUST = cygpath -p -w"
-   else
-     print "HOST_JAVA_PATH_ADJUST = echo"
-   fi
-   print ""
    print "HOST_JAVA_HOME = $HOST_JAVA_HOME"
    print "HOST_JAVA = $HOST_JAVA"
    print "HOST_JAVAC = $HOST_JAVAC"
@@ -1085,12 +1078,8 @@ function emitCopier
    
    # Make the preprocessor
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/preprocessor && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-if ((RVM_FOR_CYGWIN)); then 
-   print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles.exe $BUILD_DIRECTORY_STR/jbuild.prep"
-else
    print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles $BUILD_DIRECTORY_STR/jbuild.prep"
    print ''
-fi
 
    print 'FILES_HAVE_CHANGED=0'
 
@@ -1776,9 +1765,7 @@ function emitImageLinker
 
    BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
 
-   if (( RVM_FOR_CYGWIN )); then
-      BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m \\\`cygpath -p -w $BOOTIMAGE_MAP_STR\\\`"
-   elif (( GENERATE_MAP )); then
+   if (( GENERATE_MAP )); then
       BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m $BOOTIMAGE_MAP_STR"
    fi
    
@@ -1809,17 +1796,10 @@ function emitImageLinker
    # script to generate InterfaceDeclaration.h
    #
    print "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
-    if (( RVM_FOR_CYGWIN)); then
-       print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR\
-             -classpath \`cygpath -p -w .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\`\
-             GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
-		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
-     else
-       print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
-             -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
-             GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
-		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
-   fi
+   print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR -Xms200M -Xmx200M\
+          -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+          GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
+	  $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
    print ""
 
    print "cd $BOOTIMAGE_WRITER_DIR_STR"
@@ -1926,11 +1906,6 @@ function emitBooterLinker
 		print '   exit 1'
 		print 'fi'
 	fi
-   elif (( RVM_FOR_CYGWIN )); then
-	print 'if [[ `uname` != CYGWIN_NT-5.0 ]]; then'
-	print '   print "please run me on CYGWIN"'
-	print '   exit 1'
-	print 'fi'
    fi
    print""
 
@@ -1939,9 +1914,6 @@ function emitBooterLinker
    if (( RVM_FOR_AIX )); then
       print '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a $JAL_BUILD/libjpninet.a'
       print '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.a $JAL_BUILD/libjpnexec.a'
-   elif (( RVM_FOR_CYGWIN )); then
-      # skip this step
-      print
    else
 #jleuner 2002/06/08
 #trying to pass GNU_CLASSPATH to the compiler didn't work
@@ -1996,11 +1968,6 @@ function emitBooterLinker
 	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""
 
 	 print 'CCLIBS="-ldl"'
-         print 'IMAGE='
-   elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""
-
-	 print 'CCLIBS=""'
          print 'IMAGE='
    fi
    print ""
@@ -2085,26 +2052,6 @@ function emitBooterLinker
       print "cd $SCRATCH_DIRECTORY_STR &&\
 	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o sys.o bootThread.o libvm.o\
                                    disasm.o ihnpdsm.o \$CCLIBS"
-      print 'print "(booter linked)"'
-      print ""
-
-
-   elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BOOTIMAGE_STR\\\"\
-		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C"
-      print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
-      print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/bootThread.o bootThread.S"
-      print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
-		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
-		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
-      print "cd $SCRATCH_DIRECTORY_STR &&\
-	    \$BOOTER_CC -o $BOOTER RunBootImage.o sys.o bootThread.o libvm.o \$CCLIBS"
       print 'print "(booter linked)"'
       print ""
 

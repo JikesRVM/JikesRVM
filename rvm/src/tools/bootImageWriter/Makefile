@@ -35,7 +35,7 @@ UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 
 $(UTIL_KLUDGE_JAR):		$(JAL_ROOT)/support/lib/rvmrt.jar
 	cd $(SCRATCH_DIR); unzip -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
-	cd $(SCRATCH_DIR); $(HOST_JAR) cvf `$(HOST_JAVA_PATH_ADJUST) $@` $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
+	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
 	@print -n "(built workaround zip) "
 
 #
@@ -55,17 +55,16 @@ $(UTIL_KLUDGE_JAR):		$(JAL_ROOT)/support/lib/rvmrt.jar
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
 #   VERBOSE_ARG = command-line argument for verbose host jdk options
 $(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter.class $(UTIL_KLUDGE_JAR)
-	$(HOST_JAVA) -Xbootclasspath/p:`$(HOST_JAVA_PATH_ADJUST) $(UTIL_KLUDGE_JAR)` \
+	$(HOST_JAVA) -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
 	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
-	   -classpath `$(HOST_JAVA_PATH_ADJUST) \
-			$(SCRATCH_DIR):$(RVM_REPOSITORIES)` \
+	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \
 	   BootImageWriter\
-	   -classpath `$(HOST_JAVA_PATH_ADJUST) $(RVM_REPOSITORIES)`\
-	   -n `$(HOST_JAVA_PATH_ADJUST) $(RVM_BOOTIMAGE_CLASSES)`\
-	   -o `$(HOST_JAVA_PATH_ADJUST) $(RVM_BOOTIMAGE)`\
-	   $(ALLOC_ADVICE_INFO)\
+	   -classpath $(RVM_REPOSITORIES) \
+	   -n $(RVM_BOOTIMAGE_CLASSES) \
+	   -o $(RVM_BOOTIMAGE) \
+	   $(ALLOC_ADVICE_INFO) \
 	   $(RVM_BOOTIMAGE_COMPILER_ARGS) \
 	   $(RVM_BOOTIMAGE_WRITER_ARGS) \
 	   $(IMAGE_ADDRESS_ARG)

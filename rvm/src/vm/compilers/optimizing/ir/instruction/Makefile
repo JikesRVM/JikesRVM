@@ -11,7 +11,7 @@ default:		$(GEN_FILES_DIR)/OPT_Operator.java \
 			$(GEN_FILES_DIR)/OPT_OperatorNames.java \
 			$(GEN_FILES_DIR)/InstructionFormats.RAW
 
-GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` GenerateFromTemplate 
+GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath $(SCRATCH_DIR) GenerateFromTemplate 
 
 # make trickiness to allow generation of HIR/LIR without specifying an MIR.
 # used in the opt compiler on JikesBT configuration
@@ -31,31 +31,31 @@ RVMPACKAGE = com.ibm.JikesRVM.
 
 $(GEN_FILES_DIR)/OPT_Operator.java: OPT_Operator.template  OperatorList.dat InstructionFormatList.dat $(ARCH_OPS) $(ARCH_IFS)
 	$(GENERATE) OPT_Operator.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_Operator.java` \
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
+	$(GEN_FILES_DIR)/OPT_Operator.java \
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 
 $(GEN_FILES_DIR)/OPT_Operators.java: OPT_Operators.template OperatorList.dat InstructionFormatList.dat CommonOperands.dat $(ARCH_OPS) $(ARCH_IFS)
 	$(GENERATE) OPT_Operators.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_Operators.java`\
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)` \
+	$(GEN_FILES_DIR)/OPT_Operators.java \
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
+	ARCH_IF_LIST=$(ARCH_IFS) \
 	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 
 $(GEN_FILES_DIR)/OPT_OperatorNames.java:	OPT_OperatorNames.template OperatorList.dat $(ARCH_OPS)
 	$(GENERATE) OPT_OperatorNames.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/OPT_OperatorNames.java` \
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
+	$(GEN_FILES_DIR)/OPT_OperatorNames.java \
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
 	ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 
 $(GEN_FILES_DIR)/InstructionFormats.RAW: InstructionFormats.template OperatorList.dat InstructionFormatList.dat CommonOperands.dat $(ARCH_OPS) $(ARCH_IFS)
 	$(GENERATE) InstructionFormats.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)` \
+	$(GEN_FILES_DIR)/InstructionFormats.RAW \
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
+	ARCH_IF_LIST=$(ARCH_IFS) \
 	VERIFY_INSTRUCTION_FORMATS=""  ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
@@ -63,27 +63,27 @@ $(GEN_FILES_DIR)/InstructionFormats.RAW: InstructionFormats.template OperatorLis
 ## TODO FIX these three rules!!
 uncheckedInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`
+	$(GEN_FILES_DIR)/InstructionFormats.RAW\
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
+	ARCH_IF_LIST=$(ARCH_IFS)
 	VERIFY_INSTRUCTION_FORMATS="" ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
 
 warnInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`\
+	$(GEN_FILES_DIR)/InstructionFormats.RAW\
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
+	ARCH_IF_LIST=$(ARCH_IFS)\
 	VERIFY_INSTRUCTION_FORMATS="warn" ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW
 
 fatalInstructionFormat:	
 	$(GENERATE) InstructionFormats.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/InstructionFormats.RAW`\
-	ARCH_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IR_DIR)` \
-	ARCH_IF_LIST=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`\
+	$(GEN_FILES_DIR)/InstructionFormats.RAW\
+	ARCH_IR_DIR=$(ARCH_IR_DIR) \
+	ARCH_IF_LIST=$(ARCH_IFS) \
 	VERIFY_INSTRUCTION_FORMATS="fatal" ARCHITECTURE=$(ARCHITECTURE) \
 	INSTRFMTPKG=com.ibm.JikesRVM.opt.ir RVMPKG=$(RVMPACKAGE)
 	./splitInstructionFormats.perl $(GEN_FILES_DIR) $(GEN_FILES_DIR)/InstructionFormats.RAW

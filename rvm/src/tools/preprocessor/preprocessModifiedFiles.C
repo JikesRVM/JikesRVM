@@ -30,13 +30,11 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>     /* strcmp */
-#ifndef __CYGWIN__
 #include <libgen.h>     /* basename */
-#endif
 #include <unistd.h>     /* unlink */
 #include <stdlib.h>     /* exit */
 #include <sys/stat.h>   /* stat */
-#if (defined __linux__) || (defined __CYGWIN__)
+#if (defined __linux__) 
 #include <limits.h> /* xxx_MAX */
 #else
 #include <sys/limits.h> /* xxx_MAX */
@@ -78,9 +76,6 @@ void reviseState();
 void printState(FILE *fout, char *directive, char *line);
 int  scan(char *line, int *value1);
 int  eval(char *p);
-#ifdef __CYGWIN__
-static char* basename (char* name);
-#endif
 
 // Types of tokens returned by scan().
 //
@@ -571,16 +566,3 @@ eval(char *cursor)
    }
    return match ? VV_TRUE : VV_FALSE;
    }
-
-
-#ifdef __CYGWIN__
-// is a shell builtin, but doesn't seem to be in C lib.
-static char*
-basename (char* name) {
-  char* base = name;
-  while (*name) 
-    if ((*name++ == '/')||(name[-1] == '\\')||(name[-1] == ':'))
-      base = name;
-  return base;
-}
-#endif

@@ -12,7 +12,7 @@ ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction
 
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
-GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` GenerateFromTemplate
+GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath $(SCRATCH_DIR) GenerateFromTemplate
 
 TABLES_JAVA=$(SCRATCH_DIR)/OPT_InstructionFormatTables.java
 TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class
@@ -42,10 +42,10 @@ $(VM_ASM_JAVA):
 	$(SED) s/\\\<INSTRUCTION\\\>/byte/g $(GEN_FILES_DIR)/VM_Assembler.java > $(VM_ASM_JAVA)
 
 $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
-	$(GENERATE) OPT_InstructionFormatTables.template `$(HOST_JAVA_PATH_ADJUST) $(TABLES_JAVA)` FORMAT_FILE=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`
+	$(GENERATE) OPT_InstructionFormatTables.template $(TABLES_JAVA) FORMAT_FILE=$(ARCH_IFS)
 
 $(OPCODE_JAVA):		OPT_OperatorFormatTables.template $(ARCH_OPS)
-	$(GENERATE) OPT_OperatorFormatTables.template `$(HOST_JAVA_PATH_ADJUST) $(OPCODE_JAVA)` OPERATOR_FILE=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_OPS)`
+	$(GENERATE) OPT_OperatorFormatTables.template $(OPCODE_JAVA) OPERATOR_FILE=$(ARCH_OPS)
 
 $(SCRATCH_DIR)/com/ibm/JikesRVM/%.java:	%.fake
 	cp $< $@
@@ -57,7 +57,7 @@ $(SCRATCH_DIR)/GenerateAssembler.java:	GenerateAssembler.java
 
 $(GEN_FILES_DIR)/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
 	$(JCOMPILE) -d $(SCRATCH_DIR) $(SRCS) $(SCRATCH_DIR)/GenerateAssembler.java
-	$(HOST_JAVA) -cp `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)` -DgenerateToDir=`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)` GenerateAssembler
+	$(HOST_JAVA) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
 
 clean:
 	rm -f $(FAKE_SRC) $(FAKE_CLS)

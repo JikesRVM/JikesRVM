@@ -62,46 +62,6 @@ avoid it until further notice.
 \item {\tt ksh}. This must be installed in {\tt /bin/ksh}.
 \end{itemize}
 
-\subsubsection{Win32 and Cygwin/IA32}
-Currently this option for running the Jikes RVM is barely, if at all,
-functional. 
-It is not currently being maintained or tested. You are encouraged to 
-skip this section and don't even think about running the Jike RVM on
-Win32 with  
-cygwin.
-
-If you're still reading, you are probably an enterprising hacker that is
-interested in getting this configuration up an running.  More power to
-you! We'd like to hear your progress.
-
-In addition to the software mentioned above, to install, build, and
-run the Jikes RVM on a Win32/Cygwin Intel environment, you will need 
-\begin{itemize}
-\item an Intel Architecture 32 bit processor
-\item a Win32 operating system (we have only tried it on
-Microsoft\copyright\ Windows\copyright\ 2000).
-\item Cygwin. You can download this from 
-\xlink{{\tt \CygwinURL}} {\CygwinURL}. (We used dll version 1.1.8).
-\item The system has run in 256MB on Windows 2000; we have not established
-a lower bound.
-\item The IBM Developer Kit (at least version 2.1.3).  You can download this from
-\xlink{{\tt \WinJdkURL}} {\WinJdkURL}.
-\item {\tt ksh}.  One alternative is {\tt pdksh} from 
-\xlink{{\tt \pdkshURL}} {\pdkshURL}.
-\end{itemize}
-
-Some issues with this platform include:
-
-\begin{itemize}
-\item We haven't managed to successfully install a handler for hardware traps,
-so the first hardware exception (e.g., a {\tt NullPointerException}) will cause
-an ugly core dump.
-\item Spaces in directory names aren't handled by jconfigure and the
-other scripts.  Use cygwin's mount command to avoid them (in
-particular the config file assumes that
-C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
-\end{itemize}
-
 \AIXPPCJikesTMFooter
 
 \JavaTMFooter
@@ -255,14 +215,6 @@ setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 \end{verbatim}
 
-For a Cygwin-Intel environment, the  exports
-would be replaced with the following:
-
-\begin{verbatim}
-setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
-setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
-\end{verbatim}
-
 These two variables point to the same file when the type of system  
 doing the build is the same as where  you are going 
 the execute the Jikes RVM. To cross build a system
@@ -285,8 +237,8 @@ variables in this file will be picked up by the installation scripts.
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
 whether or not the platform will support SMP-builds of Jikes RVM. 
-For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_AIX, or
-RVM\_FOR\_CYGWIN to be 1.  For architecture define either
+For operating system, define one of RVM\_FOR\_LINUX or RVM\_FOR\_AIX
+to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR to 0 (SMP supported) or 1 (SMP not
 supported).  The following are the typical settings for

@@ -14,11 +14,11 @@ JBURG_DIR  = $(SCRATCH_DIR)
 all:	$(GEN_FILES_DIR)/ir.brg $(GEN_FILES_DIR)/com/ibm/JikesRVM/OPT_BURS_STATE.java
 
 $(GEN_FILES_DIR)/ir.brg: $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/instruction/OperatorList.dat $(MIR_LIR2MIR_DIR)/LIR2MIR.rules ir.template
-	$(HOST_JAVA) -classpath `$(HOST_JAVA_PATH_ADJUST) $(SCRATCH_DIR)`\
+	$(HOST_JAVA) -classpath $(SCRATCH_DIR)\
 	GenerateFromTemplate ir.template \
-	`$(HOST_JAVA_PATH_ADJUST) $(GEN_FILES_DIR)/ir.brg` \
-	ARCHITECTURE_IR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(MIR_IR_DIR)`\
-	ARCHITECTURE_LIR2MIR_DIR=`$(HOST_JAVA_PATH_ADJUST) $(MIR_LIR2MIR_DIR)`
+	$(GEN_FILES_DIR)/ir.brg \
+	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR)\
+	ARCHITECTURE_LIR2MIR_DIR=$(MIR_LIR2MIR_DIR)
 
 $(GEN_FILES_DIR)/com/ibm/JikesRVM/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/ir.brg burg.template
 	(cd $(GEN_FILES_DIR) && $(JBURG_DIR)/jburg -p BURS ir.brg > $(ARCH_DIR).tmp)

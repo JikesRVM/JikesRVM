@@ -28,10 +28,6 @@
 #include <pthread.h>
 #endif
 
-#ifdef __CYGWIN__
-#include <w32api/windows.h>
-#endif
-
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
@@ -88,8 +84,6 @@ boot (int ip, int jtoc, int pr, int sp)
   return bootThread (ip, jtoc, pr, sp);
 }
 
-
-#ifdef __linux__
 #include <ihnpdsm.h>
 extern "C" PARLIST *Disassemble(
   char *pHexBuffer,                /* output: hex dump of instruction bytes  */
@@ -485,7 +479,6 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   pthread_mutex_unlock( &exceptionLock );
 
 }
-#endif
 
 
 
@@ -494,13 +487,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
    #define ANNOUNCE(message)
    #define ANNOUNCE_TICK(message)
 
-void 
-#ifdef __CYGWIN__
-softwareSignalHandler (int signo)
-#else
-softwareSignalHandler (int signo, siginfo_t * si, void *context)
-#endif
-{
+void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
 
   if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
 
@@ -650,16 +637,12 @@ createJVM (int vmInSeparateThread)
 
   if (lib_verbose)
   {
-    #if (defined __linux__)
-       fprintf(SysTraceFile, "IA32 linux build");
-       #if (defined __linuxsmp__)
-         fprintf(SysTraceFile, " for SMP\n");
-       #else
-         fprintf(SysTraceFile, "\n");
-       #endif
-    #elif (defined __CYGWIN__)
-       fprintf(SysTraceFile, "IA32 CYGWIN build\n");
-    #endif
+  fprintf(SysTraceFile, "IA32 linux build");
+  #if (defined __linuxsmp__)
+    fprintf(SysTraceFile, " for SMP\n");
+  #else
+    fprintf(SysTraceFile, "\n");
+  #endif
   }
 
   /* open and mmap the image file. 
@@ -681,9 +664,7 @@ createJVM (int vmInSeparateThread)
 
 
   void *bootRegion = 0;
-
   // allocate region 1 and 2
-#ifdef __linux__  
   bootRegion = mmap ((void *) bootImageAddress, roundedImageSize,
 		     PROT_READ | PROT_WRITE | PROT_EXEC,
 		     MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
@@ -692,16 +673,6 @@ createJVM (int vmInSeparateThread)
     fprintf (SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
     return 1;
   }
-#else
-  /* cygwin mmap doesn't appear to really work, so use win32 VirtualAlloc */
-  void *bootRegion = VirtualAlloc(bootImageAddress, roundedImageSize,
-			       MEM_RESERVE | MEM_COMMIT,
-			       PAGE_EXECUTE_READWRITE);
-  if (bootRegion != bootImageAddress) {
-    fprintf (SysTraceFile, "%s: error allocating boot image region\n", me);
-    return 1;
-  }
-#endif
 
   /* read image into memory segment */
   int cnt = fread (bootRegion, 1, actualImageSize, fin);
@@ -788,7 +759,6 @@ createJVM (int vmInSeparateThread)
   }
 
   /* install a stack for hardwareTrapHandler() to run on */
-#ifdef __linux__
   stack_t stack;
    
   memset (&stack, 0, sizeof stack);
@@ -849,23 +819,6 @@ createJVM (int vmInSeparateThread)
     fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
     return 1;
   }
-
-#else
-  struct sigaction action;
-  
-  fprintf (SysErrorFile, "%s: Warning, no hardware trap handler is installed\n", me);
-
-  if (true) {
-    fprintf (SysErrorFile, "%s: Warning, no timer tick handler is installed\n", me);
-  } else {
-    /* install software trap handler */
-    action.sa_handler = &softwareSignalHandler;
-    if (sigaction (SIGALRM, &action, 0)) {	/* catch timer ticks (so we can timeslice user level threads) */
-      fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
-      return 1;
-    }
-  }
-#endif
 
   /* set up initial stack frame */
   int ip   = bootRecord->ipRegister;

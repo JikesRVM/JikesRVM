@@ -61,20 +61,11 @@ eval `cat $ENV{RVM_BUILD}/environment.pl`;
 
 # Create additional arguments: image, class path
 #
-if (`uname` eq "CYGWIN_NT-5.0") {
-  # need to kludge path to image because we use win32 api calls to mmap it.
-  # other paths can be left in "unix" form; we use cygwin api calls for them.
-  push @ARGS, "-X:i=`cygpath -p -w $ENV{RVM_BUILD}/RVM.image`";
-  push @ARGS, "-X:vmClasses=`cygpath -p -w $ENV{RVM_BUILD}/RVM.classes`";
-} 
-else {
-  push @ARGS, "-X:i=$ENV{RVM_BUILD}/RVM.image";
-  if (-e "$ENV{RVM_BUILD}/javamath.jar") {
-    push @ARGS, "-X:vmClasses=$ENV{RVM_BUILD}/RVM.classes/jksvm.jar:$ENV{JAL_ROOT}/support/lib/jazzlib.jar:$ENV{RVM_BUILD}/javamath.jar:$ENV{RVM_BUILD}/RVM.classes/rvmrt.jar";
-  }
-  else {
+push @ARGS, "-X:i=$ENV{RVM_BUILD}/RVM.image";
+if (-e "$ENV{RVM_BUILD}/javamath.jar") {
+  push @ARGS, "-X:vmClasses=$ENV{RVM_BUILD}/RVM.classes/jksvm.jar:$ENV{JAL_ROOT}/support/lib/jazzlib.jar:$ENV{RVM_BUILD}/javamath.jar:$ENV{RVM_BUILD}/RVM.classes/rvmrt.jar";
+} else {
     push @ARGS, "-X:vmClasses=$ENV{RVM_BUILD}/RVM.classes/jksvm.jar:$ENV{JAL_ROOT}/support/lib/jazzlib.jar:$ENV{RVM_BUILD}/RVM.classes/rvmrt.jar";
-  }
 }
 
 sub runCommand {
