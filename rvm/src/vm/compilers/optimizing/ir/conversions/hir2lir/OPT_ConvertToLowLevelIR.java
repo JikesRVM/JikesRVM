@@ -825,7 +825,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                          AC(Offset.fromIntZeroExtend(dictId << LOG_BYTES_IN_INT)), 
                                          new OPT_LocationOperand(VM_TypeReference.Int), 
                                          TG()));
-    testBB.appendInstruction(Move.create(INT_2ADDRSigExt, offset, offset.copy()));
+    testBB.appendInstruction(Unary.create(INT_2ADDRSigExt, offset, offset.copy()));
     testBB.appendInstruction(IfCmp.create(REF_IFCMP, null, 
                                           offset.copy(),
                                           AC(Address.fromIntSignExtend(NEEDS_DYNAMIC_LINK)),
