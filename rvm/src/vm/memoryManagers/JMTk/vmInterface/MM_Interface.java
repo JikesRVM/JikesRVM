@@ -178,7 +178,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * built, this method is called a second time, from VM.boot, when the 
    * VM is starting.
    *
-   * @param p The <code>VM_Processor</code> object.
+   * @param proc   The <code>VM_Processor</code> object.
    */
   public static final void setupProcessor(VM_Processor proc)
     throws InterruptiblePragma {
@@ -243,7 +243,6 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   /**
    * Write barrier for putstatic operations.
    *
-   * @param ref the object which is the subject of the putfield
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
    */
@@ -285,12 +284,12 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * Take appropriate write barrier actions when a series of
    * references are copied (i.e. in an array copy).
    *
-   * @param src The source object
+   * @param src       The source object
    * @param srcOffset The offset of the first source address, in
    * bytes, relative to <code>src</code> (in principle, this could be
    * negative).
-   * @param tgt The target object
-   * @param tgtIdx The offset of the first target address, in bytes
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
    * relative to <code>tgt</code> (in principle, this could be
    * negative).
    * @param bytes The size of the region being copied, in bytes.
@@ -693,7 +692,6 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param bytes The size of the allocation in bytes
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
-   * @param scalar Is this allocation scalar (true) or array (false)?
    * @param copy Is this object a copy (true) or a new instance (false)?
    * @param allocator The MMTk allocator to be used (if allocating)
    * @param from The source object from which to copy (if copying)
@@ -785,7 +783,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
 
   /**
    * Allocate a stack
-   * @param n The number of bytes to allocate
+   * @param bytes    The number of bytes to allocate
    * @param immortal  Is the stack immortal and non-moving?
    * @return The stack
    */ 
