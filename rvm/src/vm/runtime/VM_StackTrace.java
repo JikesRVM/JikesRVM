@@ -24,8 +24,11 @@ import com.ibm.JikesRVM.PrintLN;
  */
 public class VM_StackTrace implements VM_Constants {
 
-  static int verboseTraceIndex = 0;
-
+  /** Index of the next stack trace; incremented every time we create one
+      afresh. */
+  static int lastTraceIndex = 0; 
+  public final int traceIndex;
+  
   /** How many frames are "too many" to display fully? Let's say that zero is
       undefined, any negative number means "no limit" and a positive number is
       a defined limit.   This replaces the former use of a constant.in the
@@ -50,6 +53,7 @@ public class VM_StackTrace implements VM_Constants {
    * Create a trace of the current call stack
    */
   public VM_StackTrace(int skip) {
+    traceIndex = ++lastTraceIndex; // set for good for this method.
     // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false, skip+1);
     compiledMethods = new VM_CompiledMethod[numFrames];
@@ -58,9 +62,11 @@ public class VM_StackTrace implements VM_Constants {
     
     // Debugging trick: print every nth stack trace created
     if (VM.VerboseStackTracePeriod > 0) {
-      if ((verboseTraceIndex++ % VM.VerboseStackTracePeriod) == 0) {
+      if (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0) {
 	VM.disableGC();
+	VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex);
 	VM_Scheduler.dumpStack();
+	VM.sysWriteln("END Verbosely dumping stack at time of creating VM_StackTrace # ", traceIndex, " ]");
 	VM.enableGC();
       }
     }
@@ -173,7 +179,8 @@ public class VM_StackTrace implements VM_Constants {
   /**
    * Print the stack trace.  This is a safety net around print4Real(), a
    * private method that does the actual work.  Here we just catch any stray
-   * OutOfMemoryError exceptions that we didn't think of when we wrote this
+   * OutOfMemoryError or other Throwables that we didn't think of when we
+   * wrote this 
    * code.
    *
    * @param out PrintLN to print on.
@@ -184,28 +191,37 @@ public class VM_StackTrace implements VM_Constants {
    *  methods used internally to gather the stack trace.
    */
   public void print(PrintLN out, Throwable trigger) {
+    boolean printed = false;
     try {
+      VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ", traceIndex);
       print4Real(out, trigger);
+      printed = true;
     } catch (OutOfMemoryError e) {
       trigger.tallyOutOfMemoryError();
-      printDegradingToVMSysWrite(out, trigger);
+      VM.sysWriteln("VM_StackTrace.print(): OutOfMemoryError while printing stack trace # ", traceIndex);
     } catch (Throwable e) {
       trigger.tallyWeirdError();
-      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* random exception while displaying the stack trace");
+      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* Throwable while displaying stack trace # ", traceIndex);
       VM.sysWrite("    The Throwable was: ");
       e.sysWrite();
-      if (out.isVMSysWriteln())
-	VM.sysWriteln("I can't go on; this is too strange.");
-      else {
-	VM.sysWrite("The original trigger was: ");
-	print4Real(PrintContainer.readyPrinter, trigger);
+      VM.sysWriteln("VM_StackTrace.print(): And its stack trace was:");
+      e.sysWriteStackTrace();
+    } finally {
+      if (printed)
+	return;			// all is well
+      if (out.isSysWrite()) {
+	VM.sysWriteln("[ Aborting stack trace # ",  traceIndex, " ; already was printing with sysWrite()]");
+	return;
       }
-      
+      VM.sysWriteln("[ Back to printing stack trace # ", traceIndex,
+		    "; using sysWrite(), this time ]");
+      print4Real(PrintContainer.readyPrinter, trigger);
     }
   }
 
+
   public void printDegradingToVMSysWrite(PrintLN out, Throwable trigger) {
-    if (out.isVMSysWriteln()) {
+    if (out.isSysWrite()) {
       VM.sysWriteln("VM_StackTrace.print() got an *UNEXPECTED* out-of-memory error while displaying the stack trace, via its low-level facilities.  I give up; what you see is what you got.");
       /* Now, if we were triggered by an uncaught exception, processing will
        * continue normally. */
@@ -312,7 +328,7 @@ public class VM_StackTrace implements VM_Constants {
 	    // out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
 	  } catch (OutOfMemoryError e) {
 	    trigger.tallyOutOfMemoryError();
-	    if (out.isVMSysWriteln()) {
+	    if (out.isSysWrite()) {
 	      VM.sysWriteln("\t... <some stack frames elided (also, Out of memory)>");
 	    } else {
 	      VM.sysWriteln("VM_StackTrace.print4Real(): Caught OutOfMemoryError while trying to display how many stack frames are omitted (elided).");
@@ -339,7 +355,7 @@ public class VM_StackTrace implements VM_Constants {
       catch (OutOfMemoryError e) {
 	trigger.tallyOutOfMemoryError();
 
-	if (out.isVMSysWriteln()) {
+	if (out.isSysWrite()) {
 	  VM.sysWriteln("\tat <one undisplayable stack frame (Out of Memory) >");
 	} else {
 	  try {
