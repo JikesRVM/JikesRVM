@@ -989,7 +989,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static boolean mightBeTIB(ObjectReference obj)
     throws InlinePragma, UninterruptiblePragma {
-    return Space.isImmortal(obj);
+    return !obj.isNull() && Space.isImmortal(obj);
   }
 
   /**

@@ -536,7 +536,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * prining (PAGES, MB, PAGES_MB, or MB_PAGES).
    */
   private static void printPages(int pages, int mode) {
-    double mb = Conversions.pagesToMBytes(pages);
+    double mb = (double) (pages<<LOG_BYTES_IN_PAGE) / (double) (1<<20);
     switch (mode) {
     case PAGES: Log.write(pages); Log.write(" pgs"); break; 
     case MB:    Log.write(mb); Log.write(" Mb"); break;
