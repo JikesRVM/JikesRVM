@@ -20,6 +20,7 @@ this will reflect only those command line arguments that have preceded
 the {\tt printOptions} directive.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\xname{cmdline_vm_options}%
 \subsection{VM Command-Line Options}
 \label{section:vmoptions}
 
@@ -33,6 +34,7 @@ generate the following output:
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\xname{cmdline_aos_options}%
 \subsection{Adaptive Optimization System (AOS) Command-Line Options}
 
 To see a description of the command-line options to the AOS, use 
@@ -81,6 +83,7 @@ will have no effect.  For example to optimize compile a method at
 optimization level 1, use the {\tt -X:irc:O1} option. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\xname{cmdline_baseline_compiler_options}%
 \subsection{Baseline Compiler Command-Line Options}
 \label{section:nonadaptive:baseline:options}
 
@@ -96,6 +99,7 @@ Note that when the initial runtime compiler is the baseline compiler,
 the {\tt -X:irc} and the {\tt -X:base} command line prefixes are equivalent.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\xname{cmdline_opt_compiler_options}%
 \subsection{Optimizing Compiler Command-Line Options}
 \label{section:nonadaptive:optimizing:options}
 
@@ -111,12 +115,66 @@ Note that when the initial runtime compiler is the optimizing compiler,
 the {\tt -X:irc} and the {\tt -X:opt} command line prefixes are equivalent.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{MMTk Command-Line Options}
-\label{section:mmtkoptions}
+\xname{cmdline_mmtk_options}%
+\subsection{MMTk Command-Line Options}%
+\label{section:mmtkoptions}%
+  \index{Memory Sizes}%
+  \index{Units of Memory Size}%
+  \index{Megabytes (Mebibytes)}%
+  \index{Kilobytes (Kibibytes)}
+
+\subsubsection{Memory Sizes}
+
+Many MMTk options take memory sizes as their arguments.  The syntax is
+  \Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{}, a number followed by an
+  optional unit.
+
+  A \Mmeta{unit} of memory size may be specified by any
+      one of the following: 
+      \begin{description}
+      %% Uncomment this line later, when bigger machines show up.
+      % \item[\texttt{P}] Petabytes (Pebibytes)
+      \item[\texttt{T}] Terabytes (Tebibytes)
+      \item[\texttt{G}] Gigabytes (Gibibytes)
+      \item[\texttt{M}] Megabytes (Mebibytes)
+      \item[\texttt{pages}] Virtual memory pages of 4096 bytes
+      \item[\texttt{K}] Kilobytes (Kibibytes)
+      \item[\textit{no unit}] Bytes
+      \end{description}
+
+      \textbf{INCOMPATIBLE CHANGE:} %
+      \begin{small}
+      Historically, the memory size options used a mix of default
+      units: Megabytes (Mebibytes), Kilobytes (Kibibytes), and ``Log 2 of the frequency (in bytes).''  
+      In particular, omitting the \Mmeta{unit} caused Jikes RVM's \texttt{-Xms}
+      and \texttt{-Xmx} options to assume units of megabytes, and none of
+      the other memory size options allowed any units to be
+      specified.  As
+      of just before the 2.3.4 release (December 20, 2004), this has
+      changed, so that all memory sizes are parsed the same way.  The
+      absence of a unit always means bytes. for compatibility
+      with the Sun and IBM JDKs and for internal consistency.
+      \end{small}
+
+      As of October, 2004, parts of MMTk were still internally using a
+      32-bit integer to represent memory sizes, which means that even on a
+      64-bit platform you couldn't actually specify a five-gigabyte heap size,
+      yet.  {\small (This would be pretty easy to fix, and will be fixed as soon as
+      somebody wants to work with memory sizes of two gigabytes or larger.)}
+
+      The \Mmeta{number} part of a memory size is not restricted to being an
+      integer.  You can use extended-precision floating point values and
+      hexadecimal values.  So, all three of the following arguments are
+      equivalent:
+      \texttt{-Xms0.5G} , \texttt{-Xms0x20000000} , and \texttt{-Xms512M} .
+
+
+\subsubsection{List of MMTk Options}
+
 
 To see descriptions of command-line options to MMTk,
-use the {\tt help} option with the {\tt -X:gc:} prefix 
-to generate the following output:
+use the {\tt help} option with the {\tt -X:gc:} prefix.
+%to generate the following output:
 
 Automatic generation of MMTk options into the userguide is not
 currently supported.  A fix is expected soon.
@@ -125,7 +183,23 @@ currently supported.  A fix is expected soon.
 %\input{mmtk_options}
 \T \end{tiny}
 
+In addition to the MMTk options prefixed with {\tt -X:gc:}, the
+following two options also affect MMTk:
+
+\begin{description}
+
+\item[{\tt -Xms\Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{}}]
+set the initial heap size to \Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{} bytes
+
+\item[{\tt -Xmx\Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{}}]
+set the maximum heap size to \Mmeta{number}\Mlsq{}\Mmeta{unit}\Mrsq{} bytes
+
+\end{description}
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\xname{cmdline_adding_options}%
 \subsection{Adding Jikes RVM Non-Standard Command-Line Options}
 The supporting code for virtually all of the non-standard
 Jikes\TMweb{} RVM command-line options (and much of the content of
@@ -134,7 +208,8 @@ option description files.  Each of the major sub-systems (VM, AOS, GC,
 Baseline Compiler, Optimzing Compiler) has its own set of description
 files and corresponding name space of options. 
 
-At a high level, adding a new command line argument can be done just
+MMTk options are handled specially.  For the rest of the system, at a
+high level, adding a new command line argument  can be done just 
 by adding a new record to the appropriate option description file.  We
 strongly discourage adding command line options by any other means as
 doing so leads to more work in maintaining the help messages, option
