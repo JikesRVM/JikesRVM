@@ -1955,32 +1955,38 @@ public class BootImageWriter extends BootImageWriterMessages
         case VM_Statics.TIB:
           if (VM.BuildFor32Addr) {
 	    ival = VM_Statics.getSlotContentsAsInt(jtocSlot);
-	    int addr = BootImageMap.getImageAddress(bootImageAddress, BootImageMap.getObject(ival));
-	    contents = VM.intAsHexString(addr) + pad;
+	  } else { 
+	    ival = (int)VM_Statics.getSlotContentsAsLong(jtocSlot); // just a cookie 
 	  }
-	  else { 
-	    ival = (int) VM_Statics.getSlotContentsAsLong(jtocSlot); // just a cookie 
-	    int addr = BootImageMap.getImageAddress(bootImageAddress, BootImageMap.getObject(ival));
-	    contents = VM.intAsHexString(addr) + pad;
+	  int addr = ival;
+	  if (ival != 0) {
+	    Object jdkObject = BootImageMap.getObject(ival);
+	    if (jdkObject instanceof VM_CodeArray) {
+	      jdkObject = ((VM_CodeArray)jdkObject).getBacking();
+	    }
+	    addr = BootImageMap.getImageAddress(bootImageAddress, jdkObject);
 	  }
+	  contents = VM.intAsHexString(addr) + pad;
+
 	  switch (description) {
-	    case VM_Statics.STRING_LITERAL: category = "literal";
-	                                    details  = "\"" +
-					      ((String) BootImageMap.getObject(ival)).
-					      replace('\n', ' ') +
-					      "\"";
-  					      break;
-	    case VM_Statics.REFERENCE_FIELD:  category = "field  ";
-	                                      details  = getRvmStaticFieldName(jtocSlot);
-	                                      break;
-	    case VM_Statics.TIB:              category = "tib   ";
-	                                      VM_Type type = findTypeOfTIBSlot(jtocSlot);
-					      details = (type == null) ? "?" : type.toString();
-	                                      break;
-	    case VM_Statics.METHOD:           category = "code   ";
-	                                      VM_CompiledMethod m = findMethodOfCode(BootImageMap.getObject(ival));
-					      details = (m == null) ? "<?>" : m.getMethod().toString();
-	                                      break;
+	  case VM_Statics.STRING_LITERAL: 
+	    category = "literal";
+	    details  = "\"" + ((String) BootImageMap.getObject(ival)).replace('\n', ' ') +"\"";
+	    break;
+	  case VM_Statics.REFERENCE_FIELD:  
+	    category = "field  ";
+	    details  = getRvmStaticFieldName(jtocSlot);
+	    break;
+	  case VM_Statics.TIB:
+	    category = "tib    ";
+	    VM_Type type = findTypeOfTIBSlot(jtocSlot);
+	    details = (type == null) ? "?" : type.toString();
+	    break;
+	  case VM_Statics.METHOD:
+	    category = "code   ";
+	    VM_CompiledMethod m = findMethodOfCode(BootImageMap.getObject(ival));
+	    details = m == null ? "<?>" : m.getMethod().toString();
+	    break;
 	  }
           break;
 	  
@@ -2008,8 +2014,8 @@ public class BootImageWriter extends BootImageWriterMessages
       if (compiledMethod != null) {
         VM_Method m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {
-          Object instructions = compiledMethod.getInstructions();
-          int code = BootImageMap.getImageAddress(bootImageAddress, instructions);
+          VM_CodeArray instructions = compiledMethod.getInstructions();
+          int code = BootImageMap.getImageAddress(bootImageAddress, instructions.getBacking());
           out.println(".     .          code     " + VM.intAsHexString(code) +
                       "          " + compiledMethod.getMethod());
         }
