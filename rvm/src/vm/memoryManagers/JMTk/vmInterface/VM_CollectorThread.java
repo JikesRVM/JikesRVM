@@ -374,7 +374,7 @@ public class VM_CollectorThread extends VM_Thread {
       } 
       
       /* wait for other collector threads to arrive here */
-      gcBarrier.rendezvous(5210);
+      rendezvous(5210);
       if (verbose > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
 
       /* final cleanup for initial collector thread */
@@ -395,7 +395,8 @@ public class VM_CollectorThread extends VM_Thread {
         /* clear the GC flags */
         Plan.collectionComplete();
         gcThreadRunning = false;
-      }
+      } // if designated thread
+      rendezvous(9999);
     }  // end of while(true) loop
     
   }  // run
