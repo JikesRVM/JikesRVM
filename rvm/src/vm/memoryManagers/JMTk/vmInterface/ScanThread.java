@@ -236,9 +236,13 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	
 	// following is for normal Java (and JNI Java to C transition) frames
 	compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	compiledMethod.setObsolete( false );
+	compiledMethod.setObsolete(false);
 	int compiledMethodType = compiledMethod.getCompilerType();
-	if (compiledMethodType == VM_CompiledMethod.TRAP) continue;
+	if (compiledMethodType == VM_CompiledMethod.TRAP) {
+	  ip = VM_Magic.getReturnAddress(fp);
+	  fp = VM_Magic.getCallerFramePointer(fp);
+	  continue;
+	}
 	VM_Method method = compiledMethod.getMethod();
 	
 	// initialize MapIterator for this frame
