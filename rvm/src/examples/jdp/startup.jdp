@@ -1,0 +1,9 @@
+# Use with arraymethod.java test to test minimal behaviour of jdp
+where
+step
+break VM_Statics.allocateSlot
+c
+listi
+help thread
+reg
+quit
