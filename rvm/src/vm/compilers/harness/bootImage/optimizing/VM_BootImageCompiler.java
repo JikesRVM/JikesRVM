@@ -28,8 +28,7 @@ class VM_BootImageCompiler {
       // Writing a boot image is a little bit special.  We're not really 
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
-
-      OPT_Compiler.setBootOptions( options );
+      OPT_Compiler.setBootOptions(options);
 
       // An unexpected error when building the opt boot image should be fatal
       options.ERRORS_FATAL = true; 
@@ -66,13 +65,14 @@ class VM_BootImageCompiler {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
-	VM.sysFail(msg);
+	System.exit(101);
       } else {
 	VM.sysWrite(msg);
       }
     } catch (VM_ResolutionException e) {
       String msg = "VM_BootImageCompiler: Failure during initialization: "+e+"\n";
-      VM.sysFail(msg);
+      e.printStackTrace();
+      System.exit(101);
     }
   }
 
@@ -94,7 +94,7 @@ class VM_BootImageCompiler {
       String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
-	VM.sysFail(msg);
+	System.exit(101);
       } else {
 	boolean printMsg = true;
 	if (e instanceof OPT_MagicNotImplementedException) {
