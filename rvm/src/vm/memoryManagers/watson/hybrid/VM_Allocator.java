@@ -45,7 +45,7 @@
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */  
 public class VM_Allocator extends VM_GCStatistics
-  implements VM_Constants, VM_Uninterruptible, VM_Callbacks.ExitMonitor {
+  implements VM_Constants, VM_Uninterruptible {
 
   static final boolean GCDEBUG_SCANTHREADS = false;
   /**
@@ -140,16 +140,6 @@ public class VM_Allocator extends VM_GCStatistics
     smallHeap.show();
     largeHeap.show();
     VM.sysWriteln("  Work queue buffer size = ", VM_GCWorkQueue.WORK_BUFFER_SIZE);
-  }
-
-
-  /**
-   * To be called when the VM is about to exit.
-   * @param value the exit value
-   */
-  public void notifyExit(int value) {
-      if (VM_Finalizer.finalizeOnExit) VM_Finalizer.finalizeAll();
-      printSummaryStatistics();
   }
 
   /**
@@ -447,7 +437,6 @@ public class VM_Allocator extends VM_GCStatistics
   static int     gcMajorCount = 0;  // major collections
   static int     majorCollectionThreshold;   // minimum # blocks before major collection
   static boolean gcInProgress = false;
-  static boolean outOfSmallHeapSpace = false;
   static boolean majorCollection = false;
   static boolean outOfLargeSpaceFlag = false;
   static boolean outOfMemoryReported = false;  // to make only 1 thread report OutOfMemory
@@ -483,18 +472,12 @@ public class VM_Allocator extends VM_GCStatistics
 
   /**
    * gc_getMatureSpace is called during Minor (Nursery) collections to get space
-   * for live Nursery objects being copied to Mature Space.  This is basically
-   * the allocate method of the non-copying mark-sweep allocator.
-   * return value = 0 ==> new chunk could not be obtained. This means we could not
-   * complete a minor collection & will cause an OutOfMemory error shutdown.
-   * <p>
-   * We Could Be Smarter Here, note that other collector threads may have space!!!
+   * for live Nursery objects being copied to Mature Space.
    */
-  public static VM_Address gc_getMatureSpace (int size) throws OutOfMemoryError {
+  public static VM_Address gc_getMatureSpace(int size) throws OutOfMemoryError {
     return VM_SegregatedListHeap.allocateFastPath(size);
   }
     
-
   // called by ONE gc/collector thread to copy any "new" thread objects
   // copies but does NOT enqueue for scanning
   static void gc_copyThreads ()  {
@@ -559,10 +542,6 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * Do Minor collection of Nursery, copying live nursery objects
    * into Mature/Fixed Space.  All collector threads execute in parallel.
-   * If any attempt to get space (see getMatureSpace) fails,
-   * outOfSmallHeapSpace is set and the Minor collection will be
-   * incomplete.  In this simple version of hybrid, this will cause
-   * an Out_Of_Memory failure.
    */
   static void gcCollectMinor () {
     // ASSUMPTIONS:
@@ -589,7 +568,6 @@ public class VM_Allocator extends VM_GCStatistics
       
       gcInProgress = true;
       majorCollection = false;
-      outOfSmallHeapSpace = false;
 
       // this gc thread copies own VM_Processor, resets processor register & processor
       // local allocation pointers (before copying first object to ToSpace)
@@ -627,11 +605,6 @@ public class VM_Allocator extends VM_GCStatistics
       gc_initProcessor();
     }
 
-    if (outOfSmallHeapSpace) {
-      VM_Scheduler.trace(" gcCollectMinor:", "outOfSmallHeapSpace after initProcessor, gcCount = ", gcCount);
-      return;
-    }
-
     // ALL GC THREADS IN PARALLEL
 
     // each GC threads acquires ptr to its thread object, for accessing thread local counters
@@ -662,11 +635,6 @@ public class VM_Allocator extends VM_GCStatistics
 
     gc_scanThreads();          // ALL GC threads compete to scan threads & stacks
 
-    if (outOfSmallHeapSpace) {
-      VM_Scheduler.trace("gcCollectMinor:", "out of memory after scanning statics & threads");
-      return;
-    }
-
     // This synchronization is necessary to ensure all stacks have been scanned
     // and all internal saved ip values have been updated before we scan copied
     // objects.  Because if we scan a VM_Method, and then update its code pointer
@@ -681,11 +649,6 @@ public class VM_Allocator extends VM_GCStatistics
     // scan modified old objects for refs->nursery objects
     gc_processWriteBuffers();
 
-    if (outOfSmallHeapSpace) {
-      VM_Scheduler.trace("gcCollectMinor:", "out of memory after processWriteBuffers");
-      return;
-    }
-
     // each GC thread processes work queue buffers until empty
     if (verbose >= 1) VM.sysWriteln("Emptying work queue");
     gc_emptyWorkQueue();
@@ -693,11 +656,6 @@ public class VM_Allocator extends VM_GCStatistics
     // have processor 1 record timestamp for end of scan/mark/copy phase
     if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
       gcScanningDoneTime = VM_Time.now();
-
-    if (outOfSmallHeapSpace) {
-      VM_Scheduler.trace("gcCollectMinor:", "out of memory after emptyWorkQueue");
-      return;
-    }
 
     // If counting or timing in VM_GCWorkQueue, save current counter values
     //
@@ -738,12 +696,6 @@ public class VM_Allocator extends VM_GCStatistics
 	gc_emptyWorkQueue();
 
       }
-
-      if (outOfSmallHeapSpace) {
-	VM_Scheduler.trace("gcCollectMinor:", "out of memory after finalization");
-	return;
-      }
-
     }  //  end of Finalization Processing
 
     // Each GC thread increments adds its wait times for this collection
@@ -1090,17 +1042,6 @@ public class VM_Allocator extends VM_GCStatistics
     if (verbose >= 1 && (myThread.gcOrdinal == 1))
       VM_Scheduler.trace("collect: after Minor Collection","smallHeap free memory = ",(int)smallHeap.freeMemory());
 
-    if (outOfSmallHeapSpace) {
-      if (myThread.gcOrdinal == 1) {
-	VM_Scheduler.trace("collect:","Out Of Memory - could not complete Minor Collection");
-	VM_Scheduler.trace("collect:","smallHeap free memory (before) = ", (int)freeBefore);
-	VM_Scheduler.trace("collect:","smallHeap free memory (after)  = ", (int)smallHeap.freeMemory());
-	smallHeap.reportBlocks();
-	outOfMemory(-1);
-      }
-      else return;   // quit - error
-    }
-    
     if (outOfLargeSpaceFlag || (smallHeap.freeBlocks() < majorCollectionThreshold)) {
       if (verbose >= 1 && myThread.gcOrdinal == 1) {
 	if (outOfLargeSpaceFlag)
@@ -1121,7 +1062,6 @@ public class VM_Allocator extends VM_GCStatistics
 			smallHeap.freeMemory());
 	}
 	majorCollection = false;
-	outOfSmallHeapSpace = false;
 	outOfLargeSpaceFlag = false;
 	gcInProgress    = false;
 	initGCDone      = false;
@@ -1161,88 +1101,10 @@ public class VM_Allocator extends VM_GCStatistics
    * @param scan should the copied object be enqueued for scanning?
    * @return the address of the Object in Mature Space
    */
-  static VM_Address copyAndScanObject ( VM_Address fromRef, boolean scan ) {
-
-    Object fromObj = VM_Magic.addressAsObject(fromRef);
-    int forwardingPtr = VM_AllocatorHeader.attemptToForward(fromObj);
-    VM_Magic.isync();   // prevent instructions moving infront of attemptToForward
-
-    if (VM_AllocatorHeader.stateIsForwardedOrBeingForwarded(forwardingPtr)) {
-      // if isBeingForwarded, object is being copied by another GC thread; 
-      // wait (should be very short) for valid ptr to be set
-      if (COUNT_COLLISIONS && VM_AllocatorHeader.stateIsBeingForwarded(forwardingPtr)) collisionCount++;
-      while (VM_AllocatorHeader.stateIsBeingForwarded(forwardingPtr)) {
-	forwardingPtr = VM_AllocatorHeader.getForwardingWord(fromObj);
-      }
-      VM_Magic.isync();  // prevent following instructions from being moved in front of waitloop
-      VM_Address toRef = VM_Address.fromInt(forwardingPtr & ~VM_AllocatorHeader.GC_FORWARDING_MASK);
-      if (VM.VerifyAssertions && !(VM_AllocatorHeader.stateIsForwarded(forwardingPtr) && validRef(toRef))) {
-	VM_Scheduler.traceHex("copyAndScanObject", "invalid forwarding ptr =",forwardingPtr);
-	VM.assert(false);  
-      }
-      return toRef;
-    }
-
-    // We are the GC thread that must copy the object, so do it.
-    VM_Address toRef;
-    Object toObj;
-    Object[] tib = VM_ObjectModel.getTIB(fromObj);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
-    if (VM.VerifyAssertions) VM.assert(VM_GCUtil.validObject(type));
-    if (type.isClassType()) {
-      VM_Class classType = type.asClass();
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
-      VM_Address toAddress = gc_getMatureSpace(numBytes);
-      if (toAddress.isZero()) {
-	// reach here means that no space was available for this thread
-        // in mature, noncopying space, therefore 
-	// 1. turn on outOfSmallHeapSpace
-        // 2. reset availablebits word to original value, which will be unmarked, and 
-        // 3. return original fromRef value - so calling code is unchanged.
-        // XXXX Might need sync here, but we don't think so.
-	VM_ObjectModel.writeAvailableBitsWord(fromObj, forwardingPtr);
-	outOfSmallHeapSpace = true;
-	return fromRef;
-      }
-      forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;     // set barrier bit 
-      toObj = VM_ObjectModel.moveObject(toAddress, fromObj, numBytes, classType, forwardingPtr);
-      toRef = VM_Magic.objectAsAddress(toObj);
-    } else {
-      VM_Array arrayType = type.asArray();
-      int numElements = VM_Magic.getArrayLength(fromObj);
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
-      VM_Address toAddress = gc_getMatureSpace(numBytes);
-      if (toAddress.isZero()) {
-	// reach here means that no space was available for this thread
-        // in mature, noncopying space, therefore
-	// 1. turn on outOfSmallHeapSpace
-        // 2. reset availablebits word to original value, which will be unmarked, and 
-        // 3. return original fromRef value - so calling code is unchanged.
-        // XXXX Might need sync here, but we don't think so.
-	VM_ObjectModel.writeAvailableBitsWord(fromObj, forwardingPtr);
-	outOfSmallHeapSpace = true;
-	return fromRef;
-      }
-      forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;     // set barrier bit 
-      toObj = VM_ObjectModel.moveObject(toAddress, fromObj, numBytes, arrayType, forwardingPtr);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeType) {
-	// sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
-	VM_Memory.sync(toAddress, numBytes);
-      }
-    }
-
-    VM_ObjectModel.initializeAvailableByte(toObj); // make it safe for write barrier to access barrier bit non-atmoically
-
-    VM_Magic.sync(); // make changes viewable to other processors 
-    
-    VM_AllocatorHeader.setForwardingPointer(fromObj, toObj);
-
-    if (scan) VM_GCWorkQueue.putToWorkBuffer(toRef);
-
-    return toRef;
-  } 
-
+  static VM_Address copyAndScanObject (VM_Address fromRef, boolean scan) {
+    if (VM.VerifyAssertions) VM.assert(nurseryHeap.refInHeap(fromRef));
+    return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
+  }
 
   /**
    * scan object or array for references - Minor Collections

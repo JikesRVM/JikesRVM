@@ -79,23 +79,16 @@
  *
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */
-
-
-public class VM_Allocator  extends VM_GCStatistics
-                           implements VM_Constants, 
-				     VM_GCConstants, 
-				     VM_Uninterruptible,
-				     VM_Callbacks.ExitMonitor, 
-				     VM_Callbacks.AppRunStartMonitor {
-
-  static int verbose = 0; // control chattering during progress of GC
+public class VM_Allocator extends VM_GCStatistics
+  implements VM_Constants, 
+	     VM_GCConstants, 
+	     VM_Uninterruptible {
 
   /**
-   * When true (the default), touch heap pages during startup to 
-   * avoid page fault overhead during timing runs.
+   * Control chattering during progress of GC
    */
-  static final boolean COMPILE_FOR_TIMING_RUN = true;     
-  
+  static int verbose = 0;
+
   /**
    * When true, causes each gc thread to measure accumulated wait times
    * during collection. Forces summary statistics to be generated.
@@ -120,9 +113,7 @@ public class VM_Allocator  extends VM_GCStatistics
   /**
    * Initialize for execution.
    */
-  static void boot (VM_BootRecord thebootrecord) {
-
-    bootrecord = thebootrecord;	
+  static void boot (VM_BootRecord bootrecord) {
     verbose = bootrecord.verboseGC;
 
     // smallHeapSize might not originally have been an even number of pages
@@ -139,13 +130,6 @@ public class VM_Allocator  extends VM_GCStatistics
     immortalHeap.attach(immortalSize);
     largeHeap.attach(largeSize);
 
-    if (COMPILE_FOR_TIMING_RUN) {
-      if (verbose >= 2) VM.sysWriteln("Touching toHeap, largeSpace, and fromHeap");
-      toHeap.touchPages();
-      // largeHeap.touchPages();
-      fromHeap.touchPages();
-    }
-
     fromHeap.reset();
 
     VM_GCUtil.boot();
@@ -153,7 +137,7 @@ public class VM_Allocator  extends VM_GCStatistics
  
     if (verbose >= 1) showParameter();
 
-  }  // boot()
+  }
 
   static void showParameter() {
       int np = VM_Scheduler.numProcessors;
@@ -172,23 +156,6 @@ public class VM_Allocator  extends VM_GCStatistics
   }
 
   /**
-   * To be called when the VM is about to exit.
-   * @param value the exit value
-   */
-  public void notifyExit(int value) {
-    printSummaryStatistics();
-  }
-
-  /**
-   * To be called when the application starts a run
-   * @param value the exit value
-   */
-  public void notifyAppRunStart(int value) {
-    VM.sysWrite("Clearing VM_Allocator statistics\n");
-    clearSummaryStatistics();
-  }
-
-  /**
    * Force a garbage collection. Supports System.gc() called from
    * application programs.
    */
@@ -203,12 +170,11 @@ public class VM_Allocator  extends VM_GCStatistics
   private static void gc1 (String why, int size) {
     if (verbose >= 2) VM.sysWriteln("\n", why, size);
 
-    if ( VM_Thread.getCurrentThread().isGCThread ) 
+    if (VM_Thread.getCurrentThread().isGCThread) 
       VM.sysFail("VM_Allocator: Garbage Collection Failure: GC Thread attempting to allocate during GC");
   
-    // notify GC threads to initiate collection, wait until done
     VM_CollectorThread.collect(VM_CollectorThread.collect);
-  }  // gc1
+  }
 
   public static boolean gcInProgress() {
     return gcInProgress;
@@ -221,7 +187,7 @@ public class VM_Allocator  extends VM_GCStatistics
    * @return the number of bytes
    */
   public static long totalMemory () {
-      return (smallHeapSize + largeHeap.size);    
+      return smallHeapSize + largeHeap.size;    
   }
   
   /**
@@ -234,7 +200,7 @@ public class VM_Allocator  extends VM_GCStatistics
     return fromHeap.freeMemory();
   }
 
-  /*
+  /**
    *  Includes freeMemory and per-processor local storage
    */
   public static long allSmallFreeMemory () {
@@ -264,7 +230,7 @@ public class VM_Allocator  extends VM_GCStatistics
     profileAlloc(region, size, tib); // profile/debug; usually inlined away to nothing
 
     return VM_ObjectModel.initializeScalar(region, tib, size);
-  }   // end of allocateScalar() 
+  }
   
 
   /**
@@ -291,7 +257,7 @@ public class VM_Allocator  extends VM_GCStatistics
     profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
 
     return VM_ObjectModel.initializeArray(region, tib, numElements, size);
-  }  // allocateArray
+  }
 
 
   /**
@@ -388,7 +354,6 @@ public class VM_Allocator  extends VM_GCStatistics
   // *************************************
   // implementation
   // *************************************
-  static final int      TYPE = 7;
 
   /** May this collector move objects during collction? */
   static final boolean movesObjects = true;
@@ -407,8 +372,6 @@ public class VM_Allocator  extends VM_GCStatistics
   private static boolean outOfMemoryReported = false;
   private static volatile boolean initGCDone = false;
   private static volatile boolean gcDone = false;
-  
-  static VM_BootRecord	 bootrecord;
   
   private static int smallHeapSize;  // total size of small object heaps = 2 * fromHeap.size
   private static VM_Heap bootHeap             = new VM_Heap("Boot Image Heap");   
@@ -434,7 +397,7 @@ public class VM_Allocator  extends VM_GCStatistics
 
   static void gcSetup ( int numSysThreads ) {
     VM_GCWorkQueue.workQueue.initialSetup(numSysThreads);
-  } // gcSetup
+  }
 
   /**
    * Print OutOfMemoryError message and exit.
@@ -460,10 +423,9 @@ public class VM_Allocator  extends VM_GCStatistics
       VM.sysWriteln("Specify a larger heap using -X:h=nnn command line argument");
       // call shutdown while holding the processor lock
       VM.shutdown(-5);
-    }
-    else {
+    } else {
       lock.release();
-      while( outOfMemoryReported == true );  // spin until VM shuts down
+      while(true);  // spin until VM shuts down
     }
   }
 
@@ -537,7 +499,7 @@ public class VM_Allocator  extends VM_GCStatistics
     VM_Address fp = VM_Magic.getFramePointer();
     VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
     VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-    VM_Thread.getCurrentThread().contextRegisters.setInnermost( caller_ip, caller_fp );
+    VM_Thread.getCurrentThread().contextRegisters.setInnermost(caller_ip, caller_fp);
  
     // BEGIN SINGLE GC THREAD SECTION - GC INITIALIZATION
 
@@ -796,8 +758,6 @@ public class VM_Allocator  extends VM_GCStatistics
   }  // collect
 
 
-
-
   /**
    * Internal method called by collector threads during collection to
    * get space in ToSpace for a live object that needs to be copied.
@@ -805,7 +765,7 @@ public class VM_Allocator  extends VM_GCStatistics
    * otherwise space is obtained directly from ToSpace using 
    * atomic compare and swap instructions.
    */
-  private static VM_Address gc_getToSpace(int size) {
+  static VM_Address gc_getMatureSpace(int size) {
     if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
       return VM_Chunk.allocateChunk2(size);
     } else {
@@ -826,60 +786,9 @@ public class VM_Allocator  extends VM_GCStatistics
    * @param scan should the object be scanned?
    * @return the address of the Object in ToSpace (as a reference)
    */
-  private static VM_Address copyAndScanObject (VM_Address fromRef, boolean scan) {
-
+  private static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) {
     if (VM.VerifyAssertions) VM.assert(fromHeap.refInHeap(fromRef));
-
-    Object fromObj = VM_Magic.addressAsObject(fromRef);
-    int forwardingPtr = VM_AllocatorHeader.attemptToForward(fromObj);
-    VM_Magic.isync();   // prevent instructions moving infront of attemptToForward
-
-    if (VM_AllocatorHeader.stateIsForwardedOrBeingForwarded(forwardingPtr)) {
-      // if isBeingForwarded, object is being copied by another GC thread; 
-      // wait (should be very short) for valid ptr to be set
-      if (COUNT_COLLISIONS && VM_AllocatorHeader.stateIsBeingForwarded(forwardingPtr)) collisionCount++;
-      while (VM_AllocatorHeader.stateIsBeingForwarded(forwardingPtr)) {
-	forwardingPtr = VM_AllocatorHeader.getForwardingWord(fromObj);
-      }
-      VM_Magic.isync();  // prevent following instructions from being moved in front of waitloop
-      VM_Address toRef = VM_Address.fromInt(forwardingPtr & ~VM_AllocatorHeader.GC_FORWARDING_MASK);
-      if (VM.VerifyAssertions && !(VM_AllocatorHeader.stateIsForwarded(forwardingPtr) && VM_GCUtil.validRef(toRef))) {
-	VM_Scheduler.traceHex("copyAndScanObject", "invalid forwarding ptr =",forwardingPtr);
-	VM.assert(false);  
-      }
-      return toRef;
-    }
-
-    // We are the GC thread that must copy the object, so do it.
-    Object[] tib = VM_ObjectModel.getTIB(fromObj);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
-    Object toObj;
-    VM_Address toRef;
-    if (VM.VerifyAssertions) VM.assert(VM_GCUtil.validObject(type));
-    if (type.isClassType()) {
-      VM_Class classType = type.asClass();
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
-      VM_Address region = gc_getToSpace(numBytes);
-      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
-      toRef = VM_Magic.objectAsAddress(toObj);
-    } else {
-      VM_Array arrayType = type.asArray();
-      int numElements = VM_Magic.getArrayLength(fromObj);
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
-      VM_Address region = gc_getToSpace(numBytes);
-      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeType) {  // conservatively includes all int/byte arrays
-	// must sync moved code instead of sync'ing chunks when full
-	int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-	VM_Memory.sync(toRef, dataSize);
-      }
-    }
-
-    VM_Magic.sync(); // make changes viewable to other processors 
-    VM_AllocatorHeader.setForwardingPointer(fromObj, toObj);
-    if (scan) VM_GCWorkQueue.putToWorkBuffer(toRef);
-    return toRef;
+    return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
 
   // called by ONE gc/collector thread to copy and "new" thread objects
@@ -951,7 +860,7 @@ public class VM_Allocator  extends VM_GCStatistics
 
 	VM_ScanObject.scanObjectOrArray(t.hardwareExceptionRegisters);
 
-	VM_ScanStack.scanStack( t, VM_Address.zero(), true );
+	VM_ScanStack.scanStack(t, VM_Address.zero(), true);
 	
 	continue;
       }
@@ -1067,8 +976,7 @@ public class VM_Allocator  extends VM_GCStatistics
   
     // setup the work queue buffers for this gc thread
     VM_GCWorkQueue.resetWorkQBuffers();
-    
-  }  //gc_initProcessor
+  }
 
 
   // scan a VM_Processor object to force "interior" objects to be copied, marked,
@@ -1076,10 +984,9 @@ public class VM_Allocator  extends VM_GCStatistics
   // write buffer is moved.
   //
   static void gc_scanProcessor () {
-
     VM_Processor   st = VM_Processor.getCurrentProcessor();
     // verify that processor copied out of FromSpace earlier
-    if (VM.VerifyAssertions) VM.assert( ! fromHeap.refInHeap(VM_Magic.objectAsAddress(st)));
+    if (VM.VerifyAssertions) VM.assert(!fromHeap.refInHeap(VM_Magic.objectAsAddress(st)));
 
     VM_Address oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
     VM_ScanObject.scanObjectOrArray(st);
@@ -1090,7 +997,7 @@ public class VM_Allocator  extends VM_GCStatistics
       st.modifiedOldObjectsMax = newbuffer.add(st.modifiedOldObjectsMax.diff(oldbuffer));
       st.modifiedOldObjectsTop = newbuffer.add(st.modifiedOldObjectsTop.diff(oldbuffer));
     }
-  }  // gc_scanProcessor
+  }
  
 
   // Process references in work queue buffers until empty.
@@ -1108,21 +1015,11 @@ public class VM_Allocator  extends VM_GCStatistics
       VM_ScanObject.scanObjectOrArray( ref );	   
       ref = VM_GCWorkQueue.getFromWorkBuffer();
     }
-  }  // gc_emptyWorkQueue 
-
-
+  }
 
 
   static boolean validForwardingPtr (VM_Address ref ) {
       return toHeap.refInHeap(ref);
-  }
-
-  // Somebody tried to allocate an object within a block
-  // of code guarded by VM.disableGC() / VM.enableGC().
-  //
-  private static void fail () {
-    VM.sysWrite("vm error: allocator/collector called within critical section\n");
-    VM.assert(false);
   }
 
   /*
@@ -1150,7 +1047,6 @@ public class VM_Allocator  extends VM_GCStatistics
   // all reachable object are marked and forwarded
   //
   static boolean processFinalizerListElement (VM_FinalizerListElement le) {
-
     VM_Address ref = le.value;
     if (fromHeap.refInHeap(ref)) {
       Object obj = VM_Magic.addressAsObject(ref);
@@ -1158,25 +1054,23 @@ public class VM_Allocator  extends VM_GCStatistics
 	// live, set le.value to forwarding address
 	le.move(VM_Magic.objectAsAddress(VM_AllocatorHeader.getForwardingPointer(obj)));
 	return true;
-      }
-      else {
+      } else {
 	// dead, mark, copy, and enque for scanning, and set le.pointer
 	le.finalize(copyAndScanObject(ref, true));
 	return false;
       }
-    }
-    else {
+    } else {
       if (VM.VerifyAssertions) VM.assert(largeHeap.refInHeap(ref));
-      if (largeHeap.isLive(ref))
+      if (largeHeap.isLive(ref)) {
 	return true;  
-      else {
+      } else {
 	largeHeap.mark(ref);
 	VM_GCWorkQueue.putToWorkBuffer(ref);
 	le.finalize(ref);
 	return false;
       }
     }
-  }  // processFinalizerListElement
+  } 
   
   // Called from WriteBuffer code for generational collectors.
   // Argument is a modified old object which needs to be scanned

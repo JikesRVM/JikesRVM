@@ -48,7 +48,7 @@
  */  
 public class VM_Allocator
   extends VM_GCStatistics
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible, VM_Callbacks.ExitMonitor {
+  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
 
   /**
    * When true (the default), VM_Processors acquire chunks of space from
@@ -121,10 +121,7 @@ public class VM_Allocator
   /**
    * Initialize for execution.
    */
-  static void boot (VM_BootRecord thebootrecord) { 
-
-    bootrecord = thebootrecord;	
-
+  static void boot (VM_BootRecord bootrecord) { 
     verbose = bootrecord.verboseGC;
 
     smallHeapSize = bootrecord.smallSpaceSize;
@@ -215,14 +212,6 @@ public class VM_Allocator
       if (PROCESSOR_LOCAL_MATURE_ALLOCATE) VM.sysWriteln("  Compiled with PROCESSOR_LOCAL_MATURE_ALLOCATE on ");	  
   }
 
-  /**
-   * To be called when the VM is about to exit.
-   * @param value the exit value
-   */
-  public void notifyExit(int value) {
-    printSummaryStatistics();
-  }
-  
   /**
    * Force a garbage collection. Supports System.gc() called from
    * application programs.
@@ -480,17 +469,11 @@ public class VM_Allocator
   // implementation
   // *************************************
   
-  static final int      TYPE = 6;  // identified this specific allocator/collector
-  
   /** Declares that this collector may move objects during collction */
   static final boolean movesObjects = true;
   
   /** Declares that this collector requires that compilers generate the write barrier */
   static final boolean writeBarrier = true;
-  
-  // VM_Type of int[], to detect arrays that (may) contain code
-  // and will thus require a d-cache flush before the code is executed.
-  static VM_Type arrayOfIntType;
   
   /**
    * Size of a processor local region of the heap used for local allocation without
@@ -505,9 +488,6 @@ public class VM_Allocator
    * as long as it is less than 4K, the unit of allocation in the large object heap.
    */
   static final int     SMALL_SPACE_MAX = 2048 + 1024 + 12;
-  
-  // size of buf to get before sysFail
-  private final static int     CRASH_BUFFER_SIZE = 1024 * 1024;
   
 
   static int nurserySize;    // Set at command line with "-X:nh=nnn" where nnn is in mega-bytes
@@ -526,10 +506,6 @@ public class VM_Allocator
   private static volatile boolean initGCDone = false;
   private static volatile boolean minorGCDone = false;
   private static volatile boolean majorGCDone = false;
-
-  static final boolean movesObject = true;
-  
-  static VM_BootRecord	 bootrecord;
 
   // Various heaps
   private static VM_Heap bootHeap = new VM_Heap("Boot Image Heap");   
@@ -1240,7 +1216,6 @@ public class VM_Allocator
    * atomic compare and swap instructions.
    */
   static VM_Address gc_getMatureSpace ( int size ) {
-    
     if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
       return VM_Chunk.allocateChunk2(size);
     } else {
@@ -1255,72 +1230,16 @@ public class VM_Allocator
    * Processes live objects in FromSpace that need to be marked, copied and
    * forwarded during collection.  Returns the new address of the object
    * in ToSpace.  If the object was not previously marked, then the
-   * invoking collector thread will do the copying and enqueue the
+   * invoking collector thread will do the copying and optionally enqueue the
    * on the work queue of objects to be scanned.
    *
    * @param fromObj Object in FromSpace to be processed
    * @param scan should the object be scanned?
    * @return the address of the Object in ToSpace (as a reference)
    */
-  static VM_Address copyAndScanObject (VM_Address fromRef, boolean scan) {
-
-    if (VM.VerifyAssertions) VM.assert(validFromRef( fromRef ));
-
-    Object fromObj = VM_Magic.addressAsObject(fromRef);
-    VM_Address toRef;
-    Object toObj;
-    int forwardingPtr = VM_AllocatorHeader.attemptToForward(fromObj);
-    VM_Magic.isync();   // prevent instructions moving infront of attemptToForward
-
-    if (VM_AllocatorHeader.stateIsForwardedOrBeingForwarded(forwardingPtr)) {
-      // if isBeingForwarded, object is being copied by another GC thread; 
-      // wait (should be very short) for valid ptr to be set
-      if (COUNT_COLLISIONS && VM_AllocatorHeader.stateIsBeingForwarded(forwardingPtr)) collisionCount++;
-      while (VM_AllocatorHeader.stateIsBeingForwarded(forwardingPtr)) {
-	forwardingPtr = VM_AllocatorHeader.getForwardingWord(fromObj);
-      }
-      VM_Magic.isync();  // prevent following instructions from being moved in front of waitloop
-      toRef = VM_Address.fromInt(forwardingPtr & ~VM_AllocatorHeader.GC_FORWARDING_MASK);
-      toObj = VM_Magic.addressAsObject(toRef);
-      if (VM.VerifyAssertions && !(VM_AllocatorHeader.stateIsForwarded(forwardingPtr) && VM_GCUtil.validRef(toRef))) {
-	VM_Scheduler.traceHex("copyAndScanObject", "invalid forwarding ptr =",forwardingPtr);
-	VM.assert(false);  
-      }
-      return toRef;
-    }
-
-    // We are the GC thread that must copy the object, so do it.
-    Object[] tib = VM_ObjectModel.getTIB(fromObj);
-    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
-    forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;     // set barrier bit 
-    if (VM.VerifyAssertions) VM.assert(VM_GCUtil.validObject(type));
-    if (type.isClassType()) {
-      VM_Class classType = type.asClass();
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
-      VM_Address region = gc_getMatureSpace(numBytes);
-      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
-      toRef = VM_Magic.objectAsAddress(toObj);
-    } else {
-      VM_Array arrayType = type.asArray();
-      int numElements = VM_Magic.getArrayLength(fromObj);
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
-      VM_Address region = gc_getMatureSpace(numBytes);
-      toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeType) {
-	  // sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
-	  int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-	  VM_Memory.sync(toRef, dataSize);
-      }
-    }
-    
-    VM_ObjectModel.initializeAvailableByte(toObj); // make it safe for write barrier to access barrier bit non-atmoically
-    VM_Magic.sync(); // make changes viewable to other processors 
-    
-    VM_AllocatorHeader.setForwardingPointer(fromObj, toObj);
-
-    if (scan) VM_GCWorkQueue.putToWorkBuffer(toRef);
-    return toRef;
+  private static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) {
+    if (VM.VerifyAssertions) VM.assert(validFromRef(fromRef));
+    return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
 
   // turn on the barrier bit
@@ -1602,8 +1521,8 @@ public class VM_Allocator
     
 
   static boolean validFromRef ( VM_Address ref ) {
-      return ( nurseryHeap.refInHeap(ref) ||
-	       (fromHeap.refInHeap(ref) && majorCollection));
+    return ( nurseryHeap.refInHeap(ref) ||
+	     (fromHeap.refInHeap(ref) && majorCollection));
   }
 
   static boolean validForwardingPtr ( VM_Address ref ) {
