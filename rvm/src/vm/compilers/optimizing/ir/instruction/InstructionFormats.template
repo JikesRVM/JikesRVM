@@ -29,7 +29,7 @@ import VM;
 /**
  * Abstract parent class of all InstructionFormat classes.
  * 
- * The header comment for (@link OPT_Instruction} contains 
+ * The header comment for {@link OPT_Instruction} contains 
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  *	
