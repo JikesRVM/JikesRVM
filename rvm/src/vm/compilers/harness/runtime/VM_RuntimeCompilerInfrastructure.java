@@ -151,14 +151,14 @@ public class VM_RuntimeCompilerInfrastructure
   public static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     double start = 0;
-    if (VM.BuildForAdaptiveSystem) {
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       start = updateStartAndTotalTimes(now);
     }
 
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
-    if (VM.BuildForAdaptiveSystem) {
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       double end = updateStartAndTotalTimes(now);
       double compileTime = (end - start) * 1000; // convert to milliseconds
@@ -176,7 +176,7 @@ public class VM_RuntimeCompilerInfrastructure
   public static VM_CompiledMethod jniCompile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     double start = 0;
-    if (VM.BuildForAdaptiveSystem) {
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       start = updateStartAndTotalTimes(now);
     }
@@ -188,7 +188,7 @@ public class VM_RuntimeCompilerInfrastructure
 		    " ... JNI]");
     }
 
-    if (VM.BuildForAdaptiveSystem) {
+    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       double end = updateStartAndTotalTimes(now);
       double compileTime = (end - start) * 1000; // convert to milliseconds
