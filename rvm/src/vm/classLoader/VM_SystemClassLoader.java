@@ -18,8 +18,16 @@ import java.net.URL;
 import java.io.*;
 
 /** 
- * Implements an object that functions as a system class loader.
+ * Implements an object that functions as the bootstrap class loader.
  * This class is a Singleton pattern.
+ *
+ * TODO: Perhaps this should be renamed one day to VM_BootstrapClassLoader.
+ * HOWEVER, under our current source code control system (CVS), it is a major
+ * hassle to rename files, especially if you want to preserve their history.
+ * Moreover, at least one of the core team members uses "rdist" to copy files
+ * among machines; leaving behind a class named VM_SystemClassLoader would
+ * be confusing at best.  (rdist is good at adding files and changing modified
+ * files, but not so good at deleting them.)   --Steve Augart, 24 March 2004
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -149,7 +157,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     }
   }
   
-  public String toString() { return "SystemCL"; }
+  public String toString() { return "BootstrapCL"; }
 
   private static HashMap zipFileCache;
     
