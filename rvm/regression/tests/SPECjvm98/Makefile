@@ -4,7 +4,8 @@
 include         $(RVM_BUILD)/Make.rules
 
 BENCH_NAME=SPECjvm98
-BENCH_HOME=/homes/fury5/jalapeno/contrib/benchmarks/SPECjvm98
+include		$(JAL_ROOT)/rvm/regression/Local.rules
+
 BENCH_CLASS_PATH=$(BENCH_HOME)
 START_NAME=SpecApplication
 
