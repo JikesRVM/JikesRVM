@@ -1,3 +1,13 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+// $Id$
+
+/*
+ * @author Tracy Ferguson 
+ */
+
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Enumeration;

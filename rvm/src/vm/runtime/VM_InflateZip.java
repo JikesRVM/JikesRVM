@@ -1,3 +1,9 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+// $Id$
+
 import java.util.zip.*;
 
 /**
