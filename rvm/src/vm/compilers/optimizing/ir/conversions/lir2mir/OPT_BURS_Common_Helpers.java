@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Contains BURS helper functions common to all platforms.
@@ -62,7 +63,15 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
 
   // returns the integer value of the given operand
   protected final int IV(OPT_Operand op) {
-    return IC(op).value;
+    if (op.isAddressConstant())
+      return AC(op).value.toInt();
+    else
+      return IC(op).value;
+  }
+
+  // returns the Address value of the given operand
+  protected final Address AV(OPT_Operand op) {
+    return AC(op).value;
   }
 
   // is a == 0?
@@ -85,6 +94,8 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   }
   protected final int FITS(OPT_Operand op, int numBits, int trueCost, int falseCost) {
     if (op.isIntConstant() && OPT_Bits.fits(IV(op),numBits)) {
+      return trueCost;
+    } else if (op.isAddressConstant() && OPT_Bits.fits(AV(op),numBits)) {
       return trueCost;
     } else {
       return falseCost;

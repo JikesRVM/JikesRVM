@@ -21,12 +21,12 @@ LONG_LOAD_addi(P(p), Load.getResult(P(p)),                  \
                            R(Load.getAddress(P(p))), IC(Load.getOffset(P(p))), \
 			   Load.getLocation(P(p)), Load.getGuard(P(p))); 
 
-r:      LONG_LOAD(r,REF_MOVE(INT_CONSTANT))
+r:      LONG_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
 21
 EMIT_INSTRUCTION
 LONG_LOAD_addis(P(p), Load.getResult(P(p)),                 \
                             R(Load.getAddress(P(p))),                         \
-                            R(Load.getOffset(P(p))), IC(Move.getVal(PR(p))),   \
+                            R(Load.getOffset(P(p))), AC(Move.getVal(PR(p))),   \
 		            Load.getLocation(P(p)), Load.getGuard(P(p)));
 
 r:	LONG_LOAD(r,r)
@@ -48,13 +48,13 @@ LONG_STORE_addi(P(p), R(Store.getValue(P(p))),              \
 			    Store.getLocation(P(p)),                          \
                             Store.getGuard(P(p)));
 
-stm:      LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(INT_CONSTANT)))
+stm:      LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
 22
 EMIT_INSTRUCTION
 LONG_STORE_addis(P(p), R(Store.getValue(P(p))),             \
                              R(Store.getAddress(P(p))),                       \
                              R(Store.getOffset(P(p))),                        \
-                             IC(Move.getVal(PRR(p))),                          \
+                             AC(Move.getVal(PRR(p))),                          \
 			     Store.getLocation(P(p)),                         \
                              Store.getGuard(P(p)));
 

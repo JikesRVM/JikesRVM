@@ -411,7 +411,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       }
     }
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -430,7 +430,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       }
     } 
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen, because is 64-bit unsafe
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen, because is 64-bit unsafe
     }
     // Operand was OK as is.
     return addr;
@@ -449,7 +449,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       }
     }
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     
     // Operand was OK as is.
@@ -502,7 +502,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       return rop.copyD2U();
     }
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -517,7 +517,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       return rop.copyD2U();
     }
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -532,7 +532,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       return rop.copyD2U();
     }
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -547,7 +547,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       return rop.copyD2U();
     }
     else if (addr instanceof OPT_ConstantOperand) {
-      VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     // Operand was OK as is.
     return addr;

@@ -1501,11 +1501,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   }
   
-  final static boolean fits (long val, int bits) {
-      val = val >> bits-1;
-      return (val == 0L || val == -1L);
-  }
-
   //-#if RVM_FOR_64_ADDR
   protected final void LONG_CONSTANT(OPT_Instruction s, 
                                      OPT_RegisterOperand def, 
@@ -1533,12 +1528,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int bytes67 = (int) ((value & 0xffff000000000000L) >>> 48);
     OPT_Register register = def.register;
     OPT_Register temp1 = regpool.getLong();
-    if (fits(value, 16)){
+    if (OPT_Bits.fits(value, 16)){
       EMIT(MIR_Unary.create(PPC_LDI, L(register), IC(bytes01)));
-    } else if (fits(value, 32)) {
+    } else if (OPT_Bits.fits(value, 32)) {
       EMIT(MIR_Unary.create(PPC_LDIS, L(register), IC(bytes23)));
       if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, L(register), L(register), IC(bytes01)));
-    } else if (fits(value, 48)) {
+    } else if (OPT_Bits.fits(value, 48)) {
       EMIT(MIR_Unary.create(PPC_LDI, L(register), IC(bytes45)));
       if (bytes45 != 0) EMIT(MIR_Binary.create(PPC64_SLDI, L(register), L(register), IC(32)));
       if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, L(register), L(register), IC(bytes23)));
@@ -1876,12 +1871,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                        OPT_RegisterOperand def, 
                                        OPT_RegisterOperand left, 
                                        OPT_RegisterOperand right, 
-                                       OPT_IntConstantOperand Value, 
+                                       OPT_AddressConstantOperand Value, 
                                        OPT_LocationOperand loc, 
                                        OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    int value = Value.value;
+    int value = IV(Value);
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
                            IC(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = MIR_Load.create(PPC_LWZ, I(defHigh), 
@@ -1952,12 +1947,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                         OPT_RegisterOperand def, 
                                         OPT_RegisterOperand left, 
                                         OPT_RegisterOperand right, 
-                                        OPT_IntConstantOperand Value, 
+                                        OPT_AddressConstantOperand Value, 
                                         OPT_LocationOperand loc, 
                                         OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    int value = Value.value;
+    int value = IV(Value);
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
                            IC(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = 

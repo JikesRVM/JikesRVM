@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import org.vmmagic.unboxed.Address;
+
 /**
  * OPT_Bits.java
  *
@@ -73,6 +75,26 @@ public class OPT_Bits {
    */
   public static int upper32(long value) {
     return (int)(value >>> 32);
+  }
+
+
+  /**
+   * Does a long literal val fit in bits bits?
+   */
+  public static boolean fits (long val, int bits) {
+    val = val >> bits - 1;
+    return  (val == 0L || val == -1L);
+  }
+
+  /**
+   * Does an address literal val fit in bits bits?
+   */
+  public static boolean fits (Address val, int bits) {
+  //-#if RVM_FOR_64_ADDR
+    return fits(val.toLong(), bits);
+  //-#elif RVM_FOR_32_ADDR
+    return fits(val.toInt(), bits);
+  //-#endif
   }
 
 

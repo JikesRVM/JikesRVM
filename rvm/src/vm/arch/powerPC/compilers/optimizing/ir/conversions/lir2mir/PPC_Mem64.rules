@@ -21,8 +21,8 @@ EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),            \
                      R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(r,REF_MOVE(INT_CONSTANT))
-22
+r:	LONG_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
+FITS(Move.getVal(PR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
    OPT_Operand val = Move.getVal(PR(p));                                      \
@@ -68,21 +68,8 @@ EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \
 			       Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
 
-stm:	LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(INT_CONSTANT)))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
-                          R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),     \
-                                  Move.getResult(PRR(p)), CAL16(val),         \
-				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p))));                    \
-}
-
-stm:	LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(INT_CONSTANT)))
-22
+stm:	LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
+FITS(Move.getVal(PRR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
    OPT_Operand val = Move.getVal(PRR(p));                                     \
