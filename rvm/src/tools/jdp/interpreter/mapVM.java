@@ -151,25 +151,25 @@ class mapVM implements JDPServiceInterface {
       // mapVMClass = InterpreterBase.forName("mapVM");
 
       // save the offset values for VM_Field object to be used later
-      VM_Field field = (VM_Field) VM.getMember("LVM_Field;", "offset", "I");
+      VM_Field field = BootMap.findVMField("LVM_Field;", "offset");
       VMFieldOffset_offset = field.getOffset();
-      field = (VM_Field) VM.getMember("LVM_Field;", "type", "LVM_Type;");
+      field = BootMap.findVMField("LVM_Field;", "type");
       VMFieldType_offset = field.getOffset();
 
       // save the offset values for VM_Class object to be used later
-      field = (VM_Field) VM.getMember("LVM_Class;", "constantPool", "[I");
+      field = BootMap.findVMField("LVM_Class;", "constantPool");
       VMClassConstantPool_offset = field.getOffset();
-      field = (VM_Field) VM.getMember("LVM_Class;", "superClass", "LVM_Class;");
+      field = BootMap.findVMField("LVM_Class;", "superClass");
       VMClassSuper_offset = field.getOffset();
       field = BootMap.findVMField("VM_Class", "descriptor");
       VMClassName_offset = field.getOffset();
 
       // save the offset values for VM_Atom object to be used later
-      field = (VM_Field) VM.getMember("LVM_Atom;", "val", "[B");
+      field = BootMap.findVMField("LVM_Atom;", "val");
       VMAtomVal_offset = field.getOffset();
 
       // save the offset values for VM_Type object to be used later
-      field = (VM_Field) VM.getMember("LVM_Type;", "descriptor", "LVM_Atom;");
+      field = BootMap.findVMField("LVM_Type;", "descriptor");
       VMTypeDescriptor_offset = field.getOffset();
 
     // } catch (VM_ResolutionException e) {
@@ -299,7 +299,7 @@ class mapVM implements JDPServiceInterface {
       /* JTOC register does not exist in Lintel, have to get it through PR */
       int procReg = registerExternal.regGetNum("PR");
       procReg = Platform.readreg(procReg);
-      int jtocOffset = ((VM_Field) VM.getMember("LVM_Processor;", "jtoc", "Ljava/lang/Object;")).getOffset();
+      int jtocOffset = VM_Entrypoints.processorJTOCField.getOffset();
       int currentJTOC = Platform.readmem(procReg + jtocOffset);
 //-#else
       int jtocReg = registerExternal.regGetNum("JT");
@@ -310,17 +310,17 @@ class mapVM implements JDPServiceInterface {
       // bootstrap for the first time getJTOC is called,
       // assume we stop in a Java stack frame
       if (vmStartAddress==0) {
-        VM_Field field = (VM_Field) VM.getMember("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
+        VM_Field field = VM_Entrypoints.the_boot_recordField;
         int bootRecordAddress ;
         if (cachedJTOC==0)
           bootRecordAddress = currentJTOC + field.getOffset();
         else
           bootRecordAddress = cachedJTOC + field.getOffset();
 
-        field = (VM_Field) VM.getMember("LVM_BootRecord;", "startAddress", "I");
+        field = VM_Entrypoints.startAddressField;
         vmStartAddress = bootRecordAddress + field.getOffset();
 
-        field = (VM_Field) VM.getMember("LVM_BootRecord;", "endAddress", "I");
+        field = VM_Entrypoints.endAddressField;
         vmEndAddress = bootRecordAddress + field.getOffset();
 
         // System.out.println("getJTOC: " + Integer.toHexString(vmStartAddress) +
@@ -651,10 +651,15 @@ class mapVM implements JDPServiceInterface {
    */
   static String getMappedString(mapVM mappedString) {
     int address = mappedString.getAddress();
-    VM_Field valueField = (VM_Field) VM.getMember("Ljava/lang/String;", "value", "[C");
-  
-    // get the char array address and size from the JVM side
-    address = Platform.readmem(address + valueField.getOffset());
+    try {
+      VM_Field valueField = BootMap.findVMField("Ljava/lang/String;", "value");
+      // get the char array address and size from the JVM side
+      address = Platform.readmem(address + valueField.getOffset());
+    } catch (BmapNotFoundException e2) {
+      VM.sysWrite(e2 + "\n");
+      e2.printStackTrace();
+      VM.sysExit(1);            
+    }
     int count = Platform.readmem(address + VM_ObjectModel.getArrayLengthOffset() );
 
     // copy the char array that constitute the String
