@@ -34,12 +34,13 @@ The optimizing compiler performs aggressive inlining and code motion
 and not explictly marking such dangerous regions in one of these two
 manners will lead to disaster.
 
-Since magic is inexpressible in the Java programming language , it is unsurprising that the
-bodies of {\tt VM\_Magic} methods are undefined.  Instead, for each of
-these methods, the Java instructions to generate the code is stored in
+Since magic is inexpressible in the Java programming language , it is
+unsurprising that the bodies of {\tt VM\_Magic} methods are undefined.
+Instead, for each of these methods, the Java instructions to generate
+the code is stored in
 \xlink{{\tt OPT\_GenerateMagic}}{\OPTGenerateMagicURL} and 
 \xlink{{\tt OPT\_GenerateMachineSpecificMagic}}{\OPTGenerateMachineSpecificMagicURL} (to generate HIR) and 
-\xlink{{\tt VM\_MagicCompiler}}{\VMMagicCompilerURL} (to generate assembly code)\footnote{The optimizing
+\xlink{{\tt VM\_Compiler}}{\VMCompilerURL} (to generate assembly code)\footnote{The optimizing
 compiler always uses the set of instructions that generate HIR; the
 instructions that generate assembly code are only invoked by the
 baseline compiler.}.  Whenever the compiler encounters a call to one of these
