@@ -50,7 +50,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // memory resources
   private static MemoryResource rcMR;
-  private static MemoryResource losMR;
 
   // shared queues
   private static SharedQueue incPool;
@@ -114,7 +113,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   static {
     // memory resources
     rcMR = new MemoryResource("rc", POLL_FREQUENCY);
-    losMR = new MemoryResource("los", POLL_FREQUENCY);
 
     // virtual memory resources
     rcVM = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM);
@@ -140,7 +138,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     incBuffer = new AddressQueue("inc buf", incPool);
     decBuffer = new AddressQueue("dec buf", decPool);
     rootSet = new AddressQueue("root set", rootPool);
-    los = new RefCountLOSLocal(losVM, losMR);
+    los = new RefCountLOSLocal(losVM, rcMR);
     rc = new RefCountLocal(rcSpace, this, los, incBuffer, decBuffer, rootSet);
   }
 
