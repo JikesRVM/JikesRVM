@@ -282,12 +282,13 @@ This should be convenient for:
 \begin{itemize}
 \item Compiling the system with local variables:
   The default boot image is built without the local variable tables.
-  To get local variables, set this flag to true in your local shadow:
+  To get local variables with the baseline compiler, set this flag to 
+  true in your local copy:
 \begin{verbatim}
-        VM_Control.LoadLocalVariableTables
+        VM_Properties.LoadLocalVariableTables
 \end{verbatim}
   Then rebuild the boot image. This will increase the boot image size 
-  by about 10\%.
+  by about 10\%. You should use jbuild -clean if you had an existing bootimage.
 
 \index{breakpoints}
 \item Setting breakpoint:
