@@ -1,4 +1,21 @@
-install:
+# -*- coding: iso-8859-1 ; mode: Makefile ;-*-
+#
+# Copyright © IBM Corp. 2004
+#
+# $Id$
+#
+# Makefile template for installing Jikes RVM
+# Expand the macros in this file with the program macro-expand.sh 
+#
+# @author Steven Augart
+# @date   24 April 2004
+
+
+userguide_html := @DOC_DIR@/userguide.html
+userguide_ps_gz := @DOC_DIR@/userguide.ps.gz
+userguide_build_dir := ${RVM_ROOT}/rvm/doc/userguide
+
+install: ${RVM_BUILD}/jbuild.install $(userguide_build_dir)/HTML $(userguide_build_dir)/userguide.ps
 # RVM_ROOT
 	install -d @RVM_ROOT@/rvm/bin
 	cp ${RVM_ROOT}/rvm/bin/{sanity-envars.bash,rvm,runrvm} @RVM_ROOT@/rvm/bin
@@ -12,7 +29,9 @@ install:
 	./macro-expand.sh rvm.1.in @MAN_DIR@/man1/rvm.1
 	chmod 444 @MAN_DIR@/man1/rvm.1
 	install -d @DOC_DIR@
-	cp -a ${RVM_ROOT}/rvm/doc/userguide/HTML @DOC_DIR@
+	$(RM) -r $(userguide_html)
+	-cp -a $(userguide_build_dir)/HTML $(userguide_html)
+	-gzip -9 -c < $(userguide_build_dir)/userguide.ps > $(userguide_ps_gz)
 	cp -a ${RVM_ROOT}/rvm/LICENSE @DOC_DIR@
 
 uninstall:
