@@ -215,7 +215,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   }
   
   /** Keep this a static field, since it's looked at in
-   *  {@link VM_MemberReference.parse}. */ 
+   *  {@link VM_MemberReference#parse}. */ 
   public final static String myName = "BootstrapCL";
   
   public String toString() { return myName; }
