@@ -562,11 +562,11 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
     } 
     unsigned int tot = hs * factor;
     if (tot % BYTES_IN_PAGE) {
-	fprintf(SysTraceFile, "%s: Rounding up %s heap size from %u to"
-		" a multiple of %u bytes\n", Me, tot, BYTES_IN_PAGE);
-	tot >>= LOG_BYTES_IN_PAGE;
-	++tot;
-	tot <<= LOG_BYTES_IN_PAGE;
+	unsigned newtot =  ((tot >> LOG_BYTES_IN_PAGE) + 1) << LOG_BYTES_IN_PAGE;
+	
+	fprintf(SysTraceFile, "%s: Rounding up %s heap size from %u to %u,"
+		" the next multiple of %u bytes\n", Me, sizeName, tot, newtot, BYTES_IN_PAGE);
+	tot = newtot;
     }
     return tot;
 }
