@@ -681,8 +681,8 @@ CONFIGURATION_SUMMARY="$BUILD_DIRECTORY/RVM.configuration"
 
 # Place to keep list of source directories to be scanned by preprocessor.
 #
-SOURCE_LIST="$BUILD_DIRECTORY/RVM.sources"
-SOURCE_LIST_STR="$BUILD_DIRECTORY_STR/RVM.sources"
+SOURCE_TO_PREPROCESS_LIST="$BUILD_DIRECTORY/RVM.sources"
+SOURCE_TO_PREPROCESS_LIST_STR="$BUILD_DIRECTORY_STR/RVM.sources"
 
 # Place to remember, if a cleansing pass should precede the build.
 #
@@ -1216,10 +1216,13 @@ then RVM_WITH_NATIVE_DAEMON_PROCESSOR must not be specified";
 }
 
 
-# Emit list of source tree directories whose Java files comprise
-# the current configuration.
-#
-function emitSourceList () {
+# Emit list of source tree directories in the current
+# configuration whose Java files need to be preprocessed.
+# Specifically, MMTk sources are not preprocessed, since MMTk
+# is used by systems besides Jikes RVM.  We don't preprocess
+# them so that the preprocessing conditionals won't accidentally
+# creep into the sources.
+function emitSourceToPreprocessList () {
 
     if (( RVM_FOR_POWERPC )); then
 	ARCH_DIR="powerPC"
@@ -1410,19 +1413,21 @@ EOF
     #
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-	$RVM_ROOT/MMTk/src/org/mmtk/plan
-	$RVM_ROOT/MMTk/src/org/mmtk/policy
-	$RVM_ROOT/MMTk/src/org/mmtk/utility
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
-
-
+    ## These MMTk directories aren't preprocessed.
+    ## Keep them here as a comment so that you can uncomment this
+    ## if we should ever need to generate a more comprehensive source
+    ## list.
+# 	$RVM_ROOT/MMTk/src/org/mmtk/plan
+# 	$RVM_ROOT/MMTk/src/org/mmtk/policy
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
+# 	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
     # Local projects (template)
     #
     #    $RVM_ROOT/projects/myproject
@@ -1434,7 +1439,8 @@ EOF
 	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util
 	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/drivers
     else
-	echo $RVM_ROOT/MMTk/src/org/mmtk/vm/gcspy
+	:
+#	echo $RVM_ROOT/MMTk/src/org/mmtk/vm/gcspy
     fi
 
     # standard library support
@@ -2191,7 +2197,7 @@ function emitCopier () {
 	if tracing preprocessor; then
 	    PREPROC_FLAGS="-trace \$PREPROC_FLAGS"
 	fi
-	for d in \$(< ${SOURCE_LIST_STR} ); do
+	for d in \$(< ${SOURCE_TO_PREPROCESS_LIST_STR} ); do
 	    if tracing preprocessor; then
 	         cleanline
 	         echo -n "\${ME}: expanding \${d}: "
@@ -2352,7 +2358,7 @@ EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    chdir $CLASSES_DIRECTORY_STR
 	    run rm -f $TOP_LEVEL_CLASSES
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U -sourcepath .:${ROOT_DIRECTORY_STR}/MMTk/src -classpath .:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
 	    open_paren 'compiling classes'
 	    if tracing jbuild || tracing make || tracing; then
 	        cleanline
@@ -2461,11 +2467,9 @@ EOF
 	declare -r interface=$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h
 
 	function clean_InterfaceDeclarations() {
-	    eval rm -f $SCRATCH_DIRECTORY_STR/${generator_classes}.java
-	    eval rm -f $SCRATCH_DIRECTORY_STR/${generator_classes}.class
+	    rm -f $SCRATCH_DIRECTORY_STR/${generator_classes}.{java,class}
 	    rm -f \$interface
 	    echo >&2 -n "(interface cleaned) " 
-	    
 	}
 
 	if [[ \$CLEAN_FLAG ]]; then
@@ -4245,9 +4249,9 @@ chmod ${PERM} ${s}
 HOST_BASH="/usr/bin/env bash"
 TARGET_BASH="${BASH-${HOST_BASH}}"
 
-f=$SOURCE_LIST
+f=$SOURCE_TO_PREPROCESS_LIST
 rm -f			$f
-emitSourceList	      > $f
+emitSourceToPreprocessList > $f
 chmod ${PERM}		$f
 
 f=${BUILD_DIRECTORY}/jbuild
