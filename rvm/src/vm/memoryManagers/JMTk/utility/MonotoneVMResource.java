@@ -29,7 +29,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public class MonotoneVMResource extends VMResource implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  public final static boolean PROTECT_ON_RELEASE = false;
   public final static boolean ZERO_ON_RELEASE = false;
 
   /****************************************************************************
@@ -91,7 +90,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
     int pages = Conversions.bytesToPages(bytes);
     if (ZERO_ON_RELEASE) 
 	Memory.zero(start, VM_Extent.fromInt(bytes));
-    if (PROTECT_ON_RELEASE) 
+    if (Options.protectOnRelease)
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
