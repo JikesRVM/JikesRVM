@@ -684,7 +684,7 @@ public class VM_FileSystem {
 	    System.err.flush();
 	    System.out.flush();
 	  } catch (Throwable e) {
-	    VM.sysWrite("vm: error flushing stdout, stderr");
+	    VM.sysWriteln("vm: error flushing stdout, stderr");
 	  }
 	}
       });
