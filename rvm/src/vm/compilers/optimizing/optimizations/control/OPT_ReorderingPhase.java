@@ -65,14 +65,8 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 
   
   /** 
-   * Scan the IR and identify infrequent blocks.
+   * Scan the IR and determine if there are infrequent blocks.
    * Also count the number of blocks in the IR.
-   * A block is infrequent if 
-   * <ul>
-   *  <li> it has already been marked as infrequent
-   *  <li> it is an exception handler block
-   *  <li> it contains an instruction that is expected to be infrequently executed
-   * </ul>
    * @return true if any infrequent blocks are found
    */
   private boolean markInfrequentBlocks(OPT_IR ir) {
@@ -82,66 +76,10 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
       OPT_BasicBlock bb = e.next();
       bb.clearScratchFlag();
       numBlocks++;
-      if (bb.getInfrequent() ||
-	  bb.isExceptionHandlerBasicBlock() ||
-	  findInfrequentInstruction(bb)) {
-	bb.setInfrequent();
-	foundSome = true;
-	if (DEBUG) VM.sysWrite("Marking "+bb+" as directly infrequent\n");
-      }
+      if (bb.getInfrequent()) foundSome = true;
     }
     return foundSome;
   }
-
-  /**
-   * Scan the instructions in a basic block looking for
-   * an instruction that signals that the block will be 
-   * infrequently executed.
-   * The following instructions probably indicate this:
-   * <ul>
-   * <li> an athrow
-   * <li> a call to a method with a noInlinePragma
-   * <li> if we are in an adaptive configuration and 
-   *      compiling code dynamically, then any instruction that
-   *      references an unloaded class signals an uncommon block.
-   * </ul>
-   */
-  private boolean findInfrequentInstruction(OPT_BasicBlock bb) {
-    for (OPT_InstructionEnumeration e2 = bb.forwardRealInstrEnumerator();
-	 e2.hasMoreElements();) {
-      OPT_Instruction s = e2.next();
-      if (Call.conforms(s)) {
-	OPT_MethodOperand op = Call.getMethod(s);
-	if (op != null) {
-	  VM_Method target = op.method;
-	  if (target != null) {
-	    if (target.getDeclaringClass().isLoaded()) {
-	      if (target.getBytecodes() != null && 
-		  OPT_InlineTools.hasNoInlinePragma(target, null)) {
-		return true;
-	      }
-	    } else {
-	      if (VM.BuildForAdaptiveSystem && VM.runningVM) {
-		return true; // dl point implies never executed so far.
-	      }
-	    }
-	  }
-	}
-      } else {
-	if (VM.BuildForAdaptiveSystem && VM.runningVM) {
-	  switch (s.getOpcode()) {
-	  case ATHROW_opcode:
-	  case GETSTATIC_UNRESOLVED_opcode: case PUTSTATIC_UNRESOLVED_opcode:
-	  case GETFIELD_UNRESOLVED_opcode:  case PUTFIELD_UNRESOLVED_opcode:
-	    return true;
-	  }
-	}
-      }
-    }
-    return false;
-  }
-
-
 
   /**
    * Use dominator and post-dominator information to propagate
