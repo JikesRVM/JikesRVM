@@ -65,7 +65,7 @@ public abstract class BasePlan
   protected static boolean initialized = false;
   protected static boolean awaitingCollection = false;
   protected static int collectionsInitiated = 0;
-  protected static boolean gcInProgress = false;
+  private static boolean gcInProgress = false; // shared variable
   protected static int exceptionReserve = 0;
 
   // Timing variables
@@ -191,6 +191,15 @@ public abstract class BasePlan
     return UNUSED_SPACE;
   }
 
+  static byte getSpaceFromAllocatorAnyPlan (Allocator a) {
+    for (int i=0; i<plans.length; i++) {
+      byte space = plans[i].getSpaceFromAllocator(a);
+      if (space != UNUSED_SPACE)
+	return space;
+    }
+    return UNUSED_SPACE;
+  }
+
   protected Allocator getAllocatorFromSpace (byte s) {
     if (s == BOOT_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given boot space");
     if (s == META_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given meta space");
@@ -200,9 +209,7 @@ public abstract class BasePlan
   }
 
   static Allocator getOwnAllocator (Allocator a) {
-    byte space = UNUSED_SPACE;
-    for (int i=0; i<plans.length && space == UNUSED_SPACE; i++)
-      space = plans[i].getSpaceFromAllocator(a);
+    byte space = getSpaceFromAllocatorAnyPlan(a);
     if (space == UNUSED_SPACE)
       VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
     Plan plan = VM_Interface.getPlan();
@@ -582,6 +589,17 @@ public abstract class BasePlan
    */
   public static boolean gcInProgress() {
     return gcInProgress;
+  }
+
+  /**
+   * Return true if a collection is in progress.
+   *
+   * @return True if a collection is in progress.
+   */
+  protected static void setGcInProgress(boolean v) {
+    VM_Magic.isync();
+    gcInProgress = v;
+    VM_Magic.sync();
   }
 
   /**
