@@ -35,7 +35,7 @@ public class JikesRVMSupport {
     Class c = Class.create(type);
     setClassProtectionDomain(c, pd);
     return c;
-    //-#elif RVM_WITH_CLASSPATH_0_11_OR_LATER
+    //-#elif !RVM_WITH_CLASSPATH_0_10
     return new Class((Object) VMClass.create(type), pd);
     //-#else
     /* Classpath 0.10 doesn't seem to have any way to actually set the
@@ -63,7 +63,7 @@ public class JikesRVMSupport {
   public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
     c.pd = pd;
   }
-  //-#elif !RVM_WITH_CLASSPATH_0_11_OR_LATER
+  //-#elif RVM_WITH_CLASSPATH_0_10
   /** However, under Classpath 0.10, we don't set the ProtectionDomain, and
    * that might be necessary.  We have to use an ugly reflection hack, though,
    * to use Classpath's java.lang.Class, since the field is private. */
@@ -97,7 +97,7 @@ public class JikesRVMSupport {
     return new Thread(vmdata, myName);
   }
 
-  //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+  //-#if !RVM_WITH_CLASSPATH_0_10 && !RVM_WITH_CLASSPATH_0_11
   public static void javaLangSystemEarlyInitializers() {
     System.initLoadLibrary();
     System.initProperties();

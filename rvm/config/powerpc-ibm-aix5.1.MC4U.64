@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2004
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -55,15 +55,19 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/j
 # the JDK standard library jar files
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
-# sources for current stable version of classpath
-if true; then
-    export CLASSPATH_ROOT=/home/jalapeno/classpath-0.10
-else
-    export RVM_WITH_CLASSPATH_0_11_OR_LATER=1
-    export CLASSPATH_SOURCE_DIR=/home/augart/classpath-0.11/classpath
+## sources for current stable version of classpath
 
-    export CLASSPATH_BUILD_DIR=/home/augart/classpath-0.11/powerpc-ibm-aix5.1.MC4U.64/
-fi
+## OLD: Classpath 0.10  (minimum version required)
+# export CLASSPATH_ROOT=/home/jalapeno/classpath-0.10
+# export RVM_WITH_CLASSPATH_0_10=1
+
+## IF Using Classpath 0.11, define:
+# export CLASSPATH_ROOT=/home/jalapeno/classpath-0.11
+# export RVM_WITH_CLASSPATH_0_11=1
+
+# NEW: Classpath 0.12
+export CLASSPATH_SOURCE_DIR=/homes/meriadoc/jalapeno/contrib/classpath-0.12/classpath
+export CLASSPATH_BUILD_DIR=/home/jalapeno/classpath-0.12/powerpc-ibm-aix5.1.MC4U.64/
 
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"

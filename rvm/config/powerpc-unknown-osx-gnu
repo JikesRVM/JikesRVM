@@ -91,6 +91,8 @@ export SED=/usr/bin/sed
 export WGET=wget
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
+## Note: This file is not currently in use; Classpath 0.10 is the minimum
+## required version for Jikes RVM 2.3.4.
 export CLASSPATH_ROOT="/exp/dodo/ali/home/share/classpath-0.06"
 ##export CLASSPATH_ROOT="/exp/dodo/ali/home/share/classpath"
 

@@ -94,11 +94,11 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 #
 # export CLASSPATH_INSTALLATION=/usr/local/classpath
 
-## OR, if you haven't installed GNU Classpath (most people haven't),
-## you can set
+## OR, if you built GNU Classpath but haven't 
+## installed it (most people haven't), you can set
 ## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
 ## *and* set CLASSPATH_BUILD_DIR to the directory
-## from which you ran "${CLASSPATH_SOURCE_DIR}/configure"
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran "make"
 
 # export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
 # export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
@@ -106,10 +106,10 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 ## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
 
 # CLASSPATH_ROOT: Directory containing the unpacked and built sources 
-# for GNU Classpath 0.10
+# for GNU Classpath 0.12
 # (current stable version of Classpath)
 # Uncomment this line only if you manually downloaded the Classpath sources.
-# export CLASSPATH_ROOT=/opt/classpath-0.10
+# export CLASSPATH_ROOT=/opt/classpath-0.12
 
 ## OR you can leave all of the CLASSPATH_ variables unset and let the build 
 ## process download and build GNU Classpath for you.   This will work.

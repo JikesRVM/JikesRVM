@@ -203,7 +203,8 @@ public class VM extends VM_Properties
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("java.lang.Runtime");
-    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+    //-#if !RVM_WITH_CLASSPATH_0_11 && !RVM_WITH_CLASSPATH_0_10
+    // Classpath 0.12 and later:
     java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
     //-#else
     runClassInitializer("java.lang.System"); // Requires ClassLoader and ApplicationClassLoader
@@ -261,7 +262,7 @@ public class VM extends VM_Properties
     // used in defineClass.  so, since we haven't needed to call defineClass
     // up to this point, we are OK deferring its proper re-initialization.
     runClassInitializer("java.lang.ClassLoader"); 
-    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
+    //-#if !RVM_WITH_CLASSPATH_0_10 && !RVM_WITH_CLASSPATH_0_11
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
     //-#endif
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty

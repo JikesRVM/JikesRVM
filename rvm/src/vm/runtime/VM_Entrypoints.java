@@ -31,7 +31,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadLocalValueMap = 
     getField("Ljava/lang/ThreadLocal;", "valueMap", "Ljava/util/Map;");
 
-  //-#if !RVM_WITH_OWN_JAVA_LANG_CLASS && RVM_WITH_CLASSPATH_0_10_OR_LATER && !RVM_WITH_CLASSPATH_0_11_OR_LATER
+  //-#if !RVM_WITH_OWN_JAVA_LANG_CLASS && RVM_WITH_CLASSPATH_0_10
   public static final VM_Field javaLangClassProtectionDomain =
     getField("Ljava/lang/Class;", "pd", "Ljava/security/ProtectionDomain;");
   //-#endif
@@ -275,10 +275,10 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   public static final VM_Field classLoaderDefinedPackages =
-    //-#if RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD
-    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
-    //-#else
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
+    //-#else
+    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
     //-#endif
 
   static {

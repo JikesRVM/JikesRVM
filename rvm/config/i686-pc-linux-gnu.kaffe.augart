@@ -2,10 +2,10 @@
 #
 # (C) Copyright IBM Corp. 2001, 2003, 2004
 #
-# This is the config file that Steven Augart uses to build Kaffe on his
-# laptop computer.
+# This is the config file that Steven Augart uses to build Jikes RVM
+# with Kaffe on his laptop computer.
 
-CLASSPATH_ROOT=/usr/local/classpath-0.08
+CLASSPATH_ROOT=/usr/local/classpath-0.12
 export FASTJAR=/usr/bin/jar
 # export JIKES=jikes-1.13
 export JIKES=jikes

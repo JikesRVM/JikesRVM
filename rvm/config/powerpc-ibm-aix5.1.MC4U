@@ -1,11 +1,13 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2004
 #
 #
 # This file defines a set of environment variables needed to build and
 # run Jikes RVM.  This file is sourced by the installation scripts; you
 # do not need to source this file into your command-prompt shell.
+#
+# This file is for AIX on 32-bit PowerPC; see powerpc-ibm-aix5.1.MC4U.64
 #
 # IMPORTANT: You need to modify this file to reflect your AIX environment!
 #
@@ -67,10 +69,10 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 ## you can *instead* set CLASSPATH_ROOT: 
 
 # CLASSPATH_ROOT: Directory containing the unpacked and built sources 
-# for GNU Classpath 0.10 
+# for GNU Classpath 0.12
 # (current stable version of Classpath)
 # Uncomment this line only if you manually downloaded the Classpath sources.
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.10
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.12
 
 ## OR you can leave all of the CLASSPATH_ variables unset and let the build 
 ## process download and build GNU Classpath for you.
