@@ -1,7 +1,11 @@
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2004
 #
-#$Id$
+# $Id$
+#
+# Boot Image Writer Makefile.  This version is for using the Sun
+# HotSpot VM.
+#
 # @author Derek Lieber
 
 include		$(RVM_BUILD)/Make.rules.host
@@ -58,12 +62,8 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 #   RVM_BOOTIMAGE_COMPILER_ARGS = command line arguments to pass to boot image compiler
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
 #   VERBOSE_ARG = command-line argument for verbose host jdk options
-ifdef RVM_BOOTIMAGE_WRITER_JIKES_RVM
-BOOTCLASSPATH_ARGS :=
-else
 BOOTCLASSPATH_ARGS :=-Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
 	    -Xbootclasspath/a:$(LIB_JAR)
-endif
 
 $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 	$(HOST_JAVA) \
