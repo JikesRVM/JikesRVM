@@ -255,6 +255,17 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Compiler processing rest of boot options");
     VM_BaselineCompiler.postBootOptions();
 
+    /* We already have full multi-processing, so this might get interrupted,
+       right? */
+    if (applicationArguments.length > 0 
+	&& ! isJavaClassName(applicationArguments[0])) 
+      {
+	VM.sysWrite("vm: \"");
+	VM.sysWrite(applicationArguments[0]);
+	VM.sysWrite("\" is not a legal Java class name.\n");
+	pleaseSpecifyAClass();
+      }
+
     // Allow profile information to be read in from a file
     VM_EdgeCounts.boot();
 
@@ -271,12 +282,11 @@ public class VM extends VM_Properties implements VM_Constants,
        line arguments before VM exits.  This supports the following useful
        idiom: 
        rvm -X:irc[:help] */
-    if (applicationArguments.length == 0) {  
-      VM.sysWrite("vm: Please specify a class to execute.\n");
-      VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
-      
-      VM.sysExit(VM.exitStatusBogusCommandLineArg);
-    }
+
+    // The first argument must be a class name.
+    if (applicationArguments.length == 0)
+      pleaseSpecifyAClass();
+    
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
@@ -315,6 +325,47 @@ public class VM extends VM_Properties implements VM_Constants,
     if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  private static void pleaseSpecifyAClass() 
+    throws VM_PragmaLogicallyUninterruptible
+  {
+    VM.sysWrite("vm: Please specify a class to execute.\n");
+    VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
+    VM.sysExit(VM.exitStatusBogusCommandLineArg);
+  }
+
+
+  /** Is @param s a valid name for a Java class? 
+   *
+   * Would it be better for me to convert this to a char array?  That's the
+   * way the example in The Java Class Libraries for
+   * Character.isJavaIdentifier*()  is worded.  */
+  private static boolean isJavaClassName(String s) 
+    // This is really a lie.  But would it be so bad if we did do some thread
+    // switching at this point?  I don't get why it would be so awful.
+    throws VM_PragmaLogicallyUninterruptible
+  {
+    boolean identStart = true;	// pretend we just saw a .
+    for (int i = 0; i < s.length(); ++i) {
+      char c = s.charAt(i);
+      if (identStart && Character.isJavaIdentifierStart(c)) {
+	identStart = false;	// on to the next one.
+	continue;
+      }
+      if (identStart)
+	return false;		// failure to match identifier start.
+      if (c == '.') {
+	identStart = true;
+	continue;
+      }
+      /* We have a character that is not the first one of a Java identifier */
+      if (!Character.isJavaIdentifierPart(c))
+	return false;
+      /* And on we go around the loop */
+    }
+    // Must not finish by needing the start of another identifier.
+    return ! identStart;
   }
 
   private static VM_Class[] classObjects = new VM_Class[0];
