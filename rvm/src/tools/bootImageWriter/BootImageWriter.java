@@ -1069,7 +1069,8 @@ public class BootImageWriter extends BootImageWriterMessages
           else if (rvmFieldType.equals(VM_Type.AddressType)) {
 	      Object o = jdkFieldAcc.get(null);
 	      VM_Address addr = (VM_Address) o;
-	      int value = getAddressValue(addr);
+	      String msg = " static field " + rvmField.toString();
+	      int value = getAddressValue(addr, msg);
 	      VM_Statics.setSlotContents(rvmFieldSlot, value);
 	  }
           else if (rvmFieldType.equals(VM_Type.WordType)) {
@@ -1097,7 +1098,8 @@ public class BootImageWriter extends BootImageWriterMessages
   private static int jtocCount = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
 
-  private static int getAddressValue(VM_Address addr) {
+
+  private static int getAddressValue(VM_Address addr, String msg) {
     if (addr == null) return 0;
     int value = addr.toInt();
     int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
@@ -1105,7 +1107,7 @@ public class BootImageWriter extends BootImageWriterMessages
     if (value > low && value < high && value != 32767 &&
 	(value < 4088 || value > 4096)) {
       say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
-	  " written for address array");
+	  " written for " + msg);
     }
     return value;
   }
@@ -1245,7 +1247,8 @@ public class BootImageWriter extends BootImageWriterMessages
 	    VM_Address values[] = (VM_Address[]) jdkObject;
 	    for (int i=0; i<arrayCount; i++) {
 		VM_Address addr = values[i];
-		int value = getAddressValue(addr);
+		String msg = "VM_Address array element " + i;
+		int value = getAddressValue(addr, msg);
 		bootImage.setFullWord(arrayImageOffset + (i << 2), value);
 	    }
 	}
@@ -1371,7 +1374,8 @@ public class BootImageWriter extends BootImageWriterMessages
           else if (rvmFieldType.equals(VM_Type.AddressType)) {
 	      Object o = jdkFieldAcc.get(jdkObject);
 	      VM_Address addr = (VM_Address) o;
-	      int value = getAddressValue(addr);
+	      String msg = " instance field " + rvmField.toString();
+	      int value = getAddressValue(addr, msg);
 	      bootImage.setFullWord(rvmFieldOffset, value);
           }
           else if (rvmFieldType.equals(VM_Type.WordType)) {
