@@ -35,6 +35,8 @@ $(TESTS): %:
 check:
 	@$(FGREP) -q "Overall:" < $(OUT)
 
+do-gather-performance:
+	@$(FGREP) -q "Overall:" $(OUT) >> $(PERF_LOG)
 
 
 
