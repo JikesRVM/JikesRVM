@@ -262,7 +262,8 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     StringBuffer buffer = new StringBuffer();
     boolean needSeparator = false;
     buffer.append('{');
-    int limit = length();
+//    int limit = length();
+    int limit = this.nbits;
     for (int i = 0 ; i < limit ; i++) {
       if (get(i)) {
 	if (needSeparator) {
