@@ -820,7 +820,7 @@ void *timeSlicerThreadMain(void *arg) {
 #endif
 
 #ifdef RVM_WITH_HPM
-  extern "C" int hpm_init();
+  extern "C" int hpm_init(int);
   extern "C" int hpm_set_event  (int, int, int, int);
   extern "C" int hpm_set_event_X(int, int, int, int);
   extern "C" int hpm_set_mode(int);
@@ -1712,14 +1712,14 @@ sysZeroPages(void *dst, int cnt)
 //
 //
 extern "C" void
-sysSyncCache(int address, int size)
+sysSyncCache(caddr_t address, int size)
    {
    #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sys: sync 0x%08x %d\n", address, size);
+   fprintf(SysTraceFile, "sys: sync 0x%08x %d\n", (int)address, size);
    #endif
 
    #ifdef IBM_AIX
-   _sync_cache_range((caddr_t)address, size);
+   _sync_cache_range(address, size);
    #else
    #ifdef __linux__
    #ifdef RVM_FOR_POWERPC
@@ -1730,7 +1730,7 @@ sysSyncCache(int address, int size)
        }
 
      /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
-     caddr_t start = (caddr_t)address;
+     caddr_t start = address;
      caddr_t end = start + size;
      caddr_t addr;
  

@@ -42,6 +42,8 @@ extern pthread_key_t VmProcessorKey;
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include <InterfaceDeclarations.h>
 
+extern "C" void setLinkage(VM_BootRecord*);
+
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile;
 int SysErrorFd;
@@ -757,7 +759,7 @@ createJVM (int vmInSeparateThread)
    bootRecord->traceClassLoading = traceClassLoading;
 
   /* write sys.C linkage information into boot record */
-  bootRecord->setLinkage ();
+  setLinkage(bootRecord);
   if (lib_verbose) {
     fprintf (SysTraceFile, "%s: boot record contents:\n", me);
     fprintf (SysTraceFile, "   bootImageStart:       0x%08x\n", bootRecord->bootImageStart);

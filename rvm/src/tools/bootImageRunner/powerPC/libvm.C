@@ -2,7 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
+
+/*
  * C runtime support for virtual machine.
  *
  * This file deals with loading of the vm boot image into a memory segment and
@@ -16,7 +17,6 @@
  * 17 Oct 2000 Splitted from the original RunBootImage, contains everything except the 
  *             command line parsing in main
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +44,7 @@ extern "C" char *sys_siglist[];
 
 extern "C" int createJVM(int);
 extern "C" void processTimerTick(void);
+extern "C" void sysSyncCache(caddr_t, int size);
 
 // There are several ways to allocate large areas of virtual memory:
 // 1. malloc() is simplest, but doesn't allow a choice of address and so requires address relocation for references appearing in boot image
@@ -69,9 +70,10 @@ extern "C" void processTimerTick(void);
 //
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#include "AixLinkageLayout.h"
 #include <InterfaceDeclarations.h>
 VM_BootRecord *theBootRecord;
+
+extern "C" void setLinkage(VM_BootRecord*);
 
 // Sink for messages relating to serious errors detected by C runtime.
 //
@@ -865,7 +867,7 @@ int createJVM(int vmInSeparateThread) {
 
    // set host o/s linkage information into boot record
    //
-   bootRecord.setLinkage();
+   setLinkage(&bootRecord);
 
    // remember location of java exception handler
    //

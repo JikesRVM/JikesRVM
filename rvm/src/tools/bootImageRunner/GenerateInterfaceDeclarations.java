@@ -46,9 +46,15 @@ class GenerateInterfaceDeclarations {
 
     System.out.print("/*------ MACHINE GENERATED: DO NOT EDIT ------*/\n\n");
     System.out.println("#define VM_Address unsigned int");
+
     System.out.println("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
     emitBootRecordDeclarations();
     System.out.println("#endif /* NEED_BOOT_RECORD_DECLARATIONS */");
+    System.out.println();
+
+    System.out.println("#ifdef NEED_BOOT_RECORD_INITIALIZATION");
+    emitBootRecordInitialization();
+    System.out.println("#endif /* NEED_BOOT_RECORD_INITIALIZATION */");
     System.out.println();
 
     System.out.println("#ifdef NEED_VIRTUAL_MACHINE_DECLARATIONS");
@@ -65,6 +71,50 @@ class GenerateInterfaceDeclarations {
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordDeclarations () {
+    VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
+    VM_Atom classDescriptor = className.descriptorFromClassName();
+    VM_Class bootRecord = null;
+    try {
+      bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
+    } catch (ClassNotFoundException e) {
+      System.err.println("Failed to load VM_BootRecord!");
+      System.exit(-1);
+    }
+    VM_Field[] fields = bootRecord.getDeclaredFields();
+
+    System.out.print("struct VM_BootRecord {\n");
+
+    // emit field declarations
+    // note that fields are layed out "backwards" in memory
+    //
+    for (int i = fields.length; --i >= 0;) {
+      VM_Field field = fields[i];
+      if (field.isStatic())
+        continue;
+      else if (field.getType().isIntType())
+	  System.out.print("   int " + field.getName() + ";\n");
+      else if (field.getType().isWordType())
+	  System.out.print("   VM_Address " + field.getName() + ";\n");
+      else if (field.getType().isArrayType() &&
+	       field.getType().getArrayElementType().isWordType())
+	  System.out.print("   VM_Address * " + field.getName() + ";\n");
+      else if (field.getName().toString().equals("heapRanges") &&
+	       field.getType().isArrayType() &&
+	       field.getType().getArrayElementType().isIntType())
+	  System.out.print("   unsigned int * " + field.getName() + ";\n");
+      else {
+	  System.err.print("Unexpected field " + field.getName().toString() + " with type " + field.getType() + "\n");
+	  throw new RuntimeException("unexpected field type");
+      }
+    }
+
+    System.out.print("};\n");
+  }
+
+
+  // Emit declarations for VM_BootRecord object.
+  //
+  static void emitBootRecordInitialization() {
     VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
@@ -93,37 +143,9 @@ class GenerateInterfaceDeclarations {
       }
     }
 
-    System.out.print("\nstruct VM_BootRecord\n");
-    System.out.print("   {\n");
-
-    // emit field declarations
-    // note that fields are layed out "backwards" in memory
-    //
-    for (int i = fields.length; --i >= 0;) {
-      VM_Field field = fields[i];
-      if (field.isStatic())
-        continue;
-      else if (field.getType().isIntType())
-	  System.out.print("   int " + field.getName() + ";\n");
-      else if (field.getType().isWordType())
-	  System.out.print("   VM_Address " + field.getName() + ";\n");
-      else if (field.getType().isArrayType() &&
-	       field.getType().getArrayElementType().isWordType())
-	  System.out.print("   VM_Address * " + field.getName() + ";\n");
-      else if (field.getName().toString().equals("heapRanges") &&
-	       field.getType().isArrayType() &&
-	       field.getType().getArrayElementType().isIntType())
-	  System.out.print("   unsigned int * " + field.getName() + ";\n");
-      else {
-	  System.err.print("Unexpected field " + field.getName().toString() + " with type " + field.getType() + "\n");
-	  throw new RuntimeException("unexpected field type");
-      }
-    }
-
     // emit field initializers
     //
-    System.out.print("\n   void setLinkage()\n");
-    System.out.print("      {\n");
+    System.out.print("extern \"C\" void setLinkage(VM_BootRecord* br){\n");
     for (int i = fields.length; --i >= 0;) {
       VM_Field field = fields[i];
       if (field.isStatic())
@@ -137,13 +159,11 @@ class GenerateInterfaceDeclarations {
         if (VM.BuildForAix)
           // e. g.,
           // sysSprintfIP = ((AixLinkageLayout *)&sysSprintf)->ip;
-          System.out.print("      " + fieldName + " = ((AixLinkageLayout *)&"
-              + functionName + ")->ip;\n"); 
+          System.out.print("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->ip;\n"); 
         else 
           // e. g.,
           //sysSprintfIP = (int) sysSprintf; 
-          System.out.print("      " + fieldName + " = (int) " + functionName
-              + ";\n");
+          System.out.print("  br->" + fieldName + " = (int) " + functionName + ";\n");
       }
 
       suffixIndex = fieldName.indexOf("TOC");
@@ -153,15 +173,13 @@ class GenerateInterfaceDeclarations {
         if (VM.BuildForAix)
           // e. g.,
           // sysTOC = ((AixLinkageLayout *)&sys)->toc;
-          System.out.print("      " + fieldName + " = ((AixLinkageLayout *)&"
-              + functionName + ")->toc;\n"); 
+          System.out.print("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->toc;\n"); 
         else 
-          System.out.print("      " + fieldName + " = 0;\n");
+          System.out.print("  br->" + fieldName + " = 0;\n");
       }
     }
 
-    System.out.print("      }\n");
-    System.out.print("   };\n");
+    System.out.print("}\n");
   }
 
 

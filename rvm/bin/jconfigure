@@ -1995,7 +1995,7 @@ function emitBooterLinker
    print ""
    print "rm -f libjni.a"
    print "cd $SCRATCH_DIRECTORY_STR"
-   print "rm -f $BOOTER_STR RunBootImage.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h"
+   print "rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h"
    print 'print -n "(booter cleaned) "'
    print 'if [[ $1 = -clean ]]; then'
 
@@ -2074,7 +2074,7 @@ function emitBooterLinker
    fi
 
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	 print "BOOTER_CC=\"$HOST_CC_STR -DIBM_AIX -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DIBM_AIX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
          print 'BOOTER_CCM="$BOOTER_CC -M"'
 	 print "CPP=\"$HOST_CC_STR -E\""
@@ -2083,7 +2083,7 @@ function emitBooterLinker
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CC_STR -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR\""
@@ -2092,7 +2092,7 @@ function emitBooterLinker
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CC_STR -rdynamic -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -rdynamic -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
@@ -2132,6 +2132,10 @@ function emitBooterLinker
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C"
 
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
+	    \$BOOTER_CC -c -O -I. -I$SCRATCH_DIRECTORY_STR \
+	    -o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C"
+	
+      print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$CPP -I$SCRATCH_DIRECTORY_STR -P\
 		bootThread.c > $SCRATCH_DIRECTORY_STR/bootThread.s"
       print "\$BOOTER_CC -c -o $SCRATCH_DIRECTORY_STR/bootThread.o\
@@ -2157,10 +2161,6 @@ function emitBooterLinker
 	    -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm"
 
 	print 'print -n "(build libJava2HPM.a JNI library)"'
-# name mangling by JikesRVM different than jdk.
-#	print "cd $CLASSES_DIRECTORY_STR &&\
-#		$HOST_JAVA_HOME/bin/javah -o $SCRATCH_DIRECTORY_STR/Java2HPM.h -jni\
-#		com/ibm/JikesRVM/Java2HPM"
         print "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
   		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
  		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.c"
@@ -2173,7 +2173,7 @@ function emitBooterLinker
 	    \$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
 	    -o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
 	print "cd $SCRATCH_DIRECTORY_STR &&\
-	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS"
+	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS"
       fi
       print 'print -n "(booter linked)"'
 
@@ -2182,6 +2182,9 @@ function emitBooterLinker
 		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
 		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BOOTIMAGE_STR\\\"\
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C"
+      print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
+		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
+		-o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C"
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
 		\$BOOTER_CC -c -I$SCRATCH_DIRECTORY_STR\
 		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
@@ -2199,7 +2202,7 @@ function emitBooterLinker
 		\$BOOTER_CC -funsigned-bitfields -c -I$SCRATCH_DIRECTORY_STR\
 		-o $SCRATCH_DIRECTORY_STR/ihnpdsm.o ihnpdsm.C"
       print "cd $SCRATCH_DIRECTORY_STR &&\
-	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o sys.o bootThread.o libvm.o\
+	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o\
                                    disasm.o ihnpdsm.o \$CCLIBS"
       print 'print "(booter linked)"'
       print ""
