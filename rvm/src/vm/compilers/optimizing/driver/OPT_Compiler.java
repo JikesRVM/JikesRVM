@@ -50,6 +50,9 @@ public class OPT_Compiler {
         throw  new OPT_OptimizingCompilerException("VM not initialized", 
             true);
       }
+
+      // Make a local copy so that some options can be forced off just for the
+      // duration of this initialization step.
       options = (OPT_Options)options.clone();
       options.SIMPLE_ESCAPE_IPA = false;
 
