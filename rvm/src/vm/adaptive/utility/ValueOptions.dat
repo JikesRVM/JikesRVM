@@ -13,16 +13,8 @@ V INITIAL_SAMPLE_SIZE int 20
 Initial value of how many samples to take before reporting method hotness to controller
 
 
-V MIN_SAMPLES int 1
-How many samples are needed for a method before we treat it as significant? (i.e., < than this number is treated as noise)
-
-
 V MAX_OPT_LEVEL int 2
 What is the highest optimization level to use when adaptive recompilation is employed?
-
-
-V DEFAULT_OPT_LEVEL int 2
-The optimization level to use for recompilation (with simple strategy)
 
 
 V FILTER_OPT_LEVEL int 2
@@ -32,29 +24,11 @@ At what optimization level should we begin to NOT return to methods to the contr
 E PRIMARY_STRATEGY byte PS_ADAPTIVE
 Selection of primary controller strategy
 "PS_BASE_ONLY baselineOnly baseonly" \
-"PS_QUICK_ONLY quickOnly quickonly" \
 "PS_OPT_ONLY optOnly optonly" \
 "PS_ADAPTIVE adaptive adaptive"
 
-E METHOD_SAMPLE_ORGANIZER byte MSO_WINDOW
-Selection of method sample (recompilation) organizer
-"MSO_WINDOW windowing window" \
-"MSO_WINDOW_HIST windowingWithHistory windowHist"
-
-V MSO_ADJUST_BOUNDS double 0.50
-Samples adjusted by window-history MSO by factors of 1.0 +/- MSO_ADJUST_BOUNDS
-
-
-V MSO_NUM_EPOCHS int 7 
-How many epochs to maintain for the window-history based MSO
-
-
 V LOGFILE_NAME String \"AOSLog.txt\" lf
 Name of log file
-
-
-V ADAPTIVE_INLINE_LOGFILE_NAME String \"AOSILog.txt\" ilf
-Name of inline decision log file
 
 
 V COMPILER_DNA_FILE_NAME String \"CompilerDNA.txt\" dna
@@ -81,11 +55,7 @@ V DECAY_FREQUENCY int 100
 After how many clock ticks should we decay
 
 
-V DECAY_RATE double 1.50
-What factor should we decay by
-
-
-V AI_DECAY_RATE double 1.1
+V DECAY_RATE double 1.1
 What factor should we decay by AI hotness by
 
 

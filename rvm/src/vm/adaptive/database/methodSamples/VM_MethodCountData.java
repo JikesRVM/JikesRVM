@@ -18,20 +18,14 @@ import java.util.Vector;
  * @author Michael Hind
  * @modified Peter Sweeney
  */
-public final class VM_MethodCountData 
-  implements VM_Decayable, VM_Reportable {
+public final class VM_MethodCountData implements VM_Reportable {
 
   private static final boolean DEBUG = false;
   
   /**
-   * Sum of values in count array that are decayed over time.
+   * Sum of values in count array.
    */
   private double totalCountsTaken;
-
-  /**
-   * How many counts have really been taken (ignoring decay).
-   */
-  private double undecayedTotalCountsTaken;
 
   /**
    * Count array: counts how many times a method is executed.
@@ -70,7 +64,6 @@ public final class VM_MethodCountData
     cmids = new int[256];
     nextIndex = 1;
     totalCountsTaken = 0;
-    undecayedTotalCountsTaken = 0;
   }
 
   /** 
@@ -87,7 +80,6 @@ public final class VM_MethodCountData
       heapifyUp(index);     // Fix up the heap
     }
     totalCountsTaken += numCounts;
-    undecayedTotalCountsTaken += numCounts;
     if (DEBUG) validityCheck();
   }
 
@@ -102,29 +94,15 @@ public final class VM_MethodCountData
     counts[index] += numCounts;       // Record counts
     heapifyUp(index);                 // Fix up the heap
     totalCountsTaken += numCounts;
-    undecayedTotalCountsTaken += numCounts;
     if (DEBUG) validityCheck();
   }
-
-  /**
-   * Decay the method counts.
-   */
-  public final synchronized void decay() {
-    double rate = VM_Controller.options.DECAY_RATE;
-    for (int i=1; i<nextIndex; i++) {
-      counts[i] /= rate;
-    }
-    totalCountsTaken /= rate;
-  }
-
 
   /** 
    *  Print the counted (nonzero) methods.
    *  To get a sorted list, pipe the output through sort -n -r.
    */
   public final synchronized void report() {
-    VM.sysWrite("Method counts: A total of "+totalCountsTaken+
-		" times counted (undecayed  "+undecayedTotalCountsTaken+")\n");
+    VM.sysWrite("Method counts: A total of "+totalCountsTaken+" times counted \n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
@@ -283,18 +261,6 @@ public final class VM_MethodCountData
   }
 
   /**
-   * Convert a possibly decayed numCounts into an
-   * "undecayed" count value for use in model calculations of the 
-   * time spent executing in this method so far.
-   *
-   * @param numCounts number of decayed counts
-   * @return number of undecayed counts
-   */
-  private double numCountsForModel(double numCounts) {
-    return undecayedTotalCountsTaken * countsToHotness(numCounts);
-  }
-
-  /**
    * Recursive implementation of insertHotMethods. Exploit heap property.
    * Note threshold has been converted into a count value by my caller!
    *
@@ -322,7 +288,7 @@ public final class VM_MethodCountData
 	  if (!(compilerType == VM_CompiledMethod.TRAP ||
 		(compilerType == VM_CompiledMethod.OPT && 
 		 (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
-	    double ns = numCountsForModel(counts[index]);
+	    double ns = counts[index];
 	    VM_HotMethodRecompilationEvent event = 
 	      new VM_HotMethodRecompilationEvent(cm, ns);
 	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
@@ -369,7 +335,7 @@ public final class VM_MethodCountData
 	  int compilerType = cm.getCompilerType();
 	  if (compilerType == VM_CompiledMethod.OPT && 
 	      ((VM_OptCompiledMethod)cm).getOptLevel() == optLevel) {
-	    double ns = numCountsForModel(counts[index]);
+	    double ns = counts[index];
 	    collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
 	  }
 	

@@ -123,18 +123,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 				       void doneWaiting() { controllerThread.doneWaiting(); }
 				     });
 
-    compilationQueue = 
-      new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
+    compilationQueue = new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
 
     // Create the analytic model used to make cost/benefit decisions.
-    if (options.ADAPTIVE_RECOMPILATION) {
-      // Multi-level adaptive, ala OOPSLA 2000
-      recompilationStrategy = new VM_MultiLevelAdaptiveModel();
-    } 
-    else {
-      // SLA, ala OOPSLA 2000
-      recompilationStrategy = new VM_SingleLevelAdaptive();
-    }
+    recompilationStrategy = new VM_MultiLevelAdaptiveModel();
 
     // boot the runtime measurement systems
     VM_RuntimeMeasurements.boot();

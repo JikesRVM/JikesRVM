@@ -100,25 +100,21 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
     for (int i=0; i<uniqueIdx; i++) {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);
-      if (ns >= VM_Controller.options.MIN_SAMPLES) {
-	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	if (cm != null) {		// not already obsoleted
-	  int compilerType = cm.getCompilerType();
+      VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+      if (cm != null) {		// not already obsoleted
+	int compilerType = cm.getCompilerType();
 
-	  // Enqueue it unless it's either a trap method or already opt
-	  // compiled at filterOptLevel or higher.
-	  if (!(compilerType == VM_CompiledMethod.TRAP ||
-	        (compilerType == VM_CompiledMethod.OPT && 
-	         (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
-	    VM_HotMethodRecompilationEvent event = 
-	      new VM_HotMethodRecompilationEvent(cm, ns);
-	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
-	      if (VM.LogAOSEvents) {
-	        VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
-	      }
-	    } else {
-	      if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
-	    }
+	// Enqueue it unless it's either a trap method or already opt
+	// compiled at filterOptLevel or higher.
+	if (!(compilerType == VM_CompiledMethod.TRAP ||
+	      (compilerType == VM_CompiledMethod.OPT && 
+	       (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
+	  VM_HotMethodRecompilationEvent event = 
+	    new VM_HotMethodRecompilationEvent(cm, ns);
+	  if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
+	    if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
+	  } else {
+	    if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	  }
 	}
       }

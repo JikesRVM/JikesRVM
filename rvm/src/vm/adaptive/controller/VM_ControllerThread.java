@@ -167,28 +167,12 @@ class VM_ControllerThread extends VM_Thread {
     // Primary backing store for method sample data
     VM_Controller.methodSamples = new VM_MethodCountData();
 
-    // Select organizers to drive method recompilation 
-    int filterOptLevel = opts.ADAPTIVE_RECOMPILATION ? 
-      opts.FILTER_OPT_LEVEL : opts.DEFAULT_OPT_LEVEL;
-    VM_Organizer methodOrganizer = null;
-    if (opts.windowing()) {
-      VM_BasicMethodListener methodListener = 
-	new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
-      methodOrganizer = 
-	new VM_MethodSampleOrganizer(methodListener, filterOptLevel);
-    } else if (opts.windowingWithHistory()) {
-      VM_BasicMethodListener methodListener = 
-	new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
-      methodOrganizer = 
-	new VM_SlopeDetectingMethodSampleOrganizer(methodListener,
-						   filterOptLevel,
-						   opts.MSO_ADJUST_BOUNDS,
-						   opts.MSO_NUM_EPOCHS);
-    } else {
-      VM.sysFail("Unimplemented selection of method organizer");
-    }
+    // Instal organizer to drive method recompilation 
+    VM_BasicMethodListener methodListener = 
+      new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
+    VM_Organizer methodOrganizer = 
+      new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
     VM_Controller.organizers.addElement(methodOrganizer);
-
 
     // Decay runtime measurement data 
     if (opts.ADAPTIVE_INLINING) {

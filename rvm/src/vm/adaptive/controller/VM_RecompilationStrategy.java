@@ -14,15 +14,7 @@ import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
  * VM_Recompilation Strategy
  *
  * An abstract class providing the interface to the decision making
- * component of the controller.  There are currently two types
- * recompilation strategies implemented for the Jikes RVM, 
- * (both discussed in OOPSLA 2000 paper)
- *
- *  1) Multi-level adaptive strategy using an analytic model (see
- *     VM_AnalyticModel.java and VM_MultiLevelAdaptiveModel.java) 
- *
- *  2) Single level strategy not using a model 
- *     (See VM_SingleLevelAdaptive.java)
+ * component of the controller. 
  *
  * @author Matthew Arnold
  */
@@ -248,21 +240,13 @@ abstract class VM_RecompilationStrategy {
    * What is the maximum opt level that is vallid according to this strategy?
    */
   int getMaxOptLevel() {
-    return Math.max(VM_Controller.options.DEFAULT_OPT_LEVEL, 
-		    VM_Controller.options.MAX_OPT_LEVEL);
+    return VM_Controller.options.MAX_OPT_LEVEL;
   }
 
 
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
-   * <p>
-   * If VM_Controller.options.ADAPTIVE_RECOMPILATION is False, 
-   * then don't use cost benefit model, but recompile all methods 
-   * at VM_Contoller.options.DEFAULT_OPT_LEVEL (single 
-   * level adaptive).  If this is the case, then generate warning if  
-   * optimizing compiler command line options for optimization levels other  
-   * than VM_Controller.options.DEFAULT_OPT_LEVEL.
    */
   private  OPT_OptimizationPlanElement[][] _optPlans;
   private  OPT_Options[] _options;
@@ -308,14 +292,6 @@ abstract class VM_RecompilationStrategy {
 		      +optCompilerOptions[j]+"\n");
 	}
       } else if (optCompilerOptions[j].startsWith(prefix)) {
-	if (!VM_Controller.options.ADAPTIVE_RECOMPILATION &&
-	    VM_Controller.options.DEFAULT_OPT_LEVEL != optLevel) {
-	  VM.sysWrite("***WARNING: a command line option for optimization "+
-		      "level "+optLevel+
-		      " is not allowed when single level adaptivity is "+
-		      VM_Controller.options.DEFAULT_OPT_LEVEL+"\n");
-	  continue;
-	}
 	String option = optCompilerOptions[j].substring(5);
 	if (!options.processAsOption("-X:aos:"+prefix, option)) {
 	  VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
