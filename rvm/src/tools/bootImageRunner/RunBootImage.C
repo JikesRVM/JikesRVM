@@ -438,7 +438,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 
 /*
  * Parse command line arguments to find those arguments that 
- *   1) effect the starting of the VM, 
+ *   1) affect the starting of the VM, 
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
  * then call createJVM().
@@ -472,7 +472,7 @@ main(int argc, char **argv)
     }
   }
   
-  // call process command line arguments.
+  // call processCommandLineArguments().
   int fastBreak = 0;
   char **Arguments = processCommandLineArguments(argv, argc, &fastBreak);
   if (fastBreak==1) {
