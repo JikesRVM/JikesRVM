@@ -19,6 +19,7 @@ import instructionFormats.*;
 final class OPT_DefUse implements OPT_Operators {
   final static boolean DEBUG = false;
   final static boolean TRACE_DU_ACTIONS = false;
+  final static boolean SUPRESS_DU_FOR_PHYSICALS = true;
 
   /**
    * Clear defList, useList for an IR.
@@ -55,8 +56,7 @@ final class OPT_DefUse implements OPT_Operators {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
-          if (!rop.register.isPhysical())
-            recordDef(rop);
+	  recordDef(rop);
         }
       }         // for ( defs = ... )
       for (OPT_OperandEnumeration uses = instr.getUses(); 
@@ -64,8 +64,7 @@ final class OPT_DefUse implements OPT_Operators {
         OPT_Operand op = uses.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
-          if (!rop.register.isPhysical())
-            recordUse(rop);
+	  recordUse(rop);
         }
       }         // for ( uses = ... )
     }           // for ( instr = ... )
@@ -104,6 +103,7 @@ final class OPT_DefUse implements OPT_Operators {
    */
   static void recordDefUse(OPT_RegisterOperand regOp) {
     OPT_Register reg = regOp.register;
+    if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     regOp.append(reg.useList);
     reg.useList = regOp;
   }
@@ -114,6 +114,7 @@ final class OPT_DefUse implements OPT_Operators {
    */
   static void recordDef(OPT_RegisterOperand regOp) {
     OPT_Register reg = regOp.register;
+    if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     regOp.append(reg.defList);
     reg.defList = regOp;
   }
@@ -124,6 +125,7 @@ final class OPT_DefUse implements OPT_Operators {
    */
   static void removeUse(OPT_RegisterOperand regOp) {
     OPT_Register reg = regOp.register;
+    if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     if (regOp == reg.useList) {
       reg.useList = reg.useList.getNext();
     } else {
@@ -147,8 +149,8 @@ final class OPT_DefUse implements OPT_Operators {
    * @param regOp the operand that uses the register
    */
   static void removeDef(OPT_RegisterOperand regOp) {
-    
     OPT_Register reg = regOp.register;
+    if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     if (regOp == reg.defList) {
       reg.defList = reg.defList.getNext();
     } else {
@@ -176,7 +178,7 @@ final class OPT_DefUse implements OPT_Operators {
    *  @param newRegOp the register operand to use for the change
    */
   static void transferUse(OPT_RegisterOperand origRegOp, 
-      OPT_RegisterOperand newRegOp) {
+			  OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions)
       VM.assert(origRegOp.register.getType() == newRegOp.register.getType());
     OPT_Instruction inst = origRegOp.instruction;
@@ -208,16 +210,14 @@ final class OPT_DefUse implements OPT_Operators {
   static void removeInstructionAndUpdateDU(OPT_Instruction s) {
     for (OPT_OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
-      if (op != null && op.isRegister() && 
-          !op.asRegister().register.isPhysical()) {
-        removeDef(op.asRegister());
+      if (op instanceof OPT_RegisterOperand) {
+        removeDef((OPT_RegisterOperand)op);
       }
     }
     for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
-      if (op != null && op.isRegister() && 
-          !op.asRegister().register.isPhysical()) {
-        removeUse(op.asRegister());
+      if (op instanceof OPT_RegisterOperand) {
+        removeUse((OPT_RegisterOperand)op);
       }
     }
     s.remove();
@@ -230,16 +230,14 @@ final class OPT_DefUse implements OPT_Operators {
   static void updateDUForNewInstruction(OPT_Instruction s) {
     for (OPT_OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
-      if (op != null && op.isRegister() && 
-          !op.asRegister().register.isPhysical()) {
-        recordDef(op.asRegister());
+      if (op instanceof OPT_RegisterOperand) {
+        recordDef((OPT_RegisterOperand)op);
       }
     }
     for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.next();
-      if (op != null && op.isRegister() && 
-          !op.asRegister().register.isPhysical()) {
-        recordUse(op.asRegister());
+      if (op instanceof OPT_RegisterOperand) {
+        recordUse((OPT_RegisterOperand)op);
       }
     }
   }
