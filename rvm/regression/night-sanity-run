@@ -66,6 +66,15 @@ $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -re
 # performance runs
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
+# measure compilation time
+#export RUN_MEASURE_COMPILATION_LOG=$RVM_ROOT/results/measureCompilation.log
+export  MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
+export  MEASURE_COMPILATION_LOG=$MEASURE_COMPILATION_DIR/measureCompilation.performance.log
+
+mkdir -p $MEASURE_COMPILATION_DIR
+
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2' -performance $MEASURE_COMPILATION_LOG" -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
+
 # Fix the permission bits because umask doesn't seem to be working correctly
 echo "fixing permission bits" >> $RUN_LOG
 chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
@@ -122,10 +131,20 @@ echo SPECjvm98 Performance Details >> $MSG
 echo ----------------------------- >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 $RVM_ROOT/results/performance.log >> $MSG
 
+# gather measure compilation results
+echo "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n" > $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O0.2proc.raw > $MSG
+#
+echo "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n" > $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O1.2proc.raw > $MSG
+#
+echo "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" > $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O2.2proc.raw > $MSG
+
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
-cat MSG >> $RUN_LOG
+cat $MSG >> $RUN_LOG
 
 if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
   cat $MSG | mail -s "[$ARCH] regression SUCCEEDED" $RESULT_MAILING_LIST 
@@ -158,13 +177,4 @@ if [[ -s $CHECK_DIR/noCopyright.rvm ]] then
 else
   echo " " | mail -s "no files without a Copyright notice" pfs 
 fi
-
-# measure compilation time
-export RUN_MEASURE_COMPILATION_LOG=$RVM_ROOT/results/measureCompilation.log
-export                  RESULT_DIR=$RVM_ROOT/results/measureCompilation
-export     MEASURE_COMPILATION_LOG=$RESULT_DIR/measureCompilation.performance.log
-
-mkdir -p $RESULT_DIR
-
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RESULT_DIR -nobuild -numprocs $NUM_PROCS -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2' -performance $MEASURE_COMPILATION_LOG" -config night-sanity-measure-compilation-config >> $RUN_MEASURE_COMPILATION_LOG 2>> $RUN_MEASURE_COMPILATION_LOG
 
