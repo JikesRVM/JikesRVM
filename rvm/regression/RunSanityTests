@@ -33,6 +33,8 @@ declare -i passed_tests=0
 
 # How often to look to see if the builds are done
 declare -i SLEEP_DURATION=120
+# timeout on waiting for a build to finish; assume a glitch after an hour.
+declare -i MAX_SLEEP=3600
 
 # Who am I?
 #
@@ -331,25 +333,42 @@ function doBuild {
 	fi
     else 
 	if [[ $WAIT ]]; then
-	    echo -n "$ME: Waiting for $RVM_BUILD/$WAIT"
+	    local -i dots=0	# Number of dots printed.
+	    echo "$ME: Waiting for the file \"$RVM_BUILD/$WAIT\""
+	    echo -n "$ME: to appear"
 	    while [[ ! -a $RVM_BUILD/$WAIT ]]; do
+		if (( dots * SLEEP_DURATION >= MAX_SLEEP )); then
+		    say "We've waited for too long, $MAX_SLEEP seconds."
+		    say "We'll assume this build was stillborn and try the next one."
+		    return 1;
+		fi
+		let ++dots;
 		echo -n "."
 		sleep $SLEEP_DURATION;
 	    done
-	    cd $RVM_BUILD || return 1
-	    if fgrep FAILED $WAIT; then
-		failed=2
-		echo "FAILED build."
-	    elif fgrep SUCCESS $WAIT; then
-		failed=0
-		echo "successful build."
+	    if (( dots < 1 )); then
+		echo ";  it's already here."
 	    else
-		failed=-1
-		echo "$WAIT is not in a recognized format!"
+		local -i waited_minutes
+		let waited_minutes=(dots * SLEEP_DURATION) / 60
+		echo "Done.  (Had to wait $waited_minutes minutes.)"
+	    fi
+	    cd $RVM_BUILD || return 1
+	    echo -n "$ME: Build status: "
+	    if fgrep FAILED $WAIT; then
+		# fgrep will print the message for us.
+		return 2
+	    elif fgrep SUCCESS $WAIT; then
+		# fgrep will print the message for us.
+		;
+	    elif [[ ! -s $WAIT ]]; then
+		say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
+	    else
+		return -1
+		say "$WAIT is not in a recognized format!"
 		say "Internal error."
 	    fi
 	fi
-	(( failed )) && return $failed;
 
 	cd $RVM_BUILD
 
