@@ -5192,7 +5192,8 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     OperandStack copy() {
       OperandStack newss = new OperandStack(stack.length);
       newss.top = top;
-      System.arraycopy(stack, 0, newss.stack, 0, top);
+      for ( int i = 0; i < top; i++ )		// deep copy of stack
+	newss.stack[ i ] = stack[ i ].copy();
       return newss;
     }
 
@@ -5458,6 +5459,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
       // the performance of code in exception handling blocks, this 
       // should be the right tradeoff.
       exceptionObject = temps.makeTemp(VM_Type.JavaLangThrowableType);
+      setGuard(exceptionObject, new OPT_TrueGuardOperand());	// know not null 
       low = loc;
       high = loc;
       // Set up expression stack on entry to have the caught exception operand.
