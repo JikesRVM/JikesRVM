@@ -145,7 +145,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   // Other fields and methods referenced from common GC classes or elsewhere
   // in VM (ex. VM_Entrypoints)
   //
-  static final int     MARK_VALUE = 0;
   static final boolean movesObjects = false;
   static final boolean writeBarrier = false;
   static boolean       gcInProgress;
