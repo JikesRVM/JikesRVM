@@ -1192,7 +1192,8 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput(user.mem.printJVMstackTraceFull(0, 20));   // default, print first 20 frames
 	break;
       case 1: 
-	if (args[0].length()==8) {                // treat number as address for FP
+	if (args[0].startsWith("0x") || args[0].startsWith("0X") ||
+	    args[0].length()==8) {                // treat number as address for FP
 	  int fp = parseHex32(args[0]);
 	  jdp_console.writeOutput(user.mem.printJVMstackTraceFull(fp));    
 	} else {
@@ -1229,7 +1230,8 @@ class Debugger implements jdpConstants {
         jdp_console.writeOutput(user.mem.printJVMstackTrace(0, 20));       // default, print first 20 frames
         break;
       case 1:
-	if (args[0].length()==8) {                // treat number as address for FP
+	if (args[0].startsWith("0x") || args[0].startsWith("0X") ||
+	     args[0].length()==8) {                // treat number as address for FP
 	  int fp = parseHex32(args[0]);
 	  jdp_console.writeOutput(user.mem.printJVMstackTrace(fp));
 	} else {
@@ -1266,7 +1268,8 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput(user.mem.printJVMstack(0, 4));
 	break;
       case 1:
-	if (args[0].length()==8) {                // treat number as address for FP
+	if (args[0].startsWith("0x") || args[0].startsWith("0X") ||
+	     args[0].length()==8) {                // treat number as address for FP
 	  fp = parseHex32(args[0]); 
 	  jdp_console.writeOutput(user.mem.printJVMstack(fp, 4));
 	} else {
@@ -1769,6 +1772,7 @@ class Debugger implements jdpConstants {
     // 	 return;
     // } 
     
+    String arg1;
     // want to cast a class on an address
     if (args[0].startsWith("(")) {
       int rparen = args[0].indexOf(')');
@@ -1776,8 +1780,19 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput("missing parenthesis for class name: " + args[0]);
         return;
       }
+      if (args.length == 1) {
+	if (rparen != (args[0].length()-1)) {
+	  // User must have not put a blank
+	  arg1 = args[0].substring(rparen+1);
+	} else {
+	  jdp_console.writeOutput("Please specify an address to be cast e.g. print (VM_Thread) 0x4169536c");
+	  return;
+	}
+      } else
+	arg1 = args[1];
+	
       try {
-	addr = parseHex32(args[1]);
+	addr = parseHex32(arg1);
 	String classname = args[0].substring(1,rparen);
 	try {
 	  // flag set to false to get only nonstatic fields
@@ -1991,6 +2006,15 @@ class Debugger implements jdpConstants {
    * @return the integer value
    */
   private int parseHex32(String hexString) throws NumberFormatException {
+    if (hexString.startsWith("0x") || hexString.startsWith("0X")) 
+      hexString = hexString.substring(2);
+    else {
+      int tempint = Integer.parseInt(hexString, 16);
+      // that will throw an exception if it is a non-hexnum like string
+      jdp_console.writeOutput("Sorry, hex numbers must now be preceeded by 0X or 0x. In the future, numbers without this prefix will be interpreted as decimal.");
+      throw new NumberFormatException();
+    }
+    
     int firstInt = Integer.parseInt(hexString.substring(0,1), 16);
     if (hexString.length() < 8  || firstInt <= 7)
       return Integer.parseInt(hexString,16);
