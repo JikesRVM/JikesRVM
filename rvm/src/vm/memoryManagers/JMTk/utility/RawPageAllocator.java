@@ -72,6 +72,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
       int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toInt()); // rounded up
       VM_Address tmp = vmResource.acquire(pagesNeeded, null);
       top = tmp.add(Conversions.pagesToBytes(pagesNeeded));
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(resultEnd.LE(top));
     }
     lock.release();
     return result;
