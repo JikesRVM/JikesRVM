@@ -117,7 +117,7 @@ public class VM_WriteBuffer implements VM_Constants,
       // allocate buffer and initialize integer pointers to TOP & MAX
       if (VM.VerifyAssertions) VM._assert(VM.runningVM == true);
       p.modifiedOldObjects = new int[WRITE_BUFFER_SIZE >> LOG_BYTES_IN_ADDRESS];
-      p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects).sub(BYTES_IN_ADDRESS4);
+      p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects).sub(BYTES_IN_ADDRESS);
       p.modifiedOldObjectsMax = p.modifiedOldObjectsTop.add((p.modifiedOldObjects.length << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS);
     }
   }
@@ -379,6 +379,6 @@ public class VM_WriteBuffer implements VM_Constants,
       buf = nextbuf;
     }
     // reset next pointer in first buffer to null
-    VM_Magic.setMemoryAddress( temp, 0 );
+    VM_Magic.setMemoryAddress(temp, VM_Address.zero());
   }
 }
