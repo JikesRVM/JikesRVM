@@ -580,7 +580,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
-        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getCurrentCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         if (offset!=-1) {
           startAddr = instructionAddressForClass(id, i, true);
           methodID = getCompiledMethodIDForInstruction(startAddr);
@@ -598,7 +598,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled())
       {
-        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getCurrentCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
         //System.out.println("... checking virtual method " + methods[i].getName().toString() +
         // 			    ": offset " + offset);
         if (offset!=-1) {
@@ -724,7 +724,7 @@ class BootMapExternal extends BootMap {
       int limit = VM_MethodDictionary.getNumValues();
       if (methodID > 0 && methodID < limit) {
 	VM_Method mth = mthArray[methodID];
-	return mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo();
+	return mth.getCurrentCompiledMethod().getCompilerInfo();
       }
       else
 	return null;

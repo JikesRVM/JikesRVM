@@ -990,7 +990,7 @@ abstract class BootMap implements jdpConstants,
 
     // get list of local variables that are currently in scope
     // TODO:  use compiled method ID to get the correct compilerInfo
-    VM_LocalVariable locals[] = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findLocalVariablesForInstruction(ipOffset);
+    VM_LocalVariable locals[] = mth.getCurrentCompiledMethod().getCompilerInfo().findLocalVariablesForInstruction(ipOffset);
     if (locals==null)
       return "Locals in frame " + frameNumber + ", " + 
       mth.getName().toString() + ":\n (no local variable information available)";
@@ -1877,7 +1877,7 @@ abstract class BootMap implements jdpConstants,
     
     // get list of local variables that are currently in scope
     // TODO:  use compiled method ID to get the correct compilerInfo
-    VM_LocalVariable locals[] = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findLocalVariablesForInstruction(ipOffset);
+    VM_LocalVariable locals[] = mth.getCurrentCompiledMethod().getCompilerInfo().findLocalVariablesForInstruction(ipOffset);
     if (locals==null)
       return localVars;
 
