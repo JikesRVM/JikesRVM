@@ -137,32 +137,23 @@ describes the details of how a new phase can be added.
 
 \subsubsection{Existing Instrumentation Phases}
 \label{existing_phases}
-There are several existing instrumentation phases.  For now,
-turning on each phase requires setting two flags, one for the AOS
-system, and one for the opt compiler.  These counters are {\em not}
-synchronized (as discussed in Section~\ref{adding_phases}), so they
-should not be considered precise.
+There are several existing instrumentation phases that can be enabled
+by giving the adaptive optimization system command line
+arguments. These counters are {\em not} synchronized (as discussed in
+Section~\ref{adding_phases}), so they should not be considered
+precise. 
 \begin{enumerate}
 \item {\bf Method Invocation Counters} 
 
-Inserts a counter in each method prologue.  Prints counters to stderr
-at end.
-
-Parameters: \\
-{\tt
--X:aos:enable\_recompilation=false \\
--X:aos:insert\_method\_counters\_opt=true \\
--X:recomp:insert\_method\_counters\_opt=true}
+Inserts a counter in each opt compiled method prologue.  Prints
+counters to stderr at end. Enabled by the command line argument.
+{\tt -X:aos:insert\_method\_counters\_opt=true}.
 
 \item {\bf Yieldpoint Counters}  
 
 Inserts a counter after each yieldpoint instruction.  Maintains a
-separate counter for backedge and prologue yieldpoints.
-
-Parameters:\\
-{\tt -X:aos:enable\_recompilation=false \\
--X:aos:insert\_yieldpoint\_counters=true \\
--X:recomp:insert\_yieldpoint\_counters=true}
+separate counter for backedge and prologue yieldpoints. Enabled by 
+{\tt -X:aos:insert\_yieldpoint\_counters=true}.
 
 \item {\bf Instruction Counters}  
 
@@ -212,10 +203,7 @@ For an example, see
 Look
 for the code guarded by the flag {\tt COUNT\_FAILED\_METHOD\_GUARDS}.
  
-Parameters:\\
-{\tt -X:aos:enable\_recompilation=false \\
--X:aos:insert\_debugging\_counters=true \\
--X:recomp:insert\_debugging\_counters=true}
+Enabled by {\tt -X:aos:insert\_debugging\_counters=true}.
 
 \end{enumerate}
 

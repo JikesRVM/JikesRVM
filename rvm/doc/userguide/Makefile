@@ -18,10 +18,8 @@ JMTK_VALUE_DAT_FILES   := $(JMTK_OPTION_DIR)/ValueOptions.dat
 JMTK_DAT_FILES         := $(JMTK_BOOLEAN_DAT_FILES) $(JMTK_VALUE_DAT_FILES)
 
 ADAPT_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
-ADAPT_BOOLEAN_DAT_FILES := ${ADAPT_OPTION_DIR}/BooleanOptions.dat \
-			   ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat
-ADAPT_VALUE_DAT_FILES   := ${ADAPT_OPTION_DIR}/ValueOptions.dat \
-			   ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
+ADAPT_BOOLEAN_DAT_FILES := ${ADAPT_OPTION_DIR}/BooleanOptions.dat
+ADAPT_VALUE_DAT_FILES   := ${ADAPT_OPTION_DIR}/ValueOptions.dat
 ADAPT_DAT_FILES         := $(ADAPT_BOOLEAN_DAT_FILES) $(ADAPT_VALUE_DAT_FILES)
 
 COMPILER_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/utility
@@ -36,11 +34,9 @@ BASE_DAT_FILES         := $(BASE_BOOLEAN_DAT_FILES) $(BASE_VALUE_DAT_FILES)
 
 OPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
 OPT_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) \
-			 ${OPT_OPTION_DIR}/BooleanOptions.dat \
-                         ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat
+			 ${OPT_OPTION_DIR}/BooleanOptions.dat
 OPT_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) \
-			 ${OPT_OPTION_DIR}/ValueOptions.dat \
-                         ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
+			 ${OPT_OPTION_DIR}/ValueOptions.dat
 OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
 include $(config_file)
