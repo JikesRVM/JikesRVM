@@ -217,7 +217,7 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalConstantProp());
     // Perform local common-subexpression elimination for a 
     // factored basic block.
-    addComponent(p, new OPT_LocalCSE(false));
+    addComponent(p, new OPT_LocalCSE());
     // Flow-insensitive field analysis
     addComponent(p, new OPT_FieldAnalysis());
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -420,7 +420,7 @@ public class OPT_OptimizationPlanner {
     // Perform local constant propagation for a factored basic block.
     addComponent(p, new OPT_LocalConstantProp());
     // Perform local common-subexpression elimination for a factored basic block.
-    addComponent(p, new OPT_LocalCSE(true));
+    addComponent(p, new OPT_LocalCSE());
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(false, false));
     // Late expansion of counter-based yieldpoints
