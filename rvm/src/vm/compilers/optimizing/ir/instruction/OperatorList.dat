@@ -1285,21 +1285,21 @@ callUses
 # An explicit thread switch point from a prologue.
 YIELDPOINT_PROLOGUE
 Empty
-tsp | dynLink | yieldPoint
+tsp | yieldPoint
 
 
 
 # An explicit thread switch point from an epilogue.
 YIELDPOINT_EPILOGUE
 Empty
-tsp | dynLink | yieldPoint
+tsp | yieldPoint
 
 
 
 # An explicit thread switch point from a backedge.
 YIELDPOINT_BACKEDGE
 Empty
-tsp | dynLink | yieldPoint
+tsp | yieldPoint
 
 
 
