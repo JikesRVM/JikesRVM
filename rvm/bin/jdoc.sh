@@ -28,6 +28,10 @@ cd $RVM_BUILD
 ./jbuild -nolink -nobooter
 
 
+# status message
+echo -n "`basename $0`: "
+
+
 # pick up env
 . $RVM_BUILD/jbuild.environment
 
