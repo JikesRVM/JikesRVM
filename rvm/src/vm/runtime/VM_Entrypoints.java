@@ -111,6 +111,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field referenceReferentField = getField("Ljava/lang/ref/Reference;", "referent", "Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lorg/vmmagic/unboxed/Address;");
 
+  /** Used in deciding which stack frames we can elide when printing. */
+  public static final VM_NormalMethod mainThreadRunMethod = 
+    getMethod("Lcom/ibm/JikesRVM/MainThread;", "run", "()V");
+
   //-#if RVM_WITH_OSR
   public static final VM_NormalMethod threadSwitchFromOsrBaseMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromOsrBase", "()V");
   //-#endif
@@ -118,6 +122,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod threadSwitchFromBackedgeMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromBackedge", "()V");
   public static final VM_NormalMethod threadSwitchFromEpilogueMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromEpilogue", "()V");
 
+  public static final VM_NormalMethod threadRunMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "run", "()V");
   public static final VM_NormalMethod threadStartoffMethod           = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "startoff", "()V");
   public static final VM_Field threadStackField                = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stack", "[B");
   public static final VM_Field stackLimitField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "stackLimit", "Lorg/vmmagic/unboxed/Address;");
