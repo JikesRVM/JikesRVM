@@ -24,9 +24,10 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   static final boolean DEBUG = false;
 
   /** Implementation */
-  private java.util.HashMap hash = new java.util.HashMap();   // bb -> node
+  private java.util.HashMap hash = new java.util.HashMap();   // bb that is a loop header to -> OPT_LSTNode
   private OPT_LSTNode rootNode;
   private java.util.HashMap nest;            // bb -> Integer (nesting depth)
+  private java.util.HashMap loopMap;         // bb -> OPT_LSTNode
   private OPT_IR ir;
 
   /**
@@ -157,6 +158,29 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     }
   }
 
+  /**
+   * Is the edge from source to target an exit from the loop containg source?
+   * @param source the basic block that is the source of the edge
+   * @param target the basic block that is the target of the edge
+   */
+  public boolean isLoopExit(OPT_BasicBlock source, OPT_BasicBlock target) {
+    if (nest == null) initializeNesting();
+    OPT_LSTNode snode = (OPT_LSTNode)loopMap.get(source);
+    OPT_LSTNode tnode = (OPT_LSTNode)loopMap.get(target);
+
+    if (snode == null || snode == rootNode) return false; // source isn't in a loop
+    if (tnode == null || tnode == rootNode) return true;  // source is in a loop and target isn't
+    if (snode == tnode) return false; // in same loop
+    
+    for (OPT_LSTNode ptr = tnode; 
+	 ptr != rootNode; 
+	 ptr = (OPT_LSTNode)ptr.inNodes().next()) {
+      if (ptr == snode) return false; // tnode is nested inside of snode
+    }
+
+    return true;
+  }
+
 
   /**
    * Initialize a structure which holds the loop nest depth
@@ -166,6 +190,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    */
   private void initializeNesting() {
     nest = new java.util.HashMap();
+    loopMap = new java.util.HashMap();
     ir.resetBasicBlockMap();
     // for each node in the LST ...
     for (OPT_LSTNode node = (OPT_LSTNode)_firstNode.getNext(); 
@@ -181,11 +206,13 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
           Integer d = (Integer)nest.get(bb);
           if (d == null) {
             nest.put(bb, new Integer(depth));
-          } 
-          else {
+	    loopMap.put(bb, node);
+          } else {
             // only set the depth deeper than before; not shallower
-            int newDepth = Math.max(depth, d.intValue());
-            nest.put(bb, new Integer(newDepth));
+	    if (depth > d.intValue()) {
+	      nest.put(bb, new Integer(depth));
+	      loopMap.put(bb, node);
+	    }
           }
         }
       }
