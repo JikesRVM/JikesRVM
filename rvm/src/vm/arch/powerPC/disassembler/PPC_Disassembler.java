@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * @author Ton Ngo
  *
  * Defined: disasm(inst, addr, buf, reg)
- *          INSTRUCTION inst; ADDRESS addr;  CHAR *buf; CHAR reg[4][10];
+ *          INSTRUCTION inst; VM_Address addr;  CHAR *buf; CHAR reg[4][10];
  *
  * 31 Jul 1990 Derek Lieber.
  *      Borrowed from libdbx (opcode.c, decode.c).
@@ -33,7 +33,7 @@ package com.ibm.JikesRVM;
  *    Changed the mnemonics for POWER instructions that have 
  *    different names on the PowerPC to use the PowerPC mnemonic.
  *    (Applied changes from Appendix F of PPC Architecture book).
- *    
+ *
  *  mnemonic   	opcode  extop   key    	form    format  Example  
  *  --------   	------  ---    	--- 	----    ------  --------
  *  dcbf	31	86	172	X	6	7C0218AC
@@ -99,6 +99,11 @@ package com.ibm.JikesRVM;
  *  mfibatu		
  *  mtibatl		
  *  mtibatu		
+ *    
+ * 23 Apr 2003 Kris Venstermans:
+ *    Added instruction decoding for 64 bit architecture.
+ *    Use of constant definitions instead of integers. 
+ *    Cleaned up some old power instructions.
  */
 
 public class PPC_Disassembler implements VM_Constants {
@@ -119,7 +124,7 @@ public class PPC_Disassembler implements VM_Constants {
   public static void main(String[] args) {
 
     int instr = Integer.parseInt(args[0],16);
-    int addr = Integer.parseInt(args[1],16);
+    int addr =  Integer.parseInt(args[1],16);
     System.out.println("instr = "+intAsHexString(instr)+" addr = "+
        intAsHexString(addr));
     System.out.println("result --> "+disasm(instr, addr));
@@ -197,12 +202,13 @@ public class PPC_Disassembler implements VM_Constants {
   static final int  XO_FORM   = 8;
   static final int  A_FORM    = 9;
   static final int  M_FORM    =10;
+  static final int  DS_FORM   =30;
+  static final int  XS_FORM   =31;
+  static final int  MD_FORM   =32;
+  static final int  MDS_FORM  =33;
+
   static final int  EXTENDED  =11;
   static final int  INVALID_OP=12;
-
-  static final int OPCODE31_SZ  =  187;
-  static final int OPCODE63_SZ  =  23;
-  static final int AFORM_SZ     =  16;
   
   /* Condition register fields */
   static final int CR_LT=8;
@@ -225,7 +231,11 @@ public class PPC_Disassembler implements VM_Constants {
     /* FORM */
     INVALID_OP, /* OPCODE 00 */
     INVALID_OP, /* OPCODE 01 */
+//-#if RVM_FOR_64_ADDR
+    D_FORM,     /* OPCODE 02 */
+//-#else
     INVALID_OP, /* OPCODE 02 */
+//-#endif
     D_FORM,     /* OPCODE 03 */
     D_FORM,     /* OPCODE 04 */
     D_FORM,     /* OPCODE 05 */
@@ -253,7 +263,7 @@ public class PPC_Disassembler implements VM_Constants {
     D_FORM,     /* OPCODE 27 */
     D_FORM,     /* OPCODE 28 */
     D_FORM,     /* OPCODE 29 */
-    D_FORM,     /* OPCODE 30 */
+    EXTENDED,   /* OPCODE 30 */
     EXTENDED,   /* OPCODE 31 */
     D_FORM,     /* OPCODE 32 */
     D_FORM,     /* OPCODE 33 */
@@ -281,11 +291,19 @@ public class PPC_Disassembler implements VM_Constants {
     D_FORM,     /* OPCODE 55 */
     INVALID_OP, /* OPCODE 56 */
     INVALID_OP, /* OPCODE 57 */
+//-#if RVM_FOR_64_ADDR
+    DS_FORM,    /* OPCODE 58 */
+//-#else
     INVALID_OP, /* OPCODE 58 */
+//-#endif
     A_FORM,     /* OPCODE 59 */
     INVALID_OP, /* OPCODE 60 */
     INVALID_OP, /* OPCODE 61 */
+//-#if RVM_FOR_64_ADDR
+    DS_FORM,    /* OPCODE 62 */
+//-#else
     INVALID_OP, /* OPCODE 62 */
+//-#endif
     EXTENDED    /* OPCODE 63 */
   };
   
@@ -297,7 +315,7 @@ public class PPC_Disassembler implements VM_Constants {
     /*   ----     --                                ------      --------   */
     /*    0,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
     /*    1,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
-    /*    2,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
+    /*    2,      XXX,     */  new opcode_tab (      3,      "tdi"),
     /*    3,      XXX,     */  new opcode_tab (      3,      "twi"     ), 
     /*    4,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
        
@@ -305,7 +323,7 @@ public class PPC_Disassembler implements VM_Constants {
     /*    6,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
     /*    7,      XXX,     */  new opcode_tab (      0,      "mulli"   ),
     /*    8,      XXX,     */  new opcode_tab (      0,      "subfic"  ),
-    /*    9,      XXX,     */  new opcode_tab (      0,      "dozi"    ),
+    /*    9,      XXX,     */  new opcode_tab (      X,      "RESERVED"),
     
     /*    10,     XXX,     */  new opcode_tab (      4,      "cmpli"   ),
     /*    11,     XXX,     */  new opcode_tab (      4,      "cmpi"    ),
@@ -364,21 +382,21 @@ public class PPC_Disassembler implements VM_Constants {
     /*    55,     XXX,     */  new opcode_tab (      5,      "stfdu"   )
   };
   
-  
+
   static
   opcode_tab XLform[] = {
     
     /* Table for the XL instruction format */
     
-    /*   OPCD      EO                 format     mnemonic      */
-    /*   ----      --                 ------     --------      */ 
+    /*   OPCD      EO		                 format     mnemonic      */
+    /*   ----      --           		 ------     --------      */ 
     /*    19,      0,      */  new opcode_tab(        2,        "mcrf"   ),
     /*    19,      16,     */  new opcode_tab(        1,        "bclr or bclrl"),
     /*    19,      33,     */  new opcode_tab(        3,        "crnor"   ),
     /*    19,      50,     */  new opcode_tab(        0,        "rfi"   ),
     /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
     
-    /*    19,      82,     */  new opcode_tab(        0,        "rfsvc"   ),
+    /*    19,      XXX,     */  new opcode_tab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new opcode_tab(        X,        "RESERVED"   ),
     /*    19,      129,    */  new opcode_tab(        3,        "crandc"   ),
@@ -417,6 +435,32 @@ public class PPC_Disassembler implements VM_Constants {
   
   
   /**
+   *  Opcode 30 table: 
+   *  The key is bits 27 through 30 of the instruction. 
+   *  "Form" is the instruction format: 
+   *      I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M, MDS, MD
+   *  "format" is how the instruction should be printed (specific to the disassembler) 
+   */
+
+  static
+  opcodeXX opcode30[] = {
+    
+    /* 	 	     key        form     format       mnemonic       */
+    /* 		     ---        ----     ------       --------       */
+    new opcodeXX(    0,  	MD_FORM,	0,	"rldicl"  ),
+    new opcodeXX(    1,   	MD_FORM,	0,	"rldicl"  ),
+    new opcodeXX(    2,   	MD_FORM,	1,	"rldicr"  ),
+    new opcodeXX(    3,   	MD_FORM,	1,	"rldicr"  ),
+    new opcodeXX(    4,   	MD_FORM,	0,	"rldic"   ),
+    new opcodeXX(    5,   	MD_FORM,	0,	"rldic"   ),
+    new opcodeXX(    6,   	MD_FORM,	0,	"rldimi"  ),
+    new opcodeXX(    7,   	MD_FORM,	0,	"rldimi"  ),
+    new opcodeXX(    8,   	MDS_FORM,	0,	"rldcl"   ),
+    new opcodeXX(    9,   	MDS_FORM,	1,	"rldcr"   )
+  };
+
+  
+  /**
    *  Opcode 31 table: 
    *  The key is bits 21 through 31 of the instruction. 
    *  "Form" is the instruction format: 
@@ -425,232 +469,227 @@ public class PPC_Disassembler implements VM_Constants {
    */
   
   
-  
   static
   opcodeXX opcode31[] = {
     
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
-    new opcodeXX(        0,         4,        22,         "cmp"), 
-    new opcodeXX(        8,         4,        24,         "tw"),
-    new opcodeXX(       16,         8,         1,         "subfc"),
-    new opcodeXX(       17,         8,         1,         "subfc."),
-    new opcodeXX(       20,         8,         1,         "addc"),
-    new opcodeXX(       21,         8,         1,         "addc."),
-    new opcodeXX(       38,         4,         2,         "mfcr"),
-    new opcodeXX(       46,         4,         7,         "lwzx"),
-    new opcodeXX(       48,         4,         8,         "slw"),
-    new opcodeXX(       49,         4,         8,         "slw."),
-    new opcodeXX(       52,         4,         9,         "cntlzw"),
-    new opcodeXX(       53,         4,         9,         "cntlzw."),
-    new opcodeXX(       56,         4,         8,         "and"),
-    new opcodeXX(       57,         4,         8,         "and."),
-    new opcodeXX(       58,         4,         8,         "maskg"),
-    new opcodeXX(       59,         4,         8,         "maskg."),
-    new opcodeXX(       64,         4,        22,         "cmpl"),
-    new opcodeXX(      110,         4,         7,         "lwzux"),
-    new opcodeXX(      120,         4,         8,         "andc"),
-    new opcodeXX(      121,         4,         8,         "andc."),
-    new opcodeXX(      166,         4,         2,         "mfmsr"),
-    new opcodeXX(      174,         4,         7,         "lbzx"),
-    new opcodeXX(      208,         8,         0,         "neg"),
-    new opcodeXX(      209,         8,         0,         "neg."),
-    new opcodeXX(      214,         8,         1,         "mul"),
-    new opcodeXX(      215,         8,         1,         "mul."),
-    new opcodeXX(      236,         4,         6,         "clf"),
-    new opcodeXX(      238,         4,         7,         "lbzux"),
-    new opcodeXX(      248,         4,         8,         "nor"),
-    new opcodeXX(      249,         4,         8,         "nor."),
-    new opcodeXX(      272,         8,         1,         "subfe"),
-    new opcodeXX(      273,         8,         1,         "subfe."),
-    new opcodeXX(      276,         8,         1,         "adde"),
-    new opcodeXX(      277,         8,         1,         "adde."),
-    new opcodeXX(      288,         6,         9,         "mtcrf"),
-    new opcodeXX(      292,         4,         2,         "mtmsr"),
-    new opcodeXX(      302,         4,         7,         "stwx"),
-    new opcodeXX(      304,         4,         8,         "slq"),
-    new opcodeXX(      305,         4,         8,         "slq."),
-    new opcodeXX(      306,         4,         8,         "sle"),
-    new opcodeXX(      307,         4,         8,         "sle."),
-    new opcodeXX(      366,         4,         7,         "stwux"),
-    new opcodeXX(      368,         4,        11,         "sliq"),
-    new opcodeXX(      369,         4,        11,         "sliq."),
-    new opcodeXX(      400,         8,         0,         "subfze"),
-    new opcodeXX(      401,         8,         0,         "subfze."),
-    new opcodeXX(      404,         8,         0,         "addze"),
-    new opcodeXX(      405,         8,         0,         "addze."),
-    new opcodeXX(      420,         4,        17,         "mtsr"),
-    new opcodeXX(      430,         4,         7,         "stbx"),
-    new opcodeXX(      432,         4,         8,         "sllq"),
-    new opcodeXX(      433,         4,         8,         "sllq."),
-    new opcodeXX(      434,         4,         8,         "sleq"),
-    new opcodeXX(      435,         4,         8,         "sleq."),
-    new opcodeXX(      464,         8,         0,         "subfme"),
-    new opcodeXX(      465,         8,         0,         "subfme."),
-    new opcodeXX(      468,         8,         0,         "addme"),
-    new opcodeXX(      469,         8,         0,         "addme."),
-    new opcodeXX(      470,         8,         1,         "mullw"),
-    new opcodeXX(      471,         8,         1,         "mullw."),
-    new opcodeXX(      484,         4,         7,         "mtsrin"),
-    new opcodeXX(      494,         4,         7,         "stbux"),
-    new opcodeXX(      496,         4,        11,         "slliq"),
-    new opcodeXX(      497,         4,        11,         "slliq"),
-    new opcodeXX(      528,         8,         1,         "doz"),
-    new opcodeXX(      529,         8,         1,         "doz."),
-    new opcodeXX(      532,         8,         1,         "add"),
-    new opcodeXX(      533,         8,         1,         "add."),
-    new opcodeXX(      554,         4,        25,         "lscbx"),
-    new opcodeXX(      555,         4,        25,         "lscbx."),
-    new opcodeXX(      558,         4,         7,         "lhzx"),
-    new opcodeXX(      568,         4,         8,         "eqv"),
-    new opcodeXX(      569,         4,         8,         "eqv."),
-    new opcodeXX(      612,         4,         6,         "tlbie"),
-    new opcodeXX(      622,         4,         7,         "lhzux"),
-    new opcodeXX(      632,         4,         8,         "xor"),
-    new opcodeXX(      633,         4,         8,         "xor."),
-    new opcodeXX(      662,         8,         1,         "div"),
-    new opcodeXX(      663,         8,         1,         "div."),
-    new opcodeXX(      678,         4,         3,         "mfspr"),
-    new opcodeXX(      686,         4,         7,         "lhax"),
-    new opcodeXX(      720,         8,         0,         "abs"),
-    new opcodeXX(      721,         8,         0,         "abs."),
-    new opcodeXX(      726,         8,         1,         "divs"),
-    new opcodeXX(      727,         8,         1,         "divs."),
-    new opcodeXX(      750,         4,         7,         "lhaux"),
-    new opcodeXX(      814,         4,         7,         "sthx"),
-    new opcodeXX(      824,         4,         8,         "orc"),
-    new opcodeXX(      825,         4,         8,         "orc."),
-    new opcodeXX(      878,         4,         7,         "sthux"),
-    new opcodeXX(      888,         4,         8,         "or"),
-    new opcodeXX(      889,         4,         8,         "or."),
-    new opcodeXX(      934,         4,         3,         "mtspr"),
-    new opcodeXX(      952,         4,         8,         "nand"),
-    new opcodeXX(      953,         4,         8,         "nand."),
-    new opcodeXX(      976,         8,         0,         "nabs"),
-    new opcodeXX(      977,         8,         0,         "nabs."),
-    new opcodeXX(     1004,         4,         6,         "cli"),
-    new opcodeXX(     1024,         4,        23,         "mcrxr"),
-    new opcodeXX(     1040,         8,         1,         "subfco"),
-    new opcodeXX(     1041,         8,         1,         "subfco."),
-    new opcodeXX(     1044,         8,         1,         "addco"),
-    new opcodeXX(     1045,         8,         1,         "addco."),
-    new opcodeXX(     1062,         4,         5,         "clcs"),
-    new opcodeXX(     1066,         4,         7,         "lswx"),
-    new opcodeXX(     1068,         4,         7,         "lwbrx"),
-    new opcodeXX(     1070,         4,        12,         "lfsx"),
-    new opcodeXX(     1072,         4,         8,         "srw"),
-    new opcodeXX(     1073,         4,         8,         "srw."),
-    new opcodeXX(     1074,         4,         8,         "rrib"),
-    new opcodeXX(     1075,         4,         8,         "rrib."),
-    new opcodeXX(     1082,         4,         8,         "maskir"),
-    new opcodeXX(     1083,         4,         8,        "maskir."),
-    new opcodeXX(     1134,         4,        12,         "lfsux"),
-    new opcodeXX(     1190,         4,        18,         "mfsr"),
-    new opcodeXX(     1194,         4,        10,         "lswi"),
-    new opcodeXX(     1196,         4,         1,         "sync"),
-    new opcodeXX(     1198,         4,        12,         "lfdx"),
-    new opcodeXX(     1232,         8,         0,         "nego"),
-    new opcodeXX(     1233,         8,         0,         "nego."),
-    new opcodeXX(     1238,         8,         1,         "mulo"),
-    new opcodeXX(     1239,         8,         1,         "mulo."),
-    new opcodeXX(     1254,         4,         7,         "mfsri"),
-    new opcodeXX(     1260,         4,         6,         "dclst"),
-    new opcodeXX(     1262,         4,        12,         "lfdux"),
-    new opcodeXX(     1296,         8,         1,         "subfeo"),
-    new opcodeXX(     1297,         8,         1,         "subfeo."),
-    new opcodeXX(     1300,         8,         1,         "addeo"),
-    new opcodeXX(     1301,         8,         1,         "addeo."),
-    new opcodeXX(     1322,         4,         7,         "stswx"),
-    new opcodeXX(     1324,         4,         7,         "stwbrx"),
-    new opcodeXX(     1326,         4,        12,         "stfsx"),
-    new opcodeXX(     1328,         4,         8,         "srq"),
-    new opcodeXX(     1329,         4,         8,         "srq."),
-    new opcodeXX(     1330,         4,         8,         "sre"),
-    new opcodeXX(     1331,         4,         8,         "sre."),
-    new opcodeXX(     1390,         4,        12,         "stfsux"),
-    new opcodeXX(     1392,         4,        11,         "sriq"),
-    new opcodeXX(     1393,         4,        11,         "sriq."),
-    new opcodeXX(     1424,         8,         0,         "subfzeo"),
-    new opcodeXX(     1425,         8,         0,         "subfzeo."),
-    new opcodeXX(     1428,         8,         0,         "addzeo."),
-    new opcodeXX(     1429,         8,         0,         "addzeo."),
-    new opcodeXX(     1450,         4,        10,         "stswi"), 
-    new opcodeXX(     1454,         4,        12,         "stfdx"),
-    new opcodeXX(     1456,         4,         8,         "srlq"),
-    new opcodeXX(     1457,         4,         8,         "srlq."),
-    new opcodeXX(     1458,         4,         8,         "sreq"),
-    new opcodeXX(     1459,         4,         8,         "sreq."),
-    new opcodeXX(     1488,         8,         0,         "subfmeo."),
-    new opcodeXX(     1489,         8,         0,         "subfmeo."),
-    new opcodeXX(     1492,         8,         0,         "addmeo"),
-    new opcodeXX(     1493,         8,         0,         "addmeo."),
-    new opcodeXX(     1494,         8,         1,         "mullwo."),
-    new opcodeXX(     1495,         8,         1,         "mullwo."),
-    new opcodeXX(     1518,         4,        12,         "stfdux"),
-    new opcodeXX(     1520,         4,        11,         "srliq"),
-    new opcodeXX(     1521,         4,        11,         "srliq."),
-    new opcodeXX(     1552,         8,         1,         "dozo."),
-    new opcodeXX(     1553,         8,         1,         "dozo."),
-    new opcodeXX(     1556,         8,         1,         "addo"),
-    new opcodeXX(     1557,         8,         1,         "addo."),
-    new opcodeXX(     1580,         4,         7,         "lhbrx"),
-    new opcodeXX(     1584,         4,         8,         "sraw"),
-    new opcodeXX(     1585,         4,         8,         "sraw."),
-    new opcodeXX(     1636,         4,        25,         "rac"),
-    new opcodeXX(     1637,         4,        25,         "rac."),
-    new opcodeXX(     1648,         4,        11,         "srawi"),
-    new opcodeXX(     1649,         4,        11,         "srawi."),
-    new opcodeXX(     1686,         8,         1,         "divo"),
-    new opcodeXX(     1687,         8,         1,         "divo."),
-    new opcodeXX(     1744,         8,         0,         "abso"),
-    new opcodeXX(     1745,         8,         0,         "abso."),
-    new opcodeXX(     1750,         8,         1,         "divso"),
-    new opcodeXX(     1751,         8,         1,         "divso."),
-    new opcodeXX(     1836,         4,         7,         "sthbrx"),
-    new opcodeXX(     1840,         4,         8,         "sraq"),
-    new opcodeXX(     1841,         4,         8,         "sraq."),
-    new opcodeXX(     1842,         4,         8,         "srea"),
-    new opcodeXX(     1843,         4,         8,         "srea."),
-    new opcodeXX(     1844,         4,         9,         "extsh"),
-    new opcodeXX(     1845,         4,         9,         "extsh."),
-    new opcodeXX(     1904,         4,        11,         "sraiq"),
-    new opcodeXX(     1905,         4,        11,         "sraiq."),
-    new opcodeXX(     2000,         8,         0,         "nabso"),
-    new opcodeXX(     2001,         8,         0,         "nabso."),
-    new opcodeXX(     2028,         4,         6,         "dcbz"),
+    new opcodeXX(        0,       X_FORM,     22,         "cmp"), 
+    new opcodeXX(        8,       X_FORM,     24,         "tw"),
+    new opcodeXX(       16,      XO_FORM,      1,         "subfc"),
+    new opcodeXX(       17,      XO_FORM,      1,         "subfc."),
+    new opcodeXX(       20,      XO_FORM,      1,         "addc"),
+    new opcodeXX(       21,      XO_FORM,      1,         "addc."),
+    new opcodeXX(       38,       X_FORM,      2,         "mfcr"),
+    new opcodeXX(       46,       X_FORM,      7,         "lwzx"),
+    new opcodeXX(       48,       X_FORM,      8,         "slw"),
+    new opcodeXX(       49,       X_FORM,      8,         "slw."),
+    new opcodeXX(       52,       X_FORM,      9,         "cntlzw"),
+    new opcodeXX(       53,       X_FORM,      9,         "cntlzw."),
+    new opcodeXX(       56,       X_FORM,      8,         "and"),
+    new opcodeXX(       57,       X_FORM,      8,         "and."),
+    new opcodeXX(       64,       X_FORM,     22,         "cmpl"),
+    new opcodeXX(      110,       X_FORM,      7,         "lwzux"),
+    new opcodeXX(      120,       X_FORM,      8,         "andc"),
+    new opcodeXX(      121,       X_FORM,      8,         "andc."),
+    new opcodeXX(      166,       X_FORM,      2,         "mfmsr"),
+    new opcodeXX(      174,       X_FORM,      7,         "lbzx"),
+    new opcodeXX(      208,      XO_FORM,      0,         "neg"),
+    new opcodeXX(      209,      XO_FORM,      0,         "neg."),
+    new opcodeXX(      238,       X_FORM,      7,         "lbzux"),
+    new opcodeXX(      248,       X_FORM,      8,         "nor"),
+    new opcodeXX(      249,       X_FORM,      8,         "nor."),
+    new opcodeXX(      272,      XO_FORM,      1,         "subfe"),
+    new opcodeXX(      273,      XO_FORM,      1,         "subfe."),
+    new opcodeXX(      276,      XO_FORM,      1,         "adde"),
+    new opcodeXX(      277,      XO_FORM,      1,         "adde."),
+    new opcodeXX(      288,     XFX_FORM,      9,         "mtcrf"),
+    new opcodeXX(      292,       X_FORM,      2,         "mtmsr"),
+    new opcodeXX(      302,       X_FORM,      7,         "stwx"),
+    new opcodeXX(      366,       X_FORM,      7,         "stwux"),
+    new opcodeXX(      400,      XO_FORM,      0,         "subfze"),
+    new opcodeXX(      401,      XO_FORM,      0,         "subfze."),
+    new opcodeXX(      404,      XO_FORM,      0,         "addze"),
+    new opcodeXX(      405,      XO_FORM,      0,         "addze."),
+    new opcodeXX(      430,       X_FORM,      7,         "stbx"),
+    new opcodeXX(      464,      XO_FORM,      0,         "subfme"),
+    new opcodeXX(      465,      XO_FORM,      0,         "subfme."),
+    new opcodeXX(      468,      XO_FORM,      0,         "addme"),
+    new opcodeXX(      469,      XO_FORM,      0,         "addme."),
+    new opcodeXX(      470,      XO_FORM,      1,         "mullw"),
+    new opcodeXX(      471,      XO_FORM,      1,         "mullw."),
+    new opcodeXX(      494,       X_FORM,      7,         "stbux"),
+    new opcodeXX(      532,      XO_FORM,      1,         "add"),
+    new opcodeXX(      533,      XO_FORM,      1,         "add."),
+    new opcodeXX(      558,       X_FORM,      7,         "lhzx"),
+    new opcodeXX(      568,       X_FORM,      8,         "eqv"),
+    new opcodeXX(      569,       X_FORM,      8,         "eqv."),
+    new opcodeXX(      612,       X_FORM,      6,         "tlbie"),
+    new opcodeXX(      622,       X_FORM,      7,         "lhzux"),
+    new opcodeXX(      632,       X_FORM,      8,         "xor"),
+    new opcodeXX(      633,       X_FORM,      8,         "xor."),
+    new opcodeXX(      678,       X_FORM,      3,         "mfspr"),
+    new opcodeXX(      686,       X_FORM,      7,         "lhax"),
+    new opcodeXX(      750,       X_FORM,      7,         "lhaux"),
+    new opcodeXX(      814,       X_FORM,      7,         "sthx"),
+    new opcodeXX(      824,       X_FORM,      8,         "orc"),
+    new opcodeXX(      825,       X_FORM,      8,         "orc."),
+    new opcodeXX(      878,       X_FORM,      7,         "sthux"),
+    new opcodeXX(      888,       X_FORM,      8,         "or"),
+    new opcodeXX(      889,       X_FORM,      8,         "or."),
+    new opcodeXX(      934,       X_FORM,      3,         "mtspr"),
+    new opcodeXX(      952,       X_FORM,      8,         "nand"),
+    new opcodeXX(      953,       X_FORM,      8,         "nand."),
+    new opcodeXX(     1024,       X_FORM,     23,         "mcrxr"),
+    new opcodeXX(     1040,      XO_FORM,      1,         "subfco"),
+    new opcodeXX(     1041,      XO_FORM,      1,         "subfco."),
+    new opcodeXX(     1044,      XO_FORM,      1,         "addco"),
+    new opcodeXX(     1045,      XO_FORM,      1,         "addco."),
+    new opcodeXX(     1066,       X_FORM,      7,         "lswx"),
+    new opcodeXX(     1068,       X_FORM,      7,         "lwbrx"),
+    new opcodeXX(     1070,       X_FORM,     12,         "lfsx"),
+    new opcodeXX(     1072,       X_FORM,      8,         "srw"),
+    new opcodeXX(     1073,       X_FORM,      8,         "srw."),
+    new opcodeXX(     1134,       X_FORM,     12,         "lfsux"),
+    new opcodeXX(     1194,       X_FORM,     10,         "lswi"),
+    new opcodeXX(     1196,       X_FORM,      1,         "sync"),
+    new opcodeXX(     1198,       X_FORM,     12,         "lfdx"),
+    new opcodeXX(     1262,       X_FORM,     12,         "lfdux"),
+    new opcodeXX(     1232,      XO_FORM,      0,         "nego"),
+    new opcodeXX(     1233,      XO_FORM,      0,         "nego."),
+    new opcodeXX(     1296,      XO_FORM,      1,         "subfeo"),
+    new opcodeXX(     1297,      XO_FORM,      1,         "subfeo."),
+    new opcodeXX(     1300,      XO_FORM,      1,         "addeo"),
+    new opcodeXX(     1301,      XO_FORM,      1,         "addeo."),
+    new opcodeXX(     1322,       X_FORM,      7,         "stswx"),
+    new opcodeXX(     1324,       X_FORM,      7,         "stwbrx"),
+    new opcodeXX(     1326,       X_FORM,     12,         "stfsx"),
+    new opcodeXX(     1390,       X_FORM,     12,         "stfsux"),
+    new opcodeXX(     1424,      XO_FORM,      0,         "subfzeo"),
+    new opcodeXX(     1425,      XO_FORM,      0,         "subfzeo."),
+    new opcodeXX(     1428,      XO_FORM,      0,         "addzeo."),
+    new opcodeXX(     1429,      XO_FORM,      0,         "addzeo."),
+    new opcodeXX(     1450,       X_FORM,     10,         "stswi"), 
+    new opcodeXX(     1454,       X_FORM,     12,         "stfdx"),
+    new opcodeXX(     1488,      XO_FORM,      0,         "subfmeo."),
+    new opcodeXX(     1489,      XO_FORM,      0,         "subfmeo."),
+    new opcodeXX(     1492,      XO_FORM,      0,         "addmeo"),
+    new opcodeXX(     1493,      XO_FORM,      0,         "addmeo."),
+    new opcodeXX(     1494,      XO_FORM,      1,         "mullwo."),
+    new opcodeXX(     1495,      XO_FORM,      1,         "mullwo."),
+    new opcodeXX(     1518,       X_FORM,     12,         "stfdux"),
+    new opcodeXX(     1556,      XO_FORM,      1,         "addo"),
+    new opcodeXX(     1557,      XO_FORM,      1,         "addo."),
+    new opcodeXX(     1580,       X_FORM,      7,         "lhbrx"),
+    new opcodeXX(     1584,       X_FORM,      8,         "sraw"),
+    new opcodeXX(     1585,       X_FORM,      8,         "sraw."),
+    new opcodeXX(     1648,       X_FORM,     11,         "srawi"),
+    new opcodeXX(     1649,       X_FORM,     11,         "srawi."),
+    new opcodeXX(     1836,       X_FORM,      7,         "sthbrx"),
+    new opcodeXX(     1844,       X_FORM,      9,         "extsh"),
+    new opcodeXX(     1845,       X_FORM,      9,         "extsh."),
+    new opcodeXX(     2028,       X_FORM,      6,         "dcbz"),
 
     // these are the addition for the PowerPC
-    new opcodeXX(	172,	4,	6,	 "dcbf"),    
-    new opcodeXX(	940,	4,	6,	 "dcbi"),    
-    new opcodeXX(	108,	4,	6,	 "dcbst"),   
-    new opcodeXX(	556,	4,	6,	 "dcbt"),    
-    new opcodeXX(	492,	4,	6,	 "dcbtst"),  
-    new opcodeXX(	2028,	4,	6,	 "dcbz"),    
-    new opcodeXX(	982,	8,	1,	 "divw"),   
-    new opcodeXX(	983,	8,	1,	 "divw."),   
-    new opcodeXX(	2006,	8,	1,	 "divwo"),   
-    new opcodeXX(	2007,	8,	1,	 "divwo."),  
-    new opcodeXX(	918,	8,	1,	 "divwu"),   
-    new opcodeXX(	919,	8,	1,	 "divwu."),  
-    new opcodeXX(	1942,	8,	1,	 "divwuo"),  
-    new opcodeXX(	1943,	8,	1,	 "divwuo."), 
-    new opcodeXX(	1708,	4,	1,	 "eieio"),  
-    new opcodeXX(	1908,	4,	0,	 "extsb"),  
-    new opcodeXX(	1909,	4,	0,	 "extsb."),  
-    new opcodeXX(	1964,	4,	6,	 "icbi"),    
-    new opcodeXX(	40,	4,	7,	 "lwarx"),   
-    new opcodeXX(	1318,	4,	4,	 "mfsrin"),  
-    new opcodeXX(	150,	8,	1,	 "mulhw"),   
-    new opcodeXX(	151,	8,	1,	 "mulhw."),  
-    new opcodeXX(	22,	8,	1,	 "mulhwu"),  
-    new opcodeXX(	23,	8,	1,	 "mulhwu."), 
-    new opcodeXX(	301,	4,	7,	 "stwcx."), 
-    new opcodeXX(	80,	8,	1,	 "subf"),  
-    new opcodeXX(	81,	8,	1,	 "subf."),  
-    new opcodeXX(	1104,	8,	1,	 "subfo"),   
-    new opcodeXX(	1105,	8,	1,	 "subfo.")
+    new opcodeXX(	172,	 X_FORM, 	6,	 "dcbf"),    
+    new opcodeXX(	940,     X_FORM,	6,	 "dcbi"),    
+    new opcodeXX(	108,     X_FORM,	6,	 "dcbst"),   
+    new opcodeXX(	556,     X_FORM,	6,	 "dcbt"),    
+    new opcodeXX(	492,     X_FORM,	6,	 "dcbtst"),  
+    new opcodeXX(	982,	XO_FORM,	1,	 "divw"),   
+    new opcodeXX(	983,	XO_FORM,	1,	 "divw."),   
+    new opcodeXX(	2006,	XO_FORM,	1,	 "divwo"),   
+    new opcodeXX(	2007,	XO_FORM,	1,	 "divwo."),  
+    new opcodeXX(	918,	XO_FORM,	1,	 "divwu"),   
+    new opcodeXX(	919,	XO_FORM,	1,	 "divwu."),  
+    new opcodeXX(	1942,	XO_FORM,	1,	 "divwuo"),  
+    new opcodeXX(	1943,	XO_FORM,	1,	 "divwuo."), 
+    new opcodeXX(	1708,    X_FORM,	1,	 "eieio"),  
+    new opcodeXX(	1908,    X_FORM,	0,	 "extsb"),  
+    new opcodeXX(	1909,    X_FORM,	0,	 "extsb."),  
+    new opcodeXX(	1964,    X_FORM,	6,	 "icbi"),    
+    new opcodeXX(	40,      X_FORM,	7,	 "lwarx"),   
+    new opcodeXX(	150,	XO_FORM,	1,	 "mulhw"),   
+    new opcodeXX(	151,	XO_FORM,	1,	 "mulhw."),  
+    new opcodeXX(	22,	XO_FORM,	1,	 "mulhwu"),  
+    new opcodeXX(	23,	XO_FORM,	1,	 "mulhwu."), 
+    new opcodeXX(	301,     X_FORM,	7,	 "stwcx."), 
+    new opcodeXX(	80,	XO_FORM,	1,	 "subf"),  
+    new opcodeXX(	81,	XO_FORM,	1,	 "subf."),  
+    new opcodeXX(	1104,	XO_FORM,	1,	 "subfo"),   
+    new opcodeXX(	1105,	XO_FORM,	1,	 "subfo.")
+
+//-#if RVM_FOR_32_ADDR
+// these are only valid for 32 bit architecture
+    ,new opcodeXX(      420,       X_FORM,     17,         "mtsr"),
+    new opcodeXX(      484,       X_FORM,      7,         "mtsrin"),
+    new opcodeXX(     1190,       X_FORM,     18,         "mfsr"),
+    new opcodeXX(     1318,       X_FORM,      4,         "mfsrin") 
+//-#endif 
+ 
+//-#if RVM_FOR_64_ADDR
+// these are the addition for the 64 bit specific instructions
+    ,new opcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
+    new opcodeXX(       19,      XO_FORM,      2,         "mulhdu."),
+    new opcodeXX(       42,       X_FORM,      7,         "ldx"),
+    new opcodeXX(       43,       X_FORM,      7,         "ldx."),
+    new opcodeXX(       54,       X_FORM,      8,         "sld"),
+    new opcodeXX(       55,       X_FORM,      8,         "sld."),
+    new opcodeXX(      106,       X_FORM,      7,         "ldux"),
+    new opcodeXX(      107,       X_FORM,      7,         "ldux."),
+    new opcodeXX(      116,       X_FORM,      9,         "cntlzd"),
+    new opcodeXX(      117,       X_FORM,      9,         "cntlzd."),
+    new opcodeXX(      136,       X_FORM,     24,         "td"),
+    new opcodeXX(      146,	 XO_FORM,      1,  	  "mulhd"),   
+    new opcodeXX(      151,      XO_FORM,      1,	  "mulhd."),  
+    new opcodeXX(      168,	  X_FORM,      7,	  "ldarx"),   
+    new opcodeXX(      298,       X_FORM,      7,         "stdx"),
+    new opcodeXX(      362,       X_FORM,      7,         "stdux"),
+    new opcodeXX(      429,       X_FORM,      7,	  "stdcx."), 
+    new opcodeXX(      466,      XO_FORM,      1,         "mulld"),
+    new opcodeXX(      467,      XO_FORM,      1,         "mulld."),
+    new opcodeXX(      682,       X_FORM,      7,         "lwax"),
+    new opcodeXX(      746,       X_FORM,      7,         "lwaux"),
+    new opcodeXX(     1652,      XS_FORM,      0,         "sradi"),
+    new opcodeXX(     1653,      XS_FORM,      0,         "sradi."),
+    new opcodeXX(     1654,      XS_FORM,      0,         "sradi"),
+    new opcodeXX(     1655,      XS_FORM,      0,         "sradi."),
+    new opcodeXX(      868,       X_FORM,      6,         "slbie"),
+    new opcodeXX(      914,	 XO_FORM,      1,	  "divdu"),   
+    new opcodeXX(      915,	 XO_FORM,      1,	  "divdu."),  
+    new opcodeXX(      978,      XO_FORM,      1,         "divd"),
+    new opcodeXX(      979,      XO_FORM,      1,         "divd."),
+    new opcodeXX(      996,       X_FORM,      1,         "slbia"),
+    new opcodeXX(     1078,       X_FORM,      8,         "srd"),
+    new opcodeXX(     1079,       X_FORM,      8,         "srd."),
+    new opcodeXX(     1588,       X_FORM,      8,         "srad"),
+    new opcodeXX(     1589,       X_FORM,      8,         "srad."),
+    new opcodeXX(     1972,       X_FORM,      9,         "extsw"),
+    new opcodeXX(     1973,       X_FORM,      9,         "extsw.")
+//-#endif    
   };
   
+  static opcode_tab opcode58[] = {
+    /* Table for the instruction format of opcode 58*/
+    
+    /*    EO                            format      mnemonic   */
+    /*   ----                           ------      --------   */
+    /*    0,    */  new opcode_tab (      0,      "ld"),
+    /*    1,    */  new opcode_tab (      0,      "ldu"),
+    /*    2,    */  new opcode_tab (      0,      "lwa"),
+    /*    3,    */  new opcode_tab (      X,      "RESERVED")
+  };
+  
+  static opcode_tab opcode62[] = {
+    /* Table for the instruction format of opcode 58*/
+    
+    /*    EO                            format      mnemonic   */
+    /*   ----                           ------      --------   */
+    /*    0,    */  new opcode_tab (      1,      "std"),
+    /*    1,    */  new opcode_tab (      1,      "stdu"),
+    /*    2,    */  new opcode_tab (      X,      "RESERVED"),
+    /*    3,    */  new opcode_tab (      X,      "RESERVED")
+  };
   
 /*  Opcode 63 table: The key is computed by taking 
  *  bits 21 through 31 of the instruction. "Form" is
@@ -662,31 +701,42 @@ public class PPC_Disassembler implements VM_Constants {
 
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
-    new opcodeXX(        0,         4,        19,         "fcmpu"),
-    new opcodeXX(       24,         4,        21,         "frsp"),
-    new opcodeXX(       25,         4,        21,         "frsp."),
-    new opcodeXX(       30,         4,        21,         "fctiwz"),  // PowerPC only
-    new opcodeXX(       31,         4,        21,         "fctiwz."), // PowerPC only
-    new opcodeXX(       64,         4,        19,         "fcmpo"),
-    new opcodeXX(       76,         4,        16,         "mtfsb1"),
-    new opcodeXX(       77,         4,        16,         "mtfsb1."),
-    new opcodeXX(       80,         4,        21,         "fneg"),
-    new opcodeXX(       81,         4,        21,         "fneg."),
-    new opcodeXX(      128,         4,        14,         "mcrfs"),
-    new opcodeXX(      140,         4,        16,         "mtfsb0"),
-    new opcodeXX(      141,         4,        16,         "mtfsb0."),
-    new opcodeXX(      144,         4,        21,         "fmr"),
-    new opcodeXX(      145,         4,        21,         "fmr."),
-    new opcodeXX(      268,         4,        15,         "mtfsfi"),
-    new opcodeXX(      269,         4,        15,         "mtfsfi."),
-    new opcodeXX(      272,         4,        21,         "fnabs"),
-    new opcodeXX(      273,         4,        21,         "fnabs."),
-    new opcodeXX(      528,         4,        21,         "fabs"),
-    new opcodeXX(      529,         4,        21,         "fabs."),
-    new opcodeXX(     1166,         4,        13,         "mffs"),
-    new opcodeXX(     1167,         4,        13,         "mffs."),
-    new opcodeXX(     1422,         7,         9,         "mtfsf"),
-    new opcodeXX(     1423,         7,         9,         "mtfsf.")
+    new opcodeXX(        0,       X_FORM,     19,         "fcmpu"),
+    new opcodeXX(       24,       X_FORM,     21,         "frsp"),
+    new opcodeXX(       25,       X_FORM,     21,         "frsp."),
+    new opcodeXX(       28,       X_FORM,     21,         "fctiw"),  
+    new opcodeXX(       29,       X_FORM,     21,         "fctiw."), 
+    new opcodeXX(       30,       X_FORM,     21,         "fctiwz"),  
+    new opcodeXX(       31,       X_FORM,     21,         "fctiwz."), 
+    new opcodeXX(       64,       X_FORM,     19,         "fcmpo"),
+    new opcodeXX(       76,       X_FORM,     16,         "mtfsb1"),
+    new opcodeXX(       77,       X_FORM,     16,         "mtfsb1."),
+    new opcodeXX(       80,       X_FORM,     21,         "fneg"),
+    new opcodeXX(       81,       X_FORM,     21,         "fneg."),
+    new opcodeXX(      128,       X_FORM,     14,         "mcrfs"),
+    new opcodeXX(      140,       X_FORM,     16,         "mtfsb0"),
+    new opcodeXX(      141,       X_FORM,     16,         "mtfsb0."),
+    new opcodeXX(      144,       X_FORM,     21,         "fmr"),
+    new opcodeXX(      145,       X_FORM,     21,         "fmr."),
+    new opcodeXX(      268,       X_FORM,     15,         "mtfsfi"),
+    new opcodeXX(      269,       X_FORM,     15,         "mtfsfi."),
+    new opcodeXX(      272,       X_FORM,     21,         "fnabs"),
+    new opcodeXX(      273,       X_FORM,     21,         "fnabs."),
+    new opcodeXX(      528,       X_FORM,     21,         "fabs"),
+    new opcodeXX(      529,       X_FORM,     21,         "fabs."),
+    new opcodeXX(     1166,       X_FORM,     13,         "mffs"),
+    new opcodeXX(     1167,       X_FORM,     13,         "mffs."),
+    new opcodeXX(     1422,     XFL_FORM,      9,         "mtfsf"),
+    new opcodeXX(     1423,     XFL_FORM,      9,         "mtfsf.")
+//-#if RVM_FOR_32_ADDR
+// these are only valid for 32 bit architecture
+    ,new opcodeXX(     1628,       X_FORM,     21,         "fctid"),
+    new opcodeXX(     1629,       X_FORM,     21,         "fctid."),
+    new opcodeXX(     1630,       X_FORM,     21,         "fctidz"),
+    new opcodeXX(     1631,       X_FORM,     21,         "fctidz."),
+    new opcodeXX(     1692,       X_FORM,     21,         "fcfid"),
+    new opcodeXX(     1693,       X_FORM,     21,         "fcfid.")
+//-#endif    
   };
 
   static
@@ -700,22 +750,22 @@ public class PPC_Disassembler implements VM_Constants {
      */
     
     /*                  key        form     format       mnemonic       */
-    new opcodeXX(       42,         9,          0,      "fadds"),
-    new opcodeXX(       43,         9,          0,      "fadds."),
-    new opcodeXX(       36,	    9,	  	0,	"fdivs"),   
-    new opcodeXX(       37,	    9,	  	0,	"fdivs."),  
-    new opcodeXX(       58,	    9,	  	2,	"fmadds"),  
-    new opcodeXX(       59,	    9,	  	2,	"fmadds."), 
-    new opcodeXX(       56,	    9,	  	2,	"fmsubs"),  
-    new opcodeXX(       57,	    9,	  	2,	"fmsubs."), 
-    new opcodeXX(       50,	    9,	  	1,	"fmuls"),  
-    new opcodeXX(       51,	    9,	  	1,	"fmuls."),  
-    new opcodeXX(       62,	    9,	  	2,	"fnmadds"), 
-    new opcodeXX(       63,	    9,	  	2,	"fnmadds."),
-    new opcodeXX(       60,	    9,	  	2,	"fnmsubs"),
-    new opcodeXX(       61,	    9,	  	2,	"fnmsubs."),
-    new opcodeXX(       40,	    9,	  	0,	"fsubs"),  
-    new opcodeXX(       41,	    9,	  	0,	"fsubs.")  
+    new opcodeXX(       42,      A_FORM,        0,      "fadds"),
+    new opcodeXX(       43,      A_FORM,        0,      "fadds."),
+    new opcodeXX(       36,	 A_FORM,	0,	"fdivs"),   
+    new opcodeXX(       37,	 A_FORM,	0,	"fdivs."),  
+    new opcodeXX(       58,	 A_FORM,	2,	"fmadds"),  
+    new opcodeXX(       59,	 A_FORM,	2,	"fmadds."), 
+    new opcodeXX(       56,	 A_FORM,	2,	"fmsubs"),  
+    new opcodeXX(       57,	 A_FORM,	2,	"fmsubs."), 
+    new opcodeXX(       50,	 A_FORM,	1,	"fmuls"),  
+    new opcodeXX(       51,	 A_FORM,	1,	"fmuls."),  
+    new opcodeXX(       62,	 A_FORM,	2,	"fnmadds"), 
+    new opcodeXX(       63,	 A_FORM,	2,	"fnmadds."),
+    new opcodeXX(       60,	 A_FORM,	2,	"fnmsubs"),
+    new opcodeXX(       61,	 A_FORM,	2,	"fnmsubs."),
+    new opcodeXX(       40,	 A_FORM,	0,	"fsubs"),  
+    new opcodeXX(       41,	 A_FORM,	0,	"fsubs.")  
   };
 
   static
@@ -727,22 +777,22 @@ public class PPC_Disassembler implements VM_Constants {
      *  instruction should be printed.  */
     
     /*                  key        form     format       mnemonic       */
-    new opcodeXX(       36,         9,         0,         "fdiv"),
-    new opcodeXX(       37,         9,         0,         "fdiv."),
-    new opcodeXX(       40,         9,         0,         "fsub"),
-    new opcodeXX(       41,         9,         0,         "fsub."),
-    new opcodeXX(       42,         9,         0,         "fadd"),
-    new opcodeXX(       43,         9,         0,         "fadd."),
-    new opcodeXX(       50,         9,         1,         "fm"),
-    new opcodeXX(       51,         9,         1,         "fm."),
-    new opcodeXX(       56,         9,         2,         "fmsub"),
-    new opcodeXX(       57,         9,         2,         "fmsub."),
-    new opcodeXX(       58,         9,         2,         "fmadd"),
-    new opcodeXX(       59,         9,         2,         "fmadd."),
-    new opcodeXX(       60,         9,         2,         "fnmsub"),
-    new opcodeXX(       61,         9,         2,         "fnmsub."),
-    new opcodeXX(       62,         9,         2,         "fnmadd"),
-    new opcodeXX(       63,         9,         2,         "fnmadd.")
+    new opcodeXX(       36,      A_FORM,      0,         "fdiv"),
+    new opcodeXX(       37,      A_FORM,      0,         "fdiv."),
+    new opcodeXX(       40,      A_FORM,      0,         "fsub"),
+    new opcodeXX(       41,      A_FORM,      0,         "fsub."),
+    new opcodeXX(       42,      A_FORM,      0,         "fadd"),
+    new opcodeXX(       43,      A_FORM,      0,         "fadd."),
+    new opcodeXX(       50,      A_FORM,      1,         "fm"),
+    new opcodeXX(       51,      A_FORM,      1,         "fm."),
+    new opcodeXX(       56,      A_FORM,      2,         "fmsub"),
+    new opcodeXX(       57,      A_FORM,      2,         "fmsub."),
+    new opcodeXX(       58,      A_FORM,      2,         "fmadd"),
+    new opcodeXX(       59,      A_FORM,      2,         "fmadd."),
+    new opcodeXX(       60,      A_FORM,      2,         "fnmsub"),
+    new opcodeXX(       61,      A_FORM,      2,         "fnmsub."),
+    new opcodeXX(       62,      A_FORM,      2,         "fnmadd"),
+    new opcodeXX(       63,      A_FORM,      2,         "fnmadd.")
   };
   
   /* 
@@ -808,6 +858,8 @@ public class PPC_Disassembler implements VM_Constants {
       {
       case D_FORM:
 	return decode_Dform(inst, opcode);
+      case DS_FORM:
+	return decode_DSform(inst, opcode);
       case B_FORM:
 	return decode_Bform(addr, inst, opcode);
       case I_FORM:
@@ -823,6 +875,8 @@ public class PPC_Disassembler implements VM_Constants {
       case EXTENDED:      /* More work to do... */
 	switch(opcode)   /* Switch off of opcode and process from there */
 	  {
+	  case 30:
+	    return decode_opcode30(inst);
 	  case 31:
 	    return decode_opcode31(inst);
 	  case 63:
@@ -909,6 +963,35 @@ public class PPC_Disassembler implements VM_Constants {
 	return "    Invalid opcode";
       }
   }
+  
+  /* Decode the DS instruction format */
+  
+  static String decode_DSform(int inst, int opcode)
+  {
+    int XO, RT, RA, sfield; 
+    String datafield, mnemonic;
+    
+    XO = bits(inst,30,31);
+    RT = bits(inst,6,10);
+    RA = bits(inst,11,15);
+    sfield = (((inst) & 0xfffc) << 16) >> 16;
+    datafield = intAsHexString(sfield);
+	 
+    switch(opcode) {
+      case 58:
+	mnemonic = opcode58[XO].mnemonic;
+	if (mnemonic == "RESERVED") return "    Invalid opcode";
+	return "        ".substring(mnemonic.length()) + mnemonic +
+	  "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
+      case 62:
+	mnemonic = opcode62[XO].mnemonic;
+	if (mnemonic == "RESERVED") return "    Invalid opcode";
+	return "        ".substring(mnemonic.length()) + mnemonic +
+	  "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
+      default:
+	return "    Invalid opcode";
+    }
+  } 
   
   /* Decode the B instruction format */
   
@@ -1091,6 +1174,62 @@ public class PPC_Disassembler implements VM_Constants {
     
   }
   
+  /* Decode opcode 30 and then the relevent format */
+  
+  static String decode_opcode30(int inst)
+  {
+    opcodeXX search_results;
+    int format;
+    String mnemonic;
+
+    int testkey = bits(inst,27,30);
+    search_results = searchXX(testkey, opcode30);
+    
+    if (search_results == null) {
+      return "    Invalid opcode";
+    }
+    
+    mnemonic = search_results.mnemonic;
+    format = search_results.format;
+
+    switch(search_results.form) 
+      {
+      case MDS_FORM:
+	return decode_MDSform(inst, mnemonic);
+      case MD_FORM:
+	return decode_MDform(inst, mnemonic);
+      default:
+	return "    Invalid opcode";
+      }
+  }
+ 	 
+  /* Decode the MD instruction format */
+  static String decode_MDform(int inst, String mnemonic)
+  {
+    int RS, RA, SH, MB;
+    
+    RS  = bits(inst,6,10);
+    RA  = bits(inst,11,15);
+    SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
+    MB  = (inst&0x20) | bits(inst,21,25);
+    return "        ".substring(mnemonic.length()) + mnemonic +
+	rname(RA) + ", " + rname(RS) + ", " + SH + ", " + MB;
+  }
+  
+  /* Decode the MDS instruction format */
+  static String decode_MDSform(int inst, String mnemonic)
+  {
+    int RS, RA, RB, MB;
+    
+    RS  = bits(inst,6,10);
+    RA  = bits(inst,11,15);
+    RB  = bits(inst,16,20);
+    MB  = (inst&0x20) | bits(inst,21,25);
+    return "        ".substring(mnemonic.length()) + mnemonic +
+	rname(RA) + ", " + rname(RS) + ", " + rname(RB) + ", " + MB;
+  }
+  
+  /* Decode the A instruction format */
   /* Decode opcode 31 and then the relevent format */
   
   static String decode_opcode31(int inst)
@@ -1111,12 +1250,14 @@ public class PPC_Disassembler implements VM_Constants {
     format = search_results.format;
     switch(search_results.form) 
       {
-      case 4:
+      case X_FORM:
 	return decode_Xform(inst,mnemonic,format,testkey);
-      case 6:
+      case XFX_FORM:
 	return decode_XFXform(inst);
-      case 8:
+      case XO_FORM:
 	return decode_XOform(inst,mnemonic,format);
+      case XS_FORM:
+	return decode_XSform(inst,mnemonic,format);
       default:
 	return "    Invalid opcode";
       }
@@ -1227,7 +1368,7 @@ public class PPC_Disassembler implements VM_Constants {
       case 24:
 	common_opt = TO_ext(TO);
 	if (common_opt != null) {
-	  asm_mnemonic = "t" + common_opt;
+	  asm_mnemonic = "td" + common_opt;
 	  return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
 	    "   "+rname(RA)+","+rname(RB);
 	} else {
@@ -1271,6 +1412,7 @@ public class PPC_Disassembler implements VM_Constants {
 	return "        ".substring(mnemonic.length()) + mnemonic +
 	  "   "+rname(rt)+","+rname(RA);
       case 1:
+      case 2:
 	RB = bits(inst,16,20);
 	return "        ".substring(mnemonic.length()) + mnemonic +
 	  "   "+rname(rt)+","+rname(RA)+","+rname(RB);
@@ -1278,6 +1420,19 @@ public class PPC_Disassembler implements VM_Constants {
 	return "    Invalid opcode";
       }
   }
+ 	 
+  /* Decode the XS instruction format */
+  static String decode_XSform(int inst, String mnemonic, int format)
+  {
+    int RS, RA, SH;
+    
+    RS  = bits(inst,6,10);
+    RA  = bits(inst,11,15);
+    SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
+    return "        ".substring(mnemonic.length()) + mnemonic +
+	rname(RA) + ", " + rname(RS) + ", " + SH ;
+  }
+
   
   /* Decode opcode 59 and then the relevent format */
   
@@ -1300,7 +1455,7 @@ public class PPC_Disassembler implements VM_Constants {
     // All opcode 59 are in A form
     switch(search_results.form) 
       {
-      case 9:
+      case A_FORM:
 	return decode_Aform(inst,mnemonic,format);
       default:
 	return "    Invalid opcode";
@@ -1332,11 +1487,11 @@ public class PPC_Disassembler implements VM_Constants {
     int format = search_results.format;
     switch(search_results.form) 
       {
-      case 4:
+      case X_FORM:
 	return decode_Xform(inst,mnemonic,format,testkey);
-      case 7:
+      case XFL_FORM:
 	return decode_XFLform(inst);
-      case 9:
+      case A_FORM:
 	return decode_Aform(inst,mnemonic,format);
       default:
 	return "    Invalid opcode";

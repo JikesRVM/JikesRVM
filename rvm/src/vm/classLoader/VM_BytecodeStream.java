@@ -378,7 +378,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    */
   public final void skipLookupSwitchPairs(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
-    bcIndex += (num << 3);
+    bcIndex += (num << (LOG_BYTES_IN_INT+1));
   }
 
   /**
@@ -392,7 +392,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    */
   public final int getLookupSwitchOffset(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
-    return getSignedInt(bcIndex + (num << 3) + BYTES_IN_INT);
+    return getSignedInt(bcIndex + (num << (LOG_BYTES_IN_INT+1)) + BYTES_IN_INT);
   }
 
   /**
@@ -406,7 +406,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
    */
   public final int getLookupSwitchValue(int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
-    return getSignedInt(bcIndex + (num << 3));
+    return getSignedInt(bcIndex + (num << (LOG_BYTES_IN_INT+1)));
   }
 
   /**
@@ -424,8 +424,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   public final int computeLookupSwitchOffset(int value, int num) {
     if (VM.VerifyAssertions) VM._assert(opcode == JBC_lookupswitch);
     for (int i = 0; i < num; i++)
-      if (getSignedInt(bcIndex + (i << 3)) == value)
-        return getSignedInt(bcIndex + (i << 3) + BYTES_IN_INT);
+      if (getSignedInt(bcIndex + (i << (LOG_BYTES_IN_INT+1))) == value)
+        return getSignedInt(bcIndex + (i << (LOG_BYTES_IN_INT+1)) + BYTES_IN_INT);
     return 0;
   }
 
@@ -638,8 +638,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.INT_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) >> 2;
-    int val = VM_Statics.getSlotContentsAsInt(offset);
+    int offset = declaringClass.getLiteralOffset(index) ;
+    int val = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
     return val;
   }
 
@@ -660,8 +660,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert(opcode == JBC_ldc2_w &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.LONG_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) >> 2;
-    long val = VM_Statics.getSlotContentsAsLong(offset);
+    int offset = declaringClass.getLiteralOffset(index);
+    long val = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
     return val;
   }
 
@@ -682,8 +682,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.FLOAT_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) >> 2;
-    int val_raw = VM_Statics.getSlotContentsAsInt(offset);
+    int offset = declaringClass.getLiteralOffset(index);
+    int val_raw = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
     float val = Float.intBitsToFloat(val_raw);
     return val;
   }
@@ -705,8 +705,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert(opcode == JBC_ldc2_w &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.DOUBLE_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) >> 2;
-    long val_raw = VM_Statics.getSlotContentsAsLong(offset);
+    int offset = declaringClass.getLiteralOffset(index) ;
+    long val_raw = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
     double val = Double.longBitsToDouble(val_raw);
     return val;
   }
@@ -728,8 +728,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.STRING_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) >> 2;
-    String val = (String) VM_Statics.getSlotContentsAsObject(offset);
+    int offset = declaringClass.getLiteralOffset(index);
+    String val = (String) VM_Statics.getSlotContentsAsObject(offset >> LOG_BYTES_IN_INT);
     return val;
   }
 
@@ -782,13 +782,13 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
 
   private final long readLong() {
-    long l = ((long)bcodes[bcIndex++] & 0x0FF) << 56;
-    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 48;
-    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 40;
-    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 32;
-    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 24;
-    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 16;
-    l |= ((long)bcodes[bcIndex++] & 0x0FF) << 8;
+    long l = ((long)bcodes[bcIndex++] & 0x0FF) << (7*BITS_IN_BYTE);
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << (6*BITS_IN_BYTE);
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << (5*BITS_IN_BYTE);
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << (4*BITS_IN_BYTE);
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << (3*BITS_IN_BYTE);
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << (2*BITS_IN_BYTE);
+    l |= ((long)bcodes[bcIndex++] & 0x0FF) << BITS_IN_BYTE;
     l |= ((long)bcodes[bcIndex++] & 0x0FF);
     return l;    
   }
@@ -810,29 +810,29 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
 
   private final int readSignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    int i = bcodes[bcIndex++] << 8;
+    int i = bcodes[bcIndex++] << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
   private final int readUnsignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    int i = (bcodes[bcIndex++] & 0xFF) << 8;
+    int i = (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
   private final int readSignedInt() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    int i = bcodes[bcIndex++] << 24;
-    i |= (bcodes[bcIndex++] & 0xFF) << 16;
-    i |= (bcodes[bcIndex++] & 0xFF) << 8;
+    int i = bcodes[bcIndex++] << (3*BITS_IN_BYTE);
+    i |= (bcodes[bcIndex++] & 0xFF) << (2*BITS_IN_BYTE);
+    i |= (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
     i |= (bcodes[bcIndex++] & 0xFF);
     return i;
   }
   private final int getSignedInt(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= bcLength);
-    int i = bcodes[index++] << 24;
-    i |= (bcodes[index++] & 0xFF) << 16;
-    i |= (bcodes[index++] & 0xFF) << 8;
+    int i = bcodes[index++] << (3*BITS_IN_BYTE);
+    i |= (bcodes[index++] & 0xFF) << (2*BITS_IN_BYTE);
+    i |= (bcodes[index++] & 0xFF) << BITS_IN_BYTE;
     i |= (bcodes[index] & 0xFF);
     return i;
   }

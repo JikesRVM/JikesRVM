@@ -277,8 +277,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_IntConstantOperand getIntFromConstantPool (VM_Class klass, 
                                                                int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    int val = VM_Statics.getSlotContentsAsInt(offset);
+    int offset = klass.getLiteralOffset(index) ;
+    int val = VM_Statics.getSlotContentsAsInt(offset >>LOG_BYTES_IN_INT );
     return new OPT_IntConstantOperand(val);
   }
 
@@ -288,10 +288,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_DoubleConstantOperand getDoubleFromConstantPool (VM_Class klass, 
                                                                      int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    long val_raw = VM_Statics.getSlotContentsAsLong(offset);
+    int offset = klass.getLiteralOffset(index) ;
+    long val_raw = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
     double val = Double.longBitsToDouble(val_raw);
-    return new OPT_DoubleConstantOperand(val, offset);
+    return new OPT_DoubleConstantOperand(val, offset >> LOG_BYTES_IN_INT);
   }
 
   /**
@@ -300,10 +300,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_FloatConstantOperand getFloatFromConstantPool (VM_Class klass, 
                                                                    int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    int val_raw = VM_Statics.getSlotContentsAsInt(offset);
+    int offset = klass.getLiteralOffset(index) ;
+    int val_raw = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
     float val = Float.intBitsToFloat(val_raw);
-    return new OPT_FloatConstantOperand(val, offset);
+    return new OPT_FloatConstantOperand(val, offset >> LOG_BYTES_IN_INT);
   }
 
   /**
@@ -312,9 +312,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_LongConstantOperand getLongFromConstantPool (VM_Class klass, 
                                                                  int index) {
-    int offset = klass.getLiteralOffset(index) >> 2;
-    long val = VM_Statics.getSlotContentsAsLong(offset);
-    return new OPT_LongConstantOperand(val, offset);
+    int offset = klass.getLiteralOffset(index) ;
+    long val = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
+    return new OPT_LongConstantOperand(val, offset >> LOG_BYTES_IN_INT);
   }
 
   /**
@@ -322,7 +322,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * pool.
    */
   public static OPT_StringConstantOperand getStringFromConstantPool (VM_Class klass, int index) {
-    int slot = klass.getLiteralOffset(index) >> 2;
+    int slot = klass.getLiteralOffset(index) >> LOG_BYTES_IN_INT;
     String val;
     if (VM.runningVM) {
       val = (String)VM_Statics.getSlotContentsAsObject(slot);

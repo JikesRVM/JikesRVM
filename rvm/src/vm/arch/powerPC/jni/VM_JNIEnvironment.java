@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Ton Ngo 
  * @author Steve Smith
  */
-public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants
+public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants, VM_SizeConstants
 {
   private static boolean initialized = false;
   private static String[] names;
@@ -1155,16 +1155,16 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  // round it, bytes are saved from lowest to highest one, regardless endian
 	  overflowoffset = (overflowoffset + 7) & -8;
 	  hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	  loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	} else {
 	  // get value from fpr, increase fpr by 1
-	  hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*8));
-	  loword = VM_Magic.getMemoryInt(fprarray.add(fpr*8 + 4));
+	  hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE));
+	  loword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT));
 	  fpr += 1;
 	}
-	long doubleBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	if (argTypes[i].isFloatType()) {
 	  argObjectArray[i] = VM_Reflection.wrapFloat((float)(Double.longBitsToDouble(doubleBits)));
 	} else { // double type
@@ -1180,9 +1180,9 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  // round overflowoffset, assuming overflowarea is aligned to 8 bytes
 	  overflowoffset = (overflowoffset + 7) & -8;
 	  hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	  loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
-	  overflowoffset += 4;
+	  overflowoffset += BYTES_IN_INT;
 	  
 	  // va-ppc.h makes last gpr useless
 	  gpr = 11;
@@ -1192,7 +1192,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	  loword = VM_Magic.getMemoryInt(gprarray.add((gpr+1)*4));
 	  gpr += 2;
 	}
-	long longBits = (((long)hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long longBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longBits);
 	
 	//		VM.sysWriteln("long 0x"+Long.toHexString(longBits));
@@ -1266,19 +1266,19 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	// so we have to extract it as a double and convert it back to a float
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);                       
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
 	
       } else if (argTypes[i].isDoubleType()) {
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
-	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
       } else if (argTypes[i].isBooleanType()) {
@@ -1348,11 +1348,11 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(hiword));
 
       } else if (argTypes[i].isDoubleType()) {
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
 
       } else if (argTypes[i].isLongType()) { 
-	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+	long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
 
       } else if (argTypes[i].isBooleanType()) {

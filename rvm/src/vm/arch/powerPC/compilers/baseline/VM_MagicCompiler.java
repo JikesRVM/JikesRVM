@@ -56,37 +56,37 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.sysCall1) {
       int valueOffset = generateSysCall1(asm, SIZE_INTEGER, false );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);          // load value
+      asm.emitLWZ(3, valueOffset,  SP);          // load value
       generateSysCall2(asm, SIZE_INTEGER);
       generateSysCallRet_I(asm, SIZE_INTEGER);
     } else if (methodName == VM_MagicNames.sysCall2) {
       int valueOffset = generateSysCall1(asm, 2 * SIZE_INTEGER, false );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);		 		 // load value1
+      asm.emitLWZ(3, valueOffset,  SP);		 		 // load value1
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 1, valueOffset,  SP);		 		 // load value2
+      asm.emitLWZ(3 + 1, valueOffset,  SP);		 		 // load value2
       generateSysCall2(asm, 2 * SIZE_INTEGER);
       generateSysCallRet_I(asm, 2 * SIZE_INTEGER);
     } else if (methodName == VM_MagicNames.sysCall3) {
       int valueOffset = generateSysCall1(asm, 3 * SIZE_INTEGER, false );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);		 		 // load value1
+      asm.emitLWZ(3, valueOffset,  SP);		 		 // load value1
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 1, valueOffset,  SP);		 		 // load value2
+      asm.emitLWZ(3 + 1, valueOffset,  SP);		 		 // load value2
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 2, valueOffset,  SP);		 		 // load value3
+      asm.emitLWZ(3 + 2, valueOffset,  SP);		 		 // load value3
       generateSysCall2(asm, 3 * SIZE_INTEGER);
       generateSysCallRet_I(asm, 3 * SIZE_INTEGER);
     } else if (methodName == VM_MagicNames.sysCall4) {
       int valueOffset = generateSysCall1(asm, 4 * SIZE_INTEGER, false );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);		 		 // load value1
+      asm.emitLWZ(3, valueOffset,  SP);		 		 // load value1
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 1, valueOffset,  SP);		 		 // load value2
+      asm.emitLWZ(3 + 1, valueOffset,  SP);		 		 // load value2
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 2, valueOffset,  SP);		 		 // load value3
+      asm.emitLWZ(3 + 2, valueOffset,  SP);		 		 // load value3
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 3, valueOffset,  SP);		 		 // load value4
+      asm.emitLWZ(3 + 3, valueOffset,  SP);		 		 // load value4
       generateSysCall2(asm, 4 * SIZE_INTEGER);
       generateSysCallRet_I(asm, 4 * SIZE_INTEGER);
     } else if (methodName == VM_MagicNames.sysCall_L_0) {
@@ -96,13 +96,13 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.sysCall_L_I) {
       int valueOffset = generateSysCall1(asm, SIZE_INTEGER, false );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);          // load value
+      asm.emitLWZ(3, valueOffset,  SP);          // load value
       generateSysCall2(asm, SIZE_INTEGER);
       generateSysCallRet_L(asm, SIZE_INTEGER);
     } else if (methodName == VM_MagicNames.sysCallAD) {
       int valueOffset = generateSysCall1(asm, 3 * SIZE_INTEGER, false );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);		 		 // load value1
+      asm.emitLWZ(3, valueOffset,  SP);		 		 // load value1
       valueOffset -= SIZE_INTEGER;
       asm.emitLFD(0, valueOffset,  SP);		 		 // load value2
       generateSysCall2(asm, 3 * SIZE_INTEGER);
@@ -110,68 +110,68 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.sysCallSigWait) {
       int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
       int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-      asm.emitL   (T0, 0, SP);	// t0 := address of VM_Registers object
-      asm.emitCAL (SP, 4, SP);	// pop address of VM_Registers object
+      asm.emitLWZ  (T0, 0, SP);	// t0 := address of VM_Registers object
+      asm.emitADDI (SP, 4, SP);	// pop address of VM_Registers object
       VM_ForwardReference fr1 = asm.emitForwardBL();
       fr1.resolve(asm);
       asm.emitMFLR(0);
-      asm.emitST  (0, ipOffset, T0 ); // store ip into VM_Registers Object
-      asm.emitL   (T0, gprsOffset, T0); // TO <- registers.gprs[]
-      asm.emitST  (FP, FP*4, T0);  
+      asm.emitSTW (0, ipOffset, T0 ); // store ip into VM_Registers Object
+      asm.emitLWZ  (T0, gprsOffset, T0); // TO <- registers.gprs[]
+      asm.emitSTW (FP, FP*4, T0);  
       int valueOffset = generateSysCall1(asm, 2 * SIZE_INTEGER, true );
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3, valueOffset,  SP);		 		 // load value1
+      asm.emitLWZ(3, valueOffset,  SP);		 		 // load value1
       valueOffset -= SIZE_INTEGER;
-      asm.emitL(3 + 1, valueOffset,  SP);		 		 // load value2
+      asm.emitLWZ(3 + 1, valueOffset,  SP);		 		 // load value2
       generateSysCall2(asm, 2 * SIZE_INTEGER);
       generateSysCallRet_I(asm, 2 * SIZE_INTEGER);
     } else if (methodName == VM_MagicNames.getFramePointer) {
-      asm.emitSTU(FP, -4, SP); // push FP
+      asm.emitSTWU(FP, -4, SP); // push FP
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
-      asm.emitL (T0, 0, SP);                               // pop  frame pointer of callee frame
-      asm.emitL (T1, STACKFRAME_FRAME_POINTER_OFFSET, T0); // load frame pointer of caller frame
-      asm.emitST(T1, 0, SP);                               // push frame pointer of caller frame
+      asm.emitLWZ(T0, 0, SP);                               // pop  frame pointer of callee frame
+      asm.emitLWZ(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0); // load frame pointer of caller frame
+      asm.emitSTW(T1, 0, SP);                               // push frame pointer of caller frame
     } else if (methodName == VM_MagicNames.setCallerFramePointer) {
-      asm.emitL  (T0, +4, SP); // fp
-      asm.emitL  (T1,  0, SP); // value
-      asm.emitST (T1,  STACKFRAME_FRAME_POINTER_OFFSET, T0); // *(address+SFPO) := value
-      asm.emitCAL(SP,  8, SP); // pop address, pop value
+      asm.emitLWZ (T0, +4, SP); // fp
+      asm.emitLWZ (T1,  0, SP); // value
+      asm.emitSTW(T1,  STACKFRAME_FRAME_POINTER_OFFSET, T0); // *(address+SFPO) := value
+      asm.emitADDI(SP,  8, SP); // pop address, pop value
     } else if (methodName == VM_MagicNames.getCompiledMethodID) {
-      asm.emitL (T0, 0, SP);                           // pop  frame pointer of callee frame
-      asm.emitL (T1, STACKFRAME_METHOD_ID_OFFSET, T0); // load frame pointer of caller frame
-      asm.emitST(T1, 0, SP);                           // push frame pointer of caller frame
+      asm.emitLWZ(T0, 0, SP);                           // pop  frame pointer of callee frame
+      asm.emitLWZ(T1, STACKFRAME_METHOD_ID_OFFSET, T0); // load frame pointer of caller frame
+      asm.emitSTW(T1, 0, SP);                           // push frame pointer of caller frame
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
-      asm.emitL  (T0, +4, SP); // fp
-      asm.emitL  (T1,  0, SP); // value
-      asm.emitST (T1,  STACKFRAME_METHOD_ID_OFFSET, T0); // *(address+SNIO) := value
-      asm.emitCAL(SP,  8, SP); // pop address, pop value
+      asm.emitLWZ (T0, +4, SP); // fp
+      asm.emitLWZ (T1,  0, SP); // value
+      asm.emitSTW(T1,  STACKFRAME_METHOD_ID_OFFSET, T0); // *(address+SNIO) := value
+      asm.emitADDI(SP,  8, SP); // pop address, pop value
     } else if (methodName == VM_MagicNames.getNextInstructionAddress) {
-      asm.emitL (T0, 0, SP);                                  // pop  frame pointer of callee frame
-      asm.emitL (T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // load frame pointer of caller frame
-      asm.emitST(T1, 0, SP);                                  // push frame pointer of caller frame
+      asm.emitLWZ(T0, 0, SP);                                  // pop  frame pointer of callee frame
+      asm.emitLWZ(T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // load frame pointer of caller frame
+      asm.emitSTW(T1, 0, SP);                                  // push frame pointer of caller frame
     } else if (methodName == VM_MagicNames.setNextInstructionAddress) {
-      asm.emitL  (T0, +4, SP); // fp
-      asm.emitL  (T1,  0, SP); // value
-      asm.emitST (T1,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // *(address+SNIO) := value
-      asm.emitCAL(SP,  8, SP); // pop address, pop value
+      asm.emitLWZ (T0, +4, SP); // fp
+      asm.emitLWZ (T1,  0, SP); // value
+      asm.emitSTW(T1,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // *(address+SNIO) := value
+      asm.emitADDI(SP,  8, SP); // pop address, pop value
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
-      asm.emitL   (T0, 0, SP);                                  // pop  frame pointer of callee frame
-      asm.emitL   (T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
-      asm.emitCAL (T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
-      asm.emitST  (T2, 0, SP);                                  // push frame pointer of caller frame
+      asm.emitLWZ  (T0, 0, SP);                                  // pop  frame pointer of callee frame
+      asm.emitLWZ  (T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
+      asm.emitADDI (T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
+      asm.emitSTW (T2, 0, SP);                                  // push frame pointer of caller frame
     } else if (methodName == VM_MagicNames.getTocPointer ||
 	       methodName == VM_MagicNames.getJTOC) {
-      asm.emitSTU(JTOC, -4, SP); // push JTOC
+      asm.emitSTWU(JTOC, -4, SP); // push JTOC
     } else if (methodName == VM_MagicNames.getThreadId) {
-      asm.emitSTU(TI, -4, SP); // push TI
+      asm.emitSTWU(TI, -4, SP); // push TI
     } else if (methodName == VM_MagicNames.setThreadId) {
-      asm.emitL  (TI, 0, SP); // TI := (shifted) thread index
-      asm.emitCAL(SP, 4, SP); // pop threadid arg
+      asm.emitLWZ (TI, 0, SP); // TI := (shifted) thread index
+      asm.emitADDI(SP, 4, SP); // pop threadid arg
     } else if (methodName == VM_MagicNames.getProcessorRegister) {
-      asm.emitSTU(PROCESSOR_REGISTER, -4, SP);
+      asm.emitSTWU(PROCESSOR_REGISTER, -4, SP);
     } else if (methodName == VM_MagicNames.setProcessorRegister) {
-      asm.emitL  (PROCESSOR_REGISTER, 0, SP); // register := arg
-      asm.emitCAL(SP, 4, SP);                 // pop arg
+      asm.emitLWZ (PROCESSOR_REGISTER, 0, SP); // register := arg
+      asm.emitADDI(SP, 4, SP);                 // pop arg
     } else if (methodName == VM_MagicNames.getTimeBase) {
       int label = asm.getMachineCodeIndex();
       asm.emitMFTBU(T0);                      // T0 := time base, upper
@@ -179,36 +179,36 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitMFTBU(T2);                      // T2 := time base, upper
       asm.emitCMP  (T0, T2);                  // T0 == T2?
       asm.emitBC   (NE, label);               // lower rolled over, try again
-      asm.emitSTU  (T1, -4, SP);              // push low
-      asm.emitSTU  (T0, -4, SP);              // push high
+      asm.emitSTWU  (T1, -4, SP);              // push low
+      asm.emitSTWU  (T0, -4, SP);              // push high
     } else if (methodName == VM_MagicNames.getTime) {
-      asm.emitL  (T0, 0, SP); // t0 := address of VM_Processor object
-      asm.emitCAL(SP, 4, SP); // pop arg
-      asm.emitLtoc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
+      asm.emitLWZ (T0, 0, SP); // t0 := address of VM_Processor object
+      asm.emitADDI(SP, 4, SP); // pop arg
+      asm.emitLWZtoc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
       asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset);             // call out of line machine code
       asm.emitSTFDU (F0, -8, SP); // push return value
     } else if (methodName == VM_MagicNames.invokeMain) {
-      asm.emitL   (T0, 0, SP); // t0 := ip
+      asm.emitLWZ  (T0, 0, SP); // t0 := ip
       asm.emitMTCTR(T0);
-      asm.emitCAL (SP, 4, SP); // pop ip
-      asm.emitL   (T0, 0, SP); // t0 := parameter
+      asm.emitADDI (SP, 4, SP); // pop ip
+      asm.emitLWZ  (T0, 0, SP); // t0 := parameter
       asm.emitCall(spSaveAreaOffset);          // call
-      asm.emitCAL (SP, 4, SP); // pop parameter
+      asm.emitADDI (SP, 4, SP); // pop parameter
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
-      asm.emitL   (T0, 0, SP); // t0 := address to be called
-      asm.emitCAL (SP, 4, SP); // pop ip
+      asm.emitLWZ  (T0, 0, SP); // t0 := address to be called
+      asm.emitADDI (SP, 4, SP); // pop ip
       asm.emitMTCTR(T0);
       asm.emitCall(spSaveAreaOffset);          // call
     } else if (methodName == VM_MagicNames.invokeMethodReturningVoid) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
     } else if (methodName == VM_MagicNames.invokeMethodReturningInt) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
-      asm.emitSTU(T0, -4, SP);       // push result
+      asm.emitSTWU(T0, -4, SP);       // push result
     } else if (methodName == VM_MagicNames.invokeMethodReturningLong) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
-      asm.emitSTU(T1, -4, SP);       // push result
-      asm.emitSTU(T0, -4, SP);       // push result
+      asm.emitSTWU(T1, -4, SP);       // push result
+      asm.emitSTWU(T0, -4, SP);       // push result
     } else if (methodName == VM_MagicNames.invokeMethodReturningFloat) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
       asm.emitSTFSU(F0, -4, SP);     // push result
@@ -217,7 +217,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitSTFDU(F0, -8, SP);     // push result
     } else if (methodName == VM_MagicNames.invokeMethodReturningObject) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
-      asm.emitSTU(T0, -4, SP);       // push result
+      asm.emitSTWU(T0, -4, SP);       // push result
     } else if (methodName == VM_MagicNames.addressArrayCreate) {
       try {
 	VM_Array type = methodToBeCalled.getType().resolve().asArray();
@@ -248,117 +248,117 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.getIntAtOffset ||
 	       methodName == VM_MagicNames.getObjectAtOffset ||
 	       methodName == VM_MagicNames.getObjectArrayAtOffset) {
-      asm.emitL  (T0, +4, SP); // pop object
-      asm.emitL  (T1,  0, SP); // pop offset
-      asm.emitLX (T0, T1, T0); // *(object+offset)
-      asm.emitSTU (T0, 4, SP); // push *(object+offset)
+      asm.emitLWZ (T0, +4, SP); // pop object
+      asm.emitLWZ (T1,  0, SP); // pop offset
+      asm.emitLWZX (T0, T1, T0); // *(object+offset)
+      asm.emitSTWU (T0, 4, SP); // push *(object+offset)
     } else if (methodName == VM_MagicNames.getByteAtOffset) {
-      asm.emitL   (T0, +4, SP);   // pop object
-      asm.emitL   (T1,  0, SP);   // pop offset
+      asm.emitLWZ  (T0, +4, SP);   // pop object
+      asm.emitLWZ  (T1,  0, SP);   // pop offset
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
-      asm.emitSTU (T0, 4, SP);    // push *(object+offset) 
+      asm.emitSTWU (T0, 4, SP);    // push *(object+offset) 
     } else if (methodName == VM_MagicNames.setIntAtOffset ||
 	       methodName == VM_MagicNames.setObjectAtOffset) {
-      asm.emitL  (T0, +8, SP); // pop object
-      asm.emitL  (T1, +4, SP); // pop offset
-      asm.emitL  (T2,  0, SP); // pop newvalue
-      asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue
-      asm.emitCAL(SP, 12, SP); // drop all args
+      asm.emitLWZ (T0, +8, SP); // pop object
+      asm.emitLWZ (T1, +4, SP); // pop offset
+      asm.emitLWZ (T2,  0, SP); // pop newvalue
+      asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
+      asm.emitADDI(SP, 12, SP); // drop all args
     } else if (methodName == VM_MagicNames.setByteAtOffset) {
-      asm.emitL  (T0, +8, SP); // pop object
-      asm.emitL  (T1, +4, SP); // pop offset
-      asm.emitL  (T2,  0, SP); // pop newvalue
+      asm.emitLWZ (T0, +8, SP); // pop object
+      asm.emitLWZ (T1, +4, SP); // pop offset
+      asm.emitLWZ (T2,  0, SP); // pop newvalue
       asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
-      asm.emitCAL(SP, 12, SP); // drop all args
+      asm.emitADDI(SP, 12, SP); // drop all args
     } else if (methodName == VM_MagicNames.getLongAtOffset) {
-      asm.emitL  (T1, +4, SP); // pop object
-      asm.emitL  (T2,  0, SP); // pop offset
-      asm.emitLX (T0, T1, T2); // *(object+offset)
-      asm.emitCAL(T2, +4, T2); // offset += 4
-      asm.emitLX (T1, T1, T2); // *(object+offset+4)
-      asm.emitST (T0,  0, SP); // *sp := *(object+offset)
-      asm.emitST (T1, +4, SP); // *sp+4 := *(object+offset+4)
+      asm.emitLWZ (T1, +4, SP); // pop object
+      asm.emitLWZ (T2,  0, SP); // pop offset
+      asm.emitLWZX (T0, T1, T2); // *(object+offset)
+      asm.emitADDI(T2, +4, T2); // offset += 4
+      asm.emitLWZX (T1, T1, T2); // *(object+offset+4)
+      asm.emitSTW(T0,  0, SP); // *sp := *(object+offset)
+      asm.emitSTW(T1, +4, SP); // *sp+4 := *(object+offset+4)
     } else if ((methodName == VM_MagicNames.setLongAtOffset) 
 	       || (methodName == VM_MagicNames.setDoubleAtOffset)) {
-      asm.emitL  (T0,+12, SP); // pop object
-      asm.emitL  (T1, +8, SP); // pop offset
-      asm.emitL  (T2,  0, SP); // pop newvalue low 
-      asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue low
-      asm.emitCAL(T1, +4, T1); // offset += 4
-      asm.emitL  (T2, +4, SP); // pop newvalue high 
-      asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue high
-      asm.emitCAL(SP, 16, SP); // drop all args
+      asm.emitLWZ (T0,+12, SP); // pop object
+      asm.emitLWZ (T1, +8, SP); // pop offset
+      asm.emitLWZ (T2,  0, SP); // pop newvalue low 
+      asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue low
+      asm.emitADDI(T1, +4, T1); // offset += 4
+      asm.emitLWZ (T2, +4, SP); // pop newvalue high 
+      asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue high
+      asm.emitADDI(SP, 16, SP); // drop all args
     } else if (methodName == VM_MagicNames.getMemoryInt ||
 	       methodName == VM_MagicNames.getMemoryWord ||
 	       methodName == VM_MagicNames.getMemoryAddress) {
-      asm.emitL  (T0,  0, SP); // address
-      asm.emitL  (T0,  0, T0); // *address
-      asm.emitST (T0,  0, SP); // *sp := *address
+      asm.emitLWZ (T0,  0, SP); // address
+      asm.emitLWZ (T0,  0, T0); // *address
+      asm.emitSTW(T0,  0, SP); // *sp := *address
     } else if (methodName == VM_MagicNames.setMemoryInt ||
 	       methodName == VM_MagicNames.setMemoryWord ||
 	       methodName == VM_MagicNames.setMemoryAddress) {
-      asm.emitL  (T0,  4, SP); // address
-      asm.emitL  (T1,  0, SP); // value
-      asm.emitST (T1,  0, T0); // *address := value
-      asm.emitCAL(SP,  8, SP); // pop address, pop value
+      asm.emitLWZ (T0,  4, SP); // address
+      asm.emitLWZ (T1,  0, SP); // value
+      asm.emitSTW(T1,  0, T0); // *address := value
+      asm.emitADDI(SP,  8, SP); // pop address, pop value
     } else if (methodName == VM_MagicNames.prepareInt ||
 	       methodName == VM_MagicNames.prepareObject ||
 	       methodName == VM_MagicNames.prepareAddress) {
-      asm.emitL    (T0,  4, SP); // pop object
-      asm.emitL    (T1,  0, SP); // pop offset
+      asm.emitLWZ   (T0,  4, SP); // pop object
+      asm.emitLWZ   (T1,  0, SP); // pop offset
       if (VM.BuildForSingleVirtualProcessor) {
-	asm.emitLX (T0, T1, T0); // *(object+offset)
+	asm.emitLWZX (T0, T1, T0); // *(object+offset)
       } else {
 	asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
       }
-      asm.emitSTU (T0,  4, SP); // push *(object+offset)
+      asm.emitSTWU (T0,  4, SP); // push *(object+offset)
     } else if (methodName == VM_MagicNames.attemptInt ||
 	       methodName == VM_MagicNames.attemptObject ||
 	       methodName == VM_MagicNames.attemptAddress) {
-      asm.emitL     (T0, 12, SP);  // pop object
-      asm.emitL     (T1,  8, SP);  // pop offset
-      asm.emitL     (T2,  0, SP);  // pop newValue (ignore oldValue)
+      asm.emitLWZ    (T0, 12, SP);  // pop object
+      asm.emitLWZ    (T1,  8, SP);  // pop offset
+      asm.emitLWZ    (T2,  0, SP);  // pop newValue (ignore oldValue)
       if (VM.BuildForSingleVirtualProcessor) {
-	asm.emitSTX   (T2,  T1, T0); // store new value (on one VP this succeeds by definition)
-	asm.emitCAL   (T0,  1, 0);   // T0 := true
-	asm.emitSTU   (T0,  12, SP);  // push success of conditional store
+	asm.emitSTWX   (T2,  T1, T0); // store new value (on one VP this succeeds by definition)
+	asm.emitADDI   (T0,  1, 0);   // T0 := true
+	asm.emitSTWU   (T0,  12, SP);  // push success of conditional store
       } else {
 	asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
-	asm.emitCAL   (T0,  0, 0);  // T0 := false
+	asm.emitADDI   (T0,  0, 0);  // T0 := false
 	VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
-	asm.emitCAL   (T0,  1, 0);   // T0 := true
+	asm.emitADDI   (T0,  1, 0);   // T0 := true
 	fr.resolve(asm);
-	asm.emitSTU   (T0,  12, SP);  // push success of conditional store
+	asm.emitSTWU   (T0,  12, SP);  // push success of conditional store
       }
     } else if (methodName == VM_MagicNames.saveThreadState) {
-      asm.emitL   (T0, 0, SP); // T0 := address of VM_Registers object
-      asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
+      asm.emitLWZ  (T0, 0, SP); // T0 := address of VM_Registers object
+      asm.emitLWZtoc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
       asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset); // call out of line machine code
-      asm.emitCAL(SP, 4, SP);  // pop arg
+      asm.emitADDI(SP, 4, SP);  // pop arg
     } else if (methodName == VM_MagicNames.threadSwitch) {
-      asm.emitL(T0, 4, SP); // T0 := address of previous VM_Thread object
-      asm.emitL(T1, 0, SP); // T1 := address of VM_Registers of new thread
-      asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
+      asm.emitLWZ(T0, 4, SP); // T0 := address of previous VM_Thread object
+      asm.emitLWZ(T1, 0, SP); // T1 := address of VM_Registers of new thread
+      asm.emitLWZtoc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
       asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset);
-      asm.emitCAL(SP, 8, SP);  // pop two args
+      asm.emitADDI(SP, 8, SP);  // pop two args
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      asm.emitL(T0, 0, SP); // T0 := address of VM_Registers object
-      asm.emitLtoc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
+      asm.emitLWZ(T0, 0, SP); // T0 := address of VM_Registers object
+      asm.emitLWZtoc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
       asm.emitMTLR(S0);
-      asm.emitBLR(); // branch to out of line machine code (does not return)
+      asm.emitBCLR(); // branch to out of line machine code (does not return)
     } else if (methodName == VM_MagicNames.returnToNewStack) {
-      asm.emitL   (FP, 0, SP);                                  // FP := new stackframe
-      asm.emitL   (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // fetch...
+      asm.emitLWZ  (FP, 0, SP);                                  // FP := new stackframe
+      asm.emitLWZ  (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // fetch...
       asm.emitMTLR(S0);                                         // ...return address
-      asm.emitBLR ();                                           // return to caller
+      asm.emitBCLR ();                                           // return to caller
     } else if (methodName == VM_MagicNames.dynamicBridgeTo) {
       if (VM.VerifyAssertions) VM._assert(compiler.klass.isDynamicBridge());
          
       // fetch parameter (address to branch to) into CT register
       //
-      asm.emitL(T0, 0, SP);
+      asm.emitLWZ(T0, 0, SP);
       asm.emitMTCTR(T0);
 
       // restore volatile and non-volatile registers
@@ -372,23 +372,23 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       
       // restore non-volatile gprs
       for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR; --i)
-	asm.emitL(i, offset -= 4, FP);
+	asm.emitLWZ(i, offset -= 4, FP);
             
       // skip saved thread-id, processor, and scratch registers
       offset -= (FIRST_NONVOLATILE_GPR - LAST_VOLATILE_GPR - 1) * 4;
          
       // restore volatile gprs
       for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
-	asm.emitL(i, offset -= 4, FP);
+	asm.emitLWZ(i, offset -= 4, FP);
           
       // pop stackframe
-      asm.emitL(FP, 0, FP);
+      asm.emitLWZ(FP, 0, FP);
          
       // restore link register
-      asm.emitL(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+      asm.emitLWZ(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
      asm.emitMTLR(S0);
 
-      asm.emitBCTR(); // branch always, through count register
+      asm.emitBCCTR(); // branch always, through count register
     } else if (methodName == VM_MagicNames.objectAsAddress         ||
 	       methodName == VM_MagicNames.addressAsByteArray      ||
 	       methodName == VM_MagicNames.addressAsIntArray       ||
@@ -424,12 +424,12 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.isync) {
       asm.emitISYNC();
     } else if (methodName == VM_MagicNames.dcbst) {
-      asm.emitL(T0, 0, SP);    // address
-      asm.emitCAL(SP, 4, SP);  // pop
+      asm.emitLWZ(T0, 0, SP);    // address
+      asm.emitADDI(SP, 4, SP);  // pop
       asm.emitDCBST(0, T0);
     } else if (methodName == VM_MagicNames.icbi) {
-      asm.emitL(T0, 0, SP);    // address
-      asm.emitCAL(SP, 4, SP);  // pop
+      asm.emitLWZ(T0, 0, SP);    // address
+      asm.emitADDI(SP, 4, SP);  // pop
       asm.emitICBI(0, T0);
     } else if (methodName == VM_MagicNames.wordFromInt ||
 	       methodName == VM_MagicNames.wordFromIntZeroExtend ||
@@ -441,18 +441,18 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.wordAdd) {
       // same as an integer add
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.add as integer add");
-      asm.emitL  (T0,  0, SP);
-      asm.emitL  (T1,  4, SP);
-      asm.emitA  (T2, T1, T0);
-      asm.emitSTU(T2,  4, SP);
+      asm.emitLWZ (T0,  0, SP);
+      asm.emitLWZ (T1,  4, SP);
+      asm.emitADD  (T2, T1, T0);
+      asm.emitSTWU(T2,  4, SP);
     } else if (methodName == VM_MagicNames.wordSub ||
 	       methodName == VM_MagicNames.wordDiff) {
       // same as an integer subtraction
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.sub/diff as integer sub");
-      asm.emitL  (T0,  0, SP);
-      asm.emitL  (T1,  4, SP);
-      asm.emitSF (T2, T0, T1);
-      asm.emitSTU(T2,  4, SP);
+      asm.emitLWZ (T0,  0, SP);
+      asm.emitLWZ (T1,  4, SP);
+      asm.emitSUBFC (T2, T0, T1);
+      asm.emitSTWU(T2,  4, SP);
     } else if (methodName == VM_MagicNames.wordLT) {
       // unsigned comparison generating a boolean
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.LT as unsigned comparison");
@@ -480,45 +480,45 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.wordIsZero) {
       // unsigned comparison generating a boolean
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.isZero as unsigned comparison");
-      asm.emitLIL (T0,  0);
-      asm.emitSTU (T0, -4, SP);
+      asm.emitLI (T0,  0);
+      asm.emitSTWU (T0, -4, SP);
       generateAddrComparison(asm, EQ);
     } else if (methodName == VM_MagicNames.wordIsMax) {
       // unsigned comparison generating a boolean
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.isMax as unsigned comparison");
-      asm.emitLIL (T0, -1);
-      asm.emitSTU (T0, -4, SP);
+      asm.emitLI (T0, -1);
+      asm.emitSTWU (T0, -4, SP);
       generateAddrComparison(asm, EQ);
     } else if (methodName == VM_MagicNames.wordZero) {
       // unsigned comparison generating a boolean
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.zero as 0");
-      asm.emitLIL (T0,  0);
-      asm.emitSTU (T0, -4, SP);
+      asm.emitLI (T0,  0);
+      asm.emitSTWU (T0, -4, SP);
     } else if (methodName == VM_MagicNames.wordMax) {
       // unsigned comparison generating a boolean
       if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.max as -1");
-      asm.emitLIL (T0, -1);
-      asm.emitSTU (T0, -4, SP);
+      asm.emitLI (T0, -1);
+      asm.emitSTWU (T0, -4, SP);
     } else if (methodName == VM_MagicNames.wordAnd) {
-      asm.emitL  (T0,  0, SP);
-      asm.emitL  (T1,  4, SP);
+      asm.emitLWZ (T0,  0, SP);
+      asm.emitLWZ (T1,  4, SP);
       asm.emitAND(T2, T1, T0);
-      asm.emitSTU(T2,  4, SP);
+      asm.emitSTWU(T2,  4, SP);
     } else if (methodName == VM_MagicNames.wordOr) {
-      asm.emitL  (T0,  0, SP);
-      asm.emitL  (T1,  4, SP);
+      asm.emitLWZ (T0,  0, SP);
+      asm.emitLWZ (T1,  4, SP);
       asm.emitOR (T2, T1, T0);
-      asm.emitSTU(T2,  4, SP);
+      asm.emitSTWU(T2,  4, SP);
     } else if (methodName == VM_MagicNames.wordNot) {
-      asm.emitL  (T0,  0, SP);
-      asm.emitLIL(T1, -1);
+      asm.emitLWZ (T0,  0, SP);
+      asm.emitLI(T1, -1);
       asm.emitXOR(T2, T1, T0);
-      asm.emitSTU(T2,  0, SP);
+      asm.emitSTWU(T2,  0, SP);
     } else if (methodName == VM_MagicNames.wordXor) {
-      asm.emitL  (T0,  0, SP);
-      asm.emitL  (T1,  4, SP);
+      asm.emitLWZ (T0,  0, SP);
+      asm.emitLWZ (T1,  4, SP);
       asm.emitXOR(T2, T1, T0);
-      asm.emitSTU(T2,  4, SP);
+      asm.emitSTWU(T2,  4, SP);
     } else {
       // VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + ".  Hopefully it is synthetic magic.\n");
       // if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -528,14 +528,14 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   }
 
   private static void generateAddrComparison(VM_Assembler asm, int cc) {
-    asm.emitL  (T1,  0, SP);
-    asm.emitL  (T0,  4, SP);
-    asm.emitLIL(T2,  1);
+    asm.emitLWZ (T1,  0, SP);
+    asm.emitLWZ (T0,  4, SP);
+    asm.emitLI(T2,  1);
     asm.emitCMPL(T0, T1);    // unsigned comparison
     VM_ForwardReference fr = asm.emitForwardBC(cc);
-    asm.emitLIL(T2,  0);
+    asm.emitLI(T2,  0);
     fr.resolve(asm);
-    asm.emitSTU(T2,  4, SP);
+    asm.emitSTWU(T2,  4, SP);
   }
 
 
@@ -584,14 +584,14 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 
     // fetch parameters and generate call to method invoker
     //
-    asm.emitLtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
-    asm.emitL    (T0, 12, SP);        // t0 := code
+    asm.emitLWZtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
+    asm.emitLWZ   (T0, 12, SP);        // t0 := code
     asm.emitMTCTR (S0);
-    asm.emitL    (T1,  8, SP);        // t1 := gprs
-    asm.emitL    (T2,  4, SP);        // t2 := fprs
-    asm.emitL    (T3,  0, SP);        // t3 := spills
+    asm.emitLWZ   (T1,  8, SP);        // t1 := gprs
+    asm.emitLWZ   (T2,  4, SP);        // t2 := fprs
+    asm.emitLWZ   (T3,  0, SP);        // t3 := spills
     asm.emitCall(spSaveAreaOffset);
-    asm.emitCAL  (SP,  16, SP);       // pop parameters
+    asm.emitADDI  (SP,  16, SP);       // pop parameters
   }
 
   // Generate code for "VM_Type VM_Magic.getObjectType(Object object)".
@@ -604,10 +604,10 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     //    SP ->   |    (Object object)      |     |- java operand stack
     //            +-------------------------+    /
 
-    asm.emitL (T0,  0, SP);                   // get object pointer
+    asm.emitLWZ(T0,  0, SP);                   // get object pointer
     VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
-    asm.emitL (T0,  TIB_TYPE_INDEX << 2, T0); // get "type" field from type information block
-    asm.emitST(T0,  0, SP);                   // *sp := type
+    asm.emitLWZ(T0,  TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0); // get "type" field from type information block
+    asm.emitSTW(T0,  0, SP);                   // *sp := type
   }
 
   // Generate code for "int VM_Magic.getArrayLength(Object object)".
@@ -620,9 +620,9 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     //    SP ->   |    (Object object)      |     |- java operand stack
     //            +-------------------------+    /
 
-    asm.emitL (T0,  0, SP);                   // get object pointer
-    asm.emitL (T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
-    asm.emitST(T0,  0, SP);                   // *sp := length
+    asm.emitLWZ(T0,  0, SP);                   // get object pointer
+    asm.emitLWZ(T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
+    asm.emitSTW(T0,  0, SP);                   // *sp := length
   }
 
   // Generate code for "int VM_Magic.sysCallN(int ip, int toc, int val0, int val1, ..., valN-1)".
@@ -712,13 +712,13 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       (2 * SIZE_TOC) +		 		        // saveJTOC & SP
       (6 * 4);		 		 		// backlink + cr + lr + res + res + TOC
 
-    asm.emitSTU (FP,  -linkageAreaSize, FP);        // create linkage area
-    asm.emitST  (JTOC, linkageAreaSize-4, FP);      // save JTOC
-    asm.emitST  (SP,   linkageAreaSize-8, FP);      // save SP
+    asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
+    asm.emitSTW (JTOC, linkageAreaSize-4, FP);      // save JTOC
+    asm.emitSTW (SP,   linkageAreaSize-8, FP);      // save SP
 
-    asm.emitLtoc(S0, VM_Entrypoints.the_boot_recordField.getOffset()); // load sysTOC into JTOC
-    asm.emitL   (JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
-    asm.emitL   (0,    ipOffset,  SP);              // load new IP
+    asm.emitLWZtoc(S0, VM_Entrypoints.the_boot_recordField.getOffset()); // load sysTOC into JTOC
+    asm.emitLWZ  (JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+    asm.emitLWZ  (0,    ipOffset,  SP);              // load new IP
      
     return endValueOffset;
   }
@@ -731,11 +731,11 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       (6 * 4);		 		 		 // backlink + cr + lr + res + res + TOC
 
     asm.emitMTLR(0);                                // call desired...
-    asm.emitBLRL();                                 // ...function
+    asm.emitBCLRL();                                 // ...function
 
-    asm.emitL   (JTOC, linkageAreaSize - 4, FP);    // restore JTOC
-    asm.emitL   (SP,   linkageAreaSize - 8, FP);    // restore SP
-    asm.emitCAL (FP,  +linkageAreaSize, FP);        // remove linkage area
+    asm.emitLWZ  (JTOC, linkageAreaSize - 4, FP);    // restore JTOC
+    asm.emitLWZ  (SP,   linkageAreaSize - 8, FP);    // restore SP
+    asm.emitADDI (FP,  +linkageAreaSize, FP);        // remove linkage area
   }
 
 
@@ -745,37 +745,37 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   static void generateSysCall(VM_Assembler asm, int parametersSize, VM_Field target) {
     int linkageAreaSize   = parametersSize + (2 * SIZE_TOC) + (6 * 4);
 
-    asm.emitSTU (FP,  -linkageAreaSize, FP);        // create linkage area
-    asm.emitST  (JTOC, linkageAreaSize-4, FP);      // save JTOC
-    asm.emitST  (SP,   linkageAreaSize-8, FP);      // save SP
+    asm.emitSTWU (FP,  -linkageAreaSize, FP);        // create linkage area
+    asm.emitSTW (JTOC, linkageAreaSize-4, FP);      // save JTOC
+    asm.emitSTW (SP,   linkageAreaSize-8, FP);      // save SP
 
     // acquire toc and ip from bootrecord
-    asm.emitLtoc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitL   (JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
-    asm.emitL   (0, target.getOffset(), S0);
+    asm.emitLWZtoc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitLWZ  (JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+    asm.emitLWZ  (0, target.getOffset(), S0);
 
     // call it
     asm.emitMTLR(0);
-    asm.emitBLRL(); 
+    asm.emitBCLRL(); 
 
     // cleanup
-    asm.emitL   (JTOC, linkageAreaSize - 4, FP);    // restore JTOC
-    asm.emitL   (SP,   linkageAreaSize - 8, FP);    // restore SP
-    asm.emitCAL (FP,   linkageAreaSize, FP);        // remove linkage area
+    asm.emitLWZ  (JTOC, linkageAreaSize - 4, FP);    // restore JTOC
+    asm.emitLWZ  (SP,   linkageAreaSize - 8, FP);    // restore SP
+    asm.emitADDI (FP,   linkageAreaSize, FP);        // remove linkage area
   }
 
 
   static void generateSysCallRet_I(VM_Assembler asm, int rawParametersSize) {
     int parameterAreaSize = rawParametersSize + SIZE_IP;
-    asm.emitCAL (SP, parameterAreaSize - 4, SP);    // pop args, push space for return value
-    asm.emitST  (3, 0, SP);                         // deposit C return value (R3) on stacktop
+    asm.emitADDI (SP, parameterAreaSize - 4, SP);    // pop args, push space for return value
+    asm.emitSTW (3, 0, SP);                         // deposit C return value (R3) on stacktop
   }
 
   static void generateSysCallRet_L(VM_Assembler asm, int rawParametersSize) {
     int parameterAreaSize = rawParametersSize + SIZE_IP;
-    asm.emitCAL (SP, parameterAreaSize - 8, SP);    // pop args, push space for return value
-    asm.emitST  (3, 0, SP);                         // deposit C return value (R3) on stacktop
-    asm.emitST  (4, 4, SP);                         // deposit C return value (R4) on stacktop
+    asm.emitADDI (SP, parameterAreaSize - 8, SP);    // pop args, push space for return value
+    asm.emitSTW (3, 0, SP);                         // deposit C return value (R3) on stacktop
+    asm.emitSTW (4, 4, SP);                         // deposit C return value (R4) on stacktop
   }
 }
 

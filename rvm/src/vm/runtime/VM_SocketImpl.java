@@ -208,9 +208,9 @@ public static void socketBindImpl(FileDescriptor aFD, int localPort,
        int address;
 	  
        address = ip[3] & 0xff;
-       address |= ((ip[2] << 8) & 0xff00);
-       address |= ((ip[1] << 16) & 0xff0000);
-       address |= ((ip[0] << 24) & 0xff000000); 
+       address |= ((ip[2] << BITS_IN_BYTE) & 0xff00);
+       address |= ((ip[1] << (2*BITS_IN_BYTE)) & 0xff0000);
+       address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
 	  
        int family = JikesRVMSupport.getFamily(localAddress);
 
@@ -452,9 +452,9 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
        int address;
 	  
        address = ip[3] & 0xff;
-       address |= ((ip[2] << 8) & 0xff00);
-       address |= ((ip[1] << 16) & 0xff0000);
-       address |= ((ip[0] << 24) & 0xff000000); 
+       address |= ((ip[2] << BITS_IN_BYTE) & 0xff00);
+       address |= ((ip[1] << (2*BITS_IN_BYTE)) & 0xff0000);
+       address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
 	  
        int family = JikesRVMSupport.getFamily(remoteAddress);
        

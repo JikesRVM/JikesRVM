@@ -147,30 +147,30 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param len     number of array elements to copy
    */
   public static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) throws VM_PragmaInline {
-    if (len > (NATIVE_THRESHOLD>>1)) {
-      memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<1), 
-              VM_Magic.objectAsAddress(src).add(srcPos<<1), 
-              len<<1);
+    if (len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
+      memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_SHORT), 
+              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_SHORT),
+              len<<LOG_BYTES_IN_SHORT);
     } else {
-      if (len >= (BYTES_IN_ADDRESS >>> 1) && (srcPos & ((BYTES_IN_ADDRESS - 1) >>> 1)) == (dstPos & ((BYTES_IN_ADDRESS - 1) >>> 1))) {
+      if (len >= (BYTES_IN_ADDRESS >>> LOG_BYTES_IN_SHORT) && (srcPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_SHORT)) == (dstPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_SHORT))) {
         // alignment is the same
-        int byteStart = srcPos<<1;
+        int byteStart = srcPos<<LOG_BYTES_IN_SHORT;
         int wordStart = alignUp(byteStart , BYTES_IN_ADDRESS );
-        int wordEnd = alignDown(byteStart + (len<<1),BYTES_IN_ADDRESS ) ;
-        int byteEnd = byteStart + (len<<1);
+        int wordEnd = alignDown(byteStart + (len<<LOG_BYTES_IN_SHORT),BYTES_IN_ADDRESS ) ;
+        int byteEnd = byteStart + (len<<LOG_BYTES_IN_SHORT);
         int startDiff = wordStart - byteStart;
         int endDiff = byteEnd - wordEnd;
         int wordLen = wordEnd - wordStart;
-        for (;startDiff > 0; startDiff-=2) {
+        for (;startDiff > 0; startDiff-=BYTES_IN_SHORT) {
           dst[dstPos++] = src[srcPos++];
         }
-        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<1),
-                              VM_Magic.objectAsAddress(src).add(srcPos<<1),
+        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_SHORT),
+                              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_SHORT),
                               wordLen);
-        wordLen = wordLen >>> 1;
+        wordLen = wordLen >>> LOG_BYTES_IN_SHORT;
         srcPos += wordLen;
         dstPos += wordLen;
-        for (;endDiff > 0; endDiff -=2) {
+        for (;endDiff > 0; endDiff -=BYTES_IN_SHORT) {
           dst[dstPos++] = src[srcPos++];
         }	  
       } else {
@@ -192,30 +192,30 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param len     number of array elements to copy
    */
   public static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) throws VM_PragmaInline {
-    if (len > (NATIVE_THRESHOLD>>1)) {
-      memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<1), 
-              VM_Magic.objectAsAddress(src).add(srcPos<<1), 
-              len<<1);
+    if (len > (NATIVE_THRESHOLD>>LOG_BYTES_IN_CHAR)) {
+      memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR), 
+              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_CHAR), 
+              len<<LOG_BYTES_IN_CHAR);
     } else {
-      if (len >= (BYTES_IN_ADDRESS >>> 1) && (srcPos & ((BYTES_IN_ADDRESS - 1) >>> 1)) == (dstPos & ((BYTES_IN_ADDRESS - 1) >>> 1))) {
+      if (len >= (BYTES_IN_ADDRESS >>> LOG_BYTES_IN_CHAR) && (srcPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_CHAR)) == (dstPos & ((BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_CHAR))) {
         // alignment is the same
-        int byteStart = srcPos<<1;
+        int byteStart = srcPos<<LOG_BYTES_IN_CHAR;
         int wordStart = alignUp(byteStart , BYTES_IN_ADDRESS );
-        int wordEnd = alignDown(byteStart + (len<<1), BYTES_IN_ADDRESS );
-        int byteEnd = byteStart + (len<<1);
+        int wordEnd = alignDown(byteStart + (len<<LOG_BYTES_IN_CHAR), BYTES_IN_ADDRESS );
+        int byteEnd = byteStart + (len<<LOG_BYTES_IN_CHAR);
         int startDiff = wordStart - byteStart;
         int endDiff = byteEnd - wordEnd;
         int wordLen = wordEnd - wordStart;
-        for (;startDiff > 0; startDiff -= 2) {
+        for (;startDiff > 0; startDiff -= BYTES_IN_CHAR) {
           dst[dstPos++] = src[srcPos++];
         }
-        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<1),
-                              VM_Magic.objectAsAddress(src).add(srcPos<<1),
+        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR),
+                              VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_CHAR),
                               wordLen);
-        wordLen = wordLen >>> 1;
+        wordLen = wordLen >>> LOG_BYTES_IN_CHAR;
         srcPos += wordLen;
         dstPos += wordLen;
-        for (;endDiff > 0; endDiff -= 2) {
+        for (;endDiff > 0; endDiff -= BYTES_IN_CHAR) {
           dst[dstPos++] = src[srcPos++];
         }	  
       } else {

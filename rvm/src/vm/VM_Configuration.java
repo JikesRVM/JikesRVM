@@ -81,13 +81,6 @@ public abstract class VM_Configuration {
           false;
         //-#endif
 
-  public static final boolean BuildFor64Bit =
-        //-#if RVM_FOR_64_ADDR
-           true;
-        //-#else
-           false;
-        //-#endif
-										
   // Verify that Uninterruptible methods actually cannot be interrupted.
   // Disable until we can fix the last couple problem cases.
   public static final boolean VerifyUnint = true && VerifyAssertions;

@@ -19,7 +19,7 @@ import java.lang.Exception;
  * @see VM_BasicBlock
  * @see VM_BuildBB
  */
-public class VM_Verifier  implements VM_BytecodeConstants {
+public class VM_Verifier  implements VM_BytecodeConstants, VM_SizeConstants {
 
   //type of local variable and stack cell
   static final private int V_NULL = 0; 
@@ -2521,9 +2521,9 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    *
    */
   private int getIntOffset(int index, byte[] bytecodes){
-    return (int)((((int)bytecodes[index+1])<<24) |
-                 ((((int)bytecodes[index+2])&0xFF)<<16) |
-                 ((((int)bytecodes[index+3])&0xFF)<<8) |
+    return (int)((((int)bytecodes[index+1])<<(3*BITS_IN_BYTE)) |
+                 ((((int)bytecodes[index+2])&0xFF)<<(2*BITS_IN_BYTE)) |
+                 ((((int)bytecodes[index+3])&0xFF)<<BITS_IN_BYTE) |
                  (((int)bytecodes[index+4])&0xFF));
   }
 

@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.*;
  * @see OPT_Operand
  * @author John Whaley
  */
-public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
+public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants{
 
   /**
    * Value of this operand.
@@ -33,11 +33,11 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand {
   public OPT_FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
-      index = VM_Entrypoints.zeroFloatField.getOffset() >> 2;
+      index = VM_Entrypoints.zeroFloatField.getOffset() >> LOG_BYTES_IN_INT;
     } else if (v == 1.f) {
-      index = VM_Entrypoints.oneFloatField.getOffset() >> 2;
+      index = VM_Entrypoints.oneFloatField.getOffset() >> LOG_BYTES_IN_INT;
     } else if (v == 2.f) {
-      index = VM_Entrypoints.twoFloatField.getOffset() >> 2;
+      index = VM_Entrypoints.twoFloatField.getOffset() >> LOG_BYTES_IN_INT;
     }
   }
 

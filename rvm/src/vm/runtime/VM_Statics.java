@@ -75,7 +75,7 @@ public class VM_Statics implements VM_Constants {
   // Kinds of statics that can appear in slots of the jtoc.
   //
   public static final byte WIDE_TAG             = 0x20;
-  public static final byte REFERENCE_TAG        = VM.BuildFor64Bit ? 0x40 | WIDE_TAG : 0x40;
+  public static final byte REFERENCE_TAG        = VM.BuildFor64Addr ? 0x40 | WIDE_TAG : 0x40;
 
   public static final byte EMPTY                = 0x0;
 
@@ -333,11 +333,11 @@ public class VM_Statics implements VM_Constants {
    */ 
   public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {	
     if (VM.LittleEndian) {
-      long result = (((long) slots[slot+1]) << 32); // hi
+      long result = (((long) slots[slot+1]) << BITS_IN_INT); // hi
       result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
       return result;
     } else {
-      long result = (((long) slots[slot]) << 32);     // hi
+      long result = (((long) slots[slot]) << BITS_IN_INT);     // hi
       result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
       return result;
     }
@@ -377,10 +377,10 @@ public class VM_Statics implements VM_Constants {
    */
   public static void setSlotContents(int slot, long value) throws VM_PragmaUninterruptible {
     if (VM.LittleEndian) {
-      slots[slot + 1] = (int)(value >>> 32); // hi
+      slots[slot + 1] = (int)(value >>> BITS_IN_INT); // hi
       slots[slot    ] = (int)(value       ); // lo
     } else {
-      slots[slot    ] = (int)(value >>> 32); // hi
+      slots[slot    ] = (int)(value >>> BITS_IN_INT); // hi
       slots[slot + 1] = (int)(value       ); // lo
     }
   }

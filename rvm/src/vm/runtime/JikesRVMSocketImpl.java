@@ -16,7 +16,7 @@ import java.net.*;
  *
  * @author Julian Dolby
  */
-final class JikesRVMSocketImpl extends SocketImpl {
+final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 
     //
     // BEGIN API from SocketImpl class
@@ -106,9 +106,9 @@ final class JikesRVMSocketImpl extends SocketImpl {
 
 	int address;
 	address = ip[3] & 0xff;
-	address |= ((ip[2] << 8) & 0xff00);
-	address |= ((ip[1] << 16) & 0xff0000);
-	address |= ((ip[0] << 24) & 0xff000000); 
+	address |= ((ip[2] << BITS_IN_BYTE) & 0xff00);
+	address |= ((ip[1] << (2*BITS_IN_BYTE)) & 0xff0000);
+	address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
 	
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 	int rc = VM_SysCall.call4(bootRecord.sysNetSocketBindIP,
@@ -542,9 +542,9 @@ final class JikesRVMSocketImpl extends SocketImpl {
        
 	int address;
 	address = ip[3] & 0xff;
-	address |= ((ip[2] << 8) & 0xff00);
-	address |= ((ip[1] << 16) & 0xff0000);
-	address |= ((ip[0] << 24) & 0xff000000); 
+	address |= ((ip[2] << BITS_IN_BYTE) & 0xff00);
+	address |= ((ip[1] << (2*BITS_IN_BYTE)) & 0xff0000);
+	address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
 	
 	while (rc < 0) {
 	    VM_ThreadIOQueue.selectInProgressMutex.lock();

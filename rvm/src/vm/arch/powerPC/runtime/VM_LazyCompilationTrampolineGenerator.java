@@ -22,9 +22,9 @@ public class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstan
    */
   public static INSTRUCTION[] getTrampoline () {
     VM_Assembler asm = new VM_Assembler(0);
-    asm.emitLtoc (S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
+    asm.emitLWZtoc (S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     asm.emitMTCTR(S0);
-    asm.emitBCTR ();
+    asm.emitBCCTR ();
     return asm.makeMachineCode().getInstructions();
   }
 }

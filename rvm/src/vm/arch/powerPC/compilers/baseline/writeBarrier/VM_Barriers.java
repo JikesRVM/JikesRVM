@@ -16,11 +16,11 @@ class VM_Barriers implements VM_BaselineConstants {
   static void compileArrayStoreBarrier (VM_Assembler asm, int spSaveAreaOffset) {
     //  on entry java stack contains ...|target_array_ref|array_index|ref_to_store|
     //  SP -> ref_to_store, SP+8 -> target_ref
-    asm.emitLtoc(T0,  VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
+    asm.emitLWZtoc(T0,  VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL (T0, 8, SP);         // load arrayref
-    asm.emitL (T1, 4, SP);         // load index
-    asm.emitL (T2, 0, SP);         // load value
+    asm.emitLWZ(T0, 8, SP);         // load arrayref
+    asm.emitLWZ(T1, 4, SP);         // load index
+    asm.emitLWZ(T2, 0, SP);         // load value
     asm.emitCall(spSaveAreaOffset);// VM_WriteBarrier.arrayStoreWriteBarrier(Object ref, int index, Object value)
   }
 
@@ -28,21 +28,21 @@ class VM_Barriers implements VM_BaselineConstants {
     //  on entry java stack contains ...|target_ref|ref_to_store|
     //  SP -> ref_to_store, SP+4 -> target_ref
     // T1 contains the offset of the field
-    asm.emitLtoc(T0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitLWZtoc(T0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitL   (T0, 4, SP);          // load objref
-    asm.emitL   (T2, 0, SP);          // load value
+    asm.emitLWZ  (T0, 4, SP);          // load objref
+    asm.emitLWZ  (T2, 0, SP);          // load value
     asm.emitCall(spSaveAreaOffset);   // VM_WriteBarrier.putfieldWriteBarrier(T0,T1,T2)
   }
 
   static void compilePutfieldBarrierImm (VM_Assembler asm, int spSaveAreaOffset, int fieldOffset) {
     //  on entry java stack contains ...|target_ref|ref_to_store|
     //  SP -> ref_to_store, SP+4 -> target_ref
-    asm.emitLtoc(T0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
+    asm.emitLWZtoc(T0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(T0);
-    asm.emitCAL (T1, fieldOffset, 0); // load offset 
-    asm.emitL   (T0, 4, SP);          // load objref
-    asm.emitL   (T2, 0, SP);          // load value
+    asm.emitADDI (T1, fieldOffset, 0); // load offset 
+    asm.emitLWZ  (T0, 4, SP);          // load objref
+    asm.emitLWZ  (T2, 0, SP);          // load value
     asm.emitCall(spSaveAreaOffset);   // VM_WriteBarrier.putfieldWriteBarrier(T0,T1,T2)
   }
 

@@ -61,7 +61,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
 	for (int i=firstGPR;
 	     i<=LAST_NONVOLATILE_GPR;
 	     i++) {
-	  asm.emitL(i, offset, FP);
+	  asm.emitLWZ(i, offset, FP);
 	  offset += SW_WIDTH;
 	}
       }
@@ -87,17 +87,17 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     }	
     
     // load address of newInstructions from JTOC
-    asm.emitLtoc(S0, cm.getOsrJTOCoffset());
+    asm.emitLWZtoc(S0, cm.getOsrJTOCoffset());
     // mov CTR addr
     asm.emitMTCTR(S0);
     // lwz FP, 0(FP)
-    asm.emitL(FP, 0, FP);
+    asm.emitLWZ(FP, 0, FP);
     // lwz T0, NEXT_INSTR(FP)
-    asm.emitL(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLWZ(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
     // mov LR, addr
     asm.emitMTLR(S0);
     // bctr
-    asm.emitBCTR();
+    asm.emitBCCTR();
 
     VM_MachineCode mc = asm.makeMachineCode();	
 

@@ -50,7 +50,7 @@ public class ScanStatics
 	// slot contains a ref of some kind.  call collector specific
 	// processPointerField, passing address of reference
 	//
-	rootLocations.push(slots.add(slot << LOG_WORD_SIZE));
+	rootLocations.push(slots.add(slot << LOG_BYTES_IN_INT));
 
       }  // end of for loop
 

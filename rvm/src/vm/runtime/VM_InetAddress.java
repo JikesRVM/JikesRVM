@@ -81,17 +81,17 @@ public static int inetAddrImpl(String host) throws UnknownHostException {
 	  int beginOctet = 0;
 	  int endOctet = host.indexOf('.', beginOctet);
 	  String octet = host.substring(beginOctet, endOctet);
-	  returnAddress = (Short.parseShort(octet)) << 24;
+	  returnAddress = (Short.parseShort(octet)) << (3*BITS_IN_BYTE);
 
 	  beginOctet = endOctet + 1;
 	  endOctet = host.indexOf('.', beginOctet);
 	  octet = host.substring(beginOctet, endOctet);
-	  returnAddress += (Short.parseShort(octet)) << 16;
+	  returnAddress += (Short.parseShort(octet)) << (2*BITS_IN_BYTE);
 
 	  beginOctet = endOctet + 1;
 	  endOctet = host.indexOf('.', beginOctet);
 	  octet = host.substring(beginOctet, endOctet);
-	  returnAddress += (Short.parseShort(octet)) << 8;
+	  returnAddress += (Short.parseShort(octet)) << BITS_IN_BYTE;
 
 	  beginOctet = endOctet + 1;
 	  endOctet = host.length();
@@ -117,9 +117,9 @@ public static int inetAddrImpl(String host) throws UnknownHostException {
  * an Ipv4 Internet Protocol dotted address.
  */
 public static String inetNtoaImpl(int hipAddr) {
-	int octet1 = (hipAddr & 0xFF000000) >>> 24;
-	int octet2 = (hipAddr & 0x00FF0000) >> 16;
-	int octet3 = (hipAddr & 0x0000FF00) >> 8;
+	int octet1 = (hipAddr & 0xFF000000) >>> (3*BITS_IN_BYTE);
+	int octet2 = (hipAddr & 0x00FF0000) >> (2*BITS_IN_BYTE);
+	int octet3 = (hipAddr & 0x0000FF00) >> BITS_IN_BYTE;
 	int octet4 = hipAddr & 0x000000ff;
 
 	return new String (octet1 + "." +

@@ -87,7 +87,7 @@ public abstract class VM_Method extends VM_Member {
 	      for (int k = 0; k<cnt; k++) {
 		int startPC = input.readUnsignedShort();
 		int lineNumber = input.readUnsignedShort();
-		tmp_lineNumberMap[k] = (lineNumber << 16) | startPC;
+		tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
 	      }
 	    }
 	  } else {

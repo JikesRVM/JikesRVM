@@ -75,7 +75,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // free registers: 0, S0
     //
     asm.emitMFLR(0);                                         // save...
-    asm.emitST  (0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // ...return address
+    asm.emitSTW (0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // ...return address
       
     asm.emitMTCTR(T0);                          // CTR := start of method code
       
@@ -85,20 +85,20 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
       
     // create new frame
     //
-    asm.emitCAL  (S0,  0, FP);                  // S0 := old frame pointer
-    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
-    asm.emitCAL  (T3, -4, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
+    asm.emitADDI  (S0,  0, FP);                  // S0 := old frame pointer
+    asm.emitLWZ   (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
+    asm.emitADDI  (T3, -4, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
     int spillLoopLabel = asm.getMachineCodeIndex();
-    asm.emitAIr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
+    asm.emitADDICr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
     VM_ForwardReference fr1 = asm.emitForwardBC(LT); // if T0 < 0 then break
-    asm.emitLU   (0,   4, T3);                  // R0 := *(T3 += 4)
-    asm.emitSTU  (0,  -4, FP);                  // put one word of spill area
+    asm.emitLWZU   (0,   4, T3);                  // R0 := *(T3 += 4)
+    asm.emitSTWU  (0,  -4, FP);                  // put one word of spill area
     asm.emitB    (spillLoopLabel); // goto spillLoop:
     fr1.resolve(asm);
       
-    asm.emitSTU  (S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
+    asm.emitSTWU  (S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
     asm.emitLVAL (T0, INVISIBLE_METHOD_ID);
-    asm.emitST   (T0, STACKFRAME_METHOD_ID_OFFSET, FP); // set method id
+    asm.emitSTW  (T0, STACKFRAME_METHOD_ID_OFFSET, FP); // set method id
 
     //
     // free registers: 0, S0, T0, T3
@@ -122,7 +122,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
 
     GPRLoader:
     for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
-      asm.emitLU  (i, +4, S0);                 // GPRi := gprs[i]
+      asm.emitLWZU  (i, +4, S0);                 // GPRi := gprs[i]
       
     //
     // free registers: 0, S0
@@ -130,34 +130,34 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
       
     // invoke method
     //
-    asm.emitBCTRL();                            // branch and link to method code
+    asm.emitBCCTRL();                            // branch and link to method code
 
     // emit method epilog
     //
-    asm.emitL    (FP,  0, FP);                                    // restore caller's frame
-    asm.emitL    (S0,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);   // pick up return address
+    asm.emitLWZ   (FP,  0, FP);                                    // restore caller's frame
+    asm.emitLWZ   (S0,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);   // pick up return address
     asm.emitMTLR (S0);                                            //
-    asm.emitBLR();                                                // return to caller
+    asm.emitBCLR();                                                // return to caller
 
     setupFPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first fpr load instruction
-    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T2); // T0 := number of fprs to be loaded
-    asm.emitCAL  (T3, VOLATILE_FPRS<<2,    T3); // T3 := address of first instruction following fpr loads
-    asm.emitSLI  (T0, T0,                   2); // T0 := number of bytes of fpr load instructions
-    asm.emitSF   (T3, T0,                  T3); // T3 := address of instruction for highest numbered fpr to be loaded
+    asm.emitLWZ   (T0, VM_ObjectModel.getArrayLengthOffset(), T2); // T0 := number of fprs to be loaded
+    asm.emitADDI  (T3, VOLATILE_FPRS<<2,    T3); // T3 := address of first instruction following fpr loads
+    asm.emitSLWI  (T0, T0,                   2); // T0 := number of bytes of fpr load instructions
+    asm.emitSUBFC   (T3, T0,                  T3); // T3 := address of instruction for highest numbered fpr to be loaded
     asm.emitMTLR (T3);                          // LR := """
-    asm.emitCAL  (T2, -8, T2);                  // predecrement fpr index (to prepare for update instruction)
-    asm.emitBLR  ();                            // branch to fpr loading instructions
+    asm.emitADDI  (T2, -8, T2);                  // predecrement fpr index (to prepare for update instruction)
+    asm.emitBCLR  ();                            // branch to fpr loading instructions
 
     setupGPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first gpr load instruction
-    asm.emitL    (T0, VM_ObjectModel.getArrayLengthOffset(), T1); // T0 := number of gprs to be loaded
-    asm.emitCAL  (T3, VOLATILE_GPRS<<2,    T3); // T3 := address of first instruction following gpr loads
-    asm.emitSLI  (T0, T0,                   2); // T0 := number of bytes of gpr load instructions
-    asm.emitSF   (T3, T0,                  T3); // T3 := address of instruction for highest numbered gpr to be loaded
+    asm.emitLWZ   (T0, VM_ObjectModel.getArrayLengthOffset(), T1); // T0 := number of gprs to be loaded
+    asm.emitADDI  (T3, VOLATILE_GPRS<<2,    T3); // T3 := address of first instruction following gpr loads
+    asm.emitSLWI  (T0, T0,                   2); // T0 := number of bytes of gpr load instructions
+    asm.emitSUBFC   (T3, T0,                  T3); // T3 := address of instruction for highest numbered gpr to be loaded
     asm.emitMTLR (T3);                          // LR := """
-    asm.emitCAL  (S0, -4, T1);                  // predecrement gpr index (to prepare for update instruction)
-    asm.emitBLR  ();                            // branch to gpr loading instructions
+    asm.emitADDI  (S0, -4, T1);                  // predecrement gpr index (to prepare for update instruction)
+    asm.emitBCLR  ();                            // branch to gpr loading instructions
      
     return asm.makeMachineCode().getInstructions();
   }
@@ -180,30 +180,30 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
     int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
-    asm.emitLIL(T1, -1);           // T1 = -1
-    asm.emitST (T1, ipOffset, T0); // registers.ip = -1
+    asm.emitLI(T1, -1);           // T1 = -1
+    asm.emitSTW(T1, ipOffset, T0); // registers.ip = -1
 
     // save non-volatile fprs
     //
-    asm.emitL(T1, fprsOffset, T0); // T1 := registers.fprs[]
+    asm.emitLWZ(T1, fprsOffset, T0); // T1 := registers.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
       asm.emitSTFD(i, i*8, T1);
 
     // save non-volatile gprs
     //
-    asm.emitL(T1, gprsOffset, T0); // T1 := registers.gprs[]
+    asm.emitLWZ(T1, gprsOffset, T0); // T1 := registers.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
-      asm.emitST(i, i*4, T1);
+      asm.emitSTW(i, i*4, T1);
 
     // save fp, sp, and ti
     //
-    asm.emitST(FP, FP*4, T1);
-    asm.emitST(TI, TI*4, T1);
-    asm.emitST(SP, SP*4, T1);
+    asm.emitSTW(FP, FP*4, T1);
+    asm.emitSTW(TI, TI*4, T1);
+    asm.emitSTW(SP, SP*4, T1);
       
     // return to caller
     //
-    asm.emitBLR();
+    asm.emitBCLR();
      
     return asm.makeMachineCode().getInstructions();
   }
@@ -234,47 +234,47 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
 
     // (1) Save nonvolatile hardware state of current thread.
     asm.emitMFLR (T3);                         // T3 gets return address
-    asm.emitL    (T2, regsOffset, T0);         // T2 = T0.contextRegisters
-    asm.emitST   (T3, ipOffset, T2);           // T0.contextRegisters.ip = return address
+    asm.emitLWZ   (T2, regsOffset, T0);         // T2 = T0.contextRegisters
+    asm.emitSTW  (T3, ipOffset, T2);           // T0.contextRegisters.ip = return address
 
     // save non-volatile fprs
-    asm.emitL(T3, fprsOffset, T2); // T3 := T0.contextRegisters.fprs[]
+    asm.emitLWZ(T3, fprsOffset, T2); // T3 := T0.contextRegisters.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
       asm.emitSTFD(i, i*8, T3);
 
     // save non-volatile gprs
-    asm.emitL(T3, gprsOffset, T2); // T3 := registers.gprs[]
+    asm.emitLWZ(T3, gprsOffset, T2); // T3 := registers.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
-      asm.emitST(i, i*4, T3);
+      asm.emitSTW(i, i*4, T3);
 
     // save other 'nonvol' gprs: fp and ti
-    asm.emitST(FP, FP*4, T3);
-    asm.emitST(TI, TI*4, T3);
+    asm.emitSTW(FP, FP*4, T3);
+    asm.emitSTW(TI, TI*4, T3);
 
     // (2) Set currentThread.beingDispatched to false
-    asm.emitLIL(0, 0);                                        // R0 := 0
-    asm.emitST (0, VM_Entrypoints.beingDispatchedField.getOffset(), T0); // T0.beingDispatched := R0
+    asm.emitLI(0, 0);                                        // R0 := 0
+    asm.emitSTW(0, VM_Entrypoints.beingDispatchedField.getOffset(), T0); // T0.beingDispatched := R0
 
     // (3) Restore nonvolatile hardware state of new thread.
 
     // restore non-volatile fprs
-    asm.emitL(T0, fprsOffset, T1); // T0 := T1.fprs[]
+    asm.emitLWZ(T0, fprsOffset, T1); // T0 := T1.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i)
       asm.emitLFD(i, i*8, T0);
 
     // restore non-volatile gprs
-    asm.emitL(T0, gprsOffset, T1); // T0 := T1.gprs[]
+    asm.emitLWZ(T0, gprsOffset, T1); // T0 := T1.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
-      asm.emitL(i, i*4, T0);
+      asm.emitLWZ(i, i*4, T0);
 
     // restore fp, and ti
-    asm.emitL(FP, FP*4, T0);
-    asm.emitL(TI, TI*4, T0);
+    asm.emitLWZ(FP, FP*4, T0);
+    asm.emitLWZ(TI, TI*4, T0);
 
     // resume execution at saved ip (T1.ipOffset)
-    asm.emitL(T0, ipOffset, T1);
+    asm.emitLWZ(T0, ipOffset, T1);
     asm.emitMTLR(T0);
-    asm.emitBLR();
+    asm.emitBCLR();
 
     return asm.makeMachineCode().getInstructions();
   }
@@ -302,47 +302,47 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
 
     // restore LR
     //
-    asm.emitL(REGISTER_ZERO, lrOffset, T0);
+    asm.emitLWZ(REGISTER_ZERO, lrOffset, T0);
     asm.emitMTLR(REGISTER_ZERO);
 
     // restore IP (hold it in CT register for a moment)
     //
-    asm.emitL(REGISTER_ZERO, ipOffset, T0);
+    asm.emitLWZ(REGISTER_ZERO, ipOffset, T0);
     asm.emitMTCTR(REGISTER_ZERO);
       
     // restore fprs
     //
-    asm.emitL(T1, fprsOffset, T0); // T1 := registers.fprs[]
+    asm.emitLWZ(T1, fprsOffset, T0); // T1 := registers.fprs[]
     for (int i = 0; i < NUM_FPRS; ++i)
       asm.emitLFD(i, i*8, T1);
 
     // restore gprs
     //
-    asm.emitL(T1, gprsOffset, T0); // T1 := registers.gprs[]
+    asm.emitLWZ(T1, gprsOffset, T0); // T1 := registers.gprs[]
 
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i)
-      asm.emitL(i, i*4, T1);
+      asm.emitLWZ(i, i*4, T1);
 
     for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; ++i)
-      asm.emitL(i, i*4, T1);
+      asm.emitLWZ(i, i*4, T1);
 
     for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i)
       if (i != T1)
-	asm.emitL(i, i*4, T1);
+	asm.emitLWZ(i, i*4, T1);
 
     // restore specials
     //
-    asm.emitL(REGISTER_ZERO, REGISTER_ZERO*4, T1);
-    asm.emitL(FP, FP*4, T1);
-    asm.emitL(TI, TI*4, T1);
+    asm.emitLWZ(REGISTER_ZERO, REGISTER_ZERO*4, T1);
+    asm.emitLWZ(FP, FP*4, T1);
+    asm.emitLWZ(TI, TI*4, T1);
       
     // restore last gpr
     //
-    asm.emitL(T1, T1*4, T1);
+    asm.emitLWZ(T1, T1*4, T1);
 
     // resume execution at IP
     //
-    asm.emitBCTR();
+    asm.emitBCCTR();
 
     return asm.makeMachineCode().getInstructions();
   }
@@ -383,21 +383,21 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
       asm.emitMFSPR (T2, 4 );                                 // t2 := real time clock, upper
     }
     asm.emitCMP   (T0, T2);                                 // t0 == t2?
-    asm.emitST    (T1, scratchNanosecondsOffset + 4, T3);   // scratch_nanos_lo   := nanos
-    asm.emitST    (T0, scratchSecondsOffset     + 4, T3);   // scratch_seconds_lo := seconds
+    asm.emitSTW   (T1, scratchNanosecondsOffset + 4, T3);   // scratch_nanos_lo   := nanos
+    asm.emitSTW   (T0, scratchSecondsOffset     + 4, T3);   // scratch_seconds_lo := seconds
     asm.emitBC    (NE, loopLabel);                          // seconds have rolled over, try again
 
     asm.emitLFD   (F0, scratchNanosecondsOffset, T3);       // f0 := IEEEmagic + nanos
     asm.emitLFD   (F1, scratchSecondsOffset,     T3);       // f1 := IEEEmagic + seconds
 
-    asm.emitFS    (F0, F0, F3);                             // f0 := f0 - IEEEmagic == (double)nanos
-    asm.emitFS    (F1, F1, F3);                             // f1 := f1 - IEEEmagic == (double)seconds
+    asm.emitFSUB    (F0, F0, F3);                             // f0 := f0 - IEEEmagic == (double)nanos
+    asm.emitFSUB    (F1, F1, F3);                             // f1 := f1 - IEEEmagic == (double)seconds
 
-    asm.emitFMA   (F0, F2, F0, F1);                         // f0 := f2 * f0 + f1
+    asm.emitFMADD   (F0, F2, F0, F1);                         // f0 := f2 * f0 + f1
 
     // return to caller
     //
-    asm.emitBLR();
+    asm.emitBCLR();
 
     return asm.makeMachineCode().getInstructions();
   }
@@ -420,85 +420,85 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // into transition frame. If GC occurs, the JNIGCMapIterator will cause
     // this ip address to be relocated if the generated glue code is moved.
     //
-    asm.emitL     (SP, 0, FP);
+    asm.emitLWZ    (SP, 0, FP);
     asm.emitMFLR  (T0);
 	//-#if RVM_FOR_LINUX
 	// save return address of JNI method in mini frame (2)
-	asm.emitST    (T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, SP);
+	asm.emitSTW   (T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, SP);
 	//-#endif
 	//-#if RVM_FOR_AIX
-    asm.emitST    (T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, SP);  // save return address in stack frame
+    asm.emitSTW   (T0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, SP);  // save return address in stack frame
     //-#endif
 	//
     // Load required JNI function ptr into first parameter reg (GPR3/T0)
     // This pointer is in the JNIEnvAddress field of JNIEnvironment
     //
-    asm.emitL (T0, VM_Entrypoints.JNIEnvAddressField.getOffset(), S0);
+    asm.emitLWZ(T0, VM_Entrypoints.JNIEnvAddressField.getOffset(), S0);
     //
     // change the vpstatus of the VP to "in Native"
     //
-    asm.emitL     (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0); 
-    asm.emitL     (SP, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // SP gets addr vpStatus word
-    asm.emitCAL   (S0,  VM_Processor.IN_NATIVE, 0 );              // S0  <- new status value
-    asm.emitST    (S0,  0, SP);                                   // change state to native
+    asm.emitLWZ    (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0); 
+    asm.emitLWZ    (SP, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // SP gets addr vpStatus word
+    asm.emitADDI   (S0,  VM_Processor.IN_NATIVE, 0 );              // S0  <- new status value
+    asm.emitSTW   (S0,  0, SP);                                   // change state to native
 
     // set word following JNI function ptr to addr of current processors vpStatus word
-    asm.emitST    (SP,  4, T0);
+    asm.emitSTW   (SP,  4, T0);
 
     //
     asm.emitMTLR  (TI);                                // move native code address to link reg
     //
     // goto the native code
     //
-    asm.emitBLRL  ();                                       // call native method
+    asm.emitBCLRL  ();                                       // call native method
     //
     // save the return value in R3-R4 in the glue frame spill area since they may be overwritten
     // in the call to becomeRVMThreadOffset
-    asm.emitST    (T0, NATIVE_FRAME_HEADER_SIZE, FP);
-    asm.emitST    (T1, NATIVE_FRAME_HEADER_SIZE+4, FP);
+    asm.emitSTW   (T0, NATIVE_FRAME_HEADER_SIZE, FP);
+    asm.emitSTW   (T1, NATIVE_FRAME_HEADER_SIZE+4, FP);
     //
     // try to return to Java state, by testing state word of process
     //
     int label1    = asm.getMachineCodeIndex();                            // inst index of the following load
-    asm.emitL     (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
+    asm.emitLWZ    (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
 	//-#if RVM_FOR_LINUX
 	// mimi (1) FP -> mimi(2) FP -> java caller
-	asm.emitL     (PROCESSOR_REGISTER, 0, PROCESSOR_REGISTER);
+	asm.emitLWZ    (PROCESSOR_REGISTER, 0, PROCESSOR_REGISTER);
 	//-#endif
-    asm.emitL     (JTOC, -JNI_JTOC_OFFSET, PROCESSOR_REGISTER);                         // load JTOC reg
-    asm.emitL     (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
-    asm.emitL     (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
+    asm.emitLWZ    (JTOC, -JNI_JTOC_OFFSET, PROCESSOR_REGISTER);                         // load JTOC reg
+    asm.emitLWZ    (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
+    asm.emitLWZ    (T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr of vpStatus word
     asm.emitLWARX (S0, 0, T3);                                            // get status for processor
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);                   // are we blocked in native code?
     VM_ForwardReference fr = asm.emitForwardBC(NE);
     //
     // if blocked in native, call C routine to do pthread_yield
     //
-    asm.emitL     (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);       // T2 gets boot record address
-    asm.emitL     (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);                // load TOC for syscalls from bootrecord
-    asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
+    asm.emitLWZ    (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);       // T2 gets boot record address
+    asm.emitLWZ    (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);                // load TOC for syscalls from bootrecord
+    asm.emitLWZ    (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
     asm.emitMTLR  (T1);
-    asm.emitBLRL  ();                                          // call sysVirtualProcessorYield in sys.C
+    asm.emitBCLRL  ();                                          // call sysVirtualProcessorYield in sys.C
     asm.emitB     (label1); // retest the blocked in native
     //
     //  br to here -not blocked in native
     //
     fr.resolve(asm);
-    asm.emitCAL   (S0,  VM_Processor.IN_JAVA, 0 );           // S0  <- new state value
+    asm.emitADDI   (S0,  VM_Processor.IN_JAVA, 0 );           // S0  <- new state value
     asm.emitSTWCXr(S0,  0, T3);                              // attempt to change state to java
     asm.emitBC    (NE, label1);                              // br if failure -retry lwarx
     //
     // return to caller
     //
-    asm.emitL     (T3, 0 , FP);                                // get previous frame
+    asm.emitLWZ    (T3, 0 , FP);                                // get previous frame
 	//-#if RVM_FOR_LINUX
-	asm.emitL     (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T3);
+	asm.emitLWZ    (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T3);
 	//-#endif
 	//-#if RVM_FOR_AIX
-	asm.emitL     (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
+	asm.emitLWZ    (S0, -JNI_PROLOG_RETURN_ADDRESS_OFFSET, T3); // get return address from stack frame
     //-#endif
 	asm.emitMTLR  (S0);
-    asm.emitBLR   ();
+    asm.emitBCLR   ();
     //
     return asm.makeMachineCode().getInstructions();
 

@@ -72,7 +72,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   
   // note that the pointer to a scalar actually points 4 bytes above the
   // scalar object (on the 32 bit architecture)
-  private static final int SCALAR_PADDING_BYTES = VM.BuildFor64Bit? 0 : BYTES_IN_INT;
+  private static final int SCALAR_PADDING_BYTES = VM.BuildFor64Addr? 0 : BYTES_IN_INT;
 
   private static final int STATUS_OFFSET  = -2*BYTES_IN_INT;
   private static final int TIB_OFFSET     = -BYTES_IN_ADDRESS - 2*BYTES_IN_INT ;
@@ -158,7 +158,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int size = type.getInstanceSize();
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
-      if (hashState != HASH_STATE_UNHASHED && !VM.BuildFor64Bit) {
+      if (hashState != HASH_STATE_UNHASHED && !VM.BuildFor64Addr) {
 	size += HASHCODE_BYTES;
       }
     }
@@ -563,7 +563,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
                                          int object) throws VM_PragmaInterruptible {
-    asm.emitL(dest, TIB_OFFSET, object);
+    asm.emitLWZ(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 

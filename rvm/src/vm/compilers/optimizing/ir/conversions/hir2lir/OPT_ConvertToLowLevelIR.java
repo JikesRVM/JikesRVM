@@ -693,7 +693,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  OPT_RegisterOperand IMT = InsertLoadOffset(v, ir, REF_LOAD,
 						     VM_TypeReference.JavaLangObjectArray,
 						     RHStib.copyD2U(),
-						     TIB_IMT_TIB_INDEX << 2);
+						     TIB_IMT_TIB_INDEX << LOG_BYTES_IN_ADDRESS);
 	  address = InsertLoadOffset(v, ir, REF_LOAD,
 				     VM_TypeReference.InstructionArray,
 				     IMT.copyD2U(),
@@ -712,7 +712,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  InsertLoadOffset(v, ir, REF_LOAD,
 			   VM_TypeReference.JavaLangObjectArray,
 			   RHStib.copyD2U(),
-			   TIB_ITABLES_TIB_INDEX << 2);
+			   TIB_ITABLES_TIB_INDEX << LOG_BYTES_IN_ADDRESS);
 	OPT_RegisterOperand iTable = 
 	  InsertLoadOffset(v, ir, REF_LOAD,
 			   VM_TypeReference.JavaLangObjectArray,

@@ -713,14 +713,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       case TAG_INTERFACE_METHODREF: {
 	int classDescriptorIndex         = input.readUnsignedShort();
 	int memberNameAndDescriptorIndex = input.readUnsignedShort();
-	constantPool[i] = (classDescriptorIndex << 16) | memberNameAndDescriptorIndex;
+	constantPool[i] = (classDescriptorIndex << BITS_IN_SHORT) | memberNameAndDescriptorIndex;
 	break; 
       }
 
       case TAG_MEMBERNAME_AND_DESCRIPTOR: {
 	int memberNameIndex = input.readUnsignedShort();
 	int descriptorIndex = input.readUnsignedShort();
-	constantPool[i] = (memberNameIndex << 16) | descriptorIndex;
+	constantPool[i] = (memberNameIndex << BITS_IN_SHORT) | descriptorIndex;
 	break;  
       }
 	
@@ -771,10 +771,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       case TAG_METHODREF:
       case TAG_INTERFACE_METHODREF: { // in: classname+membername+memberdescriptor indices
 	int bits                         = constantPool[i];
-	int classNameIndex               = (bits >> 16) & 0xffff;
+	int classNameIndex               = (bits >> BITS_IN_SHORT) & 0xffff;
 	int memberNameAndDescriptorIndex = bits & 0xffff;
 	int memberNameAndDescriptorBits  = constantPool[memberNameAndDescriptorIndex];
-	int memberNameIndex              = (memberNameAndDescriptorBits >> 16) & 0xffff;
+	int memberNameIndex              = (memberNameAndDescriptorBits >> BITS_IN_SHORT) & 0xffff;
 	int memberDescriptorIndex        = (memberNameAndDescriptorBits       ) & 0xffff;
 	
 	VM_TypeReference  tref   = getTypeRef(classNameIndex);
@@ -1057,7 +1057,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       byte slotType;
       if (fieldType.isReferenceType())
 	slotType = VM_Statics.REFERENCE_FIELD;
-      else if (fieldType.getStackWords() == LOG_BYTES_IN_INT)
+      else if (fieldType.getStackWords() == 2)
 	slotType = VM_Statics.WIDE_NUMERIC_FIELD;
       else
 	slotType = VM_Statics.NUMERIC_FIELD;
@@ -1097,7 +1097,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     //
     for (int i = 0, n = constructorMethods.length; i < n; ++i) {
       VM_Method method = constructorMethods[i];
-      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
+      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << LOG_BYTES_IN_INT;
     }
 
     // Allocate space for static method pointers
@@ -1264,7 +1264,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // compile <init> methods and put their addresses into jtoc
     for (int i = 0, n = constructorMethods.length; i < n; ++i) {
       VM_Method method = constructorMethods[i];
-      VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
+      VM_Statics.setSlotContents(method.getOffset() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
     }
 
     // compile static methods and put their addresses into jtoc
@@ -1274,7 +1274,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // This also avoids putting clinit's in the bootimage.
       VM_Method method = staticMethods[i];
       if (!method.isClassInitializer()) {
-	VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
+	VM_Statics.setSlotContents(method.getOffset() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
       }
     }
 
@@ -1458,7 +1458,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
       VM._assert(vm == m);
     }
-    int offset = m.getOffset() >>> 2;
+    int offset = m.getOffset() >>> LOG_BYTES_IN_ADDRESS;
     typeInformationBlock[offset] = m.getCurrentInstructions();
     VM_InterfaceInvocation.updateTIBEntry(this, m);
   }
