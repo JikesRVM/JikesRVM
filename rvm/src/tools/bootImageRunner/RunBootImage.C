@@ -405,10 +405,6 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 int
 main(int argc, char **argv)
 {
-    SysErrorFile = stderr;
-    SysTraceFile = stderr;
-    SysTraceFd   = 2;
-  
     Me            = basename(*argv++);
     --argc;
     initialHeapSize = heap_default_initial_size;

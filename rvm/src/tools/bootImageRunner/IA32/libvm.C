@@ -60,12 +60,12 @@ extern "C" void setLinkage(VM_BootRecord*);
 
 // These are definitions of items declared in bootImageRunner.h
 /* Sink for messages relating to serious errors detected by C runtime. */
-FILE *SysErrorFile;
-static int SysErrorFd;		// not used outside this file.
+FILE *SysErrorFile = stderr;
+static int SysErrorFd = 2;		// not used outside this file.
  
 /* Sink for trace messages produced by VM.sysWrite(). */
-FILE *SysTraceFile;
-int SysTraceFd;
+FILE *SysTraceFile = stderr;
+int SysTraceFd = 2;
 
 /* Command line arguments to be passed to virtual machine. */
 char **JavaArgs;
@@ -694,11 +694,6 @@ softwareSignalHandler(int signo,
 int
 createJVM(int UNUSED vmInSeparateThread)
 {
-    SysErrorFile = stderr;
-    SysErrorFd = 2;
-    SysTraceFile = stderr;
-    SysTraceFd = 2;
-
     /* don't buffer trace or error message output */
     setbuf (SysErrorFile, 0);
     setbuf (SysTraceFile, 0);

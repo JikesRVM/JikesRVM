@@ -75,11 +75,11 @@ VM_BootRecord *theBootRecord;
 
 // These are definitions of items declared in bootImageRunner.h
 /* Sink for messages relating to serious errors detected by C runtime. */
-FILE *SysErrorFile;
+FILE *SysErrorFile = stderr;
  
 /* Sink for trace messages produced by VM.sysWrite(). */
-FILE *SysTraceFile;
-int SysTraceFd;
+FILE *SysTraceFile = stderr;
+int SysTraceFd = 2;
 
 /* Command line arguments to be passed to virtual machine. */
 char **JavaArgs;
