@@ -3025,7 +3025,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // processor object
       VM_ProcessorLocalState.emitDecrementField(asm, 
                                                 VM_Entrypoints.deterministicThreadSwitchCountField.getOffset());
-      VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                  // if not, skip
+      VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);                  // if not, skip
       
       // reset the count.
       VM_ProcessorLocalState.emitMoveImmToField(asm,VM_Entrypoints.deterministicThreadSwitchCountField.getOffset(),
