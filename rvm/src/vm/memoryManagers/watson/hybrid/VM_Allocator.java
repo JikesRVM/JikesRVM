@@ -491,50 +491,18 @@ public class VM_Allocator
    *
    * @param size         size of object (including header), in bytes
    * @param tib          type information block for object
-   * @param hasFinalizer hasFinalizer flag
-   *
    * @return the reference for the allocated object
    */
-  public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer)
+  public static Object allocateScalar (int size, Object[] tib)
     throws OutOfMemoryError {
     
-      VM_Magic.pragmaInline();	// make sure this method is inlined
+    VM_Magic.pragmaInline();	// make sure this method is inlined
     
-      if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-	  VM_EventLogger.logObjectAllocationEvent();
-      
-      VM_Address region = getHeapSpaceFast(size);
-      Object newRef = VM_ObjectModel.initializeScalar(region, tib, size);
-      if (hasFinalizer)  VM_Finalizer.addElement(newRef);
-      if (size > SMALL_SPACE_MAX) resetObjectBarrier(newRef);
-      return newRef;
+    VM_Address region = getHeapSpaceFast(size);
+    Object newRef = VM_ObjectModel.initializeScalar(region, tib, size);
+    if (size >= SMALL_SPACE_MAX) resetObjectBarrier(newRef);
+    return newRef;
   }
-  
-
-  /**
-   * Allocate a scalar object & optionally clone another object.
-   * Fills in the header for the object.  If a clone is specified,
-   * then the data fields of the clone are copied into the new
-   * object.  Otherwise, the data fields are set to 0.
-   *
-   * @param size     size of object (including header), in bytes
-   * @param tib      type information block for object
-   * @param cloneSrc object from which to copy field values
-   *                 (null --> set all fields to 0/null)
-   *
-   * @return the reference for the allocated object
-   */
-  public static Object cloneScalar (int size, Object[] tib, Object cloneSrc)
-      throws OutOfMemoryError {
-
-      VM_Type type = VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib)));
-      boolean hasFinalizer = type.hasFinalizer();
-      Object objRef = allocateScalar(size, tib, hasFinalizer);
-      if (cloneSrc != null) 
-	  VM_ObjectModel.initializeScalarClone(objRef, cloneSrc, size);
-    
-      return objRef; // return object reference
-  }  // cloneScalar
   
 
   /**
@@ -545,61 +513,22 @@ public class VM_Allocator
    * @param numElements  number of array elements
    * @param size         size of array object (including header), in bytes
    * @param tib          type information block for array object
-   *
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
-      throws OutOfMemoryError
-  {
-      VM_Magic.pragmaInline();  // make sure this method is inlined
+    throws OutOfMemoryError  {
+    VM_Magic.pragmaInline();  // make sure this method is inlined
 
-      if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-	  VM_EventLogger.logObjectAllocationEvent();
+    // note: array size might not be a word multiple,
+    //       must preserve alignment of future allocations
+    size = VM_Memory.align(size, WORDSIZE);
 
-      size = (size + 3) & ~3;
-      VM_Address region = getHeapSpaceFast(size);
-      Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
-      if (size > SMALL_SPACE_MAX) resetObjectBarrier(newObj);
-      return newObj;
+    VM_Address region = getHeapSpaceFast(size);
+    Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    if (size >= SMALL_SPACE_MAX) resetObjectBarrier(newObj);
+    return newObj;
   }
 
-  
-  /**
-   * Allocate an array object and optionally clone another array.
-   * Fills in the header for the object and sets the array length
-   * to the specified length.  If an object to clone is specified,
-   * then the data elements of the clone are copied into the new
-   * array.  Otherwise, the elements are set to zero.
-   *
-   * @param numElements  number of array elements
-   * @param size         size of array object (including header), in bytes
-   * @param tib          type information block for array object
-   * @param cloneSrc     object from which to copy field values
-   *                     (null --> set all fields to 0/null)
-   *
-   * @return the reference for the allocated array object 
-   */
-  public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-      throws OutOfMemoryError {
-
-    VM_Magic.pragmaNoInline();	// prevent inlining - this is the infrequent slow allocate
-    
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logObjectAllocationEvent();
-    
-    size = (size + 3) & ~3;            // round up request to word multiple
-    
-    Object objRef = allocateArray(numElements, size, tib);
-
-    // initialize array elements
-    //
-    if (cloneSrc != null) 
-      VM_ObjectModel.initializeArrayClone(objRef, cloneSrc, size);
-    
-    return objRef;  // return reference for allocated array
-  }  // cloneArray
-
-  
   // END OF NURSERY ALLOCATION ROUTINES HERE
 
   // **************************

@@ -203,6 +203,9 @@ public class VM_Runtime implements VM_Constants {
   //                     Object Allocation.                        //
   //---------------------------------------------------------------//
    
+  static int countDownToGC = 500;
+  static final int GCInterval  = 100; // how many GC's in a test interval
+
   /**
    * Allocate something like "new Foo()".
    * @param dictionaryId type of object (VM_TypeDictionary id)
@@ -218,11 +221,9 @@ public class VM_Runtime implements VM_Constants {
     if (!cls.isInitialized())
       initializeClassForDynamicLink(cls);
 
-    Object ret =  VM_Allocator.allocateScalar(cls.getInstanceSize(), 
-                                              cls.getTypeInformationBlock(), 
-					      cls.hasFinalizer());
-
-    return ret;
+    return quickNewScalar(cls.getInstanceSize(), 
+			  cls.getTypeInformationBlock(), 
+			  cls.hasFinalizer());
   }
    
   /**
@@ -233,11 +234,12 @@ public class VM_Runtime implements VM_Constants {
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  static int countDownToGC = 500;
-  static final int GCInterval  = 100; // how many GC's in a test interval
-  public static Object quickNewScalar(int size, Object[] tib, 
+  public static Object quickNewScalar(int size, 
+				      Object[] tib, 
                                       boolean hasFinalizer) 
     throws OutOfMemoryError {
+
+    // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
@@ -245,8 +247,18 @@ public class VM_Runtime implements VM_Constants {
 	VM_Collector.gc();
       }
     }
-    Object ret = VM_Allocator.allocateScalar(size, tib, hasFinalizer);
-    return ret;
+    
+    // Event logging and stat gathering
+    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
+      VM_EventLogger.logObjectAllocationEvent();
+
+    // Allocate the object and initialize its header
+    Object newObj = VM_Allocator.allocateScalar(size, tib);
+
+    // Deal with finalization
+    if (hasFinalizer) VM_Finalizer.addElement(newObj);
+
+    return newObj;
   }
    
   /**
@@ -258,10 +270,14 @@ public class VM_Runtime implements VM_Constants {
    * to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
-  public static Object quickNewArray(int numElements, int size, 
+  public static Object quickNewArray(int numElements, 
+				     int size, 
                                      Object[] tib)
     throws OutOfMemoryError, NegativeArraySizeException {
+
     if (numElements < 0) raiseNegativeArraySizeException();
+
+    // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
 	VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
@@ -269,34 +285,73 @@ public class VM_Runtime implements VM_Constants {
 	VM_Collector.gc();
       }
     }
-    Object ret = VM_Allocator.allocateArray(numElements, size, tib);
-    return ret;
+
+    // Event logging and stat gathering
+    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
+      VM_EventLogger.logObjectAllocationEvent();
+
+    // Allocate the array and initialize its header
+    return VM_Allocator.allocateArray(numElements, size, tib);
   }
+
 
   /**
    * clone a Scalar or Array Object
    * called from java/lang/Object.clone()
+   * 
+   * For simplicity, we just code this more or less in Java using
+   * internal reflective operations and some magic.  
+   * This is inefficient for large scalar objects, but until that 
+   * is proven to be a  performance problem, we won't worry about it.
+   * By keeping this in Java instead of dropping into VM_Memory.copy,
+   * we avoid having to add special case code to deal with write barriers,
+   * and other such things.
+   * 
+   * @param obj the object to clone
+   * @return the cloned object
    */ 
-  public static Object clone ( Object obj )
+  public static Object clone (Object obj)
     throws OutOfMemoryError, CloneNotSupportedException {
-      VM_Type type = VM_Magic.getObjectType(obj);
-      if (type.isArrayType()) {
-	VM_Array ary   = type.asArray();
-	int      nelts = VM_Magic.getArrayLength(obj);
-	int      size  = ary.getInstanceSize(nelts);
-	Object[] tib   = ary.getTypeInformationBlock();
-	return VM_Allocator.cloneArray(nelts, size, tib, obj);
+    VM_Type type = VM_Magic.getObjectType(obj);
+    if (type.isArrayType()) {
+      VM_Array ary   = type.asArray();
+      int      nelts = VM_ObjectModel.getArrayLength(obj);
+      int      size  = ary.getInstanceSize(nelts);
+      Object[] tib   = ary.getTypeInformationBlock();
+      Object newObj  = quickNewArray(nelts, size, tib);
+      System.arraycopy(obj, 0, newObj, 0, nelts);
+      return newObj;
+    } else {
+      if (!(obj instanceof Cloneable))
+	throw new CloneNotSupportedException();
+      VM_Class cls   = type.asClass();
+      int      size  = cls.getInstanceSize();
+      Object[] tib   = cls.getTypeInformationBlock();
+      Object newObj  = quickNewScalar(size, tib, cls.hasFinalizer());
+      VM_Field[] instanceFields = cls.getInstanceFields();
+      for (int i=0; i<instanceFields.length; i++) {
+	VM_Field f = instanceFields[i];
+	VM_Type ft = f.getType();
+	if (ft.isReferenceType()) {
+	  // Do via slower "pure" reflection to enable
+	  // collectors to do the right thing wrt reference counting
+	  // and write barriers.
+	  f.setObjectValue(newObj, f.getObjectValue(obj));
+	} else if (ft.isLongType() || ft.isDoubleType()) {
+	  int offset = f.getOffset();
+	  long bits = VM_Magic.getLongAtOffset(obj, offset);
+	  VM_Magic.setLongAtOffset(newObj, offset, bits);
+	} else {
+	  // NOTE: assumes that all other types get 32 bits.
+	  //       This is currently true, but may change in the future.
+	  int offset = f.getOffset();
+	  int bits = VM_Magic.getIntAtOffset(obj, offset);
+	  VM_Magic.setIntAtOffset(newObj, offset, bits);
+	}
       }
-      else {
-	if (!(obj instanceof Cloneable))
-	  throw new CloneNotSupportedException();
-	VM_Class cls   = type.asClass();
-	int      size  = cls.getInstanceSize();
-	Object[] tib   = cls.getTypeInformationBlock();
-	return VM_Allocator.cloneScalar(size, tib, obj);
-      }
+      return newObj;
+    }
   }
-
 
   /**
    * initiate a garbage collection
@@ -726,10 +781,8 @@ public class VM_Runtime implements VM_Constants {
     }
 
     int    nelts     = numElements[dimIndex];
-    int    size      = 
-      VM_ObjectModel.computeArrayHeaderSize(arrayType) + (nelts << arrayType.getLogElementSize());
-    Object newObject = VM_Allocator.allocateArray(nelts, size, 
-                                                  arrayType.getTypeInformationBlock());
+    int    size      = arrayType.getInstanceSize(nelts);
+    Object newObject = quickNewArray(nelts, size, arrayType.getTypeInformationBlock());
 
     if (++dimIndex == numElements.length)
       return newObject; // all dimensions have been built

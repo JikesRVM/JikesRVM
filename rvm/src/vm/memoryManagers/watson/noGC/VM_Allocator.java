@@ -14,7 +14,7 @@
  * <p>
  * @author Derek Lieber
  */
-public class VM_Allocator implements VM_Constants {
+public class VM_Allocator implements VM_Constants, VM_GCConstants {
   private static final VM_Heap bootHeap = new VM_Heap("Boot Image Heap");   
   private static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
 
@@ -43,10 +43,6 @@ public class VM_Allocator implements VM_Constants {
 
     VM_GCUtil.boot();
     VM_Finalizer.setup();
-    
-    // touch memory pages now (instead of during individual allocations, later)
-    //
-    VM_Memory.zero(immortalHeap.start, immortalHeap.end);
   }
   
   /**
@@ -94,32 +90,9 @@ public class VM_Allocator implements VM_Constants {
    *
    * @return the reference for the allocated object
    */
-  public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer) throws OutOfMemoryError {
-    VM_Address objAddress = immortalHeap.allocateRawMemory(size);
-    Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
-    if (hasFinalizer) VM_Finalizer.addElement(objRef);
-    return objRef;
-  }
-  
-  /**
-   * Allocate a scalar object & optionally clone another object.
-   * Fills in the header for the object.  If a clone is specified,
-   * then the data fields of the clone are copied into the new
-   * object.  Otherwise, the data fields are set to 0.
-   *
-   * @param size     size of object (including header), in bytes
-   * @param tib      type information block for object
-   * @param cloneSrc object from which to copy field values
-   *                 (null --> set all fields to 0/null)
-   *
-   * @return the reference for the allocated object
-   */
-  public static Object cloneScalar (int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
-    boolean hasFinalizer =
-      VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-    Object objRef = allocateScalar(size, tib, hasFinalizer);
-    VM_ObjectModel.initializeScalarClone(objRef, cloneSrc, size);
-    return objRef;
+  public static Object allocateScalar (int size, Object[] tib) throws OutOfMemoryError {
+    VM_Address region = immortalHeap.allocateRawMemory(size);
+    return VM_ObjectModel.initializeScalar(region, tib, size);
   }
   
   /**
@@ -134,32 +107,13 @@ public class VM_Allocator implements VM_Constants {
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray (int numElements, int size, Object[] tib) throws OutOfMemoryError {
-    size = (size + 3) & ~3; // preserve word alignment
-    VM_Address objAddress = immortalHeap.allocateRawMemory(size);
-    return VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
+    // note: array size might not be a word multiple,
+    //       must preserve alignment of future allocations
+    size = VM_Memory.align(size, WORDSIZE);
+    VM_Address region = immortalHeap.allocateRawMemory(size);
+    return VM_ObjectModel.initializeArray(region, tib, numElements, size);
   }
   
-  /**
-   * Allocate an array object and optionally clone another array.
-   * Fills in the header for the object and sets the array length
-   * to the specified length.  If an object to clone is specified,
-   * then the data elements of the clone are copied into the new
-   * array.  Otherwise, the elements are set to zero.
-   *
-   * @param numElements  number of array elements
-   * @param size         size of array object (including header), in bytes
-   * @param tib          type information block for array object
-   * @param cloneSrc     object from which to copy field values
-   *                     (null --> set all fields to 0/null)
-   *
-   * @return the reference for the allocated array object 
-   */
-  public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
-    Object objRef = allocateArray(numElements, size, tib);
-    VM_ObjectModel.initializeArrayClone(objRef, cloneSrc, size);
-    return objRef; 
-  }
-
   /**
    * Reclaim unreferenced memory (ignored)
    */

@@ -418,58 +418,19 @@ public class VM_Allocator
    *
    * @param size         size of object (including header), in bytes
    * @param tib          type information block for object
-   * @param hasFinalizer hasFinalizer flag
    *
    * @return the reference for the allocated object
    */
-  public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer)
+  public static Object allocateScalar (int size, Object[] tib)
     throws OutOfMemoryError {
-
-    VM_Magic.pragmaInline();	// make sure this method is inlined
+    VM_Magic.pragmaInline();
     
-    debugAlloc(size, tib, hasFinalizer); // debug; usually inlined away to nothing
+    debugAlloc(size, tib); // debug; usually inlined away to nothing
 
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logObjectAllocationEvent();
     VM_Address region = getHeapSpaceFast(size);
-    Object newObj = VM_ObjectModel.initializeScalar(region, tib, size);
-    if(hasFinalizer) VM_Finalizer.addElement(newObj);
-    return newObj;
-
+    return VM_ObjectModel.initializeScalar(region, tib, size);
   }   // end of allocateScalar() 
   
-  /**
-   * Allocate a scalar object & optionally clone another object.
-   * Fills in the header for the object.  If a clone is specified,
-   * then the data fields of the clone are copied into the new
-   * object.  Otherwise, the data fields are set to 0.
-   *
-   * @param size     size of object (including header), in bytes
-   * @param tib      type information block for object
-   * @param cloneSrc object from which to copy field values
-   *                 (null --> set all fields to 0/null)
-   *
-   * @return the reference for the allocated object
-   */
-  public static Object cloneScalar (int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError {
-    
-    VM_Magic.pragmaNoInline();	// prevent inlining - this is the infrequent slow allocate
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logObjectAllocationEvent();
-
-    boolean hasFinalizer = VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-    VM_Address firstByte = getHeapSpaceFast(size);
-    Object objRef = VM_ObjectModel.initializeScalar(firstByte, tib, size);
-
-    // initialize object fields with data from passed in object to clone
-     if (cloneSrc != null) 
-	 VM_ObjectModel.initializeScalarClone(objRef, cloneSrc, size);
-
-    if (hasFinalizer)  VM_Finalizer.addElement(objRef);
-
-    return objRef; // return object reference
-
-  }  // cloneScalar
 
   /**
    * Allocate an array object. Fills in the header for the object,
@@ -484,58 +445,18 @@ public class VM_Allocator
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
     throws OutOfMemoryError {
-  
-     VM_Magic.pragmaInline();	// make sure this method is inlined
+    VM_Magic.pragmaInline();
 
-     debugAlloc(size, tib, false); // debug: usually inlined away to nothing
+    debugAlloc(size, tib); // debug: usually inlined away to nothing
 
-     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-       VM_EventLogger.logObjectAllocationEvent();
-  
-     // assumption: collector has previously zero-filled the space
-     //
+    // note: array size might not be a word multiple,
+    //       must preserve alignment of future allocations
+    size = VM_Memory.align(size, WORDSIZE);
 
-     // note: array size might not be a word multiple,
-     // so we must round up size to preserve alignment for future allocations
-     size = (size + 3) & ~3;   
-
-     VM_Address region = getHeapSpaceFast(size);  
-     return VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    VM_Address region = getHeapSpaceFast(size);  
+    return VM_ObjectModel.initializeArray(region, tib, numElements, size);
   }  // allocateArray
 
-  /**
-   * Allocate an array object and optionally clone another array.
-   * Fills in the header for the object and sets the array length
-   * to the specified length.  If an object to clone is specified,
-   * then the data elements of the clone are copied into the new
-   * array.  Otherwise, the elements are set to zero.
-   *
-   * @param numElements  number of array elements
-   * @param size         size of array object (including header), in bytes
-   * @param tib          type information block for array object
-   * @param cloneSrc     object from which to copy field values
-   *                     (null --> set all fields to 0/null)
-   *
-   * @return the reference for the allocated array object 
-   */
-  public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError {
-
-    VM_Magic.pragmaNoInline();	// prevent inlining - this is the infrequent slow allocate
-    
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logObjectAllocationEvent();
-
-    size = (size + 3) & ~3;                         // round up request to word multiple
-  
-    VM_Address firstByte = getHeapSpaceFast(size);
-    Object objRef = VM_ObjectModel.initializeArray(firstByte, tib, numElements, size);
-
-     // initialize array elements
-     if (cloneSrc != null) 
-       VM_ObjectModel.initializeArrayClone(objRef, cloneSrc, size);
-
-     return objRef;  // return reference for allocated array
-  }  // cloneArray
 
   // *************************************
   // implementation
@@ -1765,9 +1686,8 @@ public class VM_Allocator
    * In production, all debug flags are false and this routine disappears.
    *   @param size Number of bytes to allocate
    *   @param tib Pointer to the Type Information Block for the object type 
-   *   @param hasFinalizer Does the object have a finalizer method?
    */
-  static void debugAlloc (int size, Object[] tib, boolean hasFinalizer) {
+  static void debugAlloc (int size, Object[] tib) {
       VM_Magic.pragmaInline();
 
       if (COUNT_ALLOCATIONS) {

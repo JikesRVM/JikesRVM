@@ -477,8 +477,8 @@ public class VM_Array extends VM_Type
 	  } else {
 	    VM_Array ary = VM_Magic.getObjectType(src).asArray();
 	    Object temp[] = 
-	      (Object[])(VM_Allocator.allocateArray(len, ary.getInstanceSize(len), 
-						    ary.getTypeInformationBlock()));
+	      (Object[])VM_Runtime.quickNewArray(len, ary.getInstanceSize(len), 
+						 ary.getTypeInformationBlock());
 	    int cnt = len;
 	    int tempPos = 0;
 	    while (cnt-- != 0)

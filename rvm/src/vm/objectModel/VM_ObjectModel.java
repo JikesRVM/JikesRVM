@@ -505,21 +505,6 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Initialize a cloned scalar object from the clone src
-   */
-  public static void initializeScalarClone(Object cloneDst, Object cloneSrc, int size) {
-    VM_JavaHeader.initializeScalarClone(cloneDst, cloneSrc, size);
-  }
-
-  /**
-   * Initialize a cloned array object from the clone src
-   */
-  public static void initializeArrayClone(Object cloneDst, Object cloneSrc, int size) {
-    VM_JavaHeader.initializeArrayClone(cloneDst, cloneSrc, size);
-  }
-
-
-  /**
    * For low level debugging of GC subsystem. 
    * Dump the header word(s) of the given object reference.
    * @param ptr the object reference whose header should be dumped 

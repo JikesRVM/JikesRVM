@@ -11,8 +11,6 @@
  *           boot()
  *           allocateScalar()
  *           allocateArray()
- *           cloneScalar()
- *           cloneArray()
  * Selection of copying vs. noncopying allocators is a choice
  * made at boot time by specifying appropriate directory in CLASSPATH.
  *
@@ -389,6 +387,7 @@ public class VM_Allocator
 	blocks[num_blocks - 1].nextblock = OUT_OF_BLOCKS;
 
 	VM_GCUtil.boot();
+	VM_Finalizer.setup();
 
         VM_Callbacks.addExitMonitor(new VM_Allocator());
 
@@ -610,7 +609,7 @@ public class VM_Allocator
     //           (ready for initializer to be run on it)
     //
     public static Object
-    allocateScalar (int size, Object[] tib, boolean hasFinalizer)
+    allocateScalar (int size, Object[] tib)
 	throws OutOfMemoryError
     {
 	//      VM_Magic.pragmaInline();  // make sure this method is inlined
@@ -1574,66 +1573,6 @@ public class VM_Allocator
 
 	return target;		// return allocated address or invalid value
     }
-
-    /////////////////////////////////////////////////////////////////////////////
-    // CLONING
-    /////////////////////////////////////////////////////////////////////////////
-
-    public static Object
-    cloneScalar (int size, Object[] tib, Object cloneSrc)
-	throws OutOfMemoryError
-    {
-	boolean hasFinalizer = VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-	Object object = allocateScalar(size, tib, hasFinalizer);
-	VM_ObjectModel.initializeScalarClone(object, cloneSrc, size);
-
-	enqueueIncsForScalarClone(object);	// account for low-level copy of object refs
-
-	return object;
-    }
-
-
-
-    // Enqueue inc's for refs in cloned (scalar) object
-    protected static void enqueueIncsForScalarClone(Object object) {
-	VM_Type type = VM_Magic.getObjectType(object);
-	int[] offsets = type.asClass().getReferenceOffsets(); // THIS CREATES YIELD POINTS -- BUG????
-	int len = offsets.length;
-	VM_Processor p = VM_Processor.getCurrentProcessor();
-
-	for (int i = 0; i < len; i++) {
-	    VM_Address field = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(object).add(offsets[i]));
-	    VM_RCBuffers.addIncrement(field, p);
-	}
-    }
-
-
-    public static Object
-    cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-	throws OutOfMemoryError
-    {
-	Object object = allocateArray(numElements, size, tib);
-	VM_ObjectModel.initializeArrayClone(object, cloneSrc, size);
-
-	enqueueIncsForArrayClone(object); // account for low-level copy of object refs
-	return object;
-    }
-
-
-    // Enqueue inc's for refs in cloned array
-    protected static void enqueueIncsForArrayClone(Object object) {
-	VM_Type type = VM_Magic.getObjectType(object);
-	if (type.asArray().getElementType().isReferenceType()) {
-	    int elements = VM_Magic.getArrayLength(object);
-	    VM_Processor p = VM_Processor.getCurrentProcessor();
-
-	    for (int i = 0; i < elements; i++) {
-		VM_Address field = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(object).add(i*WORDSIZE));
-		VM_RCBuffers.addIncrement(field, p);
-	    }
-	}
-    }
-
 
     /////////////////////////////////////////////////////////////////////////////
     // GARBAGE COLLECTION ROUTINES

@@ -72,7 +72,13 @@ final class VM_ImmortalHeap extends VM_Heap
    *   @param offset Offset within the object that must be aligned
    *   @return Address of allocated storage
    */
-  synchronized VM_Address allocateRawMemory (int size, int alignment, int offset) {
+  VM_Address allocateRawMemory (int size, int alignment, int offset) {
+    VM_Address region = allocateInternal(size, alignment, offset);
+    VM_Memory.zeroTemp(region, size);
+    return region;
+  }
+
+  private synchronized VM_Address allocateInternal (int size, int alignment, int offset) {
     VM_Magic.pragmaInline();
 
     // reserve space for offset bytes

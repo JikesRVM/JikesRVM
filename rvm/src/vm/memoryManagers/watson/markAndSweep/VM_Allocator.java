@@ -26,8 +26,6 @@
  *        boot()
  *        allocateScalar()
  *        allocateArray()
- *        cloneScalar()
- *        cloneArray()
  * </pre>
  * Selection of copying vs. noncopying allocators is a choice
  * made at boot time by specifying appropriate directory in CLASSPATH.
@@ -413,30 +411,37 @@ public class VM_Allocator
   }
 
   /**
-   * Allocate a "scalar" (non-array) Java object.  Ideally, both the size 
-   * and the hasFinalizer parameters are compile-time constants, allowing most 
-   * of the tests and code to be optimized away.  Note that the routines
-   * on the hot path through this method are all inlined.
+   * Allocate a "scalar" (non-array) Java object.
+   * 
    *   @param size Size of the object in bytes, including the header
    *   @param tib Pointer to the Type Information Block for the object type
-   *   @param hasFinalizer Does the object have a finalizer method?
    *   @return Initialized object reference
    */
-  public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer)
-      throws OutOfMemoryError
-  {
-      VM_Magic.pragmaInline();  // make sure this method is inlined
-
-      // Allocate the memory
-      VM_Address objaddr = allocateRawMemory(size, tib, hasFinalizer);
-      // Initialize the object header
-      Object ret = VM_ObjectModel.initializeScalar(objaddr, tib, size);
-      // If it has a finalizer, put it on the queue
-      if (hasFinalizer) 
-	  VM_Finalizer.addElement(VM_Magic.objectAsAddress(ret));
-
-      return ret;
+  public static Object allocateScalar (int size, Object[] tib)
+    throws OutOfMemoryError {
+    VM_Magic.pragmaInline(); 
+    VM_Address objaddr = allocateRawMemory(size, tib);
+    return VM_ObjectModel.initializeScalar(objaddr, tib, size);
   }
+
+
+  /**
+   * Allocate an array object.
+   * 
+   *   @param numElements Number of elements in the array
+   *   @param size Size of the object in bytes, including the header
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @return Initialized array reference
+   */
+  public static Object allocateArray (int numElements, int size, Object[] tib)
+    throws OutOfMemoryError {
+    VM_Magic.pragmaInline(); 
+
+    VM_Address objaddr = allocateRawMemory(size, tib);
+    return VM_ObjectModel.initializeArray(objaddr, tib, numElements, size);
+  }
+
+
 
 
   /**
@@ -444,13 +449,12 @@ public class VM_Allocator
    * passes through this routine.
    *   @param size Number of bytes to allocate
    *   @param tib Pointer to the Type Information Block for the object type (debug only)
-   *   @param hasFinalizer Does the object have a finalizer method? (debug only)
    *   @return Address of allocated storage
    */
-  public static VM_Address allocateRawMemory (int size, Object[] tib, boolean hasFinalizer) {
+  public static VM_Address allocateRawMemory (int size, Object[] tib) {
       VM_Magic.pragmaInline();
 
-      debugAlloc(size, tib, hasFinalizer); // debug: usually inlined away to nothing
+      debugAlloc(size, tib); // debug: usually inlined away to nothing
 
       VM_Address objaddr;
       if (size <= GC_MAX_SMALL_SIZE) {
@@ -462,10 +466,10 @@ public class VM_Allocator
 	  VM_Address loc = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY).add(size << 2);
   	  VM_Address rs = VM_Magic.getMemoryAddress(loc);
 	  VM_SizeControl the_size = VM_Magic.addressAsSizeControl(rs);
-	  if (!the_size.next_slot.isZero()) 
-	      objaddr = allocateSlotFast(the_size); // inlined: get available memory
-	  else
+	  if (the_size.next_slot.isZero()) 
 	      objaddr = allocateSlot(the_size, size); // slow path: find a new block to allocate from
+	  else
+	      objaddr = allocateSlotFast(the_size); // inlined: get available memory
       }
       else 
 	  objaddr = allocateLarge(size); // slow path: allocate a large object
@@ -479,9 +483,8 @@ public class VM_Allocator
    * In production, all debug flags are false and this routine disappears.
    *   @param size Number of bytes to allocate
    *   @param tib Pointer to the Type Information Block for the object type 
-   *   @param hasFinalizer Does the object have a finalizer method?
    */
-  static void debugAlloc (int size, Object[] tib, boolean hasFinalizer) {
+  static void debugAlloc (int size, Object[] tib) {
       VM_Magic.pragmaInline();
 
       if (Debug_torture && VM_Scheduler.allProcessorsInitialized) {
@@ -819,71 +822,7 @@ public class VM_Allocator
     }
   
     
-  /**
-   * Allocate an object of the given size and the clone the data from
-   * the given source object into the newly allocated object.
-   *   @param size Size of the object in bytes, including the header
-   *   @param tib Pointer to the Type Information Block for the object type
-   *   @param cloneSrc Object to clone into the newly allocated object
-   *   @return Initialized, cloned object 
-   */
-  public static Object cloneScalar (int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError {
-    if (DebugLink) VM_Scheduler.trace("cloneScalar", "called");
 
-    VM_Type type = VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib)));
-    boolean hasFinalizer = type.hasFinalizer();
-    Object objref = allocateScalar(size, tib, hasFinalizer);
-    VM_ObjectModel.initializeScalarClone(objref, cloneSrc, size);
-
-    return objref;
-  }
-
-
-  /**
-   * Allocate an array object.  Ideally, the size is a compile-time constant,
-   * allowing most of the tests and code to be optimized away.  Note that 
-   * the routines on the hot path through this method are all inlined.
-   *   @param numElements Number of elements in the array
-   *   @param size Size of the object in bytes, including the header
-   *   @param tib Pointer to the Type Information Block for the object type
-   *   @return Initialized array reference
-   */
-  public static Object allocateArray (int numElements, int size, Object[] tib)
-      throws OutOfMemoryError
-  {
-      VM_Magic.pragmaInline();  // make sure this method is inlined
-
-      VM_Address objaddr = allocateRawMemory(size, tib, false);
-      Object objptr = VM_ObjectModel.initializeArray(objaddr, tib, numElements, size);
-
-      if (DebugInterest && VM_Magic.objectAsAddress(objptr).EQ(the_array) )
-          VM.sysWrite (" Allocating the_array in new page \n");
-
-      return objptr;
-  }
-
-
-  /*
-   * Allocate an array of the given size and the clone the data from
-   * the given source array into the newly allocated array.
-   *   @param numElements Number of array elements
-   *   @param size Size of the object in bytes, including the header
-   *   @param tib Pointer to the Type Information Block for the object type
-   *   @param cloneSrc Array to clone into the newly allocated object
-   *   @return Initialized, cloned array
-   */
-  public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-      throws OutOfMemoryError {
-
-      if (DebugLink) VM_Scheduler.trace("cloneArray", "called");
-
-      Object objref = allocateArray(numElements, size, tib);
-      VM_ObjectModel.initializeArrayClone(objref, cloneSrc, size);
-      return objref;
-  }
-
-  
   // A routine to obtain a free VM_BlockControl and return it
   // to the caller.  First use is for the VM_Processor constructor: 
   static int getnewblockx (int ndx) {

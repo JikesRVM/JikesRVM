@@ -187,26 +187,6 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Initialize a cloned scalar object from the clone src
-   */
-  public static void initializeScalarClone(Object cloneDst, Object cloneSrc, int size) {
-    int cnt = size - SCALAR_HEADER_SIZE;
-    VM_Address dst = VM_Magic.objectAsAddress(cloneDst).sub(size + SCALAR_PADDING_BYTES);
-    VM_Address src = VM_Magic.objectAsAddress(cloneSrc).sub(size + SCALAR_PADDING_BYTES);
-    VM_Memory.aligned32Copy(dst, src, cnt); 
-  }
-
-  /**
-   * Initialize a cloned array object from the clone src
-   */
-  public static void initializeArrayClone(Object cloneDst, Object cloneSrc, int size) {
-    int cnt = size - ARRAY_HEADER_SIZE;
-    VM_Address dst = VM_Magic.objectAsAddress(cloneDst);
-    VM_Address src = VM_Magic.objectAsAddress(cloneSrc);
-    VM_Memory.aligned32Copy(dst, src, cnt);
-  }
-  
-  /**
    * For low level debugging of GC subsystem. 
    * Dump the header word(s) of the given object reference.
    * @param ref the object reference whose header should be dumped 
