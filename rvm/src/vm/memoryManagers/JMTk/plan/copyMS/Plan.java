@@ -61,24 +61,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // virtual memory resources
   private static MonotoneVMResource nurseryVM;
   private static FreeListVMResource msVM;
-  private static ImmortalVMResource immortalVM;
 
   // memory resources
   private static MemoryResource nurseryMR;
   private static MemoryResource msMR;
-  private static MemoryResource immortalMR;
 
   // Mark-sweep collector (mark-sweep space, large objects)
   private static MarkSweepCollector msCollector;
 
   // Allocators
-  private static final int NURSERY_ALLOCATOR = 0;
-  private static final int MS_ALLOCATOR = 1;
-  public static final int IMMORTAL_ALLOCATOR = 2;
-  public static final int DEFAULT_ALLOCATOR = NURSERY_ALLOCATOR;
-  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
-  private static final String[] allocatorNames = { "Nursery", "Mark-sweep",
-						   "Immortal" };
+  private static final byte NURSERY_SPACE = 0;
+  private static final byte MS_SPACE = 1;
+  public static final byte DEFAULT_SPACE = NURSERY_SPACE;
+  public static final byte TIB_SPACE = DEFAULT_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -101,7 +96,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // allocators
   private BumpPointer nursery;
   private MarkSweepAllocator ms;
-  private BumpPointer immortal;
 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -116,12 +110,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    nurseryMR = new MemoryResource(POLL_FREQUENCY);
-    msMR = new MemoryResource(POLL_FREQUENCY);
-    immortalMR = new MemoryResource(POLL_FREQUENCY);
-    nurseryVM  = new MonotoneVMResource("Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-    msVM       = new FreeListVMResource("MS",   MS_START,      MS_SIZE,      VMResource.MOVABLE);
-    immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
+    nurseryMR = new MemoryResource("nur", POLL_FREQUENCY);
+    msMR = new MemoryResource("ms", POLL_FREQUENCY);
+    nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
+    msVM       = new FreeListVMResource(MS_SPACE, "MS",   MS_START,      MS_SIZE,      VMResource.IN_VM);
     msCollector = new MarkSweepCollector(msVM, msMR);
   }
 
@@ -131,7 +123,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public Plan() {
     nursery = new BumpPointer(nurseryVM);
     ms = new MarkSweepAllocator(msCollector);
-    immortal = new BumpPointer(immortalVM);
   }
 
   /**
@@ -162,15 +153,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == NURSERY_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD)
-      allocator = MS_ALLOCATOR;
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
+      allocator = MS_SPACE;
     VM_Address region;
     switch (allocator) {
-      case  NURSERY_ALLOCATOR: region = nursery.alloc(isScalar, bytes); break;
-      case       MS_ALLOCATOR: region = ms.alloc(isScalar, bytes); break;
-      case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
-      default:                 region = VM_Address.zero();
-	                       VM.sysFail("No such allocator");
+      case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
+      case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	                   region = VM_Address.zero();
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
@@ -189,9 +180,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if ((allocator == NURSERY_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) ||
-	(allocator == MS_ALLOCATOR))
-      Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar);
+    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD)
+      allocator = MS_SPACE;
+    switch (allocator) {
+      case  NURSERY_SPACE: return;
+      case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+    }
   }
 
   /**
@@ -235,7 +230,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? MS_ALLOCATOR : NURSERY_ALLOCATOR;
+    return (bytes >= LOS_SIZE_THRESHOLD) ? MS_SPACE : NURSERY_SPACE;
   }
 
   /**
@@ -422,7 +417,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	return Copy.traceObject(obj);
       else if (addr.GE(MS_START))
 	return msCollector.traceObject(obj);
-      else if (addr.GE(IMMORTAL_START))
+      else if (addr.GE(BOOT_START))
 	return Immortal.traceObject(obj);
     } // else this is not a heap pointer
     return obj;
@@ -443,21 +438,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
-  /**
-   * Return true if the given reference will not move in this GC (it
-   * is either in a non-copying space, or it has already been copied).
-   *
-   * @param obj The object in question
-   * @return True if the given reference will not move in this GC.
-   */
-  public final boolean willNotMove(VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-	return nurseryVM.inRange(addr);
-    }
-    return true;
-  }
 
   /**
    * Return true if the given reference is to an object that is within
@@ -479,16 +459,21 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public static final boolean isLive(VM_Address obj) {
+    if (obj.isZero()) return false;
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-	return Copy.isLive(obj);
-      else if (addr.GE(MS_START))
-	return msCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return false;
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case NURSERY_SPACE:   return Copy.isLive(obj);
+      case MS_SPACE:        return msCollector.isLive(obj);
+      case IMMORTAL_SPACE:  return true;
+      case BOOT_SPACE:	    return true;
+      case META_SPACE:	    return true;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
+			      VM.sysFail("Plan.traceObject: unknown space");
+                            }
+			    return false;
+    }
   }
 
   /**
@@ -582,14 +567,5 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     ms.show();
   }
 
-  /**
-   * Print out total memory usage and a breakdown by allocator.
-   */
-  public final static void showUsage(int mode) {
-    writePages("used pages = ", getPagesUsed(), mode);
-    writePages("= (nursery) ", nurseryMR.reservedPages(), mode);  
-    writePages("= (ms) ", msMR.reservedPages(), mode);
-    writePages(" + (imm) ", immortalMR.reservedPages(), mode);
-    VM.sysWriteln();
-  }
+
 }

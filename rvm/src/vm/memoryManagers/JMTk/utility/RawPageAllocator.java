@@ -43,8 +43,8 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
   RawPageAllocator(MonotoneVMResource vmr, MemoryResource mr) {
     memoryResource = mr;
     vmResource = vmr;
-    totalBlocks = vmResource.getBlocks();
-    freeList = new GenericFreeList(Conversions.blocksToPages(totalBlocks));
+    totalPages = vmResource.getPages();
+    freeList = new GenericFreeList(totalPages);
   }
   
   /**
@@ -58,9 +58,8 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     memoryResource.acquire(pages);
     lock.acquire();
     if (base.isZero()) {
-      int neededBlocks = Conversions.pagesToBlocks(pages);
-      base = vmResource.acquire(neededBlocks, null);
-      top = base.add(Conversions.blocksToBytes(neededBlocks));
+      base = vmResource.acquire(pages, null);
+      top = base.add(Conversions.pagesToBytes(pages));
     }
     int pageIndex = freeList.alloc(pages);
     if (pageIndex == -1) {
@@ -70,9 +69,9 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
     VM_Address resultEnd = result.add(Conversions.pagesToBytes(pages));
     if (resultEnd.GT(top)) {
-      int blocksNeeded = Conversions.bytesToBlocks(resultEnd.diff(result).toInt()); // rounded up
-      VM_Address tmp = vmResource.acquire(blocksNeeded, null);
-      top = tmp.add(Conversions.blocksToBytes(blocksNeeded));
+      int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toInt()); // rounded up
+      VM_Address tmp = vmResource.acquire(pagesNeeded, null);
+      top = tmp.add(Conversions.pagesToBytes(pagesNeeded));
     }
     lock.release();
     return result;
@@ -89,7 +88,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     lock.acquire();
     int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toInt()));
     lock.release();
-    memoryResource.release(Conversions.pagesToBlocks(freed));
+    memoryResource.release(freed);
     return freed;
   }
 
@@ -100,7 +99,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
    * @param start The address of the start of the allocated region.
    * @return The number of pages in the allocated region.
    */
-  public int pages(VM_Address start) {
+  public int pages (VM_Address start) {
     return freeList.size(Conversions.bytesToPages(start.diff(base).toInt()));
   }
 
@@ -110,7 +109,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
   //
   private VM_Address base;       // beginning of available region
   private VM_Address top;        // end of available region
-  private int totalBlocks;       // number of blocks in entire VM region
+  private int totalPages;       // number of pages in entire VM region
   private MemoryResource memoryResource;
   private MonotoneVMResource vmResource;
   private GenericFreeList freeList;

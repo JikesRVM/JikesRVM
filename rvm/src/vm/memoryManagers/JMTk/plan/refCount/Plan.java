@@ -79,7 +79,7 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
     if (addr.LE(HEAP_END)) {
       if (addr.GE(RC_START))
  	return rcCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
+      else if (addr.GE(BOOT_START))
  	return true;
     } 
     return false;
@@ -133,7 +133,6 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
    */
   public Plan() {
     rc = new SimpleRCAllocator(rcCollector);
-    immortal = new BumpPointer(immortalVM);
     incBuffer = new AddressQueue("inc buf", incPool);
     decBuffer = new AddressQueue("dec buf", decPool);
     rootSet = new AddressQueue("root set", rootPool);
@@ -159,9 +158,10 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
     switch (allocator) {
-      case       RC_ALLOCATOR: region = rc.alloc(isScalar, bytes); break;
-      case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
-      default:                 region = VM_Address.zero(); VM.sysFail("No such allocator");
+      case       RC_SPACE: region = rc.alloc(isScalar, bytes); break;
+      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
+      default:             region = VM_Address.zero(); 
+	                   if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
@@ -170,8 +170,11 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   final public void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == RC_ALLOCATOR) {
-      decBuffer.push(VM_Magic.objectAsAddress(ref));
+    switch (allocator) {
+      case RC_SPACE: decBuffer.push(VM_Magic.objectAsAddress(ref)) return;
+      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	                   region = VM_Address.zero(); return;
     }
   }
 
@@ -215,7 +218,7 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
    */
   final public int getAllocator(Type type, EXTENT bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return RC_ALLOCATOR;
+    return RC_SPACE;
   }
 
   /**
@@ -383,14 +386,6 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   //
   private static int getPagesAvail() {
     return getTotalPages() - rcMR.reservedPages() - immortalMR.reservedPages() - metaDataMR.reservedPages();
-  }
-
-  private static final String allocatorToString(int type) {
-    switch (type) {
-      case RC_ALLOCATOR: return "Ref count";
-      case IMMORTAL_ALLOCATOR: return "Immortal";
-      default: return "Unknown";
-   }
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -610,7 +605,6 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   // Instance variables
   //
   private SimpleRCAllocator rc;
-  private BumpPointer immortal;
   private int id;  
   
   private int incCounter;
@@ -633,11 +627,9 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   // virtual memory regions
   private static SimpleRCCollector rcCollector;
   private static FreeListVMResource rcVM;
-  private static ImmortalVMResource immortalVM;
 
   // memory resources
   private static MemoryResource rcMR;
-  private static MemoryResource immortalMR;
 
   private static SharedQueue incPool;
   private static SharedQueue decPool;
@@ -661,11 +653,8 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
 
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
-  final public static int RC_ALLOCATOR = 0;
-  final public static int IMMORTAL_ALLOCATOR = 1;
-  final public static int DEFAULT_ALLOCATOR = RC_ALLOCATOR;
-  final public static int TIB_ALLOCATOR = IMMORTAL_ALLOCATOR;
-
+  final public static byte RC_SPACE = 0;
+  final public static byte DEFAULT_SPACE = RC_SPACE;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -674,11 +663,9 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
   static {
     // memory resources
     rcMR = new MemoryResource(POLL_FREQUENCY);
-    immortalMR = new MemoryResource(POLL_FREQUENCY);
 
     // virtual memory resources
     rcVM       = new FreeListVMResource("RC",       RC_START,   RC_SIZE, VMResource.MOVABLE);
-    immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
 
     // collectors
     rcCollector = new SimpleRCCollector(rcVM, rcMR);

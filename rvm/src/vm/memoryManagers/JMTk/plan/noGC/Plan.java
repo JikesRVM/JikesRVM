@@ -40,18 +40,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final boolean movesObjects = false;
 
   // virtual memory resources
-  private static MonotoneVMResource immortalVM;
   private static MonotoneVMResource defaultVM;
   
   // memory resources
-  private static MemoryResource immortalMR;
   private static MemoryResource defaultMR;
 
     // Allocators
-  public static final int DEFAULT_ALLOCATOR = 0;
-  public static final int IMMORTAL_ALLOCATOR = 1;
-  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
-  private static final String[] allocatorNames = { "Default", "Immortal" };
+  public static final byte DEFAULT_SPACE = 0;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -70,7 +65,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private BumpPointer def;
-  private BumpPointer immortal;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -83,10 +77,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    defaultMR = new MemoryResource(POLL_FREQUENCY);
-    immortalMR = new MemoryResource(POLL_FREQUENCY);
-    defaultVM = new MonotoneVMResource("Default", defaultMR, DEFAULT_START, DEFAULT_SIZE, VMResource.MOVABLE);
-    immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
+    defaultMR = new MemoryResource("def", POLL_FREQUENCY);
+    defaultVM = new MonotoneVMResource(DEFAULT_SPACE, "Default", defaultMR, DEFAULT_START, DEFAULT_SIZE, VMResource.MOVABLE);
   }
 
   /**
@@ -94,7 +86,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public Plan() {
     def = new BumpPointer(defaultVM);
-    immortal = new BumpPointer(immortalVM);
   }
 
   /**
@@ -127,10 +118,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
     switch (allocator) {
-    case  DEFAULT_ALLOCATOR: region = def.alloc(isScalar, bytes); break;
-    case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
-    default:                 region = VM_Address.zero(); 
-                             VM.sysFail("No such allocator");
+    case  DEFAULT_SPACE: region = def.alloc(isScalar, bytes); break;
+    case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
+    default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	                 region = VM_Address.zero(); break;
+                         
     }
     return region;
   }
@@ -147,7 +139,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
 			      boolean isScalar, int allocator)
-    throws VM_PragmaInline {} // do nothing
+    throws VM_PragmaInline {
+    switch (allocator) {
+      case DEFAULT_SPACE: return;
+      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+	                   region = VM_Address.zero(); return;
+    } 
+  }
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
@@ -192,7 +191,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, EXTENT bytes, CallSite callsite, 
 				AllocAdvice hint) {
-    return DEFAULT_ALLOCATOR;
+    return DEFAULT_SPACE;
   }
   
   /**
@@ -362,17 +361,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return VM_Address.max();
   }
 
-  /**
-   * Return true if the given reference will not move in this GC (it
-   * is either in a non-copying space, or it has already been copied).
-   *
-   * @param obj The object in question
-   * @return True if the given reference will not move in this GC.
-   */
-  public final boolean willNotMove(VM_Address obj) {
-    if (VM.VerifyAssertions) VM._assert(false);
-    return false;
-  }
 
   /**
    * Return true if <code>obj</code> is a live object.
@@ -462,13 +450,5 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     immortal.show();
   }
 
-  /**
-   * Print out total memory usage and a breakdown by allocator.
-   */
-  public static final void showUsage(int mode) {
-    writePages("used = ", getPagesUsed(), mode);
-    writePages(" = (default) ", defaultMR.reservedPages(), mode);  
-    writePages(" + (imm) ", immortalMR.reservedPages(), mode);
-    VM.sysWriteln();
-  }
+
 }

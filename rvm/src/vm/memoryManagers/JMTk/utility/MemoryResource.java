@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.VM_Magic;
 
 
 /**
@@ -35,8 +36,8 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  MemoryResource() {
-    this(0);
+  MemoryResource(String n) {
+    this(n, 0);
   }
 
   /**
@@ -45,10 +46,12 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    */
-  MemoryResource(int pageBudget) {
+  MemoryResource(String n, int pageBudget) {
+    name = n;
     gcLock = new Lock("MemoryResource.gcLock");
     mutatorLock = new Lock("MemoryResource.mutatorLock");
     this.pageBudget = pageBudget;
+    allMR[allMRCount++] = this;
   }
 
   /**
@@ -160,10 +163,54 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
       mutatorLock.release();
   }
 
+  /**
+   * Return the number of pages reserved for use given the pending
+   * allocation.  This is <i>exclusive of</i> space reserved for
+   * copying.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
+   */
+  protected static final int getPagesUsed() {
+    int pages = 0;
+    for (int i=0; i<allMRCount; i++) {
+      MemoryResource mr = allMR[i];
+      if (mr == null || mr == Plan.bootMR) continue;
+      pages += mr.reservedPages();
+    }
+    return pages;
+  }
+
+  /**
+   * Print out total memory usage and a breakdown by memory resources.
+   * Excludes boot resource.
+   */
+  public static final void showUsage(int mode) {
+    BasePlan.writePages("used = ", getPagesUsed(), mode);
+    boolean first = true;
+    for (int i=0; i<allMRCount; i++) {
+      MemoryResource mr = allMR[i];
+      if (mr == null || mr == Plan.bootMR) continue;
+      VM.sysWrite(first ? " = " : " + ");
+      first = false;
+      BasePlan.writePages(mr.name, mr.reservedPages(), mode);
+    }
+    VM.sysWriteln();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Class variables
+  //
+  static private final int MAX_MEMORY_RESOURCES = 20;
+  static private final MemoryResource [] allMR = new MemoryResource[MAX_MEMORY_RESOURCES];
+  static private       int allMRCount = 0;
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
   //
+  public final String name;
   private int reserved;
   private int committed;
   private int pageBudget;

@@ -147,6 +147,11 @@ public abstract class StopTheWorldGC extends BasePlan
   protected void collect() {
     VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
     processAllWork();
+    int order = VM_CollectorThread.gcBarrier.rendezvous();
+    if (order == 1)
+      Finalizer.moveToFinalizable();
+    VM_CollectorThread.gcBarrier.rendezvous();
+    processAllWork();
   }
 
   /**
@@ -191,9 +196,9 @@ public abstract class StopTheWorldGC extends BasePlan
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
       VM.sysWriteln(" Mb) ");
       VM.sysWrite("  Before Collection: ");
-      Plan.showUsage(PAGES);
+      MemoryResource.showUsage(PAGES);
       VM.sysWrite("                     ");
-      Plan.showUsage(MB);
+      MemoryResource.showUsage(MB);
     }
     globalPrepare();
     VM_Interface.resetComputeAllRoots();
@@ -251,9 +256,9 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (verbose > 2) {
       VM.sysWrite("   After Collection: ");
-      Plan.showUsage(PAGES);
+      MemoryResource.showUsage(PAGES);
       VM.sysWrite("                     ");
-      Plan.showUsage(MB);
+      MemoryResource.showUsage(MB);
       VM.sysWrite("   Collection ", gcCount);
       writePages(":       reserved = ", Plan.getPagesReserved(), PAGES_MB);
       writePages("      total = ", getTotalPages(), PAGES_MB);

@@ -72,6 +72,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
   private static boolean hi = false; // True if copying to "higher" semispace 
 
   // Memory layout constants
+  public static final byte LOW_MATURE_SPACE = 10;
+  public static final byte HIGH_MATURE_SPACE = 11;
   private static final VM_Address MATURE_LO_START = MATURE_START;
   private static final VM_Address MATURE_HI_START = MATURE_START.add(MATURE_SS_SIZE);
 
@@ -95,8 +97,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    mature0VM  = new MonotoneVMResource("Higher gen lo", matureMR, MATURE_LO_START, MATURE_SS_SIZE, VMResource.MOVABLE);
-    mature1VM  = new MonotoneVMResource("Higher gen hi", matureMR, MATURE_HI_START, MATURE_SS_SIZE, VMResource.MOVABLE);
+    mature0VM  = new MonotoneVMResource(LOW_MATURE_SPACE, "Higher gen lo", matureMR, MATURE_LO_START, MATURE_SS_SIZE, VMResource.MOVABLE);
+    mature1VM  = new MonotoneVMResource(HIGH_MATURE_SPACE, "Higher gen hi", matureMR, MATURE_HI_START, MATURE_SS_SIZE, VMResource.MOVABLE);
   }
 
   /**
@@ -210,26 +212,14 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final VM_Address traceMatureObject(VM_Address obj,
+  protected static final VM_Address traceMatureObject(byte space,
+						      VM_Address obj,
 						      VM_Address addr) {
     if ((hi && addr.LT(MATURE_HI_START)) ||
 	(!hi && addr.GE(MATURE_HI_START)))
       return Copy.traceObject(obj);
     else
       return obj;
-  }
-
-  /**
-   * Return true if the given reference to a mature object will not
-   * move in this GC (if in from space it will move, if in to space it
-   * has already moved).
-   *
-   * @param obj The object in question
-   * @return True if the given reference will not move in this GC.
-   */
-  protected final boolean willNotMoveMature(VM_Address addr) 
-    throws VM_PragmaInline {
-    return (hi ? mature1VM : mature0VM).inRange(addr);
   }
 
   /**
@@ -251,16 +241,30 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public static final boolean isLive(VM_Address obj) {
+    if (obj.isZero()) return false;
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(MATURE_START))
-	return Copy.isLive(obj);
-      else if (addr.GE(LOS_START))
-	return losCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return false;
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case NURSERY_SPACE:       return Copy.isLive(obj);
+      case LOW_MATURE_SPACE:    return (!fullHeapGC) || Copy.isLive(obj);
+      case HIGH_MATURE_SPACE:   return (!fullHeapGC) || Copy.isLive(obj);
+      case LOS_SPACE:       return losCollector.isLive(obj);
+      case IMMORTAL_SPACE:  return true;
+      case BOOT_SPACE:	    return true;
+      case META_SPACE:	    return true;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
+			      VM.sysFail("Plan.traceObject: unknown space");
+                            }
+			    return false;
+    }
+  }
+
+  public static boolean willNotMove (VM_Address obj) {
+   boolean movable = VMResource.refIsMovable(obj);
+   if (!movable) return true;
+   VM_Address addr = VM_Interface.refToAddress(obj);
+   return (hi ? mature1VM : mature0VM).inRange(addr);
   }
 
   /**

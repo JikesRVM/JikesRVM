@@ -54,21 +54,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // virtual memory resources
   private static FreeListVMResource msVM;
-  private static ImmortalVMResource immortalVM;
 
   // memory resources
   private static MemoryResource msMR;
-  private static MemoryResource immortalMR;
 
   // MS collector
   private static MarkSweepCollector msCollector;
 
   // Allocators
-  private static final int MS_ALLOCATOR = 0;
-  public static final int IMMORTAL_ALLOCATOR = 1;
-  public static final int DEFAULT_ALLOCATOR = MS_ALLOCATOR;
-  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
-  private static final String[] allocatorNames = { "Mark sweep", "Immortal" };
+  public static final byte MS_SPACE = 0;
+  public static final byte DEFAULT_SPACE = MS_SPACE;
+  public static final byte TIB_SPACE = DEFAULT_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -86,7 +82,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private MarkSweepAllocator ms;
-  private BumpPointer immortal;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -100,10 +95,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    msMR = new MemoryResource(POLL_FREQUENCY);
-    immortalMR = new MemoryResource(POLL_FREQUENCY);
-    msVM       = new FreeListVMResource("MS",       MS_START,   MS_SIZE, VMResource.MOVABLE);
-    immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
+    msMR = new MemoryResource("ms", POLL_FREQUENCY);
+    msVM = new FreeListVMResource(MS_SPACE, "MS",       MS_START,   MS_SIZE, VMResource.IN_VM);
     msCollector = new MarkSweepCollector(msVM, msMR);
   }
 
@@ -112,7 +105,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public Plan() {
     ms = new MarkSweepAllocator(msCollector);
-    immortal = new BumpPointer(immortalVM);
   }
 
   /**
@@ -145,10 +137,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
     switch (allocator) {
-      case       MS_ALLOCATOR: region = ms.alloc(isScalar, bytes); break;
-      case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
-      default:                 region = VM_Address.zero();
-	                       VM.sysFail("No such allocator");
+      case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
+      default:             region = VM_Address.zero();
+	                   if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(region, bytes));
     return region;
@@ -166,7 +158,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
-    throws VM_PragmaInline {} // do nothing
+    throws VM_PragmaInline {
+    switch (allocator) {
+      case       MS_SPACE: return;
+      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
+    }
+  }
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
@@ -210,7 +208,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return MS_ALLOCATOR;
+    return MS_SPACE;
   }
 
   /**
@@ -378,15 +376,21 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject(VM_Address obj) {
+  public static final VM_Address traceObject (VM_Address obj) {
+    if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(MS_START))
-	return msCollector.traceObject(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return Immortal.traceObject(obj);
-    } // else this is not a heap pointer
-    return obj;
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case MS_SPACE:        return msCollector.traceObject(obj);
+      case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
+      case BOOT_SPACE:	    return Immortal.traceObject(obj);
+      case META_SPACE:	    return obj;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
+			      VM.sysFail("Plan.traceObject: unknown space");
+                            }
+			    return obj;
+    }
   }
 
   /**
@@ -404,16 +408,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
-  /**
-   * Return true if the given reference will not move in this GC (in
-   * this collector <i>no</i> objects move, so we always return true.
-   *
-   * @param obj The object in question
-   * @return True.
-   */
-  public final boolean willNotMove(VM_Address obj) {
-    return true;  // this is a non-copying collector: nothing moves
-  }
 
   /**
    * Return true if <code>obj</code> is a live object.
@@ -422,14 +416,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public static final boolean isLive(VM_Address obj) {
-    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(MS_START))
-	return msCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return false;
+    if (obj.isZero()) return false;
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case MS_SPACE:        return msCollector.isLive(obj);
+      case IMMORTAL_SPACE:  return true;
+      case BOOT_SPACE:	    return true;
+      case META_SPACE:	    return true;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
+			      VM.sysFail("Plan.traceObject: unknown space");
+                            }
+			    return false;
+    }
   }
 
   /**
@@ -507,13 +507,5 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     ms.show();
   }
 
-  /**
-   * Print out total memory usage and a breakdown by allocator.
-   */
-  public static final void showUsage(int mode) {
-    writePages("used pages = ", getPagesUsed(), mode);
-    writePages("= (ms) ", msMR.reservedPages(), mode);
-    writePages(" + (imm) ", immortalMR.reservedPages(), mode);
-    VM.sysWriteln();
-  }
+
 }

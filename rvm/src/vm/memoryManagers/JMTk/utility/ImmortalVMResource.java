@@ -31,15 +31,15 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
   /**
    * Constructor
    */
-  ImmortalVMResource(String vmName, MemoryResource mr, VM_Address vmStart, EXTENT bytes, VM_Address cursorStart) {
-    super(vmName, mr, vmStart, bytes, (byte) (VMResource.IN_VM | VMResource.IMMORTAL));
-    cursor = cursorStart;
+  ImmortalVMResource(byte space_, String vmName, MemoryResource mr, VM_Address vmStart, EXTENT bytes) {
+    super(space_, vmName, mr, vmStart, bytes, (byte) (VMResource.IN_VM | VMResource.IMMORTAL));
     if (VM.VerifyAssertions) VM._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
     sentinel = start.add(bytes);
   }
 
-  public final VM_Address acquire(int blockRequest) {
-    VM_Address result = super.acquire(blockRequest);
+  public final VM_Address acquire(int pageRequest) {
+    VM_Address result = super.acquire(pageRequest);
+    acquireHelp(start, pageRequest);
     if (VM.VerifyAssertions) VM._assert(!result.isZero());
     return result;
   }

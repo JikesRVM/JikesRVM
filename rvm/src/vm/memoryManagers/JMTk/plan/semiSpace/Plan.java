@@ -19,6 +19,8 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.classloader.VM_Array;
 
 /**
  * This class implements a simple semi-space collector. See the Jones
@@ -60,12 +62,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static FreeListVMResource losVM;
   private static MonotoneVMResource ss0VM;
   private static MonotoneVMResource ss1VM;
-  private static ImmortalVMResource immortalVM;
 
   // memory resources
   private static MemoryResource ssMR;
   private static MemoryResource losMR;
-  private static MemoryResource immortalMR;
 
   // large object space (LOS) collector
   private static TreadmillSpace losCollector;
@@ -74,13 +74,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static boolean hi = false; // True if allocing to "higher" semispace
 
   // Allocators
-  private static final int SS_ALLOCATOR = 0;
-  private static final int LOS_ALLOCATOR = 1;
-  public static final int IMMORTAL_ALLOCATOR = 2;
-  public static final int DEFAULT_ALLOCATOR = SS_ALLOCATOR;
-  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
-  private static final String[] allocatorNames = { "Semispace",
-						   "LOS", "Immortal" };
+  private static final byte LOW_SS_SPACE = 0;
+  private static final byte HIGH_SS_SPACE = 1;
+  private static final byte LOS_SPACE = 2;
+  public static final byte DEFAULT_SPACE = 3; // logical space that maps to either LOW_SS_SPACE or HIGH_SS_SPACE
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -105,7 +102,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // allocators
   private BumpPointer ss;
   private TreadmillThread los;
-  private BumpPointer immortal;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -119,14 +115,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    ssMR = new MemoryResource(POLL_FREQUENCY);
-    losMR = new MemoryResource(POLL_FREQUENCY);
-    immortalMR = new MemoryResource(POLL_FREQUENCY);
-    ss0VM = new MonotoneVMResource("Lower SS", ssMR, LOW_SS_START, SS_SIZE, VMResource.MOVABLE);
-    ss1VM = new MonotoneVMResource("Upper SS", ssMR, HIGH_SS_START, SS_SIZE, VMResource.MOVABLE);
-    losVM = new FreeListVMResource("LOS", LOS_START, LOS_SIZE, VMResource.MOVABLE);
-    immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
+    ssMR = new MemoryResource("ss", POLL_FREQUENCY);
+    losMR = new MemoryResource("los", POLL_FREQUENCY);
+    ss0VM = new MonotoneVMResource(LOW_SS_SPACE, "Lower SS", ssMR, LOW_SS_START, SS_SIZE, VMResource.MOVABLE);
+    ss1VM = new MonotoneVMResource(HIGH_SS_SPACE, "Upper SS", ssMR, HIGH_SS_START, SS_SIZE, VMResource.MOVABLE);
+    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
     losCollector = new TreadmillSpace(losVM, losMR);
+
+    addSpace(LOW_SS_SPACE, "Lower Semi-Space");
+    addSpace(HIGH_SS_SPACE, "Upper Semi-Space");
+    addSpace(LOS_SPACE, "LOS Space");
+    // DEFAULT_SPACE is logical and does not actually exist
   }
 
   /**
@@ -135,7 +134,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public Plan() {
     ss = new BumpPointer(ss0VM);
     los = new TreadmillThread(losCollector);
-    immortal = new BumpPointer(immortalVM);
   }
 
   /**
@@ -162,21 +160,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator,
+  public final VM_Address alloc (EXTENT bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
-    if (allocator == SS_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) 
-      allocator = LOS_ALLOCATOR;
-    VM_Address region;
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) 
+      allocator = LOS_SPACE;
+    VM_Address result = VM_Address.zero(); 
     switch (allocator) {
-    case       SS_ALLOCATOR: region = ss.alloc(isScalar, bytes); break;
-    case IMMORTAL_ALLOCATOR: region = immortal.alloc(isScalar, bytes); break;
-    case      LOS_ALLOCATOR: region = los.alloc(isScalar, bytes); break;
-    default:                 region = VM_Address.zero(); 
-                             VM.sysFail("No such allocator");
+      case  DEFAULT_SPACE:  result = ss.alloc(isScalar, bytes); break;
+      case IMMORTAL_SPACE:  result = immortal.alloc(isScalar, bytes);  break;
+      case      LOS_SPACE:  result = los.alloc(isScalar, bytes); break;
+      default:              if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
-    return region;
+    return result;
   }
 
   /**
@@ -192,12 +189,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == SS_ALLOCATOR && bytes > LOS_SIZE_THRESHOLD) allocator = LOS_ALLOCATOR;
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) allocator = LOS_SPACE;
     switch (allocator) {
-    case       SS_ALLOCATOR: return;
-    case IMMORTAL_ALLOCATOR: return;
-    case      LOS_ALLOCATOR: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-    default:                 VM.sysFail("No such allocator");
+      case  DEFAULT_SPACE: return;
+      case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+      case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+      default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
   }
 
@@ -214,7 +211,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				    boolean isScalar) 
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes < LOS_SIZE_THRESHOLD);
-    return ss.alloc(isScalar, bytes);
+    VM_Address result = ss.alloc(isScalar, bytes);
+    return result;
   }
 
   /**  
@@ -243,7 +241,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, EXTENT bytes, CallSite callsite, 
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_ALLOCATOR : SS_ALLOCATOR;
+    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
   }
   
   /**
@@ -428,22 +426,29 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject(VM_Address obj) {
+  public static final VM_Address traceObject (VM_Address obj) throws VM_PragmaInline {
+    if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(SS_START)) {
-	if ((hi && addr.LT(HIGH_SS_START)) ||
-	    (!hi && addr.GE(HIGH_SS_START)))
-	  return Copy.traceObject(obj);
-	else
-	  return obj;
-      }
-      else if (addr.GE(LOS_START))
-	return losCollector.traceObject(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return Immortal.traceObject(obj);
-    } // else this is not a heap pointer
-    return obj;
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case LOW_SS_SPACE:    return   hi  ? Copy.traceObject(obj) : obj;
+      case HIGH_SS_SPACE:   return (!hi) ? Copy.traceObject(obj) : obj;
+      case LOS_SPACE:       return losCollector.traceObject(obj);
+      case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
+      case BOOT_SPACE:	    return Immortal.traceObject(obj);
+      case META_SPACE:	    return obj;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWrite("Plan.traceObject: obj ", obj);
+	                      VM.sysWrite(" or addr ", addr);
+	                      VM.sysWrite(" of page ", Conversions.addressToPagesDown(addr));
+	                      VM.sysWriteln(" is in unknown space", space);
+	                      VM.sysWrite("Type = ");
+			      VM.sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
+			      VM.sysWriteln();
+			      VM.sysFail("Plan.traceObject: unknown space");
+                            }
+			    return obj;
+    }
   }
 
   /**
@@ -461,25 +466,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
-  /**
-   * Return true if the given reference will not move in this GC (it
-   * is either in a non-copying space, or it has already been copied).
-   *
-   * @param obj The object in question
-   * @return True if the given reference will not move in this GC.
-   */
-  public final boolean willNotMove(VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(SS_START)) 
-	return (hi ? ss1VM : ss0VM).inRange(addr);
-      else if (addr.GE(LOS_START))
-	return true;
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return true;
-  }
 
   /**
    * Return true if the given reference is to an object that is within
@@ -490,8 +476,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * one of the semi-spaces.
    */
   public static final boolean isSemiSpaceObject(Object ref) {
-    VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
-    return (addr.GE(SS_START) && addr.LE(HEAP_END));
+    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(ref));
+    return (addr.GE(SS_START) && addr.LE(SS_END));
   }
 
   /**
@@ -501,17 +487,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public static final boolean isLive(VM_Address obj) {
-    VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(SS_START))
-	return Copy.isLive(obj);
-      else if (addr.GE(LOS_START))
-	return losCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return false;
+    if (obj.isZero()) return false;
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case LOW_SS_SPACE:    return Copy.isLive(obj);
+      case HIGH_SS_SPACE:   return Copy.isLive(obj);
+      case LOS_SPACE:       return losCollector.isLive(obj);
+      case IMMORTAL_SPACE:  return true;
+      case BOOT_SPACE:	    return true;
+      case META_SPACE:	    return true;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWriteln("Plan.isLive: unknown space", space);
+			      VM.sysFail("Plan.isLive: unknown space");
+                            }
+			    return false;
+    }
   }
+
 
   /**
    * Reset the GC bits in the header word of an object that has just
@@ -531,6 +524,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return forwardingPtr; // a no-op for this collector
   }
 
+  public static boolean willNotMove (VM_Address obj) {
+   boolean movable = VMResource.refIsMovable(obj);
+   if (!movable) return true;
+   VM_Address addr = VM_Interface.refToAddress(obj);
+   return (hi ? ss1VM : ss0VM).inRange(addr);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -599,14 +598,5 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     immortal.show();
   }
 
-  /**
-   * Print out total memory usage and a breakdown by allocator.
-   */
-  public static final void showUsage(int mode) {
-    writePages("used = ", getPagesUsed(), mode);
-    writePages(" = (ss) ", ssMR.reservedPages(), mode);
-    writePages(" + (los) ", losMR.reservedPages(), mode);
-    writePages(" + (imm) ", immortalMR.reservedPages(), mode);
-    VM.sysWriteln();
-  }
+
 }
