@@ -297,16 +297,22 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       continue;
     }
-    if (!strcmp(token, "-verbose:gc")) {
-      verboseGC = 1;
-      continue;
-    }
-    if (!strncmp(token, "-verbose:gc=",12)) {
-      subtoken = token + 12;
-      verboseGC = atoi(subtoken);
-      if (verboseGC < 0) {
-	fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
-	*fastExit = 1; break;
+    if (!strncmp(token, "-verbose:gc", 11)) {
+      int level;
+      if (token[11] == 0) 
+	level = 1;
+      else {
+	level = atoi(token+12); // skip the "=" in "-verbose:gc=<num?"
+	if (level < 0) {
+	  fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
+	  *fastExit = 1; break;
+	}
+      }
+      verboseGC = level; // only for watson
+      {
+	char *buf = (char *) malloc(20);
+	sprintf(buf, "-X:gc:verbose=%d", level);
+	JCLAs[n_JCLAs++]=buf;
       }
       continue;
     }
