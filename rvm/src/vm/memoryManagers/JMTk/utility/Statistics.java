@@ -100,9 +100,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
    * @param value the exit value
    */
   public void notifyExit(int value) {
-VM.sysWriteln("statistics: notifyexit enter");
     printSummaryStatistics();
-VM.sysWriteln("statistics: notifyexit done");
   }
 
   /**
@@ -204,7 +202,6 @@ VM.sysWriteln("statistics: notifyexit done");
 
   static void printSummaryStatistics () throws VM_PragmaUninterruptible {
 
-VM.sysWriteln("printsummarystatistics 1");
     if (VM_ObjectModel.HASH_STATS) {
       VM.sysWriteln("Hash operations:    ", VM_ObjectModel.hashRequests);
       VM.sysWriteln("Unhashed -> Hashed: ", VM_ObjectModel.hashTransition1);
@@ -212,7 +209,6 @@ VM.sysWriteln("printsummarystatistics 1");
     }
 
     int np = VM_Scheduler.numProcessors;
-VM.sysWriteln("printsummarystatistics 2");
     // showParameter();
     if (VM_Interface.verbose() >= 1) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
@@ -241,7 +237,6 @@ VM.sysWriteln("printsummarystatistics 2");
         }
       }
     }
-VM.sysWriteln("printsummarystatistics 3");
     if (COUNT_COLLISIONS && (gcCount>0) && (np>1)) {
       VM.sysWriteln("GC Summary:  avg number of collisions per collection = ",
                     collisionCount/gcCount);
@@ -279,7 +274,6 @@ VM.sysWriteln("printsummarystatistics 3");
       VM.sysWrite( avgFinishWait, " (us) Rendezvous Wait ");
       VM.sysWrite( avgRendezvousWait, " (us)\n\n");
     }
-VM.sysWriteln("printsummarystatistics 4");
     if (COUNT_ALLOCATIONS) {
       long bytes = 0, objects = 0, syncObjects = 0;
       VM_Processor st;
@@ -299,7 +293,6 @@ VM.sysWriteln("printsummarystatistics 4");
     }
 
     if (COUNT_BY_TYPE)	printCountsByType();
-VM.sysWriteln("printsummarystatistics 5");
   } // printSummaryStatistics
 
   private static void printBytes(int fieldWidth, int bytes) throws VM_PragmaUninterruptible {
