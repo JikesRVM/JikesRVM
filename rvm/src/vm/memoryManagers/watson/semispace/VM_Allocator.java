@@ -368,28 +368,19 @@ public class VM_Allocator  extends VM_GCStatistics
   }
 
   /**
-   * Handle chunk1 backing heap (aka fromSpace) exhaustion by triggering a GC.
+   * Handle heap exhaustion.
    * 
    * @param size number of bytes requested in the failing allocation
    */
-  static void chunk1BackingHeapExhausted(int size) {
-    gc1("GC triggered by object request of ", size);
-  }
-
-  /**
-   * Handle chunk2 backing heap exhaustion by
-   * exiting with an out of memory error.
-   * In this collector this indicates that
-   * we didn't have enough space in toSpace to copy
-   * all the objects from fromSpace during a GC.
-   * Can happen due to chunking or object inflation
-   * due to hash codes.  Should be very rare and
-   * indicates that the heap is close to full anyways.
-   * 
-   * @param size number of bytes requested in the failing allocation
-   */
-  static void chunk2BackingHeapExhausted(int size) {
-    outOfMemory(-1);
+  public static void heapExhausted(VM_Heap heap, int size, int count) {
+    if (count>3) outOfMemory(size);
+    if (heap == fromHeap) {
+      gc1("GC triggered by object request of ", size);
+    } else if (heap == toHeap) {
+      outOfMemory(-1);
+    } else {
+      VM.sysFail("unexpected heap");
+    }
   }
 
   // *************************************

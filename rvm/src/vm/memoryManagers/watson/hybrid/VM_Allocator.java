@@ -531,6 +531,17 @@ public class VM_Allocator
 
   // END OF NURSERY ALLOCATION ROUTINES HERE
 
+  /**
+   * Handle heap exhaustion.
+   * 
+   * @param size number of bytes requested in the failing allocation
+   */
+  public static void heapExhausted(VM_Heap heap, int size, int count) {
+    VM.sysFail("unexpected heap");
+  }
+
+
+
   // **************************
   // Implementation
   // **************************

@@ -1578,6 +1578,10 @@ public class VM_Allocator
     // GARBAGE COLLECTION ROUTINES
     /////////////////////////////////////////////////////////////////////////////
 
+  public static void heapExhausted(VM_Heap heap, int size, int count) {
+    gc1();
+  }
+
     // To be able to be called from java/lang/runtime, or internally
     public static void
     gc ()  {

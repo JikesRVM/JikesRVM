@@ -634,6 +634,7 @@ if (loopcheck++ >= 1000000) break;
   // copring objects during collection in the hybrid collector.
   VM_SizeControl[] sizes;
   VM_SizeControl[] GC_INDEX_ARRAY;
+  VM_SegregatedListHeap backingSLHeap;
 
   // Writebuffer for generational collectors
   // contains a "remembered set" of old objects with modified object references.

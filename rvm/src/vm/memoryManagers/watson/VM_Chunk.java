@@ -202,11 +202,8 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
     }
 
     // Try to get a chunk from the backing heap.
-    // We try several times before giving up to 
-    // deal with the fact that this thread may not be 
-    // the first thread scheduled after the allocator
-    // attempts to handle the situation and get us some memory.
-    for (int i=0; i<3; i++) {
+    int count = 0;
+    while (true) {
       VM_Processor st = VM_Processor.getCurrentProcessor();
       VM_Address oldCurrent = st.currentChunk1;
       VM_Address newCurrent = oldCurrent.add(size);
@@ -230,10 +227,8 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
       // Backing heap exhausted; let the allocator attempt
       // to do something (usual some kind of GC) to handle the situation.  
       // Then back to the top of the loop to try again.
-      VM_Allocator.chunk1BackingHeapExhausted(size);
+      VM_Allocator.heapExhausted(st.backingHeapChunk1, size, count++);
     }
-    VM_Allocator.outOfMemory(size);
-    return VM_Address.zero(); // placate Jikes (actually unreacable);
   }
 
   /**
@@ -246,11 +241,8 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    */
   private static VM_Address slowPath2(int size) throws OutOfMemoryError {
     // Try to get a chunk from the backing heap.
-    // We try several times before giving up to 
-    // deal with the fact that this thread may not be 
-    // the first thread scheduled after the allocator
-    // attempts to handle the situation and get us some memory.
-    for (int i=0; i<3; i++) {
+    int count = 0;
+    while (true) {
       VM_Processor st = VM_Processor.getCurrentProcessor();
       VM_Address oldCurrent = st.currentChunk2;
       VM_Address newCurrent = oldCurrent.add(size);
@@ -274,9 +266,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
       // Backing heap exhausted; let the allocator attempt
       // to do something (usual some kind of GC) to handle the situation.  
       // Then back to the top of the loop to try again.
-      VM_Allocator.chunk2BackingHeapExhausted(size);
+      VM_Allocator.heapExhausted(st.backingHeapChunk2, size, count++);
     }
-    VM_Allocator.outOfMemory(size);
-    return VM_Address.zero(); // placate Jikes (actually unreacable);
   }
 }

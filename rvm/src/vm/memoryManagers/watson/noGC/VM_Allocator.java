@@ -56,6 +56,15 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   }
 
   /**
+   * Handle heap exhaustion.
+   * 
+   * @param size number of bytes requested in the failing allocation
+   */
+  public static void heapExhausted(VM_Heap heap, int size, int count) {
+    VM.sysFail("999");
+  }
+
+  /**
    * return true if a garbage collection is in progress
    */
   public static boolean gcInProgress() {
