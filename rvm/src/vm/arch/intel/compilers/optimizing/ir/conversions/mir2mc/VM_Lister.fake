@@ -135,4 +135,7 @@ class VM_Lister {
 
   }
 
+  final static String hex (byte b) {
+      return null;
+  }
 }
