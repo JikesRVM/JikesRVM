@@ -179,11 +179,9 @@ function show_mesg() {
 
 
 function do_cleanup() {
-    show_mesg >&2 "Cleaning up..."; 
-    eval $CLEANUP
-    if [[ "$CLEANUP" = ":" ]] ; then
-	show_mesg >&2 "...no cleanup was needed."
-    else
+    if [[ $CLEANUP && $CLEANUP != ":" ]]; then
+	show_mesg >&2 "Cleaning up..."; 
+	eval $CLEANUP
 	show_mesg >&2 "...cleaned up."
     fi
 }
