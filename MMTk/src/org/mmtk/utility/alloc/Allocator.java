@@ -71,7 +71,8 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    VM_Interface.sysFail("Out of Memory after multiple retries");
+    VM_Interface.sysFail("Out of Memory after multiple retries (in Allocator.allocSlowBody()).   This is an error straight from the garbage collector.");
+    /* NOTREACHED */
     return VM_Address.zero();
   }
 
