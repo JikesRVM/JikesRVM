@@ -57,11 +57,15 @@ extern "C" int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler 
 #else
 #error "Warning: Undefined configuration: neither IA32 nor POWERPC: won't declare bootThread()"
 #endif
-#if ! defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-extern "C" void processTimerTick();
-#endif
+
 // These are defined in libvm.C.
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
 extern "C" void *getJTOC();
 extern "C" int getProcessorsOffset();
 #endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+
+// Defined in sys.C.; used in libvm.C
+extern "C" void sysSyncCache(caddr_t, int size);
+// Defined in libvm.C.  Used in sys.C.
+extern "C" void processTimerTick();
+
