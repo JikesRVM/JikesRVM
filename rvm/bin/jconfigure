@@ -694,7 +694,7 @@ function emitSourceList
       fi
       # architecture specific writebarrier support for baseline compilers
       #
-#      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
 
       print $GCTk_ROOT
       print $GCTk_ROOT/allocators
