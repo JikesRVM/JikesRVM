@@ -21,7 +21,7 @@
  * @author Derek Lieber
  * @author Janice Sheperd
  */
-class VM_MagicCompiler implements VM_BaselineConstants {
+class VM_MagicCompiler implements VM_BaselineConstants, VM_AssemblerConstants {
 
   // These constants do not really belong here, but since I am making this change
   // I might as well make it a little better.  All size in bytes.
@@ -151,7 +151,8 @@ class VM_MagicCompiler implements VM_BaselineConstants {
  
          asm.emitL   (T0, 0, SP);	// t0 := address of VM_Registers object
          asm.emitCAL (SP, 4, SP);	// pop address of VM_Registers object
-         asm.emitBL  (1);                 
+	 VM_ForwardReference fr1 = asm.emitForwardBL();
+	 fr1.resolve(asm);
          asm.emitMFLR(0);
 	 asm.emitST  (0, ipOffset, T0 ); // store ip into VM_Registers Object
          asm.emitL   (T0, gprsOffset, T0); // TO <- registers.gprs[]
@@ -278,12 +279,12 @@ class VM_MagicCompiler implements VM_BaselineConstants {
          
       if (methodName == VM_MagicNames.getTimeBase)
          {
-         loop:
+         int label = asm.getMachineCodeIndex();
          asm.emitMFTBU(T0);                      // T0 := time base, upper
          asm.emitMFTB (T1);                      // T1 := time base, lower
          asm.emitMFTBU(T2);                      // T2 := time base, upper
          asm.emitCMP  (T0, T2);                  // T0 == T2?
-         asm.emitBNE  (-4);                      // lower rolled over, try again
+         asm.emitBC   (NE, label);               // lower rolled over, try again
 
          asm.emitSTU  (T1, -4, SP);              // push low
          asm.emitSTU  (T0, -4, SP);              // push high
@@ -463,16 +464,18 @@ class VM_MagicCompiler implements VM_BaselineConstants {
          asm.emitL     (T0, 12, SP);  // pop object
          asm.emitL     (T1,  8, SP);  // pop offset
          asm.emitL     (T2,  0, SP);  // pop newValue (ignore oldValue)
-	 if (VM.BuildForSingleVirtualProcessor) 
-            {
+	 if (VM.BuildForSingleVirtualProcessor) {
 	    asm.emitSTX   (T2,  T1, T0); // store new value (on one VP this succeeds by definition)
-	    } else {
-	    asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
-            asm.emitCAL   (T0,  0, 0);  // T0 := false
-            asm.emitBNE   (2);          // skip, if store failed
-	    }
-         asm.emitCAL   (T0,  1, 0);   // T0 := true
-         asm.emitSTU   (T0,  12, SP);  // push success of conditional store
+	    asm.emitCAL   (T0,  1, 0);   // T0 := true
+	    asm.emitSTU   (T0,  12, SP);  // push success of conditional store
+	 } else {
+	   asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
+	   asm.emitCAL   (T0,  0, 0);  // T0 := false
+	   VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+	   asm.emitCAL   (T0,  1, 0);   // T0 := true
+	   fr.resolve(asm);
+	   asm.emitSTU   (T0,  12, SP);  // push success of conditional store
+	 }
          return;
          }
       
@@ -685,49 +688,37 @@ class VM_MagicCompiler implements VM_BaselineConstants {
       if (methodName == VM_MagicNames.addressLT) {
 	  // unsigned comparison generating a boolean
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LT as unsigned comparison");
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBLT(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, LT);
 	  return;
       }
       if (methodName == VM_MagicNames.addressLE) {
 	  // unsigned comparison generating a boolean
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LE as unsigned comparison");
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBLE(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, LE);
 	  return;
       }
       if (methodName == VM_MagicNames.addressEQ) {
 	  // unsigned comparison generating a boolean
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.EQ as unsigned comparison");
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBEQ(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, EQ);
 	  return;
       }
       if (methodName == VM_MagicNames.addressNE) {
 	  // unsigned comparison generating a boolean
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.NE as unsigned comparison");
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBNE(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, NE);
 	  return;
       }
       if (methodName == VM_MagicNames.addressGT) {
 	  // unsigned comparison generating a boolean
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GT as unsigned comparison");
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBGT(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, GT);
 	  return;
       }
       if (methodName == VM_MagicNames.addressGE) {
 	  // unsigned comparison generating a boolean
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GE as unsigned comparison");
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBGE(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, GE);
 	  return;
       }
       if (methodName == VM_MagicNames.addressIsZero) {
@@ -735,9 +726,7 @@ class VM_MagicCompiler implements VM_BaselineConstants {
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isZero as unsigned comparison");
 	  asm.emitLIL (T0,  0);
 	  asm.emitSTU (T0, -4, SP);
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBEQ(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, EQ);
 	  return;
       }
       if (methodName == VM_MagicNames.addressIsMax) {
@@ -745,9 +734,7 @@ class VM_MagicCompiler implements VM_BaselineConstants {
 	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isMax as unsigned comparison");
 	  asm.emitLIL (T0, -1);
 	  asm.emitSTU (T0, -4, SP);
-	  generateInlinedComparisonBefore(asm);
-	  asm.emitBEQ(2);
-	  generateInlinedComparisonAfter(asm);
+	  generateAddrComparison(asm, EQ);
 	  return;
       }
       if (methodName == VM_MagicNames.addressZero) {
@@ -768,16 +755,15 @@ class VM_MagicCompiler implements VM_BaselineConstants {
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
       }
 
-    private static void generateInlinedComparisonBefore(VM_Assembler asm) {
-	asm.emitL  (T1,  0, SP);
-	asm.emitL  (T0,  4, SP);
-	asm.emitLIL(T2,  1);
-	asm.emitCMPL(T0, T1);    // unsigned comparison
-    }
-
-    private static void generateInlinedComparisonAfter(VM_Assembler asm) {
-	asm.emitLIL(T2,  0);
-	asm.emitSTU(T2,  4, SP);
+    private static void generateAddrComparison(VM_Assembler asm, int cc) {
+      asm.emitL  (T1,  0, SP);
+      asm.emitL  (T0,  4, SP);
+      asm.emitLIL(T2,  1);
+      asm.emitCMPL(T0, T1);    // unsigned comparison
+      VM_ForwardReference fr = asm.emitForwardBC(cc);
+      asm.emitLIL(T2,  0);
+      fr.resolve(asm);
+      asm.emitSTU(T2,  4, SP);
     }
 
 
