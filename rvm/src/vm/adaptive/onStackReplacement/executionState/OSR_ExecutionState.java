@@ -117,21 +117,6 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     }
   }
 
-  private static int getRefAtId =
-    OSR_ClassLoaderInterface.findOrCreateMethodId(
-	  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;"),
-          VM_Atom.findOrCreateAsciiAtom("getRefAt"),
-          VM_Atom.findOrCreateAsciiAtom("(II)Ljava/lang/Object;"),
-	  VM_SystemClassLoader.getVMClassLoader());
-
-  private static int cleanRefsId =
-    OSR_ClassLoaderInterface.findOrCreateMethodId(
-          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;"),
-          VM_Atom.findOrCreateAsciiAtom("cleanRefs"),
-          VM_Atom.findOrCreateAsciiAtom("(I)V"),
-	  VM_SystemClassLoader.getVMClassLoader());
-
-
   //////////////////////////////////////
   // interface to recompilation
   /////////////////////////////////////
@@ -195,7 +180,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       tail.next = new BC_LoadIntConst(this.rid);
       tail = tail.next;
       
-      tail.next = new BC_InvokeStatic(cleanRefsId);
+      tail.next = new BC_InvokeStatic(CLEANREFS);
       tail = tail.next;
     } else {
       OSR_ObjectHolder.cleanRefs(this.rid);
@@ -336,17 +321,11 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
 	tail.next = new BC_LoadIntConst(i);
 	tail = tail.next;
 	
-	tail.next = new BC_InvokeStatic(getRefAtId);
+	// the opt compiler will adjust the type of
+	// return value to the real type of object
+	// when it sees the invoke target is GETREFAT
+	tail.next = new BC_InvokeStatic(GETREFAT);
 	tail = tail.next;
-
-	// to get type ID from classloader from class signatures
-	// reconsider the solution
-	VM_Type klass = VM_Magic.getObjectType(this.objs[i]);
-	int tid = klass.getDictionaryId();
-	
-	tail.next = new BC_CheckCast(tid);
-	tail = tail.next;	 
-	
       } else {
 	// just give an aconst_null
 	tail.next = new BC_AConstNull();
@@ -383,9 +362,9 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     int height = 0;
     while (bcode != null) {
       height += bcode.stackChanges();
-	  if (height > this.maxStackHeight) {
-		this.maxStackHeight = height;
-	  }
+      if (height > this.maxStackHeight) {
+	this.maxStackHeight = height;
+      }
       bcode = bcode.next;
     }
     
