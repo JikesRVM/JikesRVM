@@ -1,0 +1,12 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+set -x
+
+jconfigure $@ Empty
+cd $RVM_BUILD
+./jbuild
+
+
