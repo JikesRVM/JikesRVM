@@ -77,23 +77,14 @@ rvm_build="$1"; shift;  # Used to be $RVM_BUILD
 
 # Load up where the RVM bootimage, booter, and runtime support files reside:
 env="$rvm_build/environment.target"
-[[ -f $env ]] || croak_nonusage "Cannot find a file named \"$env\"; have you set RVM_BUILD to a Jikes RVM build directory that was initialized by \"jconfigure\"?"
-[[ -r $env ]] || croak_nonusage "Cannot read the file named \"$env\"; some sort of permissions problem."
+[[ -f $env ]] || croak_nonusage "There is no file named \"$env\"; have you set RVM_BUILD to a Jikes RVM build directory that was initialized by \"jconfigure\"?"
+[[ -r $env ]] || croak_nonusage "The file \"$env\" doesn't allow me to read it; some sort of permissions problem?"
 . $env
 unset env
 
-# Note: Writing it like this commented-out line below will break!  Must not
-# incorporate the assignment into the declare, at least under Bash 2.05b.
-#declare -a user_args=("$@")
-declare -a user_args
-user_args=("$@")
-
-# Add arguments to the invocation line for $rvm_build/JikesRVM.  We
-# put these before any user-specified arguments, so that any flags
+# The arguments we'll invoke $rvm_build/JikesRVM.  We
+# will put these before any user-specified arguments, so that any flags
 # that the user may have explicitly specified will override our defaults.
-
-## These are the first set of defines (we used to 
-## set these before checking user args, for some odd reason).
 
 declare -a sys_args
 sys_args=("-X:i=$rvm_build/RVM.image" \
@@ -120,6 +111,20 @@ if [[ ${CLASSPATH-UNSET} = UNSET ]]; then
 else
     classpath_arg=('-classpath' "${CLASSPATH}");
 fi
+
+## The arguments the user specified.  These must come last.   If the
+## user explicitly specified a -classpath argument, it will override
+## ${classpath_arg[@]}
+#
+# Note: Writing it like this commented-out line below will break!  Must not
+# incorporate the assignment into the declare, at least under Bash 2.05b.
+#
+#declare -a user_args=("$@")
+#
+declare -a user_args
+user_args=("$@")
+
+
 
 # Now execute the VM
 prog="$rvm_build/JikesRVM"
