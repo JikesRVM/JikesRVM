@@ -58,8 +58,10 @@ else
 fi
 
 echo >> $RUN_LOG
+chmod u=rw,g=r,o=r $RUN_LOG
+# Why are these executable permissions on these files?  Seems odd.--augart
 #This shouldn't be needed, but just in case
-chmod 755 $RUN_LOG
+# chmod 755 $RUN_LOG
 
 # cd to the SHADOW to get things started
 cd $RVM_ROOT
@@ -98,8 +100,9 @@ mkdir -p $MEASURE_COMPILATION_DIR
 $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
 
 # Fix the permission bits because umask doesn't seem to be working correctly
-echo "fixing permission bits" >> $RUN_LOG
-chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
+## HUH?
+# echo "fixing permission bits" >> $RUN_LOG
+# chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 
 # Archive result files and performance results
 
