@@ -236,9 +236,10 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    */
   public static final OPT_Operator getLoadOp(VM_Field field) {
     VM_Type type = field.getType();
-    // TODO: Actually pack subword fields and then use these operators
-    //       on PPC (a Big endian machine) too!
-    if (VM.BuildForIA32) {
+    // TODO: Until we pack subword fields, there is no reason to
+    //       use the sub-word load operators because it only forces us 
+    //       into doing useless sign extension.
+    if (false) {
       if (type.isByteType())      return BYTE_LOAD;
       if (type.isBooleanType())   return UBYTE_LOAD;
       if (type.isCharType())      return USHORT_LOAD;
@@ -259,9 +260,10 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    */
   public static final OPT_Operator getStoreOp(VM_Field field) {
     VM_Type type = field.getType();
-    // TODO: Actually pack subword fields and then use these operators
-    //       on PPC (a Big endian machine) too!
-    if (VM.BuildForIA32) {
+    // TODO: Until we pack subword fields, there is no reason to
+    //       use the sub-word load operators because it only forces us 
+    //       into doing useless sign extension.
+    if (false) {
       if (type.isByteType())      return BYTE_STORE;
       if (type.isBooleanType())   return BYTE_STORE;
       if (type.isCharType())      return SHORT_STORE;
