@@ -49,7 +49,7 @@ public class Options implements VM_Uninterruptible, Constants {
     else if (arg.startsWith("verbose=")) {
       String tmp = arg.substring(8);
       int level = Integer.parseInt(tmp);
-      if (level <= 0) VM.sysFail("Unreasonable verbosity level " + tmp);
+      if (level < 0) VM.sysFail("Unreasonable verbosity level " + tmp);
       Plan.verbose = level;
     }
     else if (arg.startsWith("nursery_size=")) {
