@@ -116,8 +116,10 @@ public class Lock implements VM_Uninterruptible {
               VM.sysWriteln(" at position ",where);
             }
             VM.sysWriteln("GC Warning: my start = ", localStart);
-            for (int i=(serving + 90) % 100; i<=(serving % 100); i++) {
+	    // Print the last 10 entries preceding serving
+            for (int i=(serving + 90) % 100; i != serving; i = (i+1)%100) {
 	      if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
+	      VM.sysWrite("GC Warning: ");
 	      VM.sysWrite(i, ": index ", servingHistory[i]);
 	      VM.sysWrite("   tid ", tidHistory[i]);
 	      VM.sysWrite("    start = ", startHistory[i]);
