@@ -3528,8 +3528,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.wordToInt ||
 	methodName == VM_MagicNames.wordToAddress ||
 	methodName == VM_MagicNames.wordToWord) {
-	// no-op
+	if (VM.BuildFor32Addr) return true; 	// no-op for 32-bit
+	if (VM.VerifyAssertions) VM._assert(false);
+    }
+
+    if (methodName == VM_MagicNames.wordToLong) {
+      if (VM.BuildFor32Addr) {
+	asm.emitPOP_Reg(T0);
+	asm.emitPUSH_Imm(0); // upper 32 bits
+	asm.emitPUSH_Reg(T0); // lower 32 bits
 	return true;
+      } // else no-op
+      if (VM.VerifyAssertions) VM._assert(false);
     }
 
     if (methodName == VM_MagicNames.wordAnd) {
