@@ -705,7 +705,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //
     VM_Scheduler.threadCreationMutex.lock();
     myThread.beingDispatched = true;
-    VM_Scheduler.deadQueue.enqueue(myThread);
     VM_Scheduler.threadCreationMutex.unlock();
 
     VM_Processor.getCurrentProcessor().dispatch();
@@ -1009,8 +1008,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Create a thread.
    * @param stack stack in which to execute the thread
-   * !!TODO: VM_Scheduler.deadQueue() has a bunch of dead threads that we should
-   *         recycle from, before new'ing.
    */ 
   public VM_Thread (int[] stack) {
     this.stack = stack;

@@ -64,7 +64,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   static int                  threadAllocationIndex; // place to start searching threads[] for next free slot
   static int                  numActiveThreads;    // number of threads running or waiting to run
   static int                  numDaemons;          // number of "daemon" threads, in the java sense
-  static VM_DeadThreadQueue   deadQueue;           // pseudo-queue for use in thread termination
   static VM_ProcessorLock     threadCreationMutex; // guard for serializing access to fields above
   static VM_ProcessorQueue    deadVPQueue;         // queue for VPs waiting for callToNative function
   static VM_ProcessorQueue    availableProcessorQueue;         // queue for VPs waiting for callToNative function
@@ -213,7 +212,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     nativeProcessorQueue  = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
     nativeProcessorMutex  = new VM_ProcessorLock();
 
-    deadQueue       = new VM_DeadThreadQueue(VM_EventLogger.DEAD_QUEUE);
     deadVPQueue     = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
     availableProcessorQueue     = new VM_ProcessorQueue(VM_EventLogger.DEAD_VP_QUEUE);
 
@@ -714,7 +712,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     writeString("\n-- System Queues -- \n");   wakeupQueue.dump();
     writeString(" wakeupQueue:");   wakeupQueue.dump();
     writeString(" debuggerQueue:"); debuggerQueue.dump();
-    writeString(" deadQueue:");     deadQueue.dump();
     writeString(" deadVPQueue:");     deadVPQueue.dump();
     writeString(" collectorQueue:");   collectorQueue.dump();
     writeString(" finalizerQueue:");   finalizerQueue.dump();

@@ -89,8 +89,9 @@ public class VM_CommandLineArgs {
   public static final int INITIAL_HEAP_ARG     = 32;
   public static final int MAX_HEAP_ARG         = 33;
   public static final int LARGE_HEAP_ARG       = 34;
-  public static final int HPM_ARG              = 35;
-  public static final int HPM_HELP_ARG         = 36;
+  public static final int VERBOSE_STACK_ARG    = 35;
+  public static final int HPM_ARG              = 36;
+  public static final int HPM_HELP_ARG         = 37;
 
   /**
    * A catch-all prefix to find application name.
@@ -157,6 +158,7 @@ public class VM_CommandLineArgs {
     new Prefix("-X:measureClassLoading=",MEASURE_CLOD_ARG),
     new Prefix("-X:prof:",              PROF_ARG),
     new Prefix("-X:verify=",            VERIFY_ARG),
+    new Prefix("-X:verboseStackTrace=", VERBOSE_STACK_ARG),
     new Prefix("-X:scheduler:",         SCHEDULER_ARG),
     new Prefix("-X:hpm:",               HPM_ARG),
     new Prefix("-X:hpm:help",           HPM_HELP_ARG),
@@ -715,6 +717,16 @@ public class VM_CommandLineArgs {
 	  VM.sysExit(1);
 	}
 	break;
+
+      case VERBOSE_STACK_ARG:
+	  int period = Integer.parseInt(arg);
+	  if (period < 1) {
+	      VM.sysWriteln("vm: -X:verboseStackTrace must be greater than 0");
+	      VM.sysExit(-1);
+	  } else {
+	      VM_StackTrace.verboseTracePeriod = period;
+	  }
+
       case SCHEDULER_ARG: // "-X:scheduler:<option>"
 	VM_Scheduler.processArg(arg);
 	break;
