@@ -52,9 +52,11 @@ INPUT_FILES = 	userguide.tex \
 		faq.tex \
 		installation.tex \
 		intro.tex \
+		JMTk.tex \
 		jni.tex \
 		libraries.tex \
 		mmdetails.tex \
+		mmwatson.tex \
 		optdetails.tex \
 		performance.tex \
 		profiling.tex \
