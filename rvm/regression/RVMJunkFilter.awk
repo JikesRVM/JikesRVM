@@ -28,6 +28,7 @@ BEGIN {
 #
 /^method causing resize/ { next }
 /^Growing native stack before entry/ { next }
+/Number of threads found stuck in native code/ { next }
 
 #
 # GC system messages
