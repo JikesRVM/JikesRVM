@@ -248,30 +248,23 @@ public class VM_AOSLogging {
     }
   }
 
-
   /**
-   * Call this method when the controller thread is exiting.  This can 
-   * cause us lots and lots of trouble if we are exiting as part of handling
-   * an OutOfMemoryError.  We resolve *that* problem by means of a test in
-   * VM_Runtime.deliverException(). 
+   * Dumps lots of controller stats to the log file
    */
-  public static void controllerCompleted() {
-    if (!booted) return; // fast exit
-  
-    int awoken = VM_ControllerMemory.getNumAwoken(); 
-    int didNothing = VM_ControllerMemory.getNumDidNothing();
-    int numMethodsConsidered = VM_ControllerMemory.getNumMethodsConsidered();
-    int numMethodsScheduledForRecomp = 
-                    VM_ControllerMemory.getNumMethodsScheduledForRecomp(); 
-    int numOpt0 = VM_ControllerMemory.getNumOpt0();
-    int numOpt1 = VM_ControllerMemory.getNumOpt1();
-    int numOpt2 = VM_ControllerMemory.getNumOpt2();
-    int numOpt3 = VM_ControllerMemory.getNumOpt3();
-
+  public static void printControllerStats() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      int awoken = VM_ControllerMemory.getNumAwoken(); 
+      int didNothing = VM_ControllerMemory.getNumDidNothing();
+      int numMethodsConsidered = VM_ControllerMemory.getNumMethodsConsidered();
+      int numMethodsScheduledForRecomp = 
+        VM_ControllerMemory.getNumMethodsScheduledForRecomp(); 
+      int numOpt0 = VM_ControllerMemory.getNumOpt0();
+      int numOpt1 = VM_ControllerMemory.getNumOpt1();
+      int numOpt2 = VM_ControllerMemory.getNumOpt2();
+      int numOpt3 = VM_ControllerMemory.getNumOpt3();
+
       synchronized (log) {
         log.print(getTime() 
-                  +" Controller thread exiting ... "
                   +"\n  Num times Controller thread is awoken: "+
                   awoken
                   +"\n  Num times did nothing: "+ didNothing +" ("+
@@ -303,6 +296,24 @@ public class VM_AOSLogging {
         // Let the controller memory summarize itself to the log file
         VM_ControllerMemory.printFinalMethodStats(log);
       }
+    }
+  }
+
+  /**
+   * Call this method when the controller thread is exiting.  This can 
+   * cause us lots and lots of trouble if we are exiting as part of handling
+   * an OutOfMemoryError.  We resolve *that* problem by means of a test in
+   * VM_Runtime.deliverException(). 
+   */
+  public static void controllerCompleted() {
+    if (!booted) return; // fast exit
+
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.print(getTime() 
+                  +" Controller thread exiting ... ");
+      }
+      printControllerStats();
     }
   }
 
@@ -439,7 +450,7 @@ public class VM_AOSLogging {
    */
   public static void recordRecompAndThreadStats() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
-      VM_ControllerMemory.printFinalMethodStats(VM_AOSLogging.getLog());
+      printControllerStats();
 
       for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
         VM_Thread t = VM_Scheduler.threads[i];
