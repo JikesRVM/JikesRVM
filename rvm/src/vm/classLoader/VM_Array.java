@@ -190,11 +190,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       innermostElementType = elementType;
     }
     if (elementType.isDoubleType() || elementType.isLongType()) {
-      // this.alignment = BYTES_IN_DOUBLE;
-      // TODO: See feature 3010.  Enabling this causes crashes in some large benchmarks on PPC.
-      //       Need to take another look at the alignment code and determine what is causing
-      //       the problem.
-      this.alignment = BYTES_IN_ADDRESS;
+      this.alignment = BYTES_IN_DOUBLE;
     } else {
       this.alignment = BYTES_IN_ADDRESS;
     }
