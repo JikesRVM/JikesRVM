@@ -115,7 +115,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
     // rewrite so y = B + (c+d)  
     OPT_IntConstantOperand val2 = new OPT_IntConstantOperand(c+d);
-    return Binary.create(INT_ADD,y,B.copy(),val2);
+    return Binary.create(INT_ADD,y.copyRO(),B.copy(),val2);
   }
 
   /**
@@ -138,7 +138,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
     // rewrite so y = B + (c+d)  
     OPT_LongConstantOperand val2 = new OPT_LongConstantOperand(c+d);
-    return Binary.create(LONG_ADD,y,B.copy(),val2);
+    return Binary.create(LONG_ADD,y.copyRO(),B.copy(),val2);
   }
 
   /**
