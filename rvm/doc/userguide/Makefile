@@ -78,12 +78,11 @@ userguide.dvi:	$(TEX_FILES) main.bib
 		$(LATEX) userguide
 
 html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
+	rm -rf HTML
 	$(HYPERLATEX) userguide
-	chmod u+w ${HTML_DIR}
-	cp ${HTML_GRAPHICS} ${HTML_DIR}
-	cd ${HTML_DIR} \
-	&& chmod u+w ${NAV_GIFS} && chmod u+w ${HTML_GRAPHICS} \
-	&& ln -sf userguide.html index.html
+	cp ${NAV_GIFS} ${HTML_GRAPHICS} ${HTML_DIR}
+	cd ${HTML_DIR} && ln -sf userguide.html index.html
+	chmod -Rf u+rwX ${HTML_DIR}
 
 
 %.gif:	%.ps
@@ -100,7 +99,8 @@ dist-clean:	clean
 distrib:;	mkdir -p $(distdir)/ps
 		-cp userguide.ps $(distdir)/ps
 		-cp -r ${HTML_DIR} $(distdir)
-		-chmod -Rf g+w $(distdir)/${HTML_DIR}
+		-chmod -Rf g+rwX ${distdir}
+		-chmod -Rf o+rX ${distdir}
 
 
 
