@@ -411,10 +411,10 @@ public class BootImageWriter extends BootImageWriterMessages
     // Check command line directives for correctness.
     //
     if (bootImageName == null)
-      fail("please specify \"-o <filename>\"");
+      fail("please specify \"-o <boot-image-filename>\"");
 
     if (bootImageTypeNamesFile == null)
-      fail("please specify \"-n <filename>\"");
+      fail("please specify \"-n <boot-image-type-names-filename>\"");
 
     if (bootImageRepositoriesAtBuildTime == null)
       fail("please specify \"-classpath <path>\"");
