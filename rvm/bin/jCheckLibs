@@ -151,9 +151,9 @@ if [[ x$local_jar != x ]] ; then
   if [[ $installed_jar = $local_jar ]] ; then
   cat <<EOF
 Note: You are using a local version of \$RVM_ROOT/support/lib/${jar_file}.
-      Your local revision is $local_jar. If you want to switch to revision
-      $stamp_jar, which matches your Jikes RVM version, you have to
-      remove ${lib_dir}/${jar_file}."
+      Your local revision is $local_jar. If you want to switch to
+      revision $stamp_jar, which matches your Jikes RVM version, you
+      have to remove ${lib_dir}/${jar_file}.
 EOF
     exit 0
   fi
