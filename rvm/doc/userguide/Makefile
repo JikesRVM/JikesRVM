@@ -66,7 +66,7 @@ TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguid
 HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
 # do not add more white spaces to the following line
-NAV_GIFS=blank.gif next.gif previous.gif up.gif
+NAV_GIFS=blank.gif next.gif previous.gif up.gif right.gif left.gif
 
 HTML_DIR = HTML
 
