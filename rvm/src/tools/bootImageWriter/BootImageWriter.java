@@ -1,3 +1,4 @@
+
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
@@ -277,7 +278,9 @@ public class BootImageWriter extends BootImageWriterMessages
    * Main.
    * @param args command line arguments
    */
-  public static void main(String args[]) {
+  public static void main(String args[]) 
+    throws Exception
+  {
     String   bootImageName         = null;
     String   bootImageMapName      = null;
     Vector   bootImageTypeNames    = null;
@@ -439,12 +442,12 @@ public class BootImageWriter extends BootImageWriterMessages
     //   - they are used later, by target rvm, to execute the bootimage
     //
     if (verbose >= 1) say("starting up");
-    try {
+    //    try {
       VM.initForBootImageWriter(bootImageRepositoriesAtBuildTime,
                                 bootImageCompilerArgs);
-    } catch (Exception e) {
-      fail("unable to initialize VM: "+e);
-    }
+      //    } catch (Exception e) {
+      //      fail("unable to initialize VM: "+e);
+      //    }
 
     //
     // Create (in host jdk address space) the rvm objects that will be
