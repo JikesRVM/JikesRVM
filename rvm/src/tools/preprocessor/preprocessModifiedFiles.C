@@ -1173,9 +1173,9 @@ cleanup_and_die(int signum)
 #ifdef __GLIBC__	    
 	    " (%s)"
 #endif
-	    "; cleaning up.\n", Me, signum,
+	    "; cleaning up.\n", Me, signum
 #ifdef __GLIBC__	    
-	    strsignal(signum)
+	    , strsignal(signum)
 #endif
 	);
     delete_on_trouble();
