@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -70,9 +70,9 @@ public final class OPT_InlineDecision {
   /** 
    * Return a decision YES to do a guarded inline.
    * 
-   * @param target the method to inline
-   * @param guard  the type of guard to use
-   * @param reason a rationale for inlining
+   * @param targets   The methods to inline
+   * @param guards  the types of guard to use
+   * @param reason   A rationale for inlining
    * @return a decision YES to inline, but it is not always safe. 
    */
   public static OPT_InlineDecision guardedYES(VM_Method[] targets, 
@@ -166,7 +166,7 @@ public final class OPT_InlineDecision {
 
 
   /** 
-   * @param target the methods to inline
+   * @param targets   The methods to inline
    * @param code the decision code
    * @param reason a string rationale
    */
