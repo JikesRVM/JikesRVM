@@ -98,40 +98,43 @@ public interface VM_RegisterConstants {
   //   Volatile FPR 1-6  save area  - 12 words
   //   Non-Volatile GPR 13-16 save area  4 words   for AIX non-vol GPR not restored by RVM
   //   Non-Volatile FPR 14-15 save area  4 words   for AIX non-vol FPR not restored by RVM
-  //   padding                           0 or 1 word  -- Feng
+  //   padding                           0 word    -- Feng
   //   offset to previous to java frame  1 word    the preceeding java to native transition frame  
+
+  // AIX   8*4 + 6*8 = 80 bytes  
+  // LINUX 8*4 + 8*8 = 96 bytes
   static final int JNI_GLUE_SAVED_VOL_SIZE  = 
 	(LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1)* 4
    +(LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * 8;
 
-  // both AIX and LINUX have to save R13 - R16, 
+  // both AIX and LINUX have to save R13 - R16,
+  // AIX   4 (*4 bytes)
+  // LINUX 4 (*4 bytes)
   static final int JNI_GLUE_RVM_EXTRA_GPRS = 
 	FIRST_NONVOLATILE_GPR - FIRST_OS_NONVOLATILE_GPR;
   
-  // AIX has to save F13 - F15, LINUX has to save F9 - F15
+  // AIX has to save   F14 - F15  2 (*8 bytes)      
+  // LINUX has to save F14 - F15  2 (*8 bytes)
   static final int JNI_GLUE_RVM_EXTRA_FPRS =
 	FIRST_NONVOLATILE_FPR - FIRST_OS_NONVOLATILE_FPR;
 
-  // 1 for AIX
-  // 0 for LINUX
-  static final int JNI_GLUE_FRAME_PADDING = 
-	VM_Memory.alignUp(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE,
-	  VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT);
+  // no padding is necessary for both AIX and LINUX
+  // to be aligned to 8            -- Feng April 29, 2003
+  static final int JNI_GLUE_FRAME_PADDING = 0;
 
-  // offset to previous to java frame
+  // offset to previous to java frame  1 (*4 bytes)
   static final int JNI_GLUE_FRAME_OTHERS  = 1;
   
-  static final int JNI_GLUE_FRAME_SIZE = 
-    VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE 
-	+ JNI_GLUE_SAVED_VOL_SIZE 
-	+ JNI_GLUE_RVM_EXTRA_GPRS*4
-	+ JNI_GLUE_RVM_EXTRA_FPRS*8 
-	+ JNI_GLUE_FRAME_PADDING*4
-	+ JNI_GLUE_FRAME_OTHERS*4;
-
+  static final int JNI_GLUE_FRAME_SIZE =                   // AIX    LINUX
+    VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE    // 12     12
+	+ JNI_GLUE_SAVED_VOL_SIZE                              // 80     96
+	+ JNI_GLUE_RVM_EXTRA_GPRS*4                            // 16     16
+	+ JNI_GLUE_RVM_EXTRA_FPRS*8                            // 16     16
+	+ JNI_GLUE_FRAME_PADDING*4                             //  0      0
+	+ JNI_GLUE_FRAME_OTHERS*4;                             //  4      4
+                                                    // total 128    144
+  
   // offset to caller, where to store offset to previous java frame 
-  // -4 for AIX
-  // -8 for Linux
   static final int JNI_GLUE_OFFSET_TO_PREV_JFRAME = - JNI_GLUE_FRAME_OTHERS*4;
 	
   // offset into the vararg save area within the native to Java glue frame
