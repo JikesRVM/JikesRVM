@@ -142,7 +142,6 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
-    reg[VM_BaselineConstants.FP].setSpansBasicBlock();
 
     // 7. set up the volatile FPRs
     for (Enumeration e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
@@ -190,7 +189,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @return the frame pointer register
    */
   OPT_Register getFP() {
-    return getGPR(VM_BaselineConstants.FP);
+    throw new OPT_OptimizingCompilerException("Framepointer is not a register on IA32");
   }
 
   /**

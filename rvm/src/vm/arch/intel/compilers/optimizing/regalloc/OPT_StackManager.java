@@ -430,9 +430,12 @@ implements OPT_Operators {
    */
   private void insertNormalPrologue() {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register FP = phys.getFP(); 
     OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
+    OPT_MemoryOperand fpHome = 
+      OPT_MemoryOperand.BD(R(PR),
+			   VM_Entrypoints.framePointerOffset,
+			   (byte)WORDSIZE, null, null);
 
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
@@ -448,20 +451,20 @@ implements OPT_Operators {
       insertBigFrameStackOverflowCheck(plg);
 
       // 2. Save caller's frame pointer
-      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, R(FP)));
+      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, fpHome));
 
       // 3. Set my frame pointer to current value of stackpointer
-      inst.insertBefore(MIR_Move.create(IA32_MOV, R(FP), R(ESP)));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), R(ESP)));
 
       // 4. Store my compiled method id
       int cmid = ir.compiledMethodId;
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, I(cmid)));
     } else {
       // 1. Save caller's frame pointer
-      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, R(FP)));
+      inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, fpHome));
 
       // 2. Set my frame pointer to current value of stackpointer
-      inst.insertBefore(MIR_Move.create(IA32_MOV, R(FP), R(ESP)));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), R(ESP)));
 
       // 3. Store my compiled method id
       int cmid = ir.compiledMethodId;
@@ -477,13 +480,6 @@ implements OPT_Operators {
       saveFloatingPointState(inst);
     }
     saveNonVolatiles(inst);
-
-    // III. Store the frame pointer in the processor object.
-    int fpOffset = VM_Entrypoints.framePointerOffset;
-    OPT_MemoryOperand fpHome = OPT_MemoryOperand.BD(R(PR),
-                                                    fpOffset, (byte)WORDSIZE, 
-                                                    null, null);
-    inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome, R(FP)));
   }
 
   /**
@@ -496,7 +492,6 @@ implements OPT_Operators {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     VM_OptCompilerInfo info = ir.MIRInfo.info;
     int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
-    OPT_Register FP = phys.getFP();
 
     // Save each non-volatile GPR used by this method. 
     int n = nNonvolatileGPRS - 1;
@@ -519,7 +514,6 @@ implements OPT_Operators {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     VM_OptCompilerInfo info = ir.MIRInfo.info;
     int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
-    OPT_Register FP = phys.getFP();
 
     int n = nNonvolatileGPRS - 1;
     for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
@@ -538,7 +532,6 @@ implements OPT_Operators {
    */
   private void saveFloatingPointState(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register FP = phys.getFP();
     OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
     inst.insertBefore(MIR_FSave.create(IA32_FNSAVE, M));
   }
@@ -550,7 +543,6 @@ implements OPT_Operators {
    */
   private void restoreFloatingPointState(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register FP = phys.getFP();
     OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
     inst.insertBefore(MIR_FSave.create(IA32_FRSTOR, M));
   }
@@ -564,7 +556,6 @@ implements OPT_Operators {
   private void saveVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     VM_OptCompilerInfo info = ir.MIRInfo.info;
-    OPT_Register FP = phys.getFP();
 
     // Save each GPR. 
     int i = 0;
@@ -584,7 +575,6 @@ implements OPT_Operators {
    */
   private void restoreVolatileRegisters(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    OPT_Register FP = phys.getFP();
 
     // Restore every GPR
     int i = 0;
@@ -612,7 +602,6 @@ implements OPT_Operators {
    */
   private void insertEpilogue(OPT_Instruction ret) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet(); 
-    OPT_Register FP = phys.getFP();
     OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
 
@@ -626,13 +615,10 @@ implements OPT_Operators {
     // 2. Restore caller's stackpointer and framepointer
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(frameSize)));
-    ret.insertBefore(MIR_Nullary.create(IA32_POP, R(FP)));
-
-    // 3. Store the caller's frame pointer in the processor object.
-    int fpOffset = VM_Entrypoints.framePointerOffset;
     OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(PR), fpOffset, (byte)WORDSIZE, null, null);
-    ret.insertBefore(MIR_Move.create(IA32_MOV, fpHome, R(FP)));
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerOffset,
+			   (byte)WORDSIZE, null, null);
+    ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
 
   /**

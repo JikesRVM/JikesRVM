@@ -107,7 +107,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // set some constants for the code generation of the rest of the method
       // firstLocalOffset is shifted down because more registers are saved
       firstLocalOffset = STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE) ;
-
     } else {
       genPrologue(compiledMethodId);
     }
@@ -2639,18 +2638,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      * point of the caller.
      * The third word of the header contains the compiled method id of the called method.
      */
-    asm.emitPUSH_Reg       (FP);			 // store caller's frame pointer
-    asm.emitMOV_Reg_Reg    (FP, SP);			 // establish new frame
+    asm.emitPUSH_RegDisp   (PR, VM_Entrypoints.framePointerOffset);	// store caller's frame pointer
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerOffset, SP); // establish new frame
     /*
      * NOTE: until the end of the prologue SP holds the framepointer.
      */
     asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
   
-    // squirrel away FP in the procesoor object so a hardware trap handler can 
-    // always find it (opt compiler will reuse FP register)
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-					      VM_Entrypoints.framePointerOffset,
-					      SP);
     /*
      * save registers
      */
@@ -2673,9 +2667,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX); 
       asm.emitFNSAVE_RegDisp  (SP, FPU_SAVE_OFFSET);
       savedRegistersSize += FPU_STATE_SIZE;
-    } else if (klass.isBridgeFromNative()) {
-	savedRegistersSize = VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE;
-    }          
+    } 
 
     // copy registers to callee's stackframe
     firstLocalOffset         = STACKFRAME_BODY_OFFSET - savedRegistersSize;
@@ -2718,16 +2710,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitINT_Imm(0xFF);
     } else {
       // normal method
-      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped); // SP becomes frame pointer
-      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);       // restore nonvolatile JTOC register
-      asm.emitPOP_Reg         (FP);                               // discard frame
-    
-      // Save the frame pointer in the processor object so a hardware trap 
-      // handler can always find it (opt compiler will reuse FP register)
-      VM_ProcessorLocalState.emitMoveRegToField(asm, 
-						VM_Entrypoints.framePointerOffset,
-						FP);
-      
+      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped);      // SP becomes frame pointer
+      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);            // restore nonvolatile JTOC register
+      asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerOffset); // discard frame
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
     }
   }
@@ -3617,12 +3602,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegDisp (JTOC,  SP, JTOC_SAVE_OFFSET); 
 
       // pop frame
-      asm.emitPOP_Reg (FP);		// FP<-previous FP 
+      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerOffset); // FP<-previous FP 
 
-      VM_ProcessorLocalState.emitMoveRegToField(asm,
-						VM_Entrypoints.framePointerOffset,
-						FP);
-      
       // branch
       asm.emitJMP_Reg (S0);
       return;
@@ -3636,14 +3617,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);
 
       // discard current stack frame
-      asm.emitPOP_Reg(FP);
+      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerOffset);
 
-      // so hardware trap handler can always find it 
-      // (opt compiler will reuse FP register)
-      VM_ProcessorLocalState.emitMoveRegToField(asm,
-						VM_Entrypoints.framePointerOffset,
-						FP);
-      
       // return to caller- pop parameters from stack
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 
       return;

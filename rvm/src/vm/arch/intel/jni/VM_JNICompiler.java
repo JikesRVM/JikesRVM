@@ -147,14 +147,11 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (T1, JTOC, VM_Entrypoints.athrowOffset); // acquire jump addr before restoring nonvolatiles
 
     asm.emitMOV_Reg_Reg     (SP, EBP);                      // discard current stack frame
-    asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile ebx register
     asm.emitMOV_Reg_RegDisp (JTOC, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI/JTOC register
-    asm.emitMOV_Reg_RegDisp (EBP, SP, EDI_SAVE_OFFSET);    // restore nonvolatile EBP register
+    asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile EBX register
+    asm.emitMOV_Reg_RegDisp (EBP, SP, EBP_SAVE_OFFSET);    // restore nonvolatile EBP register
 
-    asm.emitPOP_Reg(FP);
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerOffset,
-                                              FP);
+    asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerOffset);
 
     // don't use CALL since it will push on the stack frame the return address to here 
     asm.emitJMP_Reg(T1); // jumps to VM_Runtime.athrow
@@ -164,14 +161,11 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     // no exception, proceed to return to caller    
     asm.emitMOV_Reg_Reg(SP, EBP);                           // discard current stack frame
 
-    asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile ebx register
     asm.emitMOV_Reg_RegDisp (JTOC, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI/JTOC register
-    asm.emitMOV_Reg_RegDisp (EBP, SP, EDI_SAVE_OFFSET);    // restore nonvolatile EBP register
+    asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);    // restore nonvolatile EBX register
+    asm.emitMOV_Reg_RegDisp (EBP, SP, EBP_SAVE_OFFSET);    // restore nonvolatile EBP register
 
-    asm.emitPOP_Reg(FP);
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerOffset,
-                                              FP);
+    asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerOffset);
 
     // return to caller 
     // pop parameters from stack (Note that parameterWords does not include "this")
@@ -211,22 +205,18 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
   static void prepareStackHeader(VM_Assembler asm, VM_Method method, int compiledMethodId) {
 
     // set 2nd word of header = return address already pushed by CALL
-    asm.emitPUSH_Reg(FP);
+    asm.emitPUSH_RegDisp (PR, VM_Entrypoints.framePointerOffset);
 
     // start new frame:  set FP to point to the new frame
-    asm.emitMOV_Reg_Reg (FP, SP); 
-
-    // set first word of header: method ID
-    asm.emitMOV_RegDisp_Imm (SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId); 
-
-    // store frame pointer so hardware trap handler can always find it
     VM_ProcessorLocalState.emitMoveRegToField(asm,
                                               VM_Entrypoints.framePointerOffset,
                                               SP);
 
-    // save in third word of header: 
-    // JTOC register may hold nonvolatile (opt) or JTOC value (base)
-    // EBX and EBP may hold nonvolatile (opt)
+    // set first word of header: method ID
+    asm.emitMOV_RegDisp_Imm (SP, STACKFRAME_METHOD_ID_OFFSET, compiledMethodId); 
+
+
+    // save nonvolatile registrs: JTOC/EDI, EBX, EBP
     asm.emitMOV_RegDisp_Reg (SP, EDI_SAVE_OFFSET, JTOC); 
     asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX);
     asm.emitMOV_RegDisp_Reg (SP, EBP_SAVE_OFFSET, EBP);
@@ -848,8 +838,8 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, S0, VM_Entrypoints.jniEnvOffset);       // S0<-addr threads jniEnv
 
     // set jniEnv TopJavaFP using value saved in frame in prolog
-    asm.emitMOV_Reg_RegDisp(JTOC, FP, SAVED_JAVA_FP_OFFSET);      // JTOC<-saved TopJavaFP (offset)
-    asm.emitADD_Reg_Reg(JTOC, FP);                                // change offset from FP into address
+    asm.emitMOV_Reg_RegDisp(JTOC, EBP, SAVED_JAVA_FP_OFFSET);      // JTOC<-saved TopJavaFP (offset)
+    asm.emitADD_Reg_Reg(JTOC, EBP);                                // change offset from FP into address
     asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPOffset, JTOC); // jniEnv.TopJavaFP <- JTOC
 
     // in case thread has migrated to different PR, reset saved PRs to current PR

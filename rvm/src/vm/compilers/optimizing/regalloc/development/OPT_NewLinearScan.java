@@ -1429,16 +1429,6 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
         }
       }
 
-      //-#if RVM_FOR_IA32
-      // Try to allocate EBP
-      if (type == INT_REG) {
-        OPT_Register EBP = phys.getEBP();
-        if (allocateToPhysical(newInterval,EBP)) {
-          return EBP;
-        }
-      }
-      //-#endif
-
       // no allocation succeeded.
       return null;
     }

@@ -871,15 +871,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	  VM.sysWrite(registers.gprs[VM_BaselineConstants.SP]);
 	}
 	//-#endif
-	//-#if RVM_FOR_IA32
-	/* TODO: put this in when VM_Regsters.setInnermost no longer does it!
-	registers.gprs[VM_BaselineConstants.FP] += delta;
-	if (traceAdjustments) {
-	  VM.sysWrite(" fp (ebp) =");
-	  VM.sysWrite(registers.gprs[VM_BaselineConstants.FP]);
-	}
-	*/
-	//-#endif
       }
       //-#if RVM_FOR_IA32
       registers.gprs[ESP] += delta;
@@ -1136,7 +1127,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
     sp -= VM_BaselineConstants.WORDSIZE;                                 // allow for one local
-    contextRegisters.gprs[VM_BaselineConstants.FP] = fp;
     contextRegisters.gprs[ESP] = sp;
     contextRegisters.gprs[VM_BaselineConstants.JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
     contextRegisters.fp  = fp;

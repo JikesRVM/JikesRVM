@@ -79,17 +79,10 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
       }
     }
     
-    // 2. Restore the frame pointer before making the call.
-    OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(phys.getPR()),
-			       VM_Entrypoints.framePointerOffset,
-			       (byte)WORDSIZE, null, null);
-    call.insertBefore(MIR_Move.create(IA32_MOV, R(phys.getFP()), fpHome));
-
-    // 3. Move the return value into a register
+    // 2. Move the return value into a register
     expandResultOfCall(call,ir);
     
-    // 4. If this is an interface invocation, set up the hidden parameter
+    // 3. If this is an interface invocation, set up the hidden parameter
     //    in the processor object to hold the interface signature id.
     if (VM.BuildForIMTInterfaceInvocation) {
       if (MIR_Call.hasMethod(call)) {
@@ -106,7 +99,7 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
       }
     }
 
-    // 5. ESP must be parameterBytes before call, will be at either parameterBytes
+    // 4. ESP must be parameterBytes before call, will be at either parameterBytes
     //    or 0 afterwards depending on whether or it is an RVM method or a sysCall.
     call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes)));
     call.insertAfter(MIR_UnaryNoRes.create(ADVISE_ESP, I(isSysCall?parameterBytes:0)));
@@ -336,7 +329,6 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     int location = sm.getOffsetForSysCall();
     
     // save each non-volatile
-    OPT_Register FP = phys.getFP();
     for (Enumeration e = phys.enumerateNonvolatileGPRs();
          e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
@@ -376,7 +368,6 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     int location = sm.getOffsetForSysCall();
     
     // restore each non-volatile
-    OPT_Register FP = phys.getFP();
     for (Enumeration e = phys.enumerateNonvolatileGPRs();
          e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();

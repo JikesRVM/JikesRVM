@@ -17,7 +17,6 @@ interface VM_BaselineConstants extends VM_Constants {
 
   // Dedicated registers.
   //
-  static final byte FP   = EBP;
   static final byte JTOC = EDI;
   static final byte SP   = ESP;
   static final byte PR   = PROCESSOR_REGISTER;
