@@ -38,7 +38,7 @@ public abstract class OPT_StaticFieldReader {
     } else if (fieldType == VM_Type.WordType) {
       Object obj = getObjectStaticFieldValue(field);
       VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
-      return new OPT_IntConstantOperand(val.toInt());
+      return new OPT_IntConstantOperand(val.toInt(), VM_Type.WordType);
     } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);
