@@ -60,7 +60,20 @@ public class ApplicationClassLoader extends URLClassLoader {
     }
   }
 
-  public String toString() { return "SystemAppCL"; }
+  /** I intended this name to reflect both "SystemClassLoader" and
+   * "ApplicationClassLoader".
+   *
+   * <p><b>Problem:</b>  It's pretty cryptic, though.  If you think you
+   * have a better one, you're free to change it.  Be sure to search for
+   * all of the other instances of this string in the Jikes RVM source code;
+   * it's used in three other places (as of this writing).   
+   *
+   * <p><b>Action item:</b> TODO XXX
+   * Make this field public; replace those instances with a reference to this
+   * final static field name instead. 
+   */ 
+  public final static String myName = "SystemAppCL";
+  public String toString() { return myName; }
 
   protected String findLibrary(String libName) {
     return null;
