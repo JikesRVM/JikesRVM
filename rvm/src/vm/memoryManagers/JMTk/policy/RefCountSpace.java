@@ -91,8 +91,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * boot image mark bit (use for debug tracing).
    */
   public void prepare() { 
-    if (!Options.noFinalizer)
-      VM_Interface.sysFail("-X:gc:noFinalizer must be used with RefCount Plan");
     bootImageMark = !bootImageMark;
   }
 
@@ -130,17 +128,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return object;
   }
 
-  /**
-   * Determine whether an object is live.
-   *
-   * @param object The object in question
-   * @return True if this object is considered live (i.e. it has a no-zero RC)
-   */
-  public static boolean isLive(VM_Address object)
-    throws VM_PragmaInline {
-    return RCBaseHeader.isLiveRC(object);
-  }
-  
   /****************************************************************************
    *
    * Misc

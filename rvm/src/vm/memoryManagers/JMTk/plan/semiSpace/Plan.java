@@ -476,7 +476,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  public static void forwardObjectLocation(VM_Address location) 
+  static void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
     VM_Address obj = VM_Magic.getMemoryAddress(location);
     if (!obj.isZero()) {
@@ -485,6 +485,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
 	VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
     }
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  static final VM_Address getForwardedReference(VM_Address object) {
+    if (!object.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(object);
+      byte space = VMResource.getSpace(addr);
+      if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface._assert(CopyingHeader.isForwarded(object));
+	return CopyingHeader.getForwardingPointer(object);
+      }
+    }
+    return object;
   }
 
   /**

@@ -19,14 +19,14 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
 /**
- * This class manages finalization.  When an object is created
- * if its class has a finalize() method, addElement below is 
- * called, and a FinalizerListElement (see FinalizerListElement)
- * is created for it.  While the object is old, the integer field of 
- * the list element holds its value (this does not keep the object 
- * live during gc.  At the end of gc, the list of FinalizerListElements
- * is scanned for objects which have become garbage.  Those which have
- * are made live again are moved to the live object list for finalization.
+ * This class manages finalization.  When an object is created if its
+ * class has a finalize() method, addElement below is called, and a
+ * FinalizerListElement (see FinalizerListElement) is created for it.
+ * While the object is old, the integer field of the list element
+ * holds its value (this does not keep the object live during gc.  At
+ * the end of gc, the list of FinalizerListElements is scanned for
+ * objects which have become garbage.  Those which have are made live
+ * again are moved to the live object list for finalization.
  *
  * Elsewhere, there is a distinguished Finalizer thread which 
  * enqueues itself on the VM_Scheduler finalizerQueue.  At the end of gc, 
@@ -121,10 +121,11 @@ public class Finalizer implements VM_Uninterruptible {
   }
 
   /**
-   * Called from the mutator thread: return the first object queued 
-   * on the finalize list, or null if none
+   * Called from the mutator thread: return the first object queued on
+   * the finalize list, or null if none
    *
-   * The aastore is actually uninterruptible since the target is an array of Objects.
+   * The aastore is actually uninterruptible since the target is an
+   * array of Objects.
    */
   public final static Object get() throws VM_PragmaLogicallyUninterruptible {
 
@@ -161,31 +162,25 @@ public class Finalizer implements VM_Uninterruptible {
 
 
   /**
-   * Scan the array for objects which have become garbage
-   * and move them to the Finalizable class
+   * Scan the array for objects which have become finalizable and move
+   * them to the Finalizable class
    */
   public final static int moveToFinalizable () {
-
     int cursor = 0;
     int newFinalizeCount = 0;
 
     while (cursor < candidateEnd) {
       VM_Address cand = candidate.get(cursor);
-      boolean isLive = Plan.isLive(cand);
-      VM_Address newObj = Plan.traceObject(cand);
-      if (isLive) {
-	// live beforehand but possibly moved
-	candidate.set(cursor, newObj);
-      }
-      else {
-	// died and revived, needs finalization now
+      boolean isFinalizable = Plan.isFinalizable(cand);
+      if (!isFinalizable) { // live beforehand but possibly moved
+	candidate.set(cursor, Plan.getForwardedReference(cand));
+      } else {             // finalizable, needs to be enqued for finalization
 	candidate.set(cursor, VM_Address.zero());
-	addLive(VM_Magic.addressAsObject(newObj));
+	addLive(VM_Magic.addressAsObject(Plan.retainFinalizable(cand)));
 	newFinalizeCount++;
       }
       cursor++;
     }
-    
     compactCandidates();
 
     return newFinalizeCount;

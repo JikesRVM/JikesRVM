@@ -86,6 +86,20 @@ public abstract class RCBaseHeader implements Constants {
     return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
   }
 
+  /**
+   * Return true if given object is unreachable from roots or other
+   * objects (i.e. ignoring the finalizer list).  Mark the object as a
+   * finalizer object.
+   *
+   * @param object The object whose finalizability is to be tested
+   * @return True if the object is finalizable
+   */
+  static boolean isFinalizable(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    setFinalizer(object);
+    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) < HARD_THRESHOLD;
+  }
+
   static void incRCOOL(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaNoInline {
     incRC(object);
@@ -218,6 +232,36 @@ public abstract class RCBaseHeader implements Constants {
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue & ~ROOT_REACHABLE;
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+  }
+
+  /**
+   * Set the <code>FINALIZABLE</code> bit for an object.
+   *
+   * @param object The object whose <code>FINALIZABLE</code> bit is
+   * to be set.
+   */
+  static void setFinalizer(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue, newValue;
+    do {
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
+      newValue = oldValue | FINALIZABLE;
+    } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+  }
+
+  /**
+   * Clear the <code>FINALIZABLE</code> bit for an object.
+   *
+   * @param object The object whose <code>FINALIZABLE</code> bit is
+   * to be cleared.
+   */
+  static void clearFinalizer(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue, newValue;
+    do {
+      oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
+      newValue = oldValue & ~FINALIZABLE;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
 
@@ -358,9 +402,10 @@ public abstract class RCBaseHeader implements Constants {
   protected static final int           GREEN = 0x10;  // .. x10xxx
 
   // bits used to ensure retention of objects with zero RC
-  private static final int    ROOT_REACHABLE = 0x20; //  .. x10000
-  private static final int       FINALIZABLE = 0x40; //  .. 100000
-  private static final int    LIVE_THRESHOLD = ROOT_REACHABLE;
+  private static final int       FINALIZABLE = 0x20; //  .. 100000
+  private static final int    ROOT_REACHABLE = 0x40; //  .. x10000
+  private static final int    HARD_THRESHOLD = ROOT_REACHABLE;
+  private static final int    LIVE_THRESHOLD = FINALIZABLE;
   private static final int         BITS_USED = 7;
 
   protected static final int INCREMENT_SHIFT = BITS_USED;

@@ -293,8 +293,77 @@ public abstract class BasePlan
   public void enumeratePointerLocation(VM_Address location) {}
 
   // XXX Javadoc comment missing.
-  public static boolean willNotMove (VM_Address obj) {
-      return !VMResource.refIsMovable(obj);
+  public static boolean willNotMove(VM_Address obj) {
+    return !VMResource.refIsMovable(obj);
+  }
+
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.<p>
+   *
+   * <i>Non-copying collectors do nothing, copying collectors must
+   * override this method.</i>
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  static void forwardObjectLocation(VM_Address location) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * <i>Non-copying collectors do nothing, copying collectors must
+   * override this method.</i>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.  <i>In this
+   * case return <code>object</code>, copying collectors must override
+   * this method.
+   */
+  static VM_Address getForwardedReference(VM_Address object) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    return object;
+  }
+
+  /**
+   * An object is unreachable and is about to be added to the
+   * finalizable queue.  The collector must ensure the object is not
+   * collected (despite being otherwise unreachable), and should
+   * return its forwarded address if keeping the object alive involves
+   * forwarding.<p>
+   *
+   * <i>For many collectors these semantics relfect those of
+   * <code>traceObject</code>, which is implemented here.  Other
+   * collectors must override this method.</i>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.  <i>In this
+   * case return <code>object</code>, copying collectors must override
+   * this method.
+   */
+  static VM_Address retainFinalizable(VM_Address object) {
+    return Plan.traceObject(object);
+  }
+
+  /**
+   * Return true if an object is ready to move to the finalizable
+   * queue, i.e. it has no regular references to it.  This method may
+   * (and in some cases is) be overridden by subclasses.
+   *
+   * @param object The object being queried.
+   * @return <code>true</code> if the object has no regular references
+   * to it.
+   */
+  static boolean isFinalizable(VM_Address object) {
+    return !Plan.isLive(object);
   }
 
   /****************************************************************************

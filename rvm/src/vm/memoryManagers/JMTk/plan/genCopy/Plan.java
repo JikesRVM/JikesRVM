@@ -221,13 +221,32 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param object The referent object.
    * @param space The space in which the referent object resides.
    */
-  protected static void forwardMatureObjectLocation(VM_Address location,
-						    VM_Address object,
-						    byte space) 
-    throws VM_PragmaInline {
+  protected static final void forwardMatureObjectLocation(VM_Address location,
+							  VM_Address object,
+							  byte space) {
     if ((hi && space == LOW_MATURE_SPACE) || 
 	(!hi && space == HIGH_MATURE_SPACE))
       VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @param space The space in which the object resides.
+   * @return The forwarded value for <code>object</code>.
+   */
+  static final VM_Address getForwardedMatureReference(VM_Address object,
+						      byte space) {
+    if ((hi && space == LOW_MATURE_SPACE) || 
+	(!hi && space == HIGH_MATURE_SPACE)) {
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(CopyingHeader.isForwarded(object));
+      return CopyingHeader.getForwardingPointer(object);
+    } else {
+      return object;
+    }
   }
 
   /**

@@ -413,20 +413,6 @@ public abstract class StopTheWorldGC extends BasePlan
   }
 
   /**
-   * Forward the object referred to by a given address and update the
-   * address if necessary.  This <i>does not</i> enqueue the referent
-   * for processing; the referent must be explicitly enqueued if it is
-   * to be processed.<p>
-   *
-   * <i>Non-copying collectors do nothing.</i>
-   *
-   * @param location The location whose referent is to be forwarded if
-   * necessary.  The location will be updated if the referent is
-   * forwarded.
-   */
-  public static void forwardObjectLocation(VM_Address location) {}
-
-  /**
    * Flush any remembered sets pertaining to the current collection.
    * Non-generational collectors do nothing.
    */

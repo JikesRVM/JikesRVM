@@ -447,18 +447,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject(VM_Address obj, boolean root) {
-    if (obj.isZero()) return obj;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+  public static final VM_Address traceObject(VM_Address object, boolean root) {
+    if (object.isZero()) return object;
+    VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
-      return rcSpace.traceObject(obj, root);
+      return rcSpace.traceObject(object, root);
     
     if (VM_Interface.VerifyAssertions && space != BOOT_SPACE 
 	&& space != IMMORTAL_SPACE && space != META_SPACE) 
-      spaceFailure(obj, space, "Plan.traceObject()");
+      spaceFailure(object, space, "Plan.traceObject()");
     // else this is not a rc heap pointer
-    return obj;
+    return object;
   }
 
   /**
@@ -467,15 +467,52 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(obj);
+  static final boolean isLive(VM_Address object) {
+    VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
-      return rcSpace.isLive(obj);
+      return RCBaseHeader.isLiveRC(object);
     else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
       return true;
     else
       return false;
+  }
+
+  /**
+   * Return true if an object is ready to move to the finalizable
+   * queue, i.e. it has no regular references to it.
+   *
+   * @param object The object being queried.
+   * @return <code>true</code> if the object has no regular references
+   * to it.
+   */
+  static boolean isFinalizable(VM_Address object) {
+    VM_Address addr = VM_Interface.refToAddress(object);
+    byte space = VMResource.getSpace(addr);
+    if (space == RC_SPACE || space == LOS_SPACE)
+      return RCBaseHeader.isFinalizable(object);
+    else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
+      return false;
+    else
+      return true;
+  }
+
+  /**
+   * An object has just been moved to the finalizable queue.  No need
+   * to forward because no copying is performed in this GC, but should
+   * clear the finalizer bit of the object so that its reachability
+   * now is soley determined by the finalizer queue from which it is
+   * now reachable.
+   *
+   * @param object The object being queried.
+   * @return The object (no copying is performed).
+   */
+  static VM_Address retainFinalizable(VM_Address object) {
+    VM_Address addr = VM_Interface.refToAddress(object);
+    byte space = VMResource.getSpace(addr);
+    if (space == RC_SPACE || space == LOS_SPACE)
+      RCBaseHeader.clearFinalizer(object);
+    return object;
   }
 
   /**
@@ -485,9 +522,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * word is returned unmodified.
    *
    * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GCbits , which is the GC word
-   * of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
+   * @param forwardingWord The integer containing the GCbits , which
+   * is the GC word of the original object, and typically encodes some
+   * GC state as well as pointing to the copied object.
    * @param bytes The size of the copied object in bytes.
    * @return The updated GC word (in this case unchanged).
    */

@@ -568,7 +568,7 @@ public abstract class Generational extends StopTheWorldGC
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  public static final void forwardObjectLocation(VM_Address location) 
+  static final void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
     VM_Address obj = VM_Magic.getMemoryAddress(location);
     if (!obj.isZero()) {
@@ -579,6 +579,27 @@ public abstract class Generational extends StopTheWorldGC
       else if (fullHeapGC) 
 	Plan.forwardMatureObjectLocation(location, obj, space);
     }
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  static final VM_Address getForwardedReference(VM_Address object) {
+    if (!object.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(object);
+      byte space = VMResource.getSpace(addr);
+      if (space == NURSERY_SPACE) {
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface._assert(CopyingHeader.isForwarded(object));
+	return CopyingHeader.getForwardingPointer(object);
+      } else if (fullHeapGC)
+	return Plan.getForwardedMatureReference(object, space);
+    }
+    return object;
   }
 
   /****************************************************************************

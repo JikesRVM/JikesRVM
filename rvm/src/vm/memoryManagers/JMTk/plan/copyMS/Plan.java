@@ -502,6 +502,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  static final VM_Address getForwardedReference(VM_Address object) {
+    if (!object.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(object);
+      if (VMResource.getSpace(addr) == NURSERY_SPACE)
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface._assert(CopyingHeader.isForwarded(object));
+      return CopyingHeader.getForwardingPointer(object);
+    }
+    return object;
+  }
+
+  /**
    * Return true if the given reference is to an object that is within
    * the nursery.
    *
