@@ -1881,8 +1881,8 @@ function emitEnvironmentBash () {
 	fi
 
 	
-	export HOST_JIKES='$JIKES'		# Deprecated
-	export $JIKES_STR1='$JIKES'
+	export HOST_JIKES='$JIKES -encoding iso-8859-1'		# Deprecated
+	export $JIKES_STR1='$JIKES -encoding iso-8859-1'
 	export $HOST_JAVA_STR1='${HOST_VM_RT}'	# Deprecated
 	export $HOST_VM_RT_STR1='${HOST_VM_RT}'
 	export $HOST_JAVAC_STR1='$HOST_JAVAC'
@@ -1989,8 +1989,8 @@ function emitMakefile () {
 	    ${BUILD_DIRECTORY_STR1}:=${RVM_BUILD}
 	endif
 	
-	HOST_JIKES = $JIKES	# Deprecated
-	$JIKES_STR1 = $JIKES
+	HOST_JIKES = $JIKES  -encoding iso-8859-1	# Deprecated
+	$JIKES_STR1 = $JIKES -encoding iso-8859-1
 EOF
 	
     # The configuration for building the user guide.
@@ -2022,7 +2022,7 @@ EOF
 	HOST_JAVA = ${HOST_VM_RT}		# Deprecated
 	HOST_VM_RT = ${HOST_VM_RT}
 	HOST_VM_TYPE := ${HOST_VM_TYPE}
-	HOST_JAVAC = $HOST_JAVAC
+	HOST_JAVAC = $HOST_JAVAC -encoding iso-8859-1
 	HOST_JAR := ${JAR}	# Deprecated
 	JAR = $JAR
 	HOST_JAVA_REPOSITORIES = $HOST_REPOSITORIES # Deprecated
