@@ -205,6 +205,16 @@ class VM_Assembler implements VM_BaselineConstants {
     }
   }
 
+  /* call before emiting code for the branch */
+  final void reserveShortForwardConditionalBranch (int where) {
+    VM_ForwardReference fr = new VM_ConditionalBranch(mIP, where);
+    if (forwardReferenceQ == null) {
+      forwardReferenceQ = fr;
+    } else {
+      forwardReferenceQ = forwardReferenceQ.add(fr);
+    }
+  }
+
   /* call before emiting data for the case branch */
   final void reserveForwardCase (int where) {
     VM_ForwardReference fr = new VM_SwitchCase(mIP, where);
