@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 // $Id$
 package com.ibm.JikesRVM.adaptive;
@@ -138,8 +138,8 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    *
    *  Precondition: IR is in LIR
    *
-   * @param s The counter instruction to mutate
-   * @param ir The governing IR
+   * @param counterInst   The counter instruction to mutate
+   * @param ir            The governing IR
    **/
   public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, 
                                                OPT_IR ir) {
@@ -224,8 +224,8 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   /**
    * decay counters
    *
-   * @param handle, the identifier of the counter array to decay
-   * @param rate, the rate at which to decay, i.e. a value of 2 will divide
+   * @param handle  The identifier of the counter array to decay
+   * @param rate    The rate at which to decay, i.e. a value of 2 will divide
    *                all values in half
    */
   static void decay(int handle, double rate) {

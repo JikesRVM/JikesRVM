@@ -129,7 +129,7 @@ public final class VM_ControllerMemory implements VM_Constants {
   /**
    * Looks for a controller plan for the passed method
    *
-   * @param VM_Method the method to look for
+   * @param method   The method to look for
    * @return the list of controller plans for this method if one exists, 
    *         otherwise, null
    */
@@ -287,8 +287,8 @@ public final class VM_ControllerMemory implements VM_Constants {
   /**
    * Looks for the last controller plan for the passed method
    *
-   * @param VM_Method the method to look for
-   * @return the last controller plan for this method if it exists, 
+   * @param  method   The method to look for
+   * @return The last controller plan for this method if it exists, 
    *         otherwise, null
    */
   public static synchronized VM_ControllerPlan findLatestPlan(VM_Method method) {

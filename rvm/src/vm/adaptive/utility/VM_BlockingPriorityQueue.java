@@ -28,7 +28,6 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
   CallBack callback;
 
   /**
-   * @param initialSize the initial number of elements
    * @param _cb the callback object
    */
   VM_BlockingPriorityQueue(CallBack _cb) {
@@ -36,9 +35,6 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
     callback = _cb;
   }
 
-  /**
-   * @param initialSize the initial number of elements
-   */
   VM_BlockingPriorityQueue() {
     this(new CallBack());
   }
@@ -65,7 +61,7 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
   /**
    * Remove and return the front (minimum) object.  If the queue is currently
    * empty, then block until an object is available to be dequeued.
-   * @param callback a VM_BlockingPriorityQueueCallback object. 
+   *
    * @return the front (minimum) object.
    */
   synchronized final public Object deleteMin() {
