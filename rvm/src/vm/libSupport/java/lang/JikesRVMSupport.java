@@ -10,6 +10,9 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 
 import org.vmmagic.pragma.*;
 
+import com.ibm.JikesRVM.VM;              // for VerifyAssertions and _assert()
+import com.ibm.JikesRVM.VM_Thread;
+
 /**
  * Library support interface of Jikes RVM
  *
@@ -71,6 +74,10 @@ public class JikesRVMSupport {
   //-#endif
   
 
+  /***
+   * String stuff
+   * */
+
   public static char[] getBackingCharArray(String str) throws UninterruptiblePragma {
     return str.value;
   }
@@ -82,4 +89,13 @@ public class JikesRVMSupport {
   public static int getStringOffset(String str) throws UninterruptiblePragma {
     return str.offset;
   }
+
+  /***
+   * Thread stuff
+   * */
+  public static Thread createThread(VM_Thread vmdata, String myName) {
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+    return new Thread(vmdata, myName);
+  }
+
 }
