@@ -24,9 +24,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right("", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
   
@@ -36,9 +34,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
     
@@ -48,9 +44,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
  
@@ -60,9 +54,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
   
@@ -72,9 +64,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
  
@@ -84,9 +74,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
 
@@ -96,9 +84,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right("[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
 
@@ -108,9 +94,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
   
@@ -120,9 +104,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
  
@@ -133,9 +115,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
  
@@ -145,9 +125,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R1] + "]", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
  
@@ -157,9 +135,7 @@ class VM_Lister implements VM_Constants, VM_BaselineConstants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right("[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
-    for (int j=i; j<asm.mi; j++) {
-      VM.sysWrite(hex(asm.machineCodes[j]));
-    }
+    asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
  
