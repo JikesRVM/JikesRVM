@@ -4,12 +4,9 @@
 // $Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.librarySupport.FileSupport;
-
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.FileDescriptor;
 
 import java.net.*;
 
@@ -54,11 +51,12 @@ final class JikesRVMSocketImpl extends SocketImpl {
 
     private boolean streaming;
     private int receiveTimeout = 0;
+    private int native_fd;
 
-    private FileDescriptor acceptInternal(JikesRVMSocketImpl newSocket) 
+    private int acceptInternal(JikesRVMSocketImpl newSocket) 
 	throws SocketException, SocketTimeoutException 
     {
-	int serverFD = java.io.JikesRVMSupport.getFd(fd);
+	int serverFD = native_fd; // java.io.JikesRVMSupport.getFd(fd);
 
 	// If there is a timeout,
 	// compute total wait time (total number of seconds that
@@ -131,7 +129,8 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	// Success!
 	// Note that the file descriptor creation hook (in VM_FileSystem.java)
 	// will take care of setting the socket fd to nonblocking mode.
-	return java.io.JikesRVMSupport.createFileDescriptor(connectionFd, false);
+	VM_FileSystem.onCreateFileDescriptor(connectionFd, false);
+	return connectionFd;
     }
 
     /**
@@ -143,9 +142,8 @@ final class JikesRVMSocketImpl extends SocketImpl {
     protected void accept(SocketImpl newImpl) throws IOException {
 	JikesRVMSocketImpl jksImpl = (JikesRVMSocketImpl) newImpl;
 
-	// jksImpl.fd = java.io.JikesRVMSupport.ref(acceptInternal(jksImpl));
 	jksImpl.address = InetAddress.getLocalHost();
-	jksImpl.fd = acceptInternal(jksImpl);
+	jksImpl.native_fd = acceptInternal(jksImpl);
 	jksImpl.localport = getLocalPortInternal();
     }
 
@@ -157,7 +155,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
      * @exception	SocketException	if an error occurs while peeking
      */
     protected synchronized int available() throws IOException {
-	return VM_FileSystem.bytesAvailable(java.io.JikesRVMSupport.getFd(fd));
+	return VM_FileSystem.bytesAvailable( native_fd );
     }
     
     private void bindInternal() throws IOException {
@@ -173,7 +171,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 	int rc = VM.sysCall4(bootRecord.sysNetSocketBindIP,
-			     java.io.JikesRVMSupport.getFd(fd),
+			     native_fd,
 			     family,
 			     address,
 			     localport);
@@ -185,8 +183,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	int localPort;
 	
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-        localPort = VM.sysCall1(bootRecord.sysNetSocketPortIP,
-				java.io.JikesRVMSupport.getFd(fd));
+        localPort = VM.sysCall1(bootRecord.sysNetSocketPortIP, native_fd);
 
 	return localPort;
 	
@@ -219,24 +216,12 @@ final class JikesRVMSocketImpl extends SocketImpl {
      * @exception	IOException	if an error occurs while closing
      */
     protected void close() throws IOException {
-	if (fd != null) 
-	    synchronized (fd) {
-		FileDescriptor fd = this.fd;
-		this.fd = null;
-		int ifd = java.io.JikesRVMSupport.getFd(fd);
-		VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-		int rc = VM.sysCall1(bootRecord.sysNetSocketCloseIP, ifd);
-
-		/*
-		java.io.JikesRVMSupport.deref(fd);
-		int ifd = java.io.JikesRVMSupport.getFd(fd);
-		if (java.io.JikesRVMSupport.dead(fd)) {
-		    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-		    int rc = VM.sysCall1(bootRecord.sysNetSocketCloseIP, ifd);
-		} else
-		    FileSupport.sync(ifd);
-		*/
-	    }
+	if (native_fd != -1) {
+	    int close_fd = native_fd;
+	    this.native_fd = -1;
+	    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+	    int rc = VM.sysCall1(bootRecord.sysNetSocketCloseIP, close_fd);
+	}
     }
 
     private static final int CLOSE_INPUT = 0;
@@ -247,10 +232,10 @@ final class JikesRVMSocketImpl extends SocketImpl {
      * The output side of the socket is unaffected.
      */
     protected synchronized void shutdownInput() throws IOException {
-	if (fd == null) throw new IOException("socket already closed");
+	if (native_fd == -1) throw new IOException("socket already closed");
 
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	if (VM.sysCall2(bootRecord.sysNetSocketShutdownIP, java.io.JikesRVMSupport.getFd(fd), CLOSE_INPUT) != 0)
+	if (VM.sysCall2(bootRecord.sysNetSocketShutdownIP, native_fd, CLOSE_INPUT) != 0)
 	    throw new IOException("could not close input side of socket");
     }
     
@@ -259,9 +244,9 @@ final class JikesRVMSocketImpl extends SocketImpl {
      * The input side of the socket is unaffected.
      */
     protected synchronized void shutdownOutput() throws IOException {
-	if (fd == null)	throw new IOException("socket already closed");
+	if (native_fd == -1) throw new IOException("socket already closed");
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	if (VM.sysCall2(bootRecord.sysNetSocketShutdownIP, java.io.JikesRVMSupport.getFd(fd), CLOSE_OUTPUT) != 0)
+	if (VM.sysCall2(bootRecord.sysNetSocketShutdownIP, native_fd, CLOSE_OUTPUT) != 0)
 	    throw new IOException("could not close input side of socket");
     }
 
@@ -286,7 +271,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
     private void connectInternal() throws IOException {
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 
-	int fd = java.io.JikesRVMSupport.getFd(this.fd);
+	int fd = native_fd;
        
 	int rc = -1;
        
@@ -370,11 +355,13 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	    if (ifd < 0)
 		throw new SocketException(); 
  
-	    else
+	    else {
 		// Note that the file descriptor creation hook 
 		// (in VM_FileSystem.java) will take care of setting 
 		// the socket fd to nonblocking mode.
-		fd = java.io.JikesRVMSupport.createFileDescriptor(ifd, false);
+		VM_FileSystem.onCreateFileDescriptor(ifd, false);
+		native_fd = ifd;
+	    }
 	}
     }
 
@@ -391,7 +378,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
     protected void listen(int backlog) throws java.io.IOException {
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 	int rc = VM.sysCall2(bootRecord.sysNetSocketListenIP,
-			     java.io.JikesRVMSupport.getFd(fd),
+			     native_fd,
 			     backlog);
 	
 	if (rc == -1)
@@ -403,7 +390,6 @@ final class JikesRVMSocketImpl extends SocketImpl {
      * at the <code>offset</code>.  If the timeout is zero, block indefinitely waiting
      * for data, otherwise wait the specified period (in milliseconds).
      *
-     * @param		fd			the socket descriptor
      * @param		buffer		the buffer to read into
      * @param		offset		the offset into the buffer
      * @param		count		the max number of bytes to read
@@ -412,15 +398,13 @@ final class JikesRVMSocketImpl extends SocketImpl {
      */
     
     int read(byte[] buffer, int offset, int count) throws IOException {
-	int ifd = java.io.JikesRVMSupport.getFd(fd);
-
 	double totalWaitTime = (receiveTimeout > 0)
 	    ? ((double) receiveTimeout) / 1000.0
 	    : VM_ThreadEventConstants.WAIT_INFINITE;
 
 	int rc;
 	try {
-	    rc = VM_FileSystem.readBytes(ifd, buffer, offset, count, totalWaitTime);
+	    rc = VM_FileSystem.readBytes(native_fd, buffer, offset, count, totalWaitTime);
   }
 	catch (VM_TimeoutException e) {
 	    throw new SocketTimeoutException("socket receive timed out");
@@ -432,9 +416,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
     int write(byte[] buffer, int offset, int count) throws IOException {
 	if (count == 0) return 0;
 
-	int ifd = java.io.JikesRVMSupport.getFd(fd);
-
-	int rc = VM_FileSystem.writeBytes(ifd, buffer, offset, count);
+	int rc = VM_FileSystem.writeBytes(native_fd, buffer, offset, count);
 
 	return rc;
     }
@@ -449,7 +431,6 @@ final class JikesRVMSocketImpl extends SocketImpl {
      */
     public void setOption(int optID, Object val) throws SocketException {
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	int ifd = java.io.JikesRVMSupport.getFd(fd);
        
 	switch (optID) {
 	case SocketOptions.SO_LINGER: {
@@ -457,12 +438,12 @@ final class JikesRVMSocketImpl extends SocketImpl {
 		// when socket is closed on this end, wait until unsent 
 		// data has been received by other end or timeout expires
 		//
-		int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, ifd, 1, ((Integer)val).intValue());
+		int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, native_fd, 1, ((Integer)val).intValue());
 		if (rc == -1) throw new SocketException("SO_LINGER");
 	    } else {
 		// when socket is closed on this end, discard any unsent data
 		//
-		int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, ifd, 0, 0);
+		int rc = VM.sysCall3(bootRecord.sysNetSocketLingerIP, native_fd, 0, 0);
 		if (rc == -1) throw new SocketException("SO_LINGER");
 	    }
 	} break;
@@ -477,7 +458,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	    // true:  send data immediately when socket is written to
             // false: delay sending, in order to coalesce packets
 	    int rc = VM.sysCall2(bootRecord.sysNetSocketNoDelayIP,
-				 ifd,
+				 native_fd,
 				 ((Boolean)val).booleanValue() ? 1 : 0);
 
 	    if (rc == -1) throw new SocketException("setTcpNoDelay");
@@ -564,7 +545,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	    }
 
 	    public void flush () throws IOException {
-		FileSupport.sync(java.io.JikesRVMSupport.getFd(fd));
+		VM_FileSystem.sync( native_fd );
 	    }
 
 	    public void close () throws IOException {

@@ -613,33 +613,6 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   }
 
   /**
-   * Return the file descriptor for standard input.
-   * To be used to create System.in.
-   */
-  public static int getStdinFileDescriptor() {
-    prepareStandardFd(0);
-    return 0;
-  }
-
-  /**
-   * Return the file descriptor for standard output.
-   * To be used to create System.out.
-   */
-  public static int getStdoutFileDescriptor() {
-    prepareStandardFd(1);
-    return 1;
-  }
-
-  /**
-   * Return the file descriptor for standard error.
-   * To be used to create System.err.
-   */
-  public static int getStderrFileDescriptor() {
-    prepareStandardFd(2);
-    return 2;
-  }
-
-  /**
    * Prepare a standard file descriptor (stdin, stdout, or stderr)
    * for use in a Java IO stream.  Basically, we try to set it
    * to be nonblocking if we think it wouldn't cause problems.
@@ -647,7 +620,7 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
    * it as blocking, then we enable a kluge that will allow us
    * to cope later on.
    */
-  private static void prepareStandardFd(int fd) {
+  static void prepareStandardFd(int fd) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
 
     int isTTY = VM.sysCall1(bootRecord.sysIsTTYIP, fd);

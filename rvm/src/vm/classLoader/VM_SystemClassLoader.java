@@ -4,7 +4,10 @@
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.librarySupport.FileSupport;
+
 import com.ibm.JikesRVM.*;
+
 import java.util.StringTokenizer;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -15,8 +18,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.io.*;
-
-import com.ibm.JikesRVM.librarySupport.FileSupport;
 
 /** 
  * Implements an object that functions as a system class loader.

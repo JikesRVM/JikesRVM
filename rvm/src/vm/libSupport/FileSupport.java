@@ -5,9 +5,9 @@
 
 
 package com.ibm.JikesRVM.librarySupport;
-import java.io.*; // includes java.io.JikesRVMSupport
+
 import java.io.*;
-import java.io.JikesRVMSupport;
+
 import com.ibm.JikesRVM.VM_FileSystem;
 import com.ibm.JikesRVM.VM_Callbacks;
 
@@ -633,7 +633,6 @@ public class FileSupport {
 	}
      });
   }
-  //-#endif
 
   /**
    * Registration hook for new FileDescriptor objects.
@@ -646,4 +645,6 @@ public class FileSupport {
   public static void onCreateFileDescriptor(FileDescriptor fd, boolean shared) {
     VM_FileSystem.onCreateFileDescriptor(JikesRVMSupport.getFd(fd), shared);
   }
+
+  //-#endif
 }

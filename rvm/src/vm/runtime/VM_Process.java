@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import java.io.JikesRVMSupport;
 import java.io.*;
 
 /**

@@ -54,9 +54,9 @@ class MainThread extends Thread {
    */
   public void run() {
     // Create file descriptors for stdin, stdout, stderr
-    java.io.JikesRVMSupport.setFd(FileDescriptor.in, VM_FileSystem.getStdinFileDescriptor());
-    java.io.JikesRVMSupport.setFd(FileDescriptor.out, VM_FileSystem.getStdoutFileDescriptor());
-    java.io.JikesRVMSupport.setFd(FileDescriptor.err, VM_FileSystem.getStderrFileDescriptor());
+    VM_FileSystem.prepareStandardFd( 0 );
+    VM_FileSystem.prepareStandardFd( 1 );
+    VM_FileSystem.prepareStandardFd( 2 );
 
     // Set up System.in, System.out, System.err
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);

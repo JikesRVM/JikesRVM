@@ -41,10 +41,12 @@ BEGIN {
 #
 # GC system messages
 #
-/^validRef: REF outside heap, ref = [0-9x]*$/ { kill_next = yes; next }
+/^polling caused gc - returning gc and retry$/ { next }
 /^0x[0-9a-f]*:REF=0x[0-9a-f]* \(REF OUTSIDE OF HEAP\)/ { next }
 /^getNextReferenceAddress: bridgeTarget/ { next }
 /^GC Summary:/ { next }
+
+/^validRef: REF outside heap, ref = [0-9x]*$/ { kill_next = yes; next }
 
 kill_next==yes { kill_next = no; next }
 

@@ -149,7 +149,6 @@ public class VM extends VM_Properties
 
     runClassInitializer("java.lang.Runtime");
     //-#if RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
     //-#else
@@ -247,6 +246,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Run class intializers that require fully booted VM
+    runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     //-#if !RVM_WITH_GNU_CLASSPATH
     runClassInitializer("com.ibm.oti.util.Msg");
