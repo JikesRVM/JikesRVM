@@ -43,11 +43,10 @@ public abstract class VM_ExceptionTable {
       // offset starts are sorted by starting point
       if (instructionOffset > eTable[i + TRY_START] &&
 	  instructionOffset <= eTable[i + TRY_END]) {
-	VM_TypeReference eRef = VM_TypeReference.getTypeRef(eTable[i + EX_TYPE]);
-	VM_Type lhs = eRef.peekResolvedType();
+	VM_Type lhs = VM_Type.getType(eTable[i + EX_TYPE]);
 	if (lhs == exceptionType) {
 	  return eTable[i + CATCH_START];
-	} else if (lhs != null && lhs.isInitialized()) {
+	} else if (lhs.isInitialized()) {
 	  Object[] rhsTIB = exceptionType.getTypeInformationBlock();
 	  if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
 	    return eTable[i + CATCH_START];

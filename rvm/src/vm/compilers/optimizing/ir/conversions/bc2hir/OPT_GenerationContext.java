@@ -703,7 +703,7 @@ public final class OPT_GenerationContext
     if (method.isSynchronized() && !options.MONITOR_NOP) {
       OPT_ExceptionHandlerBasicBlock rethrow =
 	new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
-					   new OPT_TypeOperand(VM_TypeReference.JavaLangThrowable), cfg);
+					   new OPT_TypeOperand(VM_Type.JavaLangThrowableType), cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
       OPT_RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
