@@ -50,13 +50,14 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    *      greater than the liveRatio for that column.</li>
    * </ul>
    */
-  private static final double[][] function = {{0.00, 0.00, 0.30, 0.60, 0.90, 1.00},
-					      {0.00, 0.90, 0.90, 0.95, 1.00, 1.00},
-					      {0.05, 0.90, 0.90, 0.95, 1.00, 1.00},
-					      {0.15, 1.00, 1.00, 1.10, 1.20, 1.20},
-					      {0.30, 1.20, 1.20, 1.25, 1.35, 1.30},
-					      {0.50, 1.25, 1.25, 1.30, 1.50, 1.50},
-					      {1.00, 1.25, 1.25, 1.30, 1.50, 1.50}};
+  private static final double[][] function = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
+					      {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+					      {0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+					      {0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
+					      {0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
+					      {0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
+					      {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
+					      {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
   
   private static double endLastMajorGC;
   private static double accumulatedGCTime;
@@ -222,7 +223,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
     factor += (gcLoadFraction * gcLoadDelta);
 
-    if (Options.verbose > 2) VM_Interface.sysWriteln("After gcLoad adjustment factor is ",factor);
+    if (Options.verbose > 2) VM_Interface.sysWriteln("Heap adjustment factor is ",factor);
 
     return factor;
   }
