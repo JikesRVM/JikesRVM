@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001,2003
+ * (C) Copyright IBM Corp. 2001,2003, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.jni;
@@ -465,8 +465,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                     from the superclass.
    *                     It is false if the method from the real class of the object 
    *                     is to be invoked, which may not be the actual method specified by methodID
-   * @param isVarArg  This flag describes whether the array of parameters is in var arg format or
-   *                  jvalue format
+   * @param argtype  Type of argument to be packaged.
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object packageAndInvoke(Object obj, int methodID, Address argAddress, 
@@ -840,7 +839,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   /**
    * Repackage the arguments passed as a variable argument list into an array of Object,
    * used by the JNI functions CallStatic<type>MethodV
-   * @param mth the target VM_Method
+   * @param targetMethod   The target {@link VM_Method}
    * @param argAddress an address into the C space for the array of jvalue unions;  
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
@@ -923,7 +922,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   /**
    * Repackage the arguments passed as an array of jvalue into an array of Object,
    * used by the JNI functions CallStatic<type>MethodA
-   * @param mth the target VM_Method
+   * @param targetMethod the target {@link VM_Method}
    * @param argAddress an address into the C space for the array of jvalue unions;  
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
