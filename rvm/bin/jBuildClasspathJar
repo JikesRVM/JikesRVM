@@ -156,6 +156,7 @@ if [[ $FULL = 1 ]]; then
   # build classpath source jar
   echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
   rm -f $RVM_ROOT/support/lib/classpathsrc.jar
+  mkdir -p $RVM_ROOT/support/lib
   touch $RVM_ROOT/support/lib/classpathsrc.jar
   cd $DEST_DIR/classpath
   for p in $TOP_LEVEL_PACKAGES; do
