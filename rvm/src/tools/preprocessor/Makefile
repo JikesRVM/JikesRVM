@@ -11,7 +11,7 @@ tool:
 	@$(MAKE) $(SCRATCH_DIR)/preprocessModifiedFiles
 
 $(SCRATCH_DIR)/preprocessModifiedFiles:	preprocessModifiedFiles.C
-	$(CXX) preprocessModifiedFiles.C -o $(SCRATCH_DIR)/preprocessModifiedFiles
+	$(CPLUS) preprocessModifiedFiles.C -o $(SCRATCH_DIR)/preprocessModifiedFiles
 
 
 # Preprocessor testing.
