@@ -431,6 +431,7 @@ abstract class memory implements jdpConstants, VM_Constants
    * @see printJVMstackTrace
    */
   private String printThisFrame(int depth, int linkaddr, int fp) {
+    VM_CompilerInfo compInfo;
     // System.out.println("methodID " + methodID);
     BootMap bmap = owner.bootmap();
     String depthString;
@@ -465,12 +466,22 @@ abstract class memory implements jdpConstants, VM_Constants
       	String method_name = mth.getName().toString();
       	String method_sig = mth.getDescriptor().toString();
       	String line;
+	
       	if (depth==0)            // for IP, get the current line
       	  line = bmap.findLineNumberAsString(compiledMethodID, linkaddr);   
-      	else                     // for LR, get the previous line
-      	  line = bmap.findPreviousLineNumberAsString(compiledMethodID, linkaddr);  
+      	else {                    // for LR, get the previous line (for baseline)
+	  compInfo = bmap.findVMCompilerInfo(compiledMethodID, true);
+	  if (compInfo != null && 
+	      compInfo.getCompilerType() == VM_CompilerInfo.OPT)
+	    line = bmap.findLineNumberAsString(compiledMethodID, linkaddr);
+	  else 
+	    line = bmap.findPreviousLineNumberAsString(compiledMethodID, linkaddr); 
+	}
+
+	String offset = Integer.toHexString(bmap.instructionOffset(compiledMethodID, linkaddr));
       	ret.append(depthString + "  0x" + Integer.toHexString(linkaddr) + 
                    "   " + class_name + "." + method_name + 
+		   "(+0x" + offset + ") " +
                    ": " + line + "   " + method_sig);
         ret.append('\n');
       } else {
