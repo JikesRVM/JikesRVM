@@ -435,11 +435,11 @@ public abstract class Generational extends StopTheWorldGC
       VM.sysWrite(wbSlowPathCounter); VM.sysWrite(" wb-slow>\n");
       wbFastPathCounter = wbSlowPathCounter = 0;
     }
-    remset.flushLocal(); // flush any remset entries collected during GC
     if (fullHeapGC) { 
       if (Plan.usesLOS) los.release();
       threadLocalMatureRelease(count);
     }
+    remset.flushLocal(); // flush any remset entries collected during GC
   }
 
   abstract void globalMatureRelease();
@@ -599,12 +599,9 @@ public abstract class Generational extends StopTheWorldGC
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    int pages = nurseryMR.reservedPages()<<1;
-    pages += matureMR.reservedPages()<<(Plan.copyMature ? 1 : 0);
-    pages += (Plan.usesLOS) ? losMR.reservedPages() : 0;
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
-    return pages;
+    return getPagesUsed()
+      + nurseryMR.reservedPages()
+      + (Plan.copyMature ? matureMR.reservedPages() : 0);
   }
 
   /**
