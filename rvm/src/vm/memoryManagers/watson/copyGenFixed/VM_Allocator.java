@@ -1674,10 +1674,9 @@ public class VM_Allocator
   }  // collect
   
 
-  /**
-   * Reset shared heap pointers, large space allocation arrays.
-   * Executed by 1 Collector thread at the end of collection.
-   */
+  // Reset shared heap pointers, large space allocation arrays.
+  // Executed by 1 Collector thread at the end of collection.
+  //
   static void
     gc_finish () {
     
@@ -1933,10 +1932,9 @@ public class VM_Allocator
   }  // gc_copyAndScanObject
   
 
-  /**
-   * Process writeBuffer attached to the executing processor. Executed by
-   * each collector thread during Minor Collections.
-   */
+  // Process writeBuffer attached to the executing processor. Executed by
+  // each collector thread during Minor Collections.
+  //
   static void
     gc_processWriteBuffers () {
     VM_WriteBuffer.processWriteBuffer(VM_Processor.getCurrentProcessor());
@@ -1953,6 +1951,7 @@ public class VM_Allocator
   
   // for copying VM_Thread & VM_Processor objects, object is NOT queued for scanning
   // does NOT assume exclusive access to object
+  //
   static int
     gc_copyObject ( int fromRef ) {
     VM_Type type;
@@ -2027,6 +2026,7 @@ public class VM_Allocator
   
   // called by ONE gc/collector thread to copy and "new" thread objects
   // copies but does NOT enqueue for scanning
+  //
   static void 
     gc_copyThreads ()  {
     int          i, ta, vpa, thread_count;
@@ -2046,17 +2046,16 @@ public class VM_Allocator
     }  // end of loop over threads[]
   } // gc_copyThreads
   
-  
-  /**
-   * Scans all threads in the VM_Scheduler threads array.  A threads stack
-   * will be copied if necessary and any interior addresses relocated.
-   * Each threads stack is scanned for object references, which will
-   * becomes Roots for a collection.
-   * <p>
-   * All collector threads execute here in parallel, and compete for
-   * individual threads to process.  Each collector thread processes
-   * its own thread object and stack.
-   */
+
+  // Scans all threads in the VM_Scheduler threads array.  A threads stack
+  // will be copied if necessary and any interior addresses relocated.
+  // Each threads stack is scanned for object references, which will
+  // becomes Roots for a collection.
+  //
+  // All collector threads execute here in parallel, and compete for
+  // individual threads to process.  Each collector thread processes
+  // its own thread object and stack.
+  //
   static void 
     gc_scanThreads ()  {
     int        i, ta, myThreadId, fp;
@@ -2280,7 +2279,10 @@ public class VM_Allocator
     
   } // gc_initProcessor
   
-  
+  // scan a VM_Processor object to force "interior" objects to be copied, marked,
+  // and queued for later scanning. adjusts write barrier pointers, if
+  // write buffer is moved.
+  //
   static void 
     gc_scanProcessor ()  {
     int               sta, oldbuffer, newbuffer;
@@ -2301,11 +2303,8 @@ public class VM_Allocator
       VM.assert(sta == VM_Magic.objectAsAddress(VM_Scheduler.processors[st.id]));
     }
     
-    // scan system thread object to force "interior" objects to be copied, marked, and
-    // queued for later scanning.
     oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
     VM_ScanObject.scanObjectOrArray(sta);
-    
     // if writebuffer moved, adjust interior pointers
     newbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
     if (oldbuffer != newbuffer) {
@@ -2332,25 +2331,6 @@ public class VM_Allocator
       ref = VM_GCWorkQueue.getFromWorkBuffer();
     }
   }  // gc_emptyWorkQueue
-  
-  
-  // 6/9/99 DL  copied here 8/6/99 SES
-  // Copy forward a block of machine code referenced by an interior pointer.
-  // Taken:    pointer to interior of machine code block
-  // Returned: pointer, adjusted forward
-  //
-  static int
-    gc_copyCode (int ip) {
-    VM_CompiledMethod compiledMethod = VM_ClassLoader.findMethodForInstruction(ip);
-    if (compiledMethod == null) {
-      // shouldn't happen: complain but try to keep going
-      VM.sysWrite("gc_copyCode: no method for "); VM.sysWrite(ip); VM.sysWrite("\n");
-      return ip;
-    }
-    int oldcode = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-    int newcode = gc_copyAndScanObject(oldcode);
-    return ip + newcode - oldcode;
-  }  // gc_copyCode
   
   // START OF LARGE OBJECT SPACE METHODS
   

@@ -1667,7 +1667,6 @@ public class VM_Allocator
     return;
   }  // collect
   
-  
   // reset heap pointers, reset locks for next GC
   // executed at the end of Minor collections (if major collection not needed)
   // and at the end  of Major Collections.  Only executed by ONE of the
@@ -2072,6 +2071,7 @@ public class VM_Allocator
   
   // called by ONE gc/collector thread to copy ALL "new" thread and processor objects
   // copies but does NOT enqueue for scanning
+  //
   static void 
     gc_copyThreads ()  {
     int          i, ta, vpa, thread_count, processor_count;
@@ -2091,16 +2091,15 @@ public class VM_Allocator
     }  // end of loop over threads[]
   } // gc_copyThreads
   
-  /**
-   * Scans all threads in the VM_Scheduler threads array.  A threads stack
-   * will be copied if necessary and any interior addresses relocated.
-   * Each threads stack is scanned for object references, which will
-   * becomes Roots for a collection.
-   * <p>
-   * All collector threads execute here in parallel, and compete for
-   * individual threads to process.  Each collector thread processes
-   * its own thread object and stack.
-   */
+  // Scans all threads in the VM_Scheduler threads array.  A threads stack
+  // will be copied if necessary and any interior addresses relocated.
+  // Each threads stack is scanned for object references, which will
+  // becomes Roots for a collection.
+  //
+  // All collector threads execute here in parallel, and compete for
+  // individual threads to process.  Each collector thread processes
+  // its own thread object and stack.
+  //
   static void 
     gc_scanThreads ()  {
     int        i, ta, myThreadId, fp;
@@ -2259,7 +2258,10 @@ public class VM_Allocator
     
   }  // gc_scanThreads
   
-  
+  // initProcessor is called by each GC thread to copy the processor object of the
+  // processor it is running on, and reset it processor register, and update its
+  // entry in the scheduler processors array and reset its local allocation pointers
+  //
   static void 
     gc_initProcessor ()  {
     int            sta;
@@ -2324,7 +2326,10 @@ public class VM_Allocator
     
   }  // gc_initProcessor
   
-  
+  // scan a VM_Processor object to force "interior" objects to be copied, marked,
+  // and queued for later scanning. adjusts write barrier pointers, if
+  // write buffer is moved.
+  //
   static void 
     gc_scanProcessor ()  {
     int               sta, oldbuffer, newbuffer;
@@ -2360,9 +2365,8 @@ public class VM_Allocator
   }  // scanProcessor
   
   
-  /**
-   * Process references in work queue buffers until empty.
-   */
+  // Process references in work queue buffers until empty.
+  //
   static void  
     gc_emptyWorkQueue () {
     int ref = VM_GCWorkQueue.getFromWorkBuffer();
@@ -2377,26 +2381,6 @@ public class VM_Allocator
       ref = VM_GCWorkQueue.getFromWorkBuffer();
     }
   }  // gc_emptyWorkQueue
-  
-  
-  // 6/9/99 DL
-  // Copy forward a block of machine code referenced by an interior pointer.
-  // Taken:    pointer to interior of machine code block
-  // Returned: pointer, adjusted forward
-  //
-  private static int
-    gc_copyCode (int ip)
-  {
-    VM_CompiledMethod compiledMethod = VM_ClassLoader.findMethodForInstruction(ip);
-    if (compiledMethod == null)
-      { // shouldn't happen: complain but try to keep going
-	VM.sysWrite("gc_copyCode: no method for "); VM.sysWrite(ip); VM.sysWrite("\n");
-	return ip;
-      }
-    int oldcode = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-    int newcode = gc_copyAndScanObject(oldcode);
-    return ip + newcode - oldcode;
-  }
   
   // START OF LARGE OBJECT SPACE METHODS
   

@@ -3293,12 +3293,11 @@ public class VM_Allocator
     }
   }
 
-  /**
-   * scan a VM_Processor object. Called by each collector thread during Minor
-   * collections to scan the VM_Processor is running on. Special things
-   * must be done, sometimes.  Looks like we allow the write buffer to move,
-   * but this should never happen (it is always in non-moving large space now)
-   */
+  // scan a VM_Processor object. Called by each collector thread during Minor
+  // collections to scan the VM_Processor is running on. Special things
+  // must be done, sometimes.  Looks like we allow the write buffer to move,
+  // but this should never happen (it is always in non-moving large space now)
+  //
   static void
     gc_scanProcessor ()  {
     int               sta, oldbuffer, newbuffer;
@@ -3323,13 +3322,11 @@ public class VM_Allocator
 
   }  // scanProcessor
 
-
-  /**
-   * input:  object ref of VM_Thread or object derived from VM_Thread (like java/lang/Thread)
-   * process pointer fields, skipping interior pointers
-   * ...VM_Thread no longer (11/1/98) has interior pointers, so a special scan routine
-   * is not necessary, the general scanObjectOrArray could be used
-   */
+  // input:  object ref of VM_Thread or object derived from VM_Thread (like java/lang/Thread)
+  // process pointer fields, skipping interior pointers
+  // ...VM_Thread no longer (11/1/98) has interior pointers, so a special scan routine
+  // is not necessary, the general scanObjectOrArray could be used
+  //
   static void
     gc_scanThread ( int objRef ) {
     VM_Type    type;
@@ -3347,10 +3344,9 @@ public class VM_Allocator
     }
   }
 
-  /**
-   * For copying system objects like VM_Thread & VM_Processor objects that
-   * do not have to be queued for scanning (they are explicitly scanned)
-   */
+  // For copying system objects like VM_Thread & VM_Processor objects that
+  // do not have to be queued for scanning (they are explicitly scanned)
+  //
   static int
     gc_copyObject ( int fromRef ) {
     VM_Type type;
@@ -3463,16 +3459,15 @@ public class VM_Allocator
     return toRef;
   }  // copyObject
 
-  /**
-   * Scans all threads in the VM_Scheduler threads array.  A threads stack
-   * will be copied if necessary and any interior addresses relocated.
-   * Each threads stack is scanned for object references, which will
-   * becomes Roots for a collection.
-   * <p>
-   * All collector threads execute here in parallel, and compete for
-   * individual threads to process.  Each collector thread processes
-   * its own thread object and stack.
-   */
+  // Scans all threads in the VM_Scheduler threads array.  A threads stack
+  // will be copied if necessary and any interior addresses relocated.
+  // Each threads stack is scanned for object references, which will
+  // becomes Roots for a collection.
+  //
+  // All collector threads execute here in parallel, and compete for
+  // individual threads to process.  Each collector thread processes
+  // its own thread object and stack.
+  //
   static void 
     gc_scanThreads ()  {
     int        i, ta, myThreadId, fp;
@@ -3597,25 +3592,6 @@ public class VM_Allocator
     }  // end of loop over threads[]
     
   }  // gc_scanThreads
-
-  // 6/9/99 DL
-  // Copy forward a block of machine code referenced by an interior pointer.
-  // Taken:    pointer to interior of machine code block
-  // Returned: pointer, adjusted forward
-  //
-  static int
-    gc_copyCode(int ip) {
-    VM_CompiledMethod compiledMethod = VM_ClassLoader.findMethodForInstruction(ip);
-    if (compiledMethod == null)
-      { // shouldn't happen: complain but try to keep going
-	VM.sysWrite("gc_copyCode: no method for "); VM.sysWrite(ip); VM.sysWrite("\n");
-	return ip;
-      }
-    int oldcode = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-    int newcode = gc_copyAndScanObject(oldcode);
-    return ip + newcode - oldcode;
-  }
-
 
   // END OF NURSERY GARBAGE COLLECTION ROUTINES HERE
 

@@ -827,15 +827,6 @@ public class VM_Allocator
   private static int zeroStart[] = null;     // start of nursery region for processors to zero
   private static int zeroBytes[] = null;     // number of bytes to zero
   
-  // following checks refs in stack frames before processing - for testing gcmaps
-  private static final boolean CHECK_STACK_REFS = false;
-
-  private static final boolean CHECK_STACKS = false;
-  // with CHECK_STACKS, optionally choose ONE of following 2 options
-  private static final boolean FIX_STACK_VALUES = false;  // write forwarding ptr into stack slots
-  private static final boolean ZAP_STACK_VALUES = false;  // write 1 up counter into stack slots
-  private static int zapStackValue = 0;                   // used when ZAP_STACK_VALUES is on
-  
   private static final boolean GC_TRIGGERGC = false;      // prints what triggered each GC
   private static final boolean TRACE = false;
   private static final boolean TRACE_STACKS = false;
@@ -1097,9 +1088,6 @@ public class VM_Allocator
       if (TIME_GC_PHASES)  gcInitDoneTime = VM_Time.now();
       if (RENDEZVOUS_WAIT_TIME) tempTime = 0.0;    // 0 time in initialization spinwait
 
-      if (ZAP_STACK_VALUES)
-	zapStackValue = 0x00010000;     //counter in upper half
-      
       // set Done flag to allow other GC threads to begin processing
       initGCDone = true;
       
@@ -1796,6 +1784,7 @@ public class VM_Allocator
      
   // called by ONE gc/collector thread to copy and "new" thread objects
   // copies but does NOT enqueue for scanning
+  //
   private static void 
   gc_copyThreads () {
     int          i, vpa, thread_count, processor_count;
@@ -1997,6 +1986,10 @@ public class VM_Allocator
   }  //gc_initProcessor
 
 
+  // scan a VM_Processor object to force "interior" objects to be copied, marked,
+  // and queued for later scanning. adjusts write barrier pointers, if
+  // write buffer is moved.
+  //
   static void 
   gc_scanProcessor () {
     int            oldbuffer, newbuffer;
@@ -2007,13 +2000,8 @@ public class VM_Allocator
     // verify that processor copied out of FromSpace earlier
     if (VM.VerifyAssertions) VM.assert( ! (VM_Magic.objectAsAddress(st) >= minFromRef && 
 					    VM_Magic.objectAsAddress(st) <= maxFromRef ) );
-
-    // scan system thread object to force "interior" objects to be copied, marked, and
-    // queued for later scanning.
     oldbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
-    // gc_scanThread(st);      // scan Processor with thread routine (its OK)
     VM_ScanObject.scanObjectOrArray(st);
-	
     // if writebuffer moved, adjust interior pointers
     newbuffer = VM_Magic.objectAsAddress(st.modifiedOldObjects);
     if (oldbuffer != newbuffer) {
@@ -2040,24 +2028,6 @@ public class VM_Allocator
       ref = VM_GCWorkQueue.getFromWorkBuffer();
     }
   }  // gc_emptyWorkQueue 
-
-  // 6/9/99 DL
-  // Copy forward a block of machine code referenced by an interior pointer.
-  // Taken:    pointer to interior of machine code block
-  // Returned: pointer, adjusted forward
-  //
-  private static int
-  gc_copyCode (int ip) {
-    VM_CompiledMethod compiledMethod = VM_ClassLoader.findMethodForInstruction(ip);
-    if (compiledMethod == null) {
-      // shouldn't happen: complain but try to keep going
-      VM.sysWrite("gc_copyCode: no method for "); VM.sysWrite(ip); VM.sysWrite("\n");
-      return ip;
-    }
-    Object oldcode = compiledMethod.getInstructions();
-    Object newcode = gc_copyAndScanObject(oldcode);
-    return ip + VM_Magic.objectAsAddress(newcode) - VM_Magic.objectAsAddress(oldcode);
-  }  // gc_copyCode
 
   // START OF LARGE OBJECT SPACE METHODS
 
