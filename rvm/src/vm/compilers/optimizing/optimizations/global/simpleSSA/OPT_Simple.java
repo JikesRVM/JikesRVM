@@ -172,10 +172,6 @@ final class OPT_Simple extends OPT_CompilerPhase
         if (rhs.isRegister() && !rhs.asRegister().register.isSSA())
           continue;
 
-	// KLUDGE: if rhs is a register that is defined by a PHI instruction, don't propogate it.
-	// if (rhs.isRegister() && rhs.asRegister().register.defList.instruction.operator() == PHI)
-	// continue;
-
 	reiterate = ir.options.getOptLevel() > 1;
         // Now substitute rhs for all uses of lhs, updating the 
         // register list as we go.
