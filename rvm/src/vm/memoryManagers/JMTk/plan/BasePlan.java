@@ -427,6 +427,13 @@ public abstract class BasePlan
     return heapPages; 
   }
 
+  /**
+   * @return Whether last GC is a full GC.
+   */
+  public static boolean isLastGCFull () {
+    return true;
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Miscellaneous

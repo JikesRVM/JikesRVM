@@ -76,7 +76,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static TreadmillSpace losSpace;
 
   // GC state
-  protected static boolean fullHeapGC = false;
+  protected static boolean fullHeapGC = false;  // Whether next GC will be full - set at end of last GC
+  protected static boolean lastGCFull = false;  // Whether previous GC was full - set during full GC
 
   // Allocators
   protected static final byte NURSERY_SPACE = 0;
@@ -378,7 +379,7 @@ public abstract class Generational extends StopTheWorldGC
    * Perform a collection.
    */
   public final void collect () {
-    if ((verbose == 1) && (fullHeapGC)) VM.sysWrite("[Full heap]");
+    if ((verbose >= 1) && (fullHeapGC)) VM.sysWrite("[Full heap]");
     super.collect();
   }
 
@@ -393,6 +394,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void globalPrepare() {
     nurseryMR.reset(); // reset the nursery
+    lastGCFull = fullHeapGC;
     if (fullHeapGC) {
       Statistics.gcMajorCount++;
       // prepare each of the collected regions
@@ -489,6 +491,13 @@ public abstract class Generational extends StopTheWorldGC
       progress = false;
     } else
       progress = true;
+  }
+
+  /**
+   * @return Whether last GC is a full GC.
+   */
+  public static boolean isLastGCFull () {
+    return lastGCFull;
   }
 
   ////////////////////////////////////////////////////////////////////////////
