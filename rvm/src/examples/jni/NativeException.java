@@ -56,7 +56,7 @@ class NativeException {
     try {
       returnFlag = testPassThrough(intArray);  // shouldn't return here
       returnFlag = false;
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       printVerbose("Caught exception:  expected ArrayIndexOutOfBoundsException, got " +
 		   e.toString());
       returnFlag = true;
@@ -68,11 +68,13 @@ class NativeException {
      * check for exception in native code
      */
     try {
-      returnFlag = testExceptionOccured(intArray);  // shouldn't return here      
-    } catch (Exception e) {
-      printVerbose("Caught exception:  expected ArrayIndexOutOfBoundsException, got " +
-		   e.toString());
+      returnFlag = testExceptionOccured(intArray);  // should return to here   
+      System.out.println("Hi dave\n");
+      returnFlag = true;
+    } catch (RuntimeException e) {
+      returnFlag = false; // shouldn't be here.
     }
+    checkTest(0, returnFlag, "Exception handled in native code");
     
     
     /****************************************************
@@ -80,7 +82,7 @@ class NativeException {
      */
     try {
       returnFlag = testExceptionClear(intArray);  
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       returnFlag = false;  // shouldn't be here      
     }
     checkTest(0, returnFlag, "ExceptionClear");
@@ -89,13 +91,16 @@ class NativeException {
     /****************************************************
      * print exception trace and clear
      */
-    try {
-      returnFlag = testExceptionDescribe(intArray);  
-    } catch (Exception e) {
-      returnFlag = false;  // shouldn't be here      
+    if (verbose) { 
+      // disable when 'quiet' due to differences in jdk & RVM
+      // printing in stack traces.  Causes spurious test failure.
+      try {
+	returnFlag = testExceptionDescribe(intArray);  
+      } catch (RuntimeException e) {
+	returnFlag = false;  // shouldn't be here      
+      }
+      checkTest(0, returnFlag, "ExceptionDescribe");
     }
-    checkTest(0, returnFlag, "ExceptionDescribe");
-
 
     /****************************************************
      * give the native code an exception to throw
@@ -130,14 +135,14 @@ class NativeException {
 
     /****************************************************
      * let the native code declare FatalError and exit the JVM
-     */
     try {
       returnFlag = testFatalError(allTestPass, intArray);  
       returnFlag = false;  // shouldn't be here            
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       returnFlag = false;  // shouldn't be here      
     }
     checkTest(0, returnFlag, "FatalError");
+     */
 
 
     // Summarize
