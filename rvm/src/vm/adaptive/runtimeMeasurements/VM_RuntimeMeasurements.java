@@ -274,6 +274,17 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
   }
 
   /**
+   * Stop the runtime measurement subsystem
+   */
+  static void stop() {
+    synchronized(listenerLock) {
+      methodListeners = new VM_MethodListener[0];
+      contextListeners = new VM_ContextListener[0];
+      nullListeners = new VM_NullListener[0];
+    }
+  }
+    
+  /**
    * Called from VM_Thread.terminate.
    */
   public static void monitorThreadExit() {

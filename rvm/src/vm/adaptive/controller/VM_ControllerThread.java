@@ -80,6 +80,10 @@ class VM_ControllerThread extends VM_Thread {
     // block until an event is available.
     // Repeat forever.
     while (true) {
+      if (VM_Controller.options.EARLY_EXIT &&
+	  VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
+	VM_Controller.stop();
+      }
       Object event = VM_Controller.controllerInputQueue.deleteMin();
       ((VM_ControllerInputEvent)event).process();
     }

@@ -32,4 +32,6 @@ Should we read the compiler DNA (relative cost/benefits) from a file?
 REPORT_STATIC_PROGRAM_STATS -1 false
 On exit, print some static summary information of the program?
 
+EARLY_EXIT -1 false
+Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
 
