@@ -1034,15 +1034,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x6d: /* --- ldiv --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("ldiv");
-          asm.emitLtoc(T0, VM_Entrypoints.longDivideMethod.getOffset());
-          asm.emitMTLR(T0);
-          asm.emitL   (T1, 12, SP);
-	  asm.emitL   (T0,  8, SP);
           asm.emitL   (T3,  4, SP);
           asm.emitL   (T2,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
-	  asm.emitST  (T1, 12, SP);
-	  asm.emitSTU (T0,  8, SP);
+	  asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+          asm.emitTEQ0(T0);         // trap if 0.
+          asm.emitL   (T1, 12, SP);
+	  asm.emitL   (T0,  8, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysLongDivideIPField);
+	  asm.emitST  (T1, 12, SP); 
+	  asm.emitSTU (T0,  8, SP); 
           break;
 	}
         case 0x6e: /* --- fdiv --- */ {
@@ -1074,15 +1074,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x71: /* --- lrem --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("lrem");
-          asm.emitLtoc(T0, VM_Entrypoints.longRemainderMethod.getOffset());
-          asm.emitMTLR(T0);
-          asm.emitL   (T1, 12, SP);
-	  asm.emitL   (T0,  8, SP);
           asm.emitL   (T3,  4, SP);
           asm.emitL   (T2,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
-	  asm.emitST  (T1, 12, SP);
-	  asm.emitSTU (T0,  8, SP);
+	  asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+          asm.emitTEQ0(T0);         // trap if 0.
+          asm.emitL   (T1, 12, SP);
+	  asm.emitL   (T0,  8, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 16, VM_Entrypoints.sysLongRemainderIPField);
+	  asm.emitST  (T1, 12, SP); 
+	  asm.emitSTU (T0,  8, SP); 
           break;
 	}
         case 0x72: /* --- frem --- */ {
@@ -1357,21 +1357,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x89: /* --- l2f --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("l2f");
-          asm.emitLtoc (T0, VM_Entrypoints.longToDoubleMethod.getOffset());
-          asm.emitMTLR (T0);
-          asm.emitL    (T1,  4, SP);
-	  asm.emitL    (T0,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
+          asm.emitL   (T1, 4, SP);
+	  asm.emitL   (T0, 0, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysLongToFloatIPField);
 	  asm.emitSTFSU(F0,  4, SP);
           break;
 	}
         case 0x8a: /* --- l2d --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("l2d"); 
-	  asm.emitLtoc(T0, VM_Entrypoints.longToDoubleMethod.getOffset());
-          asm.emitMTLR(T0);
-          asm.emitL   (T1,  4, SP);
-	  asm.emitL   (T0,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
+          asm.emitL   (T1, 4, SP);
+	  asm.emitL   (T0, 0, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysLongToDoubleIPField);
 	  asm.emitSTFD(F0,  0, SP);
           break;
 	}
@@ -1384,10 +1380,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x8c: /* --- f2l --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("f2l");
-          asm.emitLtoc(T0, VM_Entrypoints.doubleToLongMethod.getOffset());
-          asm.emitMTLR(T0);
           asm.emitLFS (F0,  0, SP);
-          asm.emitCall(spSaveAreaOffset);
+	  VM_MagicCompiler.generateSysCall(asm, 4, VM_Entrypoints.sysFloatToLongIPField);
 	  asm.emitST  (T1,  0, SP);
 	  asm.emitSTU (T0, -4, SP);
           break;
@@ -1408,12 +1402,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	}
         case 0x8f: /* --- d2l --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("d2l");
-          asm.emitLtoc(T0, VM_Entrypoints.doubleToLongMethod.getOffset());
-          asm.emitMTLR(T0);
-          asm.emitLFD (F0, 0, SP);
-          asm.emitCall(spSaveAreaOffset);
-          asm.emitST  (T1, 4, SP);
-	  asm.emitST  (T0, 0, SP);
+          asm.emitLFD (F0,  0, SP);
+	  VM_MagicCompiler.generateSysCall(asm, 8, VM_Entrypoints.sysDoubleToLongIPField);
+	  asm.emitST  (T1, 4, SP);
+	  asm.emitSTU (T0, 0, SP);
           break;
 	}
         case 0x90: /* --- d2f --- */ {

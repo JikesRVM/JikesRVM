@@ -87,11 +87,6 @@ class TabooMethods {
 			      "(I[Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"));
     tabooSet.add(VM.getMember("LVM_Allocator;", "cloneArray", 
 			      "(II[Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"));
-    tabooSet.add(VM.getMember("LVM_Math;", "doubleToInt", "(D)I"));
-    tabooSet.add(VM.getMember("LVM_Math;", "doubleToLong", "(D)J"));
-    tabooSet.add(VM.getMember("LVM_Math;", "longDivide", "(JJ)J"));
-    tabooSet.add(VM.getMember("LVM_Math;", "longRemainder", "(JJ)J"));
-    tabooSet.add(VM.getMember("LVM_Math;", "longToDouble", "(J)D"));
     tabooSet.add(VM.getMember("LVM_Class;", "load", "()V"));
     tabooSet.add(VM.getMember("LVM_Class;", "resolve", "()V"));
     tabooSet.add(VM.getMember("LVM_Class;", "instantiate", "()V"));

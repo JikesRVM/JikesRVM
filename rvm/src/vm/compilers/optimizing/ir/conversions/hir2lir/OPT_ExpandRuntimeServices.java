@@ -277,26 +277,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		     methodOp, Athrow.getClearValue(inst));
 	break;
 
-      case LONG_2DOUBLE_opcode: case LONG_2FLOAT_opcode:
-        if (Unary.getResult(inst).isRegister()) {
-          // make sure we get it as a double
-          Unary.getResult(inst).asRegister().type = VM_Type.DoubleType;
-        }
-	Call.mutate1(inst, CALL, Unary.getClearResult(inst), null, 
-		     OPT_MethodOperand.STATIC(VM_Entrypoints.longToDoubleMethod), 
-		     Unary.getClearVal(inst));
-	break;
-
-      case DOUBLE_2LONG_opcode: case FLOAT_2LONG_opcode:
-        if (Unary.getVal(inst).isRegister()) {
-          // make sure we pass it as a double
-          Unary.getVal(inst).asRegister().type = VM_Type.DoubleType;
-        }
-	Call.mutate1(inst, CALL, Unary.getClearResult(inst), null, 
-		     OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToLongMethod), 
-		     Unary.getClearVal(inst));
-	break;
-
       case MONITORENTER_opcode:
 	if (ir.options.NO_SYNCHRO) {
 	  inst.remove();

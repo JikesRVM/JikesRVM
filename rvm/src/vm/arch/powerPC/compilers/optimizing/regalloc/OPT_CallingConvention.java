@@ -68,13 +68,11 @@ implements OPT_PhysicalRegisterConstants {
   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand ip, toc = null;
     if (CallSpecial.getMethod(s) instanceof OPT_SysMethodOperand) {
-      OPT_SysMethodOperand nat = (OPT_SysMethodOperand)
-        CallSpecial.getClearMethod(s);
-      OPT_RegisterOperand t1 = OPT_ConvertToLowLevelIR.getStatic(s, ir, 
-                                                                 nat.record);
+      OPT_SysMethodOperand nat = (OPT_SysMethodOperand)CallSpecial.getClearMethod(s);
+      OPT_RegisterOperand t1 = 
+	OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
       ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, nat.ip);
-      if (nat.toc != null)
-        toc = OPT_ConvertToLowLevelIR.getField(s, ir, t1.copyU2U(), nat.toc);
+      toc = OPT_ConvertToLowLevelIR.getField(s, ir, t1.copyRO(), VM_Entrypoints.sysTOCField);
     } else {
       ip = (OPT_RegisterOperand)CallSpecial.getClearAddress(s);
       toc = (OPT_RegisterOperand)CallSpecial.getClearMethod(s);

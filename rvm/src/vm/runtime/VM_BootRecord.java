@@ -295,15 +295,15 @@ public class VM_BootRecord {
   int sysPthreadExitIP;
   int sysPthreadJoinIP;
 
-  //-#if RVM_WITH_OPT_COMPILER
-  //
-  // arithmetic (opt compiler)
+  // arithmetic 
   int sysLongDivideIP;
   int sysLongRemainderIP;
-  int sysLongDivideTOC;
-  int sysLongRemainderTOC;
-  //
-  //-#endif
+  int sysLongToFloatIP;
+  int sysLongToDoubleIP;
+  int sysFloatToIntIP;
+  int sysDoubleToIntIP;
+  int sysFloatToLongIP;
+  int sysDoubleToLongIP;
 
   // time
   int sysGetTimeOfDayIP;

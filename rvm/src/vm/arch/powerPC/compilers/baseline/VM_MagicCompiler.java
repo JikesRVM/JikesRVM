@@ -894,6 +894,33 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitCAL (FP,  +linkageAreaSize, FP);        // remove linkage area
       }
 
+
+  // generate call and return sequence to invoke a C arithmetic helper function through the boot record
+  // field specificed by target.  See comments above in sysCall1 about AIX linkage conventions.
+  // Caller deals with expression stack (setting up args, pushing return, adjusting stack height)
+  static void generateSysCall(VM_Assembler asm, int parametersSize, VM_Field target) {
+    int linkageAreaSize   = parametersSize + (2 * SIZE_TOC) + (6 * 4);
+
+    asm.emitSTU (FP,  -linkageAreaSize, FP);        // create linkage area
+    asm.emitST  (JTOC, linkageAreaSize-4, FP);      // save JTOC
+    asm.emitST  (SP,   linkageAreaSize-8, FP);      // save SP
+
+    // acquire toc and ip from bootrecord
+    asm.emitLtoc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitL   (JTOC, VM_Entrypoints.sysTOCField.getOffset(), S0);
+    asm.emitL   (0, target.getOffset(), S0);
+
+    // call it
+    asm.emitMTLR(0);
+    asm.emitBLRL(); 
+
+    // cleanup
+    asm.emitL   (JTOC, linkageAreaSize - 4, FP);    // restore JTOC
+    asm.emitL   (SP,   linkageAreaSize - 8, FP);    // restore SP
+    asm.emitCAL (FP,   linkageAreaSize, FP);        // remove linkage area
+  }
+
+
    static void
    generateSysCallRet_I(VM_Assembler asm, int rawParametersSize)
       {

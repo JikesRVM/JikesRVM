@@ -999,19 +999,48 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
 // Arithmetic operations. //
 //------------------------//
 
-// long divide and remainder
-//
-extern "C" long long
-sysLongDivide(long long a, long long b)
-  {
-  return a / b;
-  }
+extern "C" long long sysLongDivide(long long a, long long b) {
+  return a/b;
+}
 
-extern "C" long long
-sysLongRemainder(long long a, long long b)
-  {
+extern "C" long long sysLongRemainder(long long a, long long b) {
   return a % b;
-  }
+}
+
+extern "C" double sysLongToDouble(long long a) {
+  return (double)a;
+}
+
+extern "C" float sysLongToFloat(long long a) {
+  return (float)a;
+}
+
+double maxlong = 0.5 + (double)0x7fffffffffffffffLL;
+double maxint  = 0.5 + (double)0x7fffffff;
+
+extern "C" int sysFloatToInt(float a) {
+  if (maxint <= a) return 0x7fffffff;
+  if (a <= -maxint) return 0x80000000;
+  return (int)a;
+}
+
+extern "C" int sysDoubleToInt(double a) {
+  if (maxint <= a) return 0x7fffffff;
+  if (a <= -maxint) return 0x80000000;
+  return (int)a;
+}
+
+extern "C" long long sysFloatToLong(float a) {
+  if (maxlong <= a) return 0x7fffffffffffffffLL;
+  if (a <= -maxlong) return 0x8000000000000000LL;
+  return (long long)a;
+}
+
+extern "C" long long sysDoubleToLong(double a) {
+  if (maxlong <= a) return 0x7fffffffffffffffLL;
+  if (a <= -maxlong) return 0x8000000000000000LL;
+  return (long long)a;
+}
 
 //-------------------//
 // Memory operations //

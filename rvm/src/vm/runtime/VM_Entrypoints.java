@@ -46,12 +46,6 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method resolveFieldMethod      = getMethod("LVM_TableBasedDynamicLinker;", "resolveField", "(I)V");
   static final VM_Field  fieldOffsetsField       = getField("LVM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
 
-  static final VM_Method longMultiplyMethod = getMethod("LVM_Math;", "longMultiply", "(JJ)J");
-  static final VM_Method longDivideMethod   = getMethod("LVM_Math;", "longDivide", "(JJ)J");
-  static final VM_Method longRemainderMethod= getMethod("LVM_Math;", "longRemainder", "(JJ)J");
-  static final VM_Method longToDoubleMethod = getMethod("LVM_Math;", "longToDouble", "(J)D");
-  static final VM_Method doubleToIntMethod  = getMethod("LVM_Math;", "doubleToInt", "(D)I");
-  static final VM_Method doubleToLongMethod = getMethod("LVM_Math;", "doubleToLong", "(D)J");
   static final VM_Field longOneField        = getField("LVM_Math;", "longOne", "J");  // 1L
   static final VM_Field minusOneField       = getField("LVM_Math;", "minusOne", "F"); // -1.0F
   static final VM_Field zeroFloatField      = getField("LVM_Math;", "zero", "F");     // 0.0F
@@ -176,6 +170,14 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field lockoutProcessorField           = getField("LVM_BootRecord;", "lockoutProcessor", "I");
   static final VM_Field sysVirtualProcessorYieldIPField = getField("LVM_BootRecord;", "sysVirtualProcessorYieldIP", "I");
   static final VM_Field externalSignalFlagField         = getField("LVM_BootRecord;", "externalSignalFlag", "I");
+  static final VM_Field sysLongDivideIPField            = getField("LVM_BootRecord;", "sysLongDivideIP", "I");
+  static final VM_Field sysLongRemainderIPField         = getField("LVM_BootRecord;", "sysLongRemainderIP", "I");
+  static final VM_Field sysLongToFloatIPField           = getField("LVM_BootRecord;", "sysLongToFloatIP", "I");
+  static final VM_Field sysLongToDoubleIPField          = getField("LVM_BootRecord;", "sysLongToDoubleIP", "I");
+  static final VM_Field sysFloatToIntIPField            = getField("LVM_BootRecord;", "sysFloatToIntIP", "I");
+  static final VM_Field sysDoubleToIntIPField           = getField("LVM_BootRecord;", "sysDoubleToIntIP", "I");
+  static final VM_Field sysFloatToLongIPField           = getField("LVM_BootRecord;", "sysFloatToLongIP", "I");
+  static final VM_Field sysDoubleToLongIPField          = getField("LVM_BootRecord;", "sysDoubleToLongIP", "I");
   //-#if RVM_FOR_POWERPC
   static final VM_Field sysTOCField                     = getField("LVM_BootRecord;", "sysTOC", "I");
   //-#endif

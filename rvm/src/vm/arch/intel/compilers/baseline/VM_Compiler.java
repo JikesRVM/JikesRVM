@@ -941,11 +941,36 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x6d: /* ldiv */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ldiv");
-	int offset = VM_Entrypoints.longDivideMethod.getOffset();
-	genParameterRegisterLoad(4); // pass 4 parameter words (2 longs)
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);  // high half
-	asm.emitPUSH_Reg(T1);  // low half
+	// (1) zero check
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);
+	asm.emitOR_Reg_RegDisp(T0, SP, 4);
+	VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
+	asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);	// trap if divisor is 0
+	fr1.resolve(asm);
+	// (2) save RVM nonvolatiles
+	int numNonVols = NONVOLATILE_GPRS.length;
+	for (int i = 0; i<numNonVols; i++) {
+	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (3) Push args to C function (reversed)
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+	// (4) invoke C function through bootrecord
+	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongDivideIPField.getOffset());
+	// (5) pop space for arguments
+	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+	// (6) restore RVM nonvolatiles
+	for (int i = numNonVols-1; i >=0; i--) {
+	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (7) pop expression stack
+	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+	// (8) push results
+	asm.emitPUSH_Reg(T1);
+	asm.emitPUSH_Reg(T0);
 	break;
       }
       case 0x6e: /* fdiv */ {
@@ -976,11 +1001,36 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x71: /* lrem */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lrem");
-	int offset = VM_Entrypoints.longRemainderMethod.getOffset();
-	genParameterRegisterLoad(4); // pass 4 parameter words (2 longs)
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);  // high half
-	asm.emitPUSH_Reg(T1);  // low half
+	// (1) zero check
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);
+	asm.emitOR_Reg_RegDisp(T0, SP, 4);
+	VM_ForwardReference fr1 = asm.forwardJcc(asm.NE);
+	asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);	// trap if divisor is 0
+	fr1.resolve(asm);
+	// (2) save RVM nonvolatiles
+	int numNonVols = NONVOLATILE_GPRS.length;
+	for (int i = 0; i<numNonVols; i++) {
+	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (3) Push args to C function (reversed)
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+20);
+	// (4) invoke C function through bootrecord
+	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysLongRemainderIPField.getOffset());
+	// (5) pop space for arguments
+	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+	// (6) restore RVM nonvolatiles
+	for (int i = numNonVols-1; i >=0; i--) {
+	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (7) pop expression stack
+	asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);
+	// (8) push results
+	asm.emitPUSH_Reg(T1);
+	asm.emitPUSH_Reg(T0);
 	break;
       }
       case 0x72: /* frem */ {
@@ -1282,29 +1332,47 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x8b: /* f2i */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "f2i");
-	// convert to double
-	asm.emitFLD_Reg_RegInd(FP0, SP);
-	asm.emitSUB_Reg_Imm(SP, WORDSIZE);                // grow the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-	// and convert to int
-	int offset = VM_Entrypoints.doubleToIntMethod.getOffset();
-	genParameterRegisterLoad(); // pass 1 parameter
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);
+	// (1) save RVM nonvolatiles
+	int numNonVols = NONVOLATILE_GPRS.length;
+	for (int i = 0; i<numNonVols; i++) {
+	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (2) Push arg to C function 
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
+	// (3) invoke C function through bootrecord
+	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
+	// (4) pop argument;
+	asm.emitPOP_Reg(S0);
+	// (5) restore RVM nonvolatiles
+	for (int i = numNonVols-1; i >=0; i--) {
+	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (6) put result on expression stack
+	asm.emitMOV_RegDisp_Reg(SP, 0, T0);
 	break;
       }
       case 0x8c: /* f2l */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "f2l");
-	// convert to double
-	asm.emitFLD_Reg_RegInd(FP0, SP);
-	asm.emitSUB_Reg_Imm(SP, WORDSIZE);                // grow the stack
-	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-	// and convert to long
-	int offset = VM_Entrypoints.doubleToLongMethod.getOffset();
-	genParameterRegisterLoad(); // pass 1 parameter
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);        // high half
-	asm.emitPUSH_Reg(T1);        // low half
+	// (1) save RVM nonvolatiles
+	int numNonVols = NONVOLATILE_GPRS.length;
+	for (int i = 0; i<numNonVols; i++) {
+	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (2) Push arg to C function 
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE);
+	// (3) invoke C function through bootrecord
+	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffset());
+	// (4) pop argument;
+	asm.emitPOP_Reg(S0);
+	// (5) restore RVM nonvolatiles
+	for (int i = numNonVols-1; i >=0; i--) {
+	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (6) put result on expression stack
+	asm.emitMOV_RegDisp_Reg(SP, 0, T1);
+	asm.emitPUSH_Reg(T0);
 	break;
       }
       case 0x8d: /* f2d */ {
@@ -1316,19 +1384,52 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       case 0x8e: /* d2i */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "d2i");
-	int offset = VM_Entrypoints.doubleToIntMethod.getOffset();
-	genParameterRegisterLoad(); // pass 1 parameter
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);
+	// (1) save RVM nonvolatiles
+	int numNonVols = NONVOLATILE_GPRS.length;
+	for (int i = 0; i<numNonVols; i++) {
+	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (2) Push args to C function (reversed)
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	// (3) invoke C function through bootrecord
+	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffset());
+	// (4) pop arguments
+	asm.emitPOP_Reg(S0);
+	asm.emitPOP_Reg(S0);
+	// (5) restore RVM nonvolatiles
+	for (int i = numNonVols-1; i >=0; i--) {
+	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (6) put result on expression stack
+	asm.emitPOP_Reg(S0); // shrink stack by 1 word
+	asm.emitMOV_RegDisp_Reg(SP, 0, T0);
 	break;
       }
       case 0x8f: /* d2l */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "d2l");
-	int offset = VM_Entrypoints.doubleToLongMethod.getOffset();
-	genParameterRegisterLoad(); // pass 1 parameter
-	asm.emitCALL_RegDisp(JTOC, offset);
-	asm.emitPUSH_Reg(T0);        // high half
-	asm.emitPUSH_Reg(T1);        // low half
+	// (1) save RVM nonvolatiles
+	int numNonVols = NONVOLATILE_GPRS.length;
+	for (int i = 0; i<numNonVols; i++) {
+	  asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (2) Push args to C function (reversed)
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	asm.emitPUSH_RegDisp(SP, numNonVols*WORDSIZE+4);
+	// (3) invoke C function through bootrecord
+	asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+	asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToLongIPField.getOffset());
+	// (4) pop arguments
+	asm.emitPOP_Reg(S0);
+	asm.emitPOP_Reg(S0);
+	// (5) restore RVM nonvolatiles
+	for (int i = numNonVols-1; i >=0; i--) {
+	  asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+	}
+	// (6) put result on expression stack
+	asm.emitMOV_RegDisp_Reg(SP, 4, T1);
+	asm.emitMOV_RegDisp_Reg(SP, 0, T0);
 	break;
       }
       case 0x90: /* d2f */ {

@@ -558,34 +558,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
   /**
-   * Expansion of FLOAT_2INT and DOUBLE_2INT, by calling VM_Math
-   * 
-   * Note: we cannot inline VM_Math.doubleToInt, since we cannot register
-   * allocate it and preserve IEEE FPR semantics, since IA32 has 80-bit
-   * FPRs.  TODO: support the fp strict option, including inlining of
-   * strict into non-strict.
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void FPR_2INT_VM_Math(OPT_BURS burs, OPT_Instruction s,
-			      OPT_RegisterOperand result,
-			      OPT_Operand value) {
-    OPT_RegisterOperand doubleVal = burs.ir.regpool.makeTempDouble();
-    burs.append(MIR_Move.create(IA32_FMOV, doubleVal, value));
-
-    // Call VM_Math.doubleToInt
-    int offset = VM_Entrypoints.doubleToIntMethod.getOffset();
-    OPT_Operand targetAddr = loadFromJTOC(burs, offset);
-    OPT_MethodOperand targetMeth = OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToIntMethod);
-    burs.append(CPOS(s, MIR_Call.mutate1(s, IA32_CALL, result, null, 
-					 targetAddr, targetMeth, 
-					 doubleVal)));
-  }
-
-  /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT, using the FIST instruction.
    * This expansion does some boolean logic and conditional moves in order
    * to avoid changing the floating-point rounding mode or inserting
@@ -596,9 +568,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    * @param result the result operand
    * @param value the second operand
    */
-  final void FPR_2INT_FIST(OPT_BURS burs, OPT_Instruction s,
-			   OPT_RegisterOperand result,
-			   OPT_Operand value) {
+  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
+		      OPT_RegisterOperand result,
+		      OPT_Operand value) {
     OPT_MemoryOperand M;
 
     // Step 1: Get value to be converted into myFP0
@@ -725,27 +697,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				    OPT_IA32ConditionOperand.PE()));
     
   }
-  /**
-   * Expansion of FLOAT_2INT and DOUBLE_2INT
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void FPR_2INT(OPT_BURS burs, OPT_Instruction s,
-		      OPT_RegisterOperand result,
-		      OPT_Operand value) {
-    OPT_Options options = getIR().options;
-    if (options.f2intVM_Math()) {
-      FPR_2INT_VM_Math(burs,s,result,value);
-    } else if (options.f2intFist()) {
-      FPR_2INT_FIST(burs,s,result,value);
-    } else {
-      OPT_OptimizingCompilerException.TODO("Unsupported f2int option");
-    }
-  }
-
 
   /**
    * Emit code to move 64 bits from FPRs to GPRs

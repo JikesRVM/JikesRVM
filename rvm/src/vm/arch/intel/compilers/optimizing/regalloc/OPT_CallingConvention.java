@@ -442,11 +442,8 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
       OPT_SysMethodOperand sysM = 
 	(OPT_SysMethodOperand)CallSpecial.getClearMethod(s);
       OPT_RegisterOperand t1 = 
-	OPT_ConvertToLowLevelIR.getStatic(s, ir, sysM.record);
+	OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
       ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, sysM.ip);
-
-
-
     } else {
       ip = (OPT_RegisterOperand)CallSpecial.getClearAddress(s);
     }

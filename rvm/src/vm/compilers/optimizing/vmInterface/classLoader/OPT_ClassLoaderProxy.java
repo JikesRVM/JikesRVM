@@ -49,7 +49,6 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
   static VM_Type NULL_TYPE;
   static VM_Type VALIDATION_TYPE;
   static VM_Class uninterruptibleClass;
-  static VM_Class VM_BootRecord;
   static VM_Type InstructionArrayType;
   static VM_Type VM_ProcessorType;
 

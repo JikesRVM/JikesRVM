@@ -43,7 +43,6 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
     NULL_TYPE = findOrCreateType("LOPT_ClassLoaderProxy$OPT_DUMMYNullPointerType;");
     VALIDATION_TYPE = findOrCreateType("LOPT_ClassLoaderProxy$OPT_DUMMYValidationType;");
     uninterruptibleClass = findOrCreateType("LVM_Uninterruptible;").asClass();
-    VM_BootRecord = findOrCreateType("LVM_BootRecord;").asClass();
     InstructionArrayType = findOrCreateType(VM.INSTRUCTION_ARRAY_SIGNATURE);
     VM_ProcessorType = findOrCreateType("LVM_Processor;");
   }

@@ -162,7 +162,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    CallSpecial.mutate2(s, SYSCALL, 
 				GuardedBinary.getClearResult(s), 
 				null, 
-				new OPT_SysMethodOperand("sysLongDivide"), 
+				new OPT_SysMethodOperand(VM_Entrypoints.sysLongDivideIPField), 
 				GuardedBinary.getClearVal1(s), 
 				GuardedBinary.getClearVal2(s));
 	    OPT_CallingConvention.expandSysCall(s, ir);
@@ -174,14 +174,55 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    CallSpecial.mutate2(s, SYSCALL, 
 				GuardedBinary.getClearResult(s), 
 				null, 
-				new OPT_SysMethodOperand("sysLongRemainder"), 
+				new OPT_SysMethodOperand(VM_Entrypoints.sysLongRemainderIPField), 
 				GuardedBinary.getClearVal1(s), 
 				GuardedBinary.getClearVal2(s));
 	    OPT_CallingConvention.expandSysCall(s, ir);
 	  }
 	  break;
-
-	default:
+	  
+	case LONG_2FLOAT_opcode:
+	  { 
+	    CallSpecial.mutate1(s, SYSCALL,
+				Unary.getClearResult(s),
+				null,
+				new OPT_SysMethodOperand(VM_Entrypoints.sysLongToFloatIPField),
+				Unary.getClearVal(s));
+	    OPT_CallingConvention.expandSysCall(s, ir);
+	  }
+	  break;
+	  
+	case LONG_2DOUBLE_opcode:
+	  { 
+	    CallSpecial.mutate1(s, SYSCALL,
+				Unary.getClearResult(s),
+				null,
+				new OPT_SysMethodOperand(VM_Entrypoints.sysLongToDoubleIPField),
+				Unary.getClearVal(s));
+	    OPT_CallingConvention.expandSysCall(s, ir);
+	  }
+	  break;
+	  
+	case FLOAT_2LONG_opcode:
+	  { 
+	    CallSpecial.mutate1(s, SYSCALL,
+				Unary.getClearResult(s),
+				null,
+				new OPT_SysMethodOperand(VM_Entrypoints.sysFloatToLongIPField),
+				Unary.getClearVal(s));
+	    OPT_CallingConvention.expandSysCall(s, ir);
+	  }
+	  break;
+	  
+	case DOUBLE_2LONG_opcode:
+	  { 
+	    CallSpecial.mutate1(s, SYSCALL,
+				Unary.getClearResult(s),
+				null,
+				new OPT_SysMethodOperand(VM_Entrypoints.sysDoubleToLongIPField),
+				Unary.getClearVal(s));
+	    OPT_CallingConvention.expandSysCall(s, ir);
+	  }
 	  break;
         }
       }

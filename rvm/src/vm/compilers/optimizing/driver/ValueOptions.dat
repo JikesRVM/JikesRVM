@@ -87,7 +87,3 @@ Selection of spilling heuristic
 "BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
 "LOOPDEPTH_SPILL_COST loopDepthSpillCost loopDepth"
 
-E F2INT byte FIST
-Selection of mechanism to convert double to int on IA32
-"VM_MATH f2intVM_Math VM_Math" \
-"FIST f2intFist fist"
