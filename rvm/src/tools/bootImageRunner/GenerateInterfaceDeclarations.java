@@ -187,12 +187,6 @@ class GenerateInterfaceDeclarations {
   //
   static void emitVirtualMachineDeclarations () {
 
-    // values in VM_Configuration
-    //
-    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-    System.out.print("#define RVM_WITH_DEDICATED_NATIVE_PROCESSORS\n");
-    //-#endif
-
     // load address for the boot image
     //
     System.out.print("static const int bootImageAddress                        = 0x"

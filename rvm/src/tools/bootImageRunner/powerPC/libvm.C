@@ -302,8 +302,7 @@ extern "C" void processTimerTick() {
    int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
    *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
    
-#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
-// line added here - ndp is now the last processor = and cnt includes it
+   // line added here - ndp is now the last processor = and cnt includes it
    cnt = cnt - 1;
    // check for gc in progress: if so, return
    // 
@@ -334,10 +333,6 @@ extern "C" void processTimerTick() {
 #endif
        }
      }
-#else
-   for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
-     *(unsigned *)((char *)processors[i] + VM_Processor_threadSwitchRequested_offset) = (unsigned) -1; // -1: all bits on
-#endif
 }
 
 // Handle hardware traps.
