@@ -227,7 +227,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  wb.position = inst.position;
 	  inst.replace(wb);
 	  next = wb.nextInstructionInCodeOrder(); 
-	  inline(wb, ir, true);
+	  if (ir.options.INLINE_WRITE_BARRIER) 
+	    inline(wb, ir, true);
 	}
       }
       break;
@@ -248,7 +249,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    wb.position = inst.position;
 	    inst.replace(wb);
 	    next = wb.nextInstructionInCodeOrder();
-	    inline(wb, ir);
+	    if (ir.options.INLINE_WRITE_BARRIER) 
+	      inline(wb, ir);
 	  }
 	}
       }

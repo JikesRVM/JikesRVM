@@ -49,6 +49,9 @@ Reorder basic blocks using Pettis and Hansen Algo2
 INLINE_NEW 1 true 
 Inline allocation of scalars and arrays
 
+INLINE_WRITE_BARRIER 1 true 
+Inline write barriers for generational collectors
+
 INLINE 0 true
 Inline statically resolvable calls
 
