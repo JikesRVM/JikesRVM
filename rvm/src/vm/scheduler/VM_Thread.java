@@ -1338,38 +1338,29 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
 
   /**
-   * Dump this thread, for debugging.
+   * Dump this thread's identifying information, for debugging, via
+   * {@link VM#sysWrite}.
+   * We do not use any spacing or newline characters.  Callers are responsible
+   * for space-separating or newline-terminating output. 
    */
   public void dump() {
     dump(0);
   }
 
-  /** Dump this thread's info.  
+  /** 
+   * Dump this thread's identifying information, for debugging, via
+   * {@link VM#sysWrite}.
    * We do not use any spacing or newline characters.  Callers are responsible
    * for space-separating or newline-terminating output. 
    *
-   *  This function may be called during GC and may be used in conjunction
-   *  with the Log class.   It avoids write barriers and allocation.
+   *  This function avoids write barriers and allocation.
    *
    * @param verbosity Ignored.
    */
   public void dump(int verbosity) {
     char[] buf = grabDumpBuffer();
-    int offset = dump(buf, 0);
-    VM.sysWrite(buf, offset);
-    releaseDumpBuffer();
-  }
-
-  /** Dump this thread's info via the MMTk Log class.
-   * Does not use any newlines, nor does it flush.
-   *
-   *  This function may be called during GC; it avoids write barriers and
-   *  allocation. 
-   */
-  public void dumpToLog() {
-    char[] buf = grabDumpBuffer();
-    int offset = dump(buf, 0);
-    Log.write(buf, offset);
+    int len = dump(buf);
+    VM.sysWrite(buf, len);
     releaseDumpBuffer();
   }
 
@@ -1377,8 +1368,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    *  Copy the info about it into a destination char
    *  array.  We do not use any spacing or newline characters. 
    *
-   *  This function may be called during GC and may be used in conjunction
-   *  with the Log class.   It avoids write barriers and allocation.
+   *  This function may be called during GC; it avoids write barriers and
+   *  allocation.   
    *
    *  For this reason, we do not throw an
    *  <code>IndexOutOfBoundsException</code>.  
@@ -1423,7 +1414,19 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     return offset;
   }
 
-  /** Biggest buffer you would possibly need for #dump(char[], int).  
+  /**
+   *  Dump this thread's info, for debugging.  
+   *  Copy the info about it into a destination char
+   *  array.  We do not use any spacing or newline characters. 
+   *
+   *  This is identical to calling {@link #dump(char[], int)} with an
+   *  <code>offset</code> of zero.
+   */
+  public int dump(char[] dest) {
+    return dump(dest, 0);
+  }
+
+  /** Biggest buffer you would possibly need for {@link #dump(char[], int)}
    *  Modify this if you modify that method.   
    */
   final static public int MAX_DUMP_LEN = 
@@ -1436,7 +1439,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /** Reset at boot time. */
   private static int dumpBufferLockOffset = -1;
 
-  private static char[] grabDumpBuffer() {
+  public static char[] grabDumpBuffer() {
     if (dumpBufferLockOffset != -1) {
       while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), 
                                             dumpBufferLockOffset, 1)) 
@@ -1445,7 +1448,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     return dumpBuffer;
   }
 
-  private static void releaseDumpBuffer() {
+  public static void releaseDumpBuffer() {
     if (dumpBufferLockOffset != -1) {
       VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), 
                                        dumpBufferLockOffset, 0);  

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2004
  */
 //$Id$
 
@@ -105,7 +105,7 @@ public class Lock implements Uninterruptible {
             SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Thread.getCurrentThread().getIndex() % 5))) {
             lastSlowReport = now;
             Log.write("GC Warning: slow/deadlock - thread ");
-            VM_Thread.getCurrentThread().dumpToLog();
+            writeThreadIdToLog(VM_Thread.getCurrentThread());
             Log.write(" with ticket "); Log.write(ticket);
             Log.write(" failed to acquire lock "); Log.write(id);
             Log.write(" ("); Log.write(name);
@@ -118,7 +118,8 @@ public class Lock implements Uninterruptible {
             if (t == null) 
               Log.writeln("GC Warning: Locking thread unknown", false);
             else {
-              Log.write("GC Warning: Locking thread: "); t.dumpToLog(); 
+              Log.write("GC Warning: Locking thread: "); 
+              writeThreadIdToLog(t);
               Log.write(" at position ");
               Log.writeln(where, false);
             }
@@ -141,7 +142,7 @@ public class Lock implements Uninterruptible {
         }
         if (waitTime > TIME_OUT) {
             Log.write("GC Warning: Locked out thread: "); 
-            VM_Thread.getCurrentThread().dumpToLog();
+            writeThreadIdToLog(VM_Thread.getCurrentThread());
             Log.writeln();
             VM_Scheduler.dumpStack();
             Assert.fail("Deadlock or someone holding on to lock for too long");
@@ -158,7 +159,7 @@ public class Lock implements Uninterruptible {
 
     if (verbose > 1) {
       Log.write("Thread ");
-      thread.dumpToLog();
+      writeThreadIdToLog(thread);
       Log.write(" acquired lock "); Log.write(id);
       Log.write(" "); Log.write(name);
       Log.writeln();
@@ -173,7 +174,7 @@ public class Lock implements Uninterruptible {
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
       Log.write("GC Warning: Thread ");
-      thread.dumpToLog();
+      writeThreadIdToLog(thread);
       Log.write(" reached point "); Log.write(w);
       Log.write(" while holding lock "); Log.write(id);
       Log.write(" "); Log.write(name);
@@ -193,7 +194,7 @@ public class Lock implements Uninterruptible {
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
       Log.write("GC Warning: Thread ");
-      thread.dumpToLog();
+      writeThreadIdToLog(thread);
       Log.write(" released lock "); Log.write(id);
       Log.write(" "); Log.write(name);
       Log.write(" after ");
@@ -217,4 +218,18 @@ public class Lock implements Uninterruptible {
     where = w;
   }
 
+  /** Write thread <code>t</code>'s identifying info via the MMTk Log class.
+   * Does not use any newlines, nor does it flush.
+   *
+   *  This function may be called during GC; it avoids write barriers and
+   *  allocation. 
+   *
+   *  @param t  The {@link VM_Thread} we are interested in.
+   */
+  private static void writeThreadIdToLog(VM_Thread t) {
+    char[] buf = t.grabDumpBuffer();
+    int len = t.dump(buf);
+    Log.write(buf, len);
+    t.releaseDumpBuffer();
+  }
 }
