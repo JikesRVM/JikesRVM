@@ -76,6 +76,9 @@ Use local approximation of liveness information to reduce insert phi nodes?
 LOAD_ELIMINATION 2 false
 Should we perform redundant load elimination during SSA pass?
 
+COALESCE_PHIS -1 false
+Should we coalesce phi registers when leaving SSA?
+
 ## (SJF): The following optimization is not on by default because
 ## it is usually expensive and ineffective.
 ## 9/15/2001: This optimization is causing stability problems on IA32.
