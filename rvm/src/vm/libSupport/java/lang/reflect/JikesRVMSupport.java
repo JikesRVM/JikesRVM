@@ -107,8 +107,12 @@ public class JikesRVMSupport {
    * Assumption: member is not public.  This trivial case should
    * be approved by the caller without needing to call this method.
    */
-  static void checkAccess(VM_Member member, VM_Class accessingClass) throws IllegalAccessException {
-    if (true) return; // TODO: very short term kludge until I can figure out why checking this breaks Eclipse.
+  public static void checkAccess(VM_Member member, VM_Class accessingClass) throws IllegalAccessException {
+    // TODO: Is this the right kludge?  
+    // We must allow classes like java.io.ObjectOutputStream access to anything.
+    // Allowing everything loaded by the system classloader the same freedom 
+    // might be too broad of a loophole.
+    if (accessingClass.getClassLoader() == VM_SystemClassLoader.getVMClassLoader()) return;
       
     VM_Class declaringClass = member.getDeclaringClass();
     if (member.isPrivate()) {
@@ -127,7 +131,7 @@ public class JikesRVMSupport {
       if (declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
     }      
     
-    throw new IllegalAccessException();
+    throw new IllegalAccessException("Access to "+member+" is denied to "+accessingClass);
   }
 
 }
