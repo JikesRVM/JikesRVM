@@ -752,6 +752,13 @@ if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
 
+if (( (( RVM_FOR_AIX )) || (( (( RVM_FOR_LINUX )) && (( RVM_FOR_POWERPC )) && (( RVM_FOR_64_ADDR )))) )); then
+    RVM_WITH_LINKAGE_TRIPLETS=1
+else
+    RVM_WITH_LINKAGE_TRIPLETS=0
+fi
+
+
 ## Setting PREPROCESSOR_DEFINITIONS:
 ## We keep this variable with a newline-separated list of definitions.
 # Convert configuration choices into preprocessor definitions.
