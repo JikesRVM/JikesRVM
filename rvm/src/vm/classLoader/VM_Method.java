@@ -234,10 +234,18 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Bytecodes to be executed by this method.
    * @return bytecodes (null --> native or abstract: no code)
    */
-  public final byte[] getBytecodes() throws VM_PragmaUninterruptible {
+  public final byte[] getRawBytecodes() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return bytecodes;
+  }
+
+  /**
+   * Get a representation of the bytecodes in the code attribute of this method.
+   * @return object representing the bytecodes
+   */
+  public final VM_BytecodeStream getBytecodes() {
+    return new VM_BytecodeStream(this);
   }
 
   /**

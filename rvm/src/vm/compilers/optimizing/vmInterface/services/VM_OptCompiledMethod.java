@@ -66,7 +66,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     VM_Method realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
       VM.sysFail( "Mapping to source code location not available at Dynamic Linking point\n");
-    byte[] bytecodes = realMethod.getBytecodes();
+    byte[] bytecodes = realMethod.getRawBytecodes();
     int bc = bytecodes[bci] & 0xFF;
     int cpi = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[bci + 2] & 0xFF);
     dynamicLink.set(realMethod.getDeclaringClass().getMethodRef(cpi), bc);

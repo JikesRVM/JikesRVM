@@ -34,7 +34,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     VM_Method realMethod = map.getMethodForMCOffset(offset);
     if (bci == -1 || realMethod == null)
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
-    byte[] bytecodes = realMethod.getBytecodes();
+    byte[] bytecodes = realMethod.getRawBytecodes();
     int bytecode = bytecodes[bci] & 0xFF;
     int cpi = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[bci + 2] & 0xFF);
     switch (bytecode) {

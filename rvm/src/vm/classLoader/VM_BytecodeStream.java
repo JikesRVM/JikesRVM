@@ -2,30 +2,28 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Statics;
 /**
- * VM_BytecodeStream.java
- *
- * This class provides a stream of bytecodes
+ * Provides minimal abstraction layer to a stream of bytecodes
+ * from the code attribute of a method.
  * 
  * @author Igor Pechtchanski
  * @see com.ibm.JikesRVM.opt.ir.OPT_BC2IR
  * @see VM_ModifiableBytecodeStream
  */
 public class VM_BytecodeStream implements VM_BytecodeConstants {
-  private VM_Method method;
-  private VM_Class declaringClass;
+  private final VM_Method method;
+  private final VM_Class declaringClass;
   private int bcLength;
   private int bcIndex;
   private byte[] bcodes;
-
   private int opcode;
   private boolean wide;
 
   /**
-   * Constructor
    * @param m the method containing the bytecodes
    */
   public VM_BytecodeStream(VM_Method m) {
@@ -39,7 +37,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Reload information from the method data structure.
    */
   protected final void reload() {
-    bcodes = method.getBytecodes();
+    bcodes = method.getRawBytecodes();
     if (bcodes != null) bcLength = bcodes.length;
     else                bcLength = 0;
   }
@@ -490,7 +488,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see #getMethodReference(int)
    * @see #getMethodReference()
    */
-  final int getMethodReferenceIndex() {
+  public final int getMethodReferenceIndex() {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
@@ -505,7 +503,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see #getMethodReferenceIndex()
    * @see #getMethodReference()
    */
-  final VM_Method getMethodReference(int index) {
+  public final VM_Method getMethodReference(int index) {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
@@ -519,7 +517,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @see #getMethodReferenceIndex()
    * @see #getMethodReference(int)
    */
-  final VM_Method getMethodReference() {
+  public final VM_Method getMethodReference() {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);

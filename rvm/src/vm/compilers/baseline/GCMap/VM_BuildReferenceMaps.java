@@ -160,7 +160,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 
   // Get information from the method being processed
 
-  bytecodes      = method.getBytecodes();
+  bytecodes      = method.getRawBytecodes();
   declaringClass = method.getDeclaringClass();
 
   // Set up the array of maps per block; block 0 is not used

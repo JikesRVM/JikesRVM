@@ -49,7 +49,7 @@ public class OPT_BytecodeInfo {
   public OPT_BytecodeInfo (VM_Method m) {
     method = m;
     declaringClass = m.getDeclaringClass();
-    bcodes = m.getBytecodes();
+    bcodes = m.getRawBytecodes();
     if (bcodes != null)
       bcLength = bcodes.length; 
     else 

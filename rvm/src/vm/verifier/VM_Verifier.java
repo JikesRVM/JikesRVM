@@ -150,7 +150,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
     //VM.sysWrite("Start to verify method " + currMethodName + "\n");
     //get method bytecode
-    byte bytecodes[] = method.getBytecodes();
+    byte bytecodes[] = method.getRawBytecodes();
     VM_Class declaringClass = method.getDeclaringClass();
     int paramCount = method.getParameterWords();
     if(!method.isStatic()) paramCount ++;

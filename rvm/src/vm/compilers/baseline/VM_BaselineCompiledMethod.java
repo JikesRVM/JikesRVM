@@ -85,7 +85,7 @@ final public class VM_BaselineCompiledMethod extends VM_CompiledMethod
         break;                  // next bytecode
       bytecodeIndex = i;
     }
-    byte[] bytecodes = method.getBytecodes();
+    byte[] bytecodes = method.getRawBytecodes();
     int bytecode = bytecodes[bytecodeIndex] & 0xFF;
     int constantPoolIndex = ((bytecodes[bytecodeIndex + 1] & 0xFF) << 8) | (bytecodes[bytecodeIndex + 2] & 0xFF);
     dynamicLink.set(method.getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);

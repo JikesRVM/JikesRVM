@@ -1659,11 +1659,12 @@ public class VM_Compiler extends VM_BaselineCompiler
     }
     VM_ForwardReference fr1 = asm.emitForwardBL();
     for (int i=0; i<n; i++) {
-      int offset = fetch4BytesSigned();
+      int offset = bcodes.getTableSwitchOffset(i);
       bTarget = biStart + offset;
       mTarget = bytecodeMap[bTarget];
       asm.emitSwitchCase(i, mTarget, bTarget);
     }
+    bcodes.skipTableSwitchOffsets(n);
     fr1.resolve(asm);
     asm.emitMFLR(T1);         // T1 is base of table
     asm.emitSLI (T0, T0,  2); // convert to bytes
@@ -1691,14 +1692,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T0,  0, SP); // T0 is key
     asm.emitCAL (SP,  4, SP); // pop key
     for (int i=0; i<npairs; i++) {
-      int match   = fetch4BytesSigned();
+      int match   = bcodes.getLookupSwitchValue(i);
       if (asm.fits(match, 16)) {
 	asm.emitCMPI(T0, match);
       } else {
 	asm.emitLVAL(T1, match);
 	asm.emitCMP(T0, T1);
       }
-      int offset  = fetch4BytesSigned();
+      int offset  = bcodes.getLookupSwitchOffset(i);
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
       if (options.EDGE_COUNTERS) {
@@ -1716,6 +1717,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	}
       }
     }
+    bcodes.skipLookupSwitchPairs(npairs);
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
     if (options.EDGE_COUNTERS) {
@@ -2076,7 +2078,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to implement the invokeinterface bytecode
    * @param methodRef the referenced method
    */
-  protected final void emit_invokeinterface(VM_Method methodRef, int count) {
+  protected final void emit_invokeinterface(VM_Method methodRef) {
+    int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     // (1) Emit dynamic type checking sequence if required to 
     // do so inline.
     if (VM.BuildForIMTInterfaceInvocation || 

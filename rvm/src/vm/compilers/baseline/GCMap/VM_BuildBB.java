@@ -71,7 +71,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
    numJsrs        = 0;
    gcPointCount   = 1;  // All methods have the possible thread switch in prologue
 
-   bytecodes      = method.getBytecodes();
+   bytecodes      = method.getRawBytecodes();
    bytelength     = bytecodes.length;
 
    byteToBlockMap = new short[bytelength];

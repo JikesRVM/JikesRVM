@@ -55,7 +55,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     method = m;
     counterId = id;
     data = new VM_BranchProfile[cs.length/2];
-    byte[] bytecodes = m.getBytecodes();
+    byte[] bytecodes = m.getRawBytecodes();
     int dataIdx = 0;
     int countIdx = 0;
     

@@ -23,7 +23,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   VM_Compiler(VM_BaselineCompiledMethod cm) {
     super(cm);
-    stackHeights = new int[bytecodes.length];
+    stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
   }
 
@@ -1727,12 +1727,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitCALL_Imm(asm.getMachineCodeIndex() + 5 + (n<<LG_WORDSIZE) ); 
     // jump around table, pushing address of 0th delta
     for (int i=0; i<n; i++) {                  // create table of deltas
-      int offset = fetch4BytesSigned();
+      int offset = bcodes.getTableSwitchOffset(i);
       bTarget = biStart + offset;
       mTarget = bytecodeMap[bTarget];
       // delta i: difference between address of case i and of delta 0
       asm.emitOFFSET_Imm_ImmOrLabel(i, mTarget, bTarget );
     }
+    bcodes.skipTableSwitchOffsets(n);
     asm.emitPOP_Reg (S0);                          // S0 = address of 0th delta 
     asm.emitADD_Reg_RegIdx (S0, S0, T0, asm.WORD, 0);     // S0 += [S0 + T0<<2]
     asm.emitPUSH_Reg(S0);                          // push computed case address
@@ -1750,9 +1751,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_lookupswitch(int defaultval, int npairs) {
     asm.emitPOP_Reg(T0);
     for (int i=0; i<npairs; i++) {
-      int match   = fetch4BytesSigned();
+      int match   = bcodes.getLookupSwitchValue(i);
       asm.emitCMP_Reg_Imm(T0, match);
-      int offset  = fetch4BytesSigned();
+      int offset  = bcodes.getLookupSwitchOffset(i);
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
       if (!VM.runningTool && compiledMethod.hasCounterArray()) {
@@ -1765,6 +1766,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
       }
     }
+    bcodes.skipLookupSwitchPairs(npairs);
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
     if (!VM.runningTool && compiledMethod.hasCounterArray()) {
@@ -2099,7 +2101,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param methodRef the referenced method
    * @param count number of parameter words (see invokeinterface bytecode)
    */
-  protected final void emit_invokeinterface(VM_Method methodRef, int count) {
+  protected final void emit_invokeinterface(VM_Method methodRef) {
+    int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     // (1) Emit dynamic type checking sequence if required to do so inline.
     if (VM.BuildForIMTInterfaceInvocation || 
 	(VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {

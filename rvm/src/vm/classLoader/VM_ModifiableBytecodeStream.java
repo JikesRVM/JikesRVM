@@ -2,17 +2,13 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.VM;
 /**
- * VM_ModifiableBytecodeStream.java
- *
- * This class provides a modifiable stream of bytecodes
+ * This class provides a modifiable stream of bytecodes.
  * 
  * @author Igor Pechtchanski
- * @see VM_BytecodeStream
- * @see com.ibm.JikesRVM.opt.ir.OPT_BC2IR
  */
 public final class VM_ModifiableBytecodeStream extends VM_BytecodeStream {
   /**
