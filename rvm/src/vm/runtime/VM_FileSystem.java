@@ -434,6 +434,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
    */ 
   public static int close(int fd) {
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.close: fd=" + fd + "\n");
+
+    if (fd == 87 || fd == 88) (new Throwable()).printStackTrace();
+
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall1(bootRecord.sysCloseIP, fd);
   }
@@ -692,62 +695,5 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 	  }
 	}
       });
-  }
-
-
-  static InputStream getInputStream(final int fd) {
-    return new InputStream() {
-	public int available() throws IOException {
-	  return bytesAvailable( fd );
-	}
-	
-	public void close() throws IOException {
-	  VM_FileSystem.close( fd );
-	}
-	      
-	public int read() throws IOException {
-	  return readByte( fd );
-	}
-	      
-	public int read(byte[] buffer) throws IOException {
-	  return readBytes(fd, buffer, 0, buffer.length);
-	}
-	      
-	public int read(byte[] buf, int off, int len) throws IOException {
-	  return readBytes(fd, buf, off, len);
-	}
-
-	protected void finalize() throws IOException {
-	  close();
-	}
-      };
-  }
-	      
-  static OutputStream getOutputStream(final int fd) {
-    return new OutputStream() {
-	public void write (int b) throws IOException {
-	  writeByte(fd, b);
-	}
-
-	public void write (byte[] b) throws IOException {
-	  writeBytes(fd, b, 0, b.length);
-	}
-
-	public void write (byte[] b, int off, int len) throws IOException {
-	  writeBytes(fd, b, off, len);
-	}
-
-	public void flush () throws IOException {
-	  sync( fd );
-	}
-
-	public void close () throws IOException {
-	  VM_FileSystem.close( fd );
-	}
-
-	protected void finalize() throws IOException {
-	  close();
-	}
-      };
   }
 }

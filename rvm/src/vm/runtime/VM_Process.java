@@ -59,26 +59,6 @@ public class VM_Process extends java.lang.Process {
     VM_FileSystem.onCreateFileDescriptor( inputDescriptor, false );
     VM_FileSystem.onCreateFileDescriptor( outputDescriptor, false );
     VM_FileSystem.onCreateFileDescriptor( errorDescriptor, false );
-
-    // Create Java streams.
-    //
-    // NOTES:
-    //
-    // (1) If the user of this process doesn't close the
-    //     pipes connecting the VM to the process explicitly,
-    //     eventually they will be closed when the stream objects
-    //     are finalized.
-    //
-    // (2) We do not use File(In/Out)putStream here because we want
-    //     to use our VM-mediated non-blocking I/O, which is
-    //     currently not used by the GNU Classpath java.io code.
-    //     We want to do this so that people who communicate with
-    //     external processes, relying on blocking i/o to
-    //     synchronize will not get bitten by our threading.
-    //
-    outputStream = VM_FileSystem.getOutputStream(inputDescriptor);
-    inputStream = VM_FileSystem.getInputStream(outputDescriptor);
-    errorStream = VM_FileSystem.getInputStream(errorDescriptor);
   }
 
   /**
@@ -188,6 +168,8 @@ public class VM_Process extends java.lang.Process {
    * Get an <code>InputStream</code> to read process's stderr.
    */
   public InputStream getErrorStream() {
+    if (errorStream == null) errorStream = getInputStream(errorDescriptor);
+
     return errorStream;
   }
     
@@ -195,6 +177,8 @@ public class VM_Process extends java.lang.Process {
    * Get an <code>InputStream</code> to read process's stdout.
    */
   public InputStream getInputStream() {
+    if (inputStream == null) inputStream = getInputStream(outputDescriptor);
+
     return inputStream;
   }
     
@@ -202,6 +186,8 @@ public class VM_Process extends java.lang.Process {
    * Get an <code>OutputStream</code> to write process's stdin.
    */
   public OutputStream getOutputStream() {
+    if (outputStream == null) outputStream = getOutputStream(inputDescriptor);
+
     return outputStream;
   }
 
@@ -258,5 +244,54 @@ public class VM_Process extends java.lang.Process {
    * Send the process a kill signal.
    */
   private native void destroyInternal();
+
+
+  private InputStream getInputStream(final int fd) {
+    return new InputStream() {
+	public int available() throws IOException {
+	  return VM_FileSystem.bytesAvailable( fd );
+	}
+	
+	public void close() throws IOException {
+	    // stream closed implicitly when process exits
+	}
+	      
+	public int read() throws IOException {
+	  return VM_FileSystem.readByte( fd );
+	}
+	      
+	public int read(byte[] buffer) throws IOException {
+	  return VM_FileSystem.readBytes(fd, buffer, 0, buffer.length);
+	}
+	      
+	public int read(byte[] buf, int off, int len) throws IOException {
+	  return VM_FileSystem.readBytes(fd, buf, off, len);
+	}
+      };
+  }
+	      
+  private OutputStream getOutputStream(final int fd) {
+    return new OutputStream() {
+	public void write (int b) throws IOException {
+	  VM_FileSystem.writeByte(fd, b);
+	}
+
+	public void write (byte[] b) throws IOException {
+	  VM_FileSystem.writeBytes(fd, b, 0, b.length);
+	}
+
+	public void write (byte[] b, int off, int len) throws IOException {
+	  VM_FileSystem.writeBytes(fd, b, off, len);
+	}
+
+	public void flush () throws IOException {
+	  VM_FileSystem.sync( fd );
+	}
+
+	public void close () throws IOException {
+	    // stream closed implicitly when process exits
+	}
+      };
+  }
 }
 
