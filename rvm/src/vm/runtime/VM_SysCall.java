@@ -159,11 +159,14 @@ public class VM_SysCall implements VM_Uninterruptible {
    * Used to parse command line arguments that are
    * doubles and floats early in booting before it 
    * is safe to call Float.valueOf or Double.valueOf.
+   *
+   * This aborts in case of errors, with an appropriate error message.
+   *
    * NOTE: this does not support the full Java spec of parsing a string
    *       into a float.
    * @param buf a null terminated byte[] that can be parsed
-   *            by sscanf("%f")
-   * @return the double value produced by the call to sscanf on buf.
+   *            by strtof()
+   * @return the floating-point value produced by the call to strtof() on buf.
    */
   public static float sysPrimitiveParseFloat(byte[] buf) { return 0; }
 
@@ -172,9 +175,12 @@ public class VM_SysCall implements VM_Uninterruptible {
    * bytes and ints early in booting before it 
    * is safe to call Byte.parseByte or Integer.parseInt.
    * 
+   * This aborts in case of errors, with an appropriate error message.
+   *
    * @param buf a null terminated byte[] that can be parsed
-   *            by sscanf("%d")
-   * @return the int value produced by the call to sscanf on buf.
+   *            by strtol()
+   * @return the int value produced by the call to strtol() on buf.
+   * 
    */
   public static int sysPrimitiveParseInt(byte[] buf) { return 0; }
 
