@@ -66,7 +66,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               Offset offset = sc.offset;
               if (offset.isZero())
                 throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
@@ -75,9 +75,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
               Offset offset = dc.offset;
               if (offset.isZero()) {
-                offset = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value)));
               }
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
@@ -86,9 +86,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
               Offset offset = fc.offset;
               if (offset.isZero()) {
-                offset = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value)));
               }
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
@@ -195,7 +195,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       case BOOLEAN_CMP_INT_opcode:
       case BOOLEAN_CMP_ADDR_opcode:
         // val2 must be small enough.
-        BooleanCmp.setVal2(s, asImmediateOrRegPolymorphic(BooleanCmp.getClearVal2(s),s,ir, true));
+        BooleanCmp.setVal2(s, asImmediateOrRegPolymorphic(BooleanCmp.getClearVal2(s),s,ir, !BooleanCmp.getCond(s).isUNSIGNED()));
         break;
 
         //////////
@@ -394,8 +394,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
     else return (val >= 0L) && (val <= (long) UNSIGNED_UPPER_IMMEDIATE);
   }
 
-  public static boolean canBeImmediate(Address val, boolean signed) {
-    return (VM.BuildFor32Addr? canBeImmediate(val.toInt(), signed) : canBeImmediate(val.toLong(), signed));
+  public static boolean canBeImmediate(Address val, boolean signed) { //KV: Address uses unsigned compares!!
+    if (signed) return (val.GE(Address.fromIntSignExtend(LOWER_IMMEDIATE)) || val.LE(Address.fromIntSignExtend(UPPER_IMMEDIATE)));
+    else return val.LE(Address.fromIntZeroExtend(UNSIGNED_UPPER_IMMEDIATE)); 
   }
 
   static OPT_Operand asImmediateOrRegInt(OPT_Operand addr, 

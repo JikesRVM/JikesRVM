@@ -77,11 +77,11 @@ public final class OSR_BaselineExecStateExtractor
 
     VM.disableGC();
     Address rowIP     = VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
-    int ipIndex   = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
+    Offset ipOffset = rowIP.diff(VM_Magic.objectAsAddress(instructions));
     VM.enableGC();
 
     // CAUTION: IP Offset should point to next instruction
-    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipIndex + 1);
+    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
     // assertions
     if (VM.VerifyAssertions) VM._assert(bcIndex != -1);
@@ -108,7 +108,7 @@ public final class OSR_BaselineExecStateExtractor
       // if typer reports a local is reference type, but the GC map says no
       // then set the localType to uninitialized, see VM spec, bytecode verifier
       // CAUTION: gc map uses mc offset in bytes!!!
-      boolean gcref = fooCM.referenceMaps.isLocalRefType(fooM, (ipIndex + 1)<<LG_INSTRUCTION_WIDTH, i);
+      boolean gcref = fooCM.referenceMaps.isLocalRefType(fooM, ipOffset.add(INSTRUCTION_WIDTH), i);
       if (!gcref && (localTypes[i] == ClassTypeCode)) {
         localTypes[i] = VoidTypeCode;   // use gc map as reference
         if (VM.TraceOnStackReplacement) {
@@ -118,9 +118,10 @@ public final class OSR_BaselineExecStateExtractor
     }
 
     if (VM.TraceOnStackReplacement) {
+      Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
       VM.sysWrite("BC Index : "+bcIndex+"\n");
-          VM.sysWrite("IP Index : "+(ipIndex+1)+"\n");
-          VM.sysWrite("MC Offset : "+((ipIndex+1)<<LG_INSTRUCTION_WIDTH)+"\n");
+          VM.sysWrite("IP Index : ", ipIndex.add(1), "\n");
+          VM.sysWrite("MC Offset : ", ipOffset.add(INSTRUCTION_WIDTH), "\n");
       VM.sysWrite("Local Types :");
       for (int i=0; i<localTypes.length; i++) {
         VM.sysWrite(" "+(char)localTypes[i]);
@@ -228,18 +229,19 @@ public final class OSR_BaselineExecStateExtractor
       case ReturnAddressTypeCode: {
         VM.disableGC();
         Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset.sub(BYTES_IN_ADDRESS));
-        int ipIndex = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
+        Offset ipOffset = rowIP.diff(VM_Magic.objectAsAddress(instructions));
         VM.enableGC();
 
         vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
 
 
         if (VM.TraceOnStackReplacement) {
-          VM.sysWrite("baseline ret_addr ip "+ipIndex+" --> ");
+          Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+          VM.sysWrite("baseline ret_addr ip ", ipIndex, " --> ");
         }
         
         int bcIndex = 
-          compiledMethod.findBytecodeIndexForInstruction(ipIndex+1);
+          compiledMethod.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
         if (VM.TraceOnStackReplacement) {
           VM.sysWrite(" bc "+ bcIndex+"\n");

@@ -164,11 +164,11 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
             VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
             /* Opt stack frames may contain multiple inlined methods. */
             VM_OptMachineCodeMap map = optInfo.getMCMap();
-            int iei = map.getInlineEncodingForMCOffset(ipOffset.toInt());
+            int iei = map.getInlineEncodingForMCOffset(ipOffset);
             if (iei >= 0) {
               int[] inlineEncoding = map.inlineEncoding;
               boolean allocCall = true;
-              bci = map.getBytecodeIndexForMCOffset(ipOffset.toInt());
+              bci = map.getBytecodeIndexForMCOffset(ipOffset);
               for (int j = iei; j >= 0 && allocCall; 
                    j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
                 int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
@@ -188,7 +188,7 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
             if (!isAllocCall(m.getName().getBytes())) {
               VM_BaselineCompiledMethod baseInfo = 
                 (VM_BaselineCompiledMethod)compiledMethod;
-              bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toInt());
+              bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toWord().lsh(INSTRUCTION_WIDTH).toOffset());
               break;
             }
           }

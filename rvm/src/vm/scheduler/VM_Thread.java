@@ -1179,7 +1179,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     if (VM.VerifyAssertions)
       VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
     
-    VM_Memory.memcopy(newFP, myFP, myDepth.toInt());
+    VM_Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
     
     return newFP.diff(myFP);
   }

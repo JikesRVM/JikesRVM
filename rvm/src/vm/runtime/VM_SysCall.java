@@ -48,11 +48,11 @@ public class VM_SysCall implements Uninterruptible {
   }
 
   // memory
-  public static void sysCopy(Address dst, Address src, int cnt) {}
-  public static void sysFill(Address dst, int pattern, int cnt) {}
+  public static void sysCopy(Address dst, Address src, Extent cnt) {}
+  public static void sysFill(Address dst, int pattern, Extent cnt) {}
   public static Address sysMalloc(int length) { return null; }
   public static void sysFree(Address location) {} 
-  public static void sysZero(Address dst, int cnt) {}
+  public static void sysZero(Address dst, Extent cnt) {}
   public static void sysZeroPages(Address dst, int cnt) {}
   public static void sysSyncCache(Address address, int size) {}
 

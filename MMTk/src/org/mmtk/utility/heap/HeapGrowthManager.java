@@ -164,8 +164,8 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       // Heap size is going to change
       currentHeapSize = newSize;
       if (BasePlan.verbose.getValue() >= 2) { 
-        Log.write("GC Message: Heap changed from "); Log.write(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE).toInt()); 
-        Log.write("KB to "); Log.write(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE).toInt()); 
+        Log.write("GC Message: Heap changed from "); Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
+        Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
         Log.writeln("KB"); 
       } 
       return true;

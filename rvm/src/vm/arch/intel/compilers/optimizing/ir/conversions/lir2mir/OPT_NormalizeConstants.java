@@ -46,7 +46,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               Offset offset = sc.offset;
               if (offset.isZero())
                 throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
@@ -54,7 +54,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use.copy();
               if (dc.offset.isZero()) {
-                dc.offset = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
+                dc.offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value)));
               }
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
@@ -63,7 +63,7 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use.copy();
               if (fc.offset.isZero()) {
-                fc.offset = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
+                fc.offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value)));
               }
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());

@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This module performs two tasks:
@@ -177,7 +178,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
       if (op instanceof OPT_MemoryOperand) {
         OPT_MemoryOperand memOp = (OPT_MemoryOperand)op;
         if (activeGuard.similar(memOp.guard)) {
-          return !VM.ExplicitlyGuardLowMemory || isStore || ((memOp.index == null) && (memOp.disp < 0));
+          return !VM.ExplicitlyGuardLowMemory || isStore || ((memOp.index == null) && (memOp.disp.sLT(Offset.zero())));
         } 
       }
     }

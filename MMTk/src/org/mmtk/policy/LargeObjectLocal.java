@@ -61,7 +61,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   public LargeObjectLocal(LargeObjectSpace space) {
     super(space);
     this.space = space;
-    treadmill = new Treadmill(BYTES_IN_PAGE, true);
+    treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
   }
 
   /****************************************************************************

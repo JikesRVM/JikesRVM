@@ -832,7 +832,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           OPT_MemoryOperand M = op.asMemory();
           if ((M.base != null && M.base.register == ESP) ||
               (M.index != null && M.index.register == ESP)) {
-            M.disp -= ESPOffset;
+            M.disp = M.disp.sub(ESPOffset);
           }
         }
       }

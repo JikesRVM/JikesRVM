@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Encoding of try ranges in the final machinecode and the
@@ -33,7 +34,7 @@ public abstract class VM_ExceptionTable {
    * @return the machine code offset of the catch block.
    */
   public static final int findCatchBlockForInstruction(int[] eTable,
-                                                       int instructionOffset, 
+                                                       Offset instructionOffset, 
                                                        VM_Type exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
       // note that instructionOffset points to the instruction after the PEI
@@ -41,8 +42,8 @@ public abstract class VM_ExceptionTable {
       // and not                         "offset >= beg && offset <  end"
       //
       // offset starts are sorted by starting point
-      if (instructionOffset > eTable[i + TRY_START] &&
-          instructionOffset <= eTable[i + TRY_END]) {
+      if (instructionOffset.sGT(Offset.fromIntSignExtend(eTable[i + TRY_START])) &&
+          instructionOffset.sLE(Offset.fromIntSignExtend(eTable[i + TRY_END]))) {
         VM_Type lhs = VM_Type.getType(eTable[i + EX_TYPE]);
         if (lhs == exceptionType) {
           return eTable[i + CATCH_START];

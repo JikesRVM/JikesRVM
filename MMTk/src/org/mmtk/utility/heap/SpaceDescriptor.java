@@ -83,7 +83,7 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
     }
     int mantissa = tmp.toInt();
     if (Assert.VERIFY_ASSERTIONS) 
-      Assert._assert(mantissa<<(VM_BASE_EXPONENT + exponent) == start.toInt());
+      Assert._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
     return (mantissa<<VM_MANTISSA_SHIFT)
       | (exponent<<VM_EXPONENT_SHIFT) 
       | (chunks<<VM_SIZE_SHIFT)

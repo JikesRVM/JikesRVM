@@ -263,11 +263,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
   public Address add(Offset offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(value + offset.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return new Address(value + offset.toLong());
-    //-#endif
+    return new Address(value + offset.toWord().toAddress().value);
   }
 
   /**
@@ -281,11 +277,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
   public Address add(Extent extent) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(value + extent.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return new Address(value + extent.toLong());
-    //-#endif
+    return new Address(value + extent.toWord().toAddress().value);
   }
 
   /**
@@ -313,11 +305,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
   public Address sub(Offset offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(value - offset.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return new Address(value - offset.toLong());
-    //-#endif
+    return new Address(value - offset.toWord().toAddress().value);
   }
 
   /**
@@ -331,11 +319,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
   public Address sub(Extent extent) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return new Address(value - extent.toInt());
-    //-#elif RVM_FOR_64_ADDR
-    return new Address(value - extent.toLong());
-    //-#endif
+    return new Address(value - extent.toWord().toAddress().value);
   }
 
   /**
@@ -349,11 +333,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
   public Offset diff(Address addr2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    //-#if RVM_FOR_32_ADDR
-    return Offset.fromIntZeroExtend(value - addr2.value);
-    //-#elif RVM_FOR_64_ADDR
-    return Offset.fromLong(value - addr2.value);
-    //-#endif
+    return new Address(value - addr2.value).toWord().toOffset();
   }
 
 

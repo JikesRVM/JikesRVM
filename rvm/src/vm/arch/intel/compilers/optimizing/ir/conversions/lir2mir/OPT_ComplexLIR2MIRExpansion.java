@@ -827,7 +827,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
     OPT_Operand target =
       OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, 
-                           new OPT_LocationOperand(offset.toInt()), TG());
+                           new OPT_LocationOperand(offset), TG());
     
     // call thread switch
     OPT_Instruction call = 
@@ -889,7 +889,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
     OPT_Operand target =
       OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, 
-                           new OPT_LocationOperand(offset.toInt()), TG());
+                           new OPT_LocationOperand(offset), TG());
     
     // call thread switch
     OPT_Instruction call = 

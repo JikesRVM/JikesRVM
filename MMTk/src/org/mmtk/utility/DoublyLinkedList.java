@@ -50,7 +50,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   private       Address head;
   private final Lock lock;
   private final Object owner;
-  private final int granularity;  // Each node on the treadmill is guaranteed to be a multiple of this.
+  private final int log_granularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
   
   /****************************************************************************
    *
@@ -60,14 +60,14 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   /**
    * Constructor
    */
-  DoublyLinkedList (int granularity_, boolean shared, Object owner_) {
+  DoublyLinkedList (int log_granularity_, boolean shared, Object owner_) {
     owner = owner_;
     head = Address.zero();   
     lock = shared ? new Lock("DoublyLinkedList") : null;
-    granularity = granularity_;
+    log_granularity = log_granularity_;
 
     // ensure that granularity is big enough for midPayloadToNode to work
-    Word tmp = Word.fromIntZeroExtend(granularity);
+    Word tmp = Word.one().lsh(log_granularity);
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
@@ -80,9 +80,9 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
 
   private static final Word nodeMask;
   static {
-    int mask = 1;
-    while (mask < HEADER_SIZE.toInt()+MAX_BYTES_PADDING) mask <<= 1;
-    nodeMask = Word.fromIntZeroExtend(mask-1).not();
+    Word mask = Word.one();
+    while (mask.LT(HEADER_SIZE.add(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
+    nodeMask = mask.sub(Word.one()).not();
   }
 
   public final Object getOwner() {
@@ -98,10 +98,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   }
 
   public final boolean isNode (Address node) {
-    if (BITS_IN_ADDRESS == 64)
-      return (node.toLong() / granularity * granularity) == node.toLong();
-    else
-      return (node.toInt() / granularity * granularity) == node.toInt();
+    return node.toWord().rshl(log_granularity).lsh(log_granularity).EQ(node.toWord());
   }
 
   static public final Address nodeToPayload(Address node) throws InlinePragma {

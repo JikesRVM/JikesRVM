@@ -362,7 +362,7 @@ public abstract class BasePlan
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
+  public static Word getBootTimeAvailableBits(Offset ref, ObjectReference typeRef,
                                               int size, Word status)
     throws InlinePragma {
     return status; // nothing to do (no bytes of GC header)

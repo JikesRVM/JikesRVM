@@ -78,7 +78,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // create new frame
     //
     asm.emitMR    (S0,  FP);                  // S0 := old frame pointer
-    asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset().toInt(), T3); // T0 := number of spill words
+    asm.emitLIntOffset(T0, T3, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of spill words
     asm.emitADDI  (T3, -BYTES_IN_ADDRESS, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
     int spillLoopLabel = asm.getMachineCodeIndex();
     asm.emitADDICr  (T0, T0, -1);                  // T0 -= 1 (and set CR)
@@ -133,7 +133,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     setupFPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first fpr load instruction
-    asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset().toInt(), T2); // T0 := number of fprs to be loaded
+    asm.emitLIntOffset(T0, T2, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of fprs to be loaded
     asm.emitADDI  (T3, VOLATILE_FPRS<<LG_INSTRUCTION_WIDTH,    T3); // T3 := address of first instruction following fpr loads
     asm.emitSLWI  (T0, T0, LG_INSTRUCTION_WIDTH); // T0 := number of bytes of fpr load instructions
     asm.emitSUBFC   (T3, T0, T3);                // T3 := address of instruction for highest numbered fpr to be loaded
@@ -143,7 +143,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     setupGPRLoader.resolve(asm);
     asm.emitMFLR (T3);                          // T3 := address of first gpr load instruction
-    asm.emitLInt   (T0, VM_ObjectModel.getArrayLengthOffset().toInt(), T1); // T0 := number of gprs to be loaded
+    asm.emitLIntOffset(T0, T1, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of gprs to be loaded
     asm.emitADDI  (T3, VOLATILE_GPRS<<LG_INSTRUCTION_WIDTH,    T3); // T3 := address of first instruction following gpr loads
     asm.emitSLWI  (T0, T0, LG_INSTRUCTION_WIDTH); // T0 := number of bytes of gpr load instructions
     asm.emitSUBFC   (T3, T0,T3);                  // T3 := address of instruction for highest numbered gpr to be loaded
@@ -369,7 +369,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // This pointer is an interior pointer to the VM_JNIEnvironment which is
     // currently in S0.
     //
-    asm.emitADDI (T0, VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt(), S0);
+    asm.emitADDI (T0, VM_Entrypoints.JNIExternalFunctionsField.getOffset(), S0);
 
     //
     // change the vpstatus of the VP to IN_NATIVE

@@ -543,7 +543,7 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
     if (bootImageAddress.add(jtocImageOffset).NE(bootRecord.tocRegister))
-      fail("mismatch in JTOC placement "+bootImageAddress.add(jtocImageOffset).toInt()+" != "+bootRecord.tocRegister);
+      fail("mismatch in JTOC placement "+VM.addressAsHexString(bootImageAddress.add(jtocImageOffset))+" != "+ VM.addressAsHexString(bootRecord.tocRegister));
 
     //
     // Now, copy all objects reachable from jtoc, replacing each object id
@@ -1179,12 +1179,7 @@ public class BootImageWriter extends BootImageWriterMessages
               Object o = jdkFieldAcc.get(null);
               String msg = " static field " + rvmField.toString();
               boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
-            //-#if RVM_FOR_32_ADDR
-              VM_Statics.setSlotContents(rvmFieldOffset, getWordValue(o, msg, warn).toInt());
-            //-#endif
-            //-#if RVM_FOR_64_ADDR
-              VM_Statics.setSlotContents(rvmFieldOffset, getWordValue(o, msg, warn).toLong());
-            //-#endif
+              VM_Statics.setSlotContents(rvmFieldOffset, getWordValue(o, msg, warn));
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
@@ -1208,7 +1203,7 @@ public class BootImageWriter extends BootImageWriterMessages
               o = null;         // Unreached
             }
             if (verbose >= 3)
-              say("       setting with ", String.valueOf(VM_Magic.objectAsAddress(o).toInt()));
+              say("       setting with ", VM.addressAsHexString(VM_Magic.objectAsAddress(o)));
             VM_Statics.setSlotContents(rvmFieldOffset, o);
           }
         }
@@ -1225,12 +1220,12 @@ public class BootImageWriter extends BootImageWriterMessages
   private static int jtocCount = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
 
-  private static void check (int value, String msg) {
-    int low = VM_ObjectModel.maximumObjectRef(Address.zero()).toInt();  // yes, max
-    int high = 0x10000000;  // we shouldn't have that many objects
-    if (value > low && value < high && value != 32767 &&
-        (value < 4088 || value > 4096)) {
-      say("Warning: Suspicious Address value of ", String.valueOf(value),
+  private static void check (Word value, String msg) {
+    Word low = VM_ObjectModel.maximumObjectRef(Address.zero()).toWord();  // yes, max
+    Word high = Word.fromIntZeroExtend(0x10000000);  // we shouldn't have that many objects
+    if (value.GT(low) && value.LT(high) && !value.EQ(Word.fromIntZeroExtend(32767)) &&
+        (value.LT(Word.fromIntZeroExtend(4088)) || value.GT(Word.fromIntZeroExtend(4096)))) {
+      say("Warning: Suspicious Address value of ", VM.addressAsHexString(value.toAddress()),
           " written for " + msg);
     }
   }
@@ -1252,7 +1247,7 @@ public class BootImageWriter extends BootImageWriterMessages
       VM.sysWriteln("Unhandled supposed address value: " + addr);
       VM.sysFail("incomplete boot image support");
     }
-    if (warn) check(value.toInt(), msg);
+    if (warn) check(value, msg);
     return value;
   }
 

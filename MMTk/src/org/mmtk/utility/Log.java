@@ -290,6 +290,18 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
+   * writes a word, in decimal.
+   *
+   * @param w the word to be logged
+   */
+  public static void writeDec(Word w) {
+    if (BYTES_IN_ADDRESS == 4)
+      write(w.toInt());
+    else
+      write(w.toLong());
+  }
+
+  /**
    * writes an address, in hexademical.  It is zero-padded.
    *
    * @param a the address to be logged

@@ -92,9 +92,9 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    * If the located site is within the scope of a jsr subroutine
    *  the index value returned is a negative number
    */
-  public int locateGCPoint(int machCodeOffset, VM_Method method)  {
+  public int locateGCPoint(Offset machCodeOffset, VM_Method method)  {
 
-    machCodeOffset = machCodeOffset - (1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.sub(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -107,22 +107,22 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
 
     //  Scan the list of machine code addresses to find the
     //  closest site offset BEFORE the input machine code index ( offset in the code)
-    int distance = 0;
+    Offset distance = Offset.zero();
     int index = 0;
     // get the first possible location
     for (int i = 0; i < mapCount; i++) {
       // get an initial non zero distance
-      distance = machCodeOffset - MCSites[i];
-      if (distance >= 0) {
+      distance = machCodeOffset.sub(MCSites[i]);
+      if (distance.sGE(Offset.zero())) {
         index = i;
         break;
       }
     }
     // scan to find any better location ie closer to the site
     for(int i = index+1; i < mapCount; i++) {
-      int dist =  machCodeOffset- MCSites[i];
-      if (dist < 0) continue;
-      if (dist <= distance) {
+      Offset dist =  machCodeOffset.sub(MCSites[i]);
+      if (dist.sLT(Offset.zero())) continue;
+      if (dist.sLE(distance)) {
         index = i;
         distance = dist;
       }
@@ -136,11 +136,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       VM.sysWrite(referenceMaps[index]);
       VM.sysWrite( "\n");
       if (index - 1 >= 0) {
-        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset - MCSites[index-1]); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index-1])); VM.sysWrite("\n");
       }
-      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset - MCSites[index  ]); VM.sysWrite("\n");
+      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index  ])); VM.sysWrite("\n");
       if (index + 1 < MCSites.length) {
-        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset - MCSites[index+1]); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index+1])); VM.sysWrite("\n");
       }
     }
 
@@ -779,14 +779,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
 
     // from the invoker address and the code base address - get the machine
     // code offset 
-    int machineCodeOffset = compiledMethod.getInstructionOffset(callerAddress);
+    Offset machineCodeOffset = compiledMethod.getInstructionOffset(callerAddress);
 
     if (VM.TraceStkMaps) {
       VM.sysWriteln("VM_ReferenceMaps-setupJSRMap- inputMapid = ", mapid);
       VM.sysWriteln("       jsrReturnAddressOffset = ", jsrAddressOffset);
       VM.sysWriteln("       jsr callers address = ", callerAddress);
       VM.sysWriteln("       machine code offset of caller = ", machineCodeOffset);
-      if (machineCodeOffset <0)
+      if (machineCodeOffset.sLT(Offset.zero()))
         VM.sysWriteln("BAD MACHINE CODE OFFSET");
     }
 
@@ -822,7 +822,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       VM_UnusualMaps thisMap = jsrInfo.unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
       Address nextCallerAddress = frameAddress.add(thisJsrAddressOffset).loadAddress();
-      int nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
+      Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
       if (VM.TraceStkMaps) {
@@ -1523,7 +1523,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    * @return true, if it is a reference type
    *         false, otherwise
    */
-  public boolean isLocalRefType(VM_Method method, int mcoff, int lidx) {
+  public boolean isLocalRefType(VM_Method method, Offset mcoff, int lidx) {
     int bytenum, bitnum;
     byte[] maps;
         

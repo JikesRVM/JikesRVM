@@ -246,11 +246,7 @@ public class OSR_VariableElement implements OSR_Constants {
       if (ref == null) {
         buf.append("null");
       } else {
-        buf.append("0x");
-        if (VM.BuildFor32Addr)
-          buf.append(Integer.toHexString(VM_Magic.objectAsAddress(ref).toInt()));
-        else
-          buf.append(Long.toHexString(VM_Magic.objectAsAddress(ref).toLong()));
+        buf.append(VM.addressAsHexString(VM_Magic.objectAsAddress(ref)));
         buf.append(" ");
 //      buf.append(ref.toString());
       }

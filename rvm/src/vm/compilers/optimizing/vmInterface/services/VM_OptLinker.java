@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
@@ -29,7 +30,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * then examining the bytecodes to see what field/method was being
    * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
-  public static void resolveDynamicLink (VM_OptCompiledMethod cm, int offset) 
+  public static void resolveDynamicLink (VM_OptCompiledMethod cm, Offset offset) 
     throws NoClassDefFoundError {
     VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);

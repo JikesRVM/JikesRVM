@@ -49,8 +49,8 @@ public class Memory implements Uninterruptible, Constants {
    */
   public static void zero(Address start, Extent bytes) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
-      assertAligned(start.toInt());
-      assertAligned(bytes.toInt());
+      assertAligned(start);
+      assertAligned(bytes);
     }
     if (bytes.GT(Extent.fromIntZeroExtend(SMALL_REGION_THRESHOLD))) 
       org.mmtk.vm.Memory.zero(start, bytes);
@@ -77,8 +77,8 @@ public class Memory implements Uninterruptible, Constants {
   public static void zeroSmall(Address start, Extent bytes) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
-      assertAligned(start.toInt());
-      assertAligned(bytes.toInt());
+      assertAligned(start);
+      assertAligned(bytes);
     }
     Address end = start.add(bytes);
     for (Address addr = start; addr.LT(end); addr = addr.add(BYTES_IN_INT)) 
@@ -95,7 +95,7 @@ public class Memory implements Uninterruptible, Constants {
   public static void set(Address start, int bytes, int value)
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
-      assertAligned(start.toInt());
+      assertAligned(start);
       assertAligned(bytes);
     }
     Address end = start.add(bytes);
@@ -160,6 +160,18 @@ public class Memory implements Uninterruptible, Constants {
    */
   private static final void assertAligned(int value) {
     Assert._assert((value & (BYTES_IN_INT-1)) == 0);
+  }
+  
+  private static final void assertAligned(Word value) {
+    Assert._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
+  }
+  
+  private static final void assertAligned(Extent value) {
+    assertAligned(value.toWord());
+  }
+  
+  private static final void assertAligned(Address value) {
+    assertAligned(value.toWord());
   }
   
   /**

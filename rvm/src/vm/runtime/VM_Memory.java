@@ -293,39 +293,39 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  public static void aligned32Copy(Address dst, Address src, int numBytes) throws InlinePragma {
-    if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
-      memcopy(dst, src, numBytes);
+  public static void aligned32Copy(Address dst, Address src, Offset numBytes) throws InlinePragma {
+    if (USE_NATIVE && numBytes.sGT(Offset.fromIntSignExtend(NATIVE_THRESHOLD))) {
+      memcopy(dst, src, numBytes.toWord().toExtent());
     } else {
       if (VM.BuildFor64Addr) {
         Word wordMask = Word.one().lsh(LOG_BYTES_IN_ADDRESS).sub(Word.one());
-        int srcAlignment = src.toWord().and(wordMask).toInt();
-        if (srcAlignment == dst.toWord().and(wordMask).toInt()) {
-          int i = 0;
-          if (srcAlignment == BYTES_IN_INT) { 
-            dst.add(i).store(src.add(i).loadInt());
-            i += BYTES_IN_INT;
+        Word srcAlignment = src.toWord().and(wordMask);
+        if (srcAlignment.EQ(dst.toWord().and(wordMask))) {
+          Offset i = Offset.zero();
+          if (srcAlignment.EQ(Word.fromIntZeroExtend(BYTES_IN_INT))) { 
+            dst.store(src.loadInt(i), i);
+            i = i.add(BYTES_IN_INT);
           }
-          int endAlignment =( numBytes + srcAlignment) % BYTES_IN_ADDRESS;
-          numBytes -= endAlignment;
-          for (; i<numBytes; i+= BYTES_IN_ADDRESS) {
-            dst.add(i).store(src.add(i).loadWord());
+          Word endAlignment = srcAlignment.add(numBytes).and(Word.fromIntSignExtend(BYTES_IN_ADDRESS-1));
+          numBytes = numBytes.sub(endAlignment.toOffset());
+          for (; i.sLT(numBytes); i = i.add(BYTES_IN_ADDRESS)) {
+            dst.store(src.loadWord(i), i);
           }
-          if (endAlignment != 0) { 
-            dst.add(i).store(src.add(i).loadInt());
+          if (!endAlignment.isZero()) { 
+            dst.store(src.loadInt(i), i);
           }
         return;
         }
       } 
       //normal case: 32 bit or (64 bit not aligned)
-      for (int i=0; i<numBytes; i+= BYTES_IN_INT) {
-        dst.add(i).store(src.add(i).loadInt());
+      for (Offset i= Offset.zero(); i.sLT(numBytes); i = i.add(BYTES_IN_INT)) {
+        dst.store(src.loadInt(i), i);
       }
     }
   }
 
-  public static void aligned32Copy(Address dst, Address src, Offset numBytes) throws InlinePragma {
-    aligned32Copy(dst, src, numBytes.toInt());
+  public static void aligned32Copy(Address dst, Address src, int numBytes) throws InlinePragma {
+    aligned32Copy(dst, src, Offset.fromIntSignExtend(numBytes));
   }
 
   /**
@@ -367,8 +367,12 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param cnt   Number of bytes to copy
    * Assumption: source and destination regions do not overlap
    */
-  public static void memcopy(Address dst, Address src, int cnt) {
+  public static void memcopy(Address dst, Address src, Extent cnt) {
     VM_SysCall.sysCopy(dst, src, cnt);
+  }
+
+  public static void memcopy(Address dst, Address src, int cnt) {
+    VM_SysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
 
   /**
@@ -377,7 +381,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param pattern <code>byte</code> to fill the region with.
    * @param cnt     Number of bytes to fill with <code>pattern</code>
    */
-  public static void fill(Address dst, byte pattern, int cnt) {
+  public static void fill(Address dst, byte pattern, Extent cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
   }
 
@@ -387,16 +391,11 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param end of address range   (exclusive)
    */
   public static void zero(Address start, Address end) {
-    VM_SysCall.sysZero(start, end.diff(start).toInt());
-  }
-
-  // temporary different name
-  public static void zero(Address start, int len) {
-    VM_SysCall.sysZero(start, len);
+    VM_SysCall.sysZero(start, end.diff(start).toWord().toExtent());
   }
 
   public static void zero(Address start, Extent len) {
-    VM_SysCall.sysZero(start, len.toInt());
+    VM_SysCall.sysZero(start, len);
   }
 
   /**

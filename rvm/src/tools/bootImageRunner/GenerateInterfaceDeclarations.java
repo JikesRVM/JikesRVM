@@ -30,25 +30,17 @@ class GenerateInterfaceDeclarations {
     //-#if RVM_FOR_64_ADDR
     out.print(s+ off.toLong());
     //-#else
-    out.print(s+ off.toInt());
+    out.print(s+ VM.addressAsHexString(off.toWord().toAddress()));
     //-#endif
   }
   static void pln(String s) {
     out.println(s);
   }
   static void pln(String s, Address addr) {
-    //-#if RVM_FOR_64_ADDR
-    out.print("const VM_Address " + s + addr.toLong()+ ";\n");
-    //-#else
-    out.print("const VM_Address " + s + addr.toInt() + ";\n");
-    //-#endif
+    out.print("const VM_Address " + s + VM.addressAsHexString(addr) + ";\n");
   }
   static void pln(String s, Offset off) {
-    //-#if RVM_FOR_64_ADDR
-    out.print("const VM_Offset " + s + off.toLong() + ";\n");
-    //-#else
-    out.print("const VM_Offset " + s + off.toInt() + ";\n");
-    //-#endif
+    out.print("const VM_Offset " + s + VM.addressAsHexString(off.toWord().toAddress()) + ";\n");
   }
   static void pln() {
     out.println();
@@ -137,11 +129,13 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildFor32Addr) {
       pln("#define VM_Address uint32_t");
       pln("#define VM_Offset int32_t");
+      pln("#define VM_Extent uint32_t");
       pln("#define VM_Word uint32_t");
       pln("#define JavaObject_t uint32_t");
     } else {
       pln("#define VM_Address uint64_t");
       pln("#define VM_Offset int64_t");
+      pln("#define VM_Extent uint64_t");
       pln("#define VM_Word uint64_t");
       pln("#define JavaObject_t uint64_t");
     }

@@ -52,9 +52,9 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   public byte scale;
 
   /**
-   * The displacement (an int)
+   * The displacement 
    */
-  public int disp;
+  public Offset disp;
 
   /**
    * Number of bytes being accessed (1,2,4,8)
@@ -64,7 +64,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   public OPT_MemoryOperand(OPT_RegisterOperand base, 
                     OPT_RegisterOperand index,
                     byte scale,
-                    int disp,
+                    Offset disp,
                     byte size,
                     OPT_LocationOperand loc,
                     OPT_Operand guard) {
@@ -86,21 +86,21 @@ public final class OPT_MemoryOperand extends OPT_Operand {
                                     byte size, 
                                     OPT_LocationOperand loc,
                                     OPT_Operand guard) {
-    return new OPT_MemoryOperand(base, null, (byte)0, 0, size, loc, guard);
+    return new OPT_MemoryOperand(base, null, (byte)0, Offset.zero(), size, loc, guard);
   }
   public static OPT_MemoryOperand BI(OPT_RegisterOperand base,
                                      OPT_RegisterOperand index, 
                                      byte size, 
                                      OPT_LocationOperand loc,
                                      OPT_Operand guard) {   
-    return new OPT_MemoryOperand(base, index, (byte)0, 0, size, loc, guard);
+    return new OPT_MemoryOperand(base, index, (byte)0, Offset.zero(), size, loc, guard);
   }
   public static OPT_MemoryOperand BD(OPT_RegisterOperand base, 
                                      Offset disp, 
                                      byte size,
                                      OPT_LocationOperand loc,
                                      OPT_Operand guard) {
-    return new OPT_MemoryOperand(base, null, (byte)0, disp.toInt(), size, loc, guard);
+    return new OPT_MemoryOperand(base, null, (byte)0, disp, size, loc, guard);
   }
   public static OPT_MemoryOperand BID(OPT_RegisterOperand base, 
                                       OPT_RegisterOperand index,
@@ -108,7 +108,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
                                       byte size,
                                       OPT_LocationOperand loc,
                                       OPT_Operand guard) {
-    return new OPT_MemoryOperand(base, index, (byte)0, disp.toInt(), size, loc, guard);
+    return new OPT_MemoryOperand(base, index, (byte)0, disp, size, loc, guard);
   }
   public static OPT_MemoryOperand BIS(OPT_RegisterOperand base,
                                       OPT_RegisterOperand index,
@@ -116,19 +116,19 @@ public final class OPT_MemoryOperand extends OPT_Operand {
                                       byte size,
                                       OPT_LocationOperand loc,
                                       OPT_Operand guard) {
-    return new OPT_MemoryOperand(base, index, scale, 0, size, loc, guard);
+    return new OPT_MemoryOperand(base, index, scale, Offset.zero(), size, loc, guard);
   }
   public static OPT_MemoryOperand D(Address disp, 
                                     byte size,
                                     OPT_LocationOperand loc,
                                     OPT_Operand guard) {
-    return new OPT_MemoryOperand(null, null, (byte)0, disp.toInt(), size, loc, guard);
+    return new OPT_MemoryOperand(null, null, (byte)0, disp.toWord().toOffset(), size, loc, guard);
   }
   public static OPT_MemoryOperand I(OPT_RegisterOperand base,
                                     byte size,
                                     OPT_LocationOperand loc,
                                     OPT_Operand guard) {
-    return new OPT_MemoryOperand(base, null, (byte)0, 0, size, loc, guard);
+    return new OPT_MemoryOperand(base, null, (byte)0, Offset.zero(), size, loc, guard);
   }
 
 
@@ -168,7 +168,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
         if (mop.index == null) return false;
         if (!index.similar(mop.index)) return false;
       }
-      return (mop.scale == scale) && (mop.disp == disp) && (mop.size == size);
+      return (mop.scale == scale) && (mop.disp.EQ(disp)) && (mop.size == size);
     } else {
       return false;
     }
@@ -191,8 +191,8 @@ public final class OPT_MemoryOperand extends OPT_Operand {
         OPT_OptimizingCompilerException.UNREACHABLE();
       }
     }
-    if (disp != 0) {
-      addr += "+"+disp;
+    if (!disp.isZero()) {
+      addr += "+"+disp.toInt();
     }
     switch (size) {
     case 1: addr += ">B"; break;

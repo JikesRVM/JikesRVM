@@ -92,10 +92,10 @@ public final class OSR_BaselineExecStateExtractor
     Address instr_beg = VM_Magic.objectAsAddress(instructions);
     Address rowIP     = VM_Magic.objectAsAddress(stack).loadAddress(osrFPoff.add(STACKFRAME_RETURN_ADDRESS_OFFSET)); 
     VM.enableGC();
-    int ipIndex   = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
+    Offset ipOffset = rowIP.diff(instr_beg);
     
     // CAUTION: IP Offset should point to next instruction
-    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipIndex + 1);
+    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
     // assertions
     if (VM.VerifyAssertions) {
@@ -107,7 +107,8 @@ public final class OSR_BaselineExecStateExtractor
         for (int i=(osrFPoff.toInt())-10; i<(osrFPoff.toInt())+10; i++)
           VM.sysWriteln("  stack["+i+"] = "+stack[i]);
 
-        VM.sysWriteln("ipIndex : " + ipIndex);
+        Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+        VM.sysWriteln("ipIndex : " , ipIndex);
         VM.sysWriteln("bcIndex : " + bcIndex);
       }
       VM._assert(bcIndex != -1);
@@ -148,7 +149,7 @@ public final class OSR_BaselineExecStateExtractor
       // if typer reports a local is reference type, but the GC map says no
       // then set the localType to uninitialized, see VM spec, bytecode verifier
       if (localTypes[i] == ClassTypeCode) {
-        if (!fooCM.referenceMaps.isLocalRefType(fooM, ipIndex+ 1, i)) {
+        if (!fooCM.referenceMaps.isLocalRefType(fooM, ipOffset.add(1<<LG_INSTRUCTION_WIDTH), i)) {
           localTypes[i] = VoidTypeCode;
           if (VM.TraceOnStackReplacement) {
             VM.sysWriteln("GC maps disagrees with type matcher at "+i+"th local\n");
@@ -263,14 +264,15 @@ public final class OSR_BaselineExecStateExtractor
 
         vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
 
-        int ipIndex = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
+        Offset ipOffset = rowIP.diff(instr_beg);
 
         if (VM.TraceOnStackReplacement) {
-          VM.sysWrite("baseline ret_addr ip "+ipIndex+" --> ");
+          Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+          VM.sysWrite("baseline ret_addr ip ", ipIndex, " --> ");
         }
         
         int bcIndex = 
-          compiledMethod.findBytecodeIndexForInstruction(ipIndex+1);
+          compiledMethod.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
         if (VM.TraceOnStackReplacement) {
           VM.sysWrite(" bc "+ bcIndex+"\n");

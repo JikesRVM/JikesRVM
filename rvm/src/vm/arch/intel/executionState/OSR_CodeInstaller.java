@@ -119,9 +119,9 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       VM.sysWriteHex(VM_Magic.objectAsAddress(VM_Magic.getProcessorRegister()));
       VM.sysWriteln();
       
-      VM.sysWriteln("tsfromFPOffset "+Integer.toHexString(tsfromFPOffset.toInt()));
-      VM.sysWriteln("fooFPOffset " + Integer.toHexString(fooFPOffset.toInt()));
-      VM.sysWriteln("SP + "+ (sp2fpOffset.toInt()+4));
+      VM.sysWriteln("tsfromFPOffset ", tsfromFPOffset);
+      VM.sysWriteln("fooFPOffset ", fooFPOffset);
+      VM.sysWriteln("SP + ", sp2fpOffset.add(4));
     }
         
     // 3. set thread flags

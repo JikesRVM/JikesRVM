@@ -15,6 +15,7 @@ public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//
     
   static final byte LG_INSTRUCTION_WIDTH = 0;             // log2 of instruction width in bytes
+  static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH; 
     
   // Symbolic values for fixed-point registers.
   // These values are used to assemble instructions and as indices into:

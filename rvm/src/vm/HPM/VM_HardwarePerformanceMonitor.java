@@ -424,7 +424,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
   private boolean pickBuffer(int record_size) 
   {
     if (buffer_code == ONE) {
-      if (index_1.toInt() + record_size > OUTPUT_BUFFER_SIZE) {
+      if (index_1.add(record_size).sGT(Offset.fromIntZeroExtend(OUTPUT_BUFFER_SIZE))) {
         if (! consumer.isActive()) {
           // swap buffers and activate consumer to write full buffer to disk
           buffer = buffer_2; index = index_2; buffer_code = TWO; 
@@ -442,7 +442,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
         return true;
       }
     } else if (buffer_code == TWO) { 
-      if (index_2.toInt() + record_size > OUTPUT_BUFFER_SIZE) {
+      if (index_2.add(record_size).sGT(Offset.fromIntZeroExtend(OUTPUT_BUFFER_SIZE))) {
         if (! consumer.isActive()) {
           // swap buffers and activate consumer to write full buffer to disk
           buffer = buffer_1; index = index_1; buffer_code = ONE; 

@@ -100,7 +100,7 @@ public class ApplicationClassLoader extends URLClassLoader {
       + (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "")
       + (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM")
       + (DBG 
-         ? "@0x" + Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) 
+         ? "@" + VM.addressAsHexString(VM_Magic.objectAsAddress(this)) 
          : "");
   }
 

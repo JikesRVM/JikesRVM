@@ -40,9 +40,9 @@ public final class VM_AllocatorHeader implements VM_Constants {
                                       Object[] tib, int size, boolean isScalar)
     throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = Plan.getBootTimeAvailableBits(ref.toInt(), 
+    Word status = Plan.getBootTimeAvailableBits(ref, 
       ObjectReference.fromObject(tib), size, Word.zero());
-    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref.toInt(), status);
+    VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
   public static void dumpHeader(Object ref) throws UninterruptiblePragma {

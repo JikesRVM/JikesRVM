@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.opt.OPT_Bits;
 import org.vmmagic.unboxed.*;
 import com.ibm.JikesRVM.VM_SizeConstants;
+import com.ibm.JikesRVM.VM;
 
 /**
  * Represents an address constant operand.
@@ -76,11 +77,6 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    //-#if RVM_FOR_64_ADDR
-    return "Addr 0x" + Long.toHexString(value.toLong());
-    //-#elif RVM_FOR_32_ADDR
-    return "Addr 0x" + Integer.toHexString(value.toInt());
-    //VM.AddressAsHexString
-    //-#endif
+    return "Addr " + VM.addressAsHexString(value);
   }
 }

@@ -85,7 +85,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             Offset offset = type.getTibOffset();
             Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         ir.regpool.makeJTOCOp(ir,s), 
-                        OPT_IRTools.AC(offset), new OPT_LocationOperand(offset.toInt()));
+                        OPT_IRTools.AC(offset), new OPT_LocationOperand(offset));
           }
           break;
 

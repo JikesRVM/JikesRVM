@@ -118,7 +118,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     // JTOC.
 
     long l = Double.doubleToLongBits(incrementValue);
-    Offset offset = VM_Statics.findOrCreateDoubleLiteral(l);
+    Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(l));
 
     // Now create the instruction to be returned.
     OPT_Instruction c = 

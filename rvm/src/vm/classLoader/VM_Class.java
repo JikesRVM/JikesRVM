@@ -727,19 +727,19 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         break;
 
       case TAG_INT:
-        constantPool[i] = VM_Statics.findOrCreateIntLiteral(input.readInt()).toInt();
+        constantPool[i] = VM_Statics.findOrCreateIntLiteral(input.readInt());
         break;
 
       case TAG_FLOAT:
-        constantPool[i] = VM_Statics.findOrCreateFloatLiteral(input.readInt()).toInt();
+        constantPool[i] = VM_Statics.findOrCreateFloatLiteral(input.readInt());
         break;
 
       case TAG_LONG:
-        constantPool[i++] = VM_Statics.findOrCreateLongLiteral(input.readLong()).toInt();
+        constantPool[i++] = VM_Statics.findOrCreateLongLiteral(input.readLong());
         break;
 
       case TAG_DOUBLE:
-        constantPool[i++] = VM_Statics.findOrCreateDoubleLiteral(input.readLong()).toInt();
+        constantPool[i++] = VM_Statics.findOrCreateDoubleLiteral(input.readLong());
         break;
 
       case TAG_TYPEREF:
@@ -790,7 +790,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         } // out: type reference id
 
         case TAG_STRING: { // in: utf index
-          constantPool[i] = VM_Statics.findOrCreateStringLiteral(getUtf(constantPool[i])).toInt();
+          constantPool[i] = VM_Statics.findOrCreateStringLiteral(getUtf(constantPool[i]));
           break; 
         } // out: jtoc slot number
         }
@@ -1548,8 +1548,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
       VM._assert(vm == m);
     }
-    int offset = m.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
-    typeInformationBlock[offset] = m.getCurrentInstructions();
+    int index = m.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
+    typeInformationBlock[index] = m.getCurrentInstructions();
     VM_InterfaceInvocation.updateTIBEntry(this, m);
   }
 

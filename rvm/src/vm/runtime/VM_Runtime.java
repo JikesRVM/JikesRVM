@@ -849,7 +849,7 @@ public class VM_Runtime implements VM_Constants {
           VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
           VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
           Address ip = exceptionRegisters.getInnermostInstructionAddress();
-          int ipOffset = compiledMethod.getInstructionOffset(ip);
+          Offset ipOffset = compiledMethod.getInstructionOffset(ip);
           int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
 
           if (catchBlockOffset >= 0  ){ 

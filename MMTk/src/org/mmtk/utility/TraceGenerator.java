@@ -144,7 +144,7 @@ public final class TraceGenerator
    */
   public static final void boot(Address bootStart) {
     Word nextOID = TraceInterface.getOID();
-    ObjectReference trav = TraceInterface.getBootImageLink().add(bootStart.toInt()).toObjectReference();
+    ObjectReference trav = TraceInterface.getBootImageLink().add(bootStart.toWord().toOffset()).toObjectReference();
     objectLinks.set(ALLOC_BOOT, trav);
     /* Loop through all the objects within boot image */
     while (!trav.isNull()) {
@@ -158,7 +158,7 @@ public final class TraceGenerator
       /* Move to the next object & adjust for starting address of 
          the bootImage */
       if (!next.isNull()) {
-        next = next.toAddress().add(bootStart.toInt()).toObjectReference();
+        next = next.toAddress().add(bootStart.toWord().toOffset()).toObjectReference();
         TraceInterface.setLink(trav, next);
       }
       trav = next;

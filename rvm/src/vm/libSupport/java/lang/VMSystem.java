@@ -111,8 +111,8 @@ final class VMSystem {
   static String internString(String string) {
     try {
       return (String)
-        VM_Statics.getSlotContentsAsObject(VM_Statics.findOrCreateStringLiteral(
-                                           VM_Atom.findOrCreateUnicodeAtom(string)));
+        VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend( 
+            VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom(string))));
     } catch (UTFDataFormatException ex) {
       throw new InternalError( ex.toString() );
     }

@@ -2297,7 +2297,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 // Memory to memory copy.
 //
 extern "C" void
-sysCopy(void *dst, const void *src, int cnt)
+sysCopy(void *dst, const void *src, VM_Extent cnt)
 {
     memcpy(dst, src, cnt);
 }
@@ -2305,7 +2305,7 @@ sysCopy(void *dst, const void *src, int cnt)
 // Memory fill.
 //
 extern "C" void
-sysFill(void *dst, int pattern, int cnt)
+sysFill(void *dst, int pattern, VM_Extent cnt)
 {
     memset(dst, pattern, cnt);
 }
@@ -2329,7 +2329,7 @@ sysFree(void *location)
 // Zero a range of memory bytes.
 //
 extern "C" void
-sysZero(void *dst, int cnt)
+sysZero(void *dst, VM_Extent cnt)
 {
     memset(dst, 0x00, cnt);
 }

@@ -103,7 +103,7 @@ public class VM_StackTrace implements VM_Constants {
         if (record) compiledMethods[stackFrameCount] = compiledMethod;
         if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
           if (record) {
-            offsets[stackFrameCount] = compiledMethod.getInstructionOffset(ip);
+            offsets[stackFrameCount] = compiledMethod.getInstructionOffset(ip).toInt();
           }
           if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
             // skip native frames, stopping at last native frame preceeding the
@@ -357,7 +357,7 @@ public class VM_StackTrace implements VM_Constants {
 //         happens here. */
 //              return;                 // gone far enough.
         } else {
-          cm.printStackTrace(offsets[i], out);
+          cm.printStackTrace(Offset.fromIntSignExtend(offsets[i]), out);
         }
       }
       catch (OutOfMemoryError e) {

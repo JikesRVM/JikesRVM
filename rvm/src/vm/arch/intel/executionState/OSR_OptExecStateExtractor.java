@@ -85,7 +85,7 @@ public final class OSR_OptExecStateExtractor
     VM.disableGC();
     Address osrFP = VM_Magic.objectAsAddress(stack).add(osrFPoff);
     Address nextIP = VM_Magic.getReturnAddress(osrFP);
-    int ipOffset = fooCM.getInstructionOffset(nextIP);
+    Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
     VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
@@ -231,7 +231,7 @@ public final class OSR_OptExecStateExtractor
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
                                                   byte[] stack,
-                                                  int   ipOffset,
+                                                  Offset   ipOffset,
                                                   Offset   fpOffset,
                                                   int   cmid,
                                                   Offset   tsFPOffset,
@@ -589,7 +589,7 @@ public final class OSR_OptExecStateExtractor
 
   private static void dumpRegisterContent(WordArray gprs) {
     for (int i=0, n=gprs.length(); i<n; i++) {
-      VM.sysWriteln(GPR_NAMES[i] + " = " + Integer.toHexString(gprs.get(i).toInt()));
+      VM.sysWriteln(GPR_NAMES[i] + " = " , gprs.get(i));
     }
   }
 

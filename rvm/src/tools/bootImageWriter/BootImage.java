@@ -62,7 +62,7 @@ public class BootImage extends BootImageWriterMessages
    * @param t turn tracing on?
    */
   BootImage(boolean ltlEndian, boolean t) {
-    bootImage = new byte[BOOT_IMAGE_SIZE.toInt()];
+    bootImage = new byte[BOOT_IMAGE_SIZE];
     littleEndian = ltlEndian;
     trace = t;
   }
@@ -139,7 +139,7 @@ public class BootImage extends BootImageWriterMessages
     }
     Offset lowAddr = freeOffset;
     freeOffset = freeOffset.add(size);
-    if (freeOffset.toWord().toExtent().GT(BOOT_IMAGE_SIZE))
+    if (freeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes)");
     
     return lowAddr;

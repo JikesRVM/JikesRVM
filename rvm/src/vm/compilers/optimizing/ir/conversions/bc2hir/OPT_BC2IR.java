@@ -2299,7 +2299,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM.sysWriteln("PSEUDO_LoadLongConst "+value);
 
           // put on jtoc
-          Offset offset = VM_Statics.findOrCreateLongLiteral(value);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongLiteral(value));
 
           pushDual(new OPT_LongConstantOperand(value, offset));
           break;
@@ -2330,7 +2330,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.TraceOnStackReplacement) 
             VM.sysWriteln("PSEUDO_LoadFloatConst "+value);
 
-          Offset offset = VM_Statics.findOrCreateFloatLiteral(ibits);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(ibits));
 
           push(new OPT_FloatConstantOperand(value, offset));
           break;
@@ -2346,7 +2346,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM.sysWriteln("PSEUDO_LoadDoubleConst "+ lbits);
 
           // put on jtoc
-          Offset offset = VM_Statics.findOrCreateDoubleLiteral(lbits);
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(lbits));
 
           pushDual(new OPT_DoubleConstantOperand(value, offset));
           break;

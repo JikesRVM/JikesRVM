@@ -258,14 +258,14 @@ CMP_ZERO(P(p), PPC_XORr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&U16(Move.getVal(PLR(p)))?20:INFINITE
+(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&U16(IV(Move.getVal(PLR(p))))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ANDISr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))),                               \
-                     SRI(Move.getVal(PLR(p)), 16), IfCmp.getCond(P(p)));
+                     SRI(IV(Move.getVal(PLR(p))), 16), IfCmp.getCond(P(p)));
 
 stm:	INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&MASK(Move.getVal(PLR(p)))?20:INFINITE
+(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&MASK(IV(Move.getVal(PLR(p))))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO_AND_MASK(P(p), Binary.getResult(PL(p)),           \
                               R(Binary.getVal1(PL(p))),                      \
@@ -293,13 +293,13 @@ CMP_ZERO(P(p), PPC_ORCr, Binary.getResult(PL(p)),          \
 # REF_AND, cases not valid on 64-bit, due to zero extension of ANDIS
 #####
 czr:	REF_AND(r,REF_MOVE(INT_CONSTANT))
-U16(Move.getVal(PR(p)))?11:INFINITE
+U16(IV(Move.getVal(PR(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ANDISr, Binary.getResult(P(p)),              \
                        R(Binary.getVal1(P(p))), IC(OPT_Bits.PPCMaskUpper16(VRL(p)))));
 
 r:	REF_AND(r,REF_MOVE(INT_CONSTANT))
-MASK(Move.getVal(PR(p)))?10:INFINITE
+MASK(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_MASK(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Move.getVal(PR(p))));
 
@@ -307,15 +307,15 @@ AND_MASK(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Move.getVal(P
 # REF_OR, cases not valid on 64-bit, due to zero extension of ORIS
 #####
 r:	REF_OR(r,REF_MOVE(INT_CONSTANT))
-U16(Move.getVal(PR(p)))?10:INFINITE
+U16(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), SRI(Move.getVal(PR(p)), 16)));
+EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), SRI(IV(Move.getVal(PR(p))), 16)));
 
 r:	REF_OR(r,REF_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand c = Move.getVal(PR(p));                                        \
+   int c = IV(Move.getVal(PR(p)));                                        \
    EMIT(MIR_Binary.create(PPC_ORI, Binary.getResult(P(p)),                    \
                           R(Binary.getVal1(P(p))), ANDI(c, 0xffff)));         \
    EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)),             \
@@ -326,31 +326,30 @@ EMIT_INSTRUCTION
 # REF_XOR, cases not valid on 64-bit, due to zero extension of XORIS
 #####
 r:	REF_XOR(r,REF_MOVE(INT_CONSTANT))
-U16(Move.getVal(PR(p)))?10:INFINITE
+U16(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_XORIS, Binary.getResult(P(p)), \
-                       R(Binary.getVal1(P(p))), SRI(Move.getVal(PR(p)), 16)));
+                       R(Binary.getVal1(P(p))), SRI(IV(Move.getVal(PR(p))), 16)));
 
 ######
 # REF_MOVE
 ######
 r:	REF_MOVE(ADDRESS_CONSTANT)
-SI16(Move.getVal(P(p)).asAddressConstant().value.toInt())?11:INFINITE
+SI16(AV(Move.getVal(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Move.getResult(P(p)), IC(Move.getVal(P(p)).asAddressConstant().value.toInt())));
+EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Move.getResult(P(p)), CAL16(AV(Move.getVal(P(p))))));
 
 r:	REF_MOVE(ADDRESS_CONSTANT)
-U16(Move.getVal(P(p)).asAddressConstant().value.toInt())?11:INFINITE
+U16(AV(Move.getVal(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)), SRI(Move.getVal(P(p)).asAddressConstant().value.toInt(), 16)));
+EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)), CAU16(AV(Move.getVal(P(p))))));
 
 r:	REF_MOVE(ADDRESS_CONSTANT)
 22
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_AddressConstantOperand one = Move.getVal(P(p)).asAddressConstant();                                       \
-   EMIT(MIR_Unary.create(PPC_LDIS, Move.getResult(P(p)), CAU16(one.value.toInt())));        \
+   EMIT(MIR_Unary.create(PPC_LDIS, Move.getResult(P(p)), CAU16(AV(Move.getVal(P(p))))));        \
    EMIT(MIR_Binary.mutate(P(p), PPC_ADDI, Move.getResult(P(p)),               \
-                          Move.getResult(P(p)), CAL16(one.value.toInt())));                 \
+                          Move.getResult(P(p)), CAL16(AV(Move.getVal(P(p))))));                 \
 }
 

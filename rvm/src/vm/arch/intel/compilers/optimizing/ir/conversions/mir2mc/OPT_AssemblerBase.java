@@ -213,7 +213,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the IA32 ISA encoding of the scale of op
    */
   static Offset getDisp(OPT_Operand op) {
-    return Offset.fromIntSignExtend(((OPT_MemoryOperand)op).disp);
+    return ((OPT_MemoryOperand)op).disp;
   }
 
   /**
@@ -233,7 +233,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
         (mop.index == null) &&
-        (mop.disp != 0) &&
+        (!mop.disp.isZero()) &&
         (mop.scale == 0);
     } else
       return false;
@@ -255,7 +255,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base == null) &&
         (mop.index == null) &&
-        (mop.disp != 0) &&
+        (!mop.disp.isZero()) &&
         (mop.scale == 0);
     } else
       return false;
@@ -278,7 +278,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
         (mop.index == null) &&
-        (mop.disp == 0) &&
+        (mop.disp.isZero()) &&
         (mop.scale == 0);
     } else
       return false;
@@ -576,7 +576,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     if (op instanceof OPT_MemoryOperand) {
       int cost = 1; // might need SIB byte
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
-      if (mop.disp != 0) {
+      if (!mop.disp.isZero()) {
         if (fits(mop.disp,8)) {
           cost += 1;
         } else {

@@ -1172,7 +1172,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     // Map from JNIEnv* to VM_JNIEnvironment.
     // Must do this outside the loop as we need to do it exactly once.
-    asm.emitADDI (T0, -VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt(), T0);
+    asm.emitADDI (T0, Offset.zero().sub(VM_Entrypoints.JNIExternalFunctionsField.getOffset()), T0);
 
     int retryLoop  = asm.getMachineCodeIndex();
     // acquire Jikes RVM PROCESSOR_REGISTER (and JTOC OSX/Linux only).

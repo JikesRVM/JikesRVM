@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.quick.*;
 //-#endif
 import java.util.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * An organizer to build a dynamic call graph from call graph edge
@@ -114,7 +115,8 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
       if (compiledMethod == null) continue;
       VM_Method stackFrameCaller = compiledMethod.getMethod();
        
-      int MCOffset = buffer[i+2];
+      int MCOff = buffer[i+2];
+      Offset MCOffset = Offset.fromIntSignExtend(buffer[i+2]);
       int bytecodeIndex = -1;
       VM_Method caller = null;
 
@@ -128,8 +130,7 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
           VM_BaselineCompiledMethod baseCompiledMethod = 
             (VM_BaselineCompiledMethod)compiledMethod;
           // note: the following call expects the offset in INSTRUCTIONS!
-          bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
-            (MCOffset>>>VM.LG_INSTRUCTION_WIDTH);
+          bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction(MCOffset);
           caller = stackFrameCaller;
         }
         break;
@@ -139,8 +140,7 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
           VM_QuickCompiledMethod quickCompiledMethod = 
             (VM_QuickCompiledMethod)compiledMethod;
           // note: the following call expects the offset in INSTRUCTIONS!
-          bytecodeIndex = quickCompiledMethod.findBytecodeIndexForInstruction
-            (MCOffset>>>VM.LG_INSTRUCTION_WIDTH);
+          bytecodeIndex = quickCompiledMethod.findBytecodeIndexForInstruction(MCOffset);
           caller = stackFrameCaller;
         }
         break;
@@ -159,7 +159,7 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
               if (DEBUG) {
                   VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());
                   VM.sysWrite("@",compiledMethod.toString());
-                  VM.sysWrite(" at MC offset ", MCOffset);
+                  VM.sysWrite(" at MC offset ", MCOff);
                   VM.sysWrite(" calling ", callee.toString());
                   VM.sysWriteln(" due to invalid bytecodeIndex");
               }
@@ -174,7 +174,7 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
               continue;  // skip sample
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
-                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
+                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOff);
             VM.sysWrite("!\n");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
@@ -191,7 +191,7 @@ class VM_DynamicCallGraphOrganizer extends VM_Organizer {
             continue;
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
-                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
+                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOff);
             VM.sysWrite("!\n");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample

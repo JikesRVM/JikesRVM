@@ -549,7 +549,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Non-atomic write of word containing available bits
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-                                            int ref, Word val) throws InterruptiblePragma {
+                                            Offset ref, Word val) throws InterruptiblePragma {
     bootImage.setAddressWord(STATUS_OFFSET.add(ref), val);
   }
 

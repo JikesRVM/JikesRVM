@@ -922,7 +922,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                                    VM_TypeReference type, 
                                                    Offset offset) {
     return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(ir,s), 
-                            AC(offset), new OPT_LocationOperand(offset.toInt()), null);
+                            AC(offset), new OPT_LocationOperand(offset), null);
   }
 
   /**

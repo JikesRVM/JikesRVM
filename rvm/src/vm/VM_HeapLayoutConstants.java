@@ -30,7 +30,7 @@ public interface VM_HeapLayoutConstants {
      );
 
   /** The maximum boot image size */
-  public static final Extent BOOT_IMAGE_SIZE = Extent.fromInt(60<<20);
+  public static final int BOOT_IMAGE_SIZE = 60<<20;
 
   /** The address of the end of the boot image. */
   public static final Address BOOT_IMAGE_END = BOOT_IMAGE_START.add(BOOT_IMAGE_SIZE);

@@ -63,10 +63,7 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
 
   // returns the integer value of the given operand
   protected final int IV(OPT_Operand op) {
-    if (op.isAddressConstant())
-      return AC(op).value.toInt();
-    else
-      return IC(op).value;
+    return IC(op).value;
   }
 
   // returns the Address value of the given operand

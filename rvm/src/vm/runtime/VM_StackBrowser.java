@@ -22,7 +22,7 @@ public final class VM_StackBrowser implements VM_Constants {
   private int currentBytecodeIndex;
 
   private Address currentFramePointer;
-  private int currentInstructionPointer;
+  private Offset currentInstructionPointer;
   private VM_CompiledMethod currentCompiledMethod;
     
   //-#if RVM_WITH_OPT_COMPILER

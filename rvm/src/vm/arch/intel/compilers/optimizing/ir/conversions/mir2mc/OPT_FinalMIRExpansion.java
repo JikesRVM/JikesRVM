@@ -372,7 +372,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // NOTE: must make s the call instruction: it is the GC point!
     //       must also inform the GCMap that s has been moved!!!
     Offset offset = meth.getOffset();
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
       OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset), (byte)4, loc, guard);
@@ -417,7 +417,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // NOTE: must make s the call instruction: it is the GC point!
     //       must also inform the GCMap that s has been moved!!!
     Offset offset = meth.getOffset();
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
       OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset), (byte)4, loc, guard);

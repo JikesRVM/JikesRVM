@@ -314,7 +314,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
           }
         }
         VM_GCMapIterator iterator = iteratorGroup.selectIterator(compiledMethod);
-        iterator.setupIterator(compiledMethod, offset.toInt(), fp);
+        iterator.setupIterator(compiledMethod, offset, fp);
         
         if (DUMP_STACK >= 2) dumpStackFrame( fp, prevFp );
         
@@ -466,9 +466,9 @@ public class ScanThread implements VM_Constants, Uninterruptible {
 
     for (Address loc = start; loc.LT(end); loc = loc.add(BYTES_IN_ADDRESS)) {
       VM.sysWrite(loc); VM.sysWrite(" (");
-      VM.sysWrite(loc.diff(start).toInt(), "):  ");
+      VM.sysWrite(loc.diff(start));
       ObjectReference value = loc.loadObjectReference();
-      VM.sysWrite(" ", value);
+      VM.sysWrite("):   ", value);
       VM.sysWrite(" ");
       if (DUMP_STACK >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end) )
         MM_Interface.dumpRef(value);

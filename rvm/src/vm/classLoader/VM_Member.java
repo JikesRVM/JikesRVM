@@ -159,20 +159,6 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   }
 
   /**
-   * Offset of this field or method, in bytes.
-   * <ul>
-   * <li> For a static field:      offset of field from start of jtoc
-   * <li> For a static method:     offset of code object reference from start of jtoc
-   * <li> For a non-static field:  offset of field from start of object
-   * <li> For a non-static method: offset of code object reference from start of tib
-   * </ul>
-   */ 
-  public final int getOffsetAsInt() throws UninterruptiblePragma {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
-    return offset;
-  }
-
-  /**
    * Only meant to be used by VM_ObjectModel.layoutInstanceFields.
    * TODO: refactor system so this functionality is in the classloader package
    * and this method doesn't have to be final.

@@ -388,7 +388,7 @@ r:	REF_ADD(r,REF_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
+   int val = IV(Move.getVal(PR(p)));                                      \
    EMIT(MIR_Binary.create(PPC_ADDI, Move.getResult(PR(p)),                    \
                           R(Binary.getVal1(P(p))), CAL16(val)));              \
    EMIT(MIR_Binary.mutate(P(p), PPC_ADDIS, Binary.getResult(P(p)),            \
@@ -396,10 +396,10 @@ EMIT_INSTRUCTION
 }
 
 r:	REF_ADD(r,REF_MOVE(INT_CONSTANT))
-U16(Move.getVal(PR(p)))?10:INFINITE
+U16(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ADDIS, Binary.getResult(P(p)),               \
-                       R(Binary.getVal1(P(p))), CAU16(Move.getVal(PR(p)))));
+                       R(Binary.getVal1(P(p))), CAU16(IV(Move.getVal(PR(p))))));
 
 #####
 # REF_SUB
@@ -411,7 +411,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SUBF, Binary.getResult(P(p)),                \
                        R(Binary.getVal2(P(p))), Binary.getVal1(P(p))));
 
 r:	REF_SUB(INT_CONSTANT,r)
-SI16(Binary.getVal1(P(p)))?11:INFINITE
+SI16(IV(Binary.getVal1(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_SUBFIC, Binary.getResult(P(p)),              \
                        R(Binary.getVal2(P(p))), Binary.getVal1(P(p))));
@@ -503,7 +503,7 @@ INT_SHIFT(P(p),PPC_SRAW);
 
 #guaranteed to be correct also on 64-bit: INT_CONSTANT of REF_AND is immediate, so sign is always zero
 rp:	INT_SHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
-POSITIVE_MASK(Binary.getVal2(PL(p)))?10:INFINITE
+POSITIVE_MASK(IV(Binary.getVal2(PL(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_USHR(P(p), Binary.getResult(P(p)),                      \
                      R(Binary.getVal1(PL(p))), IC(Binary.getVal2(PL(p))),      \
@@ -534,14 +534,14 @@ INT_SHIFT(P(p),PPC_SRW);
 
 #assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
 rp:	INT_USHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
-POSITIVE_MASK(Binary.getVal2(PL(p)))?10:INFINITE
+POSITIVE_MASK(IV(Binary.getVal2(PL(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
 	       IC(Binary.getVal2(PL(p))), IC(Binary.getVal2(P(p))));
 
 #assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
 rp:	INT_USHR(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
-POSITIVE_MASK(Move.getVal(PLR(p)))?10:INFINITE
+POSITIVE_MASK(IV(Move.getVal(PLR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
                IC(Move.getVal(PLR(p))), IC(Binary.getVal2(P(p))));
@@ -568,13 +568,13 @@ EMIT(MIR_Binary.mutate(P(p), PPC_ANDIr, Binary.getResult(P(p)), R(Binary.getVal1
 
 #assumption for rp : INT_CONSTANT is always a positive immediate, should be taken care of by OPT_NormalizeConstants
 rp:	REF_AND(r,INT_CONSTANT)
-MASK(Binary.getVal2(P(p)))?10:INFINITE
+MASK(IV(Binary.getVal2(P(p))))?10:INFINITE
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand mask = Binary.getVal2(P(p));                                   \
+   int mask = IV(Binary.getVal2(P(p)));                                   \
    EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Binary.getResult(P(p)),          \
                                  R(Binary.getVal1(P(p))), IC(0),               \
-                                 MB(mask), ME(mask)));                        \
+                                 IC(MaskBegin(mask)), IC(MaskEnd(mask))));                        \
 }
 
 r:	REF_AND(REF_NOT(r),REF_NOT(r))
@@ -590,14 +590,14 @@ EMIT(MIR_Binary.mutate(P(p), PPC_ANDC, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Unary.getVal(PR(p))));
 
 rp:	REF_AND(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
-POSITIVE_MASK(Binary.getVal2(P(p)))?10:INFINITE
+POSITIVE_MASK(IV(Binary.getVal2(P(p))))?10:INFINITE
 EMIT_INSTRUCTION
 USHR_AND(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
                IC(Binary.getVal2(P(p))), IC(Binary.getVal2(PL(p))));
 
 #assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
 rp:	REF_AND(INT_USHR(r,INT_CONSTANT),REF_MOVE(INT_CONSTANT))
-POSITIVE_MASK(Move.getVal(PR(p)))?10:INFINITE
+POSITIVE_MASK(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 USHR_AND(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
                IC(Move.getVal(PR(p))), IC(Binary.getVal2(PL(p))));
@@ -943,20 +943,20 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Move.getResult(P(p)), R(Move.getVal(P(p)))));
 
 rs:	REF_MOVE(INT_CONSTANT)
-SI16(Move.getVal(P(p)))?11:INFINITE
+SI16(IV(Move.getVal(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Move.getResult(P(p)), Move.getVal(P(p))));
 
 rs:	REF_MOVE(INT_CONSTANT)
-U16(Move.getVal(P(p)))?11:INFINITE
+U16(IV(Move.getVal(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)), SRI(Move.getVal(P(p)), 16)));
+EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)), SRI(IV(Move.getVal(P(p))), 16)));
 
 rs:	REF_MOVE(INT_CONSTANT)
 22
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand one = Move.getVal(P(p));                                       \
+   int one = IV(Move.getVal(P(p)));                                       \
    EMIT(MIR_Unary.create(PPC_LDIS, Move.getResult(P(p)), CAU16(one)));        \
    EMIT(MIR_Binary.mutate(P(p), PPC_ADDI, Move.getResult(P(p)),               \
                           Move.getResult(P(p)), CAL16(one)));                 \
@@ -1075,7 +1075,7 @@ r:      FLOAT_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
 FITS(Move.getVal(PR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
+   Address val = AV(Move.getVal(PR(p)));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
    EMIT(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),         \
@@ -1105,7 +1105,7 @@ r:      DOUBLE_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
 FITS(Move.getVal(PR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
+   Address val = AV(Move.getVal(PR(p)));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
    EMIT(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),         \
@@ -1136,7 +1136,7 @@ rs:      INT_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
 FITS(Move.getVal(PR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
+   Address val = AV(Move.getVal(PR(p)));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
    EMIT(MIR_Load.mutate(P(p), PPC_LInt, Load.getResult(P(p)),         \
@@ -1279,7 +1279,7 @@ stm:	INT_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
 FITS(Move.getVal(PRR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
+   Address val = AV(Move.getVal(PRR(p)));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
    EMIT(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),     \
@@ -1322,7 +1322,7 @@ stm:      FLOAT_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
 FITS(Move.getVal(PRR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
+   Address val = AV(Move.getVal(PRR(p)));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
    EMIT(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),    \
@@ -1356,7 +1356,7 @@ stm:      DOUBLE_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
 FITS(Move.getVal(PRR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
+   Address val = AV(Move.getVal(PRR(p)));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
    EMIT(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),    \

@@ -78,7 +78,7 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
   //
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
-  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, Address fp) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
     currentMethod = (VM_NormalMethod)compiledMethod.getMethod();
 
 

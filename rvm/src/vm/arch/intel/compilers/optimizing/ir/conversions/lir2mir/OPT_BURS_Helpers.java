@@ -149,7 +149,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
 
   // emit code to load 32 bits form a given jtoc offset
   private OPT_MemoryOperand loadFromJTOC(Offset offset) {
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     if (burs.ir.options.FIXED_JTOC) {
       return OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset),
@@ -309,7 +309,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
       EMIT(MIR_Move.create(IA32_MOV, 
                                   R(jtoc), 
                                   MO_BD(R(regpool.getPhysicalRegisterSet().getPR()),
-                                        VM_Entrypoints.jtocField.getOffset().toInt(), DW, null, null)));
+                                        VM_Entrypoints.jtocField.getOffset(), DW, null, null)));
     }
 
     // Compare myFP0 with (double)Integer.MAX_VALUE

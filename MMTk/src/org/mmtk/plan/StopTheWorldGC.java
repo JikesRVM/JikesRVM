@@ -466,7 +466,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void printPostStats() {
     if ((verbose.getValue() == 1) || (verbose.getValue() == 2)) {
       Log.write("-> ");
-      Log.write(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10).toInt());
+      Log.writeDec(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10));
       Log.write(" KB   ");
       if (verbose.getValue() == 1) {
         totalTime.printLast();

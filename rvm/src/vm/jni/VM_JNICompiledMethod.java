@@ -7,6 +7,7 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.classloader.*;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Information associated with artifical stackframe inserted at the
@@ -41,16 +42,16 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return null;
   }
       
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws UninterruptiblePragma { 
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) throws UninterruptiblePragma { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
+  public final int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     return -1;
   }
    
-  public final void printStackTrace(int instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  public final void printStackTrace(Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     if (method != null) {
       // print name of native method
       out.print("\tat ");
@@ -63,7 +64,7 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
     }
   }
 
-  public final void set(VM_StackBrowser browser, int instr) {
+  public final void set(VM_StackBrowser browser, Offset instr) {
     browser.setBytecodeIndex(-1);
     browser.setCompiledMethod(this);
     browser.setMethod(method);

@@ -251,7 +251,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
+  public static Word getBootTimeAvailableBits(Offset ref, ObjectReference typeRef,
                                               int size, Word status)
     throws UninterruptiblePragma, InlinePragma {
     if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);

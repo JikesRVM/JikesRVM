@@ -242,12 +242,12 @@ NOFLAGS
 address1reg:	INT_ADD_ACC(r, INT_CONSTANT)
 0
 EMIT_INSTRUCTION
-pushAddress(BinaryAcc.getResult(P(p)), null, B_S, VR(p));
+pushAddress(BinaryAcc.getResult(P(p)), null, B_S, Offset.fromIntSignExtend(VR(p)));
 
 address:	INT_ADD_ACC(r, r)
 0
 EMIT_INSTRUCTION
-pushAddress(BinaryAcc.getResult(P(p)), R(BinaryAcc.getValue(P(p))), B_S, 0);
+pushAddress(BinaryAcc.getResult(P(p)), R(BinaryAcc.getValue(P(p))), B_S, Offset.zero());
 
 address1reg:	INT_ADD_ACC(address1reg, INT_CONSTANT)
 0
@@ -257,12 +257,12 @@ augmentAddress(BinaryAcc.getValue(P(p)));
 address1scaledreg:	INT_SHL_ACC(r, INT_CONSTANT)
 LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
 EMIT_INSTRUCTION
-pushAddress(null, BinaryAcc.getResult(P(p)), LEA_SHIFT(BinaryAcc.getValue(P(p))), 0);
+pushAddress(null, BinaryAcc.getResult(P(p)), LEA_SHIFT(BinaryAcc.getValue(P(p))), Offset.zero());
 
 address1scaledreg:	INT_SHL_ACC(INT_MOVE(r), INT_CONSTANT)
 LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
 EMIT_INSTRUCTION
-pushAddress(null, R(Move.getVal(PL(p))), LEA_SHIFT(BinaryAcc.getValue(P(p))), 0);
+pushAddress(null, R(Move.getVal(PL(p))), LEA_SHIFT(BinaryAcc.getValue(P(p))), Offset.zero());
 
 address1scaledreg:	INT_ADD_ACC(address1scaledreg, INT_CONSTANT)
 0
@@ -2625,7 +2625,7 @@ r:	GET_JTOC(r)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), \
-                     MO_BD(Unary.getVal(P(p)), VM_Entrypoints.jtocField.getOffset().toInt(), DW, null, null)));
+                     MO_BD(Unary.getVal(P(p)), VM_Entrypoints.jtocField.getOffset(), DW, null, null)));
 
 #####
 # BYTE_LOAD

@@ -77,7 +77,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
       Assert._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
       Assert._assert(alignment <= MAX_ALIGNMENT);
       Assert._assert(offset >= 0);
-      Assert._assert((region.toInt() & (MIN_ALIGNMENT-1)) == 0);
+      Assert._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
       Assert._assert((alignment & (MIN_ALIGNMENT-1)) == 0);
       Assert._assert((offset & (MIN_ALIGNMENT-1)) == 0);
     }

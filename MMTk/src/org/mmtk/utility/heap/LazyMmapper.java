@@ -157,7 +157,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     }
   }
 
-  public static void boot (Address bootStart, Extent bootSize) {
+  public static void boot (Address bootStart, int bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
     int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
     for (int i=startChunk; i<=endChunk; i++)

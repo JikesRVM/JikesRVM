@@ -672,7 +672,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
           VM.sysWrite("   <hardware trap>\n");
         } else {
           VM_Method method            = compiledMethod.getMethod();
-          int       instructionOffset = 
+          Offset    instructionOffset = 
             compiledMethod.getInstructionOffset(ip);
           int       lineNumber        = 
             compiledMethod.findLineNumberForInstruction(instructionOffset);

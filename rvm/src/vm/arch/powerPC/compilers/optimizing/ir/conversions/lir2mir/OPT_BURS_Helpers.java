@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.*;
 
 /**
  * Contains architecture-specific helper functions for BURS.
@@ -23,24 +23,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
-   * returns true if an unsigned integer in 16 bits
-   */
-  protected final boolean UI16 (OPT_Operand a) {
-    return  (IV(a) & 0xffff0000) == 0;
-  }
-
-  /**
-   * returns true if an unsigned integer in 15 bits
-   */
-  protected final boolean UI15 (OPT_Operand a) {
-    return  (IV(a) & 0xffff8000) == 0;
-  }
-
-  /**
    * returns true if a signed integer in 16 bits
    */
-  protected final boolean SI16 (OPT_Operand a) {
-    return  SI16(IV(a));
+  protected final boolean SI16 (Address value) {
+    return  (value.LE(Address.fromIntSignExtend(32767)) || value.GE(Address.fromIntSignExtend(-32768)));
   }
 
   /**
@@ -60,24 +46,17 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   /**
    * returns true if lower 16-bits are zero
    */
-  protected final boolean U16 (OPT_Operand a) {
-    return  (IV(a) & 0xffff) == 0;
-  }
-
-  /**
-   * returns true if lower 16-bits are zero
-   */
   protected final boolean U16 (int value) {
     return  (value & 0xffff) == 0;
   }
 
   /**
-   * returns true if the constant fits the mask of PowerPC's RLWINM
+   * returns true if lower 16-bits are zero
    */
-  protected final boolean MASK (OPT_Operand a) {
-    return  MASK(IV(a));
+  protected final boolean U16 (Address a) {
+    return  a.toWord().and(Word.fromIntZeroExtend(0xffff)).isZero();
   }
-
+  
   /**
    * returns true if the constant fits the mask of PowerPC's RLWINM
    */
@@ -85,13 +64,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (value < 0)
       value = ~value;
     return  POSITIVE_MASK(value);
-  }
-
-  /**
-   * returns true if the constant fits the mask of PowerPC's RLWINM
-   */
-  protected final boolean POSITIVE_MASK (OPT_Operand a) {
-    return  POSITIVE_MASK(IV(a));
   }
 
   /**
@@ -113,19 +85,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     return  true;
   }
 
-  protected final boolean MASK_AND_OR (OPT_Operand and, OPT_Operand or) {
-    int value1 = IV(and);
-    int value2 = IV(or);
-    return  ((~value1 & value2) == value2) && MASK(value1);
+  protected final boolean MASK_AND_OR (int and, int or) {
+    return  ((~and & or) == or) && MASK(and);
   }
 
   /**
    * Integer Shift Right Immediate
    */
-  protected final OPT_IntConstantOperand SRI (OPT_Operand o, int amount) {
-    return  IC(IV(o) >>> amount);
-  }
-
   protected final OPT_IntConstantOperand SRI (int i, int amount) {
     return  IC(i >>> amount);
   }
@@ -133,15 +99,15 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   /**
    * Integer And Immediate
    */
-  protected final OPT_IntConstantOperand ANDI (OPT_Operand o, int mask) {
-    return  IC(IV(o) & mask);
+  protected final OPT_IntConstantOperand ANDI (int i, int mask) {
+    return  IC(i & mask);
   }
 
   /**
    * Calculate Lower 16 Bits
    */
-  protected final OPT_IntConstantOperand CAL16 (OPT_Operand o) {
-    return  IC(OPT_Bits.PPCMaskLower16(IV(o)));
+  protected final OPT_IntConstantOperand CAL16 (Address a) {
+    return  IC(OPT_Bits.PPCMaskLower16(a.toWord().toOffset()));
   }
 
   /**
@@ -154,8 +120,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   /**
    * Calculate Upper 16 Bits
    */
-  protected final OPT_IntConstantOperand CAU16 (OPT_Operand o) {
-    return  IC(OPT_Bits.PPCMaskUpper16(IV(o)));
+  protected final OPT_IntConstantOperand CAU16 (Address a) {
+    return  IC(OPT_Bits.PPCMaskUpper16(a.toWord().toOffset()));
   }
 
   /**
@@ -168,10 +134,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   /**
    * Mask Begin
    */
-  protected final OPT_IntConstantOperand MB (OPT_Operand o) {
-    return  IC(MaskBegin(IV(o)));
-  }
-
   protected final int MaskBegin (int integer) {
     int value;
     for (value = 0; integer >= 0; integer = integer << 1, value++);
@@ -181,10 +143,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   /**
    * Mask End
    */
-  protected final OPT_IntConstantOperand ME (OPT_Operand o) {
-    return  IC(MaskEnd(IV(o)));
-  }
-
   protected final int MaskEnd (int integer) {
     int value;
     for (value = 31; (integer & 0x1) == 0; integer = integer >>> 1, value--);
@@ -1077,15 +1035,18 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
       break;
     case OPT_ConditionOperand.LOWER_EQUAL:
-      EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
+      //KV: this code snippet does not the rigth thing for BOOLEAN_ADDRESS_CMP, so I doubt it will work here.
+      //KV: my guess is that value is an unsigned immediate, used by SUBFIC as signed
+      //EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
                 //-#if RVM_FOR_64_ADDR
-      t1 = regpool.getAddress();
-                EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
-      EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), A(t1), IC(value)));
+      //t1 = regpool.getAddress();
+      //          EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
+      //EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), A(t1), IC(value)));
                 //-#else
-      EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, IC(value)));
+      //EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, IC(value)));
                 //-#endif
-      EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
+      //EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
       break;
 
     default:
@@ -1210,9 +1171,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
       break;
     case OPT_ConditionOperand.LOWER_EQUAL:
-      EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
-      EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, IC(value)));
-      EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
+      //KV: this code snippet does not the rigth thing :
+      //KV: my guess is that value is an unsigned immediate, used by SUBFIC as signed
+     // EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
+     // EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, IC(value)));
+     // EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
       break;
 
     default:
@@ -1879,7 +1843,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                        OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    int value = IV(Value);
+    Offset value = AV(Value).toWord().toOffset();
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
                            IC(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = MIR_Load.create(PPC_LWZ, I(defHigh), 
@@ -1955,7 +1919,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                         OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    int value = IV(Value);
+    Offset value = AV(Value).toWord().toOffset();
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
                            IC(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = 

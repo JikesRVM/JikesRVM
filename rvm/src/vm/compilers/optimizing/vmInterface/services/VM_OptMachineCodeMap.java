@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
@@ -82,7 +83,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
-  public final int getBytecodeIndexForMCOffset(int MCOffset) {
+  public final int getBytecodeIndexForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  -1;
@@ -96,7 +97,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
-  public final VM_NormalMethod getMethodForMCOffset(int MCOffset) {
+  public final VM_NormalMethod getMethodForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  null;
@@ -113,7 +114,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
-  public final int getInlineEncodingForMCOffset(int MCOffset) {
+  public final int getInlineEncodingForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  -1;
@@ -129,7 +130,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  @param MCOffset the machine code offset to look for
    *  @return         the GC map index or VM_OptGCMap.ERROR
    */
-  public int findGCMapIndex(int MCOffset) {
+  public int findGCMapIndex(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1) return VM_OptGCMap.ERROR;
     return getGCMapIndex(entry);
@@ -217,7 +218,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *
    * @param MCOffset the machine code offset of interest
    */
-  private int findMCEntry(int MCOffset) {
+  private int findMCEntry(Offset MCOffset) {
     // Given a machine code instruction MCOffset, find the corresponding entry
     if (MCInformation == null) return -1;
     int left = 0;
@@ -228,10 +229,10 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
         // if necessary, step backwards to beginning of entry.
         middle--;
       }
-      int offset = getMCOffset(middle);
-      if (MCOffset == offset) {
+      Offset offset = Offset.fromIntSignExtend(getMCOffset(middle));
+      if (MCOffset.EQ(offset)) {
         return middle;
-      } else if (MCOffset > offset) {
+      } else if (MCOffset.sGT(offset)) {
         // middle is too small, shift interval to the right
         left = middle + 1; 
         if (left >= MCInformation.length) return -1;

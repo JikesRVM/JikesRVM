@@ -69,12 +69,12 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
   /**
    * The address of the last object allocated into the header.
    */
-  private static int prevAddress;
+  private static Word prevAddress;
 
   static {
     oid = Word.fromInt(4);
     time = Word.fromInt(4);
-    prevAddress = 0;
+    prevAddress = Word.zero();
   }
 
   /**
@@ -112,8 +112,8 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
     if (VM.CompileForGCTracing) {
       bootImage.setAddressWord(ref.add(OBJECT_OID_OFFSET), oid);
       bootImage.setAddressWord(ref.add(OBJECT_DEATH_OFFSET), time);
-      bootImage.setFullWord(ref.add(OBJECT_LINK_OFFSET), prevAddress);
-      prevAddress = ref.toInt();
+      bootImage.setAddressWord(ref.add(OBJECT_LINK_OFFSET), prevAddress);
+      prevAddress = ref.toWord();
       oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
                                     >> LOG_BYTES_IN_ADDRESS));
     }
@@ -170,7 +170,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
   public static Address getBootImageLink() {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return Address.fromInt(prevAddress);
+      return prevAddress.toAddress();
     else
       return Address.zero();
   }

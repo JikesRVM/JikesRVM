@@ -82,7 +82,7 @@ public final class OSR_OptExecStateExtractor
     VM.disableGC();
     Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
     Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
-    int ipOffset = fooCM.getInstructionOffset(nextIP);
+    Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
     VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
@@ -242,7 +242,7 @@ public final class OSR_OptExecStateExtractor
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
                                                   byte[] stack,
-                                                  int   ipOffset,
+                                                  Offset   ipOffset,
                                                   Offset   fpOffset,
                                                   int   cmid,
                                                   Offset   tsFPOffset,

@@ -814,6 +814,14 @@ public class VM extends VM_Properties
     }
   }
 
+  public static void writeDec(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
+    write(value.toLong()); 
+    //-#else
+    write(value.toInt()); 
+    //-#endif
+  }
+
   public static void writeHex(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
@@ -823,31 +831,19 @@ public class VM extends VM_Properties
   }
 
   public static void writeHex(Address value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    writeHex(value.toWord()); 
   }
 
   public static void writeHex(ObjectReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    writeHex(value.toAddress());
+    writeHex(value.toAddress().toWord());
   }
 
   public static void writeHex(Extent value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    writeHex(value.toWord()); 
   }
 
   public static void writeHex(Offset value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    writeHex(value.toWord()); 
   }
 
   /**

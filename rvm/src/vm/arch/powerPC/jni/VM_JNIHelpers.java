@@ -238,16 +238,16 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // skipping the args which are not part of the arguments for the target method
     // For Call<type>Method functions and NewObject, skip 3 args
     // For CallNonvirtual<type>Method functions, skip 4 args
-    Offset varargGPROffset = Offset.fromInt(VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0));
+    Offset varargGPROffset = Offset.fromIntSignExtend(VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0));
     Offset varargFPROffset = varargGPROffset.add(5*BYTES_IN_ADDRESS);
 
     // compute the offset into the spill area of the native caller frame, 
     // skipping the args which are not part of the arguments for the target method
     // For Call<type>Method functions, skip 3 args
     // For CallNonvirtual<type>Method functions, skip 4 args
-    int spillAreaLimit  = glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 8*BYTES_IN_ADDRESS;
-    int spillAreaOffset = glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 
-                          (skip4Args ? 4*BYTES_IN_ADDRESS : 3*BYTES_IN_ADDRESS);
+    Offset spillAreaLimit  = Offset.fromIntSignExtend(glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 8*BYTES_IN_ADDRESS);
+    Offset spillAreaOffset = Offset.fromIntSignExtend(glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 
+                          (skip4Args ? 4*BYTES_IN_ADDRESS : 3*BYTES_IN_ADDRESS));
 
     // address to return pointing to the var arg list
     Address varargAddress = gluefp.add(spillAreaOffset);
@@ -259,7 +259,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
 
-    for (int i=0; i<argCount && spillAreaOffset<spillAreaLimit ; i++) {
+    for (int i=0; i<argCount && spillAreaOffset.sLT(spillAreaLimit) ; i++) {
       Word hiword, loword;
 
       if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
@@ -270,11 +270,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           loword = gluefp.loadWord(varargFPROffset);
           varargFPROffset = varargFPROffset.add(BYTES_IN_ADDRESS);
         }
-        gluefp.store(hiword, Offset.fromInt(spillAreaOffset));
-        spillAreaOffset+=BYTES_IN_ADDRESS;
+        gluefp.store(hiword, spillAreaOffset);
+        spillAreaOffset = spillAreaOffset.add(BYTES_IN_ADDRESS);
         if (VM.BuildFor32Addr) {
-          gluefp.store(loword, Offset.fromInt(spillAreaOffset));
-          spillAreaOffset+=BYTES_IN_ADDRESS;
+          gluefp.store(loword, spillAreaOffset);
+          spillAreaOffset = spillAreaOffset.add(BYTES_IN_ADDRESS);
         }
       } 
 
@@ -282,22 +282,22 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         // move 2 words from the vararg GPR save area into the spill area of the caller
         hiword = gluefp.loadWord(varargGPROffset);
         varargGPROffset = varargGPROffset.add(BYTES_IN_ADDRESS);
-        gluefp.store(hiword, Offset.fromInt(spillAreaOffset));
-        spillAreaOffset+=BYTES_IN_ADDRESS;
+        gluefp.store(hiword, spillAreaOffset);
+        spillAreaOffset = spillAreaOffset.add(BYTES_IN_ADDRESS);
         // this covers the case when the long value straddles the spill boundary
-        if (VM.BuildFor32Addr && spillAreaOffset<spillAreaLimit) {
+        if (VM.BuildFor32Addr && spillAreaOffset.sLT(spillAreaLimit)) {
           loword = gluefp.loadWord(varargGPROffset);
           varargGPROffset = varargGPROffset.add(BYTES_IN_ADDRESS);
-          gluefp.store(loword, Offset.fromInt(spillAreaOffset));
-          spillAreaOffset+=BYTES_IN_ADDRESS;
+          gluefp.store(loword, spillAreaOffset);
+          spillAreaOffset = spillAreaOffset.add(BYTES_IN_ADDRESS);
         }
       }
 
       else {
         hiword = gluefp.loadWord(varargGPROffset);
         varargGPROffset = varargGPROffset.add(BYTES_IN_ADDRESS);
-        gluefp.store(hiword, Offset.fromInt(spillAreaOffset));
-        spillAreaOffset+=BYTES_IN_ADDRESS;
+        gluefp.store(hiword, spillAreaOffset);
+        spillAreaOffset = spillAreaOffset.add(BYTES_IN_ADDRESS);
       }
 
     }
@@ -561,7 +561,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     
     //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
-    if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
+    if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
     
     //-#endif
     
@@ -620,14 +620,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     int word1 = va_list_addr.loadWord().toInt();
     int gpr = word1 >> 24;
     int fpr = (word1 >> 16) & 0x0FF;
-    va_list_addr = va_list_addr.add(BYTES_IN_ADDRESS);
-    Address overflowarea = va_list_addr.loadAddress();
-    va_list_addr = va_list_addr.add(BYTES_IN_ADDRESS);
-    Address regsavearea = va_list_addr.loadAddress();
+    Address overflowarea = va_list_addr.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
+    Address regsavearea = va_list_addr.loadAddress(Offset.fromIntSignExtend(2*BYTES_IN_ADDRESS));
     
     //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
-    if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
+    if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
     
     //-#endif
     
@@ -656,7 +654,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                                      Address overflowarea, int gpr, int fpr,
                                      VM_JNIEnvironment env) {
     // also make overflow offset, we may need to round it
-    int overflowoffset = 0;
+    Offset overflowoffset = Offset.zero()
     int argCount = argTypes.length;
 
     // now interpret values by types, see PPC ABI
@@ -667,11 +665,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (fpr > LAST_OS_PARAMETER_FPR) {
           // overflow, OTHER
           // round it, bytes are saved from lowest to highest one, regardless endian
-          overflowoffset = (overflowoffset + 7) & -8;
-          hiword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
-          loword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
+          overflowoffset = overflowoffset.add(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
+          hiword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
+          loword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
         } else {
           // get value from fpr, increase fpr by 1
           hiword = fprarray.add(fpr*BYTES_IN_DOUBLE).loadInt();
@@ -692,11 +690,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         if (gpr > LAST_OS_PARAMETER_GPR-1) {
           // overflow, OTHER
           // round overflowoffset, assuming overflowarea is aligned to 8 bytes
-          overflowoffset = (overflowoffset + 7) & -8;
-          hiword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
-          loword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
+          overflowoffset = overflowoffset.add(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
+          hiword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
+          loword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
           
           // va-ppc.h makes last gpr useless
           gpr = 11;
@@ -715,8 +713,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         int ivalue;
         if (gpr > LAST_OS_PARAMETER_GPR) {
           // overflow, OTHER
-          ivalue = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += 4;
+          ivalue = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(4);
         } else {
           ivalue = gprarray.add(gpr*4).loadInt();
           gpr += 1;
@@ -748,7 +746,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                                      Address overflowarea, int gpr, int fpr,
                                      VM_JNIEnvironment env) {
     // also make overflow offset, we may need to round it
-    int overflowoffset = 0;
+    Offset overflowoffset = Offset.zero()
     int argCount = argTypes.length;
 
     // now interpret values by types, see PPC ABI
@@ -761,10 +759,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // overflow, OTHER
           // round it, bytes are saved from lowest to highest one, regardless endian
           // overflowoffset = (overflowoffset + 7) & -8;
-          hiword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
-          loword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
+          hiword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
+          loword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
         } else {
           // get value from fpr, increase fpr by 1
           hiword = fprarray.add(fpr*BYTES_IN_DOUBLE).loadInt();
@@ -786,10 +784,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // overflow, OTHER
           // round overflowoffset, assuming overflowarea is aligned to 8 bytes
           //overflowoffset = (overflowoffset + 7) & -8;
-          hiword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
-          loword = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += BYTES_IN_INT;
+          hiword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
+          loword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
           
           // va-ppc.h makes last gpr useless
           regIncrementGpr = 2;
@@ -806,8 +804,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         int ivalue;
         if (gpr > LAST_OS_PARAMETER_GPR) {
           // overflow, OTHER
-          ivalue = overflowarea.add(overflowoffset).loadInt();
-          overflowoffset += 4;
+          ivalue = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.add(BYTES_IN_INT);
         } else {
           ivalue = gprarray.loadInt(Offset.fromInt(gpr*4));
         } 
@@ -856,8 +854,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
-      Word loword, hiword;
-      hiword = addr.loadWord();
+      //-#if RVM_FOR_64_ADDR
+      long hiword;
+      hiword = addr.loadLong();
+      //-#else
+      int hiword;
+      hiword = addr.loadInt();
+      //-#endif
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword + 
       // " or " + VM.intAsHexString(hiword) + "\n");
@@ -870,48 +873,48 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
         if (VM.BuildFor32Addr) {
-          loword = addr.loadWord();
+          int loword = addr.loadInt();
           addr = addr.add(BYTES_IN_ADDRESS);                       
-          long doubleBits = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
+          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
         } else {
-          argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(hiword.toLong())));
+          argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(hiword)));
         }
       } else if (argTypes[i].isDoubleType()) {
         if (VM.BuildFor32Addr) {
-          loword = addr.loadWord();
+          int loword = addr.loadInt();
           addr = addr.add(BYTES_IN_ADDRESS);
-          long doubleBits = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
+          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
         } else {
-          argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(hiword.toLong()));
+          argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(hiword));
         }
       } else if (argTypes[i].isLongType()) { 
         if (VM.BuildFor32Addr) {
-          loword = addr.loadWord();
+          int loword = addr.loadInt();
           addr = addr.add(BYTES_IN_ADDRESS);
-          long longValue = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
+          long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapLong(longValue);
         } else {
-          argObjectArray[i] = VM_Reflection.wrapLong(hiword.toLong());
+          argObjectArray[i] = VM_Reflection.wrapLong(hiword);
         }
       } else if (argTypes[i].isBooleanType()) {
         // the 0/1 bit is stored in the high byte       
-        argObjectArray[i] = VM_Reflection.wrapBoolean(hiword.toInt());
+        argObjectArray[i] = VM_Reflection.wrapBoolean((int) hiword);
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
-        argObjectArray[i] = VM_Reflection.wrapByte((byte) hiword.toInt());
+        argObjectArray[i] = VM_Reflection.wrapByte((byte) hiword);
       } else if (argTypes[i].isCharType()) {
         // char is stored in the high 2 bytes
-        argObjectArray[i] = VM_Reflection.wrapChar((char) hiword.toInt());
+        argObjectArray[i] = VM_Reflection.wrapChar((char) hiword);
       } else if (argTypes[i].isShortType()) {
         // short is stored in the high 2 bytes
-        argObjectArray[i] = VM_Reflection.wrapShort((short) hiword.toInt());
+        argObjectArray[i] = VM_Reflection.wrapShort((short) hiword);
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
-        argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
+        argObjectArray[i] =  env.getJNIRef((int) hiword);   
       } else if (argTypes[i].isIntType()) {
-        argObjectArray[i] = VM_Reflection.wrapInt(hiword.toInt());
+        argObjectArray[i] = VM_Reflection.wrapInt((int) hiword);
       } else {
         return null;
       }
@@ -939,11 +942,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     for (int i=0; i<argCount; i++) {
       Address addr = argAddress.add(BYTES_IN_DOUBLE*i);
-      Word hiword = addr.loadWord();
-      Word loword;
-      if (VM.BuildFor32Addr) {
-        loword = addr.add(BYTES_IN_ADDRESS).loadWord();
-      }
+      //-#if RVM_FOR_64_ADDR
+      long hiword;
+      hiword = addr.loadLong();
+      //-#else
+      int hiword;
+      hiword = addr.loadInt();
+      //-#endif
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword + 
       //          " or " + VM.intAsHexString(hiword) + "\n");
@@ -951,62 +956,40 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       // convert and wrap the argument according to the expected type
 
       if (argTypes[i].isFloatType()) {
-        if (VM.BuildFor32Addr) {
-          argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(hiword.toInt()));
-        } else {
-          argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat((int)((hiword.toLong() & 0xFFFFFFFF00000000L)>>>32)));
-        }
+        argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat((int)(hiword  >>> (BITS_IN_ADDRESS - BITS_IN_FLOAT))));
       } else if (argTypes[i].isDoubleType()) {
         if (VM.BuildFor32Addr) {
-          long doubleBits = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
+          int loword = addr.add(BYTES_IN_ADDRESS).loadInt();
+          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
         } else {
-          argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(hiword.toLong()));
+          argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(hiword));
         }
       } else if (argTypes[i].isLongType()) { 
         if (VM.BuildFor32Addr) {
-          long longValue = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
+          int loword = addr.add(BYTES_IN_ADDRESS).loadInt();
+          long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapLong(longValue);
         } else {
-          argObjectArray[i] = VM_Reflection.wrapLong(hiword.toLong());
+          argObjectArray[i] = VM_Reflection.wrapLong(hiword);
         }
       } else if (argTypes[i].isBooleanType()) {
         // the 0/1 bit is stored in the high byte       
-        if (VM.BuildFor32Addr) {
-          argObjectArray[i] = VM_Reflection.wrapBoolean((hiword.toInt() & 0xFF000000) >>> 24);
-        } else {
-          argObjectArray[i] = VM_Reflection.wrapBoolean((int)((hiword.toLong() & 0xFF00000000000000L) >>> 56));
-        }
+        argObjectArray[i] = VM_Reflection.wrapBoolean((int) (hiword  >>> (BITS_IN_ADDRESS - BITS_IN_BOOLEAN)));
       } else if (argTypes[i].isByteType()) {
-        if (VM.BuildFor32Addr) {
-          // the target byte is stored in the high byte
-          argObjectArray[i] = VM_Reflection.wrapByte((byte) ((hiword.toInt() & 0xFF000000) >>> 24));
-        } else {
-          argObjectArray[i] = VM_Reflection.wrapByte((byte) ((hiword.toLong() & 0xFF00000000000000L) >>> 56));
-        }
+        // the target byte is stored in the high byte
+        argObjectArray[i] = VM_Reflection.wrapByte((byte) (hiword  >>> (BITS_IN_ADDRESS - BITS_IN_BYTE)));
       } else if (argTypes[i].isCharType()) {
         // char is stored in the high 2 bytes
-        if (VM.BuildFor32Addr) {
-          argObjectArray[i] = VM_Reflection.wrapChar((char) ((hiword.toInt() & 0xFFFF0000) >>> 16));
-        } else {
-          argObjectArray[i] = VM_Reflection.wrapChar((char) ((hiword.toLong() & 0xFFFF000000000000L) >>> 48));
-        }
+        argObjectArray[i] = VM_Reflection.wrapChar((char) (hiword  >>> (BITS_IN_ADDRESS - BITS_IN_CHAR)));
       } else if (argTypes[i].isShortType()) {
         // short is stored in the high 2 bytes
-        if (VM.BuildFor32Addr) {
-          argObjectArray[i] = VM_Reflection.wrapShort((short) ((hiword.toInt() & 0xFFFF0000) >>> 16));
-        } else {
-          argObjectArray[i] = VM_Reflection.wrapShort((short) ((hiword.toLong() & 0xFFFF000000000000L) >>> 48));
-        }
+        argObjectArray[i] = VM_Reflection.wrapShort((short) (hiword  >>> (BITS_IN_ADDRESS - BITS_IN_SHORT)));
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
-        argObjectArray[i] =  env.getJNIRef(hiword.toInt());   
+        argObjectArray[i] =  env.getJNIRef((int) hiword);   
       } else if (argTypes[i].isIntType()) {
-        if (VM.BuildFor32Addr) {
-          argObjectArray[i] = VM_Reflection.wrapInt(hiword.toInt());
-        } else {
-          argObjectArray[i] = VM_Reflection.wrapInt((int) ((hiword.toLong() & 0xFFFFFFFF00000000L) >>> 32));
-        }
+        argObjectArray[i] = VM_Reflection.wrapInt((int) (hiword  >>> (BITS_IN_ADDRESS - BITS_IN_INT)));
       } else {
         return null;
       }

@@ -146,7 +146,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
-  public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "I");
+  public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field traceOIDField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field dispenserField = getField("Lorg/mmtk/vm/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lorg/mmtk/vm/Lock;", "serving","I");
