@@ -24,5 +24,5 @@ cd $TMP
 rm -f *.class
 $RVM_BUILD/jbuild.tool GenerateInterfaceDeclarations.java
 
-$HOST_JAVA_RT -Xms200M -Xmx200M	  -classpath .:$JAL_BUILD/RVM.classes:$JAL_BUILD/RVM.classes/rvmrt.jar	  GenerateInterfaceDeclarations -out declarations.out -ia 0x43000000
+$HOST_JAVA_RT -Xmx200M	  -classpath .:$JAL_BUILD/RVM.classes:$JAL_BUILD/RVM.classes/rvmrt.jar	  GenerateInterfaceDeclarations -out declarations.out -ia 0x43000000
 # >	  $JAL_BUILD/RVM.scratch/InterfaceDeclarations.h.new

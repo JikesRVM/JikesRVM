@@ -11,7 +11,6 @@ SHELL=${BASH}			# Set shell to bash because we use 'echo -n'
 
 HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M
-HOST_MEM_MIN=400M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
@@ -61,7 +60,7 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 	$(HOST_JAVA) -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
 	    -Xbootclasspath/a:$(LIB_JAR) \
-	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
+	   -Xmx$(HOST_MEM_MAX)\
 	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \
