@@ -60,6 +60,7 @@ public class VM_ScanStack
       ip = t.hardwareExceptionRegisters.ip;
       compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) VM.assert(compiledMethod != null);
+      compiledMethod.setObsolete( false );
       code = VM_Magic.objectAsAddress( compiledMethod.getInstructions() );
       newcode = VM_Allocator.processPtrValue( code );
       if (newcode != code) {
@@ -156,6 +157,7 @@ public class VM_ScanStack
       // following is for normal Java (and JNI Java to C transition) frames
       
       compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+      compiledMethod.setObsolete( false );
       method = compiledMethod.getMethod();
 
       // initialize MapIterator for this frame
