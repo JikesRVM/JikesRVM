@@ -221,6 +221,11 @@ final class VMRuntime {
       }
     }
 
+    /* Tell GNU Classpath that we need the portable-native-sync
+     * implementation.   This is not yet in Classpath CVS, but will be
+     * soon. --Steve Augart, 19 June 2004 */ 
+    p.put("gnu.classpath.awt.gtk.portable.native.sync", "true");
+
   }
     
   /** Set java.library.path.
