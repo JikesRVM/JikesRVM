@@ -3,6 +3,7 @@ opttests
 reflect
 threads
 utf8
+jni
 CaffeineMark
 jBYTEmark
 javalex 

@@ -1,10 +1,10 @@
-BaseBaseSemispace -test-list nightly-tests-with-jni
-BaseBaseMarkSweep -test-list nightly-tests-with-jni
-BaseBaseCopyGenFixed -test-list nightly-tests-with-jni
+BaseBaseSemispace -test-list nightly-tests
+BaseBaseMarkSweep -test-list nightly-tests
+BaseBaseCopyGenFixed -test-list nightly-tests 
 BaseAdaptiveSemispace -test-list nightly-tests-short
-FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests-with-jni
-FullOptCopyGenVariable -test-list nightly-tests-with-jni
-FullAdaptiveSemispace -test-list nightly-tests-with-jni
+FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
+FullOptCopyGenVariable -test-list nightly-tests
+FullAdaptiveSemispace -test-list nightly-tests
 FastSemispace -test-list nightly-tests-short
 FastMarkSweep -test-list nightly-tests-short
 FastAdaptiveSemispace -test-list nightly-tests-short
