@@ -61,7 +61,7 @@ public class GenMS extends Generational implements Uninterruptible {
   protected static final boolean COPY_MATURE() { return false; }
   
   // mature space
-  private static MarkSweepSpace matureSpace= new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  private static MarkSweepSpace matureSpace= new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.5);
   private static final int MS = matureSpace.getDescriptor();
 
   /****************************************************************************

@@ -65,8 +65,8 @@ public class GenCopy extends Generational implements Uninterruptible {
   private static boolean hi = false; // True if copying to "higher" semispace 
 
   // spaces
-  private static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.3, false);
-  private static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.3, true);
+  private static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.25, false);
+  private static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.25, true);
   private static final int MS0 = matureSpace0.getDescriptor();
   private static final int MS1 = matureSpace1.getDescriptor();
 
