@@ -25,6 +25,10 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   static final byte DW_S = 0x02;  // doubleword (8*2^2 bits)
   static final byte QW_S = 0x03;  // quadword (8*2^3 bits)
 
+  OPT_BURS_MemOp_Helpers(OPT_BURS burs) {
+    super(burs);
+  }
+
   // Cost functions better suited to grammars with multiple non-termials
   protected final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
     return ADDRESS_EQUAL(store, load, trueCost, OPT_BURS_STATE.INFINITE);
@@ -70,9 +74,9 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   }
   private AddrStackElement AddrStack;
   protected final void pushAddress(OPT_RegisterOperand base,
-			 OPT_RegisterOperand index,
-			 byte scale,
-			 int disp) {
+				   OPT_RegisterOperand index,
+				   byte scale,
+				   int disp) {
     AddrStack = new AddrStackElement(base, index, scale, disp, AddrStack);
   }
   protected final void augmentAddress(OPT_Operand op) {
@@ -135,8 +139,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   private static final class MOStackElement {
     OPT_MemoryOperand mo;
     MOStackElement next;
-    MOStackElement(OPT_MemoryOperand m, 
-		   MOStackElement n) {
+    MOStackElement(OPT_MemoryOperand m, MOStackElement n) {
       mo = m;
       next = n;
     }
@@ -203,8 +206,8 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   }
 
   protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
-			     byte size, OPT_LocationOperand loc,
-			     OPT_Operand guard) {
+				       byte size, OPT_LocationOperand loc,
+				       OPT_Operand guard) {
     if (base instanceof OPT_IntConstantOperand) {
       if (offset instanceof OPT_IntConstantOperand) {
 	return MO_D(IV(base)+IV(offset), size, loc, guard);
@@ -221,10 +224,10 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   }
 
   protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, 
-				   OPT_Operand index, 
-				   byte scale, byte size, 
-				   OPT_LocationOperand loc,
-				   OPT_Operand guard) {
+					     OPT_Operand index, 
+					     byte scale, byte size, 
+					     OPT_LocationOperand loc,
+					     OPT_Operand guard) {
     if (index instanceof OPT_IntConstantOperand) {
       return MO_BD(base, IV(index)<<scale, size, loc, guard);
     } else {
@@ -234,9 +237,9 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
 
 
   protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
-			     byte size, int disp,
-			     OPT_LocationOperand loc,
-			     OPT_Operand guard) {
+				       byte size, int disp,
+				       OPT_LocationOperand loc,
+				       OPT_Operand guard) {
     if (base instanceof OPT_IntConstantOperand) {
       if (offset instanceof OPT_IntConstantOperand) {
 	return MO_D(IV(base)+IV(offset)+disp, size, loc, guard);
@@ -253,11 +256,11 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   }
 
   protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, 
-				   OPT_Operand index, 
-				   byte scale, byte size, 
-				   int disp,
-				   OPT_LocationOperand loc,
-				   OPT_Operand guard) {
+					     OPT_Operand index, 
+					     byte scale, byte size, 
+					     int disp,
+					     OPT_LocationOperand loc,
+					     OPT_Operand guard) {
     if (index instanceof OPT_IntConstantOperand) {
       return MO_BD(base, (IV(index)<<scale)+disp, size, loc, guard);
     } else {
@@ -268,43 +271,43 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
 
  
   protected final OPT_MemoryOperand MO_B(OPT_Operand base, byte size, 
-			       OPT_LocationOperand loc,
-			       OPT_Operand guard) {
+					 OPT_LocationOperand loc,
+					 OPT_Operand guard) {
     return OPT_MemoryOperand.B(R(base), size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_BI(OPT_Operand base, 
-				OPT_Operand index, 
-				byte size, OPT_LocationOperand loc,
-				OPT_Operand guard) {
+					  OPT_Operand index, 
+					  byte size, OPT_LocationOperand loc,
+					  OPT_Operand guard) {
     return OPT_MemoryOperand.BI(R(base), R(index), size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_BD(OPT_Operand base, int disp, 
-				byte size, OPT_LocationOperand loc,
-				OPT_Operand guard) {
+					  byte size, OPT_LocationOperand loc,
+					  OPT_Operand guard) {
     return OPT_MemoryOperand.BD(R(base), disp, size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_BID(OPT_Operand base, 
-				 OPT_Operand index, 
-				 int disp, byte size, 
-				 OPT_LocationOperand loc,
-				 OPT_Operand guard) {
+					   OPT_Operand index, 
+					   int disp, byte size, 
+					   OPT_LocationOperand loc,
+					   OPT_Operand guard) {
     return OPT_MemoryOperand.BID(R(base), R(index), disp, size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_BIS(OPT_Operand base, 
-				 OPT_Operand index, 
-				 byte scale, byte size, 
-				 OPT_LocationOperand loc,
-				 OPT_Operand guard) {
+					   OPT_Operand index, 
+					   byte scale, byte size, 
+					   OPT_LocationOperand loc,
+					   OPT_Operand guard) {
     return OPT_MemoryOperand.BIS(R(base), R(index), scale, size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_D(int disp, 
-			       byte size, OPT_LocationOperand loc,
-			       OPT_Operand guard) {
+					 byte size, OPT_LocationOperand loc,
+					 OPT_Operand guard) {
     return OPT_MemoryOperand.D(disp, size, loc, guard);
   }
 

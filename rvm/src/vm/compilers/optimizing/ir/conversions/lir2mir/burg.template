@@ -32,14 +32,8 @@ public final class OPT_BURS_STATE
    static final byte LEFT_CHILD_FIRST  = 0x02;
    static final byte RIGHT_CHILD_FIRST = 0x04;
 
-   private OPT_BURS burs;
-
    OPT_BURS_STATE(OPT_BURS b) {
-      burs = b;
-   }
-
-   OPT_IR getIR() {
-      return burs.ir;
+      super(b);
    }
 
 /*****************************************************************/
@@ -129,11 +123,6 @@ public final class OPT_BURS_STATE
    }
    private OPT_Instruction PRLR(OPT_BURS_TreeNode p) {
       return p.child2.child1.child2.getInstruction();
-   }
-
-   /* emit rules */
-   private final void EMIT(OPT_Instruction i) {
-      burs.append(i);
    }
 
    /***********************************************************************

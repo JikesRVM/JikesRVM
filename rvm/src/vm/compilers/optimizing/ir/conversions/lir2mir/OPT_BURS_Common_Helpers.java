@@ -15,6 +15,27 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   implements OPT_Operators, OPT_PhysicalRegisterConstants {
+  
+  /**
+   * The burs object
+   */
+  protected final OPT_BURS burs;
+
+  /**
+   * The registerpool of the IR being processed
+   */
+  protected final OPT_RegisterPool regpool;
+
+  OPT_BURS_Common_Helpers(OPT_BURS b) {
+    burs = b;
+    regpool = b.ir.regpool;
+  }
+
+  public final OPT_IR getIR() { return burs.ir; }
+
+  protected final void EMIT(OPT_Instruction s) {
+    burs.append(s);
+  }
 
   // returns the given operand as a register
   protected final OPT_RegisterOperand R(OPT_Operand op) {
