@@ -230,8 +230,23 @@ public class VM extends VM_Properties
     
     // set up HPM
     //-#if RVM_WITH_HPM
-    if (verbose>=1) VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
-    if (BuildForHPM) VM_HardwarePerformanceMonitors.boot();
+    if (BuildForHPM) {
+      // assume only one Java thread is executing!
+      if(VM_HardwarePerformanceMonitors.verbose>=1)
+	VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
+      VM_HardwarePerformanceMonitors.boot();
+
+      // set hpm program for current pthread.  Inherited by other, to be created, pthreads.
+      if (VM_HardwarePerformanceMonitors.enabled()) {
+	if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	  if(VM_HardwarePerformanceMonitors.verbose>=1)
+	    VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
+	  VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMsetProgramMyThreadIP);
+	  VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+	}
+	// start tracing
+      }
+    }
     //-#endif
 
     // Enable multiprocessing.
@@ -292,11 +307,13 @@ public class VM extends VM_Properties
     t.start(VM_Scheduler.debuggerQueue);
 
     //-#if RVM_WITH_HPM
-    // make sure collector threads have HPM_info initialized!
     if (VM_HardwarePerformanceMonitors.enabled()) {
-      if (verbose>=1)VM.sysWrite(" VM.boot() VM_Processor.hpm_safe = true and call sysHPMresetCounters()\n");
-      VM_Processor.hpm_safe = true;
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
+      // IS THIS NEEDED?
+      if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+	if(VM_HardwarePerformanceMonitors.verbose>=1)
+	  VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
+	VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+      }
     }
     //-#endif
 
