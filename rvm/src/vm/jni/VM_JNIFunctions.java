@@ -5134,7 +5134,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   private static int NewObjectArray(int envJREF, int length, int classJREF, int initElementJREF ) {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
 
-
     VM_JNIEnvironment env;
     try {
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -5143,7 +5142,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       Class cls = (Class) env.getJNIRef(classJREF);
 
       Object newArray[] = (Object [])ReflectionSupport.newInstance(cls, length);
-      
+
       for (int i=0; i<length; i++) {
         newArray[i] = initElement;
       }

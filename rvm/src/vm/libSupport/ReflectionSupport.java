@@ -120,14 +120,22 @@ public class ReflectionSupport {
    * @return the interfaces the receiver claims to implement.
    */
   public static Class[] getInterfaces(Class C) {
-    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType())
+    VM_Type myType = java.lang.JikesRVMSupport.getTypeForClass(C);
+    if (myType.isArrayType()) {
+      // arrays implement JavaLangSerializable & JavaLangCloneable
+      return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
+			   VM_Type.JavaIoSerializableType.getClassForType() };
+    } else if (myType.isClassType()) {
+      VM_Class[] interfaces  = myType.asClass().getDeclaredInterfaces();
+      Class[]    jinterfaces = new Class[interfaces.length];
+      for (int i = 0; i != interfaces.length; i++)
+	jinterfaces[i] = interfaces[i].getClassForType();
+      return jinterfaces;
+    } else {
       return new Class[0];
-    VM_Class[] interfaces  = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getDeclaredInterfaces();
-    Class[]    jinterfaces = new Class[interfaces.length];
-    for (int i = 0; i != interfaces.length; i++)
-      jinterfaces[i] = interfaces[i].getClassForType();
-    return jinterfaces;
+    }
   }
+
   /**
    * Answers true if the parameter represents an interface.
    *
@@ -239,15 +247,17 @@ public class ReflectionSupport {
    *					the receiver's superclass.
    */
   public static Class getSuperclass(Class C)  {
-    if (java.lang.JikesRVMSupport.getTypeForClass(C).isArrayType()) {
+    VM_Type myType = java.lang.JikesRVMSupport.getTypeForClass(C);
+    if (myType.isArrayType()) {
       return VM_Type.JavaLangObjectType.getClassForType();
-    }
-    if (!java.lang.JikesRVMSupport.getTypeForClass(C).isClassType()) return null;
-
-    VM_Type supe = java.lang.JikesRVMSupport.getTypeForClass(C).asClass().getSuperClass();
-    if (supe == null)
+    } else if (myType.isClassType()) {
+      VM_Class myClass = myType.asClass();
+      if (myClass.isInterface()) return null;
+      VM_Type supe = myClass.getSuperClass();
+      return supe == null ? null : supe.getClassForType();
+    } else {
       return null;
-    return supe.getClassForType();
+    }
   }
 
 
@@ -386,8 +396,7 @@ public class ReflectionSupport {
 
     Object[] tib = arrayType.getTypeInformationBlock();
     int allocator = VM_Interface.pickAllocator(arrayType);
-    Object   obj = VM_Runtime.resolvedNewArray(size, arrayType.getInstanceSize(size), tib, allocator);
-    return obj;
+    return VM_Runtime.resolvedNewArray(size, arrayType.getInstanceSize(size), tib, allocator);
   }
 
   /**
@@ -411,7 +420,7 @@ public class ReflectionSupport {
     if (VM.VerifyAssertions) VM._assert(classLoader != null);
 
     if (className.startsWith("[")) {
-      if (!validArrayDescriptor(className)) throw new IllegalArgumentException();
+      if (!validArrayDescriptor(className)) throw new ClassNotFoundException();
     }
     VM_Atom descriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
@@ -560,6 +569,23 @@ public class ReflectionSupport {
     return getFields0(C, Member.DECLARED);
   }
 
+  /**
+   * Get declaring class (ie. the outer class that contains this class if it is an inner/nested class).
+   * To support <code>java.lang.Class.getDeclaringClass()</code>.
+   */
+  public static Class getDeclaringClass(Class C) {
+    VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(C);
+    if (!type.isClassType()) return null;
+    VM_TypeReference dc = type.asClass().getDeclaringClass();
+    if (dc == null) return null;
+    try {
+      return dc.resolve().getClassForType();
+    } catch (ClassNotFoundException e) {
+      if (VM.VerifyAssertions) VM._assert(false); // Should never happen?
+    }
+    return null;
+  }
+  
 
   /**
    * Get declared class members (i.e., named inner and static classes)
@@ -733,60 +759,55 @@ public class ReflectionSupport {
    * </ul>
    *
    *
-    * @param		args	the arguments to the constructor
-    * @return		the new, initialized, object
-    * @exception	java.lang.NullPointerException		if the receiver is null for a non-static method
-    * @exception	java.lang.IllegalAccessException	if the modelled method is not accessible
-    * @exception	java.lang.IllegalArgumentException	if an incorrect number of arguments are passed, the receiver is incompatible with the declaring class, or an argument could not be converted by a widening conversion
-    * @exception	java.lang.reflect.InvocationTargetException	if an exception was thrown by the invoked constructor
-    */
-    public static Object invoke(Method m, Object receiver, Object args[])
+   * @param		args	the arguments to the constructor
+   * @return		the new, initialized, object
+   * @exception	java.lang.NullPointerException		if the receiver is null for a non-static method
+   * @exception	java.lang.IllegalAccessException	if the modelled method is not accessible
+   * @exception	java.lang.IllegalArgumentException	if an incorrect number of arguments are passed, the receiver is incompatible with the declaring class, or an argument could not be converted by a widening conversion
+   * @exception	java.lang.reflect.InvocationTargetException	if an exception was thrown by the invoked constructor
+   */
+  public static Object invoke(Method m, Object receiver, Object args[])
     throws IllegalAccessException, 
 	   IllegalArgumentException, 
 	   InvocationTargetException {
-      VM_Method method = java.lang.reflect.JikesRVMSupport.getMethodOf(m);
-      VM_TypeReference[] parameterTypes = method.getParameterTypes();
+    VM_Method method = java.lang.reflect.JikesRVMSupport.getMethodOf(m);
+    VM_TypeReference[] parameterTypes = method.getParameterTypes();
 
-      // validate "this" argument
-      //
-      if (!method.isStatic()) {
-        if (receiver == null)
-          throw new NullPointerException();
-
-        if (!argumentIsCompatible(method.getDeclaringClass(), receiver))
-          throw new IllegalArgumentException("type mismatch on \"this\" argument");
+    // validate "this" argument
+    //
+    if (!method.isStatic()) {
+      if (receiver == null) throw new NullPointerException();
+      receiver = makeArgumentCompatible(method.getDeclaringClass(), receiver);
+    }
+    
+    // validate number and types of remaining arguments
+    //
+    if (args == null) {
+      if (parameterTypes.length != 0) {
+	throw new IllegalArgumentException("argument count mismatch");
       }
-
-      // validate number and types of remaining arguments
-      // !!TODO: deal with widening/narrowing conversions on primitives
-      //
-      if (args == null) {
-        if (parameterTypes.length != 0)
-          throw new IllegalArgumentException("argument count mismatch");
-      } else if (args.length != parameterTypes.length)
-        throw new IllegalArgumentException("argument count mismatch");
-
-      for (int i = 0, n = parameterTypes.length; i < n; ++i) {
-	try {
-	  if (!argumentIsCompatible(parameterTypes[i].resolve(), args[i]))
-	    throw new IllegalArgumentException("type mismatch on argument " + i);
-	} catch (ClassNotFoundException e) {
-	  if (VM.VerifyAssertions) VM._assert(false); // Should never happen?
-	}
-      }
-
-
-      // invoke method
-      // Note that we catch all possible exceptions, not just Error's and RuntimeException's,
-      // for compatibility with jdk behavior (which even catches a "throw new Throwable()").
-      //
+    } else if (args.length != parameterTypes.length) {
+      throw new IllegalArgumentException("argument count mismatch");
+    }
+    for (int i = 0, n = parameterTypes.length; i < n; ++i) {
       try {
-        return VM_Reflection.invoke(method, receiver, args);
-      } catch (Throwable e) {
-	e.printStackTrace( System.err );
-        throw new InvocationTargetException(e);
+	args[i] = makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
+      } catch (ClassNotFoundException e) {
+	if (VM.VerifyAssertions) VM._assert(false); // Should never happen?
       }
     }
+
+    // invoke method
+    // Note that we catch all possible exceptions, not just Error's and RuntimeException's,
+    // for compatibility with jdk behavior (which even catches a "throw new Throwable()").
+    //
+    try {
+      return VM_Reflection.invoke(method, receiver, args);
+    } catch (Throwable e) {
+      e.printStackTrace( System.err );
+      throw new InvocationTargetException(e);
+    }
+  }
 
 
   /**
@@ -1285,8 +1306,8 @@ public class ReflectionSupport {
   public static Object newInstance (Class instantiationClass, 
                                     Class constructorClass) 
     throws NoSuchMethodException, 
-  IllegalAccessException,
-  java.lang.reflect.InvocationTargetException{  
+	   IllegalAccessException,
+	   java.lang.reflect.InvocationTargetException{  
     VM_Class iKlass = java.lang.JikesRVMSupport.getTypeForClass(instantiationClass).asClass();
     if (!iKlass.isInstantiated()) {
       iKlass.instantiate();
@@ -1385,36 +1406,49 @@ public class ReflectionSupport {
     return true;
   }
 
-  // Check if (possibly wrapped) method argument is compatible with expected type.
+  // Make possibly wrapped method argument compatible with expected type
+  // throwing IllegalArgumentException if it cannot be.
   //
-  private static boolean argumentIsCompatible(VM_Type expectedType, Object arg) {
-    if (!expectedType.isPrimitiveType()) { 
-      // object argument - not wrapped
-      if (arg == null)
-        return true;
-
+  private static Object makeArgumentCompatible(VM_Type expectedType, Object arg) {
+    if (expectedType.isPrimitiveType()) { 
+      if (arg instanceof java.lang.Void) {
+	if (expectedType.isVoidType()) return arg;
+      } else if (arg instanceof java.lang.Boolean) {
+	if (expectedType.isBooleanType()) return arg;
+      } else if (arg instanceof java.lang.Byte) {
+	if (expectedType.isByteType()) return arg;
+	if (expectedType.isShortType()) return new Short(((java.lang.Byte)arg).byteValue());
+	if (expectedType.isIntType()) return new Integer(((java.lang.Byte)arg).byteValue());
+	if (expectedType.isLongType()) return new Long(((java.lang.Byte)arg).byteValue());
+      } else if (arg instanceof java.lang.Short) {
+	if (expectedType.isShortType()) return arg;
+	if (expectedType.isIntType()) return new Integer(((java.lang.Short)arg).shortValue());
+	if (expectedType.isLongType()) return new Long(((java.lang.Short)arg).shortValue());
+      } else if (arg instanceof java.lang.Character) {
+	if (expectedType.isCharType()) return arg;
+	if (expectedType.isIntType()) return new Integer(((java.lang.Character)arg).charValue());
+	if (expectedType.isLongType()) return new Long(((java.lang.Character)arg).charValue());
+      } else if (arg instanceof java.lang.Integer) {
+	if (expectedType.isIntType()) return arg;
+	if (expectedType.isLongType()) return new Long(((java.lang.Integer)arg).intValue());
+      } else if (arg instanceof java.lang.Long) {
+	if (expectedType.isLongType()) return arg;
+      } else if (arg instanceof java.lang.Float) {
+	if (expectedType.isFloatType()) return arg;
+	if (expectedType.isDoubleType()) return new Double(((java.lang.Integer)arg).floatValue());
+      } else if (arg instanceof java.lang.Double) {
+	if (expectedType.isDoubleType()) return arg;
+      }
+    } else {
+      if (arg == null) return arg; // null is always ok
       VM_Type actualType = VM_Magic.getObjectType(arg);
-      if (expectedType == actualType) return true;
-      if (expectedType == VM_Type.JavaLangObjectType) return true;
-      return VM_Runtime.isAssignableWith(expectedType, actualType); 
-    }
-
-    // primitive argument - wrapped
-    //
-    if (arg == null)
-      return false;
-
-    if (expectedType == VM_Type.VoidType)    return arg instanceof java.lang.Void;
-    if (expectedType == VM_Type.BooleanType) return arg instanceof java.lang.Boolean;
-    if (expectedType == VM_Type.ByteType)    return arg instanceof java.lang.Byte;
-    if (expectedType == VM_Type.ShortType)   return arg instanceof java.lang.Short;
-    if (expectedType == VM_Type.IntType)     return arg instanceof java.lang.Integer;
-    if (expectedType == VM_Type.LongType)    return arg instanceof java.lang.Long;
-    if (expectedType == VM_Type.FloatType)   return arg instanceof java.lang.Float;
-    if (expectedType == VM_Type.DoubleType)  return arg instanceof java.lang.Double;
-    if (expectedType == VM_Type.CharType)    return arg instanceof java.lang.Character;
-
-    return false;
+      if (expectedType == actualType || 
+	  expectedType == VM_Type.JavaLangObjectType ||
+	  VM_Runtime.isAssignableWith(expectedType, actualType)) {
+	return arg;
+      }
+    } 
+    throw new IllegalArgumentException();
   }
 
   /**
@@ -1429,6 +1463,7 @@ public class ReflectionSupport {
       ois.primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
 //-#endif
   }
+
   /**
    * Reads a collection of field descriptors (name, type name, etc) for the class descriptor
    * <code>cDesc</code> (an <code>ObjectStreamClass</code>)

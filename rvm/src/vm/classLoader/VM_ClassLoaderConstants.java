@@ -15,12 +15,12 @@ interface VM_ClassLoaderConstants {
   //                      name         value         class  field  method
   //               ---------------   ----------      -----  -----  ------
   static final int ACC_PUBLIC       = 0x00000001;  //   X      X      X
-  static final int ACC_PRIVATE      = 0x00000002;  //   -      X      X
-  static final int ACC_PROTECTED    = 0x00000004;  //   -      X      X
-  static final int ACC_STATIC       = 0x00000008;  //   -      X      X
+  static final int ACC_PRIVATE      = 0x00000002;  //   X      X      X (applicable to inner classes)
+  static final int ACC_PROTECTED    = 0x00000004;  //   X      X      X (applicable to inner classes)
+  static final int ACC_STATIC       = 0x00000008;  //   X      X      X (applicable to inner classes)
   static final int ACC_FINAL        = 0x00000010;  //   X      X      X
   static final int ACC_SYNCHRONIZED = 0x00000020;  //   -      -      X  <- same value as ACC_SPECIAL
-  static final int ACC_SUPER        = 0x00000020;  //   X      -      - <- same value as ACC_SYNCHRONIZED
+  static final int ACC_SUPER        = 0x00000020;  //   X      -      -  <- same value as ACC_SYNCHRONIZED
   static final int ACC_VOLATILE     = 0x00000040;  //   -      X      -
   static final int ACC_TRANSIENT    = 0x00000080;  //   -      X      -
   static final int ACC_NATIVE       = 0x00000100;  //   -      -      X
@@ -47,6 +47,7 @@ interface VM_ClassLoaderConstants {
 					    ACC_STRICT);
 
   static final int APPLICABLE_TO_CLASSES = (ACC_PUBLIC | 
+					    ACC_PRIVATE | 
 					    ACC_FINAL | 
 					    ACC_SUPER | 
 					    ACC_INTERFACE | 

@@ -14,61 +14,63 @@ import com.ibm.JikesRVM.librarySupport.SystemSupport;
  */
 public class Object {
 
-    private static final int j9Config = 0x6D617800;	// 'max\0'
+  private static final int j9Config = 0x6D617800;	// 'max\0'
 
-    public Object() {
+  public Object() {
 
-    }
+  }
 
-    protected Object clone() throws CloneNotSupportedException {
-	return SystemSupport.clone(this);
-    }
+  protected Object clone() throws CloneNotSupportedException {
+    return SystemSupport.clone(this);
+  }
 
-    public boolean equals (Object o) {
-	return this == o;
-    }
+  public boolean equals (Object o) {
+    return this == o;
+  }
 
-    protected void finalize () throws Throwable {
+  protected void finalize () throws Throwable {
 
-    }
+  }
 
-    public final Class getClass() {
-	return SystemSupport.getClass(this);
-    }
+  public final Class getClass() {
+    return SystemSupport.getClass(this);
+  }
     
-    public int hashCode() {
-	return SystemSupport.getDefaultHashCode(this);
-    }
+  public int hashCode() {
+    return SystemSupport.getDefaultHashCode(this);
+  }
 
-    public final void notify() {
-	SystemSupport.notify(this);
-    }
+  public final void notify() {
+    SystemSupport.notify(this);
+  }
 
-    public final void notifyAll() {
-	SystemSupport.notifyAll(this);
-    }
+  public final void notifyAll() {
+    SystemSupport.notifyAll(this);
+  }
 
-    public final void wait () throws InterruptedException {
-        SystemSupport.wait(this); // wait forever
-    }
+  public final void wait () throws InterruptedException {
+    SystemSupport.wait(this); // wait indefinitely
+  }
 
-    public final void wait (long time) throws InterruptedException {
-	SystemSupport.wait(this, time); // wait at least 'time' milliseconds
-    }
+  public final void wait (long time) throws InterruptedException {
+    wait(time, 0);
+  }
 
-    public final void wait (long time, int frac) throws InterruptedException {
-	if (time >= 0 && frac >= 0 && frac < 1000000) {
-	    if (time == 0)
-		wait (frac > 0 ? 1 : 0);
-	    else if (frac >= 500000)
-		wait (time + 1);
-	    else
-		wait (time);
-	} else  throw new IllegalArgumentException();
+  public final void wait (long time, int frac) throws InterruptedException {
+    if (time >= 0 && frac >= 0 && frac < 1000000) {
+      if (time == 0 && frac > 0) {
+	time = 1;
+      } else if (frac >= 500000) {
+	time += 1;
+      } 
+      SystemSupport.wait(this, time);
+    } else {
+      throw new IllegalArgumentException();
     }
+  }
 
-    public String toString () {
-	return this.getClass().getName() + "@" + Integer.toHexString(this.hashCode());
-    }
+  public String toString () {
+    return this.getClass().getName() + "@" + Integer.toHexString(this.hashCode());
+  }
 
 }

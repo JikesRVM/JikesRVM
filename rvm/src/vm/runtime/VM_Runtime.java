@@ -610,6 +610,15 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
+   * Create and throw a java.lang.ArrayStoreException
+   * Used in a few circumstances to reduce code space costs
+   * of inlining (see java.lang.System.arraycopy()). 
+   */
+  public static void raiseArrayStoreException() throws VM_PragmaNoInline {
+    throw new java.lang.ArrayStoreException();
+  }
+
+  /**
    * Create and throw a java.lang.ArithmeticException
    * Used to raise an arithmetic exception without going through
    * the hardware trap handler; currently this is only done when the

@@ -50,6 +50,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   private VM_Field[]   declaredFields;
   private VM_Method[]  declaredMethods;
   private VM_TypeReference[] declaredClasses; // declared inner classes, may be null
+  private VM_TypeReference declaringClass; // the outerclass, or null if this is not a inner/nested class
   private VM_Atom      sourceName;
   private VM_Method    classInitializerMethod;
 
@@ -214,6 +215,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   public final VM_TypeReference[] getDeclaredClasses() {
     return declaredClasses;
+  }
+
+  /**
+   * Outer class of this class, or null if this is not an inner/nested class
+   */
+  public final VM_TypeReference getDeclaringClass() {
+    return declaringClass;
   }
 
   /**
@@ -758,7 +766,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       throw new ClassFormatError("expected class \"" + getDescriptor()
                                  + "\" but found \"" + myTypeRef.getName() + "\"");
     }
-
+    
     VM_TypeReference superType = getTypeRef(input.readUnsignedShort()); // possibly null
     if (superType != null) {
       superClass = superType.resolve().asClass();
@@ -821,7 +829,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if (attName == VM_ClassLoader.innerClassesAttributeName) {
 	// Parse InnerClasses attribute, and use the information to populate
 	// the list of declared member classes.  We do this so we can 
-	// support the java.lang.Class.getDeclaredClasses() method.
+	// support the java.lang.Class.getDeclaredClasses() 
+	// and java.lang.Class.getDeclaredClass methods.
 
 	int numberOfClasses = input.readUnsignedShort();
 	declaredClasses = new VM_TypeReference[numberOfClasses];
@@ -837,6 +846,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	      innerNameIndex != 0) {
 	    // This looks like a declared inner class.
 	    declaredClasses[j] = getTypeRef(innerClassInfoIndex);
+	  }
+
+	  if (innerClassInfoIndex == myTypeIndex) {
+	    if (outerClassInfoIndex != 0) {
+	      declaringClass = getTypeRef(outerClassInfoIndex);
+	    }
+	    modifiers |= innerClassAccessFlags;
 	  }
 	}
 	continue;
