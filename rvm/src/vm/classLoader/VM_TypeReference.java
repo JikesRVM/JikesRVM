@@ -146,25 +146,25 @@ public class VM_TypeReference implements VM_SizeConstants {
   {
     VM_TypeDescriptorParsing.validateAsTypeDescriptor(tn);
     // Primitives, arrays of primitives, system classes and arrays of system
-    // classes must use the system classloader.  Force that here so we don't
+    // classes must use the bootstrap classloader.  Force that here so we don't
     // have to worry about it anywhere else in the VM.
-    ClassLoader systemCL = VM_SystemClassLoader.getVMClassLoader();
-    if (cl != systemCL) {
+    ClassLoader bootstrapCL = VM_BootstrapClassLoader.getBootstrapClassLoader();
+    if (cl != bootstrapCL) {
       if (tn.isClassDescriptor()) {
-        if (tn.isSystemClassDescriptor()) {
-          cl = systemCL;
+        if (tn.isBootstrapClassDescriptor()) {
+          cl = bootstrapCL;
         }
       } else if (tn.isArrayDescriptor()) {
         VM_Atom innermostElementType = tn.parseForInnermostArrayElementDescriptor();
         if (innermostElementType.isClassDescriptor()) {
-          if (innermostElementType.isSystemClassDescriptor()) {
-            cl = systemCL;
+          if (innermostElementType.isBootstrapClassDescriptor()) {
+            cl = bootstrapCL;
           }
         } else {
-          cl = systemCL;
+          cl = bootstrapCL;
         }
       } else {
-        cl = systemCL;
+        cl = bootstrapCL;
       }
     }
     // Next actually findOrCreate the type reference using the proper classloader.
@@ -184,10 +184,10 @@ public class VM_TypeReference implements VM_SizeConstants {
 
   /**
    * Shorthand for doing a find or create for a type reference that should
-   * be created using the system classloader.
+   * be created using the bootstrap classloader.
    */
   public static VM_TypeReference findOrCreate(String tn) {
-    return findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                         VM_Atom.findOrCreateAsciiAtom(tn));
   }
 
@@ -536,7 +536,7 @@ public class VM_TypeReference implements VM_SizeConstants {
         // Use a special purpose backdoor to avoid creating java.lang.Class
         // objects when not running the VM (we get host JDK Class objects
         // and that just doesn't work).
-        ans = ((VM_SystemClassLoader)classloader).loadVMClass(name.classNameFromDescriptor());
+        ans = ((VM_BootstrapClassLoader)classloader).loadVMClass(name.classNameFromDescriptor());
       }
       if (VM.VerifyAssertions) 
         VM._assert(resolvedType == null || resolvedType == ans);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001, 2003
+ * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.jni;
@@ -267,7 +267,7 @@ public class BuildJNIFunctionTable {
     String[] names = initNames();
     VM_CodeArray[] functions = new VM_CodeArray[VM_JNIFunctions.FUNCTIONCOUNT];
     
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_JNIFunctions;"));
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());

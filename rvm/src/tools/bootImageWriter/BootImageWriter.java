@@ -1078,7 +1078,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // This may not be the same place it was at build time, ie. if image is
       // moved to another machine with different directory structure.
       //
-      VM_ClassLoader.setVmRepositories(bootImageRepositoriesAtExecutionTime);
+      VM_BootstrapClassLoader.setBootstrapRepositories(bootImageRepositoriesAtExecutionTime);
       
       //
       // Finally, populate jtoc with static field values.

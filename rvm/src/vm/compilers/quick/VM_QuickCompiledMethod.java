@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001, 2003
+ * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.quick;
@@ -254,7 +254,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                                              VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickCompiledMethod;"));
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();

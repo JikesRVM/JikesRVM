@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2005
  */
 //$Id$
 package org.vmmagic.pragma; 
@@ -67,7 +67,7 @@ public abstract class PragmaException extends java.lang.RuntimeException {
    * @return the VM_TypeReference for said descriptor
    */
   protected final static VM_TypeReference getTypeRef(String name) {
-    return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                          VM_Atom.findOrCreateAsciiAtom(name));
   }
 

@@ -254,7 +254,7 @@ class GenerateInterfaceDeclarations {
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
-      bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
+      bootRecord = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor).resolve().asClass();
     } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
       System.exit(-1);
@@ -272,7 +272,7 @@ class GenerateInterfaceDeclarations {
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
-      bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
+      bootRecord = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor).resolve().asClass();
     } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
       System.exit(-1);

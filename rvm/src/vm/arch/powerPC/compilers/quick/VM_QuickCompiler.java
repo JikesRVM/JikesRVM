@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001,2005
  */
 //$Id$
 package com.ibm.JikesRVM.quick;
@@ -8086,7 +8086,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
-      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), clsDescriptor);
+      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), clsDescriptor);
       VM_Class cls = (VM_Class)tRef.resolve();
       cls.resolve();
 

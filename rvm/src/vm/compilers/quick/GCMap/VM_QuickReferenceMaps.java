@@ -489,7 +489,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     MCLocations[byteToGCIndex[biStart]] = l;
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                                              VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickReferenceMaps;"));
   int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();

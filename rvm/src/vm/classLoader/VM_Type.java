@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2004
+ * (C) Copyright IBM Corp 2001,2002, 2004,2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -561,17 +561,17 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     JavaLangCloneableType = (VM_Class)VM_TypeReference.JavaLangCloneable.resolve();
     JavaIoSerializableType = (VM_Class)VM_TypeReference.JavaIoSerializable.resolve();
     MagicType = VM_TypeReference.Magic.resolve();
-    UninterruptibleType   = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    UninterruptibleType   = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Uninterruptible;")).resolve();
-    UnpreemptibleType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    UnpreemptibleType     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")).resolve();
-    SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                            VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")).resolve();
-    DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")).resolve();
-    SaveVolatileType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    SaveVolatileType      = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")).resolve();
-    NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    NativeBridgeType      = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();

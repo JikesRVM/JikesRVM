@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001, 2003
+ * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 
 //$Id$
@@ -195,7 +195,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   }
 
   private static final VM_TypeReference TYPE
-    = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
 
   public final int size() throws InterruptiblePragma {

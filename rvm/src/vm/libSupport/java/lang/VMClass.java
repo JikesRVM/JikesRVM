@@ -1,6 +1,6 @@
 /* -*-coding: iso-8859-1 -*-
  *
- * Copyright © IBM Corp 2004
+ * Copyright © IBM Corp 2004, 2005
  *
  * $Id$
  */
@@ -267,7 +267,7 @@ final class VMClass
     VM_Type type = getVM_Type(klass);
 
     ClassLoader cl = type.getClassLoader();
-    return cl == VM_SystemClassLoader.getVMClassLoader() ? null : cl;
+    return cl == VM_BootstrapClassLoader.getBootstrapClassLoader() ? null : cl;
   }
 
   /**

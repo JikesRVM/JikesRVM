@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -229,11 +229,11 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
       if (className.startsWith("[")) {
         // an array
-        return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classAtom);
+        return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
       } else {
         // a class
         VM_Atom classDescriptor = classAtom.descriptorFromClassName();
-        return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
+        return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
       }
     }
   }
