@@ -34,7 +34,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   VM_Assembler (int length, boolean sp) {
     mc = new VM_MachineCode();
-    b2m = new int[length];
     mIP = 0;
     shouldPrint = sp;
   }
@@ -42,9 +41,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   /* machine code */
   VM_MachineCode mc;
   private int    mIP    = 0; // current machine code instruction
-
-  /* map from bytecode indeces to  machine code indeces */
-  private int[]  b2m;                // 0, if bcodes[n] not an instruction
 
   private boolean shouldPrint;
 
@@ -149,10 +145,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   /* Handling backward branch references */
 
-  int relativeMachineAddress (int bci) {
-    return b2m[bci] - mIP;
-  }
-
   int getMachineCodeIndex () {
     return mIP;
   }
@@ -188,7 +180,6 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   /* call before emiting code for the target */
   final void resolveForwardReferences (int label) {
-    b2m[label] = mIP;
     if (forwardRefs == null) return; 
     forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
   }
@@ -231,10 +222,10 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   final void patchSwitchCase(int sourceMachinecodeIndex) {
     if (VM.TraceAssembler) System.out.print(" <+ " + VM_Assembler.hex(sourceMachinecodeIndex << 2));
-    int delta = mIP - sourceMachinecodeIndex;
-    // correction is number of words of source off switch base
+    int delta = (mIP - sourceMachinecodeIndex) << 2;
+    // correction is number of bytes of source off switch base
     int         correction = (int)mc.getInstruction(sourceMachinecodeIndex);
-    INSTRUCTION offset = (INSTRUCTION)((delta+correction) << 2);
+    INSTRUCTION offset = (INSTRUCTION)(delta+correction);
     mc.putInstruction(sourceMachinecodeIndex, offset);
   }
 
@@ -314,6 +305,12 @@ final class VM_Assembler implements VM_BaselineConstants,
     emitB(relative_address);
   }
 
+  final VM_ForwardReference emitForwardB() {
+    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    emitB(0);
+    return fr;
+  }
+
   static final int BLAtemplate = 18<<26 | 3;
 
   final void emitBLA (int address) {
@@ -347,6 +344,12 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
 
 
+  final VM_ForwardReference emitForwardBL() {
+    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    emitBL(0);
+    return fr;
+  }
+
   static final int BCtemplate = 16<<26;
 
   public static final int flipCode(int cc) {
@@ -362,7 +365,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     return -1;
   }
 
-  final void emitBC (int cc, int relative_address) {
+  private final void _emitBC (int cc, int relative_address) {
     if (fits(relative_address, 14)) {
       INSTRUCTION mi = BCtemplate | cc | (relative_address&0x3FFF)<<2;
       if (VM.TraceAssembler) {
@@ -378,7 +381,7 @@ final class VM_Assembler implements VM_BaselineConstants,
       mIP++;
       mc.addInstruction(mi);
     } else {
-      emitBC(flipCode(cc), 2);
+      _emitBC(flipCode(cc), 2);
       emitB(relative_address-1);
     }
   }
@@ -389,31 +392,56 @@ final class VM_Assembler implements VM_BaselineConstants,
     } else {
       relative_address -= mIP;
     }
-    emitBC(cc, relative_address);
+    _emitBC(cc, relative_address);
+  }
+
+  final void emitBC (int cc, int relative_address) {
+    relative_address -= mIP;
+    if (VM.VerifyAssertions) VM.assert(relative_address < 0);
+    _emitBC(cc, relative_address);
+  }
+
+  final VM_ForwardReference emitForwardBC(int cc) {
+    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    _emitBC(cc, 0);
+    return fr;
   }
 
   final void emitBGT (int relative_address) {
-    emitBC(GT, relative_address);
+    _emitBC(GT, relative_address);
   }
 
   final void emitBLT (int relative_address) {
-    emitBC(LT, relative_address);
+    _emitBC(LT, relative_address);
   }
 
   final void emitBEQ (int relative_address) {
-    emitBC(EQ, relative_address);
+    _emitBC(EQ, relative_address);
   }
 
   final void emitBLE (int relative_address) {
-    emitBC(LE, relative_address);
+    _emitBC(LE, relative_address);
   }
 
   final void emitBGE (int relative_address) {
-    emitBC(GE, relative_address);
+    _emitBC(GE, relative_address);
   }
 
   final void emitBNE (int relative_address) {
-    emitBC(NE, relative_address);
+    _emitBC(NE, relative_address);
+  }
+
+  // delta i: difference between address of case i and of delta 0
+  final void emitSwitchCase(int i, int relative_address, int bTarget) {
+    int data = i << 2;
+    if (relative_address == 0) {
+      reserveForwardCase(bTarget);
+    } else {
+      data += ((relative_address - mIP) << 2);
+    }
+    if (VM.TraceAssembler) asm(mIP, data, "DATA", "" + data);
+    mIP++;
+    mc.addInstruction(data);
   }
 
   static final int BLRtemplate = 19<<26 | 0x14<<21 | 16<<1;
@@ -1405,25 +1433,31 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   // branch conditional -- don't thread switch
   static final int BNTStemplate = BCtemplate | GE | THREAD_SWITCH_BIT<<16;
-  final void emitBNTS (int relative_address) {
-    if (VM.VerifyAssertions) VM.assert(fits(relative_address, 14));
-    INSTRUCTION mi = BNTStemplate | (relative_address&0x3FFF)<<2;
+  final VM_ForwardReference emitBNTS () {
+    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
+    INSTRUCTION mi = BNTStemplate;
     if (VM.TraceAssembler)
-      asm(mIP, mi, "bge", THREAD_SWITCH_BIT, signedHex(relative_address<<2));
+      asm(mIP, mi, "bge", THREAD_SWITCH_BIT, signedHex(0));
     mIP++;
     mc.addInstruction(mi);
+    return fr;
   }
 
-  final void emitLtoc (int RT, int offset) {
+  final void emitLoffset(int RT, int RA, int offset) {
     if (fits(offset, 16)) {
-      emitL(RT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitCAU(RT, JTOC, offset>>16);
+      emitL  (RT, offset, RA);
+    } else if ((offset & 0x8000) == 0) {
+      emitCAU(RT, RA, offset>>16);
       emitL  (RT, offset&0xFFFF, RT);
     } else {
-      emitCAU(RT, JTOC, (offset>>16)+1);
+      emitCAU(RT, RA, (offset>>16)+1);
       emitL  (RT, offset|0xFFFF0000, RT);
     }
+  }
+    
+
+  final void emitLtoc (int RT, int offset) {
+    emitLoffset(RT, JTOC, offset);
   }
 
   // A fixed size (2 instruction) load from JTOC
@@ -1532,22 +1566,14 @@ final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  final void emitDATA (int i) {
-    INSTRUCTION mi = i;
-    if (VM.TraceAssembler)
-      asm(mIP, mi, "DATA", "" + i);
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
   // Convert generated machine code into final form.
   //
-  VM_MachineCode finalizeMachineCode (int[] ignored) {
+  VM_MachineCode finalizeMachineCode (int[] bytecodeMap) {
+    mc.setBytecodeMap(bytecodeMap);
     return makeMachineCode();
   }
 
   VM_MachineCode makeMachineCode () {
-    mc.setBytecodeMap(b2m);
     mc.finish();
     if (shouldPrint) {
       INSTRUCTION[] instructions = mc.getInstructions();
