@@ -62,7 +62,7 @@ public abstract class VM_Configuration {
 
   // Verify that Uninterruptible methods actually cannot be interrupted.
   // Disable until we can fix the last couple problem cases.
-  public static final boolean VerifyUnint = false && VerifyAssertions;
+  public static final boolean VerifyUnint = true && VerifyAssertions;
 
   // Ignore supression pragma and print all warning messages.
   public static final boolean ParanoidVerifyUnint = false;
