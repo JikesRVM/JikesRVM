@@ -532,7 +532,7 @@ public class VM_Allocator
   	return new_ref;
       }
       else
-	return allocateScalarClone( size, tib, null );
+	return cloneScalar( size, tib, null );
     }
     else { // OLD CODE - all allocates from global heap 
       int firstByte = getHeapSpace(size);
@@ -558,7 +558,7 @@ public class VM_Allocator
    * @return the reference for the allocated object
    */
   public static Object
-  allocateScalarClone (int size, Object[] tib, Object cloneSrc)
+  cloneScalar (int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError {
     
     boolean hasFinalizer;
@@ -589,7 +589,7 @@ public class VM_Allocator
     if( hasFinalizer )  VM_Finalizer.addElement(objRef);
     
     return objRef; // return object reference
-  }  // allocateScalarClone
+  }  // cloneScalar
 
   /**
    * Allocate an array object. Fills in the header for the object,
@@ -648,7 +648,7 @@ public class VM_Allocator
 	 }
        }
        // if size too large, or not space in current chunk, call heavyweight allocate
-       return allocateArrayClone( numElements, size, tib, null );
+       return cloneArray( numElements, size, tib, null );
      }
      else {	  // old non chunking code...
        int memAddr = getHeapSpace( size );  // start of new object
@@ -680,7 +680,7 @@ public class VM_Allocator
    * @return the reference for the allocated array object 
    */
   public static Object
-  allocateArrayClone (int numElements, int size, Object[] tib, Object cloneSrc)
+  cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError {
   
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
@@ -709,7 +709,7 @@ public class VM_Allocator
      }
         
      return objRef;  // return reference for allocated array
-  }  // allocateArrayClone
+  }  // cloneArray
 
   // *************************************
   // implementation

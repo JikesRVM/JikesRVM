@@ -11,8 +11,8 @@
  *           boot()
  *           allocateScalar()
  *           allocateArray()
- *           allocateScalarClone()
- *           allocateArrayClone()
+ *           cloneScalar()
+ *           cloneArray()
  * Selection of copying vs. noncopying allocators is a choice
  * made at boot time by specifying appropriate directory in CLASSPATH.
  *
@@ -1657,7 +1657,7 @@ public class VM_Allocator
     /////////////////////////////////////////////////////////////////////////////
 
     public static Object
-    allocateScalarClone (int size, Object[] tib, Object cloneSrc)
+    cloneScalar (int size, Object[] tib, Object cloneSrc)
 	throws OutOfMemoryError
     {
 	boolean hasFinalizer = false;   // Finalizers Not Yet Supported
@@ -1691,7 +1691,7 @@ public class VM_Allocator
 
 
     public static Object
-    allocateArrayClone (int numElements, int size, Object[] tib, Object cloneSrc)
+    cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
 	throws OutOfMemoryError
     {
 	Object object = allocateArray(numElements, size, tib);

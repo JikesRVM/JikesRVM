@@ -163,7 +163,7 @@ public class VM_Allocator implements VM_Constants {
    * @return the reference for the allocated object
    */
   public static Object
-    allocateScalarClone (int size, Object[] tib, Object cloneSrc)
+    cloneScalar (int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError {
 
     if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)
@@ -288,7 +288,7 @@ public class VM_Allocator implements VM_Constants {
    * @return the reference for the allocated array object 
    */
   public static Object
-    allocateArrayClone (int numElements, int size, Object[] tib, Object cloneSrc)
+    cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError {
     
     if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)

@@ -624,7 +624,7 @@ public class VM_Allocator
       return new_ref;
     }
     else
-      return allocateScalarClone( size, tib, null );
+      return cloneScalar( size, tib, null );
 
   }   // end of allocateScalar() with finalizer flag
   
@@ -642,7 +642,7 @@ public class VM_Allocator
    * @return the reference for the allocated object
    */
   public static Object
-    allocateScalarClone (int size, Object[] tib, Object cloneSrc)
+    cloneScalar (int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError {
     
     boolean hasFinalizer;
@@ -673,7 +673,7 @@ public class VM_Allocator
     if( hasFinalizer )  VM_Finalizer.addElement(objRef);
     
     return objRef; // return object reference
-  }  // allocateScalarClone
+  }  // cloneScalar
   
 
   /**
@@ -732,7 +732,7 @@ public class VM_Allocator
       }
     }
     // if size too large, or not space in current chunk, call heavyweight allocate
-    return allocateArrayClone( numElements, size, tib, null );
+    return cloneArray( numElements, size, tib, null );
 
   }  // allocateArray
   
@@ -752,7 +752,7 @@ public class VM_Allocator
    * @return the reference for the allocated array object 
    */
   public static Object
-    allocateArrayClone (int numElements, int size, Object[] tib, Object cloneSrc)
+    cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError {
 
     VM_Magic.pragmaNoInline();	// prevent inlining - this is the infrequent slow allocate
@@ -782,7 +782,7 @@ public class VM_Allocator
     }
     
     return objRef;  // return reference for allocated array
-  }  // allocateArrayClone
+  }  // cloneArray
   
   /**
    * Allocate space for a "large" object in the Large Object Space

@@ -26,8 +26,8 @@
  *        boot()
  *        allocateScalar()
  *        allocateArray()
- *        allocateScalarClone()
- *        allocateArrayClone()
+ *        cloneScalar()
+ *        cloneArray()
  * </pre>
  * Selection of copying vs. noncopying allocators is a choice
  * made at boot time by specifying appropriate directory in CLASSPATH.
@@ -990,12 +990,12 @@ tib));
   //        (ready for initializer to be run on it)
   //
   public static Object
-  allocateScalarClone (int size, Object[] tib, Object cloneSrc)
+  cloneScalar (int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError
   {
   int objaddr;
 
-  if (DebugLink) VM_Scheduler.trace("allocateScalarClone", "called");
+  if (DebugLink) VM_Scheduler.trace("cloneScalar", "called");
   if (GC_COUNT_FAST_ALLOC) allocCount++;
 
   VM_Processor st = VM_Processor.getCurrentProcessor();
@@ -1318,13 +1318,13 @@ tib));
   // Returned: zero-filled array object with .length field set
   //
   public static Object
-  allocateArrayClone (int numElements, int size, Object[] tib, Object cloneSrc)
+  cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
     throws OutOfMemoryError
     {
     int objaddr, objRef;
     
     if (GC_COUNT_FAST_ALLOC) allocCount++;
-    if (DebugLink) VM_Scheduler.trace("allocateArrayClone", "called");
+    if (DebugLink) VM_Scheduler.trace("cloneArray", "called");
 
     VM_Processor st = VM_Processor.getCurrentProcessor();
 

@@ -276,7 +276,7 @@ public class VM_Runtime implements VM_Constants {
 	int      nelts = VM_Magic.getArrayLength(obj);
 	int      size  = ary.getInstanceSize(nelts);
 	Object[] tib   = ary.getTypeInformationBlock();
-	return VM_Allocator.allocateArrayClone(nelts, size, tib, obj);
+	return VM_Allocator.cloneArray(nelts, size, tib, obj);
       }
       else {
 	if (!(obj instanceof Cloneable))
@@ -284,7 +284,7 @@ public class VM_Runtime implements VM_Constants {
 	VM_Class cls   = type.asClass();
 	int      size  = cls.getInstanceSize();
 	Object[] tib   = cls.getTypeInformationBlock();
-	return VM_Allocator.allocateScalarClone(size, tib, obj);
+	return VM_Allocator.cloneScalar(size, tib, obj);
       }
   }
 
