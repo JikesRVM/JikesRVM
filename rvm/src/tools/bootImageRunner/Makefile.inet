@@ -5,4 +5,4 @@
 include			$(JAL_BUILD)/Make.rules
 
 $(DEST):		VM_0005fInetAddress.C VM_0005fInetAddress.h
-	$(LDSHARED) -o $(DEST) -I$(HOST_JAVA_HOME)/include -O -g $<
+	$(LDSHARED) -o $(DEST) -I$(JAL_ROOT)/rvm/src/include -O -g $<

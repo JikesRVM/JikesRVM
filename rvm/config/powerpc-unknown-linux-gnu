@@ -45,6 +45,9 @@ export CPLUS="/usr/bin/g++"
 # how to link a shared C++ library
 export LDSHARED="/usr/bin/g++ -shared"
 
+# used by the jbuild.linkBooter
+export CPP=/usr/bin/cpp
+
 #
 export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
