@@ -168,7 +168,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
     String klassName = "L"+options.PRELOAD_CLASS+";";
 
     if (options.PRELOAD_AS_BOOT ) {
-      setBootOptions( options  );
+      setBootOptions(options);
       // Make a local copy so that some options can be altered to mimic options
       // during boot build
       options = (OPT_Options)options.clone();
@@ -188,7 +188,6 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
   private static void initializeStatics () {
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_InvokeeThreadLocalContext.init();
-    VM_Class.OptCLDepManager = new OPT_ClassLoadingDependencyManager();
   }
 
   /**
