@@ -330,11 +330,6 @@ function doRun
      # JAVA_PACKAGES is for use by "toba" test
      # RVMPATH       is for use by "ExecuteOptCode" tests !!TODO: clean this up by using "JCOMPILE:=$(RVM_BUILD)/jbuild.tool" line in Makefiles [--DL]
      
-     # test will be terminated if it doesn't finish in this many seconds
-     # OptOptcopying and noncopying need a bit more than 25 mins on SPEC/10
-     #  at least they did on Dec 6 on galahad.  [--MH]
-     TIME_LIMIT = 60 * 30
-
      # Determine which set of runtime arguments to pass
      case $NAME in
        *Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS ;;
@@ -383,7 +378,7 @@ function doRun
     fi
 
     . $RVM_BUILD/environment
-    $RVM_ROOT/regression/limited.ksh $TIME_LIMT $GNU_MAKE -ks \
+    $RVM_ROOT/regression/limited.ksh 1800 $GNU_MAKE -ks \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
            JBOOT=$RVM_ROOT/bin/jalapeno\
            PROCESSORS="$NUM_PROCS"\
