@@ -207,7 +207,25 @@ abstract class VM_RecompilationStrategy {
     case VM_CompiledMethod.JNI:
       return -1; // don't try to optimize these guys!
     case VM_CompiledMethod.BASELINE:
-      return 0;
+      { 
+	// Prevent the adaptive system from recompiling certain classes
+	// of baseline compiled methods.
+	if (cmpMethod.getMethod().getDeclaringClass().isDynamicBridge()) {
+	  // The opt compiler does not implement this calling convention.
+	  return -1;
+	} 
+	if (cmpMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+	  // The opt compiler does not implement this calling convention.
+	  return -1;
+	}
+	if (VM_Collector.MOVES_OBJECTS && !cmpMethod.getMethod().isInterruptible()) {
+	  // A crude filter to identify the subset of core VM methods that 
+	  // can't be recompiled because we require their code to be non-moving.
+	  // We really need to do a better job of this to avoid missing too many opportunities.
+	  return -1;
+	}
+	return 0;
+      }
     case VM_CompiledMethod.OPT:
       VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod)cmpMethod;
       return VM_CompilerDNA.getCompilerConstant(optMeth.getOptLevel());

@@ -258,6 +258,15 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 
        if (DEBUG) VM.sysWrite(" Process hot method: "+
 			      hotMethod.getMethod()+" with "+numSamples+"\n");
+       
+       if (!hotMethod.getMethod().isInterruptible()) {
+	 // This is required because a very small subset of uninterruptible methods
+	 // need to have their code in a non-moving heap. 
+	 // For now, we use this simple, but conservative test to avoid trouble.
+	 if (DEBUG) VM.sysWrite("Not selecting uninterruptible method for recompilation "+hotMethod.getMethod());
+	 continue;
+       }
+
        // For each edge, see if the callsite is present, 
        // but the callee is absent in hotMethod.
        for (Enumeration triples = vectorOfTriples.elements(); 

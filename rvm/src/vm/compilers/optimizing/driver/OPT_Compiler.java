@@ -93,9 +93,11 @@ public class OPT_Compiler {
    */
   public static void setBootOptions(OPT_Options options) {
     // Pick an optimization level
-    options.setOptLevel(3); 
+    options.setOptLevel(2); 
 
-    // Disable things that we think are a bad idea in this context
+    // Only do guarded inlining if we can use code patches.
+    // Early speculation with method test/class test can result in
+    // bad code that we can't recover from later.
     options.GUARDED_INLINE = options.guardWithCodePatch();
 
     // Compute summaries of bootimage methods if we haven't encountered them yet.
