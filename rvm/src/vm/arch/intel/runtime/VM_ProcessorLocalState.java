@@ -2,6 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+//-#if RVM_WITH_OPT_COMPILER
+import instructionFormats.*;
+//-#endif 
+
 /**
  * This class provides a layer of abstraction that the rest of the VM must
  * use in order to access the current <code>VM_Processor</code> object.
@@ -10,7 +15,12 @@
  *
  * @author Stephen Fink
  */
-final class VM_ProcessorLocalState implements VM_Uninterruptible {
+final class VM_ProcessorLocalState 
+//-#if RVM_WITH_OPT_COMPILER
+extends OPT_RVMIRTools
+//-#endif 
+implements VM_Uninterruptible 
+{
   
   static byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
@@ -186,4 +196,60 @@ final class VM_ProcessorLocalState implements VM_Uninterruptible {
     VM_Magic.pragmaInline();
     asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER,base,offset);
   }
+
+  //-#if RVM_WITH_OPT_COMPILER
+  /**
+   * Insert code during BURS to load a pointer to the current processor
+   * into a symbolic register, and return the resultant operand
+   */
+  static OPT_RegisterOperand insertGetCurrentProcessor(OPT_BURS burs) {
+    OPT_RegisterOperand result =
+      burs.ir.regpool.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+    OPT_Register ESI = burs.ir.regpool.getPhysicalRegisterSet().getESI();
+
+    burs.append(MIR_Move.create(IA32_MOV,result,R(ESI)));
+    return result;
+  }
+
+  /**
+   * Insert code before instruction s to load a pointer to the current 
+   * processor into a symbolic register, and return the resultant operand
+   */
+  static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
+                                                       OPT_Instruction s) {
+    OPT_RegisterOperand result = ir.regpool.makeTemp
+                                 (OPT_ClassLoaderProxy.VM_ProcessorType);
+    OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
+
+    s.insertBefore(MIR_Move.create(IA32_MOV,result,R(ESI)));
+    return result;
+  }
+  /**
+   * Insert code before instruction s to load a pointer to the current 
+   * processor into a particular register operand.
+   */
+  static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
+                                                       OPT_Instruction s,
+                                                       OPT_RegisterOperand rop)
+  {
+    OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
+
+    OPT_RegisterOperand result = rop.copyRO();
+    s.insertBefore(MIR_Move.create(IA32_MOV,result,R(ESI)));
+    return result;
+  }
+  /**
+   * Insert code after instruction s to set the current 
+   * processor to be the value of a particular register operand.
+   */
+  static OPT_RegisterOperand appendSetCurrentProcessor(OPT_IR ir,
+                                                       OPT_Instruction s,
+                                                       OPT_RegisterOperand rop)
+  {
+    OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
+
+    s.insertBefore(MIR_Move.create(IA32_MOV,R(ESI),rop.copyRO()));
+    return rop;
+  }
+  //-#endif
 }

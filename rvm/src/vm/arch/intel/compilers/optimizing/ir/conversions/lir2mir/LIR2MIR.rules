@@ -2513,6 +2513,14 @@ EMIT(MIR_Move.create(IA32_MOV, R(res2), I(val.lower32())));
 # Loads (memory to register moves)
 ##################################
 #####
+# GET_CURRENT_PROCESSOR (TODO: generalize)
+#####
+r:	GET_CURRENT_PROCESSOR
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Nullary.getResult(P(p)), R(getESI())));
+
+#####
 # GET_JTOC
 #####
 r:	GET_JTOC(r)

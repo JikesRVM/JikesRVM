@@ -327,14 +327,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
 //-#if RVM_FOR_IA32
-      case GET_JTOC_opcode:
+      case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
         return  true;
       default:
-        throw  new OPT_OptimizingCompilerException("Unexpected " + inst);
+        throw  new OPT_OptimizingCompilerException("OPT_SimpleEscape: Unexpected " 
+                                                   + inst);
     }
   }
 
@@ -443,14 +444,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
 //-#if RVM_FOR_IA32
-      case GET_JTOC_opcode:
+      case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
         return  true;
       default:
-        throw  new OPT_OptimizingCompilerException("Unexpected " + inst);
+        throw  new OPT_OptimizingCompilerException("OPT_SimpleEscapge: Unexpected " + inst);
     }
   }
 
