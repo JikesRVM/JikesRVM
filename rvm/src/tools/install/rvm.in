@@ -9,6 +9,13 @@
 #
 # @author Your Name Here
 # @date 23 April 2004
+
+# Handle the --installation argument.
+if (( $# > 0 )) && [[ $1 = --installation ]]; then
+    unset RVM_ROOT RVM_BUILD
+    shift
+fi
+
 [[ $RVM_ROOT ]] || export RVM_ROOT=@RVM_ROOT@
 [[ $RVM_BUILD ]] || export RVM_BUILD=@RVM_BUILD@
 cmd="$RVM_ROOT/rvm/bin/rvm"
