@@ -58,14 +58,18 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
-echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
+# Note: The following comment assumes that NightSanityDriver will continue to look in 
+#   rvm/regression/config for config files.  If this ever changes, update this statement.
+echo "\n\nRunning the sanity tests as specified in $RVM_ROOT/rvm/regression/config/$1 \n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
 . $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
 
 # performance runs
-echo "\n\nRunning the performance tests\n" >> $RUN_LOG
+# Note: The following comment assumes that NightSanityDriver will continue to look in 
+#   rvm/regression/config for config files.  If this ever changes, update this statement.
+echo "\n\nRunning the performance tests as specified in $RVM_ROOT/rvm/regression/config/$2\n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
@@ -128,10 +132,10 @@ if [[ $numfailed -gt 0 ]] then
     >> $MSG
 fi
 
-
-# Removed at Mike Hind's request
 # Describe where the information can be found
-# echo "Further details of this run can be found in\n" >> $MSG
+# Describe where the information can be found
+ echo "Output of this run is available at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz\n" >> $MSG
+
 # echo "     run details: $RUN_LOG\n " >> $MSG
 # echo "     build details: $BUILD_LOG\n " >> $MSG
 # echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
