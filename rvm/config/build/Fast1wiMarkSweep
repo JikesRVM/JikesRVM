@@ -1,0 +1,2 @@
+   . $1/FastMarkSweep
+   export RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL=1   
