@@ -557,8 +557,8 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
     if (*fastExit) {
 	size_t namelen = strlen(sizeName);
 	fprintf(SysTraceFile, "\tPlease specify %s heap size (in megabytes) using \"-X%s<positive number>M\",\n", sizeName, sizeFlag);
-	fprintf(SysTraceFile, "\t               %*.*s        or (in kilobytes) using \"-X%s<positive number>K\",\n", namelen, namelen, " ", sizeFlag);
-	fprintf(SysTraceFile, "\t               %*.*s        or (in bytes) using \"-X%s<positive number>B\"\n", namelen, namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        or (in kilobytes) using \"-X%s<positive number>K\",\n", (int) namelen, (int) namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        or (in bytes) using \"-X%s<positive number>B\"\n", (int) namelen, (int) namelen, " ", sizeFlag);
 	return 0U;		// Dummy.
     } 
     unsigned int tot = hs * factor;
