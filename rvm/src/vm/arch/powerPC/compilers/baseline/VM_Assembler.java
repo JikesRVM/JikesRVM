@@ -1250,7 +1250,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   // new PowerPC instuctions
 
-  static final int SYNCtemplate = 31<<26 | 598<<1;
+  static final int SYNCtemplate = 31<<26 | 1 << 21 | 598<<1;
   
   final void emitSYNC () {
     INSTRUCTION mi = SYNCtemplate;
