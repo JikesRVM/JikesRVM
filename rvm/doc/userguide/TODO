@@ -45,6 +45,8 @@ completed.
      system described in the OOPSLA paper that there is probably some
      things to say here that won't be redundant with the paper.
 
+(13) Add blurb about support for SOOT-style annotations. (Mike will do this.)
+
 (99) General proof reading -- defer until most of the other items are
      done to avoid having to proof a section twice.
 
