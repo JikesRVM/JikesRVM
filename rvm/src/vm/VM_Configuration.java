@@ -72,7 +72,6 @@ public abstract class VM_Configuration {
 	  VM._assert(xxx);
       </pre> 
   */
-
   public static final boolean VerifyAssertions = 
         //-#if RVM_WITHOUT_ASSERTIONS
           false;
@@ -87,9 +86,10 @@ public abstract class VM_Configuration {
           false;
         //-#endif
 
-  /**  If set, verify that Uninterruptible methods actually cannot be
-       interrupted.   We have disabled this until we can fix the last couple
-       problem cases. */ 
+  /**  
+   * If set, verify that Uninterruptible methods actually cannot be
+   * interrupted.
+   */ 
   public static final boolean VerifyUnint = true && VerifyAssertions;
 
   // If set, ignore the supression pragma and print all warning messages.
@@ -172,6 +172,14 @@ public abstract class VM_Configuration {
       //-#else
         true;
       //-#endif
+
+  /** Do we use nonblocking I/O for files? */
+  public static final boolean NonBlockingFDs = 
+    //-#if RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH
+    true;
+    //-#else
+    false;
+    //-#endif
 
   /** The following configuration objects are final when disabled, but
       non-final when enabled. */

@@ -646,6 +646,7 @@ public class VM_FileSystem {
    * to cope later on.
    */
   private static void prepareStandardFd(int fd) {
+    if (VM.VerifyAssertions) VM._assert(VM.NonBlockingFDs);
     int isTTY = VM_SysCall.sysIsTTY(fd);
     if (isTTY == 0) {
       // This file descriptor is not connected to a tty, so we ASSUME
@@ -668,9 +669,11 @@ public class VM_FileSystem {
    * and java.lang.System.err
    */
   static void initializeStandardStreams() {
-    VM_FileSystem.prepareStandardFd(0);
-    VM_FileSystem.prepareStandardFd(1);
-    VM_FileSystem.prepareStandardFd(2);
+    if (VM.NonBlockingFDs) {
+      VM_FileSystem.prepareStandardFd(0);
+      VM_FileSystem.prepareStandardFd(1);
+      VM_FileSystem.prepareStandardFd(2);
+    }
     
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
