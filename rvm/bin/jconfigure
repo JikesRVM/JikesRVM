@@ -1524,6 +1524,7 @@ EOF
     echo "    echo 'java/lang/Cloneable'          >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/lang/VMObject'           >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'java/lang/VMSystem'           >> $PRIMORDIAL_CLASSES_STR.1"
+    echo "    echo 'java/lang/VMString'           >> $PRIMORDIAL_CLASSES_STR.1"
     echo "    echo 'gnu/classpath/Configuration' >> $PRIMORDIAL_CLASSES_STR.1"
 
     # reflection support

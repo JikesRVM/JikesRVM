@@ -162,6 +162,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.io.PrintWriter");
     runClassInitializer("gnu.java.lang.SystemClassLoader");
     runClassInitializer("java.lang.String");
+    runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
     runClassInitializer("java.util.WeakHashMap");

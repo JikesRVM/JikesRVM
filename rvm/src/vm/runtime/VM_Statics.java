@@ -207,10 +207,26 @@ public class VM_Statics implements VM_Constants {
   public static synchronized int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
     Integer slot = (Integer)stringLiterals.get(literal);
     if (slot != null) return slot.intValue();
+    String stringValue = literal.toUnicodeString();
+    if (VM.runningVM) stringValue = stringValue.intern();
     int newSlot = allocateSlot(STRING_LITERAL);
     stringLiterals.put(literal, new Integer(newSlot));
-    setSlotContents(newSlot, literal.toUnicodeString());
+    setSlotContents(newSlot, stringValue);
     return newSlot;
+  }
+
+  /**
+   * Try to find a string literal.
+   * @param     literal value
+   * @return    String literal if it exists, otherwise null.
+   */ 
+  public static synchronized String findStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
+    Integer slot = (Integer)stringLiterals.get(literal);
+    if (slot != null) {
+      int slotiv = slot.intValue();
+      return (String)getSlotContentsAsObject(slotiv);
+    }
+    return null;
   }
 
   /**
