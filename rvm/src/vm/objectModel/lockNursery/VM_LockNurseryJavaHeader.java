@@ -1,3 +1,6 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ */
 // $Id$
 
 /**
