@@ -23,7 +23,8 @@ BENCH_RVM_ARGS=-Djava.libaray.path=$(BENCH_CLASS_CP)
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
-        FieldAccess MethodInvocation MonitorTest StringFunctions 
+        FieldAccess MethodInvocation MonitorTest StringFunctions \
+	TestGC
 
 # TESTS that currently fail for one reason or another
 #       TEST			REASON FOR EXCLUSION
@@ -33,7 +34,7 @@ TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
 
-sanity: clean $(LIBS) $(TESTS)
+sanity: clean $(LIBS) $(TESTS) # 3GT
 	$(MAKE) do-sanity-finish
 
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
@@ -41,6 +42,10 @@ ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
 single:	clean $(ONE_TEST_LIB)
 	export LIBPATH=$(BENCH_CLASS_CP); $(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
 	$(MAKE) do-sanity-finish
+
+# 3GT test needs a different rule as the command line arguments to the test differ
+3GT:	libt3GT3.a
+	export LIBPATH=$(BENCH_CLASS_CP); $(MAKE) START_NAME=$(ONE_TEST) START_ARGS="1 50 5000 1 1" do-sanity-compare
 
 vpath %.c	$(BENCH_HOME)
 
