@@ -2184,13 +2184,12 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   }
 
   /**
-   * GetFieldID:  return the offset into the object instance, which can be cached in 
-   * native code and reused 
+   * GetFieldID:  return a field id, which can be cached in native code and reused 
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldNameAddress a raw address to a null-terminated string in C for the field name
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
-   * @return the index into the  of an instance field given the class, field name 
+   * @return the fieldID of an instance field given the class, field name 
    *         and type. Return 0 if the field is not found
    * @exception NoSuchFieldError if the specified field cannot be found
    * @exception ExceptionInInitializerError if the class initializer fails
@@ -2198,7 +2197,6 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    */
   private static int GetFieldID(int envJREF, int classJREF, 
                                 VM_Address fieldNameAddress, VM_Address descriptorAddress) {
-
     if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");  
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -2212,14 +2210,13 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
       // list of all instance fields including superclasses
       VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
-      int i = 0;
-      int length = fields.length;
-      for (i = 0; i < length; ++i) {
-        if (fields[i].getName() == fieldName && fields[i].getDescriptor() == descriptor) {
-          return i+1;                  // return index as 1-based to avoid the 0 value used for not found
+      for (int i = 0; i<fields.length; i++) {
+	VM_Field f = fields[i];
+        if (f.getName() == fieldName && f.getDescriptor() == descriptor) {
+          return f.getId(); 
 	}
       }
-
+      
       // create exception and return 0 if not found
       env.recordException(new NoSuchFieldError(fieldString + ", " + descriptorString + " of " + cls));
       return 0;                      
@@ -2234,25 +2231,19 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetObjectField: read a instance field of type Object
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @return the value of the Object field, converted to a JREF index
-   *         or 0 if the fieldIndex is incorrect
+   *         or 0 if the fieldID is incorrect
    */
-  private static int GetObjectField(int envJREF, int objJREF, int fieldIndex1) {
+  private static int GetObjectField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        Object objVal = field.getObjectUnchecked(obj);
-        return env.pushJNIRef(objVal);
-      } else {
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      Object objVal = field.getObjectUnchecked(obj);
+      return env.pushJNIRef(objVal);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2264,19 +2255,16 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetBooleanField: read an instance field of type boolean
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the boolean field, or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the boolean field, or 0 if the fieldID is incorrect
    */
-  private static int GetBooleanField(int envJREF, int objJREF, int fieldIndex1) {
+  private static int GetBooleanField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field==null) return 0;
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getBooleanValueUnchecked(obj) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2289,19 +2277,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetByteField:  read an instance field of type byte
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the byte field, or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the byte field, or 0 if the fieldID is incorrect
    */
-  private static int GetByteField(int envJREF, int objJREF, int fieldIndex1) {
+  private static int GetByteField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getByteValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getByteValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2313,19 +2299,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetCharField:  read an instance field of type character
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the character field, or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the character field, or 0 if the fieldID is incorrect
    */
-  private static int GetCharField(int envJREF, int objJREF, int fieldIndex1) {
+  private static int GetCharField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getCharValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getCharValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2337,19 +2321,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetShortField:  read an instance field of type short
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the short field, or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the short field, or 0 if the fieldID is incorrect
    */
-  private static int GetShortField(int envJREF, int objJREF, int fieldIndex1) {
+  private static int GetShortField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getShortValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getShortValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2361,19 +2343,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetIntField:  read an instance field of type integer
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the integer field, or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the integer field, or 0 if the fieldID is incorrect
    */
-  private static int GetIntField(int envJREF, int objJREF, int fieldIndex1) {
+  private static int GetIntField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getIntValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getIntValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2385,20 +2365,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetLongField:  read an instance field of type long
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the long field which is 8 bytes, 
-   *         or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the long field or 0 if the fieldID is incorrect
    */
-  private static long GetLongField(int envJREF, int objJREF, int fieldIndex1) {
+  private static long GetLongField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getLongValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getLongValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2410,24 +2387,21 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetFloatField:  read an instance field of type float
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the float field which is 4 bytes, 
-   *         or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the float field or 0 if the fieldID is incorrect
    */
-  private static float GetFloatField(int envJREF, int objJREF, int fieldIndex1) {
+  private static float GetFloatField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0f : field.getFloatValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getFloatValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0.0f;                      
+      return 0f;                      
     }
   }
 
@@ -2435,20 +2409,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetDoubleField:  read an instance field of type double
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
-   * @return the value of the double field which is 8 bytes, 
-   *         or 0 if the fieldIndex is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the double field or 0 if the fieldID is incorrect
    */
-  private static double GetDoubleField(int envJREF, int objJREF, int fieldIndex1) {
+  private static double GetDoubleField(int envJREF, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      return field == null ? 0 : field.getDoubleValueUnchecked(obj);
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getDoubleValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2460,22 +2431,18 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetObjectField: set a instance field of type Object
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param valueJREF a JREF index for the value to assign
    */
-  private static void SetObjectField(int envJREF, int objJREF, int fieldIndex1, int valueJREF) {
+  private static void SetObjectField(int envJREF, int objJREF, int fieldID, int valueJREF) {
     if (traceJNI) VM.sysWrite("JNI called: SetObjectField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
       Object value =  env.getJNIRef(valueJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setObjectValueUnchecked(obj,value);
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setObjectValueUnchecked(obj,value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2487,21 +2454,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetBooleanField: set an instance field of type boolean
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   boolean value to assign
    */
-  private static void SetBooleanField(int envJREF, int objJREF, int fieldIndex1, boolean value) {
+  private static void SetBooleanField(int envJREF, int objJREF, int fieldID, boolean value) {
     if (traceJNI) VM.sysWrite("JNI called: SetBooleanField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setBooleanValueUnchecked(obj,value);
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setBooleanValueUnchecked(obj,value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2512,21 +2475,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetByteField: set an instance field of type byte
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   byte value to assign
    */
-  private static void SetByteField(int envJREF, int objJREF, int fieldIndex1, byte value) {
+  private static void SetByteField(int envJREF, int objJREF, int fieldID, byte value) {
     if (traceJNI) VM.sysWrite("JNI called: SetByteField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setByteValueUnchecked(obj,value);    
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setByteValueUnchecked(obj,value);    
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2537,21 +2496,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetCharField: set an instance field of type char
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   char value to assign
    */
-  private static void SetCharField(int envJREF, int objJREF, int fieldIndex1, char value) {
+  private static void SetCharField(int envJREF, int objJREF, int fieldID, char value) {
     if (traceJNI) VM.sysWrite("JNI called: SetCharField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setCharValueUnchecked(obj,value);    
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setCharValueUnchecked(obj,value);    
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -2563,21 +2518,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetShortField: set an instance field of type short
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   short value to assign
    */
-  private static void SetShortField(int envJREF, int objJREF, int fieldIndex1, short value) {
+  private static void SetShortField(int envJREF, int objJREF, int fieldID, short value) {
     if (traceJNI) VM.sysWrite("JNI called: SetShortField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setShortValueUnchecked(obj,value);    
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setShortValueUnchecked(obj,value);    
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2588,21 +2539,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetIntField: set an instance field of type integer
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   integer value to assign
    */
-  private static void SetIntField(int envJREF, int objJREF, int fieldIndex1, int value) {
+  private static void SetIntField(int envJREF, int objJREF, int fieldID, int value) {
     if (traceJNI) VM.sysWrite("JNI called: SetIntField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setIntValueUnchecked(obj,value);    
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setIntValueUnchecked(obj,value);    
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2613,21 +2560,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetLongField: set an instance field of type long
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   long value to assign
    */
-  private static void SetLongField(int envJREF, int objJREF, int fieldIndex1, long value) {
+  private static void SetLongField(int envJREF, int objJREF, int fieldID, long value) {
     if (traceJNI) VM.sysWrite("JNI called: SetLongField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setLongValueUnchecked(obj,value);
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setLongValueUnchecked(obj,value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2638,21 +2581,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetFloatField: set an instance field of type float
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   float value to assign
    */
-  private static void SetFloatField(int envJREF, int objJREF, int fieldIndex1, float value) {
+  private static void SetFloatField(int envJREF, int objJREF, int fieldID, float value) {
     if (traceJNI) VM.sysWrite("JNI called: SetFloatField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setFloatValueUnchecked(obj,value);    
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setFloatValueUnchecked(obj,value);    
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2664,21 +2603,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetDoubleField: set an instance field of type double
    * @param envJREF a JREF index for the JNI environment object
    * @param objJREF a JREF index for the target object
-   * @param fieldIndex the index for the VM_Field that describes this field, 
-   *                   computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value   double value to assign
    */
-  private static void SetDoubleField(int envJREF, int objJREF, int fieldIndex1, double value) {
+  private static void SetDoubleField(int envJREF, int objJREF, int fieldID, double value) {
     if (traceJNI) VM.sysWrite("JNI called: SetDoubleField  \n");
 
-    int fieldIndex = fieldIndex1-1;
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Object obj =  env.getJNIRef(objJREF);
-      VM_Field field = VM_JNIEnvironment.getFieldAtIndex(obj, fieldIndex);
-      if (field != null) {
-        field.setDoubleValueUnchecked(obj,value);    
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setDoubleValueUnchecked(obj,value);    
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3450,8 +3385,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   }
 
   /**
-   * GetStaticFieldID:  return the offset into the JTOC, which can be cached in 
-   *                    native code and reused (use the offset into the JTOC)
+   * GetStaticFieldID:  return a field id which can be cached in native code and reused
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldNameAddress a raw address to a null-terminated string in C for the field name
@@ -3465,8 +3399,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   private static int GetStaticFieldID(int envJREF, int classJREF, 
                                       VM_Address fieldNameAddress, VM_Address descriptorAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
-
-
+    
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       Class cls = (Class) env.getJNIRef(classJREF);
@@ -3478,19 +3411,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
       // list of all instance fields including superclasses
       VM_Field[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getStaticFields();
-      VM_Field field = null;
       for (int i = 0; i < fields.length; ++i) {
-        field = fields[i];
-        if (field.getName() == fieldName && field.getDescriptor() == descriptor)
-          break;
+        VM_Field field = fields[i];
+        if (field.getName() == fieldName && field.getDescriptor() == descriptor) {
+          return field.getId();
+	}
       }
 
-      if (field == null) {
-        env.recordException(new NoSuchFieldError());
-        return 0;
-      } else {
-        return field.getOffset() ;     
-      }
+      env.recordException(new NoSuchFieldError(fieldString + ", " + descriptorString + " of " + cls));
+      return 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3502,25 +3431,18 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticObjectField: read a static field of type Object
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @return the value of the Object field, converted to a JREF index
-   *         or 0 if the fieldOffset is incorrect
+   *         or 0 if the fieldID is incorrect
    */
-  private static int GetStaticObjectField(int envJREF, int classJREF, int fieldOffset) {
+  private static int GetStaticObjectField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticObjectField  \n");
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots() && VM_Statics.isReference(slot)) {
-        // place this reference in the stack of the JNI environment
-        // and obtain its JREF index to return
-        Object ref =  VM_Statics.getSlotContentsAsObject(slot);
-        return env.pushJNIRef(ref);      
-      } else {
-        env.recordException(new Exception("invalid field ID in JNI GetStaticObjectField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      Object value = field.getObjectUnchecked(null);
+      return env.pushJNIRef(value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3532,21 +3454,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticBooleanField: read a static field of type boolean
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the boolean field, or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the boolean field, or 0 if the fieldID is incorrect
    */
-  private static int GetStaticBooleanField(int envJREF, int classJREF, int fieldOffset) {
+  private static int GetStaticBooleanField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticBooleanField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return VM_Statics.getSlotContentsAsInt(slot);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticBooleanField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getBooleanValueUnchecked(null) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3559,21 +3475,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticByteField:  read a static field of type byte
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the byte field, or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the byte field, or 0 if the fieldID is incorrect
    */
-  private static int GetStaticByteField(int envJREF, int classJREF, int fieldOffset) {
+  private static int GetStaticByteField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticByteField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return VM_Statics.getSlotContentsAsInt(slot);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticByteField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getByteValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3586,21 +3496,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticCharField:  read a static field of type character
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the character field, or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the character field, or 0 if the fieldID is incorrect
    */
-  private static int GetStaticCharField(int envJREF, int classJREF, int fieldOffset) {
+  private static int GetStaticCharField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticCharField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return VM_Statics.getSlotContentsAsInt(slot);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticCharField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getCharValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3613,21 +3517,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticShortField:  read a static field of type short
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the short field, or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the short field, or 0 if the fieldID is incorrect
    */
-  private static int GetStaticShortField(int envJREF, int classJREF, int fieldOffset) {
+  private static int GetStaticShortField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticShortField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return VM_Statics.getSlotContentsAsInt(slot);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticShortField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getShortValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3640,21 +3538,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticIntField:  read a static field of type integer
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the integer field, or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the integer field, or 0 if the fieldID is incorrect
    */
-  private static int GetStaticIntField(int envJREF, int classJREF, int fieldOffset) {
+  private static int GetStaticIntField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticIntField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return VM_Statics.getSlotContentsAsInt(slot);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticObjectField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getIntValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3667,23 +3559,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticLongField:  read a static field of type long
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the long field which is 8 bytes, 
-   *         or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the long field or 0 if the fieldID is incorrect
    */
-  private static long GetStaticLongField(int envJREF, int classJREF, int fieldOffset) {
+  private static long GetStaticLongField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticLongField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;      
-      if ((slot+1)<VM_Statics.getNumberOfSlots()) {
-        long val = VM_Statics.getSlotContentsAsLong(slot);
-        return val;
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticLongField"));
-        return 0L;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getLongValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3696,22 +3580,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticFloatField:  read a static field of type float
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the float field which is 4 bytes, 
-   *         or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the float field or 0 if the fieldID is incorrect
    */
-  private static float GetStaticFloatField(int envJREF, int classJREF, int fieldOffset) {
+  private static float GetStaticFloatField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFloatField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return Float.intBitsToFloat(VM_Statics.getSlotContentsAsInt(slot));
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticFloatField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getFloatValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3724,22 +3601,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * GetStaticDoubleField:  read a static field of type double
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
-   * @return the value of the double field which is 8 bytes, 
-   *         or 0 if the fieldOffset is incorrect
+   * @param fieldID the id for the VM_Field that describes this field
+   * @return the value of the double field or 0 if the fieldID is incorrect
    */
-  private static double GetStaticDoubleField(int envJREF, int classJREF, int fieldOffset) {
+  private static double GetStaticDoubleField(int envJREF, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticDoubleField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        return Double.longBitsToDouble(VM_Statics.getSlotContentsAsLong(slot));
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI GetStaticDoubleField"));
-        return 0;
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      return field.getDoubleValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3752,21 +3622,17 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticObjectField:  set a static field of type Object
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticObjectField(int envJREF, int classJREF, int fieldOffset, int objectJREF) {
+  private static void SetStaticObjectField(int envJREF, int classJREF, int fieldID, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticObjectField  \n");
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       Object ref = env.getJNIRef(objectJREF);      
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents(slot,ref);
-      } else {
-        env.recordException(new Exception("invalid field ID in JNI SetStaticObjectField"));
-      }
+      field.setObjectValueUnchecked(null, ref);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3777,24 +3643,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticBooleanField:  set a static field of type boolean
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticBooleanField(int envJREF, int classJREF, int fieldOffset, boolean fieldValue) {
+  private static void SetStaticBooleanField(int envJREF, int classJREF, int fieldID, boolean fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticBooleanField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        if (fieldValue == true) {
-          VM_Statics.setSlotContents(slot,1);
-	} else {
-          VM_Statics.setSlotContents(slot,0);
-	}
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticBooleanField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setBooleanValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3806,20 +3663,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticByteField:  set a static field of type byte
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticByteField(int envJREF, int classJREF, int fieldOffset, byte fieldValue) {
+  private static void SetStaticByteField(int envJREF, int classJREF, int fieldID, byte fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticByteField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents(slot,(int)fieldValue);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticByteField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setByteValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3831,20 +3683,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticCharField:  set a static field of type char
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticCharField(int envJREF, int classJREF, int fieldOffset, char fieldValue) {
+  private static void SetStaticCharField(int envJREF, int classJREF, int fieldID, char fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticCharField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents(slot,(int)fieldValue);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticCharField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setCharValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3856,20 +3703,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticShortField:  set a static field of type short
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticShortField(int envJREF, int classJREF, int fieldOffset, short fieldValue) {
+  private static void SetStaticShortField(int envJREF, int classJREF, int fieldID, short fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticShortField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents(slot,(int)fieldValue);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticShortField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setShortValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3881,20 +3723,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticIntField:  set a static field of type integer
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticIntField(int envJREF, int classJREF, int fieldOffset, int fieldValue) {
+  private static void SetStaticIntField(int envJREF, int classJREF, int fieldID, int fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticIntField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents(slot,fieldValue);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticIntField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setIntValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3906,20 +3743,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticLongField:  set a static field of type long
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticLongField(int envJREF, int classJREF, int fieldOffset, long fieldValue) {
+  private static void SetStaticLongField(int envJREF, int classJREF, int fieldID, long fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticLongField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents(slot,fieldValue);
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticLongField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setLongValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3931,20 +3763,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticFloatField:  set a static field of type float
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticFloatField(int envJREF, int classJREF, int fieldOffset, float fieldValue) {
+  private static void SetStaticFloatField(int envJREF, int classJREF, int fieldID, float fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticFloatField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents( slot, Float.floatToIntBits(fieldValue) );
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticFloatField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setFloatValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3956,20 +3783,15 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * SetStaticDoubleField:  set a static field of type float
    * @param envJREF a JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
-   * @param fieldOffset the offset into the JTOC for this field, computed and saved earlier
+   * @param fieldID the id for the VM_Field that describes this field
    * @param value to assign
    */
-  private static void SetStaticDoubleField(int envJREF, int classJREF, int fieldOffset, double fieldValue) {
+  private static void SetStaticDoubleField(int envJREF, int classJREF, int fieldID, double fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticDoubleField  \n");
 
     try {
-      int slot = fieldOffset>>LOG_BYTES_IN_INT;
-      if (slot<VM_Statics.getNumberOfSlots()) {
-        VM_Statics.setSlotContents( slot, Double.doubleToLongBits(fieldValue) );
-      } else {
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        env.recordException(new Exception("invalid field ID in JNI SetStaticDoubleField"));
-      }
+      VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      field.setDoubleValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();

@@ -104,32 +104,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * (cannot be placed in VM_JNIFunction because methods there are specially compiled
    * to be called from native)
    *****************************************************************************/
-
-
-  /**
-   * Get a VM_Field of an object given the index for this field
-   * @param obj an Object
-   * @param fieldIndex an index into the VM_Field array that describes the fields of this object
-   * @return the VM_Field pointed to by the index, or null if the index or the object is invalid
-   *
-   */
-  public static VM_Field getFieldAtIndex (Object obj, int fieldIndex) {
-    // VM.sysWrite("GetObjectField: field at index " + fieldIndex + "\n");
-
-    VM_Type objType = VM_Magic.getObjectType(obj);
-    if (objType.isClassType()) {
-      VM_Field[] fields = objType.asClass().getInstanceFields();
-      if (fieldIndex>=fields.length) {
-	return null;                                      // invalid field index
-      } else {
-	return fields[fieldIndex];
-      } 
-    } else {
-      // object is not a class type, probably an array or an invalid reference
-      return null;
-    }
-  }
-
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
    * (object creation)
@@ -168,10 +142,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
       argObjs = packageParameterFromVarArg(mth, varargAddress);
 
     // construct the new object
-    Object newobj = constMethod.newInstance(argObjs);
-    
-    return newobj;
-
+    return constMethod.newInstance(argObjs);
   }
 
   /**
@@ -186,7 +157,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
 	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
     VM_Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
-
   }
 
   /**
@@ -207,7 +177,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
 
     VM_Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
-
   }
 
   /**
@@ -284,12 +253,10 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * @return the starting address of the vararg in the caller stack frame
    */
   private static VM_Address getVarArgAddress(boolean skip4Args) {
-    
     VM_Address fp = VM_Magic.getFramePointer();
     fp = VM_Magic.getMemoryAddress(fp);
     fp = VM_Magic.getMemoryAddress(fp);
     return (fp.add(2*4 + (skip4Args ? 4*4 : 3*4)));
-
   }
 
   /**
@@ -300,9 +267,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    */
   public static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_TypeReference expectReturnType) 
     throws Exception {
-
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
-
   }
 
   /**
@@ -317,9 +282,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   public static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
-
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
-
   }
 
   /**
@@ -346,9 +309,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   public static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
 					VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
-
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
-
   }
 
   /**
@@ -376,13 +337,12 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
 
-    if (VM_JNIFunctions.traceJNI) 
-	VM.sysWrite("JNI CallXXXMethod:  (mid " + 
-		    methodID + 
-		    ") " +
-		    targetMethod.getDeclaringClass().toString() + 
-		    "." + 
-		    targetMethod.getName().toString() + "\n");
+    if (VM_JNIFunctions.traceJNI) {
+      VM.sysWrite("JNI CallXXXMethod:  (mid " + methodID + ") " +
+		  targetMethod.getDeclaringClass().toString() + 
+		  "." + 
+		  targetMethod.getName().toString() + "\n");
+    }
     
     if (expectReturnType==null) {   // for reference return type 
       if (!returnType.isReferenceType())
@@ -402,10 +362,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     }
 
     // now invoke the method
-    Object returnObj = VM_Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
-    
-    return returnObj;
-
+    return VM_Reflection.invoke(targetMethod, obj, argObjectArray, skip4Args);
   }
 
   /**
@@ -421,76 +378,53 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
 
-    // get the VM_JNIEnvironment for this thread in case we need to dereference any object arg
-    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-
-    // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
-
     VM_Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
-
       int loword = VM_Magic.getMemoryInt(addr);
-      int hiword;
-
-      // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + loword + 
-      // " or " + VM.intAsHexString(loword) + "\n");
-
       addr = addr.add(4);
 
       // convert and wrap the argument according to the expected type
-
       if (argTypes[i].isFloatType()) {
 	// NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
 	// so we have to extract it as a double and convert it back to a float
-	hiword = VM_Magic.getMemoryInt(addr);
+	int hiword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);                       
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
-	
       } else if (argTypes[i].isDoubleType()) {
-	hiword = VM_Magic.getMemoryInt(addr);
+	int hiword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-
       } else if (argTypes[i].isLongType()) { 
-	hiword = VM_Magic.getMemoryInt(addr);
+	int hiword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
-
       } else if (argTypes[i].isBooleanType()) {
 	// the 0/1 bit is stored in the high byte		
 	argObjectArray[i] = VM_Reflection.wrapBoolean(loword);
-
       } else if (argTypes[i].isByteType()) {
 	// the target byte is stored in the high byte
 	argObjectArray[i] = VM_Reflection.wrapByte((byte) loword);
-
       } else if (argTypes[i].isCharType()) {
 	// char is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapChar((char) loword);
-
       } else if (argTypes[i].isShortType()) {
 	// short is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapShort((short) loword);
-
       } else if (argTypes[i].isReferenceType()) {
 	// for object, the arg is a JREF index, dereference to get the real object
+	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
 	argObjectArray[i] =  env.getJNIRef(loword);   
-
       } else if (argTypes[i].isIntType()) {
 	argObjectArray[i] = VM_Reflection.wrapInt(loword);
-
       } else {
 	return null;
       }
-
     }
 
     return argObjectArray;
-    
-
   }
 
   /**
@@ -502,7 +436,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * @return an Object array holding the arguments wrapped at Objects
    */
   static Object[] packageParameterFromJValue(VM_Method targetMethod, VM_Address argAddress) {
-
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -510,137 +443,44 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     // get the VM_JNIEnvironment for this thread in case we need to dereference any object arg
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
 
-    // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
-
     VM_Address addr = argAddress;
     for (int i=0; i<argCount; i++, addr = addr.add(8)) {
-
       int loword = VM_Magic.getMemoryInt(addr);
       int hiword;
-
-      // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + loword + 
-      //  " or " + VM.intAsHexString(loword) + ", at address " + 
-      //	  VM.intAsHexString(addr) + "\n");
-
       // convert and wrap the argument according to the expected type
-
       if (argTypes[i].isFloatType()) {
 	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
-
       } else if (argTypes[i].isDoubleType()) {
 	hiword = VM_Magic.getMemoryInt(addr.add(4));
 	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-
       } else if (argTypes[i].isLongType()) { 
 	hiword = VM_Magic.getMemoryInt(addr.add(4));
 	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
-
       } else if (argTypes[i].isBooleanType()) {
 	// the 0/1 bit is stored in the high byte	
 	argObjectArray[i] = VM_Reflection.wrapBoolean(loword & 0x000000FF);
-
       } else if (argTypes[i].isByteType()) {
 	// the target byte is stored in the high byte
 	argObjectArray[i] = VM_Reflection.wrapByte((byte) (loword & 0x000000FF));
-
       } else if (argTypes[i].isCharType()) {
 	// char is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapChar((char) (loword & 0x0000FFFF));
-
       } else if (argTypes[i].isShortType()) {
 	// short is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapShort((short) (loword & 0x0000FFFF));
-
       } else if (argTypes[i].isReferenceType()) {
 	// for object, the arg is a JREF index, dereference to get the real object
 	argObjectArray[i] =  env.getJNIRef(loword);   
-
       } else if (argTypes[i].isIntType()) {
 	argObjectArray[i] = VM_Reflection.wrapInt(loword);
-
       } else {
 	return null;
       }
-
     }
 
     return argObjectArray;
-
-
-  }
-
-  /**
-   * Given an address in C that points to a null-terminated string,
-   * create a new Java byte[] with a copy of the string
-   * @param stringAddress an address in C space for a string
-   * @return a new Java byte[]
-   */
-  static byte[] createByteArrayFromC(VM_Address stringAddress) {
-    int word;
-    int length = 0;
-    VM_Address addr = stringAddress;
-
-    // scan the memory for the null termination of the string
-    while (true) {
-      word = VM_Magic.getMemoryInt(addr);
-      int byte3 = ((word >> 24) & 0xFF);
-      int byte2 = ((word >> 16) & 0xFF);
-      int byte1 = ((word >> 8) & 0xFF);
-      int byte0 = (word & 0xFF);
-      if (byte0==0)
-	break;
-      length++;
-      if (byte1==0) 
-	break;
-      length++;
-      if (byte2==0)
-	break;
-      length++;
-      if (byte3==0)
-	break;
-      length++;
-      addr = addr.add(4);
-    }
-
-   byte[] contents = new byte[length];
-   VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
-   
-   return contents;
-  }
-
-  /**
-   * Given an address in C that points to a null-terminated string,
-   * create a new Java String with a copy of the string
-   * @param stringAddress an address in C space for a string
-   * @return a new Java String
-   */
-  static String createStringFromC(VM_Address stringAddress) {
-
-    byte[] contents = createByteArrayFromC( stringAddress );
-    return new String(contents);
-  }
-
-  public void dumpJniRefsStack () throws VM_PragmaUninterruptible {
-    int jniRefOffset = JNIRefsTop;
-    VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
-    VM.sysWrite("* JNIRefs = ");
-    VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs));
-    VM.sysWrite(" * JNIRefsTop = ");
-    VM.sysWrite(JNIRefsTop);
-    VM.sysWrite(" * JNIRefsSavedFP = ");
-    VM.sysWrite(JNIRefsSavedFP);
-    VM.sysWrite(".\n*\n");
-    while ( jniRefOffset >= 0 ) {
-      VM.sysWrite(jniRefOffset);
-      VM.sysWrite(" ");
-      VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
-      VM.sysWrite(" ");
-      MM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[ jniRefOffset >> 2 ]));
-      jniRefOffset -= 4;
-    }
-    VM.sysWrite("\n* * end of dump * *\n");
   }
 
 }
