@@ -47,6 +47,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
 
   static void boot() {
     VM_Callbacks.addExitMonitor(new VM_GCStatistics());
+    VM_Callbacks.addAppRunStartMonitor(new VM_GCStatistics());
   }
 
   /**
