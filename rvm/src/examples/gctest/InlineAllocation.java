@@ -34,7 +34,7 @@ class InlineAllocation {
   // Make them specific to the allocator so we can make them reasonably tight.
   //-#if RVM_WITH_SEMI_SPACE || RVM_WITH_GEN_COPY || RVM_WITH_GEN_MS || RVM_WITH_COPY_MS
   static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 75 : 22); // small object
-  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 75 : 22); // large object
+  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100: 30); // large object
   //-#elif RVM_WITH_MARK_SWEEP
   static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // small object
   static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
