@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -101,36 +101,6 @@ public class VM_StackTrace implements VM_Constants {
   }
   
 
-//   /**
-//    * Print stack trace.
-//    * This is the "classic" routine that I'm attempting to replace --augart
-//    * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
-//    * deal with inlining by the opt compiler in a sensible fashion.
-//    * This is identical to the method print(PrintWriter out), except for the
-//    * type of the argument.@param out
-//    * 
-//    * @param out        stream to print on
-//    */
-//   public void print(PrintStream out) {
-//     for (int i = 0; i<compiledMethods.length; i++) {
-//       if (i == elideAfterThisManyFrames) { 
-// 	// large stack - suppress excessive output
-// 	int oldIndex = i;
-// 	int newIndex = compiledMethods.length - 10;
-// 	if (newIndex > oldIndex) {
-// 	  i = newIndex;
-// 	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
-// 	}
-//       }
-//       VM_CompiledMethod cm = compiledMethods[i];
-//       if (cm == null) {
-// 	out.println("\tat <invisible method>");
-//       } else {
-// 	cm.printStackTrace(offsets.get(i), out);
-//       }
-//     }
-//   }
-   
   /** The common prelude used by all. */
   private static Method preludeMarker = getPreludeMarker();
   
@@ -164,10 +134,6 @@ public class VM_StackTrace implements VM_Constants {
     int foundTriggerAt = -1;	// -1 is a sentinel value; important in code
 				// below. 
     Class triggerClass = trigger.getClass();
-    // We need to get the VM_Class for trigger, not the Class.
-    // arggh, triggerClass.type is only accessible from vmclass.
-    // XXX Broken
-    
     /* So, elide up to the triggeringMethod.  If we never find the
      * triggeringMethod, then note an error and revert to the old way of doing
      * things, by printing from the top of the stack down. */
@@ -230,33 +196,4 @@ public class VM_StackTrace implements VM_Constants {
       }
     }
   }
-//   /**
-//    * Print stack trace.
-//    * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
-//    * deal with inlining by the opt compiler in a sensible fashion.
-//    * This is identical to the method print(PrintStream out), except for the
-//    * type of.@param out
-//    * 
-//    * @param out        printwriter to print on
-//    */
-//   public void print(PrintWriter out) {
-//     for (int i = 0; i < compiledMethods.length; ++i) {
-//       if (i == elideAfterThisManyFrames) { 
-// 	// large stack - suppress excessive output
-// 	int oldIndex = i;
-// 	int newIndex = compiledMethods.length - 10;
-// 	if (newIndex > oldIndex) {
-// 	  i = newIndex;
-// 	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
-// 	}
-//       }
-
-//       VM_CompiledMethod cm = compiledMethods[i];
-//       if (cm == null) {
-// 	out.println("\tat <invisible method>");
-//       } else {
-// 	cm.printStackTrace(offsets.get(i), out);
-//       }
-//     }
-//   }
 }
