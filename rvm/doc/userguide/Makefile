@@ -27,7 +27,7 @@ MAKEINDEX ?= makeindex
 HYPERLATEX ?= hyperlatex
 PS2GIF ?= ps2gif
 
-INPUT_FILES = 	main.tex \
+INPUT_FILES = 	userguide.tex \
 		ack.tex \
 		aosdetails.tex \
 		cmdline.tex \
