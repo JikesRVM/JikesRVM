@@ -1615,7 +1615,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     //     Inject a fresh copy instruction to make sure we aren't
     //     going to get into trouble (if someone else was also using index).
     OPT_RegisterOperand newIndex = burs.ir.regpool.makeTempInt(); 
-    burs.append(Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))); 
+    burs.append(MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))); 
     int number = LowTableSwitch.getNumberOfTargets(s);
     OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex, number*2));
     for (int i=0; i<number; i++) {

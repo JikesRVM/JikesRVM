@@ -44,14 +44,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
 	  OPT_BasicBlock nextBlock = 
 	    tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
 	  nextBlock.firstInstruction().setmcOffset(-1);
-	  OPT_Register regI = LowTableSwitch.getIndex(p).register;
-	  int NumTargets = LowTableSwitch.getNumberOfTargets(p);
+	  OPT_Register regI = MIR_LowTableSwitch.getIndex(p).register;
+	  int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
 	  tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, 
 							nextBlock.makeJumpTarget()));
 
 	  for (int i = 0; i < NumTargets; i++) {
 	    tableBlock.appendInstruction(MIR_DataLabel.create(PPC_DATA_LABEL, 
-							      LowTableSwitch.getClearTarget(p, i)));
+							      MIR_LowTableSwitch.getClearTarget(p, i)));
 	  }
 	  OPT_Register temp = phys.getGPR(0);
 	  p.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getLR())));
