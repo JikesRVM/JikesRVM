@@ -77,11 +77,12 @@ public final class HPM_info
       System.out.println(short_names[i]+" ");
     }
   }
-  public String short_name(int i){
+  public String short_name(int i) throws VM_PragmaUninterruptible {
     if (i>numberOfCounters) {
-      System.err.println("***HPM_info.short_name("+i+") "+i+" > number of counters "+
-			 numberOfCounters+"!***");
-      System.exit(-1);
+      VM.sysWrite("***HPM_info.short_name(");VM.sysWrite(i);VM.sysWrite(") ");VM.sysWrite(i);
+      VM.sysWrite(" > number of counters ");VM.sysWrite(numberOfCounters);VM.sysWrite("!***");
+      VM.sysWriteln();
+      VM.sysExit(VM.exitStatusHPMTrouble);
     }
     return short_names[i];
   }
