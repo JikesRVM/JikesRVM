@@ -420,6 +420,32 @@ public final class OPT_SSADictionary implements OPT_Operators {
     }
   }
 
+
+  /** 
+   * Delete an HeapOperand from the use chain of its heap variable
+   *
+   * @param op the heap operand to be deleted 
+   */
+  public void deleteFromUseChain (OPT_HeapOperand op)
+  {
+    OPT_HeapVariable hv = op.getHeapVariable();
+    HashSet u = (HashSet)UseChain.get(hv);
+    u.remove (op);
+  }
+  
+  /** 
+   * Add an HeapOperand to the use chain of its heap variable
+   *
+   * @param op the heap operand to be added 
+   */
+  public void addToUseChain (OPT_HeapOperand op)
+  {
+    OPT_HeapVariable hv = op.getHeapVariable();
+    HashSet u = (HashSet)UseChain.get(hv);
+    u.add (op);
+  }
+
+  
   /** 
    * Create a heap control phi instruction, and store it at the
    * beginning of a basic block.
@@ -1158,7 +1184,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @param b s's basic block
    */
-  private void addExceptionStateToDefs (OPT_Instruction s, OPT_BasicBlock b) {
+  public void addExceptionStateToDefs (OPT_Instruction s, OPT_BasicBlock b) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     OPT_HeapVariable H = findOrCreateHeapVariable(exceptionState);
     H.registerDef(b);
@@ -1174,7 +1200,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    *
    * @param s the instruction in question
    */
-  private void addExceptionStateToUses (OPT_Instruction s) {
+  public void addExceptionStateToUses (OPT_Instruction s) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     OPT_HeapVariable H = findOrCreateHeapVariable(exceptionState);
     OPT_HeapOperand[] Hprime = extendHArray ((OPT_HeapOperand[]) uses.get(s));
