@@ -193,7 +193,9 @@ final class OPT_GenerationContext implements OPT_Constants,
     original_method = meth;
     original_cm = cm;
     method = meth;
-    branchProfiles = VM_EdgeCounts.getBranchProfiles(meth);
+    if (opts.FREQUENCY_STRATEGY == OPT_Options.COUNTERS_FREQ) {
+      branchProfiles = VM_EdgeCounts.getBranchProfiles(meth);
+    }
     options = opts;
     inlinePlan = ip;
     inlineSequence = new OPT_InlineSequence(meth);

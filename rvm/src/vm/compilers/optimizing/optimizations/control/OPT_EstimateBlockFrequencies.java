@@ -49,7 +49,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    */
   private OPT_BasicBlock[] topOrder;
 
-  public String getName () { return  "Estimate Block Frequencies"; }
+  public String getName() { return  "Estimate Block Frequencies"; }
 
   /**
    * Compute relative basic block frequencies for the argument IR based on the
@@ -58,9 +58,15 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    *              (2) basic block numbering is dense (compact has been called).
    * @param _ir the IR on which to apply the phase
    */
-  public void perform (OPT_IR _ir) {
+  public void perform(OPT_IR _ir) {
     // Prepare 
     ir = _ir;
+
+    if (ir.options.FREQUENCY_STRATEGY == OPT_Options.DUMB_FREQ) {
+      setDumbFrequencies(ir);
+      return;
+    }
+
     ir.cfg.resetTopSorted();
     ir.cfg.buildTopSort();
     topOrder = new OPT_BasicBlock[ir.cfg.numberOfNodes()];
@@ -94,6 +100,15 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     computeInfrequentBlocks(ir);
   }
 
+  /**
+   * Set the frequency of each basic block to 1.0f.
+   */
+  private void setDumbFrequencies(OPT_IR ir) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      OPT_BasicBlock bb = e.next();
+      bb.setExecutionFrequency(1f);
+    }
+  }
   /**
    * Compute which blocks are infrequent.
    * Algorithm: let f = INFREQUENT_THRESHOLD.

@@ -77,6 +77,12 @@ V ALLOC_ADVICE_SITES String null
 Read allocation advice attributes for all classes from this file
  
  
+E FREQUENCY_STRATEGY byte COUNTERS_FREQ
+How to compute block and edge frequencies?
+"COUNTERS_FREQ frequencyCounters counters" \
+"STATIC_FREQ staticFrequencyEstimates static" \
+"DUMB_FREQ dumbFrequency dumb"
+
 E FREQUENCY_QUALITY byte SHADES_OF_GREY
 How to interpret block and edge frequencies?
 "BLACK_AND_WHITE bw bw" \

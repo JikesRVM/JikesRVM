@@ -19,7 +19,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Execute loop invariant code motion on the given IR.
    * @param ir
    */
-  void perform (OPT_IR ir) {
+  void perform(OPT_IR ir) {
     this.ir = ir;
 
     if (false && ir.hasReachableExceptionHandlers()) {
@@ -82,7 +82,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Should this phase be executed?
    * @param options
    */
-  boolean shouldPerform (OPT_Options options) {
+  boolean shouldPerform(OPT_Options options) {
     return  options.GCP || options.VERBOSE_GCP;
   }
   
@@ -90,7 +90,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Report that we feel really sick for the given reason.
    * @param reason
    */
-  static void BARF (String reason) {
+  static void BARF(String reason) {
     throw  new OPT_OptimizingCompilerException(reason);
   }
   
@@ -102,7 +102,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst
    * @param ir
    */
-  public static boolean shouldMove (OPT_Instruction inst, OPT_IR ir) {
+  public static boolean shouldMove(OPT_Instruction inst, OPT_IR ir) {
     if ((  inst.isAllocation())
 	|| inst.isDynamicLinkingPoint()
 	|| inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode)
@@ -249,7 +249,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Schedule this instruction as early as possible
    * @param inst
    */
-  private OPT_Instruction scheduleEarly (OPT_Instruction inst)
+  private OPT_Instruction scheduleEarly(OPT_Instruction inst)
   {
     OPT_Instruction earlyPos;
 
@@ -298,7 +298,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Schedule as late as possible.
    * @param inst
    */
-  OPT_BasicBlock scheduleLate (OPT_Instruction inst)
+  OPT_BasicBlock scheduleLate(OPT_Instruction inst)
   {
     if (DEBUG) VM.sysWrite ("Schedule Late: "+inst+"\n");
     
@@ -355,8 +355,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * tree. `a' must dominate `b' and `a' and `b' must belong to
    * different blocks.
    */
-  private OPT_Instruction dominanceSuccessor (OPT_Instruction a,
-					      OPT_Instruction b)
+  private OPT_Instruction dominanceSuccessor(OPT_Instruction a, OPT_Instruction b)
   {
     OPT_BasicBlock aBlock = getBlock (a);
     OPT_BasicBlock bBlock = getBlock (b);
@@ -378,8 +377,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * compare a and b according to their depth in the dominator tree
    * and return the one with the greatest depth.
    */
-  private OPT_Instruction maxDominatorDepth (OPT_Instruction a,
-					     OPT_Instruction b)
+  private OPT_Instruction maxDominatorDepth(OPT_Instruction a, OPT_Instruction b)
   {
     OPT_BasicBlock aBlock = getBlock(a);
     OPT_BasicBlock bBlock = getBlock(b);
@@ -398,8 +396,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   }
 
   
-  private OPT_BasicBlock commonDominator (OPT_BasicBlock a, OPT_BasicBlock b)
-  {
+  private OPT_BasicBlock commonDominator(OPT_BasicBlock a, OPT_BasicBlock b) {
     //VM.sysWrite ("CD: "+a+", "+b);
     if (a == null) return b;
     if (b == null) return a;
@@ -419,7 +416,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Schedule me as early as possible,
    * but behind the definitions in e and behind earlyPos
    */
-  private OPT_Instruction scheduleScalarDefsEarly (OPT_OperandEnumeration e, 
+  private OPT_Instruction scheduleScalarDefsEarly(OPT_OperandEnumeration e, 
 						   OPT_Instruction earlyPos,
 						   OPT_Instruction inst) {
     while (e.hasMoreElements()) {
@@ -428,7 +425,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
       scheduleEarly (def);
 
-      if (def.isBranch()) def = dominanceSuccessor (def, inst);
+      if (def.isBranch()) def = dominanceSuccessor(def, inst);
 	
       earlyPos = maxDominatorDepth (def, earlyPos);
     }
@@ -637,9 +634,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * How expensive is it to place an instruction in this block?
    */
   final float frequency (OPT_BasicBlock b) {
-    if (!ir.options.FREQ_OPT)
-      return  (float) ir.HIRInfo.LoopStructureTree.getLoopNestDepth(b);
+    // SJF: For now, just rely on the loop nest depth; anything else
+    // doesn't seem to pass sanity.  TODO: fix this.
+    return (float)ir.HIRInfo.LoopStructureTree.getLoopNestDepth(b);
 
+    /*
     if (ir.options.bw()) {
       if (b.getInfrequent()) return (float) -1.0;
       return  (float) ir.HIRInfo.LoopStructureTree.getLoopNestDepth(b);
@@ -647,6 +646,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
     // shades of gray:
     return b.getExecutionFrequency();
+    */
   }
   
   /**
