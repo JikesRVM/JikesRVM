@@ -47,58 +47,45 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
   static VM_NullListener[] nullListeners = new VM_NullListener[0];
 
   /**
-   * An object to synchronize on when updating the listener arrays.
-   * This is a kludge to deal with the fact we can't put static 
-   * synchronized methods in the bootimage.
-   */
-  private static Object listenerLock = new Object();
-
-  /**
    * Install a method listener
    * @param s method listener to be installed
    */
-  static void installMethodListener(VM_MethodListener s) { 
-    synchronized(listenerLock) {
-      int numListeners = methodListeners.length;
-      VM_MethodListener[] tmp = new VM_MethodListener[numListeners+1];
-      for (int i=0; i<numListeners; i++) {
-	tmp[i] = methodListeners[i];
-      }
-      tmp[numListeners] = s;
-      methodListeners = tmp;
+  static synchronized void installMethodListener(VM_MethodListener s) { 
+    int numListeners = methodListeners.length;
+    VM_MethodListener[] tmp = new VM_MethodListener[numListeners+1];
+    for (int i=0; i<numListeners; i++) {
+      tmp[i] = methodListeners[i];
     }
+    tmp[numListeners] = s;
+    methodListeners = tmp;
   }
 
   /**
    * Install a context listener
    * @param s context listener to be installed
    */
-  static void installContextListener(VM_ContextListener s) { 
-    synchronized(listenerLock) {
-      int numListeners = contextListeners.length;
-      VM_ContextListener[] tmp = new VM_ContextListener[numListeners+1];
-      for (int i=0; i<numListeners; i++) {
-	tmp[i] = contextListeners[i];
-      }
-      tmp[numListeners] = s;
-      contextListeners = tmp;
+  static synchronized void installContextListener(VM_ContextListener s) { 
+    int numListeners = contextListeners.length;
+    VM_ContextListener[] tmp = new VM_ContextListener[numListeners+1];
+    for (int i=0; i<numListeners; i++) {
+      tmp[i] = contextListeners[i];
     }
+    tmp[numListeners] = s;
+    contextListeners = tmp;
   }
 
   /**
    * Install a null listener
    * @param s null listener to be installed
    */
-  static void installNullListener(VM_NullListener s) { 
-    synchronized(listenerLock) {
-      int numListeners = nullListeners.length;
-      VM_NullListener[] tmp = new VM_NullListener[numListeners+1];
-      for (int i=0; i<numListeners; i++) {
-	tmp[i] = nullListeners[i];
-      }
-      tmp[numListeners] = s;
-      nullListeners = tmp;
+  static synchronized void installNullListener(VM_NullListener s) { 
+    int numListeners = nullListeners.length;
+    VM_NullListener[] tmp = new VM_NullListener[numListeners+1];
+    for (int i=0; i<numListeners; i++) {
+      tmp[i] = nullListeners[i];
     }
+    tmp[numListeners] = s;
+    nullListeners = tmp;
   }
 
   /**
@@ -276,12 +263,10 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
   /**
    * Stop the runtime measurement subsystem
    */
-  static void stop() {
-    synchronized(listenerLock) {
-      methodListeners = new VM_MethodListener[0];
-      contextListeners = new VM_ContextListener[0];
-      nullListeners = new VM_NullListener[0];
-    }
+  static synchronized void stop() {
+    methodListeners = new VM_MethodListener[0];
+    contextListeners = new VM_ContextListener[0];
+    nullListeners = new VM_NullListener[0];
   }
     
   /**
